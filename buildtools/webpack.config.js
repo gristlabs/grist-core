@@ -7,7 +7,7 @@ const path = require('path');
 module.exports = {
   target: 'web',
   entry: {
-    main: "./build/app/client/ui/PagePanels.js",
+    main: "./build/app/client/index.js",
   },
   output: {
     filename: "[name].bundle.js",
