@@ -8,7 +8,16 @@
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "moduleResolution": "node",
+    "allowJs": true,
     "baseUrl": "..",
+    "rootDir": "..",
+    "outDir": "../_build",
+    "paths": {
+      "*": [
+        "*",
+        "grist-core/*",
+      ],
+    },
     "composite": true,
     "plugins": [{
       "name": "typescript-tslint-plugin"

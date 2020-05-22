@@ -1,9 +1,9 @@
 {
   "files": [],
-    "include": [],
-    "references": [
-      { "path": "./client" },
-      { "path": "./server" },
-      { "path": "./common" },
-    ]
+  "include": [],
+  "references": [
+    { "path": "./client" },
+    { "path": "./server" },
+    { "path": "./common" },
+  ]
 }

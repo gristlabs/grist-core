@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc --build app -w --preserveWatchOutput & webpack --config buildtools/webpack.config.js --mode development --watch --hide-modules & nodemon -w build/app/server -w build/app/common build/app/server/server & wait",
-    "build:prod": "tsc --build app && webpack --config buildtools/webpack.config.js --mode production",
-    "start:prod": "node build/app/server/server"
+    "start": "tsc --build -w --preserveWatchOutput & webpack --config buildtools/webpack.config.js --mode development --watch --hide-modules & nodemon -w _build/app/server -w _build/app/common _build/app/server/server & wait",
+    "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production",
+    "start:prod": "node _build/app/server/server"
   },
   "keywords": [],
   "author": "",

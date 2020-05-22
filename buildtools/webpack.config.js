@@ -7,7 +7,7 @@ const path = require('path');
 module.exports = {
   target: 'web',
   entry: {
-    main: "./build/app/client/index.js",
+    main: "app/client/index.js",
   },
   output: {
     filename: "[name].bundle.js",
@@ -33,7 +33,7 @@ module.exports = {
   devtool: "source-map",
   resolve: {
     modules: [
-      path.resolve('./build'),
+      path.resolve('./_build'),
       path.resolve('./node_modules')
     ],
   },

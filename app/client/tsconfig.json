@@ -1,9 +1,6 @@
 {
-    "extends": "../../buildtools/tsconfig-base.json",
-    "compilerOptions": {
-        "outDir": "../../build/app/client"
-    },
-    "references": [
-        { "path": "../common" }
-    ]
+  "extends": "../../buildtools/tsconfig-base.json",
+  "references": [
+    { "path": "../common" }
+  ]
 }
