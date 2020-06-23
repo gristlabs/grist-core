@@ -34,6 +34,7 @@ module.exports = {
   resolve: {
     modules: [
       path.resolve('./_build'),
+      path.resolve('./_build/stubs'),
       path.resolve('./node_modules')
     ],
   },

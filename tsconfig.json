@@ -4,6 +4,7 @@
   "include": [],
   "references": [
     { "path": "./app" },
+    { "path": "./stubs/app" },
     // { "path": "./test" },
   ]
 }
