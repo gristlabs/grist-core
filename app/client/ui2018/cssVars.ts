@@ -6,7 +6,7 @@
  *  https://css-tricks.com/snippets/css/system-font-stack/
  *
  */
-import {ProductFlavor} from 'app/common/gristUrls';
+import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {dom, makeTestId, styled, TestId} from 'grainjs';
 import values = require('lodash/values');
 
@@ -160,4 +160,8 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   dom.update(document.documentElement!, varsOnly ? dom.cls(cssVarsOnly.className) : dom.cls(cssRootVars));
   document.documentElement!.classList.add(cssRoot.className);
   document.body.classList.add(cssBody.className);
+  const theme = getTheme(productFlavor);
+  if (theme.bodyClassName) {
+    document.body.classList.add(theme.bodyClassName);
+  }
 }
