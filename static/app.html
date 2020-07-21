@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+
+<!-- INSERT BASE -->
+
+<link rel="icon" type="image/x-icon" href="favicon.png" />
+
+<link rel="stylesheet" href="jqueryui/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="bootstrap-tokenfield/dist/css/bootstrap-tokenfield.css">
+<link rel="stylesheet" href="hljs.default.css">
+<link rel="stylesheet" href="bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css">
+<link rel="stylesheet" href="bundle.css">
+<link rel="stylesheet" href="icons/icons.css">
+
+<title>Grist</title>
+</head>
+<body>
+  <!-- INSERT WARNING -->
+  <div id='grist-logo-wrapper'>
+    <div class='grist-logo'>
+      <div class='grist-logo-head'>
+        <div class='grist-logo-grain grain-empty'></div>
+        <div class='grist-logo-grain grain-col grain-flip grain-2'></div>
+        <div class='grist-logo-grain grain-col grain-3'></div>
+      </div>
+      <div class='grist-logo-row'>
+        <div class='grist-logo-grain grain-row grain-flip grain-4'></div>
+        <div class='grist-logo-grain grain-cell grain-flip grain-5'></div>
+        <div class='grist-logo-grain grain-cell grain-6'></div>
+      </div>
+      <div class='grist-logo-row'>
+        <div class='grist-logo-grain grain-row grain-flip grain-7'></div>
+        <div class='grist-logo-grain grain-cell grain-flip grain-8'></div>
+        <div class='grist-logo-grain grain-cell grain-9'></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="grist-app"></div>
+
+  <div id="browser-check-problem" style="display: none;">
+    <div class="browser-check-wrapper">
+      <div class="browser-check-message">
+        <h4>
+          Grist may not work well in your browser.
+        </h4>
+        <p>
+          The best experience is with modern Firefox or Chrome on the desktop.
+          Other modern browsers will work to the degree they are standards compliant.
+        </p>
+      </div>
+      <div class="browser-check-options">
+        <a href="#" id="browser-check-problem-dismiss">Try it anyway</a>
+        <a href="https://www.mozilla.org/en-US/firefox/new/">Get Firefox</a>
+        <a href="https://www.google.com/chrome/">Get Chrome</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSERT CONFIG -->
+
+  <script src="jquery/dist/jquery.min.js"></script>
+  <script src="jqueryui/jquery-ui.min.js"></script>
+  <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="bootstrap-tokenfield/dist/bootstrap-tokenfield.min.js"></script>
+  <script src="bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+  <script src="main.bundle.js" crossorigin="anonymous"></script>
+  <script type="application/javascript" src="browser-check.js"></script>
+
+</body>
+</html>
