@@ -14,6 +14,7 @@ export const codeRoot = path.dirname(path.dirname(path.dirname(__dirname)));
  * etc.
  */
 export function getAppRoot(): string {
+  if (process.env.APP_ROOT_PATH) { return process.env.APP_ROOT_PATH; }
   if (codeRoot.endsWith('/_build/core')) { return path.dirname(path.dirname(codeRoot)); }
   return codeRoot.endsWith('/_build') ? path.dirname(codeRoot) : codeRoot;
 }
