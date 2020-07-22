@@ -69,6 +69,8 @@ export interface FlexServerOptions {
 
   // Base domain for org hostnames, starting with ".". Defaults to the base domain of APP_HOME_URL.
   baseDomain?: string;
+  // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
+  pluginUrl?: string;
 }
 
 export interface RequestWithGrist extends express.Request {
@@ -97,6 +99,7 @@ export class FlexServer implements GristServer {
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   private _defaultBaseDomain: string|undefined;
+  private _pluginUrl: string|undefined;
   private _billing: IBilling;
   private _instanceRoot: string;
   private _docManager: DocManager;
@@ -146,6 +149,8 @@ export class FlexServer implements GristServer {
     const homeUrl = process.env.APP_HOME_URL;
     this._defaultBaseDomain = options.baseDomain || (homeUrl && parseSubdomain(new URL(homeUrl).hostname).base);
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
+    this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
+    this.info.push(['pluginUrl', this._pluginUrl]);
 
     this.app.use((req, res, next) => {
       (req as RequestWithGrist).gristServer = this;
@@ -365,7 +370,7 @@ export class FlexServer implements GristServer {
   // Prepare cache for managing org-to-host relationship.
   public addHosts() {
     if (this._check('hosts', 'homedb')) { return; }
-    this._hosts = new Hosts(this._defaultBaseDomain, this.dbManager);
+    this._hosts = new Hosts(this._defaultBaseDomain, this.dbManager, this._pluginUrl);
   }
 
   public async initHomeDBManager() {
@@ -1262,6 +1267,7 @@ export class FlexServer implements GristServer {
     const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.hostname, {
       org: req.org,
       baseDomain: this._defaultBaseDomain,
+      pluginUrl: this._pluginUrl,
       singleOrg: process.env.GRIST_SINGLE_ORG,
     });
     const redirectUrl = new URL(pathname, `${req.protocol}://${req.get('host')}`);

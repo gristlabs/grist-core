@@ -1,6 +1,6 @@
 import { ApiError } from 'app/common/ApiError';
 import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
-import { extractOrgParts, getKnownOrg, isCustomHost } from 'app/common/gristUrls';
+import { extractOrgParts, getHostType, getKnownOrg } from 'app/common/gristUrls';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
@@ -39,7 +39,8 @@ export class Hosts {
   private _org2host = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
-  constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager) {
+  constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
+              private _pluginUrl: string|undefined) {
   }
 
   /**
@@ -86,14 +87,15 @@ export class Hosts {
       return {org: singleOrg, url: parts.pathRemainder, isCustomHost: false};
     }
 
-    // Fake the protocol; it doesn't matter for parsing out the hostname.
-    if (this._isNativeDomain(hostname)) {
+    const hostType = this._getHostType(hostname);
+    if (hostType === 'native') {
       if (parts.mismatch) {
         throw new ApiError(`Wrong org for this domain: ` +
           `'${parts.orgFromPath}' does not match '${parts.orgFromHost}'`, 400);
       }
       return {org: parts.subdomain || '', url: parts.pathRemainder, isCustomHost: false};
-
+    } else if (hostType === 'plugin') {
+      return {org: '', url: parts.pathRemainder, isCustomHost: false};
     } else {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
@@ -145,7 +147,7 @@ export class Hosts {
   private async _redirectHost(req: Request, resp: Response, next: NextFunction) {
     const {org} = req as RequestWithOrg;
 
-    if (org && this._isNativeDomain(req.hostname) && !this._dbManager.isMergedOrg(org)) {
+    if (org && this._getHostType(req.hostname) === 'native' && !this._dbManager.isMergedOrg(org)) {
       // Check if the org has a preferred host.
       const orgHost = await mapGetOrSet(this._org2host, org, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, {domain: org});
@@ -160,7 +162,7 @@ export class Hosts {
     return next();
   }
 
-  private _isNativeDomain(hostname: string) {
-    return !this._baseDomain || !isCustomHost(hostname, this._baseDomain);
+  private _getHostType(hostname: string) {
+    return getHostType(hostname, {baseDomain: this._baseDomain, pluginUrl: this._pluginUrl});
   }
 }

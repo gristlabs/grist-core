@@ -75,6 +75,9 @@ export interface OrgUrlOptions {
 
   // In single-org mode, this is the single well-known org.
   singleOrg?: string;
+
+  // Base URL used for accessing plugin material.
+  pluginUrl?: string;
 }
 
 // Result of getOrgUrlInfo().
@@ -83,9 +86,19 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-export function isCustomHost(hostname: string, baseDomain: string) {
-  // .localtest.me is used by plugin tests for arcane reasons.
-  return hostname !== 'localhost' && !hostname.endsWith(baseDomain) && !hostname.endsWith('.localtest.me');
+/**
+ * Given host name, baseDomain, and pluginUrl, determine whether to interpret host
+ * as a custom domain, a native domain, or a plugin domain.
+ */
+export function getHostType(hostname: string, options: {
+  baseDomain?: string, pluginUrl?: string
+}): 'native' | 'custom' | 'plugin' {
+  if (options.pluginUrl && hostname.toLowerCase() === new URL(options.pluginUrl).hostname.toLowerCase()) {
+    return 'plugin';
+  }
+  if (!options.baseDomain) { return 'native'; }
+  if (hostname !== 'localhost' && !hostname.endsWith(options.baseDomain)) { return 'custom'; }
+  return 'native';
 }
 
 export function getOrgUrlInfo(newOrg: string, currentHostname: string, options: OrgUrlOptions): OrgUrlInfo {
@@ -95,7 +108,7 @@ export function getOrgUrlInfo(newOrg: string, currentHostname: string, options: 
   if (!options.baseDomain || currentHostname === 'localhost') {
     return {orgInPath: newOrg};
   }
-  if (newOrg === options.org && isCustomHost(currentHostname, options.baseDomain)) {
+  if (newOrg === options.org && getHostType(currentHostname, options) !== 'native') {
     return {};
   }
   return {hostname: newOrg + options.baseDomain};
@@ -361,7 +374,7 @@ export interface GristLoadConfig {
   errMessage?: string;
 
   // URL for client to use for untrusted content.
-  pluginUrl?: string|null;
+  pluginUrl?: string;
 
   // Stripe API key for use on the client.
   stripeAPIKey?: string;

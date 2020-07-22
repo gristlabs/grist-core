@@ -346,7 +346,11 @@ export async function fetchURL(url: string, accessId: string|null): Promise<Uplo
  */
 async function _fetchURL(url: string, accessId: string|null, fileName: string,
                          headers?: {[key: string]: string}): Promise<UploadResult> {
-  const response: FetchResponse = await Deps.fetch(url, {headers});
+  const response: FetchResponse = await Deps.fetch(url, {
+    redirect: 'follow',
+    follow: 10,
+    headers
+  });
   await _checkForError(response);
   if (fileName === '') {
     const disposition = response.headers.get('content-disposition') || '';
