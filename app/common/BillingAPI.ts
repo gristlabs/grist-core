@@ -88,6 +88,13 @@ export interface IBillingSubscription {
   lastPlanId: string|null;
   // Whether there is a valid plan in effect
   isValidPlan: boolean;
+
+  // Stripe status, documented at https://stripe.com/docs/api/subscriptions/object#subscription_object-status
+  // such as "active", "trialing" (reflected in isInTrial), "incomplete", etc.
+  status?: string;
+  lastInvoiceUrl?: string;    // URL of the Stripe-hosted page with the last invoice.
+  lastChargeError?: string;   // The last charge error, if any, to show in case of a bad status.
+  lastChargeTime?: number;    // The time of the last charge attempt.
 }
 
 export interface IBillingOrgSettings {
