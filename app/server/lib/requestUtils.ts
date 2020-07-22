@@ -4,6 +4,7 @@ import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import * as log from 'app/server/lib/log';
+import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
 import {URL} from 'url';
 
@@ -130,6 +131,13 @@ export function getScope(req: Request): Scope {
   const includeSupport = isParameterOn(req.query.includeSupport);
   const showRemoved = isParameterOn(req.query.showRemoved);
   return {urlId, userId, org, includeSupport, showRemoved, specialPermit};
+}
+
+/**
+ * If scope is for the given userId, return a new Scope with the special permit added.
+ */
+export function addPermit(scope: Scope, userId: number, specialPermit: Permit): Scope {
+  return {...scope, ...(scope.userId === userId ? {specialPermit} : {})};
 }
 
 // Return a JSON response reflecting the output of a query.

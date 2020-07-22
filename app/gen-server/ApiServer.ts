@@ -10,7 +10,7 @@ import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import * as log from 'app/server/lib/log';
-import {getDocScope, getScope, integerParam, isParameterOn, sendOkReply,
+import {addPermit, getDocScope, getScope, integerParam, isParameterOn, sendOkReply,
         sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {Request} from 'express';
 
@@ -289,7 +289,8 @@ export class ApiServer {
     // Get user access information regarding an org
     this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
-      const query = await this._dbManager.getOrgAccess(getScope(req), org);
+      const scope = addPermit(getScope(req), this._dbManager.getSupportUserId(), {org});
+      const query = await this._dbManager.getOrgAccess(scope, org);
       return sendReply(req, res, query);
     }));
 
@@ -375,7 +376,9 @@ export class ApiServer {
     this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
       const domain = getOrgFromRequest(req);
-      const org = domain ? (await this._dbManager.getOrg(getScope(req), domain || null)) : null;
+      // Allow the support user enough access to every org to see the billing pages.
+      const scope = domain ? addPermit(getScope(req), this._dbManager.getSupportUserId(), {org: domain}) : null;
+      const org = scope ? (await this._dbManager.getOrg(scope, domain)) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
         user: {...fullUser, helpScoutSignature: helpScoutSign(fullUser.email)},

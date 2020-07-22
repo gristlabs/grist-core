@@ -635,7 +635,11 @@ export class HomeDBManager extends EventEmitter {
       needRealOrg: true
     });
     qb = this._addBillingAccount(qb, scope.userId);
-    qb = this._withAccess(qb, scope.userId, 'orgs');
+    let effectiveUserId = scope.userId;
+    if (scope.specialPermit && scope.specialPermit.org === orgKey) {
+      effectiveUserId = this.getPreviewerUserId();
+    }
+    qb = this._withAccess(qb, effectiveUserId, 'orgs');
     qb = qb.leftJoinAndSelect('orgs.owner', 'owner');
     const result = await this._verifyAclPermissions(qb);
     if (result.status === 200) {
@@ -661,11 +665,13 @@ export class HomeDBManager extends EventEmitter {
    * To include `managers` and `orgs` fields listing all billing account managers
    * and organizations linked to the account, set `includeOrgsAndManagers`.
    */
-  public async getBillingAccount(userId: number, orgKey: string|number,
+  public async getBillingAccount(scope: Scope, orgKey: string|number,
                                  includeOrgsAndManagers: boolean,
                                  transaction?: EntityManager): Promise<BillingAccount> {
-    const org = this.unwrapQueryResult(await this.getOrg({userId}, orgKey, transaction));
-    if (!org.billingAccount.isManager && userId !== this.getPreviewerUserId()) {
+    const org = this.unwrapQueryResult(await this.getOrg(scope, orgKey, transaction));
+    if (!org.billingAccount.isManager && scope.userId !== this.getPreviewerUserId() &&
+      // The special permit (used for the support user) allows access to the billing account.
+      scope.specialPermit?.org !== orgKey) {
       throw new ApiError('User does not have access to billing account', 401);
     }
     if (!includeOrgsAndManagers) { return org.billingAccount; }
@@ -1544,7 +1550,7 @@ export class HomeDBManager extends EventEmitter {
     callback: (billingAccount: BillingAccount, transaction: EntityManager) => void|Promise<void>
   ): Promise<QueryResult<void>> {
     return await this._connection.transaction(async transaction => {
-      const billingAccount = await this.getBillingAccount(userId, orgKey, false, transaction);
+      const billingAccount = await this.getBillingAccount({userId}, orgKey, false, transaction);
       const billingAccountCopy = Object.assign({}, billingAccount);
       await callback(billingAccountCopy, transaction);
       // Pick out properties that are allowed to be changed, to prevent accidental updating
@@ -1575,7 +1581,7 @@ export class HomeDBManager extends EventEmitter {
     }
 
     return await this._connection.transaction(async transaction => {
-      const billingAccount = await this.getBillingAccount(userId, orgKey, true, transaction);
+      const billingAccount = await this.getBillingAccount({userId}, orgKey, true, transaction);
       // At this point, we'll have thrown an error if userId is not a billing account manager.
       // Now check if the billing account has mutable managers (individual account does not).
       if (billingAccount.individual) {
@@ -1796,7 +1802,8 @@ export class HomeDBManager extends EventEmitter {
   public async getOrgAccess(scope: Scope, orgKey: string|number): Promise<QueryResult<PermissionData>> {
     const orgQuery = this.org(scope, orgKey, {
       markPermissions: Permissions.VIEW,
-      needRealOrg: true
+      needRealOrg: true,
+      allowSpecialPermit: true
     })
     // Join the org's ACL rules (with 1st level groups/users listed).
     .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
@@ -2242,26 +2249,34 @@ export class HomeDBManager extends EventEmitter {
    */
   public org(scope: Scope, org: string|number|null,
              options: QueryOptions = {}): SelectQueryBuilder<Organization> {
-    return this._org(scope.userId, scope.includeSupport || false, org, options);
+    return this._org(scope, scope.includeSupport || false, org, options);
   }
 
-  private _org(userId: number|null, includeSupport: boolean, org: string|number|null,
+  private _org(scope: Scope|null, includeSupport: boolean, org: string|number|null,
                options: QueryOptions = {}): SelectQueryBuilder<Organization> {
     let query = this._orgs(options.manager);
     // merged pseudo-org must become personal org.
     if (org === null || (options.needRealOrg && this.isMergedOrg(org))) {
-      if (!userId) { throw new Error('_org: requires userId'); }
-      query = query.where('orgs.owner_id = :userId', {userId});
+      if (!scope || !scope.userId) { throw new Error('_org: requires userId'); }
+      query = query.where('orgs.owner_id = :userId', {userId: scope.userId});
     } else {
       query = this._whereOrg(query, org, includeSupport);
     }
     if (options.markPermissions) {
-      if (!userId) {
+      if (!scope || !scope.userId) {
         throw new Error(`_orgQuery error: userId must be set to mark permissions`);
+      }
+      let effectiveUserId = scope.userId;
+      let threshold = options.markPermissions;
+      // TODO If the specialPermit is used across the network, requests could refer to orgs in
+      // different ways (number vs string), causing this comparison to fail.
+      if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.org === org) {
+        effectiveUserId = this.getPreviewerUserId();
+        threshold = Permissions.VIEW;
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('orgs', userId, options.markPermissions),
+        this._markIsPermitted('orgs', effectiveUserId, threshold),
         'is_permitted'
       );
     }

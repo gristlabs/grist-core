@@ -37,7 +37,7 @@ import {getLoginMiddleware} from 'app/server/lib/logins';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, optStringParam, RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET,
+import {adaptServerUrl, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import * as ServerMetrics from 'app/server/lib/ServerMetrics';
@@ -897,7 +897,9 @@ export class FlexServer implements GristServer {
       if (!orgDomain) {
         return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
       }
-      const query = await this.dbManager.getOrg({userId: mreq.userId!}, orgDomain);
+      // Allow the support user access to billing pages.
+      const scope = addPermit(getScope(mreq), this.dbManager.getSupportUserId(), {org: orgDomain});
+      const query = await this.dbManager.getOrg(scope, orgDomain);
       const org = this.dbManager.unwrapQueryResult(query);
       // This page isn't availabe for personal site.
       if (org.owner) {
