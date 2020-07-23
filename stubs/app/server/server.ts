@@ -1,3 +1,7 @@
+/**
+ * Main entrypoint for grist-core server.
+ */
+
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
