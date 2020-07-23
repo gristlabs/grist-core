@@ -24,7 +24,7 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
-import {bitOr, now, readJson} from 'app/gen-server/sqlUtils';
+import {bitOr, getRawAndEntities, now, readJson} from 'app/gen-server/sqlUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -725,6 +725,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoin('orgs.billingAccount', 'account')
       .leftJoin('account.product', 'product')
       .addSelect('product.features')
+      .addSelect('product.id')
       .addSelect('account.id')
       // order the support org (aka Samples/Examples) after other ones.
       .orderBy('coalesce(orgs.owner_id = :supportId, false)')
@@ -751,7 +752,21 @@ export class HomeDBManager extends EventEmitter {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs']);
-    const result = await this._verifyAclPermissions(queryBuilder);
+
+    // We'd like to filter results to exclude docs for which the user doesn't have permissions.
+    // We filter by permissions in Javascript anyway, but doing it in SQL simplifies
+    // edge-cases about which workspaces to include (and is parsimonious).
+    // But permissions is a computed column, so not available for WHERE clauses (in postgres).
+    // So we use a subquery to get a hold of it.
+    const rawQueryBuilder = (options.manager || this._connection).createQueryBuilder()
+      .select('*')
+      .from('(' + queryBuilder.getQuery() + ')', 'orgs')
+      // Keep rows that only mention workspaces or orgs, or docs we have access to.
+      // docs_permissions and docs_id are docs.permissions and docs.id in the subquery.
+      .where('(docs_permissions > 0 or docs_id is null)')
+      .setParameters(queryBuilder.getParameters());
+
+    const result = await this._verifyAclPermissions(queryBuilder, {rawQueryBuilder});
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.
@@ -819,7 +834,7 @@ export class HomeDBManager extends EventEmitter {
     let qb = this._orgs();
     qb = this._whereOrg(qb, org);
     qb = this._withAccess(qb, users, 'orgs');
-    const result = await this._verifyAclPermissions(qb, true);
+    const result = await this._verifyAclPermissions(qb, {emptyAllowed: true});
     if (!result.data) {
       throw new ApiError(result.errMessage || 'failed to select user', result.status);
     }
@@ -869,7 +884,7 @@ export class HomeDBManager extends EventEmitter {
         return {status: 200, data: []};
       }
     }
-    return this._verifyAclPermissions(queryBuilder, true);
+    return this._verifyAclPermissions(queryBuilder, {emptyAllowed: true});
   }
 
   // As for getOrgs, but all personal orgs are merged into a single entry.
@@ -2998,6 +3013,9 @@ export class HomeDBManager extends EventEmitter {
   }
 
   // Return a QueryResult reflecting the output of a query builder.
+  // If a rawQueryBuilder is supplied, it is used to make the query,
+  // but then the original queryBuilder is used to interpret the results
+  // as entities (make sure the two queries give results in the same format!)
   // Checks on all "permissions" fields which select queries set on
   // resources to indicate whether the user has access.
   // If the output is empty, and `emptyAllowed` is not set, we signal that the desired
@@ -3008,16 +3026,21 @@ export class HomeDBManager extends EventEmitter {
   // Returns the resource fetched by the queryBuilder.
   private async _verifyAclPermissions(
     queryBuilder: SelectQueryBuilder<Resource>,
-    emptyAllowed: boolean = false
+    options: {
+      rawQueryBuilder?: SelectQueryBuilder<any>,
+      emptyAllowed?: boolean
+    } = {}
   ): Promise<QueryResult<any>> {
-    const results = await queryBuilder.getRawAndEntities();
+    const results = await (options.rawQueryBuilder ?
+                           getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
+                           queryBuilder.getRawAndEntities());
     if (results.entities.length === 0 ||
         (results.entities.length === 1 && results.entities[0].filteredOut)) {
-      if (emptyAllowed) { return {status: 200, data: []}; }
+      if (options.emptyAllowed) { return {status: 200, data: []}; }
       return {errMessage: `${getFrom(queryBuilder)} not found`, status: 404};
     }
     const resources = this._normalizeQueryResults(results.entities);
-    if (resources.length === 0 && !emptyAllowed) {
+    if (resources.length === 0 && !options.emptyAllowed) {
       return {errMessage: "access denied", status: 403};
     } else {
       return {

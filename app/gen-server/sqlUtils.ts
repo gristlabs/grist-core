@@ -1,4 +1,7 @@
-import {DatabaseType} from 'typeorm';
+import {DatabaseType, QueryRunner, SelectQueryBuilder} from 'typeorm';
+import {RelationCountLoader} from 'typeorm/query-builder/relation-count/RelationCountLoader';
+import {RelationIdLoader} from 'typeorm/query-builder/relation-id/RelationIdLoader';
+import {RawSqlResultsToEntityTransformer} from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
 
 /**
  *
@@ -87,4 +90,69 @@ export function datetime(dbType: DatabaseType) {
     default:
       throw new Error(`now not implemented for ${dbType}`);
   }
+}
+
+/**
+ *
+ * Generate SQL code from one QueryBuilder, get the "raw" results, and then decode
+ * them as entities using a different QueryBuilder.
+ *
+ * This is useful for example if we have a query Q and we wish to add
+ * a where clause referring to one of the query's selected columns by
+ * its alias.  This isn't supported by Postgres (since the SQL
+ * standard says not to).  A simple solution is to wrap Q in a query
+ * like "SELECT * FROM (Q) WHERE ...".  But if we do that in TypeORM,
+ * it loses track of metadata and isn't able to decode the results,
+ * even though nothing has changed structurally.  Hence this method.
+ *
+ * (An alternate solution to this scenario is to simply duplicate the
+ * SQL code for the selected column in the where clause.  But our SQL
+ * queries are getting awkwardly long.)
+ *
+ * The results are returned in the same format as SelectQueryBuilder's
+ * getRawAndEntities.
+ */
+export async function getRawAndEntities<T>(rawQueryBuilder: SelectQueryBuilder<any>,
+                                           nominalQueryBuilder: SelectQueryBuilder<T>): Promise<{
+  entities: T[],
+  raw: any[],
+}> {
+  const raw = await rawQueryBuilder.getRawMany();
+
+  // The following code is based on SelectQueryBuilder's
+  // executeEntitiesAndRawResults.  To extract and use it here, we
+  // need to access the QueryBuilder's QueryRunner, which is
+  // protected, so we break abstraction a little bit.
+  const runnerSource = nominalQueryBuilder as any as QueryRunnerSource;
+  const queryRunner = runnerSource.obtainQueryRunner();
+  try {
+    const expressionMap = nominalQueryBuilder.expressionMap;
+    const connection = nominalQueryBuilder.connection;
+    const relationIdLoader = new RelationIdLoader(connection, queryRunner, expressionMap.relationIdAttributes);
+    const relationCountLoader = new RelationCountLoader(connection, queryRunner, expressionMap.relationCountAttributes);
+    const rawRelationIdResults = await relationIdLoader.load(raw);
+    const rawRelationCountResults = await relationCountLoader.load(raw);
+    const transformer = new RawSqlResultsToEntityTransformer(expressionMap, connection.driver,
+                                                             rawRelationIdResults, rawRelationCountResults,
+                                                             queryRunner);
+    const entities = transformer.transform(raw, expressionMap.mainAlias!);
+    return {
+      entities,
+      raw,
+    };
+  } finally {
+    // This is how the QueryBuilder <-> QueryRunner relationship is managed in TypeORM code.
+    if (queryRunner !== runnerSource.queryRunner) {
+      await queryRunner.release();
+    }
+  }
+}
+
+/**
+ * QueryBuilders keep track of a runner that we need for getRawAndEntities,
+ * but access is protected.  This interface declared the fields we expect.
+ */
+interface QueryRunnerSource {
+  queryRunner: QueryRunner;
+  obtainQueryRunner(): QueryRunner;
 }
