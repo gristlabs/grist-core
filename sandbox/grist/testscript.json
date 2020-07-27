@@ -1,0 +1,2951 @@
+[{
+  //----------------------------------------------------------------------
+  "SAMPLE_NAME": "basic",
+  //----------------------------------------------------------------------
+  "SCHEMA": [
+    [1, "Students", [
+      [1, "firstName",   "Text",        false, "", "First Name", ""],
+      [2, "lastName",    "Text",        false, "", "Last Name", ""],
+      [3, "fullName",    "Any",         true, "rec.firstName + ' ' + rec.lastName", "Full Name", ""],
+      [4, "fullNameLen", "Any",         true, "len(rec.fullName)", "Full Name Length", ""],
+      [5, "school",      "Ref:Schools", false, "", "school", ""],
+      [6, "schoolShort",  "Any",        true, "rec.school.name.split(' ')[0]", "School Short", ""],
+      [9, "schoolRegion", "Any",        true,
+      "addr = $school.address\naddr.state if addr.country == 'US' else addr.region", "School Region", ""]
+    ]],
+    [2, "Schools", [
+      [10, "name",        "Text",       false, "", "Name", ""],
+      [12, "address",     "Ref:Address",false, "", "Address", ""]
+    ]],
+    [3, "Address", [
+      [21, "city",        "Text",       false, "", "City", ""],
+      [27, "state",       "Text",       false, "", "State", ""],
+      [28, "country",     "Text",       false, "'US'", "Country", ""],
+      [29, "region",      "Any",        true,
+            "{'US': 'North America', 'UK': 'Europe'}.get(rec.country, 'N/A')", "region", ""]
+    ]]
+  ],
+  "DATA": {
+    "Students": [
+      ["id","firstName","lastName","school","@fullName","@fullNameLen","@schoolShort","@schoolRegion"],
+      [1,   "Barack",   "Obama",   2,       "Barack Obama",  12,     "Columbia",   "NY"],
+      [2,   "George W", "Bush",    8,       "George W Bush", 13,     "Yale",       "CT"],
+      [3,   "Bill",     "Clinton", 6,       "Bill Clinton",  12,     "Oxford",     "Europe"],
+      [4,   "George H", "Bush",    8,       "George H Bush", 13,     "Yale",       "CT"],
+      [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan", 13,     "Eureka",     "IL"],
+      [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter",  12,     "U.S.",       "MD"],
+      [8,   "Gerald",   "Ford",    7,       "Gerald Ford",   11,     "Yale",       "CT"]],
+    "Schools": [
+      ["id",  "name",                 "address"],
+      [1,     "Eureka College",       2],
+      [2,     "Columbia University",  7],
+      [5,     "U.S. Naval Academy",   3],
+      [6,     "Oxford University",    10],
+      [7,     "Yale Law School",      4],
+      [8,     "Yale University",      4]],
+    "Address": [
+      ["id",  "city",       "state",    "country", "@region"],
+      [2,     "Eureka",     "IL",       "US",      "North America"],
+      [3,     "Annapolis",  "MD",       "US",      "North America"],
+      [4,     "New Haven",  "CT",       "US",      "North America"],
+      [7,     "New York",   "NY",       "US",      "North America"],
+      [10,    "Oxford",     "England",  "UK",      "Europe"]]
+  }
+}, {
+
+  //----------------------------------------------------------------------
+  "SAMPLE_NAME": "simplest",
+  //----------------------------------------------------------------------
+  "SCHEMA": [
+    [1, "foo", [
+      [1, "bar", "Text", false, "", "bar", ""]
+    ]]
+  ],
+  "DATA": {
+    "foo": [
+      ["id", "bar"],
+      [1,    "apple"]
+    ]
+  }
+
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "basic_load",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["CHECK_OUTPUT", {"USE_SAMPLE": "basic"}]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "add_record",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["APPLY", {
+      // Ensure basic AddRecord works, generates undo, and triggers a formula calculation.
+      "USER_ACTION": ["AddRecord", "Address", 11, {
+        "city": "Washington",
+        "state": "DC",
+        "country": "US"
+      }],
+      "ACTIONS": {
+        // Essentially a duplicate of the UserAction, but as a DocAction.
+        "stored": [["AddRecord", "Address", 11, {
+          "city": "Washington",
+          "state": "DC",
+          "country": "US"
+        }]],
+        "undo": [["RemoveRecord", "Address", 11]],
+        "calc": [["UpdateRecord", "Address", 11, {"region": "North America"}]],
+        "retValue": [ 11 ]
+      },
+     "CHECK_CALL_COUNTS": {
+       "Address" : {"region" : 1}
+     }
+    }],
+    ["APPLY", {
+      // Add a Schools record which refers to the just-added Address.
+      "USER_ACTION": ["AddRecord", "Schools", 9, {
+        "name": "Georgetown University",
+        "address": 11
+      }],
+      "ACTIONS": {
+        "stored": [["AddRecord", "Schools", 9, {
+          "name": "Georgetown University",
+          "address": 11
+        }]],
+        "undo": [["RemoveRecord", "Schools", 9]],
+        "retValue": [9]
+      }
+    }],
+    ["APPLY", {
+      // Set a student to the new school, and ensure formulas see the correct school and address.
+      "USER_ACTION": ["UpdateRecord", "Students", 3, {"school": 9}],
+      "ACTIONS": {
+        "stored": [["UpdateRecord", "Students", 3, {"school": 9}]],
+        "undo": [["UpdateRecord", "Students", 3, {"school": 6}]],
+        "calc": [
+          ["UpdateRecord", "Students", 3, {"schoolRegion": "DC"}],
+          ["UpdateRecord", "Students", 3, {"schoolShort": "Georgetown"}]
+        ]
+      },
+      "CHECK_CALL_COUNTS": {
+        "Students" : { "schoolShort" : 1, "schoolRegion" : 1 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id", "firstName", "lastName", "school", "@fullName", "@fullNameLen", "@schoolShort",
+         "@schoolRegion"],
+        [1,    "Barack",    "Obama",    2,        "Barack Obama",  12,    "Columbia",    "NY"],
+        [2,    "George W",  "Bush",     8,        "George W Bush", 13,    "Yale",        "CT"],
+        [3,    "Bill",      "Clinton",  9,        "Bill Clinton",  12,    "Georgetown",  "DC"],
+        [4,    "George H",  "Bush",     8,        "George H Bush", 13,    "Yale",        "CT"],
+        [5,    "Ronald",    "Reagan",   1,        "Ronald Reagan", 13,    "Eureka",      "IL"],
+        [6,    "Jimmy",     "Carter",   5,        "Jimmy Carter",  12,    "U.S.",        "MD"],
+        [8,    "Gerald",    "Ford",     7,        "Gerald Ford",   11,    "Yale",        "CT"]],
+      "Schools": [
+        ["id", "name",                  "address"],
+        [1,    "Eureka College",        2],
+        [2,    "Columbia University",   7],
+        [5,    "U.S. Naval Academy",    3],
+        [6,    "Oxford University",     10],
+        [7,    "Yale Law School",       4],
+        [8,    "Yale University",       4],
+        [9,    "Georgetown University", 11]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"],
+        [11,    "Washington", "DC",       "US",      "North America"]]
+    }],
+
+    // Check that AddRecord applies default formulas values correctly
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["ModifyColumn", "Schools", "name", { "formula" : "'Williams College, ' + $address.city" }],
+        ["AddRecord"   , "Schools", 10, { "address": 2}],
+        ["AddRecord"   , "Schools", 11, { "name" : "Amherst College"}]
+      ],
+
+      "ACTIONS": {
+        "stored": [
+           ["ModifyColumn", "Schools", "name", {"formula": "'Williams College, ' + $address.city"}],
+           ["UpdateRecord", "_grist_Tables_column", 10, {"formula": "'Williams College, ' + $address.city"}],
+           ["AddRecord", "Schools", 10, { "address" : 2}],
+           ["AddRecord", "Schools", 11, {"name": "Amherst College"}],
+           ["UpdateRecord", "Schools", 10, {"name": "Williams College, Eureka"}]
+          ],
+        "undo": [
+           ["ModifyColumn", "Schools", "name", {"formula": ""}],
+           ["UpdateRecord", "_grist_Tables_column", 10, {"formula": ""}],
+           ["RemoveRecord", "Schools", 10],
+           ["RemoveRecord", "Schools", 11]
+          ]
+      },
+      "CHECK_CALL_COUNTS": {
+        "Schools": { "name": 1 },
+        "Students" : { "schoolShort" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": [
+        "UpdateRecord", "Schools", 10, { "address": 3}
+      ],
+      "ACTIONS": {
+        // This tests that the formula for 'name' does NOT get recomputed
+        // As it would, if default formulas created dependencies
+        "stored" : [["UpdateRecord", "Schools", 10, { "address": 3}]],
+        "undo"   : [["UpdateRecord", "Schools", 10, { "address": 2}]]
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["ModifyColumn", "Schools", "name", { "formula" :  "str($id) + '$' + '\\$' + \"$'\\\\'\"" }],
+        ["AddRecord"   , "Schools", 12, { "address" : 70 }]
+      ],
+
+      "ACTIONS": {
+        "stored": [
+           ["ModifyColumn", "Schools", "name", {"formula": "str($id) + '$' + '\\$' + \"$'\\\\'\""}],
+           ["UpdateRecord", "_grist_Tables_column", 10, {"formula": "str($id) + '$' + '\\$' + \"$'\\\\'\""}],
+           ["AddRecord", "Schools", 12, {"address": 70}],
+           ["UpdateRecord", "Schools", 12, {"name": "12$\\$$'\\'"}]
+        ],
+        "undo": [
+           ["ModifyColumn", "Schools", "name", {"formula": "'Williams College, ' + $address.city"}],
+           ["UpdateRecord", "_grist_Tables_column", 10, {"formula": "'Williams College, ' + $address.city"}],
+           ["RemoveRecord", "Schools", 12]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Schools": { "name": 1 },
+        "Students" : { "schoolShort" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Does Adding Records properly set properties?
+        ["AddColumn", "Schools", "numStudents", { "type" : "Int", "isFormula" : false }],
+        ["AddRecord", "Schools", 13, {"name" : "NYU", "numStudents": "One-thousand"}],
+        ["AddRecord", "Schools", null, {"numStudents": "1000000000000000000000000000"}],
+        ["AddRecord", "Schools", null, {"numStudents": "1000000"}],
+        ["ModifyColumn", "Schools", "numStudents", { "type" : "Numeric" }],
+        ["AddRecord", "Schools", null, { "numStudents" : "Infinity" }]
+      ],
+
+      "ACTIONS" : {
+        "stored": [
+          ["AddColumn", "Schools", "numStudents",
+            {"formula": "", "isFormula": false, "type": "Int" }],
+          ["AddRecord", "_grist_Tables_column", 30,
+            {"colId": "numStudents", "widgetOptions": "", "formula": "", "isFormula": false,
+             "label": "numStudents", "parentId": 2, "parentPos": 8.0, "type": "Int"}],
+          ["AddRecord", "Schools", 13, {"name": "NYU", "numStudents": "One-thousand"}],
+          ["AddRecord", "Schools", 14, {"numStudents": "1000000000000000000000000000"}],
+          ["AddRecord", "Schools", 15, {"numStudents": 1000000}],
+
+          ["ModifyColumn", "Schools", "numStudents", {"type": "Numeric"}],
+          // Record 13 is not updated since it can't be properly converted.
+          ["BulkUpdateRecord", "Schools", [1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15],
+            {"numStudents": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1e+27, 1000000.0]}],
+          ["UpdateRecord", "_grist_Tables_column", 30, {"type": "Numeric"}],
+          ["AddRecord", "Schools", 16, {"numStudents": "@+Infinity"}],
+          ["BulkUpdateRecord", "Schools", [14, 15, 16], {"name": ["14$\\$$'\\'", "15$\\$$'\\'", "16$\\$$'\\'"]}]
+       ],
+        "undo"  : [
+          ["RemoveColumn", "Schools", "numStudents"],
+          ["RemoveRecord", "_grist_Tables_column", 30],
+          ["RemoveRecord", "Schools", 13],
+          ["RemoveRecord", "Schools", 14],
+          ["RemoveRecord", "Schools", 15],
+          ["BulkUpdateRecord", "Schools", [1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15],
+            {"numStudents": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1000000000000000000000000000", 1000000]}],
+          ["ModifyColumn", "Schools", "numStudents", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 30, {"type": "Int"}],
+          ["RemoveRecord", "Schools", 16]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id", "firstName", "lastName", "school", "@fullName", "@fullNameLen", "@schoolShort",
+         "@schoolRegion"],
+        [1,    "Barack",    "Obama",    2,        "Barack Obama",  12,    "Columbia",    "NY"],
+        [2,    "George W",  "Bush",     8,        "George W Bush", 13,    "Yale",        "CT"],
+        [3,    "Bill",      "Clinton",  9,        "Bill Clinton",  12,    "Georgetown",  "DC"],
+        [4,    "George H",  "Bush",     8,        "George H Bush", 13,    "Yale",        "CT"],
+        [5,    "Ronald",    "Reagan",   1,        "Ronald Reagan", 13,    "Eureka",      "IL"],
+        [6,    "Jimmy",     "Carter",   5,        "Jimmy Carter",  12,    "U.S.",        "MD"],
+        [8,    "Gerald",    "Ford",     7,        "Gerald Ford",   11,    "Yale",        "CT"]],
+      "Schools": [
+        ["id", "name",          "address", "numStudents"],
+        [1,    "Eureka College",        2,   0.0],
+        [2,    "Columbia University",   7,   0.0],
+        [5,    "U.S. Naval Academy",    3,   0.0],
+        [6,    "Oxford University",     10,  0.0],
+        [7,    "Yale Law School",       4,   0.0],
+        [8,    "Yale University",       4,   0.0],
+        [9,    "Georgetown University", 11,  0.0],
+        [10,   "Williams College, Eureka",3, 0.0],
+        [11,   "Amherst College" ,      0,   0.0],
+        [12,   "12$\\$$'\\'"     ,      70,  0.0],
+        [13,   "NYU"             ,       0,  "One-thousand"],
+        [14,   "14$\\$$'\\'"     ,       0, 1e27],
+        [15,   "15$\\$$'\\'"     ,       0,  1000000.0],
+        [16,   "16$\\$$'\\'"     ,       0,  "@+Infinity"]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"],
+        [11,    "Washington", "DC",       "US",      "North America"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "bulk_add_record",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["APPLY", {
+      // Ensure basic BulkAddRecord works, generates undo, and triggers a formula calculation.
+      "USER_ACTION": ["BulkAddRecord", "Address", [11, null], {
+        "city": ["Washington", "Portland"],
+        "state": ["DC", "OR"]
+      }],
+      "ACTIONS": {
+        "stored": [
+          ["BulkAddRecord", "Address", [11, 12], {
+          "city": ["Washington", "Portland"],
+          "state": ["DC", "OR"]
+          }],
+          ["BulkUpdateRecord", "Address", [11, 12], {"country": ["US", "US"]}]
+        ],
+        "undo": [["BulkRemoveRecord", "Address", [11, 12]]],
+        "calc": [["BulkUpdateRecord", "Address", [11, 12], {
+          "region": ["North America", "North America"]
+        }]],
+        "retValue": [ [11, 12] ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Address" : { "country": 2, "region" : 2 }
+      }
+    }],
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"],
+        [11,    "Washington", "DC",       "US",      "North America"],
+        [12,    "Portland",   "OR",       "US",      "North America"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "update_record",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["APPLY", {
+      "USER_ACTION": ["UpdateRecord", "Address", 10, {"country": "GB"}],
+      "ACTIONS": {
+        "stored": [["UpdateRecord", "Address", 10, {"country": "GB"}]],
+        "undo": [["UpdateRecord", "Address", 10, {"country": "UK"}]],
+        "calc": [
+          ["UpdateRecord", "Address", 10, {"region": "N/A"}],
+          ["UpdateRecord", "Students", 3, {"schoolRegion": "N/A"}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Address"  : { "region" : 1 },
+        "Students" : { "schoolRegion" : 1 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": ["BulkUpdateRecord", "Schools", [1, 2, 8],
+        {"name": ["eureka", "columbia", "yale"]}],
+      "ACTIONS": {
+        "stored": [["BulkUpdateRecord", "Schools", [1, 2, 8],
+          {"name": ["eureka", "columbia", "yale"]}]],
+        "undo": [["BulkUpdateRecord", "Schools", [1, 2, 8],
+          {"name": ["Eureka College", "Columbia University", "Yale University"]}]],
+        "calc": [["BulkUpdateRecord", "Students", [1, 2, 4, 5],
+          {"schoolShort": ["columbia", "yale", "yale", "eureka"]}]]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolShort" : 4 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id", "firstName", "lastName", "school", "@fullName", "@fullNameLen", "@schoolShort",
+          "@schoolRegion"],
+        [1,    "Barack",    "Obama",    2,        "Barack Obama",  12,   "columbia",    "NY"],
+        [2,    "George W",  "Bush",     8,        "George W Bush", 13,   "yale",        "CT"],
+        [3,    "Bill",      "Clinton",  6,        "Bill Clinton",  12,   "Oxford",      "N/A"],
+        [4,    "George H",  "Bush",     8,        "George H Bush", 13,   "yale",        "CT"],
+        [5,    "Ronald",    "Reagan",   1,        "Ronald Reagan", 13,   "eureka",      "IL"],
+        [6,    "Jimmy",     "Carter",   5,        "Jimmy Carter",  12,   "U.S.",        "MD"],
+        [8,    "Gerald",    "Ford",     7,        "Gerald Ford",   11,   "Yale",        "CT"]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [1,     "eureka",               2],
+        [2,     "columbia",             7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4],
+        [8,     "yale",                 4]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "GB",      "N/A"]]
+    }],
+
+    ["APPLY", {
+      // Check that Update Record on _grist_Tables_column properly triggers schema-change actions
+      "USER_ACTIONS": [
+        ["UpdateRecord", "_grist_Tables_column", 3,
+          {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+        ["UpdateRecord", "_grist_Tables_column", 6,
+          {"colId" : "shortSchool"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["ModifyColumn", "Students", "fullName",
+            {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+          ["UpdateRecord", "_grist_Tables_column", 3,
+            {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+          ["RenameColumn", "Students", "schoolShort", "shortSchool"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "shortSchool"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "Students", "fullName",
+            {"formula": "rec.firstName + ' ' + rec.lastName"}],
+          ["UpdateRecord", "_grist_Tables_column", 3,
+            {"formula": "rec.firstName + ' ' + rec.lastName"}],
+          ["RenameColumn", "Students", "shortSchool", "schoolShort"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "schoolShort"}]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": ["BARACK Obama", "GEORGE W Bush", "BILL Clinton", "GEORGE H Bush", "RONALD Reagan", "JIMMY Carter", "GERALD Ford"]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "fullName" : 7, "fullNameLen" : 7 , "shortSchool" : 7}
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS" : [
+        // Check that noop Update Records do not generate docactions
+        ["UpdateRecord", "Students", 1, { "firstName" : "Barack", "lastName" : "Obama", "school": 2}],
+        ["UpdateRecord", "Students", 2, { "firstName" : "Richard", "lastName" : "Nixon", "school": 8}]
+      ],
+      "ACTIONS" : {
+        "stored" : [
+          ["UpdateRecord", "Students", 2, {"firstName" : "Richard", "lastName" : "Nixon"}]
+        ],
+        "undo" : [
+          ["UpdateRecord", "Students", 2, {"firstName" : "George W", "lastName" : "Bush"}]
+        ],
+        "calc" : [
+          ["UpdateRecord", "Students", 2, {"fullName" : "RICHARD Nixon"}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "fullName" : 1, "fullNameLen" : 1 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id", "firstName", "lastName", "school", "@fullName", "@fullNameLen", "@shortSchool",
+          "@schoolRegion"],
+        [1,    "Barack",    "Obama",    2,        "BARACK Obama",  12,   "columbia",    "NY"],
+        [2,    "Richard",   "Nixon",     8,       "RICHARD Nixon", 13,   "yale",        "CT"],
+        [3,    "Bill",      "Clinton",  6,        "BILL Clinton",  12,   "Oxford",      "N/A"],
+        [4,    "George H",  "Bush",     8,        "GEORGE H Bush", 13,   "yale",        "CT"],
+        [5,    "Ronald",    "Reagan",   1,        "RONALD Reagan", 13,   "eureka",      "IL"],
+        [6,    "Jimmy",     "Carter",   5,        "JIMMY Carter",  12,   "U.S.",        "MD"],
+        [8,    "Gerald",    "Ford",     7,        "GERALD Ford",   11,   "Yale",        "CT"]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [1,     "eureka",               2],
+        [2,     "columbia",             7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4],
+        [8,     "yale",                 4]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "GB",      "N/A"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "remove_record",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    // Apply some 'remove' actions. Besides removing the records themselves, they should also
+    // unset references that point to them.
+    ["APPLY", {
+      "USER_ACTION": ["RemoveRecord", "Address", 4],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "Address", 4],
+          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [0, 0]}]
+        ],
+        "undo": [
+          ["AddRecord", "Address", 4, {"city": "New Haven", "state": "CT", "country": "US"}],
+          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [4, 4]}]
+        ],
+        "calc": [["BulkUpdateRecord", "Students", [2, 4, 8], {"schoolRegion": [null, null, null]}]]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolRegion" : 3 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": ["RemoveRecord", "Schools", 5],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "Schools", 5],
+          ["UpdateRecord", "Students", 6, {"school": 0}]
+        ],
+        "undo": [
+          ["AddRecord", "Schools", 5, {"name": "U.S. Naval Academy", "address": 3}],
+          ["UpdateRecord", "Students", 6, {"school": 5}]
+        ],
+        "calc": [
+          ["UpdateRecord", "Students", 6, {"schoolRegion": null}],
+          ["UpdateRecord", "Students", 6, {"schoolShort": ""}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolShort" : 1, "schoolRegion" : 1 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": ["RemoveRecord", "Students", 1],
+      "ACTIONS": {
+        "stored": [["RemoveRecord", "Students", 1]],
+        "undo": [["AddRecord", "Students", 1,
+          {"firstName": "Barack", "lastName": "Obama", "school": 2}]]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","@fullNameLen","@schoolShort",
+          "@schoolRegion"],
+        [2,   "George W", "Bush",    8,       "George W Bush",13,      "Yale",       null],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,      "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "George H Bush",13,      "Yale",       null],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan",13,      "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  0,       "Jimmy Carter", 12,      "",           null],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,      "Yale",       null]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [1,     "Eureka College",       2],
+        [2,     "Columbia University",  7],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      0],
+        [8,     "Yale University",      0]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "bulk_remove_record",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["APPLY", {
+      // Ensure basic BulkRemoveRecord works, generates undo, and triggers a formula calculation.
+      "USER_ACTION": ["BulkRemoveRecord", "Students", [2, 5, 6, 8]],
+      "ACTIONS": {
+        "stored": [["BulkRemoveRecord", "Students", [2, 5, 6, 8]]],
+        "undo": [["BulkAddRecord", "Students", [2, 5, 6, 8], {
+          "firstName": ["George W", "Ronald", "Jimmy", "Gerald"],
+          "lastName": ["Bush", "Reagan", "Carter", "Ford"],
+          "school": [8, 1, 5, 7]
+        }]]
+      }
+    }],
+
+    ["APPLY", {
+      // Ensure that BulkRemoveRecord also unsets linked records.
+      "USER_ACTION": ["BulkRemoveRecord", "Schools", [6, 8]],
+      "ACTIONS": {
+        "stored": [
+          ["BulkRemoveRecord", "Schools", [6, 8]],
+          ["BulkUpdateRecord", "Students", [3, 4], {"school": [0, 0]}]
+        ],
+        "undo": [
+          ["BulkAddRecord", "Schools", [6, 8], {
+            "name": ["Oxford University", "Yale University"],
+            "address": [10, 4]
+          }],
+          ["BulkUpdateRecord", "Students", [3, 4], {"school": [6, 8]}]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolShort": ["", ""]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolRegion" : 2, "schoolShort": 2 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","@fullNameLen","@schoolShort","@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama",  12,     "Columbia",   "NY"],
+        [3,   "Bill",     "Clinton", 0,       "Bill Clinton",  12,     "",           null],
+        [4,   "George H", "Bush",    0,       "George H Bush", 13,     "",           null]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [1,     "Eureka College",       2],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [7,     "Yale Law School",      4]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "add_column",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    // Test basic addition of a non-formula column.
+    ["APPLY", {
+      "USER_ACTION": ["AddColumn", "Address", "zip", {
+        "type": "Text",
+        "isFormula": false,
+        "formula": "",
+        "label": "something",
+        "widgetOptions": ""
+      }],
+      "ACTIONS": {
+        "stored": [
+          ["AddColumn", "Address", "zip", {
+            "type": "Text",
+            "isFormula": false,
+            "formula": ""
+          }],
+          // Note that a metadata record outght to be added too.
+          ["AddRecord", "_grist_Tables_column", 30, {
+            "parentId": 3,
+            "parentPos": 8.0,
+            "colId": "zip",
+            "type": "Text",
+            "isFormula": false,
+            "formula": "",
+            "label": "something",
+            "widgetOptions": ""
+          }]
+        ],
+        "undo": [
+          ["RemoveColumn", "Address", "zip"],
+          ["RemoveRecord", "_grist_Tables_column", 30]
+        ],
+        "retValue": [
+          {"colId": "zip", "colRef": 30}
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Address": [
+        ["id",  "city",       "state",    "country", "zip", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "",    "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "",    "North America"],
+        [4,     "New Haven",  "CT",       "US",      "",    "North America"],
+        [7,     "New York",   "NY",       "US",      "",    "North America"],
+        [10,    "Oxford",     "England",  "UK",      "",    "Europe"]]
+    }],
+
+    // Make sure we can modify this new column for existing records.
+    ["APPLY", {
+      "USER_ACTION": ["BulkUpdateRecord", "Address", [2, 4, 7],
+        {"zip": ["61530-0001", "06520-0002", "10027-0003"]}],
+      "ACTIONS": {
+        "stored": [["BulkUpdateRecord", "Address", [2, 4, 7],
+          {"zip": ["61530-0001", "06520-0002", "10027-0003"]}]],
+        "undo": [["BulkUpdateRecord", "Address", [2, 4, 7],
+          {"zip": ["", "", ""]}]]
+      }
+    }],
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Address": [
+        ["id",  "city",       "state",    "country", "zip",         "@region"],
+        [2,     "Eureka",     "IL",       "US",      "61530-0001",  "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "",            "North America"],
+        [4,     "New Haven",  "CT",       "US",      "06520-0002",  "North America"],
+        [7,     "New York",   "NY",       "US",      "10027-0003",  "North America"],
+        [10,    "Oxford",     "England",  "UK",      "",            "Europe"]]
+    }],
+
+    // Now try adding a formula column.
+    ["APPLY", {
+      "USER_ACTION": [
+        "AddColumn", "Address", "zip5", {
+          "isFormula": true,
+          "formula": "rec.zip[:5]"
+        }],
+      "ACTIONS": {
+        "stored": [
+          ["AddColumn", "Address", "zip5",
+            { "formula": "rec.zip[:5]", "type": "Any", "isFormula": true}],
+          ["AddRecord", "_grist_Tables_column", 31, {
+            "parentId": 3,
+            "parentPos": 9.0,
+            "colId": "zip5",
+            "type": "Any",
+            "isFormula": true,
+            "formula": "rec.zip[:5]",
+            "label": "zip5",
+            "widgetOptions": ""
+          }]
+        ],
+        "undo": [
+          ["RemoveColumn", "Address", "zip5"],
+          ["RemoveRecord", "_grist_Tables_column", 31]
+        ],
+        // Since it's a formula, it immediately gets evaluated, causing some calc actions.
+        "calc": [
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10],
+            {"zip5": ["61530", "", "06520", "10027", ""]}]
+        ],
+        "retValue": [
+          {"colId": "zip5", "colRef": 31}
+        ]
+      },
+      "CHECK_CALL_COUNTS": {
+        "Address" : { "zip5" : 5 }
+      }
+    }],
+
+    // And another formula column which refers to another table.
+    ["APPLY", {
+      "USER_ACTION": [
+        "AddColumn", "Schools", "zip", {
+          "isFormula": true,
+          "formula": "rec.address.zip[:5]",
+          "label": "zippy",
+          "widgetOptions": ""
+        }
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["AddColumn", "Schools", "zip", {
+            "type": "Any",
+            "isFormula": true,
+            "formula": "rec.address.zip[:5]"
+          }],
+          ["AddRecord", "_grist_Tables_column", 32, {
+            "parentId": 2,
+            // There are only two other fields in Schools to start with.
+            "parentPos": 10.0,
+            "colId": "zip",
+            "type": "Any",
+            "isFormula": true,
+            "formula": "rec.address.zip[:5]",
+            "label": "zippy",
+            "widgetOptions": ""
+          }]
+        ],
+        "undo": [
+          ["RemoveColumn", "Schools", "zip"],
+          ["RemoveRecord", "_grist_Tables_column", 32]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "Schools", [1,2,5,6,7,8],
+            {"zip": ["61530", "10027", "", "", "06520", "06520"]}]
+        ],
+        "retValue": [
+          {"colId": "zip", "colRef": 32}
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Schools" : { "zip" : 6 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Schools": [
+        ["id",  "name",                 "address", "@zip"],
+        [1,     "Eureka College",       2,         "61530"],
+        [2,     "Columbia University",  7,         "10027"],
+        [5,     "U.S. Naval Academy",   3,         ""],
+        [6,     "Oxford University",    10,        ""],
+        [7,     "Yale Law School",      4,         "06520"],
+        [8,     "Yale University",      4,         "06520"]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "zip",         "@zip5",  "@region"],
+        [2,     "Eureka",     "IL",       "US",      "61530-0001",  "61530",  "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "",            "",       "North America"],
+        [4,     "New Haven",  "CT",       "US",      "06520-0002",  "06520",  "North America"],
+        [7,     "New York",   "NY",       "US",      "10027-0003",  "10027",  "North America"],
+        [10,    "Oxford",     "England",  "UK",      "",            "",       "Europe"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Our sample data doesn't include Views metadata, but we can have some generated via
+        // AddTable action. The initial and newly-added column are as in "add_table" test case.
+        ["AddTable", "Bar", [
+          { "id": "hello", "type": "Text", "isFormula": false }
+        ]],
+        ["AddColumn", "Bar", "world",
+          { "type": "Text", "isFormula": true, "formula": "rec.hello.upper()"}
+        ]
+      ],
+      "ACTIONS": {
+        "stored": [
+          // Actions generated from AddTable.
+          ["AddTable", "Bar", [
+            {"isFormula": false, "formula": "", "type": "ManualSortPos", "id": "manualSort"},
+            {"isFormula": false, "formula": "", "type": "Text", "id": "hello"}
+          ]],
+          ["AddRecord", "_grist_Tables", 4, {"primaryViewId": 0, "tableId": "Bar"}],
+          ["BulkAddRecord", "_grist_Tables_column", [33, 34],
+            { "colId": ["manualSort", "hello"],
+              "formula": ["", ""],
+              "isFormula": [false, false],
+              "label": ["manualSort", "hello"],
+              "parentId": [4, 4],
+              "parentPos": [11.0, 12.0],
+              "type": ["ManualSortPos", "Text"],
+              "widgetOptions": ["", ""]
+            }],
+
+          // Raw view
+          ["AddRecord", "_grist_Views", 1,
+            {"type": "raw_data", "name": "Bar"}],
+          ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Pages", 1, {"indentation": 0, "pagePos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Views_section", 1,
+            {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
+              "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": "" }],
+          ["AddRecord", "_grist_Views_section_field", 1,
+            {"parentId": 1, "colRef": 34, "parentPos": 1.0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}],
+
+          // Actions generated from AddColumn.
+          ["AddColumn", "Bar", "world",
+            {"isFormula": true, "formula": "rec.hello.upper()", "type": "Text"}],
+          ["AddRecord", "_grist_Tables_column", 35,
+            {"colId": "world", "parentPos": 13.0,
+              "formula": "rec.hello.upper()", "parentId": 4, "type": "Text",
+              "isFormula": true, "label": "world", "widgetOptions": ""}],
+          ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 35, "parentId": 1, "parentPos": 2.0}]
+        ],
+        "calc": [],
+        "undo": [
+          ["RemoveTable", "Bar"],
+          ["RemoveRecord", "_grist_Tables", 4],
+          ["BulkRemoveRecord", "_grist_Tables_column", [33, 34]],
+          ["RemoveRecord", "_grist_Views", 1],
+          ["RemoveRecord", "_grist_TabBar", 1],
+          ["RemoveRecord", "_grist_Pages", 1],
+          ["RemoveRecord", "_grist_Views_section", 1],
+          ["RemoveRecord", "_grist_Views_section_field", 1],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0}],
+          ["RemoveColumn", "Bar", "world"],
+          ["RemoveRecord", "_grist_Tables_column", 35],
+          ["RemoveRecord", "_grist_Views_section_field", 2]
+        ],
+        "retValue": [
+          {
+            "table_id": "Bar",
+            "id": 4,
+            "columns": ["hello"],
+            "views": [{"sections": [1], "id": 1}]
+          },
+          {"colId": "world", "colRef": 35}
+        ]
+      }
+    }],
+
+    // Expect same output as before, with one extra table.
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Bar": [
+        ["id", "manualSort", "hello", "@world"]
+      ],
+      "Schools": [
+        ["id",  "name",                 "address", "@zip"],
+        [1,     "Eureka College",       2,         "61530"],
+        [2,     "Columbia University",  7,         "10027"],
+        [5,     "U.S. Naval Academy",   3,         ""],
+        [6,     "Oxford University",    10,        ""],
+        [7,     "Yale Law School",      4,         "06520"],
+        [8,     "Yale University",      4,         "06520"]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "zip",         "@zip5",  "@region"],
+        [2,     "Eureka",     "IL",       "US",      "61530-0001",  "61530",  "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "",            "",       "North America"],
+        [4,     "New Haven",  "CT",       "US",      "06520-0002",  "06520",  "North America"],
+        [7,     "New York",   "NY",       "US",      "10027-0003",  "10027",  "North America"],
+        [10,    "Oxford",     "England",  "UK",      "",            "",       "Europe"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "remove_column",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    // Set some values in column-to-be-removed to defaults, to check they get omitted from undo.
+    ["APPLY", {
+      "USER_ACTION": ["UpdateRecord", "Address", 3, {"city": ""}],
+      "ACTIONS": {
+        "stored": [["UpdateRecord", "Address", 3, {"city": ""}]],
+        "undo": [["UpdateRecord", "Address", 3, {"city": "Annapolis"}]],
+        "calc": []
+      }
+    }],
+
+    // Test removing a regular data column.
+    ["APPLY", {
+      "USER_ACTION": ["RemoveColumn", "Address", "city"],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "_grist_Tables_column", 21],
+          ["RemoveColumn", "Address", "city"]],
+        "undo": [
+          ["AddRecord", "_grist_Tables_column", 21, {
+            "parentId": 3,
+            "parentPos": 1.0,
+            "colId": "city",
+            "type": "Text",
+            "label": "City"
+          }],
+          ["BulkUpdateRecord", "Address", [2, 4, 7, 10],
+            {"city": ["Eureka", "New Haven", "New York", "Oxford"]}],
+          ["AddColumn", "Address", "city", {
+            "type": "Text",
+            "isFormula": false,
+            "formula": ""
+          }]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Address": [
+        ["id",  "state",    "country", "@region"],
+        [2,     "IL",       "US",      "North America"],
+        [3,     "MD",       "US",      "North America"],
+        [4,     "CT",       "US",      "North America"],
+        [7,     "NY",       "US",      "North America"],
+        [10,    "England",  "UK",      "Europe"]]
+    }],
+
+    // Test removing a formula column.
+    ["APPLY", {
+      "USER_ACTION": ["RemoveColumn", "Students", "fullNameLen"],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "_grist_Tables_column", 4],
+          ["RemoveColumn", "Students", "fullNameLen"]
+        ],
+        "undo": [
+          ["AddRecord", "_grist_Tables_column", 4, {
+            "parentId": 1,
+            "parentPos": 4.0,
+            "colId": "fullNameLen",
+            "type": "Any",
+            "isFormula": true,
+            "formula": "len(rec.fullName)",
+            "label" : "Full Name Length"
+          }],
+          ["AddColumn", "Students", "fullNameLen", {
+            "type": "Any",
+            "isFormula": true,
+            "formula": "len(rec.fullName)"
+          }]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName",      "@schoolShort","@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama",  "Columbia",   "NY"],
+        [2,   "George W", "Bush",    8,       "George W Bush", "Yale",       "CT"],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton",  "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "George H Bush", "Yale",       "CT"],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan", "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter",  "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",   "Yale",       "CT"]],
+      "Address": [
+        ["id",  "state",    "country", "@region"],
+        [2,     "IL",       "US",      "North America"],
+        [3,     "MD",       "US",      "North America"],
+        [4,     "CT",       "US",      "North America"],
+        [7,     "NY",       "US",      "North America"],
+        [10,    "England",  "UK",      "Europe"]]
+    }],
+
+
+    // If we end up with an invalid reference, we should get reference errors in the data, but not die.
+    ["APPLY", {
+      "USER_ACTION": ["RemoveColumn", "Address", "state"],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "_grist_Tables_column", 27],
+          ["RemoveColumn", "Address", "state"]
+        ],
+        "undo": [
+          ["AddRecord", "_grist_Tables_column", 27, {
+            "parentId": 3,
+            "parentPos": 2.0,
+            "colId": "state",
+            "type": "Text",
+            "label": "State"
+          }],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10],
+            {"state": ["IL", "MD", "CT", "NY", "England"]}],
+          ["AddColumn", "Address", "state", {
+            "type": "Text",
+            "isFormula": false,
+            "formula": ""
+          }]
+
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8],
+            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"]]
+            }]
+        ]
+      },
+      "CHECK_CALL_COUNTS": {
+        "Students" : { "schoolRegion" : 7 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName", "@schoolShort","@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama",  "Columbia", ["E","AttributeError"]],
+        [2,   "George W", "Bush",    8,       "George W Bush", "Yale",     ["E","AttributeError"]],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton",  "Oxford",   "Europe"],
+        [4,   "George H", "Bush",    8,       "George H Bush", "Yale",     ["E","AttributeError"]],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan", "Eureka",   ["E","AttributeError"]],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter",  "U.S.",     ["E","AttributeError"]],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",   "Yale",     ["E","AttributeError"]]],
+      "Address": [
+        ["id",  "country", "@region"],
+        [2,     "US",      "North America"],
+        [3,     "US",      "North America"],
+        [4,     "US",      "North America"],
+        [7,     "US",      "North America"],
+        [10,    "UK",      "Europe"]]
+    }],
+
+    // Test that when we remove a Reference column, we don't get errors modifying its target
+    // table.
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["RemoveColumn", "Students", "school"],
+        ["RemoveColumn", "Students", "schoolShort"],
+        ["RemoveRecord", "Schools", 1],
+        ["RemoveRecord", "Schools", 8]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "_grist_Tables_column", 5],
+          ["RemoveColumn", "Students", "school"],
+          ["RemoveRecord", "_grist_Tables_column", 6],
+          ["RemoveColumn", "Students", "schoolShort"],
+          ["RemoveRecord", "Schools", 1],
+          ["RemoveRecord", "Schools", 8]
+        ],
+        "undo": [
+          ["AddRecord", "_grist_Tables_column", 5, {"parentPos": 5.0, "parentId": 1,
+            "colId": "school", "type": "Ref:Schools", "label": "school"
+          }],
+          ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {"school": [2,8,6,8,1,5,7]}],
+          ["AddColumn", "Students", "school", {"isFormula": false,
+            "formula": "", "type": "Ref:Schools"}],
+          ["AddRecord", "_grist_Tables_column", 6, {
+            "parentPos": 6.0, "isFormula": 1, "parentId": 1,
+            "colId": "schoolShort", "formula": "rec.school.name.split(' ')[0]",
+            "type": "Any", "label": "School Short"
+          }],
+          ["AddColumn", "Students", "schoolShort", {"isFormula": true,
+            "formula": "rec.school.name.split(' ')[0]", "type": "Any"}],
+          ["AddRecord", "Schools", 1, {"name": "Eureka College", "address": 2}],
+          ["AddRecord", "Schools", 8, {"name": "Yale University", "address": 4}]
+        ],
+        "calc": [
+          ["UpdateRecord", "Students", 3,
+            {"schoolRegion": ["E","AttributeError"]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS": {
+        "Students" : { "schoolRegion" : 7 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","@fullName",     "@schoolRegion"],
+        [1,   "Barack",   "Obama",   "Barack Obama",  ["E","AttributeError"]],
+        [2,   "George W", "Bush",    "George W Bush", ["E","AttributeError"]],
+        [3,   "Bill",     "Clinton", "Bill Clinton",  ["E","AttributeError"]],
+        [4,   "George H", "Bush",    "George H Bush", ["E","AttributeError"]],
+        [5,   "Ronald",   "Reagan",  "Ronald Reagan", ["E","AttributeError"]],
+        [6,   "Jimmy",    "Carter",  "Jimmy Carter",  ["E","AttributeError"]],
+        [8,   "Gerald",   "Ford",    "Gerald Ford",   ["E","AttributeError"]]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "country", "@region"],
+        [2,     "US",      "North America"],
+        [3,     "US",      "North America"],
+        [4,     "US",      "North America"],
+        [7,     "US",      "North America"],
+        [10,    "UK",      "Europe"]]
+    }],
+
+    // To test that columns get removed from the views, use AddTable (which causes a View to be
+    // created) and then RemoveColumn from that.
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["AddTable", "ViewTest", [
+          { "id": "hello", "type": "Text", "isFormula": false, "label": "", "widgetOptions": ""},
+          { "id": "world", "type": "Text", "isFormula": true, "formula": "rec.hello.upper()", "label": "", "widgetOptions": ""}
+        ]],
+        ["RemoveColumn", "ViewTest", "hello"]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["AddTable", "ViewTest", [
+            {"isFormula": false, "formula": "", "type": "ManualSortPos", "id": "manualSort"},
+            {"isFormula": false, "formula": "", "type": "Text", "id": "hello"},
+            {"isFormula": true, "formula": "rec.hello.upper()", "type": "Text", "id": "world"}
+          ]],
+          ["AddRecord", "_grist_Tables", 4, {"primaryViewId": 0, "tableId": "ViewTest"}],
+          ["BulkAddRecord", "_grist_Tables_column", [30,31,32], {
+            "colId": ["manualSort","hello","world"],
+            "formula": ["","","rec.hello.upper()"],
+            "parentPos": [8.0,9.0,10.0],
+            "isFormula": [false,false,true],
+            "label": ["manualSort","",""],
+            "parentId": [4,4,4],
+            "type": ["ManualSortPos","Text","Text"],
+            "widgetOptions": ["","",""]
+          }],
+          // Raw view
+          ["AddRecord", "_grist_Views", 1,
+            {"type": "raw_data", "name": "ViewTest"}],
+          ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Pages", 1, {"indentation": 0, "pagePos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Views_section", 1,
+            {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
+              "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
+          ["BulkAddRecord", "_grist_Views_section_field", [1,2],
+            {"parentId": [1,1], "colRef": [31,32], "parentPos": [1.0,2.0]}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}],
+          ["RemoveRecord", "_grist_Views_section_field", 1],
+          ["RemoveRecord", "_grist_Tables_column", 31],
+          ["RemoveColumn", "ViewTest", "hello"]
+
+        ],
+        "calc": [],
+        "undo": [
+          ["RemoveTable", "ViewTest"],
+          ["RemoveRecord", "_grist_Tables", 4],
+          ["BulkRemoveRecord", "_grist_Tables_column", [30,31,32]],
+          ["RemoveRecord", "_grist_Views", 1],
+          ["RemoveRecord", "_grist_TabBar", 1],
+          ["RemoveRecord", "_grist_Pages", 1],
+          ["RemoveRecord", "_grist_Views_section", 1],
+          ["BulkRemoveRecord", "_grist_Views_section_field", [1,2]],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0}],
+          ["AddRecord", "_grist_Views_section_field", 1,
+            {"parentId": 1, "colRef": 31, "parentPos": 1.0}],
+          ["AddRecord", "_grist_Tables_column", 31,
+            {"colId": "hello", "parentPos": 9.0,
+              "parentId": 4, "type": "Text"
+            }],
+          ["AddColumn", "ViewTest", "hello",
+            {"isFormula": false, "formula": "", "type": "Text"}]
+        ]
+      }
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "rename_column",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["RenameColumn", "Address", "city", "town"],
+        ["RenameColumn", "Students", "fullNameLen", "nameLen"],
+        ["UpdateRecord", "Address", 10, {"town": "Ox-ford"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RenameColumn", "Address", "city", "town"],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"colId": "town"}],
+          ["RenameColumn", "Students", "fullNameLen", "nameLen"],
+          ["UpdateRecord", "_grist_Tables_column", 4, {"colId": "nameLen"}],
+          ["UpdateRecord", "Address", 10, {"town": "Ox-ford"}]
+        ],
+        "undo": [
+          ["RenameColumn", "Address", "town", "city"],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"colId": "city"}],
+          ["RenameColumn", "Students", "nameLen", "fullNameLen"],
+          ["UpdateRecord", "_grist_Tables_column", 4, {"colId": "fullNameLen"}],
+          ["UpdateRecord", "Address", 10, {"town": "Oxford"}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : {"nameLen" : 7}
+      }
+    }],
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","@nameLen","@schoolShort",
+          "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,      "Columbia",   "NY"],
+        [2,   "George W", "Bush",    8,       "George W Bush",13,      "Yale",       "CT"],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,      "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "George H Bush",13,      "Yale",       "CT"],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan",13,      "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,      "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,      "Yale",       "CT"]],
+      "Address": [
+        ["id",  "town",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Ox-ford",     "England",  "UK",      "Europe"]]
+    }],
+
+    // Test that when we rename a Reference column, changes to the target table still work.
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["RenameColumn", "Students", "school", "university"],
+        ["RemoveRecord", "Schools", 1],
+        ["RemoveRecord", "Schools", 8]
+      ],
+      "ACTIONS": {
+        "calc": [
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolRegion": [null, null, null]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolShort": ["", "", ""]}]
+        ],
+        "stored": [
+          ["RenameColumn", "Students", "school", "university"],
+          ["ModifyColumn", "Students", "schoolShort",
+            {"formula": "rec.university.name.split(' ')[0]"}],
+          ["ModifyColumn", "Students", "schoolRegion", { "formula":
+            "addr = $university.address\naddr.state if addr.country == 'US' else addr.region"
+          }],
+          ["BulkUpdateRecord", "_grist_Tables_column", [5,6,9], {
+            "colId": ["university", "schoolShort", "schoolRegion"],
+            "formula": [
+              "",
+              "rec.university.name.split(' ')[0]",
+              "addr = $university.address\naddr.state if addr.country == 'US' else addr.region"
+            ]
+          }],
+          ["RemoveRecord", "Schools", 1],
+          ["UpdateRecord", "Students", 5, {"university": 0}],
+          ["RemoveRecord", "Schools", 8],
+          ["BulkUpdateRecord", "Students", [2, 4], {"university": [0, 0]}]
+        ],
+        "undo": [
+          ["RenameColumn", "Students", "university", "school"],
+          ["ModifyColumn", "Students", "schoolShort",
+            {"formula": "rec.school.name.split(' ')[0]"}],
+          ["ModifyColumn", "Students", "schoolRegion", { "formula":
+            "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"
+          }],
+          ["BulkUpdateRecord", "_grist_Tables_column", [5,6,9], {
+            "colId": ["school", "schoolShort", "schoolRegion"],
+            "formula": [
+              "",
+              "rec.school.name.split(' ')[0]",
+              "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"
+            ]
+          }],
+          ["AddRecord", "Schools", 1, {"name": "Eureka College", "address": 2}],
+          ["UpdateRecord", "Students", 5, {"university": 1}],
+          ["AddRecord", "Schools", 8, {"name": "Yale University", "address": 4}],
+          ["BulkUpdateRecord", "Students", [2, 4], {"university": [8, 8]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolShort" : 7, "schoolRegion" : 7 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","university","@fullName","@nameLen", "@schoolShort", "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,    "Columbia", "NY" ],
+        [2,   "George W", "Bush",    0,       "George W Bush",13,    "",         null ],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,    "Oxford",   "Europe"],
+        [4,   "George H", "Bush",    0,       "George H Bush",13,    "",         null ],
+        [5,   "Ronald",   "Reagan",  0,       "Ronald Reagan",13,    "",         null ],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,    "U.S.",     "MD" ],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,    "Yale",     "CT" ]],
+      "Schools": [
+        ["id",  "name",                 "address"],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "town",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Ox-ford",    "England",  "UK",      "Europe"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Check that column renaming plays well with property columns
+        ["ModifyColumn", "Address", "state", { "type" : "Int" }],
+        ["UpdateRecord", "Address", 2, { "state" : 73 }]
+      ],
+      "ACTIONS": {
+        "stored": [
+            ["ModifyColumn", "Address", "state", {"type": "Int"}],
+            ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Int"}],
+            ["UpdateRecord", "Address", 2, {"state": 73}]
+        ],
+        "undo": [
+            ["ModifyColumn", "Address", "state", {"type": "Text"}],
+            ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Text"}],
+            ["UpdateRecord", "Address", 2, {"state": "IL"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","university","@fullName","@nameLen", "@schoolShort", "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,    "Columbia",  "NY" ],
+        [2,   "George W", "Bush",    0,       "George W Bush",13,    "",          null ],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,    "Oxford",    "Europe"],
+        [4,   "George H", "Bush",    0,       "George H Bush",13,    "",          null ],
+        [5,   "Ronald",   "Reagan",  0,       "Ronald Reagan",13,    "",          null ],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,    "U.S.",      "MD" ],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,    "Yale",      "CT" ]],
+      "Schools": [
+        ["id",  "name",          "address"],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "town",     "state", "country", "@region"],
+        [2,     "Eureka",     73,       "US",   "North America"],
+        [3,     "Annapolis",  "MD",     "US",   "North America"],
+        [4,     "New Haven",  "CT",     "US",   "North America"],
+        [7,     "New York",   "NY",     "US",   "North America"],
+        [10,    "Ox-ford",    "England","UK",   "Europe"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["RenameColumn", "Address", "state", "stateName"],
+        ["ModifyColumn", "Address", "stateName", { "type" : "Numeric"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+            ["RenameColumn", "Address", "state", "stateName"],
+            ["ModifyColumn", "Students", "schoolRegion", { "formula":
+              "addr = $university.address\naddr.stateName if addr.country == 'US' else addr.region"
+            }],
+            ["BulkUpdateRecord", "_grist_Tables_column", [27, 9], {
+              "colId": ["stateName", "schoolRegion"],
+              "formula": ["",
+                "addr = $university.address\naddr.stateName if addr.country == 'US' else addr.region"]
+            }],
+            ["ModifyColumn", "Address", "stateName", {"type": "Numeric"}],
+            ["UpdateRecord", "Address", 2, {"stateName": 73.0}],
+            ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Numeric"}]
+        ],
+        "undo": [
+            ["RenameColumn", "Address", "stateName", "state"],
+            ["ModifyColumn", "Students", "schoolRegion", { "formula":
+              "addr = $university.address\naddr.state if addr.country == 'US' else addr.region"
+            }],
+            ["BulkUpdateRecord", "_grist_Tables_column", [27, 9], {
+              "colId": ["state", "schoolRegion"],
+              "formula": ["",
+                "addr = $university.address\naddr.state if addr.country == 'US' else addr.region"]
+            }],
+            ["UpdateRecord", "Address", 2, {"stateName": 73}],
+            ["ModifyColumn", "Address", "stateName", {"type": "Int"}],
+            ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Int"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","university","@fullName","@nameLen", "@schoolShort", "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,    "Columbia",  "NY" ],
+        [2,   "George W", "Bush",    0,       "George W Bush",13,    "",          null ],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,    "Oxford",    "Europe"],
+        [4,   "George H", "Bush",    0,       "George H Bush",13,    "",          null ],
+        [5,   "Ronald",   "Reagan",  0,       "Ronald Reagan",13,    "",          null ],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,    "U.S.",      "MD" ],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,    "Yale",      "CT" ]],
+      "Schools": [
+        ["id",  "name",          "address"],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "town", "stateName", "country", "@region"],
+        [2,     "Eureka",     73,       "US",   "North America"],
+        [3,     "Annapolis",  "MD",     "US",   "North America"],
+        [4,     "New Haven",  "CT",     "US",   "North America"],
+        [7,     "New York",   "NY",     "US",   "North America"],
+        [10,    "Ox-ford",    "England","UK",   "Europe"]]
+    }],
+
+    // Check that renaming a column to same name without changes is a no-op.
+    ["APPLY", {
+      "USER_ACTION" : ["RenameColumn", "Students", "university", "university"],
+      "ACTIONS" : {
+        "stored" : [],
+        "undo" : []
+      }
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "rename_column2",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    // Check that we can rename a column via a metadata update.
+    ["APPLY", {
+      "USER_ACTION": ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "short"}],
+      "ACTIONS": {
+        "stored": [
+          ["RenameColumn", "Students", "schoolShort", "short"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "short"}]
+        ],
+        "undo": [
+          ["RenameColumn", "Students", "short", "schoolShort"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "schoolShort"}]
+        ]
+      }
+    }],
+
+    // Check that we can rename a column to a conflicting name, and a unique name will be chosen.
+    ["APPLY", {
+      "USER_ACTION": ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "school"}],
+      "ACTIONS": {
+        "stored": [
+          ["RenameColumn", "Students", "short", "school2"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "school2"}]
+        ],
+        "undo": [
+          ["RenameColumn", "Students", "school2", "short"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "short"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","@fullNameLen","@school2","@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama",  12,     "Columbia",   "NY"],
+        [2,   "George W", "Bush",    8,       "George W Bush", 13,     "Yale",       "CT"],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton",  12,     "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "George H Bush", 13,     "Yale",       "CT"],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan", 13,     "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter",  12,     "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",   11,     "Yale",       "CT"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "modify_column",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    ["APPLY", {
+      // Check that Modifying formulas works
+      "USER_ACTION": ["ModifyColumn", "Address", "city", {"formula": "'Anytown'"}],
+      "ACTIONS": {
+        "stored": [
+          ["ModifyColumn", "Address", "city", {"formula": "'Anytown'"}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"formula": "'Anytown'"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "Address", "city", {"formula": ""}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"formula": ""}]
+        ]
+      }
+    }],
+
+    ["APPLY", {
+      // Modifying formulas and triggering calc actions
+      "USER_ACTION": ["ModifyColumn", "Students", "fullName", {
+        "formula": "rec.lastName + ' - ' + rec.firstName"
+      }],
+      "ACTIONS": {
+        "stored": [
+          ["ModifyColumn", "Students", "fullName",
+            {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+          ["UpdateRecord", "_grist_Tables_column", 3,
+            {"formula": "rec.lastName + ' - ' + rec.firstName"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "Students", "fullName",
+            {"formula": "rec.firstName + ' ' + rec.lastName"}],
+          ["UpdateRecord", "_grist_Tables_column", 3,
+            {"formula": "rec.firstName + ' ' + rec.lastName"}]
+        ],
+        "calc": [["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
+          "fullName": [
+            "Obama - Barack",
+            "Bush - George W",
+            "Clinton - Bill",
+            "Bush - George H",
+            "Reagan - Ronald",
+            "Carter - Jimmy",
+            "Ford - Gerald"
+          ]
+        }], ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
+          "fullNameLen": [14,15,14,15,15,14,13]
+        }]]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "fullName" : 7, "fullNameLen" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Check that Default formulas are triggered on add record
+        ["UpdateRecord", "Students", 2, {"firstName": "G.W."}],
+        ["AddRecord", "Address", 11, {"country": "US"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["UpdateRecord", "Students", 2, {"firstName": "G.W."}],
+          ["AddRecord", "Address", 11, {"country": "US"}],
+          ["UpdateRecord", "Address", 11, {"city": "Anytown"}]
+
+        ],
+        "undo": [
+          ["UpdateRecord", "Students", 2, {"firstName": "George W"}],
+          ["RemoveRecord", "Address", 11]
+        ],
+        "calc": [
+          ["UpdateRecord", "Address", 11, {"region": "North America" }],
+          ["UpdateRecord", "Students", 2, {"fullName": "Bush - G.W."}],
+          ["UpdateRecord", "Students", 2, {"fullNameLen": 11}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Address" : { "city": 1, "region" : 1 },
+        "Students": { "fullName" : 1, "fullNameLen" : 1 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Check that nothing bad happens when going back and forth between types
+        // in a formula column
+        ["ModifyColumn", "Students", "fullNameLen", {"type": "Text"}],
+        ["ModifyColumn", "Students", "fullNameLen", {"type": "Int"}],
+        ["ModifyColumn", "Students", "fullNameLen", {"type": "Any"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Text"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Text"}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Int"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Int"}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Any"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Any"}]
+        ],
+        "undo": [
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Any"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Any"}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Text"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Text"}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"type": "Int"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"type": "Int"}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "fullNameLen" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Check that nothing bad happens when going back and forth between formula
+        // and non-formula
+        ["ModifyColumn", "Students", "fullNameLen", {"isFormula": false, "type": "Int"}],
+        ["ModifyColumn", "Students", "fullNameLen", {"isFormula": true, "formula" : "len($fullName) - 1"}],
+        ["ModifyColumn", "Students", "fullNameLen", {"isFormula": false}]
+      ],
+      "ACTIONS": {
+        "stored": [
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"isFormula": false, "type": "Int"}],
+            ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8],
+              {"fullNameLen": [14,11,14,15,15,14,13]}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"isFormula": false, "type": "Int"}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"formula": "len($fullName) - 1", "isFormula": true}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"formula": "len($fullName) - 1", "isFormula": true}],
+            ["ModifyColumn", "Students", "fullNameLen", {"isFormula": false}],
+            ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+              {"fullNameLen": [13, 10, 13, 14, 14, 13, 12]}],
+            ["UpdateRecord", "_grist_Tables_column", 4, {"isFormula": false}]
+
+        ],
+        "undo": [
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"isFormula": true, "type": "Any"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"isFormula": true, "type": "Any"}],
+            ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+              {"fullNameLen": [14, 11, 14, 15, 15, 14, 13]}],
+            ["ModifyColumn", "Students", "fullNameLen",
+              {"isFormula": false, "formula" : "len(rec.fullName)"}],
+            ["UpdateRecord", "_grist_Tables_column", 4,
+              {"isFormula": false, "formula" : "len(rec.fullName)"}],
+            ["ModifyColumn", "Students", "fullNameLen", {"isFormula": true}],
+            ["UpdateRecord", "_grist_Tables_column", 4, {"isFormula": true}]
+
+        ]
+        // "calc": [
+        //   ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+        //     {"fullNameLen": [13, 10, 13, 14, 14, 13, 12]}]
+        // ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "fullNameLen" : 7 }
+      }
+    }],
+
+    // XXX
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","fullNameLen","@schoolShort",
+          "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Obama - Barack", 13,      "Columbia",   "NY"],
+        [2,   "G.W.",     "Bush",    8,       "Bush - G.W.",    10,      "Yale",       "CT"],
+        [3,   "Bill",     "Clinton", 6,       "Clinton - Bill", 13,      "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "Bush - George H",14,      "Yale",       "CT"],
+        [5,   "Ronald",   "Reagan",  1,       "Reagan - Ronald",14,      "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Carter - Jimmy", 13,      "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Ford - Gerald",  12,      "Yale",       "CT"]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"],
+        [11,    "Anytown",    "",         "US",      "North America"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Modifying types converts some values, leaves others as alttext.
+        ["UpdateRecord", "Address", 2, {"city" : "567"}],
+        ["ModifyColumn", "Address", "city", {"type" : "Int"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["UpdateRecord", "Address", 2, {"city" : "567"}],
+          ["ModifyColumn", "Address", "city", {"type" : "Int"}],
+          ["UpdateRecord", "Address", 2, {"city" : 567}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type" : "Int"}]
+        ],
+        "undo" : [
+          ["UpdateRecord", "Address", 2, {"city": "Eureka"}],
+          ["UpdateRecord", "Address", 2, {"city" : "567"}],
+          ["ModifyColumn", "Address", "city", {"type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Text"}]
+
+        ]
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": [
+        // Updating a record creates alttext strings properly
+        "UpdateRecord", "Address", 2, {"city": "Eureka"}
+      ],
+      "ACTIONS": {
+        "stored": [["UpdateRecord", "Address", 2, {"city": "Eureka"}]],
+        "undo" : [["UpdateRecord", "Address", 2, {"city" : 567}]]
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Modify Column type conversion in a case there the entire column is "ok"
+        ["ModifyColumn", "Address", "city", { "type" : "Text" }],
+        ["BulkUpdateRecord", "Address", [2,3,4,7,10, 11], {"city": ["7","7","7","7","7", "7"] }],
+        ["ModifyColumn", "Address", "city", { "type" : "Int" }]
+       ],
+       "ACTIONS" : {
+        "stored": [
+          ["ModifyColumn", "Address", "city", {"type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Text"}],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"city": ["7", "7", "7", "7", "7", "7"]}],
+          ["ModifyColumn", "Address", "city", {"type": "Int"}],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"city": [7, 7, 7, 7, 7, 7]}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Int"}]
+
+        ],
+        "undo": [
+          ["ModifyColumn", "Address", "city", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Int"}],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"city": ["Eureka", "Annapolis", "New Haven", "New York", "Oxford", "Anytown"]}],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"city": ["7", "7", "7", "7", "7", "7"]}],
+          ["ModifyColumn", "Address", "city", {"type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Text"}]
+       ]
+       }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Students": [
+        ["id","firstName","lastName","school","@fullName","fullNameLen","@schoolShort",
+          "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Obama - Barack", 13,      "Columbia",   "NY"],
+        [2,   "G.W.",     "Bush",    8,       "Bush - G.W.",    10,      "Yale",       "CT"],
+        [3,   "Bill",     "Clinton", 6,       "Clinton - Bill", 13,      "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    8,       "Bush - George H",14,      "Yale",       "CT"],
+        [5,   "Ronald",   "Reagan",  1,       "Reagan - Ronald",14,      "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Carter - Jimmy", 13,      "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Ford - Gerald",  12,      "Yale",       "CT"]],
+      "Address": [
+        ["id",  "city", "state",    "country", "@region"],
+        [2,     7,         "IL",       "US",      "North America"],
+        [3,     7,         "MD",       "US",      "North America"],
+        [4,     7,         "CT",       "US",      "North America"],
+        [7,     7,         "NY",       "US",      "North America"],
+        [10,    7,    "England",       "UK",      "Europe"],
+        [11,    7,           "",       "US",      "North America"]]
+    }],
+
+   ["APPLY", {
+      // Check that turning a non-formula column, with no formula, into a formula
+      // works as expected
+      "USER_ACTION" : ["ModifyColumn", "Address", "state", { "isFormula" : true, "type": "Any" }],
+      "ACTIONS" : {
+        "stored" : [
+          ["ModifyColumn", "Address", "state", {"isFormula": true, "type": "Any"}],
+          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": true, "type": "Any"}]
+        ],
+
+        "undo" : [
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11],
+            {"state": ["IL", "MD", "CT", "NY", "England", ""]}],
+          ["ModifyColumn", "Address", "state", {"isFormula": false, "type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": false, "type": "Text"}]
+
+        ],
+
+        "calc" : [
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"state": [null, null, null, null, null, null]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": [null, null, null, null, null, null]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Address"  : { "state" : 6 },
+        "Students" : { "schoolRegion" : 7 }
+      }
+    }],
+
+   ["APPLY", {
+     // Property generation
+     "USER_ACTION": ["UpdateRecord", "Students", 1, {"fullNameLen" : "Fourteen"}],
+     "ACTIONS" : {
+      "stored" : [["UpdateRecord", "Students", 1, {"fullNameLen": "Fourteen"}]],
+      "undo" : [["UpdateRecord", "Students", 1, {"fullNameLen": 13}]]
+     }
+   }],
+
+   ["APPLY", {
+     // Check formula error handling
+     "USER_ACTIONS" : [
+       ["ModifyColumn", "Students", "fullName", {"formula" : "!#@%&T#$UDSAIKVFsdhifzsk" }],
+       ["ModifyColumn", "Students", "schoolRegion", {"formula" : "5*len($firstName) / $fullNameLen" }]
+     ],
+     "ACTIONS" : {
+       "stored" : [
+         ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
+         ["ModifyColumn", "Students", "schoolRegion", {"formula": "5*len($firstName) / $fullNameLen"}],
+         ["UpdateRecord", "_grist_Tables_column", 9, {"formula": "5*len($firstName) / $fullNameLen"}]
+       ],
+       "undo" : [
+         ["ModifyColumn", "Students", "fullName", {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+         ["ModifyColumn", "Students", "schoolRegion",
+           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}],
+         ["UpdateRecord", "_grist_Tables_column", 9,
+           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}]
+       ],
+       "calc" : [
+         ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+           {"fullName" : [["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"],
+             ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"]]
+           }],
+         // In previous section, we set $fullNameLen to the string "Fourteen" for Student #1, so
+         // the calculation for that record fails with TypeError.
+         ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+           {"schoolRegion": [["E", "TypeError"], 2, 1, 2, 2, 1, 2]}]
+       ]
+     },
+     "CHECK_CALL_COUNTS" : {
+       "Students" : { "schoolRegion" : 7, "fullName" : 7 }
+     }
+   }],
+
+   ["APPLY", {
+     // Check that error handling works properly when evaluating a no-longer
+     // error-full formula
+     "USER_ACTION" :
+       ["ModifyColumn", "Students", "fullName", {"formula" : "$firstName"}],
+     "ACTIONS" : {
+       "stored" : [
+         ["ModifyColumn", "Students", "fullName", {"formula": "$firstName"}],
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "$firstName"}]
+       ],
+       "undo" : [
+         ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}]
+       ],
+       "calc" : [
+         ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+           {"fullName": ["Barack", "G.W.", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]}]
+       ]
+     }
+   }],
+
+
+  ["CHECK_OUTPUT", {
+     "USE_SAMPLE": "basic",
+     "Students": [
+       ["id","firstName","lastName","school","@fullName","fullNameLen","@schoolShort",
+         "@schoolRegion"],
+       [1,   "Barack",   "Obama",   2, "Barack", "Fourteen", "Columbia", ["E","TypeError"]],
+       [2,   "G.W.",     "Bush",    8, "G.W.",      10, "Yale",     2],
+       [3,   "Bill",     "Clinton", 6, "Bill",      13, "Oxford",   1],
+       [4,   "George H", "Bush",    8, "George H",  14, "Yale",     2],
+       [5,   "Ronald",   "Reagan",  1, "Ronald",    14, "Eureka",   2],
+       [6,   "Jimmy",    "Carter",  5, "Jimmy",     13, "U.S.",     1],
+       [8,   "Gerald",   "Ford",    7, "Gerald",    12, "Yale",     2]],
+     "Address": [
+       ["id",  "city", "@state",    "country", "@region"],
+       [2,     7,           null,       "US",      "North America"],
+       [3,     7,           null,       "US",      "North America"],
+       [4,     7,           null,       "US",      "North America"],
+       [7,     7,           null,       "US",      "North America"],
+       [10,    7,           null,       "UK",      "Europe"],
+       [11,    7,           null,       "US",      "North America"]]
+  }],
+
+  ["APPLY", {
+    // Check that ModifyColumn properly handles noops on redundant updates
+    "USER_ACTIONS" : [
+      ["ModifyColumn", "Students", "fullName", {"isFormula" : true }],
+      ["UpdateRecord", "_grist_Tables_column", 3, { "formula" : "$firstName" }],
+      ["ModifyColumn", "Students", "fullName",
+        {"isFormula" : true, "formula" : "$firstName", "label": "Entire Name"}]
+    ],
+    "ACTIONS" : {
+      "stored" : [
+        ["RenameColumn", "Students", "fullName", "Entire_Name"],
+        ["ModifyColumn", "Students", "fullNameLen", {
+          "formula": "len($Entire_Name) - 1"
+        }],
+        ["BulkUpdateRecord", "_grist_Tables_column", [3, 4], {
+          "label": ["Entire Name", "Full Name Length"],
+          "colId": ["Entire_Name", "fullNameLen"],
+          "formula": ["$firstName", "len($Entire_Name) - 1"]
+        }]
+      ],
+      "undo" : [
+        ["RenameColumn", "Students", "Entire_Name", "fullName"],
+        ["ModifyColumn", "Students", "fullNameLen", {
+          "formula": "len($fullName) - 1"
+        }],
+        ["BulkUpdateRecord", "_grist_Tables_column", [3, 4], {
+          "label": ["Full Name", "Full Name Length"],
+          "colId": ["fullName", "fullNameLen"],
+          "formula": ["$firstName", "len($fullName) - 1"]
+        }]
+      ]
+    }
+  }]
+ ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "column_conversions: DateTime->Int->Numeric->DateTime",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "simplest"],
+    ["CHECK_OUTPUT", {"USE_SAMPLE": "simplest"}],
+
+    ["APPLY", {
+      // Add a DateTime column
+      "USER_ACTION": ["AddColumn", "foo", "c_date", {"type": "DateTime", "isFormula": false}],
+      "ACTIONS": {
+        "stored": [
+          ["AddColumn", "foo", "c_date", {
+            "type":          "DateTime",
+            "isFormula":     false,
+            "formula":       ""
+          }],
+          ["AddRecord", "_grist_Tables_column", 2, {
+            "colId": "c_date", "formula": "", "isFormula": false, "label": "c_date", "parentId": 1,
+            "parentPos": 2.0, "type": "DateTime", "widgetOptions": ""}
+          ]
+        ],
+        "undo": [
+          ["RemoveColumn", "foo", "c_date"],
+          ["RemoveRecord", "_grist_Tables_column", 2]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "c_date"],
+        [1,    "apple", null]
+      ]
+    }],
+
+    ["APPLY", {
+      // Change it to Int
+      "USER_ACTION": ["ModifyColumn", "foo", "c_date", {"type": "Int"}],
+      "ACTIONS": {
+        "stored": [
+          ["ModifyColumn", "foo", "c_date", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Int"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "foo", "c_date", {"type": "DateTime"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "DateTime"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "c_date"],
+        [1,    "apple", null]
+      ]
+    }],
+
+    ["APPLY", {
+      // Change it to Numeric
+      "USER_ACTION": ["ModifyColumn", "foo", "c_date", {"type": "Numeric"}],
+      "ACTIONS": {
+        "stored": [
+          ["ModifyColumn", "foo", "c_date", {"type": "Numeric"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Numeric"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "foo", "c_date", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Int"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "c_date"],
+        [1,    "apple", null]
+      ]
+    }],
+
+    ["APPLY", {
+      // Change it back to DateTime
+      "USER_ACTION": ["ModifyColumn", "foo", "c_date", {"type": "DateTime"}],
+      "ACTIONS": {
+        "stored": [
+          // Note absence of UpdateRecord for 0 to null, because 0 is compatible with DateTime
+          ["ModifyColumn", "foo", "c_date", {"type": "DateTime"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "DateTime"}]
+        ],
+        "undo": [
+          ["ModifyColumn", "foo", "c_date", {"type": "Numeric"}],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Numeric"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "c_date"],
+        [1,    "apple", null]
+      ]
+    }]
+  ]
+
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "add_table",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["AddTable", "Foo", []],
+        ["AddTable", "Bar", [
+          { "id": "hello", "label": "hello", "type": "Text", "isFormula": false, "widgetOptions": ""},
+          { "id": "world", "label": "world", "type": "Text", "isFormula": true,  "formula": "rec.hello.upper()", "widgetOptions": ""},
+          { "id": "foo",   "label": "foo", "type": "Ref:Foo", "isFormula": false, "widgetOptions": "" }
+        ]],
+        ["AddRecord", "Bar", 1, {"hello": "a", "foo": 0}],
+        ["AddRecord", "Bar", 2, {"hello": "b", "foo": 1}],
+        ["AddRecord", "Bar", 3, {"hello": "c", "foo": 1}]
+      ],
+
+      "ACTIONS": {
+        "stored": [
+          ["AddTable", "Foo", [
+            {"id": "manualSort", "formula": "", "isFormula": false, "type": "ManualSortPos"}
+          ]],
+          ["AddRecord", "_grist_Tables", 4, {"primaryViewId": 0, "tableId": "Foo"}],
+          ["AddRecord", "_grist_Tables_column", 30, {"colId": "manualSort", "formula": "", "isFormula": false,
+           "label": "manualSort", "parentId": 4, "parentPos": 8.0, "type": "ManualSortPos", "widgetOptions": ""}],
+          // Raw view
+          ["AddRecord", "_grist_Views", 1,
+            {"type": "raw_data", "name": "Foo"}],
+          ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Pages", 1, {"indentation": 0, "pagePos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Views_section", 1,
+            {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
+              "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}],
+
+          ["AddTable", "Bar", [
+            {"id": "manualSort", "formula": "", "isFormula": false, "type": "ManualSortPos"},
+            {"isFormula": false, "formula": "", "type": "Text", "id": "hello"},
+            {"isFormula": true, "formula": "rec.hello.upper()", "type": "Text", "id": "world"},
+            {"isFormula": false, "formula": "", "type": "Ref:Foo", "id": "foo"}]
+          ],
+          ["AddRecord", "_grist_Tables", 5, {"primaryViewId": 0, "tableId": "Bar"}],
+
+          ["BulkAddRecord", "_grist_Tables_column", [31,32,33,34], {
+            "colId": ["manualSort","hello","world","foo"],
+            "isFormula": [false,false,true,false],
+            "formula": ["","","rec.hello.upper()",""],
+            "type": ["ManualSortPos","Text","Text","Ref:Foo"],
+            "label": ["manualSort","hello","world","foo"],
+            "parentId": [5,5,5,5],
+            "parentPos": [9.0,10.0,11.0,12.0],
+            "widgetOptions": ["","","",""]
+          }],
+
+          ["AddRecord", "_grist_Views", 2,
+            {"type": "raw_data", "name": "Bar"}],
+          ["AddRecord", "_grist_TabBar", 2, {"tabPos": 2.0, "viewRef": 2}],
+          ["AddRecord", "_grist_Pages", 2, {"pagePos": 2.0, "viewRef": 2, "indentation": 0}],
+          ["AddRecord", "_grist_Views_section", 2,
+            {"tableRef": 5, "defaultWidth": 100, "borderWidth": 1,
+              "parentId": 2, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
+          ["BulkAddRecord", "_grist_Views_section_field", [1,2,3],
+            {"parentId": [2,2,2], "colRef": [32,33,34], "parentPos": [1.0,2.0,3.0]}],
+          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 2}],
+          ["AddRecord", "Bar", 1, {"foo": 0, "hello": "a", "manualSort": 1.0}],
+          ["AddRecord", "Bar", 2, {"foo": 1, "hello": "b", "manualSort": 2.0}],
+          ["AddRecord", "Bar", 3, {"foo": 1, "hello": "c", "manualSort": 3.0}]
+        ],
+        "undo": [
+          ["RemoveTable", "Foo"],
+          ["RemoveRecord", "_grist_Tables", 4],
+          ["RemoveRecord", "_grist_Tables_column", 30],
+          ["RemoveRecord", "_grist_Views", 1],
+          ["RemoveRecord", "_grist_TabBar", 1],
+          ["RemoveRecord", "_grist_Pages", 1],
+          ["RemoveRecord", "_grist_Views_section", 1],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0}],
+          ["RemoveTable", "Bar"],
+          ["RemoveRecord", "_grist_Tables", 5],
+          ["BulkRemoveRecord", "_grist_Tables_column", [31,32,33,34]],
+          ["RemoveRecord", "_grist_Views", 2],
+          ["RemoveRecord", "_grist_TabBar", 2],
+          ["RemoveRecord", "_grist_Pages", 2],
+          ["RemoveRecord", "_grist_Views_section", 2],
+          ["BulkRemoveRecord", "_grist_Views_section_field", [1,2,3]],
+          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 0}],
+          ["RemoveRecord", "Bar", 1],
+          ["RemoveRecord", "Bar", 2],
+          ["RemoveRecord", "Bar", 3]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "Bar", [1, 2, 3], {"world": ["A", "B", "C"]}]
+        ],
+        "retValue": [
+          // AddTable "Foo" retValue
+          {
+            "table_id": "Foo",
+            "id": 4,
+            "columns": [],
+            "views": [
+              { "sections": [ 1 ], "id": 1 }
+            ]
+          },
+          // AddTable "Bar" retValue
+          {
+            "table_id": "Bar",
+            "id": 5,
+            "columns": ["hello", "world", "foo"],
+            "views": [
+              { "sections": [ 2 ], "id": 2 }
+            ]
+          },
+          // AddRecord retValues
+          1, 2, 3
+       ]
+      },
+      "CHECK_CALL_COUNTS": {
+        //"Bar" : { "world" : 3 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Foo": [
+        ["id", "manualSort"]
+      ],
+      "Bar": [
+        ["id", "hello", "foo", "manualSort", "@world"],
+        [1,    "a",     0,     1.0,          "A"],
+        [2,    "b",     1,     2.0,          "B"],
+        [3,    "c",     1,     3.0,          "C"]
+      ]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "remove_table",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+     ["APPLY", {
+       "USER_ACTION": ["AddTable", "Foo", []],
+       "ACTIONS": {
+         "stored": [
+           ["AddTable", "Foo", [{"id": "manualSort", "formula": "",
+            "isFormula": false, "type": "ManualSortPos"}]],
+           ["AddRecord", "_grist_Tables", 4, {"primaryViewId": 0, "tableId": "Foo"}],
+           ["AddRecord", "_grist_Tables_column", 30, {"colId": "manualSort", "formula": "", "isFormula": false,
+            "label": "manualSort", "parentId": 4, "parentPos": 8.0, "type": "ManualSortPos", "widgetOptions": ""}],
+           // Raw view
+           ["AddRecord", "_grist_Views", 1,
+             {"type": "raw_data", "name": "Foo"}],
+           ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
+           ["AddRecord", "_grist_Pages", 1, {"pagePos": 1.0, "viewRef": 1, "indentation": 0}],
+           ["AddRecord", "_grist_Views_section", 1,
+             {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
+               "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
+           // As part of adding a table, we also set the primaryViewId.
+           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}]
+         ],
+         "calc": [],
+         "undo": [
+           ["RemoveTable", "Foo"],
+           ["RemoveRecord", "_grist_Tables", 4],
+           ["RemoveRecord", "_grist_Tables_column", 30],
+           ["RemoveRecord", "_grist_Views", 1],
+           ["RemoveRecord", "_grist_TabBar", 1],
+           ["RemoveRecord", "_grist_Pages", 1],
+           ["RemoveRecord", "_grist_Views_section", 1],
+           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0}]
+         ]
+       }
+     }],
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "basic",
+      "Foo": [["id", "manualSort"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": ["RemoveTable", "Foo"],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "_grist_Views_section", 1],
+          ["RemoveRecord", "_grist_TabBar", 1],
+          ["RemoveRecord", "_grist_Pages", 1],
+          ["RemoveRecord", "_grist_Views", 1],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0}],
+          ["RemoveRecord", "_grist_Tables_column", 30],
+          ["RemoveRecord", "_grist_Tables", 4],
+          ["RemoveTable", "Foo"]
+        ],
+        "undo": [
+          ["AddRecord", "_grist_Views_section", 1,
+            {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
+              "parentId": 1, "parentKey": "record", "sortColRefs": "[]"}],
+          ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Pages", 1, {"pagePos": 1.0, "viewRef": 1}],
+          ["AddRecord", "_grist_Views", 1, {"name": "Foo", "type": "raw_data"}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}],
+          ["AddRecord", "_grist_Tables_column", 30,
+            {"colId": "manualSort",
+             "label": "manualSort", "parentId": 4, "parentPos": 8.0,
+             "type": "ManualSortPos"}],
+          ["AddRecord", "_grist_Tables", 4, {"tableId": "Foo"}],
+          ["AddTable", "Foo",  [{"formula": "",
+           "id": "manualSort", "isFormula": false, "type": "ManualSortPos"}]]
+        ]
+      }
+    }],
+    ["CHECK_OUTPUT",
+      {"USE_SAMPLE": "basic"}
+    ],
+
+    // When there is a Reference column to a deleted table, the reference column is also deleted.
+    ["APPLY", {
+      "USER_ACTION": ["RemoveTable", "Schools"],
+      "ACTIONS": {
+        "stored": [
+          // Assert that calc actions include a RemoveColumn for Students.school
+          ["RemoveRecord", "_grist_Tables_column", 5],
+          ["RemoveColumn", "Students", "school"],
+          ["BulkRemoveRecord", "_grist_Tables_column", [10, 12]],
+          ["RemoveRecord", "_grist_Tables", 2],
+          ["RemoveTable", "Schools"]
+        ],
+        "undo": [
+          ["AddRecord", "_grist_Tables_column", 5,
+            {"parentPos": 5.0, "parentId": 1,
+              "colId": "school", "type": "Ref:Schools", "label": "school"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"school": [2, 8, 6, 8, 1, 5, 7]}],
+          ["AddColumn", "Students", "school", {"isFormula": false, "formula": "", "type": "Ref:Schools"}],
+          ["BulkAddRecord", "_grist_Tables_column", [10, 12], {
+            "colId": ["name", "address"],
+            "label": ["Name", "Address"], "parentId": [2, 2], "parentPos": [1.0, 2.0],
+            "type": ["Text", "Ref:Address"]
+          }],
+          ["AddRecord", "_grist_Tables", 2, {"tableId": "Schools"}],
+          ["BulkAddRecord", "Schools", [1, 2, 5, 6, 7, 8],
+            {"name": [
+              "Eureka College", "Columbia University", "U.S. Naval Academy",
+              "Oxford University", "Yale Law School", "Yale University"],
+             "address": [2, 7, 3, 10, 4, 4]}],
+          ["AddTable", "Schools", [
+            {"isFormula": false, "formula": "", "type": "Text", "id": "name"},
+            {"isFormula": false, "formula": "", "type": "Ref:Address", "id": "address"}]
+          ]
+        ],
+        "calc": [
+          // Assert that calc actions include a RemoveColumn for Students.school
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"]]
+            }],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolShort": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"]]
+            }]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "Students" : { "schoolRegion" : 7, "schoolShort" : 7 }
+      }
+    }],
+    ["CHECK_OUTPUT", {
+      "Students": [
+        ["id","firstName","lastName","@fullName","@fullNameLen","@schoolShort","@schoolRegion"],
+        [1,   "Barack",   "Obama",   "Barack Obama", 12, ["E","AttributeError"], ["E","AttributeError"]],
+        [2,   "George W", "Bush",    "George W Bush",13, ["E","AttributeError"], ["E","AttributeError"]],
+        [3,   "Bill",     "Clinton", "Bill Clinton", 12, ["E","AttributeError"], ["E","AttributeError"]],
+        [4,   "George H", "Bush",    "George H Bush",13, ["E","AttributeError"], ["E","AttributeError"]],
+        [5,   "Ronald",   "Reagan",  "Ronald Reagan",13, ["E","AttributeError"], ["E","AttributeError"]],
+        [6,   "Jimmy",    "Carter",  "Jimmy Carter", 12, ["E","AttributeError"], ["E","AttributeError"]],
+        [8,   "Gerald",   "Ford",    "Gerald Ford",  11, ["E","AttributeError"], ["E","AttributeError"]]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"]]
+    }],
+
+    ["APPLY", {
+      "USER_ACTION": ["RemoveTable", "Students"],
+      "ACTIONS": {
+        "stored": [
+          ["BulkRemoveRecord", "_grist_Tables_column", [1, 2, 3, 4, 6, 9]],
+          ["RemoveRecord", "_grist_Tables", 1],
+          ["RemoveTable", "Students"]
+        ],
+        "undo": [
+          ["BulkAddRecord", "_grist_Tables_column", [1, 2, 3, 4, 6, 9], {
+            "colId": ["firstName", "lastName", "fullName", "fullNameLen", "schoolShort",
+              "schoolRegion"],
+            "formula": ["", "", "rec.firstName + ' ' + rec.lastName", "len(rec.fullName)",
+              "rec.school.name.split(' ')[0]",
+                "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"],
+            "isFormula": [false, false, true, true, true, true],
+            "label": ["First Name", "Last Name", "Full Name", "Full Name Length", "School Short",
+              "School Region"],
+            "parentId": [1, 1, 1, 1, 1, 1], "parentPos": [1, 2, 3, 4, 6, 7],
+            "type": ["Text", "Text", "Any", "Any", "Any", "Any"]
+          }],
+          ["AddRecord", "_grist_Tables", 1, {"tableId": "Students"}],
+          ["BulkAddRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "lastName": ["Obama", "Bush", "Clinton", "Bush", "Reagan", "Carter", "Ford"],
+            "firstName": ["Barack", "George W", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]
+          }],
+          ["AddTable", "Students", [
+            { "isFormula": false, "formula": "", "type": "Text", "id": "firstName"},
+            { "isFormula": false, "formula": "", "type": "Text", "id": "lastName"},
+            { "isFormula": true,
+              "formula": "rec.firstName + ' ' + rec.lastName", "type": "Any",
+              "id": "fullName"},
+            { "isFormula": true, "formula": "len(rec.fullName)", "type": "Any", "id": "fullNameLen"},
+            { "isFormula": true,
+              "formula": "rec.school.name.split(' ')[0]", "type": "Any",
+              "id": "schoolShort"},
+            { "isFormula": true, "formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region", "type": "Any" ,
+              "id": "schoolRegion"}
+          ]]
+        ]
+      }
+    }],
+    ["CHECK_OUTPUT", {
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "rename_table",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    ["APPLY", {
+      // Check that tables can be renamed.
+      "USER_ACTIONS": [
+        ["RenameTable", "Students", "People"],
+        ["RenameTable", "Schools", "School"]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RenameTable", "Students", "People"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
+          ["ModifyColumn", "People", "school", {"type": "Int"}],
+          ["RenameTable", "Schools", "School"],
+          ["UpdateRecord", "_grist_Tables", 2, {"tableId": "School"}],
+          ["ModifyColumn", "People", "school", {"type": "Ref:School"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:School"}]
+        ],
+        "undo": [
+          ["RenameTable", "People", "Students"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "Students"}],
+          ["ModifyColumn", "People", "school", {"type": "Ref:Schools"}],
+          ["RenameTable", "School", "Schools"],
+          ["UpdateRecord", "_grist_Tables", 2, {"tableId": "Schools"}],
+          ["ModifyColumn", "People", "school", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:Schools"}]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": [
+              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
+              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
+            }],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      // Check that tables can be renamed to a differently-cased name which SQLite considers
+      // equivalent (see RenameTable in DocStorage.js)
+      "USER_ACTIONS": [
+        ["RenameTable", "People", "PEOPLE"],
+        ["RenameTable", "PEOPLE", "People"]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RenameTable", "People", "PEOPLE"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "PEOPLE"}],
+          ["RenameTable", "PEOPLE", "People"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}]
+        ],
+        "undo": [
+          ["RenameTable", "PEOPLE", "People"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
+          ["RenameTable", "People", "PEOPLE"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "PEOPLE"}]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": [
+              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
+              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
+            }],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
+        ]
+      }
+    }],
+
+    ["APPLY", {
+      // Check that references to renamed tables continue to work.
+      "USER_ACTION": ["RemoveRecord", "School", 8],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "School", 8],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}]],
+        "undo": [
+          ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}]],
+        "calc": [
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "People" : { "schoolRegion" : 2, "schoolShort" : 2 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "People": [
+        ["id","firstName","lastName","school","@fullName","@fullNameLen","@schoolShort",
+         "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,           "Columbia",   "NY"],
+        [2,   "George W", "Bush",    0,       "George W Bush",13,           "",           null],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,           "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    0,       "George H Bush",13,           "",           null],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan",13,           "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,           "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,           "Yale",       "CT"]],
+      "School": [
+        ["id",  "name",                 "address"],
+        [1,     "Eureka College",       2],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"]]
+    }]
+  ]
+}, {
+
+  //----------------------------------------------------------------------
+  "TEST_CASE": "user_rename_table",
+  //----------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    ["APPLY", {
+      // Check that tables can be renamed.
+      "USER_ACTIONS": [
+        ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
+        ["UpdateRecord", "_grist_Tables", 2, {"tableId": "School"}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RenameTable", "Students", "People"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
+          ["ModifyColumn", "People", "school", {"type": "Int"}],
+          ["RenameTable", "Schools", "School"],
+          ["UpdateRecord", "_grist_Tables", 2, {"tableId": "School"}],
+          ["ModifyColumn", "People", "school", {"type": "Ref:School"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:School"}]
+        ],
+        "undo": [
+          ["RenameTable", "People", "Students"],
+          ["UpdateRecord", "_grist_Tables", 1, {"tableId": "Students"}],
+          ["ModifyColumn", "People", "school", {"type": "Ref:Schools"}],
+          ["RenameTable", "School", "Schools"],
+          ["UpdateRecord", "_grist_Tables", 2, {"tableId": "Schools"}],
+          ["ModifyColumn", "People", "school", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:Schools"}]
+        ],
+        "calc": [
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": [
+              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
+              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
+            }],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
+          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
+        ]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7 }
+      }
+    }],
+
+    ["APPLY", {
+      // Check that references to renamed tables continue to work.
+      "USER_ACTION": ["RemoveRecord", "School", 8],
+      "ACTIONS": {
+        "stored": [
+          ["RemoveRecord", "School", 8],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}]],
+        "undo": [
+          ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}]],
+        "calc": [
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]]
+      },
+      "CHECK_CALL_COUNTS" : {
+        "People" : { "schoolRegion" : 2, "schoolShort" : 2 }
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "People": [
+        ["id","firstName","lastName","school","@fullName","@fullNameLen","@schoolShort",
+         "@schoolRegion"],
+        [1,   "Barack",   "Obama",   2,       "Barack Obama", 12,           "Columbia",   "NY"],
+        [2,   "George W", "Bush",    0,       "George W Bush",13,           "",           null],
+        [3,   "Bill",     "Clinton", 6,       "Bill Clinton", 12,           "Oxford",     "Europe"],
+        [4,   "George H", "Bush",    0,       "George H Bush",13,           "",           null],
+        [5,   "Ronald",   "Reagan",  1,       "Ronald Reagan",13,           "Eureka",     "IL"],
+        [6,   "Jimmy",    "Carter",  5,       "Jimmy Carter", 12,           "U.S.",       "MD"],
+        [8,   "Gerald",   "Ford",    7,       "Gerald Ford",  11,           "Yale",       "CT"]],
+      "School": [
+        ["id",  "name",                 "address"],
+        [1,     "Eureka College",       2],
+        [2,     "Columbia University",  7],
+        [5,     "U.S. Naval Academy",   3],
+        [6,     "Oxford University",    10],
+        [7,     "Yale Law School",      4]],
+      "Address": [
+        ["id",  "city",       "state",    "country", "@region"],
+        [2,     "Eureka",     "IL",       "US",      "North America"],
+        [3,     "Annapolis",  "MD",       "US",      "North America"],
+        [4,     "New Haven",  "CT",       "US",      "North America"],
+        [7,     "New York",   "NY",       "US",      "North America"],
+        [10,    "Oxford",     "England",  "UK",      "Europe"]]
+    }]
+  ]
+}, {
+
+  //------------------------------------------------------------------------
+  "TEST_CASE" : "eval_code",
+  //------------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "basic"],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Basic tests
+        ["EvalCode", "print 'cats'", null],
+        ["EvalCode", "2 * 3 - 1 / 7 + 4", null],
+        // Exception
+        ["EvalCode", "raise Exception('everything broke')", null],
+        // Incomplete structure
+        ["EvalCode", "for x in range(1, 100):", null],
+        // Re-evaluation
+        ["EvalCode", "print 'cats'", 1],
+        ["EvalCode", "print 'dogs'", 1],
+        // Function definition
+        ["EvalCode", "def foo(x):\n\treturn x * 10\n", null],
+        ["EvalCode", "foo(10)", null]
+      ],
+      "ACTIONS" : {
+        "stored" : [
+          ["AddRecord", "_grist_REPL_Hist", 1,
+            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+          ["AddRecord", "_grist_REPL_Hist", 2,
+            {"code": "2 * 3 - 1 / 7 + 4", "errorText": "", "outputText": "10\n"}],
+          ["AddRecord", "_grist_REPL_Hist", 3,
+            {"code": "raise Exception('everything broke')", "errorText": "Traceback (most recent call last):\n  File \"<input>\", line 1, in <module>\nException: everything broke\n", "outputText": ""}],
+          ["UpdateRecord", "_grist_REPL_Hist", 1,
+            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+          ["UpdateRecord", "_grist_REPL_Hist", 1,
+            {"code": "print 'dogs'", "errorText": "", "outputText": "dogs\n"}],
+          ["AddRecord", "_grist_REPL_Hist", 4,
+            {"code": "def foo(x):\n\treturn x * 10\n", "errorText": "", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 5,
+            {"code": "foo(10)", "errorText": "", "outputText": "100\n"}]
+        ],
+        "undo" : [
+          ["RemoveRecord", "_grist_REPL_Hist", 1],
+          ["RemoveRecord", "_grist_REPL_Hist", 2],
+          ["RemoveRecord", "_grist_REPL_Hist", 3],
+          ["UpdateRecord", "_grist_REPL_Hist", 1,
+            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+          ["UpdateRecord", "_grist_REPL_Hist", 1,
+            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+          ["RemoveRecord", "_grist_REPL_Hist", 4],
+          ["RemoveRecord", "_grist_REPL_Hist", 5]
+        ],
+        "retValue" : [true,true,true,false,true,true,true,true]
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Access to usercode before and after re-generation
+        ["EvalCode", "list(Students.all.firstName)", null],
+        ["UpdateRecord", "Students", 1, {"firstName": "2e6"}],
+        ["ModifyColumn", "Students", "firstName", { "type" : "Numeric" }],
+        ["EvalCode", "list(Students.all.firstName)", 6],
+        // Make sure that other tables are still usable as well after a schema change.
+        ["EvalCode", "len(Schools.all)", 6]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["AddRecord", "_grist_REPL_Hist", 6,
+            {"code": "list(Students.all.firstName)", "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
+
+          ["UpdateRecord", "Students", 1, {"firstName": "2e6"}],
+          ["ModifyColumn", "Students", "firstName", {"type": "Numeric"}],
+          ["UpdateRecord", "Students", 1, {"firstName": 2e6}],
+          ["UpdateRecord", "_grist_Tables_column", 1, {"type": "Numeric"}],
+
+          ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
+            "errorText": "",
+            "outputText": "[2000000.0, AltText('George W'), AltText('Bill'), AltText('George H'), AltText('Ronald'), AltText('Jimmy'), AltText('Gerald')]\n"}],
+          ["UpdateRecord", "_grist_REPL_Hist", 6,
+            {"code": "len(Schools.all)", "errorText": "", "outputText": "6\n"}]
+        ],
+        "undo": [
+          ["RemoveRecord", "_grist_REPL_Hist", 6],
+
+          ["UpdateRecord", "Students", 1, {"firstName": "Barack"}],
+          ["UpdateRecord", "Students", 1, {"firstName": "2e6"}],
+          ["ModifyColumn", "Students", "firstName", {"type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 1, {"type": "Text"}],
+
+          ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
+           "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
+          ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
+            "errorText": "",
+            "outputText": "[2000000.0, AltText('George W'), AltText('Bill'), AltText('George H'), AltText('Ronald'), AltText('Jimmy'), AltText('Gerald')]\n"}]
+        ],
+        "calc" : [
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "fullName": [["E", "TypeError"], ["E","TypeError"], ["E","TypeError"],
+              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
+          }],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "fullNameLen": [["E","TypeError"], ["E","TypeError"], ["E","TypeError"],
+              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
+          }]
+        ],
+        "retValue": [true,null,null,true,true]
+      }
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        // Syntax Error
+        ["EvalCode", "*!@&$fjjj112#(8!", null],
+        // Other continuations
+        ["EvalCode", "map(filter, ", null],
+        ["EvalCode", "[1,2,3,", null],
+        // sys.exit
+        ["EvalCode", "import sys", null],
+        ["EvalCode", "sys.exit(0)", null],
+        // User reassignment of sys.stdout/sys.stderr
+        ["EvalCode", "sys.stdout = None", null],
+        ["EvalCode", "delattr(sys.stderr, 'close')", null],
+        ["EvalCode", "setattr(sys.stdout, 'getvalue', lambda : 2)", null],
+        ["EvalCode", "def foo():\n global stdout\n exec 'stdout = 2'\n", null],
+        ["EvalCode", "setattr(sys.stderr, 'close', foo)", null]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["AddRecord", "_grist_REPL_Hist", 7,
+            {"code": "*!@&$fjjj112#(8!", "errorText": "  File \"<input>\", line 1\n    *!@&$fjjj112#(8!\n    ^\nSyntaxError: invalid syntax\n", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 8,
+            {"code": "import sys", "errorText": "", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 9,
+            {"code": "sys.exit(0)", "errorText": "Traceback (most recent call last):\n  File \"<input>\", line 1, in <module>\nSystemExit: 0\n", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 10,
+            {"code": "sys.stdout = None", "errorText": "", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 11,
+            {"code": "delattr(sys.stderr, 'close')", "errorText": "Traceback (most recent call last):\n  File \"<input>\", line 1, in <module>\nAttributeError: StringIO instance has no attribute 'close'\n", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 12,
+            {"code": "setattr(sys.stdout, 'getvalue', lambda : 2)", "errorText": "", "outputText": 2}],
+          ["AddRecord", "_grist_REPL_Hist", 13,
+            {"code": "def foo():\n global stdout\n exec 'stdout = 2'\n", "errorText": "", "outputText": ""}],
+          ["AddRecord", "_grist_REPL_Hist", 14,
+            {"code": "setattr(sys.stderr, 'close', foo)", "errorText": "", "outputText": ""}]
+        ],
+        "undo": [
+          ["RemoveRecord", "_grist_REPL_Hist", 7],
+          ["RemoveRecord", "_grist_REPL_Hist", 8],
+          ["RemoveRecord", "_grist_REPL_Hist", 9],
+          ["RemoveRecord", "_grist_REPL_Hist", 10],
+          ["RemoveRecord", "_grist_REPL_Hist", 11],
+          ["RemoveRecord", "_grist_REPL_Hist", 12],
+          ["RemoveRecord", "_grist_REPL_Hist", 13],
+          ["RemoveRecord", "_grist_REPL_Hist", 14]
+        ],
+        "retValue" : [true,false,false,true,true,true,true,true,true,true ]
+      }
+    }]
+  ]
+}, {
+  //------------------------------------------------------------------------
+  "TEST_CASE" : "reserved_keywords",
+  //------------------------------------------------------------------------
+  "BODY": [
+    ["LOAD_SAMPLE", "simplest"],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["AddColumn", "foo", "on",          {"type": "Text", "isFormula": false}],
+        ["AddColumn", "foo", "alter",       {"type": "Text", "isFormula": false}],
+        ["AddColumn", "foo", "create",      {"type": "Text", "isFormula": false}],
+        ["AddColumn", "foo", "drop",        {"type": "Text", "isFormula": false}],
+        ["AddColumn", "foo", "transaction", {"type": "Text", "isFormula": false}],
+        ["AddColumn", "foo", "table",       {"type": "Text", "isFormula": false}]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["AddColumn", "foo", "on", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 2, { "colId": "on", "formula": "", "isFormula":
+            false, "label": "on", "parentId": 1, "parentPos": 2.0, "type": "Text", "widgetOptions":
+            ""}],
+          ["AddColumn", "foo", "alter", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 3, { "colId": "alter", "formula": "", "isFormula":
+            false, "label": "alter", "parentId": 1, "parentPos": 3.0, "type": "Text", "widgetOptions":
+            ""}],
+          ["AddColumn", "foo", "create", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 4, { "colId": "create", "formula": "", "isFormula":
+            false, "label": "create", "parentId": 1, "parentPos": 4.0, "type": "Text", "widgetOptions":
+            ""}],
+          ["AddColumn", "foo", "drop", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 5, { "colId": "drop", "formula": "", "isFormula":
+            false, "label": "drop", "parentId": 1, "parentPos": 5.0, "type": "Text", "widgetOptions":
+            ""}],
+          ["AddColumn", "foo", "transaction", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 6, { "colId": "transaction", "formula": "", "isFormula":
+            false, "label": "transaction", "parentId": 1, "parentPos": 6.0, "type": "Text", "widgetOptions":
+            ""}],
+          ["AddColumn", "foo", "table", {"type": "Text", "isFormula": false, "formula": ""}],
+          ["AddRecord", "_grist_Tables_column", 7, { "colId": "table", "formula": "", "isFormula":
+            false, "label": "table", "parentId": 1, "parentPos": 7.0, "type": "Text", "widgetOptions":
+            ""}]
+        ],
+        "undo": [
+          ["RemoveColumn", "foo", "on"],
+          ["RemoveRecord", "_grist_Tables_column", 2],
+          ["RemoveColumn", "foo", "alter"],
+          ["RemoveRecord", "_grist_Tables_column", 3],
+          ["RemoveColumn", "foo", "create"],
+          ["RemoveRecord", "_grist_Tables_column", 4],
+          ["RemoveColumn", "foo", "drop"],
+          ["RemoveRecord", "_grist_Tables_column", 5],
+          ["RemoveColumn", "foo", "transaction"],
+          ["RemoveRecord", "_grist_Tables_column", 6],
+          ["RemoveColumn", "foo", "table"],
+          ["RemoveRecord", "_grist_Tables_column", 7]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "on", "alter", "create", "drop", "transaction", "table"],
+        [1,    "apple", "",   "",      "",       "",     "",            ""]
+      ]
+    }],
+
+    ["APPLY", {
+      "USER_ACTIONS": [
+        ["RenameColumn", "foo", "on", "select"],
+        ["RenameColumn", "foo", "alter", "on"],
+        ["RenameColumn", "foo", "create", "alter"],
+        ["RenameColumn", "foo", "drop", "create"],
+        ["RenameColumn", "foo", "transaction", "drop"],
+        ["RenameColumn", "foo", "table", "transaction"]
+      ],
+      "ACTIONS": {
+        "stored": [
+          ["RenameColumn", "foo", "on", "select"],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"colId": "select"}],
+          ["RenameColumn", "foo", "alter", "on"],
+          ["UpdateRecord", "_grist_Tables_column", 3, {"colId": "on"}],
+          ["RenameColumn", "foo", "create", "alter"],
+          ["UpdateRecord", "_grist_Tables_column", 4, {"colId": "alter"}],
+          ["RenameColumn", "foo", "drop", "create"],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"colId": "create"}],
+          ["RenameColumn", "foo", "transaction", "drop"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "drop"}],
+          ["RenameColumn", "foo", "table", "transaction"],
+          ["UpdateRecord", "_grist_Tables_column", 7, {"colId": "transaction"}]
+        ],
+        "undo": [
+          ["RenameColumn", "foo", "select", "on"],
+          ["UpdateRecord", "_grist_Tables_column", 2, {"colId": "on"}],
+          ["RenameColumn", "foo", "on", "alter"],
+          ["UpdateRecord", "_grist_Tables_column", 3, {"colId": "alter"}],
+          ["RenameColumn", "foo", "alter", "create"],
+          ["UpdateRecord", "_grist_Tables_column", 4, {"colId": "create"}],
+          ["RenameColumn", "foo", "create", "drop"],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"colId": "drop"}],
+          ["RenameColumn", "foo", "drop", "transaction"],
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "transaction"}],
+          ["RenameColumn", "foo", "transaction", "table"],
+          ["UpdateRecord", "_grist_Tables_column", 7, {"colId": "table"}]
+        ]
+      }
+    }],
+
+    ["CHECK_OUTPUT", {
+      "USE_SAMPLE": "simplest",
+      "foo": [
+        ["id", "bar",   "select", "on", "alter", "create", "drop", "transaction"],
+        [1,    "apple", "",       "",   "",      "",       "",     ""]
+      ]
+    }]
+
+  ]
+
+}]

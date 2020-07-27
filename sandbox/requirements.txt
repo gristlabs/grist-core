@@ -1,0 +1,17 @@
+astroid==1.4.9
+asttokens==1.1.4
+chardet==2.3.0
+html5lib==0.999999999
+iso8601==0.1.12
+json_table_schema==0.2.1
+lazy_object_proxy==1.2.2
+messytables==0.15.2
+python_dateutil==2.6.0
+python_magic==0.4.12
+roman==2.0.0
+six==1.10.0
+sortedcontainers==1.5.7
+webencodings==0.5
+wrapt==1.10.8
+xlrd==1.2.0
+unittest-xml-reporting==2.0.0

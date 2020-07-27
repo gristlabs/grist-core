@@ -16,6 +16,7 @@ type SandboxMethod = (...args: any[]) => any;
 
 export interface ISandboxCommand {
   process: string;
+  libraryPath: string;
 }
 
 export interface ISandboxOptions {
@@ -59,7 +60,7 @@ export class NSandbox implements ISandbox {
 
     if (command) {
       return spawn(command.process, pythonArgs,
-                   {env: {PYTHONPATH: 'grist:thirdparty'},
+                   {env: {PYTHONPATH: command.libraryPath},
                     cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
     }
 
@@ -319,7 +320,13 @@ export class NSandboxCreator implements ISandboxCreator {
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
+    // Main script to run.
     const defaultEntryPoint = this._flavor === 'pynbox' ? 'grist/main.pyc' : 'grist/main.py';
+    // Python library path is only configurable when flavor is unsandboxed.
+    // In this case, expect to find library files in a virtualenv built by core
+    // buildtools/prepare_python.sh
+    const pythonVersion = 'python2.7';
+    const libraryPath = `grist:../venv/lib/${pythonVersion}/site-packages`;
     const args = [options.entryPoint || defaultEntryPoint];
     if (!options.entryPoint && options.comment) {
       // When using default entry point, we can add on a comment as an argument - it isn't
@@ -332,6 +339,7 @@ export class NSandboxCreator implements ISandboxCreator {
       selLdrArgs.push(
         // TODO: Only modules that we share with plugins should be mounted. They could be gathered in
         // a "$APPROOT/sandbox/plugin" folder, only which get mounted.
+        // TODO: These settings only make sense for pynbox flavor.
         '-E', 'PYTHONPATH=grist:thirdparty',
         '-m', `${options.sandboxMount}:/sandbox:ro`);
     }
@@ -346,7 +354,8 @@ export class NSandboxCreator implements ISandboxCreator {
       selLdrArgs,
       ...(this._flavor === 'pynbox' ? {} : {
         command: {
-          process: "python2.7"
+          process: pythonVersion,
+          libraryPath
         }
       })
     });
