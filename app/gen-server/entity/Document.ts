@@ -37,6 +37,9 @@ export class Document extends Resource {
   // fetching user has on the doc, i.e. 'owners', 'editors', 'viewers'
   public access: Role|null;
 
+  // Property set for forks, containing access the fetching user has on the trunk.
+  public trunkAccess?: Role|null;
+
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
   // a column when creating documents.

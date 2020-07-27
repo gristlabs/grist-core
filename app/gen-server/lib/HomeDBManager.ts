@@ -958,6 +958,10 @@ export class HomeDBManager extends EventEmitter {
       if (doc.urlId) {
         doc.urlId = buildUrlId({trunkId: doc.urlId, forkId, forkUserId, snapshotId});
       }
+
+      // Set trunkAccess field.
+      doc.trunkAccess = doc.access;
+
       // Forks without a user id are editable by anyone with view access to the trunk.
       if (forkUserId === undefined && doc.access === 'viewers') { doc.access = 'editors'; }
       if (forkUserId !== undefined) {

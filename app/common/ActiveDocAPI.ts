@@ -220,7 +220,6 @@ export interface ActiveDocAPI {
 
   /**
    * Prepare a fork of the document, and return the id(s) of the fork.
-   * TODO: remove string option here, it is present to ease transition.
    */
-  fork(): Promise<string | ForkResult>;
+  fork(): Promise<ForkResult>;
 }

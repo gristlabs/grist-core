@@ -99,6 +99,7 @@ export interface Document extends DocumentProperties {
   id: string;
   workspace: Workspace;
   access: roles.Role;
+  trunkAccess?: roles.Role|null;
 }
 
 export interface PermissionDelta {
