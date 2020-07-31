@@ -1376,7 +1376,6 @@ export class HomeDBManager extends EventEmitter {
   // document database until the document has actually been imported.
   public async addDocument(scope: Scope, wsId: number, props: Partial<DocumentProperties>,
                            docId?: string): Promise<QueryResult<number>> {
-    const {userId} = scope;
     const name = props.name;
     if (!name) {
       return {
@@ -1401,7 +1400,7 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const workspace: Workspace = queryResult.data;
-      await this._checkRoomForAnotherDoc(userId, workspace, manager);
+      await this._checkRoomForAnotherDoc(workspace, manager);
       // Create a new document.
       const doc = new Document();
       doc.id = docId || makeId();
@@ -1931,7 +1930,6 @@ export class HomeDBManager extends EventEmitter {
     wsId: number
   ): Promise<QueryResult<void>> {
     return await this._connection.transaction(async manager => {
-      const {userId} = scope;
       // Get the doc
       const docQuery = this._doc(scope, {
         manager,
@@ -1984,7 +1982,7 @@ export class HomeDBManager extends EventEmitter {
       const docGroups = doc.aclRules.map(rule => rule.group);
       if (doc.workspace.org.id !== workspace.org.id) {
         // Doc is going to a new org.  Check that there is room for it there.
-        await this._checkRoomForAnotherDoc(userId, workspace, manager);
+        await this._checkRoomForAnotherDoc(workspace, manager);
         // Check also that doc doesn't have too many shares.
         if (firstLevelUsers.length > 0) {
           const sourceOrg = doc.workspace.org;
@@ -3453,12 +3451,13 @@ export class HomeDBManager extends EventEmitter {
   }
 
   // Throw an error if there's no room for adding another document.
-  private async _checkRoomForAnotherDoc(userId: number, workspace: Workspace, manager: EntityManager) {
+  private async _checkRoomForAnotherDoc(workspace: Workspace, manager: EntityManager) {
     const features = workspace.org.billingAccount.product.features;
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.
-      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({userId}, workspace.org.id,
+      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({userId: this.getPreviewerUserId()},
+                                                                     workspace.org.id,
                                                                      {manager}));
       const count = wss.map(ws => ws.docs.length).reduce((a, b) => a + b, 0);
       if (count >= features.maxDocsPerOrg) {
@@ -3630,7 +3629,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const doc: Document = this.unwrapQueryResult(await verifyIsPermitted(docQuery));
       if (!removedAt) {
-        await this._checkRoomForAnotherDoc(scope.userId, doc.workspace, manager);
+        await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
       await manager.createQueryBuilder()
         .update(Document).set({removedAt}).where({id: doc.id})
