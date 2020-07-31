@@ -20,6 +20,7 @@ import imp
 from collections import OrderedDict
 
 import codebuilder
+from column import is_visible_column
 import summary
 import table
 import textbuilder
@@ -113,13 +114,18 @@ class GenCode(object):
       return self._make_data_field(col_info, table_id)
 
 
-  def _make_table_model(self, table_info, summary_tables):
-    """Returns the code for a table model."""
+  def _make_table_model(self, table_info, summary_tables, filter_for_user=False):
+    """
+    Returns the code for a table model.
+    If filter_for_user is True, includes only user-visible columns.
+    """
     table_id = table_info.tableId
     source_table_id = summary.decode_summary_table_name(table_id)
 
     # Sort columns by "isFormula" to output all data columns before all formula columns.
     columns = sorted(table_info.columns.itervalues(), key=lambda c: c.isFormula)
+    if filter_for_user:
+      columns = [c for c in columns if is_visible_column(c.colId)]
     parts = ["@grist.UserTable\nclass %s:\n" % table_id]
     if source_table_id:
       parts.append(indent(textbuilder.Text("_summarySourceTable = %r\n" % source_table_id)))
@@ -151,12 +157,12 @@ class GenCode(object):
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
     userparts = fullparts[:]
     for table_info in schema.itervalues():
-      table_model = self._make_table_model(table_info, summary_tables.get(table_info.tableId))
       fullparts.append("\n\n")
-      fullparts.append(table_model)
+      fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
       if not _is_special_table(table_info.tableId):
         userparts.append("\n\n")
-        userparts.append(table_model)
+        userparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId),
+          filter_for_user=True))
 
     # Once all formulas are generated, replace the formula cache with the newly-populated version.
     self._formula_cache = self._new_formula_cache
