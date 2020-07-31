@@ -51,3 +51,10 @@ For building from source, you can start with this:
 Stay tuned for more instructions to come at release.
 
 For using pre-built Grist, just head on over to <https://www.getgrist.com>.
+
+# License
+
+This repository, `grist-core`, is released under the [Apache License, Version
+2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an
+[OSI](https://opensource.org/)-approved free software license. See LICENSE.txt and NOTICE.txt for
+more information.

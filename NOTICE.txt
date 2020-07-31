@@ -1,0 +1,5 @@
+Grist Software
+Copyright 2014-2020 Grist Labs Inc.
+
+This product includes software developed at
+Grist Labs Inc. (https://www.getgrist.com/).
