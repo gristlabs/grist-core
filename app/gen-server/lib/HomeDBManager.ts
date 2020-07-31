@@ -753,20 +753,7 @@ export class HomeDBManager extends EventEmitter {
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs']);
 
-    // We'd like to filter results to exclude docs for which the user doesn't have permissions.
-    // We filter by permissions in Javascript anyway, but doing it in SQL simplifies
-    // edge-cases about which workspaces to include (and is parsimonious).
-    // But permissions is a computed column, so not available for WHERE clauses (in postgres).
-    // So we use a subquery to get a hold of it.
-    const rawQueryBuilder = (options.manager || this._connection).createQueryBuilder()
-      .select('*')
-      .from('(' + queryBuilder.getQuery() + ')', 'orgs')
-      // Keep rows that only mention workspaces or orgs, or docs we have access to.
-      // docs_permissions and docs_id are docs.permissions and docs.id in the subquery.
-      .where('(docs_permissions > 0 or docs_id is null)')
-      .setParameters(queryBuilder.getParameters());
-
-    const result = await this._verifyAclPermissions(queryBuilder, {rawQueryBuilder});
+    const result = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.
@@ -802,7 +789,7 @@ export class HomeDBManager extends EventEmitter {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs']);
-    const result = await this._verifyAclPermissions(queryBuilder);
+    const result = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return a single workspace.
     if (result.status === 200) {
       result.data = result.data[0];
@@ -3032,7 +3019,8 @@ export class HomeDBManager extends EventEmitter {
     queryBuilder: SelectQueryBuilder<Resource>,
     options: {
       rawQueryBuilder?: SelectQueryBuilder<any>,
-      emptyAllowed?: boolean
+      emptyAllowed?: boolean,
+      scope?: Scope,
     } = {}
   ): Promise<QueryResult<any>> {
     const results = await (options.rawQueryBuilder ?
@@ -3043,7 +3031,9 @@ export class HomeDBManager extends EventEmitter {
       if (options.emptyAllowed) { return {status: 200, data: []}; }
       return {errMessage: `${getFrom(queryBuilder)} not found`, status: 404};
     }
-    const resources = this._normalizeQueryResults(results.entities);
+    const resources = this._normalizeQueryResults(results.entities, {
+      scope: options.scope,
+    });
     if (resources.length === 0 && !options.emptyAllowed) {
       return {errMessage: "access denied", status: 403};
     } else {
@@ -3065,7 +3055,10 @@ export class HomeDBManager extends EventEmitter {
   // Find any nested entities with a "permissions" field, and add to them an
   // "access" field (if the permission is a simple number) or an "accessOptions"
   // field (if the permission is json).  Entities in a list that the user doesn't
-  // have the right to access are removed.
+  // have the right to access may be removed.
+  //   * They are removed for workspaces in orgs.
+  //   * They are not removed for docs in workspaces, if user has right to delete
+  //     the workspace.
   //
   // When returning organizations, set the domain to docs-${userId} for personal orgs.
   // We could also have simply stored that domain in the database, but have kept
@@ -3076,13 +3069,22 @@ export class HomeDBManager extends EventEmitter {
   // in ugly o-NNNN form.
   private _normalizeQueryResults(value: any,
                                  options: {
-                                   suppressDomain?: boolean
+                                   suppressDomain?: boolean,
+                                   scope?: Scope,
+                                   parentPermissions?: number,
                                  } = {}): any {
     // We only need to examine objects, excluding null.
     if (typeof value !== 'object' || value === null) { return value; }
-    // For arrays, add access information and remove anything user doesn't have access to.
+    // For arrays, add access information and remove anything user should not see.
     if (Array.isArray(value)) {
-      return value.map(v => this._normalizeQueryResults(v, options)).filter(v => !this._isForbidden(v));
+      const items = value.map(v => this._normalizeQueryResults(v, options));
+      // If the items are not workspaces, and the user can delete their parent, then
+      // ignore the user's access level when deciding whether to filter them out or
+      // to keep them.
+      const ignoreAccess = options.parentPermissions &&
+        (options.parentPermissions & Permissions.REMOVE) && // tslint:disable-line:no-bitwise
+        items.length > 0 && !items[0].docs;
+      return items.filter(v => !this._isForbidden(v, Boolean(ignoreAccess), options.scope));
     }
     // For hashes, iterate through key/values, adding access info if 'permissions' field is found.
     if (value.billingAccount) {
@@ -3094,6 +3096,8 @@ export class HomeDBManager extends EventEmitter {
         options = {...options, suppressDomain: true};
       }
     }
+    const permissions = (typeof value.permissions === 'number') ? value.permissions : undefined;
+    const childOptions = { ...options, parentPermissions: permissions };
     for (const key of Object.keys(value)) {
       const subValue = value[key];
       // When returning organizations, set the domain to docs-${userId} for personal orgs.
@@ -3123,7 +3127,7 @@ export class HomeDBManager extends EventEmitter {
         continue;
       }
       if (key === 'managers') {
-        const managers = this._normalizeQueryResults(subValue, options);
+        const managers = this._normalizeQueryResults(subValue, childOptions);
         for (const manager of managers) {
           if (manager.user) {
             Object.assign(manager, manager.user);
@@ -3134,7 +3138,7 @@ export class HomeDBManager extends EventEmitter {
         continue;
       }
       if (key !== 'permissions') {
-        value[key] = this._normalizeQueryResults(subValue, options);
+        value[key] = this._normalizeQueryResults(subValue, childOptions);
         continue;
       }
       if (typeof subValue === 'number' || !subValue) {
@@ -3157,10 +3161,18 @@ export class HomeDBManager extends EventEmitter {
 
   // entity is forbidden if it contains an access field set to null, or an accessOptions field
   // that is the empty list.
-  private _isForbidden(entity: any): boolean {
+  private _isForbidden(entity: any, ignoreAccess: boolean, scope?: Scope): boolean {
     if (!entity) { return false; }
-    if (entity.access === null) { return true; }
     if (entity.filteredOut) { return true; }
+    // Specifically for workspaces (as determined by having a "docs" field):
+    // if showing trash, and the workspace looks empty, and the workspace is itself
+    // not marked as trash, then filter it out.  This situation can arise when there is
+    // a trash doc in a workspace that the user does not have access to, and also a
+    // doc that the user does have access to.
+    if (entity.docs && scope?.showRemoved && entity.docs.length === 0 &&
+        !entity.removedAt)  { return true; }
+    if (ignoreAccess) { return false; }
+    if (entity.access === null) { return true; }
     if (!entity.accessOptions) { return false; }
     return entity.accessOptions.length === 0;
   }
