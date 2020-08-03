@@ -417,12 +417,12 @@ export class DocManager extends EventEmitter {
                              }): Promise<DocCreationInfo> {
     try {
       const fileCount = uploadInfo.files.length;
-      const hasGristDoc = Boolean(uploadInfo.files.find(f => path.extname(f.origName) === '.grist'));
+      const hasGristDoc = Boolean(uploadInfo.files.find(f => extname(f.origName) === '.grist'));
       if (hasGristDoc && fileCount > 1) {
         throw new Error('Grist docs must be uploaded individually');
       }
       const first = uploadInfo.files[0].origName;
-      const ext = path.extname(first);
+      const ext = extname(first);
       const basename = path.basename(first, ext).trim() || "Untitled upload";
       let id: string;
       switch (options.naming) {
@@ -478,4 +478,10 @@ export class DocManager extends EventEmitter {
     await this.pluginManager.pluginsLoaded;
     return docName;
   }
+}
+
+// Returns the extension of fpath (from last occurrence of "." to the end of the string), even
+// when the basename is empty or starts with a period.
+function extname(fpath: string): string {
+  return path.extname("X" + fpath);
 }
