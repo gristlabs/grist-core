@@ -1,9 +1,11 @@
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
         PrimaryGeneratedColumn, RelationId} from "typeorm";
+
 import {Role} from "app/common/roles";
 import {OrganizationProperties, organizationPropertyKeys} from "app/common/UserAPI";
 import {AclRuleOrg} from "./AclRule";
 import {BillingAccount} from "./BillingAccount";
+import {Pref} from "./Pref";
 import {Resource} from "./Resource";
 import {User} from "./User";
 import {Workspace} from "./Workspace";
@@ -67,6 +69,13 @@ export class Organization extends Resource {
   // For custom domains, this is the preferred host associated with this org/team.
   @Column({name: 'host', type: 'text', nullable: true})
   public host: string|null;
+
+  // Any prefs relevant to the org and user.  This relation is marked to not result
+  // in saves, since OneToMany saves in TypeORM are not reliable - see e.g. later
+  // parts of this issue:
+  //   https://github.com/typeorm/typeorm/issues/3095
+  @OneToMany(type => Pref, pref => pref.org, {persistence: false})
+  public prefs?: Pref[];
 
   public checkProperties(props: any): props is Partial<OrganizationProperties> {
     return super.checkProperties(props, organizationPropertyKeys);

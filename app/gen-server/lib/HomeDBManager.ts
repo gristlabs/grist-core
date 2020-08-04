@@ -18,6 +18,7 @@ import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
+import {Pref} from "app/gen-server/entity/Pref";
 import {getDefaultProductNames, Product, starterFeatures} from "app/gen-server/entity/Product";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
@@ -641,6 +642,18 @@ export class HomeDBManager extends EventEmitter {
     }
     qb = this._withAccess(qb, effectiveUserId, 'orgs');
     qb = qb.leftJoinAndSelect('orgs.owner', 'owner');
+    // Add preference information that will be relevant for presentation of the org.
+    // That includes preference information specific to the site and the user,
+    // or specific just to the site, or specific just to the user.
+    qb = qb.leftJoinAndMapMany('orgs.prefs', Pref, 'prefs',
+                               '(prefs.org_id = orgs.id or prefs.org_id IS NULL) AND ' +
+                               '(prefs.user_id = :userId or prefs.user_id IS NULL)',
+                               {userId});
+    // Apply a particular order (user+org first if present, then org, then user).
+    // Slightly round-about syntax because Sqlite and Postgres disagree about NULL
+    // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
+    qb = qb.addOrderBy('coalesce(prefs.org_id, 0)', 'DESC');
+    qb = qb.addOrderBy('coalesce(prefs.user_id, 0)', 'DESC');
     const result = await this._verifyAclPermissions(qb);
     if (result.status === 200) {
       // Return the only org.
@@ -1164,19 +1177,45 @@ export class HomeDBManager extends EventEmitter {
     return orgResult;
   }
 
-  // Checks that the user has UPDATE permissions to the given org. If not, throws an
-  // error. Otherwise updates the given org with the given name. Returns an empty
-  // query result with status 200 on success.
+  // If setting anything more than prefs:
+  //   Checks that the user has UPDATE permissions to the given org. If not, throws an
+  //   error. Otherwise updates the given org with the given name. Returns an empty
+  //   query result with status 200 on success.
+  // For setting userPrefs or userOrgPrefs:
+  //   These are user-specific setting, so are allowed with VIEW access (that includes
+  //   guests).  Prefs are replaced in their entirety, not merged.
+  // For setting orgPrefs:
+  //   These are not user-specific, so require UPDATE permissions.
   public async updateOrg(
     scope: Scope,
     orgKey: string|number,
     props: Partial<OrganizationProperties>
   ): Promise<QueryResult<number>> {
-    // TODO: Unsetting a domain will likely have to be supported.
+
+    // Check the scope of the modifications.
+    let markPermissions: number = Permissions.VIEW;
+    let modifyOrg: boolean = false;
+    let modifyPrefs: boolean = false;
+    for (const key of Object.keys(props)) {
+      if (key === 'orgPrefs') {
+        // If setting orgPrefs, make sure we have UPDATE rights since this
+        // will affect other users.
+        markPermissions = Permissions.UPDATE;
+        modifyPrefs = true;
+      } else if (key === 'userPrefs' || key === 'userOrgPrefs') {
+        // These keys only affect the current user.
+        modifyPrefs = true;
+      } else {
+        markPermissions = Permissions.UPDATE;
+        modifyOrg = true;
+      }
+    }
+
+    // TODO: Unsetting a domain will likely have to be supported; also possibly prefs.
     return await this._connection.transaction(async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
-        markPermissions: Permissions.UPDATE
+        markPermissions,
       });
       const queryResult = await verifyIsPermitted(orgQuery);
       if (queryResult.status !== 200) {
@@ -1185,14 +1224,33 @@ export class HomeDBManager extends EventEmitter {
       }
       // Update the fields and save.
       const org: Organization = queryResult.data;
-      if (props.domain) {
-        if (org.owner) {
-          throw new ApiError('Cannot set a domain for a personal organization', 400);
+      org.checkProperties(props);
+      if (modifyOrg) {
+        if (props.domain) {
+          if (org.owner) {
+            throw new ApiError('Cannot set a domain for a personal organization', 400);
+          }
+        }
+        org.updateFromProperties(props);
+        await manager.save(org);
+      }
+      if (modifyPrefs) {
+        for (const flavor of ['orgPrefs', 'userOrgPrefs', 'userPrefs'] as const) {
+          const prefs = props[flavor];
+          if (prefs === undefined) { continue; }
+          const orgId = ['orgPrefs', 'userOrgPrefs'].includes(flavor) ? org.id : null;
+          const userId = ['userOrgPrefs', 'userPrefs'].includes(flavor) ? scope.userId : null;
+          await manager.createQueryBuilder()
+            .insert()
+          // if pref flavor has been set before, update it
+            .onConflict('(COALESCE(org_id,0), COALESCE(user_id,0)) DO UPDATE SET prefs = :prefs')
+          // TypeORM muddles JSON handling a bit here
+            .setParameters({prefs: JSON.stringify(prefs)})
+            .into(Pref)
+            .values({orgId, userId, prefs})
+            .execute();
         }
       }
-      org.checkProperties(props);
-      org.updateFromProperties(props);
-      await manager.save(org);
       return {status: 200};
     });
   }
@@ -3133,6 +3191,20 @@ export class HomeDBManager extends EventEmitter {
           }
         }
         value[key] = managers;
+        continue;
+      }
+      if (key === 'prefs' && Array.isArray(subValue)) {
+        delete value[key];
+        const prefs = this._normalizeQueryResults(subValue, childOptions);
+        for (const pref of prefs) {
+          if (pref.orgId && pref.userId) {
+            value['userOrgPrefs'] = pref.prefs;
+          } else if (pref.orgId) {
+            value['orgPrefs'] = pref.prefs;
+          } else if (pref.userId) {
+            value['userPrefs'] = pref.prefs;
+          }
+        }
         continue;
       }
       if (key !== 'permissions') {

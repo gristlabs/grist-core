@@ -7,6 +7,7 @@ import {DocCreationInfo} from 'app/common/DocListAPI';
 import {Features} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
+import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 
@@ -31,8 +32,13 @@ export const commonPropertyKeys = ['createdAt', 'name', 'updatedAt'];
 
 export interface OrganizationProperties extends CommonProperties {
   domain: string|null;
+  // Organization includes preferences relevant to interacting with its content.
+  userOrgPrefs?: UserOrgPrefs;  // Preferences specific to user and org
+  orgPrefs?: OrgPrefs;          // Preferences specific to org (but not a particular user)
+  userPrefs?: UserPrefs;        // Preferences specific to user (but not a particular org)
 }
-export const organizationPropertyKeys = [...commonPropertyKeys, 'domain'];
+export const organizationPropertyKeys = [...commonPropertyKeys, 'domain',
+                                         'orgPrefs', 'userOrgPrefs', 'userPrefs'];
 
 // Basic information about an organization, excluding the user's access level
 export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
@@ -232,6 +238,7 @@ export interface UserAPI {
   renameOrg(orgId: number|string, name: string): Promise<void>;
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
   renameDoc(docId: string, name: string): Promise<void>;
+  updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void>;
   updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void>;
   deleteOrg(orgId: number|string): Promise<void>;
   deleteWorkspace(workspaceId: number): Promise<void>;     // delete workspace permanently
@@ -382,6 +389,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async renameDoc(docId: string, name: string): Promise<void> {
     return this.updateDoc(docId, {name});
+  }
+
+  public async updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void> {
+    await this.request(`${this._url}/api/orgs/${orgId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(props)
+    });
   }
 
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {
