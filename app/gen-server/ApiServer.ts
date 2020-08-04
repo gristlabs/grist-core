@@ -320,7 +320,7 @@ export class ApiServer {
     // Body params: string
     // Update users profile.
     this._app.post('/api/profile/user/name', expressWrap(async (req, res) => {
-      const userId = getUserId(req);
+      const userId = getAuthorizedUserId(req);
       if (!(req.body && req.body.name)) {
         throw new ApiError('Name expected in the body', 400);
       }
