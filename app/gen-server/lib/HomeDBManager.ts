@@ -1924,7 +1924,7 @@ export class HomeDBManager extends EventEmitter {
     // The orgMap gives the org access inherited by each user.
     const orgMap = getMemberUserRoles(workspace.org, this.defaultBasicGroupNames);
     // Iterate through the org since all users will be in the org.
-    const users: UserAccessData[] = getResourceUsers(workspace.org).map(u => {
+    const users: UserAccessData[] = getResourceUsers([workspace, workspace.org]).map(u => {
       return {
         id: u.id,
         name: u.name,
@@ -1959,7 +1959,7 @@ export class HomeDBManager extends EventEmitter {
     const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
-    const users: UserAccessData[] = getResourceUsers(doc.workspace.org).map(u => {
+    const users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
