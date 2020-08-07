@@ -139,6 +139,11 @@ export const cssLeftPane = styled(cssVBox, `
     min-width: 160px;
     max-width: 320px;
   }
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 const cssMainPane = styled(cssVBox, `
   position: relative;
@@ -160,6 +165,11 @@ const cssRightPane = styled(cssVBox, `
     min-width: 240px;
     max-width: 320px;
   }
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 const cssTopHeader = styled('div', `
   height: 48px;
@@ -168,6 +178,12 @@ const cssTopHeader = styled('div', `
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid ${colors.mediumGrey};
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `
   --resize-handle-color: ${colors.mediumGrey};
