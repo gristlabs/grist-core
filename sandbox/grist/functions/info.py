@@ -7,9 +7,10 @@ import math
 import numbers
 import re
 
+import column
 from functions import date      # pylint: disable=import-error
 from usertypes import AltText   # pylint: disable=import-error
-from records import Record      # pylint: disable=import-error
+from records import Record, RecordSet
 
 def ISBLANK(value):
   """
@@ -497,6 +498,86 @@ def CELL(info_type, reference):
   Returns the requested information about the specified cell. This is not implemented in Grist
   """
   raise NotImplementedError()
+
+
+def RECORD(record_or_list, dates_as_iso=True, expand_refs=0):
+  """
+  Returns a Python dictionary with all fields in the given record. If a list of records is given,
+  returns a list of corresponding Python dictionaries.
+
+  If dates_as_iso is set (which is the default), Date and DateTime values are converted to string
+  using ISO 8601 format.
+
+  If expand_refs is set to 1 or higher, Reference values are replaced with a RECORD representation
+  of the referenced record, expanding the given number of levels.
+
+  Error values present in cells of the record are replaced with None value, and a special key of
+  "_error_" gets added containing the error messages for those cells. For example:
+  `{"Ratio": None, "_error_": {"Ratio": "ZeroDivisionError: integer division or modulo by zero"}}`
+
+  Note that care is needed to avoid circular references when using RECORD(), since it creates a
+  dependency on every cell in the record. In case of RECORD(rec), the cell containing this call
+  will be omitted from the resulting dictionary.
+
+  For example:
+  ```
+  RECORD($Person)
+  RECORD(rec)
+  RECORD(People.lookupOne(First_Name="Alice"))
+  RECORD(People.lookupRecords(Department="HR"))
+  ```
+  """
+  if isinstance(record_or_list, Record):
+    return _prepare_record_dict(record_or_list, dates_as_iso=dates_as_iso, expand_refs=expand_refs)
+
+  try:
+    records = list(record_or_list)
+    assert all(isinstance(r, Record) for r in records)
+  except Exception:
+    raise ValueError('RECORD() requires a Record or an iterable of Records')
+
+  return [_prepare_record_dict(r, dates_as_iso=dates_as_iso, expand_refs=expand_refs)
+          for r in records]
+
+
+def _prepare_record_dict(record, dates_as_iso=True, expand_refs=0):
+  table_id = record._table.table_id
+  docmodel = record._table._engine.docmodel
+  columns = docmodel.get_table_rec(table_id).columns
+  frame = record._table._engine.get_current_frame()
+
+  result = {'id': int(record)}
+  errors = {}
+  for col in columns:
+    col_id = col.colId
+    # Skip helper columns.
+    if not column.is_visible_column(col_id):
+      continue
+
+    # Avoid trying to access the cell being evaluated, since cycles get detected even if the
+    # CircularRef exception is caught. TODO This is hacky, and imperfect. If another column
+    # references a column containing the RECORD(rec) call, CircularRefError will still happen.
+    if frame and frame.node == (table_id, col_id):
+      continue
+
+    try:
+      val = getattr(record, col_id)
+      if dates_as_iso and isinstance(val, datetime.date):
+        val = val.isoformat()
+      elif expand_refs and isinstance(val, (Record, RecordSet)):
+        # Reduce expand_refs levels.
+        if val:
+          val = RECORD(val, dates_as_iso=dates_as_iso, expand_refs=expand_refs - 1)
+        else:
+          val = None
+      result[col_id] = val
+    except Exception as e:
+      result[col_id] = None
+      errors[col_id] = "%s: %s" % (type(e).__name__, str(e))
+
+  if errors:
+    result["_error_"] = errors
+  return result
 
 
 # Unique sentinel value to represent that a lazy value evaluates with an exception.
