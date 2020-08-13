@@ -19,6 +19,7 @@
 // tslint:disable:no-console
 
 import { GristAPI, GristDocAPI, GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
+import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
 import { RenderOptions, RenderTarget } from './RenderOptions';
 import { checkers } from './TypeCheckers';
@@ -44,6 +45,40 @@ export const docApi = {
 };
 
 export const on = rpc.on.bind(rpc);
+
+// For custom widgets, add a handler that will be called whenever the
+// row with the cursor changes - either by switching to a different row, or
+// by some value within the row potentially changing.  Handler may
+// in the future be called with null if the cursor moves away from
+// any row.
+// TODO: currently this will be called even if the content of a different row
+// changes.
+export function onRecord(callback: (data: RowRecord | null) => unknown) {
+  on('message', async function(msg) {
+    if (!msg.tableId || !msg.rowId) { return; }
+    const rec = await docApi.fetchSelectedRecord(msg.rowId);
+    callback(rec);
+  });
+}
+
+// For custom widgets, add a handler that will be called whenever the
+// selected records change.  Handler will be called with a list of records.
+export function onRecords(callback: (data: RowRecord[]) => unknown) {
+  on('message', async function(msg) {
+    if (!msg.tableId || !msg.dataChange) { return; }
+    const data = await docApi.fetchSelectedTable();
+    if (!data.id) { return; }
+    const rows: RowRecord[] = [];
+    for (let i = 0; i < data.id.length; i++) {
+      const row: RowRecord = {id: data.id[i]};
+      for (const key of Object.keys(data)) {
+        row[key] = data[key][i];
+      }
+      rows.push(row);
+    }
+    callback(rows);
+  });
+}
 
 /**
  * Calling `addImporter(...)` adds a safeBrowser importer. It is a short-hand for forwarding calls

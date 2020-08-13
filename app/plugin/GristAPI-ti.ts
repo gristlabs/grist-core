@@ -23,6 +23,7 @@ export const GristDocAPI = t.iface([], {
 
 export const GristView = t.iface([], {
   "fetchSelectedTable": t.func("any"),
+  "fetchSelectedRecord": t.func("any", t.param("rowId", "number")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

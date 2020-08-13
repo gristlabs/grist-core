@@ -96,4 +96,7 @@ export interface GristView {
   // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
   // ts-interface-builder does not properly support index-signature.
   fetchSelectedTable(): Promise<any>;
+
+  // Similar TODO to fetchSelectedTable for return type.
+  fetchSelectedRecord(rowId: number): Promise<any>;
 }

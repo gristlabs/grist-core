@@ -2,6 +2,10 @@
  * This mirrors action definitions from sandbox/grist/actions.py
  */
 
+// Some definitions have moved to be part of plugin API.
+import { CellValue } from 'app/plugin/GristData';
+export { CellValue, RowRecord } from 'app/plugin/GristData';
+
 import map = require('lodash/map');
 
 export type AddRecord = ['AddRecord', string, number, ColValues];
@@ -83,7 +87,6 @@ export function getTableId(action: DocAction): string {
 
 // Helper types used in the definitions above.
 
-export type CellValue = number|string|boolean|null|[string, any?];
 export interface ColValues { [colId: string]: CellValue; }
 export interface BulkColValues { [colId: string]: CellValue[]; }
 export interface ColInfoMap { [colId: string]: ColInfo; }
@@ -96,11 +99,6 @@ export interface ColInfo {
 
 export interface ColInfoWithId extends ColInfo {
   id: string;
-}
-
-export interface RowRecord {
-  id: number;
-  [colId: string]: CellValue;
 }
 
 // Multiple records in column-oriented format, i.e. same as BulkColValues but with a mandatory
