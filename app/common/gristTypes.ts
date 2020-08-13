@@ -7,7 +7,15 @@ export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'Da
   'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';
 
 // Letter codes for CellValue types encoded as [code, args...] tuples.
-export type GristObjType = 'L' | 'D' | 'd' | 'R' | 'E' | 'P';
+export const enum GristObjCode {
+  List            = 'L',
+  DateTime        = 'D',
+  Date            = 'd',
+  Reference       = 'R',
+  Exception       = 'E',
+  Pending         = 'P',
+  Unmarshallable  = 'U',
+}
 
 export const MANUALSORT = 'manualSort';
 
@@ -51,10 +59,18 @@ export function isObject(value: CellValue): value is [string, any?] {
 }
 
 /**
+ * Returns GristObjCode of the value if the value is an object, or null otherwise.
+ * The return type includes any string, since we should not assume we can only get valid codes.
+ */
+export function getObjCode(value: CellValue): GristObjCode|string|null {
+  return Array.isArray(value) ? value[0] : null;
+}
+
+/**
  * Returns whether a value (as received in a DocAction) represents a raised exception.
  */
 export function isRaisedException(value: CellValue): boolean {
-  return Array.isArray(value) && value[0] === 'E';
+  return getObjCode(value) === GristObjCode.Exception;
 }
 
 /**
@@ -62,21 +78,14 @@ export function isRaisedException(value: CellValue): boolean {
  * which is a valid value for list types in grist.
  */
 export function isListOrNull(value: CellValue): boolean {
-  return value === null || (Array.isArray(value) && value[0] === 'L');
+  return value === null || (Array.isArray(value) && value[0] === GristObjCode.List);
 }
 
 /**
  * Returns whether a value (as received in a DocAction) represents an empty list.
  */
 export function isEmptyList(value: CellValue): boolean {
-  return Array.isArray(value) && value.length === 1 && value[0] === 'L';
-}
-
-/**
- * Returns whether a value (as received in a DocAction) represents a "Pending" value.
- */
-export function isPending(value: CellValue): boolean {
-  return Array.isArray(value) && value[0] === 'P';
+  return Array.isArray(value) && value.length === 1 && value[0] === GristObjCode.List;
 }
 
 /**
@@ -97,8 +106,11 @@ function isNumber(v: CellValue) { return typeof v === 'number' || typeof v === '
 function isNumberOrNull(v: CellValue) { return isNumber(v) || v === null; }
 function isBoolean(v: CellValue) { return typeof v === 'boolean' || v === 1 || v === 0; }
 
+// These values are not regular cell values, even in a column of type Any.
+const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending, GristObjCode.Unmarshallable];
+
 function isNormalValue(value: CellValue) {
-  return !(Array.isArray(value) && (value[0] === 'E' || value[0] === 'P'));
+  return !abnormalValueTypes.includes(getObjCode(value)!);
 }
 
 /**

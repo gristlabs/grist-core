@@ -7,11 +7,11 @@ Non-primitive values are represented in actions as [type_name, args...].
   objtypes.encode_object(obj)   - returns a marshallable list representation.
   objtypes.decode_object(val)   - returns an object represented by the [name, args...] argument.
 
-If an object cannot be encoded or decoded, a RaisedError exception is encoded or returned instead.
-In a formula, this would cause an exception to be raised.
+If an object cannot be encoded or decoded, an "UnmarshallableValue" is returned instead
+of the form ['U', repr(obj)].
 """
-import marshal
 import exceptions
+import marshal
 import traceback
 from datetime import date, datetime
 
@@ -123,29 +123,35 @@ def deregister_converter(name):
   if prev:
     del _registered_converters_by_type[prev[0]]
 
+def safe_repr(obj):
+  """
+  Like repr(obj) but falls back to a simpler "<type-name>" string when repr() itself fails.
+  """
+  try:
+    return repr(obj)
+  except Exception:
+    return '<' + type(obj).__name__ + '>'
+
 
 def encode_object(obj):
   """
   Given an object, returns [typename, args...] array of marshallable values, which should be
   sufficient to reconstruct `obj`. Given a primitive object, returns it unchanged.
 
-  If obj failed to encode, yields an encoding for RaisedException(UnmarshallableError, message).
-  I.e. on reading this back, and using the value, we'll get UnmarshallableError exception.
+  If obj failed to encode, yields an encoding for an UnmarshallableValue object, containing
+  the repr(obj) string.
   """
   try:
     t = type(obj)
-    try:
-      converter = (
-          _registered_converters_by_type.get(t) or
-          _registered_converters_by_type[getattr(t, '_objtypes_converter_type', t)])
-    except KeyError:
-      raise UnmarshallableError("No converter for type %s" % type(obj))
+    converter = (
+        _registered_converters_by_type.get(t) or
+        _registered_converters_by_type[getattr(t, '_objtypes_converter_type', t)])
     return converter(obj)
 
   except Exception as e:
-    # Don't risk calling encode_object recursively; instead encode a RaisedException error
-    # manually with arguments that ought not fail.
-    return ["E", "UnmarshallableError", str(e), repr(obj)]
+    # We either don't know how to convert the value, or failed during the conversion. Instead we
+    # return an "UnmarshallableValue" object, with repr() of the value to show to the user.
+    return ['U', safe_repr(obj)]
 
 
 def decode_object(value):
@@ -189,10 +195,7 @@ class SelfConverter(object):
 
 def _encode_obj_impl(converter, name):
   def inner(obj):
-    try:
-      args = converter.encode_args(obj)
-    except Exception:
-      raise UnmarshallableError("Encoding of %s failed" % name)
+    args = converter.encode_args(obj)
 
     for arg in args:
       check_marshallable(arg)
@@ -245,7 +248,11 @@ class RaisedException(object):
 
   @classmethod
   def decode_args(cls, *args):
-    return cls(decode_object(args))
+    # Decoding of a RaisedException is currently only used in tests.
+    name = args[0]
+    exc_type = getattr(exceptions, name)
+    assert isinstance(exc_type, type) and issubclass(exc_type, BaseException)
+    return cls(exc_type(*args[1:]))
 
   def __eq__(self, other):
     return isinstance(other, type(self)) and self.encode_args() == other.encode_args()
@@ -253,29 +260,6 @@ class RaisedException(object):
   def __ne__(self, other):
     return not self.__eq__(other)
 
-
-class ExceptionConverter(object):
-  """
-  Converter for any type derived from BaseException. On encoding it returns the exception object's
-  .args attribute, and uses them on decoding as constructor arguments to instantiate the error.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return list(getattr(obj, 'args', ()))
-
-  @classmethod
-  def decode_args(cls, type_, args):
-    return type_(*args)
-
-
-# Register all Exceptions as valid types that can be handled by Grist.
-for _, my_type in exceptions.__dict__.iteritems():
-  if isinstance(my_type, type) and issubclass(my_type, BaseException):
-    register_converter(ExceptionConverter, my_type)
-
-# Register the special exceptions we defined.
-register_converter(ExceptionConverter, UnmarshallableError)
-register_converter(ExceptionConverter, ConversionError)
 
 # Register the special wrapper class for raised exceptions with a custom short name.
 register_converter(SelfConverter, RaisedException, "E")

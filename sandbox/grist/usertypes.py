@@ -171,10 +171,15 @@ class BaseColumnType(object):
       return self.do_convert(value_to_convert)
     except Exception as e:
       # If conversion failed, return a string to serve as alttext.
-      if isinstance(value_to_convert, six.text_type):
-        # str() will fail for a non-ascii unicode object, which needs an explicit encoding.
-        return value_to_convert.encode('utf8')
-      return str(value_to_convert)
+      try:
+        if isinstance(value_to_convert, six.text_type):
+          # str() will fail for a non-ascii unicode object, which needs an explicit encoding.
+          return value_to_convert.encode('utf8')
+        return str(value_to_convert)
+      except Exception:
+        # If converting to string failed, we should still produce something.
+        return objtypes.safe_repr(value_to_convert)
+
 
   # This is a user-facing method, hence the camel-case naming, as for `lookupRecords` and such.
   @classmethod

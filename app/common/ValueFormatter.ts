@@ -22,6 +22,7 @@ export function formatObject(args: [string, ...any[]]): string {
     case 'd': return moment.tz(objArgs[0] * 1000, 'UTC').format("YYYY-MM-DD");
     case 'R': return `${objArgs[0]}[${objArgs[1]}]`;
     case 'E': return gristTypes.formatError(args);
+    case 'U': return String(args[1]);
     case 'P': return PENDING_DATA_PLACEHOLDER;
   }
   return objType + "(" + JSON.stringify(objArgs).slice(1, -1) + ")";
