@@ -6,6 +6,7 @@
  *  https://css-tricks.com/snippets/css/system-font-stack/
  *
  */
+import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {dom, makeTestId, styled, TestId} from 'grainjs';
 import values = require('lodash/values');
@@ -164,4 +165,6 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   if (theme.bodyClassName) {
     document.body.classList.add(theme.bodyClassName);
   }
+  const interfaceStyle = urlState().state.get().params?.style || 'full';
+  document.body.classList.add(`interface-${interfaceStyle}`);
 }

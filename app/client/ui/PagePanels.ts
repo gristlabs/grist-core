@@ -63,6 +63,7 @@ export function pagePanels(page: PageContents) {
 
     cssMainPane(
       cssTopHeader(
+        testId('top-header'),
         (left.hideOpener ? null :
           cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
             testId('left-opener'),
@@ -144,6 +145,9 @@ export const cssLeftPane = styled(cssVBox, `
       display: none;
     }
   }
+  .interface-light & {
+    display: none;
+  }
 `);
 const cssMainPane = styled(cssVBox, `
   position: relative;
@@ -170,6 +174,9 @@ const cssRightPane = styled(cssVBox, `
       display: none;
     }
   }
+  .interface-light & {
+    display: none;
+  }
 `);
 const cssTopHeader = styled('div', `
   height: 48px;
@@ -183,6 +190,10 @@ const cssTopHeader = styled('div', `
     & {
       display: none;
     }
+  }
+
+  .interface-light & {
+    display: none;
   }
 `);
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `

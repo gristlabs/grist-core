@@ -1,5 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {DEFAULT_HOME_SUBDOMAIN, parseSubdomain} from 'app/common/gristUrls';
+import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -84,7 +85,7 @@ export function allowHost(req: Request, allowedHost: string|URL) {
 }
 
 export function isParameterOn(parameter: any): boolean {
-  return ['1', 'on', 'true'].includes(String(parameter).toLowerCase());
+  return gutil.isAffirmative(parameter);
 }
 
 /**

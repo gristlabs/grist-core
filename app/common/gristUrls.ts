@@ -1,6 +1,6 @@
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
-import {encodeQueryParams} from 'app/common/gutil';
+import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
 import {Document} from 'app/common/UserAPI';
 import identity = require('lodash/identity');
@@ -16,6 +16,10 @@ export type IHomePage = typeof HomePage.type;
 
 export const WelcomePage = StringUnion('user', 'teams');
 export type WelcomePage = typeof WelcomePage.type;
+
+// Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
+export const InterfaceStyle = StringUnion('light', 'full');
+export type InterfaceStyle = typeof InterfaceStyle.type;
 
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = 'api';
@@ -59,6 +63,8 @@ export interface IGristUrlState {
   params?: {
     billingPlan?: string;
     billingTask?: BillingTask;
+    embed?: boolean;
+    style?: InterfaceStyle;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
 }
@@ -240,6 +246,16 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (sp.has('billingTask')) {
     state.params!.billingTask = parseBillingTask(sp.get('billingTask')!);
   }
+  if (sp.has('style')) {
+    state.params!.style = parseInterfaceStyle(sp.get('style')!);
+  }
+  if (sp.has('embed')) {
+    const embed = state.params!.embed = isAffirmative(sp.get('embed'));
+    // Turn view mode on if no mode has been specified.
+    if (embed && !state.mode) { state.mode = 'view'; }
+    // Turn on light style if no style has been specified.
+    if (embed && !state.params!.style) { state.params!.style = 'light'; }
+  }
   if (location.hash) {
     const hash = location.hash;
     const hashParts = hash.split('.');
@@ -299,6 +315,13 @@ function parseOpenDocMode(p: string): OpenDocMode|undefined {
  */
 function parseWelcomePage(p: string): WelcomePage {
   return WelcomePage.guard(p) ? p : 'user';
+}
+
+/**
+ * Read interface style and make sure it is either valid or left undefined.
+ */
+function parseInterfaceStyle(t: string): InterfaceStyle|undefined {
+  return InterfaceStyle.guard(t) ? t : undefined;
 }
 
 /**

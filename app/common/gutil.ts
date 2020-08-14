@@ -780,3 +780,12 @@ export async function isLongerThan(promise: Promise<any>, timeoutMsec: number): 
   ]);
   return isPending;
 }
+
+/**
+ * Returns true if the parameter, when rendered as a string, matches
+ * 1, on, or true (case insensitively).  Useful for processing query
+ * parameters that may have been manually set.
+ */
+export function isAffirmative(parameter: any): boolean {
+  return ['1', 'on', 'true', 'yes'].includes(String(parameter).toLowerCase());
+}

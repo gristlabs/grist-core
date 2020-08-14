@@ -8,8 +8,9 @@ export type DocEntryTag = ''|'sample'|'invite'|'shared';
 
 export const OpenDocMode = StringUnion(
   'default',  // open doc with user's maximal access level
-  'fork',     // open doc limited to view access (if user has at least that level of access)
-  'view'     // as for 'view', but suggest a fork on any attempt to edit
+  'view',     // open doc limited to view access (if user has at least that level of access)
+  'fork',     // as for 'view', but suggest a fork on any attempt to edit - the client will
+              // enable the editing UI experience and trigger a fork on any edit.
 );
 export type OpenDocMode = typeof OpenDocMode.type;
 
