@@ -33,6 +33,13 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value;
   };
 
-  const unionNamespace = {guard, check, values};
+  /**
+   * StringUnion.parse(value) returns value when it's valid, and undefined otherwise.
+   */
+  const parse = (value: string|null|undefined): UnionType|undefined => {
+    return value != null && guard(value) ? value : undefined;
+  };
+
+  const unionNamespace = {guard, check, parse, values};
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };

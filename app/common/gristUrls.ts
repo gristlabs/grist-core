@@ -153,7 +153,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     } else {
       parts.push(`doc/${encodeURIComponent(state.doc)}`);
     }
-    if (state.mode && parseOpenDocMode(state.mode)) {
+    if (state.mode && OpenDocMode.guard(state.mode)) {
       parts.push(`/m/${state.mode}`);
     }
     if (state.docPage) {
@@ -235,19 +235,19 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   } else {
     if (map.has('p')) {
       const p = map.get('p')!;
-      state.homePage = HomePage.guard(p) ? p : undefined;
+      state.homePage = HomePage.parse(p);
     }
   }
-  if (map.has('m')) { state.mode = parseOpenDocMode(map.get('m')!); }
+  if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
   if (sp.has('newui')) { state.newui = useNewUI(sp.get('newui') ? sp.get('newui') === '1' : undefined); }
-  if (map.has('billing')) { state.billing = parseBillingPage(map.get('billing')!); }
-  if (map.has('welcome')) { state.welcome = parseWelcomePage(map.get('welcome')!); }
+  if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
+  if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')) || 'user'; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
-    state.params!.billingTask = parseBillingTask(sp.get('billingTask')!);
+    state.params!.billingTask = BillingTask.parse(sp.get('billingTask'));
   }
   if (sp.has('style')) {
-    state.params!.style = parseInterfaceStyle(sp.get('style')!);
+    state.params!.style = InterfaceStyle.parse(sp.get('style'));
   }
   if (sp.has('embed')) {
     const embed = state.params!.embed = isAffirmative(sp.get('embed'));
@@ -287,41 +287,6 @@ function parseDocPage(p: string) {
     return p as 'new'|'code';
   }
   return parseInt(p, 10);
-}
-
-/**
- * parseBillingPage ensures that the billing page value is a valid BillingPageType.
- */
-function parseBillingPage(p: string): BillingPage {
-  return BillingSubPage.guard(p) ? p : 'billing';
-}
-
-/**
- * parseBillingTask ensures that the value is a valid BillingTask or undefined.
- */
-function parseBillingTask(t: string): BillingTask|undefined {
-  return BillingTask.guard(t) ? t : undefined;
-}
-
-/**
- * parseOpenDocMode ensures that the value is a valid OpenDocMode or undefined.
- */
-function parseOpenDocMode(p: string): OpenDocMode|undefined {
-  return OpenDocMode.guard(p) ? p : undefined;
-}
-
-/**
- * parse welcome page ensure that the value is a valid WelcomePage, default to 'user' if not.
- */
-function parseWelcomePage(p: string): WelcomePage {
-  return WelcomePage.guard(p) ? p : 'user';
-}
-
-/**
- * Read interface style and make sure it is either valid or left undefined.
- */
-function parseInterfaceStyle(t: string): InterfaceStyle|undefined {
-  return InterfaceStyle.guard(t) ? t : undefined;
 }
 
 /**

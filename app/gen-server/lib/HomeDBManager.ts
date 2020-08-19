@@ -1216,6 +1216,7 @@ export class HomeDBManager extends EventEmitter {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions,
+        needRealOrg: true
       });
       const queryResult = await verifyIsPermitted(orgQuery);
       if (queryResult.status !== 200) {
@@ -3198,11 +3199,11 @@ export class HomeDBManager extends EventEmitter {
         const prefs = this._normalizeQueryResults(subValue, childOptions);
         for (const pref of prefs) {
           if (pref.orgId && pref.userId) {
-            value['userOrgPrefs'] = pref.prefs;
+            value.userOrgPrefs = pref.prefs;
           } else if (pref.orgId) {
-            value['orgPrefs'] = pref.prefs;
+            value.orgPrefs = pref.prefs;
           } else if (pref.userId) {
-            value['userPrefs'] = pref.prefs;
+            value.userPrefs = pref.prefs;
           }
         }
         continue;
