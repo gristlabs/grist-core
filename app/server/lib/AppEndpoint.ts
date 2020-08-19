@@ -13,7 +13,8 @@ import {removeTrailingSlash} from 'app/common/gutil';
 import {Document as APIDocument} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {assertAccess, getTransitiveHeaders, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
+        RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {getAssignmentId} from 'app/server/lib/idUtils';
@@ -22,8 +23,10 @@ import {adaptServerUrl, pruneAPIResult, trustOrigin} from 'app/server/lib/reques
 import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
-  app: express.Application;               // Express app to which to add endpoints
-  middleware: express.RequestHandler[];   // Middleware to apply for all endpoints
+  app: express.Application;                // Express app to which to add endpoints
+  middleware: express.RequestHandler[];    // Middleware to apply for all endpoints except docs
+  docMiddleware: express.RequestHandler[]; // Middleware to apply for doc landing pages
+  forceLogin: express.RequestHandler|null; // Method to force user to login (if logins are possible)
   docWorkerMap: IDocWorkerMap|null;
   sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   dbManager: HomeDBManager;
@@ -147,7 +150,7 @@ async function getWorker(docWorkerMap: IDocWorkerMap, assignmentId: string,
 }
 
 export function attachAppEndpoint(options: AttachOptions): void {
-  const {app, middleware, docWorkerMap, sendAppPage, dbManager} = options;
+  const {app, middleware, docMiddleware, docWorkerMap, forceLogin, sendAppPage, dbManager} = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
@@ -219,6 +222,18 @@ export function attachAppEndpoint(options: AttachOptions): void {
         throw new ApiError('Document not found.', 404);
       } else if (err.status === 403) {
         log.info("/:urlId/app.html denied access", mreq.userId, urlId, doc && doc.access, mreq.org);
+        // If the user does not have access to the document, and is anonymous, and we
+        // have a login system, we may wish to redirect them to login process.
+        if (isAnonymousUser(mreq) && forceLogin) {
+          // First check if anonymous user has access to this org.  If so, we don't propose
+          // that they log in.  This is the same check made in redirectToLogin() middleware.
+          const result = await dbManager.getOrg({userId: getUserId(mreq)}, mreq.org || null);
+          if (result.status !== 200) {
+            // Anonymous user does not have any access to this org, or to this doc.
+            // Redirect to log in.
+            return forceLogin(req, res, next);
+          }
+        }
         throw new ApiError('You do not have access to this document.', 403);
       }
       throw err;
@@ -248,7 +263,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
   });
   // The * is a wildcard in express 4, rather than a regex symbol.
   // See https://expressjs.com/en/guide/routing.html
-  app.get('/doc/:urlId([^/]+):remainder(*)', ...middleware, docHandler);
+  app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
   app.get('/:urlId([^/]{12,})/:slug([^/]+):remainder(*)',
-          ...middleware, docHandler);
+          ...docMiddleware, docHandler);
 }

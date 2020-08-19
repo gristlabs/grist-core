@@ -251,6 +251,28 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   return next();
 }
 
+/**
+ * Returns a handler that redirects the user to a login or signup page.
+ */
+export function redirectToLoginUnconditionally(
+  getLoginRedirectUrl: (redirectUrl: URL) => Promise<string>,
+  getSignUpRedirectUrl: (redirectUrl: URL) => Promise<string>
+) {
+  return async (req: Request, resp: Response, next: NextFunction) => {
+    const mreq = req as RequestWithLogin;
+    // Redirect to sign up if it doesn't look like the user has ever logged in (on
+    // this browser)  After logging in, `users` will be set in the session.  Even after
+    // logging out again, `users` will still be set.
+    const signUp: boolean = (mreq.session.users === undefined);
+    log.debug(`Authorizer: redirecting to ${signUp ? 'sign up' : 'log in'}`);
+    const redirectUrl = new URL(req.protocol + '://' + req.get('host') + req.originalUrl);
+    if (signUp) {
+      return resp.redirect(await getSignUpRedirectUrl(redirectUrl));
+    } else {
+      return resp.redirect(await getLoginRedirectUrl(redirectUrl));
+    }
+  };
+}
 
 /**
  * Middleware to redirects user to a login page when the user is not
@@ -264,6 +286,8 @@ export function redirectToLogin(
   getSignUpRedirectUrl: (redirectUrl: URL) => Promise<string>,
   dbManager: HomeDBManager
 ): RequestHandler {
+  const redirectUnconditionally = redirectToLoginUnconditionally(getLoginRedirectUrl,
+                                                                 getSignUpRedirectUrl);
   return async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
     mreq.session.alive = true;  // This will ensure that express-session will set our cookie
@@ -280,18 +304,7 @@ export function redirectToLogin(
       }
 
       // In all other cases (including unknown org), redirect user to login or sign up.
-      // Redirect to sign up if it doesn't look like the user has ever logged in (on
-      // this browser)  After logging in, `users` will be set in the session.  Even after
-      // logging out again, `users` will still be set.
-      const signUp: boolean = (mreq.session.users === undefined);
-      log.debug(`Authorizer: redirecting to ${signUp ? 'sign up' : 'log in'}`);
-      const redirectUrl = new URL(req.protocol + '://' + req.get('host') + req.originalUrl);
-      if (signUp) {
-        return resp.redirect(await getSignUpRedirectUrl(redirectUrl));
-      } else {
-        return resp.redirect(await getLoginRedirectUrl(redirectUrl));
-      }
-
+      return redirectUnconditionally(req, resp, next);
     } catch (err) {
       log.info("Authorizer failed to redirect", err.message);
       return resp.status(401).send(err.message);

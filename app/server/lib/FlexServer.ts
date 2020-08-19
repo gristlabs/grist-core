@@ -14,7 +14,8 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
-import {addRequestUser, getUser, getUserId, isSingleUserMode} from 'app/server/lib/Authorizer';
+import {addRequestUser, getUser, getUserId, isSingleUserMode,
+        redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {SessionUserObj} from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
@@ -125,6 +126,8 @@ export class FlexServer implements GristServer {
   // This unconditionally redirects to signin/signup for anon, for pages where anon access
   // is never desired.
   private _redirectToLoginWithoutExceptionsMiddleware: express.RequestHandler;
+  // This can be called to do a redirect to signin/signup in a nuanced situation.
+  private _redirectToLoginUnconditionally: express.RequestHandler | null;
   private _redirectToOrgMiddleware: express.RequestHandler;
   private _redirectToHostMiddleware: express.RequestHandler;
   private _getLoginRedirectUrl: (target: URL) => Promise<string>;
@@ -415,6 +418,8 @@ export class FlexServer implements GristServer {
                                                                          this._getLoginRedirectUrl,
                                                                          this._getSignUpRedirectUrl,
                                                                          this.dbManager);
+      this._redirectToLoginUnconditionally = redirectToLoginUnconditionally(this._getLoginRedirectUrl,
+                                                                            this._getSignUpRedirectUrl);
       this._redirectToOrgMiddleware = tbind(this._redirectToOrg, this);
     } else {
       const noop: express.RequestHandler = (req, res, next) => next();
@@ -430,6 +435,7 @@ export class FlexServer implements GristServer {
       };
       this._redirectToLoginWithExceptionsMiddleware = noop;
       this._redirectToLoginWithoutExceptionsMiddleware = noop;
+      this._redirectToLoginUnconditionally = null;  // there is no way to log in.
       this._redirectToOrgMiddleware = noop;
       this._redirectToHostMiddleware = noop;
     }
@@ -639,6 +645,14 @@ export class FlexServer implements GristServer {
         this._redirectToOrgMiddleware,
         welcomeNewUser
       ],
+      docMiddleware: [
+        // Same as middleware, except without login redirect middleware.
+        this._redirectToHostMiddleware,
+        this._userIdMiddleware,
+        this._redirectToOrgMiddleware,
+        welcomeNewUser
+      ],
+      forceLogin: this._redirectToLoginUnconditionally,
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
       dbManager: this.dbManager,
