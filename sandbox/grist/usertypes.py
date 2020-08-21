@@ -14,6 +14,7 @@ the extra complexity.
 import datetime
 import six
 import objtypes
+from objtypes import AltText
 import moment
 import logger
 from records import Record, RecordSet
@@ -58,47 +59,6 @@ def formulaType(grist_type):
     method.grist_type = grist_type
     return method
   return wrapper
-
-class AltText(object):
-  """
-  Represents a text value in a non-text column. The separate class allows formulas to access
-  wrong-type values. We use a wrapper rather than expose text directly to formulas, because with
-  text there is a risk that e.g. a formula that's supposed to add numbers would add two strings
-  with unexpected result.
-  """
-  def __init__(self, text, typename=None):
-    self._text = text
-    self._typename = typename
-
-  def __str__(self):
-    return self._text
-
-  def __int__(self):
-    # This ensures that AltText values that look like ints may be cast back to int.
-    # Convert to float first, since python does not allow casting strings with decimals to int.
-    return int(float(self._text))
-
-  def __float__(self):
-    # This ensures that AltText values that look like floats may be cast back to float.
-    return float(self._text)
-
-  def __repr__(self):
-    return '%s(%r)' % (self.__class__.__name__, self._text)
-
-  # Allow comparing to AltText("something")
-  def __eq__(self, other):
-    return isinstance(other, self.__class__) and self._text == other._text
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
-
-  def __hash__(self):
-    return hash((self.__class__, self._text))
-
-  def __getattr__(self, name):
-    # On attempt to do $foo.Bar on an AltText value such as "hello", raise an exception that will
-    # show up as e.g. "Invalid Ref: hello" or "Invalid Date: hello".
-    raise objtypes.InvalidTypedValue(self._typename, self._text)
 
 
 def ifError(value, value_if_error):

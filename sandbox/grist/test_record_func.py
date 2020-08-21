@@ -106,21 +106,6 @@ class TestRecordFunc(test_engine.EngineTestCase):
     d1 = datetime.datetime(2020, 9, 13, 8, 26, 40, tzinfo=moment.tzinfo('America/New_York'))
     d2 = datetime.datetime(2017, 7, 13, 22, 40, tzinfo=moment.tzinfo('America/New_York'))
     self.assertPartialData("Schools", ["id", "Foo"], [
-      [1, "{'address': {'city': 'New York', 'DT': '%s', 'id': 11, 'D': '%s'}, " %
-          (d1.isoformat(), d1.date().isoformat()) +
-          "'id': 1, 'name': 'Columbia'}"],
-      [2, "{'address': {'city': 'Colombia', 'DT': None, 'id': 12, 'D': None}, " +
-          "'id': 2, 'name': 'Columbia'}"],
-      [3, "{'address': {'city': 'New Haven', 'DT': '%s', 'id': 13, 'D': '%s'}, " %
-          (d2.isoformat(), d2.date().isoformat()) +
-          "'id': 3, 'name': 'Yale'}"],
-      [4, "{'address': {'city': 'West Haven', 'DT': None, 'id': 14, 'D': None}, " +
-          "'id': 4, 'name': 'Yale'}"],
-    ])
-
-    self.modify_column("Schools", "Foo",
-        formula='repr(RECORD(rec, expand_refs=1, dates_as_iso=False))')
-    self.assertPartialData("Schools", ["id", "Foo"], [
       [1, "{'address': {'city': 'New York', 'DT': %s, 'id': 11, 'D': %s}, " %
           (repr(d1), repr(d1.date())) +
           "'id': 1, 'name': 'Columbia'}"],
@@ -128,6 +113,21 @@ class TestRecordFunc(test_engine.EngineTestCase):
           "'id': 2, 'name': 'Columbia'}"],
       [3, "{'address': {'city': 'New Haven', 'DT': %s, 'id': 13, 'D': %s}, " %
           (repr(d2), repr(d2.date())) +
+          "'id': 3, 'name': 'Yale'}"],
+      [4, "{'address': {'city': 'West Haven', 'DT': None, 'id': 14, 'D': None}, " +
+          "'id': 4, 'name': 'Yale'}"],
+    ])
+
+    self.modify_column("Schools", "Foo",
+        formula='repr(RECORD(rec, expand_refs=1, dates_as_iso=True))')
+    self.assertPartialData("Schools", ["id", "Foo"], [
+      [1, "{'address': {'city': 'New York', 'DT': '%s', 'id': 11, 'D': '%s'}, " %
+          (d1.isoformat(), d1.date().isoformat()) +
+          "'id': 1, 'name': 'Columbia'}"],
+      [2, "{'address': {'city': 'Colombia', 'DT': None, 'id': 12, 'D': None}, " +
+          "'id': 2, 'name': 'Columbia'}"],
+      [3, "{'address': {'city': 'New Haven', 'DT': '%s', 'id': 13, 'D': '%s'}, " %
+          (d2.isoformat(), d2.date().isoformat()) +
           "'id': 3, 'name': 'Yale'}"],
       [4, "{'address': {'city': 'West Haven', 'DT': None, 'id': 14, 'D': None}, " +
           "'id': 4, 'name': 'Yale'}"],

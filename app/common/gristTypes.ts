@@ -6,9 +6,16 @@ import isString = require('lodash/isString');
 export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'Date' | 'DateTime' |
   'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';
 
+export type GristTypeInfo =
+  {type: 'DateTime', timezone: string} |
+  {type: 'Ref', tableId: string} |
+  {type: Exclude<GristType, 'DateTime'|'Ref'>};
+
+
 // Letter codes for CellValue types encoded as [code, args...] tuples.
 export const enum GristObjCode {
   List            = 'L',
+  Dict            = 'O',
   DateTime        = 'D',
   Date            = 'd',
   Reference       = 'R',
@@ -52,6 +59,36 @@ export function getDefaultForType(colType: string, options: {sqlFormatted?: bool
 }
 
 /**
+ * Convert a type like 'Numeric', 'DateTime:America/New_York', or 'Ref:Table1' to a GristTypeInfo
+ * object.
+ */
+export function extractInfoFromColType(colType: string): GristTypeInfo {
+  const colon = colType.indexOf(':');
+  const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
+  return (type === 'Ref') ? {type, tableId: String(arg)} :
+    (type === 'DateTime') ? {type, timezone: String(arg)} :
+    {type} as GristTypeInfo;
+}
+
+/**
+ * Re-encodes a CellValue of a given Grist type as a value suitable to use in an Any column. E.g.
+ *    reencodeAsAny(123, 'Numeric') -> 123
+ *    reencodeAsAny(123, 'Date') -> ['d', 123]
+ *    reencodeAsAny(123, 'Reference', 'Table1') -> ['R', 'Table1', 123]
+ */
+export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
+  if (typeof value === 'number') {
+    switch (typeInfo.type) {
+      case 'Date': return ['d', value];
+      case 'DateTime': return ['D', value, typeInfo.timezone];
+      case 'Ref': return ['R', typeInfo.tableId, value];
+    }
+  }
+  return value;
+}
+
+
+/**
  * Returns whether a value (as received in a DocAction) represents a custom object.
  */
 export function isObject(value: CellValue): value is [string, any?] {
@@ -86,20 +123,6 @@ export function isListOrNull(value: CellValue): boolean {
  */
 export function isEmptyList(value: CellValue): boolean {
   return Array.isArray(value) && value.length === 1 && value[0] === GristObjCode.List;
-}
-
-/**
- * Formats a raised exception (a value for which isRaisedException is true) for display in a cell.
- * This is designed to look somewhat similar to Excel, e.g. #VALUE or #DIV/0!"
- */
-export function formatError(value: [string, ...any[]]): string {
-  const errName = value[1];
-  switch (errName) {
-    case 'ZeroDivisionError': return '#DIV/0!';
-    case 'UnmarshallableError': return value[3] || ('#' + errName);
-    case 'InvalidTypedValue': return `#Invalid ${value[2]}: ${value[3]}`;
-  }
-  return '#' + errName;
 }
 
 function isNumber(v: CellValue) { return typeof v === 'number' || typeof v === 'boolean'; }

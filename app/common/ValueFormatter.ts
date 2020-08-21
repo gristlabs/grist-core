@@ -4,35 +4,41 @@ import {CellValue} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
+import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
+import isPlainObject = require('lodash/isPlainObject');
 import * as moment from 'moment-timezone';
 
-// Some text to show on cells whose values are pending.
-export const PENDING_DATA_PLACEHOLDER = "Loading...";
+export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';
 
 /**
- * Formats a custom object received as a value in a DocAction, as "Constructor(args...)".
- * E.g. ["Foo", 1, 2, 3] becomes the string "Foo(1, 2, 3)".
+ * Formats a value of any type generically (with no type-specific options).
  */
-export function formatObject(args: [string, ...any[]]): string {
-  const objType = args[0], objArgs = args.slice(1);
-  switch (objType) {
-    case 'L': return JSON.stringify(objArgs);
-    // First arg is seconds since epoch (moment takes ms), second arg is timezone
-    case 'D': return moment.tz(objArgs[0] * 1000, objArgs[1]).format("YYYY-MM-DD HH:mm:ssZ");
-    case 'd': return moment.tz(objArgs[0] * 1000, 'UTC').format("YYYY-MM-DD");
-    case 'R': return `${objArgs[0]}[${objArgs[1]}]`;
-    case 'E': return gristTypes.formatError(args);
-    case 'U': return String(args[1]);
-    case 'P': return PENDING_DATA_PLACEHOLDER;
-  }
-  return objType + "(" + JSON.stringify(objArgs).slice(1, -1) + ")";
+export function formatUnknown(value: CellValue): string {
+  return formatHelper(decodeObject(value));
 }
 
 /**
- * Formats a value of unknown type, using formatObject() for encoded objects.
+ * Formats a decoded Grist value for displaying it. For top-level values, formats them the way we
+ * like to see them in a cell or in, say, CSV export. For lists and objects, nested values are
+ * formatted slighly differently, with quoted strings and ISO format for dates.
  */
-export function formatUnknown(value: any): string {
-  return gristTypes.isObject(value) ? formatObject(value) : (value == null ? "" : String(value));
+function formatHelper(value: unknown, isTopLevel: boolean = true): string {
+  if (typeof value === 'object' && value) {
+    if (Array.isArray(value)) {
+      return '[' + value.map(v => formatHelper(v, false)).join(', ') + ']';
+    } else if (isPlainObject(value)) {
+      const obj: any = value;
+      const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatHelper(obj[k], false)}`);
+      return '{' + items.join(', ') + '}';
+    } else if (isTopLevel && value instanceof GristDateTime) {
+      return moment(value).tz(value.timezone).format("YYYY-MM-DD HH:mm:ssZ");
+    }
+    return String(value);
+  }
+  if (isTopLevel) {
+    return (value == null ? "" : String(value));
+  }
+  return JSON.stringify(value);
 }
 
 export type IsRightTypeFunc = (value: CellValue) => boolean;

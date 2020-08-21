@@ -1,4 +1,4 @@
-export type CellValue = number|string|boolean|null|[string, any?];
+export type CellValue = number|string|boolean|null|[string, ...unknown[]];
 
 export interface RowRecord {
   id: number;

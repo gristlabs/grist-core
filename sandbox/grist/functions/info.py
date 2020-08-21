@@ -500,13 +500,12 @@ def CELL(info_type, reference):
   raise NotImplementedError()
 
 
-def RECORD(record_or_list, dates_as_iso=True, expand_refs=0):
+def RECORD(record_or_list, dates_as_iso=False, expand_refs=0):
   """
   Returns a Python dictionary with all fields in the given record. If a list of records is given,
   returns a list of corresponding Python dictionaries.
 
-  If dates_as_iso is set (which is the default), Date and DateTime values are converted to string
-  using ISO 8601 format.
+  If dates_as_iso is set, Date and DateTime values are converted to string using ISO 8601 format.
 
   If expand_refs is set to 1 or higher, Reference values are replaced with a RECORD representation
   of the referenced record, expanding the given number of levels.
@@ -540,7 +539,7 @@ def RECORD(record_or_list, dates_as_iso=True, expand_refs=0):
           for r in records]
 
 
-def _prepare_record_dict(record, dates_as_iso=True, expand_refs=0):
+def _prepare_record_dict(record, dates_as_iso=False, expand_refs=0):
   table_id = record._table.table_id
   docmodel = record._table._engine.docmodel
   columns = docmodel.get_table_rec(table_id).columns

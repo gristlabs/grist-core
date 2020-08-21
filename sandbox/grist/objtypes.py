@@ -10,8 +10,8 @@ Non-primitive values are represented in actions as [type_name, args...].
 If an object cannot be encoded or decoded, an "UnmarshallableValue" is returned instead
 of the form ['U', repr(obj)].
 """
+# pylint: disable=too-many-return-statements
 import exceptions
-import marshal
 import traceback
 from datetime import date, datetime
 
@@ -50,78 +50,52 @@ class InvalidTypedValue(ValueError):
     return "Invalid %s: %s" % (self.typename, self.value)
 
 
+class AltText(object):
+  """
+  Represents a text value in a non-text column. The separate class allows formulas to access
+  wrong-type values. We use a wrapper rather than expose text directly to formulas, because with
+  text there is a risk that e.g. a formula that's supposed to add numbers would add two strings
+  with unexpected result.
+  """
+  def __init__(self, text, typename=None):
+    self._text = text
+    self._typename = typename
+
+  def __str__(self):
+    return self._text
+
+  def __int__(self):
+    # This ensures that AltText values that look like ints may be cast back to int.
+    # Convert to float first, since python does not allow casting strings with decimals to int.
+    return int(float(self._text))
+
+  def __float__(self):
+    # This ensures that AltText values that look like floats may be cast back to float.
+    return float(self._text)
+
+  def __repr__(self):
+    return '%s(%r)' % (self.__class__.__name__, self._text)
+
+  # Allow comparing to AltText("something")
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self._text == other._text
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __hash__(self):
+    return hash((self.__class__, self._text))
+
+  def __getattr__(self, name):
+    # On attempt to do $foo.Bar on an AltText value such as "hello", raise an exception that will
+    # show up as e.g. "Invalid Ref: hello" or "Invalid Date: hello".
+    raise InvalidTypedValue(self._typename, self._text)
+
+
 _max_js_int = 1<<31
 
 def is_int_short(value):
   return -_max_js_int <= value < _max_js_int
-
-def check_marshallable(value):
-  """
-  Raises UnmarshallableError if value cannot be marshalled.
-  """
-  if isinstance(value, (str, unicode, float, bool)) or value is None:
-    # We don't need to marshal these to know they are marshallable.
-    return
-  if isinstance(value, (long, int)):
-    # Ints are also marshallable, except that we only support 32-bit ints on JS side.
-    if not is_int_short(value):
-      raise UnmarshallableError("Integer too large")
-    return
-
-  # Other things we need to try to know.
-  try:
-    marshal.dumps(value)
-  except Exception as e:
-    raise UnmarshallableError(str(e))
-
-def is_marshallable(value):
-  """
-  Returns a boolean for whether the value can be marshalled.
-  """
-  try:
-    check_marshallable(value)
-    return True
-  except Exception:
-    return False
-
-
-# Maps of type or name to (type, name, converter) tuple.
-_registered_converters_by_name = {}
-_registered_converters_by_type = {}
-
-def register_converter_by_type(type_, converter_func):
-  assert type_ not in _registered_converters_by_type
-  _registered_converters_by_type[type_] = converter_func
-
-def register_converter_by_name(converter, type_, name):
-  assert name not in _registered_converters_by_name
-  _registered_converters_by_name[name] = (type_, name, converter)
-
-
-def register_converter(converter, type_, name=None):
-  """
-  Register a new converter for the given type, with the given name (defaulting to type.__name__).
-  The converter must implement methods:
-    converter.encode_args(obj)            - should return [args...] as a python list of
-                                            marshallable arguments.
-    converter.decode_args(type, arglist)  - should return obj of type `type`.
-
-  It's up to the converter to ensure that converter.decode_args(type(obj),
-  converter.encode_args(obj)) returns a value equivalent to the original obj.
-  """
-  if name is None:
-    name = type_.__name__
-  register_converter_by_name(converter, type_, name)
-  register_converter_by_type(type_, _encode_obj_impl(converter, name))
-
-
-def deregister_converter(name):
-  """
-  De-register a named converter if previously registered.
-  """
-  prev = _registered_converters_by_name.pop(name, None)
-  if prev:
-    del _registered_converters_by_type[prev[0]]
 
 def safe_repr(obj):
   """
@@ -133,90 +107,66 @@ def safe_repr(obj):
     return '<' + type(obj).__name__ + '>'
 
 
-def encode_object(obj):
+def encode_object(value):
   """
-  Given an object, returns [typename, args...] array of marshallable values, which should be
-  sufficient to reconstruct `obj`. Given a primitive object, returns it unchanged.
-
-  If obj failed to encode, yields an encoding for an UnmarshallableValue object, containing
-  the repr(obj) string.
+  Produces a Grist-encoded version of the value, e.g. turning a Date into ['d', timestamp].
+  Returns ['U', repr(value)] if it fails to encode otherwise.
   """
   try:
-    t = type(obj)
-    converter = (
-        _registered_converters_by_type.get(t) or
-        _registered_converters_by_type[getattr(t, '_objtypes_converter_type', t)])
-    return converter(obj)
-
+    if isinstance(value, (str, unicode, float, bool)) or value is None:
+      return value
+    elif isinstance(value, (long, int)):
+      if not is_int_short(value):
+        raise UnmarshallableError("Integer too large")
+      return value
+    elif isinstance(value, AltText):
+      return str(value)
+    elif isinstance(value, records.Record):
+      return ['R', value._table.table_id, value._row_id]
+    elif isinstance(value, datetime):
+      return ['D', moment.dt_to_ts(value), value.tzinfo.zone.name if value.tzinfo else 'UTC']
+    elif isinstance(value, date):
+      return ['d', moment.date_to_ts(value)]
+    elif isinstance(value, RaisedException):
+      return ['E'] + value.encode_args()
+    elif isinstance(value, (list, tuple, RecordList)):
+      return ['L'] + [encode_object(item) for item in value]
+    elif isinstance(value, dict):
+      if not all(isinstance(key, basestring) for key in value):
+        raise UnmarshallableError("Dict with non-string keys")
+      return ['O', {key: encode_object(val) for key, val in value.iteritems()}]
   except Exception as e:
-    # We either don't know how to convert the value, or failed during the conversion. Instead we
-    # return an "UnmarshallableValue" object, with repr() of the value to show to the user.
-    return ['U', safe_repr(obj)]
-
+    pass
+  # We either don't know how to convert the value, or failed during the conversion. Instead we
+  # return an "UnmarshallableValue" object, with repr() of the value to show to the user.
+  return ['U', safe_repr(value)]
 
 def decode_object(value):
   """
-  Given a value of the form [typename, args...], returns an object represented by it. If typename
-  is unknown, or construction fails for any reason, returns (not raises!) RaisedException with
-  original exception in its .error property.
+  Given a Grist-encoded value, returns an object represented by it.
+  If typename is unknown, or construction fails for any reason, returns (not raises!)
+  RaisedException with the original exception in its .error property.
   """
-  if not isinstance(value, (tuple, list)):
-    return value
-
   try:
-    name = value[0]
+    if not isinstance(value, (list, tuple)):
+      return value
+    code = value[0]
     args = value[1:]
-    try:
-      type_, _, converter = _registered_converters_by_name[name]
-    except KeyError:
-      raise KeyError("Unknown object type %r" % name)
-    return converter.decode_args(type_, args)
+    if code == 'R':
+      return RecordStub(args[0], args[1])
+    elif code == 'D':
+      return moment.ts_to_dt(args[0], moment.Zone(args[1]))
+    elif code == 'd':
+      return moment.ts_to_date(args[0])
+    elif code == 'E':
+      return RaisedException.decode_args(*args)
+    elif code == 'L':
+      return [decode_object(item) for item in args]
+    elif code == 'O':
+      return {key: decode_object(val) for key, val in args[0].iteritems()}
+    raise KeyError("Unknown object type code %r" % code)
   except Exception as e:
     return RaisedException(e)
-
-
-class SelfConverter(object):
-  """
-  Converter for objects that implement the converter interface:
-    self.encode_args() - should return a list of marshallable arguments.
-    cls.decode_args(args...) - should return an instance given the arguments from encode_args.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return obj.encode_args()
-
-  @classmethod
-  def decode_args(cls, type_, args):
-    return type_.decode_args(*args)
-
-#----------------------------------------------------------------------
-# Implementations of encoding objects. For basic types, there is nothing to encode, but for
-# integers, we check that they are in JS range.
-
-def _encode_obj_impl(converter, name):
-  def inner(obj):
-    args = converter.encode_args(obj)
-
-    for arg in args:
-      check_marshallable(arg)
-    return [name] + args
-  return inner
-
-def _encode_identity(value):
-  return value
-
-def _encode_integer(value):
-  if not is_int_short(value):
-    raise UnmarshallableError("Integer too large")
-  return value
-
-register_converter_by_type(str,        _encode_identity)
-register_converter_by_type(unicode,    _encode_identity)
-register_converter_by_type(float,      _encode_identity)
-register_converter_by_type(bool,       _encode_identity)
-register_converter_by_type(type(None), _encode_identity)
-register_converter_by_type(long,       _encode_integer)
-register_converter_by_type(int,        _encode_integer)
 
 #----------------------------------------------------------------------
 
@@ -261,10 +211,6 @@ class RaisedException(object):
     return not self.__eq__(other)
 
 
-# Register the special wrapper class for raised exceptions with a custom short name.
-register_converter(SelfConverter, RaisedException, "E")
-
-
 class RecordList(list):
   """
   Just like list but allows setting custom attributes, which we use for remembering _group_by and
@@ -280,57 +226,6 @@ class RecordList(list):
       list.__repr__(self), self._group_by, self._sort_by)
 
 
-class ListConverter(object):
-  """
-  Converter for the 'list' type.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return obj
-
-  @classmethod
-  def decode_args(cls, type_, args):
-    return type_(args)
-
-# Register a converter for lists, also with a custom short name. It is used, in particular, for
-# ReferenceLists. The first line ensures RecordLists are encoded as just lists; the second line
-# overrides the decoding of 'L', so that it always decodes to a plain list, since for now, at
-# least, there is no need to accept incoming RecordLists.
-register_converter_by_type(RecordList, _encode_obj_impl(ListConverter, "L"))
-register_converter(ListConverter, list, "L")
-
-
-class DateTimeConverter(object):
-  """
-  Converter for the 'datetime.datetime' type.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return [moment.dt_to_ts(obj), obj.tzinfo.zone.name]
-
-  @classmethod
-  def decode_args(cls, _type, args):
-    return moment.ts_to_dt(args[0], moment.Zone(args[1]))
-
-# Register a converter for dates, also with a custom short name.
-register_converter(DateTimeConverter, datetime, "D")
-
-
-class DateConverter(object):
-  """
-  Converter for the 'datetime.date' type.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return [moment.date_to_ts(obj)]
-
-  @classmethod
-  def decode_args(cls, _type, args):
-    return moment.ts_to_date(args[0])
-
-register_converter(DateConverter, date, "d")
-
-
 
 # We don't currently have a good way to convert an incoming marshalled record to a proper Record
 # object for an appropriate table. We don't expect incoming marshalled records at all, but if such
@@ -339,21 +234,3 @@ class RecordStub(object):
   def __init__(self, table_id, row_id):
     self.table_id = table_id
     self.row_id = row_id
-
-
-class RecordConverter(object):
-  """
-  Converter for 'record.Record' objects.
-  """
-  @classmethod
-  def encode_args(cls, obj):
-    return [obj._table.table_id, obj._row_id]
-
-  @classmethod
-  def decode_args(cls, _type, args):
-    return RecordStub(args[0], args[1])
-
-
-# When marshalling any subclass of Record in objtypes.py, we'll use the base Record as the type.
-records.Record._objtypes_converter_type = records.Record
-register_converter(RecordConverter, records.Record, "R")

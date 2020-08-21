@@ -21,6 +21,7 @@
 import { GristAPI, GristDocAPI, GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
 import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
+import { decodeObject, mapValues } from './objtypes';
 import { RenderOptions, RenderTarget } from './RenderOptions';
 import { checkers } from './TypeCheckers';
 
@@ -39,9 +40,26 @@ export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
 export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
 export const viewApi = rpc.getStub<GristView>('GristView', checkers.GristView);
-export const docApi = {
+
+export const docApi: GristDocAPI & GristView = {
   ...coreDocApi,
   ...viewApi,
+
+  // Change fetchSelectedTable() to decode data by default, replacing e.g. ['D', timestamp] with
+  // a moment date. New option `keepEncoded` skips the decoding step.
+  async fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
+    const table = await viewApi.fetchSelectedTable();
+    return options.keepEncoded ? table :
+      mapValues<any[], any[]>(table, (col) => col.map(decodeObject));
+  },
+
+  // Change fetchSelectedRecord() to decode data by default, replacing e.g. ['D', timestamp] with
+  // a moment date. New option `keepEncoded` skips the decoding step.
+  async fetchSelectedRecord(rowId: number, options: {keepEncoded?: boolean} = {}) {
+    const rec = await viewApi.fetchSelectedRecord(rowId);
+    return options.keepEncoded ? rec :
+      mapValues(rec, decodeObject);
+  }
 };
 
 export const on = rpc.on.bind(rpc);
