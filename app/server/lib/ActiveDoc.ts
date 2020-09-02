@@ -7,7 +7,6 @@
 import * as assert from 'assert';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
-import {Request} from 'express';
 import {IMessage, MsgType} from 'grain-rpc';
 import * as imageSize from 'image-size';
 import flatten = require('lodash/flatten');
@@ -36,7 +35,7 @@ import {UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
-import {Authorizer, getUserId} from 'app/server/lib/Authorizer';
+import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -52,7 +51,8 @@ import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport} from './ActiveDocImport';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, OptDocSession} from './DocSession';
+import {DocSession, getDocSessionAccess, getDocSessionUserId, makeExceptionalDocSession,
+        OptDocSession} from './DocSession';
 import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {OnDemandActions} from './OnDemandActions';
@@ -147,16 +147,18 @@ export class ActiveDoc extends EventEmitter {
   public get docName(): string { return this._docName; }
 
   // Helpers to log a message along with metadata about the request.
-  public logDebug(c: Client|OptDocSession|null, msg: string, ...args: any[]) { this._log('debug', c, msg, ...args); }
-  public logInfo(c: Client|OptDocSession|null, msg: string, ...args: any[]) { this._log('info', c, msg, ...args); }
-  public logWarn(c: Client|OptDocSession|null, msg: string, ...args: any[]) { this._log('warn', c, msg, ...args); }
-  public logError(c: Client|OptDocSession|null, msg: string, ...args: any[]) { this._log('error', c, msg, ...args); }
+  public logDebug(s: OptDocSession, msg: string, ...args: any[]) { this._log('debug', s, msg, ...args); }
+  public logInfo(s: OptDocSession, msg: string, ...args: any[]) { this._log('info', s, msg, ...args); }
+  public logWarn(s: OptDocSession, msg: string, ...args: any[]) { this._log('warn', s, msg, ...args); }
+  public logError(s: OptDocSession, msg: string, ...args: any[]) { this._log('error', s, msg, ...args); }
 
   // Constructs metadata for logging, given a Client or an OptDocSession.
-  public getLogMeta(cli: Client|OptDocSession|null, docMethod?: string): log.ILogMeta {
-    const client = cli && ('getProfile' in cli ? cli : cli.client);
+  public getLogMeta(docSession: OptDocSession, docMethod?: string): log.ILogMeta {
+    const client = docSession.client;
+    const access = getDocSessionAccess(docSession);
     return {
       docId: this._docName,
+      access,
       ...(docMethod ? {docMethod} : {}),
       ...(client ? client.getLogMeta() : {}),
     };
@@ -183,9 +185,9 @@ export class ActiveDoc extends EventEmitter {
    * earliest actions first, later actions later.  If `summarize` is set,
    * action summaries are computed and included.
    */
-  public async getRecentActions(client: Client|null, summarize: boolean): Promise<ActionGroup[]> {
+  public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
     const actions = await this._actionHistory.getRecentActions(MAX_RECENT_ACTIONS);
-    return actions.map(act => asActionGroup(this._actionHistory, act, {client, summarize}));
+    return actions.map(act => asActionGroup(this._actionHistory, act, {client: docSession.client, summarize}));
   }
 
   /** expose action history for tests */
@@ -204,7 +206,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
-      this.logInfo(client, "will stay open");
+      this.logInfo(docSession, "will stay open");
       this._inactivityTimer.disable();
     }
     return docSession;
@@ -215,11 +217,12 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise} Promise for when database and data engine are done shutting down.
    */
   public async shutdown(removeThisActiveDoc: boolean = true): Promise<void> {
-    this.logDebug(null, "shutdown starting");
+    const docSession = makeExceptionalDocSession('system');
+    this.logDebug(docSession, "shutdown starting");
     this._inactivityTimer.disable();
     if (this.docClients.clientCount() > 0) {
-      this.logWarn(null, `Doc being closed with ${this.docClients.clientCount()} clients left`);
-      this.docClients.broadcastDocMessage(null, 'docShutdown', null);
+      this.logWarn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
+      await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
       this.docClients.removeAllClients();
     }
 
@@ -246,9 +249,9 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         // Initialization errors do not matter at this point.
       }
-      this.logDebug(null, "shutdown complete");
+      this.logDebug(docSession, "shutdown complete");
     } catch (err) {
-      this.logError(null, "failed to shutdown some resources", err);
+      this.logError(docSession, "failed to shutdown some resources", err);
     }
   }
 
@@ -289,7 +292,7 @@ export class ActiveDoc extends EventEmitter {
                                                                                    docSession);
       if (isNew) {
         await this.createDoc(docSession);
-        await this.addInitialTable();
+        await this.addInitialTable(docSession);
       } else {
         await this.docStorage.openFile();
         const tableNames = await this._loadOpenDoc(docSession);
@@ -361,7 +364,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async _initDoc(docSession: OptDocSession|null): Promise<void> {
     const metaTableData = await this._dataEngine.pyCall('fetch_meta_tables');
-    this.docData = new DocData(tableId => this.fetchTable(null, tableId), metaTableData);
+    this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
     await this._actionHistory.initialize();
@@ -377,8 +380,8 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Adds a small table to start off a newly-created blank document.
    */
-  public addInitialTable() {
-    return this._applyUserActions(null, [["AddEmptyTable"]]);
+  public addInitialTable(docSession: OptDocSession) {
+    return this._applyUserActions(docSession, [["AddEmptyTable"]]);
   }
 
   /**
@@ -437,18 +440,13 @@ export class ActiveDoc extends EventEmitter {
    * This function saves attachments from a given upload and creates an entry for them in the database.
    * It returns the list of rowIds for the rows created in the _grist_Attachments table.
    */
-  public async addAttachments(docSessOrReq: DocSession|Request, uploadId: number): Promise<number[]> {
-    // TODO Refactor to accept Request generally when DocSession is absent (for API calls), and
-    // include user/org info in logging too.
-    const [docSession, userId] = ('authorizer' in docSessOrReq ?
-      [docSessOrReq, docSessOrReq.authorizer.getUserId()] :
-      [{client: null}, getUserId(docSessOrReq)]);
-
+  public async addAttachments(docSession: OptDocSession, uploadId: number): Promise<number[]> {
+    const userId = getDocSessionUserId(docSession);
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
       const userActions: UserAction[] = await Promise.all(
         upload.files.map(file => this._prepAttachment(docSession, file)));
-      const result = await this._applyUserActions(docSession.client, userActions);
+      const result = await this._applyUserActions(docSession, userActions);
       return result.retValues;
     } finally {
       await globalUploadSet.cleanup(uploadId);
@@ -479,18 +477,18 @@ export class ActiveDoc extends EventEmitter {
    *    field of the _grist_Attachments table).
    * @returns {Promise<Buffer>} Promise for the data of this attachment; rejected on error.
    */
-  public async getAttachmentData(client: Client|null, fileIdent: string): Promise<Buffer> {
+  public async getAttachmentData(docSession: OptDocSession, fileIdent: string): Promise<Buffer> {
     const data = await this.docStorage.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
-    this.logInfo(client, "getAttachment: %s -> %s bytes", fileIdent, data.length);
+    this.logInfo(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
   }
 
   /**
    * Fetches the meta tables to return to the client when first opening a document.
    */
-  public async fetchMetaTables(client: Client) {
-    this.logInfo(client, "fetchMetaTables");
+  public async fetchMetaTables(docSession: OptDocSession) {
+    this.logInfo(docSession, "fetchMetaTables");
     if (!this.docData) { throw new Error("No doc data"); }
     // Get metadata from local cache rather than data engine, so that we can
     // still get it even if data engine is busy calculating.
@@ -521,7 +519,7 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise} Promise for the TableData object, which is a BulkAddRecord-like array of the
    *      form of the form ["TableData", table_id, row_ids, column_values].
    */
-  public async fetchTable(docSession: DocSession|null, tableId: string,
+  public async fetchTable(docSession: OptDocSession, tableId: string,
                           waitForFormulas: boolean = false): Promise<TableDataAction> {
     this.logInfo(docSession, "fetchTable(%s, %s)", docSession, tableId);
     return this.fetchQuery(docSession, {tableId, filters: {}}, waitForFormulas);
@@ -534,7 +532,7 @@ export class ActiveDoc extends EventEmitter {
    * @param {Boolean} waitForFormulas: If true, wait for all data to be loaded/calculated.  If false,
    * special "pending" values may be returned.
    */
-  public async fetchQuery(docSession: DocSession|null, query: Query,
+  public async fetchQuery(docSession: OptDocSession, query: Query,
                           waitForFormulas: boolean = false): Promise<TableDataAction> {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
@@ -581,7 +579,7 @@ export class ActiveDoc extends EventEmitter {
    * Makes a query (documented elsewhere) and subscribes to it, so that the client receives
    * docActions that affect this query's results.
    */
-  public async useQuerySet(docSession: DocSession, query: Query): Promise<QueryResult> {
+  public async useQuerySet(docSession: OptDocSession, query: Query): Promise<QueryResult> {
     this.logInfo(docSession, "useQuerySet(%s, %s)", docSession, query);
     // TODO implement subscribing to the query.
     // - Convert tableId+colIds to TableData/ColData references
@@ -651,7 +649,7 @@ export class ActiveDoc extends EventEmitter {
     // there'll be a deadlock.
     await this.waitForInitialization();
     const newOptions = {linkId: docSession.linkId, ...options};
-    const result: ApplyUAResult = await this._applyUserActions(docSession.client, actions, newOptions);
+    const result: ApplyUAResult = await this._applyUserActions(docSession, actions, newOptions);
     docSession.linkId = docSession.shouldBundleActions ? result.actionNum : 0;
     return result;
   }
@@ -726,11 +724,11 @@ export class ActiveDoc extends EventEmitter {
 
   public async removeInstanceFromDoc(docSession: DocSession): Promise<void> {
     const instanceId = await this._sharing.removeInstanceFromDoc();
-    await this._applyUserActions(docSession.client, [['RemoveInstance', instanceId]]);
+    await this._applyUserActions(docSession, [['RemoveInstance', instanceId]]);
   }
 
-  public async renameDocTo(client: Client, newName: string): Promise<void> {
-    this.logDebug(client, 'renameDoc', newName);
+  public async renameDocTo(docSession: OptDocSession, newName: string): Promise<void> {
+    this.logDebug(docSession, 'renameDoc', newName);
     await this.docStorage.renameDocTo(newName);
     this._docName = newName;
   }
@@ -812,7 +810,7 @@ export class ActiveDoc extends EventEmitter {
 
   // Get recent actions in ActionGroup format with summaries included.
   public async getActionSummaries(docSession: DocSession): Promise<ActionGroup[]> {
-    return this.getRecentActions(docSession.client, true);
+    return this.getRecentActions(docSession, true);
   }
 
   /**
@@ -883,9 +881,21 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Broadcast document changes to all the document's clients.  Doesn't involve
+   * ActiveDoc directly, but placed here to facilitate future work on granular
+   * access control.
+   */
+  public async broadcastDocUpdate(client: Client|null, type: string, message: {
+    actionGroup: ActionGroup,
+    docActions: DocAction[]
+  }) {
+    await this.docClients.broadcastDocMessage(client, 'docUserAction', message);
+  }
+
+  /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
-  protected async _loadOpenDoc(docSession: OptDocSession|null): Promise<string[]> {
+  protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[]> {
     // Fetch the schema version of document and sandbox, and migrate if the sandbox is newer.
     const [schemaVersion, docInfoData] = await Promise.all([
       this._dataEngine.pyCall('get_version'),
@@ -947,9 +957,10 @@ export class ActiveDoc extends EventEmitter {
    *    isModification: true if document was changed by one or more actions.
    * }
    */
-  protected async _applyUserActions(client: Client|null, actions: UserAction[],
+  protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
-    this.logDebug(client, "_applyUserActions(%s, %s)", client, shortDesc(actions));
+    const client = docSession.client;
+    this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     const user = client && client.session ? (await client.session.getEmail()) : "";
@@ -970,7 +981,7 @@ export class ActiveDoc extends EventEmitter {
     const result: ApplyUAResult = await new Promise<ApplyUAResult>(
       (resolve, reject) =>
         this._sharing!.addUserAction({action, client, resolve, reject}));
-    this.logDebug(client, "_applyUserActions returning %s", util.inspect(result));
+    this.logDebug(docSession, "_applyUserActions returning %s", util.inspect(result));
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
@@ -1024,7 +1035,7 @@ export class ActiveDoc extends EventEmitter {
    * expect different schema versions. The returned actions at the moment aren't even shared with
    * collaborators.
    */
-  private async _migrate(docSession: OptDocSession|null): Promise<void> {
+  private async _migrate(docSession: OptDocSession): Promise<void> {
     // TODO: makeBackup should possibly be in docManager directly.
     const backupPath = await this._docManager.storageManager.makeBackup(this._docName, "migrate");
     this.logInfo(docSession, "_migrate: backup made at %s", backupPath);
@@ -1069,7 +1080,7 @@ export class ActiveDoc extends EventEmitter {
   private async _finishInitialization(docSession: OptDocSession, pendingTableNames: string[], startTime: number) {
     try {
       await this._loadTables(docSession, pendingTableNames);
-      await this._applyUserActions(null, [['Calculate']]);
+      await this._applyUserActions(docSession, [['Calculate']]);
       await this._reportDataEngineMemory();
       this._fullyLoaded = true;
       const endTime = Date.now();
@@ -1115,8 +1126,8 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
-  private _log(level: string, cli: Client|OptDocSession|null, msg: string, ...args: any[]) {
-    log.origLog(level, `ActiveDoc ` + msg, ...args, this.getLogMeta(cli));
+  private _log(level: string, docSession: OptDocSession, msg: string, ...args: any[]) {
+    log.origLog(level, `ActiveDoc ` + msg, ...args, this.getLogMeta(docSession));
   }
 }
 

@@ -11,6 +11,7 @@ import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
          RequestWithLogin } from 'app/server/lib/Authorizer';
 import { DocManager } from "app/server/lib/DocManager";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { DocWorker } from "app/server/lib/DocWorker";
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
@@ -100,7 +101,8 @@ export class DocWorkerApi {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
       const tableId = req.params.tableId;
-      const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(null, {tableId, filters}, true));
+      const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
+        {client: null, req}, {tableId, filters}, true));
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
       const params = getQueryParameters(req);
@@ -111,7 +113,7 @@ export class DocWorkerApi {
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
     this._app.post('/api/docs/:docId/attachments', canEdit, withDoc(async (activeDoc, req, res) => {
       const uploadResult = await handleUpload(req, res);
-      res.json(await activeDoc.addAttachments(req, uploadResult.uploadId));
+      res.json(await activeDoc.addAttachments({client: null, req}, uploadResult.uploadId));
     }));
 
     // Returns the metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
@@ -129,7 +131,7 @@ export class DocWorkerApi {
       const ext = path.extname(fileIdent);
       const origName = attRecord.fileName as string;
       const fileName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
-      const fileData = await activeDoc.getAttachmentData(null, fileIdent);
+      const fileData = await activeDoc.getAttachmentData({client: null, req}, fileIdent);
       res.status(200)
         .type(ext)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
@@ -331,7 +333,10 @@ export class DocWorkerApi {
       const isAnonymous = isAnonymousUser(req);
       const {docId} = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
                                    trunkUrlId: NEW_DOCUMENT_CODE});
-      await this._docManager.fetchDoc({ client: null, req: req as RequestWithLogin, browserSettings }, docId);
+      await this._docManager.fetchDoc(makeExceptionalDocSession('nascent', {
+        req: req as RequestWithLogin,
+        browserSettings
+      }), docId);
       return res.status(200).json(docId);
     }));
   }

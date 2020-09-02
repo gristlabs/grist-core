@@ -10,6 +10,7 @@ import {GristDocAPI} from "app/plugin/GristAPI";
 import {Storage} from 'app/plugin/StorageAPI';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DocPluginData} from 'app/server/lib/DocPluginData';
+import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {FileParserElement} from 'app/server/lib/FileParserElement';
 import {GristServer} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
@@ -38,11 +39,12 @@ class GristDocAPIImpl implements GristDocAPI {
   }
 
   public async fetchTable(tableId: string): Promise<TableColValues> {
-    return fromTableDataAction(await this._activeDoc.fetchTable(null, tableId));
+    return fromTableDataAction(await this._activeDoc.fetchTable(
+      makeExceptionalDocSession('plugin'), tableId));
   }
 
   public applyUserActions(actions: any[][]): Promise<ApplyUAResult> {
-    return this._activeDoc.applyUserActions({client: null}, actions);
+    return this._activeDoc.applyUserActions(makeExceptionalDocSession('plugin'), actions);
   }
 }
 

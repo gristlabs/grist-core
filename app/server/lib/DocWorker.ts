@@ -4,10 +4,10 @@
  */
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {assertAccess, getOrSetDocAuth, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import * as Comm from 'app/server/lib/Comm';
+import {DocSession} from 'app/server/lib/DocSession';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import * as log from 'app/server/lib/log';
 import {integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
@@ -35,9 +35,9 @@ export class DocWorker {
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const client = this._comm.getClient(stringParam(req.query.clientId));
-      const activeDoc = this._getActiveDoc(stringParam(req.query.clientId),
-                                           integerParam(req.query.docFD));
+      const docSession = this._getDocSession(stringParam(req.query.clientId),
+                                             integerParam(req.query.docFD));
+      const activeDoc = docSession.activeDoc;
       const ext = path.extname(stringParam(req.query.ident));
       const type = mimeTypes.lookup(ext);
 
@@ -48,7 +48,7 @@ export class DocWorker {
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
       const contentDispHeader = contentDisposition(stringParam(req.query.name), {type: contentDispType});
-      const data = await activeDoc.getAttachmentData(client, stringParam(req.query.ident));
+      const data = await activeDoc.getAttachmentData(docSession, stringParam(req.query.ident));
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
@@ -136,8 +136,8 @@ export class DocWorker {
     let urlId: string|undefined;
     try {
       if (optStringParam(req.query.clientId)) {
-        const activeDoc = this._getActiveDoc(stringParam(req.query.clientId),
-                                             integerParam(req.query.docFD));
+        const activeDoc = this._getDocSession(stringParam(req.query.clientId),
+                                              integerParam(req.query.docFD)).activeDoc;
         // TODO: The docId should be stored in the ActiveDoc class. Currently docName is
         // used instead, which will coincide with the docId for hosted grist but not for
         // standalone grist.
@@ -158,10 +158,9 @@ export class DocWorker {
     }
   }
 
-  private _getActiveDoc(clientId: string, docFD: number): ActiveDoc {
+  private _getDocSession(clientId: string, docFD: number): DocSession {
     const client = this._comm.getClient(clientId);
-    const docSession = client.getDocSession(docFD);
-    return docSession.activeDoc;
+    return client.getDocSession(docFD);
   }
 }
 
@@ -175,7 +174,7 @@ async function activeDocMethod(role: 'viewers'|'editors'|null, methodName: strin
   const activeDoc = docSession.activeDoc;
   if (role) { await docSession.authorizer.assertAccess(role); }
   // Include a basic log record for each ActiveDoc method call.
-  log.rawDebug('activeDocMethod', activeDoc.getLogMeta(client, methodName));
+  log.rawDebug('activeDocMethod', activeDoc.getLogMeta(docSession, methodName));
   return (activeDoc as any)[methodName](docSession, ...args);
 }
 

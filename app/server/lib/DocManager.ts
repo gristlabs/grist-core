@@ -16,7 +16,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer,
         isSingleUserMode} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -109,8 +109,9 @@ export class DocManager extends EventEmitter {
    */
   public async createNewDoc(client: Client): Promise<string> {
     log.debug('DocManager.createNewDoc');
-    const activeDoc: ActiveDoc = await this.createNewEmptyDoc(makeOptDocSession(client), 'Untitled');
-    await activeDoc.addInitialTable();
+    const docSession = makeExceptionalDocSession('nascent', {client});
+    const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, 'Untitled');
+    await activeDoc.addInitialTable(docSession);
     return activeDoc.docName;
   }
 
@@ -172,7 +173,8 @@ export class DocManager extends EventEmitter {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
 
     const accessId = this.makeAccessId(userId);
-    const result = await this._doImportDoc(makeOptDocSession(null, browserSettings),
+    const docSession = makeExceptionalDocSession('nascent', {browserSettings});
+    const result = await this._doImportDoc(docSession,
                                            globalUploadSet.getUploadInfo(uploadId, accessId), {
                                              naming: workspaceId ? 'saved' : 'unsaved',
                                              userId,
@@ -265,14 +267,16 @@ export class DocManager extends EventEmitter {
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-      auth = new DocAuthorizer(dbManager, key, mode);
+      auth = new DocAuthorizer(dbManager, key, mode, docAuth);
     } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
-      auth = new DummyAuthorizer('owners');
+      auth = new DummyAuthorizer('owners', docId);
     }
 
     // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
-    const activeDoc: ActiveDoc = await this.fetchDoc(makeOptDocSession(client), docId);
+    const docSessionPrecursor = makeOptDocSession(client);
+    docSessionPrecursor.authorizer = auth;
+    const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
 
     if (activeDoc.muted) {
       log.debug('DocManager.openDoc interrupting, called for a muted doc', docId);
@@ -282,8 +286,8 @@ export class DocManager extends EventEmitter {
 
     const docSession = activeDoc.addClient(client, auth);
     const [metaTables, recentActions] = await Promise.all([
-      activeDoc.fetchMetaTables(client),
-      activeDoc.getRecentActions(client, false)
+      activeDoc.fetchMetaTables(docSession),
+      activeDoc.getRecentActions(docSession, false)
     ]);
     this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
 
@@ -333,7 +337,7 @@ export class DocManager extends EventEmitter {
     const docPromise = this._activeDocs.get(oldName);
     if (docPromise) {
       const adoc: ActiveDoc = await docPromise;
-      await adoc.renameDocTo(client, newName);
+      await adoc.renameDocTo({client}, newName);
       this._activeDocs.set(newName, docPromise);
       this._activeDocs.delete(oldName);
     } else {

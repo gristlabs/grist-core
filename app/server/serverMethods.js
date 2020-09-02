@@ -37,7 +37,7 @@ function generateCSV(req, res, comm) {
 
   res.set('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', contentDisposition(name));
-  return makeCSV(activeDoc, viewSectionId, activeSortOrder)
+  return makeCSV(activeDoc, viewSectionId, activeSortOrder, req)
   .then(data => res.send(data));
 }
 exports.generateCSV = generateCSV;
@@ -51,7 +51,7 @@ exports.generateCSV = generateCSV;
  * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
  * @return {Promise<string>} Promise for the resulting CSV.
  */
-function makeCSV(activeDoc, viewSectionId, sortOrder) {
+function makeCSV(activeDoc, viewSectionId, sortOrder, req) {
   return Promise.try(() => {
     const tables = activeDoc.docData.getTables();
     const viewSection = tables.get('_grist_Views_section').getRecord(viewSectionId);
@@ -88,7 +88,7 @@ function makeCSV(activeDoc, viewSectionId, sortOrder) {
       return directionalColRef > 0 ? effectiveColRef : -effectiveColRef;
     });
 
-    return [activeDoc.fetchTable(null, table.tableId, true), tableColumns, viewColumns];
+    return [activeDoc.fetchTable({client: null, req}, table.tableId, true), tableColumns, viewColumns];
   }).spread((data, tableColumns, viewColumns) => {
     const rowIds = data[2];
     const dataByColId = data[3];

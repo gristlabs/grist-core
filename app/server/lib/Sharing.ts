@@ -275,7 +275,7 @@ export class Sharing {
       retValues: sandboxActionBundle.retValues,
       summarize: true,
     });
-    await this._activeDoc.docClients.broadcastDocMessage(client || null, 'docUserAction', {
+    await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
       actionGroup,
       docActions: getEnvContent(localActionBundle.stored).concat(
         getEnvContent(localActionBundle.calc))

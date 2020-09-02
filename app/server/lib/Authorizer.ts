@@ -340,18 +340,26 @@ export interface ResourceSummary {
 
 /**
  *
- * Handle authorization for a single resource accessed by a given user.
+ * Handle authorization for a single document accessed by a given user.
  *
  */
 export interface Authorizer {
   // get the id of user, or null if no authorization in place.
   getUserId(): number|null;
 
+  // get the id of the document.
+  getDocId(): string;
+
   // Fetch the doc metadata from HomeDBManager.
   getDoc(): Promise<Document>;
 
   // Check access, throw error if the requested level of access isn't available.
   assertAccess(role: 'viewers'|'editors'): Promise<void>;
+
+  // Get the lasted access information calculated for the doc.  This is useful
+  // for logging - but access control itself should use assertAccess() to
+  // ensure the data is fresh.
+  getCachedAuth(): DocAuthResult;
 }
 
 /**
@@ -364,11 +372,17 @@ export class DocAuthorizer implements Authorizer {
     private _dbManager: HomeDBManager,
     private _key: DocAuthKey,
     public readonly openMode: OpenDocMode,
+    private _docAuth?: DocAuthResult
   ) {
   }
 
   public getUserId(): number {
     return this._key.userId;
+  }
+
+  public getDocId(): string {
+    // We've been careful to require urlId === docId, see DocManager.
+    return this._key.urlId;
   }
 
   public async getDoc(): Promise<Document> {
@@ -377,15 +391,29 @@ export class DocAuthorizer implements Authorizer {
 
   public async assertAccess(role: 'viewers'|'editors'): Promise<void> {
     const docAuth = await this._dbManager.getDocAuthCached(this._key);
+    this._docAuth = docAuth;
     assertAccess(role, docAuth, {openMode: this.openMode});
+  }
+
+  public getCachedAuth(): DocAuthResult {
+    if (!this._docAuth) { throw Error('no cached authentication'); }
+    return this._docAuth;
   }
 }
 
 export class DummyAuthorizer implements Authorizer {
-  constructor(public role: Role|null) {}
+  constructor(public role: Role|null, public docId: string) {}
   public getUserId() { return null; }
+  public getDocId() { return this.docId; }
   public async getDoc(): Promise<Document> { throw new Error("Not supported in standalone"); }
   public async assertAccess() { /* noop */ }
+  public getCachedAuth(): DocAuthResult {
+    return {
+      access: this.role,
+      docId: this.docId,
+      removed: false,
+    };
+  }
 }
 
 

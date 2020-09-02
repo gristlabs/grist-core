@@ -74,13 +74,28 @@ export class DocClients {
    * @param {String} type: The type of the message, e.g. 'docUserAction'.
    * @param {Object} messageData: The data for this type of message.
    */
-  public broadcastDocMessage(client: Client|null, type: string, messageData: any): void {
-    for (let i = 0, len = this._docSessions.length; i < len; i++) {
-      const curr = this._docSessions[i];
+  public async broadcastDocMessage(client: Client|null, type: string, messageData: any): Promise<void> {
+    await Promise.all(this._docSessions.map(async curr => {
       const fromSelf = (curr.client === client);
-
-      sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
-    }
+      try {
+        // Make sure user still has view access.
+        await curr.authorizer.assertAccess('viewers');
+        sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
+      } catch (e) {
+        if (e.code === 'AUTH_NO_VIEW') {
+          // Skip sending data to this user, they have no view access.
+          log.rawDebug('skip broadcastDocMessage because AUTH_NO_VIEW', {
+            docId: curr.authorizer.getDocId(),
+            ...curr.client.getLogMeta()
+          });
+          // Go further and trigger a shutdown for this user, in case they are granted
+          // access again later.
+          sendDocMessage(curr.client, curr.fd, 'docShutdown', null, fromSelf);
+        } else {
+          throw(e);
+        }
+      }
+    }));
     if (type === "docUserAction" && messageData.docActions) {
       for (const action of messageData.docActions) {
         this.activeDoc.docPluginManager.receiveAction(action);
