@@ -467,7 +467,7 @@ class Engine(object):
     """
     Returns the compute frame currently being computed, or None if there isn't one.
     """
-    return self._compute_stack[-1] if self._compute_stack else None
+    return self._compute_stack[-1] if self._compute_stack and self._compute_stack[-1].node else None
 
   def _use_node(self, node, relation, row_ids=[]):
     # This is used whenever a formula accesses any part of any record. It's hot code, and

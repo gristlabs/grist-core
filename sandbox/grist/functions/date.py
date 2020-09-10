@@ -22,9 +22,10 @@ def _make_datetime(value):
     raise ValueError('Invalid date %r' % (value,))
 
 def _get_global_tz():
-  if docmodel.global_docmodel:
-    return docmodel.global_docmodel.doc_info.lookupOne(id=1).tzinfo
-  return moment.TZ_UTC
+  # If doc_info record is missing (e.g. in tests), default to UTC. We should not return None,
+  # since that would produce naive datetime objects, which is not what we want.
+  dm = docmodel.global_docmodel
+  return (dm.doc_info.lookupOne(id=1).tzinfo if dm else None) or moment.TZ_UTC
 
 def _get_tzinfo(zonelabel):
   """

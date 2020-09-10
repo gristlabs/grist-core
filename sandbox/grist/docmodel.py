@@ -181,8 +181,7 @@ class DocModel(object):
   def __init__(self, engine):
     self._engine = engine
     global global_docmodel # pylint: disable=global-statement
-    if not global_docmodel:
-      global_docmodel = self
+    global_docmodel = self
 
     # Set of records scheduled for automatic removal.
     self._auto_remove_set = set()
