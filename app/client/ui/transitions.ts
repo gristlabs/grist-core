@@ -57,21 +57,30 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
       });
 
       // Call prepare() with transitions turned off.
-      const prior = elem.style.transitionProperty;
-      elem.style.transitionProperty = 'none';
-      prepare(elem, val);
-
-      // Recompute styles while transitions are off. See https://stackoverflow.com/a/16575811/328565
-      // for explanation and https://stackoverflow.com/a/31862081/328565 for the recommendation used
-      // here to trigger a style computation without a reflow.
-      window.getComputedStyle(elem).opacity;   // tslint:disable-line:no-unused-expression
-
-      // Restore transitions before run().
-      elem.style.transitionProperty = prior;
+      prepareForTransition(elem, () => prepare(elem, val));
     }
     run(elem, val);
   });
 }
+
+/**
+ * Call prepare() with transitions turned off. This allows preparing an element before another
+ * change to properties actually gets animated using the element's transition settings.
+ */
+export function prepareForTransition(elem: HTMLElement, prepare: () => void) {
+  const prior = elem.style.transitionProperty;
+  elem.style.transitionProperty = 'none';
+  prepare();
+
+  // Recompute styles while transitions are off. See https://stackoverflow.com/a/16575811/328565
+  // for explanation and https://stackoverflow.com/a/31862081/328565 for the recommendation used
+  // here to trigger a style computation without a reflow.
+  window.getComputedStyle(elem).opacity;   // tslint:disable-line:no-unused-expression
+
+  // Restore transitions.
+  elem.style.transitionProperty = prior;
+}
+
 
 /**
  * Helper for waiting for an active transition to end. Beyond listening to 'transitionend', it
@@ -86,7 +95,7 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
  * When the transition ends, TransitionWatcher disposes itself. Its onDispose() method allows
  * registering callbacks.
  */
-class TransitionWatcher extends Disposable {
+export class TransitionWatcher extends Disposable {
   private _propertyName: string;
   private _durationMs: number;
   private _timer: ReturnType<typeof setTimeout>;

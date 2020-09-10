@@ -18,6 +18,11 @@ export type UserPrefs = Prefs;
 export interface UserOrgPrefs extends Prefs {
   docMenuSort?: SortPref;
   docMenuView?: ViewPref;
+
+  // List of example docs that the user has seen and dismissed the welcome card for.
+  // The numbers are the `id` from IExampleInfo in app/client/ui/ExampleInfo.
+  // By living in UserOrgPrefs, this applies only to the examples-containing org.
+  seenExamples?: number[];
 }
 
 export type OrgPrefs = Prefs;

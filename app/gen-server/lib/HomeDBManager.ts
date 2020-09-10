@@ -336,6 +336,21 @@ export class HomeDBManager extends EventEmitter {
     throw new Error(`Cannot testGetId(${name})`);
   }
 
+  /**
+   * Clear all user preferences associated with the given email addresses.
+   * For use in tests.
+   */
+  public async testClearUserPrefs(emails: string[]) {
+    return await this._connection.transaction(async manager => {
+      for (const email of emails) {
+        const user = await this.getUserByLogin(email, undefined, manager);
+        if (user) {
+          await manager.delete(Pref, {userId: user.id});
+        }
+      }
+    });
+  }
+
   public getUserByKey(apiKey: string): Promise<User|undefined> {
     return User.findOne({apiKey});
   }
