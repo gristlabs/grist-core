@@ -5,6 +5,7 @@ import dateutil.parser
 import numbers
 import re
 
+from unimplemented import unimplemented
 from usertypes import AltText   # pylint: disable=import-error
 
 def CHAR(table_number):
@@ -499,6 +500,7 @@ def T(value):
           str(value) if isinstance(value, AltText) else "")
 
 
+@unimplemented
 def TEXT(number, format_type):
   """
   Converts a number into text according to a specified format. It is not yet implemented in

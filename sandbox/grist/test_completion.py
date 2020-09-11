@@ -1,5 +1,4 @@
 import testsamples
-import testutil
 import test_engine
 
 class TestCompletion(test_engine.EngineTestCase):
@@ -24,18 +23,63 @@ class TestCompletion(test_engine.EngineTestCase):
 
   def test_function(self):
     self.assertEqual(self.engine.autocomplete("MEDI", "Address"),
-                     ["MEDIAN("])
+        [('MEDIAN', '(value, *more_values)', True)])
+    self.assertEqual(self.engine.autocomplete("ma", "Address"), [
+      ('MAX', '(value, *more_values)', True),
+      ('MAXA', '(value, *more_values)', True),
+      'map(',
+      'math',
+      'max(',
+    ])
 
   def test_member(self):
     self.assertEqual(self.engine.autocomplete("datetime.tz", "Address"),
                      ["datetime.tzinfo("])
 
+  def test_case_insensitive(self):
+    self.assertEqual(self.engine.autocomplete("medi", "Address"),
+        [('MEDIAN', '(value, *more_values)', True)])
+    self.assertEqual(self.engine.autocomplete("std", "Address"), [
+      ('STDEV', '(value, *more_values)', True),
+      ('STDEVA', '(value, *more_values)', True),
+      ('STDEVP', '(value, *more_values)', True),
+      ('STDEVPA', '(value, *more_values)', True)
+    ])
+    self.assertEqual(self.engine.autocomplete("stu", "Address"),
+        ["Students"])
+
+    # Add a table name whose lowercase version conflicts with a builtin.
+    self.apply_user_action(['AddTable', 'Max', []])
+    self.assertEqual(self.engine.autocomplete("max", "Address"), [
+      ('MAX', '(value, *more_values)', True),
+      ('MAXA', '(value, *more_values)', True),
+      'Max',
+      'max(',
+    ])
+    self.assertEqual(self.engine.autocomplete("MAX", "Address"), [
+      ('MAX', '(value, *more_values)', True),
+      ('MAXA', '(value, *more_values)', True),
+    ])
+
+
   def test_suggest_globals_and_tables(self):
     # Should suggest globals and table names.
-    self.assertEqual(self.engine.autocomplete("ME", "Address"), ['MEDIAN('])
+    self.assertEqual(self.engine.autocomplete("ME", "Address"),
+        [('MEDIAN', '(value, *more_values)', True)])
     self.assertEqual(self.engine.autocomplete("Ad", "Address"), ['Address'])
-    self.assertGreaterEqual(set(self.engine.autocomplete("S", "Address")),
-                            {'Schools', 'Students', 'SUM(', 'STDEV('})
+    self.assertGreaterEqual(set(self.engine.autocomplete("S", "Address")), {
+      'Schools',
+      'Students',
+      ('SUM', '(value1, *more_values)', True),
+      ('STDEV', '(value, *more_values)', True),
+    })
+    self.assertGreaterEqual(set(self.engine.autocomplete("s", "Address")), {
+      'Schools',
+      'Students',
+      'sum(',
+      ('SUM', '(value1, *more_values)', True),
+      ('STDEV', '(value, *more_values)', True),
+    })
     self.assertEqual(self.engine.autocomplete("Addr", "Schools"), ['Address'])
 
   def test_suggest_columns(self):
@@ -56,11 +100,16 @@ class TestCompletion(test_engine.EngineTestCase):
 
   def test_suggest_lookup_methods(self):
     # Should suggest lookup formulas for tables.
-    self.assertEqual(self.engine.autocomplete("Address.", "Students"),
-        ['Address.all', 'Address.lookupOne(', 'Address.lookupRecords('])
+    self.assertEqual(self.engine.autocomplete("Address.", "Students"), [
+      'Address.all',
+      ('Address.lookupOne', '(colName=<value>, ...)', True),
+      ('Address.lookupRecords', '(colName=<value>, ...)', True),
+    ])
 
-    self.assertEqual(self.engine.autocomplete("Address.lookup", "Students"),
-        ['Address.lookupOne(', 'Address.lookupRecords('])
+    self.assertEqual(self.engine.autocomplete("Address.lookup", "Students"), [
+      ('Address.lookupOne', '(colName=<value>, ...)', True),
+      ('Address.lookupRecords', '(colName=<value>, ...)', True),
+    ])
 
   def test_suggest_column_type_methods(self):
     # Should treat columns as correct types.

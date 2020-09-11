@@ -9,9 +9,11 @@ import re
 
 import column
 from functions import date      # pylint: disable=import-error
+from functions.unimplemented import unimplemented
 from usertypes import AltText   # pylint: disable=import-error
 from records import Record, RecordSet
 
+@unimplemented
 def ISBLANK(value):
   """
   Returns whether a value refers to an empty cell. It isn't implemented in Grist. To check for an
@@ -486,6 +488,7 @@ def NA():
   return float('nan')
 
 
+@unimplemented
 def TYPE(value):
   """
   Returns a number associated with the type of data passed into the function. This is not
@@ -493,6 +496,7 @@ def TYPE(value):
   """
   raise NotImplementedError()
 
+@unimplemented
 def CELL(info_type, reference):
   """
   Returns the requested information about the specified cell. This is not implemented in Grist

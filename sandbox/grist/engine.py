@@ -1,3 +1,4 @@
+# pylint:disable=too-many-lines
 """
 The data engine ties the code generated from the schema with the document data, and with
 dependency tracking.
@@ -5,16 +6,17 @@ dependency tracking.
 import contextlib
 import itertools
 import re
+import rlcompleter
 import sys
+import time
 import traceback
 from collections import namedtuple, OrderedDict, Hashable
 from sortedcontainers import SortedSet
 
-import time
-import rlcompleter
 import acl
 import actions
 import action_obj
+from autocomplete_context import AutocompleteContext
 from codebuilder import DOLLAR_REGEX
 import depend
 import docactions
@@ -231,6 +233,9 @@ class Engine(object):
     # Stores an exception representing the first unevaluated cell met while recomputing the
     # current cell.
     self._cell_required_error = None
+
+    # Initial empty context for autocompletions; we update it when we generate the usercode module.
+    self._autocomplete_context = AutocompleteContext({})
 
   def load_empty(self):
     """
@@ -1016,6 +1021,9 @@ class Engine(object):
     self._repl.locals.update(self.gencode.usercode.__dict__)
     self.gencode.usercode.__dict__.update(self._repl.locals)
 
+    # Update the context used for autocompletions.
+    self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)
+
     # TODO: Whenever schema changes, we need to adjust the ACL resources to remove or rename
     # tableIds and colIds.
 
@@ -1205,8 +1213,9 @@ class Engine(object):
     if txt == '$':
       tweaked_txt = 'rec.'
     table = self.tables[table_id]
-    context = {'rec': table.sample_record}
-    context.update(self.gencode.usercode.__dict__)
+
+    context = self._autocomplete_context.get_context()
+    context['rec'] = table.sample_record
 
     completer = rlcompleter.Completer(context)
     results = []
@@ -1219,11 +1228,12 @@ class Engine(object):
         break
       if skipped_completions.search(result):
         continue
-      results.append(result)
+      results.append(self._autocomplete_context.process_result(result))
+
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
     if tweaked_txt != txt:
       results = [txt + result[len(tweaked_txt):] for result in results]
-    results.sort()
+    results.sort(key=lambda r: r[0] if type(r) == tuple else r)
     return results
 
   def _get_undo_checkpoint(self):

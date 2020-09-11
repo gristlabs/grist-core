@@ -3,7 +3,7 @@
 from math import _chain, _chain_numeric, _chain_numeric_a
 from info import ISNUMBER, ISLOGICAL
 from date import DATE       # pylint: disable=unused-import
-
+from unimplemented import unimplemented
 
 def _average(iterable):
   total, count = 0.0, 0
@@ -24,6 +24,7 @@ def _default_if_empty(iterable, default):
     yield default
 
 
+@unimplemented
 def AVEDEV(value1, value2):
   """Calculates the average of the magnitudes of deviations of data from a dataset's mean."""
   raise NotImplementedError()
@@ -95,14 +96,17 @@ def AVERAGE_WEIGHTED(pairs):
   return sum_value / sum_weight
 
 
+@unimplemented
 def AVERAGEIF(criteria_range, criterion, average_range=None):
   """Returns the average of a range depending on criteria."""
   raise NotImplementedError()
 
+@unimplemented
 def AVERAGEIFS(average_range, criteria_range1, criterion1, *args):
   """Returns the average of a range depending on multiple criteria."""
   raise NotImplementedError()
 
+@unimplemented
 def BINOMDIST(num_successes, num_trials, prob_success, cumulative):
   """
   Calculates the probability of drawing a certain number of successes (or a maximum number of
@@ -111,10 +115,12 @@ def BINOMDIST(num_successes, num_trials, prob_success, cumulative):
   """
   raise NotImplementedError()
 
+@unimplemented
 def CONFIDENCE(alpha, standard_deviation, pop_size):
   """Calculates the width of half the confidence interval for a normal distribution."""
   raise NotImplementedError()
 
+@unimplemented
 def CORREL(data_y, data_x):
   """Calculates r, the Pearson product-moment correlation coefficient of a dataset."""
   raise NotImplementedError()
@@ -156,22 +162,27 @@ def COUNTA(value, *more_values):
   return sum(1 for v in _chain(value, *more_values))
 
 
+@unimplemented
 def COVAR(data_y, data_x):
   """Calculates the covariance of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def CRITBINOM(num_trials, prob_success, target_prob):
   """Calculates the smallest value for which the cumulative binomial distribution is greater than or equal to a specified criteria."""
   raise NotImplementedError()
 
+@unimplemented
 def DEVSQ(value1, value2):
   """Calculates the sum of squares of deviations based on a sample."""
   raise NotImplementedError()
 
+@unimplemented
 def EXPONDIST(x, lambda_, cumulative):
   """Returns the value of the exponential distribution function with a specified lambda at a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def F_DIST(x, degrees_freedom1, degrees_freedom2, cumulative):
   """
   Calculates the left-tailed F probability distribution (degree of diversity) for two data sets
@@ -180,6 +191,7 @@ def F_DIST(x, degrees_freedom1, degrees_freedom2, cumulative):
   """
   raise NotImplementedError()
 
+@unimplemented
 def F_DIST_RT(x, degrees_freedom1, degrees_freedom2):
   """
   Calculates the right-tailed F probability distribution (degree of diversity) for two data sets
@@ -188,6 +200,7 @@ def F_DIST_RT(x, degrees_freedom1, degrees_freedom2):
   """
   raise NotImplementedError()
 
+@unimplemented
 def FDIST(x, degrees_freedom1, degrees_freedom2):
   """
   Calculates the right-tailed F probability distribution (degree of diversity) for two data sets
@@ -196,46 +209,57 @@ def FDIST(x, degrees_freedom1, degrees_freedom2):
   """
   raise NotImplementedError()
 
+@unimplemented
 def FISHER(value):
   """Returns the Fisher transformation of a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def FISHERINV(value):
   """Returns the inverse Fisher transformation of a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def FORECAST(x, data_y, data_x):
   """Calculates the expected y-value for a specified x based on a linear regression of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def GEOMEAN(value1, value2):
   """Calculates the geometric mean of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def HARMEAN(value1, value2):
   """Calculates the harmonic mean of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def HYPGEOMDIST(num_successes, num_draws, successes_in_pop, pop_size):
   """Calculates the probability of drawing a certain number of successes in a certain number of tries given a population of a certain size containing a certain number of successes, without replacement of draws."""
   raise NotImplementedError()
 
+@unimplemented
 def INTERCEPT(data_y, data_x):
   """Calculates the y-value at which the line resulting from linear regression of a dataset will intersect the y-axis (x=0)."""
   raise NotImplementedError()
 
+@unimplemented
 def KURT(value1, value2):
   """Calculates the kurtosis of a dataset, which describes the shape, and in particular the "peakedness" of that dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def LARGE(data, n):
   """Returns the nth largest element from a data set, where n is user-defined."""
   raise NotImplementedError()
 
+@unimplemented
 def LOGINV(x, mean, standard_deviation):
   """Returns the value of the inverse log-normal cumulative distribution with given mean and standard deviation at a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def LOGNORMDIST(x, mean, standard_deviation):
   """Returns the value of the log-normal cumulative distribution with given mean and standard deviation at a specified value."""
   raise NotImplementedError()
@@ -364,14 +388,17 @@ def MINA(value, *more_values):
   return min(_default_if_empty(_chain_numeric_a(value, *more_values), 0))
 
 
+@unimplemented
 def MODE(value1, value2):
   """Returns the most commonly occurring value in a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def NEGBINOMDIST(num_failures, num_successes, prob_success):
   """Calculates the probability of drawing a certain number of failures before a certain number of successes given a probability of success in independent trials."""
   raise NotImplementedError()
 
+@unimplemented
 def NORMDIST(x, mean, standard_deviation, cumulative):
   """
   Returns the value of the normal distribution function (or normal cumulative distribution
@@ -379,42 +406,52 @@ def NORMDIST(x, mean, standard_deviation, cumulative):
   """
   raise NotImplementedError()
 
+@unimplemented
 def NORMINV(x, mean, standard_deviation):
   """Returns the value of the inverse normal distribution function for a specified value, mean, and standard deviation."""
   raise NotImplementedError()
 
+@unimplemented
 def NORMSDIST(x):
   """Returns the value of the standard normal cumulative distribution function for a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def NORMSINV(x):
   """Returns the value of the inverse standard normal distribution function for a specified value."""
   raise NotImplementedError()
 
+@unimplemented
 def PEARSON(data_y, data_x):
   """Calculates r, the Pearson product-moment correlation coefficient of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def PERCENTILE(data, percentile):
   """Returns the value at a given percentile of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def PERCENTRANK(data, value, significant_digits=None):
   """Returns the percentage rank (percentile) of a specified value in a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def PERCENTRANK_EXC(data, value, significant_digits=None):
   """Returns the percentage rank (percentile) from 0 to 1 exclusive of a specified value in a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def PERCENTRANK_INC(data, value, significant_digits=None):
   """Returns the percentage rank (percentile) from 0 to 1 inclusive of a specified value in a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def PERMUT(n, k):
   """Returns the number of ways to choose some number of objects from a pool of a given size of objects, considering order."""
   raise NotImplementedError()
 
+@unimplemented
 def POISSON(x, mean, cumulative):
   """
   Returns the value of the Poisson distribution function (or Poisson cumulative distribution
@@ -422,42 +459,52 @@ def POISSON(x, mean, cumulative):
   """
   raise NotImplementedError()
 
+@unimplemented
 def PROB(data, probabilities, low_limit, high_limit=None):
   """Given a set of values and corresponding probabilities, calculates the probability that a value chosen at random falls between two limits."""
   raise NotImplementedError()
 
+@unimplemented
 def QUARTILE(data, quartile_number):
   """Returns a value nearest to a specified quartile of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def RANK(value, data, is_ascending=None):
   """Returns the rank of a specified value in a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def RANK_AVG(value, data, is_ascending=None):
   """Returns the rank of a specified value in a dataset. If there is more than one entry of the same value in the dataset, the average rank of the entries will be returned."""
   raise NotImplementedError()
 
+@unimplemented
 def RANK_EQ(value, data, is_ascending=None):
   """Returns the rank of a specified value in a dataset. If there is more than one entry of the same value in the dataset, the top rank of the entries will be returned."""
   raise NotImplementedError()
 
+@unimplemented
 def RSQ(data_y, data_x):
   """Calculates the square of r, the Pearson product-moment correlation coefficient of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def SKEW(value1, value2):
   """Calculates the skewness of a dataset, which describes the symmetry of that dataset about the mean."""
   raise NotImplementedError()
 
+@unimplemented
 def SLOPE(data_y, data_x):
   """Calculates the slope of the line resulting from linear regression of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def SMALL(data, n):
   """Returns the nth smallest element from a data set, where n is user-defined."""
   raise NotImplementedError()
 
+@unimplemented
 def STANDARDIZE(value, mean, standard_deviation):
   """Calculates the normalized equivalent of a random variable given mean and standard deviation of the distribution."""
   raise NotImplementedError()
@@ -559,50 +606,62 @@ def STDEVPA(value, *more_values):
   """
   return _stddev(list(_chain_numeric_a(value, *more_values)), 0)
 
+@unimplemented
 def STEYX(data_y, data_x):
   """Calculates the standard error of the predicted y-value for each x in the regression of a dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def T_INV(probability, degrees_freedom):
   """Calculates the negative inverse of the one-tailed TDIST function."""
   raise NotImplementedError()
 
+@unimplemented
 def T_INV_2T(probability, degrees_freedom):
   """Calculates the inverse of the two-tailed TDIST function."""
   raise NotImplementedError()
 
+@unimplemented
 def TDIST(x, degrees_freedom, tails):
   """Calculates the probability for Student's t-distribution with a given input (x)."""
   raise NotImplementedError()
 
+@unimplemented
 def TINV(probability, degrees_freedom):
   """Calculates the inverse of the two-tailed TDIST function."""
   raise NotImplementedError()
 
+@unimplemented
 def TRIMMEAN(data, exclude_proportion):
   """Calculates the mean of a dataset excluding some proportion of data from the high and low ends of the dataset."""
   raise NotImplementedError()
 
+@unimplemented
 def TTEST(range1, range2, tails, type):
   """Returns the probability associated with t-test. Determines whether two samples are likely to have come from the same two underlying populations that have the same mean."""
   raise NotImplementedError()
 
+@unimplemented
 def VAR(value1, value2):
   """Calculates the variance based on a sample."""
   raise NotImplementedError()
 
+@unimplemented
 def VARA(value1, value2):
   """Calculates an estimate of variance based on a sample, setting text to the value `0`."""
   raise NotImplementedError()
 
+@unimplemented
 def VARP(value1, value2):
   """Calculates the variance based on an entire population."""
   raise NotImplementedError()
 
+@unimplemented
 def VARPA(value1, value2):
   """Calculates the variance based on an entire population, setting text to the value `0`."""
   raise NotImplementedError()
 
+@unimplemented
 def WEIBULL(x, shape, scale, cumulative):
   """
   Returns the value of the Weibull distribution function (or Weibull cumulative distribution
@@ -610,6 +669,7 @@ def WEIBULL(x, shape, scale, cumulative):
   """
   raise NotImplementedError()
 
+@unimplemented
 def ZTEST(data, value, standard_deviation):
   """Returns the two-tailed P-value of a Z-test with standard distribution."""
   raise NotImplementedError()

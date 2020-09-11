@@ -7,6 +7,7 @@ import operator
 import random
 
 from functions.info import ISNUMBER, ISLOGICAL
+from functions.unimplemented import unimplemented
 import roman
 
 # Iterates through elements of iterable arguments, or through individual args when not iterable.
@@ -727,6 +728,7 @@ def SQRTPI(value):
   """
   return _math.sqrt(_math.pi * value)
 
+@unimplemented
 def SUBTOTAL(function_code, range1, range2):
   """
   Returns a subtotal for a vertical range of cells using a specified aggregation function.
@@ -755,12 +757,14 @@ def SUM(value1, *more_values):
   return sum(_chain_numeric_a(value1, *more_values))
 
 
+@unimplemented
 def SUMIF(records, criterion, sum_range):
   """
   Returns a conditional sum across a range.
   """
   raise NotImplementedError()
 
+@unimplemented
 def SUMIFS(sum_range, criteria_range1, criterion1, *args):
   """
   Returns the sum of a range depending on multiple criteria.
@@ -782,6 +786,7 @@ def SUMPRODUCT(array1, *more_arrays):
   """
   return sum(reduce(operator.mul, values) for values in itertools.izip(array1, *more_arrays))
 
+@unimplemented
 def SUMSQ(value1, value2):
   """
   Returns the sum of the squares of a series of numbers and/or cells.
