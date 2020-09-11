@@ -32,7 +32,7 @@ import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
 import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
-import {DocReplacementOptions} from 'app/common/UserAPI';
+import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
 import {Authorizer} from 'app/server/lib/Authorizer';
@@ -55,6 +55,7 @@ import {DocSession, getDocSessionAccess, getDocSessionUserId, makeExceptionalDoc
         OptDocSession} from './DocSession';
 import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
+import {GranularAccess} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 
@@ -104,6 +105,7 @@ export class ActiveDoc extends EventEmitter {
   private readonly _dataEngine: ISandbox;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
+  private _granularAccess: GranularAccess;
   private _muted: boolean = false;  // If set, changes to this document should not propagate
                                     // to outside world
   private _initializationPromise: Promise<boolean>|null = null;
@@ -176,7 +178,9 @@ export class ActiveDoc extends EventEmitter {
     return this._actionHistory.getRecentActions(maxActions);
   }
 
-  public getRecentStates(maxStates?: number) {
+  public async getRecentStates(docSession: OptDocSession, maxStates?: number): Promise<DocState[]> {
+    // Doc states currently don't include user content, so it seems ok to let all
+    // viewers have access to them.
     return this._actionHistory.getRecentStates(maxStates);
   }
 
@@ -187,7 +191,8 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
     const actions = await this._actionHistory.getRecentActions(MAX_RECENT_ACTIONS);
-    return actions.map(act => asActionGroup(this._actionHistory, act, {client: docSession.client, summarize}));
+    const groups = actions.map(act => asActionGroup(this._actionHistory, act, {client: docSession.client, summarize}));
+    return groups.filter(actionGroup => this._granularAccess.allowActionGroup(docSession, actionGroup));
   }
 
   /** expose action history for tests */
@@ -368,6 +373,7 @@ export class ActiveDoc extends EventEmitter {
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
     await this._actionHistory.initialize();
+    this._granularAccess = new GranularAccess(this.docData);
     this._sharing = new Sharing(this, this._actionHistory);
 
     await this.openSharedDoc(docSession);
@@ -478,6 +484,10 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise<Buffer>} Promise for the data of this attachment; rejected on error.
    */
   public async getAttachmentData(docSession: OptDocSession, fileIdent: string): Promise<Buffer> {
+    // We don't know for sure whether the attachment is available via a table the user
+    // has access to, but at least they are presenting a SHA1 checksum of the file content,
+    // and they have at least view access to the document to get to this point.  So we go ahead
+    // and serve the attachment.
     const data = await this.docStorage.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this.logInfo(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
@@ -497,8 +507,8 @@ export class ActiveDoc extends EventEmitter {
       if (!tableId.startsWith('_grist_')) { continue; }
       tables[tableId] = tableData.getTableDataAction();
     }
-    return tables;
-}
+    return this._granularAccess.filterMetaTables(docSession, tables);
+  }
 
   /**
    * Makes sure document is completely initialized.  May throw if doc is broken.
@@ -510,6 +520,12 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     return true;
+  }
+
+  // Check if user has rights to download this doc.
+  public canDownload(docSession: OptDocSession) {
+    return this._granularAccess.hasViewAccess(docSession) &&
+      !this._granularAccess.hasNuancedAccess(docSession);
   }
 
   /**
@@ -535,6 +551,11 @@ export class ActiveDoc extends EventEmitter {
   public async fetchQuery(docSession: OptDocSession, query: Query,
                           waitForFormulas: boolean = false): Promise<TableDataAction> {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
+
+    // If user does not have rights to access what this query is asking for, fail.
+    if (!this._granularAccess.hasQueryAccess(docSession, query)) {
+      throw new Error('not authorized to read table');
+    }
 
     // Some tests read _grist_ tables via the api.  The _fetchQueryFromDB method
     // currently cannot read those tables, so we load them from the data engine
@@ -612,6 +633,9 @@ export class ActiveDoc extends EventEmitter {
    */
   public async findColFromValues(docSession: DocSession, values: any[], n: number,
                                  optTableId?: string): Promise<number[]> {
+    // This could leak information about private tables, so if there are any nuanced
+    // permissions in force and the user does not have full access, do nothing.
+    if (this._granularAccess.hasNuancedAccess(docSession)) { return []; }
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._dataEngine.pyCall('find_col_from_values', values, n, optTableId);
@@ -626,6 +650,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getFormulaError(docSession: DocSession, tableId: string, colId: string,
                                rowId: number): Promise<CellValue> {
+    if (!this._granularAccess.hasTableAccess(docSession, tableId)) { return null; }
     this.logInfo(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
@@ -649,6 +674,7 @@ export class ActiveDoc extends EventEmitter {
     // there'll be a deadlock.
     await this.waitForInitialization();
     const newOptions = {linkId: docSession.linkId, ...options};
+    // Granular access control implemented in _applyUserActions.
     const result: ApplyUAResult = await this._applyUserActions(docSession, actions, newOptions);
     docSession.linkId = docSession.shouldBundleActions ? result.actionNum : 0;
     return result;
@@ -686,6 +712,9 @@ export class ActiveDoc extends EventEmitter {
     } else {
       actions = flatten(actionBundles.map(a => a!.userActions));
     }
+    // Granular access control implemented ultimately in _applyUserActions.
+    // It could be that error cases and timing etc leak some info prior to this
+    // point.
     return this.applyUserActions(docSession, actions, options);
   }
 
@@ -698,6 +727,7 @@ export class ActiveDoc extends EventEmitter {
     localActionBundle.stored.forEach(da => docData.receiveAction(da[1]));
     localActionBundle.calc.forEach(da => docData.receiveAction(da[1]));
     const docActions = getEnvContent(localActionBundle.stored);
+    this._granularAccess.update();
     if (docActions.some(docAction => this._onDemandActions.isSchemaAction(docAction))) {
       const indexes = this._onDemandActions.getDesiredIndexes();
       await this.docStorage.updateIndexes(indexes);
@@ -752,6 +782,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async autocomplete(docSession: DocSession, txt: string, tableId: string): Promise<string[]> {
+    // Autocompletion can leak names of tables and columns.
+    if (this._granularAccess.hasNuancedAccess(docSession)) { return []; }
     await this.waitForInitialization();
     return this._dataEngine.pyCall('autocomplete', txt, tableId);
   }
@@ -761,6 +793,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {
+    if (this._granularAccess.hasNuancedAccess(docSession)) {
+      throw new Error('cannot confirm access to plugin');
+    }
     const pluginRpc = this.docPluginManager.plugins[pluginId].rpc;
     switch (msg.mtype) {
       case MsgType.RpcCall: return pluginRpc.forwardCall(msg);
@@ -793,6 +828,9 @@ export class ActiveDoc extends EventEmitter {
    * ID for the fork.  TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: DocSession): Promise<ForkResult> {
+    if (this._granularAccess.hasNuancedAccess(docSession)) {
+      throw new Error('cannot confirm authority to copy document');
+    }
     const userId = docSession.client.getCachedUserId();
     const isAnonymous = docSession.client.isAnonymous();
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
@@ -865,6 +903,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getSnapshots(): Promise<DocSnapshots> {
+    // Assume any viewer can access this list.
     return this._docManager.storageManager.getSnapshots(this.docName);
   }
 
@@ -889,7 +928,8 @@ export class ActiveDoc extends EventEmitter {
     actionGroup: ActionGroup,
     docActions: DocAction[]
   }) {
-    await this.docClients.broadcastDocMessage(client, 'docUserAction', message);
+    await this.docClients.broadcastDocMessage(client, 'docUserAction', message,
+                                              (docSession) => this._filterDocUpdate(docSession, message));
   }
 
   /**
@@ -959,6 +999,11 @@ export class ActiveDoc extends EventEmitter {
    */
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
+
+    if (!this._granularAccess.canApplyUserActions(docSession, actions)) {
+      throw new Error('cannot perform a requested action');
+    }
+
     const client = docSession.client;
     this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
@@ -1128,6 +1173,23 @@ export class ActiveDoc extends EventEmitter {
 
   private _log(level: string, docSession: OptDocSession, msg: string, ...args: any[]) {
     log.origLog(level, `ActiveDoc ` + msg, ...args, this.getLogMeta(docSession));
+  }
+
+  /**
+   * This filters a message being broadcast to all clients to be appropriate for one
+   * particular client, if that client may need some material filtered out.
+   */
+  private _filterDocUpdate(docSession: OptDocSession, message: {
+    actionGroup: ActionGroup,
+    docActions: DocAction[]
+  }) {
+    if (!this._granularAccess.hasNuancedAccess(docSession)) { return message; }
+    const result = {
+      actionGroup: this._granularAccess.filterActionGroup(docSession, message.actionGroup),
+      docActions: this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
+    };
+    if (result.docActions.length === 0) { return null; }
+    return result;
   }
 }
 

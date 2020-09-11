@@ -1,6 +1,7 @@
 const gutil = require('app/common/gutil');
 const {SortFunc} = require('app/common/SortFunc');
 const ValueFormatter = require('app/common/ValueFormatter');
+const {docSessionFromRequest} = require('app/server/lib/DocSession');
 const Promise = require('bluebird');
 const contentDisposition = require('content-disposition');
 const csv = require('csv');
@@ -88,7 +89,7 @@ function makeCSV(activeDoc, viewSectionId, sortOrder, req) {
       return directionalColRef > 0 ? effectiveColRef : -effectiveColRef;
     });
 
-    return [activeDoc.fetchTable({client: null, req}, table.tableId, true), tableColumns, viewColumns];
+    return [activeDoc.fetchTable(docSessionFromRequest(req), table.tableId, true), tableColumns, viewColumns];
   }).spread((data, tableColumns, viewColumns) => {
     const rowIds = data[2];
     const dataByColId = data[3];

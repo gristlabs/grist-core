@@ -8,7 +8,7 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {sendDocMessage} from 'app/server/lib/Comm';
-import {DocSession} from 'app/server/lib/DocSession';
+import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
 
 export class DocClients {
@@ -73,14 +73,26 @@ export class DocClients {
    * @param {Object} client: Originating client used to set the `fromSelf` flag in the message.
    * @param {String} type: The type of the message, e.g. 'docUserAction'.
    * @param {Object} messageData: The data for this type of message.
+   * @param {Object} filterMessage: Optional callback to filter message per client.
    */
-  public async broadcastDocMessage(client: Client|null, type: string, messageData: any): Promise<void> {
+  public async broadcastDocMessage(client: Client|null, type: string, messageData: any,
+                                   filterMessage?: (docSession: OptDocSession,
+                                                    messageData: any) => any): Promise<void> {
     await Promise.all(this._docSessions.map(async curr => {
       const fromSelf = (curr.client === client);
       try {
         // Make sure user still has view access.
         await curr.authorizer.assertAccess('viewers');
-        sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
+        if (!filterMessage) {
+          sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
+        } else {
+          const filteredMessageData = filterMessage(curr, messageData);
+          if (filteredMessageData) {
+            sendDocMessage(curr.client, curr.fd, type, filteredMessageData, fromSelf);
+          } else {
+            this.activeDoc.logDebug(curr, 'skip broadcastDocMessage because it is not allowed for this client');
+          }
+        }
       } catch (e) {
         if (e.code === 'AUTH_NO_VIEW') {
           // Skip sending data to this user, they have no view access.

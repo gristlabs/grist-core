@@ -7,8 +7,7 @@ import * as express from 'express';
 import fetch, {RequestInit, Response as FetchResponse} from 'node-fetch';
 
 import {ApiError} from 'app/common/ApiError';
-import {getSlugIfNeeded, isOrgInPathOnly,
-        parseSubdomainStrictly} from 'app/common/gristUrls';
+import {getSlugIfNeeded, parseSubdomainStrictly} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
 import {Document as APIDocument} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
@@ -19,7 +18,7 @@ import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
-import {adaptServerUrl, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
+import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
@@ -199,16 +198,13 @@ export function attachAppEndpoint(options: AttachOptions): void {
       const preferredUrlId = doc.urlId || doc.id;
       if (urlId !== preferredUrlId || slugMismatch) {
         // Prepare to redirect to canonical url for document.
-        // Preserve org in url path if necessary.
-        const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
         // Preserve any query parameters or fragments.
         const queryOrFragmentCheck = req.originalUrl.match(/([#?].*)/);
         const queryOrFragment = (queryOrFragmentCheck && queryOrFragmentCheck[1]) || '';
-        if (slug) {
-          res.redirect(`${prefix}/${preferredUrlId}/${slug}${req.params.remainder}${queryOrFragment}`);
-        } else {
-          res.redirect(`${prefix}/doc/${preferredUrlId}${req.params.remainder}${queryOrFragment}`);
-        }
+        const target = slug ?
+          `/${preferredUrlId}/${slug}${req.params.remainder}${queryOrFragment}` :
+          `/doc/${preferredUrlId}${req.params.remainder}${queryOrFragment}`;
+        res.redirect(addOrgToPathIfNeeded(req, target));
         return;
       }
 

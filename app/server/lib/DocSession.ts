@@ -40,6 +40,14 @@ export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system',
 }
 
 /**
+ * Create an OptDocSession from a request.  Request should have user and doc access
+ * middleware.
+ */
+export function docSessionFromRequest(req: RequestWithLogin): OptDocSession {
+  return {client: null, req};
+}
+
+/**
  * DocSession objects maintain information for a single session<->doc instance.
  */
 export class DocSession implements OptDocSession {

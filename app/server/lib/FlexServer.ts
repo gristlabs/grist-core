@@ -38,8 +38,8 @@ import {getLoginMiddleware} from 'app/server/lib/logins';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET,
-        trustOrigin} from 'app/server/lib/requestUtils';
+import {adaptServerUrl, addOrgToPathIfNeeded, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
+        TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import * as ServerMetrics from 'app/server/lib/ServerMetrics';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
@@ -1082,9 +1082,12 @@ export class FlexServer implements GristServer {
   private addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
 
-    // TODO: Need a way to translate docName from query to filesystem path. Use OpenDocManager.
     this.app.get('/download', ...docAccessMiddleware, expressWrap(async (req, res) => {
-      return this._docWorker.downloadDoc(req, res, this._storageManager);
+      // Forward this endpoint to regular API.  This endpoint is now deprecated.
+      const docId = String(req.query.doc);
+      let url = await this.getHomeUrlByDocId(docId, addOrgToPathIfNeeded(req, `/api/docs/${docId}/download`));
+      if (req.query.template === '1') { url += '?template=1'; }
+      return res.redirect(url);
     }));
 
     const basicMiddleware = [this._userIdMiddleware, this.tagChecker.requireTag];
@@ -1094,7 +1097,9 @@ export class FlexServer implements GristServer {
     // This doesn't check for doc access permissions because the request isn't tied to a document.
     addUploadRoute(this, this.app, ...basicMiddleware);
 
-    this.app.get('/gen_csv', ...docAccessMiddleware, (req, res) => this._docWorker.getCSV(req, res));
+    this.app.get('/gen_csv', ...docAccessMiddleware, expressWrap(async (req, res) => {
+      return this._docWorker.getCSV(req, res);
+    }));
 
     this.app.get('/attachment', ...docAccessMiddleware,
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));

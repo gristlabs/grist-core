@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, parseSubdomain} from 'app/common/gristUrls';
+import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -45,6 +45,13 @@ export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
     url.port = String(parseInt(url.port, 10) + TEST_HTTPS_OFFSET);
     url.protocol = 'https:';
   }
+}
+
+/**
+ * If org is not encoded in domain, prefix it to path - otherwise leave path unchanged.
+ */
+export function addOrgToPathIfNeeded(req: RequestWithOrg, path: string): string {
+  return (isOrgInPathOnly(req.hostname) && req.org) ? `/o/${req.org}${path}` : path;
 }
 
 /**

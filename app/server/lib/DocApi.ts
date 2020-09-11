@@ -11,7 +11,7 @@ import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
          RequestWithLogin } from 'app/server/lib/Authorizer';
 import { DocManager } from "app/server/lib/DocManager";
-import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
 import { DocWorker } from "app/server/lib/DocWorker";
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
@@ -91,7 +91,7 @@ export class DocWorkerApi {
 
     // Apply user actions to a document.
     this._app.post('/api/docs/:docId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
-      res.json(await activeDoc.applyUserActions({ client: null, req }, req.body));
+      res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body));
     }));
 
     // Get the specified table.
@@ -102,7 +102,7 @@ export class DocWorkerApi {
       }
       const tableId = req.params.tableId;
       const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
-        {client: null, req}, {tableId, filters}, true));
+        docSessionFromRequest(req), {tableId, filters}, true));
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
       const params = getQueryParameters(req);
@@ -113,7 +113,7 @@ export class DocWorkerApi {
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
     this._app.post('/api/docs/:docId/attachments', canEdit, withDoc(async (activeDoc, req, res) => {
       const uploadResult = await handleUpload(req, res);
-      res.json(await activeDoc.addAttachments({client: null, req}, uploadResult.uploadId));
+      res.json(await activeDoc.addAttachments(docSessionFromRequest(req), uploadResult.uploadId));
     }));
 
     // Returns the metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
@@ -131,7 +131,7 @@ export class DocWorkerApi {
       const ext = path.extname(fileIdent);
       const origName = attRecord.fileName as string;
       const fileName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
-      const fileData = await activeDoc.getAttachmentData({client: null, req}, fileIdent);
+      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), fileIdent);
       res.status(200)
         .type(ext)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
@@ -150,7 +150,8 @@ export class DocWorkerApi {
       const count = columnValues[colNames[0]].length;
       // then, let's create [null, ...]
       const rowIds = arrayRepeat(count, null);
-      const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions({client: null, req},
+      const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
+        docSessionFromRequest(req),
         [['BulkAddRecord', tableId, rowIds, columnValues]]));
       res.json(sandboxRes.retValues[0]);
     }));
@@ -158,7 +159,8 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
       const tableId = req.params.tableId;
       const rowIds = req.body;
-      const sandboxRes = await handleSandboxError(tableId, [], activeDoc.applyUserActions({client: null, req},
+      const sandboxRes = await handleSandboxError(tableId, [], activeDoc.applyUserActions(
+        docSessionFromRequest(req),
         [['BulkRemoveRecord', tableId, rowIds]]));
       res.json(sandboxRes.retValues[0]);
     }));
@@ -167,20 +169,33 @@ export class DocWorkerApi {
     // TODO: look at download behavior if ActiveDoc is shutdown during call (cannot
     // use withDoc wrapper)
     this._app.get('/api/docs/:docId/download', canView, throttled(async (req, res) => {
-      try {
-        // We carefully avoid creating an ActiveDoc for the document being downloaded,
-        // in case it is broken in some way.  It is convenient to be able to download
-        // broken files for diagnosis/recovery.
-        return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
-      } catch (e) {
-        if (e.message && e.message.match(/does not exist yet/)) {
-          // The document has never been seen on file system / s3.  It may be new, so
-          // we try again after having created an ActiveDoc for the document.
-          await this._getActiveDoc(req);
-          return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
-        } else {
-          throw e;
+      // We want to be have a way download broken docs that ActiveDoc may not be able
+      // to load.  So, if the user owns the document, we unconditionally let them
+      // download.
+      if (await this._isOwner(req)) {
+        try {
+          // We carefully avoid creating an ActiveDoc for the document being downloaded,
+          // in case it is broken in some way.  It is convenient to be able to download
+          // broken files for diagnosis/recovery.
+          return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+        } catch (e) {
+          if (e.message && e.message.match(/does not exist yet/)) {
+            // The document has never been seen on file system / s3.  It may be new, so
+            // we try again after having created an ActiveDoc for the document.
+            await this._getActiveDoc(req);
+            return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+          } else {
+            throw e;
+          }
         }
+      } else {
+        // If the user is not an owner, we load the document as an ActiveDoc, and then
+        // check if the user has download permissions.
+        const activeDoc = await this._getActiveDoc(req);
+        if (!activeDoc.canDownload(docSessionFromRequest(req))) {
+          throw new Error('not authorized to download this document');
+        }
+        return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
       }
     }));
 
@@ -193,7 +208,8 @@ export class DocWorkerApi {
       const rowIds = columnValues.id;
       // sandbox expects no id column
       delete columnValues.id;
-      await handleSandboxError(tableId, colNames, activeDoc.applyUserActions({client: null, req},
+      await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
+        docSessionFromRequest(req),
         [['BulkUpdateRecord', tableId, rowIds, columnValues]]));
       res.json(null);
     }));
@@ -260,11 +276,13 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/states', canView, withDoc(async (activeDoc, req, res) => {
-      res.json(await this._getStates(activeDoc));
+      const docSession = docSessionFromRequest(req);
+      res.json(await this._getStates(docSession, activeDoc));
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
-      const {states} = await this._getStates(activeDoc);
+      const docSession = docSessionFromRequest(req);
+      const {states} = await this._getStates(docSession, activeDoc);
       const ref = await fetch(this._grist.getHomeUrl(req, `/api/docs/${req.params.docId2}/states`), {
         headers: {
           ...getTransitiveHeaders(req),
@@ -359,7 +377,7 @@ export class DocWorkerApi {
   }
 
   private _getActiveDoc(req: RequestWithLogin): Promise<ActiveDoc> {
-    return this._docManager.fetchDoc({ client: null, req }, getDocId(req));
+    return this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req));
   }
 
   private _getActiveDocIfAvailable(req: RequestWithLogin): Promise<ActiveDoc>|undefined {
@@ -373,6 +391,15 @@ export class DocWorkerApi {
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
     assertAccess(role, docAuth, {allowRemoved});
     next();
+  }
+
+  /**
+   * Check if user is an owner of the document.
+   */
+  private async _isOwner(req: Request) {
+    const scope = getDocScope(req);
+    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
+    return docAuth.access === 'owners';
   }
 
   // Helper to generate a 503 if the ActiveDoc has been muted.
@@ -403,8 +430,8 @@ export class DocWorkerApi {
     };
   }
 
-  private async _getStates(activeDoc: ActiveDoc): Promise<DocStates> {
-    const states = await activeDoc.getRecentStates();
+  private async _getStates(docSession: OptDocSession, activeDoc: ActiveDoc): Promise<DocStates> {
+    const states = await activeDoc.getRecentStates(docSession);
     return {
       states,
     };

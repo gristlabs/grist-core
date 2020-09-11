@@ -119,6 +119,9 @@ class ResourceMap(object):
       table_id = resource.tableId or None
       if not resource.colIds:
         self._default_resources[table_id] = resource
+      elif resource.colIds.startswith('~'):
+        # Rows with colIds that start with '~' are for trial purposes - ignore.
+        pass
       else:
         col_id_set = set(resource.colIds.split(','))
         self._col_resources.setdefault(table_id, []).append((resource, col_id_set))
