@@ -78,6 +78,8 @@ class AutocompleteContext(object):
       if completion:
         # For methods (eg ".lookupOne"), use the original result as funcname (eg "Foo.lookupOne").
         if dot >= 0:
+          varname = funcname[:dot]
+          funcname = self._lowercase.get(varname, varname) + key
           completion = completion._replace(funcname=funcname)
         return tuple(completion)
 

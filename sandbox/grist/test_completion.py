@@ -111,6 +111,11 @@ class TestCompletion(test_engine.EngineTestCase):
       ('Address.lookupRecords', '(colName=<value>, ...)', True),
     ])
 
+    self.assertEqual(self.engine.autocomplete("address.look", "Students"), [
+      ('Address.lookupOne', '(colName=<value>, ...)', True),
+      ('Address.lookupRecords', '(colName=<value>, ...)', True),
+    ])
+
   def test_suggest_column_type_methods(self):
     # Should treat columns as correct types.
     self.assertGreaterEqual(set(self.engine.autocomplete("$firstName.", "Students")),
