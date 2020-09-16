@@ -170,7 +170,7 @@ const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
   }
 };
 
-export function isRightType(type: string): undefined | ((value: CellValue) => boolean) {
+export function isRightType(type: string): undefined | ((value: CellValue, options?: any) => boolean) {
   return rightType[type as GristType];
 }
 
