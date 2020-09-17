@@ -47,17 +47,23 @@ const SURPRISING_ACTIONS = new Set(['AddUser',
 const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
 
 /**
- * Manage granular access to a document.  This allows nuances other than the coarse
- * owners/editors/viewers distinctions.
  *
- * Currently the only supported nuance is to mark certain tables as accessible by
- * owners only.  To do so, in the _grist_ACLResources table, add a row like the
- * one already there, but with "~o" as the colIds, and the desired tableId set.
- * This is just a placeholder for a future representation.
+ * Manage granular access to a document.  This allows nuances other than the coarse
+ * owners/editors/viewers distinctions.  As a placeholder for a future representation,
+ * nuances are stored in the _grist_ACLResources table.  Supported nauances:
+ *
+ *   - {tableId, colIds: '~o'}: mark specified table as accessible by owners only.
+ *   - {tableId: '', colIds: '~o structure'}: mark doc structure as editable by owners only.
+ *
  */
 export class GranularAccess {
   private _resources: TableData;
+
+  // Tables marked as accessible only by owners.
   private _ownerOnlyTableIds = new Set<string>();
+
+  // Document structure modifiable only by owners?
+  private _onlyOwnersCanModifyStructure: boolean = false;
 
   public constructor(private _docData: DocData) {
     this.update();
@@ -70,8 +76,12 @@ export class GranularAccess {
     this._resources = this._docData.getTable('_grist_ACLResources')!;
     this._ownerOnlyTableIds.clear();
     for (const res of this._resources.getRecords()) {
-      if (res.tableId && String(res.colIds).startsWith('~o')) {
+      const code = String(res.colIds);
+      if (res.tableId && code === '~o') {
         this._ownerOnlyTableIds.add(String(res.tableId));
+      }
+      if (!res.tableId && code === '~o structure') {
+        this._onlyOwnersCanModifyStructure = true;
       }
     }
   }
@@ -115,7 +125,7 @@ export class GranularAccess {
    * to filter acceptible parts of ActionGroup, rather than denying entirely.
    */
   public allowActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): boolean {
-    return !this.hasNuancedAccess(docSession);
+    return this.canReadEverything(docSession);
   }
 
   /**
@@ -169,8 +179,18 @@ export class GranularAccess {
    * access is simple and without nuance.
    */
   public hasNuancedAccess(docSession: OptDocSession): boolean {
-    if (this._ownerOnlyTableIds.size === 0) { return false; }
+    if (this._ownerOnlyTableIds.size === 0 && !this._onlyOwnersCanModifyStructure) {
+      return false;
+    }
     return !this.hasFullAccess(docSession);
+  }
+
+  /**
+   * Check whether user can read everything in document.
+   */
+  public canReadEverything(docSession: OptDocSession): boolean {
+    if (this._ownerOnlyTableIds.size === 0) { return true; }
+    return this.hasFullAccess(docSession);
   }
 
   /**
@@ -210,8 +230,8 @@ export class GranularAccess {
    */
   public filterMetaTables(docSession: OptDocSession,
                           tables: {[key: string]: TableDataAction}): {[key: string]: TableDataAction} {
-    // If there are no nuances, return immediately.
-    if (!this.hasNuancedAccess(docSession)) { return tables; }
+    // If user has right to read everything, return immediately.
+    if (this.canReadEverything(docSession)) { return tables; }
     // If we are going to modify metadata, make a copy.
     tables = JSON.parse(JSON.stringify(tables));
     // Collect a list of all tables (by tableRef) to which the user has no access.

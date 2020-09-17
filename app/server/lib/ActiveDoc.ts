@@ -525,7 +525,7 @@ export class ActiveDoc extends EventEmitter {
   // Check if user has rights to download this doc.
   public canDownload(docSession: OptDocSession) {
     return this._granularAccess.hasViewAccess(docSession) &&
-      !this._granularAccess.hasNuancedAccess(docSession);
+      this._granularAccess.canReadEverything(docSession);
   }
 
   /**
@@ -633,9 +633,9 @@ export class ActiveDoc extends EventEmitter {
    */
   public async findColFromValues(docSession: DocSession, values: any[], n: number,
                                  optTableId?: string): Promise<number[]> {
-    // This could leak information about private tables, so if there are any nuanced
-    // permissions in force and the user does not have full access, do nothing.
-    if (this._granularAccess.hasNuancedAccess(docSession)) { return []; }
+    // This could leak information about private tables, so if user cannot read entire
+    // document, do nothing.
+    if (!this._granularAccess.canReadEverything(docSession)) { return []; }
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._dataEngine.pyCall('find_col_from_values', values, n, optTableId);
@@ -783,7 +783,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async autocomplete(docSession: DocSession, txt: string, tableId: string): Promise<string[]> {
     // Autocompletion can leak names of tables and columns.
-    if (this._granularAccess.hasNuancedAccess(docSession)) { return []; }
+    if (!this._granularAccess.canReadEverything(docSession)) { return []; }
     await this.waitForInitialization();
     return this._dataEngine.pyCall('autocomplete', txt, tableId);
   }
@@ -828,7 +828,7 @@ export class ActiveDoc extends EventEmitter {
    * ID for the fork.  TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: DocSession): Promise<ForkResult> {
-    if (this._granularAccess.hasNuancedAccess(docSession)) {
+    if (!this._granularAccess.canReadEverything(docSession)) {
       throw new Error('cannot confirm authority to copy document');
     }
     const userId = docSession.client.getCachedUserId();
@@ -1183,7 +1183,7 @@ export class ActiveDoc extends EventEmitter {
     actionGroup: ActionGroup,
     docActions: DocAction[]
   }) {
-    if (!this._granularAccess.hasNuancedAccess(docSession)) { return message; }
+    if (this._granularAccess.canReadEverything(docSession)) { return message; }
     const result = {
       actionGroup: this._granularAccess.filterActionGroup(docSession, message.actionGroup),
       docActions: this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
