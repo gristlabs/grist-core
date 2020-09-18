@@ -21,6 +21,18 @@ import {DocState} from 'app/common/UserAPI';
 import toPairs = require('lodash/toPairs');
 import {summarizeAction} from './ActionSummary';
 
+export interface ActionGroupOptions {
+  // If set, inspect the action in detail in order to include a summary of
+  // changes made within the action.  Otherwise, the actionSummary returned is empty.
+  summarize?: boolean;
+
+  // The client for which the action group is being prepared, if known.
+  client?: {clientId: string}|null;
+
+  // Values returned by the action, if known.
+  retValues?: any[];
+}
+
 export abstract class ActionHistory {
   /**
    * Initialize the ActionLog by reading the database. No other methods may be used until the
@@ -85,8 +97,17 @@ export abstract class ActionHistory {
    * Get the most recent actions from the history.  Results are ordered by
    * earliest actions first, later actions later.  If `maxActions` is supplied,
    * at most that number of actions are returned.
+   *
+   * This method should be avoid in production, since it may convert and keep in memory many large
+   * actions. (It has in the past led to exhausting memory and crashing node.)
    */
   public abstract getRecentActions(maxActions?: number): Promise<LocalActionBundle[]>;
+
+  /**
+   * Same as getRecentActions, but converts each to an ActionGroup using asActionGroup with the
+   * supplied options.
+   */
+  public abstract getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]>;
 
   /**
    * Get the most recent states from the history.  States are just
@@ -194,18 +215,11 @@ export function humanDescription(actions: UserAction[]): string {
  * actions on the client.
  * @param history: interface to action history
  * @param act: action to convert
- * @param options.summarize: if set, inspect the action in detail in order to include a summary of
- *   changes made within the action.  Otherwise, the actionSummary returned is empty.
- * @param options.client: the client for which the action group is being prepared, if known.
- * @param options.retValues: values returned by the action, if known.
+ * @param options: options to construct the ActionGroup; see its documentation above.
  */
 export function asActionGroup(history: ActionHistory,
                               act: LocalActionBundle,
-                              options: {
-                                summarize?: boolean
-                                client?: {clientId: string}|null,
-                                retValues?: any[],
-                              }): ActionGroup {
+                              options: ActionGroupOptions): ActionGroup {
   const {summarize, client, retValues} = options;
   const info = act.info[1];
   const fromSelf = (client && client.clientId && act.actionHash) ?

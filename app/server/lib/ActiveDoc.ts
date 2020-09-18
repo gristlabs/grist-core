@@ -46,7 +46,7 @@ import * as log from 'app/server/lib/log';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
 
-import {ActionHistory, asActionGroup} from './ActionHistory';
+import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport} from './ActiveDocImport';
 import {DocClients} from './DocClients';
@@ -174,6 +174,8 @@ export class ActiveDoc extends EventEmitter {
     return this._muted;
   }
 
+  // Note that this method is only used in tests, and should be avoided in production (see note
+  // in ActionHistory about getRecentActions).
   public getRecentActionsDirect(maxActions?: number): Promise<LocalActionBundle[]> {
     return this._actionHistory.getRecentActions(maxActions);
   }
@@ -199,8 +201,8 @@ export class ActiveDoc extends EventEmitter {
    * action summaries are computed and included.
    */
   public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
-    const actions = await this._actionHistory.getRecentActions(MAX_RECENT_ACTIONS);
-    const groups = actions.map(act => asActionGroup(this._actionHistory, act, {client: docSession.client, summarize}));
+    const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
+      {client: docSession.client, summarize});
     return groups.filter(actionGroup => this._granularAccess.allowActionGroup(docSession, actionGroup));
   }
 

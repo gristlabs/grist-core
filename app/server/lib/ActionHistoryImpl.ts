@@ -2,12 +2,13 @@
  * Minimal ActionHistory implementation
  */
 import {LocalActionBundle} from 'app/common/ActionBundle';
+import {ActionGroup} from 'app/common/ActionGroup';
 import * as marshaller from 'app/common/marshal';
 import {DocState} from 'app/common/UserAPI';
 import * as crypto from 'crypto';
 import keyBy = require('lodash/keyBy');
 import mapValues = require('lodash/mapValues');
-import {ActionHistory} from './ActionHistory';
+import {ActionGroupOptions, ActionHistory, asActionGroup} from './ActionHistory';
 import {ISQLiteDB, ResultRow} from './SQLiteDB';
 
 // History will from time to time be pruned back to within these limits
@@ -370,16 +371,13 @@ export class ActionHistoryImpl implements ActionHistory {
   }
 
   public async getRecentActions(maxActions?: number): Promise<LocalActionBundle[]> {
-    const branches = await this._getBranches();
-    const actions = await this._fetchParts(null,
-                                           branches.local_unsent,
-                                           "_gristsys_ActionHistory.id, actionNum, actionHash, body",
-                                           maxActions,
-                                           true);
-    const result = actions.map(decodeActionFromRow);
-    result.reverse();  // Implementation note: this could be optimized away when `maxActions`
-                       // is not specified, by simply asking _fetchParts for ascending order.
-    return result;
+    const actions = await this._getRecentActionRows(maxActions);
+    return actions.map(decodeActionFromRow);
+  }
+
+  public async getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]> {
+    const actions = await this._getRecentActionRows(maxActions);
+    return actions.map(row => asActionGroup(this, decodeActionFromRow(row), options));
   }
 
   public async getRecentStates(maxStates?: number): Promise<DocState[]> {
@@ -436,6 +434,22 @@ export class ActionHistoryImpl implements ActionHistory {
 
   public getActionClientId(actionHash: string): string | undefined {
     return this._actionClient.get(actionHash);
+  }
+
+  /**
+   * Fetches the most recent action row from the history, orderd with earlier actions first.
+   * If `maxActions` is supplied, at most that number of actions are returned.
+   */
+  private async _getRecentActionRows(maxActions?: number): Promise<ResultRow[]> {
+    const branches = await this._getBranches();
+    const result = await this._fetchParts(null,
+                                           branches.local_unsent,
+                                           "_gristsys_ActionHistory.id, actionNum, actionHash, body",
+                                           maxActions,
+                                           true);
+    result.reverse();  // Implementation note: this could be optimized away when `maxActions`
+                       // is not specified, by simply asking _fetchParts for ascending order.
+    return result;
   }
 
   /** Check if we need to update the next shared actionNum */
