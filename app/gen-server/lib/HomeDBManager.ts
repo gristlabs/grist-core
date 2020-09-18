@@ -7,7 +7,8 @@ import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import * as roles from 'app/common/roles';
 // TODO: API should implement UserAPI
-import {ANONYMOUS_USER_EMAIL, DocumentProperties, ManagerDelta, NEW_DOCUMENT_CODE, Organization as OrgInfo,
+import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL,
+        ManagerDelta, NEW_DOCUMENT_CODE, Organization as OrgInfo,
         OrganizationProperties, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
         WorkspaceProperties} from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
@@ -43,9 +44,6 @@ applyPatch();
 
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
-
-// Nominal email address of a user who, if you share with them, everyone gets access.
-export const EVERYONE_EMAIL = 'everyone@getgrist.com';
 
 // A list of emails we don't expect to see logins for.
 const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];

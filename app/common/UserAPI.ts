@@ -15,6 +15,9 @@ import {addCurrentOrgToPath} from 'app/common/urlUtils';
 // Nominal email address of the anonymous user.
 export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
 
+// Nominal email address of a user who, if you share with them, everyone gets access.
+export const EVERYONE_EMAIL = 'everyone@getgrist.com';
+
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = 'support@getgrist.com';
 
