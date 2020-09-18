@@ -1,12 +1,12 @@
-import { Application, NextFunction, Request, RequestHandler, Response } from "express";
-
+import { ActionSummary, createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
-import { fromTableDataAction, TableColValues } from 'app/common/DocActions';
-import { arrayRepeat } from "app/common/gutil";
+import { fromTableDataAction, RowRecord, TableColValues } from 'app/common/DocActions';
+import { arrayRepeat, isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import { HomeDBManager, makeDocAuthResult } from 'app/gen-server/lib/HomeDBManager';
+import { concatenateSummaries, summarizeAction } from "app/server/lib/ActionSummary";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
          RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -15,12 +15,15 @@ import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from 
 import { DocWorker } from "app/server/lib/DocWorker";
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
+import { HashUtil } from 'app/server/lib/HashUtil';
 import { makeForkIds } from "app/server/lib/idUtils";
+import * as log from 'app/server/lib/log';
 import { getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
-         sendOkReply, sendReply } from 'app/server/lib/requestUtils';
+  sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
 import { SandboxError } from "app/server/lib/sandboxUtil";
 import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
 import * as contentDisposition from 'content-disposition';
+import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import fetch from 'node-fetch';
 import * as path from 'path';
 
@@ -281,6 +284,7 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
+      const showDetails = isAffirmative(req.query.detail);
       const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
       const ref = await fetch(this._grist.getHomeUrl(req, `/api/docs/${req.params.docId2}/states`), {
@@ -305,7 +309,35 @@ export class DocWorkerApi {
       const comparison: DocStateComparison = {
         left, right, parent, summary
       };
+      if (showDetails && parent) {
+        // Calculate changes from the parent to the current version of this document.
+        const leftChanges = (await this._getChanges(docSession, activeDoc, states, parent.h,
+                                                    'HEAD')).details!.rightChanges;
+
+        // Calculate changes from the (common) parent to the current version of the other document.
+        const url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
+        const rightChangesReq = await fetch(this._grist.getHomeUrl(req, url), {
+          headers: {
+            ...getTransitiveHeaders(req),
+            'Content-Type': 'application/json',
+          }
+        });
+        const rightChanges = (await rightChangesReq.json()).details!.rightChanges;
+
+        // Add the left and right changes as details to the result.
+        comparison.details = { leftChanges, rightChanges };
+      }
       res.json(comparison);
+    }));
+
+    // Give details about what changed between two versions of a document.
+    this._app.get('/api/docs/:docId/compare', canView, withDoc(async (activeDoc, req, res) => {
+      // This could be a relatively slow operation if actions are large.
+      const left = stringParam(req.query.left || 'HEAD');
+      const right = stringParam(req.query.right || 'HEAD');
+      const docSession = docSessionFromRequest(req);
+      const {states} = await this._getStates(docSession, activeDoc);
+      res.json(await this._getChanges(docSession, activeDoc, states, left, right));
     }));
 
     // Do an import targeted at a specific workspace. Although the URL fits ApiServer, this
@@ -435,6 +467,94 @@ export class DocWorkerApi {
     return {
       states,
     };
+  }
+
+  /**
+   *
+   * Calculate changes between two document versions identified by leftHash and rightHash.
+   * If rightHash is the latest version of the document, the ActionSummary for it will
+   * contain a copy of updated and added rows.
+   *
+   * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
+   * be lifted, but is adequate for now).
+   *
+   */
+  private async _getChanges(docSession: OptDocSession, activeDoc: ActiveDoc, states: DocState[],
+                            leftHash: string, rightHash: string): Promise<DocStateComparison> {
+    const finder = new HashUtil(states);
+    const leftOffset = finder.hashToOffset(leftHash);
+    const rightOffset = finder.hashToOffset(rightHash);
+    if (rightOffset > leftOffset) {
+      throw new Error('Comparisons currently require left to be an ancestor of right');
+    }
+    const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
+    const actions = (await activeDoc.getActions(actionNums)).reverse();
+    let totalAction = createEmptyActionSummary();
+    for (const action of actions) {
+      if (!action) { continue; }
+      const summary = summarizeAction(action);
+      totalAction = concatenateSummaries([totalAction, summary]);
+    }
+    const result: DocStateComparison = {
+      left: states[leftOffset],
+      right: states[rightOffset],
+      parent: states[leftOffset],
+      summary: (leftOffset === rightOffset) ? 'same' : 'right',
+      details: {
+        leftChanges: {tableRenames: [], tableDeltas: {}},
+        rightChanges: totalAction
+      }
+    };
+    // Currently, as a bit of a hack, the full final state of updated/added rows
+    // is included, including formula columns, by looking at the current state
+    // of the document.
+    if (rightOffset === 0) {
+      await this._addRowsToActionSummary(docSession, activeDoc, totalAction);
+    } else {
+      // In the future final row content may not be needed, if formula cells end
+      // up included in ActionSummary.
+      log.debug('cannot add rows when not comparing to current state of doc');
+    }
+    return result;
+  }
+
+  /**
+   * Adds the content of updated and added rows to an ActionSummary.
+   * For visualizing differences, currently there's no other way to get formula
+   * information.  This only makes sense for an ActionSummary between a previous
+   * version of the document and the current version, since it accesses the row
+   * content from the current version of the document.
+   */
+  private async _addRowsToActionSummary(docSession: OptDocSession, activeDoc: ActiveDoc,
+                                        summary: ActionSummary) {
+    for (const tableId of Object.keys(summary.tableDeltas)) {
+      const tableDelta = summary.tableDeltas[tableId];
+      const rowIds = new Set([...tableDelta.addRows, ...tableDelta.updateRows]);
+      try {
+        // Inefficient code that reads the entire table in order to pull out the few
+        // rows we need.
+        const [, , ids, columns] = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
+          docSession, {tableId, filters: {}}, true));
+        const rows: {[key: number]: RowRecord} = {};
+        for (const rowId of rowIds) {
+          const rec: RowRecord = {id: rowId};
+          const idx = ids.indexOf(rowId);
+          if (idx >= 0) {
+            for (const colId of Object.keys(columns)) {
+              rec[colId] = columns[colId][idx];
+            }
+            rows[rowId] = rec;
+          }
+        }
+        tableDelta.finalRowContent = rows;
+      } catch (e) {
+        // ActionSummary has some rough spots - if there's some junk in it we just ignore
+        // that for now.
+        // TODO: add ids to doc actions and their undos so they can be aligned, so ActionSummary
+        // doesn't need to use heuristics.
+        log.error('_addRowsToChanges skipped a table');
+      }
+    }
   }
 
   private async _removeDoc(req: Request, res: Response, permanent: boolean) {

@@ -185,6 +185,15 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Access specific actions identified by actionNum.
+   * TODO: for memory reasons on large docs, would be best not to hold many actions
+   * in memory at a time, so should e.g. fetch them one at a time.
+   */
+  public getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>> {
+    return this._actionHistory.getActions(actionNums);
+  }
+
+  /**
    * Get the most recent actions from the history.  Results are ordered by
    * earliest actions first, later actions later.  If `summarize` is set,
    * action summaries are computed and included.

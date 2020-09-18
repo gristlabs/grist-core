@@ -1,3 +1,4 @@
+import {ActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
@@ -218,6 +219,18 @@ export interface DocStateComparison {
   //        both: both documents have changes (possible divergence)
   //   unrelated: no common history found
   summary: 'same' | 'left' | 'right' | 'both' | 'unrelated';
+  // optionally, details of what changed may be included.
+  details?: DocStateComparisonDetails;
+}
+
+/**
+ * Detailed comparison between document versions.  For now, this
+ * is provided as a pair of ActionSummary objects, relative to
+ * the most recent common ancestor.
+ */
+export interface DocStateComparisonDetails {
+  leftChanges: ActionSummary;
+  rightChanges: ActionSummary;
 }
 
 export {UserProfile} from 'app/common/LoginSessionAPI';
@@ -289,7 +302,13 @@ export interface DocAPI {
   replace(source: DocReplacementOptions): Promise<void>;
   getSnapshots(): Promise<DocSnapshots>;
   forceReload(): Promise<void>;
-  compareState(remoteDocId: string): Promise<DocStateComparison>;
+  // Compare two documents, optionally including details of the changes.
+  compareDoc(remoteDocId: string, options?: { detail: boolean }): Promise<DocStateComparison>;
+  // Compare two versions within a document, including details of the changes.
+  // Versions are identified by action hashes, or aliases understood by HashUtil.
+  // Currently, leftHash is expected to be an ancestor of rightHash.  If rightHash
+  // is HEAD, the result will contain a copy of any rows added or updated.
+  compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
 }
 
 // Operations that are supported by a doc worker.
@@ -676,7 +695,17 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async compareState(remoteDocId: string): Promise<DocStateComparison> {
-    return this.requestJson(`${this._url}/compare/${remoteDocId}`);
+  public async compareDoc(remoteDocId: string, options: {
+    detail?: boolean
+  } = {}): Promise<DocStateComparison> {
+     const q = options.detail ? '?detail=true' : '';
+     return this.requestJson(`${this._url}/compare/${remoteDocId}${q}`);
+  }
+
+  public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {
+    const  url = new URL(`${this._url}/compare`);
+    url.searchParams.append('left', leftHash);
+    url.searchParams.append('right', rightHash);
+    return this.requestJson(url.href);
   }
 }

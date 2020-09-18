@@ -1,5 +1,6 @@
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import toPairs = require('lodash/toPairs');
+import { RowRecord } from 'app/plugin/GristData';
 
 /**
  * An ActionSummary represents the overall effect of changes that took place
@@ -90,6 +91,13 @@ export interface TableDelta {
   /** Partial record of cell-level changes - large bulk changes not included. */
   columnDeltas: {[colId: string]: ColumnDelta};
   columnRenames: LabelDelta[];  /** a list of column renames/additions/removals */
+
+  /*
+   * A snapshot of row content for added and updated rows, including formula columns.
+   * Not included in regular summaries, but used in comparisons.  Hopefully this
+   * can evaporate in future.
+   */
+  finalRowContent?: {[rowId: number]: RowRecord};
 }
 
 /**
