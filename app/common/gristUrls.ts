@@ -65,6 +65,7 @@ export interface IGristUrlState {
     billingTask?: BillingTask;
     embed?: boolean;
     style?: InterfaceStyle;
+    compare?: string;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
 }
@@ -255,6 +256,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     if (embed && !state.mode) { state.mode = 'view'; }
     // Turn on light style if no style has been specified.
     if (embed && !state.params!.style) { state.params!.style = 'light'; }
+  }
+  if (sp.has('compare')) {
+    state.params!.compare = sp.get('compare')!;
   }
   if (location.hash) {
     const hash = location.hash;
