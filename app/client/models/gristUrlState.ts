@@ -44,6 +44,9 @@ export function docUrl(doc: Document): IGristUrlState {
 // Returns the home page for the current org.
 export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 
+// When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
+export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
+
 // Get url for the login page, which will then redirect to nextUrl (current page by default).
 export function getLoginUrl(nextUrl: string = _getCurrentUrl()): string {
   return _getLoginLogoutUrl('login', nextUrl);
