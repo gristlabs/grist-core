@@ -45,12 +45,20 @@ For building from source, you can start with this:
     npm install
     npm run build:prod
     npm run install:python
-    GRIST_DEFAULT_EMAIL=you@example.com npm start
+    npm start
     # unauthenticated grist api available at http://localhost:8484/api/
 
-Stay tuned for more instructions to come at release.
+Then you can use the Grist API locally to work on a document. Currently you need
+to "upload" a document to work with it. This makes a copy of it that the server
+controls - you can find it in the `data` directory:
 
-For using pre-built Grist, just head on over to <https://www.getgrist.com>.
+    curl -F 'upload=@YourDocument.grist' http://localhost:8484/api/docs
+    # Note the document ID that is returned.
+
+The [Data-Tables endpoints](https://support.getgrist.com/api/#tag/Data-Tables) are
+particularly useful.
+
+For using hosted Grist, just head on over to <https://www.getgrist.com>.
 
 # License
 
