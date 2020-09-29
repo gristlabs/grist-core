@@ -2,7 +2,6 @@
  * Interface for the user's config found in config.json.
  */
 export interface UserConfig {
-  enableMetrics?: boolean;
   docListSortBy?: string;
   docListSortDir?: number;
   features?: ISupportedFeatures;

@@ -1,6 +1,5 @@
 declare module "app/server/lib/ActionLog";
 declare module "app/server/lib/sandboxUtil";
-declare module "app/server/lib/ServerMetrics";
 declare module "app/server/lib/User";
 declare module "app/server/serverMethods";
 

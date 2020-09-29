@@ -8,25 +8,10 @@ export interface GristServerAPI extends
   DocListAPI,
   LoginSessionAPI,
   BasketClientAPI,
-  ServerMetricsAPI,
   UserAPI,
   SharingAPI,
   MiscAPI {}
 
-
-interface ServerMetricsAPI {
-  /**
-   * Registers the list of client metric names. The calls to pushClientMetrics() send metric
-   * values as an array parallel to this list of names.
-   */
-  registerClientMetrics(clientMetricsList: string[]): Promise<void>;
-
-  /**
-   * Sends bucketed client metric data to the server. The .values arrays contain one value for
-   * each of the registered metric names, as a parallel array.
-   */
-  pushClientMetrics(clientBuckets: Array<{startTime: number, values: number[]}>): Promise<void>;
-}
 
 interface UserAPI {
   /**

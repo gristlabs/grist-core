@@ -22,7 +22,6 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
-import * as ServerMetrics from 'app/server/lib/ServerMetrics';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
@@ -291,10 +290,6 @@ export class DocManager extends EventEmitter {
     ]);
     this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
 
-    ServerMetrics.get('docs.num_open').set(this._activeDocs.size);
-    ServerMetrics.get('app.have_doc_open').set(true);
-    ServerMetrics.get('app.doc_open_span').start();
-
     return {
       docFD: docSession.fd,
       clientId: docSession.client.clientId,
@@ -327,9 +322,6 @@ export class DocManager extends EventEmitter {
 
   public async removeActiveDoc(activeDoc: ActiveDoc): Promise<void> {
     this._activeDocs.delete(activeDoc.docName);
-    ServerMetrics.get('docs.num_open').set(this._activeDocs.size);
-    ServerMetrics.get('app.have_doc_open').set(this._activeDocs.size > 0);
-    ServerMetrics.get('app.doc_open_span').setRunning(this._activeDocs.size > 0);
   }
 
   public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {

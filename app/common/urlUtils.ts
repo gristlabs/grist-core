@@ -61,13 +61,6 @@ export function getInitialDocAssignment(): string|null {
   return getGristConfig().assignmentId || null;
 }
 
-// Return true if we are on a page that can send metrics.
-// TODO: all pages should send suitable metrics.
-export function pageHasMetrics(): boolean {
-  // No metric support on hosted grist.
-  return !getGristConfig().homeUrl;
-}
-
 // Return true if we are on a page that can supply a doc list.
 // TODO: the doclist object isn't relevant to hosted grist and should be factored out.
 export function pageHasDocList(): boolean {

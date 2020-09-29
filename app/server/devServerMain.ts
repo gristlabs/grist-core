@@ -70,7 +70,6 @@ export async function main() {
     const fileName = path.join(instDir, 'config.json');
     if (!(await fse.pathExists(fileName))) {
       const config = {
-        enableMetrics: false,
         untrustedContentOrigin: 'notset',
       };
       await fse.writeFile(fileName, JSON.stringify(config, null, 2));

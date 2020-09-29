@@ -34,7 +34,6 @@ interface ServerOptions extends FlexServerOptions {
   logToConsole?: boolean;  // If set, messages logged to console (default: false)
                            //   (but if options are not given at all in call to main,
                            //    logToConsole is set to true)
-  metrics?: boolean;       // If set, metric collector is enabled (default: true)
   s3?: boolean;            // If set, documents saved to s3 (default is to check environment
                            // variables, which get set in various ways in dev/test entry points)
 }
@@ -129,10 +128,6 @@ export async function main(port: number, serverTypes: ServerType[],
   if (includeDocs) {
     server.addJsonSupport();
     await server.addDoc();
-  }
-
-  if (options.metrics === false && includeDocs) {
-    server.disableMetrics();
   }
 
   server.finalize();

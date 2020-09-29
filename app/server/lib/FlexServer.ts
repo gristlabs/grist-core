@@ -41,7 +41,6 @@ import {PluginManager} from 'app/server/lib/PluginManager';
 import {adaptServerUrl, addOrgToPathIfNeeded, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
         TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import * as ServerMetrics from 'app/server/lib/ServerMetrics';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -109,7 +108,6 @@ export class FlexServer implements GristServer {
   private _pluginManager: PluginManager;
   private _storageManager: IDocStorageManager;
   private _docWorkerMap: IDocWorkerMap;
-  private _serverMetrics: any;
   private _disabled: boolean = false;
   private _disableS3: boolean = false;
   private _healthy: boolean = true;  // becomes false if a serious error has occurred and
@@ -809,21 +807,13 @@ export class FlexServer implements GristServer {
     this._docManager = docManager;
   }
 
-  // Add document-related endpoints and related support.  A testAvoidMetrics flag
-  // is added to disable touching metrics if tests have taken care of stubbing them.
-  public async addDoc(testAvoidMetrics: boolean = false) {
+  // Add document-related endpoints and related support.
+  public async addDoc() {
     this._check('doc', 'start', 'tag', 'json', isSingleUserMode() ? null : 'homedb', 'api-mw', 'map');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
     await this.loadConfig();
     this.addComm();
-
-    // TODO: metrics collection might be best left to a separate service, but we need an
-    // instantiated object because various code attempts to report metrics.
-    if (!testAvoidMetrics) {
-      this._serverMetrics = new ServerMetrics();
-      this._serverMetrics.handlePreferences(this.settings);
-    }
 
     if (!isSingleUserMode()) {
       const s3Bucket = this._disableS3 ? '' : (process.env.GRIST_DOCS_S3_BUCKET || '');
@@ -886,14 +876,6 @@ export class FlexServer implements GristServer {
     if (!isSingleUserMode()) {
       addDocApiRoutes(this.app, docWorker, docManager, this.dbManager, this);
     }
-  }
-
-  // Must be called *after* metrics have been created.
-  public disableMetrics() {
-    if (!this._serverMetrics) {
-      throw new Error('disableMetrics called too early');
-    }
-    this._serverMetrics.disable();
   }
 
   public disableS3() {
