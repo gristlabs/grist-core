@@ -6,6 +6,12 @@
 import { CellValue } from 'app/plugin/GristData';
 export { CellValue, RowRecord } from 'app/plugin/GristData';
 
+// Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
+export type CellVersions =
+  { parent: CellValue, remote: CellValue } |
+  { parent: CellValue, local: CellValue }  |
+  { parent: CellValue, local: CellValue, remote: CellValue };
+
 import map = require('lodash/map');
 
 export type AddRecord = ['AddRecord', string, number, ColValues];
