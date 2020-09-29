@@ -75,6 +75,7 @@ export class GranularAccess {
   public update() {
     this._resources = this._docData.getTable('_grist_ACLResources')!;
     this._ownerOnlyTableIds.clear();
+    this._onlyOwnersCanModifyStructure = false;
     for (const res of this._resources.getRecords()) {
       const code = String(res.colIds);
       if (res.tableId && code === '~o') {

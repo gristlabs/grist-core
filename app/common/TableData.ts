@@ -251,21 +251,16 @@ export class TableData extends ActionDispatcher {
     return records;
   }
 
+  public filterRowIds(properties: {[key: string]: any}): number[] {
+    return this._filterRowIndices(properties).map(i => this._rowIdCol[i]);
+  }
+
   /**
    * Builds and returns the list of records in this table that match the given properties object.
    * Properties may include 'id' and any table columns. Returned records are not sorted.
    */
   public filterRecords(properties: {[key: string]: any}): RowRecord[] {
-    const rowIndices: number[] = [];
-    // Pairs of [valueToMatch, arrayOfColValues]
-    const props = Object.keys(properties).map(p => [properties[p], this._columns.get(p)]);
-    this._rowIdCol.forEach((id, i) => {
-      for (const p of props) {
-        if (p[1].values[i] !== p[0]) { return; }
-      }
-      // Collect the indices of the matching rows.
-      rowIndices.push(i);
-    });
+    const rowIndices: number[] = this._filterRowIndices(properties);
 
     // Convert the array of indices to an array of RowRecords.
     const records: RowRecord[] = rowIndices.map(i => ({id: this._rowIdCol[i]}));
@@ -287,6 +282,20 @@ export class TableData extends ActionDispatcher {
     }
     const index = colData.values.indexOf(colValue);
     return index < 0 ? 0 : this._rowIdCol[index];
+  }
+
+  /**
+   * Returns the first rowId matching the given filters, or 0 if no match. If there are multiple
+   * matches, it is unspecified which will be returned.
+   */
+  public findMatchingRowId(properties: {[key: string]: CellValue}): number {
+    const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
+    if (!props.every((p) => p.col)) {
+      return 0;
+    }
+    return this._rowIdCol.find((id, i) =>
+      props.every((p) => (p.col.values[i] === p.value))
+    ) || 0;
   }
 
   /**
@@ -418,6 +427,19 @@ export class TableData extends ActionDispatcher {
   protected onRemoveTable(action: DocAction, tableId: string): void {
     // Stop dispatching actions if we've been deleted. We might also want to clean up in the future.
     this._isLoaded = false;
+  }
+
+  private _filterRowIndices(properties: {[key: string]: any}): number[] {
+    const rowIndices: number[] = [];
+    // Array of {col: arrayOfColValues, value: valueToMatch}
+    const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
+    this._rowIdCol.forEach((id, i) => {
+      // Collect the indices of the matching rows.
+      if (props.every((p) => (p.col.values[i] === p.value))) {
+        rowIndices.push(i);
+      }
+    });
+    return rowIndices;
   }
 }
 

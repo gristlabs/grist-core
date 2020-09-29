@@ -66,6 +66,7 @@ export interface IGristUrlState {
     embed?: boolean;
     style?: InterfaceStyle;
     compare?: string;
+    aclUI?: boolean;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
 }
@@ -259,6 +260,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
+  }
+  if (sp.has('aclUI')) {
+    state.params!.aclUI = isAffirmative(sp.get('aclUI'));
   }
   if (location.hash) {
     const hash = location.hash;
