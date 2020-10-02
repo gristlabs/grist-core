@@ -50,6 +50,14 @@ export class RefCountMap<Key, Value> implements IDisposable {
   }
 
   /**
+   * Return the value for the key, if one is set, or undefined otherwise, without touching
+   * reference counts.
+   */
+  public get(key: Key): Value|undefined {
+    return this._map.get(key)?.value;
+  }
+
+  /**
    * Purge a key by immediately removing it from the map. Disposing the remaining IRefCountSub
    * values will be no-ops.
    */

@@ -32,10 +32,10 @@
 
 
 
-/* global window, document, $ */
+/* global window, document */
 
-var ko        = require('knockout');
 var {tsvDecode} = require('app/common/tsvFormat');
+var {FocusLayer} = require('app/client/lib/FocusLayer');
 
 var commands = require('./commands');
 var dom = require('../lib/dom');
@@ -48,9 +48,6 @@ function Clipboard(app) {
   this.copypasteField = this.autoDispose(dom('textarea.copypaste.mousetrap', ''));
   this.timeoutId = null;
 
-  this.onEvent(window, 'focus', this.grabFocus);
-  this.onEvent(this.copypasteField, 'blur', this.grabFocus);
-
   this.onEvent(this.copypasteField, 'input', function(elem, event) {
     var value = elem.value;
     elem.value = '';
@@ -62,34 +59,29 @@ function Clipboard(app) {
   this.onEvent(this.copypasteField, 'paste', this._onPaste);
 
   document.body.appendChild(this.copypasteField);
-  this.grabFocus();
 
-  // The following block of code deals with what happens when the window is in the background.
-  // When it is, focus and blur events are unreliable, and we'll watch explicitly for events which
-  // may cause a change in focus. These wouldn't happen normally for a background window, but do
-  // happen in Selenium Webdriver testing.
-  var grabber = this.grabFocus.bind(this);
-  function setBackgroundCapture(onOff) {
-    var addRemove = onOff ? window.addEventListener : window.removeEventListener;
-    // Note the third argument useCapture=true, which lets us notice these events before other
-    // code that might call .stopPropagation on them.
-    addRemove.call(window, 'click', grabber, true);
-    addRemove.call(window, 'mousedown', grabber, true);
-    addRemove.call(window, 'keydown', grabber, true);
-  }
-  this.onEvent(window, 'blur', setBackgroundCapture.bind(null, true));
-  this.onEvent(window, 'focus', setBackgroundCapture.bind(null, false));
-  setBackgroundCapture(!document.hasFocus());
+  FocusLayer.create(this, {
+    defaultFocusElem: this.copypasteField,
+    allowFocus: isCopyPasteTarget,
+    onDefaultFocus: () => {
+      this.copypasteField.value = ' ';
+      this.copypasteField.select();
+      this._app.trigger('clipboard_focus');
+    },
+    onDefaultBlur: () => {
+      this._app.trigger('clipboard_blur');
+    },
+  });
 
   // Expose the grabber as a global to allow upload from tests to explicitly restore focus
-  window.gristClipboardGrabFocus = grabber;
+  window.gristClipboardGrabFocus = () => FocusLayer.grabFocus();
 
   // Some bugs may prevent Clipboard from re-grabbing focus. To limit the impact of such bugs on
   // the user, recover from a bad state in mousedown events. (At the moment of this comment, all
   // such known bugs are fixed.)
   this.onEvent(window, 'mousedown', (ev) => {
     if (!document.activeElement || document.activeElement === document.body) {
-      this.grabFocus();
+      FocusLayer.grabFocus();
     }
   });
 
@@ -180,24 +172,6 @@ Clipboard.prototype._onPaste = function(elem, event) {
   this._cutCallback = null;
 };
 
-/**
- * Helper to watch a focused element to lose focus, in which point the Clipboard will grab it.
- * Because elements getting removed from the DOM don't always trigger 'blur' event, this also
- * watches for the element getting disposed (using ko.removeNode or ko.cleanNode).
- */
-Clipboard.prototype._watchElementForBlur = function(elem) {
-  var self = this;
-  function done() {
-    $(elem).off('blur.clipboard');
-    ko.utils.domNodeDisposal.removeDisposeCallback(elem, done);
-    self.grabFocus();
-  }
-  $(elem).one('blur.clipboard', done);
-  // TODO We need to add proper integration of grainjs and knockout dom-disposal. Otherwise a
-  // focused node that's disposed by grainjs will not trigger this knockout disposal callback.
-  ko.utils.domNodeDisposal.addDisposeCallback(elem, done);
-};
-
 var FOCUS_TARGET_TAGS = {
   'INPUT': true,
   'TEXTAREA': true,
@@ -215,34 +189,5 @@ function isCopyPasteTarget(elem) {
     elem.hasAttribute("tabindex") ||
     elem.classList.contains('clipboard_focus'));
 }
-
-/**
- * Select the special copypaste field to capture clipboard events.
- */
-Clipboard.prototype.grabFocus = function() {
-  if (!this.timeoutId) {
-    var self = this;
-    this.timeoutId = setTimeout(() => {
-      if (self.isDisposed()) { return; }
-      self.timeoutId = null;
-      if (document.activeElement === self.copypasteField) {
-        return;
-      }
-      // If the window doesn't have focus, don't rush to grab it, or we can interfere with focus
-      // outside the frame when embedded. We'll grab focus when setBackgroundCapture tells us to.
-      if (!document.hasFocus()) {
-        return;
-      }
-      if (isCopyPasteTarget(document.activeElement)) {
-        self._watchElementForBlur(document.activeElement);
-        self._app.trigger('clipboard_blur');
-      } else {
-        self.copypasteField.value = ' ';
-        self.copypasteField.select();
-        self._app.trigger('clipboard_focus');
-      }
-    }, 0);
-  }
-};
 
 module.exports = Clipboard;

@@ -17,12 +17,13 @@ if (typeof window === 'undefined') {
 } else {
 
   var Mousetrap = require('mousetrap');
-  var ko = require('knockout');
 
   // Minus is different on Gecko:
   // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
   // and https://github.com/ccampbell/mousetrap/pull/215
   Mousetrap.addKeycodes({173: '-'});
+
+  var customStopCallbacks = new WeakMap();
 
   var MousetrapProtype = Mousetrap.prototype;
   var origStopCallback = MousetrapProtype.stopCallback;
@@ -36,9 +37,10 @@ if (typeof window === 'undefined') {
     if (mousetrapBindingsPaused) {
       return true;
     }
-    var cmdGroup = ko.utils.domData.get(element, 'mousetrapCommandGroup');
-    if (cmdGroup) {
-      return !cmdGroup.knownKeys.hasOwnProperty(combo);
+    // If we have a custom stopCallback, use it now.
+    const custom = customStopCallbacks.get(element);
+    if (custom) {
+      return custom(combo);
     }
     try {
       return origStopCallback.call(this, e, element, combo, sequence);
@@ -61,6 +63,14 @@ if (typeof window === 'undefined') {
    */
   Mousetrap.setPaused = function(yesNo) {
     mousetrapBindingsPaused = yesNo;
+  };
+
+  /**
+   * Set a custom stopCallback for an element. When a key combo is pressed for this element,
+   * callback(combo) is called. If it returns true, Mousetrap should NOT process the combo.
+   */
+  Mousetrap.setCustomStopCallback = function(element, callback) {
+    customStopCallbacks.set(element, callback);
   };
 
   module.exports = Mousetrap;

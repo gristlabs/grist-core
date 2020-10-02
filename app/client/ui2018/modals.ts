@@ -1,3 +1,5 @@
+import {FocusLayer} from 'app/client/lib/FocusLayer';
+import * as Mousetrap from 'app/client/lib/Mousetrap';
 import {reportError} from 'app/client/models/errors';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
@@ -52,18 +54,22 @@ export function modal(createFn: (ctl: IModalControl, owner: MultiHolder) => DomE
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
+      // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
+      // will navigate in a grid underneath the modal, and Enter may open a cell there.
+      Mousetrap.setPaused(true);
+      owner.onDispose(() => Mousetrap.setPaused(false));
+
       const focus = () => dialog.focus();
       const dialog = cssModalDialog(
         createFn({ close, focus }, owner),
         dom.on('click', (ev) => ev.stopPropagation()),
         options.noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
-        // Focus the dialog to allow it to receive keyboard events.
-        // When triggered by a weasel menu, the menu grabs restores focus after getting closed to the
-        // element focused before it was opened. This interferes with focusing the modal, so we need to
-        // wait a bit and focus later. TODO: Weasel menus should stop creating problems with focus.
-        (elem) => { setTimeout(() => elem.focus(), 10); },
         testId('modal-dialog')
       );
+      FocusLayer.create(owner, {
+        defaultFocusElem: dialog,
+        allowFocus: (elem) => (elem !== document.body),
+      });
       return dialog;
     }),
     options.noClickAway ? null : dom.on('click', close),

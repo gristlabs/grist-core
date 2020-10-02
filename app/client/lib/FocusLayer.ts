@@ -1,0 +1,174 @@
+/**
+ * FocusLayer addresses the issue of where focus goes "by default". In most of Grist operation,
+ * the focus is on the special Clipboard element to support typing into cells, and copy-pasting.
+ * When a modal is open, the focus is on the modal.
+ *
+ * When the focus moves to some specific element such as a textbox or a dropdown menu, the
+ * FocusLayerManager will watch for this element to lose focus or to get disposed, and will
+ * restore focus to the default element.
+ */
+import {arrayRemove} from 'app/common/gutil';
+import {RefCountMap} from 'app/common/RefCountMap';
+import {Disposable, dom} from 'grainjs';
+
+/**
+ * The default focus is organized into layers. A layer determines when focus should move to the
+ * default element, and what that element should be. Only the top (most recently created) layer is
+ * active at any given time.
+ */
+export interface FocusLayerOptions {
+  // The default element that should have focus while this layer is active.
+  defaultFocusElem: HTMLElement;
+
+  // When true for an element, that element may hold focus even while this layer is active.
+  allowFocus: (elem: Element) => boolean;
+
+  // Called when the defaultFocusElem gets focused.
+  onDefaultFocus?: () => void;
+
+  // Called when the defaultFocusElem gets blurred.
+  onDefaultBlur?: () => void;
+}
+
+// Use RefCountMap to have a reference-counted instance of the global FocusLayerManager. It will
+// be active as long as at least one FocusLayer is active (i.e. not disposed).
+const _focusLayerManager = new RefCountMap<null, FocusLayerManager>({
+  create: (key) => FocusLayerManager.create(null),
+  dispose: (key, value) => value.dispose(),
+  gracePeriodMs: 10,
+});
+
+/**
+ * The FocusLayerManager implements the functionality, using the top (most recently created) layer
+ * to determine when and to what to move focus.
+ */
+class FocusLayerManager extends Disposable {
+  private _timeoutId: ReturnType<typeof setTimeout> | null = null;
+  private _focusLayers: FocusLayer[] = [];
+
+  constructor() {
+    super();
+
+    const grabFocus = this.grabFocus.bind(this);
+
+    this.autoDispose(dom.onElem(window, 'focus', grabFocus));
+    this.grabFocus();
+
+    // The following block of code deals with what happens when the window is in the background.
+    // When it is, focus and blur events are unreliable, and we'll watch explicitly for events which
+    // may cause a change in focus. These wouldn't happen normally for a background window, but do
+    // happen in Selenium Webdriver testing.
+    function setBackgroundCapture(onOff: boolean) {
+      const addRemove = onOff ? window.addEventListener : window.removeEventListener;
+      // Note the third argument useCapture=true, which lets us notice these events before other
+      // code that might call .stopPropagation on them.
+      addRemove.call(window, 'click', grabFocus, true);
+      addRemove.call(window, 'mousedown', grabFocus, true);
+      addRemove.call(window, 'keydown', grabFocus, true);
+    }
+    this.autoDispose(dom.onElem(window, 'blur', setBackgroundCapture.bind(null, true)));
+    this.autoDispose(dom.onElem(window, 'focus', setBackgroundCapture.bind(null, false)));
+    setBackgroundCapture(!document.hasFocus());
+  }
+
+  public addLayer(layer: FocusLayer) {
+    this._focusLayers.push(layer);
+    // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
+    // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
+    setTimeout(() => layer.defaultFocusElem.focus(), 0);
+  }
+
+  public removeLayer(layer: FocusLayer) {
+    arrayRemove(this._focusLayers, layer);
+    // Give the remaining layers a chance to check focus.
+    this.grabFocus();
+  }
+
+  public getCurrentLayer(): FocusLayer|undefined {
+    return this._focusLayers[this._focusLayers.length - 1];
+  }
+
+  /**
+   * Select the default focus element, or wait until the current element loses focus.
+   */
+  public grabFocus() {
+    if (!this._timeoutId) {
+      this._timeoutId = setTimeout(() => this._doGrabFocus(), 0);
+    }
+  }
+
+  private _doGrabFocus() {
+    if (this.isDisposed()) { return; }
+    this._timeoutId = null;
+    const layer = this.getCurrentLayer();
+    if (!layer || document.activeElement === layer.defaultFocusElem) {
+      return;
+    }
+    // If the window doesn't have focus, don't rush to grab it, or we can interfere with focus
+    // outside the frame when embedded. We'll grab focus when setBackgroundCapture tells us to.
+    if (!document.hasFocus()) {
+      return;
+    }
+    if (document.activeElement && layer.allowFocus(document.activeElement)) {
+      watchElementForBlur(document.activeElement, () => this.grabFocus());
+      layer.onDefaultBlur?.();
+    } else {
+      layer.defaultFocusElem.focus();
+      layer.onDefaultFocus?.();
+    }
+  }
+}
+
+/**
+ * An individual FocusLayer determines where focus should default to while this layer is active.
+ */
+export class FocusLayer extends Disposable implements FocusLayerOptions {
+  // FocusLayer.grabFocus() allows triggering the focus check manually.
+  public static grabFocus() {
+    _focusLayerManager.get(null)?.grabFocus();
+  }
+
+  public defaultFocusElem: HTMLElement;
+  public allowFocus: (elem: Element) => boolean;
+  public onDefaultFocus?: () => void;
+  public onDefaultBlur?: () => void;
+
+  constructor(options: FocusLayerOptions) {
+    super();
+    this.defaultFocusElem = options.defaultFocusElem;
+    this.allowFocus = options.allowFocus;
+    this.onDefaultFocus = options.onDefaultFocus;
+    this.onDefaultBlur = options.onDefaultBlur;
+
+    const managerRefCount = this.autoDispose(_focusLayerManager.use(null));
+    const manager = managerRefCount.get();
+    manager.addLayer(this);
+    this.onDispose(() => manager.removeLayer(this));
+    this.autoDispose(dom.onElem(this.defaultFocusElem, 'blur', () => manager.grabFocus()));
+  }
+}
+
+/**
+ * Helper to watch a focused element to lose focus, at which point callback() will get called.
+ * Because elements getting removed from the DOM don't always trigger 'blur' event, this also
+ * uses MutationObserver to watch for the element to get removed from DOM.
+ */
+function watchElementForBlur(elem: Element, callback: () => void) {
+  const maybeDone = () => {
+    if (document.activeElement !== elem) {
+      lis.dispose();
+      observer.disconnect();
+      callback();
+    }
+  };
+  const lis = dom.onElem(elem, 'blur', maybeDone);
+
+  // Watch for the removal of elem by observing the childList of all its ancestors.
+  // (Just guessing that it is more efficient than watching document.body with {subtree: true}).
+  const observer = new MutationObserver(maybeDone);
+  let parent = elem.parentNode;
+  while (parent) {
+    observer.observe(parent, {childList: true});
+    parent = parent.parentNode;
+  }
+}

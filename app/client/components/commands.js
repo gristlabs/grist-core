@@ -310,7 +310,7 @@ CommandGroup.prototype._removeGroup = function() {
  * See also stopCallback in app/client/lib/Mousetrap.js.
  */
 CommandGroup.prototype.attach = dom.inlinable(function(elem) {
-  ko.utils.domData.set(elem, 'mousetrapCommandGroup', this);
+  Mousetrap.setCustomStopCallback(elem, (combo) => !this.knownKeys.hasOwnProperty(combo));
 });
 
 //----------------------------------------------------------------------
