@@ -1,0 +1,180 @@
+.record {
+  display: -webkit-flex;
+  display: flex;
+  position: relative;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+
+  border-width: 0px;
+  border-style: none;
+  border-color: var(--grist-color-dark-grey);
+  border-left-style: solid;  /* left border, against rownumbers div, always on */
+  border-bottom-width: 1px; /* style: none, set by record-hlines*/
+}
+
+.record.record-hlines {  /* Overwrites style, width set on element */
+  border-bottom-style: solid;
+}
+
+.record.record-zebra.record-even {
+  background-color: #f8f8f8;
+}
+
+.record.record-add {
+  background-color: #f6f6ff !important;  /* important to win over zebra stripes */
+}
+
+.field {
+  position: relative;
+  height: 100%;
+  -webkit-flex: none;
+  flex: none;
+  min-height: 22px;
+  white-space: pre;
+  /* make border exist always so content doesn't shift on v-gridline toggle */
+  border: 0px solid transparent;  /* width set by js, border exists but is transparent */
+}
+
+.record-vlines > .field {
+  border-right-color: var(--grist-color-dark-grey);  /* set border visibility */
+}
+
+.field.scissors {
+  outline: 2px dashed var(--grist-color-cursor);
+}
+
+.field.selected {
+  background-color: var(--grist-color-selection);
+}
+
+.field_clip {
+  padding: 3px 3px 0px 3px;
+  font-family: var(--grist-font-family-data);
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  height: 100%;
+}
+
+.field_clip.invalid {
+  background-color: #ffb6c1;
+}
+
+.field_clip.invalid:empty {
+  background-color: unset;
+}
+
+.field_clip.field-error-P {
+  color: #B0B0B0;
+  background-color: unset;
+}
+
+.field_clip.field-error-U {
+  color: #6363a2;
+  background-color: unset;
+}
+
+/* Insert a zero-width space into each cell, to size cells to at least one line of text. */
+.field_clip:empty::before { content: '\200B'; }
+
+@media not print {
+.selected_cursor {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  /* one pixel outline around the cell, and one inside the cell */
+  outline: 1px solid var(--grist-color-inactive-cursor);
+  box-shadow: inset 0 0 0 1px var(--grist-color-inactive-cursor);
+  pointer-events: none;
+}
+
+.active_cursor {
+  outline: 1px solid var(--grist-color-cursor);
+  box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
+}
+}
+
+/* These classes are used to flash the cursor to indicate that editing in a cell is disabled. */
+.cursor_read_only {
+  outline: 1px solid #ff9a00;
+  box-shadow: inset 0 0 0 1px #ff9a00;
+}
+
+.cursor_read_only_fade {
+  outline-color: var(--grist-color-cursor);
+  box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
+  transition: outline-color 0.5s ease-in, box-shadow 0.5s ease-in;
+}
+
+.cursor_read_only_lock {
+  top: 0px;
+  height: 100%;
+  padding: 0 4px;
+  line-height: inherit;
+  background-color: #ff9a00;
+  color: white;
+  opacity: 1;
+}
+
+.cursor_read_only_fade > .cursor_read_only_lock {
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+}
+
+.column_name {
+  background-color: var(--grist-color-light-grey);
+  text-align: center;
+  cursor: pointer;
+  /* Column headers always show vertical gridlines, to make it clear how to resize them */
+  border-right-color: var(--grist-color-dark-grey);
+}
+
+.column_name.selected {
+  background-color: var(--grist-color-medium-grey-opaque);
+}
+
+.gridview_data_row_num.selected {
+  background-color: var(--grist-color-medium-grey-opaque);
+}
+
+.gridview_data_row_info.linked_dst::before {
+  position: absolute;
+  content: '\25B8';
+  text-align: left;
+  left: 7px;
+}
+
+.text_wrapping {
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.diff-change .diff-parent, .diff-change .diff-remote {
+  display: inline-block;
+  width: 50%;
+}
+
+.diff-conflict .diff-parent, .diff-conflict .diff-local, .diff-conflict .diff-remote {
+  display: inline-block;
+  width: 33.33%;
+}
+
+.diff-local {
+  background-color: #dfdfff;
+}
+
+.diff-parent {
+  background-color: #ffdfdf;
+  text-decoration: line-through;
+}
+
+.diff-remote {
+  background-color: #afffaf;
+}
+
+.diff-common {
+  color: #555;
+}

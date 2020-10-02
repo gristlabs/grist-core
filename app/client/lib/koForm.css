@@ -1,0 +1,724 @@
+.kf_elem {
+  margin: 0.4rem 5%;
+}
+
+.kf_button_group {
+  border-radius: 4px;
+  overflow: hidden;
+  user-select: none;
+  border: 1px solid #e0e0e0;
+}
+
+.kf_button_group:hover {
+  border: 1px solid #d0d0d0;
+}
+
+.kf_button_group:active {
+  border: 1px solid #d0d0d0;
+}
+
+.kf_button_group.accent {
+  border: 1px solid #d8955a;
+}
+
+.kf_button_group.accent:hover {
+  border: 1px solid #c38045;
+}
+
+.kf_button_group.accent:active {
+  border: 1px solid #c38045;
+}
+
+.kf_button_group.lite {
+  border: none;
+}
+
+.kf_tooltip {
+  text-shadow: none;
+  position: absolute;
+  z-index: 10;
+  visibility: hidden;
+}
+
+.kf_tooltip_pointer {
+  width: 0;
+  height: 0;
+  margin: 0 auto;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid rgba(60, 60, 60, .9);
+}
+
+.kf_tooltip_content {
+  cursor: default;
+  white-space: nowrap;
+  min-width: 16px;
+  min-height: 16px;
+  padding: 4px;
+  background-color: rgba(60, 60, 60, .9);
+  text-align: center;
+  color: #dadada;
+  border-radius: 5px;
+}
+
+div:hover > .kf_tooltip {
+  visibility: visible;
+}
+
+.kf_tooltip_info_text {
+  border-bottom: 1px solid #888;
+  margin-bottom: 3px;
+}
+
+.kf_tooltip_info_text > div {
+  padding-bottom: 4px;
+}
+
+.kf_tooltip_button {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1.2rem;
+  margin: 2px 4px;
+}
+
+.kf_tooltip_button:hover {
+  color: #fff;
+}
+
+.kf_tooltip_button.disabled {
+  cursor: default;
+  color: #222;
+}
+
+.kf_prompt {
+  position: relative;
+  width: 95%;
+  margin: 5px auto 10px auto;
+}
+
+.kf_prompt_content {
+  position: relative;
+  white-space: nowrap;
+  width: 100%;
+  min-width: 16px;
+  min-height: 16px;
+  padding: 4px;
+  background-color: white;
+  border-radius: 2px;
+  box-shadow: 0 1px 1px 1px rgba(0,0,0,0.15);
+  line-height: 1.1rem;
+  font-size: 1rem;
+  color: #606060;
+  z-index: 10;
+}
+
+.kf_prompt_pointer {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  box-shadow: 0 1px 1px 1px rgba(0,0,0,0.15);
+  z-index: 8;
+}
+
+.kf_prompt_pointer_overlap {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  transform: rotate(45deg);
+  z-index: 11;
+}
+
+.kf_draggable {
+  display: inline-block;
+  cursor: grab;
+}
+
+.kf_draggable.ui-sortable-helper {
+  cursor: grabbing;
+}
+
+.kf_draggable.disabled {
+  cursor: default;
+}
+
+.kf_draggable__item {
+  margin: .2rem .5rem;
+  padding: .2rem;
+  background-color: var(--color-list-item);
+}
+
+.kf_draggable__item:hover {
+  background-color: var(--color-list-item-hover);
+}
+
+.kf_draggable__placeholder--horizontal {
+  display: inline-block;
+  height: 1px;
+}
+
+.kf_draggable__placeholder--vertical {
+  display: block;
+  width: 1px;
+}
+
+.kf_drag_indicator {
+  display: inline-block;
+  color: #777777;
+}
+
+.kf_draggable_content {
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.kf_draggable:hover .drag_delete {
+  display: block;
+}
+
+.drag_delete {
+  display: none;
+  float: right;
+  cursor: pointer;
+  font-size: 1.0rem;
+  margin: 2px 2px 0 0;
+  color: #777777;
+}
+
+.kf_button {
+  text-align: center;
+  margin-left: -1px;
+  border-left: 1px solid #ddd;
+  padding: 0.5rem 0.5rem;
+  height: 2.3rem;
+  line-height: 1.1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #606060;
+  cursor: default;
+  user-select: none;
+  -moz-user-select: none;
+  background: linear-gradient(to bottom, #fafafa 0%,#f0f0f0 100%);
+}
+
+.kf_button.accent {
+  background: linear-gradient(to bottom, #f4a74e 0%,#ff9a00 100%);
+  color: #ffffff;
+}
+.kf_button.accent:active:not(.disabled) {
+  background: linear-gradient(to bottom, #ff9a00 0%,#f4a74e 100%);
+  color: #ffffff;
+}
+.kf_button.accent.disabled, .kf_button.accent.disabled:active {
+  color: #A0A0A0;
+  background: linear-gradient(to top, #fafafa 0%,#f0f0f0 100%);
+}
+
+.kf_button.lite {
+  height: 1.8rem;
+  padding: 0.4rem 0.2rem;
+  border: none;
+  background: none;
+}
+
+.kf_button.lite:hover:not(.disabled) {
+  background: #ddd;
+  color: black;
+  box-shadow: none;
+}
+
+.kf_check_button.lite.active:not(.disabled) {
+  background: #ddd;
+  color: black;
+  box-shadow: none;
+}
+
+.kf_check_button.lite:active:not(.disabled),
+.kf_check_button.lite.active:active:not(.disabled) {
+  box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.2);
+  background: #ddd;
+}
+
+.kf_button:first-child {
+  margin-left: 0;
+  border-left: none;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+.kf_button:last-child {
+  border-right: none;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+.kf_button:active:not(.disabled) {
+  background: linear-gradient(to bottom, #f0f0f0 0%,#fafafa 100%);
+  box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.2);
+}
+.kf_button.active {
+  box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.2);
+  background: linear-gradient(to bottom, #ff9a00 0%,#f4a74e 100%);
+  color: #ffffff;
+}
+.kf_button.active:active:not(.disabled) {
+  box-shadow: inset 0px 0px 3px 0px rgba(0,0,0,0.4);
+  background: linear-gradient(to bottom, #ff9a00 0%,#f4a74e 100%);
+}
+.kf_button.disabled, .kf_button.disabled:active {
+  color: #A0A0A0;
+}
+
+.kf_logo_button {
+  height: 34px;
+}
+
+.kf_btn_logo {
+  height: 25px;
+  width: 25px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  margin-right: 5px;
+}
+
+.kf_btn_text {
+  font-size: 1.1rem;
+  height: 1.1rem;
+  margin: 0.7rem;
+}
+
+.kf_check_button.disabled, .kf_check_button.disabled:active {
+  color: #A0A0A0;
+  background: linear-gradient(to bottom, #f4f4f4 0%,#e8e8e8 100%);
+  box-shadow: none;
+}
+
+.kf_checkbox_label {
+}
+
+.kf_checkbox {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0 0 0 0 !important;
+  vertical-align: middle;
+  position: relative;
+}
+
+.kf_checkbox:focus {
+  outline: none !important;
+}
+
+.kf_radio_label {
+  font-weight: normal;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.kf_radio {
+  margin: 0 0.5rem !important;
+  outline: none !important;
+  vertical-align: middle;
+}
+
+/** spinner **/
+.kf_spinner {
+  position: absolute;
+  box-sizing: content-box;
+  width: 9px;
+  height: 17px;
+  right: 1px;
+  top: -1px;
+
+  color: #606060;
+  overflow: hidden;
+  padding: 1px;
+}
+
+.kf_spinner:hover {
+  background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(252,252,252,1) 29%, rgba(239,239,239,1) 50%, rgba(232,232,232,1) 50%, rgba(242,242,242,1) 100%);
+  border: 1px solid grey;
+  border-radius: 6px;
+  padding: 0px;
+}
+
+.kf_spinner_half {
+  height: 9px;
+  overflow: hidden;
+}
+
+.kf_spinner_half:active:not(.disabled) {
+  background: linear-gradient(to bottom, rgba(147,180,242,1) 0%, rgba(135,168,233,1) 10%, rgba(115,149,218,1) 25%, rgba(115,150,224,1) 37%, rgba(115,153,230,1) 50%, rgba(86,134,219,1) 51%, rgba(130,174,235,1) 83%, rgba(151,194,243,1) 100%);
+}
+
+.kf_spinner_arrow {
+  width: 0px;
+  height: 0px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+}
+.kf_spinner_arrow.up {
+  border-top: none;
+  border-bottom: 5px solid #606060;
+  margin: 2px auto;
+}
+.kf_spinner_arrow.down {
+  border-top: 5px solid #606060;
+  border-bottom: none;
+  margin: 1px auto 2px auto;
+}
+
+.kf_collapser {
+  height: 2.2rem;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  -moz-user-select: none;
+  margin: .5rem;
+}
+
+.kf_triangle_toggle {
+  display: inline-block;
+  font-size: .9rem;
+  width: 1.5rem;
+  color: #808080;
+}
+
+.kf_triangle_toggle:active {
+  color: #606060;
+}
+
+.kf_label {
+  white-space: nowrap;
+  font-size: 1.1rem;
+  cursor: default;
+}
+
+.kf_light_label {
+  font-size: 1.0rem;
+  white-space: nowrap;
+}
+
+.kf_text {
+  width: 100%;
+}
+
+.kf_text:focus {
+  outline: none;
+  border: 2px solid #ff9a00;
+  box-shadow: inset 0px 0px 1px 0px rgba(0,0,0,0.2);
+}
+
+.kf_text:disabled {
+  color: #888;
+}
+
+/** For editableLabel*/
+.kf_editable_label {
+  min-height: 1.8rem;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.kf_elabel_text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kf_elabel_input {
+  border-width: 0px;
+  text-align: inherit;
+  top: 0;
+  left: 0;
+  padding: 0;
+  color: #333;
+}
+
+.elabel_content_measure {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  padding-top: 2px;
+  padding-right: 1em;
+  border: none;
+  visibility: hidden;
+  overflow: visible;
+}
+
+/****/
+.kf_num_text {
+  display: block;
+  width: 100%;
+  text-align: right;
+}
+
+.kf_row {
+  margin: 0.4rem 2.5%;
+  align-items: center;
+  -webkit-align-items: center;
+}
+
+.kf_row > .kf_elem {
+  margin: 0 2.5%;
+}
+
+.kf_elem > .kf_elem {
+  margin: 0;
+}
+
+.kf_help_row {
+  margin-top: -0.2rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.kf_help {
+  font-weight: normal;
+  font-size: 1.1rem;
+}
+
+.kf_left {
+  text-align: left;
+}
+
+.kf_right {
+  text-align: right;
+}
+
+fieldset:disabled {
+  color: #A0A0A0;
+}
+
+.kf_status_panel {
+  padding:0.5rem;
+  box-shadow:0 1px 2px #aaa;
+  background: white;
+  margin:0 0.5rem 0.5rem;
+  border-radius:3px;
+  overflow:hidden;
+}
+
+.kf_status_indicator {
+  border-right: 1px black;
+  font-size: 4rem;
+  flex-grow: 0;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select:none;
+}
+
+.kf_status_detail {
+  align-self: center;
+}
+
+.kf_status_indicator.kf_status_success {
+  color: forestgreen;
+}
+.kf_status_indicator.kf_status_info {
+  color: royalblue;
+}
+.kf_status_indicator.kf_status_warning {
+  color: orange;
+}
+.kf_status_indicator.kf_status_error {
+  color: firebrick;
+}
+
+.kf_scroll_shadow_outer {
+  height: 0px;
+  position: relative;
+}
+
+.kf_scroll_shadow {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 9px;
+  border-bottom: 1px solid #A0A0A0;
+  box-shadow: 0px 6px 3px -3px #A0A0A0;
+  z-index: 100;
+}
+
+.kf_scrollable {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Based on scrollbox CSS detailed by Roman Komarov - http://kizu.ru/en/fun/shadowscroll/ */
+.scrollbox {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  max-height: 200px;
+  background: #FFF no-repeat;
+  background-image:
+      radial-gradient(farthest-side at 50% 0, rgba(0,0,0,0.2), rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,0.2), rgba(0,0,0,0));
+  background-position: 0 0, 0 100%;
+  background-size: 100% 14px;
+}
+
+.scrollbox:before,
+.scrollbox:after {
+  content: "";
+  position: relative;
+  z-index: -1;
+  display: block;
+  height: 30px;
+  margin: 0 0 -30px;
+  background:   linear-gradient(to bottom,#FFF,#FFF 30%,rgba(255,255,255,0));
+}
+
+.scrollbox:after {
+  margin: -30px 0 0;
+  background:   linear-gradient(to bottom,rgba(255,255,255,0),#FFF 70%,#FFF);
+}
+
+.kf_select {
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 0.5rem;
+  line-height: 1.1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #606060;
+  cursor: default;
+  border-radius: 4px;
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: linear-gradient(to bottom, #fafafa 0%,#f0f0f0 100%);
+}
+
+.kf_select:hover {
+  border: 1px solid #d0d0d0;
+}
+
+.kf_select:active {
+  box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.2);
+  border: 1px solid #d0d0d0;
+}
+
+.kf_select:focus {
+  outline: none;
+}
+
+.kf_select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
+
+.kf_select:disabled {
+  color: #A0A0A0;
+}
+
+.kf_select_arrow:after {
+  content: '\25bc';
+  margin-left: -1.4rem;
+  font-size: .7rem;
+  pointer-events:none;
+}
+
+.kf_separator {
+  color: #C8C8C8;
+  background-color: #C8C8C8;
+  border: 0;
+  height: 1px;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+/*****************************************/
+/* CSS for midTabs and midTab functions */
+.kf_mid_tabs {
+  height: 100%;
+  position: relative;
+}
+
+.kf_mid_tab_labels {
+  padding: 0 4rem;
+}
+
+.kf_mid_tab_label {
+  margin-left: -1px;
+  border-left: 1px solid #e4e4e4;
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #bfbfbf;
+  cursor: pointer;
+  user-select: none;
+  -moz-user-select: none;
+  z-index: 1;
+}
+.kf_mid_tab_label:first-child {
+  border-left: none;
+}
+
+.kf_mid_tab_label:active, .kf_mid_tab_label.active:active {
+  color: black;
+}
+
+.kf_mid_tab_label.active {
+  color: black;
+  cursor: default;
+}
+
+.kf_mid_tab_content {
+  padding-top: 1rem;
+}
+
+/*****************************************/
+/* CSS for topTabs and topTab functions. */
+.kf_top_tabs {
+  height: 100%;
+}
+
+.kf_top_tab_labels {
+}
+
+.kf_top_tab_label {
+  margin-left: -1px;
+  border: 1px solid #C8C8C8;
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #606060;
+  cursor: default;
+  user-select: none;
+  -moz-user-select: none;
+  border-radius: 5px 5px 0 0;
+  background: #eee;
+}
+
+.kf_top_tab_label.active {
+  background: none;
+  border-bottom: none;
+  z-index: 10;
+}
+
+.kf_top_tab_label.active:active {
+  background: linear-gradient(to bottom, rgba(65,141,225,1) 0%,rgba(38,125,200,1) 100%);
+}
+
+.kf_top_tab_container {
+  height: 100%;
+  position: relative;
+}
+
+.kf_top_tab_content {
+  height: 100%;
+  padding-top: 1rem;
+  width: 100%;
+  position: relative;
+}

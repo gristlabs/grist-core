@@ -1,0 +1,6 @@
+.chart_container {
+  overflow: hidden;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}

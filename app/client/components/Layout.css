@@ -1,0 +1,89 @@
+.layout_root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.layout_root.layout_fill_window {
+  position: absolute;
+}
+
+.layout_root > .layout_box {
+  height: 100%;
+}
+
+.layout_box {
+  position: relative;
+  display: -webkit-flex;
+  display: flex;
+  min-width: 0px;
+}
+
+.layout_hbox.layout_fill_window {
+  -webkit-flex: 1 1 0px;
+  flex: 1 1 0px;
+}
+
+/* We can't use ':last-child' because of resize-handle elements tacked on beyond it. */
+.layout_hbox.layout_last_child {
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+
+.layout_vbox {
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex: 1 1 0px;
+  flex: 1 1 0px;
+}
+
+/* not so much to specify the look, as to simplify filtering events */
+.layout_leaf {
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+
+.layout_new, .layout_trash {
+  min-height: 2rem;
+  line-height: 2rem;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  cursor: default;
+}
+
+.layout_trash:hover, .layout_new:hover {
+  background-color: #F8F8F8;
+}
+
+.layout_new {
+  border-left: 1px solid lightgrey;
+  border-top: 1px solid lightgrey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid grey;
+  color: grey;
+}
+
+.layout_trash {
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  color: red;
+}
+
+.layout_leaf_test {
+  border-left: 1px solid lightgrey;
+  border-top: 1px solid lightgrey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid grey;
+  color: grey;
+  width: 100%;
+  -webkit-flex: 1 1 0px;
+  flex: 1 1 0px;
+  min-height: 5rem;
+  line-height: 5rem;
+  justify-content: center;
+  text-align: center;
+}
+
+.layout_leaf_test_big {
+  min-height: 7rem;
+}

@@ -1,0 +1,46 @@
+.g_record_layout_leaf {
+  width: 100%;
+}
+
+.g_record_layout_editing {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  cursor: move;
+  z-index: 5;
+
+  background-color: rgba(192, 192, 192, 0.2);
+  border-left: 1px solid white;
+  border-top: 1px solid white;
+  border-right: 1px solid var(--grist-color-dark-grey);
+  border-bottom: 1px solid var(--grist-color-dark-grey);
+}
+
+.dropdown-menu .g_record_layout_newfield {
+  margin: 2px 1rem;
+  padding: 0px 0.5rem;
+  border: 2px outset rgba(160, 160, 255, 0.5);
+  background-color: rgba(233, 233, 233, 0.5);
+  cursor: move;
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.g_record_delete_field {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #404040;
+  border: 1px solid #404040;
+  border-radius: 1rem;
+  color: white;
+  cursor: pointer;
+
+  display: none;
+}
+
+.g_record_layout_editing:hover > .g_record_delete_field {
+  display: block;
+}

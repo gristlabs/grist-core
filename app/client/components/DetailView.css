@@ -1,0 +1,270 @@
+.detail_menu_bottom {
+  border-top: 1px solid lightgrey;
+}
+
+/* applies to the record detail container */
+.record-layout-editor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  background: white;
+  z-index: 1;
+  margin-top: -3px;
+}
+
+.g_record_detail_inner > .layout_root {
+  height: auto;
+}
+
+/* applies to all record details */
+.g_record_detail_el {
+  position: relative;
+  margin: 0.5rem;
+  padding: .5rem;
+}
+
+.g_record_detail_label {
+  min-height: 1rem;
+  color: #666;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.g_record_detail_value {
+  position: relative;
+  min-height: 16px;
+  white-space: pre;
+  word-wrap: break-word;
+}
+
+.g_record_detail_value.record-add {
+  background-color: #f6f6ff;
+}
+
+.g_record_detail_value.scissors {
+  outline: 2px dashed var(--grist-color-cursor);
+}
+
+.detail_row_num {
+  text-align: right;
+  font-size: var(--grist-x-small-font-size);
+  font-weight: normal;
+  color: var(--grist-color-slate);
+  padding: 8px;
+}
+
+.detail_row_num::before {
+  content: "ROW ";
+}
+
+.detail-left.disabled, .detail-right.disabled, .detail-add-btn.disabled {
+  cursor: default !important;
+}
+
+.detail-add-grp {
+  margin-left: 0.5rem;
+}
+
+/*** card view (multiple records) ***/
+
+.detailview_scroll_pane {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* allow 3px to the left to be visible, for highlighting active record */
+  padding-left: 3px;
+  margin-left: -3px;
+}
+
+.detailview_record_detail.active {
+  /* highlight active record in Card List by overlaying the active-section highlight */
+  margin-left: -3px;
+  border-left: 3px solid var(--grist-color-light-green);
+}
+
+/*** single record ***/
+.detailview_single {
+  overflow: auto;
+}
+
+.grist-single-record__menu {
+  padding: .2rem .5rem .2rem 0;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.grist-single-record__menu.newui {
+  padding: 0;
+  margin-top: -4px;
+}
+
+.grist-single-record__menu__count {
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 1rem;
+}
+
+.detailview_record_single > .detail_row_num {
+  display: none;
+}
+
+/*** detailed record "themes" ***/
+
+/*** label-under theme ***/
+/* TODO Deprecated. Probably best to keep styles for the sake of older docs that might specify
+ * this theme, but in practice it's unlikely any docs use it.
+ */
+.detail_theme_field_under {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column-reverse;
+  -webkit-flex-direction: column-reverse;
+}
+
+.detail_theme_field_under > .g_record_detail_label {
+  border-top: 1px solid #333;
+}
+
+.detail_theme_record_under {
+  border-top: 1px solid #ccc;
+  padding: 0 1rem 1rem 0;
+  border-left: 2px solid white;
+}
+
+.detail_theme_record_under:first-child {
+  border-top: none;
+}
+
+/*** compact theme ***/
+.detail_theme_record_compact {
+  /* 12px is enough margin on the right to include most of the floating scrollbar on MacOS */
+  padding: 4px 16px 0px 16px;
+  background-color: var(--grist-color-medium-grey);
+}
+
+.detail_theme_record_compact.detailview_record_single {
+  padding: 8px;
+}
+
+.detail_theme_record_compact > .detail_row_num {
+  padding: 0px;
+}
+
+.detail_theme_record_compact > .g_record_detail_inner {
+  background-color: white;
+  position: relative;
+}
+
+.detail_theme_record_compact > .g_record_detail_inner > .layout_root {
+  border: 1px solid var(--grist-color-dark-grey);
+  border-right: none;
+  border-bottom: none;
+}
+
+.detail_theme_record_compact.detailview_record_single > .g_record_detail_inner {
+  height: 100%;
+}
+
+.detail_theme_record_compact.detailview_record_single > .g_record_detail_inner > .layout_root {
+  height: 100%;
+}
+
+.detail_theme_field_compact {
+  border-top: none;
+  border-left: none;
+  border-right: 1px solid var(--grist-color-dark-grey);
+  border-bottom: 1px solid var(--grist-color-dark-grey);
+  padding: 1px 1px 1px 5px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.detail_theme_field_compact > .g_record_detail_label {
+  font-weight: normal;
+  font-size: var(--grist-small-font-size);
+  color: var(--grist-color-slate);
+  min-height: 0px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 3px;     /* to align with the .field_clip content */
+  margin-right: -1px;   /* allow labels to overflow into the padding */
+}
+
+/*** form theme ***/
+
+.detail_theme_field_form {
+  padding: 1px 1px 1px 5px;
+}
+
+.detail_theme_field_form > .g_record_detail_label {
+  font-size: var(--grist-small-font-size);
+  color: var(--grist-color-slate);
+  font-weight: bold;
+  min-height: 0px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: -8px;
+}
+
+/* TODO want to style better the values themselves (e.g. more padding, rounded corners, move label
+ * inside value box for compact view for better cursor looks, etc), but first the cell editor
+ * needs to learn to match the value box's style. Right now, the cell editor style is hard-coded.
+ */
+.detail_theme_field_form > .g_record_detail_value {
+  border: 1px solid lightgrey;
+}
+
+.detail_theme_record_form {
+  padding: 0px 12px 0px 8px;
+}
+
+.detail_theme_record_form.detailview_record_single {
+  padding-top: 8px;
+}
+
+.detail_theme_record_form.detailview_record_detail {
+  border-bottom: 1px solid var(--grist-color-dark-grey);
+  padding-bottom: 12px;
+}
+
+/*** blocks theme ***/
+
+.detail_theme_record_blocks {
+  padding: 0px 12px 0px 8px;
+}
+
+.detail_theme_record_blocks > .detail_row_num {
+  padding-bottom: 0px;
+}
+
+.detail_theme_record_blocks.detailview_record_single {
+  padding: 8px;
+}
+
+.detail_theme_record_blocks.detailview_record_detail {
+  border-bottom: 1px solid var(--grist-color-dark-grey);
+  padding-bottom: 8px;
+}
+
+.detail_theme_field_blocks {
+  padding: 6px;
+  margin: 8px;
+  background-color: var(--grist-color-medium-grey);
+  border-radius: 2px;
+}
+
+.detail_theme_field_blocks > .g_record_detail_label {
+  font-size: var(--grist-small-font-size);
+  color: var(--grist-color-slate);
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 3px;     /* to align with the .field_clip content */
+  margin-right: -6px;   /* allow labels to overflow into the padding */
+  margin-bottom: 4px;
+}

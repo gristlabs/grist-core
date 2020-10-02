@@ -5,7 +5,13 @@ import {ILoginSession} from 'app/server/lib/ILoginSession';
 export class LoginSession implements ILoginSession {
   public clients: Set<Client> = new Set();
   public async getEmail() {
-    return 'anon@getgrist.com';
+    return process.env.GRIST_DEFAULT_EMAIL || 'anon@getgrist.com';
+  }
+  public async getSessionProfile() {
+    return {
+      name: await this.getEmail(),
+      email: await this.getEmail(),
+    };
   }
   public async clearSession(): Promise<void> {
     // do nothing

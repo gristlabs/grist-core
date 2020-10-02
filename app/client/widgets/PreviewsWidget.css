@@ -1,0 +1,12 @@
+.attachment_hover_icon {
+  display: none;
+}
+
+.attachment_widget:hover .attachment_hover_icon {
+  display: inline;
+}
+
+.attachment_drag_over {
+  outline: 2px dashed #ff9a00;
+  outline-offset: -2px;
+}

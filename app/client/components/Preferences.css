@@ -1,0 +1,43 @@
+.preference_mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  background-color: rgba(1, 1, 1, 0.3);
+}
+
+.preference_window {
+  position: absolute;
+  background-color: white;
+  display: inline-block;
+  padding: 10px 20px;
+  width: 60%;
+  margin: 20%;
+  box-shadow: 0px 1px 3px 0px rgba(0,0,0,0.8);
+}
+
+.preference_title {
+  color: #546e7a;
+  text-align: left;
+  border-bottom: 1px solid rgba(0,0,0,.12);
+  font-family: 'Roboto', Helvetica, Arial, sans-serif;
+  width: 100%;
+  height: 40px;
+}
+
+.preference_content {
+  width: 100%;
+  font-size: 1.4rem;
+}
+
+.preference_desc {
+  margin-left: 5px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.preference_footer > .kf_elem {
+  flex: 1 1 100%;
+}

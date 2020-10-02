@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / Data Types / TypeDetails</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-Data-Types-/-TypeDetails" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M1,2 L1,14 L15,14 L15,2 L1,2 Z M0.5,1 L15.5,1 C15.7761424,1 16,1.22385763 16,1.5 L16,14.5 C16,14.7761424 15.7761424,15 15.5,15 L0.5,15 C0.223857625,15 0,14.7761424 0,14.5 L0,1.5 C0,1.22385763 0.223857625,1 0.5,1 Z M12.5,4.5 L9.5,4.5 C9.22385763,4.5 9,4.27614237 9,4 C9,3.72385763 9.22385763,3.5 9.5,3.5 L13,3.5 C13.2761424,3.5 13.5,3.72385763 13.5,4 L13.5,7.5 C13.5,7.77614237 13.2761424,8 13,8 C12.7238576,8 12.5,7.77614237 12.5,7.5 L12.5,4.5 Z M3.5,11.5 L6.5,11.5 C6.77614237,11.5 7,11.7238576 7,12 C7,12.2761424 6.77614237,12.5 6.5,12.5 L3,12.5 C2.72385763,12.5 2.5,12.2761424 2.5,12 L2.5,8.5 C2.5,8.22385763 2.72385763,8 3,8 C3.27614237,8 3.5,8.22385763 3.5,8.5 L3.5,11.5 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

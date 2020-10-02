@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / Remove</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-Remove" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M6,4 L6,2.5 C6,2.22385763 6.22385763,2 6.5,2 L9.5,2 C9.77614237,2 10,2.22385763 10,2.5 L10,4 L13.5,4 C13.7761424,4 14,4.22385763 14,4.5 C14,4.77614237 13.7761424,5 13.5,5 L2.5,5 C2.22385763,5 2,4.77614237 2,4.5 C2,4.22385763 2.22385763,4 2.5,4 L6,4 Z M7,4 L9,4 L9,3 L7,3 L7,4 Z M11,6.5 C11,6.22385763 11.2238576,6 11.5,6 C11.7761424,6 12,6.22385763 12,6.5 L12,12.5 C12,13.3284271 11.3284271,14 10.5,14 L5.5,14 C4.67157288,14 4,13.3284271 4,12.5 L4,6.5 C4,6.22385763 4.22385763,6 4.5,6 C4.77614237,6 5,6.22385763 5,6.5 L5,12.5 C5,12.7761424 5.22385763,13 5.5,13 L10.5,13 C10.7761424,13 11,12.7761424 11,12.5 L11,6.5 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

@@ -1,0 +1,80 @@
+.cell_editor {
+  position: absolute;
+  z-index: 1000;        /* make it higher than popper's 999 */
+}
+
+.default_editor {
+  box-shadow: 0 0 3px 2px var(--grist-color-cursor);
+}
+
+.formula_editor {
+  background-color: white;
+  padding: 2px 0 2px 18px;
+  z-index: 10;
+}
+
+.celleditor_cursor_editor {
+  background-color: white;
+
+  /* the following are copied from .field_clip */
+  padding: 3px 3px 0px 3px;
+  font-family: var(--grist-font-family-data);
+  font-size: var(--grist-medium-font-size);
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.celleditor_text_editor {
+  display: block;
+  outline: none;
+  padding: 0px;
+  border: none;
+  resize: none;
+  z-index: 10;
+  color: black;
+
+  /* Inherit styles, same as for .celleditor_content_measure, to ensure that sizes correspond. */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.celleditor_content_measure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: none;
+  visibility: hidden;
+  overflow: visible;
+  /* with 'pre-wrap', this lets the editor gets as wide as needed before wrapping; */
+  /* width is limited only by max-width (which is set in JS code). */
+  width: max-content;
+
+  /* Inherit styles, same as for .celleditor_text_editor, to ensure that sizes correspond. */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.error_msg {
+  color: black;
+  cursor: default;
+  margin: 4px;
+}
+
+.error_details {
+  padding: 2px 2px 2px 2px;
+  background-color: #F8ECEA;
+  margin: 0 0 -2px 0;
+}
+
+.error_box {
+  background-color: #ffb6c1;
+  padding: 2px 0px 2px 0px;
+  white-space: pre-wrap;
+}
+
+.kf_collapser {
+  height: 1.2rem;
+}

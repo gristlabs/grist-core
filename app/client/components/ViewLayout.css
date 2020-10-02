@@ -1,0 +1,234 @@
+.view_leaf {
+  position: relative;
+  flex: 1 1 0px;
+}
+
+.viewsection_title {
+  background-color: #e5e5e5;
+  color: black;
+  flex-shrink: 0;
+  align-items: baseline;
+  line-height: 2;
+
+  cursor: default;
+}
+
+.active_section > .viewsection_title {
+  background-color: #3e568e;
+  color: white;
+}
+
+.viewsection_content.newui > .viewsection_title {
+  height: 24px;
+  margin-left: -16px;   /* to include drag handle that shows up on hover */
+  color: var(--grist-color-slate);
+  background-color: unset;
+  font-size: var(--grist-small-font-size);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: inherit;
+}
+
+.active_section.newui > .viewsection_title {
+  background-color: unset;
+  color: var(--grist-color-slate);
+}
+
+.viewsection_titletext {
+  cursor: text;
+  overflow: hidden;
+}
+
+.viewsection_content {
+  background-color: #ffffff;
+  margin: 4px;
+  overflow: visible;
+  box-shadow: 0px 1px 3px 0px rgba(0,0,0,0.8);
+}
+
+.viewsection_content.newui {
+  margin: 12px;
+  box-shadow: none;
+}
+
+.viewsection_title_colorbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  margin: auto .5rem auto 0;
+  box-shadow: inset 0px 0px 5px rgba(0,0,0,0.5);
+}
+
+.viewsection_drag_indicator {
+  visibility: hidden;
+  margin: auto;
+  padding: 0px 2px;
+  top: 0px;
+}
+
+/* TODO should be switched to use new icon */
+.viewsection_drag_indicator.newui {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0px;
+}
+
+.viewsection_title:hover .viewsection_drag_indicator.layout_grabbable {
+  visibility: visible;
+  z-index: 100;   /* ensure it's above the resizer line, since it's hard to grab otherwise */
+}
+
+.viewsection_btn {
+  display: inline-block;
+  padding: 0px 4px;
+}
+
+.viewsection_settings {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.viewsection_status_icons {
+  color: #999999;
+}
+
+.viewsection_status_icons > .status_icon:hover {
+  color: black;
+}
+
+.viewsection_status_icons.active_section {
+  color: #AEC6FE;
+}
+
+.viewsection_status_icons.active_section  > .status_icon:hover {
+  color: white;
+}
+
+.viewsection_truncated {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background-color: red;
+  color: white;
+  z-index: 1;
+}
+
+.link_direction_icon {
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+  width: 1.9rem;
+  height: 1.2rem;
+  margin: .25rem -.1rem 0 -.2rem;
+}
+
+.viewsection_status_icons.active_section  > .status_icon.unsaved_changes {
+  text-shadow: 0px 0px 5px #fff;
+  color: #FFFFFF;
+}
+
+.view_data_pane_container {
+  position: relative;
+  flex: auto;
+}
+
+.viewsection_content.newui > .view_data_pane_container {
+  border: 1px solid var(--grist-color-dark-grey);
+}
+
+@media not print {
+.active_section.newui > .view_data_pane_container {
+  box-shadow: -2px 0 0 0px var(--grist-color-light-green);
+  border-left: 1px solid var(--grist-color-light-green);
+}
+
+.active_section.newui > .view_data_pane_container.viewsection_type_detail {
+  /* this color is a translucent version of grist-color-light-green */
+  box-shadow: -2px 0 0 0px var(--grist-color-inactive-cursor);
+  border-left: 1px solid var(--grist-color-inactive-cursor);
+}
+}
+
+.disable_viewpane {
+  justify-content: center;
+  text-align: center;
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  font-size: 12pt;
+}
+
+.status_icon.unsaved_changes {
+  text-shadow: 0px 0px 5px #8A8A8A;
+  color: #FFFFFF
+}
+
+.link_direction_icon.has_in_arrow {
+  margin-left: .3rem;
+}
+
+.link_direction_icon.has_out_arrow {
+  margin-right: .2rem;
+}
+
+.link_icon {
+  position: absolute;
+  font-size: 1.05rem;
+  left: .45rem;
+}
+
+.link_out_arrow {
+  position: absolute;
+  top: .5rem;
+  left: 1.3rem;
+  font-size: .65rem;
+  transform: scale(.8, 1);
+}
+
+.link_in_arrow {
+  position: absolute;
+  top: .05rem;
+  left: 0;
+  font-size: .65rem;
+  transform: scale(.8, 1);
+}
+
+.sort_icon {
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 1.0rem;
+  margin: .25rem .1rem 0 .3rem;
+}
+
+.filter_icon {
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 1.0rem;
+  margin: .25rem .1rem 0 .3rem;
+}
+
+.shaking {
+  animation: shake 0.4s ease;
+  transform: translate(0, 0);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate(2px, 0);
+  }
+  30%, 70% {
+    transform: translate(-3px, 0);
+  }
+  50% {
+    transform: translate(3px, 0);
+  }
+}

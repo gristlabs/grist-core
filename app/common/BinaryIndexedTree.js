@@ -50,8 +50,8 @@ BinaryIndexedTree.mostSignificantOne = mostSignificantOne;
 
 /**
  * Converts in-place an array of cumulative values to the original values.
- * @param {Array[Number]} values - Array of cumulative values, or partial sums.
- * @returns {Array[Number]} - same `values` array, with elements replaced by deltas.
+ * @param {Array<number>} values - Array of cumulative values, or partial sums.
+ * @returns {Array<number>} - same `values` array, with elements replaced by deltas.
  *      E.g. [1,3,6,10] is converted to [1,2,3,4].
  */
 function cumulToValues(values) {
@@ -65,8 +65,8 @@ BinaryIndexedTree.cumulToValues = cumulToValues;
 
 /**
  * Converts in-place an array of values to cumulative values, or partial sums.
- * @param {Array[Number]} values - Array of numerical values.
- * @returns {Array[Number]} - same `values` array, with elements replaced by partial sums.
+ * @param {Array<number>} values - Array of numerical values.
+ * @returns {Array<number>} - same `values` array, with elements replaced by partial sums.
  *      E.g. [1,2,3,4] is converted to [1,3,6,10].
  */
 function valuesToCumul(values) {
@@ -89,7 +89,7 @@ BinaryIndexedTree.prototype.size = function() {
 /**
  * Converts the BinaryIndexedTree to a cumulative array.
  * Takes time linear in the size of the array.
- * @returns {Array[Number]} - array with each element a partial sum.
+ * @returns {Array<number>} - array with each element a partial sum.
  */
 BinaryIndexedTree.prototype.toCumulativeArray = function() {
   var cumulValues = [this.tree[0]];
@@ -104,7 +104,7 @@ BinaryIndexedTree.prototype.toCumulativeArray = function() {
 /**
  * Converts the BinaryIndexedTree to an array of individual values.
  * Takes time linear in the size of the array.
- * @returns {Array[Number]} - array with each element containing the value that was inserted.
+ * @returns {Array<number>} - array with each element containing the value that was inserted.
  */
 BinaryIndexedTree.prototype.toValueArray = function() {
   return cumulToValues(this.toCumulativeArray());
@@ -114,7 +114,7 @@ BinaryIndexedTree.prototype.toValueArray = function() {
 /**
  * Creates a tree from an array of cumulative values.
  * Takes time linear in the size of the array.
- * @param {Array[Number]} - array with each element a partial sum.
+ * @param {Array<number>} - array with each element a partial sum.
  */
 BinaryIndexedTree.prototype.fillFromCumulative = function(cumulValues) {
   var len = this.tree.length = cumulValues.length;
@@ -134,7 +134,7 @@ BinaryIndexedTree.prototype.fillFromCumulative = function(cumulValues) {
 /**
  * Creates a tree from an array of invididual values.
  * Takes time linear in the size of the array.
- * @param {Array[Number]} - array with each element containing the value to insert.
+ * @param {Array<number>} - array with each element containing the value to insert.
  */
 BinaryIndexedTree.prototype.fillFromValues = function(values) {
   this.fillFromCumulative(valuesToCumul(values.slice()));

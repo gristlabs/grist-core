@@ -1,0 +1,114 @@
+.g_record_layout_linking {
+  position: absolute;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  justify-content: center;
+  -webkit-justify-content: center;
+  align-items: center;
+  -webkit-align-items: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+.linker_canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.linker_save_btns {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 100;
+  display: flex;
+}
+
+.linker_btn {
+  width: 90px;
+  margin: 4px;
+  background-color: black;
+  padding: 5px;
+  border-radius: 2px;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  border: 1px solid #cdcbcb;
+}
+
+.linker_btn.disabled {
+  color: #555;
+  cursor: default;
+}
+
+.linker_btn_cancel {
+  color: #aaa;
+}
+
+.linker_box {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  font-size: 1.5rem;
+}
+
+.section_link {
+  margin: 4px 0;
+  background-color: black;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: default;
+  width: 100%;
+}
+
+.view_link {
+  position: absolute;
+}
+
+.view_link_icon {
+  color: #aaa;
+  cursor: pointer;
+}
+
+.linker_box_header {
+  visibility: hidden;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 2px 0 -4px 0;
+  color: white;
+}
+
+.linker_box_header.visible {
+  visibility: visible;
+}
+
+.link_text {
+  margin-left: 25px;
+  color: #666;
+}
+
+.selected_text,
+.available_text {
+  color: white;
+}
+
+.remove_link_icon:hover,
+.view_link_icon:hover,
+.selected_link {
+  color: white;
+}
+
+.remove_link_icon {
+  color: #aaa;
+  margin: 0 0 0 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}

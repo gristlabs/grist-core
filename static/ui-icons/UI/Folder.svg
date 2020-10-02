@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / Folder</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-Folder" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M3,5 L13,5 C13.5522847,5 14,5.44771525 14,6 L14,13 C14,13.5522847 13.5522847,14 13,14 L3,14 C2.44771525,14 2,13.5522847 2,13 L2,6 C2,5.44771525 2.44771525,5 3,5 Z M4,2 L12,2 L12,4 L4,4 L4,2 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

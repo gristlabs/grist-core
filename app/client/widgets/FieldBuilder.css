@@ -1,0 +1,32 @@
+.transform_editor {
+  width: 90%;
+  margin: 5px auto;
+  border: 1px solid #DDDDDD;
+}
+
+.transform_menu {
+  padding: 5px 0;
+  margin: 5px;
+  border-top: 1px solid rgba(200, 200, 200, .3);
+  border-bottom: 1px solid rgba(200, 200, 200, .3);
+}
+
+.fieldbuilder_settings {
+  background-color: #e8e8e8;
+  margin: 1rem -1px -4px -1px;
+  padding-bottom: 1px;
+}
+
+.fieldbuilder_settings_header {
+  height: 2rem;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.fieldbuilder_settings_button {
+  display: inline-block;
+  float: right;
+  padding: 0 1rem;
+  border-radius: 5px;
+  background-color: lightgrey;
+}

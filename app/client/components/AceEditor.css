@@ -1,0 +1,18 @@
+.ace_grist_link_hidden {
+  display: none;
+}
+
+.ace_grist_link {
+  color: var(--grist-color-light-green);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ace_editor.ace_autocomplete .ace_completion-highlight.ace_grist_link {
+  color: var(--grist-color-dark-green);
+}
+
+.ace_editor.ace_autocomplete .ace_text-layer {
+  z-index: 7;
+  pointer-events: auto;
+}

@@ -1,0 +1,53 @@
+.shortcut_keys {
+  display: inline-block;
+}
+
+.context-menu-item .shortcut_keys {
+  font-size: 1.2rem;
+}
+
+.shortcut_key_image {
+  display: inline-block;
+  border-left: 2px solid #eee;
+  border-top: 2px solid #eee;
+  border-right: 2px solid #aaa;
+  border-bottom: 2px solid #aaa;
+  box-shadow: inset 0px 0px 0px 1px #fff, inset 3px 1px 0.5rem 2px #eee;
+  border-radius: 3px;
+  margin: 1px 0.2rem;
+  padding: 1px 6px;
+  font-size: 0.9em;
+  color: #666;
+  background-color: white;
+}
+
+.shortcut_key_image.pressed {
+  border-left: 2px solid #aba;
+  border-top: 2px solid #aba;
+  border-right: 2px solid #efe;
+  border-bottom: 2px solid #efe;
+  box-shadow: inset 0px 0px 0px 1px #efe, inset 3px 1px 0.5rem 2px #efe;
+}
+
+.shortcut_key_image.highlight {
+  border-left: 2px solid #cfc;
+  border-top: 2px solid #cfc;
+  border-right: 2px solid #8b8;
+  border-bottom: 2px solid #8b8;
+  box-shadow: inset 0px 0px 0px 1px #bfb, inset 3px 1px 0.5rem 2px #bfb;
+}
+
+.g-help .shortcut_key_image {
+  display: inline-block;
+  border-left: 2px solid #777;
+  border-top: 2px solid #777;
+  border-right: 2px solid #444;
+  border-bottom: 2px solid #444;
+  box-shadow: inset 0px 0px 0px 1px #555, inset -3px -1px 0.5rem 2px #777;
+  border-radius: 3px;
+  margin: 1px 0.2rem;
+  padding: 1px 6px;
+  font-size: 0.9em;
+  color: #cf0;
+  background-color: #555;
+}

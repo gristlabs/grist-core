@@ -1,0 +1,39 @@
+.embed-form-desc {
+  margin: 10px 0;
+}
+
+.embed-form-basket-id {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.embed-form-tables {
+  text-align: center;
+}
+
+.embed-form-tables .kf_row > .kf_elem {
+  margin: 0;
+  width: 90%;
+}
+
+.embed-form-table-id {
+  text-align: left;
+}
+
+.embed-form-published {
+  background-color: #f0f9f9;
+  border: 1px dashed #35afae;
+  padding: 0 5px 5px 5px;
+}
+
+.embed-form-unpublished {
+  padding: 5px;
+}
+
+.embed-form-link {
+  text-align: center;
+}
+
+.embed-form-connect {
+  text-align: center;
+}

@@ -1,0 +1,459 @@
+import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {reportError} from 'app/client/models/AppModel';
+import * as css from 'app/client/ui/BillingPageCss';
+import {colors, vars} from 'app/client/ui2018/cssVars';
+import {formSelect} from 'app/client/ui2018/menus';
+import {IBillingAddress, IBillingCard, IBillingOrgSettings} from 'app/common/BillingAPI';
+import {checkSubdomainValidity} from 'app/common/orgNameUtils';
+import * as roles from 'app/common/roles';
+import {Organization} from 'app/common/UserAPI';
+import {Disposable, dom, DomArg, IDisposableOwnerT, makeTestId, Observable} from 'grainjs';
+
+const G = getBrowserGlobals('Stripe', 'window');
+const testId = makeTestId('test-bp-');
+// TODO: When countries other than the US are supported, the state entry must not be limited
+// by a dropdown.
+const states = [
+  'AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'FM', 'GA', 'GU', 'HI',
+  'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MH', 'MI', 'MN', 'MO', 'MP',
+  'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR',
+  'PW', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VI', 'VT', 'WA', 'WI', 'WV', 'WY'
+];
+
+export interface IFormData {
+  address?: IBillingAddress;
+  card?: IBillingCard;
+  token?: string;
+  settings?: IBillingOrgSettings;
+}
+
+
+// Optional autofill vales to pass in to the BillingForm constructor.
+interface IAutofill {
+  address?: Partial<IBillingAddress>;
+  settings?: Partial<IBillingOrgSettings>;
+  // Note that the card name is the only value that may be initialized, since the other card
+  // information is sensitive.
+  card?: Partial<IBillingCard>;
+}
+
+// An object containing a function to check the validity of its observable value.
+// The get function should return the observable value or throw an error if it is invalid.
+interface IValidated<T> {
+  value: Observable<T>;
+  checkValidity: (value: T) => void|Promise<void>; // Should throw with message on invalid values.
+  isInvalid: Observable<boolean>;
+  get: () => T|Promise<T>;
+}
+
+export class BillingForm extends Disposable {
+  private readonly _address: BillingAddressForm|null;
+  private readonly _payment: BillingPaymentForm|null;
+  private readonly _settings: BillingSettingsForm|null;
+
+  constructor(
+    org: Organization|null,
+    isDomainAvailable: (domain: string) => Promise<boolean>,
+    options: {payment: boolean, address: boolean, settings: boolean, domain: boolean},
+    autofill: IAutofill = {}
+  ) {
+    super();
+
+    // Get the number of forms - if more than one is present subheaders should be visible.
+    const count = [options.settings, options.address, options.payment]
+      .reduce((acc, x) => acc + (x ? 1 : 0), 0);
+
+    // Org settings form.
+    this._settings = options.settings ? new BillingSettingsForm(org, isDomainAvailable, {
+      showHeader: count > 1,
+      showDomain: options.domain,
+      autofill: autofill.settings
+    }) : null;
+
+    // Address form.
+    this._address = options.address ? new BillingAddressForm({
+      showHeader: count > 1,
+      autofill: autofill.address
+    }) : null;
+
+    // Payment form.
+    this._payment = options.payment ? new BillingPaymentForm({
+      showHeader: count > 1,
+      autofill: autofill.card
+    }) : null;
+  }
+
+  public buildDom() {
+    return [
+      this._settings ? this._settings.buildDom() : null,
+      this._address ? this._address.buildDom() : null,
+      this._payment ? this._payment.buildDom() : null
+    ];
+  }
+
+  // Note that this will throw if any values are invalid.
+  public async getFormData(): Promise<IFormData> {
+    const settings = this._settings ? await this._settings.getSettings() : undefined;
+    const address = this._address ? await this._address.getAddress() : undefined;
+    const cardInfo = this._payment ? await this._payment.getCardAndToken() : undefined;
+    return {
+      settings,
+      address,
+      token: cardInfo ? cardInfo.token : undefined,
+      card: cardInfo ? cardInfo.card : undefined
+    };
+  }
+}
+
+// Abstract class which includes helper functions for creating a form whose values are verified.
+abstract class BillingSubForm extends Disposable {
+  protected readonly formError: Observable<string> = Observable.create(this, '');
+
+  constructor() {
+    super();
+  }
+
+  // Creates an input whose value is validated on blur. Input text turns red and the validation
+  // error is shown on negative validation.
+  protected billingInput(validated: IValidated<string>, ...args: Array<DomArg<any>>) {
+    return css.billingInput(validated.value, {onInput: true},
+      css.billingInput.cls('-invalid', validated.isInvalid),
+      dom.on('blur', () => this._onBlur(validated)),
+      ...args
+    );
+  }
+
+  protected async _onBlur(validated: IValidated<string>): Promise<void> {
+    // Do not show empty input errors on blur.
+    if (validated.value.get().length === 0) { return; }
+    try {
+      await validated.get();
+      this.formError.set('');
+    } catch (e) {
+      this.formError.set(e.message);
+    }
+  }
+}
+
+/**
+ * Creates the payment card entry form using Stripe Elements.
+ */
+class BillingPaymentForm extends BillingSubForm {
+  private readonly _stripe: any;
+  private readonly _elements: any;
+
+  // Stripe Element fields. Set when the elements are mounted to the dom.
+  private readonly _numberElement: Observable<any> = Observable.create(this, null);
+  private readonly _expiryElement: Observable<any> = Observable.create(this, null);
+  private readonly _cvcElement: Observable<any> = Observable.create(this, null);
+  private readonly _name: IValidated<string> = createValidated(this, 'Name');
+
+  constructor(private readonly _options: {
+    showHeader: boolean;
+    autofill?: Partial<IBillingCard>;
+  }) {
+    super();
+    const autofill = this._options.autofill;
+    const stripeAPIKey = (G.window as any).gristConfig.stripeAPIKey;
+    try {
+      this._stripe = G.Stripe(stripeAPIKey);
+      this._elements = this._stripe.elements();
+    } catch (err) {
+      reportError(err);
+    }
+    if (autofill) {
+      this._name.value.set(autofill.name || '');
+    }
+  }
+
+  public buildDom() {
+    return this._stripe ? css.paymentBlock(
+        this._options.showHeader ? css.paymentSubHeader('Payment Method') : null,
+        css.paymentRow(
+          css.paymentField(
+            css.paymentLabel('Cardholder Name'),
+            this.billingInput(this._name, testId('card-name')),
+          )
+        ),
+        css.paymentRow(
+          css.paymentField(
+            css.paymentLabel({for: 'number-element'}, 'Card Number'),
+            css.stripeInput({id: 'number-element'}), // A Stripe Element will be inserted here.
+            testId('card-number')
+          )
+        ),
+        css.paymentRow(
+          css.paymentField(
+            css.paymentLabel({for: 'expiry-element'}, 'Expiry Date'),
+            css.stripeInput({id: 'expiry-element'}), // A Stripe Element will be inserted here.
+            testId('card-expiry')
+          ),
+          css.paymentSpacer(),
+          css.paymentField(
+            css.paymentLabel({for: 'cvc-element'}, 'CVC / CVV Code'),
+            css.stripeInput({id: 'cvc-element'}), // A Stripe Element will be inserted here.
+            testId('card-cvc')
+          )
+        ),
+        css.inputError(
+          dom.text(this.formError),
+          testId('payment-form-error')
+        ),
+        () => { setTimeout(() => this._mountStripeUI(), 0); }
+      ) : null;
+  }
+
+  public async getCardAndToken(): Promise<{card: IBillingCard, token: string}> {
+    // Note that we call createToken using only the card number element as the first argument
+    // in accordance with the Stripe API:
+    //
+    // "If applicable, the Element pulls data from other Elements you’ve created on the same
+    // instance of elements to tokenize—you only need to supply one element as the parameter."
+    //
+    // Source: https://stripe.com/docs/stripe-js/reference#stripe-create-token
+    try {
+      const result = await this._stripe.createToken(this._numberElement.get(), {name: await this._name.get()});
+      if (result.error) { throw new Error(result.error.message); }
+      return {
+        card: result.token.card,
+        token: result.token.id
+      };
+    } catch (e) {
+      this.formError.set(e.message);
+      throw e;
+    }
+  }
+
+  private _mountStripeUI() {
+    // Mount Stripe Element fields.
+    this._mountStripeElement(this._numberElement, 'cardNumber', 'number-element');
+    this._mountStripeElement(this._expiryElement, 'cardExpiry', 'expiry-element');
+    this._mountStripeElement(this._cvcElement, 'cardCvc', 'cvc-element');
+  }
+
+  private _mountStripeElement(elemObs: Observable<any>, stripeName: string, elementId: string): void {
+    // For details on applying custom styles to Stripe Elements, see:
+    // https://stripe.com/docs/stripe-js/reference#element-options
+    const classes = {base: css.stripeInput.className};
+    const style = {
+      base: {
+        '::placeholder': {
+          color: colors.slate.value
+        },
+        'fontSize': vars.mediumFontSize.value,
+        'fontFamily': vars.fontFamily.value
+      }
+    };
+    if (!elemObs.get()) {
+      const stripeInst = this._elements.create(stripeName, {classes, style});
+      stripeInst.addEventListener('change', (event: any) => {
+        if (event.error) { this.formError.set(event.error.message); }
+      });
+      elemObs.set(stripeInst);
+    }
+    elemObs.get().mount(`#${elementId}`);
+  }
+}
+
+/**
+ * Creates the company address entry form. Used by BillingPaymentForm when billing address is needed.
+ */
+class BillingAddressForm extends BillingSubForm {
+  private readonly _address1: IValidated<string> = createValidated(this, 'Address');
+  private readonly _address2: IValidated<string> = createValidated(this, 'Suite/unit', () => undefined);
+  private readonly _city: IValidated<string> = createValidated(this, 'City');
+  private readonly _state: IValidated<string> = createValidated(this, 'State');
+  private readonly _postal: IValidated<string> = createValidated(this, 'Zip code');
+
+  constructor(private readonly _options: {
+    showHeader: boolean;
+    autofill?: Partial<IBillingAddress>;
+  }) {
+    super();
+    const autofill = this._options.autofill;
+    if (autofill) {
+      this._address1.value.set(autofill.line1 || '');
+      this._address2.value.set(autofill.line2 || '');
+      this._city.value.set(autofill.city || '');
+      this._state.value.set(autofill.state || '');
+      this._postal.value.set(autofill.postal_code || '');
+    }
+  }
+
+  public buildDom() {
+    return css.paymentBlock(
+      this._options.showHeader ? css.paymentSubHeader('Company Address') : null,
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('Street Address'),
+          this.billingInput(this._address1, testId('address-street'))
+        )
+      ),
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('Suite / Unit'),
+          this.billingInput(this._address2, testId('address-suite'))
+        )
+      ),
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('City'),
+          this.billingInput(this._city, testId('address-city'))
+        ),
+        css.paymentSpacer(),
+        css.paymentField({style: 'flex: 0.5 1 0;'},
+          css.paymentLabel('State'),
+          formSelect(this._state.value, states),
+          testId('address-state')
+        )
+      ),
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('Zip Code'),
+          this.billingInput(this._postal, testId('address-zip'))
+        )
+      ),
+      css.inputError(
+        dom.text(this.formError),
+        testId('address-form-error')
+      )
+    );
+  }
+
+  // Throws if any value is invalid. Returns a customer address as accepted by the customer
+  // object in stripe.
+  // For reference: https://stripe.com/docs/api/customers/object#customer_object-address
+  public async getAddress(): Promise<IBillingAddress|undefined> {
+    try {
+      return {
+        line1: await this._address1.get(),
+        line2: await this._address2.get(),
+        city: await this._city.get(),
+        state: await this._state.get(),
+        postal_code: await this._postal.get(),
+        country: 'US' // TODO: Support more countries.
+      };
+    } catch (e) {
+      this.formError.set(e.message);
+      throw e;
+    }
+  }
+}
+
+/**
+ * Creates the billing settings form, including the org name and the org subdomain values.
+ */
+class BillingSettingsForm extends BillingSubForm {
+  private readonly _name: IValidated<string> = createValidated(this, 'Company name');
+  // Only verify the domain if it is shown.
+  private readonly _domain: IValidated<string> = createValidated(this, 'URL',
+    this._options.showDomain ? d => this._verifyDomain(d) : () => undefined);
+
+  constructor(
+    private readonly _org: Organization|null,
+    private readonly _isDomainAvailable: (domain: string) => Promise<boolean>,
+    private readonly _options: {
+      showHeader: boolean;
+      showDomain: boolean;
+      autofill?: Partial<IBillingOrgSettings>;
+    }
+  ) {
+    super();
+    const autofill = this._options.autofill;
+    if (autofill) {
+      this._name.value.set(autofill.name || '');
+      this._domain.value.set(autofill.domain || '');
+    }
+  }
+
+  public buildDom() {
+    const noEditAccess = Boolean(this._org && !roles.canEdit(this._org.access));
+    return css.paymentBlock(
+      this._options.showHeader ? css.paymentSubHeader('Team Site') : null,
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('Company Name'),
+          this.billingInput(this._name,
+            dom.boolAttr('disabled', () => noEditAccess),
+            testId('settings-name')
+          ),
+          noEditAccess ? css.paymentFieldInfo('Organization edit access is required',
+            testId('settings-name-info')
+          ) : null
+        )
+      ),
+      this._options.showDomain ? css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('URL'),
+          this.billingInput(this._domain,
+            dom.boolAttr('disabled', () => noEditAccess),
+            testId('settings-domain')
+          ),
+          // Note that we already do not allow editing the domain after it is initially set
+          // anyway, this is just here for consistency.
+          noEditAccess ? css.paymentFieldInfo('Organization edit access is required',
+            testId('settings-domain-info')
+          ) : null
+        ),
+        css.paymentField({style: 'flex: 0 1 0;'},
+          css.inputHintLabel('.getgrist.com')
+        )
+      ) : null,
+      css.inputError(
+        dom.text(this.formError),
+        testId('settings-form-error')
+      )
+    );
+  }
+
+  // Throws if any value is invalid.
+  public async getSettings(): Promise<IBillingOrgSettings|undefined> {
+    try {
+      return {
+        name: await this._name.get(),
+        domain: await this._domain.get()
+      };
+    } catch (e) {
+      this.formError.set(e.message);
+      throw e;
+    }
+  }
+
+  // Throws if the entered domain contains any invalid characters or is already taken.
+  private async _verifyDomain(domain: string): Promise<void> {
+    checkSubdomainValidity(domain);
+    const isAvailable = await this._isDomainAvailable(domain);
+    if (!isAvailable) { throw new Error('Domain is already taken.'); }
+  }
+}
+
+// Creates a validated object, which includes an observable and a function to check
+// if the current observable value is valid.
+function createValidated(
+  owner: IDisposableOwnerT<any>,
+  propertyName: string,
+  validationFn?: (value: string) => void
+): IValidated<string> {
+  const checkValidity = validationFn || ((_value: string) => {
+    if (!_value) { throw new Error(`${propertyName} is required.`); }
+  });
+  const value = Observable.create(owner, '');
+  const isInvalid = Observable.create<boolean>(owner, false);
+  owner.autoDispose(value.addListener(() => { isInvalid.set(false); }));
+  return {
+    value,
+    isInvalid,
+    checkValidity,
+    get: async () => {
+      const _value = value.get();
+      try {
+        await checkValidity(_value);
+      } catch (e) {
+        isInvalid.set(true);
+        throw e;
+      }
+      isInvalid.set(false);
+      return _value;
+    }
+  };
+}

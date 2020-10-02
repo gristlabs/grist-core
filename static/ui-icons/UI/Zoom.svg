@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / Zoom</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-Zoom" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M12,4 L7.5,4 C7.22385763,4 7,3.77614237 7,3.5 C7,3.22385763 7.22385763,3 7.5,3 L12.5,3 C12.7761424,3 13,3.22385763 13,3.5 L13,8.5 C13,8.77614237 12.7761424,9 12.5,9 C12.2238576,9 12,8.77614237 12,8.5 L12,4 Z M4,12 L8.5,12 C8.77614237,12 9,12.2238576 9,12.5 C9,12.7761424 8.77614237,13 8.5,13 L3.5,13 C3.22385763,13 3,12.7761424 3,12.5 L3,7.5 C3,7.22385763 3.22385763,7 3.5,7 C3.77614237,7 4,7.22385763 4,7.5 L4,12 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

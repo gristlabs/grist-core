@@ -1,5 +1,3 @@
-'use strict';
-
 const StatsPlugin = require('stats-webpack-plugin');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 const path = require('path');
@@ -7,7 +5,7 @@ const path = require('path');
 module.exports = {
   target: 'web',
   entry: {
-    main: "app/client/index.js",
+    main: "app/client/app.js",
   },
   output: {
     filename: "[name].bundle.js",

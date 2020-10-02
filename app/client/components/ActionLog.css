@@ -1,0 +1,121 @@
+.action_log {
+  padding: 1rem;
+  margin: 0;
+}
+
+.action_log_item {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.action_info {
+  line-height: 1;
+  font-size: 0.9rem;
+  color: grey;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.action_info > span {
+  margin: 0 2px;
+}
+
+.action_info_user {
+  font-weight: 600;
+}
+
+.action_info_from_self {
+  color: #333333;
+}
+
+.action_log_item.undone > .action_info,
+.action_log_item.undone > .action_desc {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.action_log_item.buried {
+  background-color: #ddd;
+}
+
+.action_log_item.buried > .action_desc {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.action_log_rename_pre {
+  background: #faa;
+}
+
+.action_log_rename_post {
+  background: #afa;
+}
+
+.action_log_table {
+  border-collapse: collapse;
+}
+
+.action_log_table caption {
+  caption-side: bottom;
+  text-align: center;
+  margin-top: 0;
+  padding-top: 0;
+  color: #000;
+}
+
+.action_log_table td {
+  border-left: 1px solid #888;
+  border-right: 1px solid #888;
+  border-bottom: 1px solid #888;
+  border-top: 1px solid #888;
+  cursor: pointer;
+}
+
+.action_log_table th {
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  color: #888;
+}
+
+.action_log_table th:first-child {
+  border: none;
+  border-bottom: 1px solid #ccc;
+}
+
+.action_log_table td:first-child {
+  border: none;
+  border-left: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  color: #888;
+  cursor: inherit;
+}
+
+.action_log_table td, .action_log_table th {
+  padding-left: 3px;
+  padding-right: 3px;
+  font-weight: normal;
+}
+
+.action_log_cell_remove {
+  background: #faa;
+  text-decoration: line-through;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.action_log_cell_pre {
+  margin-right: 3px;
+}
+
+.action_log_cell_add {
+  background: #afa;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.action_comment {
+  display: none;
+}

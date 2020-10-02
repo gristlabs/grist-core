@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / PinSmall</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-PinSmall" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M7.5,11 L2.5,11 C2.22385763,11 2,10.7761424 2,10.5 C2,10.2238576 2.22385763,10 2.5,10 L4.25,10 L5.75,4 L4.5,4 C4.22385763,4 4,3.77614237 4,3.5 C4,3.22385763 4.22385763,3 4.5,3 L11.5,3 C11.7761424,3 12,3.22385763 12,3.5 C12,3.77614237 11.7761424,4 11.5,4 L10.25,4 L11.75,10 L13.5,10 C13.7761424,10 14,10.2238576 14,10.5 C14,10.7761424 13.7761424,11 13.5,11 L8.5,11 L8.5,14 L7.5,14 L7.5,11 Z M5.28077641,10 L10.7192236,10 L9.21922359,4 L6.78077641,4 L5.28077641,10 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

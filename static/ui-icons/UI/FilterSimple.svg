@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>FilterSimple</title>
+    <desc>Created with Sketch.</desc>
+    <g id="FilterSimple" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Filter-simple-12" transform="translate(3.000000, 3.000000)" fill="#000000" fill-rule="nonzero">
+            <g id="Group">
+                <path d="M9.95083333,0.22 C9.87828667,0.0844977108 9.737034,-6.16967951e-05 9.58333333,-4.6259328e-17 L0.416666667,-4.6259328e-17 C0.263103454,7.93273435e-05 0.1220314,0.0846184875 0.0495494012,0.219999529 C-0.0229325978,0.355380571 -0.0150740517,0.519656062 0.07,0.6475 L3.33333333,5.5425 L3.33333333,9.58333333 C3.33333333,9.813452 3.51988136,10 3.75,10 L6.25,10 C6.48011864,10 6.66666667,9.813452 6.66666667,9.58333333 L6.66666667,5.5425 L9.93,0.6475 C10.0151956,0.519727991 10.0232013,0.355450547 9.95083333,0.22 Z" id="Path"></path>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,73 @@
+.searchbar-box.grist-navbar-pfx.part-toolbar-group__item {
+  display: flex;
+  width: 15rem;
+  padding: 0;
+  color: grey;
+}
+
+.searchbar-box.grist-navbar-pfx.part-toolbar-group__item:focus-within {
+  box-shadow: 0 0 3px 2px var(--grist-color-cursor);
+  color: black;
+}
+
+.searchbar-box.grist-navbar-pfx.part-toolbar-group__item:hover {
+  /* undo the effect of hover in .part-toolbar-group__item */
+  background-color: var(--color-navbar-btn-bg);
+}
+
+.searchbar-button.grist-navbar-pfx.part-toolbar-group__item {
+  padding: 0 3px;
+}
+
+.searchbar-icon {
+  flex: none;
+  font-size: 1.2rem;
+  color: grey;
+  margin: 0 2px 0 4px;
+  top: 2px;
+  line-height: inherit;
+}
+
+.searchbar-icon-indicator {
+  animation: searchbar_flip 1s ease-in-out infinite;
+}
+
+.searchbar-input {
+  display: block;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  height: 22px;
+  min-width: 0;
+}
+
+.searchbar-buttons {
+  flex: none;
+  align-self: center;
+  margin: 0 2px 0 0 !important;
+}
+
+.searchbar-buttons > .kf_button {
+  height: 1.6rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.searchbar-buttons > .disabled {
+  opacity: 0.5;
+}
+
+@keyframes searchbar_flip {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+
+/* applies to the cursor element, added and quickly removed to trigger a highlight animation */
+.selected_cursor {
+  transition: background-color 500ms linear;
+}
+
+.search-match {
+  transition: none;
+  background-color: rgba(0, 255, 0, 0.4);
+}

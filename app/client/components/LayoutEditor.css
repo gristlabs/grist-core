@@ -1,0 +1,97 @@
+.layout_editor_floater {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+  -webkit-transform: rotate(5deg) scale(0.8);
+  transform: rotate(5deg) scale(0.8);
+
+  display: -webkit-flex;
+  display: flex;
+}
+
+/* Invisible div, into which we can place content that needs to be measured. */
+.layout_editor_measuring_box {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  border: none;
+  visibility: hidden;
+}
+
+.layout_editor_drop_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+  border-top: 0px solid #66F;
+  border-bottom: 0px solid #66F;
+  border-left: 0px solid #6F6;
+  border-right: 0px solid #6F6;
+  pointer-events: none;
+}
+
+.layout_editor_drop_targeter {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.layout_editor_drop_target {
+  position: absolute;
+  border: 2px dashed black;
+  z-index: 10;
+}
+.layout_editor_drop_target.layout_hover {
+  border: 2px dashed #798AF1;
+}
+
+.layout_editor_empty_space {
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 2px;
+  -webkit-flex: 1 1 0px;
+  flex: 1 1 0px;
+}
+
+.layout_editor_resize_transition {
+  -webkit-transition: height .4s cubic-bezier(0.4, 0, 0.2, 1), width .4s cubic-bezier(0.4, 0, 0.2, 1), opacity .8s;
+  transition: height .4s cubic-bezier(0.4, 0, 0.2, 1), width .4s cubic-bezier(0.4, 0, 0.2, 1), opacity .8s;
+  min-height: 0px !important;
+  /* Important tags necessary for .layout_hbox.layout_fill_window flex boxes */
+  -webkit-flex-basis: auto !important;
+  flex-basis: auto !important;
+}
+
+.layout_box > .ui-resizable-handle {
+  opacity: 0.0;
+  -webkit-transition: opacity .2s;
+  transition: opacity .2s;
+}
+
+.layout_box > .ui-resizable-w,
+.layout_box > .ui-resizable-e {
+  cursor: ew-resize;
+  border-left: 1px dashed #a9a9a9;
+  margin-right: -1px;
+}
+
+.layout_box > .ui-resizable-s {
+  cursor: ns-resize;
+  border-top: 1px dashed #a9a9a9;
+  margin-bottom: -1px;
+}
+
+.layout_box > .ui-resizable-handle:hover {
+  opacity: 1.0;
+}
+
+.layout_grabbable:hover {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+/* TODO: Grabbing cursor does not show in Firefox */
+.layout_grabbable:active {
+  cursor: -webkit-grabbing;
+}

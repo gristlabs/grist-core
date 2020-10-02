@@ -1,0 +1,48 @@
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+  font-family: sans-serif;
+  font-size: 1.2rem;
+  margin: 0;
+  padding: 0;
+}
+
+#grist-app {
+  height: 100%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+}
+
+.g-help {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  height: 80%;
+  width: 80%;
+  z-index: 999;
+
+  padding: 1rem;
+
+  background-color: rgba(0, 0, 0, .8);
+
+  -webkit-border-radius: 1rem;
+     -moz-border-radius: 1rem;
+          border-radius: 1rem;
+
+  color: #fff;
+  font-size: 1.4rem;
+  overflow: auto;
+}
+
+.g-help-table {
+  width: 100%;
+  margin-bottom: 2rem;
+}

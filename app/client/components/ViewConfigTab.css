@@ -1,0 +1,38 @@
+.view_config_draggable_field {
+  position: relative;
+  margin: .2rem .5rem;
+  padding: .2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.view_config_draggable_field:hover {
+  background-color: var(--color-list-item-hover);
+}
+
+.view_config_draggable_field > .drag_delete {
+  float: none;
+  position: absolute;
+  top: 0.3rem;
+  right: 0.2rem;
+
+  background-color: white;
+  padding: 0.2rem;
+  border-radius: 1rem;
+  margin: 0;
+}
+
+.view_config_draggable_field > .drag_delete:hover {
+  color: black;
+}
+
+.view_config_field_group.kf_collapser {
+  font-size: inherit;
+  font-weight: bold;
+  margin: 1rem .5rem;
+}
+
+.view_config_draggable_field > .kf_draggable_content {
+  display: inline;
+}

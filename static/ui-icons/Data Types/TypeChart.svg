@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / Data Types / TypeChart</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-Data-Types-/-TypeChart" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M7,1 L7,15 L9,15 L9,1 L7,1 Z M6.5,0 L9.5,0 C9.77614237,0 10,0.223857625 10,0.5 L10,15.5 C10,15.7761424 9.77614237,16 9.5,16 L6.5,16 C6.22385763,16 6,15.7761424 6,15.5 L6,0.5 C6,0.223857625 6.22385763,0 6.5,0 Z M1,11 L1,15 L3,15 L3,11 L1,11 Z M0.5,10 L3.5,10 C3.77614237,10 4,10.2238576 4,10.5 L4,15.5 C4,15.7761424 3.77614237,16 3.5,16 L0.5,16 C0.223857625,16 0,15.7761424 0,15.5 L0,10.5 C0,10.2238576 0.223857625,10 0.5,10 Z M13,6 L13,15 L15,15 L15,6 L13,6 Z M12.5,5 L15.5,5 C15.7761424,5 16,5.22385763 16,5.5 L16,15.5 C16,15.7761424 15.7761424,16 15.5,16 L12.5,16 C12.2238576,16 12,15.7761424 12,15.5 L12,5.5 C12,5.22385763 12.2238576,5 12.5,5 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / FunctionResult</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-FunctionResult" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M4,2 L12,2 C13.1045695,2 14,2.8954305 14,4 L14,12 C14,13.1045695 13.1045695,14 12,14 L4,14 C2.8954305,14 2,13.1045695 2,12 L2,4 C2,2.8954305 2.8954305,2 4,2 Z M4.5,6 C4.22385763,6 4,6.22385763 4,6.5 C4,6.77614237 4.22385763,7 4.5,7 L11.5,7 C11.7761424,7 12,6.77614237 12,6.5 C12,6.22385763 11.7761424,6 11.5,6 L4.5,6 Z M4.5,9 C4.22385763,9 4,9.22385763 4,9.5 C4,9.77614237 4.22385763,10 4.5,10 L11.5,10 C11.7761424,10 12,9.77614237 12,9.5 C12,9.22385763 11.7761424,9 11.5,9 L4.5,9 Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

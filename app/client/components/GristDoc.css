@@ -1,0 +1,69 @@
+/* container for main buttons */
+.g-doc-menu-main {
+  flex: 1;
+  -webkit-flex: 1;
+}
+
+.btn.g_toolbar_symbol {
+  font-family: "Apple Symbols", "Arial Unicode MS";
+  font-size: 2rem;
+  line-height: 15px;
+  padding-top: 4px;
+}
+
+.big_symbol {
+  font-size: 2em;
+  line-height: 0.5;
+  vertical-align: middle;
+}
+
+.grist-doc-menu__view-title {
+  margin: auto; /* center */
+  text-align: center;
+}
+
+.view_main_pane {
+  width: 100%;
+  position: relative;
+}
+
+.view_main_pane.open_side_pane {
+  width: 75%;
+  min-width: 50%;
+}
+
+.add_section_btn {
+  width: 9.5rem;
+  text-align: left;
+}
+
+.add_section_icon {
+  position: relative;
+  background-color: white;
+  width: 1.6rem;
+  height: 1.2rem;
+  margin-left: 4px;
+}
+
+.section_icon {
+  position: absolute;
+  font-size: 1.05rem;
+  top: .2rem;
+  left: 0;
+  transform: scale(.9, 1);
+}
+.plus_icon {
+  position: absolute;
+  top: .35rem;
+  left: 1.1rem;
+  font-size: .5rem;
+}
+
+.download_btn {
+  font-size: 1.0rem;
+  color: black;
+}
+
+.relative {
+  position: relative;
+}

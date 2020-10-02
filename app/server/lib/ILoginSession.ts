@@ -4,6 +4,7 @@ import {Client} from 'app/server/lib/Client';
 export interface ILoginSession {
   clients: Set<Client>;
   getEmail(): Promise<string>;
+  getSessionProfile(): Promise<UserProfile|null>;
   // Log out
   clearSession(): Promise<void>;
 

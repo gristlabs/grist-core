@@ -1,0 +1,29 @@
+.validation {
+  background-color: rgba(255, 255, 255, .5);
+  margin: 4px 8px 4px 1px;
+  padding: 3px 0;
+}
+
+.validation_title {
+  position: relative;
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #E6E6E6;
+}
+
+.validation_trash {
+  cursor: pointer;
+  color: #AAA;
+  font-size: 1.1rem;
+}
+
+.validation_trash:hover {
+  color: black;
+}
+
+.validation_formula {
+  width: 90%;
+  margin: 5px auto;
+  border: 1px solid #DDD;
+}

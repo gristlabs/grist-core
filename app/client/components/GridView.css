@@ -1,0 +1,237 @@
+.gridview_data_pane {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  flex-grow: 1;
+  /* make sure that this element is at the back of the stack */
+  z-index: 0;
+
+  /* prevent browser selection of cells */
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  --gridview-header-height: 2.2rem;
+}
+
+.gridview_data_pane.newui {
+  --gridview-header-height: 24px;
+}
+
+.gridview_data_scroll {
+  /* Make it position properly */
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+
+  z-index: 2; /* scrollbar should be over the overlay background */
+  border-top: 1px solid lightgrey;
+}
+
+.gridview_data_pane.newui > .gridview_data_scroll {
+  border-top: none;
+}
+
+/* ====== Col header stuff */
+
+.gridview_stick-top{
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0px;
+  z-index: 2; /* z-index must be here, doesnt work on children*/
+}
+
+.gridview_data_header {
+  border-bottom: 1px solid lightgray;
+  position:relative;
+}
+
+.gridview_corner_spacer { /* spacer in .gridview_data_header */
+  width: 4rem; /* matches row_num width */
+  flex: none;
+}
+
+.field.column_name {
+  line-height: var(--gridview-header-height);
+  height: var(--gridview-header-height); /* Also should match height for overlay elements */
+}
+
+/* also .field.column_name, style set in viewCommon */
+
+/* ====== Row stuff */
+/* (more styles in viewCommon.css for .field, .record, etc) */
+
+.gridview_row {
+  display:flex;
+}
+
+.gridview_data_row_num { /* Row nums, stick to the left side */
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0px;
+  overflow: hidden;
+  width: 4rem; /* Also should match width for .gridview_header_corner, and the overlay elements */
+
+  border-bottom: 1px solid var(--grist-color-dark-grey);
+  background-color: var(--grist-color-light-grey);
+  z-index: 2; /* goes over data cells */
+
+  padding-top: 2px;
+  text-align: center;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+@media print {
+  /* For printing, !important tag is needed for background colors to be respected; but normally,
+   * do not want !important, as it interferes with row selection.
+   */
+  .gridview_data_row_num {
+    background-color: var(--grist-color-light-grey) !important;
+  }
+}
+
+/* ========= Overlay styles ========== */
+/* Positioned outside scrollpane, purely visual */
+
+.gridview_data_corner_overlay,
+.gridview_header_backdrop_top,
+.gridview_header_backdrop_left,
+.scroll_shadow_top,
+.scroll_shadow_left {
+  position:absolute;
+  background-color: var(--grist-color-light-grey) !important;
+}
+
+.gridview_data_corner_overlay {
+  width: 4rem;
+  height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
+  top: 1px; /* go under 1px border on scrollpane */
+  border-bottom: 1px solid lightgray;
+  z-index: 3;
+}
+
+.scroll_shadow_left {
+  height: 100%; /* Just needs to be tall enough to flow off the bottom*/
+  width: 0px;
+  left: 4rem;
+  box-shadow: -6px 0 6px 6px #444;
+  /* shadow should only show to the right of it (10px should be enough) */
+  -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
+  clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
+  z-index: 3;
+}
+
+.scroll_shadow_top {
+  left: 0;
+  height: 0;
+  width: 100%; /* needs to be wide enough to flow off the side*/
+  top: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
+  box-shadow: 0 -6px 6px 6px #444;
+
+  /* should only show below it (10px should be enough) */
+  -webkit-clip-path: polygon(0 0, 0 10px, 100% 10px, 100% 0);
+  clip-path: polygon(0 0, 0 10px, 100% 10px, 100% 0);
+  z-index: 3;
+}
+
+.gridview_header_backdrop_left {
+  width: calc(4rem + 1px); /* Matches rowid width (+border) */
+  height:100%;
+  top: 1px; /* go under 1px border on scrollpane */
+  z-index: 1;
+  border-right: 1px solid lightgray;
+}
+
+.gridview_header_backdrop_top {
+  width: 100%;
+  height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
+  top: 1px; /* go under 1px border on scrollpane */
+  border-bottom: 1px solid lightgray;
+  z-index: 1;
+}
+
+.gridview_data_pane.newui > .scroll_shadow_top {
+  top: var(--gridview-header-height);
+}
+
+.gridview_data_pane.newui > .gridview_data_corner_overlay,
+.gridview_data_pane.newui > .gridview_header_backdrop_top {
+  top: 0px;
+}
+
+/* End overlay styles */
+
+/* ================ Row/col drag styles*/
+
+.col_indicator_line{
+  width: 0px;
+  height: 100%;
+  position: absolute;
+  border: 2px solid gray;
+  z-index: 20;
+  top: 0px;
+}
+
+.column_shadow{
+  width: 0px;
+  height: 100%;
+  position: absolute;
+  border: 1px solid gray;
+  z-index: 15;
+  top: 0px;
+  background-color: #F0F0F0;
+  opacity: 0.5;
+}
+
+.row_indicator_line{
+  width: 100%;
+  height: 0px;
+  position: absolute;
+  border: 2px solid gray;
+  z-index: 20;
+  left: 0px;
+}
+
+.row_shadow{
+  width: 100%;
+  height: 0px;
+  position: absolute;
+  border: 1px solid gray;
+  z-index: 15;
+  left: 0px;
+  background-color: #F0F0F0;
+  opacity: 0.5;
+  pointer-events: none; /* prevents row drag shadow from stealing row headers clicks */
+}
+
+/* Etc */
+
+.g-column-main-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+
+.validation_error_number {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  padding-top: 10px;
+  padding-right: 10px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  background: red;
+  color: white;
+}
+
+.column_name.mod-add-column {
+  border-right-width: 1px;
+  min-width: 40px;
+  padding-right: 12px;
+}

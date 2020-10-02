@@ -1,0 +1,81 @@
+.login-services {
+  margin: 0 15%;
+}
+
+.login-btns > .kf_elem {
+  flex: 1 1 100%;
+}
+
+.login-spacer {
+  height: 10px;
+}
+
+.login-divider {
+  height: 0;
+  width: 100%;
+  margin-top: 20px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 20px;
+}
+
+.login-divider-text {
+  text-align: center;
+  display: inline-block;
+  position: absolute;
+  font-size: 1.2rem;
+  margin: -0.7rem auto 0 auto;
+  left: 0;
+  right: 0;
+  background-color: white;
+  width: 50px;
+  color: #aaa;
+}
+
+.login-error-notify {
+  background-color: #fdd;
+  padding: 10px;
+  margin: 10px 20px;
+  border: 1px solid #daa;
+}
+
+.login-success-notify {
+  background-color: #dfd;
+  padding: 10px;
+  margin: 10px 20px;
+  border: 1px solid #ada;
+}
+
+.login-send-code-box {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.login-send-code {
+  display: inline-block;
+  color: #337ab7;
+  cursor: pointer;
+}
+
+.profile-row {
+  font-size: 1.2rem;
+}
+
+.edit-profile.btn {
+  background: none;
+  box-shadow: none;
+}
+
+.edit-profile.btn:hover {
+  color: #aaa;
+}
+
+.edit-profile.btn:active {
+  outline: none;
+}
+
+.edit-profile-form {
+  margin: 10px;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+}

@@ -1,0 +1,13 @@
+/**
+ * With some guidance from Lucidchart:
+ * https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
+ */
+textarea.copypaste {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  font-size: 1;
+  z-index: -1;
+}

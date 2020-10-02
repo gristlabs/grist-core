@@ -1,0 +1,37 @@
+.multiselect-list-item {
+  margin: 5px;
+  padding: 5px;
+  font-size: 1.2rem;
+  color: black;
+  background-color: #555;
+}
+
+.multiselect-remove {
+  float: right;
+  font-size: 1.0rem;
+  visibility: hidden;
+  cursor: pointer;
+}
+
+.multiselect-label {
+  display: inline-block;
+}
+
+.multiselect-list-item:hover > .multiselect-remove {
+  visibility: visible;
+}
+
+.multiselect-input {
+  width: 95%;
+  margin: 0 2.5%;
+}
+
+.multiselect-hint {
+  font-size: 1.1rem;
+  margin: 0 2.5%;
+  color: var(--color-hint-text);
+}
+
+.multiselect-selected:not(.multiselect-empty) {
+  margin-bottom: 6px;
+}

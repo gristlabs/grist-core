@@ -1,0 +1,141 @@
+/* Hide column menus by default */
+.column_name .g-column-menu-btn {
+  visibility: hidden;
+}
+
+/* Make visible if open or in column header hover */
+.g-column-menu-btn.open,
+.g-column-menu-btn.active,
+.column_name:hover .g-column-menu-btn {
+  visibility: visible;
+}
+
+.g-column-menu-btn.hide-on-inactive:not(.active) {
+  visibility: hidden;
+}
+
+.g-column-menu-btn > span.glyphicon {
+  padding: 1px;
+  margin-left: 2px;
+  margin-right: 2px;
+  background-color: #fff;
+  color: #999;
+  border: 1px solid #999;
+  border-radius: 3px;
+  font-size: 1rem;
+}
+
+.g-column-menu-btn.left-btn > span.glyphicon {
+  margin: 0 0 0 2px;
+}
+
+.g-column-menu-btn.right-btn > span.glyphicon {
+  margin: 0 2px 0 0;
+}
+
+.g-column-menu-btn:hover > span.glyphicon {
+  color: #333;
+  border: 1px solid #333;
+}
+
+.g-column-menu-btn.active > span.glyphicon {
+  color: #33f;
+  border-color: #33f;
+}
+
+.g-column-menu {
+  position: absolute;
+  min-width: 180px;
+
+  z-index: 10;
+
+  padding: 4px;
+
+  background-color: #fff;
+  border: 1px solid #9D8BB5;
+  box-shadow: 0px 0px 12px #666;
+
+  text-align: left;
+}
+
+.g-column-filter-remove {
+  float: right;
+  margin: 6px 0;
+}
+
+.g-column-filter-keyword {
+  width: 100px;
+}
+
+.g-column-filter-menu {
+  margin: 6px;
+  min-width: 250px;
+}
+
+.grist-filter-menu__link {
+  cursor: pointer;
+}
+
+.g-colfilter-values-scrolly {
+  position: relative;
+  height: 200px;
+  overflow: auto;
+}
+
+.g-colfilter-menu-item {
+  padding: 1px 8px;
+  line-height: 1.6rem;
+
+  cursor: default;
+}
+
+.g-colfilter-menu-label {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.g-glyphicon-tristate {
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  background: #606060;
+}
+
+.badge-inv {
+  background-color: #ddd;
+  color: #666;
+}
+
+.arrow_box {
+  position: absolute;
+  background: #fff;
+  border: 1px solid transparent;
+  border-top-color: #9D8BB5;
+  top: -1px;
+  left: 12px;
+}
+.arrow_box:after, .arrow_box:before {
+  bottom: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.arrow_box:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-bottom-color: #fff;
+  border-width: 8px;
+  margin-left: -8px;
+}
+.arrow_box:before {
+  border-color: rgba(43, 57, 255, 0);
+  border-bottom-color: #9D8BB5;
+  border-width: 9px;
+  margin-left: -9px;
+}

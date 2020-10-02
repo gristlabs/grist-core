@@ -1,0 +1,174 @@
+/* global variables */
+:root {
+  --color-logo-row:  #F9AE41;
+  --color-logo-col:  #2CB0AF;
+  --color-logo-cell: #DEDDDD;
+  --color-logo-bg:   #42494B;
+
+  --color-link-default: #336;
+  --color-link-visited: #336;
+  --color-link-hover:   #66c;
+  --color-link-active:  #66c;
+
+  --color-link-bright: orange;
+
+  --color-start-page-bg: #f0f0f0;
+  --color-doclist-bg: #fcfcfc;
+
+  --color-navbar-bg: var(--color-logo-bg);
+  --color-navbar-btn-bg: #fefefe;
+  --color-navbar-btn-bg-hover: #f6f6f6;
+  --color-navbar-btn-disabled: #ccc;
+
+  --color-header-doclist: #6d6dde;
+
+  --color-tab-bar-bg: #d6d6d6;
+
+  --color-border-light: #ddd;
+  --color-border-medium: #bbb;
+
+  --color-btn-login: #ffb749;
+  --color-btn-login-background: #fff1dc;
+  --color-btn-createdoc: #3fda2c;
+  --color-btn-uploaddoc: #00dcff;
+  --color-btn-decline: #c74646;
+  --color-btn-accept: #3eda2c;
+
+  --layout-top-spacer: 20px;
+  --layout-doclist-header-height: 42px;
+  --layout-doclist-height: calc(100vh - 2*var(--layout-top-spacer));
+
+  --color-list-row-hover: #f0f0f0;
+
+  --color-list-item: #f6f6f6;
+  --color-list-item-hover: #e0e0e0;
+  --color-list-item-selected: #e8d53d;
+  --color-list-item-disabled: #ccc;
+  --color-list-item-action: #6eec6e;
+
+  --color-hint-text: #888;
+
+  --scroll-bar-width: 12px;
+  --scroll-bar-bg: #f0f0f0;
+
+  /* fonts */
+  --font-navbar-title: "Helvetica", "Arial", sans-serif;
+  --font-btn-symbols: "Apple Symbols", "Arial Unicode MS";
+}
+
+
+
+.flexhbox {
+  display: -webkit-flex;
+  display: flex;
+}
+.flexvbox {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+.flexitem {
+  /* Makes the flex item flexible and sets the flex basis to zero (disregards content size). */
+  -webkit-flex: 1 1 0px;
+  flex: 1 1 0px;
+  /* Min-width of 0 is needed to allow the flex box to shrink below its minimum content size. */
+  min-width: 0px;
+}
+.flexnone {
+  /* Sizes the item based on content or width/height, and makes it fully inflexible. */
+  -webkit-flex: none;
+  flex: none;
+}
+.flexauto {
+  /* Sizes the item based on content or width/height, and makes it fully flexible. */
+  -webkit-flex: auto;
+  flex: auto;
+}
+.clipped {
+  overflow: hidden;
+}
+
+body {
+  /* This seems logically appropriate since we never want body to scroll, but the real reason is
+   * to avoid a major slowdown when using $().modal() dialogs (a JQuery plugin in bootstrap).
+   * Those add/remove a class to body which sets "overflow: hidden", which causes great slowness on
+   * Firefox (not Chrome). If body is already "overflow: hidden", it's much faster.
+   */
+  overflow: hidden;
+}
+
+.show_scrollbar::-webkit-scrollbar {
+  width: var(--scroll-bar-width);
+  height: var(--scroll-bar-width);
+  background-color: var(--scroll-bar-bg);
+}
+.show_scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  -webkit-border-radius: 100px;
+  border: 2px solid var(--scroll-bar-bg);
+}
+.show_scrollbar::-webkit-scrollbar-thumb:vertical {
+  min-height: 4rem;
+}
+.show_scrollbar::-webkit-scrollbar-thumb:horizontal {
+  min-width: 4rem;
+}
+.show_scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.4); /* Some darker color when you click it */
+  -webkit-border-radius: 100px;
+}
+.show_scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: rgba(0,0,0,0.5); /* Some darker color when you click it */
+  -webkit-border-radius: 100px;
+}
+div.dev_warning {
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  opacity: 0.5;
+  pointer-events: none;
+  font-size: 200%;
+  color: white;
+  background: red;
+  text-align: center;
+}
+#browser-check-problem {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 5000;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.9);
+  padding-top: 3em;
+}
+#browser-check-problem div.browser-check-wrapper {
+  position: absolute;
+  top: 30%;
+  width: 100%;
+}
+#browser-check-problem div.browser-check-message, #browser-check-problem div.browser-check-options {
+  margin: 0 auto;
+  max-width: 400px;
+  padding: 1em;
+  background: white;
+}
+#browser-check-problem div.browser-check-options {
+  text-align: center;
+}
+#browser-check-problem a {
+  display: inline-block;
+  background: white;
+  padding: 10px;
+  margin: 10px;
+  color: #16B378;
+  border: 1px solid #16B378;
+  border-radius: 4px;
+}
+#browser-check-problem a:hover {
+  text-decoration: none;
+  color: #009058;
+  border: 1px solid #009058;
+}

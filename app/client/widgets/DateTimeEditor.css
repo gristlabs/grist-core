@@ -1,0 +1,28 @@
+.default_editor.celleditor_datetime {
+  box-shadow: none;
+  display: flex;
+}
+
+.celleditor_datetime_editor.celleditor_cursor_editor {
+  flex: auto;
+  min-width: 0;
+  overflow: hidden;
+  box-shadow: none;
+  z-index: 9;
+  outline: 1px solid var(--grist-color-cursor);
+  position: relative;
+}
+
+.celleditor_datetime_editor:focus-within {
+  box-shadow: 0 0 3px 2px var(--grist-color-cursor);
+  z-index: 10;
+  outline: none;
+}
+
+.celleditor_datetime_editor > .celleditor_text_editor {
+  width: 100%;
+}
+
+.datepicker {
+  outline: none;
+}
