@@ -40,7 +40,7 @@ import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint'
 import {PluginManager} from 'app/server/lib/PluginManager';
 import {adaptServerUrl, addOrgToPathIfNeeded, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
         TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
-import {ISendAppPageOptions, makeSendAppPage} from 'app/server/lib/sendAppPage';
+import {ISendAppPageOptions, makeSendAppPage, makeGristConfig} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -1031,7 +1031,8 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    this.notifier = this.create.Notifier(this.dbManager, this.getDefaultHomeUrl());
+    const gristConfig = makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
+    this.notifier = this.create.Notifier(this.dbManager, gristConfig);
   }
 
   public addUsage() {

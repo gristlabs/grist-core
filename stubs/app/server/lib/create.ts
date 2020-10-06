@@ -19,7 +19,7 @@ export const create: ICreate = {
       addWebhooks(app: any) { /* do nothing */ }
     };
   },
-  Notifier(dbManager: HomeDBManager, homeUrl: string) {
+  Notifier() {
     return {
       get testPending() { return false; }
     };

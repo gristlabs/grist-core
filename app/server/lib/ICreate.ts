@@ -1,3 +1,4 @@
+import { GristLoadConfig } from 'app/common/gristUrls';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { ActiveDoc } from 'app/server/lib/ActiveDoc';
 import { ScopedSession } from 'app/server/lib/BrowserSession';
@@ -18,7 +19,7 @@ export interface ICreate {
   LoginSession(comm: Comm, sid: string, domain: string, scopeSession: ScopedSession,
                instanceManager: IInstanceManager|null): ILoginSession;
   Billing(dbManager: HomeDBManager): IBilling;
-  Notifier(dbManager: HomeDBManager, homeUrl: string): INotifier;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristLoadConfig): INotifier;
   Shell(): IShell|undefined;
   ExternalStorage(bucket: string, prefix: string): ExternalStorage|undefined;
   ActiveDoc(docManager: DocManager, docName: string): ActiveDoc;
