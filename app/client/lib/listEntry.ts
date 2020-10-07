@@ -1,7 +1,7 @@
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {Computed, Disposable, dom, DomElementArg, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, DomElementArg, Observable, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 import uniq = require('lodash/uniq');
 
@@ -32,7 +32,7 @@ export class ListEntry extends Disposable {
   }
 
   // Arg maxRows indicates the number of rows to display when the textarea is inactive.
-  public buildDom(maxRows: number = 6): DomElementArg {
+  public buildDom(maxRows: number = 6): DomContents {
     return dom.domComputed(this._isEditing, (editMode) => {
       if (editMode) {
         // Edit mode dom.

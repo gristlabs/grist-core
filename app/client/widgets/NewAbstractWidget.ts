@@ -10,7 +10,7 @@ import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {colorSelect} from 'app/client/ui2018/buttonSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
-import {Disposable, fromKo, Observable, styled} from 'grainjs';
+import {Disposable, DomContents, fromKo, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 
 
@@ -43,13 +43,13 @@ export abstract class NewAbstractWidget extends Disposable {
   /**
    * Builds the DOM showing configuration buttons and fields in the sidebar.
    */
-  public buildConfigDom(): Element|null { return null; }
+  public buildConfigDom(): DomContents { return null; }
 
   /**
    * Builds the transform prompt config DOM in the few cases where it is necessary.
    * Child classes need not override this function if they do not require transform config options.
    */
-  public buildTransformConfigDom(): Element|null { return null; }
+  public buildTransformConfigDom(): DomContents { return null; }
 
   public buildColorConfigDom(): Element[] {
     return [

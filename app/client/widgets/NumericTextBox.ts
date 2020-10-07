@@ -10,7 +10,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {clamp} from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions, NumMode, NumSign} from 'app/common/NumberFormat';
-import {Computed, dom, DomElementArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
 
 
 const modeOptions: Array<ISelectorOption<NumMode>> = [
@@ -32,7 +32,7 @@ export class NumericTextBox extends NTextBox {
     super(field);
   }
 
-  public buildConfigDom() {
+  public buildConfigDom(): DomContents {
     // Holder for all computeds created here. It gets disposed with the returned DOM element.
     const holder = new MultiHolder();
 
@@ -67,10 +67,11 @@ export class NumericTextBox extends NTextBox {
     const setMode = (val: NumMode) => setSave('numMode', val !== numMode.get() ? val : undefined);
     const setSign = (val: NumSign) => setSave('numSign', val !== numSign.get() ? val : undefined);
 
-    return dom.update(super.buildConfigDom(),
-      dom.autoDispose(holder),
+    return [
+      super.buildConfigDom(),
       cssLabel('Number Format'),
       cssRow(
+        dom.autoDispose(holder),
         makeButtonSelect(numMode, modeOptions, setMode, {}, cssModeSelect.cls(''), testId('numeric-mode')),
         makeButtonSelect(numSign, signOptions, setSign, {}, cssSignSelect.cls(''), testId('numeric-sign')),
       ),
@@ -79,7 +80,7 @@ export class NumericTextBox extends NTextBox {
         decimals('min', minDecimals, defaultMin, setMinDecimals, testId('numeric-min-decimals')),
         decimals('max', maxDecimals, defaultMax, setMaxDecimals, testId('numeric-max-decimals')),
       ),
-    );
+    ];
   }
 }
 

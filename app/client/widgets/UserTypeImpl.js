@@ -7,6 +7,9 @@ const UserType = require('./UserType');
 const {HyperLinkEditor} = require('./HyperLinkEditor');
 const {NTextEditor} = require('./NTextEditor');
 const {ReferenceEditor} = require('./ReferenceEditor');
+const {HyperLinkTextBox} = require('./HyperLinkTextBox');
+const {ChoiceTextBox } = require('./ChoiceTextBox');
+const {Reference} = require('./Reference');
 
 /**
  * Convert the name of a widget to its implementation.
@@ -15,15 +18,15 @@ const nameToWidget = {
   'TextBox': NTextBox,
   'TextEditor': NTextEditor,
   'NumericTextBox': NumericTextBox,
-  'HyperLinkTextBox': require('./HyperLinkTextBox'),
+  'HyperLinkTextBox': HyperLinkTextBox,
   'HyperLinkEditor': HyperLinkEditor,
   'Spinner': Spinner,
   'CheckBox': require('./CheckBox'),
   'CheckBoxEditor': require('./CheckBoxEditor'),
-  'Reference': require('./Reference'),
+  'Reference': Reference,
   'Switch': require('./Switch'),
   'ReferenceEditor': ReferenceEditor,
-  'ChoiceTextBox': require('./ChoiceTextBox'),
+  'ChoiceTextBox': ChoiceTextBox,
   'ChoiceEditor': require('./ChoiceEditor'),
   'DateTimeTextBox': require('./DateTimeTextBox'),
   'DateTextBox': require('./DateTextBox'),

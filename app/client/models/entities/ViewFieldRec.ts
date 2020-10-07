@@ -58,6 +58,9 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   widgetOptionsJson: modelUtil.SaveableObjObservable<any>;
 
+  // Whether lines should wrap in a cell.
+  wrapping: ko.Computed<boolean>;
+
   // Observable for the parsed filter object saved to the field.
   activeFilter: modelUtil.CustomComputed<string>;
 
@@ -179,6 +182,13 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   this.widgetOptionsJson = modelUtil.jsonObservable(this._widgetOptionsStr,
     (opts: any) => UserType.mergeOptions(opts || {}, this.column().pureType()));
+
+  this.wrapping = ko.pureComputed(() => {
+    // When user has yet to specify a desired wrapping state, we use different defaults for
+    // GridView (no wrap) and DetailView (wrap).
+    // "??" is the newish "nullish coalescing" operator. How cool is that!
+    return this.widgetOptionsJson().wrap ?? (this.viewSection().parentKey() !== 'record');
+  });
 
   // Observable for the active filter that's initialized from the value saved to the server.
   this.activeFilter = modelUtil.customComputed({
