@@ -135,6 +135,16 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
   }
 
+  // If we haven't already been authenticated, and this is not a GET/HEAD/OPTIONS, then
+  // require that the X-Requested-With header field be set to XMLHttpRequest.
+  // This is trivial for legitimate web clients to do, and an obstacle to
+  // nefarious ones.
+  //   https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
+  //   https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
+  if (!mreq.userId && !mreq.xhr && !['GET', 'HEAD', 'OPTIONS'].includes(mreq.method)) {
+    return res.status(401).send('Bad request (missing header)');
+  }
+
   // A bit of extra info we'll add to the "Auth" log message when this request passes the check
   // for custom-host-specific sessionID.
   let customHostSession = '';
@@ -461,10 +471,12 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
   const Cookie = req.get('Cookie');
   const PermitHeader = req.get('Permit');
   const Organization = (req as RequestWithOrg).org;
+  const XRequestedWith = req.get('X-Requested-With');
   return {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
     ...(PermitHeader ? { Permit: PermitHeader } : undefined),
+    ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
   };
 }

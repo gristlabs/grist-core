@@ -51,6 +51,7 @@ export class BaseAPI {
     this._logger = options.logger || console;
     this._headers = {
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
       ...options.headers
     };
     this._extraParameters = options.extraParameters;
@@ -59,6 +60,16 @@ export class BaseAPI {
   // Make a modified request, exposed for test convenience.
   public async testRequest(url: string, init: RequestInit = {}): Promise<Response> {
     return this.request(url, init);
+  }
+
+  public defaultHeaders() {
+    return this._headers;
+  }
+
+  public defaultHeadersWithoutContentType() {
+    const headers = {...this.defaultHeaders()};
+    delete headers['Content-Type'];
+    return headers;
   }
 
   // Similar to request, but uses the axios library, and supports progress indicator.

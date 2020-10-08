@@ -1,5 +1,6 @@
 import { Computed, Disposable, dom, domComputed, DomContents, input, MultiHolder, Observable, styled } from "grainjs";
 
+import { submitForm } from "app/client/lib/uploads";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
@@ -59,11 +60,16 @@ export class WelcomePage extends Disposable {
     return form = dom(
       'form',
       { method: "post" },
+      dom.on('submit', (e) => {
+        e.preventDefault();
+        this._submitForm(form).catch(reportError);
+        return false;
+      }),
       cssLabel('Your full name, as you\'d like it displayed to your collaborators.'),
       inputEl = cssInput(
         value, { onInput: true, },
         { name: "username" },
-        dom.onKeyDown({Enter: () => isNameValid.get() && form.submit()}),
+        dom.onKeyDown({Enter: () => isNameValid.get() && this._submitForm(form).catch(reportError)}),
       ),
       dom.maybe((use) => use(value) && !use(isNameValid), buildNameWarningsDom),
       cssButtonGroup(
@@ -76,6 +82,15 @@ export class WelcomePage extends Disposable {
     );
   }
 
+  private async _submitForm(form: HTMLFormElement) {
+    const result = await submitForm(form);
+    const redirectUrl = result.redirectUrl;
+    if (!redirectUrl) {
+      throw new Error('form failed to redirect');
+    }
+    window.location.assign(redirectUrl);
+    return false;
+  }
 
   private async _fetchOrgs() {
     this._orgs = await this._appModel.api.getOrgs(true);

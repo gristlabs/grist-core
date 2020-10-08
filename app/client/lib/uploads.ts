@@ -119,6 +119,7 @@ export async function uploadFiles(
   return new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('post', docUrl(options.docWorkerUrl, UPLOAD_URL_PATH), true);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.withCredentials = true;
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) {
@@ -169,4 +170,34 @@ export async function fetchURL(
   const fileObj = new File([await response.blob()], fileName, options);
   const res = await uploadFiles([fileObj], {docWorkerUrl: docComm.docWorkerUrl}, onProgress);
   return res!;
+}
+
+// Submit a form using XHR.  Send inputs as JSON, and interpret any reply as JSON.
+export async function submitForm(form: HTMLFormElement): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const data: {[key: string]: string} = {};
+    for (const element of [...form.getElementsByTagName('input')]) {
+      data[element.name] = element.value;
+    }
+    xhr.open('post', form.action, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.withCredentials = true;
+    xhr.send(JSON.stringify(data));
+    xhr.addEventListener('error', (e: ProgressEvent) => {
+      console.warn("Form error", e);    // tslint:disable-line:no-console
+      reject(new Error('Form error, please try again'));
+    });
+    xhr.addEventListener('load', () => {
+      if (xhr.status !== 200) {
+        // tslint:disable-next-line:no-console
+        console.warn("Form failed", xhr.status, xhr.responseText);
+        const err = safeJsonParse(xhr.responseText, null);
+        reject(new UserError('Form failed: ' + (err && err.error || xhr.status)));
+      } else {
+        resolve(safeJsonParse(xhr.responseText, null));
+      }
+    });
+  });
 }

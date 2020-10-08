@@ -139,7 +139,8 @@ function _logError(error: Error|string) {
     }),
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
     }
   }).catch(e => {
     // There ... isn't much we can do about this.

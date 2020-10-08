@@ -942,7 +942,6 @@ export class FlexServer implements GristServer {
 
   public addWelcomePaths() {
     const middleware = [
-      bodyParser.urlencoded({ extended: true }),
       this._redirectToHostMiddleware,
       this._userIdMiddleware,
       this._redirectToLoginWithoutExceptionsMiddleware,
@@ -967,7 +966,7 @@ export class FlexServer implements GristServer {
       const pathname = orgs && orgs.length > 1 ? '/welcome/teams' : '/';
       const mergedOrgDomain = this.dbManager.mergedOrgDomain();
       const redirectUrl = this._getOrgRedirectUrl(mreq, mergedOrgDomain, pathname);
-      resp.redirect(redirectUrl);
+      resp.json({redirectUrl});
     }));
 
     this.app.get('/welcome/teams', ...middleware, expressWrap(async (req, resp, next) => {
@@ -1078,7 +1077,7 @@ export class FlexServer implements GristServer {
     // Add the handling for the /upload route. Most uploads are meant for a DocWorker: they are put
     // in temporary files, and the DocWorker needs to be on the same machine to have access to them.
     // This doesn't check for doc access permissions because the request isn't tied to a document.
-    addUploadRoute(this, this.app, ...basicMiddleware);
+    addUploadRoute(this, this.app, this._trustOriginsMiddleware, ...basicMiddleware);
 
     this.app.get('/gen_csv', ...docAccessMiddleware, expressWrap(async (req, res) => {
       return this._docWorker.getCSV(req, res);
@@ -1408,7 +1407,9 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   if (trustOrigin(req, res)) {
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, PATCH, POST, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+  } else {
+    throw new Error('Unrecognized origin');
   }
   if ('OPTIONS' === req.method) {
     res.sendStatus(200);

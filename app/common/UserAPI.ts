@@ -540,19 +540,21 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async fetchApiKey(): Promise<string> {
-    const resp = await this.fetch(`${this._url}/api/profile/apiKey`, {
-      credentials: 'include'
-    });
+    const resp = await this.request(`${this._url}/api/profile/apiKey`);
     return await resp.text();
   }
 
   public async createApiKey(): Promise<string> {
-    const res = await this.fetch(`${this._url}/api/profile/apiKey`, {credentials: 'include', method: 'POST'});
+    const res = await this.request(`${this._url}/api/profile/apiKey`, {
+      method: 'POST'
+    });
     return await res.text();
   }
 
   public async deleteApiKey(): Promise<void> {
-    await this.fetch(`${this._url}/api/profile/apiKey`, {credentials: 'include', method: 'DELETE'});
+    await this.request(`${this._url}/api/profile/apiKey`, {
+      method: 'DELETE'
+    });
   }
 
   // This method is not strictly needed anymore, but is widely used by
@@ -578,10 +580,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     formData.append('upload', material as any, options.filename);
     if (options.timezone) { formData.append('timezone', options.timezone); }
     const resp = await this.requestAxios(`${this._url}/api/docs`, {
-      headers: this._options.headers,
       method: 'POST',
       data: formData,
       onUploadProgress: options.onUploadProgress,
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
+      // for setting the HTTP headers.
+      headers: {...this.defaultHeadersWithoutContentType()},
     });
     return resp.data;
   }
@@ -606,7 +611,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 }
 
 export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
-  constructor(readonly url: string, private _options: IOptions = {}) {
+  constructor(readonly url: string, _options: IOptions = {}) {
     super(_options);
   }
 
@@ -622,7 +627,10 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
     const formData = this.newFormData();
     formData.append('upload', material as any, filename);
     const json = await this.requestJson(`${this.url}/uploads`, {
-      headers: this._options.headers,
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside of browser, node-fetch also appears
+      // to take care of this - https://github.github.io/fetch/#request-body
+      headers: {...this.defaultHeadersWithoutContentType()},
       method: 'POST',
       body: formData
     });
@@ -632,7 +640,6 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
   public async downloadDoc(docId: string, template: boolean = false): Promise<Response> {
     const extra = template ? '&template=1' : '';
     const result = await this.request(`${this.url}/download?doc=${docId}${extra}`, {
-      headers: this._options.headers,
       method: 'GET',
     });
     if (!result.ok) { throw new Error(await result.text()); }
@@ -648,7 +655,6 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
       url.searchParams.append('name', name);
     }
     const json = await this.requestJson(url.href, {
-      headers: this._options.headers,
       method: 'POST',
     });
     return json.uploadId;

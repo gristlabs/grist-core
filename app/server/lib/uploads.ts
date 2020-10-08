@@ -8,7 +8,7 @@ import {RequestWithGrist} from 'app/server/lib/FlexServer';
 import {GristServer} from 'app/server/lib/GristServer';
 import {guessExt} from 'app/server/lib/guessExt';
 import * as log from 'app/server/lib/log';
-import {optStringParam, trustOrigin} from 'app/server/lib/requestUtils';
+import {optStringParam} from 'app/server/lib/requestUtils';
 import {isPathWithin} from 'app/server/lib/serverUtils';
 import * as shutdown from 'app/server/lib/shutdown';
 import {fromCallback} from 'bluebird';
@@ -42,18 +42,13 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
 
   // When doing a cross-origin post, the browser will check for access with options prior to posting.
   // We need to reassure it that the request will be accepted before it will go ahead and post.
-  expressApp.options([`/${UPLOAD_URL_PATH}`, '/copy'], async (req: Request, res: Response) => {
-    if (!trustOrigin(req, res)) { return res.status(500).send(); }
-    res.header("Access-Control-Allow-Credentials", "true");
+  expressApp.options([`/${UPLOAD_URL_PATH}`, '/copy'], ...handlers, async (req, res) => {
+    // Origin is checked by middleware - if we get this far, we are ok.
     res.status(200).send();
   });
 
   expressApp.post(`/${UPLOAD_URL_PATH}`, ...handlers, expressWrap(async (req: Request, res: Response) => {
     try {
-      if (!trustOrigin(req, res)) {
-        throw new Error('Unrecognized origin');
-      }
-      res.header("Access-Control-Allow-Credentials", "true");
       const uploadResult: UploadResult = await handleUpload(req, res);
       res.status(200).send(JSON.stringify(uploadResult));
     } catch (err) {
@@ -67,10 +62,6 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
 
   // Like upload, but copy data from a document already known to us.
   expressApp.post(`/copy`, ...handlers, expressWrap(async (req: Request, res: Response) => {
-    if (!trustOrigin(req, res)) {
-      throw new Error('Unrecognized origin');
-    }
-    res.header("Access-Control-Allow-Credentials", "true");
     const docId = optStringParam(req.query.doc);
     const name = optStringParam(req.query.name);
     if (!docId) { throw new Error('doc must be specified'); }
