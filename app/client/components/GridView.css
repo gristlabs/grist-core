@@ -71,6 +71,7 @@
   left: 0px;
   overflow: hidden;
   width: 4rem; /* Also should match width for .gridview_header_corner, and the overlay elements */
+  flex: none;
 
   border-bottom: 1px solid var(--grist-color-dark-grey);
   background-color: var(--grist-color-light-grey);
@@ -87,6 +88,15 @@
    * do not want !important, as it interferes with row selection.
    */
   .gridview_data_row_num {
+    background-color: var(--grist-color-light-grey) !important;
+  }
+  .gridview_header_backdrop_top {
+    display: none;
+  }
+  .column_name.mod-add-column {
+    display: none;
+  }
+  .gridview_data_header {
     background-color: var(--grist-color-light-grey) !important;
   }
 }

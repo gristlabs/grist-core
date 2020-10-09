@@ -92,6 +92,11 @@ exports.groups = [{
       name: 'dataSelectionTabOpen',
       keys: [],
       desc: 'Shortcut to data selection tab'
+    },
+    {
+      name: 'printSection',
+      keys: [],
+      desc: 'Print currently selected page widget',
     }
   ]
 }, {

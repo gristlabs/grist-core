@@ -68,6 +68,7 @@ declare module "app/client/components/BaseView" {
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public onResize(): void;
+    public prepareToPrint(onOff: boolean): void;
   }
   export = BaseView;
 }

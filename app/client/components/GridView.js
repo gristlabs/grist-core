@@ -21,6 +21,7 @@ var BaseView      = require('./BaseView');
 var selector      = require('./Selector');
 var CopySelection = require('./CopySelection');
 
+const {renderAllRows} = require('app/client/components/Printing');
 const {reportError} = require('app/client/models/AppModel');
 
 // Grist UI Components
@@ -831,127 +832,132 @@ GridView.prototype.buildDom = function() {
         ) //end hbox
       ), // END COL HEADER BOX
 
-      koDomScrolly.scrolly(data, { paddingBottom: 80, paddingRight: 28 }, function(row) {
-        // TODO. There are several ways to implement a cursor; similar concerns may arise
-        // when implementing selection and cell editor.
-        // (1) Class on 'div.field.field_clip'. Fewest elements, seems possibly best for
-        //     performance. Problem is: it's impossible to get cursor exactly right with a
-        //     one-sided border. Attaching a cursor as additional element inside the cell
-        //     truncates the cursor to the cell's inside because of 'overflow: hidden'.
-        // (2) 'div.field' with 'div.field_clip' inside, on which a class is toggled. This
-        //     works well. The only concern is whether this slows down rendering. Would be
-        //     good to measure and compare rendering speed.
-        //     Related: perhaps the fastest rendering would be for a table.
-        // (3) Separate element attached to the row, absolutely positioned at left
-        //     position and width of the selected cell. This works too. Requires
-        //     maintaining a list of leftOffsets (or measuring the cell's), and feels less
-        //     clean and more complicated than (2).
+      koDomScrolly.scrolly(data, { paddingBottom: 80, paddingRight: 28 }, renderRow),
 
-        // IsRowActive and isCellActive are a significant optimization. IsRowActive is called
-        // for all rows when cursor.rowIndex changes, but the value only changes for two of the
-        // rows. IsCellActive is only subscribed to columns for the active row. This way, when
-        // the cursor moves, there are (rows+2*columns) calls rather than rows*columns.
-        var isRowActive = ko.computed(() => row._index() === self.cursor.rowIndex());
-        return dom('div.gridview_row',
-          dom.autoDispose(isRowActive),
-
-          // rowid dom
-          dom('div.gridview_data_row_num',
-            dom('div.gridview_data_row_info',
-              kd.toggleClass('linked_dst', () => {
-                // Must ensure that linkedRowId is not null to avoid drawing on rows whose
-                // row ids are null.
-                return self.linkedRowId() && self.linkedRowId() === row.getRowId();
-              })
-            ),
-            kd.text(function() { return row._index() + 1; }),
-
-            kd.scope(row._validationFailures, function(failures) {
-              if (!row._isAddRow() && failures.length > 0) {
-                return dom('div.validation_error_number', failures.length,
-                  kd.attr('title', function() {
-                    return "Validation failed: " +
-                      failures.map(function(val) { return val.name(); }).join(", ");
-                  })
-                );
-              }
-            }),
-            kd.toggleClass('selected', () =>
-              !row._isAddRow() && self.cellSelector.isRowSelected(row._index())),
-            dom.on('contextmenu', ev => self.maybeSelectRow(ev.currentTarget, row.getRowId())),
-            menu(ctl => RowContextMenu({
-              disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
-              disableDelete: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.getSelection().onlyAddRowSelected()),
-              isViewSorted: self.viewSection.activeSortSpec.peek().length > 0,
-            }), { trigger: ['contextmenu'] }),
-          ),
-
-
-          dom('div.record',
-            kd.toggleClass('record-add', row._isAddRow),
-            kd.style('borderLeftWidth', v.borderWidthPx),
-            kd.style('borderBottomWidth', v.borderWidthPx),
-            //These are grabbed from v.optionsObj at start of GridView buildDom
-            kd.toggleClass('record-hlines', vHorizontalGridlines),
-            kd.toggleClass('record-vlines', vVerticalGridlines),
-            kd.toggleClass('record-zebra', vZebraStripes),
-            // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
-            kd.toggleClass('record-even', () => (row._index()+1) % 2 === 0 ),
-
-            self.comparison ? kd.cssClass(() => {
-              var rowId = row.id();
-              if (rightAddRows.has(rowId))         { return 'diff-remote'; }
-              else if (rightRemoveRows.has(rowId)) { return 'diff-parent'; }
-              else if (leftAddRows.has(rowId))     { return 'diff-local';  }
-              return '';
-            }) : null,
-
-            kd.foreach(v.viewFields(), function(field) {
-              // Whether the cell has a cursor (possibly in an inactive view section).
-              var isCellSelected = ko.computed(() =>
-                isRowActive() && field._index() === self.cursor.fieldIndex());
-
-              // Whether the cell is active: has the cursor in the active section.
-              var isCellActive = ko.computed(() => isCellSelected() && v.hasFocus());
-
-              // Whether the cell is part of an active copy-paste operation.
-              var isCopyActive = ko.computed(function() {
-                return self.copySelection() &&
-                  self.copySelection().isCellSelected(row.id(), field.colId());
-              });
-              var fieldBuilder = self.fieldBuilders.at(field._index());
-              var isSelected = ko.computed(() => {
-                return !row._isAddRow() &&
-                  !self.cellSelector.isCurrentSelectType(selector.NONE) &&
-                  ko.unwrap(self.isColSelected.at(field._index())) &&
-                  self.cellSelector.isRowSelected(row._index());
-              });
-              return dom(
-                'div.field',
-                kd.toggleClass('scissors', isCopyActive),
-                dom.autoDispose(isCopyActive),
-                dom.autoDispose(isCellSelected),
-                dom.autoDispose(isCellActive),
-                dom.autoDispose(isSelected),
-                kd.style('width', field.widthPx),
-                //TODO: Ensure that fields in a row resize when
-                //a cell in that row becomes larger
-                kd.style('borderRightWidth', v.borderWidthPx),
-                kd.style('color', field.textColor),
-                // If making a comparison, use the background exclusively for
-                // marking that up.
-                self.comparison ? null : kd.style('background-color', () => (row._isAddRow() || isSelected()) ? '' : field.fillColor()),
-
-                kd.toggleClass('selected', isSelected),
-                fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)
-              );
-            })
-          )
-        );
-      }) //end scrolly
-
+      kd.maybe(this._isPrinting, () =>
+        renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow)
+      ),
     ) // end scrollpane
   );// END MAIN VIEW BOX
+
+  function renderRow(row) {
+    // TODO. There are several ways to implement a cursor; similar concerns may arise
+    // when implementing selection and cell editor.
+    // (1) Class on 'div.field.field_clip'. Fewest elements, seems possibly best for
+    //     performance. Problem is: it's impossible to get cursor exactly right with a
+    //     one-sided border. Attaching a cursor as additional element inside the cell
+    //     truncates the cursor to the cell's inside because of 'overflow: hidden'.
+    // (2) 'div.field' with 'div.field_clip' inside, on which a class is toggled. This
+    //     works well. The only concern is whether this slows down rendering. Would be
+    //     good to measure and compare rendering speed.
+    //     Related: perhaps the fastest rendering would be for a table.
+    // (3) Separate element attached to the row, absolutely positioned at left
+    //     position and width of the selected cell. This works too. Requires
+    //     maintaining a list of leftOffsets (or measuring the cell's), and feels less
+    //     clean and more complicated than (2).
+
+    // IsRowActive and isCellActive are a significant optimization. IsRowActive is called
+    // for all rows when cursor.rowIndex changes, but the value only changes for two of the
+    // rows. IsCellActive is only subscribed to columns for the active row. This way, when
+    // the cursor moves, there are (rows+2*columns) calls rather than rows*columns.
+    var isRowActive = ko.computed(() => row._index() === self.cursor.rowIndex());
+    return dom('div.gridview_row',
+      dom.autoDispose(isRowActive),
+
+      // rowid dom
+      dom('div.gridview_data_row_num',
+        dom('div.gridview_data_row_info',
+          kd.toggleClass('linked_dst', () => {
+            // Must ensure that linkedRowId is not null to avoid drawing on rows whose
+            // row ids are null.
+            return self.linkedRowId() && self.linkedRowId() === row.getRowId();
+          })
+        ),
+        kd.text(function() { return row._index() + 1; }),
+
+        kd.scope(row._validationFailures, function(failures) {
+          if (!row._isAddRow() && failures.length > 0) {
+            return dom('div.validation_error_number', failures.length,
+              kd.attr('title', function() {
+                return "Validation failed: " +
+                  failures.map(function(val) { return val.name(); }).join(", ");
+              })
+            );
+          }
+        }),
+        kd.toggleClass('selected', () =>
+          !row._isAddRow() && self.cellSelector.isRowSelected(row._index())),
+        dom.on('contextmenu', ev => self.maybeSelectRow(ev.currentTarget, row.getRowId())),
+        menu(ctl => RowContextMenu({
+          disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
+          disableDelete: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.getSelection().onlyAddRowSelected()),
+          isViewSorted: self.viewSection.activeSortSpec.peek().length > 0,
+        }), { trigger: ['contextmenu'] }),
+      ),
+
+
+      dom('div.record',
+        kd.toggleClass('record-add', row._isAddRow),
+        kd.style('borderLeftWidth', v.borderWidthPx),
+        kd.style('borderBottomWidth', v.borderWidthPx),
+        //These are grabbed from v.optionsObj at start of GridView buildDom
+        kd.toggleClass('record-hlines', vHorizontalGridlines),
+        kd.toggleClass('record-vlines', vVerticalGridlines),
+        kd.toggleClass('record-zebra', vZebraStripes),
+        // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
+        kd.toggleClass('record-even', () => (row._index()+1) % 2 === 0 ),
+
+        self.comparison ? kd.cssClass(() => {
+          var rowId = row.id();
+          if (rightAddRows.has(rowId))         { return 'diff-remote'; }
+          else if (rightRemoveRows.has(rowId)) { return 'diff-parent'; }
+          else if (leftAddRows.has(rowId))     { return 'diff-local';  }
+          return '';
+        }) : null,
+
+        kd.foreach(v.viewFields(), function(field) {
+          // Whether the cell has a cursor (possibly in an inactive view section).
+          var isCellSelected = ko.computed(() =>
+            isRowActive() && field._index() === self.cursor.fieldIndex());
+
+          // Whether the cell is active: has the cursor in the active section.
+          var isCellActive = ko.computed(() => isCellSelected() && v.hasFocus());
+
+          // Whether the cell is part of an active copy-paste operation.
+          var isCopyActive = ko.computed(function() {
+            return self.copySelection() &&
+              self.copySelection().isCellSelected(row.id(), field.colId());
+          });
+          var fieldBuilder = self.fieldBuilders.at(field._index());
+          var isSelected = ko.computed(() => {
+            return !row._isAddRow() &&
+              !self.cellSelector.isCurrentSelectType(selector.NONE) &&
+              ko.unwrap(self.isColSelected.at(field._index())) &&
+              self.cellSelector.isRowSelected(row._index());
+          });
+          return dom(
+            'div.field',
+            kd.toggleClass('scissors', isCopyActive),
+            dom.autoDispose(isCopyActive),
+            dom.autoDispose(isCellSelected),
+            dom.autoDispose(isCellActive),
+            dom.autoDispose(isSelected),
+            kd.style('width', field.widthPx),
+            //TODO: Ensure that fields in a row resize when
+            //a cell in that row becomes larger
+            kd.style('borderRightWidth', v.borderWidthPx),
+            kd.style('color', field.textColor),
+            // If making a comparison, use the background exclusively for
+            // marking that up.
+            self.comparison ? null : kd.style('background-color', () => (row._isAddRow() || isSelected()) ? '' : field.fillColor()),
+
+            kd.toggleClass('selected', isSelected),
+            fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)
+          );
+        })
+      )
+    );
+  }
 };
 
 /** @inheritdoc */

@@ -690,4 +690,9 @@ const cssViewContentPane = styled('div', `
   position: relative;
   min-width: 240px;
   margin: 12px;
+  @media print {
+    & {
+      margin: 0px;
+    }
+  }
 `);

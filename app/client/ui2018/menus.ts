@@ -45,6 +45,12 @@ const cssMenuElem = styled('div', `
   z-index: 999;
   --weaseljs-selected-background-color: ${vars.primaryBg};
   --weaseljs-menu-item-padding: 8px 24px;
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 
 const menuItemStyle = `

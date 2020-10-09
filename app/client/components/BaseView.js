@@ -230,6 +230,9 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.autoDispose(this.viewSection.activeSortSpec.subscribe(() => this.setCursorPos({rowIndex: 0})));
 
   this.copySelection = ko.observable(null);
+
+  // Whether parts needed for printing should be rendered now.
+  this._isPrinting = ko.observable(false);
 }
 Base.setBaseFor(BaseView);
 _.extend(Base.prototype, BackboneEvents);
@@ -610,6 +613,13 @@ BaseView.prototype.onResize = function() {
  * @param {Array<DataRowModel>} rowModels: Array of row models whose size may have changed.
  */
 BaseView.prototype.onRowResize = function(rowModels) {
+};
+
+/**
+ * Called before and after printing this section.
+ */
+BaseView.prototype.prepareToPrint = function(onOff) {
+  this._isPrinting(onOff);
 };
 
 /**

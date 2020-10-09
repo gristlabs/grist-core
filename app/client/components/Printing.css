@@ -1,0 +1,60 @@
+@media print {
+  /* Various style overrides needed to print a single section (page widget). */
+
+  .print-hide {
+    display: none;
+  }
+
+  .print-parent {
+    display: block !important;
+    position: relative !important;
+    height: max-content !important;
+    overflow: visible !important;
+  }
+
+  .print-widget {
+    margin: 0px !important;
+  }
+
+  .print-widget .viewsection_title {
+    display: none !important;
+  }
+  .print-widget .view_data_pane_container {
+    border: none !important;
+  }
+  .print-widget .viewsection_content {
+    margin: 0px !important;
+  }
+
+  .print-widget .detailview_single {
+    overflow: visible;
+  }
+
+  .print-widget .gridview_data_pane {
+    display: block !important;
+    position: relative !important;
+    height: max-content !important;
+    overflow: visible !important;
+    border-top: 1px solid var(--grist-color-dark-grey);
+    border-left: 1px solid var(--grist-color-dark-grey);
+  }
+
+  .print-widget .gridview_data_scroll {
+    position: relative !important;
+    height: max-content !important;
+  }
+
+  .print-widget .scrolly_outer {
+    display: none;
+  }
+
+  .print-widget .custom_view {
+    height: calc(100vh - 24px);
+  }
+}
+
+@media not print {
+  .print-all-rows {
+    display: none;
+  }
+}

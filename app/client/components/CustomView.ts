@@ -89,6 +89,12 @@ export class CustomView extends Disposable {
     this.autoDispose(this.cursor.rowIndex.subscribe(this._updateCursor));
   }
 
+  public async triggerPrint() {
+    if (!this.isDisposed() && this._rpc) {
+      return await this._rpc.callRemoteFunc("print");
+    }
+  }
+
   private _updateView(dataChange: boolean) {
     if (this.isDisposed()) { return; }
     if (this._rpc) {

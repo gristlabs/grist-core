@@ -4,6 +4,7 @@ var ko            = require('knockout');
 var dom           = require('app/client/lib/dom');
 var kd            = require('app/client/lib/koDom');
 var koDomScrolly  = require('app/client/lib/koDomScrolly');
+const {renderAllRows} = require('app/client/components/Printing');
 
 require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
@@ -282,6 +283,11 @@ DetailView.prototype.buildDom = function() {
           }),
           koDomScrolly.scrolly(this.viewData, {fitToWidth: true},
             row => this.makeRecord(row)),
+
+          kd.maybe(this._isPrinting, () =>
+            renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), row =>
+              this.makeRecord(row))
+          ),
         );
       } else {
         return dom(

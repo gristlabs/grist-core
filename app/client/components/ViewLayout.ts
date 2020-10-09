@@ -7,6 +7,7 @@ import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {Layout} from 'app/client/components/Layout';
 import {LayoutEditor} from 'app/client/components/LayoutEditor';
+import {printViewSection} from 'app/client/components/Printing';
 import {Delay} from 'app/client/lib/Delay';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -124,6 +125,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       deleteSection: () => { this._removeViewSection(this.viewModel.activeSectionId()); },
       nextSection: () => { this._otherSection(+1); },
       prevSection: () => { this._otherSection(-1); },
+      printSection: () => { printViewSection(this._layout, this.viewModel.activeSection()).catch(reportError); },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
   }

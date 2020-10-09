@@ -199,6 +199,12 @@ const cssTopHeader = styled('div', `
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `
   --resize-handle-color: ${colors.mediumGrey};
   --resize-handle-highlight: ${colors.lightGreen};
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 const cssResizeDisabledBorder = styled('div', `
   flex: none;
