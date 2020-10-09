@@ -1,4 +1,4 @@
-/* global $, window, document */
+/* global $, window */
 
 const {App} = require('./ui/App');
 
@@ -12,7 +12,7 @@ const ko = require('knockout');
 setupKoDisposal(ko);
 
 $(function() {
-  window.gristApp = App.create(null, document.getElementById('grist-app'));
+  window.gristApp = App.create(null);
   // Set from the login tests to stub and un-stub functions during execution.
   window.loginTestSandbox = null;
 

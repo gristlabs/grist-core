@@ -128,27 +128,6 @@ declare module "app/client/components/ViewConfigTab" {
   export = ViewConfigTab;
 }
 
-declare module "app/client/components/ViewLinker" {
-  import {ViewRec} from "app/client/models/DocModel";
-
-  namespace ViewLinker {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    class ViewLinkerNode {
-      public section: any;
-      public sectionRef: number;
-      public col: any;
-      public colRef: number;
-      public isValidLinkTo(node: ViewLinkerNode): boolean;
-    }
-  }
-
-  class ViewLinker {
-    public static create(viewRec: ViewRec): ViewLinker;
-    public static createNodes(section: any|null, table: any): ViewLinker.ViewLinkerNode[];
-  }
-  export = ViewLinker;
-}
-
 declare module "app/client/components/commands" {
   export class Command {
     public name: string;

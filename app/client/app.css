@@ -13,14 +13,11 @@
   --color-link-bright: orange;
 
   --color-start-page-bg: #f0f0f0;
-  --color-doclist-bg: #fcfcfc;
 
   --color-navbar-bg: var(--color-logo-bg);
   --color-navbar-btn-bg: #fefefe;
   --color-navbar-btn-bg-hover: #f6f6f6;
   --color-navbar-btn-disabled: #ccc;
-
-  --color-header-doclist: #6d6dde;
 
   --color-tab-bar-bg: #d6d6d6;
 
@@ -35,8 +32,6 @@
   --color-btn-accept: #3eda2c;
 
   --layout-top-spacer: 20px;
-  --layout-doclist-header-height: 42px;
-  --layout-doclist-height: calc(100vh - 2*var(--layout-top-spacer));
 
   --color-list-row-hover: #f0f0f0;
 

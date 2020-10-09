@@ -1,0 +1,69 @@
+#grist-logo-wrapper {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  background-color: var(--color-logo-bg);
+}
+
+.grist-logo {
+  background: var(--color-bg);
+  margin: auto;
+  padding: 20px 28px;
+}
+
+.grist-logo-grain {
+  display: inline-block;
+  width: 42px;
+  height: 40px;
+
+  margin: 1px;
+
+  border-radius: 22px 0 18px 0;
+}
+
+.grist-logo-grain.grain-flip {
+  border-radius: 0 22px 0 18px;
+}
+
+.grist-logo-grain.grain-empty {
+  visibility: hidden;
+}
+
+.grist-logo-grain.grain-col {
+  background: var(--color-logo-col);
+}
+
+.grist-logo-grain.grain-row {
+  background: var(--color-logo-row);
+}
+
+.grist-logo-grain.grain-cell {
+  background: var(--color-logo-cell);
+}
+
+.grist-logo-grain {
+  animation: spin-grain 3.2s linear infinite;
+}
+
+.grist-logo-grain.grain-2 { animation-delay: .4s; }
+.grist-logo-grain.grain-3 { animation-delay: .8s; }
+.grist-logo-grain.grain-4 { animation-delay: 1.2s; }
+.grist-logo-grain.grain-5 { animation-delay: 0s; }
+.grist-logo-grain.grain-6 { animation-delay: .2s; }
+.grist-logo-grain.grain-7 { animation-delay: .6s; }
+.grist-logo-grain.grain-8 { animation-delay: 1.0s; }
+.grist-logo-grain.grain-9 { animation-delay: 1.4s; }
+
+
+@keyframes spin-grain {
+  0% {
+    transform: rotateY(0deg);
+  }
+  25% {
+    transform: rotateY(180deg);
+  }
+  50% {
+    transform: rotateY(0deg);
+  }
+}

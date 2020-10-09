@@ -9,16 +9,7 @@ body {
   font-size: 1.2rem;
   margin: 0;
   padding: 0;
-}
-
-#grist-app {
-  height: 100%;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-flex-direction: column;
-  flex-direction: column;
-  -webkit-flex-wrap: nowrap;
-  flex-wrap: nowrap;
+  background: url('img/gplaypattern.png');
 }
 
 .g-help {

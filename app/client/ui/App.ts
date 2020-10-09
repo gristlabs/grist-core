@@ -50,7 +50,7 @@ export class App extends DisposableWithEvents {
   // we can choose to refresh the client also.
   private _serverVersion: string|null = null;
 
-  constructor(private _appDiv: HTMLElement) {
+  constructor() {
     super();
 
     commands.init(); // Initialize the 'commands' module using the default command list.
@@ -80,7 +80,7 @@ export class App extends DisposableWithEvents {
     G.document.querySelector('#grist-logo-wrapper').remove();
 
     // Help pop-up pane
-    const helpDiv = this._appDiv.appendChild(
+    const helpDiv = document.body.appendChild(
       dom('div.g-help',
         dom.show(isHelpPaneVisible),
         dom('table.g-help-table',
