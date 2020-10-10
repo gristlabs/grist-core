@@ -6,8 +6,8 @@
   "scripts": {
     "start": "tsc --build -w --preserveWatchOutput & catw app/client/*.css app/client/*/*.css -o static/bundle.css -v & webpack --config buildtools/webpack.config.js --mode development --watch --hide-modules & NODE_PATH=_build:_build/stubs nodemon -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js & wait",
     "install:python": "buildtools/prepare_python.sh",
-    "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production",
-    "start:prod": "node _build/stubs/app/server/server"
+    "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production && cat app/client/*.css app/client/*/*.css > static/bundle.css",
+    "start:prod": "NODE_PATH=_build:_build/stubs node _build/stubs/app/server/server.js"
   },
   "keywords": [],
   "author": "",

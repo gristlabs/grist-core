@@ -1,0 +1,11 @@
+# explicitly list the files needed by docker.
+*
+!package.json
+!tsconfig.json
+!stubs
+!app
+!buildtools
+!ormconfig.js
+!static
+!bower_components
+!sandbox
