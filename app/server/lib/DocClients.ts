@@ -86,11 +86,19 @@ export class DocClients {
         if (!filterMessage) {
           sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
         } else {
-          const filteredMessageData = filterMessage(curr, messageData);
-          if (filteredMessageData) {
-            sendDocMessage(curr.client, curr.fd, type, filteredMessageData, fromSelf);
-          } else {
-            this.activeDoc.logDebug(curr, 'skip broadcastDocMessage because it is not allowed for this client');
+          try {
+            const filteredMessageData = filterMessage(curr, messageData);
+            if (filteredMessageData) {
+              sendDocMessage(curr.client, curr.fd, type, filteredMessageData, fromSelf);
+            } else {
+              this.activeDoc.logDebug(curr, 'skip broadcastDocMessage because it is not allowed for this client');
+            }
+          } catch (e) {
+            if (e.code && e.code === 'NEED_RELOAD') {
+              sendDocMessage(curr.client, curr.fd, 'docShutdown', null, fromSelf);
+            } else {
+              throw e;
+            }
           }
         }
       } catch (e) {

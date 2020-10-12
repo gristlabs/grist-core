@@ -1,11 +1,15 @@
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
-import { BulkColValues, DocAction, TableDataAction, UserAction } from 'app/common/DocActions';
+import { BulkColValues, DocAction, TableDataAction, UserAction, CellValue } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
+import { ErrorWithCode } from 'app/common/ErrorWithCode';
+import { GranularAccessClause } from 'app/common/GranularAccessClause';
 import { canView } from 'app/common/roles';
 import { TableData } from 'app/common/TableData';
+import { Permissions } from 'app/gen-server/lib/Permissions';
 import { getDocSessionAccess, OptDocSession } from 'app/server/lib/DocSession';
+import pullAt = require('lodash/pullAt');
 
 // Actions that may be allowed for a user with nuanced access to a document, depending
 // on what table they refer to.
@@ -54,16 +58,13 @@ const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
  *
  *   - {tableId, colIds: '~o'}: mark specified table as accessible by owners only.
  *   - {tableId: '', colIds: '~o structure'}: mark doc structure as editable by owners only.
+ *   - {tableId, colIds: '~o row <colId>'}: mark specified table as editable only by
+ *     owner, and rows with <colId> falsy as accessible only by owner.
  *
  */
 export class GranularAccess {
   private _resources: TableData;
-
-  // Tables marked as accessible only by owners.
-  private _ownerOnlyTableIds = new Set<string>();
-
-  // Document structure modifiable only by owners?
-  private _onlyOwnersCanModifyStructure: boolean = false;
+  private _clauses = new Array<GranularAccessClause>();
 
   public constructor(private _docData: DocData) {
     this.update();
@@ -74,15 +75,30 @@ export class GranularAccess {
    */
   public update() {
     this._resources = this._docData.getTable('_grist_ACLResources')!;
-    this._ownerOnlyTableIds.clear();
-    this._onlyOwnersCanModifyStructure = false;
+    this._clauses.length = 0;
     for (const res of this._resources.getRecords()) {
       const code = String(res.colIds);
       if (res.tableId && code === '~o') {
-        this._ownerOnlyTableIds.add(String(res.tableId));
+        this._clauses.push({
+          kind: 'table',
+          tableId: String(res.tableId),
+          rule: 'only-owner-can-access',
+        });
       }
       if (!res.tableId && code === '~o structure') {
-        this._onlyOwnersCanModifyStructure = true;
+        this._clauses.push({
+          kind: 'doc',
+          rule: 'only-owner-can-modify-structure',
+        });
+      }
+      if (res.tableId && code.startsWith('~o row ')) {
+        const colId = code.split(' ')[2] || 'RowAccess';
+        this._clauses.push({
+          kind: 'row',
+          tableId: String(res.tableId),
+          colId,
+          rule: 'only-owner-can-edit-table-and-access-all-rows'
+        });
       }
     }
   }
@@ -98,7 +114,7 @@ export class GranularAccess {
    * Check whether user has access to table.
    */
   public hasTableAccess(docSession: OptDocSession, tableId: string) {
-    return !this._ownerOnlyTableIds.has(tableId) || this.hasFullAccess(docSession);
+    return Boolean(this.getTableAccess(docSession, tableId).permission & Permissions.VIEW);
   }
 
   /**
@@ -169,7 +185,20 @@ export class GranularAccess {
       if (tableId.startsWith('_grist_') && direction === 'in') {
         return !this.hasNuancedAccess(docSession);
       }
-      return this.hasTableAccess(docSession, tableId);
+      const tableAccess = this.getTableAccess(docSession, tableId);
+      // For now, if there are any row restrictions, forbid editing.
+      // To allow editing, we'll need something that has access to full row,
+      // e.g. data engine (and then an equivalent for ondemand tables), or
+      // to fetch rows at this point.
+      if (tableAccess.rowPermissionFunctions.length > 0) {
+        // If sending to client, for now just get it to reload from scratch,
+        // we don't have the information we need to filter updates.  Reloads
+        // would be very annoying if user is working on something, but at least
+        // data won't be stale.  TODO: improve!
+        if (direction === 'out') { throw new ErrorWithCode('NEED_RELOAD', 'document needs reload'); }
+        return false;
+      }
+      return Boolean(tableAccess.permission & Permissions.VIEW);
     }
     return false;
   }
@@ -180,9 +209,7 @@ export class GranularAccess {
    * access is simple and without nuance.
    */
   public hasNuancedAccess(docSession: OptDocSession): boolean {
-    if (this._ownerOnlyTableIds.size === 0 && !this._onlyOwnersCanModifyStructure) {
-      return false;
-    }
+    if (this._clauses.length === 0) { return false; }
     return !this.hasFullAccess(docSession);
   }
 
@@ -190,8 +217,13 @@ export class GranularAccess {
    * Check whether user can read everything in document.
    */
   public canReadEverything(docSession: OptDocSession): boolean {
-    if (this._ownerOnlyTableIds.size === 0) { return true; }
-    return this.hasFullAccess(docSession);
+    for (const tableId of this.getTablesInClauses()) {
+      const tableData = this.getTableAccess(docSession, tableId);
+      if (!(tableData.permission & Permissions.VIEW) || tableData.rowPermissionFunctions.length > 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -237,7 +269,7 @@ export class GranularAccess {
     tables = JSON.parse(JSON.stringify(tables));
     // Collect a list of all tables (by tableRef) to which the user has no access.
     const censoredTables: Set<number> = new Set();
-    for (const tableId of this._ownerOnlyTableIds) {
+    for (const tableId of this.getTablesInClauses()) {
       if (this.hasTableAccess(docSession, tableId)) { continue; }
       const tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
       if (tableRef) { censoredTables.add(tableRef); }
@@ -297,15 +329,115 @@ export class GranularAccess {
   }
 
   /**
+   * Distill the clauses for the given session and table, to figure out the
+   * access level and any row-level access functions needed.
+   */
+  public getTableAccess(docSession: OptDocSession, tableId: string): TableAccess {
+    const access = getDocSessionAccess(docSession);
+    const isOwner = access === 'owners';
+    const tableAccess: TableAccess = { permission: 0, rowPermissionFunctions: [] };
+    let canChangeSchema: boolean = true;
+    let canView: boolean = true;
+    for (const clause of this._clauses) {
+      if (clause.kind === 'doc' && clause.rule === 'only-owner-can-modify-structure') {
+        const match = isOwner;
+        if (!match) {
+          canChangeSchema = false;
+        }
+      }
+      if (clause.kind === 'table' && clause.tableId === tableId &&
+          clause.rule === 'only-owner-can-access') {
+        const match = isOwner;
+        if (!match) {
+          canView = false;
+        }
+      }
+      if (clause.kind === 'row' && clause.tableId === tableId &&
+          clause.rule === 'only-owner-can-edit-table-and-access-all-rows') {
+        const match = isOwner;
+        if (!match) {
+          tableAccess.rowPermissionFunctions.push((rec) => {
+            return rec.get(clause.colId) ? Permissions.OWNER : 0;
+          });
+        }
+      }
+    }
+    tableAccess.permission = canView ? Permissions.OWNER : 0;
+    if (!canChangeSchema) {
+      tableAccess.permission = tableAccess.permission & ~Permissions.SCHEMA_EDIT;
+    }
+    return tableAccess;
+  }
+
+  /**
+   * Get the set of all tables mentioned in access clauses.
+   */
+  public getTablesInClauses(): Set<string> {
+    const tables = new Set<string>();
+    for (const clause of this._clauses) {
+      if ('tableId' in clause) { tables.add(clause.tableId); }
+    }
+    return tables;
+  }
+
+  /**
+   * Modify table data in place, removing any rows to which access
+   * is not granted.
+   */
+  public filterData(data: TableDataAction, tableAccess: TableAccess) {
+    const toRemove: number[] = [];
+    const rec = new RecordView(data, 0);
+    for (let idx = 0; idx < data[2].length; idx++) {
+      rec.index = idx;
+      let permission = Permissions.OWNER;
+      for (const fn of tableAccess.rowPermissionFunctions) {
+        permission = permission & fn(rec);
+      }
+      if (!(permission & Permissions.VIEW)) {
+        toRemove.push(idx);
+      }
+    }
+    if (toRemove.length > 0) {
+      pullAt(data[2], toRemove);
+      const cols = data[3];
+      for (const [, values] of Object.entries(cols)) {
+        pullAt(values, toRemove);
+      }
+    }
+  }
+
+  /**
    * Modify the given TableDataAction in place by calling the supplied operation with
    * the indexes of any ids supplied and the columns in that TableDataAction.
    */
-  public _censor(table: TableDataAction, ids: Set<number>,
-                 op: (idx: number, cols: BulkColValues) => unknown) {
+  private _censor(table: TableDataAction, ids: Set<number>,
+                  op: (idx: number, cols: BulkColValues) => unknown) {
     const availableIds = table[2];
     const cols = table[3];
     for (let idx = 0; idx < availableIds.length; idx++) {
       if (ids.has(availableIds[idx])) { op(idx, cols); }
     }
+  }
+}
+
+// A function that computes permissions given a record.
+export type PermissionFunction = (rec: RecordView) => number;
+
+// A summary of table-level access information.
+export interface TableAccess {
+  permission: number;
+  rowPermissionFunctions: Array<PermissionFunction>;
+}
+
+// A row-like view of TableDataAction, which is columnar in nature.
+export class RecordView {
+  public constructor(public data: TableDataAction, public index: number) {
+  }
+
+  public get(colId: string): CellValue {
+    if (colId === 'id') {
+      return this.data[2][this.index];
+    }
+    return this.data[3][colId][this.index];
   }
 }

@@ -33,6 +33,7 @@ import * as marshal from 'app/common/marshal';
 import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
+import {Permissions} from 'app/gen-server/lib/Permissions';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
 import {Authorizer} from 'app/server/lib/Authorizer';
@@ -564,14 +565,18 @@ export class ActiveDoc extends EventEmitter {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     // If user does not have rights to access what this query is asking for, fail.
-    if (!this._granularAccess.hasQueryAccess(docSession, query)) {
+    const tableAccess = this._granularAccess.getTableAccess(docSession, query.tableId);
+    if (!(tableAccess.permission & Permissions.VIEW)) {
       throw new Error('not authorized to read table');
     }
 
     // Some tests read _grist_ tables via the api.  The _fetchQueryFromDB method
     // currently cannot read those tables, so we load them from the data engine
     // when ready.
-    const wantFull = waitForFormulas || query.tableId.startsWith('_grist_');
+    // Also, if row-level access is being controlled, we wait for formula columns
+    // to be populated.
+    const wantFull = waitForFormulas || query.tableId.startsWith('_grist_') ||
+      tableAccess.rowPermissionFunctions.length > 0;
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
     this.logInfo(docSession, "fetchQuery(%s, %s) %s", docSession, JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
@@ -590,6 +595,10 @@ export class ActiveDoc extends EventEmitter {
         // TODO: cache longer if the underlying fetch takes longer to do.
         data = await mapGetOrSet(this._fetchCache, key, () => this._fetchQueryFromDataEngine(query));
       }
+    }
+    // If row-level access is being controlled, filter the data appropriately.
+    if (tableAccess.rowPermissionFunctions.length > 0) {
+      this._granularAccess.filterData(data!, tableAccess);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
