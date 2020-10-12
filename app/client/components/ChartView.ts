@@ -7,6 +7,7 @@ import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
 import * as DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {cssRow} from 'app/client/ui/RightPanel';
@@ -129,6 +130,10 @@ export class ChartView extends Disposable {
     this.autoDispose(this.viewSection.viewFields().subscribe(this._update));
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
+  }
+
+  public prepareToPrint(onOff: boolean) {
+    Plotly.relayout(this._chartDom, {}).catch(reportError);
   }
 
   protected onTableLoaded() {

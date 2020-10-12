@@ -270,3 +270,15 @@
   margin-right: -6px;   /* allow labels to overflow into the padding */
   margin-bottom: 4px;
 }
+
+@media print {
+  .detail_theme_record_compact {
+    background-color: var(--grist-color-medium-grey) !important;
+  }
+  .detail_theme_record_compact > .g_record_detail_inner {
+    background-color: white !important;
+  }
+  .detail_theme_field_blocks {
+    background-color: var(--grist-color-medium-grey) !important;
+  }
+}

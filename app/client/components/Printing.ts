@@ -67,15 +67,19 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   const sub2 = dom.onElem(window, 'afterprint', () => {
     sub1.dispose();
     sub2.dispose();
-    // To debug printing, set window.debugPringint=1 in the console, then print a section, dismiss
+    // To debug printing, set window.debugPrinting=1 in the console, then print a section, dismiss
     // the print dialog, switch to "@media print" emulation, and you can explore the styles. You'd
-    // need to reload the page to do it again.
-    if (!(window as any).debugPrinting) {
+    // need to call window.finishPrinting() or reload the page to do it again.
+    if ((window as any).debugPrinting) {
+      (window as any).finishPrinting = () => prepareToPrint(false);
+    } else {
       prepareToPrint(false);
     }
   });
 
-  window.print();
+  // Running print on a timeout makes it possible to test printing using selenium, and doesn't
+  // seem to affect normal printing.
+  setTimeout(() => window.print(), 0);
 }
 
 
@@ -97,7 +101,7 @@ export function renderAllRows(
       rowModel._index(index);
       rowModel.assign(rowId);
       const elem = renderRow(rowModel);
-      html.push(elem.outerHTML);
+      html.push(`<div class="print-row">${elem.outerHTML}</div>`);
       dom.domDispose(elem);
     }
   });

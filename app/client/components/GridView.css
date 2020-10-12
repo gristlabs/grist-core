@@ -99,6 +99,33 @@
   .gridview_data_header {
     background-color: var(--grist-color-light-grey) !important;
   }
+  .print-widget .gridview_header_backdrop_left, .print-widget .gridview_data_corner_overlay {
+    display: none;
+  }
+  .print-widget .gridview_data_scroll {
+    display: table;
+    border-collapse: collapse;
+    position: relative !important;
+    height: max-content !important;
+  }
+  .print-widget .gridview_stick-top {
+    /* The next two styles *together* tell Chrome to repeat this header on each page */
+    display: table-header-group;
+    break-inside: avoid;
+    position: static;
+    border-top: 1px solid var(--grist-color-dark-grey);
+    border-left: 1px solid var(--grist-color-dark-grey);
+  }
+  .print-widget .gridview_data_header {
+    padding-left: 4rem !important;
+  }
+  .print-widget .gridview_data_pane .print-all-rows {
+    display: table-row-group;
+    border-left: 1px solid var(--grist-color-dark-grey);
+  }
+  .print-widget .gridview_data_pane .print-row {
+    display: table-row;
+  }
 }
 
 /* ========= Overlay styles ========== */
