@@ -40,7 +40,7 @@ import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint'
 import {PluginManager} from 'app/server/lib/PluginManager';
 import {adaptServerUrl, addOrgToPathIfNeeded, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
         TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
-import {ISendAppPageOptions, makeSendAppPage, makeGristConfig} from 'app/server/lib/sendAppPage';
+import {ISendAppPageOptions, makeGristConfig, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -53,8 +53,10 @@ import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
+import mapValues = require('lodash/mapValues');
 import * as morganLogger from 'morgan';
 import {AddressInfo} from 'net';
+import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
 
@@ -63,6 +65,9 @@ import * as serveStatic from "serve-static";
 const HEALTH_CHECK_LOG_SHOW_FIRST_N = 10;
 // And we show every Nth health check:
 const HEALTH_CHECK_LOG_SHOW_EVERY_N = 100;
+
+// DocID of Grist doc to collect the Welcome questionnaire responses.
+const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO || 'GristNewUserInfo';
 
 export interface FlexServerOptions {
   dataDir?: string;
@@ -947,31 +952,76 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
-    this.app.get('/welcome/user', ...middleware, expressWrap(async (req, resp, next) => {
+    this.app.get('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
     }));
 
-    this.app.post('/welcome/user', ...middleware, expressWrap(async (req, resp, next) => {
+    this.app.post('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
       const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
       const domain = mreq.org;
-      const result = await this.dbManager.getMergedOrgs(userId, userId, domain || null);
-      const orgs = (result.status === 200) ? result.data : null;
+      let redirectPath: string = '/';
 
-      const name: string|undefined = req.body && req.body.username || undefined;
-      await this.dbManager.updateUser(userId, {name, isFirstTimeUser: false});
+      if (req.params.page === 'user') {
+        const name: string|undefined = req.body && req.body.username || undefined;
+        await this.dbManager.updateUser(userId, {name, isFirstTimeUser: false});
+        redirectPath = '/welcome/info';
 
-      // redirect to teams page if users has access to more than one org. Otherwise redirect to
-      // personal org.
-      const pathname = orgs && orgs.length > 1 ? '/welcome/teams' : '/';
+      } else if (req.params.page === 'info') {
+        const urlId = DOC_ID_NEW_USER_INFO;
+        let body: string|undefined;
+        let permitKey: string|undefined;
+        try {
+          // Take an extra step to translate the special urlId to a docId. This is helpful to
+          // allow the same urlId to be used in production and in test. We need the docId for the
+          // specialPermit below, which we need to be able to write to this doc.
+          //
+          // TODO With proper forms support, we could give an origin-based permission to submit a
+          // form to this doc, and do it from the client directly.
+          const previewerUserId = this.dbManager.getPreviewerUserId();
+          const docAuth = await this.dbManager.getDocAuthCached({urlId, userId: previewerUserId});
+          const docId = docAuth.docId;
+          if (!docId) {
+            throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
+          }
+
+          const user = getUser(req);
+          const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
+          body = JSON.stringify(mapValues(row, value => [value]));
+
+          permitKey = await this._docWorkerMap.setPermit({docId});
+          const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
+            method: 'POST',
+            headers: {'Permit': permitKey, 'Content-Type': 'application/json'},
+            body,
+          });
+          if (res.status !== 200) {
+            throw new Error(`API call failed with ${res.status}`);
+          }
+        } catch (e) {
+          // If we failed to record, at least log the data, so we could potentially recover it.
+          log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: body});
+        } finally {
+          if (permitKey) {
+            await this._docWorkerMap.removePermit(permitKey);
+          }
+        }
+
+        // redirect to teams page if users has access to more than one org. Otherwise redirect to
+        // personal org.
+        const result = await this.dbManager.getMergedOrgs(userId, userId, domain || null);
+        const orgs = (result.status === 200) ? result.data : null;
+        if (orgs && orgs.length > 1) {
+          redirectPath = '/welcome/teams';
+        }
+      }
+
       const mergedOrgDomain = this.dbManager.mergedOrgDomain();
-      const redirectUrl = this._getOrgRedirectUrl(mreq, mergedOrgDomain, pathname);
+      const redirectUrl = this._getOrgRedirectUrl(mreq, mergedOrgDomain, redirectPath);
       resp.json({redirectUrl});
-    }));
-
-    this.app.get('/welcome/teams', ...middleware, expressWrap(async (req, resp, next) => {
-      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
-    }));
+    }),
+    // Add a final error handler that reports errors as JSON.
+    jsonErrorHandler);
   }
 
   public finalize() {

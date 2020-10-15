@@ -10,6 +10,7 @@
 import {DocComm} from 'app/client/components/DocComm';
 import {UserError} from 'app/client/models/errors';
 import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
+import {BaseAPI} from 'app/common/BaseAPI';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
 import {UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
@@ -172,32 +173,24 @@ export async function fetchURL(
   return res!;
 }
 
-// Submit a form using XHR.  Send inputs as JSON, and interpret any reply as JSON.
-export async function submitForm(form: HTMLFormElement): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const data: {[key: string]: string} = {};
-    for (const element of [...form.getElementsByTagName('input')]) {
-      data[element.name] = element.value;
+/**
+ * Convert a form to a JSON-stringifiable object, ignoring any File fields.
+ */
+export function formDataToObj(formElem: HTMLFormElement): {[key: string]: string} {
+  // Use FormData to collect values (rather than e.g. finding <input> elements) to ensure we get
+  // values from all form items correctly (e.g. checkboxes and textareas).
+  const formData = new FormData(formElem);
+  const data: {[key: string]: string} = {};
+  for (const [name, value] of formData.entries()) {
+    if (typeof value === 'string') {
+      data[name] = value;
     }
-    xhr.open('post', form.action, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.withCredentials = true;
-    xhr.send(JSON.stringify(data));
-    xhr.addEventListener('error', (e: ProgressEvent) => {
-      console.warn("Form error", e);    // tslint:disable-line:no-console
-      reject(new Error('Form error, please try again'));
-    });
-    xhr.addEventListener('load', () => {
-      if (xhr.status !== 200) {
-        // tslint:disable-next-line:no-console
-        console.warn("Form failed", xhr.status, xhr.responseText);
-        const err = safeJsonParse(xhr.responseText, null);
-        reject(new UserError('Form failed: ' + (err && err.error || xhr.status)));
-      } else {
-        resolve(safeJsonParse(xhr.responseText, null));
-      }
-    });
-  });
+  }
+  return data;
+}
+
+// Submit a form using BaseAPI.  Send inputs as JSON, and interpret any reply as JSON.
+export async function submitForm(form: HTMLFormElement): Promise<any> {
+  const data = formDataToObj(form);
+  return BaseAPI.requestJson(form.action, {method: 'POST', body: JSON.stringify(data)});
 }

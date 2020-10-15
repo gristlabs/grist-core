@@ -37,6 +37,12 @@ export class BaseAPI {
     };
   }
 
+  // Make a JSON request to the given URL, and read the esponse as JSON. Handles errors, and
+  // counts pending requests in the same way as BaseAPI methods do.
+  public static requestJson(url: string, init: RequestInit = {}): Promise<unknown> {
+    return new BaseAPI().requestJson(url, init);
+  }
+
   private static _numPendingRequests: number = 0;
 
   protected fetch: typeof fetch;
