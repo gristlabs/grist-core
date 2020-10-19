@@ -4,11 +4,11 @@ import { Query } from 'app/common/ActiveDocAPI';
 import { BulkColValues, DocAction, TableDataAction, UserAction, CellValue } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { GranularAccessClause } from 'app/common/GranularAccessClause';
+import { decodeClause, GranularAccessCharacteristicsClause, GranularAccessClause, MatchSpec } from 'app/common/GranularAccessClause';
 import { canView } from 'app/common/roles';
 import { TableData } from 'app/common/TableData';
 import { Permissions } from 'app/gen-server/lib/Permissions';
-import { getDocSessionAccess, OptDocSession } from 'app/server/lib/DocSession';
+import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
 import pullAt = require('lodash/pullAt');
 
 // Actions that may be allowed for a user with nuanced access to a document, depending
@@ -54,52 +54,33 @@ const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
  *
  * Manage granular access to a document.  This allows nuances other than the coarse
  * owners/editors/viewers distinctions.  As a placeholder for a future representation,
- * nuances are stored in the _grist_ACLResources table.  Supported nauances:
- *
- *   - {tableId, colIds: '~o'}: mark specified table as accessible by owners only.
- *   - {tableId: '', colIds: '~o structure'}: mark doc structure as editable by owners only.
- *   - {tableId, colIds: '~o row <colId>'}: mark specified table as editable only by
- *     owner, and rows with <colId> falsy as accessible only by owner.
+ * nuances are stored in the _grist_ACLResources table.
  *
  */
 export class GranularAccess {
   private _resources: TableData;
   private _clauses = new Array<GranularAccessClause>();
+  // Cache any tables that we need to look-up for access control decisions.
+  // This is an unoptimized implementation that is adequate if the tables
+  // are not large and don't change all that often.
+  private _characteristicTables = new Map<string, CharacteristicTable>();
 
-  public constructor(private _docData: DocData) {
-    this.update();
+  public constructor(private _docData: DocData, private _fetchQuery: (query: Query) => Promise<TableDataAction>) {
   }
 
   /**
    * Update granular access from DocData.
    */
-  public update() {
+  public async update() {
     this._resources = this._docData.getTable('_grist_ACLResources')!;
     this._clauses.length = 0;
     for (const res of this._resources.getRecords()) {
-      const code = String(res.colIds);
-      if (res.tableId && code === '~o') {
-        this._clauses.push({
-          kind: 'table',
-          tableId: String(res.tableId),
-          rule: 'only-owner-can-access',
-        });
-      }
-      if (!res.tableId && code === '~o structure') {
-        this._clauses.push({
-          kind: 'doc',
-          rule: 'only-owner-can-modify-structure',
-        });
-      }
-      if (res.tableId && code.startsWith('~o row ')) {
-        const colId = code.split(' ')[2] || 'RowAccess';
-        this._clauses.push({
-          kind: 'row',
-          tableId: String(res.tableId),
-          colId,
-          rule: 'only-owner-can-edit-table-and-access-all-rows'
-        });
-      }
+      const clause = decodeClause(String(res.colIds));
+      if (clause) { this._clauses.push(clause); }
+    }
+    if (this._clauses.length > 0) {
+      // TODO: optimize this.
+      await this._updateCharacteristicTables();
     }
   }
 
@@ -334,31 +315,58 @@ export class GranularAccess {
    */
   public getTableAccess(docSession: OptDocSession, tableId: string): TableAccess {
     const access = getDocSessionAccess(docSession);
-    const isOwner = access === 'owners';
+    const characteristics: {[key: string]: CellValue} = {};
+    const user = getDocSessionUser(docSession);
+    characteristics.Access = access;
+    characteristics.UserID = user?.id || null;
+    characteristics.Email = user?.email || null;
+    characteristics.Name = user?.name || null;
+    // Light wrapper around characteristics.
+    const ch: InfoView = {
+      get(key: string) { return characteristics[key]; },
+      toJSON() { return characteristics; }
+    };
     const tableAccess: TableAccess = { permission: 0, rowPermissionFunctions: [] };
     let canChangeSchema: boolean = true;
     let canView: boolean = true;
-    for (const clause of this._clauses) {
-      if (clause.kind === 'doc' && clause.rule === 'only-owner-can-modify-structure') {
-        const match = isOwner;
-        if (!match) {
-          canChangeSchema = false;
+    // Don't apply access control to system requests (important to load characteristic
+    // tables).
+    if (docSession.mode !== 'system') {
+      for (const clause of this._clauses) {
+        if (clause.kind === 'doc') {
+          const match = getMatchFunc(clause.match);
+          if (!match({ ch })) {
+            canChangeSchema = false;
+          }
         }
-      }
-      if (clause.kind === 'table' && clause.tableId === tableId &&
-          clause.rule === 'only-owner-can-access') {
-        const match = isOwner;
-        if (!match) {
-          canView = false;
+        if (clause.kind === 'table' && clause.tableId === tableId) {
+          const match = getMatchFunc(clause.match);
+          if (!match({ ch })) {
+            canView = false;
+          }
         }
-      }
-      if (clause.kind === 'row' && clause.tableId === tableId &&
-          clause.rule === 'only-owner-can-edit-table-and-access-all-rows') {
-        const match = isOwner;
-        if (!match) {
-          tableAccess.rowPermissionFunctions.push((rec) => {
-            return rec.get(clause.colId) ? Permissions.OWNER : 0;
-          });
+        if (clause.kind === 'row' && clause.tableId === tableId) {
+          const scope = clause.scope ? getMatchFunc(clause.scope) : () => true;
+          if (scope({ ch })) {
+            const match = getMatchFunc(clause.match);
+            tableAccess.rowPermissionFunctions.push((rec) => {
+              return match({ ch, rec }) ? Permissions.OWNER : 0;
+            });
+          }
+        }
+        if (clause.kind === 'character') {
+          const key = this._getCharacteristicTableKey(clause);
+          const characteristicTable = this._characteristicTables.get(key);
+          if (characteristicTable) {
+            const character = this._normalizeValue(characteristics[clause.charId]);
+            const rowNum = characteristicTable.rowNums.get(character);
+            if (rowNum !== undefined) {
+              const rec = new RecordView(characteristicTable.data, rowNum);
+              for (const key of Object.keys(characteristicTable.data[3])) {
+                characteristics[key] = rec.get(key);
+              }
+            }
+          }
         }
       }
     }
@@ -418,6 +426,50 @@ export class GranularAccess {
       if (ids.has(availableIds[idx])) { op(idx, cols); }
     }
   }
+
+  /**
+   * When comparing user characteristics, we lowercase for the sake of email comparison.
+   * This is a bit weak.
+   */
+  private _normalizeValue(value: CellValue): string {
+    return JSON.stringify(value).toLowerCase();
+  }
+
+  /**
+   * Load any tables needed for look-ups.
+   */
+  private async _updateCharacteristicTables() {
+    this._characteristicTables.clear();
+    for (const clause of this._clauses) {
+      if (clause.kind === 'character') {
+        this._updateCharacteristicTable(clause);
+      }
+    }
+  }
+
+  /**
+   * Load a table needed for look-up.
+   */
+  private async _updateCharacteristicTable(clause: GranularAccessCharacteristicsClause) {
+    const key = this._getCharacteristicTableKey(clause);
+    const data = await this._fetchQuery({tableId: clause.tableId, filters: {}});
+    const rowNums = new Map<string, number>();
+    const matches = data[3][clause.lookupColId];
+    for (let i = 0; i < matches.length; i++) {
+      rowNums.set(this._normalizeValue(matches[i]), i);
+    }
+    const result: CharacteristicTable = {
+      tableId: clause.tableId,
+      colId: clause.lookupColId,
+      rowNums,
+      data
+    }
+    this._characteristicTables.set(key, result);
+  }
+
+  private _getCharacteristicTableKey(clause: GranularAccessCharacteristicsClause): string {
+    return JSON.stringify({ tableId: clause.tableId, colId: clause.lookupColId });
+  }
 }
 
 // A function that computes permissions given a record.
@@ -429,8 +481,14 @@ export interface TableAccess {
   rowPermissionFunctions: Array<PermissionFunction>;
 }
 
+// Light wrapper around characteristics or records.
+export interface InfoView {
+  get(key: string): CellValue;
+  toJSON(): {[key: string]: any};
+}
+
 // A row-like view of TableDataAction, which is columnar in nature.
-export class RecordView {
+export class RecordView implements InfoView {
   public constructor(public data: TableDataAction, public index: number) {
   }
 
@@ -440,4 +498,45 @@ export class RecordView {
     }
     return this.data[3][colId][this.index];
   }
+
+  public toJSON() {
+    const results: {[key: string]: any} = {};
+    for (const key of Object.keys(this.data[3])) {
+      results[key] = this.data[3][key][this.index];
+    }
+    return results;
+  }
+}
+
+// A function for matching characteristic and/or record information.
+export type MatchFunc = (state: { ch?: InfoView, rec?: InfoView }) => boolean;
+
+// Convert a match specification to a function.
+export function getMatchFunc(spec: MatchSpec): MatchFunc {
+  switch (spec.kind) {
+    case 'not':
+      {
+        const core = getMatchFunc(spec.match);
+        return (state) => !core(state);
+      }
+    case 'const':
+      return (state) => state.ch?.get(spec.charId) === spec.value;
+    case 'truthy':
+      return (state) => Boolean(state.rec?.get(spec.colId));
+    case 'pair':
+      return (state) => state.ch?.get(spec.charId) === state.rec?.get(spec.colId);
+    default:
+      throw new Error('match spec not understood');
+  }
+}
+
+/**
+ * A cache of a table needed for look-ups, including a map from keys to
+ * row numbers. Keys are produced by _getCharacteristicTableKey().
+ */
+export interface CharacteristicTable {
+  tableId: string;
+  colId: string;
+  rowNums: Map<string, number>;
+  data: TableDataAction;
 }

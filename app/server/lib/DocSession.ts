@@ -1,7 +1,8 @@
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {Role} from 'app/common/roles';
+import { FullUser } from 'app/common/UserAPI';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {Authorizer, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {Authorizer, getUser, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 
 /**
@@ -90,6 +91,33 @@ export function getDocSessionUserId(docSession: OptDocSession): number|null {
   }
   if (docSession.client) {
     return docSession.client.getCachedUserId();
+  }
+  return null;
+}
+
+/**
+ * Get as much of user profile as we can (id, name, email).
+ */
+export function getDocSessionUser(docSession: OptDocSession): FullUser|null {
+  if (docSession.authorizer) {
+    return docSession.authorizer.getUser();
+  }
+  if (docSession.req) {
+    const user = getUser(docSession.req);
+    const email = user.loginEmail;
+    if (email) {
+      return {id: user.id, name: user.name, email};
+    }
+  }
+  if (docSession.client) {
+    const id = docSession.client.getCachedUserId();
+    const profile = docSession.client.getProfile();
+    if (id && profile) {
+      return {
+        id,
+        ...profile
+      };
+    }
   }
   return null;
 }

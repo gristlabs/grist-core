@@ -8,6 +8,7 @@ import {primaryButton} from 'app/client/ui2018/buttons';
 import {colors} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem, select} from 'app/client/ui2018/menus';
+import {decodeClause, GranularAccessDocClause, serializeClause} from 'app/common/GranularAccessClause';
 import {arrayRepeat, setDifference} from 'app/common/gutil';
 import {Computed, Disposable, dom, ObsArray, obsArray, Observable, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
@@ -23,11 +24,14 @@ function buildAclState(gristDoc: GristDoc): AclState {
   const tableData = gristDoc.docModel.aclResources.tableData;
   for (const res of tableData.getRecords()) {
     const code = String(res.colIds);
-    if (res.tableId && code === '~o') {
-      ownerOnlyTableIds.add(String(res.tableId));
-    }
-    if (!res.tableId && code === '~o structure') {
-      ownerOnlyStructure = true;
+    const clause = decodeClause(code);
+    if (clause) {
+      if (clause.kind === 'doc') {
+        ownerOnlyStructure = true;
+      }
+      if (clause.kind === 'table' && clause.tableId) {
+        ownerOnlyTableIds.add(clause.tableId);
+      }
     }
   }
   return {ownerOnlyTableIds, ownerOnlyStructure};
@@ -63,10 +67,15 @@ export class AccessRules extends Disposable {
     await tableData.docData.bundleActions('Update Access Rules', async () => {
       // If ownerOnlyStructure flag changed, add or remove the relevant resource record.
       if (currentState.ownerOnlyStructure !== latestState.ownerOnlyStructure) {
+        const clause: GranularAccessDocClause = {
+          kind: 'doc',
+          match: { kind: 'const', charId: 'Access', value: 'owners' },
+        };
+        const colIds = serializeClause(clause);
         if (currentState.ownerOnlyStructure) {
-          await tableData.sendTableAction(['AddRecord', null, {tableId: "", colIds: "~o structure"}]);
+          await tableData.sendTableAction(['AddRecord', null, {tableId: "", colIds}]);
         } else {
-          const rowId = tableData.findMatchingRowId({tableId: '', colIds: '~o structure'});
+          const rowId = tableData.findMatchingRowId({tableId: '', colIds});
           if (rowId) {
             await this._gristDoc.docModel.aclResources.sendTableAction(['RemoveRecord', rowId]);
           }
@@ -78,11 +87,15 @@ export class AccessRules extends Disposable {
       if (tablesAdded.size) {
         await tableData.sendTableAction(['BulkAddRecord', arrayRepeat(tablesAdded.size, null), {
           tableId: [...tablesAdded],
-          colIds: arrayRepeat(tablesAdded.size, "~o"),
+          colIds: [...tablesAdded].map(tableId => serializeClause({
+            kind: 'table',
+            tableId,
+            match: { kind: 'const', charId: 'Access', value: 'owners' },
+          })),
         }]);
       }
 
-      // Handle table removed from ownerOnlyTaleIds.
+      // Handle table removed from ownerOnlyTableIds.
       const tablesRemoved = setDifference(latestState.ownerOnlyTableIds, currentState.ownerOnlyTableIds);
       if (tablesRemoved.size) {
         const rowIds = Array.from(tablesRemoved, t => tableData.findRow('tableId', t)).filter(r => r);

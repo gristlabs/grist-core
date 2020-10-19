@@ -266,7 +266,7 @@ export class DocManager extends EventEmitter {
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-      auth = new DocAuthorizer(dbManager, key, mode, docAuth);
+      auth = new DocAuthorizer(dbManager, key, mode, docAuth, client.getProfile() || undefined);
     } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer('owners', docId);

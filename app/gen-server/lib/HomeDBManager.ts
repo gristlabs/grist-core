@@ -350,7 +350,8 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public getUserByKey(apiKey: string): Promise<User|undefined> {
-    return User.findOne({apiKey});
+    // Include logins relation for Authorization convenience.
+    return User.findOne({apiKey}, {relations: ["logins"]});
   }
 
   public getUser(userId: number): Promise<User|undefined> {

@@ -385,7 +385,10 @@ export class ActiveDoc extends EventEmitter {
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
     await this._actionHistory.initialize();
-    this._granularAccess = new GranularAccess(this.docData);
+    this._granularAccess = new GranularAccess(this.docData, (query) => {
+      return this.fetchQuery(makeExceptionalDocSession('system'), query, true)
+    });
+    await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory);
 
     await this.openSharedDoc(docSession);
@@ -747,7 +750,8 @@ export class ActiveDoc extends EventEmitter {
     localActionBundle.stored.forEach(da => docData.receiveAction(da[1]));
     localActionBundle.calc.forEach(da => docData.receiveAction(da[1]));
     const docActions = getEnvContent(localActionBundle.stored);
-    this._granularAccess.update();
+    // TODO: call this update less indiscriminately!
+    await this._granularAccess.update();
     if (docActions.some(docAction => this._onDemandActions.isSchemaAction(docAction))) {
       const indexes = this._onDemandActions.getDesiredIndexes();
       await this.docStorage.updateIndexes(indexes);

@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {UserProfile} from 'app/common/LoginSessionAPI';
+import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
@@ -255,7 +255,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   }
 
   log.debug("Auth[%s]: id %s email %s host %s path %s org %s%s", mreq.method,
-            mreq.userId, profile && profile.email, mreq.get('host'), mreq.path, mreq.org,
+            mreq.userId, mreq.user?.loginEmail, mreq.get('host'), mreq.path, mreq.org,
             customHostSession);
 
   return next();
@@ -357,6 +357,9 @@ export interface Authorizer {
   // get the id of user, or null if no authorization in place.
   getUserId(): number|null;
 
+  // get user profile if available.
+  getUser(): FullUser|null;
+
   // get the id of the document.
   getDocId(): string;
 
@@ -382,12 +385,17 @@ export class DocAuthorizer implements Authorizer {
     private _dbManager: HomeDBManager,
     private _key: DocAuthKey,
     public readonly openMode: OpenDocMode,
-    private _docAuth?: DocAuthResult
+    private _docAuth?: DocAuthResult,
+    private _profile?: UserProfile
   ) {
   }
 
   public getUserId(): number {
     return this._key.userId;
+  }
+
+  public getUser(): FullUser|null {
+    return this._profile ? {id: this.getUserId(), ...this._profile} : null;
   }
 
   public getDocId(): string {
@@ -414,6 +422,7 @@ export class DocAuthorizer implements Authorizer {
 export class DummyAuthorizer implements Authorizer {
   constructor(public role: Role|null, public docId: string) {}
   public getUserId() { return null; }
+  public getUser() { return null; }
   public getDocId() { return this.docId; }
   public async getDoc(): Promise<Document> { throw new Error("Not supported in standalone"); }
   public async assertAccess() { /* noop */ }

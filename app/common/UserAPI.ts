@@ -12,6 +12,8 @@ import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 
+export {FullUser} from 'app/common/LoginSessionAPI';
+
 // Nominal email address of the anonymous user.
 export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
 
