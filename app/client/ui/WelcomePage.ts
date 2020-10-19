@@ -77,7 +77,7 @@ export class WelcomePage extends Disposable {
 
     return form = dom(
       'form',
-      { method: "post" },
+      { method: "post", action: location.href },
       handleSubmit(),
       cssLabel('Your full name, as you\'d like it displayed to your collaborators.'),
       inputEl = cssInput(
@@ -101,7 +101,7 @@ export class WelcomePage extends Disposable {
    */
   private _buildInfoForm(owner: MultiHolder) {
     const allFilled = Observable.create(owner, false);
-    return forms.form({method: "post"},
+    return forms.form({method: "post", action: location.href },
       handleSubmit(),
       (elem) => { setTimeout(() => elem.focus(), 0); },
       forms.text('Please help us serve you better by answering a few questions.'),

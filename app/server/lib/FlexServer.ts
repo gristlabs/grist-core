@@ -972,6 +972,10 @@ export class FlexServer implements GristServer {
         let body: string|undefined;
         let permitKey: string|undefined;
         try {
+          const user = getUser(req);
+          const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
+          body = JSON.stringify(mapValues(row, value => [value]));
+
           // Take an extra step to translate the special urlId to a docId. This is helpful to
           // allow the same urlId to be used in production and in test. We need the docId for the
           // specialPermit below, which we need to be able to write to this doc.
@@ -984,10 +988,6 @@ export class FlexServer implements GristServer {
           if (!docId) {
             throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
           }
-
-          const user = getUser(req);
-          const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
-          body = JSON.stringify(mapValues(row, value => [value]));
 
           permitKey = await this._docWorkerMap.setPermit({docId});
           const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
