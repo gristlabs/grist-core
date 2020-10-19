@@ -194,7 +194,10 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         'Show in folder', testId('tb-share-option')) :
-      menuItemLink({ href: gristDoc.getDownloadLink(), target: '_blank', download: ''},
+        menuItemLink({
+          href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl(),
+          target: '_blank', download: ''
+        },
         menuIcon('Download'), 'Download', testId('tb-share-option'))
     ),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},

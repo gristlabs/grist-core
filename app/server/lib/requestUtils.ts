@@ -49,9 +49,18 @@ export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
 
 /**
  * If org is not encoded in domain, prefix it to path - otherwise leave path unchanged.
+ * The domain is extracted from the request, so this method is only useful for constructing
+ * urls that stay within that domain.
  */
 export function addOrgToPathIfNeeded(req: RequestWithOrg, path: string): string {
   return (isOrgInPathOnly(req.hostname) && req.org) ? `/o/${req.org}${path}` : path;
+}
+
+/**
+ * If org is known, prefix it to path unconditionally.
+ */
+export function addOrgToPath(req: RequestWithOrg, path: string): string {
+  return req.org ? `/o/${req.org}${path}` : path;
 }
 
 /**

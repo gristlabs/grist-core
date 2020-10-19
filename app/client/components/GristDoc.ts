@@ -475,14 +475,6 @@ export class GristDoc extends DisposableWithEvents {
     }
   }
 
-  public getDownloadLink() {
-    return this.docComm.docUrl('download') + '?' + encodeQueryParams({
-      doc: this.docPageModel.currentDocId.get(),
-      title: this.docPageModel.currentDocTitle.get(),
-      ...this.docComm.getUrlParams(),
-    });
-  }
-
   public getCsvLink() {
     return this.docComm.docUrl('gen_csv') + '?' + encodeQueryParams({
       ...this.docComm.getUrlParams(),

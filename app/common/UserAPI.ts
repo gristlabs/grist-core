@@ -312,6 +312,7 @@ export interface DocAPI {
   // Currently, leftHash is expected to be an ancestor of rightHash.  If rightHash
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
+  getDownloadUrl(template?: boolean): string;
 }
 
 // Operations that are supported by a doc worker.
@@ -712,9 +713,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {
-    const  url = new URL(`${this._url}/compare`);
+    const url = new URL(`${this._url}/compare`);
     url.searchParams.append('left', leftHash);
     url.searchParams.append('right', rightHash);
     return this.requestJson(url.href);
+  }
+
+  public getDownloadUrl(template: boolean = false) {
+    return this._url + `/download?template=${Number(template)}`;
   }
 }
