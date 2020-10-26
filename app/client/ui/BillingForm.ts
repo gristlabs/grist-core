@@ -2,17 +2,16 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {reportError} from 'app/client/models/AppModel';
 import * as css from 'app/client/ui/BillingPageCss';
 import {colors, vars} from 'app/client/ui2018/cssVars';
-import {formSelect} from 'app/client/ui2018/menus';
+import {IOption, select} from 'app/client/ui2018/menus';
 import {IBillingAddress, IBillingCard, IBillingOrgSettings} from 'app/common/BillingAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import * as roles from 'app/common/roles';
 import {Organization} from 'app/common/UserAPI';
-import {Disposable, dom, DomArg, IDisposableOwnerT, makeTestId, Observable} from 'grainjs';
+import {Computed, Disposable, dom, DomArg, IDisposableOwnerT, makeTestId, Observable, styled} from 'grainjs';
+import sortBy = require('lodash/sortBy');
 
 const G = getBrowserGlobals('Stripe', 'window');
 const testId = makeTestId('test-bp-');
-// TODO: When countries other than the US are supported, the state entry must not be limited
-// by a dropdown.
 const states = [
   'AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'FM', 'GA', 'GU', 'HI',
   'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MH', 'MI', 'MN', 'MO', 'MP',
@@ -146,7 +145,7 @@ class BillingPaymentForm extends BillingSubForm {
   private readonly _numberElement: Observable<any> = Observable.create(this, null);
   private readonly _expiryElement: Observable<any> = Observable.create(this, null);
   private readonly _cvcElement: Observable<any> = Observable.create(this, null);
-  private readonly _name: IValidated<string> = createValidated(this, 'Name');
+  private readonly _name: IValidated<string> = createValidated(this, checkRequired('Name'));
 
   constructor(private readonly _options: {
     showHeader: boolean;
@@ -259,11 +258,18 @@ class BillingPaymentForm extends BillingSubForm {
  * Creates the company address entry form. Used by BillingPaymentForm when billing address is needed.
  */
 class BillingAddressForm extends BillingSubForm {
-  private readonly _address1: IValidated<string> = createValidated(this, 'Address');
-  private readonly _address2: IValidated<string> = createValidated(this, 'Suite/unit', () => undefined);
-  private readonly _city: IValidated<string> = createValidated(this, 'City');
-  private readonly _state: IValidated<string> = createValidated(this, 'State');
-  private readonly _postal: IValidated<string> = createValidated(this, 'Zip code');
+  private readonly _address1: IValidated<string> = createValidated(this, checkRequired('Address'));
+  private readonly _address2: IValidated<string> = createValidated(this, () => undefined);
+  private readonly _city: IValidated<string> = createValidated(this, checkRequired('City'));
+  private readonly _state: IValidated<string> = createValidated(this, checkFunc(
+    (val) => !this._isUS.get() || Boolean(val), `State is required.`));
+  private readonly _postal: IValidated<string> = createValidated(this, checkFunc(
+    (val) => !this._isUS.get() || Boolean(val), 'Zip code is required.'));
+  private readonly _countryCode: IValidated<string> = createValidated(this, checkRequired('Country'));
+
+  private _isUS = Computed.create(this, this._countryCode.value, (use, code) => (code === 'US'));
+
+  private readonly _countries: Array<IOption<string>> = getCountries();
 
   constructor(private readonly _options: {
     showHeader: boolean;
@@ -278,6 +284,7 @@ class BillingAddressForm extends BillingSubForm {
       this._state.value.set(autofill.state || '');
       this._postal.value.set(autofill.postal_code || '');
     }
+    this._countryCode.value.set(autofill?.country || 'US');
   }
 
   public buildDom() {
@@ -302,15 +309,29 @@ class BillingAddressForm extends BillingSubForm {
         ),
         css.paymentSpacer(),
         css.paymentField({style: 'flex: 0.5 1 0;'},
-          css.paymentLabel('State'),
-          formSelect(this._state.value, states),
+          dom.domComputed(this._isUS, (isUs) =>
+            isUs ? [
+              css.paymentLabel('State'),
+              cssSelect(this._state.value, states),
+            ] : [
+              css.paymentLabel('State / Region'),
+              this.billingInput(this._state),
+            ]
+          ),
           testId('address-state')
         )
       ),
       css.paymentRow(
         css.paymentField(
-          css.paymentLabel('Zip Code'),
+          css.paymentLabel(dom.text((use) => use(this._isUS) ? 'Zip Code' : 'Postal Code')),
           this.billingInput(this._postal, testId('address-zip'))
+        )
+      ),
+      css.paymentRow(
+        css.paymentField(
+          css.paymentLabel('Country'),
+          cssSelect(this._countryCode.value, this._countries),
+          testId('address-country')
         )
       ),
       css.inputError(
@@ -331,7 +352,7 @@ class BillingAddressForm extends BillingSubForm {
         city: await this._city.get(),
         state: await this._state.get(),
         postal_code: await this._postal.get(),
-        country: 'US' // TODO: Support more countries.
+        country: await this._countryCode.get(),
       };
     } catch (e) {
       this.formError.set(e.message);
@@ -344,9 +365,9 @@ class BillingAddressForm extends BillingSubForm {
  * Creates the billing settings form, including the org name and the org subdomain values.
  */
 class BillingSettingsForm extends BillingSubForm {
-  private readonly _name: IValidated<string> = createValidated(this, 'Company name');
+  private readonly _name: IValidated<string> = createValidated(this, checkRequired('Company name'));
   // Only verify the domain if it is shown.
-  private readonly _domain: IValidated<string> = createValidated(this, 'URL',
+  private readonly _domain: IValidated<string> = createValidated(this,
     this._options.showDomain ? d => this._verifyDomain(d) : () => undefined);
 
   constructor(
@@ -427,16 +448,22 @@ class BillingSettingsForm extends BillingSubForm {
   }
 }
 
+function checkFunc(func: (val: string) => boolean, message: string) {
+  return (val: string) => {
+    if (!func(val)) { throw new Error(message); }
+  };
+}
+
+function checkRequired(propertyName: string) {
+  return checkFunc(Boolean, `${propertyName} is required.`);
+}
+
 // Creates a validated object, which includes an observable and a function to check
 // if the current observable value is valid.
 function createValidated(
   owner: IDisposableOwnerT<any>,
-  propertyName: string,
-  validationFn?: (value: string) => void
+  checkValidity: (value: string) => void
 ): IValidated<string> {
-  const checkValidity = validationFn || ((_value: string) => {
-    if (!_value) { throw new Error(`${propertyName} is required.`); }
-  });
   const value = Observable.create(owner, '');
   const isInvalid = Observable.create<boolean>(owner, false);
   owner.autoDispose(value.addListener(() => { isInvalid.set(false); }));
@@ -457,3 +484,23 @@ function createValidated(
     }
   };
 }
+
+function getCountries(): Array<IOption<string>> {
+  // Require just the one file because it has all the data we need and is substantially smaller
+  // than requiring the whole module.
+  const countryNames = require("i18n-iso-countries/langs/en.json").countries;
+  const codes = Object.keys(countryNames);
+  const entries = codes.map(code => {
+    // The module provides names that are either a string or an array of names. If an array, pick
+    // the first one.
+    const names = countryNames[code];
+    return {value: code, label: Array.isArray(names) ? names[0] : names};
+  });
+  return sortBy(entries, 'label');
+}
+
+const cssSelect = styled(select, `
+  height: 42px;
+  padding-left: 13px;
+  align-items: center;
+`);

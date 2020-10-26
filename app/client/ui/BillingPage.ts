@@ -491,9 +491,15 @@ export class BillingPage extends Disposable {
             testId('company-address-2')
           )
         ) : null,
-        address.city && address.state ? css.summaryRow(
-          css.billingText(`${address.city}, ${address.state} ${address.postal_code || ''}`,
+        css.summaryRow(
+          css.billingText(formatCityStateZip(address),
             testId('company-address-3')
+          )
+        ),
+        address.country ? css.summaryRow(
+          // This show a 2-letter country code (e.g. "US" or "DE"). This seems fine.
+          css.billingText(address.country,
+            testId('company-address-country')
           )
         ) : null,
       ] : 'Fetching address...'
@@ -780,4 +786,9 @@ function dateFmtFull(timestamp: number|null): string {
 function timeFmt(timestamp: number): string {
   return new Date(timestamp).toLocaleString('default',
     {month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric'});
+}
+
+function formatCityStateZip(address: Partial<IBillingAddress>) {
+  const cityState = [address.city, address.state].filter(Boolean).join(', ');
+  return [cityState, address.postal_code].filter(Boolean).join(' ');
 }

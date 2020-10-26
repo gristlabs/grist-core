@@ -64,6 +64,7 @@
     "fs-extra": "7.0.0",
     "grain-rpc": "0.1.6",
     "grainjs": "1.0.1",
+    "i18n-iso-countries": "6.1.0",
     "image-size": "0.6.3",
     "jquery": "2.2.1",
     "js-yaml": "3.12.0",
