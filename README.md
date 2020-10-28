@@ -5,13 +5,33 @@ robustness of a database to organize your data and make you more productive.
 
 > :warning: This repository is in a pre-release state. Its release will be announced when it has
 all the planned components, and a solid independent build and test set-up. Currently, stand-alone
-server functionality is present. Release of our web client is planned, along with an extensive
-test suite.
+server functionality is present, along with a single-user web client.
 
 This repository, [grist-core](https://github.com/gristlabs/grist-core), is maintained by Grist
 Labs. Our flagship product, available at https://www.getgrist.com, is built from the code you see
 here, combined with business-specific software designed to scale it to many users, handle billing,
 etc.
+
+## Opening and editing a Grist document locally
+
+The easiest way to use Grist locally is with [Docker](https://www.docker.com/get-started).
+From a terminal, do:
+
+```sh
+docker pull gristlabs/grist
+docker run -p 8484:8484 -it gristlabs/grist
+```
+
+Then visit `http://localhost:8484` in your browser. You'll be able to create and edit documents,
+and to import documents downloaded from the https://docs.getgrist.com host. You'll also be able
+to use the Grist API.
+
+To preserve your work across docker runs, provide a directory to save it in:
+
+```sh
+docker pull gristlabs/grist
+docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
+```
 
 ## Why Open Source?
 
@@ -38,25 +58,22 @@ Grist benefits its users:
   include Grist in your pipeline. And if a feature is missing, you can just take the source code and
   build on top of it!
 
-## How do I start?
+## Building from source
 
-For building from source, you can start with this:
+Here are the steps needed:
 
-    npm install
-    npm run build:prod
-    npm run install:python
-    npm start
-    # unauthenticated grist api available at http://localhost:8484/api/
+```sh
+npm install
+npm run build:prod
+npm run install:python
+npm start
+# unauthenticated grist client available at http://localhost:8484
+# unauthenticated grist api available at http://localhost:8484/api/
+```
 
-Then you can use the Grist API locally to work on a document. Currently you need
-to "upload" a document to work with it. This makes a copy of it that the server
-controls - you can find it in the `data` directory:
-
-    curl -F 'upload=@YourDocument.grist' http://localhost:8484/api/docs
-    # Note the document ID that is returned.
-
-The [Data-Tables endpoints](https://support.getgrist.com/api/#tag/Data-Tables) are
-particularly useful.
+Then you can use the Grist client, or the API. You cannot (yet) edit Grist documents
+in place on your file system. All imported/created documents will appear in the `docs`
+subdirectory.
 
 For using hosted Grist, just head on over to <https://www.getgrist.com>.
 

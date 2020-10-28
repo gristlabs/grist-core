@@ -1,16 +1,26 @@
 {
   "name": "grist-core",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.7.1",
+  "license": "Apache-2.0",
+  "description": "Grist is the evolution of spreadsheets",
+  "homepage": "https://github.com/gristlabs/grist-core",
+  "repository": "git://github.com/gristlabs/grist-core.git",
   "scripts": {
     "start": "tsc --build -w --preserveWatchOutput & catw app/client/*.css app/client/*/*.css -o static/bundle.css -v & webpack --config buildtools/webpack.config.js --mode development --watch --hide-modules & NODE_PATH=_build:_build/stubs nodemon -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js & wait",
     "install:python": "buildtools/prepare_python.sh",
     "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production && cat app/client/*.css app/client/*/*.css > static/bundle.css",
     "start:prod": "NODE_PATH=_build:_build/stubs node _build/stubs/app/server/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "grist",
+    "spreadsheet",
+    "database"
+  ],
+  "author": {
+    "name": "Grist Labs Inc.",
+    "email": "info@getgrist.com"
+  },
+  "private": false,
   "devDependencies": {
     "@types/backbone": "1.3.43",
     "@types/content-disposition": "0.5.2",

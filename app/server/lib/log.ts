@@ -64,7 +64,7 @@ function timestamp() {
 
 const fileTransportOptions = {
   stream: process.stderr,
-  level: 'debug',
+  level: process.env.GRIST_LOG_LEVEL || 'debug',
   timestamp: log.timestamp,
   colorize: true,
   json: process.env.GRIST_HOSTED_VERSION ? true : false

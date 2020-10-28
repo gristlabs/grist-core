@@ -46,6 +46,9 @@ ADD ormconfig.js ormconfig.js
 ADD bower_components bower_components
 ADD sandbox sandbox
 
+# Keep all storage user may want to persist in a distinct directory
+RUN mkdir -p /persist/docs
+
 # Set some default environment variables to give a setup that works out of the box when
 # started as:
 #   docker run -p 8484:8484 -it <image>
@@ -53,7 +56,9 @@ ADD sandbox sandbox
 ENV GRIST_ORG_IN_PATH=true
 ENV GRIST_HOST=0.0.0.0
 ENV APP_HOME_URL=http://localhost:8484
-ENV GRIST_DATA_DIR=docs
-RUN mkdir -p docs
+ENV APP_DOC_URL=http://localhost:8484
+ENV GRIST_DATA_DIR=/persist/docs
+ENV GRIST_SESSION_COOKIE=grist_core
+ENV TYPEORM_DATABASE=/persist/home.sqlite3
 EXPOSE 8484
 CMD npm run start:prod

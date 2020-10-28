@@ -222,6 +222,7 @@ export class FlexServer implements GristServer {
 
   public addLogging() {
     if (this._check('logging')) { return; }
+    if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
     // Add an optional gristInfo token that can replace the url, if the url is sensitive
@@ -335,7 +336,7 @@ export class FlexServer implements GristServer {
     // Allow static files to be requested from any origin.
     const options: serveStatic.ServeStaticOptions = {
       setHeaders: (res, filepath, stat) => {
-        res.header("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Origin", "*");
       }
     };
     // Grist has static help files, which may be useful for standalone app,
@@ -385,7 +386,14 @@ export class FlexServer implements GristServer {
     this.dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
     await this.dbManager.connect();
     await this.dbManager.initializeSpecialIds();
-
+    // If working without a login system, make sure default user exists.
+    if (process.env.GRIST_DEFAULT_EMAIL) {
+      const profile: UserProfile = {
+        name: 'You',
+        email: process.env.GRIST_DEFAULT_EMAIL,
+      };
+      await this.dbManager.getUserByLoginWithRetry(profile.email, profile);
+    }
     // Report which database we are using, without sensitive credentials.
     this.info.push(['database', getDatabaseUrl(this.dbManager.connection.options, false)]);
   }
