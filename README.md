@@ -8,13 +8,15 @@ all the planned components, and a solid independent build and test set-up. Curre
 server functionality is present, along with a single-user web client.
 
 This repository, [grist-core](https://github.com/gristlabs/grist-core), is maintained by Grist
-Labs. Our flagship product, available at https://www.getgrist.com, is built from the code you see
+Labs. Our flagship product, available at [getgrist.com](https://www.getgrist.com), is built from the code you see
 here, combined with business-specific software designed to scale it to many users, handle billing,
 etc.
 
+If you are looking to use Grist in the cloud, head on over to [getgrist.com](https://www.getgrist.com).
+
 ## Opening and editing a Grist document locally
 
-The easiest way to use Grist locally is with [Docker](https://www.docker.com/get-started).
+The easiest way to use Grist locally on your computer is with [Docker](https://www.docker.com/get-started).
 From a terminal, do:
 
 ```sh
@@ -32,6 +34,24 @@ To preserve your work across docker runs, provide a directory to save it in:
 docker pull gristlabs/grist
 docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
 ```
+
+## Building from source
+
+Here are the steps needed:
+
+```sh
+npm install
+npm run build:prod
+npm run install:python
+npm start
+# unauthenticated grist client available at http://localhost:8484
+# unauthenticated grist api available at http://localhost:8484/api/
+```
+
+Then you can use the Grist client, or the API. You cannot (yet) edit Grist documents
+in place on your file system. All imported/created documents will appear in the `docs`
+subdirectory.
+
 
 ## Why Open Source?
 
@@ -57,25 +77,6 @@ Grist benefits its users:
   experimental [Custom Widget](https://support.getgrist.com/widget-custom/)). You can more easily
   include Grist in your pipeline. And if a feature is missing, you can just take the source code and
   build on top of it!
-
-## Building from source
-
-Here are the steps needed:
-
-```sh
-npm install
-npm run build:prod
-npm run install:python
-npm start
-# unauthenticated grist client available at http://localhost:8484
-# unauthenticated grist api available at http://localhost:8484/api/
-```
-
-Then you can use the Grist client, or the API. You cannot (yet) edit Grist documents
-in place on your file system. All imported/created documents will appear in the `docs`
-subdirectory.
-
-For using hosted Grist, just head on over to <https://www.getgrist.com>.
 
 # License
 
