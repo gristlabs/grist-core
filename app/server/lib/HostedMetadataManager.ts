@@ -44,12 +44,15 @@ export class HostedMetadataManager {
   }
 
   /**
-   * Schedule a call to _update some time from now.
+   * Schedule a call to _update some time from now.  When the update is made, it will
+   * store the given timestamp in the updated_at column of the docs table for the
+   * specified document. Timestamp should be an ISO 8601 format time, in UTC, e.g.
+   * the output of new Date().toISOString()
    */
-  public scheduleUpdate(docId: string): void {
+  public scheduleUpdate(docId: string, timestamp: string): void {
     // Update updatedAt even if an update is already scheduled - if the update has not yet occurred,
     // the more recent updatedAt time will be used.
-    this._updatedAt[docId] = new Date().toISOString();
+    this._updatedAt[docId] = timestamp;
     if (this._timeout || this._closing) { return; }
     const minDelay = this._minPushDelay * 1000;
     // Set the push to occur at least the minDelay after the last push time.

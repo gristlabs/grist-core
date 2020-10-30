@@ -41,5 +41,8 @@ export const create: ICreate = {
   sessionSecret() {
     return process.env.GRIST_SESSION_SECRET ||
       'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
+  },
+  configurationOptions() {
+    return {};
   }
 };

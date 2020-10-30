@@ -1,4 +1,4 @@
-import {ObjSnapshot} from 'app/server/lib/DocSnapshots';
+import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import * as log from 'app/server/lib/log';
 import {createTmpDir} from 'app/server/lib/uploads';
 import {delay} from 'bluebird';
@@ -20,10 +20,13 @@ export const DELETED_TOKEN = '*DELETED*';
  */
 export interface ExternalStorage {
   // Check if content exists in the store for a given key.
-  exists(key: string): Promise<boolean>;
+  exists(key: string, snapshotId?: string): Promise<boolean>;
+
+  // Get side information for content, if content exists in the store.
+  head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata|null>;
 
   // Upload content from file to the given key.  Returns a snapshotId if store supports that.
-  upload(key: string, fname: string): Promise<string|null>;
+  upload(key: string, fname: string, metadata?: ObjMetadata): Promise<string|null>;
 
   // Download content from key to given file.  Can download a specific version of the key
   // if store supports that (should throw a fatal exception if not).
@@ -59,12 +62,16 @@ export class KeyMappedExternalStorage implements ExternalStorage {
               private _map: (key: string) => string) {
   }
 
-  public exists(key: string): Promise<boolean> {
-    return this._ext.exists(this._map(key));
+  public exists(key: string, snapshotId?: string): Promise<boolean> {
+    return this._ext.exists(this._map(key), snapshotId);
   }
 
-  public upload(key: string, fname: string) {
-    return this._ext.upload(this._map(key), fname);
+  public head(key: string, snapshotId?: string) {
+    return this._ext.head(this._map(key), snapshotId);
+  }
+
+  public upload(key: string, fname: string, metadata?: ObjMetadata) {
+    return this._ext.upload(this._map(key), fname, metadata);
   }
 
   public download(key: string, fname: string, snapshotId?: string) {
@@ -135,31 +142,26 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   }) {
   }
 
-  public async exists(key: string): Promise<boolean> {
-    return this._retry('exists', async () => {
-      const hash = await this._options.sharedHash.load(key);
-      const expected = hash !== null && hash !== DELETED_TOKEN;
-      const reported = await this._ext.exists(key);
-      // If we expect an object but store doesn't seem to have it, retry.
-      if (expected && !reported)         { return undefined; }
-      // If store says there is an object but that is not what we expected (if we
-      // expected anything), retry.
-      if (hash && !expected && reported) { return undefined; }
-      // If expectations are matched, or we don't have expectations, return.
-      return reported;
-    });
+  public async exists(key: string, snapshotId?: string): Promise<boolean> {
+    return this._retryWithExistenceCheck('exists', key, snapshotId,
+                                         this._ext.exists.bind(this._ext));
   }
 
-  public async upload(key: string, fname: string) {
+  public async head(key: string, snapshotId?: string) {
+    return this._retryWithExistenceCheck('head', key, snapshotId,
+                                         this._ext.head.bind(this._ext));
+  }
+
+  public async upload(key: string, fname: string, metadata?: ObjMetadata) {
     try {
       const checksum = await this._options.computeFileHash(fname);
       const prevChecksum = await this._options.localHash.load(key);
-      if (prevChecksum && prevChecksum === checksum) {
+      if (prevChecksum && prevChecksum === checksum && !metadata?.label) {
         // nothing to do, checksums match
         log.info("ext upload: %s unchanged, not sending", key);
         return this._options.latestVersion.load(key);
       }
-      const snapshotId = await this._ext.upload(key, fname);
+      const snapshotId = await this._ext.upload(key, fname, metadata);
       log.info("ext upload: %s checksum %s", this._ext.url(key), checksum);
       if (snapshotId) { await this._options.latestVersion.save(key, snapshotId); }
       await this._options.localHash.save(key, checksum);
@@ -183,6 +185,11 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       if (!snapshotIds) {
         await this._options.latestVersion.save(key, DELETED_TOKEN);
         await this._options.sharedHash.save(key, DELETED_TOKEN);
+      } else for (const snapshotId of snapshotIds) {
+        // Removing snapshots breaks their partial immutability, so we mark them
+        // as deleted in redis so that we don't get stale info from S3 if we check
+        // for their existence.  Nothing currently depends on this in practice.
+        await this._options.sharedHash.save(this._keyWithSnapshot(key, snapshotId), DELETED_TOKEN);
       }
     } catch (err) {
       log.error("ext delete: %s failure to remove, error %s", key, err.message);
@@ -203,7 +210,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   public async downloadTo(fromKey: string, toKey: string, fname: string, snapshotId?: string) {
     await this._retry('download', async () => {
       const {tmpDir, cleanupCallback} = await createTmpDir({});
-      const tmpPath = path.join(tmpDir, `${toKey}.grist-tmp`);  // NOTE: assumes key is file-system safe.
+      const tmpPath = path.join(tmpDir, `${toKey}-tmp`);  // NOTE: assumes key is file-system safe.
       try {
         await this._ext.download(fromKey, tmpPath, snapshotId);
 
@@ -308,6 +315,35 @@ export class ChecksummedExternalStorage implements ExternalStorage {
     }
     log.error(`operation failed to become consistent: ${name} - ${problems}`);
     throw new Error(`operation failed to become consistent: ${name} - ${problems}`);
+  }
+
+  /**
+   * Retry an operation which will fail if content does not exist, until it is consistent
+   * with our expectation of the content's existence.
+   */
+  private async _retryWithExistenceCheck<T>(label: string, key: string, snapshotId: string|undefined,
+                                            op: (key: string, snapshotId?: string) => Promise<T>): Promise<T> {
+    return this._retry(label, async () => {
+      const hash = await this._options.sharedHash.load(this._keyWithSnapshot(key, snapshotId));
+      const expected = hash !== null && hash !== DELETED_TOKEN;
+      const reported = await op(key, snapshotId);
+      // If we expect an object but store doesn't seem to have it, retry.
+      if (expected && !reported)         { return undefined; }
+      // If store says there is an object but that is not what we expected (if we
+      // expected anything), retry.
+      if (hash && !expected && reported) { return undefined; }
+      // If expectations are matched, or we don't have expectations, return.
+      return reported;
+    });
+  }
+
+  /**
+   * Generate a key to use with Redis for a document.  Add in snapshot information
+   * if that is present (snapshots are immutable, except that they can be deleted,
+   * so we only set checksums for them in Redis when they are deleted).
+   */
+  private _keyWithSnapshot(key: string, snapshotId?: string|null) {
+    return snapshotId ? `${key}--${snapshotId}` : key;
   }
 }
 

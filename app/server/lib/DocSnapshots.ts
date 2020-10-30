@@ -1,30 +1,17 @@
+import { ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
 import { KeyedOps } from 'app/common/KeyedOps';
+import { KeyedMutex } from 'app/common/KeyedMutex';
 import { ExternalStorage } from 'app/server/lib/ExternalStorage';
 import * as log from 'app/server/lib/log';
+import * as fse from 'fs-extra';
 import * as moment from 'moment';
 
 /**
- * Metadata about a single document version.
+ * A subset of the ExternalStorage interface, focusing on maintaining a list of versions.
  */
-export interface ObjSnapshot {
-  lastModified: Date;
-  snapshotId: string;
-}
-
-/**
- * Information about a single document snapshot in S3, including a Grist docId.
- * Similar to a type in app/common/UserAPI, but with lastModified as a Date
- * rather than a string.
- */
-export interface DocSnapshot extends ObjSnapshot {
-  docId: string;
-}
-
-/**
- * A collection of document snapshots.  Most recent snapshots first.
- */
-export interface DocSnapshots {
-  snapshots: DocSnapshot[];
+export interface IInventory {
+  versions(key: string): Promise<ObjSnapshotWithMetadata[]>;
+  remove(key: string, snapshotIds: string[]): Promise<void>;
 }
 
 /**
@@ -35,7 +22,7 @@ export class DocSnapshotPruner {
   private _prunes: KeyedOps;
 
   // Specify store to be pruned, and delay before pruning.
-  constructor(private _ext: ExternalStorage, _options: {
+  constructor(private _ext: IInventory, _options: {
     delayBeforeOperationMs?: number,
     minDelayBetweenOperationsMs?: number
   } = {}) {
@@ -60,16 +47,18 @@ export class DocSnapshotPruner {
   }
 
   // Note that a document has changed, and should be pruned (or repruned).  Pruning operation
-  // done as a background operation.
-  public requestPrune(key: string) {
+  // done as a background operation.  Returns true if a pruning operation has been scheduled.
+  public requestPrune(key: string): boolean {
     // If closing down, do not accept any prune requests.
-    if (this._closing) { return; }
-    // Mark the key as needing work.
-    this._prunes.addOperation(key);
+    if (!this._closing) {
+      // Mark the key as needing work.
+      this._prunes.addOperation(key);
+    }
+    return this._prunes.hasPendingOperation(key);
   }
 
   // Get all snapshots for a document, and whether they should be kept or pruned.
-  public async classify(key: string): Promise<Array<{snapshot: ObjSnapshot, keep: boolean}>> {
+  public async classify(key: string): Promise<Array<{snapshot: ObjSnapshotWithMetadata, keep: boolean}>> {
     const versions = await this._ext.versions(key);
     return shouldKeepSnapshots(versions).map((keep, index) => ({keep, snapshot: versions[index]}));
   }
@@ -84,23 +73,216 @@ export class DocSnapshotPruner {
 }
 
 /**
+ * Maintain a list of document versions, with metadata, so we can query versions and
+ * make sensible pruning decisions without needing to HEAD each version (in the
+ * steady state).
+ *
+ * The list of versions (with metadata) for a document is itself stored in S3.  This isn't
+ * ideal since we cannnot simply append a new version to the list without rewriting it in full.
+ * But the alternatives have more serious problems, and this way folds quite well into the
+ * existing pruning setup.
+ *   - Storing in db would mean we'd need sharding sooner than otherwise
+ *   - Storing in redis would similarly make this the dominant load driving redis
+ *   - Storing in dynamodb would create more operational work
+ *   - Using S3 metadata alone would be too slow
+ *   - Using S3 tags could do some of what we want, but tags have serious limits
+ *
+ * Operations related to a particular document are serialized for clarity.
+ *
+ * The inventory is cached on the local file system, since we reuse the ExternalStorage
+ * interface which is file based.
+ */
+export class DocSnapshotInventory implements IInventory {
+  private _needFlush = new Set<string>();
+  private _mutex = new KeyedMutex();
+
+  /**
+   * Expects to be given the store for documents, a store for metadata, and a method
+   * for naming cache files on the local filesystem.  The stores should be consistent.
+   */
+  constructor(private _doc: ExternalStorage, private _meta: ExternalStorage,
+              private _getFilename: (key: string) => Promise<string>) {}
+
+  /**
+   * Add a new snapshot of a document to the existing inventory.  A prevSnapshotId may
+   * be supplied as a cross-check.  It will be matched against the most recent
+   * snapshotId in the inventory, and if it doesn't match the inventory will be
+   * recreated.
+   *
+   * The inventory is not automatically flushed to S3.  Call flush() to do that,
+   * or ask DocSnapshotPrune.requestPrune() to prune the document - it will flush
+   * after pruning.
+   *
+   * The snapshot supplied will be modified in place to a normalized form.
+   */
+  public async add(key: string, snapshot: ObjSnapshotWithMetadata, prevSnapshotId: string|null) {
+    await this._mutex.runExclusive(key, async() => {
+      const snapshots = await this._getSnapshots(key, prevSnapshotId);
+      // Could be already added if reconstruction happened.
+      if (snapshots[0].snapshotId === snapshot.snapshotId) { return; }
+      this._normalizeMetadata(snapshot);
+      snapshots.unshift(snapshot);
+      const fname = await this._getFilename(key);
+      await this._saveToFile(fname, snapshots);
+      // We don't write to s3 yet, but do mark the list as dirty.
+      this._needFlush.add(key);
+    });
+  }
+
+  /**
+   * Make sure the latest state of the inventory is stored in S3.
+   */
+  public async flush(key: string) {
+    await this._mutex.runExclusive(key, async() => {
+      await this._flush(key);
+    });
+  }
+
+  /**
+   * Remove a set of snapshots from the inventory, and then flush to S3.
+   */
+  public async remove(key: string, snapshotIds: string[]) {
+    await this._mutex.runExclusive(key, async() => {
+      const current = await this._getSnapshots(key, null);
+      const oldIds = new Set(snapshotIds);
+      if (oldIds.size > 0) {
+        const results = current.filter(v => !oldIds.has(v.snapshotId));
+        const fname = await this._getFilename(key);
+        await this._saveToFile(fname, results);
+        this._needFlush.add(key);
+      }
+      await this._flush(key);
+    });
+  }
+
+  /**
+   * Read the cached version of the inventory if available, otherwise fetch
+   * it from S3.  If expectSnapshotId is set, the cached version is ignored if
+   * the most recent version listed is not the expected one.
+   */
+  public async versions(key: string, expectSnapshotId?: string|null): Promise<ObjSnapshotWithMetadata[]> {
+    return this._mutex.runExclusive(key, async() => {
+      return await this._getSnapshots(key, expectSnapshotId || null);
+    });
+  }
+
+  // Do whatever it takes to get an inventory of versions.
+  // Most recent versions returned first.
+  private async _getSnapshots(key: string, expectSnapshotId: string|null): Promise<ObjSnapshotWithMetadata[]> {
+    // Check if we have something useful cached on the local filesystem.
+    const fname = await this._getFilename(key);
+    let data = await this._loadFromFile(fname);
+    if (data && expectSnapshotId && data[0]?.snapshotId !== expectSnapshotId) {
+      data = null;
+    }
+
+    // If nothing yet, check if we have something useful in s3.
+    if (!data && await this._meta.exists(key)) {
+      await fse.remove(fname);
+      await this._meta.download(key, fname);
+      data = await this._loadFromFile(fname);
+      if (data && expectSnapshotId && data[0]?.snapshotId !== expectSnapshotId) {
+        data = null;
+      }
+    }
+
+    if (!data) {
+      // No joy, all we can do is reconstruct from individual s3 version HEAD metadata.
+      data = await this._reconstruct(key);
+      if (data) {
+        if (expectSnapshotId && data[0]?.snapshotId !== expectSnapshotId) {
+          // Surprising, since S3 ExternalInterface should have its own consistency
+          // checks. Not much we can do about it other than accept it.
+          log.error(`Surprise in getSnapshots, expected ${expectSnapshotId} for ${key} ` +
+                    `but got ${data[0]?.snapshotId}`);
+        }
+        // Reconstructed data is precious.  Save it to S3 and local cache.
+        await this._saveToFile(fname, data);
+        await this._meta.upload(key, fname);
+      }
+    }
+    return data;
+  }
+
+  // Load inventory from local file system, if available.
+  private async _loadFromFile(fname: string): Promise<ObjSnapshotWithMetadata[]|null> {
+    try {
+      if (await fse.pathExists(fname)) {
+        return JSON.parse(await fse.readFile(fname, 'utf8'));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Save inventory to local file system.
+  private async _saveToFile(fname: string, data: ObjSnapshotWithMetadata[]) {
+    await fse.outputFile(fname, JSON.stringify(data, null, 2), 'utf8');
+  }
+
+  // This is a relatively expensive operation, calling the S3 api for every stored
+  // version of a document. In the steady state, we should rarely need to do this.
+  private async _reconstruct(key: string): Promise<ObjSnapshotWithMetadata[]> {
+    const snapshots = await this._doc.versions(key);
+    if (snapshots.length > 1) {
+      log.info(`Reconstructing history of ${key} (${snapshots.length} versions)`);
+    }
+    const results: ObjSnapshotWithMetadata[] = [];
+    for (const snapshot of snapshots) {
+      const head = await this._doc.head(key, snapshot.snapshotId);
+      if (head) {
+        this._normalizeMetadata(head);
+        results.push(head);
+      } else {
+        log.debug(`When reconstructing history of ${key}, did not find ${snapshot.snapshotId}`);
+      }
+    }
+    return results;
+  }
+
+  // Flush inventory to S3.
+  private async _flush(key: string) {
+    if (this._needFlush.has(key)) {
+      const fname = await this._getFilename(key);
+      await this._meta.upload(key, fname);
+      this._needFlush.delete(key);
+    }
+  }
+
+  // Normalize metadata.  We store a timestamp that is distinct from the S3 timestamp,
+  // recording when the file was changed by Grist.
+  // TODO: deal with possibility of this creating trouble with pruning if the local time is
+  // sufficiently wrong.
+  private _normalizeMetadata(snapshot: ObjSnapshotWithMetadata) {
+    if (snapshot?.metadata?.t) {
+      snapshot.lastModified = snapshot.metadata.t;
+      delete snapshot.metadata.t;
+    }
+  }
+}
+
+/**
  * Calculate which snapshots to keep.  Expects most recent snapshots to be first.
  * We keep:
  *   - The five most recent versions (including the current version)
- *   - The most recent version in every hour, for up to 25 hours before the current version
- *   - The most recent version in every day, for up to 32 days before the current version
- *   - The most recent version in every week, for up to 12 weeks before the current version
- *   - The most recent version in every month, for up to 36 months before the current version
- *   - The most recent version in every year, for up to 1000 years before the current version
+ *   - The most recent version in every hour, for up to 25 distinct hours
+ *   - The most recent version in every day, for up to 32 distinct days
+ *   - The most recent version in every week, for up to 12 distinct weeks
+ *   - The most recent version in every month, for up to 36 distinct months
+ *   - The most recent version in every year, for up to 1000 distinct years
+ *   - Anything with a label, for up to 32 days before the current version.
  * Calculations done in UTC, Gregorian calendar, ISO weeks (week starts with Monday).
  */
-export function shouldKeepSnapshots(snapshots: ObjSnapshot[]): boolean[] {
+export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[]): boolean[] {
   // Get current version
   const current = snapshots[0];
   if (!current) { return []; }
 
+  const tz = current.metadata?.tz || 'UTC';
+
   // Get time of current version
-  const start = moment.utc(current.lastModified);
+  const start = moment.tz(current.lastModified, tz);
 
   // Track saved version per hour, day, week, month, year, and number of times a version
   // has been saved based on a corresponding rule.
@@ -115,10 +297,14 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshot[]): boolean[] {
   // it with the last saved snapshot based on hour, day, week, month, year
   return snapshots.map((snapshot, index) => {
     let keep = index < 5;   // Keep 5 most recent versions
-    const date = moment.utc(snapshot.lastModified);
+    const date = moment.tz(snapshot.lastModified, tz);
     for (const bucket of buckets) {
       if (updateAndCheckRange(date, bucket)) { keep = true; }
     }
+    // Preserve recent labelled snapshots in a naive and limited way.  No doubt this will
+    // be elaborated on if we make this a user-facing feature.
+    if (snapshot.metadata?.label &&
+        start.diff(moment.tz(snapshot.lastModified, tz), 'days') < 32) { keep = true; }
     return keep;
   });
 }

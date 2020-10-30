@@ -21,11 +21,20 @@ export interface ICreate {
   Billing(dbManager: HomeDBManager): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristLoadConfig): INotifier;
   Shell(): IShell|undefined;
-  ExternalStorage(bucket: string, prefix: string): ExternalStorage|undefined;
+
+  // Create a space to store files externally, for storing either:
+  //  - documents. This store should be versioned, and can be eventually consistent.
+  //  - meta. This store need not be versioned, and can be eventually consistent.
+  // For test purposes an extra prefix may be supplied.  Stores with different prefixes
+  // should not interfere with each other.
+  ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage|undefined;
+
   ActiveDoc(docManager: DocManager, docName: string): ActiveDoc;
   DocManager(storageManager: IDocStorageManager, pluginManager: PluginManager,
              homeDbManager: HomeDBManager|null, gristServer: GristServer): DocManager;
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
   sessionSecret(): string;
+  // Get configuration information to show at start-up.
+  configurationOptions(): {[key: string]: any};
 }

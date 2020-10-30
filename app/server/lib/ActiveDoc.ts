@@ -26,6 +26,7 @@ import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {BulkColValues, CellValue, DocAction, RowRecord, TableDataAction, UserAction} from 'app/common/DocActions';
 import {toTableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
+import {DocSnapshots} from 'app/common/DocSnapshot';
 import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
 import {byteString} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
@@ -40,7 +41,6 @@ import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
-import {DocSnapshots} from 'app/server/lib/DocSnapshots';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
@@ -109,6 +109,7 @@ export class ActiveDoc extends EventEmitter {
   private _granularAccess: GranularAccess;
   private _muted: boolean = false;  // If set, changes to this document should not propagate
                                     // to outside world
+  private _migrating: number = 0;   // If positive, a migration is in progress
   private _initializationPromise: Promise<boolean>|null = null;
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
@@ -173,6 +174,10 @@ export class ActiveDoc extends EventEmitter {
 
   public get muted() {
     return this._muted;
+  }
+
+  public isMigrating() {
+    return this._migrating;
   }
 
   // Note that this method is only used in tests, and should be avoided in production (see note
@@ -311,7 +316,14 @@ export class ActiveDoc extends EventEmitter {
         await this.createDoc(docSession);
         await this.addInitialTable(docSession);
       } else {
-        await this.docStorage.openFile();
+        await this.docStorage.openFile({
+          beforeMigration: async (currentVersion, newVersion) => {
+            return this._beforeMigration(docSession, 'storage', currentVersion, newVersion);
+          },
+          afterMigration: async (newVersion, success) => {
+            return this._afterMigration(docSession, 'storage',  newVersion, success);
+          },
+        });
         const tableNames = await this._loadOpenDoc(docSession);
         const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
         await this._loadTables(docSession, desiredTableNames);
@@ -972,7 +984,14 @@ export class ActiveDoc extends EventEmitter {
     const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0);
     if (docSchemaVersion < schemaVersion) {
       this.logInfo(docSession, "Doc needs migration from v%s to v%s", docSchemaVersion, schemaVersion);
-      await this._migrate(docSession);
+      await this._beforeMigration(docSession, 'schema', docSchemaVersion, schemaVersion);
+      let success: boolean = false;
+      try {
+        await this._migrate(docSession);
+        success = true;
+      } finally {
+        await this._afterMigration(docSession, 'schema', schemaVersion, success);
+      }
     } else if (docSchemaVersion > schemaVersion) {
       // We do NOT attempt to down-migrate in this case. Migration code cannot down-migrate
       // directly (since it doesn't know anything about newer documents). We could revert the
@@ -1054,8 +1073,7 @@ export class ActiveDoc extends EventEmitter {
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
-      this._docManager.markAsChanged(this);
-      this._docManager.markAsEdited(this);
+      this._docManager.markAsChanged(this, 'edit');
     }
     return result;
   }
@@ -1105,10 +1123,6 @@ export class ActiveDoc extends EventEmitter {
    * collaborators.
    */
   private async _migrate(docSession: OptDocSession): Promise<void> {
-    // TODO: makeBackup should possibly be in docManager directly.
-    const backupPath = await this._docManager.storageManager.makeBackup(this._docName, "migrate");
-    this.logInfo(docSession, "_migrate: backup made at %s", backupPath);
-    this.emit("backupMade", backupPath);
     const allTables = await this.docStorage.fetchAllTables();
     const docActions: DocAction[] = await this._dataEngine.pyCall('create_migrations', allTables);
     this.logInfo(docSession, "_migrate: applying %d migration actions", docActions.length);
@@ -1214,6 +1228,29 @@ export class ActiveDoc extends EventEmitter {
     };
     if (result.docActions.length === 0) { return null; }
     return result;
+  }
+
+  /**
+   * Called before a migration.  Makes sure a back-up is made.
+   */
+  private async _beforeMigration(docSession: OptDocSession, versionType: 'storage' | 'schema',
+                                 currentVersion: number, newVersion: number) {
+    this._migrating++;
+    const label = `migrate-${versionType}-last-v${currentVersion}-before-v${newVersion}`;
+    this._docManager.markAsChanged(this);  // Give backup current time.
+    const location = await this._docManager.makeBackup(this, label);
+    this.logInfo(docSession, "_beforeMigration: backup made with label %s at %s", label, location);
+    this.emit("backupMade", location);
+  }
+
+  /**
+   * Called after a migration.
+   */
+  private async _afterMigration(docSession: OptDocSession, versionType: 'storage' | 'schema',
+                                newVersion: number, success: boolean) {
+    this._migrating--;
+    // Mark as changed even if migration is not successful, out of caution.
+    if (!this._migrating) { this._docManager.markAsChanged(this); }
   }
 }
 

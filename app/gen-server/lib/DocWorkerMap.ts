@@ -102,6 +102,14 @@ class DummyDocWorkerMap implements IDocWorkerMap {
       this._elections.delete(name);
     }
   }
+
+  public async updateChecksum(family: string, key: string, checksum: string) {
+    // nothing to do
+  }
+
+  public async getChecksum(family: string, key: string) {
+    return null;
+  }
 }
 
 /**
@@ -367,7 +375,16 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async updateDocStatus(docId: string, checksum: string): Promise<void> {
-    await this._client.setexAsync(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum);
+    this.updateChecksum('doc', docId, checksum);
+  }
+
+  public async updateChecksum(family: string, key: string, checksum: string) {
+    await this._client.setexAsync(`${family}-${key}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum);
+  }
+
+  public async getChecksum(family: string, key: string) {
+    const checksum = await this._client.getAsync(`${family}-${key}-checksum`);
+    return checksum === 'null' ? null : checksum;
   }
 
   public async setPermit(permit: Permit): Promise<string> {

@@ -3,6 +3,7 @@
  * TODO This is not yet implemented, there is only a hard-coded stub.
  */
 
+import { IChecksumStore } from 'app/server/lib/IChecksumStore';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import { IPermitStore } from 'app/server/lib/Permit';
 
@@ -32,7 +33,7 @@ export interface DocStatus {
 /**
  * Assignment of documents to workers, and other storage related to distributed work.
  */
-export interface IDocWorkerMap extends IPermitStore, IElectionStore {
+export interface IDocWorkerMap extends IPermitStore, IElectionStore, IChecksumStore {
   // Looks up which DocWorker is responsible for this docId.
   getDocWorker(docId: string): Promise<DocStatus|null>;
 

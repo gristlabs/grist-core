@@ -119,6 +119,14 @@ export enum OpenMode {
 }
 
 /**
+ * Callbacks to use if a migration is run, so that backups are made.
+ */
+export interface MigrationHooks {
+  beforeMigration?(currentVersion: number, newVersion: number): Promise<void>;
+  afterMigration?(newVersion: number, success: boolean): Promise<void>;
+}
+
+/**
  * An interface implemented both by SQLiteDB and DocStorage (by forwarding).  Methods
  * documented in SQLiteDB.
  */
@@ -150,7 +158,8 @@ export class SQLiteDB {
    * We report the migration error, and expose it via .migrationError property.
    */
   public static async openDB(dbPath: string, schemaInfo: SchemaInfo,
-                             mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
+                             mode: OpenMode = OpenMode.OPEN_CREATE,
+                             hooks: MigrationHooks = {}): Promise<SQLiteDB> {
     const db = await SQLiteDB.openDBRaw(dbPath, mode);
     const userVersion: number = await db.getMigrationVersion();
 
@@ -170,7 +179,7 @@ export class SQLiteDB {
         }
       } else {
         try {
-          db._migrationBackupPath = await db._migrate(userVersion, schemaInfo);
+          db._migrationBackupPath = await db._migrate(userVersion, schemaInfo, hooks);
         } catch (err) {
           db._migrationError = err;
         }
@@ -447,9 +456,11 @@ export class SQLiteDB {
    * If migration succeeded, it leaves a backup file and returns its path. If no migration was
    * needed, returns null. If migration failed, leaves DB unchanged and throws Error.
    */
-  private async _migrate(actualVer: number, schemaInfo: SchemaInfo): Promise<string|null> {
+  private async _migrate(actualVer: number, schemaInfo: SchemaInfo,
+                         hooks: MigrationHooks): Promise<string|null> {
     const targetVer: number = schemaInfo.migrations.length;
     let backupPath: string|null = null;
+    let success: boolean = false;
 
     if (actualVer > targetVer) {
       log.warn("SQLiteDB[%s]: DB is at version %s ahead of target version %s",
@@ -459,6 +470,7 @@ export class SQLiteDB {
         this._dbPath, actualVer, targetVer);
       const versions = range(actualVer, targetVer);
       backupPath = await createBackupFile(this._dbPath, actualVer);
+      await hooks.beforeMigration?.(actualVer, targetVer);
       try {
         await this.execTransaction(async () => {
           for (const versionNum of versions) {
@@ -466,6 +478,7 @@ export class SQLiteDB {
           }
           await this.exec(`PRAGMA user_version = ${targetVer}`);
         });
+        success = true;
         // After a migration, reduce the sqlite file size. This must be run outside a transaction.
         await this.run("VACUUM");
 
@@ -480,6 +493,8 @@ export class SQLiteDB {
           this._dbPath, actualVer, targetVer, err);
         err.message = `SQLiteDB[${this._dbPath}] migration to ${targetVer} failed: ${err.message}`;
         throw err;
+      } finally {
+        await hooks.afterMigration?.(targetVer, success);
       }
     }
     return backupPath;

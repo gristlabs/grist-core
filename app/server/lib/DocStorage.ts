@@ -25,7 +25,7 @@ import groupBy = require('lodash/groupBy');
 import * as _ from 'underscore';
 import * as util from 'util';
 import * as uuidv4 from "uuid/v4";
-import {ISQLiteDB, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
+import { ISQLiteDB, MigrationHooks, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
 
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
@@ -458,10 +458,10 @@ export class DocStorage implements ISQLiteDB {
   /**
    * Opens an existing SQLite database and prepares it for use.
    */
-  public openFile(): Promise<void> {
+  public openFile(hooks: MigrationHooks = {}): Promise<void> {
     // It turns out to be important to return a bluebird promise, a lot of code outside
     // of DocStorage ultimately depends on this.
-    return bluebird.Promise.resolve(this._openFile(OpenMode.OPEN_EXISTING))
+    return bluebird.Promise.resolve(this._openFile(OpenMode.OPEN_EXISTING, hooks))
       .then(() => this._initDB())
       .then(() => this._updateMetadata());
   }
@@ -473,7 +473,7 @@ export class DocStorage implements ISQLiteDB {
   public createFile(): Promise<void> {
     // It turns out to be important to return a bluebird promise, a lot of code outside
     // of DocStorage ultimately depends on this.
-    return bluebird.Promise.resolve(this._openFile(OpenMode.CREATE_EXCL))
+    return bluebird.Promise.resolve(this._openFile(OpenMode.CREATE_EXCL, {}))
       .then(() => this._initDB());
     // Note that we don't call _updateMetadata() as there are no metadata tables yet anyway.
   }
@@ -1193,9 +1193,9 @@ export class DocStorage implements ISQLiteDB {
    * Creates a new or opens an existing SQLite database, depending on mode.
    * @return {Promise<number>} Promise for user_version stored in the database.
    */
-  private async _openFile(mode: number): Promise<number> {
+  private async _openFile(mode: number, hooks: MigrationHooks): Promise<number> {
     try {
-      this._db = await SQLiteDB.openDB(this.docPath, DocStorage.docStorageSchema, mode);
+      this._db = await SQLiteDB.openDB(this.docPath, DocStorage.docStorageSchema, mode, hooks);
       log.debug("DB %s open successfully", this.docName);
       return this._db.getMigrationVersion();
     } catch (err) {

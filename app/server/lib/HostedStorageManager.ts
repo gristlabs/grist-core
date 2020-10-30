@@ -2,6 +2,7 @@ import * as sqlite3 from '@gristlabs/sqlite3';
 import {mapGetOrSet} from 'app/common/AsyncCreate';
 import {delay} from 'app/common/delay';
 import {DocEntry} from 'app/common/DocListAPI';
+import {DocSnapshots} from 'app/common/DocSnapshot';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {KeyedOps} from 'app/common/KeyedOps';
 import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -9,7 +10,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {OptDocSession} from 'app/server/lib/DocSession';
-import {DocSnapshotPruner, DocSnapshots} from 'app/server/lib/DocSnapshots';
+import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
@@ -20,6 +21,7 @@ import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as uuidv4 from "uuid/v4";
+import { OpenMode, SQLiteDB } from './SQLiteDB';
 
 // Check for a valid document id.
 const docIdRegex = /^[-=_\w~%]+$/;
@@ -49,7 +51,8 @@ interface HostedStorageOptions {
   secondsBeforePush: number;
   secondsBeforeFirstRetry: number;
   pushDocUpdateTimes: boolean;
-  testExternalStorage?: ExternalStorage;
+  testExternalStorageDoc?: ExternalStorage;
+  testExternalStorageMeta?: ExternalStorage;
 }
 
 const defaultOptions: HostedStorageOptions = {
@@ -81,14 +84,22 @@ export class HostedStorageManager implements IDocStorageManager {
   // Maps docId to the promise for when the document is present on the local filesystem.
   private _localFiles = new Map<string, Promise<boolean>>();
 
+  // Label to put in metadata for a document.  Only one label supported per snapshot currently.
+  // Holds the label that should be associated with a backup when a labeled backup is being made.
+  private _labels = new Map<string, string>();
+
+  // Time at which document was last changed.
+  private _timestamps = new Map<string, string>();
+
   // Access external storage.
   private _ext: ChecksummedExternalStorage;
+  private _extMeta: ChecksummedExternalStorage;
 
   // Prune external storage.
   private _pruner: DocSnapshotPruner;
 
-  // If _disableS3 is set, don't actually communicate with S3 - keep everything local.
-  private _disableS3 = (process.env.GRIST_DISABLE_S3 === 'true');
+  // Access to version information about documents.
+  private _inventory: DocSnapshotInventory;
 
   // A set of filenames currently being created or downloaded.
   private _prepareFiles = new Set<string>();
@@ -101,6 +112,9 @@ export class HostedStorageManager implements IDocStorageManager {
 
   private _baseStore: ExternalStorage;  // External store for documents, without checksumming.
 
+  // Latest checksums of documents.
+  private _latestVersions = new Map<string, string>();
+
   /**
    * Initialize with the given root directory, which should be a fully-resolved path.
    * If s3Bucket is blank, S3 storage will be disabled.
@@ -108,21 +122,19 @@ export class HostedStorageManager implements IDocStorageManager {
   constructor(
     private _docsRoot: string,
     private _docWorkerId: string,
-    s3Bucket: string,
-    s3Prefix: string,    // Should end in / if non-empty.
+    private _disableS3: boolean,
+    extraS3Prefix: string,
     private _docWorkerMap: IDocWorkerMap,
     dbManager: HomeDBManager,
     create: ICreate,
     options: HostedStorageOptions = defaultOptions
   ) {
-    if (s3Bucket === '') { this._disableS3 = true; }
     // We store documents either in a test store, or in an s3 store
     // at s3://<s3Bucket>/<s3Prefix><docId>.grist
-    const externalStore = options.testExternalStorage ||
-      (this._disableS3 ? undefined : create.ExternalStorage(s3Bucket, s3Prefix));
-    if (!externalStore) { this._disableS3 = true; }
+    const externalStoreDoc = options.testExternalStorageDoc ||
+      (this._disableS3 ? undefined : create.ExternalStorage('doc', extraS3Prefix));
+    if (!externalStoreDoc) { this._disableS3 = true; }
     const secondsBeforePush = options.secondsBeforePush;
-    const secondsBeforeFirstRetry = options.secondsBeforeFirstRetry;
     if (options.pushDocUpdateTimes) {
       this._metadataManager = new HostedMetadataManager(dbManager);
     }
@@ -135,44 +147,30 @@ export class HostedStorageManager implements IDocStorageManager {
     });
 
     if (!this._disableS3) {
-      this._baseStore = externalStore!;
+      this._baseStore = externalStoreDoc!;
       // Whichever store we have, we use checksums to deal with
       // eventual consistency.
-      const versions = new Map<string, string>();
-      this._ext = new ChecksummedExternalStorage(this._baseStore, {
-        maxRetries: 4,
-        initialDelayMs: secondsBeforeFirstRetry * 1000,
-        computeFileHash: this._getHash.bind(this),
-        sharedHash: {
-          save: async (key, checksum) => {
-            await this._docWorkerMap.updateDocStatus(key, checksum);
-          },
-          load: async (key) => {
-            const docStatus = await this._docWorkerMap.getDocWorker(key);
-            return docStatus && docStatus.docMD5 || null;
-          }
-        },
-        localHash: {
-          save: async (key, checksum) => {
-            const fname = this._getHashFile(this.getPath(key));
-            await fse.writeFile(fname, checksum);
-          },
-          load: async (key) => {
-            const fname = this._getHashFile(this.getPath(key));
-            if (!await fse.pathExists(fname)) { return null; }
-            return await fse.readFile(fname, 'utf8');
-          }
-        },
-        latestVersion: {
-          save: async (key, ver) => {
-            versions.set(key, ver);
-          },
-          load: async (key) => versions.get(key) || null
-        }
-      });
+      this._ext = this._getChecksummedExternalStorage('doc', this._baseStore,
+                                                      this._latestVersions, options);
+
+      const baseStoreMeta = options.testExternalStorageMeta || create.ExternalStorage('meta', extraS3Prefix);
+      if (!baseStoreMeta) {
+        throw new Error('bug: external storage should be created for "meta" if it is created for "doc"');
+      }
+      this._extMeta = this._getChecksummedExternalStorage('meta', baseStoreMeta,
+                                                          new Map(),
+                                                          options);
+
+      this._inventory = new DocSnapshotInventory(this._ext, this._extMeta,
+                                                 async docId => {
+                                                   const dir = this.getAssetPath(docId);
+                                                   await fse.mkdirp(dir);
+                                                   return path.join(dir, 'meta.json');
+                                                 });
+
       // The pruner could use an inconsistent store without any real loss overall,
       // but tests are easier if it is consistent.
-      this._pruner = new DocSnapshotPruner(this._ext, {
+      this._pruner = new DocSnapshotPruner(this._inventory, {
         delayBeforeOperationMs: 0,  // prune as soon as we've made a first upload.
         minDelayBetweenOperationsMs: secondsBeforePush * 4000,  // ... but wait awhile before
                                                                 // pruning again.
@@ -190,9 +188,14 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   public getPath(docName: string): string {
-    // docName should just be a docId; we use basename to protect against some possible hack attempts.
+    return this.getAssetPath(docName) + '.grist';
+  }
+
+  // Where to store files related to a document locally.  Document goes in <assetPath>.grist,
+  // and other files go in <assetPath>/ directory.
+  public getAssetPath(docName: string): string {
     checkValidDocId(docName);
-    return path.join(this._docsRoot, `${path.basename(docName, '.grist')}.grist`);
+    return path.join(this._docsRoot, path.basename(docName, '.grist'));
   }
 
   // We don't deal with sample docs
@@ -285,8 +288,7 @@ export class HostedStorageManager implements IDocStorageManager {
       // Make sure the new content is considered new.
       // NOTE: fse.remove succeeds also when the file does not exist.
       await fse.remove(this._getHashFile(this.getPath(docId)));
-      this.markAsChanged(docId);
-      this.markAsEdited(docId);
+      this.markAsChanged(docId, 'edit');
     } catch (err) {
       log.error("HostedStorageManager: problem replacing %s: %s", docId, err);
       await fse.move(tmpPath, docPath, {overwrite: true});
@@ -309,10 +311,13 @@ export class HostedStorageManager implements IDocStorageManager {
     await this.closeDocument(docName);
     if (!this._disableS3) {
       await this._ext.remove(docName);
+      await this._extMeta.remove(docName);
     }
     // NOTE: fse.remove succeeds also when the file does not exist.
     await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName)));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'doc'));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'meta'));
+    await fse.remove(this.getAssetPath(docName));
   }
 
   // We don't implement document renames.
@@ -322,12 +327,20 @@ export class HostedStorageManager implements IDocStorageManager {
 
   /**
    * We handle backups by syncing the current version of the file as a new object version in S3,
-   * with the requested backupTag as an S3 tag.
+   * with the requested backupTag as metadata.
    */
   public async makeBackup(docName: string, backupTag: string): Promise<string> {
-    // TODO Must implement backups: currently this will prevent open docs that need migration.
-    // TODO: This method isn't used by SQLiteDB when migrating DB versions, but probably should be.
-    return "I_totally_did_not_back_up_your_document_sorry_not_sorry";
+    if (this._labels.get(docName)) {
+      await this.flushDoc(docName);
+    }
+    this._labels.set(docName, backupTag);
+    this.markAsChanged(docName);
+    await this.flushDoc(docName);
+    // TODO: make an alternative way to store backups if operating without an external
+    // store.
+    return this._ext ?
+      (this._ext.url(docName) + ' (' + this._latestVersions.get(docName) + ')') :
+      'no-external-storage-enabled';
   }
 
   /**
@@ -411,24 +424,23 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * This is called when a document may have been changed, via edits or migrations etc.
    */
-  public markAsChanged(docName: string): void {
-    if (parseUrlId(docName).snapshotId) { return; }
-    if (this._localFiles.has(docName)) {
-      // Make sure the file is marked as locally present (it may be newly created).
-      this._localFiles.set(docName, Promise.resolve(true));
+  public markAsChanged(docName: string, reason?: string): void {
+    const timestamp = new Date().toISOString();
+    this._timestamps.set(docName, timestamp);
+    try {
+      if (parseUrlId(docName).snapshotId) { return; }
+      if (this._localFiles.has(docName)) {
+        // Make sure the file is marked as locally present (it may be newly created).
+        this._localFiles.set(docName, Promise.resolve(true));
+      }
+      if (this._disableS3) { return; }
+      if (this._closed) { throw new Error("HostedStorageManager.markAsChanged called after closing"); }
+      this._uploads.addOperation(docName);
+    } finally {
+      if (reason === 'edit') {
+        this._markAsEdited(docName, timestamp);
+      }
     }
-    if (this._disableS3) { return; }
-    if (this._closed) { throw new Error("HostedStorageManager.markAsChanged called after closing"); }
-    this._uploads.addOperation(docName);
-  }
-
-  /**
-   * This is called when a document was edited by the user.
-   */
-  public markAsEdited(docName: string): void {
-    if (parseUrlId(docName).snapshotId) { return; }
-    // Schedule a metadata update for the modified doc.
-    if (this._metadataManager) { this._metadataManager.scheduleUpdate(docName); }
   }
 
   /**
@@ -443,21 +455,32 @@ export class HostedStorageManager implements IDocStorageManager {
       return {
         snapshots: [{
           snapshotId: 'current',
-          lastModified: new Date(),
+          lastModified: new Date().toISOString(),
           docId: docName,
         }]
       };
     }
-    const versions = await this._ext.versions(docName);
+    const versions = await this._inventory.versions(docName,
+                                                    this._latestVersions.get(docName) || null);
     const parts = parseUrlId(docName);
     return {
       snapshots: versions
-        .map(v => ({
-          lastModified: v.lastModified,
-          snapshotId: v.snapshotId,
-          docId: buildUrlId({...parts, snapshotId: v.snapshotId}),
-        }))
+        .map(v => {
+          return {
+            ...v,
+            docId: buildUrlId({...parts, snapshotId: v.snapshotId}),
+          };
+        })
     };
+  }
+
+  /**
+   * This is called when a document was edited by the user.
+   */
+  private _markAsEdited(docName: string, timestamp: string): void {
+    if (parseUrlId(docName).snapshotId) { return; }
+    // Schedule a metadata update for the modified doc.
+    if (this._metadataManager) { this._metadataManager.scheduleUpdate(docName, timestamp); }
   }
 
   /**
@@ -574,8 +597,8 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * We'll save hashes in a file with the suffix -hash.
    */
-  private _getHashFile(docPath: string): string {
-    return docPath + "-hash";
+  private _getHashFile(docPath: string, family: string = 'doc'): string {
+    return docPath + `-hash-${family}`;
   }
 
   /**
@@ -601,13 +624,100 @@ export class HostedStorageManager implements IDocStorageManager {
         throw new Error('too soon to consider pushing');
       }
       tmpPath = await this._prepareBackup(docId);
-      await this._ext.upload(docId, tmpPath);
-      this._pruner.requestPrune(docId);
+      const docMetadata = await this._getDocMetadata(tmpPath);
+      const label = this._labels.get(docId);
+      const t = this._timestamps.get(docId) || new Date().toISOString();
+      this._labels.delete(docId);
+      // Keep metadata keys simple, short, and lowercase.
+      const metadata = {
+        ...docMetadata,
+        ...label && {label},
+        t,
+      };
+      const prevSnapshotId = this._latestVersions.get(docId) || null;
+      const newSnapshotId = await this._ext.upload(docId, tmpPath, metadata);
+      if (!newSnapshotId) {
+        // This is unexpected.
+        throw new Error('No snapshotId allocated after upload');
+      }
+      const snapshot = {
+        lastModified: t,
+        snapshotId: newSnapshotId,
+        metadata
+      }
+      await this._inventory.add(docId, snapshot, prevSnapshotId);
+      const scheduled = this._pruner.requestPrune(docId);
+      if (!scheduled) {
+        await this._inventory.flush(docId);
+      }
     } finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.
       if (tmpPath) { await fse.remove(tmpPath); }
     }
+  }
+
+  // Extract actionHash, actionNum, and timezone from a document backup.
+  private async _getDocMetadata(fname: string): Promise<{[key: string]: string}> {
+    const result: Record<string, string> = {};
+    const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
+    try {
+      const actionQuery = await db.get('select actionHash, actionNum from _gristsys_ActionHistoryBranch as b ' +
+                                       'left join _gristsys_ActionHistory as h on h.id = b.actionRef ' +
+                                       'where b.name = ?', 'shared');
+      const h = actionQuery?.actionHash;
+      if (h) { result.h = h; }
+      const n = actionQuery?.actionNum;
+      if (n) { result.n = String(n); }
+    } catch (e) {
+      // Tolerate files that don't have _gristsys_* yet (although we don't need to).
+    }
+    try {
+      const tzQuery = await db.get('select timezone from _grist_DocInfo where id = 1');
+      const tz = tzQuery?.timezone;
+      if (tz) { result.tz = tz; }
+    } catch (e) {
+      // Tolerate files that don't have _grist_DocInfo yet.
+    }
+    await db.close();
+    return result;
+  }
+
+  // Wrap external storage in a checksum-aware decorator this will retry until
+  // consistency.
+  private _getChecksummedExternalStorage(family: string, core: ExternalStorage,
+                                         versions: Map<string, string>,
+                                         options: HostedStorageOptions) {
+    return new ChecksummedExternalStorage(core, {
+      maxRetries: 4,
+      initialDelayMs: options.secondsBeforeFirstRetry * 1000,
+      computeFileHash: this._getHash.bind(this),
+      sharedHash: {
+        save: async (key, checksum) => {
+          await this._docWorkerMap.updateChecksum(family, key, checksum);
+        },
+        load: async (key) => {
+          return await this._docWorkerMap.getChecksum(family, key);
+        }
+      },
+      localHash: {
+        save: async (key, checksum) => {
+          const fname = this._getHashFile(this.getPath(key), family);
+          await fse.writeFile(fname, checksum);
+        },
+        load: async (key) => {
+          const fname = this._getHashFile(this.getPath(key), family);
+          if (!await fse.pathExists(fname)) { return null; }
+          return await fse.readFile(fname, 'utf8');
+        }
+      },
+      latestVersion: {
+        save: async (key, ver) => {
+          versions.set(key, ver);
+        },
+        load: async (key) => versions.get(key) || null
+      }
+    });
   }
 }
 

@@ -5,10 +5,10 @@ import * as moment from 'moment';
 import * as path from 'path';
 
 import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
+import {DocSnapshots} from 'app/common/DocSnapshot';
 import * as gutil from 'app/common/gutil';
 import * as Comm from 'app/server/lib/Comm';
 import {OptDocSession} from 'app/server/lib/DocSession';
-import {DocSnapshots} from 'app/server/lib/DocSnapshots';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';

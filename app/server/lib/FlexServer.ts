@@ -829,15 +829,20 @@ export class FlexServer implements GristServer {
     this.addComm();
 
     if (!isSingleUserMode()) {
-      const s3Bucket = this._disableS3 ? '' : (process.env.GRIST_DOCS_S3_BUCKET || '');
-      const s3Prefix = process.env.GRIST_DOCS_S3_PREFIX || "docs/";
-
-      this.info.push(['s3Bucket', `${s3Bucket}/${s3Prefix}`]);
+      if (!process.env.GRIST_DOCS_S3_BUCKET || process.env.GRIST_DISABLE_S3 === 'true') {
+        this._disableS3 = true;
+      }
+      for (const [key, val] of Object.entries(this.create.configurationOptions())) {
+        this.info.push([key, val]);
+      }
+      if (this._disableS3) {
+        this.info.push(['s3', 'disabled']);
+      }
 
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
-      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, s3Bucket, s3Prefix, workers,
+      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableS3, '', workers,
                                                       this.dbManager, this.create);
       this._storageManager = storageManager;
     } else {

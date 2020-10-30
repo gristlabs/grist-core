@@ -1,7 +1,7 @@
 import {DocEntry} from 'app/common/DocListAPI';
+import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocReplacementOptions} from 'app/common/UserAPI';
 import {OptDocSession} from 'app/server/lib/DocSession';
-import {DocSnapshots} from 'app/server/lib/DocSnapshots';
 
 export interface IDocStorageManager {
   getPath(docName: string): string;
@@ -20,9 +20,9 @@ export interface IDocStorageManager {
   showItemInFolder(docName: string): Promise<void>;
   closeStorage(): Promise<void>;
   closeDocument(docName: string): Promise<void>;
-  markAsChanged(docName: string): void;  // document needs a backup (edits, migrations, etc)
-  markAsEdited(docName: string): void;   // document was edited by a user
-
+  // Mark document as needing a backup (due to edits, migrations, etc).
+  // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
+  markAsChanged(docName: string, reason?: 'edit'): void;
   testReopenStorage(): void;                // restart storage during tests
   addToStorage(docName: string): void;      // add a new local document to storage
   prepareToCloseStorage(): void;            // speed up sync with remote store

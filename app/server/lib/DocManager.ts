@@ -337,16 +337,16 @@ export class DocManager extends EventEmitter {
     }
   }
 
-  public markAsChanged(activeDoc: ActiveDoc) {
-    if (!activeDoc.muted) {
-      this.storageManager.markAsChanged(activeDoc.docName);
+  public markAsChanged(activeDoc: ActiveDoc, reason?: 'edit') {
+    // Ignore changes if document is muted or in the middle of a migration.
+    if (!activeDoc.muted && !activeDoc.isMigrating()) {
+      this.storageManager.markAsChanged(activeDoc.docName, reason);
     }
   }
 
-  public markAsEdited(activeDoc: ActiveDoc) {
-    if (!activeDoc.muted) {
-      this.storageManager.markAsEdited(activeDoc.docName);
-    }
+  public async makeBackup(activeDoc: ActiveDoc, name: string): Promise<string> {
+    if (activeDoc.muted) { throw new Error('Document is disabled'); }
+    return this.storageManager.makeBackup(activeDoc.docName, name);
   }
 
   /**
