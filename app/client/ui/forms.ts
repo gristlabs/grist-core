@@ -15,7 +15,7 @@
  *   );
  */
 import {cssCheckboxSquare, cssLabel} from 'app/client/ui2018/checkbox';
-import {dom, DomElementArg, styled} from 'grainjs';
+import {dom, DomArg, DomElementArg, styled} from 'grainjs';
 
 export {
   form,
@@ -30,7 +30,9 @@ export {
  * array of arguments to the checkbox; the rest goes into the label. E.g.
  *    checkboxItem([{name: 'ok'}], 'Check to approve');
  */
-export function checkboxItem(checkboxArgs: DomElementArg[], ...labelArgs: DomElementArg[]): HTMLElement {
+export function checkboxItem(
+  checkboxArgs: Array<DomArg<HTMLInputElement>>, ...labelArgs: DomElementArg[]
+): HTMLElement {
   return cssCheckboxLabel(
     cssCheckbox({type: 'checkbox'}, ...checkboxArgs),
     ...labelArgs);

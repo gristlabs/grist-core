@@ -101,6 +101,8 @@ export class WelcomePage extends Disposable {
    */
   private _buildInfoForm(owner: MultiHolder) {
     const allFilled = Observable.create(owner, false);
+    const whereObs = Observable.create(owner, '');
+
     return forms.form({method: "post", action: location.href },
       handleSubmit(),
       (elem) => { setTimeout(() => elem.focus(), 0); },
@@ -108,7 +110,12 @@ export class WelcomePage extends Disposable {
       forms.question(
         forms.text('Where do you plan to use Grist?'),
         forms.checkboxItem([{name: 'use_work'}], 'Work'),
+        forms.checkboxItem([{name: 'use_school'}], 'School'),
         forms.checkboxItem([{name: 'use_personal'}], 'Personal'),
+        forms.textBox({name: 'company'},
+          dom.hide(use => !use(whereObs)),
+          dom.attr('placeholder', (use) => use(whereObs) === 'school' ? 'Your School' : 'Your Company')
+        ),
       ),
       forms.question(
         forms.text('What brings you to Grist?'),
@@ -127,6 +134,7 @@ export class WelcomePage extends Disposable {
       ),
       dom.on('change', (e, form) => {
         allFilled.set(forms.isFormFilled(form, ['use_*', 'reason_*', 'industry', 'role']));
+        whereObs.set(form.use_work.checked ? 'work' : form.use_school.checked ? 'school' : '');
       }),
       cssButtonGroup(
         cssButtonGroup.cls('-right'),
