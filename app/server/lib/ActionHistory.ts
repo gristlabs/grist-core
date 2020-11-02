@@ -31,6 +31,9 @@ export interface ActionGroupOptions {
 
   // Values returned by the action, if known.
   retValues?: any[];
+
+  // Set the 'internal' flag on the created actions, as inappropriate to undo.
+  internal?: boolean;
 }
 
 export abstract class ActionHistory {
@@ -259,8 +262,6 @@ export function asActionGroup(history: ActionHistory,
     rowIdHint,
     primaryAction,
     isUndo,
-    internal: act.actionNum === 0   // Mark lazy-loading calculated columns.  In future,
-                                    // synchronizing fields to today's date and other
-                                    // changes from external values may count as internal.
+    internal: options.internal || false,
   };
 }

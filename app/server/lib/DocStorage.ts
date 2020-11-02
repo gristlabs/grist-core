@@ -34,6 +34,8 @@ const debuglog = util.debuglog('db');
 
 const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing it safe.
 
+const PENDING_VALUE = [gristTypes.GristObjCode.Pending];
+
 export class DocStorage implements ISQLiteDB {
 
   // ======================================================================
@@ -332,6 +334,40 @@ export class DocStorage implements ISQLiteDB {
           }
         }
       },
+
+      async function(db: SQLiteDB): Promise<void> {
+        // Storage version 7. Migration to store formulas in SQLite.
+        // Here, we only create empty columns for each formula column in the document. We let
+        // ActiveDoc, when it calculates formulas on open, detect that this migration just
+        // happened, and save the calculated results.
+        const colRows: ResultRow[] = await db.all('SELECT t.tableId, c.colId, c.type ' +
+          'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id WHERE c.isFormula');
+
+        // Go table by table.
+        const tableColRows = groupBy(colRows, 'tableId');
+        for (const tableId of Object.keys(tableColRows)) {
+          // There should be no columns conflicting with formula columns, but we check and skip
+          // them if there are.
+          const infoRows = await db.all(`PRAGMA table_info(${quoteIdent(tableId)})`);
+          const presentCols = new Set([...infoRows.map(row => row.name)]);
+          const newCols = tableColRows[tableId].filter(c => !presentCols.has(c.colId));
+
+          // Create all new columns.
+          for (const {colId, type} of newCols) {
+            await db.exec(`ALTER TABLE ${quoteIdent(tableId)} ` +
+              `ADD COLUMN ${DocStorage._columnDef(colId, type)}`);
+          }
+
+          // Fill them in with PENDING_VALUE. This way, on first load and Calculate, they would go
+          // from "Loading..." to their proper value. After the migration, they should never have
+          // PENDING_VALUE again.
+          const colListSql = newCols.map(c => `${quoteIdent(c.colId)}=?`).join(', ');
+          const types = newCols.map(c => c.type);
+          const sqlParams = DocStorage._encodeColumnsToRows(types, newCols.map(c => [PENDING_VALUE]));
+          await db.run(`UPDATE ${quoteIdent(tableId)} SET ${colListSql}`, sqlParams[0]);
+        }
+      },
+
     ]
   };
 
@@ -758,9 +794,7 @@ export class DocStorage implements ISQLiteDB {
   public _process_AddTable(tableId: string, columns: any[]): Promise<void> {
     const colSpecSql =
       DocStorage._prefixJoin(', ',
-                             columns.filter(c =>
-                                            !c.isFormula).map(c =>
-                                                              DocStorage._columnDef(c.id, c.type)));
+                             columns.map(c => DocStorage._columnDef(c.id, c.type)));
 
     // Every table needs an "id" column, and it should be an "integer primary key" type so that it
     // serves as the alias for the SQLite built-in "rowid" column. See
@@ -923,10 +957,6 @@ export class DocStorage implements ISQLiteDB {
    * @returns {Promise} - A promise for the SQL execution.
    */
   public async _process_AddColumn(tableId: string, colId: string, colInfo: any): Promise<void> {
-    // No need to ALTER TABLE for formula columns
-    if (colInfo.isFormula) {
-      return;
-    }
     await this.exec(
       `ALTER TABLE ${quoteIdent(tableId)} ADD COLUMN ${DocStorage._columnDef(colId, colInfo.type)}`);
   }
@@ -943,14 +973,8 @@ export class DocStorage implements ISQLiteDB {
     if (fromColId === 'id' || fromColId === 'manualSort' || tableId.startsWith('_grist')) {
       throw new Error('Cannot rename internal Grist column');
     }
-    try {
-      await this.exec(
-        `ALTER TABLE ${quoteIdent(tableId)} RENAME COLUMN ${quoteIdent(fromColId)} TO ${quoteIdent(toColId)}`);
-    } catch (error) {
-      if (!String(error).match(/SQLITE_ERROR: no such column/)) { throw error; }
-      // Accept no-such-column, because this may be a formula column.
-      // TODO: tighten constraint by getting access to grist schema info and isFormula flag.
-    }
+    await this.exec(
+      `ALTER TABLE ${quoteIdent(tableId)} RENAME COLUMN ${quoteIdent(fromColId)} TO ${quoteIdent(toColId)}`);
   }
 
   /**
@@ -968,20 +992,7 @@ export class DocStorage implements ISQLiteDB {
       log.error("ModifyColumn action called without params.");
       return;
     }
-
-    if (colInfo.isFormula) {
-      return this._process_RemoveColumn(tableId, colId);
-    } else {
-      const colExists = await this._colExistsInDB(tableId, colId);
-      const toNonFormula = colInfo.hasOwnProperty('isFormula') && !colInfo.isFormula;
-      if (!colExists && toNonFormula) {
-        // It's important to have the original type here, when colInfo does not include it.
-        if (!colInfo.type) { colInfo.type = this._getGristType(tableId, colId); }
-        return this._process_AddColumn(tableId, colId, colInfo);
-      } else {
-        return this._alterColumn(tableId, colId, colId, colInfo.type);
-      }
-    }
+    return this._alterColumn(tableId, colId, colId, colInfo.type);
   }
 
 
@@ -1299,14 +1310,6 @@ export class DocStorage implements ISQLiteDB {
       }
       await this._alterTableSoft(tableId, result.sql);
     }
-  }
-
-  /**
-   * Returns a promise for a boolean for whether the given column exists in the database.
-   */
-  private _colExistsInDB(tableId: string, colId: string): Promise<boolean> {
-    return this.all(`PRAGMA table_info(${quoteIdent(tableId)})`)
-      .then(infoRows => infoRows.some(row => (row.name === colId)));
   }
 
   private _getGristType(tableId: string, colId: string): string {

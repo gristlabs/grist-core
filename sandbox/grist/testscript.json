@@ -97,9 +97,10 @@
           "city": "Washington",
           "state": "DC",
           "country": "US"
-        }]],
+          }],
+          ["UpdateRecord", "Address", 11, {"region": "North America"}]
+        ],
         "undo": [["RemoveRecord", "Address", 11]],
-        "calc": [["UpdateRecord", "Address", 11, {"region": "North America"}]],
         "retValue": [ 11 ]
       },
      "CHECK_CALL_COUNTS": {
@@ -125,11 +126,15 @@
       // Set a student to the new school, and ensure formulas see the correct school and address.
       "USER_ACTION": ["UpdateRecord", "Students", 3, {"school": 9}],
       "ACTIONS": {
-        "stored": [["UpdateRecord", "Students", 3, {"school": 9}]],
-        "undo": [["UpdateRecord", "Students", 3, {"school": 6}]],
-        "calc": [
+        "stored": [
+          ["UpdateRecord", "Students", 3, {"school": 9}],
           ["UpdateRecord", "Students", 3, {"schoolRegion": "DC"}],
           ["UpdateRecord", "Students", 3, {"schoolShort": "Georgetown"}]
+        ],
+        "undo": [
+          ["UpdateRecord", "Students", 3, {"school": 6}],
+          ["UpdateRecord", "Students", 3, {"schoolRegion": "Europe"}],
+          ["UpdateRecord", "Students", 3, {"schoolShort": "Oxford"}]
         ]
       },
       "CHECK_CALL_COUNTS": {
@@ -269,8 +274,7 @@
           ["RemoveRecord", "Schools", 13],
           ["RemoveRecord", "Schools", 14],
           ["RemoveRecord", "Schools", 15],
-          ["BulkUpdateRecord", "Schools", [1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15],
-            {"numStudents": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1000000000000000000000000000", 1000000]}],
+          // No updates in undo for Schools.numStudents column, because the undo removes this column.
           ["ModifyColumn", "Schools", "numStudents", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 30, {"type": "Int"}],
           ["RemoveRecord", "Schools", 16]
@@ -334,12 +338,12 @@
           "city": ["Washington", "Portland"],
           "state": ["DC", "OR"]
           }],
-          ["BulkUpdateRecord", "Address", [11, 12], {"country": ["US", "US"]}]
+          ["BulkUpdateRecord", "Address", [11, 12], {"country": ["US", "US"]}],
+          ["BulkUpdateRecord", "Address", [11, 12], {
+            "region": ["North America", "North America"]
+          }]
         ],
         "undo": [["BulkRemoveRecord", "Address", [11, 12]]],
-        "calc": [["BulkUpdateRecord", "Address", [11, 12], {
-          "region": ["North America", "North America"]
-        }]],
         "retValue": [ [11, 12] ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -369,11 +373,15 @@
     ["APPLY", {
       "USER_ACTION": ["UpdateRecord", "Address", 10, {"country": "GB"}],
       "ACTIONS": {
-        "stored": [["UpdateRecord", "Address", 10, {"country": "GB"}]],
-        "undo": [["UpdateRecord", "Address", 10, {"country": "UK"}]],
-        "calc": [
+        "stored": [
+          ["UpdateRecord", "Address", 10, {"country": "GB"}],
           ["UpdateRecord", "Address", 10, {"region": "N/A"}],
           ["UpdateRecord", "Students", 3, {"schoolRegion": "N/A"}]
+        ],
+        "undo": [
+          ["UpdateRecord", "Address", 10, {"country": "UK"}],
+          ["UpdateRecord", "Address", 10, {"region": "Europe"}],
+          ["UpdateRecord", "Students", 3, {"schoolRegion": "Europe"}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -387,11 +395,15 @@
         {"name": ["eureka", "columbia", "yale"]}],
       "ACTIONS": {
         "stored": [["BulkUpdateRecord", "Schools", [1, 2, 8],
-          {"name": ["eureka", "columbia", "yale"]}]],
+            {"name": ["eureka", "columbia", "yale"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5],
+            {"schoolShort": ["columbia", "yale", "yale", "eureka"]}]
+        ],
         "undo": [["BulkUpdateRecord", "Schools", [1, 2, 8],
-          {"name": ["Eureka College", "Columbia University", "Yale University"]}]],
-        "calc": [["BulkUpdateRecord", "Students", [1, 2, 4, 5],
-          {"schoolShort": ["columbia", "yale", "yale", "eureka"]}]]
+          {"name": ["Eureka College", "Columbia University", "Yale University"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5],
+            {"schoolShort": ["Columbia", "Yale", "Yale", "Eureka"]}]
+        ]
       },
       "CHECK_CALL_COUNTS" : {
         "Students" : { "schoolShort" : 4 }
@@ -441,7 +453,9 @@
           ["UpdateRecord", "_grist_Tables_column", 3,
             {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
           ["RenameColumn", "Students", "schoolShort", "shortSchool"],
-          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "shortSchool"}]
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "shortSchool"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": ["BARACK Obama", "GEORGE W Bush", "BILL Clinton", "GEORGE H Bush", "RONALD Reagan", "JIMMY Carter", "GERALD Ford"]}]
         ],
         "undo": [
           ["ModifyColumn", "Students", "fullName",
@@ -449,11 +463,9 @@
           ["UpdateRecord", "_grist_Tables_column", 3,
             {"formula": "rec.firstName + ' ' + rec.lastName"}],
           ["RenameColumn", "Students", "shortSchool", "schoolShort"],
-          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "schoolShort"}]
-        ],
-        "calc": [
+          ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "schoolShort"}],
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-            {"fullName": ["BARACK Obama", "GEORGE W Bush", "BILL Clinton", "GEORGE H Bush", "RONALD Reagan", "JIMMY Carter", "GERALD Ford"]}]
+            {"fullName": ["Barack Obama", "George W Bush", "Bill Clinton", "George H Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -469,13 +481,12 @@
       ],
       "ACTIONS" : {
         "stored" : [
-          ["UpdateRecord", "Students", 2, {"firstName" : "Richard", "lastName" : "Nixon"}]
+          ["UpdateRecord", "Students", 2, {"firstName" : "Richard", "lastName" : "Nixon"}],
+          ["UpdateRecord", "Students", 2, {"fullName" : "RICHARD Nixon"}]
         ],
         "undo" : [
-          ["UpdateRecord", "Students", 2, {"firstName" : "George W", "lastName" : "Bush"}]
-        ],
-        "calc" : [
-          ["UpdateRecord", "Students", 2, {"fullName" : "RICHARD Nixon"}]
+          ["UpdateRecord", "Students", 2, {"firstName" : "George W", "lastName" : "Bush"}],
+          ["UpdateRecord", "Students", 2, {"fullName": "GEORGE W Bush"}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -526,13 +537,14 @@
       "ACTIONS": {
         "stored": [
           ["RemoveRecord", "Address", 4],
-          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [0, 0]}]
+          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [0, 0]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 8], {"schoolRegion": [null, null, null]}]
         ],
         "undo": [
-          ["AddRecord", "Address", 4, {"city": "New Haven", "state": "CT", "country": "US"}],
-          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [4, 4]}]
-        ],
-        "calc": [["BulkUpdateRecord", "Students", [2, 4, 8], {"schoolRegion": [null, null, null]}]]
+          ["AddRecord", "Address", 4, {"city": "New Haven", "country": "US", "region": "North America", "state": "CT"}],
+          ["BulkUpdateRecord", "Schools", [7, 8], {"address": [4, 4]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 8], {"schoolRegion": ["CT", "CT", "CT"]}]
+        ]
       },
       "CHECK_CALL_COUNTS" : {
         "Students" : { "schoolRegion" : 3 }
@@ -544,15 +556,15 @@
       "ACTIONS": {
         "stored": [
           ["RemoveRecord", "Schools", 5],
-          ["UpdateRecord", "Students", 6, {"school": 0}]
+          ["UpdateRecord", "Students", 6, {"school": 0}],
+          ["UpdateRecord", "Students", 6, {"schoolRegion": null}],
+          ["UpdateRecord", "Students", 6, {"schoolShort": ""}]
         ],
         "undo": [
           ["AddRecord", "Schools", 5, {"name": "U.S. Naval Academy", "address": 3}],
-          ["UpdateRecord", "Students", 6, {"school": 5}]
-        ],
-        "calc": [
-          ["UpdateRecord", "Students", 6, {"schoolRegion": null}],
-          ["UpdateRecord", "Students", 6, {"schoolShort": ""}]
+          ["UpdateRecord", "Students", 6, {"school": 5}],
+          ["UpdateRecord", "Students", 6, {"schoolRegion": "MD"}],
+          ["UpdateRecord", "Students", 6, {"schoolShort": "U.S."}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -565,7 +577,8 @@
       "ACTIONS": {
         "stored": [["RemoveRecord", "Students", 1]],
         "undo": [["AddRecord", "Students", 1,
-          {"firstName": "Barack", "lastName": "Obama", "school": 2}]]
+          {"firstName": "Barack", "fullName": "Barack Obama", "fullNameLen": 12, "lastName": "Obama", "school": 2, "schoolRegion": "NY", "schoolShort": "Columbia"}]
+        ]
       }
     }],
 
@@ -609,7 +622,11 @@
         "undo": [["BulkAddRecord", "Students", [2, 5, 6, 8], {
           "firstName": ["George W", "Ronald", "Jimmy", "Gerald"],
           "lastName": ["Bush", "Reagan", "Carter", "Ford"],
-          "school": [8, 1, 5, 7]
+          "school": [8, 1, 5, 7],
+          "fullName": ["George W Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"],
+          "fullNameLen": [13, 13, 12, 11],
+          "schoolRegion": ["CT", "IL", "MD", "CT"],
+          "schoolShort": ["Yale", "Eureka", "U.S.", "Yale"]
         }]]
       }
     }],
@@ -620,18 +637,18 @@
       "ACTIONS": {
         "stored": [
           ["BulkRemoveRecord", "Schools", [6, 8]],
-          ["BulkUpdateRecord", "Students", [3, 4], {"school": [0, 0]}]
+          ["BulkUpdateRecord", "Students", [3, 4], {"school": [0, 0]}],
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolShort": ["", ""]}]
         ],
         "undo": [
           ["BulkAddRecord", "Schools", [6, 8], {
             "name": ["Oxford University", "Yale University"],
             "address": [10, 4]
           }],
-          ["BulkUpdateRecord", "Students", [3, 4], {"school": [6, 8]}]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "Students", [3, 4], {"schoolRegion": [null, null]}],
-          ["BulkUpdateRecord", "Students", [3, 4], {"schoolShort": ["", ""]}]
+          ["BulkUpdateRecord", "Students", [3, 4], {"school": [6, 8]}],
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolRegion": ["Europe", "CT"]}],
+          ["BulkUpdateRecord", "Students", [3, 4], {"schoolShort": ["Oxford", "Yale"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -753,16 +770,14 @@
             "formula": "rec.zip[:5]",
             "label": "zip5",
             "widgetOptions": ""
-          }]
+          }],
+          // Since it's a formula, it immediately gets evaluated, causing some calc actions.
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10],
+            {"zip5": ["61530", "", "06520", "10027", ""]}]
         ],
         "undo": [
           ["RemoveColumn", "Address", "zip5"],
           ["RemoveRecord", "_grist_Tables_column", 31]
-        ],
-        // Since it's a formula, it immediately gets evaluated, causing some calc actions.
-        "calc": [
-          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10],
-            {"zip5": ["61530", "", "06520", "10027", ""]}]
         ],
         "retValue": [
           {"colId": "zip5", "colRef": 31}
@@ -800,15 +815,13 @@
             "formula": "rec.address.zip[:5]",
             "label": "zippy",
             "widgetOptions": ""
-          }]
+          }],
+          ["BulkUpdateRecord", "Schools", [1,2,5,6,7,8],
+            {"zip": ["61530", "10027", "", "", "06520", "06520"]}]
         ],
         "undo": [
           ["RemoveColumn", "Schools", "zip"],
           ["RemoveRecord", "_grist_Tables_column", 32]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "Schools", [1,2,5,6,7,8],
-            {"zip": ["61530", "10027", "", "", "06520", "06520"]}]
         ],
         "retValue": [
           {"colId": "zip", "colRef": 32}
@@ -889,7 +902,6 @@
               "isFormula": true, "label": "world", "widgetOptions": ""}],
           ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 35, "parentId": 1, "parentPos": 2.0}]
         ],
-        "calc": [],
         "undo": [
           ["RemoveTable", "Bar"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -952,8 +964,7 @@
       "USER_ACTION": ["UpdateRecord", "Address", 3, {"city": ""}],
       "ACTIONS": {
         "stored": [["UpdateRecord", "Address", 3, {"city": ""}]],
-        "undo": [["UpdateRecord", "Address", 3, {"city": "Annapolis"}]],
-        "calc": []
+        "undo": [["UpdateRecord", "Address", 3, {"city": "Annapolis"}]]
       }
     }],
 
@@ -1003,6 +1014,7 @@
           ["RemoveColumn", "Students", "fullNameLen"]
         ],
         "undo": [
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
           ["AddRecord", "_grist_Tables_column", 4, {
             "parentId": 1,
             "parentPos": 4.0,
@@ -1048,7 +1060,12 @@
       "ACTIONS": {
         "stored": [
           ["RemoveRecord", "_grist_Tables_column", 27],
-          ["RemoveColumn", "Address", "state"]
+          ["RemoveColumn", "Address", "state"],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8],
+            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"]]
+            }]
         ],
         "undo": [
           ["AddRecord", "_grist_Tables_column", 27, {
@@ -1064,15 +1081,8 @@
             "type": "Text",
             "isFormula": false,
             "formula": ""
-          }]
-
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8],
-            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"]]
-            }]
+          }],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": ["NY", "CT", "CT", "IL", "MD", "CT"]}]
         ]
       },
       "CHECK_CALL_COUNTS": {
@@ -1116,9 +1126,12 @@
           ["RemoveRecord", "_grist_Tables_column", 6],
           ["RemoveColumn", "Students", "schoolShort"],
           ["RemoveRecord", "Schools", 1],
-          ["RemoveRecord", "Schools", 8]
+          ["RemoveRecord", "Schools", 8],
+          ["UpdateRecord", "Students", 3,
+            {"schoolRegion": ["E","AttributeError"]}]
         ],
         "undo": [
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}],
           ["AddRecord", "_grist_Tables_column", 5, {"parentPos": 5.0, "parentId": 1,
             "colId": "school", "type": "Ref:Schools", "label": "school"
           }],
@@ -1133,11 +1146,8 @@
           ["AddColumn", "Students", "schoolShort", {"isFormula": true,
             "formula": "rec.school.name.split(' ')[0]", "type": "Any"}],
           ["AddRecord", "Schools", 1, {"name": "Eureka College", "address": 2}],
-          ["AddRecord", "Schools", 8, {"name": "Yale University", "address": 4}]
-        ],
-        "calc": [
-          ["UpdateRecord", "Students", 3,
-            {"schoolRegion": ["E","AttributeError"]}]
+          ["AddRecord", "Schools", 8, {"name": "Yale University", "address": 4}],
+          ["UpdateRecord", "Students", 3, {"schoolRegion": "Europe"}]
         ]
       },
       "CHECK_CALL_COUNTS": {
@@ -1214,7 +1224,6 @@
           ["RemoveColumn", "ViewTest", "hello"]
 
         ],
-        "calc": [],
         "undo": [
           ["RemoveTable", "ViewTest"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -1299,10 +1308,6 @@
         ["RemoveRecord", "Schools", 8]
       ],
       "ACTIONS": {
-        "calc": [
-          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolRegion": [null, null, null]}],
-          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolShort": ["", "", ""]}]
-        ],
         "stored": [
           ["RenameColumn", "Students", "school", "university"],
           ["ModifyColumn", "Students", "schoolShort",
@@ -1321,7 +1326,9 @@
           ["RemoveRecord", "Schools", 1],
           ["UpdateRecord", "Students", 5, {"university": 0}],
           ["RemoveRecord", "Schools", 8],
-          ["BulkUpdateRecord", "Students", [2, 4], {"university": [0, 0]}]
+          ["BulkUpdateRecord", "Students", [2, 4], {"university": [0, 0]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolRegion": [null, null, null]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolShort": ["", "", ""]}]
         ],
         "undo": [
           ["RenameColumn", "Students", "university", "school"],
@@ -1341,7 +1348,9 @@
           ["AddRecord", "Schools", 1, {"name": "Eureka College", "address": 2}],
           ["UpdateRecord", "Students", 5, {"university": 1}],
           ["AddRecord", "Schools", 8, {"name": "Yale University", "address": 4}],
-          ["BulkUpdateRecord", "Students", [2, 4], {"university": [8, 8]}]
+          ["BulkUpdateRecord", "Students", [2, 4], {"university": [8, 8]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolRegion": ["CT", "CT", "IL"]}],
+          ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolShort": ["Yale", "Yale", "Eureka"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -1574,27 +1583,32 @@
           ["ModifyColumn", "Students", "fullName",
             {"formula": "rec.lastName + ' - ' + rec.firstName"}],
           ["UpdateRecord", "_grist_Tables_column", 3,
-            {"formula": "rec.lastName + ' - ' + rec.firstName"}]
+            {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+          ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
+            "fullName": [
+              "Obama - Barack",
+              "Bush - George W",
+              "Clinton - Bill",
+              "Bush - George H",
+              "Reagan - Ronald",
+              "Carter - Jimmy",
+              "Ford - Gerald"
+            ]
+          }],
+          ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
+            "fullNameLen": [14,15,14,15,15,14,13]
+          }]
         ],
         "undo": [
           ["ModifyColumn", "Students", "fullName",
             {"formula": "rec.firstName + ' ' + rec.lastName"}],
           ["UpdateRecord", "_grist_Tables_column", 3,
-            {"formula": "rec.firstName + ' ' + rec.lastName"}]
-        ],
-        "calc": [["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
-          "fullName": [
-            "Obama - Barack",
-            "Bush - George W",
-            "Clinton - Bill",
-            "Bush - George H",
-            "Reagan - Ronald",
-            "Carter - Jimmy",
-            "Ford - Gerald"
-          ]
-        }], ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8], {
-          "fullNameLen": [14,15,14,15,15,14,13]
-        }]]
+            {"formula": "rec.firstName + ' ' + rec.lastName"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": ["Barack Obama", "George W Bush", "Bill Clinton", "George H Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}]
+        ]
       },
       "CHECK_CALL_COUNTS" : {
         "Students" : { "fullName" : 7, "fullNameLen" : 7 }
@@ -1611,17 +1625,16 @@
         "stored": [
           ["UpdateRecord", "Students", 2, {"firstName": "G.W."}],
           ["AddRecord", "Address", 11, {"country": "US"}],
-          ["UpdateRecord", "Address", 11, {"city": "Anytown"}]
-
-        ],
-        "undo": [
-          ["UpdateRecord", "Students", 2, {"firstName": "George W"}],
-          ["RemoveRecord", "Address", 11]
-        ],
-        "calc": [
+          ["UpdateRecord", "Address", 11, {"city": "Anytown"}],
           ["UpdateRecord", "Address", 11, {"region": "North America" }],
           ["UpdateRecord", "Students", 2, {"fullName": "Bush - G.W."}],
           ["UpdateRecord", "Students", 2, {"fullNameLen": 11}]
+        ],
+        "undo": [
+          ["UpdateRecord", "Students", 2, {"firstName": "George W"}],
+          ["RemoveRecord", "Address", 11],
+          ["UpdateRecord", "Students", 2, {"fullName": "Bush - George W"}],
+          ["UpdateRecord", "Students", 2, {"fullNameLen": 15}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -1685,8 +1698,6 @@
         "stored": [
             ["ModifyColumn", "Students", "fullNameLen",
               {"isFormula": false, "type": "Int"}],
-            ["BulkUpdateRecord", "Students", [1,2,3,4,5,6,8],
-              {"fullNameLen": [14,11,14,15,15,14,13]}],
             ["UpdateRecord", "_grist_Tables_column", 4,
               {"isFormula": false, "type": "Int"}],
             ["ModifyColumn", "Students", "fullNameLen",
@@ -1697,27 +1708,21 @@
             ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
               {"fullNameLen": [13, 10, 13, 14, 14, 13, 12]}],
             ["UpdateRecord", "_grist_Tables_column", 4, {"isFormula": false}]
-
         ],
         "undo": [
             ["ModifyColumn", "Students", "fullNameLen",
               {"isFormula": true, "type": "Any"}],
             ["UpdateRecord", "_grist_Tables_column", 4,
               {"isFormula": true, "type": "Any"}],
-            ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-              {"fullNameLen": [14, 11, 14, 15, 15, 14, 13]}],
             ["ModifyColumn", "Students", "fullNameLen",
               {"isFormula": false, "formula" : "len(rec.fullName)"}],
             ["UpdateRecord", "_grist_Tables_column", 4,
               {"isFormula": false, "formula" : "len(rec.fullName)"}],
+            ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+              {"fullNameLen": [14, 11, 14, 15, 15, 14, 13]}],
             ["ModifyColumn", "Students", "fullNameLen", {"isFormula": true}],
             ["UpdateRecord", "_grist_Tables_column", 4, {"isFormula": true}]
-
         ]
-        // "calc": [
-        //   ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-        //     {"fullNameLen": [13, 10, 13, 14, 14, 13, 12]}]
-        // ]
       },
       "CHECK_CALL_COUNTS" : {
         "Students" : { "fullNameLen" : 7 }
@@ -1838,20 +1843,17 @@
       "ACTIONS" : {
         "stored" : [
           ["ModifyColumn", "Address", "state", {"isFormula": true, "type": "Any"}],
-          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": true, "type": "Any"}]
+          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": true, "type": "Any"}],
+          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"state": [null, null, null, null, null, null]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": [null, null, null, null, null, null]}]
         ],
 
         "undo" : [
+          ["ModifyColumn", "Address", "state", {"isFormula": false, "type": "Text"}],
+          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": false, "type": "Text"}],
           ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11],
             {"state": ["IL", "MD", "CT", "NY", "England", ""]}],
-          ["ModifyColumn", "Address", "state", {"isFormula": false, "type": "Text"}],
-          ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": false, "type": "Text"}]
-
-        ],
-
-        "calc" : [
-          ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"state": [null, null, null, null, null, null]}],
-          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": [null, null, null, null, null, null]}]
+          ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": ["NY", "CT", "CT", "IL", "MD", "CT"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -1880,17 +1882,7 @@
          ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
          ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
          ["ModifyColumn", "Students", "schoolRegion", {"formula": "5*len($firstName) / $fullNameLen"}],
-         ["UpdateRecord", "_grist_Tables_column", 9, {"formula": "5*len($firstName) / $fullNameLen"}]
-       ],
-       "undo" : [
-         ["ModifyColumn", "Students", "fullName", {"formula": "rec.lastName + ' - ' + rec.firstName"}],
-         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "rec.lastName + ' - ' + rec.firstName"}],
-         ["ModifyColumn", "Students", "schoolRegion",
-           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}],
-         ["UpdateRecord", "_grist_Tables_column", 9,
-           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}]
-       ],
-       "calc" : [
+         ["UpdateRecord", "_grist_Tables_column", 9, {"formula": "5*len($firstName) / $fullNameLen"}],
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
            {"fullName" : [["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"],
              ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"]]
@@ -1899,6 +1891,18 @@
          // the calculation for that record fails with TypeError.
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
            {"schoolRegion": [["E", "TypeError"], 2, 1, 2, 2, 1, 2]}]
+       ],
+       "undo" : [
+         ["ModifyColumn", "Students", "fullName", {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "rec.lastName + ' - ' + rec.firstName"}],
+         ["ModifyColumn", "Students", "schoolRegion",
+           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}],
+         ["UpdateRecord", "_grist_Tables_column", 9,
+           {"formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": ["Obama - Barack", "Bush - G.W.", "Clinton - Bill", "Bush - George H", "Reagan - Ronald", "Carter - Jimmy", "Ford - Gerald"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": [null, null, "Europe", null, null, null, null]}]
        ]
      },
      "CHECK_CALL_COUNTS" : {
@@ -1914,15 +1918,15 @@
      "ACTIONS" : {
        "stored" : [
          ["ModifyColumn", "Students", "fullName", {"formula": "$firstName"}],
-         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "$firstName"}]
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "$firstName"}],
+         ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+           {"fullName": ["Barack", "G.W.", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]}]
        ],
        "undo" : [
          ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
-         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}]
-       ],
-       "calc" : [
+         ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-           {"fullName": ["Barack", "G.W.", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]}]
+           {"fullName": [["E", "SyntaxError"], ["E", "SyntaxError"], ["E", "SyntaxError"], ["E", "SyntaxError"], ["E", "SyntaxError"], ["E", "SyntaxError"], ["E", "SyntaxError"]]}]
        ]
      }
    }],
@@ -1987,7 +1991,7 @@
 }, {
 
   //----------------------------------------------------------------------
-  "TEST_CASE": "column_conversions: DateTime->Int->Numeric->DateTime",
+  "TEST_CASE": "column_conversions",
   //----------------------------------------------------------------------
   "BODY": [
     ["LOAD_SAMPLE", "simplest"],
@@ -2164,7 +2168,8 @@
           ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 2}],
           ["AddRecord", "Bar", 1, {"foo": 0, "hello": "a", "manualSort": 1.0}],
           ["AddRecord", "Bar", 2, {"foo": 1, "hello": "b", "manualSort": 2.0}],
-          ["AddRecord", "Bar", 3, {"foo": 1, "hello": "c", "manualSort": 3.0}]
+          ["AddRecord", "Bar", 3, {"foo": 1, "hello": "c", "manualSort": 3.0}],
+          ["BulkUpdateRecord", "Bar", [1, 2, 3], {"world": ["A", "B", "C"]}]
         ],
         "undo": [
           ["RemoveTable", "Foo"],
@@ -2187,9 +2192,6 @@
           ["RemoveRecord", "Bar", 1],
           ["RemoveRecord", "Bar", 2],
           ["RemoveRecord", "Bar", 3]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "Bar", [1, 2, 3], {"world": ["A", "B", "C"]}]
         ],
         "retValue": [
           // AddTable "Foo" retValue
@@ -2260,7 +2262,6 @@
            // As part of adding a table, we also set the primaryViewId.
            ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}]
          ],
-         "calc": [],
          "undo": [
            ["RemoveTable", "Foo"],
            ["RemoveRecord", "_grist_Tables", 4],
@@ -2323,7 +2324,18 @@
           ["RemoveColumn", "Students", "school"],
           ["BulkRemoveRecord", "_grist_Tables_column", [10, 12]],
           ["RemoveRecord", "_grist_Tables", 2],
-          ["RemoveTable", "Schools"]
+          ["RemoveTable", "Schools"],
+          // Assert that calc actions include a RemoveColumn for Students.school
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"]]
+            }],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"schoolShort": [["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
+              ["E","AttributeError"], ["E","AttributeError"]]
+            }]
         ],
         "undo": [
           ["AddRecord", "_grist_Tables_column", 5,
@@ -2346,20 +2358,9 @@
           ["AddTable", "Schools", [
             {"isFormula": false, "formula": "", "type": "Text", "id": "name"},
             {"isFormula": false, "formula": "", "type": "Ref:Address", "id": "address"}]
-          ]
-        ],
-        "calc": [
-          // Assert that calc actions include a RemoveColumn for Students.school
-          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"], ["E","AttributeError"]]
-            }],
-          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolShort": [["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
-              ["E","AttributeError"], ["E","AttributeError"]]
-            }]
+          ],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -2408,8 +2409,14 @@
           }],
           ["AddRecord", "_grist_Tables", 1, {"tableId": "Students"}],
           ["BulkAddRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "firstName": ["Barack", "George W", "Bill", "George H", "Ronald", "Jimmy", "Gerald"],
+            "fullName": ["Barack Obama", "George W Bush", "Bill Clinton", "George H Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"],
+            "fullNameLen": [12, 13, 12, 13, 13, 12, 11],
             "lastName": ["Obama", "Bush", "Clinton", "Bush", "Reagan", "Carter", "Ford"],
-            "firstName": ["Barack", "George W", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]
+            "schoolRegion": [["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"],
+              ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]],
+            "schoolShort": [["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"],
+                ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]]
           }],
           ["AddTable", "Students", [
             { "isFormula": false, "formula": "", "type": "Text", "id": "firstName"},
@@ -2469,19 +2476,6 @@
           ["UpdateRecord", "_grist_Tables", 2, {"tableId": "Schools"}],
           ["ModifyColumn", "People", "school", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:Schools"}]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullName": [
-              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
-              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
-            }],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -2508,19 +2502,6 @@
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
           ["RenameTable", "People", "PEOPLE"],
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "PEOPLE"}]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullName": [
-              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
-              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
-            }],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
         ]
       }
     }],
@@ -2531,13 +2512,16 @@
       "ACTIONS": {
         "stored": [
           ["RemoveRecord", "School", 8],
-          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}]],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]
+        ],
         "undo": [
           ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
-          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}]],
-        "calc": [
-          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
-          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]]
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": ["CT", "CT"]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["Yale", "Yale"]}]
+        ]
       },
       "CHECK_CALL_COUNTS" : {
         "People" : { "schoolRegion" : 2, "schoolShort" : 2 }
@@ -2603,19 +2587,6 @@
           ["UpdateRecord", "_grist_Tables", 2, {"tableId": "Schools"}],
           ["ModifyColumn", "People", "school", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:Schools"}]
-        ],
-        "calc": [
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullName": [
-              "Barack Obama", "George W Bush", "Bill Clinton", "George H Bush",
-              "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]
-            }],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolRegion": ["NY", "CT", "Europe", "CT", "IL", "MD", "CT"]}],
-          ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5, 6, 8],
-            {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}]
         ]
       },
       "CHECK_CALL_COUNTS" : {
@@ -2629,13 +2600,16 @@
       "ACTIONS": {
         "stored": [
           ["RemoveRecord", "School", 8],
-          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}]],
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [0, 0]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]
+        ],
         "undo": [
           ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
-          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}]],
-        "calc": [
-          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
-          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]]
+          ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": ["CT", "CT"]}],
+          ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["Yale", "Yale"]}]
+        ]
       },
       "CHECK_CALL_COUNTS" : {
         "People" : { "schoolRegion" : 2, "schoolShort" : 2 }
@@ -2749,7 +2723,15 @@
             "errorText": "",
             "outputText": "[2000000.0, AltText('George W'), AltText('Bill'), AltText('George H'), AltText('Ronald'), AltText('Jimmy'), AltText('Gerald')]\n"}],
           ["UpdateRecord", "_grist_REPL_Hist", 6,
-            {"code": "len(Schools.all)", "errorText": "", "outputText": "6\n"}]
+            {"code": "len(Schools.all)", "errorText": "", "outputText": "6\n"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "fullName": [["E", "TypeError"], ["E","TypeError"], ["E","TypeError"],
+              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
+          }],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
+            "fullNameLen": [["E","TypeError"], ["E","TypeError"], ["E","TypeError"],
+              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
+          }]
         ],
         "undo": [
           ["RemoveRecord", "_grist_REPL_Hist", 6],
@@ -2763,17 +2745,11 @@
            "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
           ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
             "errorText": "",
-            "outputText": "[2000000.0, AltText('George W'), AltText('Bill'), AltText('George H'), AltText('Ronald'), AltText('Jimmy'), AltText('Gerald')]\n"}]
-        ],
-        "calc" : [
-          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
-            "fullName": [["E", "TypeError"], ["E","TypeError"], ["E","TypeError"],
-              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
-          }],
-          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
-            "fullNameLen": [["E","TypeError"], ["E","TypeError"], ["E","TypeError"],
-              ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
-          }]
+            "outputText": "[2000000.0, AltText('George W'), AltText('Bill'), AltText('George H'), AltText('Ronald'), AltText('Jimmy'), AltText('Gerald')]\n"}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullName": ["Barack Obama", "George W Bush", "Bill Clinton", "George H Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"]}],
+          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
+            {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}]
         ],
         "retValue": [true,null,null,true,true]
       }

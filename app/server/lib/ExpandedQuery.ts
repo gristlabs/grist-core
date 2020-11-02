@@ -36,9 +36,9 @@ export interface ExpandedQuery extends Query {
  * The referenced column itself cannot (yet) be a formula.
  * Filtered columns cannot (yet) be a formula.
  *
- * If formulas is not set, we simply mark formula columns as pending.
+ * If onDemandFormulas is set, ignore stored formula columns, and compute them using SQL.
  */
-export function expandQuery(iquery: Query, docData: DocData, formulas: boolean = true): ExpandedQuery {
+export function expandQuery(iquery: Query, docData: DocData, onDemandFormulas: boolean = true): ExpandedQuery {
   const query: ExpandedQuery = {
     tableId: iquery.tableId,
     filters: iquery.filters,
@@ -63,11 +63,12 @@ export function expandQuery(iquery: Query, docData: DocData, formulas: boolean =
   const joins = new Set<string>();
   const selects = new Set<string>();
 
-  // Select all data columns
-  selects.add(`${quoteIdent(query.tableId)}.*`);
-
   // Iterate through all formulas, adding joins and selects as we go.
-  if (formulas) {
+  if (onDemandFormulas) {
+    selects.add(`${quoteIdent(query.tableId)}.id`);
+    for (const column of dataColumns) {
+      selects.add(`${quoteIdent(query.tableId)}.${quoteIdent(column.colId as string)}`);
+    }
     const formulaColumns = columns.filterRecords({parentId: tableRef, isFormula: true});
     for (const column of formulaColumns) {
       const formula = parseFormula(column.formula as string);
@@ -118,14 +119,8 @@ export function expandQuery(iquery: Query, docData: DocData, formulas: boolean =
       }
     }
   } else {
-    const formulaColumns = columns.filterRecords({parentId: tableRef, isFormula: true});
-    for (const column of formulaColumns) {
-      if (!column.formula) { continue; }  // Columns like this won't get calculated, so skip.
-      const colId = column.colId as string;
-      if (!query.constants) { query.constants = {}; }
-      query.constants[colId] = ['P'];
-      selects.add(`0 as ${quoteIdent(colId)}`);
-    }
+    // Select all data and formula columns.
+    selects.add(`${quoteIdent(query.tableId)}.*`);
   }
 
   // Copy decisions to the query object, and return.

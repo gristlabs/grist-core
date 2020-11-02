@@ -1,8 +1,8 @@
 """
 Tests that formula error messages (traceback) are correct
 """
-import depend
 import textwrap
+import depend
 import test_engine
 import testutil
 import objtypes
@@ -219,17 +219,25 @@ else:
 
     # Make sure the we have bulk updates for both T and D, and not just D.
     err = ["E", "AttributeError"]
-    self.assertPartialOutActions(out_actions, { "calc": [
-      [
-        "BulkUpdateRecord", "UpdateTest", [1, 2, 3], {
-          "T": [err, err, err]
-        }
+    self.assertPartialOutActions(out_actions, { "stored": [
+      ["RenameColumn", "UpdateTest", "A", "AA"],
+      ["ModifyColumn", "UpdateTest", "T", {
+        "formula": "recs = UpdateTest.lookupRecords()\nsum(r.A for r in recs if r.A <= $AA)"}
+      ],
+      ["BulkUpdateRecord", "_grist_Tables_column", [20, 21], {
+        "colId": ["AA", "T"],
+        "formula": ["", "recs = UpdateTest.lookupRecords()\nsum(r.A for r in recs if r.A <= $AA)"]}
       ],
       [
         "BulkUpdateRecord", "UpdateTest", [1, 2, 3], {
           "D": [err, err, err]
         }
-      ]
+      ],
+      [
+        "BulkUpdateRecord", "UpdateTest", [1, 2, 3], {
+          "T": [err, err, err]
+        }
+      ],
     ]})
 
     # Make sure the table is in the correct state.
@@ -515,7 +523,7 @@ else:
     })
 
     self.load_sample(sample)
-    principal = 20213227788876
+    principal = 20213227788876.0
     self.assertTableData('Readout', data=[
       ['id', 'LastPrincipal', 'LastRPrincipal', 'FirstTotal', 'LastTotal'],
       [1, principal, principal, principal + 1000, principal + 1000],

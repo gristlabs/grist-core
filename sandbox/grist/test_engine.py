@@ -71,7 +71,6 @@ class EngineTestCase(unittest.TestCase):
     """
     sort_keys = {c: i for i, c in enumerate(col_names)}
     ret = []
-    engine_data = actions.encode_objects(engine_data)
     for table_id, table_data in sorted(engine_data.items()):
       ret.append("TABLE %s\n" % table_id)
       col_items = sorted(table_data.columns.items(),
@@ -86,9 +85,11 @@ class EngineTestCase(unittest.TestCase):
     Compare full engine data, as a mapping of table_ids to TableData objects, and reporting
     differences with a customized diff (similar to the JSON representation in the test script).
     """
-    if observed != expected:
-      o_lines = self._getEngineDataLines(observed, col_names)
-      e_lines = self._getEngineDataLines(expected, col_names)
+    enc_observed = actions.encode_objects(observed)
+    enc_expected = actions.encode_objects(expected)
+    if enc_observed != enc_expected:
+      o_lines = self._getEngineDataLines(enc_observed, col_names)
+      e_lines = self._getEngineDataLines(enc_expected, col_names)
       self.fail("Observed data not as expected:\n" +
                 "".join(difflib.unified_diff(e_lines, o_lines,
                                              fromfile="expected", tofile="observed")))
@@ -133,7 +134,7 @@ class EngineTestCase(unittest.TestCase):
     for (k, action_list) in sorted(action_group.items()):
       if k in cls.action_group_action_fields:
         for a in action_list:
-          rep = repr(a) if use_repr else json.dumps(actions.get_action_repr(a), sort_keys=True)
+          rep = repr(a) if use_repr else json.dumps(a, sort_keys=True)
           lines.append("%s: %s," % (k, rep))
       else:
         lines.append("%s: %s," % (k, json.dumps(action_list)))
@@ -150,19 +151,16 @@ class EngineTestCase(unittest.TestCase):
 
     # Convert expected actions into a comparable form.
     for k in self.action_group_action_fields:
+      if k in observed:
+        observed[k] = map(actions.get_action_repr, observed[k])
       if k in expected:
-        expected[k] = [actions.action_from_repr(a) if isinstance(a, list) else a
+        expected[k] = [actions.get_action_repr(a) if not isinstance(a, list) else a
                        for a in expected[k]]
 
     if observed != expected:
       o_lines = self._formatActionGroup(observed)
       e_lines = self._formatActionGroup(expected)
-      extra = ""
-      if o_lines == e_lines:
-        o_lines = self._formatActionGroup(observed, use_repr=True)
-        e_lines = self._formatActionGroup(expected, use_repr=True)
-        extra = " (BUT HAVE SAME REPR!)"
-      self.fail(("Observed out actions not as expected%s:\n" % extra) +
+      self.fail(("Observed out actions not as expected:\n") +
                 "\n".join(difflib.unified_diff(e_lines, o_lines, n=3, lineterm="",
                                                fromfile="expected", tofile="observed")))
 
@@ -171,6 +169,10 @@ class EngineTestCase(unittest.TestCase):
     Compares action group returned from engine.apply_user_actions() to expected actions as listed
     in testscript. The array of retValues is only checked if present in expected_group.
     """
+    for k in self.action_group_action_fields:
+      # For comparing full actions, treat omitted groups (e.g. "calc") as expected to be empty.
+      expected_group.setdefault(k, [])
+
     observed = {k: getattr(out_action_group, k) for k in self.action_group_action_fields }
     if "retValue" in expected_group:
       observed["retValue"] = out_action_group.retValues
@@ -190,6 +192,7 @@ class EngineTestCase(unittest.TestCase):
     """
     output = {t: self.engine.fetch_table(t) for t in self.engine.schema}
     output = testutil.replace_nans(output)
+    output = actions.encode_objects(output)
     print ''.join(self._getEngineDataLines(output))
 
   def dump_actions(self, out_actions):

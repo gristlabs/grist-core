@@ -48,6 +48,7 @@ class TestSideEffects(test_engine.EngineTestCase):
         "colId": "A", "formula": formula, "isFormula": True, "label": "A",
         "parentId": 1, "parentPos": 4.0, "type": "Any", "widgetOptions": ""
       }],
+      ["BulkUpdateRecord", "Address", [21, 22], {"A": [["E", "Exception"], ["E", "Exception"]]}],
       # The thing to note  here is that while lookupOrAddDerived() should have added a row to
       # Schools, the Exception negated it, and there is no action to add that row.
     ]})
@@ -86,8 +87,6 @@ if $amount < 0:
       "stored": [
         ["UpdateRecord", "Address", 22, {"amount": 1000.0, "city": "aaa"}],
         ["AddRecord", "Schools", 4, {"city": "aaa"}],
-      ],
-      "calc": [
         ["UpdateRecord", "Schools", 4, {"ucity": "AAA"}],
       ],
     })
@@ -105,8 +104,6 @@ if $amount < 0:
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["UpdateRecord", "Address", 22, {"amount": -3.0, "city": "bbb"}],
-      ],
-      "calc": [
         ["UpdateRecord", "Address", 22, {"A": ["E", "Exception"]}],
       ],
     })

@@ -22,11 +22,6 @@ log = logger.Logger(__name__, logger.INFO)
 
 NoneType = type(None)
 
-def strict_equal(a, b):
-  """Checks the equality of the types of the values as well as the values."""
-  # pylint: disable=unidiomatic-typecheck
-  return type(a) == type(b) and a == b
-
 # Note that this matches the defaults in app/common/gristTypes.js
 _type_defaults = {
   'Any':          None,

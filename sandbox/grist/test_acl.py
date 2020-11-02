@@ -256,10 +256,9 @@ class TestACL(test_engine.EngineTestCase):
       (0, actions.UpdateRecord('Employees', 1, {'ssn': 'xxx-xx-0000'})),
       (1, actions.UpdateRecord('Employees', 1, {'position': 'Senior Jester'})),
       (0, actions.UpdateRecord('Employees', 1, {'ssn': 'yyy-yy-0000'})),
+      (0, actions.UpdateRecord('Employees', 1, {'salary': 100000.00})),
     ])
-    self.assertEqual(out_bundle.calc, [
-      (0, actions.UpdateRecord('Employees', 1, {'salary': 100000.00}))
-    ])
+    self.assertEqual(out_bundle.calc, [])
 
 
   def test_with_rules(self):
@@ -285,10 +284,9 @@ class TestACL(test_engine.EngineTestCase):
     self.assertEqual([(env, set(a.columns)) for (env, a) in out_bundle.stored], [
       (0, {"name", "position"}),
       (1, {"ssn", "manualSort"}),
+      (1, {"salary"}),
     ])
-    self.assertEqual([(env, set(a.columns)) for (env, a) in out_bundle.calc], [
-      (1, {"salary"})
-    ])
+    self.assertEqual([(env, set(a.columns)) for (env, a) in out_bundle.calc], [])
 
     # Full bundle requires careful reading. See the checks above for the essential parts.
     self.assertEqual(out_bundle.to_json_obj(), {
@@ -308,6 +306,9 @@ class TestACL(test_engine.EngineTestCase):
           "manualSort": [ 1, 2, 3, 4 ],
           "ssn": [ "000-00-0000", "111-11-1111", "222-22-2222", "222-22-2222" ]
         }]),
+        (1, [ "BulkUpdateRecord", "Employees", [ 1, 2, 3, 4 ], {
+          "salary": [ 60000, 100000, 60000, 100000 ]
+        }]),
       ],
       "undo": [
         # TODO All recipients now get BulkRemoveRecord (which is correct), but some get it twice,
@@ -315,11 +316,7 @@ class TestACL(test_engine.EngineTestCase):
         (0, [ "BulkRemoveRecord", "Employees", [ 1, 2, 3, 4 ] ]),
         (1, [ "BulkRemoveRecord", "Employees", [ 1, 2, 3, 4 ] ]),
       ],
-      "calc": [
-        (1, [ "BulkUpdateRecord", "Employees", [ 1, 2, 3, 4 ], {
-          "salary": [ 60000, 100000, 60000, 100000 ]
-        }])
-      ],
+      "calc": [],
       "retValues": [[1, 2, 3, 4]],
       "rules": [12,13,14],
     })
@@ -336,14 +333,13 @@ class TestACL(test_engine.EngineTestCase):
       "stored": [
         (0, [ "AddRecord", "Employees", 1, {}]),
         (1, [ "AddRecord", "Employees", 1, {"manualSort": 1.0}]),
+        (1, [ "UpdateRecord", "Employees", 1, { "salary": 60000.0 }]),
       ],
       "undo": [
         (0, [ "RemoveRecord", "Employees", 1 ]),
         (1, [ "RemoveRecord", "Employees", 1 ]),
       ],
-      "calc": [
-        (1, [ "UpdateRecord", "Employees", 1, { "salary": 60000.0 }])
-      ],
+      "calc": [],
       "retValues": [1],
       "rules": [12,13,14],
     })
@@ -354,13 +350,13 @@ class TestACL(test_engine.EngineTestCase):
                     {"recipients": [ "alice", "bob", "zack" ]} ],
       "stored": [
         (0, [ "UpdateRecord", "Employees", 1, {"position": "Senior Citizen"}]),
+        (1, [ "UpdateRecord", "Employees", 1, { "salary": 100000.0 }])
       ],
       "undo": [
         (0, [ "UpdateRecord", "Employees", 1, {"position": ""}]),
+        (1, [ "UpdateRecord", "Employees", 1, { "salary": 60000.0 }])
       ],
-      "calc": [
-        (1, [ "UpdateRecord", "Employees", 1, { "salary": 100000.0 }])
-      ],
+      "calc": [],
       "retValues": [None],
       "rules": [12,13,14],
     })

@@ -66,14 +66,18 @@ class TestTypes(test_engine.EngineTestCase):
         "int":     [None, None, 1, 0, 8, 1509556595, 1, 0, "Chîcágö", "New York"],
         "bool":    [False, False, True, False, True, True, True, False, "Chîcágö", "New York"],
         "date":    [None, None, 1.0, 0.0, 8.153, 1509556595.0, 1.0, 0.0, 1548115200.0, "New York"]
-      }]],
+        }],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.0}],
+      ],
       "undo": [["BulkUpdateRecord", "Types", self.all_row_ids, {
         "text":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
         "numeric": ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
         "int":     ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
         "bool":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, False, True, "", None],
         "date":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None]
-      }]]
+        }],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
+      ]
     })
 
     self.assertTableData("Types", data=[
@@ -114,12 +118,14 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18],
           {"numeric": ["False", "True", "1509556595.0", "8.153", "0.0", "1.0"]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Text"}],
+        ["UpdateRecord", "Formulas", 1, {"division": ["E", "TypeError"]}],
       ],
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18],
           {"numeric": [False, True, 1509556595, 8.153, 0, 1]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
       ]
     })
 
@@ -321,12 +327,14 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18, 19],
          {"numeric": [0, 1, 1509556595, 8, 0, 1, None]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Int"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0}],
       ],
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18, 19],
           {"numeric": [False, True, 1509556595.0, 8.153, 0.0, 1.0, ""]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
       ]
     })
 
@@ -419,12 +427,14 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [True, True, False, True, False, False]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Bool"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0}],
       ],
       "undo": [
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [1509556595.0, 8.153, 0.0, 1.0, "", None]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
       ]
     })
 
@@ -518,12 +528,14 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [13, 14, 19],
           {"numeric": [0.0, 1.0, None]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Date"}],
+        ["UpdateRecord", "Formulas", 1, {"division": ["E", "TypeError"]}],
       ],
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 19],
           {"numeric": [False, True, ""]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
+        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
       ]
     })
 

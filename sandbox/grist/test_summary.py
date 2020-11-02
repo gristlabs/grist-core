@@ -446,42 +446,44 @@ class Address:
     # Change an amount (New York, NY, 6 -> 106), check that the right calc action gets emitted.
     out_actions = self.update_record(source_tbl_name, 26, amount=106)
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.UpdateRecord(source_tbl_name, 26, {'amount': 106})],
-      "calc": [actions.UpdateRecord(summary_tbl_name, 1, {'amount': 1.+106+11})]
+      "stored": [
+        actions.UpdateRecord(source_tbl_name, 26, {'amount': 106}),
+        actions.UpdateRecord(summary_tbl_name, 1, {'amount': 1.+106+11}),
+      ]
     })
 
     # Change a groupby value so that a record moves from one summary group to another.
     # Bedford, NY, 8.0 -> Bedford, MA, 8.0
     out_actions = self.update_record(source_tbl_name, 28, state="MA")
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.UpdateRecord(source_tbl_name, 28, {'state': 'MA'})],
-      "calc": [
-        actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'group': [[25, 28], []]}),
+      "stored": [
+        actions.UpdateRecord(source_tbl_name, 28, {'state': 'MA'}),
         actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'amount': [5.0 + 8.0, 0.0]}),
         actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'count': [2, 0]}),
+        actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'group': [[25, 28], []]}),
       ]
     })
 
     # Add a record to an existing group (Bedford, MA, 108.0)
     out_actions = self.add_record(source_tbl_name, city="Bedford", state="MA", amount=108.0)
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.AddRecord(source_tbl_name, 32,
-                                   {'city': 'Bedford', 'state': 'MA', 'amount': 108.0})],
-      "calc": [
-        actions.UpdateRecord(summary_tbl_name, 5, {'group': [25, 28, 32]}),
+      "stored": [
+        actions.AddRecord(source_tbl_name, 32,
+                          {'city': 'Bedford', 'state': 'MA', 'amount': 108.0}),
         actions.UpdateRecord(summary_tbl_name, 5, {'amount': 5.0 + 8.0 + 108.0}),
         actions.UpdateRecord(summary_tbl_name, 5, {'count': 3}),
+        actions.UpdateRecord(summary_tbl_name, 5, {'group': [25, 28, 32]}),
       ]
     })
 
     # Remove a record (rowId=28, Bedford, MA, 8.0)
     out_actions = self.remove_record(source_tbl_name, 28)
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.RemoveRecord(source_tbl_name, 28)],
-      "calc": [
-        actions.UpdateRecord(summary_tbl_name, 5, {'group': [25, 32]}),
+      "stored": [
+        actions.RemoveRecord(source_tbl_name, 28),
         actions.UpdateRecord(summary_tbl_name, 5, {'amount': 5.0 + 108.0}),
         actions.UpdateRecord(summary_tbl_name, 5, {'count': 2}),
+        actions.UpdateRecord(summary_tbl_name, 5, {'group': [25, 32]}),
       ]
     })
 
@@ -492,11 +494,9 @@ class Address:
       "stored": [
         actions.UpdateRecord(source_tbl_name, 25, {'city': 'Salem'}),
         actions.AddRecord(summary_tbl_name, 10, {'city': 'Salem', 'state': 'MA'}),
-      ],
-      "calc": [
-        actions.BulkUpdateRecord(summary_tbl_name, [5,10], {'group': [[32], [25]]}),
         actions.BulkUpdateRecord(summary_tbl_name, [5,10], {'amount': [108.0, 5.0]}),
         actions.BulkUpdateRecord(summary_tbl_name, [5,10], {'count': [1, 1]}),
+        actions.BulkUpdateRecord(summary_tbl_name, [5,10], {'group': [[32], [25]]}),
       ]
     })
 
@@ -506,11 +506,9 @@ class Address:
       "stored": [
         actions.AddRecord(source_tbl_name, 33, {'city': 'Amherst', 'state': 'MA', 'amount': 17.}),
         actions.AddRecord(summary_tbl_name, 11, {'city': 'Amherst', 'state': 'MA'}),
-      ],
-      "calc": [
-        actions.UpdateRecord(summary_tbl_name, 11, {'group': [33]}),
         actions.UpdateRecord(summary_tbl_name, 11, {'amount': 17.0}),
         actions.UpdateRecord(summary_tbl_name, 11, {'count': 1}),
+        actions.UpdateRecord(summary_tbl_name, 11, {'group': [33]}),
       ]
     })
 

@@ -90,7 +90,33 @@ class TestImportTransform(test_engine.EngineTestCase):
     self.init_state()
 
     #into_new_table = True, transform_rule : no colids (will be generated for new table)
-    self.apply_user_action(['TransformAndFinishImport', 'Hidden_table', 'NewTable', True, self.TEMP_transform_rule_no_colids])
+    out_actions = self.apply_user_action(
+        ['TransformAndFinishImport', 'Hidden_table', 'NewTable', True, self.TEMP_transform_rule_no_colids])
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ["AddColumn", "Hidden_table", "gristHelper_Import_Middle_Initial", {"formula": "$mname[0]", "isFormula": True, "type": "Text"}],
+        ["AddRecord", "_grist_Tables_column", 9, {"colId": "gristHelper_Import_Middle_Initial", "formula": "$mname[0]", "isFormula": True, "label": "Middle Initial", "parentId": 1, "parentPos": 9.0, "type": "Text", "widgetOptions": ""}],
+        ["BulkRemoveRecord", "_grist_Views_section_field", [1, 2, 3]],
+        ["RemoveRecord", "_grist_Views_section", 1],
+        ["RemoveRecord", "_grist_TabBar", 1],
+        ["RemoveRecord", "_grist_Pages", 1],
+        ["RemoveRecord", "_grist_Views", 1],
+        ["UpdateRecord", "_grist_Tables", 1, {"primaryViewId": 0}],
+        ["BulkRemoveRecord", "_grist_Tables_column", [1, 2, 3, 4, 9]],
+        ["RemoveRecord", "_grist_Tables", 1],
+        ["RemoveTable", "Hidden_table"],
+        ["AddTable", "NewTable", [{"formula": "", "id": "manualSort", "isFormula": False, "type": "ManualSortPos"}, {"formula": "", "id": "First_Name", "isFormula": False, "type": "Text"}, {"formula": "", "id": "Last_Name", "isFormula": False, "type": "Text"}, {"formula": "", "id": "Middle_Initial", "isFormula": False, "type": "Text"}, {"formula": "", "id": "Blank", "isFormula": False, "type": "Text"}]],
+        ["AddRecord", "_grist_Tables", 3, {"primaryViewId": 0, "tableId": "NewTable"}],
+        ["BulkAddRecord", "_grist_Tables_column", [9, 10, 11, 12, 13], {"colId": ["manualSort", "First_Name", "Last_Name", "Middle_Initial", "Blank"], "formula": ["", "", "", "", ""], "isFormula": [False, False, False, False, False], "label": ["manualSort", "First Name", "Last Name", "Middle Initial", "Blank"], "parentId": [3, 3, 3, 3, 3], "parentPos": [9.0, 10.0, 11.0, 12.0, 13.0], "type": ["ManualSortPos", "Text", "Text", "Text", "Text"], "widgetOptions": ["", "", "", "", ""]}],
+        ["AddRecord", "_grist_Views", 3, {"name": "NewTable", "type": "raw_data"}],
+        ["AddRecord", "_grist_TabBar", 3, {"tabPos": 3.0, "viewRef": 3}],
+        ["AddRecord", "_grist_Pages", 3, {"indentation": 0, "pagePos": 3.0, "viewRef": 3}],
+        ["AddRecord", "_grist_Views_section", 3, {"borderWidth": 1, "defaultWidth": 100, "parentId": 3, "parentKey": "record", "sortColRefs": "[]", "tableRef": 3, "title": ""}],
+        ["BulkAddRecord", "_grist_Views_section_field", [7, 8, 9, 10], {"colRef": [10, 11, 12, 13], "parentId": [3, 3, 3, 3], "parentPos": [7.0, 8.0, 9.0, 10.0]}],
+        ["UpdateRecord", "_grist_Tables", 3, {"primaryViewId": 3}],
+        ["BulkAddRecord", "NewTable", [1, 2], {"First_Name": ["Carry", "Don"], "Last_Name": ["Jonson", "Yoon"], "Middle_Initial": ["M", "B"], "manualSort": [1.0, 2.0]}],
+      ]
+    })
 
     #1-4 in hidden table, 5-8 in destTable, 9-13 for new table
     self.assertTableData('_grist_Tables_column', cols="subset", data=[

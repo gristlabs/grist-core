@@ -92,6 +92,12 @@ class AltText(object):
     raise InvalidTypedValue(self._typename, self._text)
 
 
+# Unique sentinel value representing a pending value. It's encoded as ['P'], and shown to the user
+# as "Loading..." text. With the switch to stored formulas, it's currently only used when a
+# document was just migrated.
+_pending_sentinel = object()
+
+
 _max_js_int = 1<<31
 
 def is_int_short(value):
@@ -106,6 +112,20 @@ def safe_repr(obj):
   except Exception:
     return '<' + type(obj).__name__ + '>'
 
+def strict_equal(a, b):
+  """Checks the equality of the types of the values as well as the values, and handle errors."""
+  # pylint: disable=unidiomatic-typecheck
+  # Try/catch needed because some comparisons may fail (e.g. datetimes with different tzinfo)
+  try:
+    return type(a) == type(b) and a == b
+  except Exception:
+    return False
+
+def equal_encoding(a, b):
+  if isinstance(a, (str, unicode, float, bool, long, int)) or a is None:
+    # pylint: disable=unidiomatic-typecheck
+    return type(a) == type(b) and a == b
+  return encode_object(a) == encode_object(b)
 
 def encode_object(value):
   """
@@ -129,12 +149,17 @@ def encode_object(value):
       return ['d', moment.date_to_ts(value)]
     elif isinstance(value, RaisedException):
       return ['E'] + value.encode_args()
-    elif isinstance(value, (list, tuple, RecordList)):
+    elif isinstance(value, (list, tuple, RecordList, records.ColumnView)):
       return ['L'] + [encode_object(item) for item in value]
+    elif isinstance(value, records.RecordSet):
+      # Represent RecordSet (e.g. result of lookupRecords) in the same way as a RecordList.
+      return ['L'] + [encode_object(int(item)) for item in value]
     elif isinstance(value, dict):
       if not all(isinstance(key, basestring) for key in value):
         raise UnmarshallableError("Dict with non-string keys")
       return ['O', {key: encode_object(val) for key, val in value.iteritems()}]
+    elif value == _pending_sentinel:
+      return ['P']
   except Exception as e:
     pass
   # We either don't know how to convert the value, or failed during the conversion. Instead we
@@ -164,6 +189,8 @@ def decode_object(value):
       return [decode_object(item) for item in args]
     elif code == 'O':
       return {key: decode_object(val) for key, val in args[0].iteritems()}
+    elif code == 'P':
+      return _pending_sentinel
     raise KeyError("Unknown object type code %r" % code)
   except Exception as e:
     return RaisedException(e)

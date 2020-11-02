@@ -25,6 +25,7 @@ import gencode
 import logger
 import match_counter
 import objtypes
+from objtypes import strict_equal
 import schema
 import table as table_module
 import useractions
@@ -57,13 +58,6 @@ class OrderError(Exception):
 # An item of work to be done by Engine._update
 WorkItem = namedtuple('WorkItem', ('node', 'row_ids', 'locks'))
 
-# Needed because some comparisons may fail (e.g. datetimes with different tzinfo objects)
-def _equal_values(a, b):
-  try:
-    return a == b
-  except Exception:
-    return False
-
 # Returns an AddTable action which can be used to reproduce the given docmodel table
 def _get_table_actions(table):
   schema_cols = [schema.make_column(c.colId, c.type, formula=c.formula, isFormula=c.isFormula)
@@ -73,12 +67,6 @@ def _get_table_actions(table):
 
 # skip private members, and methods we don't want to expose to users.
 skipped_completions = re.compile(r'\.(_|lookupOrAddDerived|getSummarySourceGroup)')
-
-
-# Unique sentinel values with which columns are initialized before any data is loaded into them.
-# For formula columns, it ensures that any calculation produces an unequal value and gets included
-# into a calc action.
-_pending_sentinel = object()
 
 # The schema for the data is documented in gencode.py.
 
@@ -274,9 +262,9 @@ class Engine(object):
     for column in table.all_columns.itervalues():
       column.clear()
 
-    # Only load non-formula columns
+    # Only load columns that aren't stored.
     columns = {col_id: data for (col_id, data) in data.columns.iteritems()
-               if table.has_column(col_id) and not table.get_column(col_id).is_formula()}
+               if table.has_column(col_id)}
 
     # Add the records.
     self.add_records(data.table_id, data.row_ids, columns)
@@ -312,15 +300,6 @@ class Engine(object):
       column.growto(growto_size)
       for row_id, value in itertools.izip(row_ids, values):
         column.set(row_id, value)
-
-    # Set all values in formula columns to a special "pending" sentinel value, so that when they
-    # are calculated, they are considered changed and included into the produced calc actions.
-    # This matters because the client starts off seeing formula columns as "pending" values too.
-    for column in table.all_columns.itervalues():
-      if not column.is_formula():
-        continue
-      for row_id in row_ids:
-        column.set(row_id, _pending_sentinel)
 
     # Invalidate new records to cause the formula columns to get recomputed.
     self.invalidate_records(table_id, row_ids)
@@ -512,24 +491,12 @@ class Engine(object):
     Issues actions for any accumulated cell changes.
     """
     for node, changes in self._changes_map.iteritems():
-      if not changes:
-        continue
       table = self.tables[node.table_id]
       col = table.get_column(node.col_id)
-      # If there are changes, create and add a BulkUpdateRecord either to 'calc' or 'stored'
-      # actions, as appropriate.
-      changed_rows = [c[0] for c in changes]
-      changed_values = [c[1] for c in changes]
-      action = (actions.BulkUpdateRecord(col.table_id, changed_rows, {col.col_id: changed_values})
-                .simplify())
-      if action and not col.is_private():
-        if col.is_formula():
-          self.out_actions.calc.append(action)
-        else:
-          # We may compute values for non-formula columns (e.g. for a newly-added record), in which
-          # case we need a stored action. TODO: If this code path occurs during anything other than
-          # an AddRecord, we also need an undo action.
-          self.out_actions.stored.append(action)
+      # If there are changes, save them in out_actions.
+      if changes and not col.is_private():
+        self.out_actions.summary.add_changes(node.table_id, node.col_id, changes)
+
     self._pre_update()  # empty lists/sets/maps
 
   def _update_loop(self, work_items, ignore_other_changes=False):
@@ -656,8 +623,12 @@ class Engine(object):
     Public interface to recompute a column if it is dirty. It also generates a calc or stored
     action and adds it into self.out_actions object.
     """
-    self._recompute_done_map.pop(col_obj.node, None)
-    self._recompute(col_obj.node)
+    self._pre_update()
+    try:
+      self._recompute_done_map.pop(col_obj.node, None)
+      self._recompute(col_obj.node)
+    finally:
+      self._post_update()
 
   def get_formula_error(self, table_id, col_id, row_id):
     """
@@ -801,10 +772,11 @@ class Engine(object):
 
           # Convert the value, and if needed, set, and include into the returned action.
           value = col.convert(value)
-          if not _equal_values(value, col.raw_get(row_id)):
+          previous = col.raw_get(row_id)
+          if not strict_equal(value, previous):
             if not changes:
               changes = self._changes_map.setdefault(node, [])
-            changes.append([row_id, value])
+            changes.append((row_id, previous, value))
             col.set(row_id, value)
           exclude.add(row_id)
           cleaned.append(row_id)
@@ -1140,6 +1112,7 @@ class Engine(object):
     while self.docmodel.apply_auto_removes():
       self._bring_all_up_to_date()
 
+    self.out_actions.flush_calc_changes()
     return self.out_actions
 
   def acl_split(self, action_group):
@@ -1233,6 +1206,7 @@ class Engine(object):
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
     if tweaked_txt != txt:
       results = [txt + result[len(tweaked_txt):] for result in results]
+    # pylint:disable=unidiomatic-typecheck
     results.sort(key=lambda r: r[0] if type(r) == tuple else r)
     return results
 

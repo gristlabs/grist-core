@@ -117,6 +117,35 @@ class TestImportActions(test_engine.EngineTestCase):
       [4, 1, [7]]         # new section for transform preview
     ])
 
+
+  def test_regenereate_importer_view(self):
+    # Generate without a destination table, and then with one. Ensure that we don't omit the
+    # actions needed to populate the table in the second call.
+    self.init_state()
+    self.apply_user_action(['GenImporterView', 'Source', None, None])
+    out_actions = self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None])
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ["BulkRemoveRecord", "_grist_Views_section_field", [7, 8, 9]],
+        ["RemoveRecord", "_grist_Views_section", 4],
+        ["BulkRemoveRecord", "_grist_Tables_column", [10, 11, 12]],
+        ["RemoveColumn", "Source", "gristHelper_Import_Name"],
+        ["RemoveColumn", "Source", "gristHelper_Import_City"],
+        ["RemoveColumn", "Source", "gristHelper_Import_Zip"],
+        ["AddColumn", "Source", "gristHelper_Import_Name", {"formula": "$Name", "isFormula": True, "type": "Text"}],
+        ["AddRecord", "_grist_Tables_column", 10, {"colId": "gristHelper_Import_Name", "formula": "$Name", "isFormula": True, "label": "Name", "parentId": 1, "parentPos": 10.0, "type": "Text", "widgetOptions": ""}],
+        ["AddColumn", "Source", "gristHelper_Import_City", {"formula": "$City", "isFormula": True, "type": "Text"}],
+        ["AddRecord", "_grist_Tables_column", 11, {"colId": "gristHelper_Import_City", "formula": "$City", "isFormula": True, "label": "City", "parentId": 1, "parentPos": 11.0, "type": "Text", "widgetOptions": ""}],
+        ["AddRecord", "_grist_Views_section", 4, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "sortColRefs": "[]", "tableRef": 1}],
+        ["BulkAddRecord", "_grist_Views_section_field", [7, 8], {"colRef": [10, 11], "parentId": [4, 4], "parentPos": [7.0, 8.0]}],
+        # The actions to populate the removed and re-added columns should be there.
+        ["BulkUpdateRecord", "Source", [1, 2], {"gristHelper_Import_City": ["New York", "Boston"]}],
+        ["BulkUpdateRecord", "Source", [1, 2], {"gristHelper_Import_Name": ["John", "Alison"]}],
+      ],
+      "calc": []
+    })
+
+
   def test_transform_destination_new_table(self):
     # Add source and destination tables
     self.init_state()

@@ -13,34 +13,6 @@ import logger
 log = logger.Logger(__name__, logger.INFO)
 
 
-class ColumnView(object):
-  """
-  ColumnView is an iterable that represents one column of a RecordSet. You may iterate through
-  its values and see its size, but it provides no other interface.
-  """
-  def __init__(self, column_obj, row_ids, relation):
-    self._column = column_obj
-    self._row_ids = row_ids
-    self._source_relation = relation
-
-  def __len__(self):
-    return len(self._row_ids)
-
-  def __iter__(self):
-    for row_id in self._row_ids:
-      yield _adjust_record(self._source_relation, self._column.get_cell_value(row_id))
-
-
-def _adjust_record(relation, value):
-  """
-  Helper to adjust a Record's source relation to be the composition with the given relation. This
-  is used to wrap values like `foo.bar`: if `bar` is a Record, then its source relation should be
-  the composition of the source relation of `foo` and the relation associated with `bar`.
-  """
-  if isinstance(value, (records.Record, records.RecordSet)):
-    return value._clone_with_relation(relation)
-  return value
-
 def _make_sample_record(table_id, col_objs):
   """
   Helper to create a sample record for a table, used for auto-completions.
@@ -468,7 +440,7 @@ class Table(object):
 
   # Called when record.foo is accessed
   def _get_col_value(self, col_id, row_id, relation):
-    return _adjust_record(relation,
+    return records.adjust_record(relation,
                           self._use_column(col_id, relation, [row_id]).get_cell_value(row_id))
 
   def _attribute_error(self, col_id, relation):
@@ -479,4 +451,4 @@ class Table(object):
   def _get_col_subset(self, col_id, row_ids, relation):
     # TODO: when column is a reference, we ought to return RecordSet. Otherwise ColumnView
     # looks like a RecordSet (returns Records), but doesn't support property access.
-    return ColumnView(self._use_column(col_id, relation, row_ids), row_ids, relation)
+    return records.ColumnView(self._use_column(col_id, relation, row_ids), row_ids, relation)

@@ -144,6 +144,14 @@ class RecordSet(object):
   def __nonzero__(self):
     return bool(self._row_ids)
 
+  def __eq__(self, other):
+    return (isinstance(other, RecordSet) and
+        (self._table, self._row_ids, self._group_by, self._sort_by) ==
+        (other._table, other._row_ids, other._group_by, other._sort_by))
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   def __iter__(self):
     for row_id in self._row_ids:
       yield self.Record(self._table, row_id, self._source_relation)
@@ -165,3 +173,39 @@ class RecordSet(object):
                           relation=src_relation.compose(self._source_relation),
                           group_by=self._group_by,
                           sort_by=self._sort_by)
+
+
+class ColumnView(object):
+  """
+  ColumnView is an iterable that represents one column of a RecordSet. You may iterate through
+  its values and see its size, but it provides no other interface.
+  """
+  def __init__(self, column_obj, row_ids, relation):
+    self._column = column_obj
+    self._row_ids = row_ids
+    self._source_relation = relation
+
+  def __len__(self):
+    return len(self._row_ids)
+
+  def __iter__(self):
+    for row_id in self._row_ids:
+      yield adjust_record(self._source_relation, self._column.get_cell_value(row_id))
+
+  def __eq__(self, other):
+    return (isinstance(other, ColumnView) and
+        (self._column, self._row_ids) == (other._column, other._row_ids))
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+
+def adjust_record(relation, value):
+  """
+  Helper to adjust a Record's source relation to be the composition with the given relation. This
+  is used to wrap values like `foo.bar`: if `bar` is a Record, then its source relation should be
+  the composition of the source relation of `foo` and the relation associated with `bar`.
+  """
+  if isinstance(value, (Record, RecordSet)):
+    return value._clone_with_relation(relation)
+  return value

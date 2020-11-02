@@ -1,5 +1,5 @@
-import logger
 import textwrap
+import logger
 
 import test_engine
 
@@ -202,6 +202,10 @@ class TestRenames2(test_engine.EngineTestCase):
         "formula": [
           "", "' '.join(e.game.nombre for e in Entries.lookupRecords(person=$id, rank=1))"]
       }],
+      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
+        "win4_game_name": [["E", "AttributeError"], ["E", "AttributeError"],
+          ["E", "AttributeError"], ["E", "AttributeError"]]
+      }],
     ]})
 
     # Fix up things missed due to the TODOs above.
@@ -272,7 +276,15 @@ class TestRenames2(test_engine.EngineTestCase):
       ["BulkUpdateRecord", "_grist_Tables_column", [2, 11], {
         "colId": ["nombre", "N"],
         "formula": ["", "$nombre.upper()"]
-      }]
+      }],
+      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
+        "win3_person_name": [["E", "AttributeError"], ["E", "AttributeError"],
+          ["E", "AttributeError"], ["E", "AttributeError"]]
+      }],
+      ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5], {
+        "PartnerNames": [["E", "AttributeError"], ["E", "AttributeError"],
+          ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]]
+      }],
     ]})
 
     # Fix up things missed due to the TODOs above.
@@ -298,7 +310,11 @@ class TestRenames2(test_engine.EngineTestCase):
       ["BulkUpdateRecord", "_grist_Tables_column", [14, 15], {
         "colId": ["companero", "partner4"],
         "formula": [self.partner, "$companero.companero.partner.partner"]
-      }]
+      }],
+      ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5], {
+        "partner4": [["E", "AttributeError"], ["E", "AttributeError"],
+          ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]]
+      }],
     ]})
 
     # Fix up things missed due to the TODOs above.
@@ -321,7 +337,10 @@ class TestRenames2(test_engine.EngineTestCase):
         "colId": ["pwin", "win3_person_name", "win4_game_name"],
         "formula": ["Entries.lookupOne(person=$id, rank=1).game",
                     "$win.pwin.win.name", "$win.pwin.win.win.name"]}],
-
+      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
+        "win4_game_name": [["E", "AttributeError"], ["E", "AttributeError"],
+          ["E", "AttributeError"], ["E", "AttributeError"]]
+      }],
     ]})
 
     # Fix up things missed due to the TODOs above.

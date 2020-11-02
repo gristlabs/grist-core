@@ -77,6 +77,8 @@ class TestUserActions(test_engine.EngineTestCase):
       ["AddRecord", "_grist_Views_section_field", 2, {
         "colRef": 24, "parentId": 1, "parentPos": 2.0
       }],
+      ["BulkUpdateRecord", "Schools", [1, 2, 3],
+        {"grist_Transform": ["New York", "Colombia", "New York"]}],
     ]})
 
     out_actions = self.update_record('_grist_Tables_column', 24,
@@ -87,6 +89,7 @@ class TestUserActions(test_engine.EngineTestCase):
         'formula': 'return Address.lookupOne(city=$city).id', 'type': 'Ref:Address'}],
       ['UpdateRecord', '_grist_Tables_column', 24, {
         'formula': 'return Address.lookupOne(city=$city).id', 'type': 'Ref:Address'}],
+      ["BulkUpdateRecord", "Schools", [1, 2, 3, 4], {"grist_Transform": [11, 12, 11, 0]}],
     ]})
 
     # It seems best if TypeTransform sets widgetOptions on grist_Transform column, so that they
@@ -104,6 +107,7 @@ class TestUserActions(test_engine.EngineTestCase):
         'type': 'Ref:Address', 'widgetOptions': 'world'
       }],
       ['BulkUpdateRecord', 'Schools', [1, 2, 3], {'city': [11, 12, 11]}],
+      ["BulkUpdateRecord", "Schools", [1, 2, 3], {"grist_Transform": [0, 0, 0]}],
     ]})
 
     out_actions = self.update_record('_grist_Tables_column', 23,

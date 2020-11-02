@@ -8,6 +8,7 @@ tests under 'arc unit' and under Jenkins.
 
   ./sandbox/nacl/bin/run python /grist/runtests.py [--xunit]
 """
+import codecs
 import os
 import sys
 import unittest
@@ -22,7 +23,8 @@ def main():
   if "--xunit" in argv:
     import xmlrunner
     argv.remove("--xunit")
-    test_runner = xmlrunner.XMLTestRunner(stream=sys.stdout)
+    utf8_stdout = codecs.getwriter('utf8')(sys.stdout)
+    test_runner = xmlrunner.XMLTestRunner(stream=utf8_stdout)
 
   if all(arg.startswith("-") for arg in argv[1:]):
     argv.insert(1, "discover")

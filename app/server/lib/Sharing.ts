@@ -213,9 +213,10 @@ export class Sharing {
     // action that initializes them when the document is opened cold
     // (without cached ActiveDoc) - otherwise we'll end up with spam
     // log entries for each time the document is opened cold.
-    const trivial = (userActions.length === 1 &&
-                     userActions[0][0] === 'Calculate' &&
-                     sandboxActionBundle.stored.length === 0);
+
+    const isCalculate = (userActions.length === 1 &&
+                         userActions[0][0] === 'Calculate');
+    const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
 
     const actionNum = trivial ? 0 :
       (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
@@ -256,7 +257,9 @@ export class Sharing {
           // be shared. Once sharing is enabled, we would share a snapshot at that time.
           await this._actionHistory.recordNextShared(localActionBundle);
         }
-        if (client && client.clientId) {
+        // Check isCalculate because that's not an action we should allow undo/redo for (it's not
+        // considered as performed by a particular client).
+        if (client && client.clientId && !isCalculate) {
           this._actionHistory.setActionClientId(localActionBundle.actionHash!, client.clientId);
         }
       });
@@ -274,6 +277,9 @@ export class Sharing {
       client,
       retValues: sandboxActionBundle.retValues,
       summarize: true,
+      // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
+      // date and other changes from external values may count as internal.
+      internal: isCalculate,
     });
     await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
       actionGroup,

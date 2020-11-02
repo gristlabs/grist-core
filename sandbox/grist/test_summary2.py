@@ -141,19 +141,19 @@ class TestSummary2(test_engine.EngineTestCase):
     # Modify a value, and check that various tables got updated correctly.
     out_actions = self.update_record("Address", 28, state="MA")
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.UpdateRecord("Address", 28, {'state': 'MA'})],
-      "calc": [
-        actions.BulkUpdateRecord("GristSummary_7_Address", [5,7], {'group': [[25, 28], []]}),
+      "stored": [
+        actions.UpdateRecord("Address", 28, {'state': 'MA'}),
         actions.BulkUpdateRecord("GristSummary_7_Address", [5,7], {'amount': [5.0 + 8.0, 0.0]}),
-        actions.BulkUpdateRecord("GristSummary_7_Address", [5,7], {'count': [2, 0]}),
         actions.BulkUpdateRecord("GristSummary_7_Address", [5,7],
                                  {'average': [6.5, objtypes.RaisedException(ZeroDivisionError())]}),
+        actions.BulkUpdateRecord("GristSummary_7_Address", [5,7], {'count': [2, 0]}),
+        actions.BulkUpdateRecord("GristSummary_7_Address", [5,7], {'group': [[25, 28], []]}),
         actions.UpdateRecord("GristSummary_7_Address3", 5,  {'state': "MA"}),
-        actions.BulkUpdateRecord("GristSummary_7_Address4", [1,4],
-                                 {'group': [[21,22,26,27,30,31], [25,28,29]]}),
         actions.BulkUpdateRecord("GristSummary_7_Address4", [1,4],
                                  {'amount': [1.+2+6+7+10+11, 5.+8+9]}),
         actions.BulkUpdateRecord("GristSummary_7_Address4", [1,4], {'count': [6, 3]}),
+        actions.BulkUpdateRecord("GristSummary_7_Address4", [1,4],
+                                 {'group': [[21,22,26,27,30,31], [25,28,29]]}),
       ]
     })
 

@@ -291,6 +291,114 @@ class TestUserActions(test_engine.EngineTestCase):
       [14,    "Fox"    , 300        ],
     ])
 
+  def test_display_col_and_field_removal(self):
+    # When there are different displayCols associated with the column and with the field, removal
+    # takes more steps, and order of produced actions matters.
+    self.load_sample(self.ref_sample)
+
+    # Add a table for people, which includes an associated view.
+    self.apply_user_action(['AddTable', 'People', [
+      {'id': 'name', 'type': 'Text'},
+      {'id': 'favorite', 'type': 'Ref:Television',
+       'widgetOptions': '\"{\"alignment\":\"center\",\"visibleCol\":\"show\"}\"'},
+    ]])
+    self.apply_user_action(['BulkAddRecord', 'People', [1,2,3], {
+      'name': ['Bob', 'Jim', 'Don'],
+      'favorite': [12, 11, 13]
+    }])
+
+    # Add a display formula for the 'favorite' column. A "gristHelper_Display" column with the
+    # requested formula should be added and set as the displayCol of the favorite column.
+    self.apply_user_action(['SetDisplayFormula', 'People', None, 26, '$favorite.show'])
+
+    # Set display formula for 'favorite' column field.
+    # A single "gristHelper_Display2" column should be added with the requested formula.
+    self.apply_user_action(['SetDisplayFormula', 'People', 2, None, '$favorite.network'])
+
+    expected_tables1 = [
+      Table(1, "Television", 0, 0, columns=[
+        Column(21, "show",    "Text", False,  "", 0),
+        Column(22, "network", "Text", False,  "", 0),
+        Column(23, "viewers", "Int",  False,  "", 0),
+      ]),
+      Table(2, "People", 1, 0, columns=[
+        Column(24, "manualSort", "ManualSortPos", False, "", 0),
+        Column(25, "name", "Text", False,  "", 0),
+        Column(26, "favorite", "Ref:Television", False,  "", 0),
+        Column(27, "gristHelper_Display", "Any", True, "$favorite.show", 0),
+        Column(28, "gristHelper_Display2", "Any", True, "$favorite.network", 0)
+      ]),
+    ]
+    expected_data1 = [
+      ["id", "name", "favorite", "gristHelper_Display", "gristHelper_Display2"],
+      [1,    "Bob",  12,         "Narcos",              "Netflix"],
+      [2,    "Jim",  11,         "Game of Thrones",     "HBO"],
+      [3,    "Don",  13,         "Today",               "NBC"]
+    ]
+    self.assertTables(expected_tables1)
+    self.assertTableData("People", cols="subset", data=expected_data1)
+    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+      ["id", "parentId", "colRef", "displayCol"],
+      [1,    1,          25,       0],
+      [2,    1,          26,       28],
+    ])
+
+    # Now remove the 'favorite' column.
+    out_actions = self.apply_user_action(['RemoveColumn', 'People', 'favorite'])
+
+    # The associated field and both displayCols should be gone.
+    self.assertTables([
+      expected_tables1[0],
+      Table(2, "People", 1, 0, columns=[
+        Column(24, "manualSort", "ManualSortPos", False, "", 0),
+        Column(25, "name", "Text", False,  "", 0),
+      ]),
+    ])
+    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+      ["id", "parentId", "colRef", "displayCol"],
+      [1,    1,          25,       0],
+    ])
+
+    # Verify that the resulting actions don't include any extraneous calc actions.
+    # pylint:disable=line-too-long
+    self.assertOutActions(out_actions, {
+      "stored": [
+        ["RemoveRecord", "_grist_Views_section_field", 2],
+        ["BulkRemoveRecord", "_grist_Tables_column", [26, 27]],
+        ["RemoveColumn", "People", "favorite"],
+        ["RemoveColumn", "People", "gristHelper_Display"],
+        ["RemoveRecord", "_grist_Tables_column", 28],
+        ["RemoveColumn", "People", "gristHelper_Display2"],
+      ],
+      "undo": [
+        ["BulkUpdateRecord", "People", [1, 2, 3], {"gristHelper_Display2": ["Netflix", "HBO", "NBC"]}],
+        ["BulkUpdateRecord", "People", [1, 2, 3], {"gristHelper_Display": ["Narcos", "Game of Thrones", "Today"]}],
+        ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 26, "displayCol": 28, "parentId": 1, "parentPos": 2.0}],
+        ["BulkAddRecord", "_grist_Tables_column", [26, 27], {"colId": ["favorite", "gristHelper_Display"], "displayCol": [27, 0], "formula": ["", "$favorite.show"], "isFormula": [False, True], "label": ["favorite", "gristHelper_Display"], "parentId": [2, 2], "parentPos": [6.0, 7.0], "type": ["Ref:Television", "Any"], "widgetOptions": ["\"{\"alignment\":\"center\",\"visibleCol\":\"show\"}\"", ""]}],
+        ["BulkUpdateRecord", "People", [1, 2, 3], {"favorite": [12, 11, 13]}],
+        ["AddColumn", "People", "favorite", {"formula": "", "isFormula": False, "type": "Ref:Television"}],
+        ["AddColumn", "People", "gristHelper_Display", {"formula": "$favorite.show", "isFormula": True, "type": "Any"}],
+        ["AddRecord", "_grist_Tables_column", 28, {"colId": "gristHelper_Display2", "formula": "$favorite.network", "isFormula": True, "label": "gristHelper_Display2", "parentId": 2, "parentPos": 8.0, "type": "Any"}],
+        ["AddColumn", "People", "gristHelper_Display2", {"formula": "$favorite.network", "isFormula": True, "type": "Any"}],
+      ],
+    })
+
+    # Now undo; expect the structure and values restored.
+    stored_actions = out_actions.get_repr()["stored"]
+    undo_actions = out_actions.get_repr()["undo"]
+    out_actions = self.apply_user_action(['ApplyUndoActions', undo_actions])
+    self.assertTables(expected_tables1)
+    self.assertTableData("People", cols="subset", data=expected_data1)
+    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+      ["id", "parentId", "colRef", "displayCol"],
+      [1,    1,          25,       0],
+      [2,    1,          26,       28],
+    ])
+
+    self.assertPartialOutActions(out_actions, {
+      "stored": reversed(undo_actions),
+    })
+
   def test_display_col_copying(self):
     # Test that when switching types and using CopyFromColumn, displayCol is set/unset correctly.
 

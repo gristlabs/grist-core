@@ -35,21 +35,27 @@ class TestLookups(test_engine.EngineTestCase):
 
     out_actions = self.update_record("Address", 14, city="Bedford")
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Students", ["id", "schoolCities" ], [
-        [2,   "New Haven:Bedford" ],
-        [4,   "New Haven:Bedford" ],
-        [6,   "New Haven:Bedford" ]]
-      )],
+      "stored": [
+        actions.UpdateRecord("Address", 14, {"city": "Bedford"}),
+        _bulk_update("Students", ["id", "schoolCities" ], [
+          [2,   "New Haven:Bedford" ],
+          [4,   "New Haven:Bedford" ],
+          [6,   "New Haven:Bedford" ]]
+        )
+      ],
       "calls": {"Students": {"schoolCities": 3}}
     })
 
     out_actions = self.update_record("Schools", 4, address=13)
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Students", ["id", "schoolCities" ], [
-        [2,   "New Haven:New Haven" ],
-        [4,   "New Haven:New Haven" ],
-        [6,   "New Haven:New Haven" ]]
-      )],
+      "stored": [
+        actions.UpdateRecord("Schools", 4, {"address": 13}),
+        _bulk_update("Students", ["id", "schoolCities" ], [
+          [2,   "New Haven:New Haven" ],
+          [4,   "New Haven:New Haven" ],
+          [6,   "New Haven:New Haven" ]]
+        )
+      ],
       "calls": {"Students": {"schoolCities": 3}}
     })
 
@@ -103,7 +109,8 @@ class TestLookups(test_engine.EngineTestCase):
 
     out_actions = self.update_record("Schools", 2, name="Eureka")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.UpdateRecord("Schools", 2, {"name": "Eureka"}),
         actions.BulkUpdateRecord("Students", [1,3,5], {
           'schoolCities': ["New York", "New York", "Colombia"]
         }),
@@ -121,7 +128,8 @@ class TestLookups(test_engine.EngineTestCase):
       [5, "Yale"]
     ])
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.BulkUpdateRecord("Students", [3,5], {'schoolName': ["", "Yale"]}),
         actions.BulkUpdateRecord("Students", [3,5], {'schoolCities': ["", "New Haven:West Haven"]}),
         actions.BulkUpdateRecord("Students", [3,5], {'schoolIds': ["", "3:4"]}),
       ],
@@ -148,11 +156,14 @@ class TestLookups(test_engine.EngineTestCase):
     # We should NOT get attribute errors in the values.
     out_actions = self.update_record("Schools", 4, address=13)
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Students", ["id", "schoolCities" ], [
-        [2,   "New Haven:New Haven" ],
-        [4,   "New Haven:New Haven" ],
-        [6,   "New Haven:New Haven" ]]
-      )],
+      "stored": [
+        actions.UpdateRecord("Schools", 4, {"address": 13}),
+        _bulk_update("Students", ["id", "schoolCities" ], [
+          [2,   "New Haven:New Haven" ],
+          [4,   "New Haven:New Haven" ],
+          [6,   "New Haven:New Haven" ]]
+        )
+      ],
       "calls": { "Students": { 'schoolCities': 3 } }
     })
 
@@ -173,13 +184,21 @@ class TestLookups(test_engine.EngineTestCase):
     out_actions = self.modify_column("Students", "schoolCities", formula=(
       "','.join(Schools.lookupRecords(name=$schoolName).state)"))
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Students", ["id", "schoolCities" ], [
-        [1,   "NY,MO" ],
-        [2,   "CT,CT" ],
-        [3,   "NY,MO" ],
-        [4,   "CT,CT" ],
-        [6,   "CT,CT" ]]
-      )],
+      "stored": [
+        actions.ModifyColumn("Students", "schoolCities", {
+          "formula": "','.join(Schools.lookupRecords(name=$schoolName).state)",
+        }),
+        actions.UpdateRecord("_grist_Tables_column", 6, {
+          "formula": "','.join(Schools.lookupRecords(name=$schoolName).state)",
+        }),
+        _bulk_update("Students", ["id", "schoolCities" ], [
+          [1,   "NY,MO" ],
+          [2,   "CT,CT" ],
+          [3,   "NY,MO" ],
+          [4,   "CT,CT" ],
+          [6,   "CT,CT" ]]
+        )
+      ],
       # Note that it got computed 6 times (once for each record), but one value remained unchanged
       # (because no schools matched).
       "calls": { "Students": { 'schoolCities': 6 } }
@@ -193,11 +212,14 @@ class TestLookups(test_engine.EngineTestCase):
 
     out_actions = self.update_record("Schools", 4, state="MA")
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Students", ["id", "schoolCities" ], [
-        [2,   "CT,MA" ],
-        [4,   "CT,MA" ],
-        [6,   "CT,MA" ]]
-      )],
+      "stored": [
+        actions.UpdateRecord("Schools", 4, {"state": "MA"}),
+        _bulk_update("Students", ["id", "schoolCities" ], [
+          [2,   "CT,MA" ],
+          [4,   "CT,MA" ],
+          [6,   "CT,MA" ]]
+        )
+      ],
       "calls": { "Students": { 'schoolCities': 3 } }
     })
 
@@ -205,15 +227,24 @@ class TestLookups(test_engine.EngineTestCase):
     out_actions = self.modify_column("Students", "schoolCities", formula=(
       "','.join(Schools.lookupRecords(name=$schoolName.upper()).state)"))
     self.assertPartialOutActions(out_actions, {
-      "calc": [actions.BulkUpdateRecord("Students", [1,2,3,4,6],
-                                        {'schoolCities': ["","","","",""]})],
+      "stored": [
+        actions.ModifyColumn("Students", "schoolCities", {
+          "formula": "','.join(Schools.lookupRecords(name=$schoolName.upper()).state)"
+        }),
+        actions.UpdateRecord("_grist_Tables_column", 6, {
+          "formula": "','.join(Schools.lookupRecords(name=$schoolName.upper()).state)"
+        }),
+        actions.BulkUpdateRecord("Students", [1,2,3,4,6],
+                                        {'schoolCities': ["","","","",""]})
+      ],
       "calls": { "Students": { 'schoolCities': 6 } }
     })
 
     # Changes to dependencies should cause appropriate recalculations.
     out_actions = self.update_record("Schools", 4, state="KY", name="EUREKA")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.UpdateRecord("Schools", 4, {"state": "KY", "name": "EUREKA"}),
         actions.UpdateRecord("Students", 5, {'schoolCities': "KY"}),
         actions.BulkUpdateRecord("Students", [2,4,6], {'schoolIds': ["3","3","3"]}),
       ],
@@ -239,19 +270,32 @@ class TestLookups(test_engine.EngineTestCase):
     out_actions = self.add_column("Schools", "lastNames", formula=(
       "','.join(Students.lookupRecords(schoolName=$name).lastName)"))
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Schools", ["id", "lastNames"], [
-        [1, "Obama,Clinton"],
-        [2, "Obama,Clinton"],
-        [3, "Bush,Bush,Ford"],
-        [4, "Bush,Bush,Ford"]]
-      )],
+      "stored": [
+        actions.AddColumn("Schools", "lastNames", {
+          "formula": "','.join(Students.lookupRecords(schoolName=$name).lastName)",
+          "isFormula": True, "type": "Any"
+        }),
+        actions.AddRecord("_grist_Tables_column", 22, {
+          "colId": "lastNames",
+          "formula": "','.join(Students.lookupRecords(schoolName=$name).lastName)",
+          "isFormula": True, "label": "lastNames", "parentId": 2, "parentPos": 6.0,
+          "type": "Any", "widgetOptions": ""
+        }),
+        _bulk_update("Schools", ["id", "lastNames"], [
+          [1, "Obama,Clinton"],
+          [2, "Obama,Clinton"],
+          [3, "Bush,Bush,Ford"],
+          [4, "Bush,Bush,Ford"]
+        ]),
+      ],
       "calls": {"Schools": {"lastNames": 4}, "Students": {"#lookup#schoolName": 6}},
     })
 
     # Make sure it responds to changes.
     out_actions = self.update_record("Students", 5, schoolName="Columbia")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.UpdateRecord("Students", 5, {"schoolName": "Columbia"}),
         _bulk_update("Schools", ["id", "lastNames"], [
           [1, "Obama,Clinton,Reagan"],
           [2, "Obama,Clinton,Reagan"]]
@@ -269,12 +313,20 @@ class TestLookups(test_engine.EngineTestCase):
     out_actions = self.modify_column("Schools", "lastNames", formula=(
       "','.join(Students.lookupRecords(schoolName=$name).firstName)"))
     self.assertPartialOutActions(out_actions, {
-      "calc": [_bulk_update("Schools", ["id", "lastNames"], [
-        [1, "Barack,Bill,Ronald"],
-        [2, "Barack,Bill,Ronald"],
-        [3, "George W,George H,Gerald"],
-        [4, "George W,George H,Gerald"]]
-      )],
+      "stored": [
+        actions.ModifyColumn("Schools", "lastNames", {
+          "formula": "','.join(Students.lookupRecords(schoolName=$name).firstName)"
+        }),
+        actions.UpdateRecord("_grist_Tables_column", 22, {
+          "formula": "','.join(Students.lookupRecords(schoolName=$name).firstName)"
+        }),
+        _bulk_update("Schools", ["id", "lastNames"], [
+          [1, "Barack,Bill,Ronald"],
+          [2, "Barack,Bill,Ronald"],
+          [3, "George W,George H,Gerald"],
+          [4, "George W,George H,Gerald"]]
+        )
+      ],
       "calls": {"Schools": {"lastNames": 4}}
     })
 
@@ -285,7 +337,8 @@ class TestLookups(test_engine.EngineTestCase):
     # Make sure that changes still work without errors.
     out_actions = self.update_record("Students", 5, schoolName="Eureka")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.UpdateRecord("Students", 5, {"schoolName": "Eureka"}),
         actions.UpdateRecord("Students", 5, {"schoolCities": ""}),
         actions.UpdateRecord("Students", 5, {"schoolIds": ""}),
       ],
@@ -326,7 +379,12 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       [4, "Bush,George H"],
     ])
     self.assertPartialOutActions(out_actions, {
-      "calc": [actions.BulkUpdateRecord("Schools", [2, 4], {"bestStudentId": ["3", "4"]})],
+      "stored": [
+        actions.BulkUpdateRecord("Schools", [2,3,4], {
+          "bestStudent": ["Clinton,Bill", "Norris,Chuck", "Bush,George H"]
+        }),
+        actions.BulkUpdateRecord("Schools", [2, 4], {"bestStudentId": ["3", "4"]})
+      ],
       "calls": {"Schools": {"bestStudentId": 3}}
     })
     self.assertPartialData("Schools", ["id", "bestStudent", "bestStudentId" ], [
@@ -370,7 +428,8 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
 
     out_actions = self.remove_record("Schools", 3)
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.RemoveRecord("Schools", 3),
         actions.BulkUpdateRecord("Students", [2,4,6], {
           "schoolCities": ["West Haven","West Haven","West Haven"]}),
         actions.BulkUpdateRecord("Students", [2,4,6], {
@@ -452,7 +511,8 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     # test, even though schoolIds depends on name indirectly.
     out_actions = self.update_record("Schools", 2, name="Eureka")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
+      "stored": [
+        actions.UpdateRecord("Schools", 2, {"name": "Eureka"}),
         actions.UpdateRecord("Schools", 2, {"cname": "Eureka"}),
         actions.BulkUpdateRecord("Students", [1,3,5], {
           'schoolCities': ["New York", "New York", "Colombia"]
@@ -503,14 +563,15 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     self.use_saved_lookup_results()
     out_actions = self.update_record("Schools", 2, name="Eureka")
     self.assertPartialOutActions(out_actions, {
-      "calc": [
-        actions.BulkUpdateRecord('Students', [1,3,5], {'schools': [[1],[1],[2]]}),
+      "stored": [
+        actions.UpdateRecord('Schools', 2, {'name': "Eureka"}),
         actions.BulkUpdateRecord("Students", [1,3,5], {
           'schoolCities': ["New York", "New York", "Colombia"]
         }),
         actions.BulkUpdateRecord("Students", [1,3,5], {
           'schoolIds': ["1", "1","2"]
         }),
+        actions.BulkUpdateRecord('Students', [1,3,5], {'schools': [[1],[1],[2]]}),
       ],
       "calls": {"Students": { 'schools': 3, 'schoolCities': 3, 'schoolIds': 3 },
                 "Schools": {'#lookup#name': 1} },
@@ -522,10 +583,11 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       [5, "Yale"]
     ])
     self.assertPartialOutActions(out_actions, {
-      "calc": [
-        actions.BulkUpdateRecord("Students", [3,5], {'schools': [[], [3,4]]}),
+      "stored": [
+        actions.BulkUpdateRecord("Students", [3,5], {'schoolName': ["", "Yale"]}),
         actions.BulkUpdateRecord("Students", [3,5], {'schoolCities': ["", "New Haven:West Haven"]}),
         actions.BulkUpdateRecord("Students", [3,5], {'schoolIds': ["", "3:4"]}),
+        actions.BulkUpdateRecord("Students", [3,5], {'schools': [[], [3,4]]}),
       ],
       "calls": { "Students": { 'schools': 2, 'schoolCities': 2, 'schoolIds': 2 } },
     })

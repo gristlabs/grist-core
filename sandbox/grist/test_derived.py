@@ -73,18 +73,21 @@ class TestDerived(test_engine.EngineTestCase):
       [2, 14]
     ])
     self.assertPartialOutActions(out_actions, {
-      "calc": [actions.BulkUpdateRecord("GristSummary_6_Orders", [1,2], {'amount': [14, 29]})],
+      "stored": [
+        actions.BulkUpdateRecord("Orders", [1,2], {'amount': [14, 14]}),
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,2], {'amount': [14, 29]})
+      ],
       "calls": {"GristSummary_6_Orders": {"amount": 2}}
     })
 
     # Changing a record from one product to another should cause the two affected lines to change.
     out_actions = self.update_record("Orders", 10, year=2012)
     self.assertPartialOutActions(out_actions, {
-      "stored": [actions.UpdateRecord("Orders", 10, {"year": 2012})],
-      "calc": [
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"group": [[1,10], [7,8,9]]}),
+      "stored": [
+        actions.UpdateRecord("Orders", 10, {"year": 2012}),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"amount": [31.0, 89.0]}),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"count": [2,3]}),
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"group": [[1,10], [7,8,9]]}),
       ],
       "calls": {"GristSummary_6_Orders": {"group": 2, "amount": 2, "count": 2},
                 "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
@@ -104,11 +107,9 @@ class TestDerived(test_engine.EngineTestCase):
       "stored": [
         actions.UpdateRecord("Orders", 10, {"year": 1999}),
         actions.AddRecord("GristSummary_6_Orders", 5, {'year': 1999}),
-      ],
-      "calc": [
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"group": [[1], [10]]}),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"amount": [14.0, 17.0]}),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"count": [1,1]}),
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"group": [[1], [10]]}),
       ],
       "calls": {
         "GristSummary_6_Orders": {'#lookup#year': 1, "group": 2, "amount": 2, "count": 2},
@@ -155,16 +156,14 @@ class TestDerived(test_engine.EngineTestCase):
         actions.BulkUpdateRecord("Orders", [2, 6, 7], {"product": ["B", "B", "C"]}),
         actions.AddRecord("GristSummary_6_Orders", 7, {'year': 2013, 'product': 'B'}),
         actions.AddRecord("GristSummary_6_Orders", 8, {'year': 2015, 'product': 'C'}),
-      ],
-      "calc": [
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
-          "group": [[3], [4,5,6], [], [10], [2], [7]]
-        }),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
           "amount": [15.0, 86.0, 0, 17.0, 15.0, 17.0]
         }),
         actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
           "count": [1, 3, 0, 1, 1, 1]
+        }),
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
+          "group": [[3], [4,5,6], [], [10], [2], [7]]
         }),
       ],
     })
@@ -216,7 +215,10 @@ class TestDerived(test_engine.EngineTestCase):
     # In either case, changing an amount (from 36->37 for a CT customer) should update summaries.
     out_actions = self.update_record('Orders', 9, amount=37)
     self.assertPartialOutActions(out_actions, {
-      "calc": [actions.UpdateRecord("GristSummary_9_Customers", 2, {"totalAmount": 135.0})]
+      "stored": [
+        actions.UpdateRecord("Orders", 9, {"amount": 37}),
+        actions.UpdateRecord("GristSummary_9_Customers", 2, {"totalAmount": 135.0}),
+      ]
     })
 
     # In either case, changing a customer's state should trigger recomputation too.
@@ -286,8 +288,13 @@ class TestDerived(test_engine.EngineTestCase):
       [4,   2015,   4,  106.0,  [7,8,9,10]],
     ])
     self.assertPartialOutActions(out_actions_undo, {
-      "stored": [actions.RemoveRecord("GristSummary_6_Orders", 5),
-                 actions.UpdateRecord("Orders", 1, {"year": 2012})],
+      "stored": [
+        actions.UpdateRecord("GristSummary_6_Orders", 1, {"group": [1]}),
+        actions.UpdateRecord("GristSummary_6_Orders", 1, {"count": 1}),
+        actions.UpdateRecord("GristSummary_6_Orders", 1, {"amount": 15.0}),
+        actions.RemoveRecord("GristSummary_6_Orders", 5),
+        actions.UpdateRecord("Orders", 1, {"year": 2012}),
+      ],
       "calls": {"GristSummary_6_Orders": {"group": 1, "amount": 1, "count": 1},
                 "Orders": {"#lookup##summary#GristSummary_6_Orders": 2,
                            "#summary#GristSummary_6_Orders": 2}}

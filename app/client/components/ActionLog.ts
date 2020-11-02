@@ -261,6 +261,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   private async _loadActionSummaries() {
     if (this._loaded || !this._gristDoc) { return; }
     this._loading(true);
+    // Returned actions are ordered with earliest actions first.
     const result = await this._gristDoc!.docComm.getActionSummaries();
     this._loading(false);
     this._loaded = true;
@@ -268,7 +269,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     result.forEach(item => this.pushAction(item));
     // Add any actions that came in while we were fetching.  Unlikely, but
     // perhaps possible?
-    const top = result[0] ? result[0].actionNum : 0;
+    const top = result.length > 0 ? result[result.length - 1].actionNum : 0;
     for (const item of this._pending) {
       if (item.actionNum > top) { this.pushAction(item); }
     }

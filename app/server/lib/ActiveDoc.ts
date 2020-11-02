@@ -398,7 +398,7 @@ export class ActiveDoc extends EventEmitter {
 
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, (query) => {
-      return this.fetchQuery(makeExceptionalDocSession('system'), query, true)
+      return this.fetchQuery(makeExceptionalDocSession('system'), query, true);
     });
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory);
@@ -581,7 +581,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If user does not have rights to access what this query is asking for, fail.
     const tableAccess = this._granularAccess.getTableAccess(docSession, query.tableId);
-    if (!(tableAccess.permission & Permissions.VIEW)) {
+    if (!(tableAccess.permission & Permissions.VIEW)) {  // tslint:disable-line:no-bitwise
       throw new Error('not authorized to read table');
     }
 
@@ -1042,6 +1042,7 @@ export class ActiveDoc extends EventEmitter {
    *    isModification: true if document was changed by one or more actions.
    * }
    */
+  @ActiveDoc.keepDocOpen
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
@@ -1125,6 +1126,10 @@ export class ActiveDoc extends EventEmitter {
    * collaborators.
    */
   private async _migrate(docSession: OptDocSession): Promise<void> {
+    // TODO fetchAllTables() creates more memory pressure than usual since full data is present in
+    // memory at once both in node and in Python. This is liable to cause crashes. This doesn't
+    // even skip onDemand tables. We should try to migrate using metadata only. Data migrations
+    // would need to be done table-by-table, and differently still for on-demand tables.
     const allTables = await this.docStorage.fetchAllTables();
     const docActions: DocAction[] = await this._dataEngine.pyCall('create_migrations', allTables);
     this.logInfo(docSession, "_migrate: applying %d migration actions", docActions.length);

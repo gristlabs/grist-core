@@ -10,9 +10,8 @@ ActionGroup. In a separate step, this ActionGroup is split up according to ACL r
 ActionBundle consisting of ActionEnvelopes, each containing a smaller set of actions associated
 with the set of recipients who should receive them.
 """
-
 import actions
-
+from action_summary import ActionSummary
 
 class ActionGroup(object):
   """
@@ -26,6 +25,21 @@ class ActionGroup(object):
     self.stored   = []
     self.undo     = []
     self.retValues = []
+    self.summary = ActionSummary()
+
+  def flush_calc_changes(self):
+    """
+    Merge the changes from self.summary into self.stored and self.undo, and clear the summary.
+    """
+    self.summary.convert_deltas_to_actions(self.stored, self.undo)
+    self.summary = ActionSummary()
+
+  def flush_calc_changes_for_column(self, table_id, col_id):
+    """
+    Merge the changes for the given column from self.summary into self.stored and self.undo, and
+    remove that column from the summary.
+    """
+    self.summary.pop_column_delta_as_actions(table_id, col_id, self.stored, self.undo)
 
   def get_repr(self):
     return {

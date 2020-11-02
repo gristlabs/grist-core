@@ -8,6 +8,7 @@ import acl
 import actions
 import column
 import identifiers
+from objtypes import strict_equal
 import schema
 import summary
 import import_actions
@@ -1153,12 +1154,8 @@ class UserActions(object):
       return
 
     if from_formula and not to_formula:
-      # Make sure the old column is up to date, in case anything was to be recomputed. This
-      # creates calc actions for a formula column, which we should discard in case we are
-      # converting formula to non-formula.
-      calc_actions_len = len(self._engine.out_actions.calc)
+      # Make sure the old column is up to date, in case anything was to be recomputed.
       self._engine.bring_col_up_to_date(old_column)
-      del self._engine.out_actions.calc[calc_actions_len:]
 
     # Get the values from the old column, which is about to be destroyed.
     all_rows = list(table.row_ids)
@@ -1177,39 +1174,33 @@ class UserActions(object):
 
     # Fill in the new column by converting the values from the old column. If the type hasn't
     # changed, or is compatible, the conversion should return the value unchanged.
-    changed_rows = []
+    changes = []
     for row_id in all_rows:
       orig_value = all_old_values[row_id]
       new_value = new_column.convert(orig_value)
-      if not usertypes.strict_equal(orig_value, new_value):
+      if not strict_equal(orig_value, new_value):
         new_column.set(row_id, new_value)
-        changed_rows.append(row_id)
+        changes.append((row_id, orig_value, new_column.raw_get(row_id)))
 
-    def make_bulk(rows, get_value):
-      return actions.BulkUpdateRecord(table_id, rows, {col_id: map(get_value, rows)}).simplify()
-
-    if not from_formula:
-      undo_action = make_bulk(all_rows if to_formula else changed_rows, all_old_values.get)
-      if undo_action:
-        # The UNDO action needs to be inserted before the one created by ModifyColumn, so that on
-        # undo, we apply ModifyColumn first (getting the correct type), then set the values of
-        # that type. (The insert(-1) feels hacky, but I see no better way of doing it.)
-        assert isinstance(self._engine.out_actions.undo[-1], actions.ModifyColumn), \
-            "ModifyColumn not where expected in undo list"
-        self._engine.out_actions.undo.insert(-1, undo_action)
+    # Prepare the changes as if for a formula column; they'd get merged at this point with any
+    # previous calc_changes for this column.
+    if changes:
+      self._engine.out_actions.summary.add_changes(table_id, col_id, changes)
 
     if not to_formula:
-      stored_action = make_bulk(all_rows if from_formula else changed_rows, new_column.raw_get)
-      if stored_action:
-        # Produce the change update. The sandbox is already correct, so we don't need to apply it.
-        # (Also, it would be wrong to apply via docactions, since that would generate an "undo"
-        # in the wrong order relative to the ModifyColumn's undo.)
-        self._engine.out_actions.stored.append(stored_action)
+      # If converting to non-formula, any previously prepared calc actions should be removed from
+      # calc summary and actualized now (so that they don't override subsequent changes).
 
-    if to_formula:
-      calc_action = make_bulk(changed_rows, new_column.raw_get)
-      if calc_action:
-        self._engine.out_actions.calc.append(calc_action)
+      # The UNDO action needs to be inserted before the one created by ModifyColumn, so that on
+      # undo, we apply ModifyColumn first (getting the correct type), then set the values of
+      # that type. We do it by moving the last (ModifyColumn) action to the end.
+      assert isinstance(self._engine.out_actions.undo[-1], actions.ModifyColumn), \
+          "ModifyColumn not where expected in undo list"
+      mod_action = self._engine.out_actions.undo.pop()
+      try:
+        self._engine.out_actions.flush_calc_changes_for_column(table_id, col_id)
+      finally:
+        self._engine.out_actions.undo.append(mod_action)
 
 
   @useraction

@@ -1,7 +1,7 @@
 import actions
 import schema
 import logger
-from usertypes import strict_equal
+from objtypes import strict_equal
 
 log = logger.Logger(__name__, logger.INFO)
 
@@ -24,6 +24,7 @@ class DocActions(object):
           "docactions.[Bulk]AddRecord for existing record #%s" % row_id
 
     self._engine.out_actions.undo.append(actions.BulkRemoveRecord(table_id, row_ids).simplify())
+    self._engine.out_actions.summary.add_records(table_id, row_ids)
 
     self._engine.add_records(table_id, row_ids, column_values)
 
@@ -37,7 +38,7 @@ class DocActions(object):
     # make sure we don't have stale values hanging around.
     undo_values = {}
     for column in table.all_columns.itervalues():
-      if not column.is_formula() and column.col_id != "id":
+      if not column.is_private() and column.col_id != "id":
         col_values = map(column.raw_get, row_ids)
         default = column.getdefault()
         # If this column had all default values, don't include it into the undo BulkAddRecord.
@@ -49,6 +50,7 @@ class DocActions(object):
     # Generate the undo action.
     self._engine.out_actions.undo.append(
         actions.BulkAddRecord(table_id, row_ids, undo_values).simplify())
+    self._engine.out_actions.summary.remove_records(table_id, row_ids)
 
     # Invalidate the deleted rows, so that anything that depends on them gets recomputed.
     self._engine.invalidate_records(table_id, row_ids)
@@ -83,6 +85,8 @@ class DocActions(object):
   def ReplaceTableData(self, table_id, row_ids, column_values):
     old_data = self._engine.fetch_table(table_id, formulas=False)
     self._engine.out_actions.undo.append(actions.ReplaceTableData(*old_data))
+    self._engine.out_actions.summary.remove_records(table_id, old_data[1])
+    self._engine.out_actions.summary.add_records(table_id, row_ids)
     self._engine.load_table(actions.TableData(table_id, row_ids, column_values))
 
   #----------------------------------------
@@ -100,6 +104,7 @@ class DocActions(object):
 
     # Generate the undo action.
     self._engine.out_actions.undo.append(actions.RemoveColumn(table_id, col_id))
+    self._engine.out_actions.summary.add_column(table_id, col_id)
 
   def RemoveColumn(self, table_id, col_id):
     table = self._engine.tables[table_id]
@@ -108,23 +113,30 @@ class DocActions(object):
     # Generate (if needed) the undo action to restore the data.
     undo_action = None
     column = table.get_column(col_id)
-    if not column.is_formula():
+    if not column.is_private():
       default = column.getdefault()
       # Add to undo a BulkUpdateRecord for non-default values in the column being removed.
-      row_ids = [r for r in table.row_ids if not strict_equal(column.raw_get(r), default)]
-      undo_action = actions.BulkUpdateRecord(table_id, row_ids, {
-        column.col_id: map(column.raw_get, row_ids)
-      }).simplify()
+      undo_values = [(r, column.raw_get(r)) for r in table.row_ids
+                     if not strict_equal(column.raw_get(r), default)]
 
     # Remove the specified column from the schema object.
     colinfo = self._engine.schema[table_id].columns.pop(col_id)
     self._engine.rebuild_usercode()
 
-    # Generate the undo action(s).
-    if undo_action:
-      self._engine.out_actions.undo.append(undo_action)
+    # Generate the undo action(s); if for a formula column, add them to the calc summary.
+    if undo_values:
+      if column.is_formula():
+        changes = [(r, v, default) for (r, v) in undo_values]
+        self._engine.out_actions.summary.add_changes(table_id, col_id, changes)
+      else:
+        row_ids = [r for (r, v) in undo_values]
+        values = [v for (r, v) in undo_values]
+        undo_action = actions.BulkUpdateRecord(table_id, row_ids, {col_id: values}).simplify()
+        self._engine.out_actions.undo.append(undo_action)
+
     self._engine.out_actions.undo.append(actions.AddColumn(
       table_id, col_id, schema.col_to_dict(colinfo, include_id=False)))
+    self._engine.out_actions.summary.remove_column(table_id, col_id)
 
   def RenameColumn(self, table_id, old_col_id, new_col_id):
     table = self._engine.tables[table_id]
@@ -150,6 +162,7 @@ class DocActions(object):
 
     # Generate the undo action.
     self._engine.out_actions.undo.append(actions.RenameColumn(table_id, new_col_id, old_col_id))
+    self._engine.out_actions.summary.rename_column(table_id, old_col_id, new_col_id)
 
   def ModifyColumn(self, table_id, col_id, col_info):
     table = self._engine.tables[table_id]
@@ -198,12 +211,13 @@ class DocActions(object):
 
     # Generate the undo action.
     self._engine.out_actions.undo.append(actions.RemoveTable(table_id))
+    self._engine.out_actions.summary.add_table(table_id)
 
   def RemoveTable(self, table_id):
     assert table_id in self._engine.tables, "Table %s doesn't exist" % table_id
 
     # Create undo actions to restore all the data records of this table.
-    table_data = self._engine.fetch_table(table_id, formulas=False)
+    table_data = self._engine.fetch_table(table_id, formulas=True)
     undo_action = actions.BulkAddRecord(*table_data).simplify()
     if undo_action:
       self._engine.out_actions.undo.append(undo_action)
@@ -215,6 +229,7 @@ class DocActions(object):
     # Generate the undo action.
     self._engine.out_actions.undo.append(actions.AddTable(
       table_id, schema.cols_to_dict_list(schema_table.columns)))
+    self._engine.out_actions.summary.remove_table(table_id)
 
   def RenameTable(self, old_table_id, new_table_id):
     assert old_table_id in self._engine.tables, "Table %s doesn't exist" % old_table_id
@@ -230,11 +245,12 @@ class DocActions(object):
     # Copy over all columns from the old table to the new.
     new_table = self._engine.tables[new_table_id]
     for new_column in new_table.all_columns.itervalues():
-      if not new_column.is_formula():
+      if not new_column.is_private():
         new_column.copy_from_column(old_table.get_column(new_column.col_id))
     new_table.grow_to_max()   # We need to bring formula columns to the right size too.
 
     # Generate the undo action.
     self._engine.out_actions.undo.append(actions.RenameTable(new_table_id, old_table_id))
+    self._engine.out_actions.summary.rename_table(old_table_id, new_table_id)
 
 # end
