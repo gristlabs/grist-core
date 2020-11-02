@@ -32,9 +32,10 @@ export class DocApiForwarder {
     // Middleware to forward a request about an existing document that user has access to.
     // We do not check whether the document has been soft-deleted; that will be checked by
     // the worker if needed.
-    const withDoc = expressWrap(this._forwardToDocWorker.bind(this, true));
+    const withDoc = expressWrap(this._forwardToDocWorker.bind(this, true, 'viewers'));
     // Middleware to forward a request without a pre-existing document (for imports/uploads).
-    const withoutDoc = expressWrap(this._forwardToDocWorker.bind(this, false));
+    const withoutDoc = expressWrap(this._forwardToDocWorker.bind(this, false, null));
+    const withDocWithoutAuth = expressWrap(this._forwardToDocWorker.bind(this, true, null));
     app.use('/api/docs/:docId/tables', withDoc);
     app.use('/api/docs/:docId/force-reload', withDoc);
     app.use('/api/docs/:docId/remove', withDoc);
@@ -47,14 +48,17 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/flush', withDoc);
     app.use('/api/docs/:docId/states', withDoc);
     app.use('/api/docs/:docId/compare', withDoc);
+    app.use('/api/docs/:docId/assign', withDocWithoutAuth);
     app.use('^/api/docs$', withoutDoc);
   }
 
-  private async _forwardToDocWorker(withDocId: boolean, req: express.Request, res: express.Response): Promise<void> {
+  private async _forwardToDocWorker(withDocId: boolean, role: 'viewers'|null, req: express.Request, res: express.Response): Promise<void> {
     let docId: string|null = null;
     if (withDocId) {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, req.params.docId);
-      assertAccess('viewers', docAuth, {allowRemoved: true});
+      if (role) {
+        assertAccess(role, docAuth, {allowRemoved: true});
+      }
       docId = docAuth.docId;
     }
     // Use the docId for worker assignment, rather than req.params.docId, which could be a urlId.

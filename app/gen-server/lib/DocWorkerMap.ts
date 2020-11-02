@@ -110,6 +110,14 @@ class DummyDocWorkerMap implements IDocWorkerMap {
   public async getChecksum(family: string, key: string) {
     return null;
   }
+
+  public async getWorkerGroup(workerId: string): Promise<string|null> {
+    return null;
+  }
+
+  public async getDocGroup(docId: string): Promise<string|null> {
+    return null;
+  }
 }
 
 /**
@@ -140,6 +148,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  */
 export class DocWorkerMap implements IDocWorkerMap {
   private _client: RedisClient;
+  private _clients: RedisClient[];
   private _redlock: Redlock;
 
   // Optional deploymentKey argument supplies a key unique to the deployment (this is important
@@ -148,31 +157,44 @@ export class DocWorkerMap implements IDocWorkerMap {
     permitMsec?: number
   }) {
     this._deploymentKey = this._deploymentKey || version.version;
-    _clients = _clients || [createClient(process.env.REDIS_URL)];
-    this._redlock = new Redlock(_clients);
-    this._client = _clients[0]!;
+    this._clients = _clients || [createClient(process.env.REDIS_URL)];
+    this._redlock = new Redlock(this._clients);
+    this._client = this._clients[0]!;
   }
 
   public async addWorker(info: DocWorkerInfo): Promise<void> {
     log.info(`DocWorkerMap.addWorker ${info.id}`);
     const lock = await this._redlock.lock('workers-lock', LOCK_TIMEOUT);
     try {
-      // Make a worker-{workerId} key with contact info, then add this worker to available set.
+      // Make a worker-{workerId} key with contact info.
       await this._client.hmsetAsync(`worker-${info.id}`, info);
+      // Add this worker to set of workers (but don't make it available for work yet).
       await this._client.saddAsync('workers', info.id);
-      // Figure out if worker should belong to a group
-      const groups = await this._client.hgetallAsync('groups');
-      if (groups) {
-        const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
-        for (const group of Object.keys(groups).sort()) {
-          const count = parseInt(groups[group], 10) || 0;
-          if (count < 1) { continue; }
-          const elected: string[] = JSON.parse(elections[group] || '[]');
-          if (elected.length >= count) { continue; }
-          elected.push(info.id);
-          await this._client.setAsync(`worker-${info.id}-group`, group);
-          await this._client.hsetAsync(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
-          break;
+
+      if (info.group) {
+        // Accept work only for a specific group.
+        // Do not accept work not associated with the specified group.
+        await this._client.setAsync(`worker-${info.id}-group`, info.group);
+      } else {
+        // Figure out if worker should belong to a group via elections.
+        // Be careful: elections happen within a single deployment, so are somewhat
+        // unintuitive in behavior. For example, if a document is assigned to a group
+        // but there is no worker available for that group, it may open on any worker.
+        // And if a worker is assigned to a group, it may still end up assigned work
+        // not associated with that group if it is the only worker available.
+        const groups = await this._client.hgetallAsync('groups');
+        if (groups) {
+          const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
+          for (const group of Object.keys(groups).sort()) {
+            const count = parseInt(groups[group], 10) || 0;
+            if (count < 1) { continue; }
+            const elected: string[] = JSON.parse(elections[group] || '[]');
+            if (elected.length >= count) { continue; }
+            elected.push(info.id);
+            await this._client.setAsync(`worker-${info.id}-group`, group);
+            await this._client.hsetAsync(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
+            break;
+          }
         }
       }
     } finally {
@@ -237,8 +259,14 @@ export class DocWorkerMap implements IDocWorkerMap {
     log.info(`DocWorkerMap.setWorkerAvailability ${workerId} ${available}`);
     const group = await this._client.getAsync(`worker-${workerId}-group`) || 'default';
     if (available) {
+      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+      if (!docWorker) { throw new Error('no doc worker contact info available'); }
       await this._client.saddAsync(`workers-available-${group}`, workerId);
-      await this._client.saddAsync('workers-available', workerId);
+      // If we're not assigned exclusively to a group, add this worker also to the general
+      // pool of workers.
+      if (!docWorker.group) {
+        await this._client.saddAsync('workers-available', workerId);
+      }
     } else {
       await this._client.sremAsync('workers-available', workerId);
       await this._client.sremAsync(`workers-available-${group}`, workerId);
@@ -408,7 +436,9 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async close(): Promise<void> {
-    // nothing to do
+    for (const cli of this._clients || []) {
+      await cli.quitAsync();
+    }
   }
 
   public async getElection(name: string, durationInMs: number): Promise<string|null> {
@@ -441,6 +471,14 @@ export class DocWorkerMap implements IDocWorkerMap {
     } finally {
       await lock.unlock();
     }
+  }
+
+  public async getWorkerGroup(workerId: string): Promise<string|null> {
+    return this._client.getAsync(`worker-${workerId}-group`);
+  }
+
+  public async getDocGroup(docId: string): Promise<string|null> {
+    return this._client.getAsync(`doc-${docId}-group`);
   }
 }
 

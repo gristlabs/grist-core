@@ -16,6 +16,9 @@ export interface DocWorkerInfo {
 
   // The internal base URL for the docWorker.
   internalUrl: string;
+
+  // If set, worker should accept work only for this named group.
+  group?: string;
 }
 
 export interface DocStatus {
@@ -60,4 +63,7 @@ export interface IDocWorkerMap extends IPermitStore, IElectionStore, IChecksumSt
   // Get all assignments for a worker.  Should only be queried for a worker that
   // is currently unavailable.
   getAssignments(workerId: string): Promise<string[]>;
+
+  getWorkerGroup(workerId: string): Promise<string|null>;
+  getDocGroup(docId: string): Promise<string|null>;
 }

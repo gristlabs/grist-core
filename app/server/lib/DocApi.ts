@@ -13,6 +13,7 @@ import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnony
 import { DocManager } from "app/server/lib/DocManager";
 import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
 import { DocWorker } from "app/server/lib/DocWorker";
+import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import { HashUtil } from 'app/server/lib/HashUtil';
@@ -69,7 +70,8 @@ function apiThrottle(usage: Map<string, number>,
 }
 
 export class DocWorkerApi {
-  constructor(private _app: Application, private _docWorker: DocWorker, private _docManager: DocManager,
+  constructor(private _app: Application, private _docWorker: DocWorker,
+              private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
               private _dbManager: HomeDBManager, private _grist: GristServer) {}
 
   /**
@@ -86,6 +88,8 @@ export class DocWorkerApi {
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
     // check user can edit document, with soft-deleted documents being acceptable
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
+    // check document exists, don't check user access
+    const docExists = expressWrap(this._assertAccess.bind(this, null, false));
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
@@ -254,6 +258,29 @@ export class DocWorkerApi {
       res.json(true);
     }));
 
+    // Administrative endpoint, that checks if a document is in the expected group,
+    // and frees it for reassignment if not.  Has no effect if document is in the
+    // expected group.  Does not require specific rights.  Returns true if the document
+    // is freed up for reassignment, otherwise false.
+    this._app.post('/api/docs/:docId/assign', docExists, throttled(async (req, res) => {
+      const docId = getDocId(req);
+      const status = await this._docWorkerMap.getDocWorker(docId);
+      if (!status) { res.json(false); return; }
+      const workerGroup = await this._docWorkerMap.getWorkerGroup(status.docWorker.id);
+      const docGroup = await this._docWorkerMap.getDocGroup(docId);
+      if (docGroup === workerGroup) { res.json(false); return; }
+      const activeDoc = await this._getActiveDoc(req);
+      await activeDoc.flushDoc();
+      // flushDoc terminates once there's no pending operation on the document.
+      // There could still be async operations in progess.  We mute their effect,
+      // as if they never happened.
+      activeDoc.docClients.interruptAllClients();
+      activeDoc.setMuted();
+      await activeDoc.shutdown();
+      await this._docWorkerMap.releaseAssignment(status.docWorker.id, docId);
+      res.json(true);
+    }));
+
     // This endpoint cannot use withDoc since it is expected behavior for the ActiveDoc it
     // starts with to become muted.
     this._app.post('/api/docs/:docId/replace', canEdit, throttled(async (req, res) => {
@@ -416,12 +443,12 @@ export class DocWorkerApi {
     return this._docManager.getActiveDoc(getDocId(req));
   }
 
-  private async _assertAccess(role: 'viewers'|'editors', allowRemoved: boolean,
+  private async _assertAccess(role: 'viewers'|'editors'|null, allowRemoved: boolean,
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemoved = scope.showAll || scope.showRemoved || allowRemoved;
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
-    assertAccess(role, docAuth, {allowRemoved});
+    if (role) { assertAccess(role, docAuth, {allowRemoved}); }
     next();
   }
 
@@ -575,10 +602,10 @@ export class DocWorkerApi {
 }
 
 export function addDocApiRoutes(
-  app: Application, docWorker: DocWorker, docManager: DocManager, dbManager: HomeDBManager,
+  app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
   grist: GristServer
 ) {
-  const api = new DocWorkerApi(app, docWorker, docManager, dbManager, grist);
+  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist);
   api.addEndpoints();
 }
 

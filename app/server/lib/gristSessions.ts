@@ -5,6 +5,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
 import * as express from 'express';
+import assignIn = require('lodash/assignIn');
 import * as path from 'path';
 import * as shortUUID from "short-uuid";
 
@@ -17,6 +18,7 @@ export const COOKIE_MAX_AGE = 90 * 24 * 60 * 60 * 1000;  // 90 days in milliseco
 export interface SessionStore {
   getAsync(sid: string): Promise<any>;
   setAsync(sid: string, session: any): Promise<void>;
+  close(): Promise<void>;
 }
 
 /**
@@ -50,17 +52,27 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
     // Note that ./build excludes this module from the electron build.
     const RedisStore = require('connect-redis')(session);
     promisifyAll(RedisStore.prototype);
-    return () => new RedisStore({
-      url: process.env.REDIS_URL,
-    });
+    return () => {
+      const store = new RedisStore({
+        url: process.env.REDIS_URL,
+      });
+      return assignIn(store, {
+        async close() {
+          // Doesn't actually close, just unrefs stream so node becomes close-able.
+          store.client.unref();
+        }});
+    }
   } else {
     const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
     promisifyAll(SQLiteStore.prototype);
-    return () => new SQLiteStore({
-      dir: path.dirname(sessionsDB),
-      db: path.basename(sessionsDB),    // SQLiteStore no longer appends a .db suffix.
-      table: 'sessions'
-    });
+    return () => {
+      const store = new SQLiteStore({
+        dir: path.dirname(sessionsDB),
+        db: path.basename(sessionsDB),    // SQLiteStore no longer appends a .db suffix.
+        table: 'sessions'
+      });
+      return assignIn(store, { async close() {}});
+    }
   }
 }
 

@@ -28,7 +28,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristLoginMiddleware,  GristServer} from 'app/server/lib/GristServer';
-import {initGristSessions} from 'app/server/lib/gristSessions';
+import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -111,6 +111,7 @@ export class FlexServer implements GristServer {
   private _docWorker: DocWorker;
   private _hosts: Hosts;
   private _pluginManager: PluginManager;
+  private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
   private _docWorkerMap: IDocWorkerMap;
   private _disabled: boolean = false;
@@ -525,8 +526,9 @@ export class FlexServer implements GristServer {
     if (this.usage)       { this.usage.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     await this._shutdown();
-    // Do this last, DocWorkerMap is used during shutdown.
+    // Do this after _shutdown, since DocWorkerMap is used during shutdown.
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
+    if (this._sessionStore) { await this._sessionStore.close(); }
   }
 
   public addDocApiForwarder() {
@@ -546,7 +548,7 @@ export class FlexServer implements GristServer {
     this.addOrg();
 
     // Create the sessionStore and related objects.
-    const {sessions, sessionMiddleware} = initGristSessions(this.instanceRoot, this);
+    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(this.instanceRoot, this);
     this.app.use(sessionMiddleware);
 
     // Create an endpoint for making cookies during testing.
@@ -556,6 +558,7 @@ export class FlexServer implements GristServer {
     });
 
     this.sessions = sessions;
+    this._sessionStore = sessionStore;
   }
 
   // Close connections and stop accepting new connections.  Remove server from any lists
@@ -892,7 +895,7 @@ export class FlexServer implements GristServer {
     this.addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, docManager, this.dbManager, this);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this.dbManager, this);
     }
   }
 
@@ -1200,6 +1203,9 @@ export class FlexServer implements GristServer {
         }
         this.info.push(['docWorkerId', this.worker.id]);
 
+        if (process.env.GRIST_WORKER_GROUP) {
+          this.worker.group = process.env.GRIST_WORKER_GROUP;
+        }
       } else {
         if (process.env.GRIST_ROUTER_URL) {
           await this.createWorkerUrl();
