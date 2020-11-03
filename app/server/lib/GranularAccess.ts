@@ -1,15 +1,18 @@
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
-import { BulkColValues, DocAction, TableDataAction, UserAction, CellValue } from 'app/common/DocActions';
+import { BulkColValues, CellValue, ColValues, DocAction, TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { decodeClause, GranularAccessCharacteristicsClause, GranularAccessClause, MatchSpec } from 'app/common/GranularAccessClause';
+import { AccessPermissions, decodeClause, GranularAccessCharacteristicsClause,
+  GranularAccessClause, GranularAccessColumnClause, MatchSpec } from 'app/common/GranularAccessClause';
 import { canView } from 'app/common/roles';
 import { TableData } from 'app/common/TableData';
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
+import * as log from 'app/server/lib/log';
 import pullAt = require('lodash/pullAt');
+import cloneDeep = require('lodash/cloneDeep');
 
 // Actions that may be allowed for a user with nuanced access to a document, depending
 // on what table they refer to.
@@ -102,7 +105,8 @@ export class GranularAccess {
    * Filter DocActions to be sent to a client.
    */
   public filterOutgoingDocActions(docSession: OptDocSession, docActions: DocAction[]): DocAction[] {
-    return docActions.filter(action => this.canApplyUserAction(docSession, action, 'out'));
+    return docActions.map(action => this.pruneOutgoingDocAction(docSession, action))
+      .filter(docActions => docActions !== null) as DocAction[];
   }
 
   /**
@@ -134,20 +138,12 @@ export class GranularAccess {
   }
 
   /**
-   * Check if user can apply a given action.
-   * When the direction is 'in', we are checking if it is ok for user to apply the
-   * action on the document.  When the direction is 'out', we are checking if it
-   * is ok to send the action to the user's client.
+   * Check if user can apply a given action to the document.
    */
-  public canApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction,
-                            direction: 'in' | 'out' = 'in'): boolean {
+  public canApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): boolean {
     const name = a[0] as string;
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
-      // When broadcasting to client, allow renames etc for now.
-      // This is a bit weak, since it leaks changes to private table schemas.
-      // TODO: tighten up.
-      if (direction === 'out') { return true; }
       return !this.hasNuancedAccess(docSession);
     }
     if (SURPRISING_ACTIONS.has(name)) {
@@ -160,10 +156,9 @@ export class GranularAccess {
       return this.canApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (isTableAction) {
       const tableId = a[1] as string;
-      // Allow _grist_ table info to be broadcast to client unconditionally.
-      // This is a bit weak, since it leaks changes to private table schemas.
-      // TODO: tighten up.
-      if (tableId.startsWith('_grist_') && direction === 'in') {
+      // If there are any access control nuances, deny _grist_* tables.
+      // TODO: this is very crude, loosen this up appropriately.
+      if (tableId.startsWith('_grist_')) {
         return !this.hasNuancedAccess(docSession);
       }
       const tableAccess = this.getTableAccess(docSession, tableId);
@@ -171,17 +166,51 @@ export class GranularAccess {
       // To allow editing, we'll need something that has access to full row,
       // e.g. data engine (and then an equivalent for ondemand tables), or
       // to fetch rows at this point.
-      if (tableAccess.rowPermissionFunctions.length > 0) {
-        // If sending to client, for now just get it to reload from scratch,
-        // we don't have the information we need to filter updates.  Reloads
-        // would be very annoying if user is working on something, but at least
-        // data won't be stale.  TODO: improve!
-        if (direction === 'out') { throw new ErrorWithCode('NEED_RELOAD', 'document needs reload'); }
-        return false;
-      }
+      if (tableAccess.rowPermissionFunctions.length > 0) { return false; }
       return Boolean(tableAccess.permission & Permissions.VIEW);
     }
     return false;
+  }
+
+  /**
+   * Cut out any rows/columns not accessible to the user.  May throw a NEED_RELOAD
+   * exception if the information needed to achieve the desired pruning is not available.
+   * Returns null if the action is entirely pruned.  The action passed in is never modified.
+   */
+  public pruneOutgoingDocAction(docSession: OptDocSession, a: DocAction): DocAction|null {
+    const tableId = a[1] as string;
+    const tableAccess = this.getTableAccess(docSession, tableId);
+    if (!(tableAccess.permission & Permissions.VIEW)) { return null; }
+    if (tableAccess.rowPermissionFunctions.length > 0) {
+      // For now, trigger a reload, since we don't have the
+      // information we need to filter rows.  Reloads would be very
+      // annoying if user is working on something, but at least data
+      // won't be stale.  TODO: improve!
+      throw new ErrorWithCode('NEED_RELOAD', 'document needs reload');
+    }
+    if (tableAccess.columnPermissions.size > 0) {
+      if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
+        return a;
+      } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] == 'UpdateRecord' ||
+                 a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
+        const na = cloneDeep(a);
+        this.filterColumns(na[3], tableAccess);
+        if (Object.keys(na[3]).length === 0) { return null; }
+        return na;
+      } else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
+                 a[0] === 'ModifyColumn') {
+        const na = cloneDeep(a);
+        const perms = tableAccess.columnPermissions.get(na[2]);
+        if (perms && (perms.forbidden & Permissions.VIEW)) { return null; }
+        throw new ErrorWithCode('NEED_RELOAD', 'document needs reload');
+      } else {
+        // Remaining cases of AddTable, RemoveTable, RenameTable should have
+        // been handled at the table level.
+      }
+    }
+    // TODO: handle access to changes in metadata (trigger a reload at least, if
+    // all else fails).
+    return a;
   }
 
   /**
@@ -200,7 +229,7 @@ export class GranularAccess {
   public canReadEverything(docSession: OptDocSession): boolean {
     for (const tableId of this.getTablesInClauses()) {
       const tableData = this.getTableAccess(docSession, tableId);
-      if (!(tableData.permission & Permissions.VIEW) || tableData.rowPermissionFunctions.length > 0) {
+      if (!(tableData.permission & Permissions.VIEW) || tableData.rowPermissionFunctions.length > 0 || tableData.columnPermissions.size > 0) {
         return false;
       }
     }
@@ -250,10 +279,24 @@ export class GranularAccess {
     tables = JSON.parse(JSON.stringify(tables));
     // Collect a list of all tables (by tableRef) to which the user has no access.
     const censoredTables: Set<number> = new Set();
+    // Collect a list of censored columns (by "<tableRef> <colId>").
+    const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
+    const censoredColumnCodes: Set<string> = new Set();
     for (const tableId of this.getTablesInClauses()) {
-      if (this.hasTableAccess(docSession, tableId)) { continue; }
-      const tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
-      if (tableRef) { censoredTables.add(tableRef); }
+      const tableAccess = this.getTableAccess(docSession, tableId);
+      let tableRef: number|undefined = 0;
+      if (!(tableAccess.permission & Permissions.VIEW)) {
+        tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
+        if (tableRef) { censoredTables.add(tableRef); }
+      }
+      for (const [colId, perm] of tableAccess.columnPermissions) {
+        if (perm.forbidden & Permissions.VIEW) {
+          if (!tableRef) {
+            tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
+          }
+          if (tableRef) { censoredColumnCodes.add(columnCode(tableRef, colId)); }
+        }
+      }
     }
     // Collect a list of all sections and views containing a table to which the user has no access.
     const censoredSections: Set<number> = new Set();
@@ -266,13 +309,16 @@ export class GranularAccess {
     // Collect a list of all columns from tables to which the user has no access.
     const censoredColumns: Set<number> = new Set();
     for (const column of this._docData.getTable('_grist_Tables_column')?.getRecords() || []) {
-      if (!censoredTables.has(column.parentId as number)) { continue; }
-      censoredColumns.add(column.id);
+      if (censoredTables.has(column.parentId as number) ||
+          censoredColumnCodes.has(columnCode(column.parentId as number, column.colId as string))) {
+        censoredColumns.add(column.id);
+      }
     }
     // Collect a list of all fields from sections to which the user has no access.
     const censoredFields: Set<number> = new Set();
     for (const field of this._docData.getTable('_grist_Views_section_field')?.getRecords() || []) {
-      if (!censoredSections.has(field.parentId as number)) { continue; }
+      if (!censoredSections.has(field.parentId as number) &&
+          !censoredColumns.has(field.colRef as number)) { continue; }
       censoredFields.add(field.id);
     }
     // Clear the tableId for any tables the user does not have access to.  This is just
@@ -326,47 +372,80 @@ export class GranularAccess {
       get(key: string) { return characteristics[key]; },
       toJSON() { return characteristics; }
     };
-    const tableAccess: TableAccess = { permission: 0, rowPermissionFunctions: [] };
+    const tableAccess: TableAccess = { permission: 0, rowPermissionFunctions: [],
+                                       columnPermissions: new Map() };
     let canChangeSchema: boolean = true;
     let canView: boolean = true;
     // Don't apply access control to system requests (important to load characteristic
     // tables).
     if (docSession.mode !== 'system') {
       for (const clause of this._clauses) {
-        if (clause.kind === 'doc') {
-          const match = getMatchFunc(clause.match);
-          if (!match({ ch })) {
-            canChangeSchema = false;
-          }
-        }
-        if (clause.kind === 'table' && clause.tableId === tableId) {
-          const match = getMatchFunc(clause.match);
-          if (!match({ ch })) {
-            canView = false;
-          }
-        }
-        if (clause.kind === 'row' && clause.tableId === tableId) {
-          const scope = clause.scope ? getMatchFunc(clause.scope) : () => true;
-          if (scope({ ch })) {
-            const match = getMatchFunc(clause.match);
-            tableAccess.rowPermissionFunctions.push((rec) => {
-              return match({ ch, rec }) ? Permissions.OWNER : 0;
-            });
-          }
-        }
-        if (clause.kind === 'character') {
-          const key = this._getCharacteristicTableKey(clause);
-          const characteristicTable = this._characteristicTables.get(key);
-          if (characteristicTable) {
-            const character = this._normalizeValue(characteristics[clause.charId]);
-            const rowNum = characteristicTable.rowNums.get(character);
-            if (rowNum !== undefined) {
-              const rec = new RecordView(characteristicTable.data, rowNum);
-              for (const key of Object.keys(characteristicTable.data[3])) {
-                characteristics[key] = rec.get(key);
+        switch (clause.kind) {
+          case 'doc':
+            {
+              const match = getMatchFunc(clause.match);
+              if (!match({ ch })) {
+                canChangeSchema = false;
               }
             }
-          }
+            break;
+          case 'table':
+            if (clause.tableId === tableId) {
+              const match = getMatchFunc(clause.match);
+              if (!match({ ch })) {
+                canView = false;
+              }
+            }
+            break;
+          case 'row':
+            if (clause.tableId === tableId) {
+              const scope = clause.scope ? getMatchFunc(clause.scope) : () => true;
+              if (scope({ ch })) {
+                const match = getMatchFunc(clause.match);
+                tableAccess.rowPermissionFunctions.push((rec) => {
+                  return match({ ch, rec }) ? Permissions.OWNER : 0;
+                });
+              }
+            }
+            break;
+          case 'column':
+            if (clause.tableId === tableId) {
+              const isMatch = getMatchFunc(clause.match)({ ch });
+              for (const colId of clause.colIds) {
+                if (PermissionConstraint.needUpdate(isMatch, clause)) {
+                  let perms = tableAccess.columnPermissions.get(colId);
+                  if (!perms) {
+                    perms = new PermissionConstraint();
+                    tableAccess.columnPermissions.set(colId, perms);
+                  }
+                  perms.update(isMatch, clause);
+                }
+              }
+            }
+            break;
+          case 'character':
+            {
+              const key = this._getCharacteristicTableKey(clause);
+              const characteristicTable = this._characteristicTables.get(key);
+              if (characteristicTable) {
+                const character = this._normalizeValue(characteristics[clause.charId]);
+                const rowNum = characteristicTable.rowNums.get(character);
+                if (rowNum !== undefined) {
+                  const rec = new RecordView(characteristicTable.data, rowNum);
+                  for (const key of Object.keys(characteristicTable.data[3])) {
+                    characteristics[key] = rec.get(key);
+                  }
+                }
+              }
+            }
+            break;
+          default:
+            // Don't fail terminally if a clause is not understood, to preserve some
+            // document access.
+            // TODO: figure out a way to communicate problems to an appropriate user, so
+            // they know if a clause is not being honored.
+            log.error('problem clause: %s', clause);
+            break;
         }
       }
     }
@@ -389,10 +468,19 @@ export class GranularAccess {
   }
 
   /**
-   * Modify table data in place, removing any rows to which access
+   * Modify table data in place, removing any rows or columns to which access
    * is not granted.
    */
   public filterData(data: TableDataAction, tableAccess: TableAccess) {
+    this.filterRows(data, tableAccess);
+    this.filterColumns(data[3], tableAccess);
+  }
+
+  /**
+   * Modify table data in place, removing any rows to which access
+   * is not granted.
+   */
+  public filterRows(data: TableDataAction, tableAccess: TableAccess) {
     const toRemove: number[] = [];
     const rec = new RecordView(data, 0);
     for (let idx = 0; idx < data[2].length; idx++) {
@@ -411,6 +499,19 @@ export class GranularAccess {
       for (const [, values] of Object.entries(cols)) {
         pullAt(values, toRemove);
       }
+    }
+  }
+
+  /**
+   * Modify table data in place, removing any columns to which access
+   * is not granted.
+   */
+  public filterColumns(data: BulkColValues|ColValues, tableAccess: TableAccess) {
+    const colIds= [...tableAccess.columnPermissions.entries()].map(([colId, p]) => {
+      return (p.forbidden & Permissions.VIEW) ? colId : null;
+    }).filter(c => c !== null) as string[];
+    for (const colId of colIds) {
+      delete data[colId];
     }
   }
 
@@ -479,6 +580,63 @@ export type PermissionFunction = (rec: RecordView) => number;
 export interface TableAccess {
   permission: number;
   rowPermissionFunctions: Array<PermissionFunction>;
+  columnPermissions: Map<string, PermissionConstraint>;
+}
+
+/**
+ * This is a placeholder for accumulating permissions for a particular scope.
+ */
+export class PermissionConstraint {
+  private _allowed: number = 0;
+  private _forbidden: number = 0;
+
+  // If a clause's condition matches the user, or fails to match the user,
+  // check if the clause could modify permissions via onMatch/onFail.
+  public static needUpdate(isMatch: boolean, clause: GranularAccessColumnClause) {
+    return (isMatch && clause.onMatch) || (!isMatch && clause.onFail);
+  }
+
+  public constructor() {
+    this._allowed = this._forbidden = 0;
+  }
+
+  public get allowed() {
+    return this._allowed;
+  }
+
+  public get forbidden() {
+    return this._forbidden;
+  }
+
+  public allow(p: number) {
+    this._allowed = this._allowed | p;
+    this._forbidden = this._forbidden & ~p;
+  }
+
+  public allowOnly(p: number) {
+    this._allowed = p;
+    this._forbidden = ~p;
+  }
+
+  public forbid(p: number) {
+    this._forbidden = this._forbidden | p;
+    this._allowed = this._allowed & ~p;
+  }
+
+  // Update this PermissionConstraint based on whether the user matched/did not match
+  // a particular clause.
+  public update(isMatch: boolean, clause: GranularAccessColumnClause) {
+    const activeClause = (isMatch ? clause.onMatch : clause.onFail) || {};
+    if (activeClause.allow) {
+      this.allow(getPermission(activeClause.allow));
+    }
+    if (activeClause.allowOnly) {
+      this.allowOnly(getPermission(activeClause.allowOnly));
+    }
+    if (activeClause.forbid) {
+      this.forbid(getPermission(activeClause.forbid));
+    }
+  }
 }
 
 // Light wrapper around characteristics or records.
@@ -539,4 +697,28 @@ export interface CharacteristicTable {
   colId: string;
   rowNums: Map<string, number>;
   data: TableDataAction;
+}
+
+export function getPermission(accessPermissions: AccessPermissions) {
+  if (accessPermissions === 'all') { return 255; }
+  let n: number = 0;
+  for (const p of accessPermissions) {
+    switch (p) {
+      case 'read':
+        n = n | Permissions.VIEW;
+        break;
+      case 'update':
+        n = n | Permissions.UPDATE;
+        break;
+      case 'create':
+        n = n | Permissions.ADD;
+        break;
+      case 'delete':
+        n = n | Permissions.REMOVE;
+        break;
+      default:
+        throw new Error(`unrecognized permission ${p}`);
+    }
+  }
+  return n;
 }

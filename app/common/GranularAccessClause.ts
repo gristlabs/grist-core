@@ -10,6 +10,7 @@ export type GranularAccessClause =
   GranularAccessDocClause |
   GranularAccessTableClause |
   GranularAccessRowClause |
+  GranularAccessColumnClause |
   GranularAccessCharacteristicsClause;
 
 /**
@@ -42,6 +43,18 @@ export interface GranularAccessRowClause {
 }
 
 /**
+ * A clause to control access to columns within a specific table.
+ */
+export interface GranularAccessColumnClause {
+  kind: 'column';
+  tableId: string;
+  colIds: string[];
+  match: MatchSpec;
+  onMatch?: AccessPermissionDelta;  // permissions to apply if match succeeds
+  onFail?: AccessPermissionDelta;   // permissions to apply if match fails
+}
+
+/**
  * A clause to make more information about the user/request available for access
  * control decisions.
  *   - charId specifies a property of the user (e.g. Access/Email/UserID/Name, or a
@@ -57,6 +70,17 @@ export interface GranularAccessCharacteristicsClause {
   tableId: string;
   charId: string;       // characteristic to look up
   lookupColId: string; // column in which to look it up
+}
+
+/**
+ * A sketch of permissions, intended as a placeholder.
+ */
+export type AccessPermission = 'read' | 'update' | 'create' | 'delete';
+export type AccessPermissions = 'all' | AccessPermission[];
+export interface AccessPermissionDelta {
+  allow?: AccessPermissions;      // permit the named operations
+  allowOnly?: AccessPermissions;  // permit the named operations, and forbid others
+  forbid?: AccessPermissions;     // forbid the named operations
 }
 
 // Type for expressing matches.

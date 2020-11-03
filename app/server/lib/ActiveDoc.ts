@@ -612,7 +612,9 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     // If row-level access is being controlled, filter the data appropriately.
-    if (tableAccess.rowPermissionFunctions.length > 0) {
+    // Likewise if column-level access is being controlled.
+    if (tableAccess.rowPermissionFunctions.length > 0 ||
+        tableAccess.columnPermissions.size > 0) {
       this._granularAccess.filterData(data!, tableAccess);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
