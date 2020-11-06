@@ -80,14 +80,18 @@ export class RefCountMap<Key, Value> implements IDisposable {
     this._map.clear();
   }
 
+  // For testing: set gracePeriodMs, returning the previous value.
+  public testSetGracePeriodMs(ms: number): number {
+    const prev = this._gracePeriodMs;
+    this._gracePeriodMs = ms;
+    return prev;
+  }
+
   private _useKey(key: Key): RefCountValue<Value> {
     const r = this._map.get(key);
     if (r) {
       r.count += 1;
-      if (r.disposeTimeout) {
-        clearTimeout(r.disposeTimeout);
-        r.disposeTimeout = undefined;
-      }
+      r.unsetTimeout();
       return r;
     }
     const value = this._createKey.call(null, key);
@@ -116,6 +120,7 @@ export class RefCountMap<Key, Value> implements IDisposable {
     if (r) {
       this._map.delete(key);
       r.count = 0;
+      r.unsetTimeout();   // Important, to avoid timeout triggering after the same key is re-added.
       this._disposeKey.call(null, key, r.value);
     }
   }
@@ -128,4 +133,11 @@ class RefCountValue<Value> {
   public count: number = 1;
   public disposeTimeout?: ReturnType<typeof setTimeout> = undefined;
   constructor(public value: Value) {}
+
+  public unsetTimeout() {
+    if (this.disposeTimeout) {
+      clearTimeout(this.disposeTimeout);
+      this.disposeTimeout = undefined;
+    }
+  }
 }

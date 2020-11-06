@@ -98,6 +98,12 @@ export class QuerySetManager extends Disposable {
   public purgeKey(queryKey: string) {
     this._queryMap.purgeKey(queryKey);
   }
+
+  // For testing: set gracePeriodMs, returning the previous value.
+  public testSetGracePeriodMs(ms: number): number {
+    return this._queryMap.testSetGracePeriodMs(ms);
+  }
+
 }
 
 /**
