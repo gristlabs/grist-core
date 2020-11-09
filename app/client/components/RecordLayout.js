@@ -170,7 +170,7 @@ RecordLayout.updateLayoutSpecWithFields = function(spec, viewFields) {
  * remove fields as well as create fields and possibly new columns. And it needs the results of
  * these operations to update the spec before saving it.
  */
-RecordLayout.prototype.saveLayoutSpec = function(layoutSpec) {
+RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
   // The layout hasn't actually changed. Skip the rest to avoid creating no-op actions (the
   // resulting no-op undo would be particularly confusing).
   if (JSON.stringify(layoutSpec) === this.viewSection.layoutSpec.peek()) {
@@ -252,53 +252,51 @@ RecordLayout.prototype.saveLayoutSpec = function(layoutSpec) {
   let positions = addedPositions.concat(hiddenPositions);
   let addActions = gutil.arrayRepeat(addColNum, addColAction);
 
-  docData.startBundlingActions('Updating record layout.', action => {
-    return [tableId, '_grist_Views_section', '_grist_Views_section_field'].includes(action[1]);
-  });
-  return Promise.try(() => {
-    return addColNum > 0 ? docModel.dataTables[tableId].sendTableActions(addActions) : [];
-  })
-  .then(results => {
-    let colRefs = results.map(r => r.colRef).concat(hiddenColRefs);
-    const addFieldNum = colRefs.length;
-    // Add fields for newly added columns and previously hidden columns.
-    return addFieldNum > 0 ?
-      docModel.viewFields.sendTableAction(["BulkAddRecord", gutil.arrayRepeat(addFieldNum, null), {
-        parentId: gutil.arrayRepeat(addFieldNum, this.viewSection.getRowId()),
-        colRef: colRefs,
-        parentPos: positions
-      }]) : [];
-  })
-  .each((fieldRef, i) => {
-    // Call the stored callback for each fieldRef, which each set the correct layoutSpec leaf
-    // to the newly obtained fieldRef.
-    callbacks[i](fieldRef);
-  })
-  .then(addedRefs => {
-    let actions = [];
+  await docData.bundleActions('Updating record layout.', () => {
+    return Promise.try(() => {
+      return addColNum > 0 ? docModel.dataTables[tableId].sendTableActions(addActions) : [];
+    })
+    .then(results => {
+      let colRefs = results.map(r => r.colRef).concat(hiddenColRefs);
+      const addFieldNum = colRefs.length;
+      // Add fields for newly added columns and previously hidden columns.
+      return addFieldNum > 0 ?
+        docModel.viewFields.sendTableAction(["BulkAddRecord", gutil.arrayRepeat(addFieldNum, null), {
+          parentId: gutil.arrayRepeat(addFieldNum, this.viewSection.getRowId()),
+          colRef: colRefs,
+          parentPos: positions
+        }]) : [];
+    })
+    .each((fieldRef, i) => {
+      // Call the stored callback for each fieldRef, which each set the correct layoutSpec leaf
+      // to the newly obtained fieldRef.
+      callbacks[i](fieldRef);
+    })
+    .then(addedRefs => {
+      let actions = [];
 
-    // Records present before that were not present after editing must be removed.
-    let finishedRefs = new Set(existingRefs.concat(addedRefs));
-    let removed = origRefs.filter(fieldRef => !finishedRefs.has(fieldRef));
-    if (removed.length > 0) {
-      actions.push(["BulkRemoveRecord", "_grist_Views_section_field", removed]);
-    }
+      // Records present before that were not present after editing must be removed.
+      let finishedRefs = new Set(existingRefs.concat(addedRefs));
+      let removed = origRefs.filter(fieldRef => !finishedRefs.has(fieldRef));
+      if (removed.length > 0) {
+        actions.push(["BulkRemoveRecord", "_grist_Views_section_field", removed]);
+      }
 
-    // Positions must be updated for fields which were not added/removed.
-    if (existingRefs.length > 0) {
-      actions.push(["BulkUpdateRecord", "_grist_Views_section_field", existingRefs, {
-        "parentPos": existingPositions
+      // Positions must be updated for fields which were not added/removed.
+      if (existingRefs.length > 0) {
+        actions.push(["BulkUpdateRecord", "_grist_Views_section_field", existingRefs, {
+          "parentPos": existingPositions
+        }]);
+      }
+
+      // And update the layoutSpecObj itself.
+      actions.push(["UpdateRecord", "_grist_Views_section", this.viewSection.getRowId(), {
+        "layoutSpec": JSON.stringify(layoutSpec)
       }]);
-    }
 
-    // And update the layoutSpecObj itself.
-    actions.push(["UpdateRecord", "_grist_Views_section", this.viewSection.getRowId(), {
-      "layoutSpec": JSON.stringify(layoutSpec)
-    }]);
-
-    return docData.sendActions(actions);
-  })
-  .finally(() => docData.stopBundlingActions());
+      return docData.sendActions(actions);
+    })
+  });
 };
 
 /**

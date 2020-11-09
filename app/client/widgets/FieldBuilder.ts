@@ -289,7 +289,7 @@ export class FieldBuilder extends Disposable {
                dom.onDispose(() => {
                  // When losing focus, if there's an active column transform, finalize it.
                  if (this.columnTransform) {
-                   this.columnTransform.finalize();
+                   this.columnTransform.finalize().catch(reportError);
                  }
                }),
                kf.row(
@@ -453,7 +453,7 @@ export class FieldBuilder extends Disposable {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.
     if (this.columnTransform) {
-      this.columnTransform.finalize();
+      this.columnTransform.finalize().catch(reportError);
       return;
     }
 

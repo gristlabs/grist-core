@@ -16,15 +16,16 @@ import defaults = require('lodash/defaults');
 
 const gristNotify = (window as any).gristNotify;
 
-type BundleCallback = (action: UserAction) => boolean;
-
 export class DocData extends BaseDocData {
   public readonly sendActionsEmitter = new Emitter();
   public readonly sendActionsDoneEmitter = new Emitter();
 
-  // Action verification callback to avoid undesired bundling. Also an indicator that actions are
-  // currently being bundled.
-  private _bundleCallback?: BundleCallback|null = null;
+  private _bundlesPending: number = 0;          // How many bundles are currently pending.
+  private _lastBundlePromise?: Promise<void>;   // Promise for completion of the last pending bundle.
+  private _triggerBundleFinalize?: () => void;  // When a bundle is pending, trigger its finalize() callback.
+
+  // When a bundle is pending and actions should be checked, the callback to check them.
+  private _shouldIncludeInBundle?: (actions: UserAction[]) => boolean;
 
   private _nextDesc: string|null = null;        // The description for the next incoming action.
   private _lastActionNum: number|null = null;   // ActionNum of the last action in the current bundle, or null.
@@ -71,25 +72,80 @@ export class DocData extends BaseDocData {
 
   // Sets a bundle to collect all incoming actions. Throws an error if any actions which
   // do not match the verification callback are sent.
-  public startBundlingActions(desc: string|null, callback: BundleCallback) {
-    this._nextDesc = desc;
-    this._lastActionNum = null;
-    this._bundleCallback = callback;
-  }
+  public startBundlingActions<T>(options: BundlingOptions<T>): BundlingInfo<T> {
+    if (this._bundlesPending >= 2) {
+      // We don't expect a full-blown queue of bundles or actions at any point. If a bundle is
+      // pending, a new bundle should immediately finalize it. Here we refuse to queue up more
+      // actions than that. (This could crop up in theory while disconnected, but is hard to
+      // trigger to test.)
+      throw new Error('Too many actions already pending');
+    }
+    this._bundlesPending++;
 
-  // Ends the active bundle collecting all incoming actions.
-  public stopBundlingActions() {
-    this._bundleCallback = null;
+    // Promise to allow waiting for the result of prepare() callback before it's even called.
+    let prepareResolve!: (value: T) => void;
+    const preparePromise = new Promise<T>(resolve => { prepareResolve = resolve; });
+
+    // Manually-triggered promise for when finalize() should be called. It's triggered by user,
+    // and when an unrelated action or a new bundle is started.
+    let triggerFinalize!: () => void;
+    const triggerFinalizePromise = new Promise<void>(resolve => { triggerFinalize = resolve; });
+
+    const doBundleActions = async () => {
+      if (this._lastBundlePromise) {
+        this._triggerBundleFinalize?.();
+        await this._lastBundlePromise;
+      }
+      this._nextDesc = options.description;
+      this._lastActionNum = null;
+      this._triggerBundleFinalize = triggerFinalize;
+      const value = await options.prepare();
+      prepareResolve(value);
+      this._shouldIncludeInBundle = options.shouldIncludeInBundle;
+
+      try {
+        await triggerFinalizePromise;
+        // Unset _shouldIncludeInBundle so that actions sent by finalize() are included in the
+        // bundle. If they were checked and incorrectly failed the check, we'd have a deadlock.
+        // TODO The downside is that when sending multiple unrelated actions quickly, the first
+        // can trigger finalize, and subsequent ones can get bundled in while finalize() is
+        // running. This changes the order of actions and may create problems (e.g. with undo).
+        this._shouldIncludeInBundle = undefined;
+        await options.finalize();
+      } finally {
+        // In all cases, reset the bundle-specific values we set above
+        this._shouldIncludeInBundle = undefined;
+        this._triggerBundleFinalize = undefined;
+        this._bundlesPending--;
+        if (this._bundlesPending === 0) {
+          this._lastBundlePromise = undefined;
+        }
+      }
+    };
+
+    this._lastBundlePromise = doBundleActions();
+    return {preparePromise, triggerFinalize};
   }
 
   // Execute a callback that may send multiple actions, and bundle those actions together. The
   // callback may return a promise, in which case bundleActions() will wait for it to resolve.
-  public async bundleActions<T>(desc: string|null, callback: () => T|Promise<T>): Promise<T> {
-    this.startBundlingActions(desc, () => true);
-    try {
+  // If nestInActiveBundle is true, and there is an active bundle, then simply calls callback()
+  // without starting a new bundle.
+  public async bundleActions<T>(desc: string|null, callback: () => T|Promise<T>,
+                                options: {nestInActiveBundle?: boolean} = {}): Promise<T> {
+    if (options.nestInActiveBundle && this._bundlesPending) {
       return await callback();
+    }
+    const bundlingInfo = this.startBundlingActions<T>({
+      description: desc,
+      shouldIncludeInBundle: () => true,
+      prepare: callback,
+      finalize: async () => undefined,
+    });
+    try {
+      return await bundlingInfo.preparePromise;
     } finally {
-      this.stopBundlingActions();
+      bundlingInfo.triggerFinalize();
     }
   }
 
@@ -123,19 +179,18 @@ export class DocData extends BaseDocData {
     const eventData = {actions};
     this.sendActionsEmitter.emit(eventData);
     const options = { desc: optDesc };
-    const bundleCallback = this._bundleCallback;
-    if (bundleCallback) {
-      actions.forEach(action => {
-        if (!bundleCallback(action)) {
-          gristNotify(`Attempted to add invalid action to current bundle: ${action}.`);
-        }
-      });
+    if (this._shouldIncludeInBundle && !this._shouldIncludeInBundle(actions)) {
+      this._triggerBundleFinalize?.();
+      await this._lastBundlePromise;
+    }
+    if (this._bundlesPending) {
       defaults(options, {
         desc: this._nextDesc,
         linkId: this._lastActionNum,
       });
       this._nextDesc = null;
     }
+
     const result: ApplyUAResult = await this._bundleSender.applyUserActions(actions, options);
     this._lastActionNum = result.actionNum;
     this.sendActionsDoneEmitter.emit(eventData);
@@ -182,4 +237,37 @@ class BundleSender {
     }
     return this._sendPromise;
   }
+}
+
+
+/**
+ * Options to startBundlingAction().
+ */
+export interface BundlingOptions<T = unknown> {
+  // Description of the action bundle.
+  description: string|null;
+
+  // Checker for whether an action belongs in the current bundle. If not, finalize() will be
+  // called immediately. Note that this checker is NOT applied for actions sent from prepare()
+  // or finalize() callbacks, only those in between.
+  shouldIncludeInBundle: (actions: UserAction[]) => boolean;
+
+  // Callback to start this action bundle.
+  prepare: () => T|Promise<T>;
+
+  // Callback to finalize this action bundle.
+  finalize: () => Promise<void>;
+}
+
+/**
+ * Result of startBundlingActions(), to allow waiting for prepare() to complete, and to trigger
+ * finalize() manually.
+ */
+export interface BundlingInfo<T = unknown> {
+  // Promise for when the prepare() has completed. Note that sometimes it's delayed until the
+  // previous bundle has been finalized.
+  preparePromise: Promise<T>;
+
+  // Ask DocData to call the finalize callback immediately.
+  triggerFinalize: () => void;
 }

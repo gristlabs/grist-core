@@ -150,7 +150,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
         this._fieldOrColumn().visibleCol.saveOnly(colRef),
         this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : '')
       ]);
-    })
+    }, {nestInActiveBundle: this.column.peek().isTransforming.peek()})
   );
 
   // The display column to use for the field, or the column itself when no displayCol is set.

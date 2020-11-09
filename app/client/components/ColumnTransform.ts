@@ -9,6 +9,7 @@ import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {TableData} from 'app/client/models/TableData';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {UserAction} from 'app/common/DocActions';
 import {Disposable, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import noop = require('lodash/noop');
@@ -33,8 +34,17 @@ export class ColumnTransform extends Disposable {
   protected formulaUpToDate = Observable.create(this, true);
   protected _tableData: TableData;
 
-    // This is set to true in the interval between execute() and dispose().
-  private _isExecuting: boolean = false;
+  // Whether _doFinalize should execute the transform, or cancel it.
+  protected _shouldExecute: boolean = false;
+
+  // Ask DocData to finalize the action bundle by calling the finalize callback provided to
+  // startBundlingActions. Finalizing should always be triggered this way, for a uniform flow,
+  // since finalizing could be triggered either from DocData or from cancel/execute methods.
+  // This is a noop until startBundlingActions is called.
+  private _triggerFinalize: (() => void) = noop;
+
+  // This is set to true once finalize has started.
+  private _isFinalizing: boolean = false;
 
   constructor(protected gristDoc: GristDoc, private _fieldBuilder: FieldBuilder) {
     super();
@@ -65,8 +75,8 @@ export class ColumnTransform extends Disposable {
     throw new Error("Not Implemented");
   }
 
-  public finalize() {
-    // Implemented in FormulaTransform.
+  public async finalize(): Promise<void> {
+    return this._triggerFinalize();
   }
 
   /**
@@ -90,13 +100,28 @@ export class ColumnTransform extends Disposable {
    * Helper called by contructor to prepare the column transform.
    * @param {String} colType: A pure or complete type for the transformed column.
    */
-  public async prepare(colType?: string) {
-    colType = colType || this.origColumn.type.peek();
-    // Start bundling all actions during the transform, but include a verification callback to ensure
-    // no errant actions are added to the bundle.
-    this._tableData.docData.startBundlingActions(`Transformed column ${this.origColumn.colId()}.`,
-      action => (action[2] === "gristHelper_Transform" || action[1] === "_grist_Tables_column" ||
-        action[0] === "SetDisplayFormula" || action[1] === "_grist_Views_section_field"));
+  public async prepare(optColType?: string) {
+    const colType: string = optColType || this.origColumn.type.peek();
+
+    // Start bundling all actions during the transform. The verification callback ensures
+    // no errant actions are added to the bundle; if there are, finalize is immediately called.
+    const bundlingInfo = this._tableData.docData.startBundlingActions({
+      description: `Transformed column ${this.origColumn.colId()}.`,
+      shouldIncludeInBundle: this._shouldIncludeInBundle.bind(this),
+      prepare: this._doPrepare.bind(this, colType),
+      finalize: this._doFinalize.bind(this)
+    });
+
+    // triggerFinalize tells DocData to call the finalize callback we passed above; this way
+    // DocData knows when it's finished.
+    this._triggerFinalize = bundlingInfo.triggerFinalize;
+
+    // preparePromise resolves once prepare() callback has got a chance to run and finish.
+    await bundlingInfo.preparePromise;
+  }
+
+  private async _doPrepare(colType: string) {
+    if (this.isDisposed()) { return; }
     this.isCallPending(true);
     try {
       const newColRef = await this.addTransformColumn(colType);
@@ -109,6 +134,21 @@ export class ColumnTransform extends Disposable {
     } finally {
       this.isCallPending(false);
     }
+  }
+
+  private _shouldIncludeInBundle(actions: UserAction[]) {
+    // Allow certain expected actions. If we encounter anything else, the user must have
+    // started doing something else, and we should finalize the transform.
+    return actions.every(action => (
+      // ['AddColumn', USER_TABLE, 'gristHelper_Transform', colInfo]
+      (action[2] === 'gristHelper_Transform') ||
+      // ["SetDisplayFormula", USER_TABLE, ...]
+      (action[0] === 'SetDisplayFormula') ||
+      // ['UpdateRecord', '_grist_Table_column', transformColId, ...]
+      (action[1] === '_grist_Tables_column') ||
+      // ['UpdateRecord', '_grist_Views_section_field', transformColId, ...] (e.g. resize)
+      (action[1] === '_grist_Views_section_field')
+    ));
   }
 
   /**
@@ -131,39 +171,43 @@ export class ColumnTransform extends Disposable {
     // Nothing in base class.
   }
 
-  public cancel() {
-    this.field.colRef(this.origColumn.getRowId());
-    this._tableData.sendTableAction(['RemoveColumn', this.transformColumn.colId()]);
-    // TODO: Cancelling a column transform should cancel all involved useractions.
-    this._tableData.docData.stopBundlingActions();
-    this.dispose();
+  public async cancel(): Promise<void> {
+    this._shouldExecute = false;
+    return this._triggerFinalize();
   }
 
-  // TODO: Values flicker during executing since transform column remains a formula as values are copied
-  // back to the original column. The CopyFromColumn useraction really ought to be "CopyAndRemove" since
-  // that seems the best way to avoid calculating the formula on wrong values.
-  protected async execute() {
-    if (this._isExecuting) {
+  protected async execute(): Promise<void> {
+    this._shouldExecute = true;
+    return this._triggerFinalize();
+  }
+
+  // This is passed as a callback to startBundlingActions(), and should NOT be called directly.
+  // Instead, call _triggerFinalize() is used to trigger it.
+  private async _doFinalize(): Promise<void> {
+    if (this.isDisposed() || this._isFinalizing) {
       return;
     }
-    this._isExecuting = true;
+    this._isFinalizing = true;
 
-    // Define variables used in '.then' since this may be disposed
+    // Define variables used after await, since this will be disposed by then.
     const transformColId = this.transformColumn.colId();
     const field = this.field;
     const fieldBuilder = this._fieldBuilder;
     const origRef = this.origColumn.getRowId();
     const tableData = this._tableData;
     this.isCallPending(true);
-
     try {
-      return await tableData.sendTableAction(['CopyFromColumn', transformColId, this.origColumn.colId(),
-        JSON.stringify(fieldBuilder.options())]);
+      if (this._shouldExecute) {
+        // TODO: Values flicker during executing since transform column remains a formula as values are copied
+        // back to the original column. The CopyFromColumn useraction really ought to be "CopyAndRemove" since
+        // that seems the best way to avoid calculating the formula on wrong values.
+        return await tableData.sendTableAction(['CopyFromColumn', transformColId, this.origColumn.colId(),
+          JSON.stringify(fieldBuilder.options())]);
+      }
     } finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
       tableData.sendTableAction(['RemoveColumn', transformColId]);
-      tableData.docData.stopBundlingActions();
       this.dispose();
     }
   }
@@ -177,7 +221,7 @@ export class ColumnTransform extends Disposable {
     this.transformColumn.isTransforming(bool);
   }
 
-  protected isExecuting(): boolean {
-    return this._isExecuting;
+  protected isFinalizing(): boolean {
+    return this._isFinalizing;
   }
 }

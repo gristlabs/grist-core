@@ -33,6 +33,7 @@ export class TypeTransform extends ColumnTransform {
 
   constructor(gristDoc: GristDoc, fieldBuilder: FieldBuilder) {
     super(gristDoc, fieldBuilder);
+    this._shouldExecute = true;
 
     // The display widget of the new transform column. Used to build the transform config menu.
     // Only set while transforming.
@@ -59,7 +60,7 @@ export class TypeTransform extends ColumnTransform {
         )
       ),
       cssButtonRow(
-        basicButton(dom.on('click', () => { this.cancel(); disableButtons.set(true); }),
+        basicButton(dom.on('click', () => { this.cancel().catch(reportError); disableButtons.set(true); }),
           'Cancel', testId("type-transform-cancel"),
           dom.cls('disabled', disableButtons)
         ),
@@ -86,7 +87,7 @@ export class TypeTransform extends ColumnTransform {
   }
 
   protected async resetToDefaultFormula() {
-    if (!this.isExecuting()) {
+    if (!this.isFinalizing()) {
       const toType = this.transformColumn.type.peek();
       const formula = TypeConversion.getDefaultFormula(this.gristDoc.docModel, this.origColumn,
         toType, this.field.visibleColRef(), this.field.widgetOptionsJson());
@@ -132,9 +133,5 @@ export class TypeTransform extends ColumnTransform {
       isEmpty(changedInfo) ? undefined : tcol.updateColValues(changedInfo as ColValues),
       TypeConversion.setDisplayFormula(docModel, tcol, changedInfo.visibleCol)
     ]);
-  }
-
-  public finalize() {
-    return this.execute();
   }
 }

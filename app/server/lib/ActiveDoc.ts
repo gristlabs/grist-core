@@ -14,7 +14,6 @@ import remove = require('lodash/remove');
 import zipObject = require('lodash/zipObject');
 import * as moment from 'moment-timezone';
 import * as tmp from 'tmp';
-import * as util from 'util';
 
 import {getEnvContent, LocalActionBundle} from 'app/common/ActionBundle';
 import {SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
@@ -1072,7 +1071,7 @@ export class ActiveDoc extends EventEmitter {
     const result: ApplyUAResult = await new Promise<ApplyUAResult>(
       (resolve, reject) =>
         this._sharing!.addUserAction({action, client, resolve, reject}));
-    this.logDebug(docSession, "_applyUserActions returning %s", util.inspect(result));
+    this.logDebug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.

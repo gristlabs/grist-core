@@ -47,8 +47,4 @@ export class FormulaTransform extends ColumnTransform {
       ),
     ];
   }
-
-  public finalize() {
-    this.cancel();
-  }
 }
