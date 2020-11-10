@@ -12,7 +12,7 @@ export class KeyedMutex {
     if (!this._mutexes.has(key)) {
       this._mutexes.set(key, new Mutex());
     }
-    const mutex = this._mutexes.get(key)!
+    const mutex = this._mutexes.get(key)!;
     const unlock = await mutex.acquire();
     return () => {
       unlock();
@@ -27,7 +27,7 @@ export class KeyedMutex {
   public async runExclusive<T>(key: string, callback: MutexInterface.Worker<T>): Promise<T> {
     const unlock = await this.acquire(key);
     try {
-      return callback();
+      return await callback();
     } finally {
       unlock();
     }

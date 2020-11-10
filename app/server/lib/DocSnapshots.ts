@@ -196,9 +196,9 @@ export class DocSnapshotInventory implements IInventory {
           log.error(`Surprise in getSnapshots, expected ${expectSnapshotId} for ${key} ` +
                     `but got ${data[0]?.snapshotId}`);
         }
-        // Reconstructed data is precious.  Save it to S3 and local cache.
+        // Reconstructed data is precious.  Make sure it gets saved.
         await this._saveToFile(fname, data);
-        await this._meta.upload(key, fname);
+        this._needFlush.add(key);
       }
     }
     return data;

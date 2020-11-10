@@ -112,7 +112,7 @@ export class HostedStorageManager implements IDocStorageManager {
 
   private _baseStore: ExternalStorage;  // External store for documents, without checksumming.
 
-  // Latest checksums of documents.
+  // Latest version ids of documents.
   private _latestVersions = new Map<string, string>();
 
   /**
@@ -418,6 +418,10 @@ export class HostedStorageManager implements IDocStorageManager {
     while (!this.isSaved(docName)) {
       log.info('HostedStorageManager: waiting for document to finish: %s', docName);
       await this._uploads.expediteOperationAndWait(docName);
+      if (!this.isSaved(docName)) {
+        // Throttle slightly in case this operation ends up looping excessively.
+        await delay(1000);
+      }
     }
   }
 
@@ -688,7 +692,7 @@ export class HostedStorageManager implements IDocStorageManager {
   private _getChecksummedExternalStorage(family: string, core: ExternalStorage,
                                          versions: Map<string, string>,
                                          options: HostedStorageOptions) {
-    return new ChecksummedExternalStorage(core, {
+    return new ChecksummedExternalStorage(family, core, {
       maxRetries: 4,
       initialDelayMs: options.secondsBeforeFirstRetry * 1000,
       computeFileHash: this._getHash.bind(this),
