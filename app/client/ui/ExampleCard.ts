@@ -7,6 +7,8 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, Observable, styled} from 'grainjs';
 
+let prevCardClose: (() => void)|null = null;
+
 // Open a popup with a card introducing this example, if the user hasn't dismissed it in the past.
 export function showExampleCard(
   example: IExampleInfo, appModel: AppModel, btnElem: HTMLElement, reopen: boolean = false
@@ -31,6 +33,7 @@ export function showExampleCard(
 
   // Close the example card.
   function close() {
+    prevCardClose = null;
     collapseAndRemoveCard(cardElem, btnElem.getBoundingClientRect());
     // If we fail to save this preference, it's probably not worth alerting the user about,
     // so just log to console.
@@ -66,13 +69,21 @@ export function showExampleCard(
   if (reopen) {
     expandCard(cardElem, btnElem.getBoundingClientRect());
   }
+
+  prevCardClose?.();
+  prevCardClose = () => disposeCard(cardElem);
+}
+
+function disposeCard(cardElem: HTMLElement) {
+  dom.domDispose(cardElem);
+  cardElem.remove();
 }
 
 // When closing the card, collapse it visually into the button that can open it again, to hint to
 // the user where to find that button. Remove the card after the animation.
 function collapseAndRemoveCard(card: HTMLElement, collapsedRect: DOMRect) {
   const watcher = new TransitionWatcher(card);
-  watcher.onDispose(() => card.remove());
+  watcher.onDispose(() => disposeCard(card));
   collapseCard(card, collapsedRect);
 }
 
