@@ -27,7 +27,7 @@ import {toTableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
-import {byteString} from 'app/common/gutil';
+import {byteString, countIf} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
 import {Peer} from 'app/common/sharing';
@@ -1125,13 +1125,44 @@ export class ActiveDoc extends EventEmitter {
    * collaborators.
    */
   private async _migrate(docSession: OptDocSession): Promise<void> {
-    // TODO fetchAllTables() creates more memory pressure than usual since full data is present in
-    // memory at once both in node and in Python. This is liable to cause crashes. This doesn't
-    // even skip onDemand tables. We should try to migrate using metadata only. Data migrations
-    // would need to be done table-by-table, and differently still for on-demand tables.
-    const allTables = await this.docStorage.fetchAllTables();
-    const docActions: DocAction[] = await this._dataEngine.pyCall('create_migrations', allTables);
-    this.logInfo(docSession, "_migrate: applying %d migration actions", docActions.length);
+    const tableNames = await this.docStorage.getAllTableNames();
+
+    // Fetch only metadata tables first, and try to migrate with only those.
+    const tableData: {[key: string]: Buffer|null} = {};
+    for (const tableName of tableNames) {
+      if (tableName.startsWith('_grist_')) {
+        tableData[tableName] = await this.docStorage.fetchTable(tableName);
+      }
+    }
+
+    let docActions: DocAction[];
+    try {
+      // The last argument tells create_migrations() that only metadata is included.
+      docActions = await this._dataEngine.pyCall('create_migrations', tableData, true);
+    } catch (e) {
+      if (!/need all tables/.test(e.message)) {
+        throw e;
+      }
+      // If the migration failed because it needs all tables (i.e. involves changes to data), then
+      // fetch them all. TODO: This is used for some older migrations, and is relied on by tests.
+      // If a new migration needs this flag, more work is needed. The current approach creates
+      // more memory pressure than usual since full data is present in memory at once both in node
+      // and in Python; and it doesn't skip onDemand tables. This is liable to cause crashes.
+      this.logWarn(docSession, "_migrate: retrying with all tables");
+      for (const tableName of tableNames) {
+        if (!tableData[tableName] && !tableName.startsWith('_gristsys_')) {
+          tableData[tableName] = await this.docStorage.fetchTable(tableName);
+        }
+      }
+      docActions = await this._dataEngine.pyCall('create_migrations', tableData);
+    }
+
+    const processedTables = Object.keys(tableData);
+    const numSchema = countIf(processedTables, t => t.startsWith("_grist_"));
+    const numUser = countIf(processedTables, t => !t.startsWith("_grist_"));
+    this.logInfo(docSession, "_migrate: applying %d migration actions (processed %s schema, %s user tables)",
+      docActions.length, numSchema, numUser);
+
     docActions.forEach((action, i) => this.logInfo(docSession, "_migrate: docAction %s: %s", i, shortDesc(action)));
     await this.docStorage.execTransaction(() => this.docStorage.applyStoredActions(docActions));
   }

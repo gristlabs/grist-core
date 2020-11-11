@@ -97,9 +97,9 @@ def main():
     return eng.load_table(table_data_from_db(table_name, table_data))
 
   @export
-  def create_migrations(all_tables):
+  def create_migrations(all_tables, metadata_only=False):
     doc_actions = migrations.create_migrations(
-      {t: table_data_from_db(t, data) for t, data in all_tables.iteritems()})
+      {t: table_data_from_db(t, data) for t, data in all_tables.iteritems()}, metadata_only)
     return map(actions.get_action_repr, doc_actions)
 
   @export

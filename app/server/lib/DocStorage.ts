@@ -714,22 +714,11 @@ export class DocStorage implements ISQLiteDB {
   }
 
   /**
-   * Fetches all tables from the database, and returns a dictionary mapping table names to encoded
-   * TableData objects (marshalled dicts mapping column ids to arrays of values).
+   * Fetches and returns the names of all tables in the database (including _gristsys_ tables).
    */
-  public fetchAllTables(): Promise<{[key: string]: Buffer|null}> {
-    const tables: {[key: string]: Buffer|null} = {};
-    return bluebird.Promise.each(
-      this.all("SELECT name FROM sqlite_master WHERE type='table'"),
-      (row: ResultRow) => {
-        if (!row.name.startsWith('_gristsys_')) {
-          return this.fetchTable(row.name)
-            .then(data => {
-              tables[row.name] = data;
-            });
-        }
-      })
-      .return(tables);
+  public async getAllTableNames(): Promise<string[]> {
+    const rows = await this.all("SELECT name FROM sqlite_master WHERE type='table'");
+    return rows.map(row => row.name);
   }
 
   /**

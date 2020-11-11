@@ -28,12 +28,18 @@ all_migrations = {}
 def noop_migration(_all_tables):
   return []
 
+# Each migration function includes a .need_all_tables attribute. See migration() decorator.
+noop_migration.need_all_tables = False
 
-def create_migrations(all_tables):
+
+def create_migrations(all_tables, metadata_only=False):
   """
   Creates and returns a list of DocActions needed to bring this document to
-  schema.SCHEMA_VERSION. It requires as input all of the documents tables.
-    all_tables: all tables as a dictionary mapping table name to TableData.
+  schema.SCHEMA_VERSION.
+    all_tables: all tables or just the metadata tables (those named with _grist_ prefix) as a
+      dictionary mapping table name to TableData.
+    metadata_only: should be set if only metadata tables are passed in. If ALL tables are
+      required to process migrations, this method will raise a "need all tables..." exception.
   """
   try:
     doc_version = all_tables['_grist_DocInfo'].columns["schemaVersion"][0]
@@ -57,6 +63,7 @@ def create_migrations(all_tables):
   new_schema = {a.table_id: a for a in schema.schema_create_actions()}
   for table_id, data in sorted(all_tables.iteritems()):
     # User tables should already be in tdset; the rest must be metadata tables.
+    # (If metadata_only is true, there is simply nothing to skip here.)
     if table_id not in tdset.all_tables:
       new_col_info = {}
       if table_id in new_schema:
@@ -71,6 +78,9 @@ def create_migrations(all_tables):
 
   migration_actions = []
   for version in xrange(doc_version + 1, schema.SCHEMA_VERSION + 1):
+    migration_func = all_migrations.get(version, noop_migration)
+    if migration_func.need_all_tables and metadata_only:
+      raise Exception("need all tables for migration to %s" % version)
     migration_actions.extend(all_migrations.get(version, noop_migration)(tdset))
 
   # Note that if we are downgrading versions (i.e. doc_version is higher), then the following is
@@ -86,12 +96,19 @@ def get_last_migration_version():
   """
   return max(all_migrations.iterkeys())
 
-def migration(schema_version):
+def migration(schema_version, need_all_tables=False):
   """
   Decorator for migrations that associates the decorated migration function with the given
-  schema_version. This decorate function will be run to migrate forward to schema_version.
+  schema_version. This decorated function will be run to migrate forward to schema_version.
+
+  Migrations are first attempted with only metadata tables, but if any required migration function
+  is marked with need_all_tables=True, then the migration will be retried with all tables.
+
+  NOTE: new migrations should NOT set need_all_tables=True; it would require more work to process
+  very large documents safely (incuding those containing on-demand tables).
   """
   def add_migration(migration_func):
+    migration_func.need_all_tables = need_all_tables
     all_migrations[schema_version] = migration_func
     return migration_func
   return add_migration
@@ -653,7 +670,9 @@ def migration16(tdset):
 
   return tdset.apply_doc_actions(doc_actions)
 
-@migration(schema_version=17)
+# This is actually the only migration that requires all tables because it modifies user data
+# (specifically, any columns of the deprecated "Image" type).
+@migration(schema_version=17, need_all_tables=True)
 def migration17(tdset):
   """
   There is no longer an "Image" type for columns, as "Attachments" now serves as a
