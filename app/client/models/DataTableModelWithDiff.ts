@@ -111,7 +111,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
   }
 
   public createFloatingRowModel(optRowModelClass: any): BaseRowModel {
-    return this.core.createFloatingRowModel(optRowModelClass);
+    return this._wrappedModel.createFloatingRowModel(optRowModelClass);
   }
 
   public fetch(force?: boolean): Promise<void> {

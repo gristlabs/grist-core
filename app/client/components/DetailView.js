@@ -370,6 +370,10 @@ DetailView.prototype.makeRecord = function(record) {
   return dom(
     this.recordLayout.buildLayoutDom(record),
     kd.cssClass(() => 'detail_theme_record_' + this.viewSection.themeDef()),
+    this.comparison ? kd.cssClass(() => {
+      const rowType = this.extraRows.getRowType(record.id());
+      return rowType && `diff-${rowType}` || '';
+    }) : null,
     kd.toggleClass('active', () => (this.cursor.rowIndex() === record._index() && this.viewSection.hasFocus())),
     // 'detailview_record_single' or 'detailview_record_detail' doesn't need to be an observable,
     // since a change to parentKey would cause a separate call to makeRecord.
