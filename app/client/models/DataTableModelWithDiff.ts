@@ -14,6 +14,61 @@ import { DocStateComparisonDetails } from 'app/common/UserAPI';
 import { CellValue } from 'app/plugin/GristData';
 
 /**
+ * Represent extra rows in a table that correspond to rows added in a remote (right) document,
+ * or removed in the local (left) document relative to a common ancestor.
+ *
+ * We assign synthetic row ids for these rows somewhat arbitrarily as follows:
+ *  - For rows added remotely, we double their id and flip sign
+ *  - For rows removed locally, we double their id, add one, and flip sign
+ * This should be the only part of the code that knows that.
+ */
+export class ExtraRows {
+  readonly leftTableDelta?: TableDelta;
+  readonly rightTableDelta?: TableDelta;
+  readonly rightAddRows: Set<number>;
+  readonly rightRemoveRows: Set<number>;
+  readonly leftAddRows: Set<number>;
+  readonly leftRemoveRows: Set<number>;
+
+  /**
+   * Map back from a possibly synthetic row id to an original strictly-positive row id.
+   */
+  public static interpretRowId(rowId: number): { type: 'remote-add'|'local-remove'|'shared', id: number } {
+    if (rowId >= 0) { return { type: 'shared', id: rowId }; }
+    if (rowId % 2 === 0) { return { type: 'remote-add', id: -rowId / 2 }; }
+    return { type: 'local-remove', id: (-rowId - 1) / 2 };
+  }
+
+  public constructor(readonly tableId: string, readonly comparison?: DocStateComparisonDetails) {
+    this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[this.tableId];
+    this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[this.tableId];
+    this.rightAddRows = new Set(this.rightTableDelta && this.rightTableDelta.addRows.map(id => -id*2));
+    this.rightRemoveRows = new Set(this.rightTableDelta && this.rightTableDelta.removeRows);
+    this.leftAddRows = new Set(this.leftTableDelta && this.leftTableDelta.addRows);
+    this.leftRemoveRows = new Set(this.leftTableDelta && this.leftTableDelta.removeRows.map(id => -id*2 -1));
+  }
+
+  /**
+   * Get a list of extra synthetic row ids to add.
+   */
+  public getExtraRows(): ReadonlyArray<number> {
+    return [...this.rightAddRows].concat([...this.leftRemoveRows]);
+  }
+
+  /**
+   * Classify the row as either remote-add, remote-remove, local-add, or local-remove.
+   */
+  public getRowType(rowId: number) {
+    if (this.rightAddRows.has(rowId))         { return 'remote-add'; }
+    else if (this.leftAddRows.has(rowId))     { return 'local-add';  }
+    else if (this.rightRemoveRows.has(rowId)) { return 'remote-remove'; }
+    else if (this.leftRemoveRows.has(rowId))  { return 'local-remove'; }
+    // TODO: consider what should happen when a row is removed both locally and remotely.
+    return '';
+  }
+}
+
+/**
  *
  * A variant of DataTableModel that is aware of a comparison with another version of the table.
  * The constructor takes a DataTableModel and DocStateComparisonDetails.  We act as a proxy
@@ -154,25 +209,20 @@ export class TableDataWithDiff {
           parent: oldValue(left),
           local: newValue(left)
         } as CellVersions];
-      } else {
-        // No change in ActionSummary for this cell, but it could be a formula
-        // column.  So we do a crude comparison between the values available.
-        // We won't be able to do anything useful for conflicts (e.g. to know
-        // the display text in a reference columnn for the common parent).
-        // We also won't be able to detect local changes at all.
-        const parent = this.core.getValue(rowId, colId);
-        const remote = this.rightTableDelta.finalRowContent?.[rowId]?.[colId];
-        if (remote !== undefined && JSON.stringify(remote) !== JSON.stringify(parent)) {
-          return [GristObjCode.Versions, {parent, remote} as CellVersions];
-        }
-        return parent;
       }
-    }
-    if (rowId < 0) {
-      const value = this.rightTableDelta.finalRowContent?.[-rowId]?.[colId];
+    } else {
       // keep row.id consistent with rowId for convenience.
-      if (colId === 'id') { return - (value as number); }
-      return value;
+      if (colId === 'id') { return rowId; }
+      const {type, id} = ExtraRows.interpretRowId(rowId);
+      if (type === 'remote-add') {
+        const cell = this.rightTableDelta.columnDeltas[colId]?.[id];
+        const value = (cell !== undefined) ? newValue(cell) : undefined;
+        return value;
+      } else if (type === 'local-remove') {
+        const cell = this.leftTableDelta.columnDeltas[colId]?.[id];
+        const value = (cell !== undefined) ? oldValue(cell) : undefined;
+        return value;
+      }
     }
     return this.core.getValue(rowId, colId);
   }

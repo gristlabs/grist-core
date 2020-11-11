@@ -74,23 +74,25 @@ export class DiffBox extends NewAbstractWidget {
       // selected on the basis of one column, but we are displaying the
       // content of another.  We have more version information for the
       // reference column than for its display column.
-      return [[DIFF_EQUAL, formatter.format(value)]];
+      return [[DIFF_EQUAL, formatter.formatAny(value)]];
     }
     const versions = value[1];
     if (!('local' in versions)) {
       // Change was made remotely only.
-      return this._prepareTextDiff(formatter.format(versions.parent),
-                                   formatter.format(versions.remote));
+      return this._prepareTextDiff(
+        formatter.formatAny(versions.parent),
+        formatter.formatAny(versions.remote));
     } else if (!('remote' in versions)) {
       // Change was made locally only.
-      return this._prepareTextDiff(formatter.format(versions.parent),
-                                   formatter.format(versions.local))
+      return this._prepareTextDiff(
+        formatter.formatAny(versions.parent),
+        formatter.formatAny(versions.local))
         .map(([code, txt]) => [code === DIFF_INSERT ? DIFF_LOCAL : code, txt]);
     }
     // Change was made both locally and remotely.
-    return [[DIFF_DELETE, formatter.format(versions.parent)],
-            [DIFF_LOCAL, formatter.format(versions.local)],
-            [DIFF_INSERT, formatter.format(versions.remote)]];
+    return [[DIFF_DELETE, formatter.formatAny(versions.parent)],
+            [DIFF_LOCAL, formatter.formatAny(versions.local)],
+            [DIFF_INSERT, formatter.formatAny(versions.remote)]];
   }
 
   // Run diff-match-patch on the text, do its cleanup, and then some extra

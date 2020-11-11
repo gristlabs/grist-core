@@ -152,26 +152,21 @@
   white-space: pre-wrap;
 }
 
-.diff-change .diff-parent, .diff-change .diff-remote {
-  display: inline-block;
-  width: 50%;
-}
-
-.diff-conflict .diff-parent, .diff-conflict .diff-local, .diff-conflict .diff-remote {
-  display: inline-block;
-  width: 33.33%;
-}
-
-.diff-local {
+.diff-local, .diff-local-add {
   background-color: #dfdfff;
 }
 
-.diff-parent {
+.diff-parent, .diff-remote-remove {
   background-color: #ffdfdf;
   text-decoration: line-through;
 }
 
-.diff-remote {
+.diff-local-remove {
+  background-color: #dfdfdf;
+  text-decoration: line-through;
+}
+
+.diff-remote, .diff-remote-add {
   background-color: #afffaf;
 }
 

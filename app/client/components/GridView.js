@@ -704,10 +704,6 @@ GridView.prototype.buildDom = function() {
   let vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
   let vZebraStripes        = v.optionsObj.prop('zebraStripes');
 
-  const rightAddRows = new Set(this.rightTableDelta && this.rightTableDelta.addRows.map(id => -id));
-  const rightRemoveRows = new Set(this.rightTableDelta && this.rightTableDelta.removeRows);
-  const leftAddRows = new Set(this.leftTableDelta && this.leftTableDelta.addRows);
-
   var renameCommands = {
     nextField: function() {
       editIndex(editIndex() + 1);
@@ -908,11 +904,8 @@ GridView.prototype.buildDom = function() {
         kd.toggleClass('record-even', () => (row._index()+1) % 2 === 0 ),
 
         self.comparison ? kd.cssClass(() => {
-          var rowId = row.id();
-          if (rightAddRows.has(rowId))         { return 'diff-remote'; }
-          else if (rightRemoveRows.has(rowId)) { return 'diff-parent'; }
-          else if (leftAddRows.has(rowId))     { return 'diff-local';  }
-          return '';
+          const rowType = self.extraRows.getRowType(row.id());
+          return rowType && `diff-${rowType}` || '';
         }) : null,
 
         kd.foreach(v.viewFields(), function(field) {

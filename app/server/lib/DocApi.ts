@@ -1,7 +1,7 @@
-import { ActionSummary, createEmptyActionSummary } from "app/common/ActionSummary";
+import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
-import { fromTableDataAction, RowRecord, TableColValues } from 'app/common/DocActions';
+import { fromTableDataAction, TableColValues } from 'app/common/DocActions';
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -18,7 +18,6 @@ import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import { HashUtil } from 'app/server/lib/HashUtil';
 import { makeForkIds } from "app/server/lib/idUtils";
-import * as log from 'app/server/lib/log';
 import { getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
   sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
 import { SandboxError } from "app/server/lib/sandboxUtil";
@@ -532,56 +531,7 @@ export class DocWorkerApi {
         rightChanges: totalAction
       }
     };
-    // Currently, as a bit of a hack, the full final state of updated/added rows
-    // is included, including formula columns, by looking at the current state
-    // of the document.
-    if (rightOffset === 0) {
-      await this._addRowsToActionSummary(docSession, activeDoc, totalAction);
-    } else {
-      // In the future final row content may not be needed, if formula cells end
-      // up included in ActionSummary.
-      log.debug('cannot add rows when not comparing to current state of doc');
-    }
     return result;
-  }
-
-  /**
-   * Adds the content of updated and added rows to an ActionSummary.
-   * For visualizing differences, currently there's no other way to get formula
-   * information.  This only makes sense for an ActionSummary between a previous
-   * version of the document and the current version, since it accesses the row
-   * content from the current version of the document.
-   */
-  private async _addRowsToActionSummary(docSession: OptDocSession, activeDoc: ActiveDoc,
-                                        summary: ActionSummary) {
-    for (const tableId of Object.keys(summary.tableDeltas)) {
-      const tableDelta = summary.tableDeltas[tableId];
-      const rowIds = new Set([...tableDelta.addRows, ...tableDelta.updateRows]);
-      try {
-        // Inefficient code that reads the entire table in order to pull out the few
-        // rows we need.
-        const [, , ids, columns] = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
-          docSession, {tableId, filters: {}}, true));
-        const rows: {[key: number]: RowRecord} = {};
-        for (const rowId of rowIds) {
-          const rec: RowRecord = {id: rowId};
-          const idx = ids.indexOf(rowId);
-          if (idx >= 0) {
-            for (const colId of Object.keys(columns)) {
-              rec[colId] = columns[colId][idx];
-            }
-            rows[rowId] = rec;
-          }
-        }
-        tableDelta.finalRowContent = rows;
-      } catch (e) {
-        // ActionSummary has some rough spots - if there's some junk in it we just ignore
-        // that for now.
-        // TODO: add ids to doc actions and their undos so they can be aligned, so ActionSummary
-        // doesn't need to use heuristics.
-        log.error('_addRowsToChanges skipped a table');
-      }
-    }
   }
 
   private async _removeDoc(req: Request, res: Response, permanent: boolean) {

@@ -136,6 +136,9 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
   const termToUse = isSnapshot ? "Current Version" : "Original";
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
   const originalUrl = urlState().makeUrl({doc: origUrlId});
+  const originalUrlComparison = urlState().makeUrl({
+    doc: origUrlId, params: { compare: doc.id }
+  });
   function replaceOriginal() {
     const user = appModel.currentValidUser;
     replaceTrunkWithFork(user, doc, appModel, origUrlId).catch(reportError);
@@ -150,6 +153,9 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
     menuItem(replaceOriginal, `Replace ${termToUse}...`,
       dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null)),
       testId('replace-original'),
+    ),
+    menuItemLink({href: originalUrlComparison, target: '_blank'}, `Compare to ${termToUse}`,
+      testId('compare-original'),
     ),
   ];
 }

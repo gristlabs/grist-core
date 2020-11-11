@@ -24,6 +24,7 @@ const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
 const {copyToClipboard} = require('app/client/lib/copyToClipboard');
 const {setTestState} = require('app/client/lib/testState');
+const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 
 /**
@@ -47,18 +48,10 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // Check if we are making a comparison with another document.
   this.comparison = this.gristDoc.comparison;
-  if (this.comparison) {
-    const tableId = this.schemaModel.tableId();
-    // TODO: make robust to name changes.
-    this.leftTableDelta = this.comparison.details.leftChanges.tableDeltas[tableId];
-    this.rightTableDelta = this.comparison.details.rightChanges.tableDeltas[tableId];
-  } else {
-    this.rightTableDelta = null;
-    this.leftTableDelta = null;
-  }
 
   // TODO: but accessing by tableId identifier may be problematic when the table is renamed.
   this.tableModel = this.gristDoc.getTableModelMaybeWithDiff(this.schemaModel.tableId());
+  this.extraRows = new ExtraRows(this.schemaModel.tableId(), this.comparison && this.comparison.details);
 
   // We use a DynamicQuerySet as the underlying RowSource, with ColumnFilters applies on top of
   // it. It filters based on section linking, re-querying as needed in case of onDemand tables.
@@ -76,13 +69,9 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }
 
   if (this.comparison) {
-    // Assign extra row ids for any rows added in the remote (right) table.
-    // We flip their sign to make them as belonging to the remote table only.
-    // TODO: if we wanted to show rows removed in the local (left) table, we'd need to
-    // add those too, and come up with ids to give them.  Without this, there's no
-    // way to render an update that was made remotely to a row that was removed locally.
-    const extraRowIds = (this.rightTableDelta && this.rightTableDelta.addRows || [])
-          .map(rowId => -rowId);
+    // Assign extra row ids for any rows added in the remote (right) table or removed in the
+    // local (left) table.
+    const extraRowIds = this.extraRows.getExtraRows();
     this._mainRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
   }
 
