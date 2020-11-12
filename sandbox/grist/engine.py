@@ -215,9 +215,6 @@ class Engine(object):
     # Locals dict for recently executed code in the REPL
     self._repl = repl.REPLInterpreter()
 
-    # The single ACL instance for breaking up and validating actions according to permissions.
-    self._acl = acl.ACL(self.docmodel)
-
     # Stores an exception representing the first unevaluated cell met while recomputing the
     # current cell.
     self._cell_required_error = None
@@ -996,9 +993,6 @@ class Engine(object):
     # Update the context used for autocompletions.
     self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)
 
-    # TODO: Whenever schema changes, we need to adjust the ACL resources to remove or rename
-    # tableIds and colIds.
-
 
   def _update_table_model(self, table, user_table):
     """
@@ -1120,7 +1114,8 @@ class Engine(object):
     Splits ActionGroups, as returned e.g. from apply_user_actions, by permissions. Returns a
     single ActionBundle containing of all of the original action_groups.
     """
-    return self._acl.acl_read_split(action_group)
+    # pylint:disable=no-self-use
+    return acl.acl_read_split(action_group)
 
   def _apply_one_user_action(self, user_action):
     """

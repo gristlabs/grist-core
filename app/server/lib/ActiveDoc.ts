@@ -790,8 +790,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async removeInstanceFromDoc(docSession: DocSession): Promise<void> {
-    const instanceId = await this._sharing.removeInstanceFromDoc();
-    await this._applyUserActions(docSession, [['RemoveInstance', instanceId]]);
+    await this._sharing.removeInstanceFromDoc();
   }
 
   public async renameDocTo(docSession: OptDocSession, newName: string): Promise<void> {

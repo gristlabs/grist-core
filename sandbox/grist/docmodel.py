@@ -6,14 +6,14 @@ which exist only in the sandbox and are not communicated to the client.
 It is similar in purpose to DocModel.js on the client side.
 """
 import itertools
-import json
 
-import acl
 import records
 import usertypes
 import relabeling
 import table
 import moment
+
+# pylint:disable=redefined-outer-name
 
 def _record_set(table_id, group_by, sort_by=None):
   @usertypes.formulaType(usertypes.ReferenceList(table_id))
@@ -38,14 +38,6 @@ class MetaTableExtras(object):
   """
   # pylint: disable=no-self-argument,no-member,unused-argument,not-an-iterable
   class _grist_DocInfo(object):
-    def acl_resources(rec, table):
-      """
-      Returns a map of ACL resources for use by acl.py. It is done in a formula so that it
-      automatically recomputes when anything changes in _grist_ACLResources table.
-      """
-      # pylint: disable=no-self-use
-      return acl.build_resources(table.docmodel.get_table('_grist_ACLResources').lookupRecords())
-
     @usertypes.formulaType(usertypes.Any())
     def tzinfo(rec, table):
       # pylint: disable=no-self-use
@@ -105,53 +97,6 @@ class MetaTableExtras(object):
   class _grist_Views_section(object):
     fields = _record_set('_grist_Views_section_field', 'parentId', sort_by='parentPos')
 
-  class _grist_ACLRules(object):
-    # The set of rules that applies to this resource
-    @usertypes.formulaType(usertypes.ReferenceList('_grist_ACLPrincipals'))
-    def principalsList(rec, table):
-      return json.loads(rec.principals)
-
-  class _grist_ACLResources(object):
-    # The set of rules that applies to this resource
-    ruleset = _record_set('_grist_ACLRules', 'resource')
-
-  class _grist_ACLPrincipals(object):
-    # Memberships table maintains containment relationships between principals.
-    memberships = _record_set('_grist_ACLMemberships', 'parent')
-
-    # Children of a User principal are Instances. Children of a Group are Users or other Groups.
-    @usertypes.formulaType(usertypes.ReferenceList('_grist_ACLPrincipals'))
-    def children(rec, table):
-      return [m.child for m in rec.memberships]
-
-    @usertypes.formulaType(usertypes.ReferenceList('_grist_ACLPrincipals'))
-    def descendants(rec, table):
-      """
-      Descendants through great-grandchildren. (We don't support fully recursive descendants yet,
-      which may be cleaner.) The max supported level is a group containing subgroups (children),
-      which contain users (grandchildren), which contain instances (great-grandchildren).
-      """
-      # Include direct children.
-      ret = set(rec.children)
-      ret.add(rec)
-      for c1 in rec.children:
-        # Include grandchildren (children of each child)
-        ret.update(c1.children)
-        for c2 in c1.children:
-          # Include great-grandchildren (children of each grandchild).
-          ret.update(c2.children)
-      return ret
-
-    @usertypes.formulaType(usertypes.ReferenceList('_grist_ACLPrincipals'))
-    def allInstances(rec, table):
-      return sorted(r for r in rec.descendants if r.instanceId)
-
-    @usertypes.formulaType(usertypes.Text())
-    def name(rec, table):
-      return ('User:' + rec.userEmail if rec.type == 'user' else
-              'Group:' + rec.groupName if rec.type == 'group' else
-              'Inst:' + rec.instanceId if rec.type == 'instance' else '')
-
 
 def enhance_model(model_class):
   """
@@ -201,10 +146,6 @@ class DocModel(object):
     self.validations             = self._prep_table("_grist_Validations")
     self.repl_hist               = self._prep_table("_grist_REPL_Hist")
     self.attachments             = self._prep_table("_grist_Attachments")
-    self.acl_rules               = self._prep_table("_grist_ACLRules")
-    self.acl_resources           = self._prep_table("_grist_ACLResources")
-    self.acl_principals          = self._prep_table("_grist_ACLPrincipals")
-    self.acl_memberships         = self._prep_table("_grist_ACLMemberships")
     self.pages                   = self._prep_table("_grist_Pages")
 
   def _prep_table(self, name):

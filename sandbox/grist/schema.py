@@ -238,7 +238,7 @@ def schema_create_actions():
       make_column('colIds',       'Text'),    # Comma-separated list of colIds, or ''
     ]),
 
-    # All of the principals used by ACL rules, including users, groups, and instances.
+    # DEPRECATED: All of the principals used by ACL rules, including users, groups, and instances.
     actions.AddTable('_grist_ACLPrincipals', [
       make_column('type',         'Text'),    # 'user', 'group', or 'instance'
       make_column('userEmail',    'Text'),    # For 'user' principals
@@ -250,51 +250,12 @@ def schema_create_actions():
       # only: `memberships`, `children`, and `descendants`.
     ]),
 
-    # Table for containment relationships between Principals, e.g. user contains multiple
-    # instances, group contains multiple users, and groups may contain other groups.
+    # DEPRECATED: Table for containment relationships between Principals, e.g. user contains
+    # multiple instances, group contains multiple users, and groups may contain other groups.
     actions.AddTable('_grist_ACLMemberships', [
       make_column('parent', 'Ref:_grist_ACLPrincipals'),
       make_column('child',  'Ref:_grist_ACLPrincipals'),
     ]),
-
-    # TODO:
-    # The Data Engine should not load up the action log or be able to modify it, or know anything
-    # about it. It's bad if users could hack up data engine logic to mess with history. (E.g. if
-    # share a doc for editing, and peer tries to hack it, want to know that can revert; i.e. peer
-    # shouldn't be able to destroy history.) Also, the action log could be big. It's nice to keep
-    # it in sqlite and not take up memory.
-    #
-    # For this reason, JS code perhaps should be the one creating action tables for a new
-    # document. It should also ignore any actions that attempt to change such tables. I.e. it
-    # should have some protected tables, perhaps with a different prefix (_gristsys_), which can't
-    # be changed by actions generated from the data engine.
-    #
-    # TODO
-    # Conversion of schema actions to metadata-change actions perhaps should also be done by JS,
-    # and metadata tables should be protected (i.e. can't be changed by user). Hmm....
-
-    # # The actions that fully determine the history of this database.
-    # actions.AddTable("_grist_Action", [
-    #   make_column("num",          "Int"),       # Action-group number
-    #   make_column("time",         "Int"),       # Milliseconds since Epoch
-    #   make_column("user",         "Text"),      # User performing this action
-    #   make_column("desc",         "Text"),      # Action description
-    #   make_column("otherId",      "Int"),       # For Undo and Redo, id of the other action
-    #   make_column("linkId",       "Int"),       # Id of the prev action in the same bundle
-    #   make_column("json",         "Text"),      # JSON representation of the action
-    # ]),
-
-    # # A logical action is comprised potentially of multiple steps.
-    # actions.AddTable("_grist_Action_step", [
-    #   make_column("parentId",     "Ref:_grist_Action"),
-    #   make_column("type",         "Text"),      # E.g. "undo", "stored"
-    #   make_column("name",         "Text"),      # E.g. "AddRecord" or "RenameTable"
-    #   make_column("tableId",      "Text"),      # Name of the table
-    #   make_column("colIds",       "Text"),      # Comma-separated names of affected columns
-    #   make_column("rowIds",       "Text"),      # Comma-separated IDs of affected rows
-    #   make_column("values",       "Text"),      # All values for the affected rows and columns,
-    #                                             # bundled together, column-wise, as a JSON array.
-    # ]),
   ]
 
 

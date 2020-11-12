@@ -195,6 +195,10 @@ class UserActions(object):
                                            'timezone': timezone}))
 
     # Set up initial ACL data.
+    # NOTE The special records below are not actually used. They were intended for obsolete ACL
+    # plans, and are kept here to ensure that old versions of Grist can still open newer or
+    # migrated documents. (At least as long as they don't actually include additional new ACL
+    # rules.)
     self._do_doc_action(actions.BulkAddRecord("_grist_ACLPrincipals", [1,2,3,4], {
       'type':       ['group', 'group', 'group', 'group'],
       'groupName':  ['Owners', 'Admins', 'Editors', 'Viewers'],
@@ -280,94 +284,6 @@ class UserActions(object):
     column_values = actions.decode_bulk_values(column_values)
     # There doesn't seem any need to return the big array of ids.
     self.doBulkAddOrReplace(table_id, row_ids, column_values, replace=True)
-
-  @useraction
-  def AddUser(self, email, name, instance_ids):
-    # Add the user and instances to the ACLPrincipals table
-    inst_count = len(instance_ids)
-    user_row_id = self.AddRecord('_grist_ACLPrincipals', None, {
-      "type": "user",
-      "userName": name,
-      "userEmail": email
-    })
-    inst_row_ids = self.BulkAddRecord('_grist_ACLPrincipals', [None] * inst_count, {
-      "type": ["instance"] * inst_count,
-      "instanceId": instance_ids
-    })
-
-    # Add the user to instance associations to the ACLMemberships table
-    row_ids = [None] * inst_count
-    parent_ids = [user_row_id] * inst_count
-    child_ids = inst_row_ids[:]
-
-    # If we have an Owners group (as every document does, thanks to InitNewDoc), add the user to
-    # it. (This is until we add interfaces to manage groups and ACLs properly.)
-    acl_principals = self._docmodel.get_table('_grist_ACLPrincipals')
-    owners_ref = acl_principals.lookupOne(type='group', groupName='Owners')
-    if owners_ref:
-      row_ids.append(None)
-      parent_ids.append(owners_ref)
-      child_ids.append(user_row_id)
-
-    self.BulkAddRecord('_grist_ACLMemberships', row_ids, {"parent": parent_ids, "child": child_ids})
-
-  # TODO: This is currently unused.
-  @useraction
-  def RemoveUser(self, email):
-    # Remove the user from the ACLPrincipals table
-    # Fetch the tables needed for lookup
-    acl_principals = self._docmodel.get_table('_grist_ACLPrincipals')
-    acl_memberships_table = self._docmodel.get_table('_grist_ACLMemberships')
-    # Lookup the user principal and their child instances
-    user = acl_principals.lookupOne(userEmail=email)
-    if user.id == 0:
-      raise ValueError("Cannot find existing user with email %s" % email)
-    self._docmodel.remove(list(user.memberships) + list(user.children) + [user])
-
-  # TODO: This is currently unused.
-  @useraction
-  def AddInstance(self, email, instance_id):
-    # Add the instance to an existing user in the ACLPrincipals table
-    # Fetch the tables needed for lookup
-    acl_principals = self._docmodel.get_table('_grist_ACLPrincipals')
-    # Lookup the user principal
-    user = acl_principals.lookupOne(userEmail=email)
-    if user.id == 0:
-      raise ValueError("Cannot find existing user with email %s" % email)
-    # Add the instance to the principals table and the association to the memberships table
-    row_id = self.AddRecord('_grist_ACLPrincipals', None, {
-      "type": "instance",
-      "instanceId": instance_id
-    })
-    self.AddRecord('_grist_ACLMemberships', None, {
-      "parent": int(user),
-      "child": row_id
-    })
-
-  @useraction
-  def RemoveInstance(self, instance_id):
-    # Remove instance to the ACLPrincipals table
-    # Fetch the tables needed for lookup
-    acl_principals = self._docmodel.get_table('_grist_ACLPrincipals')
-    acl_memberships_table = self._docmodel.get_table('_grist_ACLMemberships')
-    # Lookup the instance principal and the parent user from memberships
-    instance = acl_principals.lookupOne(instanceId=instance_id)
-    if instance.id == 0:
-      raise ValueError("Cannot find existing instance id %s" % instance_id)
-    inst_membership = acl_memberships_table.lookupOne(child=instance.id)
-    # Check how many user memberships exist
-    memberships = acl_memberships_table.lookupRecords(parent=inst_membership.parent.id)
-    if len(memberships) > 1:
-      # Only the instance must be removed
-      self.doBulkRemoveRecord('_grist_ACLMemberships', [inst_membership])
-      self.doBulkRemoveRecord('_grist_ACLPrincipals', [instance])
-    else:
-      # This is the last user instance - the user will also be removed. Remove the memberships
-      # first or they will be auto-updated to 0.
-      parent = inst_membership.parent
-      child = inst_membership.child
-      self.doBulkRemoveRecord('_grist_ACLMemberships', memberships)
-      self.doBulkRemoveRecord('_grist_ACLPrincipals', [parent, child])
 
   def doBulkAddOrReplace(self, table_id, row_ids, column_values, replace=False):
     table = self._engine.tables[table_id]

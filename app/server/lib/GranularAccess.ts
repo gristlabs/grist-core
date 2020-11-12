@@ -42,10 +42,7 @@ const SPECIAL_ACTIONS = new Set(['InitNewDoc',
                                 ]);
 
 // Odd-ball actions marked as deprecated or which seem unlikely to be used.
-const SURPRISING_ACTIONS = new Set(['AddUser',
-                                    'RemoveUser',
-                                    'AddInstance',
-                                    'RemoveInstance',
+const SURPRISING_ACTIONS = new Set([
                                     'RemoveView',
                                     'AddViewSection',
                                    ]);
