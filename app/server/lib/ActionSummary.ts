@@ -246,12 +246,14 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
     result.rename1.set(after1, after2);
     result.merge.push([before1, after2]);
   }
-  // Look through part 2 for any changes not already covered.  We won't need to do any
-  // renaming since table/column names at end of part 2 are just what we want.
+  // Look through part 2 for any changes not already covered.
   for (const [before2, after2] of names2) {
     if (!before2 && !after2) { throw new Error("invalid name change found"); }
     if (before2 && names1ByFinalName[before2]) { continue; }  // Already handled
     result.merge.push([before2, after2]);
+    // If table/column is renamed in part 2, and name was stable in part 1,
+    // rekey any information about it in part 1.
+    if (before2 && after2) { result.rename1.set(before2, after2); }
   }
   // For neatness, sort the merge order. Not essential.
   result.merge = sortBy(result.merge, ([a, b]) => [a || "", b || ""]);

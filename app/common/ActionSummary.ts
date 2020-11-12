@@ -233,3 +233,25 @@ export function getAffectedTables(summary: ActionSummary): string[] {
     ...Object.keys(summary.tableDeltas)
   ];
 }
+
+/**
+ * Given a tableId from after the specified renames, figure out what the tableId was before
+ * the renames.  Returns null if table didn't exist.
+ */
+export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|null): string|null {
+  if (tableIdAfter === null) { return tableIdAfter; }
+  const rename = renames.find(rename => rename[1] === tableIdAfter);
+  return rename ? rename[0] : tableIdAfter;
+}
+
+/**
+ * Given a tableId from before the specified renames, figure out what the tableId is after
+ * the renames.  Returns null if there is no valid tableId to return.
+ */
+export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string|null): string|null {
+  if (tableIdBefore === null) { return tableIdBefore; }
+  const rename = renames.find(rename => rename[0] === tableIdBefore);
+  const tableIdAfter = rename ? rename[1] : tableIdBefore;
+  if (tableIdAfter?.startsWith('-')) { return null; }
+  return tableIdAfter;
+}

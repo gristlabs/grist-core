@@ -5,7 +5,7 @@ import { TableRec } from 'app/client/models/entities/TableRec';
 import { TableQuerySets } from 'app/client/models/QuerySet';
 import { RowGrouping, SortedRowSet } from 'app/client/models/rowset';
 import { TableData } from 'app/client/models/TableData';
-import { createEmptyTableDelta, TableDelta } from 'app/common/ActionSummary';
+import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from 'app/common/ActionSummary';
 import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
 import { CellVersions, UserAction } from 'app/common/DocActions';
 import { GristObjCode } from "app/common/gristTypes";
@@ -40,12 +40,15 @@ export class ExtraRows {
   }
 
   public constructor(readonly tableId: string, readonly comparison?: DocStateComparisonDetails) {
-    this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[this.tableId];
-    this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[this.tableId];
-    this.rightAddRows = new Set(this.rightTableDelta && this.rightTableDelta.addRows.map(id => -id*2));
-    this.rightRemoveRows = new Set(this.rightTableDelta && this.rightTableDelta.removeRows);
-    this.leftAddRows = new Set(this.leftTableDelta && this.leftTableDelta.addRows);
-    this.leftRemoveRows = new Set(this.leftTableDelta && this.leftTableDelta.removeRows.map(id => -id*2 -1));
+    const remoteTableId = getRemoteTableId(tableId, comparison);
+    this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[tableId];
+    if (remoteTableId) {
+      this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[remoteTableId];
+    }
+    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => -id*2));
+    this.rightRemoveRows = new Set(this.rightTableDelta?.removeRows);
+    this.leftAddRows = new Set(this.leftTableDelta?.addRows);
+    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => -id*2 -1));
   }
 
   /**
@@ -98,10 +101,12 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     this.tableMetaRow = core.tableMetaRow;
     this.tableQuerySets = core.tableQuerySets;
     this.docModel = core.docModel;
+    const tableId = core.tableData.tableId;
+    const remoteTableId = getRemoteTableId(tableId, comparison) || '';
     this.tableData = new TableDataWithDiff(
       core.tableData,
-      comparison.leftChanges.tableDeltas[core.tableData.tableId] || createEmptyTableDelta(),
-      comparison.rightChanges.tableDeltas[core.tableData.tableId] || createEmptyTableDelta()) as any;
+      comparison.leftChanges.tableDeltas[tableId] || createEmptyTableDelta(),
+      comparison.rightChanges.tableDeltas[remoteTableId] || createEmptyTableDelta()) as any;
     this.isLoaded = core.isLoaded;
     this._wrappedModel = new DataTableModel(this.docModel, this.tableData, this.tableMetaRow);
   }
@@ -243,4 +248,14 @@ function oldValue(delta: CellDelta) {
 function newValue(delta: CellDelta) {
   if (delta[1] === '?') { return null; }
   return delta[1]?.[0];
+}
+
+/**
+ * Figure out the id of the specified table in the remote document.
+ * Returns null if table is deleted or unknown in the remote document.
+ */
+function getRemoteTableId(tableId: string, comparison?: DocStateComparisonDetails) {
+  if (!comparison) { return tableId; }
+  const parentTableId = getTableIdBefore(comparison.leftChanges.tableRenames, tableId);
+  return getTableIdAfter(comparison.rightChanges.tableRenames, parentTableId);
 }
