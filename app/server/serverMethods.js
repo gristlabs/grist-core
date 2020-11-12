@@ -105,7 +105,7 @@ function makeCSV(activeDoc, viewSectionId, sortOrder, req) {
     rowIds.forEach(row => {
       csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
     });
-    return csv.stringifyAsync(csvMatrix, {formatters: {bool: v => '' + Number(v)}});
+    return csv.stringifyAsync(csvMatrix);
   });
 }
 exports.makeCSV = makeCSV;

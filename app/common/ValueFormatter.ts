@@ -56,7 +56,7 @@ export class BaseFormatter {
    * classes to handle values in formatter-specific ways.
    */
   public format(value: any): string {
-    return value;
+    return String(value);
   }
 
   /**
