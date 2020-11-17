@@ -5,6 +5,7 @@ import json
 import sys
 
 import acl
+from acl_formula import parse_acl_formula_json
 import actions
 import column
 import identifiers
@@ -277,7 +278,8 @@ class UserActions(object):
     column_values = actions.decode_bulk_values(column_values)
     for col_id, values in column_values.iteritems():
       self._ensure_column_accepts_data(table_id, col_id, values)
-    return self.doBulkAddOrReplace(table_id, row_ids, column_values, replace=False)
+    method = self._overrides.get(('BulkAddRecord', table_id), self.doBulkAddOrReplace)
+    return method(table_id, row_ids, column_values)
 
   @useraction
   def ReplaceTableData(self, table_id, row_ids, column_values):
@@ -324,6 +326,13 @@ class UserActions(object):
     self._engine.invalidate_records(table_id, filled_row_ids, data_cols_to_recompute=omitted_cols)
 
     return filled_row_ids
+
+  @override_action('BulkAddRecord', '_grist_ACLRules')
+  def _addACLRules(self, table_id, row_ids, col_values):
+    # Automatically populate aclFormulaParsed value by parsing aclFormula.
+    if 'aclFormula' in col_values:
+      col_values['aclFormulaParsed'] = map(parse_acl_formula_json, col_values['aclFormula'])
+    return self.doBulkAddOrReplace(table_id, row_ids, col_values)
 
   #----------------------------------------
   # UpdateRecords & co.
@@ -375,7 +384,6 @@ class UserActions(object):
 
     method = self._overrides.get(('BulkUpdateRecord', table_id), self.doBulkUpdateRecord)
     method(table_id, row_ids, columns)
-
 
   @override_action('BulkUpdateRecord', '_grist_Validations')
   def _updateValidationRecords(self, table_id, row_ids, col_values):
@@ -549,6 +557,13 @@ class UserActions(object):
       self._docmodel.update(rename_table_recs, tableId=rename_names)
 
     self.doBulkUpdateRecord(table_id, row_ids, col_values)
+
+  @override_action('BulkUpdateRecord', '_grist_ACLRules')
+  def _updateACLRules(self, table_id, row_ids, col_values):
+    # Automatically populate aclFormulaParsed value by parsing aclFormula.
+    if 'aclFormula' in col_values:
+      col_values['aclFormulaParsed'] = map(parse_acl_formula_json, col_values['aclFormula'])
+    return self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
   def _prepare_formula_renames(self, renames):
     """

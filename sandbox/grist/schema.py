@@ -12,7 +12,7 @@ import itertools
 from collections import OrderedDict, namedtuple
 import actions
 
-SCHEMA_VERSION = 20
+SCHEMA_VERSION = 21
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -225,17 +225,40 @@ def schema_create_actions():
     # All of the ACL rules.
     actions.AddTable('_grist_ACLRules', [
       make_column('resource',     'Ref:_grist_ACLResources'),
-      make_column('permissions',  'Int'),     # Bit-map of permission types. See acl.py.
-      make_column('principals',   'Text'),    # JSON array of _grist_ACLPrincipals refs.
+      make_column('permissions',  'Int'),     # DEPRECATED: permissionsText is used instead.
+      make_column('principals',   'Text'),    # DEPRECATED
 
-      make_column('aclFormula',   'Text'),    # Formula to apply to tableId, which should return
-                                              # additional principals for each row.
-      make_column('aclColumn',    'Ref:_grist_Tables_column')
+      # Text of match formula, in restricted Python syntax; "" for default rule.
+      make_column('aclFormula',   'Text'),
+
+      make_column('aclColumn',    'Ref:_grist_Tables_column'),  # DEPRECATED
+
+      # JSON representation of the parse tree of matchFunc; "" for default rule.
+      make_column('aclFormulaParsed', 'Text'),
+
+      # Permissions in the form '[+<bits>][-<bits>]' where <bits> is a string of
+      # C,R,U,D,S characters, each appearing at most once. Or the special values
+      # 'all' or 'none'. The empty string does not affect permissions.
+      make_column('permissionsText', 'Text'),
+
+      # Rules for one resource are ordered by increasing rulePos. The default rule
+      # should be at the end (later rules would have no effect).
+      make_column('rulePos',      'PositionNumber'),
+
+      # If non-empty, this rule adds extra user attributes. It should contain JSON
+      # of the form {name, tableId, lookupColId, charId}, and should be tied to the
+      # resource *:*. It acts by looking up user[charId] in the given tableId on the
+      # given lookupColId, and adds the full looked-up record as user[name], which
+      # becomes available to matchFunc. These rules are processed in order of rulePos,
+      # which should list them before regular rules.
+      make_column('userAttributes', 'Text'),
     ]),
 
+    # Note that the special resource with tableId of '' and colIds of '' should be ignored. It is
+    # present to satisfy older versions of Grist (before Nov 2020).
     actions.AddTable('_grist_ACLResources', [
-      make_column('tableId',      'Text'),    # Name of the table this rule applies to, or ''
-      make_column('colIds',       'Text'),    # Comma-separated list of colIds, or ''
+      make_column('tableId',      'Text'),    # Name of the table this rule applies to, or '*'
+      make_column('colIds',       'Text'),    # Comma-separated list of colIds, or '*'
     ]),
 
     # DEPRECATED: All of the principals used by ACL rules, including users, groups, and instances.

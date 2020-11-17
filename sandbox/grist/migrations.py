@@ -767,3 +767,12 @@ def migration20(tdset):
       'indentation': [1 if v.id in table_views_map else 0 for v in views]
     })
   ])
+
+@migration(schema_version=21)
+def migration21(tdset):
+  return tdset.apply_doc_actions([
+    add_column('_grist_ACLRules', 'aclFormulaParsed', 'Text'),
+    add_column('_grist_ACLRules', 'permissionsText', 'Text'),
+    add_column('_grist_ACLRules', 'rulePos', 'PositionNumber'),
+    add_column('_grist_ACLRules', 'userAttributes', 'Text'),
+  ])

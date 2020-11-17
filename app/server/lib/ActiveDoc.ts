@@ -33,7 +33,6 @@ import * as marshal from 'app/common/marshal';
 import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
-import {Permissions} from 'app/gen-server/lib/Permissions';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
 import {Authorizer} from 'app/server/lib/Authorizer';
@@ -582,7 +581,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If user does not have rights to access what this query is asking for, fail.
     const tableAccess = this._granularAccess.getTableAccess(docSession, query.tableId);
-    if (!(tableAccess.permission & Permissions.VIEW)) {  // tslint:disable-line:no-bitwise
+    if (tableAccess.read === 'deny') {
       throw new Error('not authorized to read table');
     }
 
@@ -592,7 +591,7 @@ export class ActiveDoc extends EventEmitter {
     // Also, if row-level access is being controlled, we wait for formula columns
     // to be populated.
     const wantFull = waitForFormulas || query.tableId.startsWith('_grist_') ||
-      tableAccess.rowPermissionFunctions.length > 0;
+      tableAccess.read === 'mixed';
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
     this.logInfo(docSession, "fetchQuery(%s, %s) %s", docSession, JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
@@ -614,9 +613,8 @@ export class ActiveDoc extends EventEmitter {
     }
     // If row-level access is being controlled, filter the data appropriately.
     // Likewise if column-level access is being controlled.
-    if (tableAccess.rowPermissionFunctions.length > 0 ||
-        tableAccess.columnPermissions.size > 0) {
-      this._granularAccess.filterData(data!, tableAccess);
+    if (tableAccess.read !== 'allow') {
+      this._granularAccess.filterData(docSession, data!);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
@@ -766,7 +764,12 @@ export class ActiveDoc extends EventEmitter {
     localActionBundle.calc.forEach(da => docData.receiveAction(da[1]));
     const docActions = getEnvContent(localActionBundle.stored);
     // TODO: call this update less indiscriminately!
-    await this._granularAccess.update();
+    // Update ACLs only when rules are touched. A suggest for later is for GranularAccess to
+    // listen to docData's changes that affect relevant table, and toggle a dirty flag. The
+    // update() can then be called whenever ACLs are needed and are dirty.
+    if (localActionBundle.stored.some(da => (da[1][1] === '_grist_ACLRules'))) {
+      await this._granularAccess.update();
+    }
     if (docActions.some(docAction => this._onDemandActions.isSchemaAction(docAction))) {
       const indexes = this._onDemandActions.getDesiredIndexes();
       await this.docStorage.updateIndexes(indexes);

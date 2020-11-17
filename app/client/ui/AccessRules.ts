@@ -8,8 +8,8 @@ import {primaryButton} from 'app/client/ui2018/buttons';
 import {colors} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem, select} from 'app/client/ui2018/menus';
-import {decodeClause, GranularAccessDocClause, serializeClause} from 'app/common/GranularAccessClause';
-import {arrayRepeat, setDifference} from 'app/common/gutil';
+import {readAclRules} from 'app/common/GranularAccessClause';
+import {setDifference} from 'app/common/gutil';
 import {Computed, Disposable, dom, ObsArray, obsArray, Observable, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
@@ -18,19 +18,22 @@ interface AclState {
   ownerOnlyStructure: boolean;
 }
 
+const MATCH_NON_OWNER = 'user.Access != "owners"';
+
 function buildAclState(gristDoc: GristDoc): AclState {
+  const {ruleSets} = readAclRules(gristDoc.docData, {log: console});
+  console.log("FOUND RULE SETS", ruleSets);
+
   const ownerOnlyTableIds = new Set<string>();
   let ownerOnlyStructure = false;
-  const tableData = gristDoc.docModel.aclResources.tableData;
-  for (const res of tableData.getRecords()) {
-    const code = String(res.colIds);
-    const clause = decodeClause(code);
-    if (clause) {
-      if (clause.kind === 'doc') {
+  for (const ruleSet of ruleSets) {
+    if (ruleSet.tableId === '*' && ruleSet.colIds === '*') {
+      if (ruleSet.body.find(p => p.aclFormula === MATCH_NON_OWNER && p.permissionsText === '-S')) {
         ownerOnlyStructure = true;
       }
-      if (clause.kind === 'table' && clause.tableId) {
-        ownerOnlyTableIds.add(clause.tableId);
+    } else if (ruleSet.tableId !== '*' && ruleSet.colIds === '*') {
+      if (ruleSet.body.find(p => p.aclFormula === MATCH_NON_OWNER && p.permissionsText === 'none')) {
+        ownerOnlyTableIds.add(ruleSet.tableId);
       }
     }
   }
@@ -63,43 +66,39 @@ export class AccessRules extends Disposable {
     // changed by other users), and apply changes, if any, relative to that.
     const latestState = buildAclState(this._gristDoc);
     const currentState = this._currentState.get();
-    const tableData = this._gristDoc.docModel.aclResources.tableData;
-    await tableData.docData.bundleActions('Update Access Rules', async () => {
+    const docData = this._gristDoc.docData;
+    const resourcesTable = docData.getTable('_grist_ACLResources')!;
+    const rulesTable = docData.getTable('_grist_ACLRules')!;
+    await this._gristDoc.docData.bundleActions('Update Access Rules', async () => {
       // If ownerOnlyStructure flag changed, add or remove the relevant resource record.
-      if (currentState.ownerOnlyStructure !== latestState.ownerOnlyStructure) {
-        const clause: GranularAccessDocClause = {
-          kind: 'doc',
-          match: { kind: 'const', charId: 'Access', value: 'owners' },
-        };
-        const colIds = serializeClause(clause);
-        if (currentState.ownerOnlyStructure) {
-          await tableData.sendTableAction(['AddRecord', null, {tableId: "", colIds}]);
-        } else {
-          const rowId = tableData.findMatchingRowId({tableId: '', colIds});
-          if (rowId) {
-            await this._gristDoc.docModel.aclResources.sendTableAction(['RemoveRecord', rowId]);
-          }
-        }
+      const defaultResource = resourcesTable.findMatchingRowId({tableId: '*', colIds: '*'}) ||
+        await resourcesTable.sendTableAction(['AddRecord', null, {tableId: '*', colIds: '*'}]);
+      const ruleObj = {resource: defaultResource, aclFormula: MATCH_NON_OWNER, permissionsText: '-S'};
+      const ruleRowId = rulesTable.findMatchingRowId(ruleObj);
+      if (currentState.ownerOnlyStructure && !ruleRowId) {
+        await rulesTable.sendTableAction(['AddRecord', null, ruleObj]);
+      } else if (!currentState.ownerOnlyStructure && ruleRowId) {
+        await rulesTable.sendTableAction(['RemoveRecord', ruleRowId]);
       }
 
       // Handle tables added to ownerOnlyTableIds.
       const tablesAdded = setDifference(currentState.ownerOnlyTableIds, latestState.ownerOnlyTableIds);
-      if (tablesAdded.size) {
-        await tableData.sendTableAction(['BulkAddRecord', arrayRepeat(tablesAdded.size, null), {
-          tableId: [...tablesAdded],
-          colIds: [...tablesAdded].map(tableId => serializeClause({
-            kind: 'table',
-            tableId,
-            match: { kind: 'const', charId: 'Access', value: 'owners' },
-          })),
-        }]);
+      for (const tableId of tablesAdded) {
+        const resource = resourcesTable.findMatchingRowId({tableId, colIds: '*'}) ||
+          await resourcesTable.sendTableAction(['AddRecord', null, {tableId, colIds: '*'}]);
+        await rulesTable.sendTableAction(
+          ['AddRecord', null, {resource, aclFormula: MATCH_NON_OWNER, permissionsText: 'none'}]);
       }
-
       // Handle table removed from ownerOnlyTableIds.
       const tablesRemoved = setDifference(latestState.ownerOnlyTableIds, currentState.ownerOnlyTableIds);
-      if (tablesRemoved.size) {
-        const rowIds = Array.from(tablesRemoved, t => tableData.findRow('tableId', t)).filter(r => r);
-        await tableData.sendTableAction(['BulkRemoveRecord', rowIds]);
+      for (const tableId of tablesRemoved) {
+        const resource = resourcesTable.findMatchingRowId({tableId, colIds: '*'});
+        if (resource) {
+          const rowId = rulesTable.findMatchingRowId({resource, aclFormula: MATCH_NON_OWNER, permissionsText: 'none'});
+          if (rowId) {
+            await rulesTable.sendTableAction(['RemoveRecord', rowId]);
+          }
+        }
       }
     });
   }
