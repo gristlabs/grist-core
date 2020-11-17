@@ -413,7 +413,9 @@ export class ActiveDoc extends EventEmitter {
    * Adds a small table to start off a newly-created blank document.
    */
   public addInitialTable(docSession: OptDocSession) {
-    return this._applyUserActions(docSession, [["AddEmptyTable"]]);
+    // Use a non-client-specific session, so that this action is not part of anyone's undo history.
+    const newDocSession = makeExceptionalDocSession('nascent');
+    return this._applyUserActions(newDocSession, [["AddEmptyTable"]]);
   }
 
   /**
