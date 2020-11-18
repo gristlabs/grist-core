@@ -101,6 +101,15 @@ export class PendingValue {
 }
 
 /**
+ * A trivial placeholder for a value that won't be shown.
+ */
+export class SkipValue {
+  public toString() {
+    return '...';
+  }
+}
+
+/**
  * Produces a Grist-encoded version of the value, e.g. turning a Date into ['d', timestamp].
  * Returns ['U', repr(value)] if it fails to encode otherwise.
  *
@@ -162,6 +171,7 @@ export function decodeObject(value: CellValue): unknown {
       case 'O': return mapValues(args[0] as {[key: string]: CellValue}, decodeObject, {sort: true});
       case 'P': return new PendingValue();
       case 'R': return new Reference(String(args[0]), args[1]);
+      case 'S': return new SkipValue();
       case 'U': return new UnknownValue(args[0]);
     }
   } catch (e) {

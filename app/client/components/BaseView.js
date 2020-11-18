@@ -86,10 +86,10 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }));
 
   // Sorted collection of all rows to show in this view.
-  this.sortedRows = rowset.SortedRowSet.create(this, null);
+  this.sortedRows = rowset.SortedRowSet.create(this, null, this.tableModel.tableData);
 
   // Re-sort when sortSpec changes.
-  this.sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel));
+  this.sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, {unversioned: true}));
   this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribeInit(function(spec) {
     this.sortFunc.updateSpec(spec);
     this.sortedRows.updateSort((rowId1, rowId2) => {

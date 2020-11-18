@@ -24,6 +24,7 @@
 import koArray, {KoArray} from 'app/client/lib/koArray';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {CompareFunc, sortedIndex} from 'app/common/gutil';
+import {SkippableRows} from 'app/common/TableData';
 
 /**
  * Special constant value that can be used for the `rows` array for the 'rowNotify'
@@ -33,7 +34,7 @@ export const ALL: unique symbol = Symbol("ALL");
 
 export type ChangeType = 'add' | 'remove' | 'update';
 export type ChangeMethod = 'onAddRows' | 'onRemoveRows' | 'onUpdateRows';
-export type RowId = number | string;
+export type RowId = number | 'new';
 export type RowList = Iterable<RowId>;
 export type RowsChanged = RowList | typeof ALL;
 
@@ -514,10 +515,13 @@ export class SortedRowSet extends RowListener {
   private _allRows: Set<RowId> = new Set();
   private _isPaused: boolean = false;
   private _koArray: KoArray<RowId>;
+  private _keepFunc?: (rowId: number|'new') => boolean;
 
-  constructor(private _compareFunc: CompareFunc<RowId>) {
+  constructor(private _compareFunc: CompareFunc<RowId>,
+              private _skippableRows?: SkippableRows) {
     super();
     this._koArray = this.autoDispose(koArray<RowId>());
+    this._keepFunc = _skippableRows?.getKeepFunc();
   }
 
   /**
@@ -557,13 +561,13 @@ export class SortedRowSet extends RowListener {
     if (this._isPaused) {
       return;
     }
-    if (isSmallChange(rows)) {
+    if (this._canChangeIncrementally(rows)) {
       for (const r of rows) {
         const insertIndex = sortedIndex(this._koArray.peek(), r, this._compareFunc);
         this._koArray.splice(insertIndex, 0, r);
       }
     } else {
-      this._koArray.assign(Array.from(this._allRows).sort(this._compareFunc));
+      this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
 
@@ -574,7 +578,7 @@ export class SortedRowSet extends RowListener {
     if (this._isPaused) {
       return;
     }
-    if (isSmallChange(rows)) {
+    if (this._canChangeIncrementally(rows)) {
       for (const r of rows) {
         const index = this._koArray.peek().indexOf(r);
         if (index !== -1) {
@@ -582,7 +586,7 @@ export class SortedRowSet extends RowListener {
         }
       }
     } else {
-      this._koArray.assign(Array.from(this._allRows).sort(this._compareFunc));
+      this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
 
@@ -603,14 +607,76 @@ export class SortedRowSet extends RowListener {
       return;
     }
 
-    if (isSmallChange(rows)) {
+    if (this._canChangeIncrementally(rows)) {
       // Note that we can't add any rows before we remove all affected rows, because affected rows
       // may no longer be in the correct sort order, so binary search is broken until they are gone.
       this.onRemoveRows(rows);
       this.onAddRows(rows);
     } else {
-      this._koArray.assign(Array.from(this._koArray.peek()).sort(this._compareFunc));
+      this._koArray.assign(this._keep(Array.from(this._koArray.peek()).sort(this._compareFunc)));
     }
+  }
+
+  // Check whether a change in the specified rows can be applied incrementally.
+  private _canChangeIncrementally(rows: RowList) {
+    return !this._keepFunc && isSmallChange(rows);
+  }
+
+  // Filter out any rows that should be skipped. This is a no-op if no _keepFunc was found.
+  // All rows that sort within nContext rows of something meant to be kept are also kept.
+  private _keep(rows: RowId[], nContext: number = 2) {
+    // Nothing to be done if there's no _keepFunc.
+    if (!this._keepFunc) { return rows; }
+
+    // Seed a list of rows to be kept (we'll expand it as we go).
+    const keeping = rows.map(this._keepFunc);
+
+    // Within a range of skipped rows, we'll keep one as an interstitial, with its
+    // rowId replaced with a special "skip" id that makes it get rendered a special
+    // way (with "..." in every cell).
+    // Start with a blank list (we'll fill it out as we go).
+    const edge = rows.map(() => false);
+
+    // Keep the first and last (typically 'new') row.
+    const n = rows.length;
+    if (n >= 1) { keeping[0] = true; }
+    if (n >= 2) { keeping[n - 1] = true; }
+
+    // Sweep forwards through the list of kept rows, keeping an extra nContext rows
+    // after each.
+    let last = - nContext - 1;
+    for (let i = 0; i < n; i++) {
+      if (keeping[i]) { last = i; }
+      else if (i - last <= nContext) { keeping[i] = true; }
+    }
+
+    // Sweep backwards through the list of kept rows, keeping an extra nContext rows
+    // before each.
+    last = n + nContext + 1;
+    for (let i = n - 1; i >= 0; i--) {
+      if (keeping[i]) { last = i; }
+      else if (last - i <= nContext) { keeping[i] = true; }
+    }
+
+    // Keep one extra "edge" row from each sequence of rows that are to be skipped.
+    let skipping: boolean = false;
+    for (let i = 0; i < n; i++) {
+      if (keeping[i]) {
+        skipping = false;
+      } else {
+        if (!skipping) {
+          edge[i] = true;
+          skipping = true;
+        }
+      }
+    }
+
+    // Go ahead and filter out the rows to keep, tweaking the row id of the
+    // "edge" rows.
+    const skipRowId = this._skippableRows?.getSkipRowId() || 0;
+    return rows
+      .map((v, i) => edge[i] ? skipRowId : v)
+      .filter((v, i) => keeping[i] || edge[i] || v === 'new');
   }
 }
 

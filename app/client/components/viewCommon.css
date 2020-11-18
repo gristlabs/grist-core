@@ -75,6 +75,11 @@
   background-color: unset;
 }
 
+.field_clip.field-error-S {
+  color: #aaa;
+  background-color: unset;
+}
+
 /* Insert a zero-width space into each cell, to size cells to at least one line of text. */
 .field_clip:empty::before { content: '\200B'; }
 

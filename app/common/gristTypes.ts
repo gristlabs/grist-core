@@ -18,6 +18,7 @@ export const enum GristObjCode {
   Dict            = 'O',
   DateTime        = 'D',
   Date            = 'd',
+  Skip            = 'S',
   Reference       = 'R',
   Exception       = 'E',
   Pending         = 'P',
@@ -119,6 +120,10 @@ export function isVersions(value: CellValue): value is [GristObjCode.Versions, C
   return getObjCode(value) === GristObjCode.Versions;
 }
 
+export function isSkip(value: CellValue): value is [GristObjCode.Skip] {
+  return getObjCode(value) === GristObjCode.Skip;
+}
+
 /**
  * Returns whether a value (as received in a DocAction) represents a list or is null,
  * which is a valid value for list types in grist.
@@ -139,7 +144,7 @@ function isNumberOrNull(v: CellValue) { return isNumber(v) || v === null; }
 function isBoolean(v: CellValue) { return typeof v === 'boolean' || v === 1 || v === 0; }
 
 // These values are not regular cell values, even in a column of type Any.
-const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending,
+const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending, GristObjCode.Skip,
                                       GristObjCode.Unmarshallable, GristObjCode.Versions];
 
 function isNormalValue(value: CellValue) {

@@ -7,10 +7,12 @@ import { CellValue } from 'app/plugin/GristData';
 export { CellValue, RowRecord } from 'app/plugin/GristData';
 
 // Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
-export type CellVersions =
-  { parent: CellValue, remote: CellValue } |
-  { parent: CellValue, local: CellValue }  |
-  { parent: CellValue, local: CellValue, remote: CellValue };
+export interface AllCellVersions {
+  parent: CellValue;
+  remote: CellValue;
+  local: CellValue;
+}
+export type CellVersions = Partial<AllCellVersions>;
 
 import map = require('lodash/map');
 

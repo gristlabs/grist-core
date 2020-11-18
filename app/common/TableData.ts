@@ -18,13 +18,23 @@ interface ColData {
 }
 
 /**
+ * An interface for a table with rows that may be skipped.
+ */
+export interface SkippableRows {
+  // If there may be skippable rows, return a function to test rowIds for keeping.
+  getKeepFunc(): undefined | ((rowId: number|"new") => boolean);
+  // Get a special row id which represents a skipped sequence of rows.
+  getSkipRowId(): number;
+}
+
+/**
  * TableData class to maintain a single table's data.
  *
  * In the browser's memory, table data needs a representation that's reasonably compact. We
  * represent it as column-wise arrays. (An early hope was to allow use of TypedArrays, but since
  * types can be mixed, those are not used.)
  */
-export class TableData extends ActionDispatcher {
+export class TableData extends ActionDispatcher implements SkippableRows {
   private _tableId: string;
   private _isLoaded: boolean = false;
   private _fetchPromise?: Promise<void>;
@@ -156,6 +166,16 @@ export class TableData extends ActionDispatcher {
     return function(rowId: number|"new") { return rowId === "new" ? "new" : values[rowMap.get(rowId)!]; };
   }
 
+  // By default, no rows are skippable, all are kept.
+  public getKeepFunc(): undefined | ((rowId: number|"new") => boolean) {
+    return undefined;
+  }
+
+  // By default, no special row id for skip rows is needed.
+  public getSkipRowId(): number {
+    throw new Error('no skip row id defined');
+  }
+
   /**
    * Returns the list of all rowIds in this table, in unspecified and unstable order. Equivalent
    * to getColValues('id').
@@ -169,6 +189,13 @@ export class TableData extends ActionDispatcher {
    */
   public getSortedRowIds(): number[] {
     return this._rowIdCol.slice(0).sort((a, b) => a - b);
+  }
+
+  /**
+   * Returns true if cells may contain multiple versions (e.g. in diffs).
+   */
+  public mayHaveVersions() {
+    return false;
   }
 
   /**

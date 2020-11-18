@@ -72,10 +72,10 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
 
   // Build a sorted array of rowIds the way a view would, using the active sort spec. We just need
   // the sorted list, and can dispose the observable array immediately.
-  const sortFunc = new SortFunc(new ClientColumnGetters(tableModel));
+  const sortFunc = new SortFunc(new ClientColumnGetters(tableModel, {unversioned: true}));
   sortFunc.updateSpec(section.activeDisplaySortSpec.peek());
   const sortedRows = rowset.SortedRowSet.create(null, (a: rowset.RowId, b: rowset.RowId) =>
-    sortFunc.compare(a as number, b as number));
+    sortFunc.compare(a as number, b as number), tableModel.tableData);
   sortedRows.subscribeTo(tableModel);
   const sortedRowIds = sortedRows.getKoArray().peek().slice(0);
   sortedRows.dispose();

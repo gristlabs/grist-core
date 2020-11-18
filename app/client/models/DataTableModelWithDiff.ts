@@ -13,13 +13,17 @@ import { CellDelta } from 'app/common/TabularDiff';
 import { DocStateComparisonDetails } from 'app/common/UserAPI';
 import { CellValue } from 'app/plugin/GristData';
 
+// A special row id, representing omitted rows.
+const ROW_ID_SKIP = -1;
+
 /**
  * Represent extra rows in a table that correspond to rows added in a remote (right) document,
  * or removed in the local (left) document relative to a common ancestor.
  *
  * We assign synthetic row ids for these rows somewhat arbitrarily as follows:
- *  - For rows added remotely, we double their id and flip sign
- *  - For rows removed locally, we double their id, add one, and flip sign
+ *  - For rows added remotely, we map their id to - id * 2 - 1
+ *  - For rows removed locally, we map their id to - id * 2 - 2
+ *  - (id of -1 is left free for use in skipped rows)
  * This should be the only part of the code that knows that.
  */
 export class ExtraRows {
@@ -33,10 +37,11 @@ export class ExtraRows {
   /**
    * Map back from a possibly synthetic row id to an original strictly-positive row id.
    */
-  public static interpretRowId(rowId: number): { type: 'remote-add'|'local-remove'|'shared', id: number } {
+  public static interpretRowId(rowId: number): { type: 'remote-add'|'local-remove'|'shared'|'skipped', id: number } {
     if (rowId >= 0) { return { type: 'shared', id: rowId }; }
-    if (rowId % 2 === 0) { return { type: 'remote-add', id: -rowId / 2 }; }
-    return { type: 'local-remove', id: (-rowId - 1) / 2 };
+    else if (rowId === ROW_ID_SKIP) { return { type: 'skipped', id: rowId }; }
+    else if (rowId % 2 !== 0) { return { type: 'remote-add', id: -(rowId + 1) / 2 }; }
+    return { type: 'local-remove', id: -(rowId + 2) / 2 };
   }
 
   public constructor(readonly tableId: string, readonly comparison?: DocStateComparisonDetails) {
@@ -45,10 +50,10 @@ export class ExtraRows {
     if (remoteTableId) {
       this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[remoteTableId];
     }
-    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => -id*2));
+    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => -id * 2 - 1));
     this.rightRemoveRows = new Set(this.rightTableDelta?.removeRows);
     this.leftAddRows = new Set(this.leftTableDelta?.addRows);
-    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => -id*2 -1));
+    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => -id * 2 - 2));
   }
 
   /**
@@ -184,17 +189,34 @@ export class TableDataWithDiff {
     const fn = this.core.getRowPropFunc(colId);
     if (!fn) { return fn; }
     return (rowId: number|"new") => {
-      if (rowId !== 'new' && this._updates.has(rowId)) {
+      if (rowId !== 'new' && (rowId < 0 || this._updates.has(rowId))) {
         return this.getValue(rowId, colId);
       }
-      return (rowId !== 'new' && rowId < 0) ? this.getValue(rowId, colId) : fn(rowId);
+      return fn(rowId);
     };
+  }
+
+  public getKeepFunc(): undefined | ((rowId: number|"new") => boolean) {
+    return (rowId: number|'new') => {
+      return rowId === 'new' || this._updates.has(rowId) || rowId < 0;
+    };
+  }
+
+  public getSkipRowId(): number {
+    return ROW_ID_SKIP;
+  }
+
+  public mayHaveVersions() {
+    return true;
   }
 
   /**
    * Intercept requests for updated cells or cells from remote rows.
    */
   public getValue(rowId: number, colId: string): CellValue|undefined {
+    if (rowId === ROW_ID_SKIP && colId !== 'id') {
+      return [GristObjCode.Skip];
+    }
     if (this._updates.has(rowId)) {
       const left = this.leftTableDelta.columnDeltas[colId]?.[rowId];
       const right = this.rightTableDelta.columnDeltas[colId]?.[rowId];
