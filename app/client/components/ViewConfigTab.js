@@ -5,7 +5,6 @@ var dom = require('../lib/dom');
 var kd = require('../lib/koDom');
 var kf = require('../lib/koForm');
 var koArray = require('../lib/koArray');
-var {showConfirmDialog} = require('./Confirm');
 var SummaryConfig = require('./SummaryConfig');
 var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
@@ -20,6 +19,7 @@ const {basicButton, primaryButton} = require('app/client/ui2018/buttons');
 const {colors} = require('app/client/ui2018/cssVars');
 const {cssDragger} = require('app/client/ui2018/draggableList');
 const {menu, menuItem, select} = require('app/client/ui2018/menus');
+const {confirmModal} = require('app/client/ui2018/modals');
 const isEqual = require('lodash/isEqual');
 const {cssMenuItem} = require('popweasel');
 
@@ -421,18 +421,18 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
   }
 
   if (table.onDemand()) {
-    showConfirmDialog('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm,
+    confirmModal('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm,
       dom('div', 'If you unmark table ', dom('b', table), ' as On-Demand, ' +
         'its data will be loaded into the calculation engine and will be available ' +
         'for use in formulas. For a big table, this may greatly increase load times.',
-        dom('br'), 'Changing this setting will reload the document for all users.')
+        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.')
     );
   } else {
-    showConfirmDialog('Make table On-Demand?', 'Make On-Demand', onConfirm,
+    confirmModal('Make table On-Demand?', 'Make On-Demand', onConfirm,
       dom('div', 'If you make table ', dom('b', table), ' On-Demand, ' +
         'its data will no longer be loaded into the calculation engine and will not be available ' +
         'for use in formulas. It will remain available for viewing and editing.',
-        dom('br'), 'Changing this setting will reload the document for all users.')
+        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.')
     );
   }
 };

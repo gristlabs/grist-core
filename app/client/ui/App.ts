@@ -3,13 +3,11 @@ import * as Clipboard from 'app/client/components/Clipboard';
 import {Comm} from 'app/client/components/Comm';
 import * as commandList from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
-import * as Login from 'app/client/components/Login';
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {isDesktop} from 'app/client/lib/browserInfo';
 import * as koUtil from 'app/client/lib/koUtil';
 import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppModel';
-import * as DocListModel from 'app/client/models/DocListModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
@@ -24,9 +22,6 @@ import * as ko from 'knockout';
 
 const G = getBrowserGlobals('document', 'window');
 
-type DocListModel = any;
-type Login = any;
-
 /**
  * Main Grist App UI component.
  */
@@ -40,9 +35,7 @@ export class App extends DisposableWithEvents {
   public comm = this.autoDispose(Comm.create());
   public clientScope: ClientScope;
   public features: ko.Computed<ISupportedFeatures>;
-  public login: Login;
   public topAppModel: TopAppModel;    // Exposed because used by test/nbrowser/gristUtils.
-  public docListModel: DocListModel;
 
   private _settings: ko.Observable<{features?: ISupportedFeatures}>;
 
@@ -64,16 +57,11 @@ export class App extends DisposableWithEvents {
     this._settings = ko.observable({});
     this.features = ko.computed(() => this._settings().features || {});
 
-    // Creates a Login instance which handles building the login form, login/signup, logout,
-    // and refreshing tokens. Uses .features, so instantiated after that.
-    this.login = this.autoDispose(Login.create(this));
-
     if (isDesktop()) {
       this.autoDispose(Clipboard.create(this));
     }
 
     this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
-    this.docListModel = this.autoDispose(DocListModel.create(this));
 
     const isHelpPaneVisible = ko.observable(false);
 
@@ -125,7 +113,6 @@ export class App extends DisposableWithEvents {
     this.listenTo(this.comm, 'clientConnect', (message) => {
       console.log(`App clientConnect event: resetClientId ${message.resetClientId} version ${message.serverVersion}`);
       this._settings(message.settings);
-      this.login.updateProfileFromServer(message.profile);
       if (message.serverVersion === 'dead' || (this._serverVersion && this._serverVersion !== message.serverVersion)) {
         console.log("Upgrading...");
         // Server has upgraded.  Upgrade client.  TODO: be gentle and polite.
@@ -142,12 +129,6 @@ export class App extends DisposableWithEvents {
     this.listenTo(this.comm, 'connectState', (isConnected: boolean) => {
       this.topAppModel.notifier.setConnectState(isConnected);
     });
-
-    this.listenTo(this.comm, 'profileFetch', (message) => {
-      this.login.updateProfileFromServer(message.data);
-    });
-
-    this.listenTo(this.comm, 'clientLogout', () => this.login.onLogout());
 
     this.listenTo(this.comm, 'docShutdown', () => {
       console.log("Received docShutdown");
