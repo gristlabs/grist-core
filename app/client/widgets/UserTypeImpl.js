@@ -1,7 +1,8 @@
 const {NTextBox} = require('./NTextBox');
 const {NumericTextBox} = require('./NumericTextBox');
 const {Spinner} = require('./Spinner');
-const {PreviewsWidget, PreviewsEditor} = require('./PreviewsWidget');
+const {AttachmentsWidget} = require('./AttachmentsWidget');
+const {AttachmentsEditor} = require('./AttachmentsEditor');
 const UserType = require('./UserType');
 const {HyperLinkEditor} = require('./HyperLinkEditor');
 const {NTextEditor} = require('./NTextEditor');
@@ -27,8 +28,8 @@ const nameToWidget = {
   'DateTimeTextBox': require('./DateTimeTextBox'),
   'DateTextBox': require('./DateTextBox'),
   'DateEditor': require('./DateEditor'),
-  'PreviewsWidget': PreviewsWidget,
-  'PreviewsEditor': PreviewsEditor,
+  'AttachmentsWidget': AttachmentsWidget,
+  'AttachmentsEditor': AttachmentsEditor,
   'DateTimeEditor': require('./DateTimeEditor'),
 };
 

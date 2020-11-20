@@ -11,6 +11,7 @@ import {CellValue} from "app/common/DocActions";
 import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {Disposable, Holder, Observable} from 'grainjs';
+import isEqual = require('lodash/isEqual');
 
 type IEditorConstructor = typeof NewBaseEditor;
 interface ICommandGroup { [cmd: string]: () => void; }
@@ -38,7 +39,7 @@ export function saveWithoutEditor(
 // Set the given field of editRow to value, only if different from the current value of the cell.
 export async function setAndSave(editRow: DataRowModel, field: ViewFieldRec, value: CellValue): Promise<void> {
   const obs = editRow.cells[field.colId()];
-  if (value !== obs.peek()) {
+  if (!isEqual(value, obs.peek())) {
     return obs.setAndSave(value);
   }
 }

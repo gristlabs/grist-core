@@ -221,16 +221,16 @@ var typeDefs = {
     label: 'Attachment',
     icon: 'FieldAttachment',
     widgets: {
-      Previews: {
-        cons: 'PreviewsWidget',
-        editCons: 'PreviewsEditor',
+      Attachments: {
+        cons: 'AttachmentsWidget',
+        editCons: 'AttachmentsEditor',
         icon: 'FieldAttachment',
         options: {
           height: '36'
         }
       }
     },
-    default: 'Previews'
+    default: 'Attachments'
   }
 };
 exports.typeDefs = typeDefs;

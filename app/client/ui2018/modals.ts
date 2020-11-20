@@ -47,9 +47,11 @@ export type ModalWidth =
 export function modal(createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
                       options: IModalOptions = {}): void {
   function close() {
-    document.body.removeChild(modalDom);
-    // Ensure we run the disposers for the DOM contained in the modal.
-    dom.domDispose(modalDom);
+    if (modalDom.isConnected) {
+      document.body.removeChild(modalDom);
+      // Ensure we run the disposers for the DOM contained in the modal.
+      dom.domDispose(modalDom);
+    }
   }
 
   const modalDom = cssModalBacker(

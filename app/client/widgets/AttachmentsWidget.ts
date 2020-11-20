@@ -1,15 +1,15 @@
 import {Computed, dom, fromKo, input, makeTestId, onElem, styled, TestId} from 'grainjs';
 
+import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {cssRow} from 'app/client/ui/RightPanel';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, vars} from 'app/client/ui2018/cssVars';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {PreviewModal} from 'app/client/widgets/PreviewModal';
 import {encodeQueryParams} from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
 import {UploadResult} from 'app/common/uploads';
+import {extname} from 'path';
 
 const testId: TestId = makeTestId('test-pw-');
 
@@ -43,40 +43,13 @@ const attachmentPreview = styled('div', `
   border: 1px solid #bbb;
   margin: 0 2px 2px 0;
   position: relative;
-  vertical-align: top;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 0;
-
-  &:hover > .show_preview {
-    display: block;
-  }
-`);
-
-const showPreview = styled('div.glyphicon.glyphicon-eye-open.show_preview', `
-  position: absolute;
-  display: none;
-  right: -2px;
-  top: -2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  background-color: #888;
-  color: white;
-  font-size: 6pt;
-  padding: 2px;
-  cursor: pointer;
-
   &:hover {
-    display: block;
+    border-color: ${colors.lightGreen};
   }
-`);
-
-const noPreviewIcon = styled('div.glyphicon.glyphicon-file', `
-  min-width: 100%;
-  color: #bbb;
-  text-align: center;
-  margin: calc(50% * 1.33 - 6px) 0;
-  font-size: 6pt;
-  vertical-align: top;
 `);
 
 const sizeLabel = styled('div', `
@@ -89,9 +62,9 @@ export interface SavingObservable<T> extends ko.Observable<T> {
 }
 
 /**
- * PreviewsWidget - A widget for displaying attachments as image previews.
+ * AttachmentsWidget - A widget for displaying attachments as image previews.
  */
-export class PreviewsWidget extends NewAbstractWidget {
+export class AttachmentsWidget extends NewAbstractWidget {
 
   private _attachmentsTable: TableData;
   private _height: SavingObservable<string>;
@@ -126,7 +99,7 @@ export class PreviewsWidget extends NewAbstractWidget {
         dom.on('click', () => this._selectAndSave(cellValue))
       ),
       dom.forEach(values, (value: number) =>
-        isNaN(value) ? null : this._buildAttachment(value, cellValue)
+        isNaN(value) ? null : this._buildAttachment(value, values)
       ),
       dom.on('drop', ev => this._uploadAndSave(cellValue, ev.dataTransfer!.files))
     );
@@ -148,12 +121,13 @@ export class PreviewsWidget extends NewAbstractWidget {
     );
   }
 
-  protected _buildAttachment(value: number, cellValue: SavingObservable<number[]>): Element {
+  protected _buildAttachment(value: number, allValues: Computed<number[]>): Element {
     const filename: string = this._attachmentsTable.getValue(value, 'fileName') as string;
+    const fileIdent: string = this._attachmentsTable.getValue(value, 'fileIdent') as string;
     const height: number = this._attachmentsTable.getValue(value, 'imageHeight') as number;
     const width: number = this._attachmentsTable.getValue(value, 'imageWidth') as number;
     const hasPreview: boolean = Boolean(height);
-    const ratio: number = hasPreview ? (width / height) : .75;
+    const ratio: number = hasPreview ? (width / height) : 1;
 
     return attachmentPreview({title: filename}, // Add a filename tooltip to the previews.
       dom.style('height', (use) => `${use(this._height)}px`),
@@ -161,13 +135,12 @@ export class PreviewsWidget extends NewAbstractWidget {
       // TODO: Update to legitimately determine whether a file preview exists.
       hasPreview ? dom('img', {style: 'height: 100%; min-width: 100%; vertical-align: top;'},
         dom.attr('src', this._getUrl(value))
-      ) : noPreviewIcon(),
-      dom.cls('no_preview', () => !hasPreview),
-      showPreview(
-        dom.on('click', () => this._showPreview(value, cellValue)),
-        testId(`preview-${value}`)
-      ),
-      testId(String(value))
+      ) : renderFileType(filename, fileIdent, this._height),
+      // Open editor as if with input, using it to tell it which of the attachments to show. We
+      // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
+      // accidental feature of opening e.g. second attachment by hitting "2".
+      dom.on('dblclick', () => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1))),
+      testId('thumbnail'),
     );
   }
 
@@ -208,40 +181,35 @@ export class PreviewsWidget extends NewAbstractWidget {
     // Trigger a row height change in case the added attachment wraps to the next line.
     this.field.viewSection().events.trigger('rowHeightChange');
   }
-
-  // Show a preview for the attachment with the given rowId value in the attachments table.
-  private _showPreview(value: number, cellValue: SavingObservable<number[]>): void {
-    // Modal should be disposed on close.
-    const onClose = (_cellValue: number[]) => {
-      cellValue.setAndSave(_cellValue);
-      modal.dispose();
-    };
-    const modal = PreviewModal.create(this, this._getDocData(), cellValue.peek(), testId, value,
-      onClose);
-  }
 }
 
-/**
- * A PreviewsEditor is just the PreviewModal, which allows adding and removing attachments.
- */
-export class PreviewsEditor extends NewBaseEditor {
-  private _modal: any;
-
-  public attach(cellRect: ClientRect|DOMRect) {
-    const docData = this.options.gristDoc.docData;
-    // Disposal on close is handled by the FieldBuilder editor logic.
-    this._modal = PreviewModal.create(this, docData, this.options.cellValue as number[], testId);
-  }
-
-  public getCellValue(): any {
-    return this._modal.getCellValue();
-  }
-
-  public getCursorPos(): number {
-    return 0;
-  }
-
-  public getTextValue(): string {
-    return '';
-  }
+export function renderFileType(fileName: string, fileIdent: string, height?: ko.Observable<string>): HTMLElement {
+  // Prepend 'x' to ensure we return the extension even if the basename is empty (e.g. ".xls").
+  // Take slice(1) to strip off the leading period.
+  const extension = extname('x' + fileName).slice(1) || extname('x' + fileIdent).slice(1) || '?';
+  return cssFileType(extension.toUpperCase(),
+    height && cssFileType.cls((use) => {
+      const size = parseFloat(use(height));
+      return size < 28 ? '-small' : size < 60 ? '-medium' : '-large';
+    }),
+  );
 }
+
+const cssFileType = styled('div', `
+  height: 100%;
+  width: 100%;
+  max-height: 80px;
+  max-width: 80px;
+  background-color: ${colors.slate};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: ${vars.mediumFontSize};
+  font-weight: bold;
+  color: white;
+  overflow: hidden;
+
+  &-small { font-size: ${vars.xxsmallFontSize}; }
+  &-medium { font-size: ${vars.smallFontSize}; }
+  &-large { font-size: ${vars.mediumFontSize}; }
+`);
