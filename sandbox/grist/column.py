@@ -330,7 +330,7 @@ class BaseReferenceColumn(BaseColumn):
     # self._data may include values for non-existent rows; it works here because those values are
     # falsy, which makes them ignored by self._update_references).
     for row_id, value in enumerate(self._data):
-      if isinstance(value, int):
+      if self.type_obj.is_right_type(value):
         self._update_references(row_id, None, value)
 
   def sample_value(self):
