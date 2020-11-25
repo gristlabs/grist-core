@@ -118,6 +118,10 @@ export interface Scope {
   specialPermit?: Permit;        // When set, extra rights are granted on a specific resource.
 }
 
+// Flag for whether we are listing resources or opening them.  This makes a difference
+// for public resources, which we allow users to open but not necessarily list.
+type AccessStyle = 'list' | 'open';
+
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
   urlId: string;
@@ -778,7 +782,7 @@ export class HomeDBManager extends EventEmitter {
     queryBuilder = this._addIsSupportWorkspace(userId, queryBuilder, 'orgs', 'workspaces');
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
-    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs']);
+    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs'], 'list');
 
     const result = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return the workspaces, not the org(s).
@@ -815,7 +819,7 @@ export class HomeDBManager extends EventEmitter {
     queryBuilder = this._addIsSupportWorkspace(userId, queryBuilder, 'orgs', 'workspaces');
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
-    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs']);
+    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
     const result = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return a single workspace.
     if (result.status === 200) {
@@ -2121,7 +2125,7 @@ export class HomeDBManager extends EventEmitter {
       const docQuery = this._doc(scope, {
         manager
       })
-      .addSelect(this._markIsPermitted('orgs', scope.userId, permissions), 'is_permitted');
+      .addSelect(this._markIsPermitted('orgs', scope.userId, 'open', permissions), 'is_permitted');
       const docQueryResult = await verifyIsPermitted(docQuery);
       if (docQueryResult.status !== 200) {
         // If the query for the doc failed, return the failure result.
@@ -2353,7 +2357,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('orgs', effectiveUserId, threshold),
+        this._markIsPermitted('orgs', effectiveUserId, 'open', threshold),
         'is_permitted'
       );
     }
@@ -2803,7 +2807,7 @@ export class HomeDBManager extends EventEmitter {
     // TODO includeSupport should really be false, and the support for it should be removed.
     // (For this, example doc URLs should be under docs.getgrist.com rather than team domains.)
     // Add access information and query limits
-    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs']);
+    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], 'open');
     if (options.markPermissions) {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
@@ -2814,7 +2818,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('docs', effectiveUserId, threshold),
+        this._markIsPermitted('docs', effectiveUserId, 'open', threshold),
         'is_permitted'
       );
     }
@@ -2865,7 +2869,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('workspaces', effectiveUserId, threshold),
+        this._markIsPermitted('workspaces', effectiveUserId, 'open', threshold),
         'is_permitted'
       );
     }
@@ -2921,9 +2925,10 @@ export class HomeDBManager extends EventEmitter {
   }
 
   private _withAccess(qb: SelectQueryBuilder<any>, users: AvailableUsers,
-                      table: 'orgs'|'workspaces'|'docs') {
+                      table: 'orgs'|'workspaces'|'docs',
+                      accessStyle: AccessStyle = 'open') {
     return qb
-      .addSelect(this._markIsPermitted(table, users, null), `${table}_permissions`);
+      .addSelect(this._markIsPermitted(table, users, accessStyle, null), `${table}_permissions`);
   }
 
   /**
@@ -3299,6 +3304,7 @@ export class HomeDBManager extends EventEmitter {
   private _markIsPermitted(
     resType: 'orgs'|'workspaces'|'docs',
     users: AvailableUsers,
+    accessStyle: AccessStyle,
     permissions: Permissions|null = Permissions.VIEW
   ): (qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
     const idColumn = resType.slice(0, -1) + "_id";
@@ -3316,14 +3322,22 @@ export class HomeDBManager extends EventEmitter {
           // optimized if we eliminate one of those users.  The guN
           // aliases are joining in _getUsersAcls, and refer to the
           // group_users table at different levels of nesting.
+
+          // When listing, everyone@ shares do not contribute to access permissions,
+          // only to the public flag.  So resources available to the user only because
+          // they are publically available will not be listed.  Shares with anon@,
+          // on the other hand, *are* listed.
+          const everyoneContribution = accessStyle === 'list' ? Permissions.PUBLIC :
+            `${Permissions.PUBLIC} | acl_rules.permissions`;
           q = q.select(
-            bitOr(this._dbType, `(acl_rules.permissions | (case when ` +
-                  `${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) OR ` +
+            bitOr(this._dbType, `(case when ` +
+                  `${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
+                  `then ${everyoneContribution} else (case when ` +
                   `${anonId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
-                  `then ${Permissions.PUBLIC} else 0 end))`, 8), 'permissions');
+                  `then ${Permissions.PUBLIC} | acl_rules.permissions else acl_rules.permissions end) end)`, 8), 'permissions');
         }
         q = q.from('acl_rules', 'acl_rules');
-        q = this._getUsersAcls(q, users);
+        q = this._getUsersAcls(q, users, accessStyle);
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
           q = q.andWhere(`(acl_rules.permissions & ${permissions}) = ${permissions}`).limit(1);
@@ -3357,7 +3371,8 @@ export class HomeDBManager extends EventEmitter {
   // sufficient for our current ACL setup.  A third is added as a low-cost preparation
   // for implementing something like teams in the future.  It has no measurable effect on
   // speed.
-  private _getUsersAcls(qb: SelectQueryBuilder<any>, users: AvailableUsers) {
+  private _getUsersAcls(qb: SelectQueryBuilder<any>, users: AvailableUsers,
+                        accessStyle: AccessStyle) {
     // Every acl_rule is associated with a single group.  A user may
     // be a direct member of that group, via the group_users table.
     // Or they may be a member of a group that is a member of that
@@ -3383,6 +3398,15 @@ export class HomeDBManager extends EventEmitter {
           cond = cond.orWhere(`gu1.user_id = ${everyoneId}`);
           cond = cond.orWhere(`gu2.user_id = ${everyoneId}`);
           cond = cond.orWhere(`gu3.user_id = ${everyoneId}`);
+          if (accessStyle === 'list') {
+            // Support also the special anonymous user.  Currently, by convention, sharing a
+            // resource with anonymous should make it listable.
+            const anonId = this._specialUserIds[ANONYMOUS_USER_EMAIL];
+            cond = cond.orWhere(`gu0.user_id = ${anonId}`);
+            cond = cond.orWhere(`gu1.user_id = ${anonId}`);
+            cond = cond.orWhere(`gu2.user_id = ${anonId}`);
+            cond = cond.orWhere(`gu3.user_id = ${anonId}`);
+          }
           // Add an exception for the previewer user, if present.
           const previewerId = this._specialUserIds[PREVIEWER_EMAIL];
           if (users === previewerId) {
@@ -3433,7 +3457,8 @@ export class HomeDBManager extends EventEmitter {
   // if request is from a branded webpage; results should be limited to a
   // specific user or set of users.
   private _applyLimit<T>(qb: SelectQueryBuilder<T>, limit: Scope,
-                         resources: Array<'docs'|'workspaces'|'orgs'>): SelectQueryBuilder<T> {
+                         resources: Array<'docs'|'workspaces'|'orgs'>,
+                         accessStyle: AccessStyle): SelectQueryBuilder<T> {
     if (limit.org) {
       // Filtering on merged org is a special case, see urlIdQuery
       const mergedOrg = this.isMergedOrg(limit.org || null);
@@ -3443,7 +3468,7 @@ export class HomeDBManager extends EventEmitter {
     }
     if (limit.users || limit.userId) {
       for (const res of resources) {
-        qb = this._withAccess(qb, limit.users || limit.userId, res);
+        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle);
       }
     }
     if (resources.includes('docs') && resources.includes('workspaces') && !limit.showAll) {
