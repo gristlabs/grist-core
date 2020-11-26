@@ -17,7 +17,7 @@ import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
-import {getCurrentDocUrl, urlState} from 'app/client/models/gristUrlState';
+import {urlState} from 'app/client/models/gristUrlState';
 import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
@@ -37,6 +37,7 @@ export interface IUserManagerOptions {
   resourceType: ResourceType;
   resourceId: string|number;
   docPageModel?: DocPageModel;
+  linkToCopy?: string;
   onSave?: () => Promise<unknown>;
 }
 
@@ -74,7 +75,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         ['Access Rules'] :
         [
           `Invite people to ${renderType(options.resourceType)}`,
-          (options.resourceType === 'document' ? makeCopyBtn(cssCopyBtn.cls('-header')) : null),
+          (options.resourceType === 'document' ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
         ]
       ),
       testId('um-header')
@@ -84,7 +85,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
       dom.autoDispose(accessRules),
       cssUserManagerBody(
         // TODO: Show a loading indicator before the model is loaded.
-        dom.maybe(modelObs, model => new UserManager(model).buildDom()),
+        dom.maybe(modelObs, model => new UserManager(model, options.linkToCopy).buildDom()),
         dom.hide(accessRulesOpen),
       ),
       cssUserManagerBody(
@@ -146,7 +147,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
  *    um.buildDom();
  */
 export class UserManager extends Disposable {
-  constructor(private _model: UserManagerModel) {
+  constructor(private _model: UserManagerModel, private _linkToCopy: string|undefined) {
     super();
   }
 
@@ -244,7 +245,7 @@ export class UserManager extends Disposable {
           cssPublicMemberIcon('PublicFilled'),
           cssMemberText(
             cssMemberPrimary('Public Access'),
-            cssMemberSecondary('Anyone with link ', makeCopyBtn()),
+            cssMemberSecondary('Anyone with link ', makeCopyBtn(this._linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
             // Only show the Editor and Viewer options for the role of the "Public Access" member.
@@ -418,9 +419,9 @@ function getFullUser(member: IEditableMember): FullUser {
 }
 
 // Create a "Copy Link" button.
-function makeCopyBtn(...domArgs: DomElementArg[]) {
-  return cssCopyBtn(cssCopyIcon('Copy'), 'Copy Link',
-    dom.on('click', copyLink),
+function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
+  return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), 'Copy Link',
+    dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),
     ...domArgs,
   );
@@ -428,8 +429,7 @@ function makeCopyBtn(...domArgs: DomElementArg[]) {
 
 // Copy the current document link to clipboard, and notify the user with a transient popup near
 // the given element.
-async function copyLink(ev: MouseEvent, elem: HTMLElement) {
-  const link = getCurrentDocUrl();
+async function copyLink(elem: HTMLElement, link: string) {
   await copyToClipboard(link);
   setTestState({clipboard: link});
   showTransientTooltip(elem, 'Link copied to clipboard', {key: 'copy-doc-link'});

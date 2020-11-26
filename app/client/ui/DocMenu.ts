@@ -310,7 +310,8 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       permissionData: api.getDocAccess(doc.id),
       activeEmail: user ? user.email : null,
       resourceType: 'document',
-      resourceId: doc.id
+      resourceId: doc.id,
+      linkToCopy: urlState().makeUrl(docUrl(doc)),
     });
   }
 

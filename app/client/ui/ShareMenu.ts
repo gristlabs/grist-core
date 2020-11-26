@@ -1,7 +1,7 @@
 import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from 'app/client/models/gristUrlState';
+import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
@@ -224,6 +224,7 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
     resourceType: 'document',
     resourceId: doc.id,
     docPageModel,
+    linkToCopy: urlState().makeUrl(docUrl(doc)),
     // On save, re-fetch the document info, to toggle the "Public Access" icon if it changed.
     onSave: () => docPageModel.refreshCurrentDoc(doc),
   });
