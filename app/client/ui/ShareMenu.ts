@@ -12,7 +12,7 @@ import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
-import {MenuCreateFunc} from 'popweasel';
+import {cssMenuItem, MenuCreateFunc} from 'popweasel';
 
 function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
@@ -155,6 +155,7 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
       testId('replace-original'),
     ),
     menuItemLink({href: originalUrlComparison, target: '_blank'}, `Compare to ${termToUse}`,
+      cssAnnotateMenuItem('Beta'),
       testId('compare-original'),
     ),
   ];
@@ -295,4 +296,18 @@ const cssMenuIconLink = styled('a', `
 
 const cssMenuIcon = styled(icon, `
   display: block;
+`);
+
+const cssAnnotateMenuItem = styled('span', `
+  color: ${colors.lightGreen};
+  text-transform: uppercase;
+  font-size: 8px;
+  vertical-align: super;
+  margin-top: -4px;
+  margin-left: 4px;
+  font-weight: bold;
+
+  .${cssMenuItem.className}-sel > & {
+    color: white;
+  }
 `);
