@@ -42,7 +42,7 @@ type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Respon
 function apiThrottle(usage: Map<string, number>,
                      callback: (req: RequestWithLogin,
                                 resp: Response,
-                                next: NextFunction) => Promise<void>): RequestHandler {
+                                next: NextFunction) => void|Promise<void>): RequestHandler {
   return async (req, res, next) => {
     const docId = getDocId(req);
     try {
