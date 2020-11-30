@@ -396,7 +396,7 @@ export class ActiveDoc extends EventEmitter {
 
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, (query) => {
-      return this.fetchQuery(makeExceptionalDocSession('system'), query, true);
+      return this._fetchQueryFromDB(query, false);
     });
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory);
@@ -960,6 +960,14 @@ export class ActiveDoc extends EventEmitter {
     return this._docManager.makeAccessId(userId);
   }
 
+  public async beforeBroadcast(docActions: DocAction[], undo: DocAction[]) {
+    await this._granularAccess.beforeBroadcast(docActions, undo);
+  }
+
+  public async afterBroadcast() {
+    await this._granularAccess.afterBroadcast();
+  }
+
   /**
    * Broadcast document changes to all the document's clients.  Doesn't involve
    * ActiveDoc directly, but placed here to facilitate future work on granular
@@ -1258,14 +1266,14 @@ export class ActiveDoc extends EventEmitter {
    * This filters a message being broadcast to all clients to be appropriate for one
    * particular client, if that client may need some material filtered out.
    */
-  private _filterDocUpdate(docSession: OptDocSession, message: {
+  private async _filterDocUpdate(docSession: OptDocSession, message: {
     actionGroup: ActionGroup,
     docActions: DocAction[]
   }) {
     if (this._granularAccess.canReadEverything(docSession)) { return message; }
     const result = {
       actionGroup: this._granularAccess.filterActionGroup(docSession, message.actionGroup),
-      docActions: this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
+      docActions: await this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
     };
     if (result.docActions.length === 0) { return null; }
     return result;

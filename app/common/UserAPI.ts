@@ -304,6 +304,7 @@ export interface DocAPI {
   getRows(tableId: string): Promise<TableColValues>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
+  removeRows(tableId: string, removals: number[]): Promise<number[]>;
   replace(source: DocReplacementOptions): Promise<void>;
   getSnapshots(): Promise<DocSnapshots>;
   forceReload(): Promise<void>;
@@ -686,6 +687,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async addRows(tableId: string, additions: BulkColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),
+      method: 'POST'
+    });
+  }
+
+  public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
+    return this.requestJson(`${this._url}/tables/${tableId}/data/delete`, {
+      body: JSON.stringify(removals),
       method: 'POST'
     });
   }

@@ -16,8 +16,14 @@ type FetchTableFunc = (tableId: string) => Promise<TableDataAction>;
 export class DocData extends ActionDispatcher {
   private _tables: Map<string, TableData> = new Map();
 
-  constructor(private _fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction}) {
+  /**
+   * If metaTableData is not supplied, then any tables needed should be loaded manually,
+   * using syncTable(). All column types will be set to Any, which will affect default
+   * values.
+   */
+  constructor(private _fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction} | null) {
     super();
+    if (metaTableData === null) { return; }
     // Create all meta tables, and populate data we already have.
     for (const tableId in schema) {
       if (schema.hasOwnProperty(tableId)) {
@@ -65,6 +71,17 @@ export class DocData extends ActionDispatcher {
     const table = this._tables.get(tableId);
     if (!table) { throw new Error(`DocData.fetchTable: unknown table ${tableId}`); }
     return (!table.isLoaded || force) ? table.fetchData(this._fetchTableFunc) : Promise.resolve();
+  }
+
+  /**
+   * Fetches the data for tableId unconditionally, and without knowledge of its metadata.
+   * Columns will be assumed to have type 'Any'.
+   */
+  public async syncTable(tableId: string): Promise<void> {
+    const tableData = await this._fetchTableFunc(tableId);
+    const colTypes = fromPairs(Object.keys(tableData[3]).map(c => [c, 'Any']));
+    colTypes.id = 'Any';
+    this._tables.set(tableId, this.createTableData(tableId, tableData, colTypes));
   }
 
   /**

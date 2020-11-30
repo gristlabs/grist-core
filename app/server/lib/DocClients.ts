@@ -77,7 +77,7 @@ export class DocClients {
    */
   public async broadcastDocMessage(client: Client|null, type: string, messageData: any,
                                    filterMessage?: (docSession: OptDocSession,
-                                                    messageData: any) => any): Promise<void> {
+                                                    messageData: any) => Promise<any>): Promise<void> {
     await Promise.all(this._docSessions.map(async curr => {
       const fromSelf = (curr.client === client);
       try {
@@ -87,7 +87,7 @@ export class DocClients {
           sendDocMessage(curr.client, curr.fd, type, messageData, fromSelf);
         } else {
           try {
-            const filteredMessageData = filterMessage(curr, messageData);
+            const filteredMessageData = await filterMessage(curr, messageData);
             if (filteredMessageData) {
               sendDocMessage(curr.client, curr.fd, type, filteredMessageData, fromSelf);
             } else {

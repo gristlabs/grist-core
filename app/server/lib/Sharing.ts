@@ -222,6 +222,7 @@ export class Sharing {
       (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
        this._actionHistory.getNextLocalActionNum());
 
+    const undo = getEnvContent(sandboxActionBundle.undo);
     const localActionBundle: LocalActionBundle = {
       actionNum,
       // The ActionInfo should go into the envelope that includes all recipients.
@@ -235,6 +236,9 @@ export class Sharing {
       parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
     };
     this._logActionBundle(`doApplyUserActions (${Branch[branch]})`, localActionBundle);
+
+    const docActions = getEnvContent(localActionBundle.stored).concat(
+      getEnvContent(localActionBundle.calc));
 
     // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
     // have EDIT permission without VIEW). These are not sent to the browser or the database. But
@@ -281,11 +285,15 @@ export class Sharing {
       // date and other changes from external values may count as internal.
       internal: isCalculate,
     });
-    await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
-      actionGroup,
-      docActions: getEnvContent(localActionBundle.stored).concat(
-        getEnvContent(localActionBundle.calc))
-    });
+    await this._activeDoc.beforeBroadcast(docActions, undo);
+    try {
+      await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
+        actionGroup,
+        docActions,
+      });
+    } finally {
+      await this._activeDoc.afterBroadcast();
+    }
     return {
       actionNum: localActionBundle.actionNum,
       retValues: sandboxActionBundle.retValues,
