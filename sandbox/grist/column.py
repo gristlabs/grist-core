@@ -239,7 +239,7 @@ class NumericColumn(BaseColumn):
 _sample_date = moment.ts_to_date(0)
 _sample_datetime = moment.ts_to_dt(0, None, moment.TZ_UTC)
 
-class DateColumn(BaseColumn):
+class DateColumn(NumericColumn):
   """
   DateColumn contains numerical timestamps represented as seconds since epoch, in type float,
   to midnight of specific UTC dates. Accessing them yields date objects.
@@ -250,7 +250,7 @@ class DateColumn(BaseColumn):
   def sample_value(self):
     return _sample_date
 
-class DateTimeColumn(BaseColumn):
+class DateTimeColumn(NumericColumn):
   """
   DateTimeColumn contains numerical timestamps represented as seconds since epoch, in type float,
   and a timestamp associated with the column. Accessing them yields datetime objects.
@@ -265,7 +265,7 @@ class DateTimeColumn(BaseColumn):
   def sample_value(self):
     return _sample_datetime
 
-class PositionColumn(BaseColumn):
+class PositionColumn(NumericColumn):
   def __init__(self, table, col_id, col_info):
     super(PositionColumn, self).__init__(table, col_id, col_info)
     # This is a list of row_ids, ordered by the position.

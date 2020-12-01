@@ -14,6 +14,7 @@ of the form ['U', repr(obj)].
 import exceptions
 import traceback
 from datetime import date, datetime
+from math import isnan
 
 import moment
 import records
@@ -92,6 +93,14 @@ class AltText(object):
     raise InvalidTypedValue(self._typename, self._text)
 
 
+class UnmarshallableValue(object):
+  """
+  Represents an UnmarshallableValue. There is nothing we can do with it except encode it back.
+  """
+  def __init__(self, value_repr):
+    self.value_repr = value_repr
+
+
 # Unique sentinel value representing a pending value. It's encoded as ['P'], and shown to the user
 # as "Loading..." text. With the switch to stored formulas, it's currently only used when a
 # document was just migrated.
@@ -122,9 +131,11 @@ def strict_equal(a, b):
     return False
 
 def equal_encoding(a, b):
-  if isinstance(a, (str, unicode, float, bool, long, int)) or a is None:
-    # pylint: disable=unidiomatic-typecheck
+  # pylint: disable=unidiomatic-typecheck
+  if isinstance(a, (str, unicode, bool, long, int)) or a is None:
     return type(a) == type(b) and a == b
+  if isinstance(a, float):
+    return type(a) == type(b) and (a == b or (isnan(a) and isnan(b)))
   return encode_object(a) == encode_object(b)
 
 def encode_object(value):
@@ -160,6 +171,8 @@ def encode_object(value):
       return ['O', {key: encode_object(val) for key, val in value.iteritems()}]
     elif value == _pending_sentinel:
       return ['P']
+    elif isinstance(value, UnmarshallableValue):
+      return ['U', value.value_repr]
   except Exception as e:
     pass
   # We either don't know how to convert the value, or failed during the conversion. Instead we
@@ -174,6 +187,13 @@ def decode_object(value):
   """
   try:
     if not isinstance(value, (list, tuple)):
+      if isinstance(value, unicode):
+        # TODO For now, the sandbox uses binary strings throughout; see TODO in main.py for more
+        # on this. Strings that come from JS become Python binary strings, and we will not see
+        # unicode here. But we may see it if unmarshalling data that comes from DB, since
+        # DocStorage encodes/decodes values by marshaling JS strings as unicode. For consistency,
+        # convert those unicode strings to binary strings too.
+        return value.encode('utf8')
       return value
     code = value[0]
     args = value[1:]
@@ -188,9 +208,11 @@ def decode_object(value):
     elif code == 'L':
       return [decode_object(item) for item in args]
     elif code == 'O':
-      return {key: decode_object(val) for key, val in args[0].iteritems()}
+      return {decode_object(key): decode_object(val) for key, val in args[0].iteritems()}
     elif code == 'P':
       return _pending_sentinel
+    elif code == 'U':
+      return UnmarshallableValue(args[0])
     raise KeyError("Unknown object type code %r" % code)
   except Exception as e:
     return RaisedException(e)

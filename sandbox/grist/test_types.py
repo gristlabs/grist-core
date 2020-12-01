@@ -169,12 +169,12 @@ class TestTypes(test_engine.EngineTestCase):
       "stored": [
         ["ModifyColumn", "Types", "date", {"type": "Text"}],
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18],
-          {"date": ["False", "True", "1509556595", "8.153", "0", "1"]}],
+          {"date": ["False", "True", "1509556595.0", "8.153", "0.0", "1.0"]}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Text"}]
       ],
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18],
-          {"date": [False, True, 1509556595, 8.153, 0, 1]}],
+          {"date": [False, True, 1509556595.0, 8.153, 0.0, 1.0]}],
         ["ModifyColumn", "Types", "date", {"type": "Date"}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Date"}]
       ]
@@ -187,10 +187,10 @@ class TestTypes(test_engine.EngineTestCase):
       [12,   "Chîcágö",   "Chîcágö",   "Chîcágö",   "Chîcágö",   "Chîcágö"],
       [13,   False,       "False",     "False",     "False",     "False"],
       [14,   True,        "True",      "True",      "True",      "True"],
-      [15,   1509556595,  "1509556595.0","1509556595","1509556595","1509556595"],
+      [15,   1509556595,  "1509556595.0","1509556595","1509556595","1509556595.0"],
       [16,   8.153,       "8.153",     "8.153",     "8.153",     "8.153"],
-      [17,   0,           "0.0",       "0",         "False",     "0"],
-      [18,   1,           "1.0",       "1",         "True",      "1"],
+      [17,   0,           "0.0",       "0",         "False",     "0.0"],
+      [18,   1,           "1.0",       "1",         "True",      "1.0"],
       [19,   "",          "",          "",          "",          ""],
       [20,   None,        None,        None,        None,        None]
     ])
@@ -267,13 +267,13 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["ModifyColumn", "Types", "date", {"type": "Numeric"}],
-        ["BulkUpdateRecord", "Types", [13, 14, 15, 17, 18, 19],
-          {"date": [0.0, 1.0, 1509556595.0, 0.0, 1.0, None]}],
+        ["BulkUpdateRecord", "Types", [13, 14, 19],
+          {"date": [0.0, 1.0, None]}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Numeric"}]
       ],
       "undo": [
-        ["BulkUpdateRecord", "Types", [13, 14, 15, 17, 18, 19],
-          {"date": [False, True, 1509556595, 0, 1, ""]}],
+        ["BulkUpdateRecord", "Types", [13, 14, 19],
+          {"date": [False, True, ""]}],
         ["ModifyColumn", "Types", "date", {"type": "Date"}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Date"}]
       ]
@@ -367,12 +367,13 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["ModifyColumn", "Types", "date", {"type": "Int"}],
-        ["BulkUpdateRecord", "Types", [13, 14, 16, 19], {"date": [0, 1, 8, None]}],
+        ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18, 19],
+          {"date": [0, 1, 1509556595, 8, 0, 1, None]}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Int"}]
       ],
       "undo": [
-        ["BulkUpdateRecord", "Types", [13, 14, 16, 19],
-          {"date": [False, True, 8.153, ""]}],
+        ["BulkUpdateRecord", "Types", [13, 14, 15, 16, 17, 18, 19],
+          {"date": [False, True, 1509556595.0, 8.153, 0.0, 1.0, ""]}],
         ["ModifyColumn", "Types", "date", {"type": "Date"}],
         ["UpdateRecord", "_grist_Tables_column", 25, {"type": "Date"}]
       ]

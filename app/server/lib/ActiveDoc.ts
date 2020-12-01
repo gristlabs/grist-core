@@ -564,7 +564,6 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fetchTable(docSession: OptDocSession, tableId: string,
                           waitForFormulas: boolean = false): Promise<TableDataAction> {
-    this.logInfo(docSession, "fetchTable(%s, %s)", docSession, tableId);
     return this.fetchQuery(docSession, {tableId, filters: {}}, waitForFormulas);
   }
 
@@ -593,7 +592,7 @@ export class ActiveDoc extends EventEmitter {
     const wantFull = waitForFormulas || query.tableId.startsWith('_grist_') ||
       tableAccess.read === 'mixed';
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
-    this.logInfo(docSession, "fetchQuery(%s, %s) %s", docSession, JSON.stringify(query),
+    this.logInfo(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
     let data: TableDataAction;
     if (onDemand) {
