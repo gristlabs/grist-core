@@ -1,22 +1,23 @@
 import { MixedPermissionSet, PartialPermissionSet, TablePermissionSet } from 'app/common/ACLPermissions';
 import { makePartialPermissions, mergePartialPermissions, mergePermissions } from 'app/common/ACLPermissions';
-import { emptyPermissionSet, parsePermissions, toMixed } from 'app/common/ACLPermissions';
+import { emptyPermissionSet, toMixed } from 'app/common/ACLPermissions';
+import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
 import { AsyncCreate } from 'app/common/AsyncCreate';
-import { BulkAddRecord, BulkColValues, BulkRemoveRecord, CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
-import { TableDataAction, UserAction } from 'app/common/DocActions';
+import { BulkAddRecord, BulkColValues, BulkRemoveRecord, CellValue, ColValues, DocAction } from 'app/common/DocActions';
+import { getTableId, isSchemaAction, TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoView } from 'app/common/GranularAccessClause';
-import { readAclRules, RuleSet, UserAttributeRule, UserInfo } from 'app/common/GranularAccessClause';
-import { getSetMapValue } from 'app/common/gutil';
+import { RuleSet, UserAttributeRule, UserInfo } from 'app/common/GranularAccessClause';
+import { getSetMapValue, isObject } from 'app/common/gutil';
 import { canView } from 'app/common/roles';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
-import { getRowIdsFromDocAction, getRelatedRows } from 'app/server/lib/RowAccess';
 import * as log from 'app/server/lib/log';
+import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
 import get = require('lodash/get');
 import pullAt = require('lodash/pullAt');
@@ -59,24 +60,6 @@ const SURPRISING_ACTIONS = new Set([
 // Actions we'll allow unconditionally for now.
 const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
 
-// This is the hard-coded default RuleSet that's added to any user-created default rule.
-const DEFAULT_RULE_SET: RuleSet = {
-  tableId: '*',
-  colIds: '*',
-  body: [{
-    aclFormula: "user.Role in ['editors', 'owners']",
-    matchFunc:  (input) => ['editors', 'owners'].includes(String(input.user.Access)),
-    permissions: parsePermissions('all'),
-    permissionsText: 'all',
-  }, {
-    aclFormula: "user.Role in ['viewers']",
-    matchFunc:  (input) => ['viewers'].includes(String(input.user.Access)),
-    permissions: parsePermissions('+R'),
-    permissionsText: 'none',
-  }],
-  defaultPermissions: parsePermissions('none'),
-};
-
 /**
  *
  * Manage granular access to a document.  This allows nuances other than the coarse
@@ -85,28 +68,8 @@ const DEFAULT_RULE_SET: RuleSet = {
  *
  */
 export class GranularAccess {
-  // In the absence of rules, some checks are skipped. For now this is important to maintain all
-  // existing behavior. TODO should make sure checking access against default rules is equivalent
-  // and efficient.
-  private _haveRules = false;
-
-  // Map of tableId to list of column RuleSets (those with colIds other than '*')
-  private _columnRuleSets = new Map<string, RuleSet[]>();
-
-  // Maps 'tableId:colId' to one of the RuleSets in the list _columnRuleSets.get(tableId).
-  private _tableColumnMap = new Map<string, RuleSet>();
-
-  // Map of tableId to the single default RuleSet for the table (colIds of '*')
-  private _tableRuleSets = new Map<string, RuleSet>();
-
-  // The default RuleSet (tableId '*', colIds '*')
-  private _defaultRuleSet: RuleSet = DEFAULT_RULE_SET;
-
-  // List of all tableIds mentioned in rules.
-  private _tableIds: string[] = [];
-
-  // Maps name to the corresponding UserAttributeRule.
-  private _userAttributeRules = new Map<string, UserAttributeRule>();
+  // The collection of all rules, with helpful accessors.
+  private _ruleCollection = new ACLRuleCollection();
 
   // Cache any tables that we need to look-up for access control decisions.
   // This is an unoptimized implementation that is adequate if the tables
@@ -125,82 +88,12 @@ export class GranularAccess {
   public constructor(private _docData: DocData, private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>) {
   }
 
-  // Return the RuleSet for "tableId:colId", or undefined if there isn't one for this column.
-  public getColumnRuleSet(tableId: string, colId: string): RuleSet|undefined {
-    return this._tableColumnMap.get(`${tableId}:${colId}`);
-  }
-
-  // Return all RuleSets for "tableId:<any colId>", not including "tableId:*".
-  public getAllColumnRuleSets(tableId: string): RuleSet[] {
-    return this._columnRuleSets.get(tableId) || [];
-  }
-
-  // Return the RuleSet for "tableId:*".
-  public getTableDefaultRuleSet(tableId: string): RuleSet|undefined {
-    return this._tableRuleSets.get(tableId);
-  }
-
-  // Return the RuleSet for "*:*".
-  public getDocDefaultRuleSet(): RuleSet {
-    return this._defaultRuleSet;
-  }
-
-  // Return the list of all tableId mentions in ACL rules.
-  public getAllTableIds(): string[] {
-    return this._tableIds;
-  }
-
   /**
    * Update granular access from DocData.
    */
   public async update() {
-    const {ruleSets, userAttributes} = readAclRules(this._docData, {log, compile: compileAclFormula});
+    await this._ruleCollection.update(this._docData, {log, compile: compileAclFormula});
 
-    // Build a map of user characteristics rules.
-    const userAttributeMap = new Map<string, UserAttributeRule>();
-    for (const userAttr of userAttributes) {
-      userAttributeMap.set(userAttr.name, userAttr);
-    }
-
-    // Build maps of ACL rules.
-    const colRuleSets = new Map<string, RuleSet[]>();
-    const tableColMap = new Map<string, RuleSet>();
-    const tableRuleSets = new Map<string, RuleSet>();
-    let defaultRuleSet: RuleSet = DEFAULT_RULE_SET;
-
-    this._haveRules = (ruleSets.length > 0);
-    for (const ruleSet of ruleSets) {
-      if (ruleSet.tableId === '*') {
-        if (ruleSet.colIds === '*') {
-          defaultRuleSet = {
-            ...ruleSet,
-            body: [...ruleSet.body, ...DEFAULT_RULE_SET.body],
-            defaultPermissions: DEFAULT_RULE_SET.defaultPermissions,
-          };
-        } else {
-          // tableId of '*' cannot list particular columns.
-          throw new Error(`Invalid rule for tableId ${ruleSet.tableId}, colIds ${ruleSet.colIds}`);
-        }
-      } else if (ruleSet.colIds === '*') {
-        if (tableRuleSets.has(ruleSet.tableId)) {
-          throw new Error(`Invalid duplicate default rule for ${ruleSet.tableId}`);
-        }
-        tableRuleSets.set(ruleSet.tableId, ruleSet);
-      } else {
-        getSetMapValue(colRuleSets, ruleSet.tableId, () => []).push(ruleSet);
-        for (const colId of ruleSet.colIds) {
-          tableColMap.set(`${ruleSet.tableId}:${colId}`, ruleSet);
-        }
-      }
-    }
-
-    // Update GranularAccess state.
-    this._columnRuleSets = colRuleSets;
-    this._tableColumnMap = tableColMap;
-    this._tableRuleSets = tableRuleSets;
-    this._defaultRuleSet = defaultRuleSet;
-    this._tableIds = [...new Set([...colRuleSets.keys(), ...tableRuleSets.keys()])];
-    this._userAttributeRules = userAttributeMap;
     // Also clear the per-docSession cache of rule evaluations.
     this._permissionInfoMap = new WeakMap();
     // TODO: optimize this.
@@ -232,7 +125,7 @@ export class GranularAccess {
    * document mutation).
    */
   public async beforeBroadcast(docActions: DocAction[], undo: DocAction[]) {
-    if (!this._haveRules) { return; }
+    if (!this._ruleCollection.haveRules()) { return false; }
 
     // Prepare to compute row snapshots if it turns out we need them.
     // If we never need them, they will never be computed.
@@ -386,7 +279,7 @@ export class GranularAccess {
    * access is simple and without nuance.
    */
   public hasNuancedAccess(docSession: OptDocSession): boolean {
-    if (!this._haveRules) { return false; }
+    if (!this._ruleCollection.haveRules()) { return false; }
     return !this.hasFullAccess(docSession);
   }
 
@@ -445,14 +338,16 @@ export class GranularAccess {
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
     const permInfo = this._getAccess(docSession);
-    for (const tableId of this.getAllTableIds()) {
+    for (const tableId of this._ruleCollection.getAllTableIds()) {
       const tableAccess = permInfo.getTableAccess(tableId);
       let tableRef: number|undefined = 0;
       if (tableAccess.read === 'deny') {
         tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
         if (tableRef) { censoredTables.add(tableRef); }
       }
-      for (const ruleSet of this.getAllColumnRuleSets(tableId)) {
+      // TODO If some columns are allowed and the rest (*) are denied, we need to be able to
+      // censor all columns outside a set.
+      for (const ruleSet of this._ruleCollection.getAllColumnRuleSets(tableId)) {
         if (Array.isArray(ruleSet.colIds)) {
           for (const colId of ruleSet.colIds) {
             if (permInfo.getColumnAccess(tableId, colId).read === 'deny') {
@@ -696,7 +591,7 @@ export class GranularAccess {
     for (let idx = 0; idx < rowIds.length; idx++) {
       rowCursor.index = getDataIndex(idx);
 
-      const rowPermInfo = new PermissionInfo(this, input);
+      const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
       if (rowAccess.read === 'deny') {
@@ -727,13 +622,13 @@ export class GranularAccess {
     const rowCursor = new RecordView(data, 0);
     const input: AclMatchInput = {user: this._getUser(docSession), rec: rowCursor};
 
-    const [, tableId, rowIds,] = data;
+    const [, tableId, rowIds] = data;
     const toRemove: number[] = [];
     for (let idx = 0; idx < rowIds.length; idx++) {
       rowCursor.index = idx;
       if (!ids.has(rowIds[idx])) { continue; }
 
-      const rowPermInfo = new PermissionInfo(this, input);
+      const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
       if (rowAccess.read === 'deny') {
@@ -801,7 +696,7 @@ export class GranularAccess {
    */
   private async _updateCharacteristicTables() {
     this._characteristicTables.clear();
-    for (const userChar of this._userAttributeRules.values()) {
+    for (const userChar of this._ruleCollection.getUserAttributeRules().values()) {
       await this._updateCharacteristicTable(userChar);
     }
   }
@@ -839,7 +734,7 @@ export class GranularAccess {
     // TODO The intent of caching is to avoid duplicating rule evaluations while processing a
     // single request. Caching based on docSession is riskier since those persist across requests.
     return getSetMapValue(this._permissionInfoMap as Map<OptDocSession, PermissionInfo>, docSession,
-      () => new PermissionInfo(this, {user: this._getUser(docSession)}));
+      () => new PermissionInfo(this._ruleCollection, {user: this._getUser(docSession)}));
   }
 
   /**
@@ -855,7 +750,7 @@ export class GranularAccess {
     user.Email = fullUser?.email || null;
     user.Name = fullUser?.name || null;
 
-    for (const clause of this._userAttributeRules.values()) {
+    for (const clause of this._ruleCollection.getUserAttributeRules().values()) {
       if (clause.name in user) {
         log.warn(`User attribute ${clause.name} ignored; conflicts with an existing one`);
         continue;
@@ -935,7 +830,6 @@ function evaluateRule(ruleSet: RuleSet, input: AclMatchInput): PartialPermission
       }
     }
   }
-  pset = mergePartialPermissions(pset, ruleSet.defaultPermissions);
   return pset;
 }
 
@@ -948,7 +842,7 @@ class PermissionInfo {
 
   // Construct a PermissionInfo for a particular input, which is a combination of user and
   // optionally a record.
-  constructor(private _acls: GranularAccess, private _input: AclMatchInput) {}
+  constructor(private _acls: ACLRuleCollection, private _input: AclMatchInput) {}
 
   // Get permissions for "tableId:colId", defaulting to "tableId:*" and "*:*" as needed.
   // If 'mixed' is returned, different rows may have different permissions. It should never return
@@ -1048,8 +942,4 @@ interface CharacteristicTable {
   colId: string;
   rowNums: Map<string, number>;
   data: TableDataAction;
-}
-
-function isObject<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined;
 }

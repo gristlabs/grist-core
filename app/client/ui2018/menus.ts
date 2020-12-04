@@ -235,6 +235,16 @@ export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
 
+/**
+ * A version of menuItem which runs the action on next tick, allowing the menu to close even when
+ * the action causes the disabling of the element being clicked.
+ * TODO disabling the element should not prevent the menu from closing; once fixed in weasel, this
+ * can be removed.
+ */
+export const menuItemAsync: typeof weasel.menuItem = function(action, ...args) {
+  return menuItem(() => setTimeout(action, 0), ...args);
+};
+
 export function menuItemCmd(cmd: Command, label: string, ...args: DomElementArg[]) {
   return menuItem(
     cmd.run,

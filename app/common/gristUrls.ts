@@ -7,7 +7,7 @@ import identity = require('lodash/identity');
 import pickBy = require('lodash/pickBy');
 import {StringUnion} from './StringUnion';
 
-export type IDocPage = number | 'new' | 'code';
+export type IDocPage = number | 'new' | 'code' | 'acl';
 
 // What page to show in the user's home area. Defaults to 'workspace' if a workspace is set, and
 // to 'all' otherwise.
@@ -291,8 +291,8 @@ export function useNewUI(newui: boolean|undefined) {
  * parseDocPage is a noop if p is 'new' or 'code', otherwise parse to integer
  */
 function parseDocPage(p: string) {
-  if (['new', 'code'].includes(p)) {
-    return p as 'new'|'code';
+  if (['new', 'code', 'acl'].includes(p)) {
+    return p as 'new'|'code'|'acl';
   }
   return parseInt(p, 10);
 }

@@ -789,3 +789,13 @@ export async function isLongerThan(promise: Promise<any>, timeoutMsec: number): 
 export function isAffirmative(parameter: any): boolean {
   return ['1', 'on', 'true', 'yes'].includes(String(parameter).toLowerCase());
 }
+
+/**
+ * Returns whether a value is neither null nor undefined, with a type guard for the return type.
+ *
+ * This is particularly useful for filtering, e.g. if `array` includes values of type
+ * T|null|undefined, then TypeScript can tell that `array.filter(isObject)` has the type T[].
+ */
+export function isObject<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}

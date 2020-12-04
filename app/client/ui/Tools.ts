@@ -6,22 +6,28 @@ import { createHelpTools, cssSectionHeader, cssSpacer, cssTools } from 'app/clie
 import { cssLinkText, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
 import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
-import { commonUrls } from 'app/common/gristUrls';
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
-  const isEfcr = (gristDoc.app.topAppModel.productFlavor === 'efcr');
+  const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
+
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
 
-    isEfcr ? cssPageEntry(
-      cssPageLink(cssPageIcon('FieldReference'), cssLinkText('eFC-Connect'),
-        {href: commonUrls.efcrConnect, target: '_blank'}),
-    ) : null,
-
+    (aclUIEnabled ?
+      cssPageEntry(
+        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
+        cssPageLink(cssPageIcon('EyeShow'),
+          cssLinkText('Access Rules'),
+          urlState().setLinkUrl({docPage: 'acl'})
+        ),
+        testId('access-rules'),
+      ) :
+      null
+    ),
     cssPageEntry(
       cssPageLink(cssPageIcon('Log'), cssLinkText('Document History'), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))

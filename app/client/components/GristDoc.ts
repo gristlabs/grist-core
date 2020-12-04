@@ -27,8 +27,9 @@ import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
-import {IDocPage, urlState} from 'app/client/models/gristUrlState';
+import {urlState} from 'app/client/models/gristUrlState';
 import {QuerySetManager} from 'app/client/models/QuerySet';
+import {AccessRules} from 'app/client/ui/AccessRules';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
@@ -40,7 +41,7 @@ import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {HashLink} from 'app/common/gristUrls';
+import {HashLink, IDocPage} from 'app/common/gristUrls';
 import {encodeQueryParams, waitObs} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
@@ -237,6 +238,7 @@ export class GristDoc extends DisposableWithEvents {
     return cssViewContentPane(testId('gristdoc'),
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
+        viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
         viewId === 'new' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),

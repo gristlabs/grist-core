@@ -96,14 +96,14 @@ export class DocData extends BaseDocData {
         this._triggerBundleFinalize?.();
         await this._lastBundlePromise;
       }
-      this._nextDesc = options.description;
-      this._lastActionNum = null;
-      this._triggerBundleFinalize = triggerFinalize;
-      const value = await options.prepare();
-      prepareResolve(value);
-      this._shouldIncludeInBundle = options.shouldIncludeInBundle;
-
       try {
+        this._nextDesc = options.description;
+        this._lastActionNum = null;
+        this._triggerBundleFinalize = triggerFinalize;
+        const value = await options.prepare();
+        prepareResolve(value);
+        this._shouldIncludeInBundle = options.shouldIncludeInBundle;
+
         await triggerFinalizePromise;
         // Unset _shouldIncludeInBundle so that actions sent by finalize() are included in the
         // bundle. If they were checked and incorrectly failed the check, we'd have a deadlock.

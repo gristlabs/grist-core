@@ -21,15 +21,15 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
-import {AccessRules} from 'app/client/ui/AccessRules';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {cssLink} from 'app/client/ui2018/links';
 import {inputMenu, menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {cssModalBody, cssModalButtons, cssModalTitle, modal} from 'app/client/ui2018/modals';
+import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -56,9 +56,24 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
   const modelObs: Observable<UserManagerModel|null> = observable(null);
 
   const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
-  const gristDoc = aclUIEnabled ? options.docPageModel?.gristDoc.get() : null;
-  const accessRules = gristDoc ? AccessRules.create(null, gristDoc) : null;
-  const accessRulesOpen = observable(false);
+
+  async function onConfirm(ctl: IModalControl) {
+    const model = modelObs.get();
+    if (model) {
+      // Save changes to the server, reporting any errors to the app.
+      try {
+        if (model.isAnythingChanged.get()) {
+          await model.save(userApi, options.resourceId);
+        }
+        await options.onSave?.();
+        ctl.close();
+      } catch (err) {
+        reportError(err);
+      }
+    } else {
+      ctl.close();
+    }
+  }
 
   // Get the model and assign it to the observable. Report errors to the app.
   getModel(options)
@@ -70,69 +85,37 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
 
     cssModalTitle(
       { style: 'margin: 40px 64px 0 64px;' },
-      dom.domComputed(accessRulesOpen, rules =>
-        rules ?
-        ['Access Rules'] :
-        [
-          `Invite people to ${renderType(options.resourceType)}`,
-          (options.resourceType === 'document' ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
-        ]
-      ),
+      `Invite people to ${renderType(options.resourceType)}`,
+      (options.resourceType === 'document' ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
       testId('um-header')
     ),
 
     cssModalBody(
-      dom.autoDispose(accessRules),
       cssUserManagerBody(
         // TODO: Show a loading indicator before the model is loaded.
         dom.maybe(modelObs, model => new UserManager(model, options.linkToCopy).buildDom()),
-        dom.hide(accessRulesOpen),
-      ),
-      cssUserManagerBody(
-        accessRules?.buildDom(),
-        dom.show(accessRulesOpen),
       ),
     ),
     cssModalButtons(
       { style: 'margin: 32px 64px; display: flex;' },
       bigPrimaryButton('Confirm',
-        dom.boolAttr('disabled', (use) => (
-          (!use(modelObs) || !use(use(modelObs)!.isAnythingChanged)) &&
-          (!accessRules || !use(accessRules.isAnythingChanged))
-        )),
-        dom.on('click', async () => {
-          const model = modelObs.get();
-          if (model) {
-            // Save changes to the server, reporting any errors to the app.
-            try {
-              if (model.isAnythingChanged.get()) {
-                await model.save(userApi, options.resourceId);
-              }
-              await accessRules?.save();
-              await options.onSave?.();
-              ctl.close();
-            } catch (err) {
-              reportError(err);
-            }
-          } else {
-            ctl.close();
-          }
-        }),
+        dom.boolAttr('disabled', (use) => !use(modelObs) || !use(use(modelObs)!.isAnythingChanged)),
+        dom.on('click', () => onConfirm(ctl)),
         testId('um-confirm')
       ),
       bigBasicButton('Cancel',
         dom.on('click', () => ctl.close()),
         testId('um-cancel')
       ),
-      (accessRules ?
-        bigBasicButton({style: 'margin-left: auto'},
-          dom.domComputed(accessRulesOpen, rules => rules ?
-            [cssBigIcon('Expand', cssBigIcon.cls('-reflect')), 'Back to Users'] :
-            ['Access Rules', cssBigIcon('Expand')]
-          ),
-          dom.on('click', () => accessRulesOpen.set(!accessRulesOpen.get())),
-        ) :
-        null
+      (aclUIEnabled ?
+        cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
+          dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
+          'Open Access Rules',
+          dom.on('click', (ev) => {
+            ev.preventDefault();
+            return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+          }),
+        ) : null
       ),
       testId('um-buttons'),
     )
@@ -622,13 +605,9 @@ const cssUserImagePlus = styled(cssUserImage, `
   }
 `);
 
-const cssBigIcon = styled(icon, `
-  height: 24px;
-  width: 24px;
-  margin: -8px 0 -4px 0;
-  &-reflect {
-    transform: scaleX(-1);
-  }
+const cssAccessLink = styled(cssLink, `
+  align-self: center;
+  margin-left: auto;
 `);
 
 // Render the name "organization" as "team site" in UI

@@ -86,8 +86,6 @@ function _getLoginLogoutUrl(method: 'login'|'logout'|'signin', nextUrl: string):
   return startUrl.href;
 }
 
-export type IDocPage = number | 'new' | 'code';
-
 /**
  * Implements the interface expected by UrlState. It is only exported for the sake of tests; the
  * only public interface is the urlState() accessor.

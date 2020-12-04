@@ -57,7 +57,8 @@ export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly 
  * (even if the action is not a bulk action).
  */
 export function getRowIdsFromDocAction(docActions: RemoveRecord | BulkRemoveRecord | AddRecord |
-                                       BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData | TableDataAction) {
+                                       BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
+                                       TableDataAction) {
   const ids = docActions[2];
   return (typeof ids === 'number') ? [ids] : ids;
 }
