@@ -5,6 +5,7 @@
  */
 
 import * as assert from 'assert';
+import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import {IMessage, MsgType} from 'grain-rpc';
@@ -101,6 +102,11 @@ export class ActiveDoc extends EventEmitter {
   protected _docManager: DocManager;
   protected _docName: string;
   protected _sharing: Sharing;
+  // This lock is used to avoid reading sandbox state while it is being modified but before
+  // the result has been confirmed to pass granular access rules (which may depend on the
+  // result).
+  protected _modificationLock: Mutex = new Mutex();
+
   private readonly _dataEngine: ISandbox;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
@@ -282,11 +288,11 @@ export class ActiveDoc extends EventEmitter {
   public async createDoc(docSession: OptDocSession): Promise<ActiveDoc> {
     this.logDebug(docSession, "createDoc");
     await this.docStorage.createFile();
-    await this._dataEngine.pyCall('load_empty');
+    await this._rawPyCall('load_empty');
     const timezone = docSession.browserSettings ? docSession.browserSettings.timezone : DEFAULT_TIMEZONE;
     // This init action is special. It creates schema tables, and is used to init the DB, but does
     // not go through other steps of a regular action (no ActionHistory or broadcasting).
-    const initBundle = await this._dataEngine.pyCall('apply_user_actions', [["InitNewDoc", timezone]]);
+    const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc", timezone]]);
     await this.docStorage.execTransaction(() =>
       this.docStorage.applyStoredActions(getEnvContent(initBundle.stored)));
 
@@ -390,7 +396,7 @@ export class ActiveDoc extends EventEmitter {
    * Finish initializing ActiveDoc, by initializing ActionHistory, Sharing, and docData.
    */
   public async _initDoc(docSession: OptDocSession|null): Promise<void> {
-    const metaTableData = await this._dataEngine.pyCall('fetch_meta_tables');
+    const metaTableData = await this._rawPyCall('fetch_meta_tables');
     this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
@@ -399,7 +405,7 @@ export class ActiveDoc extends EventEmitter {
       return this._fetchQueryFromDB(query, false);
     });
     await this._granularAccess.update();
-    this._sharing = new Sharing(this, this._actionHistory);
+    this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
 
     await this.openSharedDoc(docSession);
   }
@@ -628,7 +634,7 @@ export class ActiveDoc extends EventEmitter {
   public async fetchTableSchema(docSession: DocSession): Promise<string> {
     this.logInfo(docSession, "fetchTableSchema(%s)", docSession);
     await this.waitForInitialization();
-    return this._dataEngine.pyCall('fetch_table_schema');
+    return this._pyCall('fetch_table_schema');
   }
 
   /**
@@ -673,7 +679,7 @@ export class ActiveDoc extends EventEmitter {
     if (!this._granularAccess.canReadEverything(docSession)) { return []; }
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
-    return this._dataEngine.pyCall('find_col_from_values', values, n, optTableId);
+    return this._pyCall('find_col_from_values', values, n, optTableId);
   }
 
   /**
@@ -689,7 +695,7 @@ export class ActiveDoc extends EventEmitter {
     this.logInfo(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
-    return this._dataEngine.pyCall('get_formula_error', tableId, colId, rowId);
+    return this._pyCall('get_formula_error', tableId, colId, rowId);
   }
 
   /**
@@ -825,7 +831,7 @@ export class ActiveDoc extends EventEmitter {
     // Autocompletion can leak names of tables and columns.
     if (!this._granularAccess.canReadEverything(docSession)) { return []; }
     await this.waitForInitialization();
-    return this._dataEngine.pyCall('autocomplete', txt, tableId);
+    return this._pyCall('autocomplete', txt, tableId);
   }
 
   public fetchURL(docSession: DocSession, url: string): Promise<UploadResult> {
@@ -893,6 +899,8 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Applies normal actions to the data engine while processing onDemand actions separately.
+   * Should only be called by a Sharing object, with this._modificationLock held, since the
+   * actions may need to be rolled back if final access control checks fail.
    */
   public async applyActionsToDataEngine(userActions: UserAction[]): Promise<SandboxActionBundle> {
     const [normalActions, onDemandActions] = this._onDemandActions.splitByOnDemand(userActions);
@@ -903,7 +911,7 @@ export class ActiveDoc extends EventEmitter {
       if (normalActions[0][0] !== 'Calculate') {
         await this.waitForInitialization();
       }
-      sandboxActionBundle = await this._dataEngine.pyCall('apply_user_actions', normalActions);
+      sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions);
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
@@ -929,12 +937,12 @@ export class ActiveDoc extends EventEmitter {
 
   public async fetchSnapshot() {
     await this.waitForInitialization();
-    return this._dataEngine.pyCall('fetch_snapshot');
+    return this._pyCall('fetch_snapshot');
   }
 
   // Needed for test/server/migrations.js tests
   public async testGetVersionFromDataEngine() {
-    return this._dataEngine.pyCall('get_version');
+    return this._pyCall('get_version');
   }
 
   // Needed for test/server/lib/HostedStorageManager.ts tests
@@ -959,12 +967,33 @@ export class ActiveDoc extends EventEmitter {
     return this._docManager.makeAccessId(userId);
   }
 
-  public async beforeBroadcast(docActions: DocAction[], undo: DocAction[]) {
-    await this._granularAccess.beforeBroadcast(docActions, undo);
+  /**
+   * Called by Sharing manager when working on modifying the document.
+   * Called when DocActions have been produced from UserActions, but
+   * before those DocActions have been applied to the DB, to confirm
+   * that those DocActions are legal according to any granular access
+   * rules.
+   */
+  public async canApplyDocActions(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[]) {
+    return this._granularAccess.canApplyDocActions(docSession, docActions, undo);
   }
 
-  public async afterBroadcast() {
-    await this._granularAccess.afterBroadcast();
+  /**
+   * Called by Sharing manager when working on modifying the document.
+   * Called when DocActions have been produced from UserActions, and
+   * have been applied to the DB, but before the changes have been
+   * broadcast to clients.
+   */
+  public async appliedActions(docActions: DocAction[], undo: DocAction[]) {
+    await this._granularAccess.appliedActions(docActions, undo);
+  }
+
+  /**
+   * Called by Sharing manager when done working on modifying the document,
+   * regardless of whether the modification succeeded or failed.
+   */
+  public async finishedActions() {
+    await this._granularAccess.finishedActions();
   }
 
   /**
@@ -986,7 +1015,7 @@ export class ActiveDoc extends EventEmitter {
   protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[]> {
     // Fetch the schema version of document and sandbox, and migrate if the sandbox is newer.
     const [schemaVersion, docInfoData] = await Promise.all([
-      this._dataEngine.pyCall('get_version'),
+      this._rawPyCall('get_version'),
       this.docStorage.fetchTable('_grist_DocInfo'),
     ]);
 
@@ -1020,7 +1049,7 @@ export class ActiveDoc extends EventEmitter {
       this.docStorage.fetchTable('_grist_Tables_column'),
     ]);
 
-    const tableNames: string[] = await this._dataEngine.pyCall('load_meta_tables', tablesData, columnsData);
+    const tableNames: string[] = await this._rawPyCall('load_meta_tables', tablesData, columnsData);
 
     // Figure out which tables are on-demand.
     const tablesParsed: BulkColValues = marshal.loads(tablesData!);
@@ -1056,7 +1085,7 @@ export class ActiveDoc extends EventEmitter {
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
-    if (!this._granularAccess.canApplyUserActions(docSession, actions)) {
+    if (!this._granularAccess.canMaybeApplyUserActions(docSession, actions)) {
       throw new Error('cannot perform a requested action');
     }
 
@@ -1064,7 +1093,8 @@ export class ActiveDoc extends EventEmitter {
     this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
-    const user = client && client.session ? (await client.session.getEmail()) : "";
+    const user = docSession.mode === 'system' ? 'grist' :
+      (client && client.session ? (await client.session.getEmail()) : "");
 
     // Create the UserActionBundle.
     const action: UserActionBundle = {
@@ -1081,7 +1111,7 @@ export class ActiveDoc extends EventEmitter {
 
     const result: ApplyUAResult = await new Promise<ApplyUAResult>(
       (resolve, reject) =>
-        this._sharing!.addUserAction({action, client, resolve, reject}));
+        this._sharing!.addUserAction({action, docSession, resolve, reject}));
     this.logDebug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {
@@ -1149,7 +1179,7 @@ export class ActiveDoc extends EventEmitter {
     let docActions: DocAction[];
     try {
       // The last argument tells create_migrations() that only metadata is included.
-      docActions = await this._dataEngine.pyCall('create_migrations', tableData, true);
+      docActions = await this._rawPyCall('create_migrations', tableData, true);
     } catch (e) {
       if (!/need all tables/.test(e.message)) {
         throw e;
@@ -1165,7 +1195,7 @@ export class ActiveDoc extends EventEmitter {
           tableData[tableName] = await this.docStorage.fetchTable(tableName);
         }
       }
-      docActions = await this._dataEngine.pyCall('create_migrations', tableData);
+      docActions = await this._rawPyCall('create_migrations', tableData);
     }
 
     const processedTables = Object.keys(tableData);
@@ -1187,7 +1217,7 @@ export class ActiveDoc extends EventEmitter {
     // Pass the resulting array to `map`, which allows parallel processing of the tables. Database
     // and DataEngine may still do things serially, but it allows them to be busy simultaneously.
     await bluebird.map(tableNames, async (tableName: string) =>
-      this._dataEngine.pyCall('load_table', tableName, await this._fetchTableIfPresent(tableName)),
+      this._pyCall('load_table', tableName, await this._fetchTableIfPresent(tableName)),
       // How many tables to query for and push to the data engine in parallel.
       { concurrency: 3 });
     return this;
@@ -1211,7 +1241,9 @@ export class ActiveDoc extends EventEmitter {
   private async _finishInitialization(docSession: OptDocSession, pendingTableNames: string[], startTime: number) {
     try {
       await this._loadTables(docSession, pendingTableNames);
-      await this._applyUserActions(docSession, [['Calculate']]);
+      // Calculations are not associated specifically with the user opening the document.
+      // TODO: be careful with which users can create formulas.
+      await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
       await this._reportDataEngineMemory();
       this._fullyLoaded = true;
       const endTime = Date.now();
@@ -1246,7 +1278,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _fetchQueryFromDataEngine(query: Query): Promise<TableDataAction> {
-    return this._dataEngine.pyCall('fetch_table', query.tableId, true, query.filters);
+    return this._pyCall('fetch_table', query.tableId, true, query.filters);
   }
 
   private async _reportDataEngineMemory() {
@@ -1299,6 +1331,23 @@ export class ActiveDoc extends EventEmitter {
     this._migrating--;
     // Mark as changed even if migration is not successful, out of caution.
     if (!this._migrating) { this._docManager.markAsChanged(this); }
+  }
+
+  /**
+   * Call a method in the sandbox, without checking the _modificationLock.  Calls to
+   * the sandbox are naturally serialized.
+   */
+  private _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
+    return this._dataEngine.pyCall(funcName, ...varArgs);
+  }
+
+  /**
+   * Call a method in the sandbox, while checking on the _modificationLock.  If the
+   * lock is held, the call will wait until the lock is released, and then hold
+   * the lock itself while operating.
+   */
+  private _pyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
+    return this._modificationLock.runExclusive(() => this._rawPyCall(funcName, ...varArgs));
   }
 }
 

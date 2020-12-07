@@ -15,7 +15,8 @@ export interface OptDocSession {
   linkId?: number;
   browserSettings?: BrowserSettings;
   req?: RequestWithLogin;
-  mode?: 'nascent'|'plugin'|'system';   // special permissions for creating, plugins, and system access
+  // special permissions for creating, plugins, system, and share access
+  mode?: 'nascent'|'plugin'|'system'|'share';
   authorizer?: Authorizer;
 }
 
@@ -30,7 +31,7 @@ export function makeOptDocSession(client: Client|null, browserSettings?: Browser
  *  - plugin: user is treated as editor (because plugin access control is crude)
  *  - system: user is treated as owner (because of some operation bypassing access control)
  */
-export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system',
+export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system'|'share',
                                           options: {client?: Client,
                                                     req?: RequestWithLogin,
                                                     browserSettings?: BrowserSettings} = {}): OptDocSession {

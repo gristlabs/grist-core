@@ -6,10 +6,11 @@ import {timeFormat} from 'app/common/timeFormat';
 import * as log from 'app/server/lib/log';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import * as assert from 'assert';
+import {Mutex} from 'async-mutex';
 import * as Deque from 'double-ended-queue';
 import {ActionHistory, asActionGroup} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
-import {Client} from './Client';
+import {makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {WorkCoordinator} from './WorkCoordinator';
 
 // Describes the request to apply a UserActionBundle. It includes a Client (so that broadcast
@@ -18,7 +19,7 @@ import {WorkCoordinator} from './WorkCoordinator';
 // processing hub actions or rebasing.
 interface UserRequest {
   action: UserActionBundle;
-  client: Client|null;
+  docSession: OptDocSession|null,
   resolve(result: UserResult): void;
   reject(err: Error): void;
 }
@@ -41,7 +42,7 @@ export class Sharing {
   protected _pendingQueue: Deque<UserRequest> = new Deque();
   protected _workCoordinator: WorkCoordinator;
 
-  constructor(activeDoc: ActiveDoc, actionHistory: ActionHistory) {
+  constructor(activeDoc: ActiveDoc, actionHistory: ActionHistory, private _modificationLock: Mutex) {
     // TODO actionHistory is currently unused (we use activeDoc.actionLog).
     assert(actionHistory.isInitialized());
 
@@ -117,7 +118,7 @@ export class Sharing {
     assert(this._hubQueue.isEmpty() && !this._pendingQueue.isEmpty());
     const userRequest: UserRequest = this._pendingQueue.shift()!;
     try {
-      const ret = await this.doApplyUserActionBundle(userRequest.action, userRequest.client);
+      const ret = await this.doApplyUserActionBundle(userRequest.action, userRequest.docSession);
       userRequest.resolve(ret);
     } catch (e) {
       log.warn("Unable to apply action...", e);
@@ -200,13 +201,17 @@ export class Sharing {
     return this.doApplyUserActions(action.info[1], userActions, Branch.Shared, null);
   }
 
-  private doApplyUserActionBundle(action: UserActionBundle, client: Client|null): Promise<UserResult> {
-    return this.doApplyUserActions(action.info, action.userActions, Branch.Local, client);
+  private doApplyUserActionBundle(action: UserActionBundle, docSession: OptDocSession|null): Promise<UserResult> {
+    return this.doApplyUserActions(action.info, action.userActions, Branch.Local, docSession);
   }
 
   private async doApplyUserActions(info: ActionInfo, userActions: UserAction[],
-                                   branch: Branch, client: Client|null): Promise<UserResult> {
-    const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(userActions);
+                                   branch: Branch, docSession: OptDocSession|null): Promise<UserResult> {
+    const client = docSession && docSession.client;
+
+    const {sandboxActionBundle, undo, docActions} =
+      await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions));
+
     // A trivial action does not merit allocating an actionNum,
     // logging, and sharing.  Since we currently don't store
     // calculated values in the database, it is best not to log the
@@ -217,34 +222,24 @@ export class Sharing {
     const isCalculate = (userActions.length === 1 &&
                          userActions[0][0] === 'Calculate');
     const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
-    // For Calculate "user" actions, don't attribute any changes to the user who
-    // happens to have opened the document.
-    const attribution = {
-      ...info,
-      ...isCalculate ? { user: 'grist' } : undefined,
-    };
 
     const actionNum = trivial ? 0 :
       (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
        this._actionHistory.getNextLocalActionNum());
 
-    const undo = getEnvContent(sandboxActionBundle.undo);
     const localActionBundle: LocalActionBundle = {
       actionNum,
       // The ActionInfo should go into the envelope that includes all recipients.
-      info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), attribution],
+      info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), info],
       envelopes: sandboxActionBundle.envelopes,
       stored: sandboxActionBundle.stored,
       calc: sandboxActionBundle.calc,
-      undo: getEnvContent(sandboxActionBundle.undo),
+      undo,
       userActions,
       actionHash: null,        // Gets set below by _actionHistory.recordNext...
       parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
     };
     this._logActionBundle(`doApplyUserActions (${Branch[branch]})`, localActionBundle);
-
-    const docActions = getEnvContent(localActionBundle.stored).concat(
-      getEnvContent(localActionBundle.calc));
 
     // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
     // have EDIT permission without VIEW). These are not sent to the browser or the database. But
@@ -291,14 +286,14 @@ export class Sharing {
       // date and other changes from external values may count as internal.
       internal: isCalculate,
     });
-    await this._activeDoc.beforeBroadcast(docActions, undo);
     try {
+      await this._activeDoc.appliedActions(docActions, undo);
       await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
         actionGroup,
         docActions,
       });
     } finally {
-      await this._activeDoc.afterBroadcast();
+      await this._activeDoc.finishedActions();
     }
     return {
       actionNum: localActionBundle.actionNum,
@@ -371,6 +366,26 @@ export class Sharing {
       log.debug("%s: calc #%s [%s%s]: %s", prefix, i, envAction[0],
         (includeEnv[envAction[0]] ? "" : " alien"),
         shortDesc(envAction[1])));
+  }
+
+  private async _applyActionsToDataEngine(docSession: OptDocSession|null, userActions: UserAction[]) {
+    const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(userActions);
+    const undo = getEnvContent(sandboxActionBundle.undo);
+    const docActions = getEnvContent(sandboxActionBundle.stored).concat(
+      getEnvContent(sandboxActionBundle.calc));
+
+    try {
+      // TODO: see if any of the code paths that have no docSession are relevant outside
+      // of tests.
+      await this._activeDoc.canApplyDocActions(docSession || makeExceptionalDocSession('share'),
+                                               docActions, undo);
+    } catch (e) {
+      // should not commit.  Don't write to db.  Remove changes from sandbox.
+      await this._activeDoc.applyActionsToDataEngine([['ApplyUndoActions', undo]]);
+      await this._activeDoc.finishedActions();
+      throw e;
+    }
+    return {sandboxActionBundle, undo, docActions};
   }
 }
 

@@ -1,4 +1,4 @@
-import { MixedPermissionSet, PartialPermissionSet, TablePermissionSet } from 'app/common/ACLPermissions';
+import { MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet } from 'app/common/ACLPermissions';
 import { makePartialPermissions, mergePartialPermissions, mergePermissions } from 'app/common/ACLPermissions';
 import { emptyPermissionSet, toMixed } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
@@ -6,8 +6,9 @@ import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
 import { AsyncCreate } from 'app/common/AsyncCreate';
-import { BulkAddRecord, BulkColValues, BulkRemoveRecord, CellValue, ColValues, DocAction } from 'app/common/DocActions';
-import { getTableId, isSchemaAction, TableDataAction, UserAction } from 'app/common/DocActions';
+import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord, CellValue,
+         ColValues, DocAction, getTableId, isSchemaAction, RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
+import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoView } from 'app/common/GranularAccessClause';
@@ -30,6 +31,12 @@ const ACTION_WITH_TABLE_ID = new Set(['AddRecord', 'BulkAddRecord', 'UpdateRecor
                                       'RemoveRecord', 'BulkRemoveRecord',
                                       'ReplaceTableData', 'TableData',
                                     ]);
+
+// Check if action has a tableId.
+function isTableAction(a: UserAction): a is AddRecord | BulkAddRecord | UpdateRecord | BulkUpdateRecord |
+    RemoveRecord | BulkRemoveRecord | ReplaceTableData | TableDataAction {
+  return ACTION_WITH_TABLE_ID.has(String(a[0]));
+}
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but generally I've put them in this list if there are problems
@@ -63,8 +70,26 @@ const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
 /**
  *
  * Manage granular access to a document.  This allows nuances other than the coarse
- * owners/editors/viewers distinctions.  As a placeholder for a future representation,
- * nuances are stored in the _grist_ACLResources table.
+ * owners/editors/viewers distinctions.  Nuances are stored in the _grist_ACLResources
+ * and _grist_ACLRules tables.
+ *
+ * When the document is being modified, the object's GranularAccess is called at various
+ * steps of the process to check access rights.  The GranularAccess object stores some
+ * state for an in-progress modification, to allow some caching of calculations across
+ * steps and clients.  We expect modifications to be serialized, and the following
+ * pattern of calls for modifications:
+ *
+ *  - canMaybeApplyUserActions(), called with UserActions for an initial access check.
+ *    Since not all checks can be done without analyzing UserActions into DocActions,
+ *    it is ok for this call to pass even if a more definitive test later will fail.
+ *  - canApplyDocActions(), called when DocActions have been produced from UserActions,
+ *    but before those DocActions have been applied to the DB.  If fails, the modification
+ *    will be abandoned.
+ *  - appliedActions(), called when DocActions have been applied to the DB, but before
+ *    those changes have been sent to clients.
+ *  - filterActionGroup() and filterOutgoingDocActions() are called for each client.
+ *  - finishedActions(), called when completely done with modification and any needed
+ *    client notifications, whether successful or failed.
  *
  */
 export class GranularAccess {
@@ -83,7 +108,9 @@ export class GranularAccess {
   // When broadcasting a sequence of DocAction[]s, this contains the state of
   // affected rows for the relevant table before and after each DocAction.  It
   // may contain some unaffected rows as well.
-  private _rowSnapshots: AsyncCreate<Array<[TableDataAction, TableDataAction]>>|null;
+  private _rowSnapshots: AsyncCreate<Array<[TableDataAction, TableDataAction]>>|null = null;
+  // Flag tracking whether a set of actions have been applied to the database or not.
+  private _applied: boolean = false;
 
   public constructor(private _docData: DocData, private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>) {
   }
@@ -116,6 +143,19 @@ export class GranularAccess {
   }
 
   /**
+   * Called after UserAction[]s have been applied in the sandbox, and DocAction[]s have been
+   * computed, but before we have committed those DocAction[]s to the database.  If this
+   * throws an exception, the sandbox changes will be reverted.
+   */
+  public async canApplyDocActions(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[]) {
+    this._applied = false;
+    if (!this._ruleCollection.haveRules()) { return; }
+    this._prepareRowSnapshots(docActions, undo);
+    await Promise.all(
+      docActions.map((action, idx) => this._checkIncomingDocAction(docSession, action, idx)));
+  }
+
+  /**
    * This should be called after each action bundle has been applied to the database,
    * but before the actions are broadcast to clients.  It will set us up to be able
    * to efficiently filter those broadcasts.
@@ -124,57 +164,16 @@ export class GranularAccess {
    * broadcasts can be parallelized, but should complete before moving on to further
    * document mutation).
    */
-  public async beforeBroadcast(docActions: DocAction[], undo: DocAction[]) {
-    if (!this._ruleCollection.haveRules()) { return false; }
-
-    // Prepare to compute row snapshots if it turns out we need them.
-    // If we never need them, they will never be computed.
-    this._rowSnapshots = new AsyncCreate(async () => {
-      // If we arrive here, the actions have been applied to the database.
-      // For row access work, we'll need to know the state of affected rows before and
-      // after the actions.  One way to get that is to apply the undo actions to the
-      // affected part of the database.
-      // NOTE: the approach may need tweaking once row access control can be applied to
-      // incoming actions, not just outgoing ones -- in that case, it may be that some
-      // calculations are done earlier that could be reused here.
-
-      // First figure out what rows in which tables are touched during the undo actions.
-      const rows = new Map(getRelatedRows(undo));
-      // Populate a minimal in-memory version of the database with these rows.
-      const docData = new DocData(
-        (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}),
-        null,
-      );
-      await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
-      // Now apply the undo actions.
-      for (const docAction of undo) { docData.receiveAction(docAction); }
-
-      // Now step forward, storing the before and after state for the table
-      // involved in each action.  We'll use this to compute row access changes.
-      // For simple changes, the rows will be just the minimal set needed.
-      // This could definitely be optimized.  E.g. for pure table updates, these
-      // states could be extracted while applying undo actions, with no need for
-      // a forward pass.  And for a series of updates to the same table, there'll
-      // be duplicated before/after states that could be optimized.
-      const rowSnapshots = new Array<[TableDataAction, TableDataAction]>();
-      for (const docAction of docActions) {
-        const tableId = getTableId(docAction);
-        const tableData = docData.getTable(tableId)!;
-        const before = cloneDeep(tableData.getTableDataAction());
-        docData.receiveAction(docAction);
-        // If table is deleted, state afterwards doesn't matter.
-        const after = docData.getTable(tableId) ? cloneDeep(tableData.getTableDataAction()) : before;
-        rowSnapshots.push([before, after]);
-      }
-      return rowSnapshots;
-    });
+  public async appliedActions(docActions: DocAction[], undo: DocAction[]) {
+    this._applied = true;
   }
 
   /**
    * This should be called once an action bundle has been broadcast to all clients.
    * It will clean up any temporary state cached for filtering those broadcasts.
    */
-  public async afterBroadcast() {
+  public async finishedActions() {
+    this._applied = false;
     if (this._rowSnapshots) { this._rowSnapshots.clear(); }
     this._rowSnapshots = null;
   }
@@ -184,7 +183,7 @@ export class GranularAccess {
    */
   public async filterOutgoingDocActions(docSession: OptDocSession, docActions: DocAction[]): Promise<DocAction[]> {
     const actions = await Promise.all(
-      docActions.map((action, idx) => this.pruneOutgoingDocAction(docSession, action, idx)));
+      docActions.map((action, idx) => this._pruneOutgoingDocAction(docSession, action, idx)));
     return ([] as DocAction[]).concat(...actions);
   }
 
@@ -211,16 +210,19 @@ export class GranularAccess {
   }
 
   /**
-   * Check if user can apply a list of actions.
+   * Check if user may be able to apply a list of actions.  If it fails, the user cannot
+   * apply the actions.  If it succeeds, the actions will need examination in more detail.
+   * TODO: not smart about intermediate states, if there is a table or column rename it will
+   * have trouble, and might forbid something that should be allowed.
    */
-  public canApplyUserActions(docSession: OptDocSession, actions: UserAction[]): boolean {
-    return actions.every(action => this.canApplyUserAction(docSession, action));
+  public canMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): boolean {
+    return actions.every(action => this.canMaybeApplyUserAction(docSession, action));
   }
 
   /**
    * Check if user can apply a given action to the document.
    */
-  public canApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): boolean {
+  public canMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): boolean {
     const name = a[0] as string;
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
@@ -229,48 +231,24 @@ export class GranularAccess {
     if (SURPRISING_ACTIONS.has(name)) {
       return this.hasFullAccess(docSession);
     }
-    const isTableAction = ACTION_WITH_TABLE_ID.has(name);
     if (a[0] === 'ApplyUndoActions') {
-      return this.canApplyUserActions(docSession, a[1] as UserAction[]);
+      return this.canMaybeApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (a[0] === 'ApplyDocActions') {
-      return this.canApplyUserActions(docSession, a[1] as UserAction[]);
-    } else if (isTableAction) {
-      const tableId = a[1] as string;
+      return this.canMaybeApplyUserActions(docSession, a[1] as UserAction[]);
+    } else if (isTableAction(a)) {
+      const tableId = getTableId(a);
       // If there are any access control nuances, deny _grist_* tables.
       // TODO: this is very crude, loosen this up appropriately.
       if (tableId.startsWith('_grist_')) {
         return !this.hasNuancedAccess(docSession);
       }
       const tableAccess = this.getTableAccess(docSession, tableId);
-      // For now, if there are any row restrictions, forbid editing.
-      // To allow editing, we'll need something that has access to full row,
-      // e.g. data engine (and then an equivalent for ondemand tables), or
-      // to fetch rows at this point.
-      // TODO We can now look properly at the create/update/delete/schemaEdit permissions in pset.
-      return tableAccess.read === 'allow';
+      const accessFn = getAccessForActionType(a);
+      const access = accessFn(tableAccess);
+      // if access is mixed, leave this to be checked in detail later.
+      return access === 'allow' || access === 'mixed' || access === 'mixedColumns';
     }
     return false;
-  }
-
-  /**
-   * Cut out any rows/columns not accessible to the user.  May throw a NEED_RELOAD
-   * exception if the information needed to achieve the desired pruning is not available.
-   * Returns null if the action is entirely pruned.  The action passed in is never modified.
-   * The idx parameter is a record of which action in the bundle this action is, and can
-   * be used to access information in this._rowSnapshots if needed.
-   */
-  public async pruneOutgoingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<DocAction[]> {
-    const tableId = getTableId(a);
-    const permInfo = this._getAccess(docSession);
-    const tableAccess = permInfo.getTableAccess(tableId);
-    if (tableAccess.read === 'deny') { return []; }
-    if (tableAccess.read === 'allow') { return [a]; }
-    if (tableAccess.read === 'mixedColumns') {
-      return [this._pruneColumns(a, permInfo, tableId)].filter(isObject);
-    }
-    // The remainder is the mixed condition.
-    const revisedDocActions = await this._pruneRows(docSession, a, idx);
-    return revisedDocActions.map(na => this._pruneColumns(na, permInfo, tableId)).filter(isObject);
   }
 
   /**
@@ -433,7 +411,7 @@ export class GranularAccess {
     const permInfo = this._getAccess(docSession);
     const tableId = getTableId(data);
     if (permInfo.getTableAccess(tableId).read === 'mixed') {
-      this._filterRowsAndCells(docSession, data, data);
+      this._filterRowsAndCells(docSession, data, data, data, canRead);
     }
 
     // Filter columns, omitting any to which the user has no access, regardless of rows.
@@ -442,21 +420,23 @@ export class GranularAccess {
 
   /**
    * Strip out any denied columns from an action.  Returns null if nothing is left.
+   * accessFn may throw if denials are fatal.
    */
-  private _pruneColumns(a: DocAction, permInfo: PermissionInfo, tableId: string): DocAction|null {
+  private _pruneColumns(a: DocAction, permInfo: PermissionInfo, tableId: string,
+                        accessFn: AccessFn): DocAction|null {
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
     } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
                a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
       const na = cloneDeep(a);
-      this._filterColumns(na[3], (colId) => permInfo.getColumnAccess(tableId, colId).read !== 'deny');
+      this._filterColumns(na[3], (colId) => accessFn(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
       if (Object.keys(na[3]).length === 0) { return null; }
       return na;
     } else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
                a[0] === 'ModifyColumn') {
       const na = cloneDeep(a);
       const colId: string = na[2];
-      if (permInfo.getColumnAccess(tableId, colId).read === 'deny') { return null; }
+      if (accessFn(permInfo.getColumnAccess(tableId, colId)) === 'deny') { return null; }
       throw new ErrorWithCode('NEED_RELOAD', 'document needs reload');
     } else {
       // Remaining cases of AddTable, RemoveTable, RenameTable should have
@@ -553,54 +533,78 @@ export class GranularAccess {
 
     // Return the results, also applying any cell-level access control.
     for (const docAction of revisedDocActions) {
-      this._filterRowsAndCells(docSession, rowsAfter, docAction);
+      this._filterRowsAndCells(docSession, rowsAfter, rowsAfter, docAction, canRead);
     }
     return revisedDocActions;
   }
 
   /**
+   * Like _pruneRows, but fails immediately if access to any row is forbidden.
+   * The accessFn supplied should throw an error on denial.
+   */
+  private async _checkRows(docSession: OptDocSession, a: DocAction, idx: number,
+                           accessFn: AccessFn): Promise<void> {
+    // For the moment, only deal with Record-related actions.
+    // TODO: process table/column schema changes more carefully.
+    if (isSchemaAction(a)) { return; }
+    if (!this._rowSnapshots) { throw new Error('Logic error: actions not available'); }
+    const allRowSnapshots = await this._rowSnapshots.get();
+    const [rowsBefore, rowsAfter] = allRowSnapshots[idx];
+    this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
+  }
+
+  /**
    * Modify action in place, scrubbing any rows and cells to which access is not granted.
    */
-  private _filterRowsAndCells(docSession: OptDocSession, data: TableDataAction, docAction: DocAction) {
+  private _filterRowsAndCells(docSession: OptDocSession, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
+                              docAction: DocAction, accessFn: AccessFn) {
     if (docAction && isSchemaAction(docAction)) {
       // TODO should filter out metadata about an unavailable column, probably.
       return [];
     }
 
-    const rowCursor = new RecordView(data, 0);
-    const input: AclMatchInput = {user: this._getUser(docSession), rec: rowCursor};
+    const rec = new RecordView(rowsBefore, undefined);
+    const newRec = new RecordView(rowsAfter, undefined);
+    const input: AclMatchInput = {user: this._getUser(docSession), rec, newRec};
 
     const [, tableId, , colValues] = docAction;
-    if (colValues === undefined) { return []; }
     const rowIds = getRowIdsFromDocAction(docAction);
     const toRemove: number[] = [];
 
     let censorAt: (colId: string, idx: number) => void;
-    if (Array.isArray(docAction[2])) {
+    if (colValues === undefined) {
+      censorAt = () => 1;
+    } else if (Array.isArray(docAction[2])) {
       censorAt = (colId, idx) => (colValues as BulkColValues)[colId][idx] = 'CENSORED';  // TODO Pick a suitable value
     } else {
       censorAt = (colId) => (colValues as ColValues)[colId] = 'CENSORED';  // TODO Pick a suitable value
     }
 
-    let getDataIndex: (idx: number) => number = (idx) => idx;
-    if (docAction !== data) {
-      const indexes = new Map(data[2].map((rowId, idx) => [rowId, idx]));
-      getDataIndex = (idx) => indexes.get(rowIds[idx])!;
+    // These map an index of a row in docAction to its index in rowsBefore and in rowsAfter.
+    let getRecIndex: (idx: number) => number|undefined = (idx) => idx;
+    let getNewRecIndex: (idx: number) => number|undefined = (idx) => idx;
+    if (docAction !== rowsBefore) {
+      const recIndexes = new Map(rowsBefore[2].map((rowId, idx) => [rowId, idx]));
+      getRecIndex = (idx) => recIndexes.get(rowIds[idx]);
+      const newRecIndexes = new Map(rowsAfter[2].map((rowId, idx) => [rowId, idx]));
+      getNewRecIndex = (idx) => newRecIndexes.get(rowIds[idx]);
     }
 
     for (let idx = 0; idx < rowIds.length; idx++) {
-      rowCursor.index = getDataIndex(idx);
+      rec.index = getRecIndex(idx);
+      newRec.index = getNewRecIndex(idx);
 
       const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      if (rowAccess.read === 'deny') {
+      const access = accessFn(rowAccess);
+      if (access === 'deny') {
         toRemove.push(idx);
-      } else if (rowAccess.read !== 'allow') {
+      } else if (access !== 'allow' && colValues) {
         // Go over column rules.
         for (const colId of Object.keys(colValues)) {
           const colAccess = rowPermInfo.getColumnAccess(tableId, colId);
-          if (colAccess.read !== 'allow') {
+          if (accessFn(colAccess) === 'deny') {
             censorAt(colId, idx);
           }
         }
@@ -608,30 +612,32 @@ export class GranularAccess {
     }
 
     if (toRemove.length > 0) {
-      if (data === docAction) {
-        this._removeRowsAt(toRemove, data[2], data[3]);
+      if (rowsBefore === docAction) {
+        this._removeRowsAt(toRemove, rowsBefore[2], rowsBefore[3]);
       } else {
-        // If there are still rows to remove, we must have a logic error.
-        throw new Error('Unexpected row removal');
+        // Artificially introduced removals are ok, otherwise this is suspect.
+        if (docAction[0] !== 'RemoveRecord' && docAction[0] !== 'BulkRemoveRecord') {
+          throw new Error('Unexpected row removal');
+        }
       }
     }
   }
 
   // Compute which of the row ids supplied are for rows forbidden for this session.
   private _getForbiddenRows(docSession: OptDocSession, data: TableDataAction, ids: Set<number>): number[] {
-    const rowCursor = new RecordView(data, 0);
-    const input: AclMatchInput = {user: this._getUser(docSession), rec: rowCursor};
+    const rec = new RecordView(data, undefined);
+    const input: AclMatchInput = {user: this._getUser(docSession), rec};
 
     const [, tableId, rowIds] = data;
     const toRemove: number[] = [];
     for (let idx = 0; idx < rowIds.length; idx++) {
-      rowCursor.index = idx;
+      rec.index = idx;
       if (!ids.has(rowIds[idx])) { continue; }
 
       const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      if (rowAccess.read === 'deny') {
+      if (canRead(rowAccess) === 'deny') {
         toRemove.push(rowIds[idx]);
       }
     }
@@ -807,6 +813,98 @@ export class GranularAccess {
     if (rowIds.size === 0) { return null; }
     return ['BulkRemoveRecord', getTableId(data), [...rowIds]];
   }
+
+  /**
+   * Prepare to compute intermediate states of rows, as
+   * this._rowSnapshots.  The computation should happen only if
+   * needed, which depends on the rules and actions.  The computation
+   * uses the state of the database, and so depends on whether the
+   * docActions have already been applied to the database or not, as
+   * determined by the this._applied flag, which should never be
+   * changed during any possible use of this._rowSnapshots.
+   */
+  private _prepareRowSnapshots(docActions: DocAction[], undo: DocAction[]) {
+    // Prepare to compute row snapshots if it turns out we need them.
+    // If we never need them, they will never be computed.
+    this._rowSnapshots = new AsyncCreate(async () => {
+      // For row access work, we'll need to know the state of affected rows before and
+      // after the actions.
+      // First figure out what rows in which tables are touched during the actions.
+      const rows = new Map(getRelatedRows(this._applied ? [...undo].reverse() : docActions));
+      // Populate a minimal in-memory version of the database with these rows.
+      const docData = new DocData(
+        (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}),
+        null,
+      );
+      await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
+      if (this._applied) {
+        // Apply the undo actions, since the docActions have already been applied to the db.
+        for (const docAction of [...undo].reverse()) { docData.receiveAction(docAction); }
+      }
+
+      // Now step forward, storing the before and after state for the table
+      // involved in each action.  We'll use this to compute row access changes.
+      // For simple changes, the rows will be just the minimal set needed.
+      // This could definitely be optimized.  E.g. for pure table updates, these
+      // states could be extracted while applying undo actions, with no need for
+      // a forward pass.  And for a series of updates to the same table, there'll
+      // be duplicated before/after states that could be optimized.
+      const rowSnapshots = new Array<[TableDataAction, TableDataAction]>();
+      for (const docAction of docActions) {
+        const tableId = getTableId(docAction);
+        const tableData = docData.getTable(tableId)!;
+        const before = cloneDeep(tableData.getTableDataAction());
+        docData.receiveAction(docAction);
+        // If table is deleted, state afterwards doesn't matter.
+        const after = docData.getTable(tableId) ? cloneDeep(tableData.getTableDataAction()) : before;
+        rowSnapshots.push([before, after]);
+      }
+      return rowSnapshots;
+    });
+  }
+
+  /**
+   * Cut out any rows/columns not accessible to the user.  May throw a NEED_RELOAD
+   * exception if the information needed to achieve the desired pruning is not available.
+   * Returns null if the action is entirely pruned.  The action passed in is never modified.
+   * The idx parameter is a record of which action in the bundle this action is, and can
+   * be used to access information in this._rowSnapshots if needed.
+   */
+  private async _pruneOutgoingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<DocAction[]> {
+    const tableId = getTableId(a);
+    const permInfo = this._getAccess(docSession);
+    const tableAccess = permInfo.getTableAccess(tableId);
+    const access = tableAccess.read;
+    if (access === 'deny') { return []; }
+    if (access === 'allow') { return [a]; }
+    if (access === 'mixedColumns') {
+      return [this._pruneColumns(a, permInfo, tableId, canRead)].filter(isObject);
+    }
+    // The remainder is the mixed condition.
+    const revisedDocActions = await this._pruneRows(docSession, a, idx);
+    const result = revisedDocActions.map(na => this._pruneColumns(na, permInfo, tableId,
+                                                                  canRead)).filter(isObject);
+    return result;
+  }
+
+  private async _checkIncomingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<void> {
+    const accessFn = denyIsFatal(getAccessForActionType(a));
+    const tableId = getTableId(a);
+    const permInfo = this._getAccess(docSession);
+    const tableAccess = permInfo.getTableAccess(tableId);
+    const access = accessFn(tableAccess);
+    if (access === 'allow') { return; }
+    if (access === 'mixedColumns') {
+      // Somewhat abusing prune method by calling it with an access function that
+      // throws on denial.
+      this._pruneColumns(a, permInfo, tableId, accessFn);
+    }
+    // The remainder is the mixed condition.
+    await this._checkRows(docSession, a, idx, accessFn);
+    // Somewhat abusing prune method by calling it with an access function that
+    // throws on denial.
+    this._pruneColumns(a, permInfo, tableId, accessFn);
+  }
 }
 
 /**
@@ -907,12 +1005,16 @@ class PermissionInfo {
   }
 }
 
-// A row-like view of TableDataAction, which is columnar in nature.
+/**
+ * A row-like view of TableDataAction, which is columnar in nature.  If index value
+ * is undefined, acts as an EmptyRecordRow.
+ */
 export class RecordView implements InfoView {
-  public constructor(public data: TableDataAction, public index: number) {
+  public constructor(public data: TableDataAction, public index: number|undefined) {
   }
 
   public get(colId: string): CellValue {
+    if (this.index === undefined) { return null; }
     if (colId === 'id') {
       return this.data[2][this.index];
     }
@@ -920,6 +1022,7 @@ export class RecordView implements InfoView {
   }
 
   public toJSON() {
+    if (this.index === undefined) { return {}; }
     const results: {[key: string]: any} = {};
     for (const key of Object.keys(this.data[3])) {
       results[key] = this.data[3][key][this.index];
@@ -942,4 +1045,36 @@ interface CharacteristicTable {
   colId: string;
   rowNums: Map<string, number>;
   data: TableDataAction;
+}
+
+// A function for extracting one of the create/read/update/delete/schemaEdit permissions
+// from a permission set.
+type AccessFn = (ps: PermissionSet<string>) => string;
+
+// Get an AccessFn appropriate for the specific action.
+// TODO: deal with ReplaceTableData, which both deletes and creates rows.
+function getAccessForActionType(a: DocAction): AccessFn {
+  if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
+    return (ps) => ps.update;
+  } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
+    return (ps) => ps.delete;
+  } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
+    return (ps) => ps.create;
+  } else {
+    return (ps) => ps.schemaEdit;
+  }
+}
+
+// Tweak an AccessFn so that it throws an exception if access is denied.
+function denyIsFatal(fn: AccessFn): AccessFn {
+  return (ps) => {
+    const result = fn(ps);
+    if (result === 'deny') { throw new Error('access denied'); }
+    return result;
+  };
+}
+
+// A simple access function that returns the "read" permission.
+function canRead(ps: PermissionSet<string>) {
+  return ps.read;
 }
