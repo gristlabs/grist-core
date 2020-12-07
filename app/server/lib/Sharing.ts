@@ -217,6 +217,12 @@ export class Sharing {
     const isCalculate = (userActions.length === 1 &&
                          userActions[0][0] === 'Calculate');
     const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
+    // For Calculate "user" actions, don't attribute any changes to the user who
+    // happens to have opened the document.
+    const attribution = {
+      ...info,
+      ...isCalculate ? { user: 'grist' } : undefined,
+    };
 
     const actionNum = trivial ? 0 :
       (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
@@ -226,7 +232,7 @@ export class Sharing {
     const localActionBundle: LocalActionBundle = {
       actionNum,
       // The ActionInfo should go into the envelope that includes all recipients.
-      info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), info],
+      info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), attribution],
       envelopes: sandboxActionBundle.envelopes,
       stored: sandboxActionBundle.stored,
       calc: sandboxActionBundle.calc,
