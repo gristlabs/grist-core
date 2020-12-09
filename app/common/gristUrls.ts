@@ -3,7 +3,6 @@ import {OpenDocMode} from 'app/common/DocListAPI';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
 import {Document} from 'app/common/UserAPI';
-import identity = require('lodash/identity');
 import pickBy = require('lodash/pickBy');
 import {StringUnion} from './StringUnion';
 
@@ -67,6 +66,8 @@ export interface IGristUrlState {
     style?: InterfaceStyle;
     compare?: string;
     aclUI?: boolean;
+    linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
+                                              // Encoded in URL as query params with extra '_' suffix.
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
 }
@@ -173,9 +174,12 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`welcome/${state.welcome}`);
   }
 
-  const queryParams = pickBy(state.params, identity) as {[key: string]: string};
+  const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
   if (state.newui !== undefined) {
     queryParams.newui = state.newui ? '1' : '0';
+  }
+  for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
+    queryParams[`${k}_`] = v;
   }
   const hashParts: string[] = [];
   if (state.hash && state.hash.rowId) {
@@ -263,6 +267,12 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (sp.has('aclUI')) {
     state.params!.aclUI = isAffirmative(sp.get('aclUI'));
+  }
+  for (const [k, v] of sp.entries()) {
+    if (k.endsWith('_')) {
+      if (!state.params!.linkParameters) { state.params!.linkParameters = {}; }
+      state.params!.linkParameters[k.slice(0, k.length - 1)] = v;
+    }
   }
   if (location.hash) {
     const hash = location.hash;

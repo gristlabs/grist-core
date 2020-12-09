@@ -267,8 +267,9 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * committed to a document that is called in hosted Grist - all other methods
    * are called via DocComm.
    */
-  public async openDoc(docName: string, mode?: string): Promise<OpenLocalDocResult> {
-    return this._makeRequest(null, docName, 'openDoc', docName, mode);
+  public async openDoc(docName: string, mode?: string,
+                       linkParameters?: Record<string, string>): Promise<OpenLocalDocResult> {
+    return this._makeRequest(null, docName, 'openDoc', docName, mode, linkParameters);
   }
 
   /**

@@ -694,7 +694,7 @@ export class GranularAccess {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       value = value.get('id');
     }
-    return JSON.stringify(value).toLowerCase();
+    return JSON.stringify(value)?.toLowerCase() || '';
   }
 
   /**
@@ -755,6 +755,12 @@ export class GranularAccess {
     user.UserID = fullUser?.id || null;
     user.Email = fullUser?.email || null;
     user.Name = fullUser?.name || null;
+    // If viewed from a websocket, collect any link parameters included.
+    // TODO: could also get this from rest api access, just via a different route.
+    user.Link = docSession.authorizer?.getLinkParameters() || {};
+    // Include origin info if accessed via the rest api.
+    // TODO: could also get this for websocket access, just via a different route.
+    user.Origin = docSession.req?.get('origin') || null;
 
     for (const clause of this._ruleCollection.getUserAttributeRules().values()) {
       if (clause.name in user) {

@@ -116,6 +116,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;
       const urlOpenMode = state.mode || 'default';
+      const linkParameters = state.params?.linkParameters;
       const docKey = this._getDocKey(state);
       if (docKey !== this._openerDocKey) {
         this._openerDocKey = docKey;
@@ -126,7 +127,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           this._openerHolder.clear();
         } else {
           FlowRunner.create(this._openerHolder, (flow: AsyncFlow) => this._openDoc(flow, urlId, urlOpenMode,
-                                                                                  state.params?.compare))
+                                                                                   state.params?.compare, linkParameters))
           .resultPromise.catch(err => this._onOpenError(err));
         }
       }
@@ -207,7 +208,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   }
 
   private async _openDoc(flow: AsyncFlow, urlId: string, urlOpenMode: OpenDocMode,
-                         comparisonUrlId: string | undefined): Promise<void> {
+                         comparisonUrlId: string | undefined,
+                         linkParameters: Record<string, string> | undefined): Promise<void> {
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
                 (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
     const gristDocModulePromise = loadGristDoc();
@@ -229,7 +231,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     comm.useDocConnection(doc.id);
     flow.onDispose(() => comm.releaseDocConnection(doc.id));
 
-    const openDocResponse = await comm.openDoc(doc.id, doc.openMode);
+    const openDocResponse = await comm.openDoc(doc.id, doc.openMode, linkParameters);
     const gdModule = await gristDocModulePromise;
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();

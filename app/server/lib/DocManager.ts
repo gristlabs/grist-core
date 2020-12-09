@@ -244,7 +244,8 @@ export class DocManager extends EventEmitter {
    *      `doc` - the object with metadata tables.
    */
   public async openDoc(client: Client, docId: string,
-                       mode: OpenDocMode = 'default'): Promise<OpenLocalDocResult> {
+                       mode: OpenDocMode = 'default',
+                       linkParameters: Record<string, string> = {}): Promise<OpenLocalDocResult> {
     let auth: Authorizer;
     const dbManager = this._homeDbManager;
     if (!isSingleUserMode()) {
@@ -266,7 +267,7 @@ export class DocManager extends EventEmitter {
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-      auth = new DocAuthorizer(dbManager, key, mode, docAuth, client.getProfile() || undefined);
+      auth = new DocAuthorizer(dbManager, key, mode, linkParameters, docAuth, client.getProfile() || undefined);
     } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer('owners', docId);

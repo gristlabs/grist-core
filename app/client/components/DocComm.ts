@@ -189,6 +189,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   private async _doForkDoc(): Promise<void> {
     reportError(new UserError('Preparing your copy...', {key: 'forking'}));
     const {urlId, docId} = await this.fork();
+    // TODO: may want to preserve linkParameters in call to openDoc.
     const openResponse = await this._comm.openDoc(docId);
     // Close the old doc and release the old connection. Note that the closeDoc call is expected
     // to fail, since we close the websocket immediately after it. So let it fail silently.

@@ -26,7 +26,7 @@ export interface InfoView {
 }
 
 // Represents user info, which may include properties which are themselves RowRecords.
-export type UserInfo = Record<string, CellValue|InfoView>;
+export type UserInfo = Record<string, CellValue|InfoView|Record<string, string>>;
 
 /**
  * Input into the AclMatchFunc. Compiled formulas evaluate AclMatchInput to produce a boolean.

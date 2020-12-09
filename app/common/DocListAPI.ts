@@ -80,5 +80,6 @@ export interface DocListAPI {
   /**
    * Opens a document, loads it, subscribes to its userAction events, and returns its metadata.
    */
-  openDoc(userDocName: string, openMode?: OpenDocMode): Promise<OpenLocalDocResult>;
+  openDoc(userDocName: string, openMode?: OpenDocMode,
+          linkParameters?: Record<string, string>): Promise<OpenLocalDocResult>;
 }

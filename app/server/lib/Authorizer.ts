@@ -363,6 +363,9 @@ export interface Authorizer {
   // get the id of the document.
   getDocId(): string;
 
+  // get any link parameters in place when accessing the resource.
+  getLinkParameters(): Record<string, string>;
+
   // Fetch the doc metadata from HomeDBManager.
   getDoc(): Promise<Document>;
 
@@ -385,6 +388,7 @@ export class DocAuthorizer implements Authorizer {
     private _dbManager: HomeDBManager,
     private _key: DocAuthKey,
     public readonly openMode: OpenDocMode,
+    public readonly linkParameters: Record<string, string>,
     private _docAuth?: DocAuthResult,
     private _profile?: UserProfile
   ) {
@@ -401,6 +405,10 @@ export class DocAuthorizer implements Authorizer {
   public getDocId(): string {
     // We've been careful to require urlId === docId, see DocManager.
     return this._key.urlId;
+  }
+
+  public getLinkParameters(): Record<string, string> {
+    return this.linkParameters;
   }
 
   public async getDoc(): Promise<Document> {
@@ -424,6 +432,7 @@ export class DummyAuthorizer implements Authorizer {
   public getUserId() { return null; }
   public getUser() { return null; }
   public getDocId() { return this.docId; }
+  public getLinkParameters() { return {}; }
   public async getDoc(): Promise<Document> { throw new Error("Not supported in standalone"); }
   public async assertAccess() { /* noop */ }
   public getCachedAuth(): DocAuthResult {
@@ -481,11 +490,14 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
   const PermitHeader = req.get('Permit');
   const Organization = (req as RequestWithOrg).org;
   const XRequestedWith = req.get('X-Requested-With');
+  const Origin = req.get('Origin');  // Pass along the original Origin since it may
+                                     // play a role in granular access control.
   return {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
     ...(PermitHeader ? { Permit: PermitHeader } : undefined),
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
+    ...(Origin ? { Origin } : undefined),
   };
 }
