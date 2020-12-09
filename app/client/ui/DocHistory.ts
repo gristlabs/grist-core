@@ -7,7 +7,8 @@ import {buildConfigContainer} from 'app/client/ui/RightPanel';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItemLink} from 'app/client/ui2018/menus';
+import {menu, menuAnnotate, menuItemLink} from 'app/client/ui2018/menus';
+import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {StringUnion} from 'app/common/StringUnion';
 import {DocSnapshot} from 'app/common/UserAPI';
 import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
@@ -16,7 +17,7 @@ import * as moment from 'moment';
 const DocHistorySubTab = StringUnion("activity", "snapshots");
 
 export class DocHistory extends Disposable implements IDomComponent {
-  private _subTab = createSessionObs(this, "docHistorySubTab", "activity", DocHistorySubTab.guard);
+  private _subTab = createSessionObs(this, "docHistorySubTab", "snapshots", DocHistorySubTab.guard);
 
   constructor(private _docPageModel: DocPageModel, private _actionLog: IDomComponent) {
     super();
@@ -46,35 +47,58 @@ export class DocHistory extends Disposable implements IDomComponent {
     const doc = this._docPageModel.currentDoc.get();
     if (!doc) { return null; }
 
-    // If this is a snapshot already, say so to the user. We won't find any list of snapshots of it (though we could
-    // change that to list snapshots of the trunk, and highlight this one among them).
-    if (doc.idParts.snapshotId) {
-      return cssSnapshot(cssSnapshotCard('You are looking at a backup snapshot.'));
+    // origUrlId is the snapshot-less URL, which we use to fetch snapshot history, and for
+    // snapshot comparisons.
+    const origUrlId = buildUrlId({...doc.idParts, snapshotId: undefined});
+
+    // If comparing one snapshot to another, get the other ID, so that we can highlight it too.
+    const compareUrlId = urlState().state.get().params?.compare;
+    const compareSnapshotId = compareUrlId && parseUrlId(compareUrlId).snapshotId;
+
+    // Helper to set a link to open a snapshot, optionally comparing it with a docId.
+    // We include urlState().state to preserve the currently selected page.
+    function setLink(snapshot: DocSnapshot, compareDocId?: string) {
+      return dom.attr('href', (use) => urlState().makeUrl({
+        ...use(urlState().state), doc: snapshot.docId, params: {compare: compareDocId}}));
     }
 
     const snapshots = Observable.create<DocSnapshot[]>(owner, []);
     const userApi = this._docPageModel.appModel.api;
-    const docApi = userApi.getDocAPI(doc.id);
+    const docApi = userApi.getDocAPI(origUrlId);
     docApi.getSnapshots().then(result => snapshots.set(result.snapshots)).catch(reportError);
     return dom('div',
-      dom.forEach(snapshots, (snapshot) => {
+      // Note that most recent snapshots are first.
+      dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
         const modified = moment(snapshot.lastModified);
+        const prevSnapshot = snapshotList[index + 1] || null;
         return cssSnapshot(
           cssSnapshotTime(getTimeFromNow(snapshot.lastModified)),
           cssSnapshotCard(
+            cssSnapshotCard.cls('-current', Boolean(
+              snapshot.snapshotId === doc.idParts.snapshotId ||
+              (compareSnapshotId && snapshot.snapshotId === compareSnapshotId)
+            )),
             dom('div',
               cssDatePart(modified.format('ddd ll')), ' ',
               cssDatePart(modified.format('LT'))
             ),
             cssMenuDots(icon('Dots'),
-              menu(() => [menuItemLink(urlState().setLinkUrl({doc: snapshot.docId}), 'Open Snapshot')],
-                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}),
+              menu(() => [
+                  menuItemLink(setLink(snapshot), 'Open Snapshot'),
+                  menuItemLink(setLink(snapshot, origUrlId), 'Compare to Current',
+                    menuAnnotate('Beta')),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), 'Compare to Previous',
+                    menuAnnotate('Beta')),
+                ],
+                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
+              ),
               testId('doc-history-snapshot-menu'),
             ),
+            testId('doc-history-card'),
           ),
           testId('doc-history-snapshot'),
         );
-      }),
+      })),
     );
   }
 }
@@ -102,6 +126,13 @@ const cssSnapshotCard = styled('div', `
   overflow: hidden;
   display: flex;
   align-items: center;
+  --icon-color: ${colors.slate};
+
+  &-current {
+    background-color: ${colors.dark};
+    color: ${colors.light};
+    --icon-color: ${colors.light};
+  }
 `);
 
 const cssDatePart = styled('span', `
@@ -117,9 +148,7 @@ const cssMenuDots = styled('div', `
   line-height: 0px;
   border-radius: 3px;
   cursor: default;
-  --icon-color: ${colors.slate};
   &:hover, &.weasel-popup-open {
     background-color: ${colors.mediumGrey};
-    --icon-color: ${colors.slate};
   }
 `);

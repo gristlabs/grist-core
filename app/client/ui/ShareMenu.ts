@@ -7,12 +7,12 @@ import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
+import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
-import {cssMenuItem, MenuCreateFunc} from 'popweasel';
+import {MenuCreateFunc} from 'popweasel';
 
 function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
@@ -136,9 +136,20 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
   const termToUse = isSnapshot ? "Current Version" : "Original";
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
   const originalUrl = urlState().makeUrl({doc: origUrlId});
-  const originalUrlComparison = urlState().makeUrl({
-    doc: origUrlId, params: { compare: doc.id }
-  });
+
+  // When comparing forks, show changes from the original to the fork. When comparing a snapshot,
+  // show changes from the snapshot to the original, which seems more natural. The per-snapshot
+  // comparison links in DocHistory use the same order.
+  const [leftDocId, rightDocId] = isSnapshot ? [doc.id, origUrlId] : [origUrlId, doc.id];
+
+  // Preserve the current state in order to stay on the selected page. TODO: Should auto-switch to
+  // first page when the requested page is not in the document.
+  const compareHref = dom.attr('href', (use) => urlState().makeUrl({
+    ...use(urlState().state), doc: leftDocId, params: {compare: rightDocId}}));
+
+  const compareUrlId = urlState().state.get().params?.compare;
+  const comparingSnapshots: boolean = isSnapshot && Boolean(compareUrlId && parseUrlId(compareUrlId).snapshotId);
+
   function replaceOriginal() {
     const user = appModel.currentValidUser;
     replaceTrunkWithFork(user, doc, appModel, origUrlId).catch(reportError);
@@ -151,11 +162,13 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
       )
     ),
     menuItem(replaceOriginal, `Replace ${termToUse}...`,
-      dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null)),
+      // Disable if original is not writable, and also when comparing snapshots (since it's
+      // unclear which of the versions to use).
+      dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId('replace-original'),
     ),
-    menuItemLink({href: originalUrlComparison, target: '_blank'}, `Compare to ${termToUse}`,
-      cssAnnotateMenuItem('Beta'),
+    menuItemLink(compareHref, {target: '_blank'}, `Compare to ${termToUse}`,
+      menuAnnotate('Beta'),
       testId('compare-original'),
     ),
   ];
@@ -298,16 +311,3 @@ const cssMenuIcon = styled(icon, `
   display: block;
 `);
 
-const cssAnnotateMenuItem = styled('span', `
-  color: ${colors.lightGreen};
-  text-transform: uppercase;
-  font-size: 8px;
-  vertical-align: super;
-  margin-top: -4px;
-  margin-left: 4px;
-  font-weight: bold;
-
-  .${cssMenuItem.className}-sel > & {
-    color: white;
-  }
-`);

@@ -255,6 +255,10 @@ export function menuItemCmd(cmd: Command, label: string, ...args: DomElementArg[
   );
 }
 
+export function menuAnnotate(text: string) {
+  return cssAnnotateMenuItem('Beta');
+}
+
 export const menuDivider = styled(weasel.cssMenuDivider, `
   margin: 8px 0;
 `);
@@ -373,4 +377,18 @@ const cssCmdKey = styled('span', `
   margin-left: 16px;
   color: ${colors.slate};
   margin-right: -12px;
+`);
+
+const cssAnnotateMenuItem = styled('span', `
+  color: ${colors.lightGreen};
+  text-transform: uppercase;
+  font-size: 8px;
+  vertical-align: super;
+  margin-top: -4px;
+  margin-left: 4px;
+  font-weight: bold;
+
+  .${weasel.cssMenuItem.className}-sel > & {
+    color: white;
+  }
 `);
