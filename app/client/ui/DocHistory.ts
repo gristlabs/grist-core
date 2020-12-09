@@ -59,7 +59,9 @@ export class DocHistory extends Disposable implements IDomComponent {
     // We include urlState().state to preserve the currently selected page.
     function setLink(snapshot: DocSnapshot, compareDocId?: string) {
       return dom.attr('href', (use) => urlState().makeUrl({
-        ...use(urlState().state), doc: snapshot.docId, params: {compare: compareDocId}}));
+        ...use(urlState().state), doc: snapshot.docId,
+        params: (compareDocId ? {compare: compareDocId} : {})
+      }));
     }
 
     const snapshots = Observable.create<DocSnapshot[]>(owner, []);
