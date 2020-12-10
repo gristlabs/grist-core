@@ -11,7 +11,6 @@ If an object cannot be encoded or decoded, an "UnmarshallableValue" is returned 
 of the form ['U', repr(obj)].
 """
 # pylint: disable=too-many-return-statements
-import exceptions
 import traceback
 from datetime import date, datetime
 from math import isnan
@@ -131,11 +130,19 @@ def strict_equal(a, b):
     return False
 
 def equal_encoding(a, b):
-  # pylint: disable=unidiomatic-typecheck
-  if isinstance(a, (str, unicode, bool, long, int)) or a is None:
+  # Compare NaNs as equal.
+  if isinstance(a, float) and isinstance(b, float):
+    return a == b or (isnan(a) and isnan(b))
+
+  # Compare bools as equal only to bools (these are distinguishable from numbers in JSON, and we
+  # take care to distinguish them in DB too).
+  if isinstance(a, bool) or isinstance(b, bool):
+    # pylint: disable=unidiomatic-typecheck
     return type(a) == type(b) and a == b
-  if isinstance(a, float):
-    return type(a) == type(b) and (a == b or (isnan(a) and isnan(b)))
+
+  # Note for simple types, encode_object is trivial, and will result in a non-type-specific
+  # comparison (e.g. 1 and 1.0 will compare equal, as would "a" and u"a"). This is to capture
+  # equivalence of values in their JSON representations.
   return encode_object(a) == encode_object(b)
 
 def encode_object(value):
@@ -230,11 +237,15 @@ class RaisedException(object):
   widely-used wrapper. To encode_args, it simply returns the entire encoded stored error, e.g.
   RaisedException(ValueError("foo")) is encoded as ["E", "ValueError", "foo"].
   """
-  def __init__(self, error, include_details=False):
+  def __init__(self, error, include_details=False, encoded_error=None):
     self.error = error
     self.details = traceback.format_exc() if include_details else None
+    self._encoded_error = encoded_error or self._encode_error()
 
   def encode_args(self):
+    return self._encoded_error
+
+  def _encode_error(self):
     # TODO: We should probably return all args, to communicate the error details to the browser
     # and to DB (for when we store formula results). There are two concerns: one is that it's
     # potentially quite verbose; the other is that it's makes the tests more annoying (again b/c
@@ -247,17 +258,8 @@ class RaisedException(object):
 
   @classmethod
   def decode_args(cls, *args):
-    # Decoding of a RaisedException is currently only used in tests.
-    name = args[0]
-    exc_type = getattr(exceptions, name)
-    assert isinstance(exc_type, type) and issubclass(exc_type, BaseException)
-    return cls(exc_type(*args[1:]))
-
-  def __eq__(self, other):
-    return isinstance(other, type(self)) and self.encode_args() == other.encode_args()
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
+    # Decoding of a RaisedException is only enough to re-encode it.
+    return cls(None, encoded_error=list(args))
 
 
 class RecordList(list):

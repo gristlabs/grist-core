@@ -262,8 +262,8 @@
 
           ["ModifyColumn", "Schools", "numStudents", {"type": "Numeric"}],
           // Record 13 is not updated since it can't be properly converted.
-          ["BulkUpdateRecord", "Schools", [1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15],
-            {"numStudents": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1e+27, 1000000.0]}],
+          // Other records aren't updated because the converted value is equivalent for JSON and DB.
+          ["UpdateRecord", "Schools", 14, {"numStudents": 1e+27}],
           ["UpdateRecord", "_grist_Tables_column", 30, {"type": "Numeric"}],
           ["AddRecord", "Schools", 16, {"numStudents": "@+Infinity"}],
           ["BulkUpdateRecord", "Schools", [14, 15, 16], {"name": ["14$\\$$'\\'", "15$\\$$'\\'", "16$\\$$'\\'"]}]
@@ -1445,7 +1445,6 @@
                 "addr = $university.address\naddr.stateName if addr.country == 'US' else addr.region"]
             }],
             ["ModifyColumn", "Address", "stateName", {"type": "Numeric"}],
-            ["UpdateRecord", "Address", 2, {"stateName": 73.0}],
             ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Numeric"}]
         ],
         "undo": [
@@ -1458,7 +1457,6 @@
               "formula": ["",
                 "addr = $university.address\naddr.state if addr.country == 'US' else addr.region"]
             }],
-            ["UpdateRecord", "Address", 2, {"stateName": 73}],
             ["ModifyColumn", "Address", "stateName", {"type": "Int"}],
             ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Int"}]
         ]
