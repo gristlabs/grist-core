@@ -122,10 +122,11 @@ Comm.prototype.getClient = function(clientId) {
  * Returns a LoginSession object with the given session id from the list of sessions,
  *  or adds a new one and returns that.
  */
-Comm.prototype.getOrCreateSession = function(sid, req) {
+Comm.prototype.getOrCreateSession = function(sid, req, userSelector) {
   // LoginSessions are specific to a session id / org combination.
   const org = req.org || "";
-  return this.sessions.getOrCreateLoginSession(sid, org, this, this._instanceManager);
+  return this.sessions.getOrCreateLoginSession(sid, org, this, this._instanceManager,
+                                               userSelector);
 };
 
 
@@ -189,6 +190,7 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
   var browserSettings = urlObj.query.browserSettings ? JSON.parse(urlObj.query.browserSettings) : {};
   var newClient = (parseInt(urlObj.query.newClient, 10) === 1);
   const counter = urlObj.query.counter;
+  const userSelector = urlObj.query.user || '';
 
   // Associate an ID with each websocket, reusing the supplied one if it's valid.
   var client;
@@ -229,7 +231,7 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
 
   // Add a Session object to the client.
   log.info(`Comm ${client}: using session ${sessionId}`);
-  const loginSession = this.getOrCreateSession(sessionId, req);
+  const loginSession = this.getOrCreateSession(sessionId, req, userSelector);
   client.setSession(loginSession);
 
   // Delegate message handling to the client

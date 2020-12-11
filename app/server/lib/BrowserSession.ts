@@ -58,9 +58,16 @@ export function getSessionProfiles(session: SessionObj): UserProfile[] {
  * found specific to that org.
  *
  */
-export function getSessionUser(session: SessionObj, org: string): SessionUserObj|null {
+export function getSessionUser(session: SessionObj, org: string,
+                               userSelector: string): SessionUserObj|null {
   if (!session.users) { return null; }
   if (!session.users.length) { return null; }
+
+  if (userSelector) {
+    for (const user of session.users) {
+      if (user.profile?.email.toLowerCase() === userSelector.toLowerCase()) { return user; }
+    }
+  }
 
   if (session.orgToUser && session.orgToUser[org] !== undefined &&
       session.users.length > session.orgToUser[org]) {
@@ -109,7 +116,8 @@ export class ScopedSession {
    */
   constructor(private _sessionId: string,
               private _sessionStore: SessionStore,
-              private _org: string) {
+              private _org: string,
+              private _userSelector: string) {
     // Assume we need to skip cache in a hosted environment. GRIST_HOST is always set there.
     // TODO: find a cleaner way to configure this flag.
     this._live = Boolean(process.env.GRIST_HOST || process.env.GRIST_HOSTED);
@@ -122,7 +130,7 @@ export class ScopedSession {
    */
   public async getScopedSession(prev?: SessionObj): Promise<SessionUserObj> {
     const session = prev || await this._getSession();
-    return getSessionUser(session, this._org) || {};
+    return getSessionUser(session, this._org, this._userSelector) || {};
   }
 
   /**

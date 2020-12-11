@@ -440,7 +440,7 @@ export class ApiServer {
     const userId = getUserId(mreq);
     const fullUser = await this._dbManager.getFullUser(userId);
     const domain = getOrgFromRequest(mreq);
-    const sessionUser = getSessionUser(mreq.session, domain || '');
+    const sessionUser = getSessionUser(mreq.session, domain || '', fullUser.email);
     const loginMethod = sessionUser && sessionUser.profile ? sessionUser.profile.loginMethod : undefined;
     return {...fullUser, loginMethod};
   }

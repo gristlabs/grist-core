@@ -50,6 +50,10 @@ export interface GristWSSettings {
   // Get an id associated with the client, null for "no id set yet".
   getClientId(assignmentId: string|null): string|null;
 
+  // Get selector for user, so if cookie auth allows multiple the correct one will be picked.
+  // Selector is currently just the email address.
+  getUserSelector(): string;
+
   // Update the id associated with the client.  Future calls to getClientId should return this.
   updateClientId(assignmentId: string|null, clentId: string): void;
 
@@ -73,6 +77,10 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   }
   public getClientId(assignmentId: string|null) {
     return window.sessionStorage.getItem(`clientId_${assignmentId}`) || null;
+  }
+  public getUserSelector(): string {
+    // TODO: find/create a more official way to get the user.
+    return (window as any).gristDocPageModel?.appModel.currentUser?.email || '';
   }
   public updateClientId(assignmentId: string|null, id: string) {
     window.sessionStorage.setItem(`clientId_${assignmentId}`, id);
@@ -335,6 +343,7 @@ export class GristWSConnection extends Disposable {
     url.searchParams.append('counter', this._clientCounter);
     url.searchParams.append('newClient', String(isReconnecting ? 0 : 1));
     url.searchParams.append('browserSettings', JSON.stringify({timezone}));
+    url.searchParams.append('user', this._settings.getUserSelector());
     return url.href;
   }
 

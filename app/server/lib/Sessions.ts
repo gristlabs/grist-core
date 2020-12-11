@@ -46,16 +46,16 @@ export class Sessions {
     const sid = this.getSessionIdFromRequest(req);
     const org = (req as any).org;
     if (!sid) { throw new Error("session not found"); }
-    return this.getOrCreateSession(sid, org);
+    return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
   }
 
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, domain: string): Session {
-    const key = this._getSessionOrgKey(sid, domain);
+  public getOrCreateSession(sid: string, domain: string, userSelector: string): Session {
+    const key = this._getSessionOrgKey(sid, domain, userSelector);
     if (!this._sessions.has(key)) {
-      const scopedSession = new ScopedSession(sid, this._sessionStore, domain);
+      const scopedSession = new ScopedSession(sid, this._sessionStore, domain, userSelector);
       this._sessions.set(key, {scopedSession});
     }
     return this._sessions.get(key)!;
@@ -67,8 +67,9 @@ export class Sessions {
    *
    */
   public getOrCreateLoginSession(sid: string, domain: string, comm: Comm,
-                                 instanceManager: IInstanceManager|null): ILoginSession {
-    const sess = this.getOrCreateSession(sid, domain);
+                                 instanceManager: IInstanceManager|null,
+                                 userSelector: string): ILoginSession {
+    const sess = this.getOrCreateSession(sid, domain, userSelector);
     if (!sess.loginSession) {
       sess.loginSession = this._server.create.LoginSession(comm, sid, domain, sess.scopedSession,
                                                            instanceManager);
@@ -100,8 +101,10 @@ export class Sessions {
    * Grist has historically cached sessions in memory by their session id.
    * With the introduction of per-organization identity, that cache is now
    * needs to be keyed by the session id and organization name.
+   * Also, clients may now want to be tied to a particular user available within
+   * a session, so we add that into key too.
    */
-  private _getSessionOrgKey(sid: string, domain: string): string {
-    return `${sid}__${domain}`;
+  private _getSessionOrgKey(sid: string, domain: string, userSelector: string): string {
+    return `${sid}__${domain}__${userSelector}`;
   }
 }

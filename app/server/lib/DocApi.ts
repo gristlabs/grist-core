@@ -198,7 +198,7 @@ export class DocWorkerApi {
         // If the user is not an owner, we load the document as an ActiveDoc, and then
         // check if the user has download permissions.
         const activeDoc = await this._getActiveDoc(req);
-        if (!activeDoc.canDownload(docSessionFromRequest(req))) {
+        if (!await activeDoc.canDownload(docSessionFromRequest(req))) {
           throw new Error('not authorized to download this document');
         }
         return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);

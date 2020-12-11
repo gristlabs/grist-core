@@ -7,12 +7,12 @@ import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
 import { AsyncCreate } from 'app/common/AsyncCreate';
 import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord, CellValue,
-         ColValues, DocAction, getTableId, isSchemaAction, RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
+  ColValues, DocAction, getTableId, isSchemaAction, RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoView } from 'app/common/GranularAccessClause';
-import { RuleSet, UserAttributeRule, UserInfo } from 'app/common/GranularAccessClause';
+import { RuleSet, UserInfo } from 'app/common/GranularAccessClause';
 import { getSetMapValue, isObject } from 'app/common/gutil';
 import { canView } from 'app/common/roles';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
@@ -96,14 +96,11 @@ export class GranularAccess {
   // The collection of all rules, with helpful accessors.
   private _ruleCollection = new ACLRuleCollection();
 
-  // Cache any tables that we need to look-up for access control decisions.
-  // This is an unoptimized implementation that is adequate if the tables
-  // are not large and don't change all that often.
-  private _characteristicTables = new Map<string, CharacteristicTable>();
-
   // Cache of PermissionInfo associated with the given docSession. It's a WeakMap, so should allow
   // both to be garbage-collected once docSession is no longer in use.
-  private _permissionInfoMap = new WeakMap<OptDocSession, PermissionInfo>();
+  private _permissionInfoMap = new WeakMap<OptDocSession, Promise<PermissionInfo>>();
+  private _userAttributesMap = new WeakMap<OptDocSession, UserAttributes>();
+  private _prevUserAttributesMap: WeakMap<OptDocSession, UserAttributes>|undefined;
 
   // When broadcasting a sequence of DocAction[]s, this contains the state of
   // affected rows for the relevant table before and after each DocAction.  It
@@ -121,10 +118,9 @@ export class GranularAccess {
   public async update() {
     await this._ruleCollection.update(this._docData, {log, compile: compileAclFormula});
 
-    // Also clear the per-docSession cache of rule evaluations.
+    // Also clear the per-docSession cache of rule evaluations and user attributes.
     this._permissionInfoMap = new WeakMap();
-    // TODO: optimize this.
-    await this._updateCharacteristicTables();
+    this._userAttributesMap = new WeakMap();
   }
 
   /**
@@ -137,8 +133,8 @@ export class GranularAccess {
   /**
    * Check whether user has any access to table.
    */
-  public hasTableAccess(docSession: OptDocSession, tableId: string) {
-    const pset = this.getTableAccess(docSession, tableId);
+  public async hasTableAccess(docSession: OptDocSession, tableId: string) {
+    const pset = await this.getTableAccess(docSession, tableId);
     return pset.read !== 'deny';
   }
 
@@ -166,6 +162,28 @@ export class GranularAccess {
    */
   public async appliedActions(docActions: DocAction[], undo: DocAction[]) {
     this._applied = true;
+    // If there is a rule change, redo from scratch for now.
+    // TODO: this is placeholder code. Should deal with connected clients.
+    if (docActions.some(docAction => getTableId(docAction) === '_grist_ACLRules' || getTableId(docAction) === '_grist_Resources')) {
+      await this.update();
+      return;
+    }
+    if (!this._ruleCollection.haveRules()) { return; }
+    // If there is a schema change, redo from scratch for now.
+    // TODO: this is placeholder code. Should deal with connected clients.
+    if (docActions.some(docAction => isSchemaAction(docAction))) {
+      await this.update();
+      return;
+    }
+    // Check if a table that affects user attributes has changed.  If so, put current
+    // attributes aside for later comparison, and clear caches.
+    const attrs = new Set([...this._ruleCollection.getUserAttributeRules().values()].map(r => r.tableId));
+    if (docActions.some(docAction => attrs.has(getTableId(docAction)))) {
+      this._prevUserAttributesMap = this._userAttributesMap;
+      this._permissionInfoMap = new WeakMap();
+      this._userAttributesMap = new WeakMap();
+      return;
+    }
   }
 
   /**
@@ -176,12 +194,14 @@ export class GranularAccess {
     this._applied = false;
     if (this._rowSnapshots) { this._rowSnapshots.clear(); }
     this._rowSnapshots = null;
+    this._prevUserAttributesMap = undefined;
   }
 
   /**
    * Filter DocActions to be sent to a client.
    */
   public async filterOutgoingDocActions(docSession: OptDocSession, docActions: DocAction[]): Promise<DocAction[]> {
+    await this._checkUserAttributes(docSession);
     const actions = await Promise.all(
       docActions.map((action, idx) => this._pruneOutgoingDocAction(docSession, action, idx)));
     return ([] as DocAction[]).concat(...actions);
@@ -190,9 +210,8 @@ export class GranularAccess {
   /**
    * Filter an ActionGroup to be sent to a client.
    */
-  public filterActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): ActionGroup {
-    // TODO This seems a mistake -- should this check be negated?
-    if (!this.allowActionGroup(docSession, actionGroup)) { return actionGroup; }
+  public async filterActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<ActionGroup> {
+    if (await this.allowActionGroup(docSession, actionGroup)) { return actionGroup; }
     // For now, if there's any nuance at all, suppress the summary and description.
     // TODO: create an empty action summary, to be sure not to leak anything important.
     const result: ActionGroup = { ...actionGroup };
@@ -205,7 +224,7 @@ export class GranularAccess {
    * Check whether an ActionGroup can be sent to the client.  TODO: in future, we'll want
    * to filter acceptible parts of ActionGroup, rather than denying entirely.
    */
-  public allowActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): boolean {
+  public async allowActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<boolean> {
     return this.canReadEverything(docSession);
   }
 
@@ -215,14 +234,17 @@ export class GranularAccess {
    * TODO: not smart about intermediate states, if there is a table or column rename it will
    * have trouble, and might forbid something that should be allowed.
    */
-  public canMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): boolean {
-    return actions.every(action => this.canMaybeApplyUserAction(docSession, action));
+  public async canMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
+    for (const action of actions) {
+      if (!await this.canMaybeApplyUserAction(docSession, action)) { return false; }
+    }
+    return true;
   }
 
   /**
    * Check if user can apply a given action to the document.
    */
-  public canMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): boolean {
+  public async canMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
     const name = a[0] as string;
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
@@ -242,7 +264,7 @@ export class GranularAccess {
       if (tableId.startsWith('_grist_')) {
         return !this.hasNuancedAccess(docSession);
       }
-      const tableAccess = this.getTableAccess(docSession, tableId);
+      const tableAccess = await this.getTableAccess(docSession, tableId);
       const accessFn = getAccessForActionType(a);
       const access = accessFn(tableAccess);
       // if access is mixed, leave this to be checked in detail later.
@@ -264,8 +286,8 @@ export class GranularAccess {
   /**
    * Check whether user can read everything in document.
    */
-  public canReadEverything(docSession: OptDocSession): boolean {
-    const permInfo = this._getAccess(docSession);
+  public async canReadEverything(docSession: OptDocSession): Promise<boolean> {
+    const permInfo = await this._getAccess(docSession);
     return permInfo.getFullAccess().read === 'allow';
   }
 
@@ -304,10 +326,10 @@ export class GranularAccess {
    * references to them.
    *
    */
-  public filterMetaTables(docSession: OptDocSession,
-                          tables: {[key: string]: TableDataAction}): {[key: string]: TableDataAction} {
+  public async filterMetaTables(docSession: OptDocSession,
+                                tables: {[key: string]: TableDataAction}): Promise<{[key: string]: TableDataAction}> {
     // If user has right to read everything, return immediately.
-    if (this.canReadEverything(docSession)) { return tables; }
+    if (await this.canReadEverything(docSession)) { return tables; }
     // If we are going to modify metadata, make a copy.
     tables = JSON.parse(JSON.stringify(tables));
     // Collect a list of all tables (by tableRef) to which the user has no access.
@@ -315,7 +337,7 @@ export class GranularAccess {
     // Collect a list of censored columns (by "<tableRef> <colId>").
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
-    const permInfo = this._getAccess(docSession);
+    const permInfo = await this._getAccess(docSession);
     for (const tableId of this._ruleCollection.getAllTableIds()) {
       const tableAccess = permInfo.getTableAccess(tableId);
       let tableRef: number|undefined = 0;
@@ -399,19 +421,19 @@ export class GranularAccess {
    * Distill the clauses for the given session and table, to figure out the
    * access level and any row-level access functions needed.
    */
-  public getTableAccess(docSession: OptDocSession, tableId: string): TablePermissionSet {
-    return this._getAccess(docSession).getTableAccess(tableId);
+  public async getTableAccess(docSession: OptDocSession, tableId: string): Promise<TablePermissionSet> {
+    return (await this._getAccess(docSession)).getTableAccess(tableId);
   }
 
   /**
    * Modify table data in place, removing any rows or columns to which access
    * is not granted.
    */
-  public filterData(docSession: OptDocSession, data: TableDataAction) {
-    const permInfo = this._getAccess(docSession);
+  public async filterData(docSession: OptDocSession, data: TableDataAction) {
+    const permInfo = await this._getAccess(docSession);
     const tableId = getTableId(data);
     if (permInfo.getTableAccess(tableId).read === 'mixed') {
-      this._filterRowsAndCells(docSession, data, data, data, canRead);
+      await this._filterRowsAndCells(docSession, data, data, data, canRead);
     }
 
     // Filter columns, omitting any to which the user has no access, regardless of rows.
@@ -468,8 +490,8 @@ export class GranularAccess {
     // after this action.  We need to know both so that we can infer the state of the
     // client and send the correct change.
     const ids = new Set(getRowIdsFromDocAction(a));
-    const forbiddenBefores = new Set(this._getForbiddenRows(docSession, rowsBefore, ids));
-    const forbiddenAfters = new Set(this._getForbiddenRows(docSession, rowsAfter, ids));
+    const forbiddenBefores = new Set(await this._getForbiddenRows(docSession, rowsBefore, ids));
+    const forbiddenAfters = new Set(await this._getForbiddenRows(docSession, rowsAfter, ids));
 
     /**
      * For rows forbidden before and after: just remove them.
@@ -533,7 +555,7 @@ export class GranularAccess {
 
     // Return the results, also applying any cell-level access control.
     for (const docAction of revisedDocActions) {
-      this._filterRowsAndCells(docSession, rowsAfter, rowsAfter, docAction, canRead);
+      await this._filterRowsAndCells(docSession, rowsAfter, rowsAfter, docAction, canRead);
     }
     return revisedDocActions;
   }
@@ -550,14 +572,14 @@ export class GranularAccess {
     if (!this._rowSnapshots) { throw new Error('Logic error: actions not available'); }
     const allRowSnapshots = await this._rowSnapshots.get();
     const [rowsBefore, rowsAfter] = allRowSnapshots[idx];
-    this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
+    await this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
   }
 
   /**
    * Modify action in place, scrubbing any rows and cells to which access is not granted.
    */
-  private _filterRowsAndCells(docSession: OptDocSession, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
-                              docAction: DocAction, accessFn: AccessFn) {
+  private async _filterRowsAndCells(docSession: OptDocSession, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
+                                    docAction: DocAction, accessFn: AccessFn) {
     if (docAction && isSchemaAction(docAction)) {
       // TODO should filter out metadata about an unavailable column, probably.
       return [];
@@ -565,7 +587,7 @@ export class GranularAccess {
 
     const rec = new RecordView(rowsBefore, undefined);
     const newRec = new RecordView(rowsAfter, undefined);
-    const input: AclMatchInput = {user: this._getUser(docSession), rec, newRec};
+    const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec};
 
     const [, tableId, , colValues] = docAction;
     const rowIds = getRowIdsFromDocAction(docAction);
@@ -624,9 +646,9 @@ export class GranularAccess {
   }
 
   // Compute which of the row ids supplied are for rows forbidden for this session.
-  private _getForbiddenRows(docSession: OptDocSession, data: TableDataAction, ids: Set<number>): number[] {
+  private async _getForbiddenRows(docSession: OptDocSession, data: TableDataAction, ids: Set<number>): Promise<number[]> {
     const rec = new RecordView(data, undefined);
-    const input: AclMatchInput = {user: this._getUser(docSession), rec};
+    const input: AclMatchInput = {user: await this._getUser(docSession), rec};
 
     const [, tableId, rowIds] = data;
     const toRemove: number[] = [];
@@ -685,71 +707,52 @@ export class GranularAccess {
   }
 
   /**
-   * When comparing user characteristics, we lowercase for the sake of email comparison.
-   * This is a bit weak.
-   */
-  private _normalizeValue(value: CellValue|InfoView): string {
-    // If we get a record, e.g. `user.office`, interpret it as `user.office.id` (rather than try
-    // to use stringification of the full record).
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      value = value.get('id');
-    }
-    return JSON.stringify(value)?.toLowerCase() || '';
-  }
-
-  /**
-   * Load any tables needed for look-ups.
-   */
-  private async _updateCharacteristicTables() {
-    this._characteristicTables.clear();
-    for (const userChar of this._ruleCollection.getUserAttributeRules().values()) {
-      await this._updateCharacteristicTable(userChar);
-    }
-  }
-
-  /**
-   * Load a table needed for look-up.
-   */
-  private async _updateCharacteristicTable(clause: UserAttributeRule) {
-    if (this._characteristicTables.get(clause.name)) {
-      throw new Error(`User attribute ${clause.name} ignored: duplicate name`);
-    }
-    const data = await this._fetchQueryFromDB({tableId: clause.tableId, filters: {}});
-    const rowNums = new Map<string, number>();
-    const matches = data[3][clause.lookupColId];
-    for (let i = 0; i < matches.length; i++) {
-      rowNums.set(this._normalizeValue(matches[i]), i);
-    }
-    const result: CharacteristicTable = {
-      tableId: clause.tableId,
-      colId: clause.lookupColId,
-      rowNums,
-      data
-    };
-    this._characteristicTables.set(clause.name, result);
-  }
-
-  /**
    * Get PermissionInfo for the user represented by the given docSession. The returned object
    * allows evaluating access level as far as possible without considering specific records.
    *
    * The result is cached in a WeakMap, and PermissionInfo does its own caching, so multiple calls
    * to this._getAccess(docSession).someMethod() will reuse already-evaluated results.
    */
-  private _getAccess(docSession: OptDocSession): PermissionInfo {
+  private async _getAccess(docSession: OptDocSession): Promise<PermissionInfo> {
     // TODO The intent of caching is to avoid duplicating rule evaluations while processing a
     // single request. Caching based on docSession is riskier since those persist across requests.
-    return getSetMapValue(this._permissionInfoMap as Map<OptDocSession, PermissionInfo>, docSession,
-      () => new PermissionInfo(this._ruleCollection, {user: this._getUser(docSession)}));
+    return getSetMapValue(this._permissionInfoMap as Map<OptDocSession, Promise<PermissionInfo>>, docSession,
+      async () => new PermissionInfo(this._ruleCollection, {user: await this._getUser(docSession)}));
+  }
+
+  private _getUserAttributes(docSession: OptDocSession): UserAttributes {
+    // TODO Same caching intent and caveat as for _getAccess
+    return getSetMapValue(this._userAttributesMap as Map<OptDocSession, UserAttributes>, docSession,
+                          () => new UserAttributes());
+  }
+
+  /**
+   * Check whether user attributes have changed.  If so, prompt client
+   * to reload the document, since we aren't sophisticated enough to
+   * figure out the changes to send.
+   */
+  private async _checkUserAttributes(docSession: OptDocSession) {
+    if (!this._prevUserAttributesMap) { return; }
+    const userAttrBefore = this._prevUserAttributesMap.get(docSession);
+    if (!userAttrBefore) { return; }
+    await this._getAccess(docSession);  // Makes sure user attrs have actually been computed.
+    const userAttrAfter = this._getUserAttributes(docSession);
+    for (const [tableId, rec] of Object.entries(userAttrAfter.rows)) {
+      const prev = userAttrBefore.rows[tableId];
+      if (!prev || JSON.stringify(prev.toJSON()) !== JSON.stringify(rec.toJSON())) {
+        throw new ErrorWithCode('NEED_RELOAD', 'document needs reload, user attributes changed');
+      }
+    }
   }
 
   /**
    * Construct the UserInfo needed for evaluating rules. This also enriches the user with values
    * created by user-attribute rules.
    */
-  private _getUser(docSession: OptDocSession): UserInfo {
+  private async _getUser(docSession: OptDocSession): Promise<UserInfo> {
     const access = getDocSessionAccess(docSession);
     const fullUser = getDocSessionUser(docSession);
+    const attrs = this._getUserAttributes(docSession);
     const user: UserInfo = {};
     user.Access = access;
     user.UserID = fullUser?.id || null;
@@ -767,16 +770,22 @@ export class GranularAccess {
         log.warn(`User attribute ${clause.name} ignored; conflicts with an existing one`);
         continue;
       }
-      user[clause.name] = new EmptyRecordView();
-      const characteristicTable = this._characteristicTables.get(clause.name);
-      if (characteristicTable) {
-        // User lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
-        const character = this._normalizeValue(get(user, clause.charId) as CellValue);
-        const rowNum = characteristicTable.rowNums.get(character);
-        if (rowNum !== undefined) {
-          user[clause.name] = new RecordView(characteristicTable.data, rowNum);
-        }
+      if (attrs.rows[clause.name]) {
+        user[clause.name] = attrs.rows[clause.name];
+        continue;
       }
+      let rec = new EmptyRecordView();
+      let rows: TableDataAction|undefined;
+      try {
+        // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
+        // TODO: add indexes to db.
+        rows = await this._fetchQueryFromDB({tableId: clause.tableId, filters: { [clause.lookupColId]: [get(user, clause.charId)] }});
+      } catch (e) {
+        log.warn(`User attribute ${clause.name} failed`, e);
+      }
+      if (rows && rows[2].length > 0) { rec = new RecordView(rows, 0); }
+      user[clause.name] = rec;
+      attrs.rows[clause.name] = rec;
     }
     return user;
   }
@@ -878,7 +887,7 @@ export class GranularAccess {
    */
   private async _pruneOutgoingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<DocAction[]> {
     const tableId = getTableId(a);
-    const permInfo = this._getAccess(docSession);
+    const permInfo = await this._getAccess(docSession);
     const tableAccess = permInfo.getTableAccess(tableId);
     const access = tableAccess.read;
     if (access === 'deny') { return []; }
@@ -896,7 +905,7 @@ export class GranularAccess {
   private async _checkIncomingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<void> {
     const accessFn = denyIsFatal(getAccessForActionType(a));
     const tableId = getTableId(a);
-    const permInfo = this._getAccess(docSession);
+    const permInfo = await this._getAccess(docSession);
     const tableAccess = permInfo.getTableAccess(tableId);
     const access = accessFn(tableAccess);
     if (access === 'allow') { return; }
@@ -1043,14 +1052,10 @@ class EmptyRecordView implements InfoView {
 }
 
 /**
- * A cache of a table needed for look-ups, including a map from keys to
- * row numbers. Keys are produced by _getCharacteristicTableKey().
+ * Cache information about user attributes.
  */
-interface CharacteristicTable {
-  tableId: string;
-  colId: string;
-  rowNums: Map<string, number>;
-  data: TableDataAction;
+class UserAttributes {
+  public rows: {[clauseName: string]: InfoView} = {};
 }
 
 // A function for extracting one of the create/read/update/delete/schemaEdit permissions

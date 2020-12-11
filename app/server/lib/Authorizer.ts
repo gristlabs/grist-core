@@ -189,7 +189,8 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
 
     // See if we have a profile linked with the active organization already.
-    let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org);
+    // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
+    let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, '');
 
     if (!sessionUser) {
       // No profile linked yet, so let's elect one.

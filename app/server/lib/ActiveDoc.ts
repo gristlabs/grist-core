@@ -213,7 +213,15 @@ export class ActiveDoc extends EventEmitter {
   public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
       {client: docSession.client, summarize});
-    return groups.filter(actionGroup => this._granularAccess.allowActionGroup(docSession, actionGroup));
+    const permittedGroups: ActionGroup[] = [];
+    // Process groups serially since the work is synchronous except for some
+    // possible db accesses that will be serialized in any case.
+    for (const group of groups) {
+      if (await this._granularAccess.allowActionGroup(docSession, group)) {
+        permittedGroups.push(group);
+      }
+    }
+    return permittedGroups;
   }
 
   /** expose action history for tests */
@@ -556,9 +564,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   // Check if user has rights to download this doc.
-  public canDownload(docSession: OptDocSession) {
+  public async canDownload(docSession: OptDocSession) {
     return this._granularAccess.hasViewAccess(docSession) &&
-      this._granularAccess.canReadEverything(docSession);
+      await this._granularAccess.canReadEverything(docSession);
   }
 
   /**
@@ -585,7 +593,7 @@ export class ActiveDoc extends EventEmitter {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     // If user does not have rights to access what this query is asking for, fail.
-    const tableAccess = this._granularAccess.getTableAccess(docSession, query.tableId);
+    const tableAccess = await this._granularAccess.getTableAccess(docSession, query.tableId);
     if (tableAccess.read === 'deny') {
       throw new Error('not authorized to read table');
     }
@@ -619,7 +627,7 @@ export class ActiveDoc extends EventEmitter {
     // If row-level access is being controlled, filter the data appropriately.
     // Likewise if column-level access is being controlled.
     if (tableAccess.read !== 'allow') {
-      this._granularAccess.filterData(docSession, data!);
+      await this._granularAccess.filterData(docSession, data!);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
@@ -676,7 +684,7 @@ export class ActiveDoc extends EventEmitter {
                                  optTableId?: string): Promise<number[]> {
     // This could leak information about private tables, so if user cannot read entire
     // document, do nothing.
-    if (!this._granularAccess.canReadEverything(docSession)) { return []; }
+    if (!await this._granularAccess.canReadEverything(docSession)) { return []; }
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._pyCall('find_col_from_values', values, n, optTableId);
@@ -768,16 +776,10 @@ export class ActiveDoc extends EventEmitter {
     localActionBundle.stored.forEach(da => docData.receiveAction(da[1]));
     localActionBundle.calc.forEach(da => docData.receiveAction(da[1]));
     const docActions = getEnvContent(localActionBundle.stored);
-    // TODO: call this update less indiscriminately!
-    // Update ACLs only when rules are touched. A suggest for later is for GranularAccess to
-    // listen to docData's changes that affect relevant table, and toggle a dirty flag. The
-    // update() can then be called whenever ACLs are needed and are dirty.
-    if (localActionBundle.stored.some(da => (da[1][1] === '_grist_ACLRules'))) {
-      await this._granularAccess.update();
-    }
     if (docActions.some(docAction => this._onDemandActions.isSchemaAction(docAction))) {
       const indexes = this._onDemandActions.getDesiredIndexes();
       await this.docStorage.updateIndexes(indexes);
+      // TODO: should probably add indexes for user attribute tables.
     }
   }
 
@@ -829,7 +831,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async autocomplete(docSession: DocSession, txt: string, tableId: string): Promise<string[]> {
     // Autocompletion can leak names of tables and columns.
-    if (!this._granularAccess.canReadEverything(docSession)) { return []; }
+    if (!await this._granularAccess.canReadEverything(docSession)) { return []; }
     await this.waitForInitialization();
     return this._pyCall('autocomplete', txt, tableId);
   }
@@ -874,7 +876,7 @@ export class ActiveDoc extends EventEmitter {
    * ID for the fork.  TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: DocSession): Promise<ForkResult> {
-    if (!this._granularAccess.canReadEverything(docSession)) {
+    if (!await this._granularAccess.canReadEverything(docSession)) {
       throw new Error('cannot confirm authority to copy document');
     }
     const userId = docSession.client.getCachedUserId();
@@ -1085,7 +1087,7 @@ export class ActiveDoc extends EventEmitter {
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
-    if (!this._granularAccess.canMaybeApplyUserActions(docSession, actions)) {
+    if (!await this._granularAccess.canMaybeApplyUserActions(docSession, actions)) {
       throw new Error('cannot perform a requested action');
     }
 
@@ -1301,9 +1303,9 @@ export class ActiveDoc extends EventEmitter {
     actionGroup: ActionGroup,
     docActions: DocAction[]
   }) {
-    if (this._granularAccess.canReadEverything(docSession)) { return message; }
+    if (await this._granularAccess.canReadEverything(docSession)) { return message; }
     const result = {
-      actionGroup: this._granularAccess.filterActionGroup(docSession, message.actionGroup),
+      actionGroup: await this._granularAccess.filterActionGroup(docSession, message.actionGroup),
       docActions: await this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
     };
     if (result.docActions.length === 0) { return null; }
