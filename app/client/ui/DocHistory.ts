@@ -67,7 +67,8 @@ export class DocHistory extends Disposable implements IDomComponent {
     const snapshots = Observable.create<DocSnapshot[]>(owner, []);
     const userApi = this._docPageModel.appModel.api;
     const docApi = userApi.getDocAPI(origUrlId);
-    docApi.getSnapshots().then(result => snapshots.set(result.snapshots)).catch(reportError);
+    docApi.getSnapshots().then(result =>
+      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(reportError);
     return dom('div',
       // Note that most recent snapshots are first.
       dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
