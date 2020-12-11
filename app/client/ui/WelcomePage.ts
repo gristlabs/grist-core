@@ -12,8 +12,10 @@ import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink, cssButton } fro
 import { colors, testId, vars } from "app/client/ui2018/cssVars";
 import { getOrgName, Organization } from "app/common/UserAPI";
 
-async function _submitForm(form: HTMLFormElement) {
-  const result = await submitForm(form);
+async function _submitForm(form: HTMLFormElement, pending: Observable<boolean>) {
+  if (pending.get()) { return; }
+  pending.set(true);
+  const result = await submitForm(form).finally(() => pending.set(false));
   const redirectUrl = result.redirectUrl;
   if (!redirectUrl) {
     throw new Error('form failed to redirect');
@@ -21,10 +23,11 @@ async function _submitForm(form: HTMLFormElement) {
   window.location.assign(redirectUrl);
 }
 
-function handleSubmit(): (elem: HTMLFormElement) => void {
+// If a 'pending' observable is given, it will be set to true while waiting for the submission.
+function handleSubmit(pending: Observable<boolean>): (elem: HTMLFormElement) => void {
   return dom.on('submit', async (e, form) => {
     e.preventDefault();
-    _submitForm(form).catch(reportError);
+    _submitForm(form, pending).catch(reportError);
   });
 }
 
@@ -71,6 +74,7 @@ export class WelcomePage extends Disposable {
     let form: HTMLFormElement;
     const value = Observable.create(owner, checkName(this._currentUserName) ? this._currentUserName : '');
     const isNameValid = Computed.create(owner, value, (use, val) => checkName(val));
+    const pending = Observable.create(owner, false);
 
     // delayed focus
     setTimeout(() => inputEl.focus(), 10);
@@ -78,18 +82,18 @@ export class WelcomePage extends Disposable {
     return form = dom(
       'form',
       { method: "post", action: location.href },
-      handleSubmit(),
+      handleSubmit(pending),
       cssLabel('Your full name, as you\'d like it displayed to your collaborators.'),
       inputEl = cssInput(
         value, { onInput: true, },
         { name: "username" },
-        dom.onKeyDown({Enter: () => isNameValid.get() && _submitForm(form).catch(reportError)}),
+        dom.onKeyDown({Enter: () => isNameValid.get() && _submitForm(form, pending).catch(reportError)}),
       ),
       dom.maybe((use) => use(value) && !use(isNameValid), buildNameWarningsDom),
       cssButtonGroup(
         bigPrimaryButton(
           'Continue',
-          dom.boolAttr('disabled', (use) => Boolean(use(value) && !use(isNameValid))),
+          dom.boolAttr('disabled', (use) => Boolean(use(value) && !use(isNameValid)) || use(pending)),
           testId('continue-button')
         ),
       )
@@ -102,9 +106,10 @@ export class WelcomePage extends Disposable {
   private _buildInfoForm(owner: MultiHolder) {
     const allFilled = Observable.create(owner, false);
     const whereObs = Observable.create(owner, '');
+    const pending = Observable.create(owner, false);
 
     return forms.form({method: "post", action: location.href },
-      handleSubmit(),
+      handleSubmit(pending),
       (elem) => { setTimeout(() => elem.focus(), 0); },
       forms.text('Please help us serve you better by answering a few questions.'),
       forms.question(
@@ -140,6 +145,7 @@ export class WelcomePage extends Disposable {
         cssButtonGroup.cls('-right'),
         bigBasicButton('Continue',
           cssButton.cls('-primary', allFilled),
+          dom.boolAttr('disabled', pending),
           {tabIndex: '0'},
           testId('continue-button')),
       ),
