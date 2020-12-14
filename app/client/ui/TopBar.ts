@@ -43,9 +43,11 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
         docBreadcrumbs(displayNameWs, pageModel.currentDocTitle, gristDoc.currentPageName, {
           docNameSave: renameDoc,
           pageNameSave: getRenamePageFn(gristDoc),
+          cancelRecoveryMode: getCancelRecoveryModeFn(gristDoc),
           isPageNameReadOnly: (use) => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
           isDocNameReadOnly: (use) => use(gristDoc.isReadonly) || use(pageModel.isFork),
           isFork: pageModel.isFork,
+          isRecoveryMode: pageModel.isRecoveryMode,
           isFiddle: Computed.create(owner, (use) => use(pageModel.isPrefork) && !use(pageModel.isSample)),
           isSnapshot: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.idParts.snapshotId)),
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
@@ -88,6 +90,13 @@ function getRenamePageFn(gristDoc: GristDoc): (val: string) => Promise<void> {
       const name = views.rowModels[viewId].name;
       await name.saveOnly(val);
     }
+  };
+}
+
+function getCancelRecoveryModeFn(gristDoc: GristDoc): () => Promise<void> {
+  return async () => {
+    await gristDoc.app.topAppModel.api.getDocAPI(gristDoc.docPageModel.currentDocId.get()!)
+      .recover(false);
   };
 }
 

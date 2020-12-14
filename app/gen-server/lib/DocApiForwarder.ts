@@ -38,6 +38,7 @@ export class DocApiForwarder {
     const withDocWithoutAuth = expressWrap(this._forwardToDocWorker.bind(this, true, null));
     app.use('/api/docs/:docId/tables', withDoc);
     app.use('/api/docs/:docId/force-reload', withDoc);
+    app.use('/api/docs/:docId/recover', withDoc);
     app.use('/api/docs/:docId/remove', withDoc);
     app.delete('/api/docs/:docId', withDoc);
     app.use('/api/docs/:docId/download', withDoc);

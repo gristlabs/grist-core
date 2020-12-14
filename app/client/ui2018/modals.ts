@@ -4,7 +4,7 @@ import {reportError} from 'app/client/models/errors';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {Computed, dom, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, dom, DomContents, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
 
 export interface IModalControl {
   close(): void;
@@ -90,6 +90,7 @@ export interface ISaveModalOptions {
   hideCancel?: boolean;           // If set, hide the Cancel button
   width?: ModalWidth;             // Set a width style for the dialog.
   modalArgs?: DomElementArg;      // Extra args to apply to the outer cssModalDialog element.
+  extraButtons?: DomContents;     // More buttons!
 }
 
 /**
@@ -160,6 +161,7 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
           dom.on('click', save),
           testId('modal-confirm'),
         ),
+        options.extraButtons,
         options.hideCancel ? null : bigBasicButton('Cancel',
           dom.on('click', () => ctl.close()),
           testId('modal-cancel'),
@@ -182,7 +184,7 @@ export function confirmModal(
   btnText: string,
   onConfirm: () => Promise<void>,
   explanation?: Element|string,
-  {hideCancel}: {hideCancel?: boolean} = {},
+  {hideCancel, extraButtons}: {hideCancel?: boolean, extraButtons?: DomContents} = {},
 ): void {
   return saveModal((ctl, owner): ISaveModalOptions => ({
     title,
@@ -191,6 +193,7 @@ export function confirmModal(
     saveFunc: onConfirm,
     hideCancel,
     width: 'normal',
+    extraButtons,
   }));
 }
 

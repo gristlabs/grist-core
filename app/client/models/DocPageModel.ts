@@ -11,6 +11,7 @@ import {buildPagesDom} from 'app/client/ui/Pages';
 import {openPageWidgetPicker} from 'app/client/ui/PageWidgetPicker';
 import {tools} from 'app/client/ui/Tools';
 import {testId} from 'app/client/ui2018/cssVars';
+import {bigBasicButton} from 'app/client/ui2018/buttons';
 import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
@@ -30,6 +31,7 @@ export interface DocInfo extends Document {
   isSample: boolean;
   isPreFork: boolean;
   isFork: boolean;
+  isRecoveryMode: boolean;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
                         // fork without an original.
   idParts: UrlIdParts;
@@ -53,6 +55,7 @@ export interface DocPageModel {
   isReadonly: Observable<boolean>;
   isPrefork: Observable<boolean>;
   isFork: Observable<boolean>;
+  isRecoveryMode: Observable<boolean>;
   isBareFork: Observable<boolean>;
   isSample: Observable<boolean>;
 
@@ -89,6 +92,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isReadonly = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isReadonly : false);
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
+  public readonly isRecoveryMode = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSample = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSample : false);
 
@@ -198,12 +202,21 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     // Expected errors (e.g. Access Denied) produce a separate error page. For unexpected errors,
     // show a modal, and include a toast for the sake of the "Report error" link.
     reportError(err);
+    const isOwner = this.currentDoc.get()?.access === 'owners';
     confirmModal(
       "Error opening document",
       "Reload",
       async () => window.location.reload(true),
-      err.message,
-      {hideCancel: true},
+      isOwner ? `You can try reloading the document, or using recovery mode. ` +
+        `Recovery mode opens the document to be fully accessible to owners, and ` +
+        `inaccessible to others. ` +
+        `[${err.message}]` : err.message,
+      {  hideCancel: true,
+         extraButtons: isOwner ? bigBasicButton('Enter recovery mode', dom.on('click', async () => {
+           await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
+           window.location.reload(true);
+         }), testId('modal-recovery-mode')) : null,
+      },
     );
   }
 
@@ -232,6 +245,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     flow.onDispose(() => comm.releaseDocConnection(doc.id));
 
     const openDocResponse = await comm.openDoc(doc.id, doc.openMode, linkParameters);
+    if (openDocResponse.recoveryMode) {
+      doc.isRecoveryMode = true;
+      this.currentDoc.set({...doc});
+    }
     const gdModule = await gristDocModulePromise;
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();
@@ -311,6 +328,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode): DocInfo {
   return {
     ...doc,
     isFork,
+    isRecoveryMode: false,  // we don't know yet, will learn when doc is opened.
     isSample,
     isPreFork,
     isBareFork,

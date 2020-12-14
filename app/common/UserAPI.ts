@@ -308,6 +308,7 @@ export interface DocAPI {
   replace(source: DocReplacementOptions): Promise<void>;
   getSnapshots(): Promise<DocSnapshots>;
   forceReload(): Promise<void>;
+  recover(recoveryMode: boolean): Promise<void>;
   // Compare two documents, optionally including details of the changes.
   compareDoc(remoteDocId: string, options?: { detail: boolean }): Promise<DocStateComparison>;
   // Compare two versions within a document, including details of the changes.
@@ -711,6 +712,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async forceReload(): Promise<void> {
     await this.request(`${this._url}/force-reload`, {
+      method: 'POST'
+    });
+  }
+
+  public async recover(recoveryMode: boolean): Promise<void> {
+    await this.request(`${this._url}/recover`, {
+      body: JSON.stringify({recoveryMode}),
       method: 'POST'
     });
   }

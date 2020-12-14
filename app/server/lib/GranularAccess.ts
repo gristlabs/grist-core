@@ -109,7 +109,7 @@ export class GranularAccess {
   // Flag tracking whether a set of actions have been applied to the database or not.
   private _applied: boolean = false;
 
-  public constructor(private _docData: DocData, private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>) {
+  public constructor(private _docData: DocData, private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>, private _recoveryMode: boolean) {
   }
 
   /**
@@ -292,9 +292,19 @@ export class GranularAccess {
   }
 
   /**
-   * Check whether user has owner-level access to the document.
+   * Check whether user has full access to the document.  Currently that is interpreted
+   * as equivalent owner-level access to the document.
+   * TODO: uses of this method should be checked to see if they can be fleshed out
+   * now we have more of the ACL implementation done.
    */
   public hasFullAccess(docSession: OptDocSession): boolean {
+    return this.isOwner(docSession);
+  }
+
+  /**
+   * Check whether user has owner-level access to the document.
+   */
+  public isOwner(docSession: OptDocSession): boolean {
     const access = getDocSessionAccess(docSession);
     return access === 'owners';
   }
@@ -764,6 +774,12 @@ export class GranularAccess {
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
+
+    if (this._ruleCollection.ruleError && !this._recoveryMode) {
+      // It is important to signal that the doc is in an unexpected state,
+      // and prevent it opening.
+      throw this._ruleCollection.ruleError;
+    }
 
     for (const clause of this._ruleCollection.getUserAttributeRules().values()) {
       if (clause.name in user) {

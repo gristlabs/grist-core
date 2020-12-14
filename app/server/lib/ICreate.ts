@@ -29,7 +29,7 @@ export interface ICreate {
   // should not interfere with each other.
   ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage|undefined;
 
-  ActiveDoc(docManager: DocManager, docName: string): ActiveDoc;
+  ActiveDoc(docManager: DocManager, docName: string, safeMode?: boolean): ActiveDoc;
   DocManager(storageManager: IDocStorageManager, pluginManager: PluginManager,
              homeDbManager: HomeDBManager|null, gristServer: GristServer): DocManager;
   NSandbox(options: ISandboxCreationOptions): ISandbox;

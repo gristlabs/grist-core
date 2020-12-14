@@ -222,9 +222,20 @@ export class DocWorkerApi {
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
-    this._app.post('/api/docs/:docId/force-reload', canEdit, withDoc(async (activeDoc, req, res) => {
+    this._app.post('/api/docs/:docId/force-reload', canEdit, throttled(async (req, res) => {
+      const activeDoc = await this._getActiveDoc(req);
       await activeDoc.reloadDoc();
       res.json(null);
+    }));
+
+    this._app.post('/api/docs/:docId/recover', canEdit, throttled(async (req, res) => {
+      const recoveryModeRaw = req.body.recoveryMode;
+      const recoveryMode = (typeof recoveryModeRaw === 'boolean') ? recoveryModeRaw : undefined;
+      if (!this._isOwner(req)) { throw new Error('Only owners can control recovery mode'); }
+      const activeDoc = await this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req), recoveryMode);
+      res.json({
+        recoveryMode: activeDoc.recoveryMode
+      });
     }));
 
     // DELETE /api/docs/:docId

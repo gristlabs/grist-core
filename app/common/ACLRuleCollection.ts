@@ -30,6 +30,24 @@ const DEFAULT_RULE_SET: RuleSet = {
   }],
 };
 
+// If the user-created rules become dysfunctional, we can swap in this emergency set.
+// It grants full access to owners, and no access to anyone else.
+const EMERGENCY_RULE_SET: RuleSet = {
+  tableId: '*',
+  colIds: '*',
+  body: [{
+    aclFormula: "user.Access in ['owners']",
+    matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+    permissions: parsePermissions('all'),
+    permissionsText: 'all',
+  }, {
+    aclFormula: "",
+    matchFunc: defaultMatchFunc,
+    permissions: parsePermissions('none'),
+    permissionsText: 'none',
+  }],
+};
+
 export class ACLRuleCollection {
   // In the absence of rules, some checks are skipped. For now this is important to maintain all
   // existing behavior. TODO should make sure checking access against default rules is equivalent
@@ -53,6 +71,10 @@ export class ACLRuleCollection {
 
   // Maps name to the corresponding UserAttributeRule.
   private _userAttributeRules = new Map<string, UserAttributeRule>();
+
+  // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
+  // in this case.
+  public ruleError: Error|undefined;
 
   // Whether there are ANY user-defined rules.
   public haveRules(): boolean {
@@ -93,7 +115,7 @@ export class ACLRuleCollection {
    * Update granular access from DocData.
    */
   public async update(docData: DocData, options: ReadAclOptions) {
-    const {ruleSets, userAttributes} = readAclRules(docData, options);
+    const {ruleSets, userAttributes} = this._safeReadAclRules(docData, options);
 
     // Build a map of user characteristics rules.
     const userAttributeMap = new Map<string, UserAttributeRule>();
@@ -142,6 +164,16 @@ export class ACLRuleCollection {
     this._defaultRuleSet = defaultRuleSet;
     this._tableIds = [...tableIds];
     this._userAttributeRules = userAttributeMap;
+  }
+
+  private _safeReadAclRules(docData: DocData, options: ReadAclOptions): ReadAclResults {
+    try {
+      this.ruleError = undefined;
+      return readAclRules(docData, options);
+    } catch(e) {
+      this.ruleError = e;  // Report the error indirectly.
+      return {ruleSets: [EMERGENCY_RULE_SET], userAttributes: []};
+    }
   }
 }
 

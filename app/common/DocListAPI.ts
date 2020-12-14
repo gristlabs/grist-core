@@ -42,6 +42,7 @@ export interface OpenLocalDocResult {
   doc: {[tableId: string]: TableDataAction};
   log: ActionGroup[];
   plugins: LocalPlugin[];
+  recoveryMode?: boolean;
 }
 
 export interface DocListAPI {

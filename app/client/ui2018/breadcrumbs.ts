@@ -59,6 +59,14 @@ const cssTag = styled('span', `
   margin-left: 4px;
 `);
 
+const cssAlertTag = styled(cssTag, `
+  background-color: ${colors.error};
+  --icon-color: white;
+  a {
+    cursor: pointer;
+  }
+`);
+
 interface PartialWorkspace {
   id: number;
   name: string;
@@ -76,10 +84,12 @@ export function docBreadcrumbs(
   options: {
     docNameSave: (val: string) => Promise<void>,
     pageNameSave: (val: string) => Promise<void>,
+    cancelRecoveryMode: () => Promise<void>,
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
     isFiddle: Observable<boolean>,
+    isRecoveryMode: Observable<boolean>,
     isSnapshot?: Observable<boolean>,
     isPublic?: Observable<boolean>,
   }
@@ -105,6 +115,13 @@ export function docBreadcrumbs(
         }
         if (use(options.isFork)) {
           return cssTag('unsaved', testId('unsaved-tag'));
+        }
+        if (use(options.isRecoveryMode)) {
+          return cssAlertTag('recovery mode',
+                             dom('a', dom.on('click', async () => {
+                               await options.cancelRecoveryMode()
+                             }), icon('CrossSmall')),
+                             testId('recovery-mode-tag'));
         }
         if (use(options.isFiddle)) {
           return cssTag('fiddle', tooltip({title: fiddleExplanation}), testId('fiddle-tag'));

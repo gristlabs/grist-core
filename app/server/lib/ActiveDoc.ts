@@ -123,9 +123,11 @@ export class ActiveDoc extends EventEmitter {
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
+  private _recoveryMode: boolean = false;
 
-  constructor(docManager: DocManager, docName: string) {
+  constructor(docManager: DocManager, docName: string, wantRecoveryMode?: boolean) {
     super();
+    if (wantRecoveryMode) { this._recoveryMode = true; }
     this._docManager = docManager;
     this._docName = docName;
     this.docStorage = new DocStorage(docManager.storageManager, docName);
@@ -153,6 +155,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public get docName(): string { return this._docName; }
+
+  public get recoveryMode(): boolean { return this._recoveryMode; }
 
   // Helpers to log a message along with metadata about the request.
   public logDebug(s: OptDocSession, msg: string, ...args: any[]) { this._log('debug', s, msg, ...args); }
@@ -411,7 +415,7 @@ export class ActiveDoc extends EventEmitter {
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, (query) => {
       return this._fetchQueryFromDB(query, false);
-    });
+    }, this.recoveryMode);
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
 
@@ -869,6 +873,10 @@ export class ActiveDoc extends EventEmitter {
    */
   public async reloadDoc(docSession?: DocSession) {
     return this.shutdown();
+  }
+
+  public isOwner(docSession: OptDocSession): boolean {
+    return this._granularAccess.isOwner(docSession);
   }
 
   /**

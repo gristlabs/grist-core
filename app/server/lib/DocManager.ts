@@ -296,7 +296,8 @@ export class DocManager extends EventEmitter {
       clientId: docSession.client.clientId,
       doc: metaTables,
       log: recentActions,
-      plugins: activeDoc.docPluginManager.getPlugins()
+      plugins: activeDoc.docPluginManager.getPlugins(),
+      recoveryMode: activeDoc.recoveryMode,
     };
   }
 
@@ -364,12 +365,21 @@ export class DocManager extends EventEmitter {
   /**
    * Fetches an ActiveDoc object. Used by openDoc.
    */
-  public async fetchDoc(docSession: OptDocSession, docName: string): Promise<ActiveDoc> {
+  public async fetchDoc(docSession: OptDocSession, docName: string,
+                        wantRecoveryMode?: boolean): Promise<ActiveDoc> {
     log.debug('DocManager.fetchDoc', docName);
     // Repeat until we acquire an ActiveDoc that is not muted (shutting down).
     for (;;) {
+      if (this._activeDocs.has(docName) && wantRecoveryMode !== undefined) {
+        const activeDoc = await this._activeDocs.get(docName);
+        if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && activeDoc.isOwner(docSession)) {
+          // shutting doc down to have a chance to re-open in the correct mode.
+          // TODO: there could be a battle with other users opening it in a different mode.
+          await activeDoc.shutdown();
+        }
+      }
       if (!this._activeDocs.has(docName)) {
-        const newDoc = this.gristServer.create.ActiveDoc(this, docName);
+        const newDoc = this.gristServer.create.ActiveDoc(this, docName, wantRecoveryMode);
         // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
         newDoc.on('backupMade', (bakPath: string) => {
           this.emit('backupMade', bakPath);
