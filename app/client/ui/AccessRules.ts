@@ -110,88 +110,88 @@ export class AccessRules extends Disposable {
 
     // Note that if anything has changed, we apply changes relative to the current state of the
     // ACL tables (they may have changed by other users). So our changes will win.
-    // TODO: There is a race condition if two people save different rules at the same time, since
-    // it's a two-step operation (syncing resources and rules).
 
     const docData = this._gristDoc.docData;
     const resourcesTable = docData.getTable('_grist_ACLResources')!;
     const rulesTable = docData.getTable('_grist_ACLRules')!;
 
-    await docData.bundleActions(null, async () => {
+    // Add/remove resources to have just the ones we need.
+    const newResources: RowRecord[] = flatten(
+      [{tableId: '*', colIds: '*'}], ...this._tableRules.get().map(t => t.getResources()))
+      .map(r => ({id: -1, ...r}));
 
-      // Add/remove resources to have just the ones we need.
-      const newResources: RowRecord[] = flatten(
-        [{tableId: '*', colIds: '*'}], ...this._tableRules.get().map(t => t.getResources()))
-        .map(r => ({id: -1, ...r}));
-      const newResourceMap = await syncRecords(resourcesTable, newResources, serializeResource);
+    // Prepare userActions and a mapping of serializedResource to rowIds.
+    const resourceSync = syncRecords(resourcesTable, newResources, serializeResource);
 
-      // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
-      // New rules will get temporary negative rowIds.
-      let nextId: number = -1;
-      const newRules: RowRecord[] = [];
-      for (const rule of this.getRules()) {
-        // We use id of 0 internally to mark built-in rules. Skip those.
-        if (rule.id === 0) {
-          continue;
+    // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
+    const newRules: RowRecord[] = [];
+    for (const rule of this.getRules()) {
+      // We use id of 0 internally to mark built-in rules. Skip those.
+      if (rule.id === 0) {
+        continue;
+      }
+
+      // Look up the rowId for the resource.
+      const resourceKey = serializeResource(rule.resourceRec as RowRecord);
+      const resourceRowId = resourceSync.rowIdMap.get(resourceKey);
+      if (!resourceRowId) {
+        throw new Error(`Resource missing in resource map: ${resourceKey}`);
+      }
+      newRules.push({
+        id: rule.id || -1,
+        resource: resourceRowId,
+        aclFormula: rule.aclFormula!,
+        permissionsText: rule.permissionsText!,
+        rulePos: rule.rulePos || null,
+      });
+    }
+
+    // UserAttribute rules are listed in the same rulesTable.
+    const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
+    if (!defaultResourceRowId) {
+      throw new Error('Default resource missing in resource map');
+    }
+    for (const userAttr of this._userAttrRules.get()) {
+      const rule = userAttr.getRule();
+      newRules.push({
+        id: rule.id || -1,
+        resource: defaultResourceRowId,
+        rulePos: rule.rulePos || null,
+        userAttributes: rule.userAttributes,
+      });
+    }
+
+    // We need to fill in rulePos values. We'll add them in the order the rules are listed (since
+    // this.getRules() returns them in a suitable order), keeping rulePos unchanged when possible.
+    let lastGoodRulePos = 0;
+    let lastGoodIndex = -1;
+    for (let i = 0; i < newRules.length; i++) {
+      const pos = newRules[i].rulePos as number;
+      if (pos && pos > lastGoodRulePos) {
+        const step = (pos - lastGoodRulePos) / (i - lastGoodIndex);
+        for (let k = lastGoodIndex + 1; k < i; k++) {
+          newRules[k].rulePos = step * (k - lastGoodIndex);
         }
+        lastGoodRulePos = pos;
+        lastGoodIndex = i;
+      }
+    }
+    // Fill in the rulePos values for the remaining rules.
+    for (let k = lastGoodIndex + 1; k < newRules.length; k++) {
+      newRules[k].rulePos = ++lastGoodRulePos;
+    }
+    // Prepare the UserActions for syncing the Rules table.
+    const rulesSync = syncRecords(rulesTable, newRules);
 
-        // Look up the rowId for the resource.
-        const resourceKey = serializeResource(rule.resourceRec as RowRecord);
-        const resourceRowId = newResourceMap.get(resourceKey);
-        if (!resourceRowId) {
-          throw new Error(`Resource missing in resource map: ${resourceKey}`);
-        }
-        newRules.push({
-          id: rule.id || (nextId--),
-          resource: resourceRowId,
-          aclFormula: rule.aclFormula!,
-          permissionsText: rule.permissionsText!,
-          rulePos: rule.rulePos || null,
-        });
-      }
-
-      // UserAttribute rules are listed in the same rulesTable.
-      const defaultResourceRowId = newResourceMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
-      if (!defaultResourceRowId) {
-        throw new Error('Default resource missing in resource map');
-      }
-      for (const userAttr of this._userAttrRules.get()) {
-        const rule = userAttr.getRule();
-        newRules.push({
-          id: rule.id || (nextId--),
-          resource: defaultResourceRowId,
-          rulePos: rule.rulePos || null,
-          userAttributes: rule.userAttributes,
-        });
-      }
-
-      // We need to fill in rulePos values. We'll add them in the order the rules are listed (since
-      // this.getRules() returns them in a suitable order), keeping rulePos unchanged when possible.
-      let lastGoodRulePos = 0;
-      let lastGoodIndex = -1;
-      for (let i = 0; i < newRules.length; i++) {
-        const pos = newRules[i].rulePos as number;
-        if (pos && pos > lastGoodRulePos) {
-          const step = (pos - lastGoodRulePos) / (i - lastGoodIndex);
-          for (let k = lastGoodIndex + 1; k < i; k++) {
-            newRules[k].rulePos = step * (k - lastGoodIndex);
-          }
-          lastGoodRulePos = pos;
-          lastGoodIndex = i;
-        }
-      }
-      // Fill in the rulePos values for the remaining rules.
-      for (let k = lastGoodIndex + 1; k < newRules.length; k++) {
-        newRules[k].rulePos = ++lastGoodRulePos;
-      }
-      // Finally we can sync the records.
-      await syncRecords(rulesTable, newRules);
-    }).catch(e => {
+    // Finally collect and apply all the actions together.
+    try {
+      await docData.sendActions([...resourceSync.userActions, ...rulesSync.userActions]);
+    } catch (e) {
       // Report the error, but go on to update the rules. The user may lose their entries, but
       // will see what's in the document. To preserve entries and show what's wrong, we try to
       // catch errors earlier.
       reportError(e);
-    });
+    }
 
     // Re-populate the state from DocData once the records are synced.
     await this.update();
@@ -721,22 +721,30 @@ class ObsRulePart extends Disposable {
 
 
 /**
- * Produce and apply UserActions to create/update/remove records, to replace data in tableData
- * with newRecords. Records are matched on uniqueId(record), which defaults to returning record.id
- * (unique negative IDs may be used for new records). The returned Map maps uniqueId(record) to
- * rowId for all existing and newly added records.
+ * Produce UserActions to create/update/remove records, to replace data in tableData
+ * with newRecords. Records are matched on uniqueId(record), which defaults to returning
+ * String(record.id). UniqueIds of new records don't need to be unique as long as they don't
+ * overlap with uniqueIds of existing records.
+ *
+ * Return also a rowIdMap, mapping uniqueId(record) to a rowId used in the actions. The rowIds may
+ * include negative values (auto-generated when newRecords doesn't include one). These may be used
+ * in Reference values within the same action bundle.
  *
  * TODO This is a general-purpose function, and should live in a separate module.
  */
-async function syncRecords(tableData: TableData, newRecords: RowRecord[],
-                           uniqueId: (r: RowRecord) => string = (r => String(r.id))
-): Promise<Map<string, number>> {
+function syncRecords(tableData: TableData, newRecords: RowRecord[],
+                     uniqueId: (r: RowRecord) => string = (r => String(r.id))
+): {userActions: UserAction[], rowIdMap: Map<string, number>} {
   const oldRecords = tableData.getRecords();
-  const oldRecordMap = new Map<string, RowRecord>(oldRecords.map(r => [uniqueId(r), r]));
+  const rowIdMap = new Map<string, number>(oldRecords.map(r => [uniqueId(r), r.id]));
   const newRecordMap = new Map<string, RowRecord>(newRecords.map(r => [uniqueId(r), r]));
 
   const removedRecords: RowRecord[] = oldRecords.filter(r => !newRecordMap.has(uniqueId(r)));
-  const addedRecords: RowRecord[] = newRecords.filter(r => !oldRecordMap.has(uniqueId(r)));
+
+  // Generate a unique negative rowId for each added record.
+  const addedRecords: RowRecord[] = newRecords.filter(r => !rowIdMap.has(uniqueId(r)))
+    .map((r, index) => ({...r, id: -(index + 1)}));
+
   // Array of [before, after] pairs for changed records.
   const updatedRecords: Array<[RowRecord, RowRecord]> = oldRecords.map((r): ([RowRecord, RowRecord]|null) => {
     const newRec = newRecordMap.get(uniqueId(r));
@@ -749,28 +757,21 @@ async function syncRecords(tableData: TableData, newRecords: RowRecord[],
     addedRecords.map(uniqueId).join(", "),
     updatedRecords.map(([r]) => uniqueId(r)).join(", "));
 
+  const tableId = tableData.tableId;
   const userActions: UserAction[] = [];
   if (removedRecords.length > 0) {
-    userActions.push(['BulkRemoveRecord', removedRecords.map(r => r.id)]);
+    userActions.push(['BulkRemoveRecord', tableId, removedRecords.map(r => r.id)]);
   }
   if (updatedRecords.length > 0) {
-    userActions.push(['BulkUpdateRecord', updatedRecords.map(([r]) => r.id), getColChanges(updatedRecords)]);
+    userActions.push(['BulkUpdateRecord', tableId, updatedRecords.map(([r]) => r.id), getColChanges(updatedRecords)]);
   }
-  let addActionIndex: number = -1;
   if (addedRecords.length > 0) {
-    addActionIndex = userActions.length;
-    userActions.push(['BulkAddRecord', addedRecords.map(r => null), getColValues(addedRecords)]);
+    userActions.push(['BulkAddRecord', tableId, addedRecords.map(r => r.id), getColValues(addedRecords)]);
   }
 
-  const rowIdMap = new Map<string, number>();
-  oldRecords.forEach((r) => rowIdMap.set(uniqueId(r), r.id));
-
-  if (userActions.length > 0) {
-    const results = await tableData.sendTableActions(userActions);
-    const newRowIds = results[addActionIndex];
-    addedRecords.forEach((r, i) => rowIdMap.set(uniqueId(r), newRowIds[i]));
-  }
-  return rowIdMap;
+  // Include generated rowIds for added records into the returned map.
+  addedRecords.forEach(r => rowIdMap.set(uniqueId(r), r.id));
+  return {userActions, rowIdMap};
 }
 
 /**

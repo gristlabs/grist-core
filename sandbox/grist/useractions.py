@@ -294,9 +294,14 @@ class UserActions(object):
     # Make a copy of row_ids and fill in those set to None.
     filled_row_ids = row_ids[:]
     for i, row_id in enumerate(filled_row_ids):
-      if row_id is None:
+      if row_id is None or row_id < 0:
         filled_row_ids[i] = row_id = next_row_id
       next_row_id = max(next_row_id, row_id) + 1
+
+    # Whenever we add new rows, remember the mapping from any negative row_ids to their final
+    # values. This allows the negative_row_ids to be used as Reference values in subsequent
+    # actions in the same bundle.
+    self._engine.out_actions.summary.update_new_rows_map(table_id, row_ids, filled_row_ids)
 
     # Convert entered values to the correct types.
     ActionType = actions.ReplaceTableData if replace else actions.BulkAddRecord

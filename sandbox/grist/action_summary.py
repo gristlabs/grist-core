@@ -52,6 +52,23 @@ class ActionSummary(object):
     col_delta = table_delta and table_delta.column_deltas.pop(col_id, None)
     return self._changes_to_actions(table_id, col_id, col_delta or {}, out_stored, out_undo)
 
+  def update_new_rows_map(self, table_id, temp_row_ids, final_row_ids):
+    """
+    Add a mapping from temporary negative row_ids to the final ones, for rows added to the given
+    table. The two lists must have the same length; only negative row_ids are remembered. If a
+    negative row_id was already used, its mapping will be overridden.
+    """
+    t = self._forTable(table_id)
+    t.temp_row_ids.update((a, b) for (a, b) in zip(temp_row_ids, final_row_ids) if a and a < 0)
+
+  def translate_new_row_ids(self, table_id, row_ids):
+    """
+    Translate any temporary (negative) row_ids to their final values, using mappings created by
+    update_new_rows_map().
+    """
+    t = self._forTable(table_id)
+    return [t.temp_row_ids.get(r, r) for r in row_ids]
+
   def _changes_to_actions(self, table_id, col_id, column_delta, out_stored, out_undo):
     """
     Given a column and a dict of column_deltas for it, of the form {row_id: (before_value,
@@ -154,6 +171,10 @@ class TableDelta(object):
     self._rows_present_after = {}
     self.column_renames = LabelRenames()
     self.column_deltas = {}   # maps col_id to the dict {row_id: (before_value, after_value)}
+
+    # Map of negative row_ids that may be used in [Bulk]AddRecord actions to the final row_ids for
+    # those rows; to allow translating Reference values added in the same action bundle.
+    self.temp_row_ids = {}
 
 
 class LabelRenames(object):

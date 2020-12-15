@@ -201,7 +201,7 @@ class BaseColumn(object):
     """
     return self.type_obj.convert(value_to_convert)
 
-  def prepare_new_values(self, values, ignore_data=False):
+  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
     """
     This allows us to modify values and also produce adjustments to existing records. This
     currently is only used by PositionColumn. Returns two lists: new_values, and
@@ -281,7 +281,7 @@ class PositionColumn(NumericColumn):
     super(PositionColumn, self).copy_from_column(other_column)
     self._sorted_rows = SortedListWithKey(other_column._sorted_rows[:], key=self.raw_get)
 
-  def prepare_new_values(self, values, ignore_data=False):
+  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
     # This does the work of adjusting positions and relabeling existing rows with new position
     # (without changing sort order) to make space for the new positions. Note that this is also
     # used for updating a position for an existing row: we'll find a new value for it; later when
@@ -355,6 +355,11 @@ class ReferenceColumn(BaseReferenceColumn):
       self._relation.remove_reference(row_id, old_value)
     if new_value:
       self._relation.add_reference(row_id, new_value)
+
+  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
+    if action_summary and values:
+      values = action_summary.translate_new_row_ids(self._target_table.table_id, values)
+    return values, []
 
 
 class ReferenceListColumn(BaseReferenceColumn):
