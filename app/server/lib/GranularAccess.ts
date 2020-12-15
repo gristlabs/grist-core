@@ -376,12 +376,12 @@ export class GranularAccess {
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
     const permInfo = await this._getAccess(docSession);
-    for (const tableId of this._ruleCollection.getAllTableIds()) {
+    for (const rec of this._docData.getTable('_grist_Tables')!.getRecords()) {
+      const tableId = rec.tableId as string;
+      const tableRef = rec.id;
       const tableAccess = permInfo.getTableAccess(tableId);
-      let tableRef: number|undefined = 0;
       if (tableAccess.read === 'deny') {
-        tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
-        if (tableRef) { censoredTables.add(tableRef); }
+        censoredTables.add(tableRef);
       }
       // TODO If some columns are allowed and the rest (*) are denied, we need to be able to
       // censor all columns outside a set.
@@ -389,10 +389,7 @@ export class GranularAccess {
         if (Array.isArray(ruleSet.colIds)) {
           for (const colId of ruleSet.colIds) {
             if (permInfo.getColumnAccess(tableId, colId).read === 'deny') {
-              if (!tableRef) {
-                tableRef = this._docData.getTable('_grist_Tables')?.findRow('tableId', tableId);
-              }
-              if (tableRef) { censoredColumnCodes.add(columnCode(tableRef, colId)); }
+              censoredColumnCodes.add(columnCode(tableRef, colId));
             }
           }
         }
