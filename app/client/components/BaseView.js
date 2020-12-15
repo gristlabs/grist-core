@@ -212,7 +212,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }));
 
   // Reset cursor to the first row when filtering changes.
-  this.autoDispose(this._linkingFilter.subscribe((x) => this.setCursorPos({rowIndex: 0})));
+  this.autoDispose(this._linkingFilter.subscribe((x) => this.onLinkFilterChange()));
 
   // When sorting changes, reset the cursor to the first row. (The alternative of moving the
   // cursor to stay at the same record is sometimes better, but sometimes more annoying.)
@@ -602,6 +602,13 @@ BaseView.prototype.onResize = function() {
  * @param {Array<DataRowModel>} rowModels: Array of row models whose size may have changed.
  */
 BaseView.prototype.onRowResize = function(rowModels) {
+};
+
+/**
+ * Called when user selects a different row which drives the link-filtering of this section.
+ */
+BaseView.prototype.onLinkFilterChange = function(rowId) {
+  this.setCursorPos({rowIndex: 0});
 };
 
 /**

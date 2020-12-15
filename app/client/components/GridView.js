@@ -963,6 +963,11 @@ GridView.prototype.onRowResize = function(rowModels) {
   this.scrolly.resetItemHeights(rowModels);
 };
 
+GridView.prototype.onLinkFilterChange = function(rowId) {
+  BaseView.prototype.onLinkFilterChange.call(this, rowId);
+  this.clearSelection();
+};
+
 // ======================================================================================
 // SELECTOR STUFF
 
