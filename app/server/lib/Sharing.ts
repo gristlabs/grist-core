@@ -19,7 +19,7 @@ import {WorkCoordinator} from './WorkCoordinator';
 // processing hub actions or rebasing.
 interface UserRequest {
   action: UserActionBundle;
-  docSession: OptDocSession|null,
+  docSession: OptDocSession|null;
   resolve(result: UserResult): void;
   reject(err: Error): void;
 }

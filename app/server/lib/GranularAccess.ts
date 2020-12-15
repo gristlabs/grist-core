@@ -5,9 +5,11 @@ import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
+import { ApiError } from 'app/common/ApiError';
 import { AsyncCreate } from 'app/common/AsyncCreate';
-import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord, CellValue,
-  ColValues, DocAction, getTableId, isSchemaAction, RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
+import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord } from 'app/common/DocActions';
+import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
+import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
@@ -109,7 +111,10 @@ export class GranularAccess {
   // Flag tracking whether a set of actions have been applied to the database or not.
   private _applied: boolean = false;
 
-  public constructor(private _docData: DocData, private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>, private _recoveryMode: boolean) {
+  public constructor(
+    private _docData: DocData,
+    private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>,
+    private _recoveryMode: boolean) {
   }
 
   /**
@@ -145,10 +150,32 @@ export class GranularAccess {
    */
   public async canApplyDocActions(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[]) {
     this._applied = false;
-    if (!this._ruleCollection.haveRules()) { return; }
-    this._prepareRowSnapshots(docActions, undo);
-    await Promise.all(
-      docActions.map((action, idx) => this._checkIncomingDocAction(docSession, action, idx)));
+    if (this._ruleCollection.haveRules()) {
+      this._prepareRowSnapshots(docActions, undo);
+      await Promise.all(
+        docActions.map((action, idx) => this._checkIncomingDocAction(docSession, action, idx)));
+    }
+
+    // If the actions change any rules, verify that we'll be able to handle the changed rules. If
+    // they are to cause an error, reject the action to avoid forcing user into recovery mode.
+    if (docActions.some(docAction => ['_grist_ACLRules', '_grist_Resources'].includes(getTableId(docAction)))) {
+      // Create a tmpDocData with just the tables we care about, then update docActions to it.
+      const tmpDocData: DocData = new DocData(
+        (tableId) => { throw new Error("Unexpected DocData fetch"); }, {
+          _grist_ACLResources: this._docData.getTable('_grist_ACLResources')!.getTableDataAction(),
+          _grist_ACLRules: this._docData.getTable('_grist_ACLRules')!.getTableDataAction(),
+        });
+      for (const da of docActions) {
+        tmpDocData.receiveAction(da);
+      }
+
+      // Use the post-actions data to process the rules collection, and throw error if that fails.
+      const ruleCollection = new ACLRuleCollection();
+      await ruleCollection.update(tmpDocData, {log, compile: compileAclFormula});
+      if (ruleCollection.ruleError && !this._recoveryMode) {
+        throw new ApiError(ruleCollection.ruleError.message, 400);
+      }
+    }
   }
 
   /**
@@ -164,7 +191,8 @@ export class GranularAccess {
     this._applied = true;
     // If there is a rule change, redo from scratch for now.
     // TODO: this is placeholder code. Should deal with connected clients.
-    if (docActions.some(docAction => getTableId(docAction) === '_grist_ACLRules' || getTableId(docAction) === '_grist_Resources')) {
+    if (docActions.some(docAction => getTableId(docAction) === '_grist_ACLRules' ||
+        getTableId(docAction) === '_grist_Resources')) {
       await this.update();
       return;
     }
@@ -656,7 +684,8 @@ export class GranularAccess {
   }
 
   // Compute which of the row ids supplied are for rows forbidden for this session.
-  private async _getForbiddenRows(docSession: OptDocSession, data: TableDataAction, ids: Set<number>): Promise<number[]> {
+  private async _getForbiddenRows(docSession: OptDocSession, data: TableDataAction, ids: Set<number>):
+      Promise<number[]> {
     const rec = new RecordView(data, undefined);
     const input: AclMatchInput = {user: await this._getUser(docSession), rec};
 
@@ -795,7 +824,10 @@ export class GranularAccess {
       try {
         // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
         // TODO: add indexes to db.
-        rows = await this._fetchQueryFromDB({tableId: clause.tableId, filters: { [clause.lookupColId]: [get(user, clause.charId)] }});
+        rows = await this._fetchQueryFromDB({
+          tableId: clause.tableId,
+          filters: { [clause.lookupColId]: [get(user, clause.charId)] }
+        });
       } catch (e) {
         log.warn(`User attribute ${clause.name} failed`, e);
       }

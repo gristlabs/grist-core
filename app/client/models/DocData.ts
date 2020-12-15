@@ -83,7 +83,7 @@ export class DocData extends BaseDocData {
     this._bundlesPending++;
 
     // Promise to allow waiting for the result of prepare() callback before it's even called.
-    let prepareResolve!: (value: T) => void;
+    let prepareResolve!: (value: T|Promise<T>) => void;
     const preparePromise = new Promise<T>(resolve => { prepareResolve = resolve; });
 
     // Manually-triggered promise for when finalize() should be called. It's triggered by user,
@@ -100,8 +100,7 @@ export class DocData extends BaseDocData {
         this._nextDesc = options.description;
         this._lastActionNum = null;
         this._triggerBundleFinalize = triggerFinalize;
-        const value = await options.prepare();
-        prepareResolve(value);
+        await prepareResolve(options.prepare());
         this._shouldIncludeInBundle = options.shouldIncludeInBundle;
 
         await triggerFinalizePromise;
@@ -123,8 +122,8 @@ export class DocData extends BaseDocData {
       }
     };
 
-    this._lastBundlePromise = doBundleActions();
-    return {preparePromise, triggerFinalize};
+    const completionPromise = this._lastBundlePromise = doBundleActions();
+    return {preparePromise, triggerFinalize, completionPromise};
   }
 
   // Execute a callback that may send multiple actions, and bundle those actions together. The
@@ -146,6 +145,7 @@ export class DocData extends BaseDocData {
       return await bundlingInfo.preparePromise;
     } finally {
       bundlingInfo.triggerFinalize();
+      await bundlingInfo.completionPromise;
     }
   }
 
@@ -261,7 +261,7 @@ export interface BundlingOptions<T = unknown> {
 
 /**
  * Result of startBundlingActions(), to allow waiting for prepare() to complete, and to trigger
- * finalize() manually.
+ * finalize() manually, and to wait for the full bundle to complete.
  */
 export interface BundlingInfo<T = unknown> {
   // Promise for when the prepare() has completed. Note that sometimes it's delayed until the
@@ -270,4 +270,7 @@ export interface BundlingInfo<T = unknown> {
 
   // Ask DocData to call the finalize callback immediately.
   triggerFinalize: () => void;
+
+  // Promise for when the bundle has been finalized.
+  completionPromise: Promise<void>;
 }

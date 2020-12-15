@@ -110,6 +110,7 @@ export class DocWorker {
       getActionSummaries:       activeDocMethod.bind(null, 'viewers', 'getActionSummaries'),
       reloadDoc:                activeDocMethod.bind(null, 'editors', 'reloadDoc'),
       fork:                     activeDocMethod.bind(null, 'viewers', 'fork'),
+      checkAclFormula:          activeDocMethod.bind(null, 'viewers', 'checkAclFormula'),
     });
   }
 

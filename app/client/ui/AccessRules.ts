@@ -29,14 +29,23 @@ type RuleRec = Partial<SchemaTypes["_grist_ACLRules"]> & {id?: number, resourceR
 
 type UseCB = <T>(obs: BaseObservable<T>) => T;
 
+// Status of rules, which determines whether the "Save" button is enabled. The order of the values
+// matters, as we take the max of all the parts to determine the ultimate status.
+enum RuleStatus {
+  Unchanged,
+  ChangedValid,
+  Invalid,
+  CheckPending,
+}
+
 /**
  * Top-most container managing state and dom-building for the ACL rule UI.
  */
 export class AccessRules extends Disposable {
   // Whether anything has changed, i.e. whether to show a "Save" button.
-  public isAnythingChanged: Computed<boolean>;
+  private _ruleStatus: Computed<RuleStatus>;
 
-  // Parsed rules obtained from DocData during last call to update(). Used for isAnythingChanged.
+  // Parsed rules obtained from DocData during last call to update(). Used for _ruleStatus.
   private _ruleCollection = new ACLRuleCollection();
 
   // Array of all per-table rules.
@@ -51,20 +60,28 @@ export class AccessRules extends Disposable {
   // Array of all UserAttribute rules.
   private _userAttrRules = this.autoDispose(obsArray<ObsUserAttributeRule>());
 
+  // Whether the save button should be enabled.
+  private _savingEnabled: Computed<boolean>;
+
   constructor(private _gristDoc: GristDoc) {
     super();
-    this.isAnythingChanged = Computed.create(this, (use) => {
+    this._ruleStatus = Computed.create(this, (use) => {
       const defRuleSet = use(this._docDefaultRuleSet);
       const tableRules = use(this._tableRules);
       const userAttr = use(this._userAttrRules);
-      return (defRuleSet && use(defRuleSet.isChanged)) ||
-        // If any table was changed or added, some t.isChanged will be set. If there were only
-        // removals, then tableRules.length will have changed.
-        tableRules.length !== this._ruleCollection.getAllTableIds().length ||
-        tableRules.some(t => use(t.isChanged)) ||
-        userAttr.length !== this._ruleCollection.getUserAttributeRules().size ||
-        userAttr.some(u => use(u.isChanged));
+      return Math.max(
+        defRuleSet ? use(defRuleSet.ruleStatus) : RuleStatus.Unchanged,
+        // If any tables/userAttrs were changed or added, they will be considered changed. If
+        // there were only removals, then length will be reduced.
+        getChangedStatus(tableRules.length < this._ruleCollection.getAllTableIds().length),
+        getChangedStatus(userAttr.length < this._ruleCollection.getUserAttributeRules().size),
+        ...tableRules.map(t => use(t.ruleStatus)),
+        ...userAttr.map(u => use(u.ruleStatus)),
+      );
     });
+
+    this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) => (s === RuleStatus.ChangedValid));
+
     this.update().catch(reportError);
   }
 
@@ -78,7 +95,7 @@ export class AccessRules extends Disposable {
       rules.getAllTableIds().map(tableId => TableRules.create(this._tableRules,
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
     );
-    DefaultObsRuleSet.create(this._docDefaultRuleSet, null, undefined, rules.getDocDefaultRuleSet());
+    DefaultObsRuleSet.create(this._docDefaultRuleSet, this, null, undefined, rules.getDocDefaultRuleSet());
     this._userAttrRules.set(
       Array.from(rules.getUserAttributeRules().values(), userAttr =>
         ObsUserAttributeRule.create(this._userAttrRules, this, userAttr))
@@ -89,7 +106,7 @@ export class AccessRules extends Disposable {
    * Collect the internal state into records and sync them to the document.
    */
   public async save(): Promise<void> {
-    if (!this.isAnythingChanged.get()) { return; }
+    if (!this._savingEnabled.get()) { return; }
 
     // Note that if anything has changed, we apply changes relative to the current state of the
     // ACL tables (they may have changed by other users). So our changes will win.
@@ -169,6 +186,11 @@ export class AccessRules extends Disposable {
       }
       // Finally we can sync the records.
       await syncRecords(rulesTable, newRules);
+    }).catch(e => {
+      // Report the error, but go on to update the rules. The user may lose their entries, but
+      // will see what's in the document. To preserve entries and show what's wrong, we try to
+      // catch errors earlier.
+      reportError(e);
     });
 
     // Re-populate the state from DocData once the records are synced.
@@ -178,12 +200,19 @@ export class AccessRules extends Disposable {
   public buildDom() {
     return [
       cssAddTableRow(
-        bigBasicButton('Saved', {disabled: true}, dom.hide(this.isAnythingChanged)),
-        bigPrimaryButton('Save', dom.show(this.isAnythingChanged),
+        bigBasicButton({disabled: true}, dom.hide(this._savingEnabled),
+          dom.text((use) => {
+            const s = use(this._ruleStatus);
+            return s === RuleStatus.CheckPending ? 'Checking...' :
+              s === RuleStatus.Invalid ? 'Invalid' : 'Saved';
+          }),
+          testId('rules-non-save')
+        ),
+        bigPrimaryButton('Save', dom.show(this._savingEnabled),
           dom.on('click', () => this.save()),
           testId('rules-save'),
         ),
-        bigBasicButton('Revert', dom.show(this.isAnythingChanged),
+        bigBasicButton('Revert', dom.show(this._savingEnabled),
           dom.on('click', () => this.update()),
           testId('rules-revert'),
         ),
@@ -240,6 +269,12 @@ export class AccessRules extends Disposable {
     removeItem(this._userAttrRules, userAttr);
   }
 
+  public async checkAclFormula(text: string): Promise<void> {
+    if (text) {
+      return this._gristDoc.docComm.checkAclFormula(text);
+    }
+  }
+
   private _addTableRules(tableId: string) {
     if (this._tableRules.get().some(t => t.tableId === tableId)) {
       throw new Error(`Trying to add TableRules for existing table ${tableId}`);
@@ -255,8 +290,8 @@ export class AccessRules extends Disposable {
 
 // Represents all rules for a table.
 class TableRules extends Disposable {
-  // Whether any table rules changed. Always true if this._colRuleSets is undefined.
-  public isChanged: Computed<boolean>;
+  // Whether any table rules changed, and if they are valid.
+  public ruleStatus: Computed<RuleStatus>;
 
   // The column-specific rule sets.
   private _columnRuleSets = this.autoDispose(obsArray<ColumnObsRuleSet>());
@@ -267,29 +302,32 @@ class TableRules extends Disposable {
   // The default rule set (for columns '*'), if one is set.
   private _defaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
 
-  constructor(public readonly tableId: string, private _accessRules: AccessRules,
+  constructor(public readonly tableId: string, public _accessRules: AccessRules,
               private _colRuleSets?: RuleSet[], private _defRuleSet?: RuleSet) {
     super();
     this._columnRuleSets.set(this._colRuleSets?.map(rs =>
-      ColumnObsRuleSet.create(this._columnRuleSets, this, rs, rs.colIds === '*' ? [] : rs.colIds)) || []);
+      ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, rs,
+        rs.colIds === '*' ? [] : rs.colIds)) || []);
 
     if (!this._colRuleSets) {
       // Must be a newly-created TableRules object. Just create a default RuleSet (for tableId:*)
-      DefaultObsRuleSet.create(this._defaultRuleSet, this, this._haveColumnRules);
+      DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
     } else if (this._defRuleSet) {
-      DefaultObsRuleSet.create(this._defaultRuleSet, this, this._haveColumnRules, this._defRuleSet);
+      DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules,
+        this._defRuleSet);
     }
 
-    this.isChanged = Computed.create(this, (use) => {
-      if (!this._colRuleSets) { return true; }              // This TableRules object must be newly-added
+    this.ruleStatus = Computed.create(this, (use) => {
       const columnRuleSets = use(this._columnRuleSets);
       const d = use(this._defaultRuleSet);
-      return (
-        Boolean(d) !== Boolean(this._defRuleSet) ||         // Default rule set got added or removed
-        (d && use(d.isChanged)) ||                          // Or changed
-        columnRuleSets.length < this._colRuleSets.length || // There was a removal
-        columnRuleSets.some(rs => use(rs.isChanged))        // There was an addition or a change.
-      );
+      return Math.max(
+        getChangedStatus(
+          !this._colRuleSets ||                               // This TableRules object must be newly-added
+          Boolean(d) !== Boolean(this._defRuleSet) ||         // Default rule set got added or removed
+          columnRuleSets.length < this._colRuleSets.length    // There was a removal
+        ),
+        d ? use(d.ruleStatus) : RuleStatus.Unchanged,         // Default rule set got changed.
+        ...columnRuleSets.map(rs => use(rs.ruleStatus)));     // Column rule set was added or changed.
     });
   }
 
@@ -364,12 +402,12 @@ class TableRules extends Disposable {
   }
 
   private _addColumnRuleSet() {
-    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this, undefined, []));
+    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, undefined, []));
   }
 
   private _addDefaultRuleSet() {
     if (!this._defaultRuleSet.get()) {
-      DefaultObsRuleSet.create(this._defaultRuleSet, this, this._haveColumnRules);
+      DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
     }
   }
 }
@@ -377,8 +415,8 @@ class TableRules extends Disposable {
 // Represents one RuleSet, for a combination of columns in one table, or the default RuleSet for
 // all remaining columns in a table.
 abstract class ObsRuleSet extends Disposable {
-  // Whether rules changed. Always true if this._ruleSet is undefined.
-  public isChanged: Computed<boolean>;
+  // Whether rules changed, and if they are valid. Never unchanged if this._ruleSet is undefined.
+  public ruleStatus: Computed<RuleStatus>;
 
   // Whether the rule set includes any conditions besides the default rule.
   public haveConditions: Computed<boolean>;
@@ -388,7 +426,7 @@ abstract class ObsRuleSet extends Disposable {
   private _body = this.autoDispose(obsArray<ObsRulePart>());
 
   // ruleSet is omitted for a new ObsRuleSet added by the user.
-  constructor(private _tableRules: TableRules|null, private _ruleSet?: RuleSet) {
+  constructor(public accessRules: AccessRules, private _tableRules: TableRules|null, private _ruleSet?: RuleSet) {
     super();
     if (this._ruleSet) {
       this._body.set(this._ruleSet.body.map(part => ObsRulePart.create(this._body, this, part)));
@@ -397,11 +435,12 @@ abstract class ObsRuleSet extends Disposable {
       this._body.set([ObsRulePart.create(this._body, this, undefined, true)]);
     }
 
-    this.isChanged = Computed.create(this, this._body, (use, body) => {
-      // If anything was changed or added, some part.isChanged will be set. If there were only
-      // removals, then body.length will have changed.
-      return (body.length !== (this._ruleSet?.body?.length || 0) ||
-              body.some(part => use(part.isChanged)));
+    this.ruleStatus = Computed.create(this, this._body, (use, body) => {
+      // If anything was changed or added, some part.ruleStatus will be other than Unchanged. If
+      // there were only removals, then body.length will have changed.
+      return Math.max(
+        getChangedStatus(body.length < (this._ruleSet?.body?.length || 0)),
+        ...body.map(part => use(part.ruleStatus)));
     });
 
     this.haveConditions = Computed.create(this, this._body, (use, body) => body.some(p => !p.isDefault));
@@ -469,11 +508,14 @@ class ColumnObsRuleSet extends ObsRuleSet {
   private _colIds = Observable.create<string[]>(this, this._initialColIds);
   private _colIdStr = Computed.create(this, (use) => use(this._colIds).join(", "));
 
-  constructor(tableRules: TableRules, ruleSet: RuleSet|undefined, private _initialColIds: string[]) {
-    super(tableRules, ruleSet);
-    const baseIsChanged = this.isChanged;
-    this.isChanged = Computed.create(this, (use) =>
-      !isEqual(use(this._colIds), this._initialColIds) || use(baseIsChanged));
+  constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet|undefined,
+              private _initialColIds: string[]) {
+    super(accessRules, tableRules, ruleSet);
+    const baseRuleStatus = this.ruleStatus;
+    this.ruleStatus = Computed.create(this, (use) => Math.max(
+        getChangedStatus(!isEqual(use(this._colIds), this._initialColIds)),
+        use(baseRuleStatus)
+    ));
   }
 
   public buildDom() {
@@ -499,8 +541,9 @@ class ColumnObsRuleSet extends ObsRuleSet {
 }
 
 class DefaultObsRuleSet extends ObsRuleSet {
-  constructor(tableRules: TableRules|null, private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
-    super(tableRules, ruleSet);
+  constructor(accessRules: AccessRules, tableRules: TableRules|null,
+              private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
+    super(accessRules, tableRules, ruleSet);
   }
   public buildDom() {
     return cssRuleSet(
@@ -515,7 +558,7 @@ class DefaultObsRuleSet extends ObsRuleSet {
 }
 
 class ObsUserAttributeRule extends Disposable {
-  public isChanged: Computed<boolean>;
+  public ruleStatus: Computed<RuleStatus>;
 
   private _name = Observable.create<string>(this, this._userAttr?.name || '');
   private _tableId = Observable.create<string>(this, this._userAttr?.tableId || '');
@@ -524,12 +567,13 @@ class ObsUserAttributeRule extends Disposable {
 
   constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule) {
     super();
-    this.isChanged = Computed.create(this, use => (
-      use(this._name) !== this._userAttr?.name ||
-      use(this._tableId) !== this._userAttr?.tableId ||
-      use(this._lookupColId) !== this._userAttr?.lookupColId ||
-      use(this._charId) !== this._userAttr?.charId
-    ));
+    this.ruleStatus = Computed.create(this, use =>
+      getChangedStatus(
+        use(this._name) !== this._userAttr?.name ||
+        use(this._tableId) !== this._userAttr?.tableId ||
+        use(this._lookupColId) !== this._userAttr?.lookupColId ||
+        use(this._charId) !== this._userAttr?.charId
+      ));
   }
 
   public buildDom() {
@@ -570,8 +614,8 @@ class ObsUserAttributeRule extends Disposable {
 // Represents one line of a RuleSet, a combination of an aclFormula and permissions to apply to
 // requests that match it.
 class ObsRulePart extends Disposable {
-  // Whether rules changed. Always true if this._rulePart is undefined.
-  public isChanged: Computed<boolean>;
+  // Whether the rule part, and if it's valid or being checked.
+  public ruleStatus: Computed<RuleStatus>;
 
   // Formula to show in the "advanced" UI.
   private _aclFormula = Observable.create<string>(this, this._rulePart?.aclFormula || "");
@@ -582,13 +626,23 @@ class ObsRulePart extends Disposable {
 
   private _permissionsText = Computed.create(this, this._permissions, (use, p) => permissionSetToText(p));
 
+  // Whether the rule is being checked after a change. Saving will wait for such checks to finish.
+  private _checkPending = Observable.create(this, false);
+
+  // If the formula failed validation, the error message to show. Blank if valid.
+  private _formulaError = Observable.create(this, '');
+
   // rulePart is omitted for a new ObsRulePart added by the user.
   constructor(private _ruleSet: ObsRuleSet, private _rulePart?: RulePart,
               public readonly isDefault: boolean = (_rulePart?.aclFormula === '')) {
     super();
-    this.isChanged = Computed.create(this, (use) => {
-      return (use(this._aclFormula) !== this._rulePart?.aclFormula ||
-        !isEqual(use(this._permissions), this._rulePart?.permissions));
+    this.ruleStatus = Computed.create(this, (use) => {
+      if (use(this._formulaError)) { return RuleStatus.Invalid; }
+      if (use(this._checkPending)) { return RuleStatus.CheckPending; }
+      return getChangedStatus(
+        use(this._aclFormula) !== this._rulePart?.aclFormula ||
+        !isEqual(use(this._permissions), this._rulePart?.permissions)
+      );
     });
   }
 
@@ -612,17 +666,20 @@ class ObsRulePart extends Disposable {
           testId('rule-add'),
         )
       ),
-      cssConditionInput(
-        this._aclFormula, async (text) => this._aclFormula.set(text),
-        dom.prop('disabled', this.isBuiltIn()),
-        dom.prop('placeholder', (use) => {
-          return (
-            this._ruleSet.isSoleCondition(use, this) ? 'Everyone' :
-            this._ruleSet.isLastCondition(use, this) ? 'Everyone Else' :
-            'Enter Condition'
-          );
-        }),
-        testId('rule-acl-formula'),
+      cssCondition(
+        cssConditionInput(
+          this._aclFormula, this._setAclFormula.bind(this),
+          dom.prop('disabled', this.isBuiltIn()),
+          dom.prop('placeholder', (use) => {
+            return (
+              this._ruleSet.isSoleCondition(use, this) ? 'Everyone' :
+              this._ruleSet.isLastCondition(use, this) ? 'Everyone Else' :
+              'Enter Condition'
+            );
+          }),
+          testId('rule-acl-formula'),
+        ),
+        dom.maybe(this._formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
       ),
       cssPermissionsInput(
         this._permissionsText, async (p) => this._permissions.set(parsePermissions(p)),
@@ -646,6 +703,19 @@ class ObsRulePart extends Disposable {
 
   private _isNonFirstBuiltIn(): boolean {
     return this.isBuiltIn() && this._ruleSet.getFirstBuiltIn() !== this;
+  }
+
+  private async _setAclFormula(text: string) {
+    this._aclFormula.set(text);
+    this._checkPending.set(true);
+    this._formulaError.set('');
+    try {
+      await this._ruleSet.accessRules.checkAclFormula(text);
+    } catch (e) {
+      this._formulaError.set(e.message);
+    } finally {
+      this._checkPending.set(false);
+    }
   }
 }
 
@@ -760,6 +830,10 @@ function removeItem<T>(observableArray: MutableObsArray<T>, item: T): boolean {
   return false;
 }
 
+function getChangedStatus(value: boolean): RuleStatus {
+  return value ? RuleStatus.ChangedValid : RuleStatus.Unchanged;
+}
+
 const cssAddTableRow = styled('div', `
   margin: 16px 64px 0 64px;
   display: flex;
@@ -815,22 +889,26 @@ const cssRuleSetBody = styled('div', `
 
 const cssRulePart = styled('div', `
   display: flex;
-  align-items: center;
+  align-items: start;
   margin: 4px 0;
-  &-default {
-    margin-top: auto;
-  }
+`);
+
+const cssCondition = styled('div', `
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 `);
 
 const cssConditionInput = styled(textInput, `
-  display: flex;
-  min-width: 0;
-  flex: 1;
-
   &[disabled] {
     background-color: ${colors.mediumGreyOpaque};
     color: ${colors.dark};
   }
+`);
+
+const cssConditionError = styled('div', `
+  color: ${colors.error};
 `);
 
 const cssPermissionsInput = styled(cssConditionInput, `
@@ -843,6 +921,7 @@ const cssIconSpace = styled('div', `
   flex: none;
   height: 24px;
   width: 24px;
+  margin: 2px;
 `);
 
 const cssIconButton = styled(cssIconSpace, `

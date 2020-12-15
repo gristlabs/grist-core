@@ -36,6 +36,7 @@ import {UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
+import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -896,6 +897,24 @@ export class ActiveDoc extends EventEmitter {
     const trunkUrlId = doc.urlId || doc.id;
     await this.flushDoc();  // Make sure fork won't be too out of date.
     return makeForkIds({userId, isAnonymous, trunkDocId, trunkUrlId});
+  }
+
+  /**
+   * Check if an ACL formula is valid. If not, will throw an error with an explanation.
+   */
+  public async checkAclFormula(docSession: DocSession, text: string): Promise<void> {
+    // Checks can leak names of tables and columns.
+    if (!await this._granularAccess.canReadEverything(docSession)) { return; }
+    await this.waitForInitialization();
+    try {
+      const parsedAclFormula = await this._pyCall('parse_acl_formula', text);
+      compileAclFormula(parsedAclFormula);
+      // TODO We also need to check the validity of attributes, and of tables and columns
+      // mentioned in resources and userAttribute rules.
+    } catch (e) {
+      e.message = e.message?.replace('[Sandbox] ', '');
+      throw e;
+    }
   }
 
   public getGristDocAPI(): GristDocAPI {

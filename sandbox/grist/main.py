@@ -9,6 +9,7 @@ sys.path.append('thirdparty')
 import marshal
 import functools
 
+from acl_formula import parse_acl_formula
 import actions
 import sandbox
 import engine
@@ -110,6 +111,7 @@ def main():
   def get_formula_error(table_id, col_id, row_id):
     return objtypes.encode_object(eng.get_formula_error(table_id, col_id, row_id))
 
+  export(parse_acl_formula)
   export(eng.load_empty)
   export(eng.load_done)
 

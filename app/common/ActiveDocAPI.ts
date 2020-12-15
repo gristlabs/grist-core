@@ -222,4 +222,9 @@ export interface ActiveDocAPI {
    * Prepare a fork of the document, and return the id(s) of the fork.
    */
   fork(): Promise<ForkResult>;
+
+  /**
+   * Check if an ACL formula is valid. If not, will throw an error with an explanation.
+   */
+  checkAclFormula(text: string): Promise<void>;
 }

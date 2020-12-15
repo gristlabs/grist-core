@@ -49,6 +49,10 @@ const EMERGENCY_RULE_SET: RuleSet = {
 };
 
 export class ACLRuleCollection {
+  // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
+  // in this case.
+  public ruleError: Error|undefined;
+
   // In the absence of rules, some checks are skipped. For now this is important to maintain all
   // existing behavior. TODO should make sure checking access against default rules is equivalent
   // and efficient.
@@ -71,10 +75,6 @@ export class ACLRuleCollection {
 
   // Maps name to the corresponding UserAttributeRule.
   private _userAttributeRules = new Map<string, UserAttributeRule>();
-
-  // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
-  // in this case.
-  public ruleError: Error|undefined;
 
   // Whether there are ANY user-defined rules.
   public haveRules(): boolean {
@@ -170,7 +170,7 @@ export class ACLRuleCollection {
     try {
       this.ruleError = undefined;
       return readAclRules(docData, options);
-    } catch(e) {
+    } catch (e) {
       this.ruleError = e;  // Report the error indirectly.
       return {ruleSets: [EMERGENCY_RULE_SET], userAttributes: []};
     }
