@@ -148,6 +148,7 @@ export class DocSnapshotInventory implements IInventory {
       if (oldIds.size > 0) {
         const results = current.filter(v => !oldIds.has(v.snapshotId));
         const fname = await this._getFilename(key);
+        await this._doc.remove(key, snapshotIds);
         await this._saveToFile(fname, results);
         this._needFlush.add(key);
       }
