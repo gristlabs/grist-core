@@ -979,9 +979,23 @@ export class ActiveDoc extends EventEmitter {
     this._inactivityTimer.ping();
   }
 
-  public async getSnapshots(): Promise<DocSnapshots> {
+  public async getSnapshots(skipMetadataCache?: boolean): Promise<DocSnapshots> {
     // Assume any viewer can access this list.
-    return this._docManager.storageManager.getSnapshots(this.docName);
+    return this._docManager.storageManager.getSnapshots(this.docName, skipMetadataCache);
+  }
+
+  public async removeSnapshots(docSession: OptDocSession, snapshotIds: string[]): Promise<void> {
+    if (!this.isOwner(docSession)) {
+      throw new Error('cannot remove snapshots, access denied');
+    }
+    return this._docManager.storageManager.removeSnapshots(this.docName, snapshotIds);
+  }
+
+  public async deleteActions(docSession: OptDocSession, keepN: number): Promise<void> {
+    if (!this.isOwner(docSession)) {
+      throw new Error('cannot delete actions, access denied');
+    }
+    this._actionHistory.deleteActions(keepN);
   }
 
   /**

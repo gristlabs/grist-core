@@ -4,7 +4,7 @@ import { KeyedMutex } from 'app/common/KeyedMutex';
 import { ExternalStorage } from 'app/server/lib/ExternalStorage';
 import * as log from 'app/server/lib/log';
 import * as fse from 'fs-extra';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
 
 /**
  * A subset of the ExternalStorage interface, focusing on maintaining a list of versions.
@@ -63,12 +63,19 @@ export class DocSnapshotPruner {
     return shouldKeepSnapshots(versions).map((keep, index) => ({keep, snapshot: versions[index]}));
   }
 
-  // Prune the specified document immediately.
-  public async prune(key: string) {
-    const versions = await this.classify(key);
-    const redundant = versions.filter(v => !v.keep);
-    await this._ext.remove(key, redundant.map(r => r.snapshot.snapshotId));
-    log.info(`Pruned ${redundant.length} versions of ${versions.length} for document ${key}`);
+  // Prune the specified document immediately.  If no snapshotIds are provided, they
+  // will be chosen automatically.
+  public async prune(key: string, snapshotIds?: string[]) {
+    if (!snapshotIds) {
+      const versions = await this.classify(key);
+      const redundant = versions.filter(v => !v.keep);
+      snapshotIds = redundant.map(r => r.snapshot.snapshotId);
+      await this._ext.remove(key, snapshotIds);
+      log.info(`Pruned ${snapshotIds.length} versions of ${versions.length} for document ${key}`);
+    } else {
+      await this._ext.remove(key, snapshotIds);
+      log.info(`Pruned ${snapshotIds.length} externally selected versions for document ${key}`);
+    }
   }
 }
 

@@ -454,7 +454,12 @@ export class HostedStorageManager implements IDocStorageManager {
     return this._uploads.hasPendingOperations();
   }
 
-  public async getSnapshots(docName: string): Promise<DocSnapshots> {
+  public async removeSnapshots(docName: string, snapshotIds: string[]): Promise<void> {
+    if (this._disableS3) { return; }
+    await this._pruner.prune(docName, snapshotIds);
+  }
+
+  public async getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots> {
     if (this._disableS3) {
       return {
         snapshots: [{
@@ -464,8 +469,9 @@ export class HostedStorageManager implements IDocStorageManager {
         }]
       };
     }
-    const versions = await this._inventory.versions(docName,
-                                                    this._latestVersions.get(docName) || null);
+    const versions = skipMetadataCache ?
+      await this._ext.versions(docName) :
+      await this._inventory.versions(docName, this._latestVersions.get(docName) || null);
     const parts = parseUrlId(docName);
     return {
       snapshots: versions

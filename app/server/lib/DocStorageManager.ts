@@ -232,8 +232,12 @@ export class DocStorageManager implements IDocStorageManager {
     return tmpPath;
   }
 
-  public async getSnapshots(docName: string): Promise<DocSnapshots> {
+  public async getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots> {
     throw new Error('getSnapshots not implemented');
+  }
+
+  public removeSnapshots(docName: string, snapshotIds: string[]): Promise<void> {
+    throw new Error('removeSnapshots not implemented');
   }
 
   public async replace(docName: string, options: any): Promise<void> {

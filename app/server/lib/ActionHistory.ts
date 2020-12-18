@@ -135,6 +135,15 @@ export abstract class ActionHistory {
 
   /** Check for any client associated with an action, identified by checksum */
   public abstract getActionClientId(actionHash: string): string | undefined;
+
+  /**
+   * Remove all stored actions except the last keepN and run the VACUUM command
+   * to reduce the size of the SQLite file.
+   *
+   * @param {Int} keepN - The number of most recent actions to keep. The value must be at least 1, and
+   *  will default to 1 if not given.
+   */
+  public abstract deleteActions(keepN: number): Promise<void>;
 }
 
 

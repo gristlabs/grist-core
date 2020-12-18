@@ -213,9 +213,10 @@ export function optStringParam(p: any): string|undefined {
   return undefined;
 }
 
-export function stringParam(p: any): string {
-  if (typeof p === 'string') { return p; }
-  throw new Error(`parameter should be a string: ${p}`);
+export function stringParam(p: any, allowed?: string[]): string {
+  if (typeof p !== 'string') { throw new Error(`parameter should be a string: ${p}`); }
+  if (allowed && !allowed.includes(p)) { throw new Error(`parameter ${p} should be one of ${allowed}`); }
+  return p;
 }
 
 export function integerParam(p: any): number {
@@ -223,6 +224,13 @@ export function integerParam(p: any): number {
   if (typeof p === 'string') { return parseInt(p, 10); }
   throw new Error(`parameter should be an integer: ${p}`);
 }
+
+export function optIntegerParam(p: any): number|undefined {
+  if (typeof p === 'number') { return Math.floor(p); }
+  if (typeof p === 'string') { return parseInt(p, 10); }
+  return undefined;
+}
+
 
 export interface RequestWithGristInfo extends Request {
   gristInfo?: string;

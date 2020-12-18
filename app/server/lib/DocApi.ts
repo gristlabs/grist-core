@@ -18,7 +18,8 @@ import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import { HashUtil } from 'app/server/lib/HashUtil';
 import { makeForkIds } from "app/server/lib/idUtils";
-import { getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
+import {
+  getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
   sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
 import { SandboxError } from "app/server/lib/sandboxUtil";
 import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
@@ -85,6 +86,7 @@ export class DocWorkerApi {
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
+    const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
     // check user can edit document, with soft-deleted documents being acceptable
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // check document exists, don't check user access
@@ -252,8 +254,38 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
-      const {snapshots} = await activeDoc.getSnapshots();
+      const {snapshots} = await activeDoc.getSnapshots(isAffirmative(req.query.raw));
       res.json({snapshots});
+    }));
+
+    this._app.post('/api/docs/:docId/snapshots/remove', isOwner, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      const snapshotIds = req.body.snapshotIds as string[];
+      if (snapshotIds) {
+        await activeDoc.removeSnapshots(docSession, snapshotIds);
+        res.json({snapshotIds});
+        return;
+      }
+      if (req.body.select === 'unlisted') {
+        // Remove any snapshots not listed in inventory.  Ideally, there should be no
+        // snapshots, and this undocument feature is just for fixing up problems.
+        const full = (await activeDoc.getSnapshots(true)).snapshots.map(s => s.snapshotId);
+        const listed = new Set((await activeDoc.getSnapshots()).snapshots.map(s => s.snapshotId));
+        const unlisted = full.filter(snapshotId => !listed.has(snapshotId));
+        await activeDoc.removeSnapshots(docSession, unlisted);
+        res.json({snapshotIds: unlisted});
+        return;
+      }
+      if (req.body.select === 'past') {
+        // Remove all but the latest snapshot.  Useful for sanitizing history if something
+        // bad snuck into previous snapshots and they are not valuable to preserve.
+        const past = (await activeDoc.getSnapshots(true)).snapshots.map(s => s.snapshotId);
+        past.shift();  // remove current version.
+        await activeDoc.removeSnapshots(docSession, past);
+        res.json({snapshotIds: past});
+        return;
+      }
+      throw new Error('please specify snapshotIds to remove');
     }));
 
     this._app.post('/api/docs/:docId/flush', canEdit, throttled(async (req, res) => {
@@ -318,6 +350,12 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/states', canView, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       res.json(await this._getStates(docSession, activeDoc));
+    }));
+
+    this._app.post('/api/docs/:docId/states/remove', isOwner, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      const keep = integerParam(req.body.keep);
+      res.json(await activeDoc.deleteActions(docSession, keep));
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
@@ -453,7 +491,7 @@ export class DocWorkerApi {
     return this._docManager.getActiveDoc(getDocId(req));
   }
 
-  private async _assertAccess(role: 'viewers'|'editors'|null, allowRemoved: boolean,
+  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemoved = scope.showAll || scope.showRemoved || allowRemoved;

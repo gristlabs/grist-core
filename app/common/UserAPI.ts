@@ -306,7 +306,12 @@ export interface DocAPI {
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
   replace(source: DocReplacementOptions): Promise<void>;
-  getSnapshots(): Promise<DocSnapshots>;
+  // Get list of document versions (specify raw to bypass caching, which should only make
+  // a difference if snapshots have "leaked")
+  getSnapshots(raw?: boolean): Promise<DocSnapshots>;
+  // remove selected snapshots, or all snapshots that have "leaked" from inventory (should
+  // be empty), or all but the current snapshot.
+  removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{snapshotIds: string[]}>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
   // Compare two documents, optionally including details of the changes.
@@ -706,8 +711,16 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async getSnapshots(): Promise<DocSnapshots> {
-    return this.requestJson(`${this._url}/snapshots`);
+  public async getSnapshots(raw?: boolean): Promise<DocSnapshots> {
+    return this.requestJson(`${this._url}/snapshots?raw=${raw}`);
+  }
+
+  public async removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past') {
+    const body = typeof snapshotIds === 'string' ? { select: snapshotIds } : { snapshotIds };
+    return await this.requestJson(`${this._url}/snapshots/remove`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
   }
 
   public async forceReload(): Promise<void> {
