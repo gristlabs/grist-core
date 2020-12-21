@@ -184,7 +184,8 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   public async addToStorage(docId: string) {
     if (this._disableS3) { return; }
-    await this._ext.upload(docId, this.getPath(docId));
+    this._uploads.addOperation(docId);
+    await this._uploads.expediteOperationAndWait(docId);
   }
 
   public getPath(docName: string): string {
@@ -231,6 +232,13 @@ export class HostedStorageManager implements IDocStorageManager {
       return isNew;
     } finally {
       this._prepareFiles.delete(docName);
+    }
+  }
+
+  public async prepareToCreateDoc(docName: string): Promise<void> {
+    if (this._inventory) {
+      await this._inventory.create(docName);
+      this._onInventoryChange(docName);
     }
   }
 
@@ -656,14 +664,19 @@ export class HostedStorageManager implements IDocStorageManager {
         metadata
       }
       await this._inventory.add(docId, snapshot, prevSnapshotId);
-      const scheduled = this._pruner.requestPrune(docId);
-      if (!scheduled) {
-        await this._inventory.flush(docId);
-      }
+      await this._onInventoryChange(docId);
     } finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.
       if (tmpPath) { await fse.remove(tmpPath); }
+    }
+  }
+
+  // Make sure inventory change is followed up on.
+  private async _onInventoryChange(docId: string) {
+    const scheduled = this._pruner.requestPrune(docId);
+    if (!scheduled) {
+      await this._inventory.flush(docId);
     }
   }
 

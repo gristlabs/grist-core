@@ -12,6 +12,7 @@ export interface IDocStorageManager {
   // In the current implementation, it is called in the context of an
   // AsyncCreate[docName].
   prepareLocalDoc(docName: string, docSession: OptDocSession): Promise<boolean>;
+  prepareToCreateDoc(docName: string): Promise<void>;
 
   listDocs(): Promise<DocEntry[]>;
   deleteDoc(docName: string, deletePermanently?: boolean): Promise<void>;
@@ -24,7 +25,7 @@ export interface IDocStorageManager {
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
   markAsChanged(docName: string, reason?: 'edit'): void;
   testReopenStorage(): void;                // restart storage during tests
-  addToStorage(docName: string): void;      // add a new local document to storage
+  addToStorage(docName: string): Promise<void>;  // add a new local document to storage
   prepareToCloseStorage(): void;            // speed up sync with remote store
   getCopy(docName: string): Promise<string>;  // get an immutable copy of a document
 

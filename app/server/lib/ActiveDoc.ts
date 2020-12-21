@@ -300,6 +300,7 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   public async createDoc(docSession: OptDocSession): Promise<ActiveDoc> {
     this.logDebug(docSession, "createDoc");
+    await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     await this._rawPyCall('load_empty');
     const timezone = docSession.browserSettings ? docSession.browserSettings.timezone : DEFAULT_TIMEZONE;

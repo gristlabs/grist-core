@@ -87,6 +87,10 @@ export class DocStorageManager implements IDocStorageManager {
    */
   public async prepareLocalDoc(docName: string, docSession: OptDocSession): Promise<boolean> { return false; }
 
+  public async prepareToCreateDoc(docName: string): Promise<void> {
+    // nothing to do
+  }
+
   /**
    * Returns a promise for the list of docNames to show in the doc list. For the file-based
    * storage, this will include all .grist files under the docsRoot.
@@ -212,7 +216,7 @@ export class DocStorageManager implements IDocStorageManager {
     // nothing to do
   }
 
-  public addToStorage(id: string): void {
+  public async addToStorage(id: string): Promise<void> {
     // nothing to do
   }
 

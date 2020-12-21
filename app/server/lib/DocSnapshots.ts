@@ -111,6 +111,17 @@ export class DocSnapshotInventory implements IInventory {
               private _getFilename: (key: string) => Promise<string>) {}
 
   /**
+   * Start keeping inventory for a new document.
+   */
+  public async create(key: string) {
+    await this._mutex.runExclusive(key, async() => {
+      const fname = await this._getFilename(key);
+      await this._saveToFile(fname, []);
+      this._needFlush.add(key);
+    });
+  }
+
+  /**
    * Add a new snapshot of a document to the existing inventory.  A prevSnapshotId may
    * be supplied as a cross-check.  It will be matched against the most recent
    * snapshotId in the inventory, and if it doesn't match the inventory will be
@@ -126,7 +137,7 @@ export class DocSnapshotInventory implements IInventory {
     await this._mutex.runExclusive(key, async() => {
       const snapshots = await this._getSnapshots(key, prevSnapshotId);
       // Could be already added if reconstruction happened.
-      if (snapshots[0].snapshotId === snapshot.snapshotId) { return; }
+      if (snapshots[0] && snapshots[0].snapshotId === snapshot.snapshotId) { return; }
       this._normalizeMetadata(snapshot);
       snapshots.unshift(snapshot);
       const fname = await this._getFilename(key);
