@@ -5,20 +5,23 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
+import {PermissionKey, permissionsWidget} from 'app/client/ui/PermissionsWidget';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
-import {textInput} from 'app/client/ui2018/editableLabel';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItemAsync} from 'app/client/ui2018/menus';
-import {emptyPermissionSet, parsePermissions} from 'app/common/ACLPermissions';
+import {cssTextInput, textInput} from 'app/client/ui2018/editableLabel';
+import {cssIconButton, icon} from 'app/client/ui2018/icons';
+import {autocomplete, menu, menuItemAsync} from 'app/client/ui2018/menus';
+import {emptyPermissionSet} from 'app/common/ACLPermissions';
 import {PartialPermissionSet, permissionSetToText} from 'app/common/ACLPermissions';
 import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
 import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
+import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
-import {BaseObservable, Computed, Disposable, dom, MutableObsArray, obsArray, Observable, styled} from 'grainjs';
+import {BaseObservable, Computed, Disposable, MaybeObsArray, MutableObsArray, obsArray, Observable} from 'grainjs';
+import {dom, DomElementArg, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
 // tslint:disable:max-classes-per-file no-console
@@ -84,6 +87,8 @@ export class AccessRules extends Disposable {
 
     this.update().catch(reportError);
   }
+
+  public get allTableIds() { return this._allTableIds; }
 
   /**
    * Replace internal state from the rules in DocData.
@@ -198,7 +203,7 @@ export class AccessRules extends Disposable {
   }
 
   public buildDom() {
-    return [
+    return cssOuter(
       cssAddTableRow(
         bigBasicButton({disabled: true}, dom.hide(this._savingEnabled),
           dom.text((use) => {
@@ -217,7 +222,7 @@ export class AccessRules extends Disposable {
           testId('rules-revert'),
         ),
 
-        bigBasicButton('Add Table Rules', {style: 'margin-left: auto'},
+        bigBasicButton('Add Table Rules', cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
           menu(() => [
             dom.forEach(this._allTableIds, (tableId) =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
@@ -233,22 +238,44 @@ export class AccessRules extends Disposable {
       ),
       shadowScroll(
         dom.maybe(use => use(this._userAttrRules).length, () =>
-          cssTableRule(
-            cssTableHeader('User Attributes'),
-            cssTableBody(
-              dom.forEach(this._userAttrRules, (userAttr) => userAttr.buildDom()),
+          cssSection(
+            cssSectionHeading('User Attributes'),
+            cssTableRounded(
+              cssTableHeaderRow(
+                cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Name')),
+                cssCell4(
+                  cssColumnGroup(
+                    cssCell1(cssColHeaderCell('User Attribute')),
+                    cssCell1(cssColHeaderCell('Lookup Table')),
+                    cssCell1(cssColHeaderCell('Lookup Column')),
+                    cssCellIcon(),
+                  ),
+                ),
+              ),
+              dom.forEach(this._userAttrRules, (userAttr) => userAttr.buildUserAttrDom()),
             ),
           ),
         ),
         dom.forEach(this._tableRules, (tableRules) => tableRules.buildDom()),
-        cssTableRule(
-          cssTableHeader('Default Rules'),
-          cssTableBody(
-            dom.maybe(this._docDefaultRuleSet, ruleSet => ruleSet.buildDom()),
+        cssSection(
+          cssSectionHeading('Default Rules'),
+          cssTableRounded(
+            cssTableHeaderRow(
+              cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
+              cssCell4(
+                cssColumnGroup(
+                  cssCellIcon(),
+                  cssCell2(cssColHeaderCell('Condition')),
+                  cssCell1(cssColHeaderCell('Permissions')),
+                  cssCellIcon(),
+                )
+              )
+            ),
+            dom.maybe(this._docDefaultRuleSet, ruleSet => ruleSet.buildRuleSetDom()),
           )
         )
       ),
-    ];
+    );
   }
 
   /**
@@ -275,6 +302,28 @@ export class AccessRules extends Disposable {
     }
   }
 
+  // Check if the given tableId, and optionally a list of colIds, are present in this document.
+  // Returns '' if valid, or an error string if not. Exempt colIds will not trigger an error.
+  public checkTableColumns(tableId: string, colIds?: string[], exemptColIds?: string[]): string {
+    if (!tableId) { return ''; }
+    const table = this._gristDoc.docData.getTable(tableId);
+    if (!table) { return `Invalid table: ${tableId}`; }
+    if (colIds) {
+      const validColIds = new Set([...table.getColIds(), ...exemptColIds || []]);
+      const invalidColIds = colIds.filter(c => !validColIds.has(c));
+      if (invalidColIds.length === 0) { return ''; }
+      return `Invalid columns in table ${tableId}: ${invalidColIds.join(', ')}`;
+    }
+    return '';
+  }
+
+  // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
+  public getValidColIds(tableId: string): string[]|undefined {
+    return this._gristDoc.docData.getTable(tableId)?.getColIds()
+      .filter(id => !isHiddenCol(id))
+      .sort();
+  }
+
   private _addTableRules(tableId: string) {
     if (this._tableRules.get().some(t => t.tableId === tableId)) {
       throw new Error(`Trying to add TableRules for existing table ${tableId}`);
@@ -284,7 +333,7 @@ export class AccessRules extends Disposable {
   }
 
   private _addUserAttributes() {
-    this._userAttrRules.push(ObsUserAttributeRule.create(this._userAttrRules, this));
+    this._userAttrRules.push(ObsUserAttributeRule.create(this._userAttrRules, this, undefined, {focus: true}));
   }
 }
 
@@ -332,8 +381,8 @@ class TableRules extends Disposable {
   }
 
   public buildDom() {
-    return cssTableRule(
-      cssTableHeader(
+    return cssSection(
+      cssSectionHeading(
         dom('span', 'Rules for table ', cssTableName(this.tableId)),
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
@@ -346,10 +395,22 @@ class TableRules extends Disposable {
         ),
         testId('rule-table-header'),
       ),
-      cssTableBody(
-        dom.forEach(this._columnRuleSets, ruleSet => ruleSet.buildDom()),
-        dom.maybe(this._defaultRuleSet, ruleSet => ruleSet.buildDom()),
+      cssTableRounded(
+        cssTableHeaderRow(
+          cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
+          cssCell4(
+            cssColumnGroup(
+              cssCellIcon(),
+              cssCell2(cssColHeaderCell('Condition')),
+              cssCell1(cssColHeaderCell('Permissions')),
+              cssCellIcon(),
+            )
+          ),
+        ),
+        dom.forEach(this._columnRuleSets, ruleSet => ruleSet.buildRuleSetDom()),
+        dom.maybe(this._defaultRuleSet, ruleSet => ruleSet.buildRuleSetDom()),
       ),
+      dom.forEach(this._columnRuleSets, c => cssConditionError(dom.text(c.formulaError))),
       testId('rule-table'),
     );
   }
@@ -402,7 +463,9 @@ class TableRules extends Disposable {
   }
 
   private _addColumnRuleSet() {
-    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, undefined, []));
+    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, undefined, [],
+      {focus: true}
+    ));
   }
 
   private _addDefaultRuleSet() {
@@ -418,21 +481,18 @@ abstract class ObsRuleSet extends Disposable {
   // Whether rules changed, and if they are valid. Never unchanged if this._ruleSet is undefined.
   public ruleStatus: Computed<RuleStatus>;
 
-  // Whether the rule set includes any conditions besides the default rule.
-  public haveConditions: Computed<boolean>;
-
   // List of individual rule parts for this entity. The default permissions may be included as the
   // last rule part, with an empty aclFormula.
   private _body = this.autoDispose(obsArray<ObsRulePart>());
 
   // ruleSet is omitted for a new ObsRuleSet added by the user.
-  constructor(public accessRules: AccessRules, private _tableRules: TableRules|null, private _ruleSet?: RuleSet) {
+  constructor(public accessRules: AccessRules, protected _tableRules: TableRules|null, private _ruleSet?: RuleSet) {
     super();
     if (this._ruleSet) {
       this._body.set(this._ruleSet.body.map(part => ObsRulePart.create(this._body, this, part)));
     } else {
       // If creating a new RuleSet, start with just a default permission part.
-      this._body.set([ObsRulePart.create(this._body, this, undefined, true)]);
+      this._body.set([ObsRulePart.create(this._body, this, undefined)]);
     }
 
     this.ruleStatus = Computed.create(this, this._body, (use, body) => {
@@ -442,8 +502,6 @@ abstract class ObsRuleSet extends Disposable {
         getChangedStatus(body.length < (this._ruleSet?.body?.length || 0)),
         ...body.map(part => use(part.ruleStatus)));
     });
-
-    this.haveConditions = Computed.create(this, this._body, (use, body) => body.some(p => !p.isDefault));
   }
 
   public getRules(tableId: string): RuleRec[] {
@@ -458,7 +516,20 @@ abstract class ObsRuleSet extends Disposable {
     return '*';
   }
 
-  public abstract buildDom(): Element;
+  public abstract buildResourceDom(): DomElementArg;
+
+  public buildRuleSetDom() {
+    return cssTableRow(
+      cssCell1(cssCell.cls('-rborder'),
+        this.buildResourceDom(),
+        testId('rule-resource')
+      ),
+      cssCell4(cssRuleBody.cls(''),
+        dom.forEach(this._body, part => part.buildRulePartDom()),
+      ),
+      testId('rule-set'),
+    );
+  }
 
   public removeRulePart(rulePart: ObsRulePart) {
     removeItem(this._body, rulePart);
@@ -469,7 +540,7 @@ abstract class ObsRuleSet extends Disposable {
 
   public addRulePart(beforeRule: ObsRulePart) {
     const i = this._body.get().indexOf(beforeRule);
-    this._body.splice(i, 0, ObsRulePart.create(this._body, this, undefined, false));
+    this._body.splice(i, 0, ObsRulePart.create(this._body, this, undefined));
   }
 
   /**
@@ -497,37 +568,53 @@ abstract class ObsRuleSet extends Disposable {
     return body[body.length - 1] === part;
   }
 
-  protected buildRuleBody() {
-    return cssRuleSetBody(
-      dom.forEach(this._body, part => part.buildDom()),
-    );
+  /**
+   * Which permission bits to allow the user to set.
+   */
+  public getAvailableBits(): PermissionKey[] {
+    if (this._tableRules) {
+      return ['read', 'update', 'create', 'delete'];
+    } else {
+      // For the doc-wide rule set, expose the schemaEdit bit too.
+      return ['read', 'update', 'create', 'delete', 'schemaEdit'];
+    }
   }
 }
 
 class ColumnObsRuleSet extends ObsRuleSet {
+  // Error message for this rule set, or '' if valid.
+  public formulaError: Computed<string>;
+
   private _colIds = Observable.create<string[]>(this, this._initialColIds);
   private _colIdStr = Computed.create(this, (use) => use(this._colIds).join(", "));
 
   constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet|undefined,
-              private _initialColIds: string[]) {
+              private _initialColIds: string[], private _options: {focus?: boolean} = {}) {
     super(accessRules, tableRules, ruleSet);
+
+    this.formulaError = Computed.create(this, (use) => {
+      // Exempt existing colIds from checks, by including as a third argument.
+      return accessRules.checkTableColumns(tableRules.tableId, use(this._colIds), this._initialColIds);
+    });
+
     const baseRuleStatus = this.ruleStatus;
-    this.ruleStatus = Computed.create(this, (use) => Math.max(
+    this.ruleStatus = Computed.create(this, (use) => {
+      if (use(this.formulaError)) { return RuleStatus.Invalid; }
+      return Math.max(
         getChangedStatus(!isEqual(use(this._colIds), this._initialColIds)),
-        use(baseRuleStatus)
-    ));
+        use(baseRuleStatus));
+    });
   }
 
-  public buildDom() {
+  public buildResourceDom() {
     const saveColIds = async (colIdStr: string) => {
-      this._colIds.set(colIdStr.split(',').map(val => val.trim()).filter(Boolean));
+      this._colIds.set(colIdStr.split(/\W+/).map(val => val.trim()).filter(Boolean));
     };
-    return cssRuleSet(
-      cssResource('Columns', textInput(this._colIdStr, saveColIds),
-        testId('rule-resource')
-      ),
-      this.buildRuleBody(),
-      testId('rule-set'),
+
+    return cssCellContent(
+      cssInput(this._colIdStr, saveColIds, {placeholder: 'Enter Columns'},
+        (this._options.focus ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
+      )
     );
   }
 
@@ -538,6 +625,11 @@ class ColumnObsRuleSet extends ObsRuleSet {
   public getColIds(): string {
     return this._colIds.get().join(",");
   }
+
+  public getAvailableBits(): PermissionKey[] {
+    // Create/Delete bits can't be set on a column-specific rule.
+    return ['read', 'update'];
+  }
 }
 
 class DefaultObsRuleSet extends ObsRuleSet {
@@ -545,49 +637,91 @@ class DefaultObsRuleSet extends ObsRuleSet {
               private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
     super(accessRules, tableRules, ruleSet);
   }
-  public buildDom() {
-    return cssRuleSet(
-      cssResource(dom.text(use => this._haveColumnRules && use(this._haveColumnRules) ?
-        'Remaining Columns' : 'All Columns'),
-        testId('rule-resource')
-      ),
-      this.buildRuleBody(),
-      testId('rule-set'),
-    );
+  public buildResourceDom() {
+    return [
+      cssCenterContent.cls(''),
+      dom.text(use => this._haveColumnRules && use(this._haveColumnRules) ? 'All Other' : 'All'),
+    ];
   }
 }
 
 class ObsUserAttributeRule extends Disposable {
   public ruleStatus: Computed<RuleStatus>;
 
+  // If the rule failed validation, the error message to show. Blank if valid.
+  public formulaError: Computed<string>;
+
   private _name = Observable.create<string>(this, this._userAttr?.name || '');
   private _tableId = Observable.create<string>(this, this._userAttr?.tableId || '');
   private _lookupColId = Observable.create<string>(this, this._userAttr?.lookupColId || '');
   private _charId = Observable.create<string>(this, this._userAttr?.charId || '');
+  private _validColIds = Computed.create(this, this._tableId, (use, tableId) =>
+    this._accessRules.getValidColIds(tableId) || []);
 
-  constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule) {
+  constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule,
+              private _options: {focus?: boolean} = {}) {
     super();
-    this.ruleStatus = Computed.create(this, use =>
-      getChangedStatus(
+    this.formulaError = Computed.create(this, this._tableId, this._lookupColId, (use, tableId, colId) => {
+      // Don't check for errors if it's an existing rule and hasn't changed.
+      if (use(this._tableId) === this._userAttr?.tableId &&
+          use(this._lookupColId) === this._userAttr?.lookupColId) {
+        return '';
+      }
+      return _accessRules.checkTableColumns(tableId, colId ? [colId] : undefined);
+    });
+    this.ruleStatus = Computed.create(this, use => {
+      if (use(this.formulaError)) { return RuleStatus.Invalid; }
+      return getChangedStatus(
         use(this._name) !== this._userAttr?.name ||
         use(this._tableId) !== this._userAttr?.tableId ||
         use(this._lookupColId) !== this._userAttr?.lookupColId ||
         use(this._charId) !== this._userAttr?.charId
-      ));
+      );
+    });
+
+    // Reset lookupColId when tableId changes, since a colId from a different table would usually be wrong
+    this.autoDispose(this._tableId.addListener(() => this._lookupColId.set('')));
   }
 
-  public buildDom() {
-    return cssUserAttribute(
-      cssConditionInput(this._name, async (val) => this._name.set(val),
-        {placeholder: 'New attribute name'}),
-      cssConditionInput(this._tableId, async (val) => this._tableId.set(val),
-        {placeholder: 'Table ID'}),
-      cssConditionInput(this._lookupColId, async (val) => this._lookupColId.set(val),
-        {placeholder: 'Column to look up'}),
-      cssConditionInput(this._charId, async (val) => this._charId.set(val),
-        {placeholder: 'User attribute to look up'}),
-      cssIconButton(icon('Remove'), {style: 'margin-left: 4px'},
-        dom.on('click', () => this._accessRules.removeUserAttributes(this)))
+  public buildUserAttrDom() {
+    return cssTableRow(
+      cssCell1(cssCell.cls('-rborder'),
+        cssCellContent(
+          cssInput(this._name, async (val) => this._name.set(val),
+            {placeholder: 'Attribute name'},
+            (this._options.focus ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
+            testId('rule-userattr-name'),
+          ),
+        ),
+      ),
+      cssCell4(cssRuleBody.cls(''),
+        cssColumnGroup(
+          cssCell1(
+            cssInput(this._charId, async (val) => this._charId.set(val),
+              {placeholder: 'Attribute to look up'},
+              testId('rule-userattr-attr'),
+            ),
+          ),
+          cssCell1(
+            inputAutocomplete(this._tableId, this._accessRules.allTableIds,
+              cssTextInput.cls(''), cssInput.cls(''), {placeholder: 'Table'},
+              testId('rule-userattr-table'),
+            ),
+          ),
+          cssCell1(
+            inputAutocomplete(this._lookupColId, this._validColIds,
+              cssTextInput.cls(''), cssInput.cls(''), {placeholder: 'Column'},
+              testId('rule-userattr-col'),
+            ),
+          ),
+          cssCellIcon(
+            cssIconButton(icon('Remove'),
+              dom.on('click', () => this._accessRules.removeUserAttributes(this)))
+          ),
+          dom.maybe(this.formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
+        ),
+      ),
+      testId('rule-userattr'),
     );
   }
 
@@ -624,8 +758,6 @@ class ObsRulePart extends Disposable {
   private _permissions = Observable.create<PartialPermissionSet>(
     this, this._rulePart?.permissions || emptyPermissionSet());
 
-  private _permissionsText = Computed.create(this, this._permissions, (use, p) => permissionSetToText(p));
-
   // Whether the rule is being checked after a change. Saving will wait for such checks to finish.
   private _checkPending = Observable.create(this, false);
 
@@ -633,8 +765,7 @@ class ObsRulePart extends Disposable {
   private _formulaError = Observable.create(this, '');
 
   // rulePart is omitted for a new ObsRulePart added by the user.
-  constructor(private _ruleSet: ObsRuleSet, private _rulePart?: RulePart,
-              public readonly isDefault: boolean = (_rulePart?.aclFormula === '')) {
+  constructor(private _ruleSet: ObsRuleSet, private _rulePart?: RulePart) {
     super();
     this.ruleStatus = Computed.create(this, (use) => {
       if (use(this._formulaError)) { return RuleStatus.Invalid; }
@@ -657,17 +788,19 @@ class ObsRulePart extends Disposable {
     };
   }
 
-  public buildDom() {
-    return cssRulePart(
-      (this._isNonFirstBuiltIn() ?
-        cssIconSpace({style: 'margin-right: 4px'}) :
-        cssIconButton(icon('Plus'), {style: 'margin-right: 4px'},
-          dom.on('click', () => this._ruleSet.addRulePart(this)),
-          testId('rule-add'),
-        )
+  public buildRulePartDom() {
+    return cssColumnGroup(
+      cssCellIcon(
+        (this._isNonFirstBuiltIn() ?
+          null :
+          cssIconButton(icon('Plus'),
+            dom.on('click', () => this._ruleSet.addRulePart(this)),
+            testId('rule-add'),
+          )
+        ),
       ),
-      cssCondition(
-        cssConditionInput(
+      cssCell2(
+        cssInput(
           this._aclFormula, this._setAclFormula.bind(this),
           dom.prop('disabled', this.isBuiltIn()),
           dom.prop('placeholder', (use) => {
@@ -679,20 +812,23 @@ class ObsRulePart extends Disposable {
           }),
           testId('rule-acl-formula'),
         ),
-        dom.maybe(this._formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
       ),
-      cssPermissionsInput(
-        this._permissionsText, async (p) => this._permissions.set(parsePermissions(p)),
-        dom.prop('disabled', this.isBuiltIn()),
-        testId('rule-permissions')
+      cssCell1(cssCell.cls('-stretch'),
+        permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
+          {disabled: this.isBuiltIn()},
+          testId('rule-permissions')
+        ),
       ),
-      (this.isBuiltIn() ?
-        cssIconSpace({style: 'margin-left: 4px'}) :
-        cssIconButton(icon('Remove'), {style: 'margin-left: 4px'},
-          dom.on('click', () => this._ruleSet.removeRulePart(this)),
-          testId('rule-remove'),
-        )
+      cssCellIcon(
+        (this.isBuiltIn() ?
+          null :
+          cssIconButton(icon('Remove'),
+            dom.on('click', () => this._ruleSet.removeRulePart(this)),
+            testId('rule-remove'),
+          )
+        ),
       ),
+      dom.maybe(this._formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
       testId('rule-part'),
     );
   }
@@ -835,22 +971,48 @@ function getChangedStatus(value: boolean): RuleStatus {
   return value ? RuleStatus.ChangedValid : RuleStatus.Unchanged;
 }
 
+function inputAutocomplete(value: Observable<string>, choices: MaybeObsArray<string>, ...args: DomElementArg[]) {
+  function doSet() {
+    value.set(elem.value);
+  }
+  const elem = autocomplete(
+    dom('input', {type: 'text'},
+      dom.attr('value', value),
+      dom.on('change', doSet),
+      dom.on('blur', doSet),
+      ...args
+    ),
+    choices,
+    {onClick: doSet},
+  );
+  dom.onKeyElem(elem, 'keydown', {Enter: doSet});
+  return elem;
+}
+
+const cssOuter = styled('div', `
+  height: 100%;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+`);
+
 const cssAddTableRow = styled('div', `
-  margin: 16px 64px 0 64px;
+  margin: 16px 16px 8px 16px;
   display: flex;
   gap: 16px;
 `);
 
-const cssTableRule = styled('div', `
-  margin: 24px 64px;
+const cssDropdownIcon = styled(icon, `
+  margin: -2px -2px 0 4px;
 `);
 
-const cssTableBody = styled('div', `
-  border: 2px solid ${colors.slate};
-  border-radius: 8px;
+const cssSection = styled('div', `
+  margin: 16px 16px 24px 16px;
 `);
 
-const cssTableHeader = styled('div', `
+const cssSectionHeading = styled('div', `
   display: flex;
   align-items: center;
   margin-bottom: 8px;
@@ -862,84 +1024,111 @@ const cssTableName = styled('span', `
   color: ${colors.dark};
 `);
 
-const cssRuleSet = styled('div', `
+const cssInput = styled(textInput, `
+  width: 100%;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    border: 1px solid ${colors.darkGrey};
+  }
+  &:focus {
+    box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
+    border: 1px solid var(--grist-color-cursor);
+    cursor: unset;
+  }
+  &[disabled] {
+    color: ${colors.dark};
+    background-color: ${colors.mediumGreyOpaque};
+    box-shadow: unset;
+    border: unset;
+  }
+`);
+
+const cssConditionError = styled('div', `
+  margin-top: 4px;
+  width: 100%;
+  color: ${colors.error};
+`);
+
+/**
+ * Fairly general table styles.
+ */
+const cssTableRounded = styled('div', `
+  border: 1px solid ${colors.slate};
+  border-radius: 8px;
+  overflow: hidden;
+`);
+
+// Row with a border
+const cssTableRow = styled('div', `
   display: flex;
-  border-bottom: 2px solid ${colors.slate};
+  border-bottom: 1px solid ${colors.slate};
   &:last-child {
     border-bottom: none;
   }
 `);
 
-const cssResource = styled('div', `
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-right: 2px solid ${colors.slate};
-  padding: 8px;
-  min-width: 0;
+// Darker table header
+const cssTableHeaderRow = styled(cssTableRow, `
+  background-color: ${colors.mediumGrey};
+  color: ${colors.dark};
 `);
 
-
-const cssRuleSetBody = styled('div', `
-  flex: 4;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  min-width: 0;
+// Cell for table column header.
+const cssColHeaderCell = styled('div', `
+  margin: 4px 8px;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 10px;
 `);
 
-const cssRulePart = styled('div', `
+// General table cell.
+const cssCell = styled('div', `
+  min-width: 0px;
+  overflow: hidden;
+
+  &-rborder {
+    border-right: 1px solid ${colors.slate};
+  }
+  &-center {
+    text-align: center;
+  }
+  &-stretch {
+    min-width: unset;
+    overflow: visible;
+  }
+`);
+
+// Variations on columns of different widths.
+const cssCellIcon = styled(cssCell, `flex: none; width: 24px;`);
+const cssCell1 = styled(cssCell, `flex: 1;`);
+const cssCell2 = styled(cssCell, `flex: 2;`);
+const cssCell4 = styled(cssCell, `flex: 4;`);
+
+// Group of columns, which may be placed inside a cell.
+const cssColumnGroup = styled('div', `
   display: flex;
-  align-items: start;
+  align-items: center;
+  gap: 0px 8px;
+  margin: 0 8px;
+  flex-wrap: wrap;
+`);
+
+const cssRuleBody = styled('div', `
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
   margin: 4px 0;
 `);
 
-const cssCondition = styled('div', `
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+const cssCellContent = styled('div', `
+  margin: 4px 8px;
 `);
 
-const cssConditionInput = styled(textInput, `
-  &[disabled] {
-    background-color: ${colors.mediumGreyOpaque};
-    color: ${colors.dark};
-  }
-`);
-
-const cssConditionError = styled('div', `
-  color: ${colors.error};
-`);
-
-const cssPermissionsInput = styled(cssConditionInput, `
-  margin-left: 8px;
-  width: 64px;
-  flex: none;
-`);
-
-const cssIconSpace = styled('div', `
-  flex: none;
-  height: 24px;
-  width: 24px;
-  margin: 2px;
-`);
-
-const cssIconButton = styled(cssIconSpace, `
-  padding: 4px;
-  border-radius: 3px;
-  line-height: 0px;
-  cursor: default;
-  --icon-color: ${colors.slate};
-  &:hover {
-    background-color: ${colors.darkGrey};
-    --icon-color: ${colors.slate};
-  }
-`);
-
-const cssUserAttribute = styled('div', `
+const cssCenterContent = styled('div', `
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 16px 8px;
+  justify-content: center;
 `);

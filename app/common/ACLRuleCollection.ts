@@ -1,6 +1,6 @@
 import { parsePermissions } from 'app/common/ACLPermissions';
 import { ILogger } from 'app/common/BaseAPI';
-import { RowRecord } from 'app/common/DocActions';
+import { CellValue, RowRecord } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule } from 'app/common/GranularAccessClause';
 import { getSetMapValue } from 'app/common/gutil';
@@ -20,7 +20,7 @@ const DEFAULT_RULE_SET: RuleSet = {
   }, {
     aclFormula: "user.Access in ['viewers']",
     matchFunc:  (input) => ['viewers'].includes(String(input.user.Access)),
-    permissions: parsePermissions('+R'),
+    permissions: parsePermissions('+R-CUDS'),
     permissionsText: '+R',
   }, {
     aclFormula: "",
@@ -164,6 +164,55 @@ export class ACLRuleCollection {
     this._defaultRuleSet = defaultRuleSet;
     this._tableIds = [...tableIds];
     this._userAttributeRules = userAttributeMap;
+  }
+
+  /**
+   * Check that all references to table and column IDs in ACL rules are valid.
+   */
+  public checkDocEntities(docData: DocData) {
+    const tablesTable = docData.getTable('_grist_Tables')!;
+    const columnsTable = docData.getTable('_grist_Tables_column')!;
+
+    // Collect valid tableIds and check rules against those.
+    const validTableIds = new Set(tablesTable.getColValues('tableId'));
+    const invalidTables = this.getAllTableIds().filter(t => !validTableIds.has(t));
+    if (invalidTables.length > 0) {
+      throw new Error(`Invalid tables in rules: ${invalidTables.join(', ')}`);
+    }
+
+    // Collect valid columns, grouped by tableRef (rowId of table record).
+    const validColumns = new Map<number, Set<CellValue>>();   // Map from tableRef to set of colIds.
+    const colTableRefs = columnsTable.getColValues('parentId')!;
+    for (const [i, colId] of columnsTable.getColValues('colId')!.entries()) {
+      getSetMapValue(validColumns, colTableRefs[i], () => new Set()).add(colId);
+    }
+
+    // For each table, check that any explicitly mentioned columns are valid.
+    for (const tableId of this.getAllTableIds()) {
+      const tableRef = tablesTable.findRow('tableId', tableId);
+      const validTableCols = validColumns.get(tableRef);
+      for (const ruleSet of this.getAllColumnRuleSets(tableId)) {
+        if (Array.isArray(ruleSet.colIds)) {
+          const invalidColIds = ruleSet.colIds.filter(c => !validTableCols?.has(c));
+          if (invalidColIds.length > 0) {
+            throw new Error(`Invalid columns in rules for table ${tableId}: ${invalidColIds.join(', ')}`);
+          }
+        }
+      }
+    }
+
+    // Check for valid tableId/lookupColId combinations in UserAttribute rules.
+    const invalidUAColumns: string[] = [];
+    for (const rule of this.getUserAttributeRules().values()) {
+      const tableRef = tablesTable.findRow('tableId', rule.tableId);
+      const colRef = columnsTable.findMatchingRowId({parentId: tableRef, colId: rule.lookupColId});
+      if (!colRef) {
+        invalidUAColumns.push(`${rule.tableId}.${rule.lookupColId}`);
+      }
+    }
+    if (invalidUAColumns.length > 0) {
+      throw new Error(`Invalid columns in User Attribute rules: ${invalidUAColumns.join(', ')}`);
+    }
   }
 
   private _safeReadAclRules(docData: DocData, options: ReadAclOptions): ReadAclResults {

@@ -28,6 +28,11 @@ export const enum GristObjCode {
 
 export const MANUALSORT = 'manualSort';
 
+// Whether a column is internal and should be hidden.
+export function isHiddenCol(colId: string): boolean {
+  return colId.startsWith('gristHelper_') || colId === MANUALSORT;
+}
+
 // This mapping includes both the default value, and its representation for SQLite.
 const _defaultValues: {[key in GristType]: [CellValue, string]} = {
   'Any':              [ null,  "NULL"  ],

@@ -156,12 +156,19 @@ export class GranularAccess {
         docActions.map((action, idx) => this._checkIncomingDocAction(docSession, action, idx)));
     }
 
+    if (this._recoveryMode) {
+      // Don't do any further checking in recovery mode.
+      return;
+    }
+
     // If the actions change any rules, verify that we'll be able to handle the changed rules. If
     // they are to cause an error, reject the action to avoid forcing user into recovery mode.
-    if (docActions.some(docAction => ['_grist_ACLRules', '_grist_Resources'].includes(getTableId(docAction)))) {
+    if (docActions.some(docAction => ['_grist_ACLRules', '_grist_ACLResources'].includes(getTableId(docAction)))) {
       // Create a tmpDocData with just the tables we care about, then update docActions to it.
       const tmpDocData: DocData = new DocData(
         (tableId) => { throw new Error("Unexpected DocData fetch"); }, {
+          _grist_Tables: this._docData.getTable('_grist_Tables')!.getTableDataAction(),
+          _grist_Tables_column: this._docData.getTable('_grist_Tables_column')!.getTableDataAction(),
           _grist_ACLResources: this._docData.getTable('_grist_ACLResources')!.getTableDataAction(),
           _grist_ACLRules: this._docData.getTable('_grist_ACLRules')!.getTableDataAction(),
         });
@@ -172,8 +179,13 @@ export class GranularAccess {
       // Use the post-actions data to process the rules collection, and throw error if that fails.
       const ruleCollection = new ACLRuleCollection();
       await ruleCollection.update(tmpDocData, {log, compile: compileAclFormula});
-      if (ruleCollection.ruleError && !this._recoveryMode) {
+      if (ruleCollection.ruleError) {
         throw new ApiError(ruleCollection.ruleError.message, 400);
+      }
+      try {
+        ruleCollection.checkDocEntities(tmpDocData);
+      } catch (err) {
+        throw new ApiError(err.message, 400);
       }
     }
   }

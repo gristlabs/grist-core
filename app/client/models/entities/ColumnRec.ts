@@ -81,8 +81,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.disableModify = ko.pureComputed(() => Boolean(this.summarySourceCol()));
   this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
 
-  this.isHiddenCol = ko.pureComputed(() => this.colId().startsWith('gristHelper_') ||
-    this.colId() === 'manualSort');
+  this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));
 
   // Returns the rowModel for the referenced table, or null, if this is not a reference column.
   this.refTable = ko.pureComputed(() => {

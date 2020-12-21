@@ -209,7 +209,7 @@ export function autocomplete(
 ) {
   return weasel.autocomplete(inputElem, choices, {
     ...defaults, ...options,
-    menuCssClass: menuCssClass + ' ' + cssSelectMenuElem.className,
+    menuCssClass: defaults.menuCssClass + ' ' + cssSelectMenuElem.className + ' ' + (options.menuCssClass || '')
   });
 }
 

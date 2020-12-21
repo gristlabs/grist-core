@@ -49,6 +49,7 @@
  *   `);
  */
 
+import { colors } from 'app/client/ui2018/cssVars';
 import { dom, DomElementArg, styled } from 'grainjs';
 import { IconName } from './IconList';
 
@@ -73,3 +74,21 @@ export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
     ...domArgs
   );
 }
+
+/**
+ * Container box for an slate-colored icon to serve as a button, with a grey background on hover.
+ */
+export const cssIconButton = styled('div', `
+  flex: none;
+  height: 24px;
+  width: 24px;
+  padding: 4px;
+  border-radius: 3px;
+  line-height: 0px;
+  cursor: default;
+  --icon-color: ${colors.slate};
+  &:hover {
+    background-color: ${colors.darkGrey};
+    --icon-color: ${colors.slate};
+  }
+`);
