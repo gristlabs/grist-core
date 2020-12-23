@@ -87,7 +87,7 @@ export const cssIconButton = styled('div', `
   line-height: 0px;
   cursor: default;
   --icon-color: ${colors.slate};
-  &:hover {
+  &:hover, &.weasel-popup-open {
     background-color: ${colors.darkGrey};
     --icon-color: ${colors.slate};
   }

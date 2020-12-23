@@ -1,17 +1,20 @@
 /**
  * UI for managing granular ACLs.
  */
+import {aclColumnList} from 'app/client/aclui/ACLColumnList';
+import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
+import {aclSelect} from 'app/client/aclui/ACLSelect';
+import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
-import {PermissionKey, permissionsWidget} from 'app/client/ui/PermissionsWidget';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
-import {cssTextInput, textInput} from 'app/client/ui2018/editableLabel';
+import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {autocomplete, menu, menuItemAsync} from 'app/client/ui2018/menus';
+import {IOptionFull, menu, menuItemAsync} from 'app/client/ui2018/menus';
 import {emptyPermissionSet} from 'app/common/ACLPermissions';
 import {PartialPermissionSet, permissionSetToText} from 'app/common/ACLPermissions';
 import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
@@ -20,7 +23,7 @@ import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessCla
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
-import {BaseObservable, Computed, Disposable, MaybeObsArray, MutableObsArray, obsArray, Observable} from 'grainjs';
+import {BaseObservable, Computed, Disposable, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {dom, DomElementArg, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
@@ -39,6 +42,12 @@ enum RuleStatus {
   ChangedValid,
   Invalid,
   CheckPending,
+}
+
+// Option for UserAttribute select() choices. RuleIndex is used to filter for only those user
+// attributes made available by the previous rules.
+interface IAttrOption extends IOptionFull<string> {
+  ruleIndex: number;
 }
 
 /**
@@ -63,6 +72,10 @@ export class AccessRules extends Disposable {
   // Array of all UserAttribute rules.
   private _userAttrRules = this.autoDispose(obsArray<ObsUserAttributeRule>());
 
+  // Array of all user-attribute choices created by UserAttribute rules. Used for lookup items in
+  // rules, and for ACLFormula completions.
+  private _userAttrChoices: Computed<IAttrOption[]>;
+
   // Whether the save button should be enabled.
   private _savingEnabled: Computed<boolean>;
 
@@ -85,10 +98,31 @@ export class AccessRules extends Disposable {
 
     this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) => (s === RuleStatus.ChangedValid));
 
+    this._userAttrChoices = Computed.create(this, this._userAttrRules, (use, rules) => {
+      const result: IAttrOption[] = [
+        {ruleIndex: -1, value: 'Access', label: 'user.Access'},
+        {ruleIndex: -1, value: 'Email', label: 'user.Email'},
+        {ruleIndex: -1, value: 'UserID', label: 'user.UserID'},
+        {ruleIndex: -1, value: 'Name', label: 'user.Name'},
+        {ruleIndex: -1, value: 'Link', label: 'user.Link'},
+        {ruleIndex: -1, value: 'Origin', label: 'user.Origin'},
+      ];
+      for (const [i, rule] of rules.entries()) {
+        const tableId = use(rule.tableId);
+        const name = use(rule.name);
+        for (const colId of this.getValidColIds(tableId) || []) {
+          result.push({ruleIndex: i, value: `${name}.${colId}`, label: `user.${name}.${colId}`});
+        }
+      }
+      return result;
+    });
+
     this.update().catch(reportError);
   }
 
   public get allTableIds() { return this._allTableIds; }
+  public get userAttrRules() { return this._userAttrRules; }
+  public get userAttrChoices() { return this._userAttrChoices; }
 
   /**
    * Replace internal state from the rules in DocData.
@@ -245,7 +279,7 @@ export class AccessRules extends Disposable {
                 cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Name')),
                 cssCell4(
                   cssColumnGroup(
-                    cssCell1(cssColHeaderCell('User Attribute')),
+                    cssCell1(cssColHeaderCell('Attribute to Look Up')),
                     cssCell1(cssColHeaderCell('Lookup Table')),
                     cssCell1(cssColHeaderCell('Lookup Column')),
                     cssCellIcon(),
@@ -463,9 +497,7 @@ class TableRules extends Disposable {
   }
 
   private _addColumnRuleSet() {
-    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, undefined, [],
-      {focus: true}
-    ));
+    this._columnRuleSets.push(ColumnObsRuleSet.create(this._columnRuleSets, this._accessRules, this, undefined, []));
   }
 
   private _addDefaultRuleSet() {
@@ -579,6 +611,14 @@ abstract class ObsRuleSet extends Disposable {
       return ['read', 'update', 'create', 'delete', 'schemaEdit'];
     }
   }
+
+  /**
+   * Get valid colIds for the table that this RuleSet is for.
+   */
+  public getValidColIds(): string[] {
+    const tableId = this._tableRules?.tableId;
+    return (tableId && this.accessRules.getValidColIds(tableId)) || [];
+  }
 }
 
 class ColumnObsRuleSet extends ObsRuleSet {
@@ -586,10 +626,9 @@ class ColumnObsRuleSet extends ObsRuleSet {
   public formulaError: Computed<string>;
 
   private _colIds = Observable.create<string[]>(this, this._initialColIds);
-  private _colIdStr = Computed.create(this, (use) => use(this._colIds).join(", "));
 
   constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet|undefined,
-              private _initialColIds: string[], private _options: {focus?: boolean} = {}) {
+              private _initialColIds: string[]) {
     super(accessRules, tableRules, ruleSet);
 
     this.formulaError = Computed.create(this, (use) => {
@@ -607,15 +646,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
   }
 
   public buildResourceDom() {
-    const saveColIds = async (colIdStr: string) => {
-      this._colIds.set(colIdStr.split(/\W+/).map(val => val.trim()).filter(Boolean));
-    };
-
-    return cssCellContent(
-      cssInput(this._colIdStr, saveColIds, {placeholder: 'Enter Columns'},
-        (this._options.focus ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
-      )
-    );
+    return aclColumnList(this._colIds, this.getValidColIds());
   }
 
   public getColIdList(): string[] {
@@ -640,7 +671,9 @@ class DefaultObsRuleSet extends ObsRuleSet {
   public buildResourceDom() {
     return [
       cssCenterContent.cls(''),
-      dom.text(use => this._haveColumnRules && use(this._haveColumnRules) ? 'All Other' : 'All'),
+      cssDefaultLabel(
+        dom.text(use => this._haveColumnRules && use(this._haveColumnRules) ? 'All Other' : 'All'),
+      )
     ];
   }
 }
@@ -657,6 +690,8 @@ class ObsUserAttributeRule extends Disposable {
   private _charId = Observable.create<string>(this, this._userAttr?.charId || '');
   private _validColIds = Computed.create(this, this._tableId, (use, tableId) =>
     this._accessRules.getValidColIds(tableId) || []);
+
+  private _userAttrChoices: Computed<IAttrOption[]>;
 
   constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule,
               private _options: {focus?: boolean} = {}) {
@@ -681,7 +716,22 @@ class ObsUserAttributeRule extends Disposable {
 
     // Reset lookupColId when tableId changes, since a colId from a different table would usually be wrong
     this.autoDispose(this._tableId.addListener(() => this._lookupColId.set('')));
+
+    this._userAttrChoices = Computed.create(this, _accessRules.userAttrRules, (use, rules) => {
+      // Filter for only those choices created by previous rules.
+      const index = rules.indexOf(this);
+      const result = use(this._accessRules.userAttrChoices).filter(c => (c.ruleIndex < index));
+
+      // If the currently-selected option isn't one of the choices, insert it too.
+      if (!result.some(choice => (choice.value === this._charId.get()))) {
+        result.unshift({ruleIndex: -1, value: this._charId.get(), label: `user.${this._charId.get()}`});
+      }
+      return result;
+    });
   }
+
+  public get name() { return this._name; }
+  public get tableId() { return this._tableId; }
 
   public buildUserAttrDom() {
     return cssTableRow(
@@ -697,22 +747,19 @@ class ObsUserAttributeRule extends Disposable {
       cssCell4(cssRuleBody.cls(''),
         cssColumnGroup(
           cssCell1(
-            cssInput(this._charId, async (val) => this._charId.set(val),
-              {placeholder: 'Attribute to look up'},
-              testId('rule-userattr-attr'),
-            ),
+            aclSelect(this._charId, this._userAttrChoices,
+              {defaultLabel: '[Select Attribute]'}),
+            testId('rule-userattr-attr'),
           ),
           cssCell1(
-            inputAutocomplete(this._tableId, this._accessRules.allTableIds,
-              cssTextInput.cls(''), cssInput.cls(''), {placeholder: 'Table'},
-              testId('rule-userattr-table'),
-            ),
+            aclSelect(this._tableId, this._accessRules.allTableIds,
+              {defaultLabel: '[Select Table]'}),
+            testId('rule-userattr-table'),
           ),
           cssCell1(
-            inputAutocomplete(this._lookupColId, this._validColIds,
-              cssTextInput.cls(''), cssInput.cls(''), {placeholder: 'Column'},
-              testId('rule-userattr-col'),
-            ),
+            aclSelect(this._lookupColId, this._validColIds,
+              {defaultLabel: '[Select Column]'}),
+            testId('rule-userattr-col'),
           ),
           cssCellIcon(
             cssIconButton(icon('Remove'),
@@ -751,8 +798,14 @@ class ObsRulePart extends Disposable {
   // Whether the rule part, and if it's valid or being checked.
   public ruleStatus: Computed<RuleStatus>;
 
-  // Formula to show in the "advanced" UI.
+  // Formula to show in the formula editor.
   private _aclFormula = Observable.create<string>(this, this._rulePart?.aclFormula || "");
+
+  // Rule-specific completions for editing the formula, e.g. "user.Email" or "rec.City".
+  private _completions = Computed.create<string[]>(this, (use) => [
+    ...use(this._ruleSet.accessRules.userAttrChoices).map(opt => opt.label),
+    ...this._ruleSet.getValidColIds().map(colId => `rec.${colId}`),
+  ]);
 
   // The permission bits.
   private _permissions = Observable.create<PartialPermissionSet>(
@@ -800,18 +853,20 @@ class ObsRulePart extends Disposable {
         ),
       ),
       cssCell2(
-        cssInput(
-          this._aclFormula, this._setAclFormula.bind(this),
-          dom.prop('disabled', this.isBuiltIn()),
-          dom.prop('placeholder', (use) => {
+        aclFormulaEditor({
+          initialValue: this._aclFormula.get(),
+          readOnly: this.isBuiltIn(),
+          setValue: (value) => this._setAclFormula(value),
+          placeholder: dom.text((use) => {
             return (
               this._ruleSet.isSoleCondition(use, this) ? 'Everyone' :
               this._ruleSet.isLastCondition(use, this) ? 'Everyone Else' :
               'Enter Condition'
             );
           }),
-          testId('rule-acl-formula'),
-        ),
+          getSuggestions: (prefix) => this._completions.get(),
+        }),
+        testId('rule-acl-formula'),
       ),
       cssCell1(cssCell.cls('-stretch'),
         permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
@@ -842,6 +897,7 @@ class ObsRulePart extends Disposable {
   }
 
   private async _setAclFormula(text: string) {
+    if (text === this._aclFormula.get()) { return; }
     this._aclFormula.set(text);
     this._checkPending.set(true);
     this._formulaError.set('');
@@ -854,7 +910,6 @@ class ObsRulePart extends Disposable {
     }
   }
 }
-
 
 /**
  * Produce UserActions to create/update/remove records, to replace data in tableData
@@ -971,24 +1026,6 @@ function getChangedStatus(value: boolean): RuleStatus {
   return value ? RuleStatus.ChangedValid : RuleStatus.Unchanged;
 }
 
-function inputAutocomplete(value: Observable<string>, choices: MaybeObsArray<string>, ...args: DomElementArg[]) {
-  function doSet() {
-    value.set(elem.value);
-  }
-  const elem = autocomplete(
-    dom('input', {type: 'text'},
-      dom.attr('value', value),
-      dom.on('change', doSet),
-      dom.on('blur', doSet),
-      ...args
-    ),
-    choices,
-    {onClick: doSet},
-  );
-  dom.onKeyElem(elem, 'keydown', {Enter: doSet});
-  return elem;
-}
-
 const cssOuter = styled('div', `
   height: 100%;
   width: 100%;
@@ -1033,15 +1070,15 @@ const cssInput = styled(textInput, `
     border: 1px solid ${colors.darkGrey};
   }
   &:focus {
-    box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
-    border: 1px solid var(--grist-color-cursor);
+    box-shadow: inset 0 0 0 1px ${colors.cursor};
+    border-color: ${colors.cursor};
     cursor: unset;
   }
   &[disabled] {
     color: ${colors.dark};
     background-color: ${colors.mediumGreyOpaque};
     box-shadow: unset;
-    border: unset;
+    border-color: transparent;
   }
 `);
 
@@ -1118,7 +1155,6 @@ const cssColumnGroup = styled('div', `
 const cssRuleBody = styled('div', `
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 4px;
   margin: 4px 0;
 `);
@@ -1131,4 +1167,9 @@ const cssCenterContent = styled('div', `
   display: flex;
   align-items: center;
   justify-content: center;
+`);
+
+const cssDefaultLabel = styled('div', `
+  color: ${colors.slate};
+  font-weight: bold;
 `);

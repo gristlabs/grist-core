@@ -3,6 +3,7 @@
  */
 // tslint:disable:no-console
 
+import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
@@ -29,7 +30,6 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {QuerySetManager} from 'app/client/models/QuerySet';
-import {AccessRules} from 'app/client/ui/AccessRules';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
