@@ -24,9 +24,6 @@ import * as rowset from 'app/client/models/rowset';
 import {RowId} from 'app/client/models/rowset';
 import {schema, SchemaTypes} from 'app/common/schema';
 
-import {ACLMembershipRec, createACLMembershipRec} from 'app/client/models/entities/ACLMembershipRec';
-import {ACLPrincipalRec, createACLPrincipalRec} from 'app/client/models/entities/ACLPrincipalRec';
-import {ACLResourceRec, createACLResourceRec} from 'app/client/models/entities/ACLResourceRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
@@ -41,8 +38,6 @@ import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/V
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-export {ACLMembershipRec} from 'app/client/models/entities/ACLMembershipRec';
-export {ACLPrincipalRec} from 'app/client/models/entities/ACLPrincipalRec';
 export {ColumnRec} from 'app/client/models/entities/ColumnRec';
 export {DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 export {PageRec} from 'app/client/models/entities/PageRec';
@@ -115,9 +110,6 @@ export class DocModel {
   public tabBar: MTM<TabBarRec> = this._metaTableModel("_grist_TabBar", createTabBarRec);
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
   public replHist: MTM<REPLRec> = this._metaTableModel("_grist_REPL_Hist", createREPLRec);
-  public aclPrincipals: MTM<ACLPrincipalRec> = this._metaTableModel("_grist_ACLPrincipals", createACLPrincipalRec);
-  public aclMemberships: MTM<ACLMembershipRec> = this._metaTableModel("_grist_ACLMemberships", createACLMembershipRec);
-  public aclResources: MTM<ACLResourceRec> = this._metaTableModel("_grist_ACLResources", createACLResourceRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
 
   public allTables: KoArray<TableRec>;

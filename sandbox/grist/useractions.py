@@ -465,6 +465,8 @@ class UserActions(object):
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
+    make_acl_updates = acl.prepare_acl_table_renames(self._docmodel, self, table_renames)
+
     # Collect all the table renames, and do the actual schema actions to apply them.
     for tbl, values in update_pairs:
       if has_diff_value(values, 'tableId', tbl.tableId):
@@ -480,6 +482,7 @@ class UserActions(object):
     for col, values in col_updates.iteritems():
       self.doModifyColumn(col.tableId, col.colId, values)
     self.doBulkUpdateFromPairs('_grist_Tables_column', col_updates.items())
+    make_acl_updates()
 
 
   @override_action('BulkUpdateRecord', '_grist_Tables_column')
@@ -531,6 +534,8 @@ class UserActions(object):
                    for key, value in values.iteritems()):
           raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
+    make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
+
     for c, values in update_pairs:
       # Trigger ModifyColumn and RenameColumn as necessary
       schema_colinfo = select_keys(values, _modify_col_schema_props)
@@ -546,6 +551,7 @@ class UserActions(object):
                           widgetOptions='', displayCol=0)
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
+    make_acl_updates()
 
 
   @override_action('BulkUpdateRecord', '_grist_Views')

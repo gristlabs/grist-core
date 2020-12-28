@@ -256,7 +256,7 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
   for (const [resourceId, rules] of rulesByResource.entries()) {
     const resourceRec = resourcesTable.getRecord(resourceId as number);
     if (!resourceRec) {
-      log.error(`ACLRule ${rules[0].id} ignored; refers to an invalid ACLResource ${resourceId}`);
+      throw new Error(`ACLRule ${rules[0].id} refers to an invalid ACLResource ${resourceId}`);
       continue;
     }
     if (!resourceRec.tableId || !resourceRec.colIds) {
@@ -271,7 +271,7 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
     for (const rule of rules) {
       if (rule.userAttributes) {
         if (tableId !== '*' || colIds !== '*') {
-          log.warn(`ACLRule ${rule.id} ignored; user attributes must be on the default resource`);
+          throw new Error(`ACLRule ${rule.id} invalid; user attributes must be on the default resource`);
           continue;
         }
         const parsed = JSON.parse(String(rule.userAttributes));
@@ -279,15 +279,15 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
         if (!(parsed && typeof parsed === 'object' &&
           [parsed.name, parsed.tableId, parsed.lookupColId, parsed.charId]
           .every(p => p && typeof p === 'string'))) {
-          log.warn(`User attribute rule ${rule.id} is invalid`);
+          throw new Error(`User attribute rule ${rule.id} is invalid`);
           continue;
         }
         parsed.origRecord = rule;
         userAttributes.push(parsed as UserAttributeRule);
       } else if (body.length > 0 && !body[body.length - 1].aclFormula) {
-        log.warn(`ACLRule ${rule.id} ignored because listed after default rule`);
+        throw new Error(`ACLRule ${rule.id} invalid because listed after default rule`);
       } else if (rule.aclFormula && !rule.aclFormulaParsed) {
-        log.warn(`ACLRule ${rule.id} ignored because missing its parsed formula`);
+        throw new Error(`ACLRule ${rule.id} invalid because missing its parsed formula`);
       } else {
         body.push({
           origRecord: rule,

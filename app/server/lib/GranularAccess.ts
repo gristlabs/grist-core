@@ -1090,14 +1090,14 @@ export class RecordView implements InfoView {
     if (colId === 'id') {
       return this.data[2][this.index];
     }
-    return this.data[3][colId][this.index];
+    return this.data[3][colId]?.[this.index];
   }
 
   public toJSON() {
     if (this.index === undefined) { return {}; }
     const results: {[key: string]: any} = {};
     for (const key of Object.keys(this.data[3])) {
-      results[key] = this.data[3][key][this.index];
+      results[key] = this.data[3][key]?.[this.index];
     }
     return results;
   }

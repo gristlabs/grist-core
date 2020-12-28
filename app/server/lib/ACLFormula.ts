@@ -86,12 +86,8 @@ function getAttr(value: any, attrName: string, valueNode: ParsedAclFormula): any
     }
     throw new Error(`No value for '${describeNode(valueNode)}'`);
   }
-  const result = (typeof value.get === 'function' ? value.get(attrName) : // InfoView
-                  value[attrName]);
-  if (result === undefined) {
-    throw new Error(`No attribute '${describeNode(valueNode)}.${attrName}'`);
-  }
-  return result;
+  return (typeof value.get === 'function' ? value.get(attrName) : // InfoView
+          value[attrName]);
 }
 
 /**

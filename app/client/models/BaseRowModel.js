@@ -119,10 +119,12 @@ BaseRowModel.prototype._process_RenameColumn = function(action, tableId, oldColI
   // handle standard renames differently
   if (this._fields.indexOf(newColId) !== -1) {
     console.error("RowModel #RenameColumn %s %s %s: already exists", tableId, oldColId, newColId);
+    return;
   }
   var index = this._fields.indexOf(oldColId);
   if (index === -1) {
     console.error("RowModel #RenameColumn %s %s %s: not found", tableId, oldColId, newColId);
+    return;
   }
   this._fields[index] = newColId;
 

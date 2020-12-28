@@ -79,6 +79,9 @@ export class AccessRules extends Disposable {
   // Whether the save button should be enabled.
   private _savingEnabled: Computed<boolean>;
 
+  // Error or warning message to show next to Save/Reset buttons if non-empty.
+  private _errorMessage = Observable.create(this, '');
+
   constructor(private _gristDoc: GristDoc) {
     super();
     this._ruleStatus = Computed.create(this, (use) => {
@@ -117,7 +120,25 @@ export class AccessRules extends Disposable {
       return result;
     });
 
-    this.update().catch(reportError);
+    // The UI in this module isn't really dynamic (that would be tricky while allowing unsaved
+    // changes). Instead, react deliberately if rules change. Note that table/column renames would
+    // trigger changes to rules, so we don't need to listen for those separately.
+    for (const tableId of ['_grist_ACLResources', '_grist_ACLRules']) {
+      const tableData = this._gristDoc.docData.getTable(tableId)!;
+      this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
+    }
+    this.update().catch((e) => this._errorMessage.set(e.message));
+  }
+
+  public _onChange() {
+    if (this._ruleStatus.get() === RuleStatus.Unchanged) {
+      // If no changes, it's safe to just reload the rules from docData.
+      this.update().catch((e) => this._errorMessage.set(e.message));
+    } else {
+      this._errorMessage.set(
+        'Access rules have changed. Click Reset to revert your changes and refresh the rules.'
+      );
+    }
   }
 
   public get allTableIds() { return this._allTableIds; }
@@ -128,6 +149,7 @@ export class AccessRules extends Disposable {
    * Replace internal state from the rules in DocData.
    */
   public async update() {
+    this._errorMessage.set('');
     const rules = this._ruleCollection;
     await rules.update(this._gristDoc.docData, {log: console});
     this._tableRules.set(
@@ -209,7 +231,7 @@ export class AccessRules extends Disposable {
       if (pos && pos > lastGoodRulePos) {
         const step = (pos - lastGoodRulePos) / (i - lastGoodIndex);
         for (let k = lastGoodIndex + 1; k < i; k++) {
-          newRules[k].rulePos = step * (k - lastGoodIndex);
+          newRules[k].rulePos = lastGoodRulePos + step * (k - lastGoodIndex);
         }
         lastGoodRulePos = pos;
         lastGoodIndex = i;
@@ -251,7 +273,7 @@ export class AccessRules extends Disposable {
           dom.on('click', () => this.save()),
           testId('rules-save'),
         ),
-        bigBasicButton('Revert', dom.show(this._savingEnabled),
+        bigBasicButton('Reset', dom.show(use => use(this._ruleStatus) !== RuleStatus.Unchanged),
           dom.on('click', () => this.update()),
           testId('rules-revert'),
         ),
@@ -269,6 +291,9 @@ export class AccessRules extends Disposable {
           ]),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
+      ),
+      cssConditionError(dom.text(this._errorMessage), {style: 'margin-left: 16px'},
+        testId('access-rules-error')
       ),
       shadowScroll(
         dom.maybe(use => use(this._userAttrRules).length, () =>
@@ -541,7 +566,9 @@ abstract class ObsRuleSet extends Disposable {
     return this._body.get().map(part => ({
       ...part.getRulePart(),
       resourceRec: {tableId, colIds: this.getColIds()}
-    }));
+    }))
+    // Skip entirely empty rule parts: they are invalid and dropping them is the best fix.
+    .filter(part => part.aclFormula || part.permissionsText);
   }
 
   public getColIds(): string {
@@ -723,8 +750,9 @@ class ObsUserAttributeRule extends Disposable {
       const result = use(this._accessRules.userAttrChoices).filter(c => (c.ruleIndex < index));
 
       // If the currently-selected option isn't one of the choices, insert it too.
-      if (!result.some(choice => (choice.value === this._charId.get()))) {
-        result.unshift({ruleIndex: -1, value: this._charId.get(), label: `user.${this._charId.get()}`});
+      const charId = use(this._charId);
+      if (charId && !result.some(choice => (choice.value === charId))) {
+        result.unshift({ruleIndex: -1, value: charId, label: `user.${charId}`});
       }
       return result;
     });
@@ -817,11 +845,23 @@ class ObsRulePart extends Disposable {
   // If the formula failed validation, the error message to show. Blank if valid.
   private _formulaError = Observable.create(this, '');
 
+  // Error message if any validation failed.
+  private _error: Computed<string>;
+
   // rulePart is omitted for a new ObsRulePart added by the user.
   constructor(private _ruleSet: ObsRuleSet, private _rulePart?: RulePart) {
     super();
+    this._error = Computed.create(this, (use) => {
+      return use(this._formulaError) ||
+        ( !this._ruleSet.isLastCondition(use, this) &&
+          use(this._aclFormula) === '' &&
+          permissionSetToText(use(this._permissions)) !== '' ?
+          'Condition cannot be blank' : ''
+        );
+    });
+
     this.ruleStatus = Computed.create(this, (use) => {
-      if (use(this._formulaError)) { return RuleStatus.Invalid; }
+      if (use(this._error)) { return RuleStatus.Invalid; }
       if (use(this._checkPending)) { return RuleStatus.CheckPending; }
       return getChangedStatus(
         use(this._aclFormula) !== this._rulePart?.aclFormula ||
@@ -883,7 +923,7 @@ class ObsRulePart extends Disposable {
           )
         ),
       ),
-      dom.maybe(this._formulaError, (msg) => cssConditionError(msg, testId('rule-error'))),
+      dom.maybe(this._error, (msg) => cssConditionError(msg, testId('rule-error'))),
       testId('rule-part'),
     );
   }

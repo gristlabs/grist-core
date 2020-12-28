@@ -147,6 +147,8 @@ class DocModel(object):
     self.repl_hist               = self._prep_table("_grist_REPL_Hist")
     self.attachments             = self._prep_table("_grist_Attachments")
     self.pages                   = self._prep_table("_grist_Pages")
+    self.aclResources            = self._prep_table("_grist_ACLResources")
+    self.aclRules                = self._prep_table("_grist_ACLRules")
 
   def _prep_table(self, name):
     """
