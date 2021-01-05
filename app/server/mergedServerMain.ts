@@ -104,7 +104,6 @@ export async function main(port: number, serverTypes: ServerType[],
   if (includeHome) {
     if (!includeApp) {
       server.addUsage();
-      await server.addHousekeeper();
     }
     if (!includeDocs) {
       server.addDocApiForwarder();
@@ -115,9 +114,8 @@ export async function main(port: number, serverTypes: ServerType[],
     if (!includeApp) {
       server.addHomeApi();
       server.addBillingApi();
-    }
-    if (!includeApp) {
       server.addNotifier();
+      await server.addHousekeeper();
     }
     server.addLoginRoutes();
     server.addBillingPages();

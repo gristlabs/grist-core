@@ -1106,9 +1106,10 @@ export class FlexServer implements GristServer {
   }
 
   public async addHousekeeper() {
-    if (this._check('housekeeper', 'start', 'homedb', 'map')) { return; }
+    if (this._check('housekeeper', 'start', 'homedb', 'map', 'json', 'api-mw')) { return; }
     const store = this._docWorkerMap;
     this.housekeeper = new Housekeeper(this.dbManager, this, store, store);
+    this.housekeeper.addEndpoints(this.app);
     await this.housekeeper.start();
   }
 

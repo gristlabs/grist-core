@@ -1,12 +1,18 @@
+import { ApiError } from 'app/common/ApiError';
 import { Document } from 'app/gen-server/entity/Document';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
 import { fromNow } from 'app/gen-server/sqlUtils';
+import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
+import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import * as log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
+import { stringParam } from 'app/server/lib/requestUtils';
+import * as express from 'express';
 import fetch from 'node-fetch';
+import * as Fetch from 'node-fetch';
 
 const HOUSEKEEPER_PERIOD_MS = 1 * 60 * 60 * 1000;   // operate every 1 hour
 const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
@@ -115,6 +121,38 @@ export class Housekeeper {
     }
   }
 
+  public addEndpoints(app: express.Application) {
+    // Allow support user to perform housekeeping tasks for a specific
+    // document.  The tasks necessarily bypass user access controls.
+    // As such, it would be best if these endpoints not offer ways to
+    // read or write the content of a document.
+
+    // Remove unlisted snapshots that are not recorded in inventory.
+    // Once all such snapshots have been removed, there should be no
+    // further need for this endpoint.
+    app.post('/api/housekeeping/docs/:docId/snapshots/clean', this._withSupport(async (docId, headers) => {
+      const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/snapshots/remove`);
+      return fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ select: 'unlisted' }),
+        headers,
+      });
+    }));
+
+    // Remove action history from document.  This may be of occasional
+    // use, for allowing support to help users looking to purge some
+    // information that leaked into document history that they'd
+    // prefer not be there, until there's an alternative.
+    app.post('/api/housekeeping/docs/:docId/states/remove', this._withSupport(async (docId, headers) => {
+      const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/states/remove`);
+      return fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ keep: 1 }),
+        headers,
+      });
+    }));
+  }
+
   /**
    * For test purposes, removes any exclusive lock on housekeeping.
    */
@@ -158,5 +196,29 @@ export class Housekeeper {
    */
   private _getThreshold() {
     return fromNow(this._dbManager.connection.driver.options.type, AGE_THRESHOLD_OFFSET);
+  }
+
+  // Call a document endpoint with a permit, cleaning up after the call.
+  // Checks that the user is the support user.
+  private _withSupport(callback: (docId: string, headers: Record<string, string>) => Promise<Fetch.Response>): express.RequestHandler {
+    return expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      if (userId !== this._dbManager.getSupportUserId()) {
+        throw new ApiError('access denied', 403);
+      }
+      const docId = stringParam(req.params.docId);
+      const permitKey = await this._permitStore.setPermit({docId});
+      try {
+        const result = await callback(docId, {
+          Permit: permitKey,
+          'Content-Type': 'application/json',
+        });
+        res.status(result.status);
+        // Return JSON result, or an empty object if no result provided.
+        res.json(await result.json().catch(() => ({})));
+      } finally {
+        await this._permitStore.removePermit(permitKey);
+      }
+    });
   }
 }
