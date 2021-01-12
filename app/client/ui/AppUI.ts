@@ -147,5 +147,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     contentMain: dom.maybe(pageModel.gristDoc, (gristDoc) => gristDoc.buildDom()),
     onResize,
     testId,
+    optimizeNarrowScreen: true,
   });
 }

@@ -154,6 +154,17 @@ export const cssRootVars = cssBodyVars.className;
 // class ".test-{name}". Ideally, we'd use noTestId() instead in production.
 export const testId: TestId = makeTestId('test-');
 
+// Max width for narrow screen layout (in px). Note: 768px is bootstrap's definition of small screen
+export const maxNarrowScreenWidth = 768;
+
+export const cssHideForNarrowScreen = styled('div', `
+  @media (max-width: ${maxNarrowScreenWidth}px) {
+    & {
+      display: none !important;
+    }
+  }
+`);
+
 /**
  * Attaches the global css properties to the document's root to them available in the page.
  */

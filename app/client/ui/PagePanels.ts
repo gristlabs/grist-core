@@ -3,7 +3,7 @@
  */
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition} from 'app/client/ui/transitions';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, maxNarrowScreenWidth} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomArg, noTestId, Observable, styled, TestId} from "grainjs";
 
@@ -26,6 +26,7 @@ export interface PageContents {
 
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
+  optimizeNarrowScreen?: boolean;  // If true, show an optimized layout when screen is narrow.
 }
 
 export function pagePanels(page: PageContents) {
@@ -33,8 +34,11 @@ export function pagePanels(page: PageContents) {
   const left = page.leftPanel;
   const right = page.rightPanel;
   const onResize = page.onResize || (() => null);
+  const optimizeNarrowScreen = Boolean(page.optimizeNarrowScreen);
 
-  return cssPageContainer(
+  return [cssPageContainer(
+    cssPageContainer.cls('-optimizeNarrowScreen', optimizeNarrowScreen),
+    optimizeNarrowScreen ? dom.style('min-width', '240px') : null,
     cssLeftPane(
       testId('left-panel'),
       cssTopHeader(left.header),
@@ -56,10 +60,13 @@ export function pagePanels(page: PageContents) {
     cssResizeFlexVHandle(
       {target: 'left', onSave: (val) => { left.panelWidth.set(val); onResize(); }},
       testId('left-resizer'),
-      dom.show(left.panelOpen)),
+      dom.show(left.panelOpen),
+      cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
 
     // Show plain border when the resize handle is hidden.
-    cssResizeDisabledBorder(dom.hide(left.panelOpen)),
+    cssResizeDisabledBorder(
+      dom.hide(left.panelOpen),
+      cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
 
     cssMainPane(
       cssTopHeader(
@@ -67,7 +74,8 @@ export function pagePanels(page: PageContents) {
         (left.hideOpener ? null :
           cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
             testId('left-opener'),
-            dom.on('click', () => toggleObs(left.panelOpen)))
+            dom.on('click', () => toggleObs(left.panelOpen)),
+            cssHideForNarrowScreen.cls('', optimizeNarrowScreen))
         ),
 
         page.headerMain,
@@ -75,17 +83,20 @@ export function pagePanels(page: PageContents) {
         (!right || right.hideOpener ? null :
           cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
             testId('right-opener'),
-            dom.on('click', () => toggleObs(right.panelOpen)))
+            dom.on('click', () => toggleObs(right.panelOpen)),
+            cssHideForNarrowScreen.cls('', optimizeNarrowScreen))
         ),
       ),
       page.contentMain,
+      testId('main-pane'),
     ),
     (right ? [
       // Resizer for the right pane.
       cssResizeFlexVHandle(
         {target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); }},
         testId('right-resizer'),
-        dom.show(right.panelOpen)),
+        dom.show(right.panelOpen),
+        cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
 
       cssRightPane(
         testId('right-panel'),
@@ -103,7 +114,44 @@ export function pagePanels(page: PageContents) {
         }),
       )] : null
     ),
-  );
+    cssContentOverlay(
+      dom.show((use) => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+      testId('overlay'))
+  ), (
+    !optimizeNarrowScreen ? null :
+      cssBottomFooter(
+        testId('bottom-footer'),
+        (left.hideOpener ? null :
+         cssPanelOpenerNarrowScreenBtn(
+           cssPanelOpenerNarrowScreen(
+             'FieldTextbox',
+             dom.on('click', () => {
+               if (right) {
+                 right.panelOpen.set(false);
+               }
+               toggleObs(left.panelOpen);
+             }),
+             testId('left-opener-ns')
+           ),
+           cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
+         )
+        ),
+        dom('div', cssFlexSpacer.cls('')),
+        (!right || right.hideOpener ? null :
+         cssPanelOpenerNarrowScreenBtn(
+           cssPanelOpenerNarrowScreen(
+             'Settings',
+             dom.on('click', () => {
+               left.panelOpen.set(false);
+               toggleObs(right.panelOpen);
+             }),
+             testId('right-opener-ns')
+           ),
+           cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
+         )
+        ),
+      )
+  )];
 }
 
 function toggleObs(boolObs: Observable<boolean>) {
@@ -117,16 +165,26 @@ const cssVBox = styled('div', `
 const cssHBox = styled('div', `
   display: flex;
 `);
+const cssFlexSpacer = styled('div', `
+  flex-grow: 1;
+`);
 const cssPageContainer = styled(cssHBox, `
   position: absolute;
   isolation: isolate; /* Create a new stacking context */
   z-index: 0; /* As of March 2019, isolation does not have Edge support, so force one with z-index */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  min-width: 600px;
+  right: 0;
+  bottom: 0;
+  min-width: 600px
   background-color: ${colors.lightGrey};
+
+  @media (max-width: ${maxNarrowScreenWidth}px) {
+    &-optimizeNarrowScreen {
+      bottom: 48px;
+    }
+  }
+
 `);
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
@@ -135,6 +193,18 @@ export const cssLeftPane = styled(cssVBox, `
   margin-right: 0px;
   overflow: hidden;
   transition: margin-right 0.4s;
+  @media (max-width: ${maxNarrowScreenWidth}px) {
+    .${cssPageContainer.className}-optimizeNarrowScreen & {
+      width: 0px;
+      position: absolute;
+      z-index: 10;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid ${colors.mediumGrey};
+    }
+  }
   &-open {
     width: 240px;
     min-width: 160px;
@@ -164,6 +234,17 @@ const cssRightPane = styled(cssVBox, `
   overflow: hidden;
   transition: margin-left 0.4s;
   z-index: 0;
+  @media (max-width: ${maxNarrowScreenWidth}px) {
+    .${cssPageContainer.className}-optimizeNarrowScreen & {
+      position: absolute;
+      z-index: 10;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid ${colors.mediumGrey};
+    }
+  }
   &-open {
     width: 240px;
     min-width: 240px;
@@ -196,6 +277,23 @@ const cssTopHeader = styled('div', `
     display: none;
   }
 `);
+const cssBottomFooter = styled ('div', `
+  height: 48px;
+  background-color: white;
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  padding: 8px 16px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  @media (min-width: ${maxNarrowScreenWidth}px) {
+    & {
+      display: none;
+    }
+  }
+`);
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `
   --resize-handle-color: ${colors.mediumGrey};
   --resize-handle-highlight: ${colors.lightGreen};
@@ -223,4 +321,36 @@ const cssPanelOpener = styled(icon, `
   transition: transform 0.4s;
   &:hover { background-color: ${colors.darkGreen}; }
   &-open { transform: rotateY(180deg); }
+`);
+const cssPanelOpenerNarrowScreenBtn = styled('div', `
+  width: 32px;
+  height: 32px;
+  --icon-color: ${colors.slate};
+  cursor: pointer;
+  border-radius: 4px;
+  &-open {
+    background-color: ${colors.lightGreen};
+    --icon-color: white;
+  }
+`);
+const cssPanelOpenerNarrowScreen = styled(icon, `
+  width: 24px;
+  height: 24px;
+  margin: 4px;
+`);
+const cssContentOverlay = styled('div', `
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: grey;
+  opacity: 0.5;
+  display: none;
+  z-index: 9;
+  @media (max-width: ${maxNarrowScreenWidth}px) {
+    .${cssPageContainer.className}-optimizeNarrowScreen & {
+      display: unset;
+    }
+  }
 `);
