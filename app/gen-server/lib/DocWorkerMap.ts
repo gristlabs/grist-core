@@ -328,8 +328,29 @@ export class DocWorkerMap implements IDocWorkerMap {
    * A preferred doc worker can be specified, which will be assigned
    * if no assignment is already made.
    *
+   * For the special docId "import", return a potential assignment.
+   * It will be up to the doc worker to assign the eventually
+   * created document, if desired.
+   *
    */
   public async assignDocWorker(docId: string, workerId?: string): Promise<DocStatus> {
+    if (docId === 'import') {
+      const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
+      try {
+        const workerId = await this._client.srandmemberAsync(`workers-available-default`);
+        if (!workerId) { throw new Error('no doc worker available'); }
+        const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+        if (!docWorker) { throw new Error('no doc worker contact info available'); }
+        return {
+          docMD5: null,
+          docWorker,
+          isActive: false
+        };
+      } finally {
+        await lock.unlock();
+      }
+    }
+
     // Check if a DocWorker is already assigned; if so return result immediately
     // without locking.
     let docStatus = await this.getDocWorker(docId);

@@ -35,6 +35,7 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {INotifier} from 'app/server/lib/INotifier';
 import * as log from 'app/server/lib/log';
 import {getLoginMiddleware} from 'app/server/lib/logins';
+import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
@@ -219,6 +220,11 @@ export class FlexServer implements GristServer {
   public getOwnPort(): number {
     // Get the port from the server in case it was started with port 0.
     return this.server ? (this.server.address() as AddressInfo).port : this.port;
+  }
+
+  public getPermitStore(): IPermitStore {
+    if (!this._docWorkerMap) { throw new Error('no permit store available'); }
+    return this._docWorkerMap;
   }
 
   public addLogging() {

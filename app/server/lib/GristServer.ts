@@ -2,6 +2,7 @@ import {SessionUserObj} from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
 import {Hosts} from 'app/server/lib/extractOrg';
 import {ICreate} from 'app/server/lib/ICreate';
+import {IPermitStore} from 'app/server/lib/Permit';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as express from 'express';
 
@@ -14,6 +15,7 @@ export interface GristServer {
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
+  getPermitStore(): IPermitStore;
 }
 
 export interface GristLoginMiddleware {

@@ -35,14 +35,8 @@ export function makeForkIds(options: { userId: number|null, isAnonymous: boolean
   };
 }
 
-// For importing, we can assign any worker to the job.  As a hack, we reuse the document
-// assignment mechanism.  To spread the work around a bit if we have several doc workers,
-// we use a fake document id between import0 and import9.
-// This method takes a DocWorkerMap to allow for something smarter in future.
+// This used to do a hack for importing, but now does nothing.
+// Instead, the server will interpret the special docId "import".
 export function getAssignmentId(docWorkerMap: IDocWorkerMap, docId: string): string {
-  let assignmentId = docId;
-  if (assignmentId === 'import') {
-    assignmentId = `import${Math.round(Math.random() * 10)}`;
-  }
-  return assignmentId;
+  return docId;
 }

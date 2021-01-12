@@ -52,13 +52,14 @@ import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport} from './ActiveDocImport';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, getDocSessionAccess, getDocSessionUserId, makeExceptionalDocSession,
-        OptDocSession} from './DocSession';
+import {DocSession, getDocSessionAccess, getDocSessionUser, getDocSessionUserId,
+        makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import fetch from 'node-fetch';
 
 bluebird.promisifyAll(tmp);
 
@@ -328,8 +329,7 @@ export class ActiveDoc extends EventEmitter {
     const startTime = Date.now();
     this.logDebug(docSession, "loadDoc");
     try {
-      const isNew: boolean = await this._docManager.storageManager.prepareLocalDoc(this.docName,
-                                                                                   docSession);
+      const isNew: boolean = await this._docManager.storageManager.prepareLocalDoc(this.docName);
       if (isNew) {
         await this.createDoc(docSession);
         await this.addInitialTable(docSession);
@@ -571,8 +571,7 @@ export class ActiveDoc extends EventEmitter {
 
   // Check if user has rights to download this doc.
   public async canDownload(docSession: OptDocSession) {
-    return this._granularAccess.hasViewAccess(docSession) &&
-      await this._granularAccess.canReadEverything(docSession);
+    return this._granularAccess.canCopyEverything(docSession);
   }
 
   /**
@@ -885,19 +884,47 @@ export class ActiveDoc extends EventEmitter {
    * Fork the current document.  In fact, all that requires is calculating a good
    * ID for the fork.  TODO: reconcile the two ways there are now of preparing a fork.
    */
-  public async fork(docSession: DocSession): Promise<ForkResult> {
-    if (!await this._granularAccess.canReadEverything(docSession)) {
-      throw new Error('cannot confirm authority to copy document');
+  public async fork(docSession: OptDocSession): Promise<ForkResult> {
+    const user = getDocSessionUser(docSession);
+    // For now, fork only if user can read everything (or is owner).
+    // TODO: allow forks with partial content.
+    if (!user || !await this._granularAccess.canCopyEverything(docSession)) {
+      throw new ApiError('Insufficient access to document to copy it entirely', 403);
     }
-    const userId = docSession.client.getCachedUserId();
-    const isAnonymous = docSession.client.isAnonymous();
+    const userId = user.id;
+    const isAnonymous = this._docManager.isAnonymous(userId);
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
-    const doc = await docSession.authorizer.getDoc();
+    const doc = await docSession.authorizer?.getDoc();
     if (!doc) { throw new Error('document id not known'); }
     const trunkDocId = doc.id;
     const trunkUrlId = doc.urlId || doc.id;
     await this.flushDoc();  // Make sure fork won't be too out of date.
-    return makeForkIds({userId, isAnonymous, trunkDocId, trunkUrlId});
+    const forkIds = makeForkIds({userId, isAnonymous, trunkDocId, trunkUrlId});
+
+    // To actually create the fork, we call an endpoint.  This is so the fork
+    // can be associated with an arbitrary doc worker, rather than tied to the
+    // same worker as the trunk.  We use a Permit for authorization.
+    const permitStore = this._docManager.gristServer.getPermitStore();
+    const permitKey = await permitStore.setPermit({docId: forkIds.docId,
+                                                   otherDocId: this.docName});
+    try {
+      const url = await this._docManager.gristServer.getHomeUrlByDocId(forkIds.docId, `/api/docs/${forkIds.docId}/create-fork`);
+      const resp = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ srcDocId: this.docName }),
+        headers: {
+          Permit: permitKey,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (resp.status !== 200) {
+        throw new ApiError(resp.statusText, resp.status);
+      }
+    } finally {
+      await permitStore.removePermit(permitKey);
+    }
+
+    return forkIds;
   }
 
   /**

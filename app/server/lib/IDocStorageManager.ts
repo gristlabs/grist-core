@@ -1,7 +1,6 @@
 import {DocEntry} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocReplacementOptions} from 'app/common/UserAPI';
-import {OptDocSession} from 'app/server/lib/DocSession';
 
 export interface IDocStorageManager {
   getPath(docName: string): string;
@@ -11,8 +10,9 @@ export interface IDocStorageManager {
   // This method must not be called for the same docName twice in parallel.
   // In the current implementation, it is called in the context of an
   // AsyncCreate[docName].
-  prepareLocalDoc(docName: string, docSession: OptDocSession): Promise<boolean>;
+  prepareLocalDoc(docName: string): Promise<boolean>;
   prepareToCreateDoc(docName: string): Promise<void>;
+  prepareFork(srcDocName: string, destDocName: string): Promise<void>;
 
   listDocs(): Promise<DocEntry[]>;
   deleteDoc(docName: string, deletePermanently?: boolean): Promise<void>;

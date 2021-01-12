@@ -324,11 +324,22 @@ export class GranularAccess {
   }
 
   /**
-   * Check whether user can read everything in document.
+   * Check whether user can read everything in document.  Checks both home-level and doc-level
+   * permissions.
    */
   public async canReadEverything(docSession: OptDocSession): Promise<boolean> {
+    const access = getDocSessionAccess(docSession);
+    if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
     return permInfo.getFullAccess().read === 'allow';
+  }
+
+  /**
+   * Check whether user can copy everything in document.  Owners can always copy
+   * everything, even if there are rules that specify they cannot.
+   */
+  public async canCopyEverything(docSession: OptDocSession): Promise<boolean> {
+    return this.isOwner(docSession) || this.canReadEverything(docSession);
   }
 
   /**
@@ -347,16 +358,6 @@ export class GranularAccess {
   public isOwner(docSession: OptDocSession): boolean {
     const access = getDocSessionAccess(docSession);
     return access === 'owners';
-  }
-
-  /**
-   * Check for view access to the document.  For most code paths, a request or message
-   * won't even be considered if there isn't view access, but there's no harm in double
-   * checking.
-   */
-  public hasViewAccess(docSession: OptDocSession): boolean {
-    const access = getDocSessionAccess(docSession);
-    return canView(access);
   }
 
   /**

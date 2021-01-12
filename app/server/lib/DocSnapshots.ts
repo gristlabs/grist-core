@@ -122,6 +122,13 @@ export class DocSnapshotInventory implements IInventory {
   }
 
   /**
+   * Return true if document inventory does not need to be saved and is not in flux.
+   */
+  public isSaved(key: string) {
+    return !this._needFlush.has(key) && !this._mutex.isLocked(key);
+  }
+
+  /**
    * Add a new snapshot of a document to the existing inventory.  A prevSnapshotId may
    * be supplied as a cross-check.  It will be matched against the most recent
    * snapshotId in the inventory, and if it doesn't match the inventory will be

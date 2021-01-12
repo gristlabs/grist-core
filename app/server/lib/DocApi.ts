@@ -207,6 +207,22 @@ export class DocWorkerApi {
       }
     }));
 
+    // Fork the specified document.
+    this._app.post('/api/docs/:docId/fork', canView, withDoc(async (activeDoc, req, res) => {
+      const result = await activeDoc.fork(docSessionFromRequest(req));
+      res.json(result);
+    }));
+
+    // Initiate a fork.  Used internally to implement ActiveDoc.fork.  Only usable via a Permit.
+    this._app.post('/api/docs/:docId/create-fork', canEdit, throttled(async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const docId = stringParam(req.params.docId);
+      const srcDocId = stringParam(req.body.srcDocId);
+      if (srcDocId !== mreq.specialPermit?.otherDocId) { throw new Error('access denied'); }
+      await this._docManager.storageManager.prepareFork(srcDocId, docId);
+      res.json({srcDocId, docId});
+    }));
+
     // Update records. The records to update are identified by their id column. Any invalid id fails
     // the request and returns a 400 error code.
     this._app.patch('/api/docs/:docId/tables/:tableId/data', canEdit, withDoc(async (activeDoc, req, res) => {
@@ -458,7 +474,7 @@ export class DocWorkerApi {
       const isAnonymous = isAnonymousUser(req);
       const {docId} = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
                                    trunkUrlId: NEW_DOCUMENT_CODE});
-      await this._docManager.fetchDoc(makeExceptionalDocSession('nascent', {
+      await this._docManager.createNamedDoc(makeExceptionalDocSession('nascent', {
         req: req as RequestWithLogin,
         browserSettings
       }), docId);

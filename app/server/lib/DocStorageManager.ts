@@ -8,7 +8,6 @@ import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import * as gutil from 'app/common/gutil';
 import * as Comm from 'app/server/lib/Comm';
-import {OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -85,9 +84,13 @@ export class DocStorageManager implements IDocStorageManager {
    * Prepares a document for use locally. Returns whether the document is new (needs to be
    * created). This is a no-op in the local DocStorageManager case.
    */
-  public async prepareLocalDoc(docName: string, docSession: OptDocSession): Promise<boolean> { return false; }
+  public async prepareLocalDoc(docName: string): Promise<boolean> { return false; }
 
   public async prepareToCreateDoc(docName: string): Promise<void> {
+    // nothing to do
+  }
+
+  public async prepareFork(srcDocName: string, destDocName: string): Promise<void> {
     // nothing to do
   }
 

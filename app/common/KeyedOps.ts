@@ -99,6 +99,7 @@ export class KeyedOps {
       await status.promise;
       return;
     }
+    if (!this._changed.has(key)) { return; }
     const callback = new Promise((resolve) => {
       status.callbacks.push(resolve);
     });

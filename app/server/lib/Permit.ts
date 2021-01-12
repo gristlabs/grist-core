@@ -28,6 +28,7 @@ export interface Permit {
   docId?: string;
   workspaceId?: number;
   org?: string|number;
+  otherDocId?: string;  // For operations involving two documents.
 }
 
 /* A store of permits */

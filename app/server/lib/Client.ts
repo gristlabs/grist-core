@@ -3,6 +3,7 @@ import {BrowserSettings} from 'app/common/BrowserSettings';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {getLoginState, LoginState} from 'app/common/LoginState';
+import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -297,10 +298,17 @@ export class Client {
     // practice via a change to profile, but let's not make any assumptions here.)
     this._userId = null;
     this._firstLoginAt = null;
-    this._isAnonymous = false;
+    this._isAnonymous = !profile;
   }
 
   public getProfile(): UserProfile|null {
+    if (this._isAnonymous) {
+      return {
+        name: 'Anonymous',
+        email: ANONYMOUS_USER_EMAIL,
+        anonymous: true,
+      };
+    }
     return this._profile;
   }
 
@@ -315,10 +323,16 @@ export class Client {
   // Returns the userId for profile.email, or null when profile is not set; with caching.
   public async getUserId(dbManager: HomeDBManager): Promise<number|null> {
     if (!this._userId) {
-      const user = await this._fetchUser(dbManager);
-      this._userId = (user && user.id) || null;
-      this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
-      this._firstLoginAt = (user && user.firstLoginAt) || null;
+      if (this._profile) {
+        const user = await this._fetchUser(dbManager);
+        this._userId = (user && user.id) || null;
+        this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
+        this._firstLoginAt = (user && user.firstLoginAt) || null;
+      } else {
+        this._userId = dbManager.getAnonymousUserId();
+        this._isAnonymous = true;
+        this._firstLoginAt = null;
+      }
     }
     return this._userId;
   }

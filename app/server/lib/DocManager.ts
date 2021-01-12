@@ -109,7 +109,11 @@ export class DocManager extends EventEmitter {
   public async createNewDoc(client: Client): Promise<string> {
     log.debug('DocManager.createNewDoc');
     const docSession = makeExceptionalDocSession('nascent', {client});
-    const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, 'Untitled');
+    return this.createNamedDoc(docSession, 'Untitled');
+  }
+
+  public async createNamedDoc(docSession: OptDocSession, docId: string): Promise<string> {
+    const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, docId);
     await activeDoc.addInitialTable(docSession);
     return activeDoc.docName;
   }
@@ -188,9 +192,10 @@ export class DocManager extends EventEmitter {
       }
     }
 
-    // Ship the import to S3, since it isn't associated with any particular worker at this time.
-    // We could associate it with the current worker, but that is not necessarily desirable.
-    await this.storageManager.addToStorage(result.id);
+    // The imported document is associated with the worker that did the import.
+    // We could break that association (see /api/docs/:docId/assign for how) if
+    // we start using dedicated import workers.
+
     return result;
   }
 
@@ -397,6 +402,11 @@ export class DocManager extends EventEmitter {
     return makeAccessId(this.gristServer, userId);
   }
 
+  public isAnonymous(userId: number): boolean {
+    if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
+    return userId === this._homeDbManager.getAnonymousUserId();
+  }
+
   /**
    * Helper function for creating a new shared document given the doc snapshot bundles received
    * from the sharing hub.
@@ -458,6 +468,7 @@ export class DocManager extends EventEmitter {
         const docName = await this._createNewDoc(id);
         const docPath = await this.storageManager.getPath(docName);
         await docUtils.copyFile(uploadInfo.files[0].absPath, docPath);
+        await this.storageManager.addToStorage(docName);
         return {title: basename, id: docName};
       } else {
         const doc = await this.createNewEmptyDoc(docSession, id);
