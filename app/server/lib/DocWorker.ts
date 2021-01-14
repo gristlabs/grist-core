@@ -111,6 +111,7 @@ export class DocWorker {
       reloadDoc:                activeDocMethod.bind(null, 'editors', 'reloadDoc'),
       fork:                     activeDocMethod.bind(null, 'viewers', 'fork'),
       checkAclFormula:          activeDocMethod.bind(null, 'viewers', 'checkAclFormula'),
+      getAclResources:          activeDocMethod.bind(null, 'viewers', 'getAclResources'),
     });
   }
 

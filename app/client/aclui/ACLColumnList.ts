@@ -3,7 +3,7 @@
  * add a new column, and allows removing already-added columns.
  */
 import {aclSelect, cssSelect} from 'app/client/aclui/ACLSelect';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, dom, Observable, styled} from 'grainjs';
 
@@ -53,8 +53,10 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
       cssColItem(
         cssColId(colId),
         cssColItemIcon(icon('CrossSmall'),
-          dom.on('click', () => removeColId(colId))
-        )
+          dom.on('click', () => removeColId(colId)),
+          testId('acl-col-remove'),
+        ),
+        testId('acl-column'),
       )
     ),
     cssNewColItem(

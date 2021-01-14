@@ -932,7 +932,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async checkAclFormula(docSession: DocSession, text: string): Promise<void> {
     // Checks can leak names of tables and columns.
-    if (!await this._granularAccess.canReadEverything(docSession)) { return; }
+    if (await this._granularAccess.hasNuancedAccess(docSession)) { return; }
     await this.waitForInitialization();
     try {
       const parsedAclFormula = await this._pyCall('parse_acl_formula', text);
@@ -943,6 +943,28 @@ export class ActiveDoc extends EventEmitter {
       e.message = e.message?.replace('[Sandbox] ', '');
       throw e;
     }
+  }
+
+  /**
+   * Returns the full set of tableIds, with the list of colIds for each table. This is intended
+   * for editing ACLs. It is only available to users who can edit ACLs, and lists all resources
+   * regardless of rules that may block access to them.
+   */
+  public async getAclResources(docSession: DocSession): Promise<{[tableId: string]: string[]}> {
+    if (await this._granularAccess.hasNuancedAccess(docSession) || !this.docData)  {
+      throw new Error('Cannot list ACL resources');
+    }
+    const result: {[tableId: string]: string[]} = {};
+    const tables = this.docData.getTable('_grist_Tables')!;
+    for (const tableId of tables.getColValues('tableId')!) {
+      result[tableId as string] = ['id'];
+    }
+    const columns = this.docData.getTable('_grist_Tables_column')!;
+    for (const col of columns.getRecords()) {
+      const tableId = tables.getValue(col.parentId as number, 'tableId');
+      result[tableId as string].push(col.colId as string);
+    }
+    return result;
   }
 
   public getGristDocAPI(): GristDocAPI {
@@ -1023,7 +1045,7 @@ export class ActiveDoc extends EventEmitter {
     if (!this.isOwner(docSession)) {
       throw new Error('cannot delete actions, access denied');
     }
-    this._actionHistory.deleteActions(keepN);
+    await this._actionHistory.deleteActions(keepN);
   }
 
   /**

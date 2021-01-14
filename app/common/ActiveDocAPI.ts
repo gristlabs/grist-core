@@ -227,4 +227,11 @@ export interface ActiveDocAPI {
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
   checkAclFormula(text: string): Promise<void>;
+
+  /**
+   * Returns the full set of tableIds, with the list of colIds for each table. This is intended
+   * for editing ACLs. It is only available to users who can edit ACLs, and lists all resources
+   * regardless of rules that may block access to them.
+   */
+  getAclResources(): Promise<{[tableId: string]: string[]}>;
 }

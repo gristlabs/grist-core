@@ -6,7 +6,6 @@ import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
 import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
@@ -66,9 +65,6 @@ export class AccessRules extends Disposable {
   // The default rule set for the document (for "*:*").
   private _docDefaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
 
-  // Array of all tableIds in the document (for adding new per-table rules).
-  private _allTableIds = createObsArray(this, this._gristDoc.docModel.allTableIds);
-
   // Array of all UserAttribute rules.
   private _userAttrRules = this.autoDispose(obsArray<ObsUserAttributeRule>());
 
@@ -81,6 +77,9 @@ export class AccessRules extends Disposable {
 
   // Error or warning message to show next to Save/Reset buttons if non-empty.
   private _errorMessage = Observable.create(this, '');
+
+  // Map of tableId to the list of columns for all tables in the document.
+  private _aclResources: {[tableId: string]: string[]} = {};
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -141,7 +140,7 @@ export class AccessRules extends Disposable {
     }
   }
 
-  public get allTableIds() { return this._allTableIds; }
+  public get allTableIds() { return Object.keys(this._aclResources).sort(); }
   public get userAttrRules() { return this._userAttrRules; }
   public get userAttrChoices() { return this._userAttrChoices; }
 
@@ -152,6 +151,7 @@ export class AccessRules extends Disposable {
     this._errorMessage.set('');
     const rules = this._ruleCollection;
     await rules.update(this._gristDoc.docData, {log: console});
+    this._aclResources = await this._gristDoc.docComm.getAclResources();
     this._tableRules.set(
       rules.getAllTableIds().map(tableId => TableRules.create(this._tableRules,
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
@@ -279,8 +279,8 @@ export class AccessRules extends Disposable {
         ),
 
         bigBasicButton('Add Table Rules', cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
-          menu(() => [
-            dom.forEach(this._allTableIds, (tableId) =>
+          menu(() =>
+            this.allTableIds.map((tableId) =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
@@ -288,7 +288,7 @@ export class AccessRules extends Disposable {
                 dom.cls('disabled', (use) => use(this._tableRules).some(t => t.tableId === tableId)),
               )
             ),
-          ]),
+          ),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
       ),
@@ -365,10 +365,10 @@ export class AccessRules extends Disposable {
   // Returns '' if valid, or an error string if not. Exempt colIds will not trigger an error.
   public checkTableColumns(tableId: string, colIds?: string[], exemptColIds?: string[]): string {
     if (!tableId) { return ''; }
-    const table = this._gristDoc.docData.getTable(tableId);
-    if (!table) { return `Invalid table: ${tableId}`; }
+    const tableColIds = this._aclResources[tableId];
+    if (!tableColIds) { return `Invalid table: ${tableId}`; }
     if (colIds) {
-      const validColIds = new Set([...table.getColIds(), ...exemptColIds || []]);
+      const validColIds = new Set([...tableColIds, ...exemptColIds || []]);
       const invalidColIds = colIds.filter(c => !validColIds.has(c));
       if (invalidColIds.length === 0) { return ''; }
       return `Invalid columns in table ${tableId}: ${invalidColIds.join(', ')}`;
@@ -378,9 +378,7 @@ export class AccessRules extends Disposable {
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
   public getValidColIds(tableId: string): string[]|undefined {
-    return this._gristDoc.docData.getTable(tableId)?.getColIds()
-      .filter(id => !isHiddenCol(id))
-      .sort();
+    return this._aclResources[tableId]?.filter(id => !isHiddenCol(id)).sort();
   }
 
   private _addTableRules(tableId: string) {
