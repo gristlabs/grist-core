@@ -27,6 +27,7 @@ export interface PageContents {
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
   optimizeNarrowScreen?: boolean;  // If true, show an optimized layout when screen is narrow.
+  contentBottom?: DomArg;
 }
 
 export function pagePanels(page: PageContents) {
@@ -136,7 +137,7 @@ export function pagePanels(page: PageContents) {
            cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
          )
         ),
-        dom('div', cssFlexSpacer.cls('')),
+        page.contentBottom,
         (!right || right.hideOpener ? null :
          cssPanelOpenerNarrowScreenBtn(
            cssPanelOpenerNarrowScreen(
@@ -164,9 +165,6 @@ const cssVBox = styled('div', `
 `);
 const cssHBox = styled('div', `
   display: flex;
-`);
-const cssFlexSpacer = styled('div', `
-  flex-grow: 1;
 `);
 const cssPageContainer = styled(cssHBox, `
   position: absolute;
@@ -283,6 +281,8 @@ const cssBottomFooter = styled ('div', `
   z-index: 20;
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   padding: 8px 16px;
   position: absolute;
   bottom: 0;

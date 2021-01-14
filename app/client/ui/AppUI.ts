@@ -6,6 +6,7 @@ import {DocPageModelImpl} from 'app/client/models/DocPageModel';
 import {HomeModelImpl} from 'app/client/models/HomeModel';
 import {App} from 'app/client/ui/App';
 import {appHeader} from 'app/client/ui/AppHeader';
+import {createBottomBarDoc} from 'app/client/ui/BottomBar';
 import {createDocMenu} from 'app/client/ui/DocMenu';
 import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
 import {createHomeLeftPane} from 'app/client/ui/HomeLeftPane';
@@ -148,5 +149,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     onResize,
     testId,
     optimizeNarrowScreen: true,
+    contentBottom: dom.create(createBottomBarDoc, pageModel)
   });
 }
