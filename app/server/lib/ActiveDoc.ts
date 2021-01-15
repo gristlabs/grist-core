@@ -160,6 +160,10 @@ export class ActiveDoc extends EventEmitter {
 
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
+  public async getUserOverride(docSession: OptDocSession) {
+    return this._granularAccess.getUserOverride(docSession);
+  }
+
   // Helpers to log a message along with metadata about the request.
   public logDebug(s: OptDocSession, msg: string, ...args: any[]) { this._log('debug', s, msg, ...args); }
   public logInfo(s: OptDocSession, msg: string, ...args: any[]) { this._log('info', s, msg, ...args); }
@@ -417,7 +421,7 @@ export class ActiveDoc extends EventEmitter {
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, (query) => {
       return this._fetchQueryFromDB(query, false);
-    }, this.recoveryMode);
+    }, this.recoveryMode, this._docManager.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
 

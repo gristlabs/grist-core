@@ -54,6 +54,10 @@ export class DocManager extends EventEmitter {
     this._homeDbManager = dbManager;
   }
 
+  public getHomeDbManager() {
+    return this._homeDbManager;
+  }
+
   /**
    * Returns an implementation of the DocListAPI for the given Client object.
    */
@@ -303,6 +307,7 @@ export class DocManager extends EventEmitter {
       log: recentActions,
       plugins: activeDoc.docPluginManager.getPlugins(),
       recoveryMode: activeDoc.recoveryMode,
+      userOverride: await activeDoc.getUserOverride(docSession),
     };
   }
 

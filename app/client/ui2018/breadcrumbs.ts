@@ -9,6 +9,7 @@ import { urlState } from 'app/client/models/gristUrlState';
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { editableLabel } from 'app/client/ui2018/editableLabel';
 import { icon } from 'app/client/ui2018/icons';
+import { UserOverride } from 'app/common/DocListAPI';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
 
@@ -85,11 +86,13 @@ export function docBreadcrumbs(
     docNameSave: (val: string) => Promise<void>,
     pageNameSave: (val: string) => Promise<void>,
     cancelRecoveryMode: () => Promise<void>,
+    cancelUserOverride: () => Promise<void>,
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
     isFiddle: Observable<boolean>,
     isRecoveryMode: Observable<boolean>,
+    userOverride: Observable<UserOverride|null>,
     isSnapshot?: Observable<boolean>,
     isPublic?: Observable<boolean>,
   }
@@ -118,10 +121,16 @@ export function docBreadcrumbs(
         }
         if (use(options.isRecoveryMode)) {
           return cssAlertTag('recovery mode',
-                             dom('a', dom.on('click', async () => {
-                               await options.cancelRecoveryMode()
-                             }), icon('CrossSmall')),
+                             dom('a', dom.on('click', () => options.cancelRecoveryMode()),
+                                 icon('CrossSmall')),
                              testId('recovery-mode-tag'));
+        }
+        const userOverride = use(options.userOverride);
+        if (userOverride) {
+          return cssAlertTag(userOverride.user?.email || 'override',
+                             dom('a', dom.on('click', () => options.cancelUserOverride()),
+                                 icon('CrossSmall')),
+                             testId('user-override-tag'));
         }
         if (use(options.isFiddle)) {
           return cssTag('fiddle', tooltip({title: fiddleExplanation}), testId('fiddle-tag'));

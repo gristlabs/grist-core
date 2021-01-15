@@ -1,7 +1,9 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {TableDataAction} from 'app/common/DocActions';
 import {LocalPlugin} from 'app/common/plugin';
+import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
+import {FullUser} from 'app/common/UserAPI';
 
 // Possible flavors of items in a list of documents.
 export type DocEntryTag = ''|'sample'|'invite'|'shared';
@@ -43,6 +45,12 @@ export interface OpenLocalDocResult {
   log: ActionGroup[];
   plugins: LocalPlugin[];
   recoveryMode?: boolean;
+  userOverride?: UserOverride;
+}
+
+export class UserOverride {
+  user: FullUser|null;
+  access: Role|null;
 }
 
 export interface DocListAPI {

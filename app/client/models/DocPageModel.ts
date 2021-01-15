@@ -16,7 +16,7 @@ import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018
 import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
-import {OpenDocMode} from 'app/common/DocListAPI';
+import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit} from 'app/common/roles';
@@ -32,6 +32,7 @@ export interface DocInfo extends Document {
   isPreFork: boolean;
   isFork: boolean;
   isRecoveryMode: boolean;
+  userOverride: UserOverride|null;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
                         // fork without an original.
   idParts: UrlIdParts;
@@ -56,6 +57,7 @@ export interface DocPageModel {
   isPrefork: Observable<boolean>;
   isFork: Observable<boolean>;
   isRecoveryMode: Observable<boolean>;
+  userOverride: Observable<UserOverride|null>;
   isBareFork: Observable<boolean>;
   isSample: Observable<boolean>;
 
@@ -93,6 +95,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
   public readonly isRecoveryMode = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isRecoveryMode : false);
+  public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSample = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSample : false);
 
@@ -245,8 +248,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     flow.onDispose(() => comm.releaseDocConnection(doc.id));
 
     const openDocResponse = await comm.openDoc(doc.id, doc.openMode, linkParameters);
-    if (openDocResponse.recoveryMode) {
-      doc.isRecoveryMode = true;
+    if (openDocResponse.recoveryMode || openDocResponse.userOverride) {
+      doc.isRecoveryMode = Boolean(openDocResponse.recoveryMode);
+      doc.userOverride = openDocResponse.userOverride || null;
       this.currentDoc.set({...doc});
     }
     const gdModule = await gristDocModulePromise;
@@ -329,6 +333,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode): DocInfo {
     ...doc,
     isFork,
     isRecoveryMode: false,  // we don't know yet, will learn when doc is opened.
+    userOverride: null,     // ditto.
     isSample,
     isPreFork,
     isBareFork,

@@ -12,14 +12,18 @@ import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActi
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
+import { UserOverride } from 'app/common/DocListAPI';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoView } from 'app/common/GranularAccessClause';
 import { RuleSet, UserInfo } from 'app/common/GranularAccessClause';
 import { getSetMapValue, isObject } from 'app/common/gutil';
-import { canView } from 'app/common/roles';
+import { canView, Role } from 'app/common/roles';
+import { FullUser } from 'app/common/UserAPI';
+import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
+import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
 import get = require('lodash/get');
@@ -114,7 +118,9 @@ export class GranularAccess {
   public constructor(
     private _docData: DocData,
     private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>,
-    private _recoveryMode: boolean) {
+    private _recoveryMode: boolean,
+    private _homeDbManager: HomeDBManager | null,
+    private _docId: string) {
   }
 
   /**
@@ -488,6 +494,11 @@ export class GranularAccess {
     this._filterColumns(data[3], (colId) => permInfo.getColumnAccess(tableId, colId).read !== 'deny');
   }
 
+  public async getUserOverride(docSession: OptDocSession): Promise<UserOverride|undefined> {
+    await this._getUser(docSession);
+    return this._getUserAttributes(docSession).override;
+  }
+
   /**
    * Strip out any denied columns from an action.  Returns null if nothing is left.
    * accessFn may throw if denials are fatal.
@@ -799,9 +810,36 @@ export class GranularAccess {
    * created by user-attribute rules.
    */
   private async _getUser(docSession: OptDocSession): Promise<UserInfo> {
-    const access = getDocSessionAccess(docSession);
-    const fullUser = getDocSessionUser(docSession);
+    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    let access: Role | null;
+    let fullUser: FullUser | null;
     const attrs = this._getUserAttributes(docSession);
+    access = getDocSessionAccess(docSession);
+
+    // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
+    if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
+      if (!this.isOwner(docSession)) { throw new Error('only an owner can override user'); }
+      if (attrs.override) {
+        // Used cached properties.
+        access = attrs.override.access;
+        fullUser = attrs.override.user;
+      } else {
+        // Look up user information in database.
+        if (!this._homeDbManager) { throw new Error('database required'); }
+        const user = linkParameters.aclAsUserId ?
+          (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId))) :
+          (await this._homeDbManager.getUserByLogin(linkParameters.aclAsUser));
+        const docAuth = user && await this._homeDbManager.getDocAuthCached({
+          urlId: this._docId,
+          userId: user.id
+        });
+        access = docAuth?.access || null;
+        fullUser = user && this._homeDbManager.makeFullUser(user) || null;
+        attrs.override = { access, user: fullUser };
+      }
+    } else {
+      fullUser = getDocSessionUser(docSession);
+    }
     const user: UserInfo = {};
     user.Access = access;
     user.UserID = fullUser?.id || null;
@@ -809,7 +847,7 @@ export class GranularAccess {
     user.Name = fullUser?.name || null;
     // If viewed from a websocket, collect any link parameters included.
     // TODO: could also get this from rest api access, just via a different route.
-    user.Link = docSession.authorizer?.getLinkParameters() || {};
+    user.Link = linkParameters;
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
@@ -1114,6 +1152,7 @@ class EmptyRecordView implements InfoView {
  */
 class UserAttributes {
   public rows: {[clauseName: string]: InfoView} = {};
+  public override?: UserOverride;
 }
 
 // A function for extracting one of the create/read/update/delete/schemaEdit permissions

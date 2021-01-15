@@ -359,7 +359,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public getUser(userId: number): Promise<User|undefined> {
-    return User.findOne(userId);
+    return User.findOne(userId, {relations: ["logins"]});
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
