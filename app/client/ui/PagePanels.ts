@@ -292,7 +292,7 @@ const cssBottomFooter = styled ('div', `
   bottom: 0;
   left: 0;
   right: 0;
-  @media (min-width: ${maxNarrowScreenWidth}px) {
+  @media not all and (max-width: ${maxNarrowScreenWidth}px) {
     & {
       display: none;
     }

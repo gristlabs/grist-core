@@ -6,7 +6,7 @@
  * Workspace is a clickable link and document and page names are editable labels.
  */
 import { urlState } from 'app/client/models/gristUrlState';
-import { colors, testId } from 'app/client/ui2018/cssVars';
+import { colors, cssHideForNarrowScreen, maxNarrowScreenWidth, testId } from 'app/client/ui2018/cssVars';
 import { editableLabel } from 'app/client/ui2018/editableLabel';
 import { icon } from 'app/client/ui2018/icons';
 import { UserOverride } from 'app/common/DocListAPI';
@@ -44,6 +44,22 @@ const cssPublicIcon = styled(cssIcon, `
 
 const cssWorkspaceName = styled(cssBreadcrumbsLink, `
   margin-left: 8px;
+`);
+
+const cssWorkspaceNarrowScreen = styled(icon, `
+  transform: rotateY(180deg);
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  margin-left: -7px;
+  margin-right: 8px;
+  background-color: ${colors.slate};
+  cursor: pointer;
+  @media not all and (max-width: ${maxNarrowScreenWidth}px) {
+    & {
+      display: none;
+    }
+  }
 `);
 
 const cssEditableName = styled('input', `
@@ -98,14 +114,24 @@ export function docBreadcrumbs(
   }
   ): Element {
     return cssBreadcrumbs(
-      cssIcon('Home'),
+      cssIcon('Home',
+              testId('bc-home'),
+              cssHideForNarrowScreen.cls('')),
       dom.maybe(workspace, _workspace => [
         cssWorkspaceName(
           urlState().setLinkUrl({ws: _workspace.id}),
           dom.text(_workspace.name),
-          testId('bc-workspace')
+          testId('bc-workspace'),
+          cssHideForNarrowScreen.cls('')
         ),
-        separator(' / ')
+        cssWorkspaceNarrowScreen(
+          'Expand',
+          urlState().setLinkUrl({ws: _workspace.id}),
+          testId('bc-workspace-ns')
+        ),
+        separator(' / ',
+                  testId('bc-separator'),
+                  cssHideForNarrowScreen.cls(''))
       ]),
       editableLabel(
         docName, options.docNameSave, testId('bc-doc'), cssEditableName.cls(''),
@@ -136,10 +162,13 @@ export function docBreadcrumbs(
           return cssTag('fiddle', tooltip({title: fiddleExplanation}), testId('fiddle-tag'));
         }
       }),
-      separator(' / '),
+      separator(' / ',
+                testId('bc-separator'),
+                cssHideForNarrowScreen.cls('')),
       editableLabel(
         pageName, options.pageNameSave, testId('bc-page'), cssEditableName.cls(''),
         dom.boolAttr('disabled', options.isPageNameReadOnly || false),
+        dom.cls(cssHideForNarrowScreen.className),
       ),
     );
 }
