@@ -149,6 +149,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     onResize,
     testId,
     optimizeNarrowScreen: true,
-    contentBottom: dom.create(createBottomBarDoc, pageModel)
+    contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen)
   });
 }

@@ -117,6 +117,10 @@ export function pagePanels(page: PageContents) {
     ),
     cssContentOverlay(
       dom.show((use) => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+      dom.on('click', () => {
+        left.panelOpen.set(false);
+        if (right) { right.panelOpen.set(false); }
+      }),
       testId('overlay'))
   ), (
     !optimizeNarrowScreen ? null :
