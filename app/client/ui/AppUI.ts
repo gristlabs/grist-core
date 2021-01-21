@@ -15,7 +15,7 @@ import {pagePanels} from 'app/client/ui/PagePanels';
 import {RightPanel} from 'app/client/ui/RightPanel';
 import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
 import {WelcomePage} from 'app/client/ui/WelcomePage';
-import {testId} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, testId} from 'app/client/ui2018/cssVars';
 import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe} from 'grainjs';
 
 // When integrating into the old app, we might in theory switch between new-style and old-style
@@ -103,15 +103,24 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel) {
   });
 }
 
+// Create session observable. But if device is a narrow screen create a regular observable.
+function createPanelObs<T>(owner: IDisposableOwner, key: string, _default: T, isValid: (val: any) => val is T) {
+  if (isNarrowScreen()) {
+    return Observable.create(owner, _default);
+  }
+  return createSessionObs<T>(owner, key, _default, isValid);
+}
+
 function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App) {
   const pageModel = DocPageModelImpl.create(owner, appObj, appModel);
   // To simplify manual inspection in the common case, keep the most recently created
   // DocPageModel available as a global variable.
   (window as any).gristDocPageModel = pageModel;
-  const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
-  const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
-  const leftPanelWidth = createSessionObs<number>(owner, "leftPanelWidth", 240, isNumber);
-  const rightPanelWidth = createSessionObs<number>(owner, "rightPanelWidth", 240, isNumber);
+  const leftPanelOpen = createPanelObs<boolean>(owner, "leftPanelOpen", isNarrowScreen() ? false : true,
+                                                       isBoolean);
+  const rightPanelOpen = createPanelObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
+  const leftPanelWidth = createPanelObs<number>(owner, "leftPanelWidth", 240, isNumber);
+  const rightPanelWidth = createPanelObs<number>(owner, "rightPanelWidth", 240, isNumber);
 
   // The RightPanel component gets created only when an instance of GristDoc is set in pageModel.
   // use.owner is a feature of grainjs to make the new RightPanel owned by the computed itself:

@@ -157,6 +157,10 @@ export const testId: TestId = makeTestId('test-');
 // Max width for narrow screen layout (in px). Note: 768px is bootstrap's definition of small screen
 export const maxNarrowScreenWidth = 768;
 
+export function isNarrowScreen() {
+  return window.innerWidth <= 768;
+}
+
 export const cssHideForNarrowScreen = styled('div', `
   @media (max-width: ${maxNarrowScreenWidth}px) {
     & {
