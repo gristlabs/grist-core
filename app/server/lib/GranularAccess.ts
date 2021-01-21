@@ -628,10 +628,28 @@ export class GranularAccess {
     // For the moment, only deal with Record-related actions.
     // TODO: process table/column schema changes more carefully.
     if (isSchemaAction(a)) { return; }
+    const {rowsBefore, rowsAfter} = await this._getRowsBeforeAndAfter(idx);
+    await this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
+  }
+
+  private async _getRowsBeforeAndAfter(idx: number) {
     if (!this._rowSnapshots) { throw new Error('Logic error: actions not available'); }
     const allRowSnapshots = await this._rowSnapshots.get();
-    const [rowsBefore, rowsAfter] = allRowSnapshots[idx];
-    await this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
+    const rowsBefore = allRowSnapshots[idx][0];
+    // When determining whether to apply an action, we choose to make newRec refer to the
+    // state at the end of the entire bundle.  So we look for the last pair of row snapshots
+    // for the same tableId.
+    // TODO: this would need to be elaborated to work well on bundles containing table
+    // renames.
+    const tableId = getTableId(rowsBefore);
+    for (const snapshots of allRowSnapshots.reverse()) {
+      const rowsAfter = snapshots[1];
+      if (getTableId(rowsAfter) === tableId) {
+        return {rowsBefore, rowsAfter};
+      }
+    }
+    // Should not be possible to arrive here.
+    throw new Error('Logic error: no matching snapshot');
   }
 
   /**
