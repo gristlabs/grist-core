@@ -3,7 +3,7 @@
  */
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition} from 'app/client/ui/transitions';
-import {colors, cssHideForNarrowScreen, maxNarrowScreenWidth} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomArg, noTestId, Observable, styled, TestId} from "grainjs";
 
@@ -39,7 +39,6 @@ export function pagePanels(page: PageContents) {
 
   return [cssPageContainer(
     cssPageContainer.cls('-optimizeNarrowScreen', optimizeNarrowScreen),
-    optimizeNarrowScreen ? dom.style('min-width', '240px') : null,
     cssLeftPane(
       testId('left-panel'),
       cssTopHeader(left.header),
@@ -121,39 +120,36 @@ export function pagePanels(page: PageContents) {
         left.panelOpen.set(false);
         if (right) { right.panelOpen.set(false); }
       }),
-      testId('overlay'))
+      testId('overlay')
+    ),
   ), (
     !optimizeNarrowScreen ? null :
       cssBottomFooter(
         testId('bottom-footer'),
-        (left.hideOpener ? null :
-         cssPanelOpenerNarrowScreenBtn(
-           cssPanelOpenerNarrowScreen(
-             'FieldTextbox',
-             dom.on('click', () => {
-               if (right) {
-                 right.panelOpen.set(false);
-               }
-               toggleObs(left.panelOpen);
-             }),
-             testId('left-opener-ns')
-           ),
-           cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
-         )
+        cssPanelOpenerNarrowScreenBtn(
+          cssPanelOpenerNarrowScreen(
+            'FieldTextbox',
+            dom.on('click', () => {
+              right?.panelOpen.set(false);
+              toggleObs(left.panelOpen);
+            }),
+            testId('left-opener-ns')
+          ),
+          cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
         ),
         page.contentBottom,
-        (!right || right.hideOpener ? null :
-         cssPanelOpenerNarrowScreenBtn(
-           cssPanelOpenerNarrowScreen(
-             'Settings',
-             dom.on('click', () => {
-               left.panelOpen.set(false);
-               toggleObs(right.panelOpen);
-             }),
-             testId('right-opener-ns')
-           ),
-           cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
-         )
+        (!right ? null :
+          cssPanelOpenerNarrowScreenBtn(
+            cssPanelOpenerNarrowScreen(
+              'Settings',
+              dom.on('click', () => {
+                left.panelOpen.set(false);
+                toggleObs(right.panelOpen);
+              }),
+              testId('right-opener-ns')
+            ),
+            cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
+          )
         ),
       )
   )];
@@ -178,15 +174,15 @@ const cssPageContainer = styled(cssHBox, `
   left: 0;
   right: 0;
   bottom: 0;
-  min-width: 600px
+  min-width: 600px;
   background-color: ${colors.lightGrey};
 
-  @media (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaSmall} {
     &-optimizeNarrowScreen {
       bottom: 48px;
+      min-width: 240px;
     }
   }
-
 `);
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
@@ -195,7 +191,7 @@ export const cssLeftPane = styled(cssVBox, `
   margin-right: 0px;
   overflow: hidden;
   transition: margin-right 0.4s;
-  @media (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
       width: 0px;
       position: absolute;
@@ -204,7 +200,6 @@ export const cssLeftPane = styled(cssVBox, `
       bottom: 0;
       left: 0;
       box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid ${colors.mediumGrey};
     }
   }
   &-open {
@@ -236,7 +231,7 @@ const cssRightPane = styled(cssVBox, `
   overflow: hidden;
   transition: margin-left 0.4s;
   z-index: 0;
-  @media (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
       position: absolute;
       z-index: 10;
@@ -244,7 +239,6 @@ const cssRightPane = styled(cssVBox, `
       bottom: 0;
       right: 0;
       box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid ${colors.mediumGrey};
     }
   }
   &-open {
@@ -292,7 +286,8 @@ const cssBottomFooter = styled ('div', `
   bottom: 0;
   left: 0;
   right: 0;
-  @media not all and (max-width: ${maxNarrowScreenWidth}px) {
+  border-top: 1px solid ${colors.mediumGrey};
+  @media ${mediaNotSmall} {
     & {
       display: none;
     }
@@ -352,7 +347,7 @@ const cssContentOverlay = styled('div', `
   opacity: 0.5;
   display: none;
   z-index: 9;
-  @media (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
       display: unset;
     }

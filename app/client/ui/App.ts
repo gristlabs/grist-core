@@ -10,6 +10,7 @@ import * as koUtil from 'app/client/lib/koUtil';
 import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
+import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -154,6 +155,7 @@ export class App extends DisposableWithEvents {
 
     // Add the cssRootVars class to enable the variables in cssVars.
     attachCssRootVars(this.topAppModel.productFlavor);
+    addViewportTag();
     this.autoDispose(createAppUI(this.topAppModel, this));
   }
 

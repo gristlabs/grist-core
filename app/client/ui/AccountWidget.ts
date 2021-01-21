@@ -5,8 +5,9 @@ import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/clie
 import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {showProfileModal} from 'app/client/ui/ProfileDialog';
 import {createUserImage} from 'app/client/ui/UserImage';
+import * as viewport from 'app/client/ui/viewport';
 import {primaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaDeviceNotSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {commonUrls} from 'app/common/gristUrls';
@@ -110,6 +111,13 @@ export class AccountWidget extends Disposable {
           menuItem(() => null, 'Billing Account', dom.cls('disabled', true))
         ) :
         menuItemLink({href: commonUrls.plans}, 'Upgrade Plan'),
+
+      menuItem(viewport.toggleViewport,
+        cssSmallDeviceOnly.cls(''),   // Only show this toggle on small devices.
+        'Toggle Mobile Mode',
+        cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
+        testId('usermenu-toggle-mobile'),
+      ),
 
       // TODO Add section ("Here right now") listing icons of other users currently on this doc.
       // (See Invision "Panels" near the bottom.)
@@ -220,5 +228,21 @@ const cssOrgCheckmark = styled(icon, `
   display: none;
   .${cssOrgSelected.className} > & {
     display: block;
+  }
+`);
+
+const cssCheckmark = styled(icon, `
+  flex: none;
+  margin-left: 16px;
+  --icon-color: ${colors.lightGreen};
+`);
+
+// Note that this css class hides the item when the device width is small (not based on viewport
+// width, which may be larger). This only appropriate for when to enable the "mobile mode" toggle.
+const cssSmallDeviceOnly = styled(menuItem, `
+  @media ${mediaDeviceNotSmall} {
+    & {
+      display: none;
+    }
   }
 `);

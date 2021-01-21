@@ -6,7 +6,7 @@
  * Workspace is a clickable link and document and page names are editable labels.
  */
 import { urlState } from 'app/client/models/gristUrlState';
-import { colors, cssHideForNarrowScreen, maxNarrowScreenWidth, testId } from 'app/client/ui2018/cssVars';
+import { colors, cssHideForNarrowScreen, mediaNotSmall, testId } from 'app/client/ui2018/cssVars';
 import { editableLabel } from 'app/client/ui2018/editableLabel';
 import { icon } from 'app/client/ui2018/icons';
 import { UserOverride } from 'app/common/DocListAPI';
@@ -55,7 +55,7 @@ const cssWorkspaceNarrowScreen = styled(icon, `
   margin-right: 8px;
   background-color: ${colors.slate};
   cursor: pointer;
-  @media not all and (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaNotSmall} {
     & {
       display: none;
     }

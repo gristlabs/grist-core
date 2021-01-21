@@ -1,5 +1,5 @@
 import {transientInput} from 'app/client/ui/transientInput';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
 
@@ -14,6 +14,11 @@ export const docList = styled('div', `
     content: "";
     display: block;
     height: 64px;
+  }
+  @media ${mediaSmall} {
+    & {
+      padding: 32px 24px 24px 24px;
+    }
   }
 `);
 
@@ -216,6 +221,12 @@ export const prefSelectors = styled('div', `
   right: 64px;
   display: flex;
   align-items: center;
+
+  @media ${mediaSmall} {
+    & {
+      right: 24px;
+    }
+  }
 `);
 
 export const sortSelector = styled('div', `
@@ -235,5 +246,10 @@ export const sortSelector = styled('div', `
     outline: none;
     box-shadow: none;
     background-color: ${colors.mediumGrey};
+  }
+  @media ${mediaSmall} {
+    & {
+      margin-right: 0;
+    }
   }
 `);

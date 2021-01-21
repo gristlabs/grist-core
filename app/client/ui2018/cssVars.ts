@@ -154,15 +154,22 @@ export const cssRootVars = cssBodyVars.className;
 // class ".test-{name}". Ideally, we'd use noTestId() instead in production.
 export const testId: TestId = makeTestId('test-');
 
-// Max width for narrow screen layout (in px). Note: 768px is bootstrap's definition of small screen
-export const maxNarrowScreenWidth = 768;
+// Min width for normal screen layout (in px). Note: <768px is bootstrap's definition of small
+// screen (covers phones, including landscape, but not tablets).
+const mediumScreenWidth = 768;
+
+// Fractional width for max-query follows https://getbootstrap.com/docs/4.0/layout/overview/#responsive-breakpoints
+export const mediaSmall = `(max-width: ${mediumScreenWidth - 0.02}px)`;
+export const mediaNotSmall = `(min-width: ${mediumScreenWidth}px)`;
+
+export const mediaDeviceNotSmall = `(min-device-width: ${mediumScreenWidth}px)`;
 
 export function isNarrowScreen() {
   return window.innerWidth <= 768;
 }
 
 export const cssHideForNarrowScreen = styled('div', `
-  @media (max-width: ${maxNarrowScreenWidth}px) {
+  @media ${mediaSmall} {
     & {
       display: none !important;
     }

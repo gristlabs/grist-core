@@ -100,6 +100,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel) {
     },
     headerMain: createTopBarHome(appModel),
     contentMain: createDocMenu(pageModel),
+    optimizeNarrowScreen: true,
   });
 }
 
