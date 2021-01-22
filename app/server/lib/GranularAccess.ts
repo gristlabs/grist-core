@@ -844,15 +844,15 @@ export class GranularAccess {
       } else {
         // Look up user information in database.
         if (!this._homeDbManager) { throw new Error('database required'); }
-        const user = linkParameters.aclAsUserId ?
+        const dbUser = linkParameters.aclAsUserId ?
           (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId))) :
           (await this._homeDbManager.getUserByLogin(linkParameters.aclAsUser));
-        const docAuth = user && await this._homeDbManager.getDocAuthCached({
+        const docAuth = dbUser && await this._homeDbManager.getDocAuthCached({
           urlId: this._docId,
-          userId: user.id
+          userId: dbUser.id
         });
         access = docAuth?.access || null;
-        fullUser = user && this._homeDbManager.makeFullUser(user) || null;
+        fullUser = dbUser && this._homeDbManager.makeFullUser(dbUser) || null;
         attrs.override = { access, user: fullUser };
       }
     } else {
@@ -1195,7 +1195,7 @@ function getAccessForActionType(a: DocAction): AccessFn {
 function denyIsFatal(fn: AccessFn): AccessFn {
   return (ps) => {
     const result = fn(ps);
-    if (result === 'deny') { throw new Error('access denied'); }
+    if (result === 'deny') { throw new ErrorWithCode('ACL_DENY', 'Blocked by access rules'); }
     return result;
   };
 }

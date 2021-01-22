@@ -28,6 +28,7 @@ import {toTableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
+import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {byteString, countIf} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
@@ -1183,7 +1184,7 @@ export class ActiveDoc extends EventEmitter {
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
     if (!await this._granularAccess.canMaybeApplyUserActions(docSession, actions)) {
-      throw new Error('cannot perform a requested action');
+      throw new ErrorWithCode('ACL_DENY', 'Action blocked by access rules');
     }
 
     const client = docSession.client;
