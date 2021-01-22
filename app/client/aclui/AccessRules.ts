@@ -4,6 +4,7 @@
 import {aclColumnList} from 'app/client/aclui/ACLColumnList';
 import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
 import {aclSelect} from 'app/client/aclui/ACLSelect';
+import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
 import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {reportError, UserError} from 'app/client/models/errors';
@@ -81,6 +82,8 @@ export class AccessRules extends Disposable {
   // Map of tableId to the list of columns for all tables in the document.
   private _aclResources: {[tableId: string]: string[]} = {};
 
+  private _aclUsersPopup = ACLUsersPopup.create(this);
+
   constructor(private _gristDoc: GristDoc) {
     super();
     this._ruleStatus = Computed.create(this, (use) => {
@@ -126,6 +129,7 @@ export class AccessRules extends Disposable {
       const tableData = this._gristDoc.docData.getTable(tableId)!;
       this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
     }
+
     this.update().catch((e) => this._errorMessage.set(e.message));
   }
 
@@ -150,8 +154,12 @@ export class AccessRules extends Disposable {
   public async update() {
     this._errorMessage.set('');
     const rules = this._ruleCollection;
-    await rules.update(this._gristDoc.docData, {log: console});
-    this._aclResources = await this._gristDoc.docComm.getAclResources();
+    [ , , this._aclResources] = await Promise.all([
+      rules.update(this._gristDoc.docData, {log: console}),
+      this._aclUsersPopup.init(this._gristDoc.docPageModel),
+      this._gristDoc.docComm.getAclResources(),
+    ]);
+
     this._tableRules.set(
       rules.getAllTableIds().map(tableId => TableRules.create(this._tableRules,
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
@@ -291,6 +299,9 @@ export class AccessRules extends Disposable {
           ),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
+        bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
+          dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden'),
+        ),
       ),
       cssConditionError(dom.text(this._errorMessage), {style: 'margin-left: 16px'},
         testId('access-rules-error')

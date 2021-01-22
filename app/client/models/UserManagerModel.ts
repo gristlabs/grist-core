@@ -2,6 +2,7 @@ import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
+import {getRealAccess} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some = require('lodash/some');
 
@@ -261,9 +262,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // active user's initial access level, which is OWNER normally. (It's sometimes possible to
       // open UserManager by a less-privileged user, e.g. if access was just lowered, in which
       // case any attempted changes will fail on saving.)
-      const initInheritedAccess = roles.getWeakestRole(member.parentAccess, this.initData.maxInheritedRole || null);
-      const initialAccess = roles.getStrongestRole(member.access, initInheritedAccess);
-      const initialAccessBasicRole = roles.getEffectiveRole(initialAccess);
+      const initialAccessBasicRole = roles.getEffectiveRole(getRealAccess(member, this.initData));
       // This pretends to be a computed to match the other case, but is really a constant.
       inheritedAccess = Computed.create(this, (use) => initialAccessBasicRole);
     } else {

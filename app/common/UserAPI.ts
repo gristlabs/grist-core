@@ -154,6 +154,14 @@ export interface UserAccessData {
   parentAccess?: roles.BasicRole|null;
 }
 
+/**
+ * Combines access, parentAccess, and maxInheritedRole info into the resulting access role.
+ */
+export function getRealAccess(user: UserAccessData, permissionData: PermissionData): roles.Role|null {
+  const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, permissionData.maxInheritedRole || null);
+  return roles.getStrongestRole(user.access, inheritedAccess);
+}
+
 export interface ActiveSessionInfo {
   user: FullUser & {helpScoutSignature?: string};
   org: Organization|null;
