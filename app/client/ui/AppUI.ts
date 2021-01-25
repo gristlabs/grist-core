@@ -146,7 +146,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
       panelWidth: leftPanelWidth,
       panelOpen: leftPanelOpen,
       header: appHeader(appModel.currentOrgName || pageModel.currentOrgName, appModel.topAppModel.productFlavor),
-      content: pageModel.createLeftPane(leftPanelOpen),
+      content: pageModel.createLeftPane(isNarrowScreen() ? Observable.create(null, true) : leftPanelOpen),
     },
     rightPanel: {
       panelWidth: rightPanelWidth,

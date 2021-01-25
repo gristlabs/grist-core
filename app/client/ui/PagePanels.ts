@@ -3,7 +3,7 @@
  */
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition} from 'app/client/ui/transitions';
-import {colors, cssHideForNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, isNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomArg, noTestId, Observable, styled, TestId} from "grainjs";
 
@@ -48,7 +48,7 @@ export function pagePanels(page: PageContents) {
 
       // Opening/closing the left pane, with transitions.
       cssLeftPane.cls('-open', left.panelOpen),
-      transition(left.panelOpen, {
+      optimizeNarrowScreen && isNarrowScreen() ? null : transition(left.panelOpen, {
         prepare(elem, open) { elem.style.marginRight = (open ? -1 : 1) * (left.panelWidth.get() - 48) + 'px'; },
         run(elem, open) { elem.style.marginRight = ''; },
         finish: onResize,
@@ -107,7 +107,7 @@ export function pagePanels(page: PageContents) {
 
         // Opening/closing the right pane, with transitions.
         cssRightPane.cls('-open', right.panelOpen),
-        transition(right.panelOpen, {
+        optimizeNarrowScreen && isNarrowScreen() ? null : transition(right.panelOpen, {
           prepare(elem, open) { elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + 'px'; },
           run(elem, open) { elem.style.marginLeft = ''; },
           finish: onResize,
@@ -193,13 +193,17 @@ export const cssLeftPane = styled(cssVBox, `
   transition: margin-right 0.4s;
   @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
-      width: 0px;
+      width: 240px;
       position: absolute;
       z-index: 10;
       top: 0;
       bottom: 0;
-      left: 0;
+      left: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
+      transition: left 0.4s;
+    }
+    .${cssPageContainer.className}-optimizeNarrowScreen &-open {
+      left: 0;
     }
   }
   &-open {
@@ -233,12 +237,17 @@ const cssRightPane = styled(cssVBox, `
   z-index: 0;
   @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
+      width: 240px;
       position: absolute;
       z-index: 10;
       top: 0;
       bottom: 0;
-      right: 0;
+      right: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
+      transition: right 0.4s;
+    }
+    .${cssPageContainer.className}-optimizeNarrowScreen &-open {
+      right: 0;
     }
   }
   &-open {
