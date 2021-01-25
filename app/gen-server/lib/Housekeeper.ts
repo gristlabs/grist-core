@@ -151,6 +151,16 @@ export class Housekeeper {
         headers,
       });
     }));
+
+    // Force a document to reload.  Can be useful during administrative
+    // actions.
+    app.post('/api/housekeeping/docs/:docId/force-reload', this._withSupport(async (docId, headers) => {
+      const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/force-reload`);
+      return fetch(url, {
+        method: 'POST',
+        headers,
+      });
+    }));
   }
 
   /**
