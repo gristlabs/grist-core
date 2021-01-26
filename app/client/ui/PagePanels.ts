@@ -194,16 +194,19 @@ export const cssLeftPane = styled(cssVBox, `
   @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
       width: 240px;
-      position: absolute;
+      position: fixed;
       z-index: 10;
       top: 0;
       bottom: 0;
       left: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
+      visibility: hidden;
       box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
-      transition: left 0.4s;
+      transition: left 0.4s, visibility 0.4s;
+      will-change: left;
     }
     .${cssPageContainer.className}-optimizeNarrowScreen &-open {
       left: 0;
+      visibility: visible;
     }
   }
   &-open {
@@ -238,16 +241,19 @@ const cssRightPane = styled(cssVBox, `
   @media ${mediaSmall} {
     .${cssPageContainer.className}-optimizeNarrowScreen & {
       width: 240px;
-      position: absolute;
+      position: fixed;
       z-index: 10;
       top: 0;
       bottom: 0;
       right: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
-      transition: right 0.4s;
+      visibility: hidden;
+      transition: right 0.4s, visibility 0.4s;
+      will-change: right;
     }
     .${cssPageContainer.className}-optimizeNarrowScreen &-open {
       right: 0;
+      visibility: visible;
     }
   }
   &-open {
