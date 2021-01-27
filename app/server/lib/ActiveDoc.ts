@@ -14,6 +14,7 @@ import flatten = require('lodash/flatten');
 import remove = require('lodash/remove');
 import zipObject = require('lodash/zipObject');
 import * as moment from 'moment-timezone';
+import fetch from 'node-fetch';
 import * as tmp from 'tmp';
 
 import {getEnvContent, LocalActionBundle} from 'app/common/ActionBundle';
@@ -60,7 +61,6 @@ import {expandQuery} from './ExpandedQuery';
 import {GranularAccess} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
-import fetch from 'node-fetch';
 
 bluebird.promisifyAll(tmp);
 
@@ -732,11 +732,8 @@ export class ActiveDoc extends EventEmitter {
     // Be careful not to sneak into user action queue before Calculate action, otherwise
     // there'll be a deadlock.
     await this.waitForInitialization();
-    const newOptions = {linkId: docSession.linkId, ...options};
     // Granular access control implemented in _applyUserActions.
-    const result: ApplyUAResult = await this._applyUserActions(docSession, actions, newOptions);
-    docSession.linkId = docSession.shouldBundleActions ? result.actionNum : 0;
-    return result;
+    return await this._applyUserActions(docSession, actions, options);
   }
 
   /**
@@ -913,12 +910,13 @@ export class ActiveDoc extends EventEmitter {
     const permitKey = await permitStore.setPermit({docId: forkIds.docId,
                                                    otherDocId: this.docName});
     try {
-      const url = await this._docManager.gristServer.getHomeUrlByDocId(forkIds.docId, `/api/docs/${forkIds.docId}/create-fork`);
+      const url = await this._docManager.gristServer.getHomeUrlByDocId(
+        forkIds.docId, `/api/docs/${forkIds.docId}/create-fork`);
       const resp = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({ srcDocId: this.docName }),
         headers: {
-          Permit: permitKey,
+          'Permit': permitKey,
           'Content-Type': 'application/json',
         },
       });

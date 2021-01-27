@@ -209,6 +209,10 @@ export class Sharing {
                                    branch: Branch, docSession: OptDocSession|null): Promise<UserResult> {
     const client = docSession && docSession.client;
 
+    if (docSession?.linkId) {
+      info.linkId = docSession.linkId;
+    }
+
     const {sandboxActionBundle, undo, docActions} =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions));
 
@@ -271,12 +275,6 @@ export class Sharing {
     }
     await this._activeDoc.processActionBundle(ownActionBundle);
 
-    // In the future, we'll save (and share) the result of applying one bundle of UserActions
-    // as a single ActionBundle with one actionNum. But the old ActionLog saves on UserAction
-    // per actionNum, using linkId to "bundle" them for the purpose of undo-redo. We simulate
-    // it here by breaking up ActionBundle into as many old-style ActionGroups as there are
-    // UserActions, and associating all DocActions with the first of these ActionGroups.
-
     // Broadcast the action to connected browsers.
     const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
       client,
@@ -294,6 +292,9 @@ export class Sharing {
       });
     } finally {
       await this._activeDoc.finishedActions();
+    }
+    if (docSession) {
+      docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
     }
     return {
       actionNum: localActionBundle.actionNum,
