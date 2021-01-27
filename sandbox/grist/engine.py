@@ -422,6 +422,21 @@ class Engine(object):
       raise AssertionError("Internal schema different from that in metadata:\n" +
           "".join(difflib.unified_diff(a, b, fromfile="internal", tofile="metadata")))
 
+    # Check there are no stray column records (they aren't picked up by schema diffs, but will
+    # cause inconsistencies with future tables).
+    # TODO: This inconsistency can be triggered by undo of an AddTable action if the table
+    # acquired more columns in subsequent actions. We may want to check for similar situations
+    # with other metadata, e.g. ViewSection fields, where they'd cause different symptoms.
+    # (Or better ensure consistency by design by applying undo correctly, probably via rebase).
+    valid_table_refs = set(meta_tables.row_ids)
+    col_parent_ids = set(meta_columns.columns['parentId'])
+    if col_parent_ids > valid_table_refs:
+      collist = sorted(actions.transpose_bulk_action(meta_columns),
+                       key=lambda c: (c.parentId, c.parentPos))
+      raise AssertionError("Internal schema inconsistent; extra columns in metadata:\n"
+          + "\n".join('  ' + str(schema.SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
+                      for c in collist if c.parentId not in valid_table_refs))
+
   def dump_state(self):
     self.dep_graph.dump_graph()
     self.dump_recompute_map()

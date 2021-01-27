@@ -332,7 +332,7 @@ def build_schema(meta_tables, meta_columns, include_builtin=True):
   coldict = {t: list(cols) for t, cols in itertools.groupby(collist, lambda r: r.parentId)}
 
   for t in actions.transpose_bulk_action(meta_tables):
-    columns = OrderedDict((c.colId, SchemaColumn(c.colId, c.type, c.isFormula, c.formula))
+    columns = OrderedDict((c.colId, SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
                           for c in coldict[t.id])
     schema[t.tableId] = SchemaTable(t.tableId, columns)
   return schema

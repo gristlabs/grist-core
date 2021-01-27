@@ -199,8 +199,8 @@ export class GristDoc extends DisposableWithEvents {
 
     /* Command binding */
     this.autoDispose(commands.createGroup({
-      undo() { this._undoStack.sendUndoAction(); },
-      redo() { this._undoStack.sendRedoAction(); },
+      undo() { this._undoStack.sendUndoAction().catch(reportError); },
+      redo() { this._undoStack.sendRedoAction().catch(reportError); },
       reloadPlugins() { this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
     }, this, true));
 
