@@ -642,8 +642,8 @@ export class GranularAccess {
     // TODO: this would need to be elaborated to work well on bundles containing table
     // renames.
     const tableId = getTableId(rowsBefore);
-    for (const snapshots of allRowSnapshots.reverse()) {
-      const rowsAfter = snapshots[1];
+    for (let i = allRowSnapshots.length - 1; i >= 0; i--) {
+      const rowsAfter = allRowSnapshots[i][1];
       if (getTableId(rowsAfter) === tableId) {
         return {rowsBefore, rowsAfter};
       }
