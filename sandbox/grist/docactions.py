@@ -34,6 +34,11 @@ class DocActions(object):
   def BulkRemoveRecord(self, table_id, row_ids):
     table = self._engine.tables[table_id]
 
+    # Ignore records that don't exist in the table.
+    row_ids = [r for r in row_ids if r in table.row_ids]
+    if not row_ids:
+      return
+
     # Collect the undo values, and unset all values in the column (i.e. set to defaults), just to
     # make sure we don't have stale values hanging around.
     undo_values = {}

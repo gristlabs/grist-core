@@ -434,7 +434,8 @@ class Engine(object):
       collist = sorted(actions.transpose_bulk_action(meta_columns),
                        key=lambda c: (c.parentId, c.parentPos))
       raise AssertionError("Internal schema inconsistent; extra columns in metadata:\n"
-          + "\n".join('  ' + str(schema.SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
+          + "\n".join('  #%s %s' %
+                      (c.id, schema.SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
                       for c in collist if c.parentId not in valid_table_refs))
 
   def dump_state(self):
