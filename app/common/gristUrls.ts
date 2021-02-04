@@ -257,8 +257,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (sp.has('embed')) {
     const embed = state.params!.embed = isAffirmative(sp.get('embed'));
-    // Turn view mode on if no mode has been specified.
-    if (embed && !state.mode) { state.mode = 'view'; }
+    // Turn view mode on if no mode has been specified, and not a fork.
+    if (embed && !state.mode && !state.fork) { state.mode = 'view'; }
     // Turn on light style if no style has been specified.
     if (embed && !state.params!.style) { state.params!.style = 'light'; }
   }
