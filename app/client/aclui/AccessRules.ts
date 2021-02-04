@@ -1076,6 +1076,7 @@ function getChangedStatus(value: boolean): RuleStatus {
 }
 
 const cssOuter = styled('div', `
+  flex: auto;
   height: 100%;
   width: 100%;
   max-width: 800px;
@@ -1085,6 +1086,7 @@ const cssOuter = styled('div', `
 `);
 
 const cssAddTableRow = styled('div', `
+  flex: none;
   margin: 16px 16px 8px 16px;
   display: flex;
   gap: 16px;

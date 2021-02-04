@@ -182,6 +182,9 @@ const cssPageContainer = styled(cssHBox, `
       bottom: 48px;
       min-width: 240px;
     }
+    .interface-light & {
+      bottom: 0;
+    }
   }
 `);
 export const cssLeftPane = styled(cssVBox, `
@@ -306,6 +309,14 @@ const cssBottomFooter = styled ('div', `
     & {
       display: none;
     }
+  }
+  @media print {
+    & {
+      display: none;
+    }
+  }
+  .interface-light & {
+    display: none;
   }
 `);
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `
