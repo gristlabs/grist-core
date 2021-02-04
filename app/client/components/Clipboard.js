@@ -62,7 +62,7 @@ function Clipboard(app) {
 
   FocusLayer.create(this, {
     defaultFocusElem: this.copypasteField,
-    allowFocus: isCopyPasteTarget,
+    allowFocus: allowFocus,
     onDefaultFocus: () => {
       this.copypasteField.value = ' ';
       this.copypasteField.select();
@@ -184,10 +184,12 @@ var FOCUS_TARGET_TAGS = {
  * copy-paste events. Besides inputs and textareas, any element can be marked to be a valid
  * copy-paste target by adding 'clipboard_focus' class to it.
  */
-function isCopyPasteTarget(elem) {
+function allowFocus(elem) {
   return elem && (FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
     elem.hasAttribute("tabindex") ||
     elem.classList.contains('clipboard_focus'));
 }
+
+Clipboard.allowFocus = allowFocus;
 
 module.exports = Clipboard;

@@ -91,7 +91,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   }
 
   // This "attach" is not about "attachments", but about attaching this widget to the page DOM.
-  public attach(cellRect: ClientRect|DOMRect) {
+  public attach(cellElem: Element) {
     modal((ctl, owner) => {
       // If FieldEditor is disposed externally (e.g. on navigation), be sure to close the modal.
       this.onDispose(ctl.close);

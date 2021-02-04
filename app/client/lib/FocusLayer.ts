@@ -72,6 +72,7 @@ class FocusLayerManager extends Disposable {
   }
 
   public addLayer(layer: FocusLayer) {
+    this.getCurrentLayer()?.onDefaultBlur();
     this._focusLayers.push(layer);
     // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
     // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
@@ -102,6 +103,7 @@ class FocusLayerManager extends Disposable {
     this._timeoutId = null;
     const layer = this.getCurrentLayer();
     if (!layer || document.activeElement === layer.defaultFocusElem) {
+      layer?.onDefaultFocus();
       return;
     }
     // If the window doesn't have focus, don't rush to grab it, or we can interfere with focus
@@ -111,10 +113,10 @@ class FocusLayerManager extends Disposable {
     }
     if (document.activeElement && layer.allowFocus(document.activeElement)) {
       watchElementForBlur(document.activeElement, () => this.grabFocus());
-      layer.onDefaultBlur?.();
+      layer.onDefaultBlur();
     } else {
       layer.defaultFocusElem.focus();
-      layer.onDefaultFocus?.();
+      layer.onDefaultFocus();
     }
   }
 }
@@ -130,21 +132,36 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
 
   public defaultFocusElem: HTMLElement;
   public allowFocus: (elem: Element) => boolean;
-  public onDefaultFocus?: () => void;
-  public onDefaultBlur?: () => void;
+  public _onDefaultFocus?: () => void;
+  public _onDefaultBlur?: () => void;
+  private _isDefaultFocused: boolean|null = null;
 
   constructor(options: FocusLayerOptions) {
     super();
     this.defaultFocusElem = options.defaultFocusElem;
     this.allowFocus = options.allowFocus;
-    this.onDefaultFocus = options.onDefaultFocus;
-    this.onDefaultBlur = options.onDefaultBlur;
+    this._onDefaultFocus = options.onDefaultFocus;
+    this._onDefaultBlur = options.onDefaultBlur;
 
     const managerRefCount = this.autoDispose(_focusLayerManager.use(null));
     const manager = managerRefCount.get();
     manager.addLayer(this);
     this.onDispose(() => manager.removeLayer(this));
     this.autoDispose(dom.onElem(this.defaultFocusElem, 'blur', () => manager.grabFocus()));
+  }
+
+  public onDefaultFocus() {
+    // Only trigger onDefaultFocus() callback when the focus status actually changed.
+    if (this._isDefaultFocused) { return; }
+    this._isDefaultFocused = true;
+    this._onDefaultFocus?.();
+  }
+
+  public onDefaultBlur() {
+    // Only trigger onDefaultBlur() callback when the focus status actually changed.
+    if (this._isDefaultFocused === false) { return; }
+    this._isDefaultFocused = false;
+    this._onDefaultBlur?.();
   }
 }
 

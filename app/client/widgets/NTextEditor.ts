@@ -3,6 +3,7 @@
  */
 import {createGroup} from 'app/client/components/commands';
 import {testId} from 'app/client/ui2018/cssVars';
+import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from "app/common/DocActions";
@@ -37,13 +38,18 @@ export class NTextEditor extends NewBaseEditor {
           // Resize the textbox whenever user types in it.
           dom.on('input', () => this.resizeInput())
         )
-      )
+      ),
+      createMobileButtons(options.commands),
     );
   }
 
-  public attach(cellRect: ClientRect|DOMRect): void {
+  public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellRect);
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+
+    // Reposition the editor if needed for external reasons (in practice, window resize).
+    this.autoDispose(this._editorPlacement.onReposition.addListener(this.resizeInput, this));
+
     this.setSizerLimits();
 
     // Once the editor is attached to DOM, resize it to content, focus, and set cursor.

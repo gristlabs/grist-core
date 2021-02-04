@@ -12,10 +12,10 @@ function BaseEditor(options) {
 
 /**
  * Called after the editor is instantiated to attach its DOM to the page.
- * - cellRect: Bounding box of the element representing the cell that this editor should match
+ * - cellElem: The element representing the cell that this editor should match
  *   in size and position. Used by derived classes, e.g. to construct an EditorPlacement object.
  */
-BaseEditor.prototype.attach = function(cellRect) {
+BaseEditor.prototype.attach = function(cellElem) {
   // No-op by default.
 };
 

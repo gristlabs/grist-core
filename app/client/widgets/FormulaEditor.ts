@@ -4,6 +4,7 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {undefDefault} from 'app/common/gutil';
@@ -47,6 +48,8 @@ export class FormulaEditor extends NewBaseEditor {
 
     this.autoDispose(this._formulaEditor);
     this._dom = dom('div.default_editor',
+      createMobileButtons(options.commands),
+
       // This shouldn't be needed, but needed for tests.
       dom.on('mousedown', (ev) => {
         ev.preventDefault();
@@ -90,8 +93,11 @@ export class FormulaEditor extends NewBaseEditor {
     );
   }
 
-  public attach(cellRect: ClientRect|DOMRect): void {
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellRect);
+  public attach(cellElem: Element): void {
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    // Reposition the editor if needed for external reasons (in practice, window resize).
+    this.autoDispose(this._editorPlacement.onReposition.addListener(
+      this._formulaEditor.resize, this._formulaEditor));
     this._formulaEditor.onAttach();
     this._formulaEditor.editor.focus();
   }

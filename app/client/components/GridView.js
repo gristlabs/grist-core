@@ -23,6 +23,7 @@ var CopySelection = require('./CopySelection');
 
 const {renderAllRows} = require('app/client/components/Printing');
 const {reportError} = require('app/client/models/AppModel');
+const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 
 // Grist UI Components
 const {Holder} = require('grainjs');
@@ -115,12 +116,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   //--------------------------------------------------
   // Set up DOM event handling.
-
-  this.onEvent(this.scrollPane, 'dblclick', '.field', function(elem, event) {
-    // Assumes `click` event also occurs on a `dblclick` and has already repositioned the cursor.
-    this.activateEditorAtCursor();
-  });
-
+  onDblClickMatchElem(this.scrollPane, '.field', () => this.activateEditorAtCursor());
   this.onEvent(this.scrollPane, 'scroll', this.onScroll);
 
   //--------------------------------------------------
@@ -955,7 +951,15 @@ GridView.prototype.buildDom = function() {
 
 /** @inheritdoc */
 GridView.prototype.onResize = function() {
-  this.scrolly.scheduleUpdateSize();
+  if (this.activeFieldBuilder().isEditorActive()) {
+    // When the editor is active, the common case for a resize is if the virtual keyboard is being
+    // shown on mobile device. In that case, we need to scroll active cell into view, and need to
+    // do it synchronously, to allow repositioning the editor to it in response to the same event.
+    this.scrolly.updateSize();
+    this.scrolly.scrollRowIntoView(this.cursor.rowIndex.peek());
+  } else {
+    this.scrolly.scheduleUpdateSize();
+  }
 };
 
 /** @inheritdoc */

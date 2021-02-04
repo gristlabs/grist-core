@@ -223,6 +223,9 @@ export class GristDoc extends DisposableWithEvents {
     this.autoDispose(dom.onElem(window, 'dragover', (ev) => ev.preventDefault()));
     // The default action is to open dragged files as a link, navigating out of the app.
     this.autoDispose(dom.onElem(window, 'drop', (ev) => ev.preventDefault()));
+
+    // On window resize, trigger the resizeEmitter to update ViewLayout and individual BaseViews.
+    this.autoDispose(dom.onElem(window, 'resize', () => this.resizeEmitter.emit()));
   }
 
   public addOptionsTab(label: string, iconElem: any, contentObj: TabContent[], options: TabOptions): IDisposable {

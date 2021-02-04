@@ -6,6 +6,7 @@ var dispose = require('../lib/dispose');
 var BaseEditor = require('./BaseEditor');
 var commands = require('../components/commands');
 const {testId} = require('app/client/ui2018/cssVars');
+const {createMobileButtons, getButtonMargins} = require('app/client/widgets/EditorButtons');
 const {EditorPlacement} = require('app/client/widgets/EditorPlacement');
 
 /**
@@ -44,16 +45,21 @@ function TextEditor(options) {
         // Resize the textbox whenever user types in it.
         dom.on('input', () => this._resizeInput())
       )
-    )
+    ),
+    createMobileButtons(options.commands),
   );
 }
 
 dispose.makeDisposable(TextEditor);
 _.extend(TextEditor.prototype, BaseEditor.prototype);
 
-TextEditor.prototype.attach = function(cellRect) {
+TextEditor.prototype.attach = function(cellElem) {
   // Attach the editor dom to page DOM.
-  this.editorPlacement = EditorPlacement.create(this, this.dom, cellRect);
+  this.editorPlacement = EditorPlacement.create(this, this.dom, cellElem, {margins: getButtonMargins()});
+
+  // Reposition the editor if needed for external reasons (in practice, window resize).
+  this.autoDispose(this.editorPlacement.onReposition.addListener(this._resizeInput, this));
+
   this.setSizerLimits();
 
   // Once the editor is attached to DOM, resize it to content, focus, and set cursor.

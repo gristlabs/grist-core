@@ -6,7 +6,7 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
+import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from "app/common/DocActions";
 import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
@@ -14,7 +14,6 @@ import {Disposable, Holder, Observable} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
 type IEditorConstructor = typeof NewBaseEditor;
-interface ICommandGroup { [cmd: string]: () => void; }
 
 /**
  * Check if the typed-in value should change the cell without opening the cell editor, and if so,
@@ -49,8 +48,8 @@ export class FieldEditor extends Disposable {
   private _field: ViewFieldRec;
   private _cursor: Cursor;
   private _editRow: DataRowModel;
-  private _cellRect: ClientRect|DOMRect;
-  private _editCommands: ICommandGroup;
+  private _cellElem: Element;
+  private _editCommands: IEditorCommandGroup;
   private _editorCtor: IEditorConstructor;
   private _editorHolder: Holder<NewBaseEditor> = Holder.create(this);
   private _saveEditPromise: Promise<boolean>|null = null;
@@ -70,7 +69,7 @@ export class FieldEditor extends Disposable {
     this._cursor = options.cursor;
     this._editRow = options.editRow;
     this._editorCtor = options.editorCtor;
-    this._cellRect = rectWithoutBorders(options.cellElem);
+    this._cellElem = options.cellElem;
 
     const startVal = options.startVal;
 
@@ -157,7 +156,7 @@ export class FieldEditor extends Disposable {
       cursorPos,
       commands: this._editCommands,
     }));
-    editor.attach(this._cellRect);
+    editor.attach(this._cellElem);
   }
 
   private _makeFormula() {
@@ -246,23 +245,4 @@ export class FieldEditor extends Disposable {
     await waitPromise;
     return (saveIndex !== cursor.rowIndex());
   }
-}
-
-// Get the bounding rect of elem excluding borders. This allows the editor to match cellElem more
-// closely which is more visible in case of DetailView.
-function rectWithoutBorders(elem: Element): ClientRect {
-  const rect = elem.getBoundingClientRect();
-  const style = getComputedStyle(elem, null);
-  const bTop = parseFloat(style.getPropertyValue('border-top-width'));
-  const bRight = parseFloat(style.getPropertyValue('border-right-width'));
-  const bBottom = parseFloat(style.getPropertyValue('border-bottom-width'));
-  const bLeft = parseFloat(style.getPropertyValue('border-left-width'));
-  return {
-    width: rect.width - bLeft - bRight,
-    height: rect.height - bTop - bBottom,
-    top: rect.top + bTop,
-    bottom: rect.bottom - bBottom,
-    left: rect.left + bLeft,
-    right: rect.right - bRight,
-  };
 }

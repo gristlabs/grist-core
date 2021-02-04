@@ -78,8 +78,8 @@ export class ReferenceEditor extends NTextEditor {
     .catch(reportError);
   }
 
-  public attach(cellRect: ClientRect|DOMRect): void {
-    super.attach(cellRect);
+  public attach(cellElem: Element): void {
+    super.attach(cellElem);
     this._autocomplete = this.autoDispose(new Autocomplete<ICellItem>(this.textInput, {
       menuCssClass: menuCssClass + ' ' + cssRefList.className,
       search: this._doSearch.bind(this),
@@ -168,7 +168,7 @@ function nocaseEqual(a: string, b: string) {
 
 const cssRefEditor = styled('div', `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
-    padding-left: 21px;
+    padding-left: 18px;
   }
 `);
 
@@ -236,7 +236,7 @@ const cssRefEditIcon = styled(icon, `
   position: absolute;
   top: 0;
   left: 0;
-  margin: 2px 3px 0 3px;
+  margin: 3px 3px 0 3px;
 `);
 
 const cssMatchText = styled('span', `

@@ -7,6 +7,12 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {CellValue} from "app/common/DocActions";
 import {Disposable, IDisposableOwner, Observable} from 'grainjs';
 
+export interface IEditorCommandGroup {
+  fieldEditCancel: () => void;
+  fieldEditSaveHere: () => void;
+  [cmd: string]: () => void;
+}
+
 export interface Options {
   gristDoc: GristDoc;
   field: ViewFieldRec;
@@ -14,7 +20,7 @@ export interface Options {
   formulaError?: Observable<CellValue>;
   editValue?: string;
   cursorPos: number;
-  commands: {[cmd: string]: () => void};
+  commands: IEditorCommandGroup;
 }
 
 /**
@@ -23,8 +29,6 @@ export interface Options {
  * @param {String} options.cellValue: The value in the underlying cell being edited.
  * @param {String} options.editValue: String to be edited, or undefined to use cellValue.
  * @param {Number} options.cursorPos: The initial position where to place the cursor.
- * @param {Element} option.cellRect: Bounding box of the element representing the cell that this
- *  editor should match in size and position.
  * @param {Object} options.commands: Object mapping command names to functions, to enable as part
  *  of the command group that should be activated while the editor exists.
  */
@@ -56,10 +60,10 @@ export abstract class NewBaseEditor extends Disposable {
 
   /**
    * Called after the editor is instantiated to attach its DOM to the page.
-   * - cellRect: Bounding box of the element representing the cell that this editor should match
+   * - cellElem: The element representing the cell that this editor should match
    *   in size and position. Used by derived classes, e.g. to construct an EditorPlacement object.
    */
-  public abstract attach(cellRect: ClientRect|DOMRect): void;
+  public abstract attach(cellElem: Element): void;
 
   /**
    * Called to get the value to save back to the cell.

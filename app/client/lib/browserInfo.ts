@@ -11,3 +11,10 @@ export function isDesktop() {
   const platformType = getParser().getPlatformType();
   return (!platformType || platformType === 'desktop');
 }
+
+// Returns whether the browser is on mobile iOS.
+// This is used in particular in viewport.ts to set maximum-scale=1 (to prevent iOS auto-zoom when
+// an input is focused, without preventing manual pinch-to-zoom).
+export function isIOS() {
+  return navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+}
