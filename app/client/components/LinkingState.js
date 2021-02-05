@@ -48,7 +48,8 @@ function isSummaryOf(summary, detail) {
 function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAllShown) {
   this._srcSection = srcSection;
 
-  let srcTableData = gristDoc.getTableModel(srcSection.table().tableId()).tableData;
+  let srcTableModel = gristDoc.getTableModel(srcSection.table().tableId());
+  let srcTableData = srcTableModel.tableData;
 
   // Function from srcRowId (i.e. srcSection.activeRowId()) to the source value. It is used for
   // filtering or for cursor positioning, depending on the setting of tgtCol.
@@ -78,11 +79,22 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
         }
         return {[tgtColId]: Array.from(srcValues)};
       }));
+    } else if (srcColId) {
+      let srcRowModel = this.autoDispose(srcTableModel.createFloatingRowModel());
+      let srcCell = srcRowModel.cells[srcColId];
+      // If no srcCell, linking is broken; do nothing. This shouldn't happen, but may happen
+      // transiently while the separate linking-related observables get updated.
+      if (srcCell) {
+        this.filterColValues = this.autoDispose(ko.computed(() => {
+          const srcRowId = srcSection.activeRowId();
+          srcRowModel.assign(srcRowId);
+          return {[tgtColId]: [srcCell()]};
+        }));
+      }
     } else {
       this.filterColValues = this.autoDispose(ko.computed(() => {
         const srcRowId = srcSection.activeRowId();
-        const srcValue = srcValueFunc(srcRowId);
-        return {[tgtColId]: [srcValue]};
+        return {[tgtColId]: [srcRowId]};
       }));
     }
   } else if (isSummaryOf(srcSection.table(), tgtSection.table())) {
