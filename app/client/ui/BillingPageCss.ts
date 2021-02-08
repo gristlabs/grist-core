@@ -1,5 +1,5 @@
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {input, styled} from 'grainjs';
 
@@ -98,6 +98,12 @@ export const billingPage = styled('div', `
   display: flex;
   max-width: 1000px;
   margin: auto;
+
+  @media ${mediaSmall} {
+    & {
+      display: block;
+    }
+  }
 `);
 
 export const billingHeader = styled('div', `
@@ -188,6 +194,11 @@ export const focusText = styled('span', `
 export const cardBlock = styled('div', `
   flex: 1 1 60%;
   margin: 60px;
+  @media ${mediaSmall} {
+    & {
+      margin: 24px;
+    }
+  }
 `);
 
 export const summaryRow = styled('div', `
@@ -201,7 +212,11 @@ export const summaryHeader = styled(summaryRow, `
 export const summaryBlock = styled('div', `
   flex: 1 1 40%;
   margin: 60px;
-  float: left;
+  @media ${mediaSmall} {
+    & {
+      margin: 24px;
+    }
+  }
 `);
 
 export const flexSpace = styled('div', `

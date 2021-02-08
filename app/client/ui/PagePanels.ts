@@ -1,11 +1,13 @@
 /**
  * Note that it assumes the presence of cssVars.cssRootVars on <body>.
  */
+import {urlState} from "app/client/models/gristUrlState";
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition} from 'app/client/ui/transitions';
-import {colors, cssHideForNarrowScreen, isNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomArg, noTestId, Observable, styled, TestId} from "grainjs";
+import {dom, DomArg, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
 
 export interface PageSidePanel {
   // Note that widths need to start out with a correct default in JS (having them in CSS is not
@@ -26,7 +28,6 @@ export interface PageContents {
 
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
-  optimizeNarrowScreen?: boolean;  // If true, show an optimized layout when screen is narrow.
   contentBottom?: DomArg;
 }
 
@@ -35,10 +36,32 @@ export function pagePanels(page: PageContents) {
   const left = page.leftPanel;
   const right = page.rightPanel;
   const onResize = page.onResize || (() => null);
-  const optimizeNarrowScreen = Boolean(page.optimizeNarrowScreen);
 
-  return [cssPageContainer(
-    cssPageContainer.cls('-optimizeNarrowScreen', optimizeNarrowScreen),
+  let lastLeftOpen = left.panelOpen.get();
+  let lastRightOpen = right?.panelOpen.get() || false;
+
+  // When switching to mobile mode, close panels; when switching to desktop, restore the
+  // last desktop state.
+  const sub1 = subscribe(isNarrowScreenObs(), (use, narrow) => {
+    if (narrow) {
+      lastLeftOpen = left.panelOpen.get();
+      lastRightOpen = right?.panelOpen.get() || false;
+    }
+    left.panelOpen.set(narrow ? false : lastLeftOpen);
+    right?.panelOpen.set(narrow ? false : lastRightOpen);
+  });
+
+  // When url changes, we must have navigated; close the left panel since if it were open, it was
+  // the likely cause of the navigation (e.g. switch to another page or workspace).
+  const sub2 = subscribe(isNarrowScreenObs(), urlState().state, (use, narrow, state) => {
+    if (narrow) {
+      left.panelOpen.set(false);
+    }
+  });
+
+  return cssPageContainer(
+    dom.autoDispose(sub1),
+    dom.autoDispose(sub2),
     cssLeftPane(
       testId('left-panel'),
       cssTopHeader(left.header),
@@ -48,7 +71,7 @@ export function pagePanels(page: PageContents) {
 
       // Opening/closing the left pane, with transitions.
       cssLeftPane.cls('-open', left.panelOpen),
-      optimizeNarrowScreen && isNarrowScreen() ? null : transition(left.panelOpen, {
+      transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
         prepare(elem, open) { elem.style.marginRight = (open ? -1 : 1) * (left.panelWidth.get() - 48) + 'px'; },
         run(elem, open) { elem.style.marginRight = ''; },
         finish: onResize,
@@ -61,12 +84,12 @@ export function pagePanels(page: PageContents) {
       {target: 'left', onSave: (val) => { left.panelWidth.set(val); onResize(); }},
       testId('left-resizer'),
       dom.show(left.panelOpen),
-      cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
+      cssHideForNarrowScreen.cls('')),
 
     // Show plain border when the resize handle is hidden.
     cssResizeDisabledBorder(
       dom.hide(left.panelOpen),
-      cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
+      cssHideForNarrowScreen.cls('')),
 
     cssMainPane(
       cssTopHeader(
@@ -75,7 +98,7 @@ export function pagePanels(page: PageContents) {
           cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
             testId('left-opener'),
             dom.on('click', () => toggleObs(left.panelOpen)),
-            cssHideForNarrowScreen.cls('', optimizeNarrowScreen))
+            cssHideForNarrowScreen.cls(''))
         ),
 
         page.headerMain,
@@ -84,7 +107,7 @@ export function pagePanels(page: PageContents) {
           cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
             testId('right-opener'),
             dom.on('click', () => toggleObs(right.panelOpen)),
-            cssHideForNarrowScreen.cls('', optimizeNarrowScreen))
+            cssHideForNarrowScreen.cls(''))
         ),
       ),
       page.contentMain,
@@ -96,7 +119,7 @@ export function pagePanels(page: PageContents) {
         {target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); }},
         testId('right-resizer'),
         dom.show(right.panelOpen),
-        cssHideForNarrowScreen.cls('', optimizeNarrowScreen)),
+        cssHideForNarrowScreen.cls('')),
 
       cssRightPane(
         testId('right-panel'),
@@ -107,7 +130,7 @@ export function pagePanels(page: PageContents) {
 
         // Opening/closing the right pane, with transitions.
         cssRightPane.cls('-open', right.panelOpen),
-        optimizeNarrowScreen && isNarrowScreen() ? null : transition(right.panelOpen, {
+        transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
           prepare(elem, open) { elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + 'px'; },
           run(elem, open) { elem.style.marginLeft = ''; },
           finish: onResize,
@@ -122,8 +145,7 @@ export function pagePanels(page: PageContents) {
       }),
       testId('overlay')
     ),
-  ), (
-    !optimizeNarrowScreen ? null :
+    dom.maybe(isNarrowScreenObs(), () =>
       cssBottomFooter(
         testId('bottom-footer'),
         cssPanelOpenerNarrowScreenBtn(
@@ -152,7 +174,8 @@ export function pagePanels(page: PageContents) {
           )
         ),
       )
-  )];
+    ),
+  );
 }
 
 function toggleObs(boolObs: Observable<boolean>) {
@@ -178,12 +201,12 @@ const cssPageContainer = styled(cssHBox, `
   background-color: ${colors.lightGrey};
 
   @media ${mediaSmall} {
-    &-optimizeNarrowScreen {
-      bottom: 48px;
+    & {
+      padding-bottom: 48px;
       min-width: 240px;
     }
     .interface-light & {
-      bottom: 0;
+      padding-bottom: 0;
     }
   }
 `);
@@ -195,7 +218,7 @@ export const cssLeftPane = styled(cssVBox, `
   overflow: hidden;
   transition: margin-right 0.4s;
   @media ${mediaSmall} {
-    .${cssPageContainer.className}-optimizeNarrowScreen & {
+    & {
       width: 240px;
       position: fixed;
       z-index: 10;
@@ -207,7 +230,7 @@ export const cssLeftPane = styled(cssVBox, `
       transition: left 0.4s, visibility 0.4s;
       will-change: left;
     }
-    .${cssPageContainer.className}-optimizeNarrowScreen &-open {
+    &-open {
       left: 0;
       visibility: visible;
     }
@@ -242,7 +265,7 @@ const cssRightPane = styled(cssVBox, `
   transition: margin-left 0.4s;
   z-index: 0;
   @media ${mediaSmall} {
-    .${cssPageContainer.className}-optimizeNarrowScreen & {
+    & {
       width: 240px;
       position: fixed;
       z-index: 10;
@@ -254,7 +277,7 @@ const cssRightPane = styled(cssVBox, `
       transition: right 0.4s, visibility 0.4s;
       will-change: right;
     }
-    .${cssPageContainer.className}-optimizeNarrowScreen &-open {
+    &-open {
       right: 0;
       visibility: visible;
     }
@@ -374,7 +397,7 @@ const cssContentOverlay = styled('div', `
   display: none;
   z-index: 9;
   @media ${mediaSmall} {
-    .${cssPageContainer.className}-optimizeNarrowScreen & {
+    & {
       display: unset;
     }
   }

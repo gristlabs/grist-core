@@ -8,7 +8,7 @@
  */
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {dom, makeTestId, styled, TestId} from 'grainjs';
+import {dom, makeTestId, Observable, styled, TestId} from 'grainjs';
 import values = require('lodash/values');
 
 const VAR_PREFIX = 'grist';
@@ -164,8 +164,20 @@ export const mediaNotSmall = `(min-width: ${mediumScreenWidth}px)`;
 
 export const mediaDeviceNotSmall = `(min-device-width: ${mediumScreenWidth}px)`;
 
-export function isNarrowScreen() {
-  return window.innerWidth <= 768;
+function isNarrowScreen() {
+  return window.innerWidth < mediumScreenWidth;
+}
+
+let _isNarrowScreenObs: Observable<boolean>|undefined;
+
+// Returns a singleton observable for whether the screen is a small one.
+export function isNarrowScreenObs(): Observable<boolean> {
+  if (!_isNarrowScreenObs) {
+    const obs = Observable.create<boolean>(null, isNarrowScreen());
+    window.addEventListener('resize', () => obs.set(isNarrowScreen()));
+    _isNarrowScreenObs = obs;
+  }
+  return _isNarrowScreenObs;
 }
 
 export const cssHideForNarrowScreen = styled('div', `

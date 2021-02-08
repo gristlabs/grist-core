@@ -9,7 +9,7 @@ import * as BillingPageCss from "app/client/ui/BillingPageCss";
 import * as forms from "app/client/ui/forms";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink, cssButton } from "app/client/ui2018/buttons";
-import { colors, testId, vars } from "app/client/ui2018/cssVars";
+import { colors, mediaSmall, testId, vars } from "app/client/ui2018/cssVars";
 import { getOrgName, Organization } from "app/common/UserAPI";
 
 async function _submitForm(form: HTMLFormElement, pending: Observable<boolean>) {
@@ -199,7 +199,7 @@ const cssScrollContainer = styled('div', `
 `);
 
 const cssContainer = styled('div', `
-  width: 450px;
+  max-width: 450px;
   align-self: center;
   margin: 60px;
   display: flex;
@@ -207,6 +207,11 @@ const cssContainer = styled('div', `
   &:after {
     content: "";
     height: 8px;
+  }
+  @media ${mediaSmall} {
+    & {
+      margin: 24px;
+    }
   }
 `);
 
