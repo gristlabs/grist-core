@@ -20,16 +20,25 @@ const DOUBLE_TAP_INTERVAL_MS = 500;
  * - https://github.com/w3c/pointerevents/issues/171
  */
 export function onDblClickMatchElem(elem: EventTarget, selector: string, callback: EventCB): void {
+  // According to https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action, this "removes the
+  // need for browsers to delay the generation of click events when the user taps the screen".
+  // Without it, the delay (e.g. on mobile Chrome) prevents cursor from moving on double-tap.
+  dom.styleElem(elem as HTMLElement, 'touch-action', 'manipulation');
   dom.onMatchElem(elem, selector, 'dblclick', (ev, _elem) => {
     callback(ev, _elem);
   });
 
   let lastTapTime = 0;
+  let lastTapElem: EventTarget|null = null;
   dom.onMatchElem(elem, selector, 'touchend', (ev, _elem) => {
     const currentTime = Date.now();
     const tapLength = currentTime - lastTapTime;
+    const sameElem = (_elem === lastTapElem);
     lastTapTime = currentTime;
-    if (tapLength < DOUBLE_TAP_INTERVAL_MS && tapLength > 0) {
+    lastTapElem = _elem;
+    // Only consider a gesture a double-tap if it's on the same cell. Otherwise, two-finger
+    // gestures, such as zooming, may trigger this too.
+    if (sameElem && tapLength < DOUBLE_TAP_INTERVAL_MS && tapLength > 0) {
       ev.preventDefault();
       callback(ev, _elem);
     }
