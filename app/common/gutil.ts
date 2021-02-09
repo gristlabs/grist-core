@@ -1,5 +1,5 @@
 import {delay} from 'app/common/delay';
-import {Listener, Observable} from 'grainjs';
+import {BindableValue, DomElementMethod, Listener, Observable, subscribeElem} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
 import constant = require('lodash/constant');
 import identity = require('lodash/identity');
@@ -726,6 +726,17 @@ export async function waitGrainObs<T>(observable: Observable<T>,
   if (sub) { sub.dispose(); }
   return res;
 }
+
+
+// `dom.style` does not work here because custom css property (ie: `--foo`) needs to be set using
+// `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
+// TODO: consider making PR to fix `dom.style` in grainjs.
+export function inlineStyle(property: string, valueObs: BindableValue<string>): DomElementMethod {
+  return (elem) => subscribeElem(elem, valueObs, (val) => {
+    elem.style.setProperty(property, val);
+  });
+}
+
 
 /**
  * Class to maintain a chain of promise-returning callbacks. All scheduled callbacks will be

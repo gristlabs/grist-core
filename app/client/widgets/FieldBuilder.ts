@@ -128,11 +128,13 @@ export class FieldBuilder extends Disposable {
       write(widget) {
         // Reset the entire JSON, so that all options revert to their defaults.
 
+        const previous = this.options.peek();
         this.options.setAndSave({
           widget,
-          // persists color settings across widgets
-          fillColor: field.fillColor.peek(),
-          textColor: field.textColor.peek()
+          // Persists color settings across widgets (note: we cannot use `field.fillColor` to get the
+          // current value because it returns a default value for `undefined`. Same for `field.textColor`.
+          fillColor: previous.fillColor,
+          textColor: previous.textColor,
         }).catch(reportError);
       }
     });
@@ -418,7 +420,9 @@ export class FieldBuilder extends Disposable {
           kd.scope(widgetObs, (widget: NewAbstractWidget) => {
             if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
             const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
-            return dom(cellDom, kd.toggleClass('has_cursor', isActive));
+            return dom(cellDom, kd.toggleClass('has_cursor', isActive),
+                       kd.style('--grist-cell-color', this.field.textColor),
+                       kd.style('--grist-cell-background-color', this.field.fillColor));
           })
          );
     };

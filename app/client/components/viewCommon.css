@@ -55,10 +55,14 @@
   text-overflow: ellipsis;
   width: 100%;
   height: 100%;
+  background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, unset));
+  --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color));
+  color: var(--grist-actual-cell-color, unset);
 }
 
 .field_clip.invalid {
   background-color: #ffb6c1;
+  color: unset;
 }
 
 .field_clip.invalid:empty {
@@ -159,20 +163,28 @@
 
 .diff-local, .diff-local-add {
   background-color: #dfdfff;
+  --grist-diff-background-color: #dfdfff;
+  --grist-diff-color: black;
 }
 
 .diff-parent, .diff-remote-remove {
   background-color: #ffdfdf;
+  --grist-diff-background-color: #ffdfdf;
+  --grist-diff-color: black;
   text-decoration: line-through;
 }
 
 .diff-local-remove {
   background-color: #dfdfdf;
+  --grist-diff-background-color: #dfdfdf;
+  --grist-diff-color: black;
   text-decoration: line-through;
 }
 
 .diff-remote, .diff-remote-add {
   background-color: #afffaf;
+  --grist-diff-background-color: #afffaf;
+  --grist-diff-color: black;
 }
 
 .diff-common {

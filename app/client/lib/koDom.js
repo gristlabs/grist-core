@@ -139,7 +139,14 @@ exports.attr = attr;
  */
 function style(property, valueOrFunc) {
   return makeBinding(valueOrFunc, function(elem, value) {
-    elem.style[property] = value;
+    // `style.setProperty` must be use to set custom property (ie: properties starting with '--').
+    // However since it does not support camelCase property, we still need to use the other form
+    // `elem.style[prop] = val;` for other properties.
+    if (property.startsWith('--')) {
+      elem.style.setProperty(property, value);
+    } else {
+      elem.style[property] = value;
+    }
   });
 }
 exports.style = style;

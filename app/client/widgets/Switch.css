@@ -33,7 +33,7 @@
 }
 
 .switch_on > .switch_slider {
-  background-color: #2CB0AF;
+  background-color: var(--grist-cell-color, #2CB0AF);
 }
 
 .switch_on > .switch_circle {

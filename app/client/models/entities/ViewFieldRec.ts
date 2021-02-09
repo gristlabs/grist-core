@@ -202,13 +202,14 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.disableEditData = ko.pureComputed(() => this.column().disableEditData());
 
   this.textColor = modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop('textColor') as modelUtil.KoSaveableObservable<string>, "#000000");
+    this.widgetOptionsJson.prop('textColor') as modelUtil.KoSaveableObservable<string>, '');
 
-  const fillColorProp = this.widgetOptionsJson.prop('fillColor') as modelUtil.KoSaveableObservable<string>;
+  const fillColorProp = modelUtil.fieldWithDefault(
+    this.widgetOptionsJson.prop('fillColor') as modelUtil.KoSaveableObservable<string>, "#FFFFFF00");
   // Store empty string in place of the default white color, so that we can keep it transparent in
   // GridView, to avoid interfering with zebra stripes.
   this.fillColor = modelUtil.savingComputed({
     read: () => fillColorProp(),
-    write: (setter, val) => setter(fillColorProp, val === '#ffffff' ? '' : val),
+    write: (setter, val) => setter(fillColorProp, val.toUpperCase() === '#FFFFFF' ? '' : val),
   });
 }

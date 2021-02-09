@@ -935,10 +935,6 @@ GridView.prototype.buildDom = function() {
             //TODO: Ensure that fields in a row resize when
             //a cell in that row becomes larger
             kd.style('borderRightWidth', v.borderWidthPx),
-            kd.style('color', field.textColor),
-            // If making a comparison, use the background exclusively for
-            // marking that up.
-            self.comparison ? null : kd.style('background-color', () => (row._isAddRow() || isSelected()) ? '' : field.fillColor()),
 
             kd.toggleClass('selected', isSelected),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)

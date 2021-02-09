@@ -71,7 +71,7 @@ export function alignmentSelect(obs: Observable<string>) {
 }
 
 /**
- * Color selector button. Observable should contain a hex color value, e.g. #a4ba23
+ * Color selector button. Observable should contain a hex color value, e.g. #a4ba23.
  */
 export function colorSelect(value: Observable<string>, save: (val: string) => Promise<void>,
                             ...domArgs: DomElementArg[]) {
@@ -89,12 +89,12 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
     // by the server.
     cssColorPicker(
       {type: 'color'},
-      dom.attr('value', value),
+      dom.attr('value', (use) => use(value).slice(0, 7)),
       dom.on('input', setValue),
       dom.on('change', onSave)
     ),
-    dom.style('background-color', (use) => use(value) || '#ffffff'),
-    cssColorBtn.cls('-dark', (use) => isColorDark(use(value) || '#ffffff')),
+    dom.style('background-color', (use) => use(value) || '#000000'),
+    cssColorBtn.cls('-dark', (use) => isColorDark(use(value) || '#000000')),
     cssColorIcon('Dots'),
     ...domArgs
   );

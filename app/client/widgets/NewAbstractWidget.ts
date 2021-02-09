@@ -28,10 +28,14 @@ export abstract class NewAbstractWidget extends Disposable {
 
   protected options: SaveableObjObservable<any>;
   protected valueFormatter: Observable<BaseFormatter>;
+  protected textColor: Observable<string>;
+  protected fillColor: Observable<string>;
 
   constructor(protected field: ViewFieldRec) {
     super();
     this.options = field.widgetOptionsJson;
+    this.textColor = fromKo(this.field.textColor);
+    this.fillColor = fromKo(this.field.fillColor);
 
     // Note that its easier to create a knockout computed from the several knockout observables,
     // but then we turn it into a grainjs observable.
@@ -57,7 +61,7 @@ export abstract class NewAbstractWidget extends Disposable {
       cssRow(
         cssHalfWidth(
           colorSelect(
-            fromKo(this.field.textColor) as Observable<string>,
+            this.textColor,
             (val) => this.field.textColor.saveOnly(val),
             testId('text-color')
           ),
@@ -65,7 +69,7 @@ export abstract class NewAbstractWidget extends Disposable {
         ),
         cssHalfWidth(
           colorSelect(
-            fromKo(this.field.fillColor) as Observable<string>,
+            this.fillColor,
             (val) => this.field.fillColor.saveOnly(val),
             testId('fill-color')
           ),

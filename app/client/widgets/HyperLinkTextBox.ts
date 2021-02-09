@@ -28,7 +28,7 @@ export class HyperLinkTextBox extends NTextBox {
           // from running on the same process as Grist:
           // https://developers.google.com/web/tools/lighthouse/audits/noopener
           dom.attr('rel', 'noopener noreferrer'),
-          cssLinkIcon('FieldLink'),
+          cssLinkIcon('FieldLink', testId('tb-link-icon')),
           testId('tb-link')
         )
       ),
@@ -62,10 +62,10 @@ function _constructUrl(value: string): string {
 }
 
 const cssFieldClip = styled('div.field_clip', `
-  color: ${colors.lightGreen};
+  color: var(--grist-actual-cell-color, ${colors.lightGreen});
 `);
 
 const cssLinkIcon = styled(icon, `
-  background-color: ${colors.lightGreen};
+  background-color: var(--grist-actual-cell-color, ${colors.lightGreen});
   margin: -1px 2px 2px 0;
 `);

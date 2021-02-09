@@ -42,8 +42,8 @@
   position: relative;
   width: 3px;
   height: 12px;
-  background-color: #606060;
-  border: 1px solid #606060;
+  background-color: var(--grist-cell-color, #606060);
+  border: 1px solid var(--grist-cell-color, #606060);
   left: 3px;
   top: -5px;
 }
@@ -52,7 +52,7 @@
   position: relative;
   width: 3px;
   height: 3px;
-  background-color: #606060;
-  border: 1px solid #606060;
+  background-color: var(--grist-cell-color, #606060);
+  border: 1px solid var(--grist-cell-color, #606060);
   top: 7px;
 }

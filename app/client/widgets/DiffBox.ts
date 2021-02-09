@@ -2,6 +2,7 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import { CellValue } from 'app/common/DocActions';
 import { isVersions } from 'app/common/gristTypes';
+import { inlineStyle } from 'app/common/gutil';
 import { BaseFormatter } from 'app/common/ValueFormatter';
 import { Diff, DIFF_DELETE, DIFF_INSERT, diff_match_patch as DiffMatchPatch, DIFF_EQUAL } from 'diff-match-patch';
 import { Computed, dom } from 'grainjs';
@@ -37,6 +38,8 @@ export class DiffBox extends NewAbstractWidget {
       dom.autoDispose(formattedValue),
       dom.style('text-align', this.options.prop('alignment')),
       dom.cls('text_wrapping', (use) => Boolean(use(this.options.prop('wrap')))),
+      inlineStyle('--grist-diff-color', '#000000'),
+      inlineStyle('--grist-diff-background-color', '#00000000'),
       dom.forEach(formattedValue, ([code, txt]) => {
         if (code === DIFF_DELETE) {
           return dom("span.diff-parent", txt);
