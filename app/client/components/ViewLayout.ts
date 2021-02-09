@@ -123,7 +123,8 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const classActive = cssLayoutBox.className + '-active';
     const classInactive = cssLayoutBox.className + '-inactive';
-    this.autoDispose(subscribe(fromKo(this.viewModel.activeSectionId), (use, id) => {
+    this.autoDispose(subscribe(fromKo(this.viewModel.activeSection), (use, section) => {
+      const id = section.getRowId();
       this._layout.forEachBox((box: {dom: Element}) => {
         box.dom.classList.add(classInactive);
         box.dom.classList.remove(classActive);
@@ -134,6 +135,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         elem.classList.add(classActive);
         elem = elem.parentElement;
       }
+      section.viewInstance.peek()?.onResize();
     }));
 
     const commandGroup = {
