@@ -140,7 +140,7 @@ LayoutBox.prototype.buildDom = function() {
     kd.cssClass(wrap(function() { return (self.layout.fillWindow ? 'layout_fill_window' :
       (self.isLastChild() ? 'layout_last_child' : null));
     })),
-    kd.style('flexGrow', wrap(function() {
+    kd.style('--flex-grow', wrap(function() {
       return (self.isVBox() || (self.isHBox() && self.layout.fillWindow)) ? self.flexSize() : '';
     })),
     kd.domData('layoutBox', this),

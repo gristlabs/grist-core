@@ -17,6 +17,7 @@
   display: -webkit-flex;
   display: flex;
   min-width: 0px;
+  flex-grow: var(--flex-grow, 1) !important;
 }
 
 .layout_hbox.layout_fill_window {

@@ -13,11 +13,11 @@ import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
-import {testId} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
-import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, subscribe} from 'grainjs';
+import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -121,6 +121,21 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     // (See https://stackoverflow.com/questions/2381336/detect-click-into-iframe-using-javascript).
     this.listenTo(this.gristDoc.app, 'clipboard_blur', this._maybeFocusInSection);
 
+    const classActive = cssLayoutBox.className + '-active';
+    const classInactive = cssLayoutBox.className + '-inactive';
+    this.autoDispose(subscribe(fromKo(this.viewModel.activeSectionId), (use, id) => {
+      this._layout.forEachBox((box: {dom: Element}) => {
+        box.dom.classList.add(classInactive);
+        box.dom.classList.remove(classActive);
+      });
+      let elem: Element|null = this._layout.getLeafBox(id)?.dom;
+      while (elem?.matches('.layout_box')) {
+        elem.classList.remove(classInactive);
+        elem.classList.add(classActive);
+        elem = elem.parentElement;
+      }
+    }));
+
     const commandGroup = {
       deleteSection: () => { this._removeViewSection(this.viewModel.activeSectionId()); },
       nextSection: () => { this._otherSection(+1); },
@@ -158,11 +173,13 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const vs: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionRowId);
     return dom('div.view_leaf.viewsection_content.flexvbox.flexauto',
       testId(`viewlayout-section-${sectionRowId}`),
-      this.gristDoc.app.addNewUIClass(),
+
+      cssViewLeaf.cls(''),
+      cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasFocus)),
       dom.cls('active_section', vs.hasFocus),
+
       dom.maybe((use) => use(vs.viewInstance) !== null, () => dom('div.viewsection_title.flexhbox',
         dom('span.viewsection_drag_indicator.glyphicon.glyphicon-option-vertical',
-          this.gristDoc.app.addNewUIClass(),
           // Makes element grabbable only if grist is not readonly.
           dom.cls('layout_grabbable', (use) => !use(this.gristDoc.isReadonlyKo))),
         dom('div.flexitem.flexhbox',
@@ -270,3 +287,79 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }
   }
 }
+
+const cssViewLeaf = styled('div', `
+  @media ${mediaSmall} {
+    & {
+      margin: 4px;
+    }
+  }
+`);
+
+const cssViewLeafInactive = styled('div', `
+  @media ${mediaSmall} {
+    & {
+      overflow: hidden;
+      background: repeating-linear-gradient(
+        -45deg,
+        ${colors.mediumGreyOpaque},
+        ${colors.mediumGreyOpaque} 10px,
+        ${colors.lightGrey} 10px,
+        ${colors.lightGrey} 20px
+      );
+      border: 1px solid ${colors.darkGrey};
+      border-radius: 4px;
+      padding: 0 2px;
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    &.layout_vbox {
+      max-width: 32px;
+    }
+    &.layout_hbox {
+      max-height: 32px;
+    }
+    & > .viewsection_title.flexhbox {
+      position: absolute;
+    }
+    & > .view_data_pane_container,
+    & .viewsection_buttons,
+    & .grist-single-record__menu {
+      display: none;
+    }
+  }
+`);
+
+const cssLayoutBox = styled('div', `
+  @media ${mediaSmall} {
+    &-active, &-inactive {
+      transition: flex-grow 0.4s;
+    }
+    &-active > &-inactive,
+    &-active > &-inactive.layout_hbox .layout_hbox,
+    &-active > &-inactive.layout_vbox .layout_vbox {
+      flex: none !important;
+    }
+
+    &-active > &-inactive.layout_hbox.layout_leaf,
+    &-active > &-inactive.layout_hbox .layout_hbox.layout_leaf {
+      height: 40px;
+    }
+
+    &-active > &-inactive.layout_vbox.layout_leaf,
+    &-active > &-inactive.layout_vbox .layout_vbox.layout_leaf {
+      width: 40px;
+    }
+
+    &-inactive.layout_leaf {
+      min-height: 40px;
+      min-width: 40px;
+    }
+  }
+`);

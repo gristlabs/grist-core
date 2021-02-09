@@ -4,34 +4,15 @@
 }
 
 .viewsection_title {
-  background-color: #e5e5e5;
-  color: black;
   flex-shrink: 0;
   align-items: baseline;
-  line-height: 2;
-
   cursor: default;
-}
-
-.active_section > .viewsection_title {
-  background-color: #3e568e;
-  color: white;
-}
-
-.viewsection_content.newui > .viewsection_title {
   height: 24px;
   margin-left: -16px;   /* to include drag handle that shows up on hover */
   color: var(--grist-color-slate);
-  background-color: unset;
   font-size: var(--grist-small-font-size);
   font-weight: 500;
   text-transform: uppercase;
-  line-height: inherit;
-}
-
-.active_section.newui > .viewsection_title {
-  background-color: unset;
-  color: var(--grist-color-slate);
 }
 
 .viewsection_titletext {
@@ -41,14 +22,8 @@
 
 .viewsection_content {
   background-color: #ffffff;
-  margin: 4px;
   overflow: visible;
-  box-shadow: 0px 1px 3px 0px rgba(0,0,0,0.8);
-}
-
-.viewsection_content.newui {
   margin: 12px;
-  box-shadow: none;
 }
 
 .viewsection_title_colorbox {
@@ -59,15 +34,10 @@
   box-shadow: inset 0px 0px 5px rgba(0,0,0,0.5);
 }
 
+/* TODO should be switched to use new icon */
 .viewsection_drag_indicator {
   visibility: hidden;
-  margin: auto;
-  padding: 0px 2px;
   top: 0px;
-}
-
-/* TODO should be switched to use new icon */
-.viewsection_drag_indicator.newui {
   width: 16px;
   height: 16px;
   margin: 0;
@@ -131,19 +101,16 @@
 .view_data_pane_container {
   position: relative;
   flex: auto;
-}
-
-.viewsection_content.newui > .view_data_pane_container {
   border: 1px solid var(--grist-color-dark-grey);
 }
 
 @media not print {
-.active_section.newui > .view_data_pane_container {
+.active_section > .view_data_pane_container {
   box-shadow: -2px 0 0 0px var(--grist-color-light-green);
   border-left: 1px solid var(--grist-color-light-green);
 }
 
-.active_section.newui > .view_data_pane_container.viewsection_type_detail {
+.active_section > .view_data_pane_container.viewsection_type_detail {
   /* this color is a translucent version of grist-color-light-green */
   box-shadow: -2px 0 0 0px var(--grist-color-inactive-cursor);
   border-left: 1px solid var(--grist-color-inactive-cursor);

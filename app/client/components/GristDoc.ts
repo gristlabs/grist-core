@@ -34,7 +34,7 @@ import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
-import {testId} from 'app/client/ui2018/cssVars';
+import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {delay} from 'app/common/delay';
@@ -687,6 +687,11 @@ const cssViewContentPane = styled('div', `
   position: relative;
   min-width: 240px;
   margin: 12px;
+  @media ${mediaSmall} {
+    & {
+      margin: 4px;
+    }
+  }
   @media print {
     & {
       margin: 0px;
