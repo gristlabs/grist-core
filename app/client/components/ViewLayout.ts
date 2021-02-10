@@ -299,7 +299,7 @@ const cssViewLeaf = styled('div', `
 `);
 
 const cssViewLeafInactive = styled('div', `
-  @media ${mediaSmall} {
+  @media screen and ${mediaSmall} {
     & {
       overflow: hidden;
       background: repeating-linear-gradient(
@@ -339,7 +339,7 @@ const cssViewLeafInactive = styled('div', `
 `);
 
 const cssLayoutBox = styled('div', `
-  @media ${mediaSmall} {
+  @media screen and ${mediaSmall} {
     &-active, &-inactive {
       transition: flex-grow 0.4s;
     }
