@@ -45,26 +45,26 @@ export function expandQuery(iquery: Query, docData: DocData, onDemandFormulas: b
     limit: iquery.limit
   };
 
-  // Look up the main table for the query.
-  const tables = docData.getTable('_grist_Tables')!;
-  const columns = docData.getTable('_grist_Tables_column')!;
-  const tableRef = tables.findRow('tableId', query.tableId);
-  if (!tableRef) { throw new ApiError('table not found', 404); }
-
-  // Find any references to other tables.
-  const dataColumns = columns.filterRecords({parentId: tableRef, isFormula: false});
-  const references = new Map<string, string>();
-  for (const column of dataColumns) {
-    const refTableId = removePrefix(column.type as string, 'Ref:');
-    if (refTableId) { references.set(column.colId as string, refTableId); }
-  }
-
   // Start accumulating a set of joins and selects needed for the query.
   const joins = new Set<string>();
   const selects = new Set<string>();
 
   // Iterate through all formulas, adding joins and selects as we go.
   if (onDemandFormulas) {
+    // Look up the main table for the query.
+    const tables = docData.getTable('_grist_Tables')!;
+    const columns = docData.getTable('_grist_Tables_column')!;
+    const tableRef = tables.findRow('tableId', query.tableId);
+    if (!tableRef) { throw new ApiError('table not found', 404); }
+
+    // Find any references to other tables.
+    const dataColumns = columns.filterRecords({parentId: tableRef, isFormula: false});
+    const references = new Map<string, string>();
+    for (const column of dataColumns) {
+      const refTableId = removePrefix(column.type as string, 'Ref:');
+      if (refTableId) { references.set(column.colId as string, refTableId); }
+    }
+
     selects.add(`${quoteIdent(query.tableId)}.id`);
     for (const column of dataColumns) {
       selects.add(`${quoteIdent(query.tableId)}.${quoteIdent(column.colId as string)}`);
