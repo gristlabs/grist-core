@@ -154,6 +154,8 @@ export class TableDataWithDiff {
   public dataLoadedEmitter: any;
   public tableActionEmitter: any;
 
+  private _leftRemovals: Set<number>;
+  private _rightRemovals: Set<number>;
   private _updates: Set<number>;
 
   constructor(public core: TableData, public leftTableDelta: TableDelta, public rightTableDelta: TableDelta) {
@@ -161,11 +163,11 @@ export class TableDataWithDiff {
     this.tableActionEmitter = core.tableActionEmitter;
     // Construct the set of all rows updated in either left/local or right/remote.
     // Omit any rows that were deleted in the other version, for simplicity.
-    const leftRemovals = new Set(leftTableDelta.removeRows);
-    const rightRemovals = new Set(rightTableDelta.removeRows);
+    this._leftRemovals = new Set(leftTableDelta.removeRows);
+    this._rightRemovals = new Set(rightTableDelta.removeRows);
     this._updates = new Set([
-      ...leftTableDelta.updateRows.filter(r => !rightRemovals.has(r)),
-      ...rightTableDelta.updateRows.filter(r => !leftRemovals.has(r))
+      ...leftTableDelta.updateRows.filter(r => !this._rightRemovals.has(r)),
+      ...rightTableDelta.updateRows.filter(r => !this._leftRemovals.has(r))
     ]);
   }
 
@@ -198,7 +200,8 @@ export class TableDataWithDiff {
 
   public getKeepFunc(): undefined | ((rowId: number|"new") => boolean) {
     return (rowId: number|'new') => {
-      return rowId === 'new' || this._updates.has(rowId) || rowId < 0;
+      return rowId === 'new' || this._updates.has(rowId) || rowId < 0 ||
+        this._leftRemovals.has(rowId) || this._rightRemovals.has(rowId);
     };
   }
 
