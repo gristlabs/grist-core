@@ -57,6 +57,9 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
       item.options.actions.length ? cssToastActions(
         item.options.actions.map((action) => buildAction(action, item, options))
       ) : null,
+      item.options.memos.length ? cssToastMemos(
+        item.options.memos.map(memo => cssToastMemo(memo))
+      ) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>
       cssToastClose(testId('toast-close'),
@@ -298,6 +301,19 @@ const cssToastAction = styled('div', `
   &:hover {
     text-decoration: underline;
   }
+`);
+
+const cssToastMemos = styled('div', `
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+`);
+
+const cssToastMemo = styled('div', `
+  margin: 3px;
+  color: ${colors.dark};
+  background: ${colors.light};
+  padding: 3px;
 `);
 
 const cssProgressBarWrapper = styled('div', `

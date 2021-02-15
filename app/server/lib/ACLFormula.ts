@@ -64,6 +64,7 @@ function _compileNode(parsedAclFormula: ParsedAclFormula): AclEvalFunc {
       const attrName = rawArgs[1] as string;
       return _compileAndCombine([args[0]], ([value]) => getAttr(value, attrName, args[0]));
     }
+    case 'Comment': return _compileNode(args[0]);
   }
   throw new Error(`Unknown node type '${parsedAclFormula[0]}'`);
 }

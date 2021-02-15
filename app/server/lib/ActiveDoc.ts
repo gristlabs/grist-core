@@ -29,7 +29,6 @@ import {toTableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {byteString, countIf} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
@@ -604,9 +603,8 @@ export class ActiveDoc extends EventEmitter {
 
     // If user does not have rights to access what this query is asking for, fail.
     const tableAccess = await this._granularAccess.getTableAccess(docSession, query.tableId);
-    if (tableAccess.read === 'deny') {
-      throw new Error('not authorized to read table');
-    }
+
+    this._granularAccess.assertCanRead(tableAccess);
 
     // Some tests read _grist_ tables via the api.  The _fetchQueryFromDB method
     // currently cannot read those tables, so we load them from the data engine
@@ -614,7 +612,7 @@ export class ActiveDoc extends EventEmitter {
     // Also, if row-level access is being controlled, we wait for formula columns
     // to be populated.
     const wantFull = waitForFormulas || query.tableId.startsWith('_grist_') ||
-      tableAccess.read === 'mixed';
+      this._granularAccess.getReadPermission(tableAccess) === 'mixed';
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
     this.logInfo(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
@@ -636,7 +634,7 @@ export class ActiveDoc extends EventEmitter {
     }
     // If row-level access is being controlled, filter the data appropriately.
     // Likewise if column-level access is being controlled.
-    if (tableAccess.read !== 'allow') {
+    if (this._granularAccess.getReadPermission(tableAccess) !== 'allow') {
       await this._granularAccess.filterData(docSession, data!);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
@@ -1181,13 +1179,11 @@ export class ActiveDoc extends EventEmitter {
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
-    if (!await this._granularAccess.canMaybeApplyUserActions(docSession, actions)) {
-      throw new ErrorWithCode('ACL_DENY', 'Action blocked by access rules');
-    }
-
     const client = docSession.client;
     this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
+
+    await this._granularAccess.assertCanMaybeApplyUserActions(docSession, actions);
 
     const user = docSession.mode === 'system' ? 'grist' :
       (client && client.session ? (await client.session.getEmail()) : "");

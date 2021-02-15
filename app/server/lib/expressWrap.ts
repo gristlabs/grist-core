@@ -24,8 +24,15 @@ export const jsonErrorHandler: express.ErrorRequestHandler = (err, req, res, nex
   log.warn("Error during api call to %s: (%s) user %d params %s body %s", req.path, err.message,
            mreq.userId,
            JSON.stringify(req.params), JSON.stringify(req.body));
-  res.status(err.status || 500).json({error: err.message || 'internal error',
-                                      details: err.details});
+  let details = err.details && {...err.details};
+  const status = details?.status || err.status || 500;
+  if (details) {
+    // Remove some details exposed for websocket API only.
+    delete details.accessMode;
+    delete details.status;  // TODO: reconcile err.status and details.status, no need for both.
+    if (Object.keys(details).length === 0) { details = undefined; }
+  }
+  res.status(status).json({error: err.message || 'internal error', details});
 };
 
 /**

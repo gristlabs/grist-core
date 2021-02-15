@@ -276,6 +276,9 @@ export class Client {
         if (err.code) {
           response.errorCode = err.code;
         }
+        if (err.details) {
+          response.details = err.details;
+        }
         if (typeof code === 'string' && code === 'AUTH_NO_EDIT' && err.accessMode === 'fork') {
           response.shouldFork = true;
         }

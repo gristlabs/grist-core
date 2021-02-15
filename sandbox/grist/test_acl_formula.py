@@ -79,6 +79,24 @@ class TestACLFormula(unittest.TestCase):
         ['Attr', ['Attr', ['Name', 'user'], 'Status'], 'IsActive']
       ])
 
+    self.assertEqual(parse_acl_formula(
+      "True # Comment!  "),
+      ['Comment', ['Const', True], 'Comment!'])
+
+    self.assertEqual(parse_acl_formula(
+      "\"#x\" == \" # Not a comment \"#Comment!"),
+      ['Comment',
+       ['Eq', ['Const', '#x'], ['Const', ' # Not a comment ']],
+       'Comment!'
+      ])
+
+    self.assertEqual(parse_acl_formula(
+      "# Allow owners\nuser.Access == 'owners' # ignored\n# comment ignored"),
+      ['Comment',
+       ['Eq', ['Attr', ['Name', 'user'], 'Access'], ['Const', 'owners']],
+       'Allow owners'
+      ])
+
   def test_unsupported(self):
     # Test a few constructs we expect to fail
     # Not an expression

@@ -28,6 +28,8 @@ export interface ApiErrorDetails {
 
   // If set, contains suggestions for fixing a problem.
   tips?: ApiTip[];
+
+  memos?: string[];
 }
 
 /**

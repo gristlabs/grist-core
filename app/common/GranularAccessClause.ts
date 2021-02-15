@@ -17,6 +17,9 @@ export interface RulePart {
 
   // Compiled version of aclFormula.
   matchFunc?: AclMatchFunc;
+
+  // Optional memo, currently extracted from comment in formula.
+  memo?: string;
 }
 
 // Light wrapper around characteristics or records.

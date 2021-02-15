@@ -7,6 +7,7 @@ import {timeFormat} from 'app/common/timeFormat';
 import {bundleChanges, Disposable, Holder, IDisposable, IDisposableOwner } from 'grainjs';
 import {Computed, dom, DomElementArg, MutableObsArray, obsArray, Observable} from 'grainjs';
 import clamp = require('lodash/clamp');
+import defaults = require('lodash/defaults');
 
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;
@@ -44,6 +45,8 @@ export interface INotifyOptions {
   inDropdown?: boolean;
   expireSec?: number;
   badgeCounter?: boolean;
+
+  memos?: string[];  // A list of relevant notes.
 
   // cssToastAction class from NotifyUI will be applied automatically to action elements.
   actions?: NotifyAction[];
@@ -87,12 +90,13 @@ export class Notification extends Expirable implements INotification {
     expireSec: 0,
     canUserClose: false,
     actions: [],
+    memos: [],
     key: null,
   };
 
   constructor(_opts: INotifyOptions) {
     super();
-    Object.assign(this.options, _opts);
+    this.options = defaults({}, _opts, this.options)
 
     if (this.options.expireSec > 0) {
       const expireTimer = setTimeout(() => this.expire(), 1000 * this.options.expireSec);

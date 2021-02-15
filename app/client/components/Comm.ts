@@ -156,6 +156,9 @@ export interface CommResponseError {
   error: string;
   errorCode: string;
   shouldFork?: boolean;  // if set, the server suggests forking the document.
+  details?: any;  // if set, error has extra details available. TODO - the treatment of
+                  // details could do with some harmonisation between rest API and ws API,
+                  // and between front-end and back-end types.
 }
 
 function isCommResponseError(msg: CommResponse | CommResponseError): msg is CommResponseError {
@@ -459,6 +462,9 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
           if (message.errorCode) {
             code = ` [${message.errorCode}]`;
             err.code = message.errorCode;
+          }
+          if (message.details) {
+            err.details = message.details;
           }
           err.shouldFork = message.shouldFork;
           console.log(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`

@@ -1,5 +1,7 @@
 import ast
+import io
 import json
+import tokenize
 from collections import namedtuple
 
 import asttokens
@@ -22,10 +24,16 @@ def parse_acl_formula(acl_formula):
     Const                   value (number, string, bool)
     Name                    name (string)
     Attr                    node, attr_name
+    Comment                 node, comment
   """
   try:
     tree = ast.parse(acl_formula, mode='eval')
-    return _TreeConverter().visit(tree)
+    result = _TreeConverter().visit(tree)
+    for part in tokenize.generate_tokens(io.StringIO(acl_formula.decode('utf-8')).readline):
+      if part[0] == tokenize.COMMENT and part[1].startswith('#'):
+        result = ['Comment', result, part[1][1:].strip()]
+        break
+    return result
   except SyntaxError as err:
     # In case of an error, include line and offset.
     raise SyntaxError("%s on line %s col %s" % (err.args[0], err.lineno, err.offset))

@@ -84,7 +84,7 @@ export function reportError(err: Error|string): void {
     } else if (err.name === 'NeedUpgradeError') {
       _notifier.createUserError(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
     } else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
-      _notifier.createUserError(message, {key: code});
+      _notifier.createUserError(err.message, {key: code, memos: details?.memos});
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.

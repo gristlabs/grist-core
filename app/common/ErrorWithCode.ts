@@ -3,6 +3,7 @@ import {OpenDocMode} from 'app/common/DocListAPI';
 interface ErrorDetails {
   status?: number;
   accessMode?: OpenDocMode;
+  memos?: string[];
 }
 
 /**
@@ -13,11 +14,9 @@ interface ErrorDetails {
  *
  */
 export class ErrorWithCode extends Error {
-  public accessMode?: OpenDocMode;
-  public status?: number;
-  constructor(public code: string, message: string, details: ErrorDetails = {}) {
+  constructor(public code: string, message: string, public details: ErrorDetails = {}) {
     super(message);
-    this.status = details.status;
-    this.accessMode = details.accessMode;
   }
+  public get accessMode() { return this.details?.accessMode;  }
+  public get status() { return this.details?.status;  }
 }

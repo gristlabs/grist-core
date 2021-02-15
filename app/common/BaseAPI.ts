@@ -136,6 +136,9 @@ function throwApiError(url: string, resp: Response | AxiosResponse, body: any) {
   if (body.error) {
     details.userError = body.error;
   }
+  if (body.memos) {
+    details.memos = body.memos;
+  }
   throw new ApiError(`Request to ${url} failed with status ${resp.status}: ` +
     `${resp.statusText} (${body.error || 'unknown cause'})`, resp.status, details);
 }

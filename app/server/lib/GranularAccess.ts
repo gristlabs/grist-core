@@ -1,6 +1,4 @@
-import { MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet } from 'app/common/ACLPermissions';
-import { makePartialPermissions, mergePartialPermissions, mergePermissions } from 'app/common/ACLPermissions';
-import { emptyPermissionSet, toMixed } from 'app/common/ACLPermissions';
+import { ALL_PERMISSION_PROPS } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
@@ -15,7 +13,7 @@ import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoView } from 'app/common/GranularAccessClause';
-import { RuleSet, UserInfo } from 'app/common/GranularAccessClause';
+import { UserInfo } from 'app/common/GranularAccessClause';
 import { getSetMapValue, isObject } from 'app/common/gutil';
 import { canView, Role } from 'app/common/roles';
 import { FullUser } from 'app/common/UserAPI';
@@ -23,9 +21,11 @@ import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
+import { PermissionInfo, PermissionSetWithContext, TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
+import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
 import pullAt = require('lodash/pullAt');
 
@@ -85,7 +85,7 @@ const OK_ACTIONS = new Set(['Calculate', 'AddEmptyTable']);
  * steps and clients.  We expect modifications to be serialized, and the following
  * pattern of calls for modifications:
  *
- *  - canMaybeApplyUserActions(), called with UserActions for an initial access check.
+ *  - assertCanMaybeApplyUserActions(), called with UserActions for an initial access check.
  *    Since not all checks can be done without analyzing UserActions into DocActions,
  *    it is ok for this call to pass even if a more definitive test later will fail.
  *  - canApplyDocActions(), called when DocActions have been produced from UserActions,
@@ -146,7 +146,7 @@ export class GranularAccess {
    */
   public async hasTableAccess(docSession: OptDocSession, tableId: string) {
     const pset = await this.getTableAccess(docSession, tableId);
-    return pset.read !== 'deny';
+    return this.getReadPermission(pset) !== 'deny';
   }
 
   /**
@@ -280,9 +280,11 @@ export class GranularAccess {
    * TODO: not smart about intermediate states, if there is a table or column rename it will
    * have trouble, and might forbid something that should be allowed.
    */
-  public async canMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
+  public async assertCanMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
     for (const action of actions) {
-      if (!await this.canMaybeApplyUserAction(docSession, action)) { return false; }
+      if (!await this.assertCanMaybeApplyUserAction(docSession, action)) {
+        throw new ErrorWithCode('ACL_DENY', 'Action blocked by access rules');
+      }
     }
     return true;
   }
@@ -290,7 +292,7 @@ export class GranularAccess {
   /**
    * Check if user can apply a given action to the document.
    */
-  public async canMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
+  public async assertCanMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
     const name = a[0] as string;
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
@@ -300,9 +302,9 @@ export class GranularAccess {
       return this.hasFullAccess(docSession);
     }
     if (a[0] === 'ApplyUndoActions') {
-      return this.canMaybeApplyUserActions(docSession, a[1] as UserAction[]);
+      return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (a[0] === 'ApplyDocActions') {
-      return this.canMaybeApplyUserActions(docSession, a[1] as UserAction[]);
+      return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (isTableAction(a)) {
       const tableId = getTableId(a);
       // If there are any access control nuances, deny _grist_* tables.
@@ -311,8 +313,8 @@ export class GranularAccess {
         return !this.hasNuancedAccess(docSession);
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
-      const accessFn = getAccessForActionType(a);
-      const access = accessFn(tableAccess);
+      const accessCheck = getAccessForActionType(a, 'fatal');
+      const access = accessCheck.get(tableAccess);
       // if access is mixed, leave this to be checked in detail later.
       return access === 'allow' || access === 'mixed' || access === 'mixedColumns';
     }
@@ -337,7 +339,7 @@ export class GranularAccess {
     const access = getDocSessionAccess(docSession);
     if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
-    return permInfo.getFullAccess().read === 'allow';
+    return this.getReadPermission(permInfo.getFullAccess()) === 'allow';
   }
 
   /**
@@ -399,7 +401,7 @@ export class GranularAccess {
       const tableId = rec.tableId as string;
       const tableRef = rec.id;
       const tableAccess = permInfo.getTableAccess(tableId);
-      if (tableAccess.read === 'deny') {
+      if (this.getReadPermission(tableAccess) === 'deny') {
         censoredTables.add(tableRef);
       }
       // TODO If some columns are allowed and the rest (*) are denied, we need to be able to
@@ -407,7 +409,7 @@ export class GranularAccess {
       for (const ruleSet of this._ruleCollection.getAllColumnRuleSets(tableId)) {
         if (Array.isArray(ruleSet.colIds)) {
           for (const colId of ruleSet.colIds) {
-            if (permInfo.getColumnAccess(tableId, colId).read === 'deny') {
+            if (this.getReadPermission(permInfo.getColumnAccess(tableId, colId)) === 'deny') {
               censoredColumnCodes.add(columnCode(tableRef, colId));
             }
           }
@@ -475,7 +477,7 @@ export class GranularAccess {
    * Distill the clauses for the given session and table, to figure out the
    * access level and any row-level access functions needed.
    */
-  public async getTableAccess(docSession: OptDocSession, tableId: string): Promise<TablePermissionSet> {
+  public async getTableAccess(docSession: OptDocSession, tableId: string): Promise<TablePermissionSetWithContext> {
     return (await this._getAccess(docSession)).getTableAccess(tableId);
   }
 
@@ -486,12 +488,14 @@ export class GranularAccess {
   public async filterData(docSession: OptDocSession, data: TableDataAction) {
     const permInfo = await this._getAccess(docSession);
     const tableId = getTableId(data);
-    if (permInfo.getTableAccess(tableId).read === 'mixed') {
-      await this._filterRowsAndCells(docSession, data, data, data, canRead);
+    if (this.getReadPermission(permInfo.getTableAccess(tableId)) === 'mixed') {
+      await this._filterRowsAndCells(docSession, data, data, data, readAccessCheck);
     }
 
     // Filter columns, omitting any to which the user has no access, regardless of rows.
-    this._filterColumns(data[3], (colId) => permInfo.getColumnAccess(tableId, colId).read !== 'deny');
+    this._filterColumns(
+      data[3],
+      (colId) => this.getReadPermission(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
   }
 
   public async getUserOverride(docSession: OptDocSession): Promise<UserOverride|undefined> {
@@ -499,25 +503,33 @@ export class GranularAccess {
     return this._getUserAttributes(docSession).override;
   }
 
+  public getReadPermission(ps: PermissionSetWithContext) {
+    return ps.perms.read;
+  }
+
+  public assertCanRead(ps: PermissionSetWithContext) {
+    readAccessCheck.throwIfDenied(ps);
+  }
+
   /**
    * Strip out any denied columns from an action.  Returns null if nothing is left.
-   * accessFn may throw if denials are fatal.
+   * accessCheck may throw if denials are fatal.
    */
   private _pruneColumns(a: DocAction, permInfo: PermissionInfo, tableId: string,
-                        accessFn: AccessFn): DocAction|null {
+                        accessCheck: AccessCheck): DocAction|null {
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
     } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
                a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
       const na = cloneDeep(a);
-      this._filterColumns(na[3], (colId) => accessFn(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
+      this._filterColumns(na[3], (colId) => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
       if (Object.keys(na[3]).length === 0) { return null; }
       return na;
     } else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
                a[0] === 'ModifyColumn') {
       const na = cloneDeep(a);
       const colId: string = na[2];
-      if (accessFn(permInfo.getColumnAccess(tableId, colId)) === 'deny') { return null; }
+      if (accessCheck.get(permInfo.getColumnAccess(tableId, colId)) === 'deny') { return null; }
       throw new ErrorWithCode('NEED_RELOAD', 'document needs reload');
     } else {
       // Remaining cases of AddTable, RemoveTable, RenameTable should have
@@ -614,22 +626,22 @@ export class GranularAccess {
 
     // Return the results, also applying any cell-level access control.
     for (const docAction of revisedDocActions) {
-      await this._filterRowsAndCells(docSession, rowsAfter, rowsAfter, docAction, canRead);
+      await this._filterRowsAndCells(docSession, rowsAfter, rowsAfter, docAction, readAccessCheck);
     }
     return revisedDocActions;
   }
 
   /**
    * Like _pruneRows, but fails immediately if access to any row is forbidden.
-   * The accessFn supplied should throw an error on denial.
+   * The accessCheck supplied should throw an error on denial.
    */
   private async _checkRows(docSession: OptDocSession, a: DocAction, idx: number,
-                           accessFn: AccessFn): Promise<void> {
+                           accessCheck: AccessCheck): Promise<void> {
     // For the moment, only deal with Record-related actions.
     // TODO: process table/column schema changes more carefully.
     if (isSchemaAction(a)) { return; }
     const {rowsBefore, rowsAfter} = await this._getRowsBeforeAndAfter(idx);
-    await this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessFn);
+    await this._filterRowsAndCells(docSession, rowsBefore, rowsAfter, a, accessCheck);
   }
 
   private async _getRowsBeforeAndAfter(idx: number) {
@@ -656,7 +668,7 @@ export class GranularAccess {
    * Modify action in place, scrubbing any rows and cells to which access is not granted.
    */
   private async _filterRowsAndCells(docSession: OptDocSession, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
-                                    docAction: DocAction, accessFn: AccessFn) {
+                                    docAction: DocAction, accessCheck: AccessCheck) {
     if (docAction && isSchemaAction(docAction)) {
       // TODO should filter out metadata about an unavailable column, probably.
       return [];
@@ -696,14 +708,14 @@ export class GranularAccess {
       const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      const access = accessFn(rowAccess);
+      const access = accessCheck.get(rowAccess);
       if (access === 'deny') {
         toRemove.push(idx);
       } else if (access !== 'allow' && colValues) {
         // Go over column rules.
         for (const colId of Object.keys(colValues)) {
           const colAccess = rowPermInfo.getColumnAccess(tableId, colId);
-          if (accessFn(colAccess) === 'deny') {
+          if (accessCheck.get(colAccess) === 'deny') {
             censorAt(colId, idx);
           }
         }
@@ -737,7 +749,7 @@ export class GranularAccess {
       const rowPermInfo = new PermissionInfo(this._ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      if (canRead(rowAccess) === 'deny') {
+      if (this.getReadPermission(rowAccess) === 'deny') {
         toRemove.push(rowIds[idx]);
       }
     }
@@ -1003,134 +1015,36 @@ export class GranularAccess {
     const tableId = getTableId(a);
     const permInfo = await this._getAccess(docSession);
     const tableAccess = permInfo.getTableAccess(tableId);
-    const access = tableAccess.read;
+    const access = this.getReadPermission(tableAccess);
     if (access === 'deny') { return []; }
     if (access === 'allow') { return [a]; }
     if (access === 'mixedColumns') {
-      return [this._pruneColumns(a, permInfo, tableId, canRead)].filter(isObject);
+      return [this._pruneColumns(a, permInfo, tableId, readAccessCheck)].filter(isObject);
     }
     // The remainder is the mixed condition.
     const revisedDocActions = await this._pruneRows(docSession, a, idx);
     const result = revisedDocActions.map(na => this._pruneColumns(na, permInfo, tableId,
-                                                                  canRead)).filter(isObject);
+                                                                  readAccessCheck)).filter(isObject);
     return result;
   }
 
   private async _checkIncomingDocAction(docSession: OptDocSession, a: DocAction, idx: number): Promise<void> {
-    const accessFn = denyIsFatal(getAccessForActionType(a));
+    const accessCheck = getAccessForActionType(a, 'fatal');
     const tableId = getTableId(a);
     const permInfo = await this._getAccess(docSession);
     const tableAccess = permInfo.getTableAccess(tableId);
-    const access = accessFn(tableAccess);
+    const access = accessCheck.get(tableAccess);
     if (access === 'allow') { return; }
     if (access === 'mixedColumns') {
       // Somewhat abusing prune method by calling it with an access function that
       // throws on denial.
-      this._pruneColumns(a, permInfo, tableId, accessFn);
+      this._pruneColumns(a, permInfo, tableId, accessCheck);
     }
     // The remainder is the mixed condition.
-    await this._checkRows(docSession, a, idx, accessFn);
+    await this._checkRows(docSession, a, idx, accessCheck);
     // Somewhat abusing prune method by calling it with an access function that
     // throws on denial.
-    this._pruneColumns(a, permInfo, tableId, accessFn);
-  }
-}
-
-/**
- * Evaluate a RuleSet on a given input (user and optionally record). If a record is needed but not
- * included, the result may include permission values like 'allowSome', 'denySome'.
- */
-function evaluateRule(ruleSet: RuleSet, input: AclMatchInput): PartialPermissionSet {
-  let pset: PartialPermissionSet = emptyPermissionSet();
-  for (const rule of ruleSet.body) {
-    try {
-      if (rule.matchFunc!(input)) {
-        pset = mergePartialPermissions(pset, rule.permissions);
-      }
-    } catch (e) {
-      if (e.code === 'NEED_ROW_DATA') {
-        pset = mergePartialPermissions(pset, makePartialPermissions(rule.permissions));
-      } else {
-        // For other errors, assume the rule is invalid, and treat as a non-match.
-        // TODO An appropriate user should be alerted that a clause is not being honored.
-        log.warn("ACLRule for %s failed: %s", ruleSet.tableId, e.message);
-      }
-    }
-  }
-  return pset;
-}
-
-/**
- * Helper for evaluating rules given a particular user and optionally a record. It evaluates rules
- * for a column, table, or document, with caching to avoid evaluating the same rule multiple times.
- */
-class PermissionInfo {
-  private _ruleResults = new Map<RuleSet, MixedPermissionSet>();
-
-  // Construct a PermissionInfo for a particular input, which is a combination of user and
-  // optionally a record.
-  constructor(private _acls: ACLRuleCollection, private _input: AclMatchInput) {}
-
-  // Get permissions for "tableId:colId", defaulting to "tableId:*" and "*:*" as needed.
-  // If 'mixed' is returned, different rows may have different permissions. It should never return
-  // 'mixed' if the input includes `rec`.
-  public getColumnAccess(tableId: string, colId: string): MixedPermissionSet {
-    const ruleSet: RuleSet|undefined = this._acls.getColumnRuleSet(tableId, colId);
-    return ruleSet ? this._processColumnRule(ruleSet) : this._getTableDefaultAccess(tableId);
-  }
-
-  // Combine permissions from all rules for the given table.
-  // If 'mixedColumns' is returned, different columns have different permissions, but they do NOT
-  // depend on rows. If 'mixed' is returned, some permissions depend on rows.
-  public getTableAccess(tableId: string): TablePermissionSet {
-    const columnAccess = this._acls.getAllColumnRuleSets(tableId).map(rs => this._processColumnRule(rs));
-    columnAccess.push(this._getTableDefaultAccess(tableId));
-
-    return mergePermissions(columnAccess, (bits) => (
-      bits.every(b => b === 'allow') ? 'allow' :
-      bits.every(b => b === 'deny') ? 'deny' :
-      bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
-      'mixed'
-    ));
-  }
-
-  // Combine permissions from all rules throughout.
-  // If 'mixed' is returned, then different tables, rows, or columns have different permissions.
-  public getFullAccess(): MixedPermissionSet {
-    const tableAccess = this._acls.getAllTableIds().map(tableId => this.getTableAccess(tableId));
-    tableAccess.push(this._getDocDefaultAccess());
-
-    return mergePermissions(tableAccess, (bits) => (
-      bits.every(b => b === 'allow') ? 'allow' :
-      bits.every(b => b === 'deny') ? 'deny' :
-      'mixed'
-    ));
-  }
-
-  // Get permissions for "tableId:*", defaulting to "*:*" as needed.
-  // If 'mixed' is returned, different rows may have different permissions.
-  private _getTableDefaultAccess(tableId: string): MixedPermissionSet {
-    const ruleSet: RuleSet|undefined = this._acls.getTableDefaultRuleSet(tableId);
-    return ruleSet ? this._processRule(ruleSet, () => this._getDocDefaultAccess()) :
-      this._getDocDefaultAccess();
-  }
-
-  // Get permissions for "*:*".
-  private _getDocDefaultAccess(): MixedPermissionSet {
-    return this._processRule(this._acls.getDocDefaultRuleSet());
-  }
-
-  // Evaluate and cache the given column rule, falling back to the corresponding table default.
-  private _processColumnRule(ruleSet: RuleSet): MixedPermissionSet {
-    return this._processRule(ruleSet, () => this._getTableDefaultAccess(ruleSet.tableId));
-  }
-
-  // Evaluate the given rule, with the default fallback, and cache the result.
-  private _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedPermissionSet): MixedPermissionSet {
-    return getSetMapValue(this._ruleResults, ruleSet, () => {
-      const pset = evaluateRule(ruleSet, this._input);
-      return toMixed(defaultAccess ? mergePartialPermissions(pset, defaultAccess()) : pset);
-    });
+    this._pruneColumns(a, permInfo, tableId, accessCheck);
   }
 }
 
@@ -1173,34 +1087,49 @@ class UserAttributes {
   public override?: UserOverride;
 }
 
-// A function for extracting one of the create/read/update/delete/schemaEdit permissions
-// from a permission set.
-type AccessFn = (ps: PermissionSet<string>) => string;
 
-// Get an AccessFn appropriate for the specific action.
-// TODO: deal with ReplaceTableData, which both deletes and creates rows.
-function getAccessForActionType(a: DocAction): AccessFn {
-  if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
-    return (ps) => ps.update;
-  } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
-    return (ps) => ps.delete;
-  } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
-    return (ps) => ps.create;
-  } else {
-    return (ps) => ps.schemaEdit;
+class AccessCheck {
+  constructor(public access: 'update'|'delete'|'create'|'schemaEdit'|'read',
+              public severity: 'check'|'fatal') {
+  }
+
+  public get(ps: PermissionSetWithContext): string {
+    const result = ps.perms[this.access];
+    if (result !== 'deny' || this.severity !== 'fatal') { return result; }
+    this.throwIfDenied(ps);
+    return result;
+  }
+
+  public throwIfDenied(ps: PermissionSetWithContext): void {
+    const result = ps.perms[this.access];
+    if (result !== 'deny') { return; }
+    const memos = ps.getMemos()[this.access];
+    throw new ErrorWithCode('ACL_DENY', `Blocked by ${ps.ruleType} access rules`, {
+      memos,
+      status: 403
+    });
   }
 }
 
-// Tweak an AccessFn so that it throws an exception if access is denied.
-function denyIsFatal(fn: AccessFn): AccessFn {
-  return (ps) => {
-    const result = fn(ps);
-    if (result === 'deny') { throw new ErrorWithCode('ACL_DENY', 'Blocked by access rules'); }
-    return result;
-  };
-}
+export const accessChecks = {
+  check: fromPairs(ALL_PERMISSION_PROPS.map(prop => [prop, new AccessCheck(prop, 'check')])),
+  fatal: fromPairs(ALL_PERMISSION_PROPS.map(prop => [prop, new AccessCheck(prop, 'fatal')])),
+};
 
-// A simple access function that returns the "read" permission.
-function canRead(ps: PermissionSet<string>) {
-  return ps.read;
+
+// The AccessCheck for the "read" permission is used enough to merit a shortcut.
+const readAccessCheck = accessChecks.check.read;
+
+// Get an AccessCheck appropriate for the specific action.
+// TODO: deal with ReplaceTableData, which both deletes and creates rows.
+function getAccessForActionType(a: DocAction, severity: 'check'|'fatal'): AccessCheck {
+  if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
+    return accessChecks[severity].update;
+  } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
+    return accessChecks[severity].delete;
+  } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
+    return accessChecks[severity].create;
+  } else {
+    return accessChecks[severity].schemaEdit;
+  }
 }

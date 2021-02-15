@@ -272,7 +272,6 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
       if (rule.userAttributes) {
         if (tableId !== '*' || colIds !== '*') {
           throw new Error(`ACLRule ${rule.id} invalid; user attributes must be on the default resource`);
-          continue;
         }
         const parsed = JSON.parse(String(rule.userAttributes));
         // TODO: could perhaps use ts-interface-checker here.
@@ -280,7 +279,6 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
           [parsed.name, parsed.tableId, parsed.lookupColId, parsed.charId]
           .every(p => p && typeof p === 'string'))) {
           throw new Error(`User attribute rule ${rule.id} is invalid`);
-          continue;
         }
         parsed.origRecord = rule;
         userAttributes.push(parsed as UserAttributeRule);
@@ -289,10 +287,12 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
       } else if (rule.aclFormula && !rule.aclFormulaParsed) {
         throw new Error(`ACLRule ${rule.id} invalid because missing its parsed formula`);
       } else {
+        const aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
         body.push({
           origRecord: rule,
           aclFormula: String(rule.aclFormula),
-          matchFunc: rule.aclFormula ? compile?.(JSON.parse(String(rule.aclFormulaParsed))) : defaultMatchFunc,
+          matchFunc: rule.aclFormula ? compile?.(aclFormulaParsed) : defaultMatchFunc,
+          memo: aclFormulaParsed && aclFormulaParsed[0] === 'Comment' && aclFormulaParsed[2],
           permissions: parsePermissions(String(rule.permissionsText)),
           permissionsText: String(rule.permissionsText),
         });
