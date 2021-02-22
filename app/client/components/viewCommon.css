@@ -57,7 +57,7 @@
   height: 100%;
   background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, unset));
   --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color));
-  color: var(--grist-actual-cell-color, unset);
+  color: var(--grist-actual-cell-color, black);
 }
 
 .field_clip.invalid {
