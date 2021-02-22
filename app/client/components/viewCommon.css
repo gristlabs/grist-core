@@ -62,7 +62,7 @@
 
 .field_clip.invalid {
   background-color: #ffb6c1;
-  color: unset;
+  color: black;
 }
 
 .field_clip.invalid:empty {
