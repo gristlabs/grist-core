@@ -6,7 +6,7 @@ import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {showProfileModal} from 'app/client/ui/ProfileDialog';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
-import {primaryButtonLink} from 'app/client/ui2018/buttons';
+import {primaryButton} from 'app/client/ui2018/buttons';
 import {colors, mediaDeviceNotSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
@@ -39,9 +39,9 @@ export class AccountWidget extends Disposable {
           cssUserIcon(createUserImage(user, 'medium', testId('user-icon')),
             menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
           ) :
-          primaryButtonLink('Sign in',
-            {href: getLoginOrSignupUrl(), style: 'margin: 8px'},
-            testId('user-signin'))
+          cssSignInButton('Sign in', icon('Collapse'), testId('user-signin'),
+            menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
+          )
         )
       ),
       testId('dm-account'),
@@ -63,7 +63,7 @@ export class AccountWidget extends Disposable {
    * Renders the content of the account menu, with a list of available orgs, settings, and sign-out.
    * Note that `user` should NOT be anonymous (none of the items are really relevant).
    */
-  private _makeAccountMenu(user: FullUser): DomElementArg[] {
+  private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
     // Opens the user-manager for the org.
     const manageUsers = async (org: Organization) => {
       const api = this._appModel.api;
@@ -78,7 +78,31 @@ export class AccountWidget extends Disposable {
     const currentOrg = this._appModel.currentOrg;
     const gristDoc = this._docPageModel ? this._docPageModel.gristDoc.get() : null;
     const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
-      (currentOrg.billingAccount.isManager || user.email === SUPPORT_EMAIL));
+      (currentOrg.billingAccount.isManager || user?.email === SUPPORT_EMAIL));
+
+    // The 'Document Settings' item, when there is an open document.
+    const documentSettingsItem = (gristDoc ?
+      menuItem(() => showDocSettingsModal(gristDoc.docInfo, this._docPageModel!), 'Document Settings',
+        testId('dm-doc-settings')) :
+      null);
+
+    // The item to toggle mobile mode (presence of viewport meta tag).
+    const mobileModeToggle = menuItem(viewport.toggleViewport,
+      cssSmallDeviceOnly.cls(''),   // Only show this toggle on small devices.
+      'Toggle Mobile Mode',
+      cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
+      testId('usermenu-toggle-mobile'),
+    );
+
+    if (!user) {
+      return [
+        menuItemLink({href: getLoginOrSignupUrl()}, 'Sign in'),
+        menuDivider(),
+        documentSettingsItem,
+        menuItemLink({href: commonUrls.plans}, 'Pricing'),
+        mobileModeToggle,
+      ];
+    }
 
     return [
       cssUserInfo(
@@ -89,11 +113,7 @@ export class AccountWidget extends Disposable {
       ),
       menuItem(() => showProfileModal(this._appModel), 'Profile Settings'),
 
-      // Enable 'Document Settings' when there is an open document.
-      (gristDoc ?
-          menuItem(() => showDocSettingsModal(gristDoc.docInfo, this._docPageModel!), 'Document Settings',
-          testId('dm-doc-settings')) :
-        null),
+      documentSettingsItem,
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && !currentOrg.owner ?
@@ -112,12 +132,7 @@ export class AccountWidget extends Disposable {
         ) :
         menuItemLink({href: commonUrls.plans}, 'Upgrade Plan'),
 
-      menuItem(viewport.toggleViewport,
-        cssSmallDeviceOnly.cls(''),   // Only show this toggle on small devices.
-        'Toggle Mobile Mode',
-        cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
-        testId('usermenu-toggle-mobile'),
-      ),
+      mobileModeToggle,
 
       // TODO Add section ("Here right now") listing icons of other users currently on this doc.
       // (See Invision "Panels" near the bottom.)
@@ -245,4 +260,10 @@ const cssSmallDeviceOnly = styled(menuItem, `
       display: none;
     }
   }
+`);
+
+const cssSignInButton = styled(primaryButton, `
+  display: flex;
+  margin: 8px;
+  gap: 4px;
 `);

@@ -216,17 +216,9 @@ export const spinner = styled('div', `
 `);
 
 export const prefSelectors = styled('div', `
-  position: absolute;
-  top: 32px;
-  right: 64px;
+  float: right;
   display: flex;
   align-items: center;
-
-  @media ${mediaSmall} {
-    & {
-      right: 24px;
-    }
-  }
 `);
 
 export const sortSelector = styled('div', `

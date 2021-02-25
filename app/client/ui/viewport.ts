@@ -2,7 +2,7 @@ import {isIOS} from 'app/client/lib/browserInfo';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {dom} from 'grainjs';
 
-export const viewportEnabled = localStorageBoolObs('viewportEnabled');
+export const viewportEnabled = localStorageBoolObs('viewportEnabled', true);
 
 export function toggleViewport() {
   viewportEnabled.set(!viewportEnabled.get());

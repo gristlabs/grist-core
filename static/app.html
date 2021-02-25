@@ -39,22 +39,20 @@
   </div>
 
   <div id="browser-check-problem" style="display: none;">
-    <div class="browser-check-wrapper">
-      <div class="browser-check-message">
-        <h4>
-          Grist may not work well in your browser.
-        </h4>
-        <p>
-          The best experience is with modern Firefox or Chrome on the desktop.
-          Other modern browsers will work to the degree they are standards compliant.
-        </p>
-      </div>
-      <div class="browser-check-options">
-        <a href="#" id="browser-check-problem-dismiss">Try it anyway</a>
-        <a href="https://www.mozilla.org/en-US/firefox/new/">Get Firefox</a>
-        <a href="https://www.google.com/chrome/">Get Chrome</a>
-      </div>
-    </div>
+    <table class="browser-check-wrapper"><tr>
+      <td class="browser-check-message">
+        <span class="browser-check-desktop">
+          Grist works best on modern Firefox or Chrome.
+        </span>
+        <span class="browser-check-mobile">
+          Grist mobile support is a work in progress.
+        </span>
+        <a href="https://support.getgrist.com/browser-support" target="_blank">Learn more</a>
+      </td>
+      <td>
+        <div class="browser-check-close" id="browser-check-problem-dismiss">Dismiss</div>
+      </td>
+    </tr></table>
   </div>
 
   <!-- INSERT CONFIG -->

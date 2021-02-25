@@ -6,7 +6,7 @@ import {examples} from 'app/client/ui/ExampleInfo';
 import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/HomeLeftPane';
 import {buildPinnedDoc} from 'app/client/ui/PinnedDocs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls} from 'app/common/gristUrls';
@@ -127,6 +127,12 @@ function buildExampleItem(doc: Document, home: HomeModel, view: 'list'|'icons') 
 const cssIntroSplit = styled(css.docBlock, `
   display: flex;
   align-items: center;
+
+  @media ${mediaXSmall} {
+    & {
+      display: block;
+    }
+  }
 `);
 
 const cssIntroLeft = styled('div', `
@@ -134,6 +140,7 @@ const cssIntroLeft = styled('div', `
   overflow: hidden;
   max-height: 150px;
   text-align: center;
+  margin: 32px 0;
 `);
 
 const cssIntroRight = styled('div', `

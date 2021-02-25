@@ -48,11 +48,15 @@ function createStorage(): Storage {
 
 /**
  * Helper to create a boolean observable whose state is stored in localStorage.
+ *
+ * Optionally, a default value of true will make the observable start off as true. Note that the
+ * same default value should be used for an observable every time it's created.
  */
-export function localStorageBoolObs(key: string): Observable<boolean> {
+export function localStorageBoolObs(key: string, defValue = false): Observable<boolean> {
   const store = getStorage();
-  const obs = Observable.create(null, Boolean(store.getItem(key)));
-  obs.addListener((val) => val ? store.setItem(key, 'true') : store.removeItem(key));
+  const storedNegation = defValue ? 'false' : 'true';
+  const obs = Observable.create(null, store.getItem(key) === storedNegation ? !defValue : defValue);
+  obs.addListener((val) => val === defValue ? store.removeItem(key) : store.setItem(key, storedNegation));
   return obs;
 }
 

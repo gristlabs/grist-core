@@ -131,39 +131,58 @@ div.dev_warning {
 #browser-check-problem {
   display: none;
   width: 100%;
-  height: 100%;
   position: absolute;
   z-index: 5000;
-  top: 0;
+  bottom: 0;
   left: 0;
-  background: rgba(255, 255, 255, 0.9);
-  padding-top: 3em;
+  padding: 4px;
+
+  /* Copy common styles that are normally set from JS-generated CSS */
+  box-sizing: border-box;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  font-size: 13px;
+  line-height: 16px;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 }
-#browser-check-problem div.browser-check-wrapper {
-  position: absolute;
-  top: 30%;
-  width: 100%;
-}
-#browser-check-problem div.browser-check-message, #browser-check-problem div.browser-check-options {
-  margin: 0 auto;
-  max-width: 400px;
-  padding: 1em;
-  background: white;
-}
-#browser-check-problem div.browser-check-options {
-  text-align: center;
-}
-#browser-check-problem a {
-  display: inline-block;
-  background: white;
-  padding: 10px;
-  margin: 10px;
-  color: #16B378;
-  border: 1px solid #16B378;
+.browser-check-wrapper {
+  margin: auto;
+  max-width: 600px;
+  padding: 8px 24px;
+  background-color: #040404;
   border-radius: 4px;
+  border: none;
+  color: white;
+  box-shadow: 0 0 4px 0 white;
 }
-#browser-check-problem a:hover {
-  text-decoration: none;
-  color: #009058;
-  border: 1px solid #009058;
+.browser-check-wrapper td {
+  vertical-align: middle;
+  padding: 8px 16px;
+}
+.browser-check-mobile {
+  display: none;
+}
+.browser-check-is-mobile .browser-check-mobile {
+  display: inline;
+}
+.browser-check-is-mobile .browser-check-desktop {
+  display: none;
+}
+.browser-check-wrapper a {
+  color: #16B378;
+  text-decoration: underline;
+}
+.browser-check-wrapper a:hover {
+  color: #b1ffe2;
+}
+
+.browser-check-close {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #009058;
+  color: white;
+  cursor: pointer;
+}
+.browser-check-close:hover {
+  background-color: #16B378;
 }
