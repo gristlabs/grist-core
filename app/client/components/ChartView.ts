@@ -105,20 +105,17 @@ export class ChartView extends Disposable {
   private _options: ObjObservable<any>;
   private _chartDom: HTMLElement;
   private _update: () => void;
+  private _resize: () => void;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel);
 
     this._chartDom = this.autoDispose(this.buildDom());
 
+    this._resize = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
+
     // Note that .viewPane is used by ViewLayout to insert the actual DOM into the document.
     this.viewPane = this._chartDom;
-
-    // Resize if the window resizes since that can change the layout leaf size.
-    // TODO: Belongs into ViewLayout which already does BaseView.onResize for side-pane open/close.
-    const resizeChart = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
-    window.addEventListener('resize', resizeChart);
-    this.autoDisposeCallback(() => window.removeEventListener('resize', resizeChart));
 
     this._chartType = this.viewSection.chartTypeDef;
     this._options = this.viewSection.optionsObj;
@@ -142,7 +139,7 @@ export class ChartView extends Disposable {
   }
 
   protected onResize() {
-    this._resizeChart();
+    this._resize();
   }
 
   protected buildDom() {
