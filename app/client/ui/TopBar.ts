@@ -8,7 +8,7 @@ import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
 import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {waitGrainObs} from 'app/common/gutil';
 import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
@@ -76,7 +76,10 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
 
     buildShareMenuButton(pageModel),
 
-    buildNotifyMenuButton(appModel.notifier, appModel),
+    dom.update(
+      buildNotifyMenuButton(appModel.notifier, appModel),
+      cssHideForNarrowScreen.cls(''),
+    ),
 
     dom('div', dom.create(AccountWidget, appModel, pageModel))
   ];
@@ -134,7 +137,7 @@ const cssTopBarUndoBtn = styled(cssTopBarBtn, `
 const cssBreadcrumbContainer = styled('div', `
   padding: 7px;
   flex: 1 1 auto;
-  min-width: 0px;
+  min-width: 24px;
   overflow: hidden;
 `);
 
@@ -143,5 +146,6 @@ const cssFlexSpace = styled('div', `
 `);
 
 const cssSpacer = styled('div', `
-  width: 10px;
+  max-width: 10px;
+  flex: auto;
 `);

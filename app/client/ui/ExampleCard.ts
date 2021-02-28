@@ -2,7 +2,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {getUserOrgPrefObs} from 'app/client/models/UserPrefs';
 import {IExampleInfo} from 'app/client/ui/ExampleInfo';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, Observable, styled} from 'grainjs';
@@ -125,22 +125,35 @@ const cssCard = styled('div', `
   transition-property: opacity, transform;
   transition-duration: 0.5s;
   transition-timing-func: ease-in;
+  --title-font-size: ${vars.headerControlFontSize};
+
+  @media ${mediaXSmall} {
+    & {
+      flex-direction: column;
+      padding: 32px;
+      --title-font-size: 18px;
+    }
+  }
 `);
 
 const cssImage = styled('img', `
   flex: none;
   width: 180px;
   height: 140px;
-  margin: 0 -8px;
+  margin: 0 16px 0 -8px;
+  @media ${mediaXSmall} {
+    & {
+      margin: auto;
+    }
+  }
 `);
 
 const cssBody = styled('div', `
-  margin-left: 24px;
   min-width: 0px;
 `);
 
 const cssTitle = styled('div', `
-  font-size: ${vars.headerControlFontSize};
+  font-size: var(--title-font-size);
   font-weight: ${vars.headerControlTextWeight};
   margin-bottom: 16px;
 `);

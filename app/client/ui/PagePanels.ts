@@ -193,6 +193,7 @@ const cssPageContainer = styled(cssHBox, `
   position: absolute;
   isolation: isolate; /* Create a new stacking context */
   z-index: 0; /* As of March 2019, isolation does not have Edge support, so force one with z-index */
+  overflow: hidden;
   top: 0;
   left: 0;
   right: 0;
@@ -210,6 +211,7 @@ const cssPageContainer = styled(cssHBox, `
     }
   }
 `);
+
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${colors.lightGrey};

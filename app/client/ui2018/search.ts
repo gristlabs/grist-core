@@ -6,7 +6,7 @@ import { createGroup } from 'app/client/components/commands';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
 import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
-import { colors } from 'app/client/ui2018/cssVars';
+import { colors, mediaSmall } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { dom, input, styled } from 'grainjs';
 import { noTestId, TestId } from 'grainjs';
@@ -18,7 +18,7 @@ const EXPAND_TIME = .5;
 
 const searchWrapper = styled('div', `
   display: flex;
-  flex: 0 0 initial;
+  flex: initial;
   align-items: center;
   box-sizing: border-box;
   border: 1px solid transparent;
@@ -28,8 +28,14 @@ const searchWrapper = styled('div', `
   max-height: 50px;
   transition: width 0.4s;
   &-expand {
-    width: 100%;
+    width: 100% !important;
     border: 1px solid grey;
+  }
+  @media ${mediaSmall} {
+    & {
+      width: 32px;
+      padding: 0px;
+    }
   }
 `);
 

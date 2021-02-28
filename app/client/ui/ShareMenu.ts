@@ -5,7 +5,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
@@ -258,11 +258,19 @@ const cssShareButton = styled('div', `
   }
 `);
 
+// Hide this on very small screens, since it takes up a lot of space and its action is also
+// available in the associated menu.
 const cssShareAction = styled(primaryButton, `
   margin-right: -16px;
   padding-right: 24px;
   background-color: var(--share-btn-bg);
   border-color:     var(--share-btn-bg);
+
+  @media ${mediaXSmall} {
+    & {
+      display: none !important;
+    }
+  }
 `);
 
 const cssShareCircle = styled(cssHoverCircle, `
