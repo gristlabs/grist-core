@@ -330,7 +330,7 @@ export class AccessRules extends Disposable {
         ),
         dom.forEach(this._tableRules, (tableRules) => tableRules.buildDom()),
         cssSection(
-          cssSectionHeading('Default Rules'),
+          cssSectionHeading('Default Rules', testId('rule-table-header')),
           cssTableRounded(
             cssTableHeaderRow(
               cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
@@ -344,7 +344,8 @@ export class AccessRules extends Disposable {
               )
             ),
             dom.maybe(this._docDefaultRuleSet, ruleSet => ruleSet.buildRuleSetDom()),
-          )
+          ),
+          testId('rule-table'),
         )
       ),
     );
