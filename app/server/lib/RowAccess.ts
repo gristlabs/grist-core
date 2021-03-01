@@ -18,16 +18,30 @@ class RowIdTracker {
  */
 export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly [string, Set<number>]> {
   // Relate tableIds for tables with what they were before the actions, if renamed.
-  const tableIds = new Map<string, string>();
-  const rowIds = new Map<string, RowIdTracker>();
+  const tableIds = new Map<string, string>();      // key is current tableId
+  const rowIds = new Map<string, RowIdTracker>();  // key is pre-existing tableId
+  const addedTables = new Set<string>();  // track newly added tables to ignore; key is current tableId
   for (const docAction of docActions) {
     const currentTableId = getTableId(docAction);
     const tableId = tableIds.get(currentTableId) || currentTableId;
     if (docAction[0] === 'RenameTable') {
+      if (addedTables.has(currentTableId)) {
+        addedTables.delete(currentTableId);
+        addedTables.add(docAction[2])
+        continue;
+      }
       tableIds.delete(currentTableId);
       tableIds.set(docAction[2], tableId);
       continue;
     }
+    if (docAction[0] === 'AddTable') {
+      addedTables.add(currentTableId);
+    }
+    if (docAction[0] === 'RemoveTable') {
+      addedTables.delete(currentTableId);
+      continue;
+    }
+    if (addedTables.has(currentTableId)) { continue; }
 
     // tableId will now be that prior to docActions, regardless of renames.
     const tracker = getSetMapValue(rowIds, tableId, () => new RowIdTracker());

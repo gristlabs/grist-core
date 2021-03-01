@@ -60,6 +60,7 @@ export class ACLUsersPopup extends Disposable {
     const doc = pageModel.currentDoc.get();
     if (doc) {
       const permissionData = await pageModel.appModel.api.getDocAccess(doc.id);
+      if (this.isDisposed()) { return; }
       this._usersInDoc = permissionData.users.map(user => ({
         ...user,
         access: getRealAccess(user, permissionData),

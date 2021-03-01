@@ -213,7 +213,7 @@ export class Sharing {
       info.linkId = docSession.linkId;
     }
 
-    const {sandboxActionBundle, undo, docActions} =
+    const {sandboxActionBundle, undo, accessControl} =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions));
 
     // A trivial action does not merit allocating an actionNum,
@@ -285,13 +285,10 @@ export class Sharing {
       internal: isCalculate,
     });
     try {
-      await this._activeDoc.appliedActions(docActions, undo);
-      await this._activeDoc.broadcastDocUpdate(client || null, 'docUserAction', {
-        actionGroup,
-        docActions,
-      });
+      await accessControl.appliedBundle();
+      await accessControl.sendDocUpdateForBundle(actionGroup);
     } finally {
-      await this._activeDoc.finishedActions();
+      await accessControl.finishedBundle();
     }
     if (docSession) {
       docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
@@ -375,18 +372,18 @@ export class Sharing {
     const docActions = getEnvContent(sandboxActionBundle.stored).concat(
       getEnvContent(sandboxActionBundle.calc));
 
+    const accessControl = this._activeDoc.getGranularAccessForBundle(docSession || makeExceptionalDocSession('share'), docActions, undo, userActions);
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.
-      await this._activeDoc.canApplyDocActions(docSession || makeExceptionalDocSession('share'),
-                                               docActions, undo);
+      await accessControl.canApplyBundle();
     } catch (e) {
       // should not commit.  Don't write to db.  Remove changes from sandbox.
       await this._activeDoc.applyActionsToDataEngine([['ApplyUndoActions', undo]]);
-      await this._activeDoc.finishedActions();
+      await accessControl.finishedBundle();
       throw e;
     }
-    return {sandboxActionBundle, undo, docActions};
+    return {sandboxActionBundle, undo, docActions, accessControl};
   }
 }
 

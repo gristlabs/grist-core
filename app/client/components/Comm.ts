@@ -447,32 +447,35 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       const reqId = message.reqId;
       const r = this.pendingRequests.get(reqId);
       if (r) {
-        this.pendingRequests.delete(reqId);
-        if ('errorCode' in message && message.errorCode === 'AUTH_NO_VIEW') {
-          // We should only arrive here if the user had view access, and then lost it.
-          // We should not let the user see the document any more.  Let's reload the
-          // page, reducing this to the problem of arriving at a document the user
-          // doesn't have access to, which is already handled.
-          console.log(`Comm response #${reqId} ${r.methodName} issued AUTH_NO_VIEW - closing`);
-          window.location.reload();
-        }
-        if (isCommResponseError(message)) {
-          const err: any = new Error(message.error);
-          let code = '';
-          if (message.errorCode) {
-            code = ` [${message.errorCode}]`;
-            err.code = message.errorCode;
+        try {
+          if ('errorCode' in message && message.errorCode === 'AUTH_NO_VIEW') {
+            // We should only arrive here if the user had view access, and then lost it.
+            // We should not let the user see the document any more.  Let's reload the
+            // page, reducing this to the problem of arriving at a document the user
+            // doesn't have access to, which is already handled.
+            console.log(`Comm response #${reqId} ${r.methodName} issued AUTH_NO_VIEW - closing`);
+            window.location.reload();
           }
-          if (message.details) {
-            err.details = message.details;
+          if (isCommResponseError(message)) {
+            const err: any = new Error(message.error);
+            let code = '';
+            if (message.errorCode) {
+              code = ` [${message.errorCode}]`;
+              err.code = message.errorCode;
+            }
+            if (message.details) {
+              err.details = message.details;
+            }
+            err.shouldFork = message.shouldFork;
+            console.log(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
+                        + (message.shouldFork ? ` (should fork)` : ''));
+            r.reject(err);
+          } else {
+            console.log(`Comm response #${reqId} ${r.methodName} OK`);
+            r.resolve(message.data);
           }
-          err.shouldFork = message.shouldFork;
-          console.log(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
-                      + (message.shouldFork ? ` (should fork)` : ''));
-          r.reject(err);
-        } else {
-          console.log(`Comm response #${reqId} ${r.methodName} OK`);
-          r.resolve(message.data);
+        } finally {
+          this.pendingRequests.delete(reqId);
         }
       } else {
         console.log("Comm: Response to unknown reqId " + reqId);
@@ -514,8 +517,8 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     }
     if (error) {
       console.log("Comm: Rejecting req #" + reqId + " " + r.methodName + ": " + error);
-      this.pendingRequests.delete(reqId);
       r.reject(new Error('Comm: ' + error));
+      this.pendingRequests.delete(reqId);
     }
   }
 

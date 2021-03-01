@@ -293,6 +293,18 @@ export class GristDoc extends DisposableWithEvents {
   public onDocUserAction(message: DocUserAction) {
     console.log("GristDoc.onDocUserAction", message);
     let schemaUpdated = false;
+    /**
+     * If an operation is applied successfully to a document, and then information about
+     * it is broadcast to clients, and one of those broadcasts has a failure (due to
+     * granular access control, which is client-specific), then that error is logged on
+     * the server and also sent to the client via an `error` field.  Under normal operation,
+     * there should be no such errors, but if they do arise it is best to make them as visible
+     * as possible.
+     */
+    if (message.data.error) {
+      reportError(new Error(message.data.error));
+      return;
+    }
     if (this.docComm.isActionFromThisDoc(message)) {
       const docActions = message.data.docActions;
       for (let i = 0, len = docActions.length; i < len; i++) {

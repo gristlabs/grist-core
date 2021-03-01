@@ -294,18 +294,18 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   const selectBy = gristDoc.selectBy.bind(gristDoc);
   return [
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addNewPage(val),
+      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addNewPage(val).catch(reportError),
                                      {isNewPage: true, buttonLabel: 'Add Page'}),
       menuIcon("Page"), "Add Page", testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addWidgetToPage(val),
+      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
       menuIcon("Widget"), "Add Widget to Page", testId('dp-add-widget-to-page'),
       dom.cls('disabled', isReadonly)
     ),
-    menuItem(() => gristDoc.addEmptyTable(), menuIcon("TypeTable"), "Add Empty Table", testId('dp-empty-table'),
+    menuItem(() => gristDoc.addEmptyTable().catch(reportError), menuIcon("TypeTable"), "Add Empty Table", testId('dp-empty-table'),
             dom.cls('disabled', isReadonly)),
     menuDivider(),
     ...importSources.map((importSource, i) =>

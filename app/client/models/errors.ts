@@ -48,6 +48,10 @@ export function getAppErrors(): string[] {
  */
 export function reportError(err: Error|string): void {
   log.error(`ERROR:`, err);
+  if (String(err).match(/GristWSConnection disposed/)) {
+    // This error can be emitted while a page is reloaded, and isn't worth reporting.
+    return;
+  }
   _logError(err);
   if (_notifier && !_notifier.isDisposed()) {
     if (!isError(err)) {

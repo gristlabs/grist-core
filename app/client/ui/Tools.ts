@@ -3,7 +3,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { showExampleCard } from 'app/client/ui/ExampleCard';
 import { examples } from 'app/client/ui/ExampleInfo';
 import { createHelpTools, cssSectionHeader, cssSpacer, cssTools } from 'app/client/ui/LeftPanelCommon';
-import { cssLinkText, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
+import { cssLinkText, cssPageDisabledLink, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
 import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
@@ -12,7 +12,7 @@ const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
-
+  const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
@@ -20,9 +20,10 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     (aclUIEnabled ?
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-        cssPageLink(cssPageIcon('EyeShow'),
+        cssPageEntry.cls('-disabled', !isOwner),
+        (isOwner ? cssPageLink : cssPageDisabledLink)(cssPageIcon('EyeShow'),
           cssLinkText('Access Rules'),
-          urlState().setLinkUrl({docPage: 'acl'})
+          isOwner ? urlState().setLinkUrl({docPage: 'acl'}) : null
         ),
         testId('access-rules'),
       ) :

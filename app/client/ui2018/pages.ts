@@ -28,11 +28,6 @@ type NameType = Observable<string>|ko.Observable<string>;
 // the item in the menu.
 export function buildPageDom(name: NameType, actions: PageActions, ...args: DomElementArg[]) {
 
-  // If name is blank, this page is censored, so don't include any options for manipulation.
-  // We can get fancier about this later.
-  const initName = ('peek' in name) ? name.peek() : name.get();
-  if (initName === '') { return dom('div', '-'); }
-
   const isRenaming = observable(false);
   const pageMenu = () => [
     menuItem(() => isRenaming.set(true), "Rename", testId('rename'),
@@ -57,43 +52,44 @@ export function buildPageDom(name: NameType, actions: PageActions, ...args: DomE
   return pageElem = dom(
     'div',
     dom.autoDispose(lis),
-    domComputed(isRenaming, (isrenaming) => (
-      isrenaming ?
-        cssPageItem(
-          cssPageInitial(dom.text((use) => use(name)[0])),
-          cssEditorInput(
-            {
-              initialValue: typeof name === 'function' ? name() : name.get() || '',
-              save: (val) => actions.onRename(val),
-              close: () => isRenaming.set(false)
-            },
-            testId('editor'),
-            dom.on('mousedown', (ev) => ev.stopPropagation()),
-            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
-          ),
-          // Note that we don't pass extra args when renaming is on, because they usually includes
-          // mouse event handlers interferring with input editor and yields wrong behavior on
-          // firefox.
-        ) :
-        cssPageItem(
-          cssPageInitial(dom.text((use) => use(name)[0])),
-          cssPageName(dom.text(name), testId('label')),
-          cssPageMenuTrigger(
-            cssPageIcon('Dots'),
-            menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
-            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+    domComputed((use) => use(name) === '', blank => blank ? dom('div', '-') :
+      domComputed(isRenaming, (isrenaming) => (
+        isrenaming ?
+          cssPageItem(
+            cssPageInitial(dom.text((use) => use(name)[0])),
+            cssEditorInput(
+              {
+                initialValue: typeof name === 'function' ? name() : name.get() || '',
+                save: (val) => actions.onRename(val),
+                close: () => isRenaming.set(false)
+              },
+              testId('editor'),
+              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
+            ),
+            // Note that we don't pass extra args when renaming is on, because they usually includes
+            // mouse event handlers interferring with input editor and yields wrong behavior on
+            // firefox.
+          ) :
+          cssPageItem(
+            cssPageInitial(dom.text((use) => use(name)[0])),
+            cssPageName(dom.text(name), testId('label')),
+            cssPageMenuTrigger(
+              cssPageIcon('Dots'),
+              menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
+              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
 
-            // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
-            dom.on('mousedown', (ev) => ev.stopPropagation()),
-            testId('dots'),
-          ),
-          // Prevents the default dragging behaviour that Firefox support for links which conflicts
-          // with our own dragging pages.
-          dom.on('dragstart', (ev) => ev.preventDefault()),
-          args
-        )
-    )),
-  );
+              // Let's prevent dragging to start when un-intentionally holding the mouse down on '...' menu.
+              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              testId('dots'),
+            ),
+            // Prevents the default dragging behaviour that Firefox support for links which conflicts
+            // with our own dragging pages.
+            dom.on('dragstart', (ev) => ev.preventDefault()),
+            args
+          )
+      )),
+    ));
 }
 
 const cssPageItem = styled('a', `

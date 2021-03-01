@@ -97,7 +97,7 @@ export class DocClients {
             if (e.code && e.code === 'NEED_RELOAD') {
               sendDocMessage(curr.client, curr.fd, 'docShutdown', null, fromSelf);
             } else {
-              throw e;
+              sendDocMessage(curr.client, curr.fd, 'docUserAction', {error: String(e)}, fromSelf);
             }
           }
         }

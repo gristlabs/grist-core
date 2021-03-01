@@ -14,7 +14,7 @@ import { mapValues } from 'lodash';
  */
 export interface PermissionSetWithContextOf<T = PermissionSet> {
   perms: T;
-  ruleType: 'full'|'table'|'column';
+  ruleType: 'full'|'table'|'column'|'row';
   getMemos: () => MemoSet;
 }
 
@@ -111,11 +111,18 @@ export class MemoInfo extends RuleInfo<MemoSet, MemoSet> {
   }
 }
 
+export interface IPermissionInfo {
+  getColumnAccess(tableId: string, colId: string): MixedPermissionSetWithContext;
+  getTableAccess(tableId: string): TablePermissionSetWithContext;
+  getFullAccess(): MixedPermissionSetWithContext;
+  getRuleCollection(): ACLRuleCollection;
+}
+
 /**
  * Helper for evaluating rules given a particular user and optionally a record. It evaluates rules
  * for a column, table, or document, with caching to avoid evaluating the same rule multiple times.
  */
-export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermissionSet> {
+export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermissionSet> implements IPermissionInfo {
   private _ruleResults = new Map<RuleSet, MixedPermissionSet>();
 
   // Get permissions for "tableId:colId", defaulting to "tableId:*" and "*:*" as needed.
@@ -138,7 +145,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   public getTableAccess(tableId: string): TablePermissionSetWithContext {
     return {
       perms: this.getTableAspect(tableId),
-      ruleType: 'table',
+      ruleType: this._input?.rec ? 'row' : 'table',
       getMemos: () => new MemoInfo(this._acls, this._input).getTableAspect(tableId)
     };
   }
@@ -154,6 +161,10 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
     };
   }
 
+  public getRuleCollection() {
+    return this._acls;
+  }
+
   protected _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedPermissionSet): MixedPermissionSet {
     return getSetMapValue(this._ruleResults, ruleSet, () => {
       const pset = evaluateRule(ruleSet, this._input);
@@ -166,7 +177,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
       bits.every(b => b === 'allow') ? 'allow' :
       bits.every(b => b === 'deny') ? 'deny' :
       bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
-      'mixed'
+        'mixed'
     ));
   }
 

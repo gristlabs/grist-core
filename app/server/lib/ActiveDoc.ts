@@ -57,7 +57,7 @@ import {DocSession, getDocSessionAccess, getDocSessionUser, getDocSessionUserId,
         makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
-import {GranularAccess} from './GranularAccess';
+import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 
@@ -419,7 +419,7 @@ export class ActiveDoc extends EventEmitter {
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
     await this._actionHistory.initialize();
-    this._granularAccess = new GranularAccess(this.docData, (query) => {
+    this._granularAccess = new GranularAccess(this.docData, this.docClients, (query) => {
       return this._fetchQueryFromDB(query, false);
     }, this.recoveryMode, this._docManager.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
@@ -1064,43 +1064,14 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Called by Sharing manager when working on modifying the document.
    * Called when DocActions have been produced from UserActions, but
-   * before those DocActions have been applied to the DB, to confirm
-   * that those DocActions are legal according to any granular access
-   * rules.
+   * before those DocActions have been applied to the DB. GranularAccessBundle
+   * methods can confirm that those DocActions are legal according to any
+   * granular access rules.
    */
-  public async canApplyDocActions(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[]) {
-    return this._granularAccess.canApplyDocActions(docSession, docActions, undo);
-  }
-
-  /**
-   * Called by Sharing manager when working on modifying the document.
-   * Called when DocActions have been produced from UserActions, and
-   * have been applied to the DB, but before the changes have been
-   * broadcast to clients.
-   */
-  public async appliedActions(docActions: DocAction[], undo: DocAction[]) {
-    await this._granularAccess.appliedActions(docActions, undo);
-  }
-
-  /**
-   * Called by Sharing manager when done working on modifying the document,
-   * regardless of whether the modification succeeded or failed.
-   */
-  public async finishedActions() {
-    await this._granularAccess.finishedActions();
-  }
-
-  /**
-   * Broadcast document changes to all the document's clients.  Doesn't involve
-   * ActiveDoc directly, but placed here to facilitate future work on granular
-   * access control.
-   */
-  public async broadcastDocUpdate(client: Client|null, type: string, message: {
-    actionGroup: ActionGroup,
-    docActions: DocAction[]
-  }) {
-    await this.docClients.broadcastDocMessage(client, 'docUserAction', message,
-                                              (docSession) => this._filterDocUpdate(docSession, message));
+  public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
+                                    userActions: UserAction[]): GranularAccessForBundle {
+    this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions);
+    return this._granularAccess;
   }
 
   /**
@@ -1383,23 +1354,6 @@ export class ActiveDoc extends EventEmitter {
 
   private _log(level: string, docSession: OptDocSession, msg: string, ...args: any[]) {
     log.origLog(level, `ActiveDoc ` + msg, ...args, this.getLogMeta(docSession));
-  }
-
-  /**
-   * This filters a message being broadcast to all clients to be appropriate for one
-   * particular client, if that client may need some material filtered out.
-   */
-  private async _filterDocUpdate(docSession: OptDocSession, message: {
-    actionGroup: ActionGroup,
-    docActions: DocAction[]
-  }) {
-    if (await this._granularAccess.canReadEverything(docSession)) { return message; }
-    const result = {
-      actionGroup: await this._granularAccess.filterActionGroup(docSession, message.actionGroup),
-      docActions: await this._granularAccess.filterOutgoingDocActions(docSession, message.docActions),
-    };
-    if (result.docActions.length === 0) { return null; }
-    return result;
   }
 
   /**

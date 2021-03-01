@@ -22,9 +22,16 @@ export interface RulePart {
   memo?: string;
 }
 
-// Light wrapper around characteristics or records.
+// Light wrapper for reading records or user attributes.
 export interface InfoView {
   get(key: string): CellValue;
+  toJSON(): {[key: string]: any};
+}
+
+// As InfoView, but also supporting writing.
+export interface InfoEditor {
+  get(key: string): CellValue;
+  set(key: string, val: CellValue): this;
   toJSON(): {[key: string]: any};
 }
 

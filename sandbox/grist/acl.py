@@ -4,7 +4,7 @@
 
 import json
 
-from acl_formula import parse_acl_grist_entities
+from acl_formula import parse_acl_grist_entities, parse_acl_formula_json
 import action_obj
 import logger
 import textbuilder
@@ -128,7 +128,9 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
         patches.append(patch)
 
       replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
-      rule_updates.append((rule_rec, {'aclFormula': replacer.get_text().encode('utf8')}))
+      txt = replacer.get_text().encode('utf8')
+      rule_updates.append((rule_rec, {'aclFormula': txt,
+                                      'aclFormulaParsed': parse_acl_formula_json(txt)}))
 
   def do_renames():
     useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)

@@ -152,6 +152,7 @@ export class AccessRules extends Disposable {
    * Replace internal state from the rules in DocData.
    */
   public async update() {
+    if (this.isDisposed()) { return; }
     this._errorMessage.set('');
     const rules = this._ruleCollection;
     [ , , this._aclResources] = await Promise.all([

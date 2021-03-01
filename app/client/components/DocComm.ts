@@ -17,6 +17,7 @@ export interface DocUserAction extends CommMessage {
   data: {
     docActions: DocAction[];
     actionGroup: ActionGroup;
+    error?: string;
   };
 }
 
@@ -76,7 +77,15 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this.listenTo(_comm, 'docShutdown', (m: CommMessage) => {
       if (this.isActionFromThisDoc(m)) { this._isClosed = true; }
     });
-    this.onDispose(() => this._shutdown());
+    this.onDispose(async () => {
+      try {
+        await this._shutdown();
+      } catch (e) {
+        if (!String(e).match(/GristWSConnection disposed/)) {
+          reportError(e);
+        }
+      }
+    });
   }
 
   // Returns the URL params that identifying this open document to the DocWorker
