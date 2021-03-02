@@ -7,12 +7,16 @@ import {DocData} from 'app/client/models/DocData';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {SaveableObjObservable} from 'app/client/models/modelUtil';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
-import {colorSelect} from 'app/client/ui2018/buttonSelect';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colorSelect} from 'app/client/ui2018/ColorSelect';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
-import {Disposable, DomContents, fromKo, Observable, styled} from 'grainjs';
+import {Computed, Disposable, DomContents, fromKo, Observable} from 'grainjs';
 import * as ko from 'knockout';
 
+
+export interface Options {
+  // A hex value to set the default widget text color. Default to '#000000' if omitted.
+  defaultTextColor?: string;
+}
 
 /**
  * NewAbstractWidget - The base of the inheritance tree for widgets.
@@ -31,10 +35,13 @@ export abstract class NewAbstractWidget extends Disposable {
   protected textColor: Observable<string>;
   protected fillColor: Observable<string>;
 
-  constructor(protected field: ViewFieldRec) {
+  constructor(protected field: ViewFieldRec, opts: Options = {}) {
     super();
+    const {defaultTextColor = '#000000'} = opts;
     this.options = field.widgetOptionsJson;
-    this.textColor = fromKo(this.field.textColor);
+    this.textColor = Computed.create(this, (use) => (
+      use(this.field.textColor) || defaultTextColor
+    )).onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));
     this.fillColor = fromKo(this.field.fillColor);
 
     // Note that its easier to create a knockout computed from the several knockout observables,
@@ -59,21 +66,11 @@ export abstract class NewAbstractWidget extends Disposable {
     return [
       cssLabel('CELL COLOR'),
       cssRow(
-        cssHalfWidth(
-          colorSelect(
-            this.textColor,
-            (val) => this.field.textColor.saveOnly(val),
-            testId('text-color')
-          ),
-          cssInlineLabel('Text'),
-        ),
-        cssHalfWidth(
-          colorSelect(
-            this.fillColor,
-            (val) => this.field.fillColor.saveOnly(val),
-            testId('fill-color')
-          ),
-          cssInlineLabel('Fill')
+        colorSelect(
+          this.textColor,
+          this.fillColor,
+          // Calling `field.widgetOptionsJson.save()` saves both fill and text color settings.
+          () => this.field.widgetOptionsJson.save()
         )
       )
     ];
@@ -98,14 +95,3 @@ export abstract class NewAbstractWidget extends Disposable {
    */
   protected _getDocComm(): DocComm { return this._getDocData().docComm; }
 }
-
-export const cssHalfWidth = styled('div', `
-  display: flex;
-  flex: 1 1 50%;
-  align-items: center;
-`);
-
-export const cssInlineLabel = styled('span', `
-  margin: 0 8px;
-  color: ${colors.dark};
-`);

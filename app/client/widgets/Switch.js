@@ -8,7 +8,7 @@ var AbstractWidget = require('./AbstractWidget');
  * Switch - A bi-state Switch widget
  */
 function Switch(field) {
-  AbstractWidget.call(this, field);
+  AbstractWidget.call(this, field, {defaultTextColor: '#2CB0AF'});
 }
 dispose.makeDisposable(Switch);
 _.extend(Switch.prototype, AbstractWidget.prototype);

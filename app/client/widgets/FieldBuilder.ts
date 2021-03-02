@@ -421,7 +421,7 @@ export class FieldBuilder extends Disposable {
             if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
             const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
             return dom(cellDom, kd.toggleClass('has_cursor', isActive),
-                       kd.style('--grist-cell-color', this.field.textColor),
+                       kd.style('--grist-cell-color', () => this.field.textColor() || ''),
                        kd.style('--grist-cell-background-color', this.field.fillColor));
           })
          );

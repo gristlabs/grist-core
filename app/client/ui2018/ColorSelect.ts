@@ -2,7 +2,7 @@ import { darker, lighter } from "app/client/ui2018/ColorPalette";
 import { colors, testId, vars } from 'app/client/ui2018/cssVars';
 import { icon } from "app/client/ui2018/icons";
 import { Computed, Disposable, dom, DomArg, Observable, onKeyDown, styled } from "grainjs";
-import { IOpenController, setPopupToCreateDom } from "popweasel";
+import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 
 /**
  * colorSelect allows to select color for both fill and text cell color. It allows for fast
@@ -17,7 +17,7 @@ export function colorSelect(textColor: Observable<string>, fillColor: Observable
       cssButtonIcon(
         'T',
         dom.style('color', textColor),
-        dom.style('background-color', fillColor),
+        dom.style('background-color', (use) => use(fillColor).slice(0, 7)),
         cssLightBorder.cls(''),
         testId('btn-icon'),
       ),
@@ -28,10 +28,7 @@ export function colorSelect(textColor: Observable<string>, fillColor: Observable
   );
 
   const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, textColor, fillColor, onSave);
-  setPopupToCreateDom(selectBtn, domCreator, {
-    trigger: ['click'],
-    placement: 'bottom-end',
-  });
+  setPopupToCreateDom(selectBtn, domCreator, {...defaultMenuOptions, placement: 'bottom-end'});
 
   return selectBtn;
 }
@@ -72,13 +69,13 @@ function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, f
   return cssContainer(
     dom.create(PickerComponent, fillColorModel, {
       colorSquare: colorSquare(),
-      title: 'Fill',
+      title: 'fill',
       defaultMode: 'lighter'
     }),
     cssVSpacer(),
     dom.create(PickerComponent, textColorModel, {
       colorSquare: colorSquare('T'),
-      title: 'Text',
+      title: 'text',
       defaultMode: 'darker'
     }),
 
@@ -132,7 +129,7 @@ class PickerModel extends Disposable {
 
 class PickerComponent extends Disposable {
 
-  private _color = Computed.create(this, this._model.obs, (use, val) => val.toUpperCase());
+  private _color = Computed.create(this, this._model.obs, (use, val) => val.toUpperCase().slice(0, 7));
   private _mode = Observable.create<'darker'|'lighter'>(this, this._guessMode());
 
   constructor(private _model: PickerModel, private _options: PickerComponentOptions) {
@@ -155,7 +152,7 @@ class PickerComponent extends Disposable {
           ),
           // TODO: make it possible to type in hex value.
           cssHexBox(
-            dom.attr('value', (use) => use(this._color || '#000000')),
+            dom.attr('value', this._color),
             {readonly: true},
             dom.on('click', (ev, e) => e.select()),
             testId(`${title}-hex`),
@@ -244,6 +241,7 @@ const cssHeaderRow = styled('div', `
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
+  text-transform: capitalize;
 `);
 
 
@@ -265,6 +263,8 @@ const cssContainer = styled('div', `
   padding: 18px 16px;
   background-color: white;
   box-shadow: 0 2px 16px 0 rgba(38,38,51,0.6);
+  z-index: 20;
+  margin: 2px 0;
   &:focus {
     outline: none;
   }
@@ -318,4 +318,5 @@ const cssSelectBtn = styled('div', `
   padding: 5px 9px;
   user-select: none;
   cursor: pointer;
+  background-color: white;
 `);

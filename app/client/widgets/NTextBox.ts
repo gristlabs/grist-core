@@ -4,7 +4,7 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {cssRow} from 'app/client/ui/RightPanel';
 import {alignmentSelect, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {testId} from 'app/client/ui2018/cssVars';
-import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
+import {NewAbstractWidget, Options} from 'app/client/widgets/NewAbstractWidget';
 import {dom, DomContents, fromKo, Observable} from 'grainjs';
 
 /**
@@ -14,8 +14,8 @@ export class NTextBox extends NewAbstractWidget {
   protected alignment: Observable<string>;
   protected wrapping: Observable<boolean>;
 
-  constructor(field: ViewFieldRec) {
-    super(field);
+  constructor(field: ViewFieldRec, options: Options = {}) {
+    super(field, options);
 
     this.alignment = fromKoSave<string>(this.options.prop('alignment'));
     this.wrapping = fromKo(this.field.wrapping);

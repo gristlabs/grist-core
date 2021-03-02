@@ -1,24 +1,28 @@
 var dispose = require('../lib/dispose');
 const ko = require('knockout');
-const {fromKo} = require('grainjs');
+const {Computed, fromKo} = require('grainjs');
 const ValueFormatter = require('app/common/ValueFormatter');
 
 const {cssLabel, cssRow} = require('app/client/ui/RightPanel');
-const {colorSelect} = require('app/client/ui2018/buttonSelect');
-const {testId} = require('app/client/ui2018/cssVars');
-const {cssHalfWidth, cssInlineLabel} = require('app/client/widgets/NewAbstractWidget');
+const {colorSelect} = require('app/client/ui2018/ColorSelect');
 
 /**
  * AbstractWidget - The base of the inheritance tree for widgets.
  * @param {Function} field - The RowModel for this view field.
+ * @param {string|undefined} options.defaultTextColor - A hex value to set the default text color
+ * for the widget. Omit defaults to '#000000'.
  */
-function AbstractWidget(field) {
+function AbstractWidget(field, opts = {}) {
   this.field = field;
   this.options = field.widgetOptionsJson;
+  const {defaultTextColor = '#000000'} = opts;
 
   this.valueFormatter = this.autoDispose(ko.computed(() => {
     return ValueFormatter.createFormatter(field.displayColModel().type(), this.options());
   }));
+
+  this.textColor = Computed.create(this, (use) => use(this.field.textColor) || defaultTextColor)
+    .onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));
 }
 dispose.makeDisposable(AbstractWidget);
 
@@ -49,21 +53,11 @@ AbstractWidget.prototype.buildColorConfigDom = function() {
   return [
     cssLabel('CELL COLOR'),
     cssRow(
-      cssHalfWidth(
-        colorSelect(
-          fromKo(this.field.textColor),
-          (val) => this.field.textColor.saveOnly(val),
-          testId('text-color'),
-        ),
-        cssInlineLabel('Text')
-      ),
-      cssHalfWidth(
-        colorSelect(
-          fromKo(this.field.fillColor),
-          (val) => this.field.fillColor.saveOnly(val),
-          testId('fill-color'),
-        ),
-        cssInlineLabel('Fill')
+      colorSelect(
+        this.textColor,
+        fromKo(this.field.fillColor),
+        // Calling `field.widgetOptionsJson.save()` saves both fill and text color settings.
+        () => this.field.widgetOptionsJson.save()
       )
     )
   ];

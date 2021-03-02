@@ -12,7 +12,7 @@ import {dom, styled} from 'grainjs';
  */
 export class HyperLinkTextBox extends NTextBox {
   constructor(field: ViewFieldRec) {
-    super(field);
+    super(field, {defaultTextColor: colors.lightGreen.value});
   }
 
   public buildDom(row: DataRowModel) {

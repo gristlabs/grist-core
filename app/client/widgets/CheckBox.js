@@ -8,7 +8,7 @@ var AbstractWidget = require('./AbstractWidget');
  * CheckBox - A bi-state CheckBox widget
  */
 function CheckBox(field) {
-  AbstractWidget.call(this, field);
+  AbstractWidget.call(this, field, {defaultTextColor: '#606060'});
 }
 dispose.makeDisposable(CheckBox);
 _.extend(CheckBox.prototype, AbstractWidget.prototype);

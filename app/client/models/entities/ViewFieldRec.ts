@@ -70,7 +70,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   disableModify: ko.Computed<boolean>;
   disableEditData: ko.Computed<boolean>;
 
-  textColor: modelUtil.KoSaveableObservable<string>;
+  textColor: modelUtil.KoSaveableObservable<string|undefined>;
   fillColor: modelUtil.KoSaveableObservable<string>;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
@@ -201,8 +201,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.disableModify = ko.pureComputed(() => this.column().disableModify());
   this.disableEditData = ko.pureComputed(() => this.column().disableEditData());
 
-  this.textColor = modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop('textColor') as modelUtil.KoSaveableObservable<string>, '');
+  this.textColor = this.widgetOptionsJson.prop('textColor') as modelUtil.KoSaveableObservable<string>;
 
   const fillColorProp = modelUtil.fieldWithDefault(
     this.widgetOptionsJson.prop('fillColor') as modelUtil.KoSaveableObservable<string>, "#FFFFFF00");
