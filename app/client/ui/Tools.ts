@@ -13,6 +13,8 @@ const testId = makeTestId('test-tools-');
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
   const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
+  const isOverridden = Boolean(gristDoc.docPageModel.userOverride.get());
+  const canUseAccessRules = isOwner && !isOverridden;
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
@@ -20,10 +22,10 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     (aclUIEnabled ?
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-        cssPageEntry.cls('-disabled', !isOwner),
-        (isOwner ? cssPageLink : cssPageDisabledLink)(cssPageIcon('EyeShow'),
+        cssPageEntry.cls('-disabled', !canUseAccessRules),
+        (canUseAccessRules ? cssPageLink : cssPageDisabledLink)(cssPageIcon('EyeShow'),
           cssLinkText('Access Rules'),
-          isOwner ? urlState().setLinkUrl({docPage: 'acl'}) : null
+          canUseAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null
         ),
         testId('access-rules'),
       ) :

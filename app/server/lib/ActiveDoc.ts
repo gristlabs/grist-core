@@ -845,8 +845,8 @@ export class ActiveDoc extends EventEmitter {
     return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()));
   }
 
-  public forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {
-    if (this._granularAccess.hasNuancedAccess(docSession)) {
+  public async forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {
+    if (await this._granularAccess.hasNuancedAccess(docSession)) {
       throw new Error('cannot confirm access to plugin');
     }
     const pluginRpc = this.docPluginManager.plugins[pluginId].rpc;
@@ -876,7 +876,7 @@ export class ActiveDoc extends EventEmitter {
     return this.shutdown();
   }
 
-  public isOwner(docSession: OptDocSession): boolean {
+  public isOwner(docSession: OptDocSession): Promise<boolean> {
     return this._granularAccess.isOwner(docSession);
   }
 
@@ -1036,14 +1036,14 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async removeSnapshots(docSession: OptDocSession, snapshotIds: string[]): Promise<void> {
-    if (!this.isOwner(docSession)) {
+    if (!await this.isOwner(docSession)) {
       throw new Error('cannot remove snapshots, access denied');
     }
     return this._docManager.storageManager.removeSnapshots(this.docName, snapshotIds);
   }
 
   public async deleteActions(docSession: OptDocSession, keepN: number): Promise<void> {
-    if (!this.isOwner(docSession)) {
+    if (!await this.isOwner(docSession)) {
       throw new Error('cannot delete actions, access denied');
     }
     await this._actionHistory.deleteActions(keepN);

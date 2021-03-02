@@ -206,7 +206,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async canApplyBundle() {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession} = this._activeBundle;
-    if (this._activeBundle.hasDeliberateRuleChange && !this.isOwner(docSession)) {
+    if (this._activeBundle.hasDeliberateRuleChange && !await this.isOwner(docSession)) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners can modify access rules');
     }
     if (this._ruler.haveRules()) {
@@ -360,13 +360,13 @@ export class GranularAccess implements GranularAccessForBundle {
     const name = a[0] as string;
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
-      if (this.hasNuancedAccess(docSession)) {
+      if (await this.hasNuancedAccess(docSession)) {
         throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need uncomplicated access`);
       }
       return true;
     }
     if (SURPRISING_ACTIONS.has(name)) {
-      if (!this.hasFullAccess(docSession)) {
+      if (!await this.hasFullAccess(docSession)) {
         throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need full access`);
       }
       return true;
@@ -394,9 +394,9 @@ export class GranularAccess implements GranularAccessForBundle {
    * worked through.  Currently if there are no owner-only tables, then everyone's
    * access is simple and without nuance.
    */
-  public hasNuancedAccess(docSession: OptDocSession): boolean {
+  public async hasNuancedAccess(docSession: OptDocSession): Promise<boolean> {
     if (!this._ruler.haveRules()) { return false; }
-    return !this.hasFullAccess(docSession);
+    return !await this.hasFullAccess(docSession);
   }
 
   /**
@@ -404,7 +404,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * permissions.
    */
   public async canReadEverything(docSession: OptDocSession): Promise<boolean> {
-    const access = getDocSessionAccess(docSession);
+    const access = await this._getNominalAccess(docSession);
     if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
     return this.getReadPermission(permInfo.getFullAccess()) === 'allow';
@@ -421,7 +421,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * just a bit inconsistent.
    */
   public async canCopyEverything(docSession: OptDocSession): Promise<boolean> {
-    return this.isOwner(docSession) || this.canReadEverything(docSession);
+    return (await this.isOwner(docSession)) || (await this.canReadEverything(docSession));
   }
 
   /**
@@ -430,15 +430,15 @@ export class GranularAccess implements GranularAccessForBundle {
    * TODO: uses of this method should be checked to see if they can be fleshed out
    * now we have more of the ACL implementation done.
    */
-  public hasFullAccess(docSession: OptDocSession): boolean {
+  public hasFullAccess(docSession: OptDocSession): Promise<boolean> {
     return this.isOwner(docSession);
   }
 
   /**
    * Check whether user has owner-level access to the document.
    */
-  public isOwner(docSession: OptDocSession): boolean {
-    const access = getDocSessionAccess(docSession);
+  public async isOwner(docSession: OptDocSession): Promise<boolean> {
+    const access = await this._getNominalAccess(docSession);
     return access === 'owners';
   }
 
@@ -468,7 +468,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const permInfo = await this._getAccess(docSession);
     const censor = new CensorshipInfo(permInfo, this._ruler.ruleCollection, tables,
-                                      this.isOwner(docSession));
+                                      await this.isOwner(docSession));
 
     for (const tableId of STRUCTURAL_TABLES) {
       censor.apply(tables[tableId]);
@@ -526,6 +526,19 @@ export class GranularAccess implements GranularAccessForBundle {
     await this._docClients.broadcastDocMessage(client, 'docUserAction',
                                                message,
                                                (docSession) => this._filterDocUpdate(docSession, message));
+  }
+
+  /**
+   * Get the role the session user has for this document.  User may be overridden,
+   * in which case the role of the override is returned.
+   */
+  private async _getNominalAccess(docSession: OptDocSession): Promise<Role> {
+    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
+      const info = await this._getUser(docSession);
+      return info.Access as Role;
+    }
+    return getDocSessionAccess(docSession);
   }
 
   /**
@@ -896,7 +909,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
     if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
-      if (!this.isOwner(docSession)) { throw new Error('only an owner can override user'); }
+      if (access !== 'owners') { throw new Error('only an owner can override user'); }
       if (attrs.override) {
         // Used cached properties.
         access = attrs.override.access;
@@ -1167,7 +1180,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const censor = new CensorshipInfo(permissionInfo,
                                       ruler.ruleCollection,
                                       step.metaAfter,
-                                      this.isOwner(cursor.docSession));
+                                      await this.isOwner(cursor.docSession));
     if (censor.apply(act)) {
       results.push(act);
     }
@@ -1179,7 +1192,7 @@ export class GranularAccess implements GranularAccessForBundle {
       const censorBefore = new CensorshipInfo(permissionInfo,
                                               ruler.ruleCollection,
                                               step.metaBefore,
-                                              this.isOwner(cursor.docSession));
+                                              await this.isOwner(cursor.docSession));
       // For all views previously censored, if they are now uncensored,
       // add an UpdateRecord to expose them.
       for (const v of censorBefore.censoredViews) {

@@ -382,7 +382,7 @@ export class DocManager extends EventEmitter {
     for (;;) {
       if (this._activeDocs.has(docName) && wantRecoveryMode !== undefined) {
         const activeDoc = await this._activeDocs.get(docName);
-        if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && activeDoc.isOwner(docSession)) {
+        if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
           // shutting doc down to have a chance to re-open in the correct mode.
           // TODO: there could be a battle with other users opening it in a different mode.
           await activeDoc.shutdown();

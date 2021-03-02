@@ -40,7 +40,7 @@ function buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOp
       testId('acl-user-view-as'),
       icon('FieldLink'), 'View As', {
         href: urlState().makeUrl(
-          merge({}, urlState().state.get(), {params: {linkParameters: {aclAsUser: user.email}}})),
+          merge({}, urlState().state.get(), {docPage: '', params: {linkParameters: {aclAsUser: user.email}}})),
       }),
     testId('acl-user-item'),
   );
