@@ -835,10 +835,11 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Remove columns from a ColumnValues parameter of certain DocActions, using a predicate for
    * which columns to keep.
+   * Will retain manualSort columns regardless of wildcards.
    */
   private _filterColumns(data: BulkColValues|ColValues, shouldInclude: (colId: string) => boolean) {
     for (const colId of Object.keys(data)) {
-      if (!shouldInclude(colId)) {
+      if (colId !== 'manualSort' && !shouldInclude(colId)) {
         delete data[colId];
       }
     }
@@ -1467,26 +1468,35 @@ export class CensorshipInfo {
     // Collect a list of censored columns (by "<tableRef> <colId>").
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
+    const tableRefToTableId: Map<number, string> = new Map();
+    const uncensoredTables: Set<number> = new Set();
+    // Scan for forbidden tables.
     let rec = new RecordView(tables._grist_Tables, undefined);
     let ids = getRowIdsFromDocAction(tables._grist_Tables);
     for (let idx = 0; idx < ids.length; idx++) {
       rec.index = idx;
       const tableId = rec.get('tableId') as string;
       const tableRef = ids[idx];
+      tableRefToTableId.set(tableRef, tableId);
       const tableAccess = permInfo.getTableAccess(tableId);
       if (tableAccess.perms.read === 'deny') {
         this.censoredTables.add(tableRef);
+      } else if (tableAccess.perms.read === 'allow') {
+        uncensoredTables.add(tableRef);
       }
-      // TODO If some columns are allowed and the rest (*) are denied, we need to be able to
-      // censor all columns outside a set.
-      for (const ruleSet of ruleCollection.getAllColumnRuleSets(tableId)) {
-        if (Array.isArray(ruleSet.colIds)) {
-          for (const colId of ruleSet.colIds) {
-            if (permInfo.getColumnAccess(tableId, colId).perms.read === 'deny') {
-              censoredColumnCodes.add(columnCode(tableRef, colId));
-            }
-          }
-        }
+    }
+    // Scan for forbidden columns.
+    ids = getRowIdsFromDocAction(tables._grist_Tables_column);
+    rec = new RecordView(tables._grist_Tables_column, undefined);
+    for (let idx = 0; idx < ids.length; idx++) {
+      rec.index = idx;
+      const tableRef = rec.get('parentId') as number;
+      if (uncensoredTables.has(tableRef)) { continue; }
+      const tableId = tableRefToTableId.get(tableRef);
+      if (!tableId) { throw new Error('table not found'); }
+      const colId = rec.get('colId') as string;
+      if (this.censoredTables.has(tableRef) || (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
+        censoredColumnCodes.add(columnCode(tableRef, colId));
       }
     }
     // Collect a list of all sections and views containing a table to which the user has no access.
