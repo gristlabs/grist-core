@@ -10,7 +10,7 @@
  * TODO: Consider merging this into grainjs's input widget.
  */
 import { colors } from 'app/client/ui2018/cssVars';
-import { dom, DomElementArg, styled } from 'grainjs';
+import { dom, DomArg, styled } from 'grainjs';
 import { Observable } from 'grainjs';
 import noop = require('lodash/noop');
 
@@ -69,7 +69,7 @@ type SaveFunc = (value: string) => Promise<void>;
  * cancels editing. Label grows in size with typed input. Validation logic (if any) should happen in
  * the save function, to reject a value simply throw an error, this will revert to the saved one .
  */
-export function editableLabel(label: Observable<string>, save: SaveFunc, ...args: DomElementArg[]) {
+export function editableLabel(label: Observable<string>, save: SaveFunc, ...args: Array<DomArg<HTMLInputElement>>) {
   let input: HTMLInputElement;
   let sizer: HTMLSpanElement;
 
@@ -92,7 +92,7 @@ export function editableLabel(label: Observable<string>, save: SaveFunc, ...args
  * of focus. Escape cancels editing. Validation logic (if any) should happen in the save function,
  * to reject a value simply throw an error, this will revert to the the saved one.
  */
-export function textInput(label: Observable<string>, save: SaveFunc, ...args: DomElementArg[]) {
+export function textInput(label: Observable<string>, save: SaveFunc, ...args: Array<DomArg<HTMLInputElement>>) {
   return rawTextInput(label, save, noop, dom.cls(cssTextInput.className), ...args);
 }
 
@@ -100,7 +100,7 @@ export function textInput(label: Observable<string>, save: SaveFunc, ...args: Do
  * A helper that implements all the saving logic for both editableLabel and textInput.
  */
 export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange: () => void,
-                             ...args: DomElementArg[]) {
+                             ...args: Array<DomArg<HTMLInputElement>>) {
   let status: Status = Status.NORMAL;
   let inputEl: HTMLInputElement;
 

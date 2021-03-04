@@ -1,6 +1,8 @@
 import { darker, lighter } from "app/client/ui2018/ColorPalette";
 import { colors, testId, vars } from 'app/client/ui2018/cssVars';
+import { textInput } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
+import { isValidHex } from "app/common/gutil";
 import { Computed, Disposable, dom, DomArg, Observable, onKeyDown, styled } from "grainjs";
 import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 
@@ -84,7 +86,11 @@ function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, f
     onKeyDown({
       Escape: () => { revert(); },
       Enter: () => { ctl.close(); },
-    })
+    }),
+
+    // Set focus when `focusout` is bubbling from a children element. This is to allow to receive
+    // keyboard event again after user interacted with the hex box text input.
+    dom.on('focusout', (ev, elem) => (ev.target !== elem) && elem.focus()),
   );
 }
 
@@ -150,12 +156,13 @@ class PickerComponent extends Disposable {
               testId(`${title}-input`),
             ),
           ),
-          // TODO: make it possible to type in hex value.
           cssHexBox(
-            dom.attr('value', this._color),
-            {readonly: true},
-            dom.on('click', (ev, e) => e.select()),
+            this._color,
+            async (val) => { if (isValidHex(val)) {this._model.setValue(val); }},
             testId(`${title}-hex`),
+            // select the hex value on click. Doing it using settimeout allows to avoid some
+            // sporadically losing the selection just after the click.
+            dom.on('click', (ev, elem) => setTimeout(() => elem.select(), 0)),
           )
         ),
         title,
@@ -275,7 +282,7 @@ const cssContent = styled('div', `
   align-items: center;
 `);
 
-const cssHexBox = styled('input', `
+const cssHexBox = styled(textInput, `
   border: 1px solid #D9D9D9;
   border-left: none;
   font-size: ${vars.smallFontSize};
@@ -285,6 +292,8 @@ const cssHexBox = styled('input', `
   width: 56px;
   outline: none;
   padding: 0 3px;
+  height: unset;
+  border-radius: unset;
 `);
 
 const cssLightBorder = styled('div', `

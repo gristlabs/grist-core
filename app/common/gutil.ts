@@ -777,6 +777,15 @@ export function isColorDark(hexColor: string, isDarkBelow: number = 220): boolea
   return luma < isDarkBelow;
 }
 
+/**
+ * Returns true if val is a valid hex color value. For instance: #aabbaa is valid, #aabba is not. Do
+ * not accept neither short notation nor hex with transparency, ie: #aab, #aabb and #aabbaabb are
+ * invalid.
+ */
+export function isValidHex(val: string): boolean {
+  return /^#([0-9A-F]{6})$/i.test(val);
+}
+
 
 /**
  * Returns a promise that resolves to true if promise takes longer than timeoutMsec to resolve. If not
