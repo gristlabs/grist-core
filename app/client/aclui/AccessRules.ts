@@ -15,8 +15,8 @@ import {colors, testId} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IOptionFull, menu, menuItemAsync} from 'app/client/ui2018/menus';
-import {emptyPermissionSet} from 'app/common/ACLPermissions';
-import {PartialPermissionSet, permissionSetToText} from 'app/common/ACLPermissions';
+import {emptyPermissionSet, MixedPermissionValue} from 'app/common/ACLPermissions';
+import {PartialPermissionSet, permissionSetToText, summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
 import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
 import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
@@ -490,17 +490,40 @@ class TableRules extends Disposable {
    */
   public getResources(): ResourceRec[] {
     // Check that the colIds are valid.
-    const seen = new Set<string>();
+    const seen = {
+      allow: new Set<string>(),   // columns mentioned in rules that only have 'allow's.
+      deny: new Set<string>(),    // columns mentioned in rules that only have 'deny's.
+      mixed: new Set<string>()    // columns mentioned in any rules.
+    };
     for (const ruleSet of this._columnRuleSets.get()) {
+      const sign = ruleSet.summarizePermissions();
+      const counterSign = sign === 'mixed' ? 'mixed' : (sign === 'allow' ? 'deny' : 'allow');
       const colIds = ruleSet.getColIdList();
       if (colIds.length === 0) {
         throw new UserError(`No columns listed in a column rule for table ${this.tableId}`);
       }
       for (const colId of colIds) {
-        if (seen.has(colId)) {
-          throw new UserError(`Column ${colId} appears in multiple rules for table ${this.tableId}`);
+        if (seen[counterSign].has(colId)) {
+          // There may be an order dependency between rules.  We've done a little analysis, to
+          // allow the useful pattern of forbidding all access to columns, and then adding back
+          // access to different sets for different teams/conditions (or allowing all access
+          // by default, and then forbidding different sets).  But if there's a mix of
+          // allows and denies, then we throw up our hands.
+          // TODO: could analyze more deeply.  An easy step would be to analyze per permission bit.
+          // Could also allow order dependency and provide a way to control the order.
+          // TODO: could be worth also flagging multiple rulesets with the same columns as
+          // undesirable.
+          throw new UserError(`Column ${colId} appears in multiple rules for table ${this.tableId}` +
+                              ` that might be order-dependent. Try splitting rules up differently?`);
         }
-        seen.add(colId);
+        if (sign === 'mixed') {
+          seen.allow.add(colId);
+          seen.deny.add(colId);
+          seen.mixed.add(colId);
+        } else {
+          seen[sign].add(colId);
+          seen.mixed.add(colId);
+        }
       }
     }
 
@@ -583,6 +606,15 @@ abstract class ObsRuleSet extends Disposable {
 
   public getColIds(): string {
     return '*';
+  }
+
+  /**
+   * Check if RuleSet may only add permissions, only remove permissions, or may do either.
+   * A rule that neither adds nor removes permissions is treated as mixed for simplicity,
+   * though this would be suboptimal if this were a useful case to support.
+   */
+  public summarizePermissions(): MixedPermissionValue {
+    return summarizePermissions(this._body.get().map(p => p.summarizePermissions()));
   }
 
   public abstract buildResourceDom(): DomElementArg;
@@ -889,6 +921,15 @@ class ObsRulePart extends Disposable {
       permissionsText: permissionSetToText(this._permissions.get()),
       rulePos: this._rulePart?.origRecord?.rulePos as number|undefined,
     };
+  }
+
+  /**
+   * Check if RulePart may only add permissions, only remove permissions, or may do either.
+   * A rule that neither adds nor removes permissions is treated as mixed for simplicity,
+   * though this would be suboptimal if this were a useful case to support.
+   */
+  public summarizePermissions(): MixedPermissionValue {
+    return summarizePermissionSet(this._permissions.get());
   }
 
   public buildRulePartDom() {

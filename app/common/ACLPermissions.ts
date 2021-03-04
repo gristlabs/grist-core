@@ -161,3 +161,32 @@ export function mergePermissions<T, U>(psets: Array<PermissionSet<T>>, combine: 
 export function toMixed(pset: PartialPermissionSet): MixedPermissionSet {
   return mergePermissions([pset], ([bit]) => (bit === 'allow' || bit === 'mixed' ? bit : 'deny'));
 }
+
+/**
+ * Check if PermissionSet may only add permissions, only remove permissions, or may do either.
+ * A rule that neither adds nor removes permissions is treated as mixed.
+ */
+export function summarizePermissionSet(pset: PartialPermissionSet): MixedPermissionValue {
+  let sign = '';
+  for (const key of Object.keys(pset) as Array<keyof PartialPermissionSet>) {
+    const pWithSome = pset[key];
+    // "Some" postfix is not significant for summarization.
+    const p = pWithSome === 'allowSome' ? 'allow' : (pWithSome === 'denySome' ? 'deny' : pWithSome)
+    if (!p || p === sign) { continue; }
+    if (!sign) {
+      sign = p;
+      continue;
+    }
+    sign = 'mixed';
+  }
+  return (sign === 'allow' || sign === 'deny') ? sign : 'mixed';
+}
+
+/**
+ * Summarize whether a set of permissions are all 'allow', all 'deny', or other ('mixed').
+ */
+export function summarizePermissions(perms: MixedPermissionValue[]): MixedPermissionValue {
+  if (perms.length === 0) { return 'mixed'; }
+  const perm = perms[0];
+  return perms.some(p => p !== perm) ? 'mixed' : perm;
+}
