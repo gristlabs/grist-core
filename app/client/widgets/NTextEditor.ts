@@ -59,6 +59,10 @@ export class NTextEditor extends NewBaseEditor {
     this.textInput.setSelectionRange(pos, pos);
   }
 
+  public getDom(): HTMLElement {
+    return this._dom;
+  }
+
   public getCellValue(): CellValue {
     return this.textInput.value;
   }

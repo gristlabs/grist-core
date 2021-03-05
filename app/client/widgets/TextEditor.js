@@ -69,6 +69,10 @@ TextEditor.prototype.attach = function(cellElem) {
   this.textInput.setSelectionRange(pos, pos);
 };
 
+TextEditor.prototype.getDom = function() {
+  return this.dom;
+};
+
 TextEditor.prototype.setSizerLimits = function() {
   // Set the max width of the sizer to the max we could possibly grow to, so that it knows to wrap
   // once we reach it.

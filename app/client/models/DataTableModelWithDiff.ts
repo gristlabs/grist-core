@@ -133,6 +133,10 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     return this.core.getAllRows();
   }
 
+  public getNumRows(): number {
+    return this.core.getNumRows();
+  }
+
   public getRowGrouping(groupByCol: string): RowGrouping<CellValue> {
     return this.core.getRowGrouping(groupByCol);
   }

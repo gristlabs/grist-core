@@ -642,4 +642,11 @@ BaseView.prototype.createFilterMenu = function(openCtl, field) {
   return createFilterMenu(openCtl, this._sectionFilter, field, this._filteredRowSource, this.tableModel.tableData);
 };
 
+/**
+ * Whether the rows shown by this view are a proper subset of all rows in the table.
+ */
+BaseView.prototype.isFiltered = function() {
+  return this._filteredRowSource.getNumRows() < this.tableModel.tableData.numRecords();
+};
+
 module.exports = BaseView;

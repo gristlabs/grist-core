@@ -20,6 +20,14 @@ BaseEditor.prototype.attach = function(cellElem) {
 };
 
 /**
+ * Returns DOM container with the editor, typically present and attached after attach() has been
+ * called.
+ */
+BaseEditor.prototype.getDom = function() {
+  return null;
+};
+
+/**
  * Called to get the value to save back to the cell.
  */
 BaseEditor.prototype.getCellValue = function() {

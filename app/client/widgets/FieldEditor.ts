@@ -5,6 +5,7 @@ import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
+import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from "app/common/DocActions";
@@ -72,18 +73,21 @@ export class FieldEditor extends Disposable {
     this._cellElem = options.cellElem;
 
     const startVal = options.startVal;
+    let offerToMakeFormula = false;
 
     const column = this._field.column();
-    let isFormula: boolean, editValue: string|undefined;
+    let isFormula: boolean = column.isRealFormula.peek();
+    let editValue: string|undefined = startVal;
     if (startVal && gutil.startsWith(startVal, '=')) {
-      // If we entered the cell by typing '=', we immediately convert to formula.
-      isFormula = true;
-      editValue = gutil.removePrefix(startVal, '=') as string;
-    } else {
-      // Initially, we mark the field as editing formula if it's a non-empty formula field. This can
-      // be changed by typing "=", but the field won't be an actual formula field until saved.
-      isFormula = column.isRealFormula.peek();
-      editValue = startVal;
+      if (isFormula || this._field.column().isEmpty()) {
+        // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
+        // start editing ignoring the initial '='.
+        isFormula = true;
+        editValue = gutil.removePrefix(startVal, '=') as string;
+      } else {
+        // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
+        offerToMakeFormula = true;
+      }
     }
 
     // These are the commands for while the editor is active.
@@ -107,6 +111,10 @@ export class FieldEditor extends Disposable {
     };
 
     this.rebuildEditor(isFormula, editValue, Number.POSITIVE_INFINITY);
+
+    if (offerToMakeFormula) {
+      this._offerToMakeFormula();
+    }
 
     // Whenever focus returns to the Clipboard component, close the editor by saving the value.
     this._gristDoc.app.on('clipboard_focus', this._saveEdit, this);
@@ -161,10 +169,16 @@ export class FieldEditor extends Disposable {
 
   private _makeFormula() {
     const editor = this._editorHolder.get();
-    // On keyPress of "=" on textInput, turn the value into a formula.
+    // On keyPress of "=" on textInput, consider turning the column into a formula.
     if (editor && !this._field.editingFormula.peek() && editor.getCursorPos() === 0) {
-      this.rebuildEditor(true, editor.getTextValue(), 0);
-      return false;
+      if (this._field.column().isEmpty()) {
+        // If we typed '=' an empty column, convert it to a formula.
+        this.rebuildEditor(true, editor.getTextValue(), 0);
+        return false;
+      } else {
+        // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
+        this._offerToMakeFormula();
+      }
     }
     return true;    // don't stop propagation.
   }
@@ -172,7 +186,7 @@ export class FieldEditor extends Disposable {
   private _unmakeFormula() {
     const editor = this._editorHolder.get();
     // Only convert to data if we are undoing a to-formula conversion. To convert formula to
-    // data, delete the formula first (which makes the column "empty").
+    // data, use column menu option, or delete the formula first (which makes the column "empty").
     if (editor && this._field.editingFormula.peek() && editor.getCursorPos() === 0 &&
       !this._field.column().isRealFormula()) {
       // Restore a plain '=' character. This gives a way to enter "=" at the start if line. The
@@ -183,11 +197,27 @@ export class FieldEditor extends Disposable {
     return true;    // don't stop propagation.
   }
 
+  private _offerToMakeFormula() {
+    const editorDom = this._editorHolder.get()?.getDom();
+    if (!editorDom) { return; }
+    showTooltipToCreateFormula(editorDom, () => this._convertEditorToFormula());
+  }
+
+  private _convertEditorToFormula() {
+    const editor = this._editorHolder.get();
+    if (editor) {
+      const editValue = editor.getTextValue();
+      const formulaValue = editValue.startsWith('=') ? editValue.slice(1) : editValue;
+      this.rebuildEditor(true, formulaValue, 0);
+    }
+  }
+
   private async _saveEdit() {
     return this._saveEditPromise || (this._saveEditPromise = this._doSaveEdit());
   }
 
-  // Returns whether the cursor jumped, i.e. current record got reordered.
+  // Returns true if Enter/Shift+Enter should NOT move the cursor, for instance if the current
+  // record got reordered (i.e. the cursor jumped), or when editing a formula.
   private async _doSaveEdit(): Promise<boolean> {
     const editor = this._editorHolder.get();
     if (!editor) { return false; }
@@ -205,19 +235,12 @@ export class FieldEditor extends Disposable {
     // editingFormula() is used for toggling column headers, and this is deferred to start of
     // typing (a double-click or Enter) does not immediately set it. (This can cause a
     // console.warn below, although harmless.)
-    let isFormula = this._field.editingFormula();
+    const isFormula = this._field.editingFormula();
     const col = this._field.column();
     let waitPromise: Promise<unknown>|null = null;
 
     if (isFormula) {
       const formula = editor.getCellValue();
-      if (col.isRealFormula() && formula === "") {
-        // A somewhat surprising feature: deleting the formula converts the column to data, keeping
-        // the values. To clear the column, enter an empty formula again (now into a data column).
-        // TODO: this should probably be made more intuitive.
-        isFormula = false;
-      }
-
       // Bundle multiple changes so that we can undo them in one step.
       if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
         waitPromise = this._gristDoc.docData.bundleActions(null, () => Promise.all([
@@ -243,6 +266,6 @@ export class FieldEditor extends Disposable {
     // Deactivate the editor. We are careful to avoid using `this` afterwards.
     this.dispose();
     await waitPromise;
-    return (saveIndex !== cursor.rowIndex());
+    return isFormula || (saveIndex !== cursor.rowIndex());
   }
 }

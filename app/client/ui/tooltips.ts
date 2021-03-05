@@ -7,35 +7,68 @@
 
 import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId} from 'app/client/ui2018/cssVars';
-import {dom, styled} from 'grainjs';
+import {dom, DomContents, styled} from 'grainjs';
 import Popper from 'popper.js';
 
-interface ITipOptions {
+export interface ITipOptions {
   // Where to place the tooltip relative to the reference element. Defaults to 'top'.
   // See https://popper.js.org/docs/v1/#popperplacements--codeenumcode
   placement?: Popper.Placement;
-
-  // When to remove the transient tooltip. Defaults to 2000ms.
-  timeoutMs?: number;
 
   // When set, a tooltip will replace any previous tooltip with the same key.
   key?: string;
 }
 
-// Map of open tooltips, mapping the key (from ITipOptions) to the cleanup function that removes
-// the tooltip.
-const openTooltips = new Map<string, () => void>();
+export interface ITransientTipOptions extends ITipOptions {
+  // When to remove the transient tooltip. Defaults to 2000ms.
+  timeoutMs?: number;
+}
 
-export function showTransientTooltip(refElem: Element, text: string, options: ITipOptions = {}) {
+export interface ITooltipControl {
+  close(): void;
+}
+
+// Map of open tooltips, mapping the key (from ITipOptions) to ITooltipControl that allows
+// removing the tooltip.
+const openTooltips = new Map<string, ITooltipControl>();
+
+/**
+ * Show tipContent briefly (2s by default), in a tooltip next to refElem (on top of it, by default).
+ * See also ITipOptions.
+ */
+export function showTransientTooltip(refElem: Element, tipContent: DomContents, options: ITransientTipOptions = {}) {
+  const ctl = showTooltip(refElem, () => tipContent, options);
+  const origClose = ctl.close;
+  ctl.close = () => { clearTimeout(timer); origClose(); };
+
+  const timer = setTimeout(ctl.close, options.timeoutMs || 2000);
+}
+
+/**
+ * Show the return value of tipContent(ctl) in a tooltip next to refElem (on top of it, by default).
+ * Returns ctl. In both places, ctl is an object with a close() method, which closes the tooltip.
+ * See also ITipOptions.
+ */
+export function showTooltip(
+  refElem: Element, tipContent: (ctl: ITooltipControl) => DomContents, options: ITipOptions = {}
+): ITooltipControl {
   const placement: Popper.Placement = options.placement || 'top';
-  const timeoutMs: number = options.timeoutMs || 2000;
   const key = options.key;
 
   // If we had a previous tooltip with the same key, clean it up.
-  if (key) { openTooltips.get(key)?.(); }
+  if (key) { openTooltips.get(key)?.close(); }
+
+  // Cleanup involves destroying the Popper instance, removing the element, etc.
+  function close() {
+    popper.destroy();
+    dom.domDispose(content);
+    content.remove();
+    if (key) { openTooltips.delete(key); }
+  }
+  const ctl: ITooltipControl = {close};
 
   // Add the content element.
-  const content = cssTooltip({role: 'tooltip'}, text, testId(`transient-tooltip`));
+  const content = cssTooltip({role: 'tooltip'}, tipContent(ctl), testId(`transient-tooltip`));
   document.body.appendChild(content);
 
   // Create a popper for positioning the tooltip content relative to refElem.
@@ -49,16 +82,8 @@ export function showTransientTooltip(refElem: Element, text: string, options: IT
   prepareForTransition(content, () => { content.style.opacity = '0'; });
   content.style.opacity = '';
 
-  // Cleanup involves destroying the Popper instance, removing the element, etc.
-  function cleanup() {
-    popper.destroy();
-    dom.domDispose(content);
-    content.remove();
-    if (key) { openTooltips.delete(key); }
-    clearTimeout(timer);
-  }
-  const timer = setTimeout(cleanup, timeoutMs);
-  if (key) { openTooltips.set(key, cleanup); }
+  if (key) { openTooltips.set(key, ctl); }
+  return ctl;
 }
 
 
@@ -75,6 +100,6 @@ const cssTooltip = styled('div', `
   font-size: 10pt;
   padding: 8px 16px;
   margin: 4px;
-  opacity: 0.65;
+  opacity: 0.75;
   transition: opacity 0.2s;
 `);

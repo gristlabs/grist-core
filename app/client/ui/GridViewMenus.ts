@@ -1,4 +1,5 @@
 import {allCommands} from 'app/client/components/commands';
+import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuDivider, menuItem, menuItemCmd} from 'app/client/ui2018/menus';
@@ -66,119 +67,123 @@ export function RowContextMenu({ disableInsert, disableDelete, isViewSorted }: I
   return result;
 }
 
-interface IColumnContextMenu {
-  disableModify: boolean;
+interface IMultiColumnContextMenu {
+  // For multiple selection, true/false means the value applies to all columns, 'mixed' means it's
+  // true for some columns, but not all.
+  numColumns: number;
+  disableModify: boolean|'mixed';  // If the columns are read-only.
+  isReadonly: boolean;
+  isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.
+  isFormula: boolean|'mixed';
+}
+
+interface IColumnContextMenu extends IMultiColumnContextMenu {
   filterOpenFunc: () => void;
-  useNewUI: boolean;
   sortSpec: number[];
   colId: number;
-  isReadonly: boolean;
+}
+
+export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean): boolean|"mixed" {
+  return fields.every(condition) ? true : (fields.some(condition) ? "mixed" : false);
 }
 
 export function ColumnContextMenu(options: IColumnContextMenu) {
-  const { disableModify, filterOpenFunc, useNewUI, colId, sortSpec, isReadonly } = options;
+  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly } = options;
 
-  if (useNewUI) {
+  const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
+  const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
-    const addToSortLabel = getAddToSortLabel(sortSpec, colId);
-    return [
-      menuItemCmd(allCommands.fieldTabOpen, 'Column Options'),
-      menuItem(filterOpenFunc, 'Filter Data'),
-      menuDivider({style: 'margin-bottom: 0;'}),
+  const addToSortLabel = getAddToSortLabel(sortSpec, colId);
+  return [
+    menuItemCmd(allCommands.fieldTabOpen, 'Column Options'),
+    menuItem(filterOpenFunc, 'Filter Data'),
+    menuDivider({style: 'margin-bottom: 0;'}),
+    cssRowMenuItem(
+      customMenuItem(
+        allCommands.sortAsc.run,
+        dom('span', 'Sort', {style: 'flex: 1  0 auto; margin-right: 8px;'},
+            testId('sort-label')),
+        icon('Sort', dom.style('transform', 'scaley(-1)')),
+        'A-Z',
+        dom.style('flex', ''),
+        cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [colId])),
+        testId('sort-asc'),
+      ),
+      customMenuItem(
+        allCommands.sortDesc.run,
+        icon('Sort'),
+        'Z-A',
+        cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [-colId])),
+        testId('sort-dsc'),
+      ),
+      testId('sort'),
+    ),
+    menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
+    addToSortLabel ? [
       cssRowMenuItem(
         customMenuItem(
-          allCommands.sortAsc.run,
-          dom('span', 'Sort', {style: 'flex: 1  0 auto; margin-right: 8px;'},
-              testId('sort-label')),
+          allCommands.addSortAsc.run,
+          cssRowMenuLabel(addToSortLabel, testId('add-to-sort-label')),
           icon('Sort', dom.style('transform', 'scaley(-1)')),
           'A-Z',
-          dom.style('flex', ''),
-          cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [colId])),
-          testId('sort-asc'),
+          cssCustomMenuItem.cls('-selected', sortSpec.includes(colId)),
+          testId('add-to-sort-asc'),
         ),
         customMenuItem(
-          allCommands.sortDesc.run,
+          allCommands.addSortDesc.run,
           icon('Sort'),
           'Z-A',
-          cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [-colId])),
-          testId('sort-dsc'),
+          cssCustomMenuItem.cls('-selected', sortSpec.includes(-colId)),
+          testId('add-to-sort-dsc'),
         ),
-        testId('sort'),
+        testId('add-to-sort'),
       ),
-      menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
-      addToSortLabel ? [
-        cssRowMenuItem(
-          customMenuItem(
-            allCommands.addSortAsc.run,
-            cssRowMenuLabel(addToSortLabel, testId('add-to-sort-label')),
-            icon('Sort', dom.style('transform', 'scaley(-1)')),
-            'A-Z',
-            cssCustomMenuItem.cls('-selected', sortSpec.includes(colId)),
-            testId('add-to-sort-asc'),
-          ),
-          customMenuItem(
-            allCommands.addSortDesc.run,
-            icon('Sort'),
-            'Z-A',
-            cssCustomMenuItem.cls('-selected', sortSpec.includes(-colId)),
-            testId('add-to-sort-dsc'),
-          ),
-          testId('add-to-sort'),
-        ),
-        menuDivider({style: 'margin-top: 0;'}),
-      ] : null,
-      menuItemCmd(allCommands.renameField, 'Rename column',
-        dom.cls('disabled', disableModify || isReadonly)),
-      menuItemCmd(allCommands.hideField, 'Hide column',
-        dom.cls('disabled', isReadonly)),
-      menuItemCmd(allCommands.deleteFields, 'Delete column',
-        dom.cls('disabled', disableModify || isReadonly)),
-      testId('column-menu'),
+      menuDivider({style: 'margin-top: 0;'}),
+    ] : null,
+    menuItemCmd(allCommands.renameField, 'Rename column', disableForReadonlyColumn),
+    menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
 
-      // TODO: this piece should be removed after adding the new way to add column
-      menuDivider(),
-      menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left',
-        dom.cls('disabled', isReadonly)),
-      menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right',
-        dom.cls('disabled', isReadonly)),
-    ];
-  } else {
-    return [
-      menuItemCmd(allCommands.fieldTabOpen, 'FieldOptions'),
-      menuDivider(),
-      menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left'),
-      menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right'),
-      menuDivider(),
-      menuItemCmd(allCommands.renameField, 'Rename column',
-        dom.cls('disabled', disableModify)),
-      menuItemCmd(allCommands.hideField, 'Hide column'),
-      menuItemCmd(allCommands.deleteFields, 'Delete column',
-        dom.cls('disabled', disableModify)),
-      menuItem(filterOpenFunc, 'Filter'),
-      menuDivider(),
-      menuItemCmd(allCommands.sortAsc, 'Sort ascending'),
-      menuItemCmd(allCommands.sortDesc, 'Sort descending'),
-      menuItemCmd(allCommands.addSortAsc, 'Add to sort as ascending'),
-      menuItemCmd(allCommands.addSortDesc, 'Add to sort as descending'),
-    ];
-  }
-}
-
-
-interface IMultiColumnContextMenu {
-  isReadonly: boolean;
-}
-
-export function MultiColumnMenu(options: IMultiColumnContextMenu) {
-  const {isReadonly} = options;
-  return [
-    menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left',
-      dom.cls('disabled', isReadonly)),
-    menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right',
-      dom.cls('disabled', isReadonly)),
     menuDivider(),
-    menuItemCmd(allCommands.deleteFields, 'Delete columns',
-      dom.cls('disabled', isReadonly)),
+    MultiColumnMenu(options),
+    testId('column-menu'),
+  ];
+}
+
+/**
+ * Note about available options. There is a difference between clearing values (writing empty
+ * string, which makes cells blank, including Numeric cells) and converting a column to an empty
+ * column (i.e. column with empty formula; in this case a Numeric column becomes all 0s today).
+ *
+ * We offer both options if data columns are selected. If only formulas, only the second option
+ * makes sense.
+ */
+export function MultiColumnMenu(options: IMultiColumnContextMenu) {
+  const disableForReadonlyColumn = dom.cls('disabled', Boolean(options.disableModify) || options.isReadonly);
+  const disableForReadonlyView = dom.cls('disabled', options.isReadonly);
+  const num: number = options.numColumns;
+  const nameClearColumns = options.isFiltered ?
+    (num > 1 ? `Clear ${num} entire columns` : 'Clear entire column') :
+    (num > 1 ? `Clear ${num} columns` : 'Clear column');
+  const nameDeleteColumns = num > 1 ? `Delete ${num} columns` : 'Delete column';
+  return [
+    // TODO This should be made to work too for multiple columns.
+    // menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
+
+    // Offered only when selection includes formula columns, and converts only those.
+    (options.isFormula ?
+      menuItemCmd(allCommands.convertFormulasToData, 'Convert formula to data',
+        disableForReadonlyColumn) : null),
+
+    // With data columns selected, offer an additional option to clear out selected cells.
+    (options.isFormula !== true ?
+      menuItemCmd(allCommands.clearValues, 'Clear values', disableForReadonlyColumn) : null),
+
+    menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
+    menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
+
+    menuDivider(),
+    menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left', disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right', disableForReadonlyView),
   ];
 }
 

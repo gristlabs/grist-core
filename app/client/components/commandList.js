@@ -336,6 +336,14 @@ exports.groups = [{
       keys: ['Alt+-'],
       desc: 'Delete the currently selected columns'
     }, {
+      name: 'clearColumns',
+      keys: [],
+      desc: 'Clear the selected columns'
+    }, {
+      name: 'convertFormulasToData',
+      keys: [],
+      desc: 'Convert the selected columns from formula to data'
+    }, {
       name: 'addSection',
       keys: [],
       desc: 'Add a new viewsection to the currently active view'

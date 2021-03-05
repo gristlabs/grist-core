@@ -66,6 +66,12 @@ export abstract class NewBaseEditor extends Disposable {
   public abstract attach(cellElem: Element): void;
 
   /**
+   * Returns DOM container with the editor, typically present and attached after attach() has been
+   * called.
+   */
+  public getDom(): HTMLElement|null { return null; }
+
+  /**
    * Called to get the value to save back to the cell.
    */
   public abstract getCellValue(): CellValue;

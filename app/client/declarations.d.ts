@@ -245,6 +245,7 @@ declare module "app/client/models/TableModel" {
     constructor(docModel: DocModel, tableData: TableData);
     public fetch(force?: boolean): Promise<void>;
     public getAllRows(): ReadonlyArray<number>;
+    public getNumRows(): number;
     public getRowGrouping(groupByCol: string): RowGrouping<CellValue>;
     public sendTableActions(actions: UserAction[], optDesc?: string): Promise<any[]>;
     public sendTableAction(action: UserAction, optDesc?: string): Promise<any> | undefined;

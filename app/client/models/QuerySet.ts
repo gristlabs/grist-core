@@ -130,6 +130,10 @@ export class DynamicQuerySet extends RowSource {
     return this._querySet ? this._querySet.getAllRows() : [];
   }
 
+  public getNumRows(): number {
+    return this._querySet ? this._querySet.getNumRows() : 0;
+  }
+
   /**
    * Tells whether the query's result got truncated, i.e. not all rows are included.
    */

@@ -28,6 +28,7 @@ const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 // Grist UI Components
 const {Holder} = require('grainjs');
 const {menu} = require('../ui2018/menus');
+const {calcFieldsCondition} = require('../ui/GridViewMenus');
 const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, RowContextMenu} = require('../ui/GridViewMenus');
 const {setPopupToCreateDom} = require('popweasel');
 const {testId} = require('app/client/ui2018/cssVars');
@@ -184,6 +185,8 @@ GridView.gridCommands = {
   hideField: function() { this.hideField(this.cursor.fieldIndex()); },
   deleteFields: function() { this.deleteColumns(this.getSelection()); },
   clearValues: function() { this.clearValues(this.getSelection()); },
+  clearColumns: function() { this._clearColumns(this.getSelection()); },
+  convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
   paste: function(pasteObj, cutCallback) { return this.paste(pasteObj, cutCallback); },
@@ -409,16 +412,18 @@ GridView.prototype.clearSelection = function() {
 };
 
 /**
- * Given a selection object, sets all references in the object to the empty string.
- * @param {Object} selection
+ * Given a selection object, sets all cells referred to by the selection to the empty string. If
+ * only formula columns are selected, only open the formula editor to the empty formula.
+ * @param {CopySelection} selection
  */
 GridView.prototype.clearValues = function(selection) {
   console.debug('GridView.clearValues', selection);
   selection.rowIds = _.without(selection.rowIds, 'new');
-  if (selection.rowIds.length === 0) {
-    // If only the addRow was selected, don't send an action.
-    return;
-  } else if (selection.fields.length === 1 && selection.fields[0].column().isRealFormula()) {
+  // If only the addRow was selected, don't send an action.
+  if (selection.rowIds.length === 0) { return; }
+
+  const options = this._getColumnMenuOptions(selection);
+  if (options.isFormula === true) {
     this.activateEditorAtCursor('');
   } else {
     let clearAction = tableUtil.makeDeleteAction(selection);
@@ -426,6 +431,30 @@ GridView.prototype.clearValues = function(selection) {
       this.gristDoc.docData.sendAction(clearAction);
     }
   }
+};
+
+GridView.prototype._clearColumns = function(selection) {
+  const fields = selection.fields;
+  return this.gristDoc.docModel.columns.sendTableAction(
+    ['BulkUpdateRecord', fields.map(f => f.colRef.peek()), {
+      isFormula: fields.map(f => true),
+      formula: fields.map(f => ''),
+    }]
+  );
+};
+
+GridView.prototype._convertFormulasToData = function(selection) {
+  // Convert all isFormula columns to data, including empty columns. This is sometimes useful
+  // (e.g. since a truly empty column undergoes a conversion on first data entry, which may be
+  // prevented by ACL rules).
+  const fields = selection.fields.filter(f => f.column.peek().isFormula.peek());
+  if (!fields.length) { return null; }
+  return this.gristDoc.docModel.columns.sendTableAction(
+    ['BulkUpdateRecord', fields.map(f => f.colRef.peek()), {
+      isFormula: fields.map(f => false),
+      formula: fields.map(f => ''),
+    }]
+  );
 };
 
 GridView.prototype.selectAll = function() {
@@ -801,7 +830,7 @@ GridView.prototype.buildDom = function() {
                       trigger: [],
                     });
                   },
-                  menu(ctl => this.columnContextMenu(ctl, this.getSelection().colIds, field, filterTriggerCtl)),
+                  menu(ctl => this.columnContextMenu(ctl, this.getSelection(), field, filterTriggerCtl)),
                   testId('column-menu-trigger'),
                 )
               );
@@ -1223,22 +1252,32 @@ GridView.prototype._selectMovedElements = function(start, end, newIndex, numEles
 // ===========================================================================
 // CONTEXT MENUS
 
-GridView.prototype.columnContextMenu = function (ctl, selectedColIds, field, filterTriggerCtl) {
+GridView.prototype.columnContextMenu = function(ctl, copySelection, field, filterTriggerCtl) {
+  const selectedColIds = copySelection.colIds;
   this.ctxMenuHolder.autoDispose(ctl);
-  const isReadonly = this.gristDoc.isReadonly.get();
+  const options = this._getColumnMenuOptions(copySelection);
+
   if (selectedColIds.length > 1 && selectedColIds.includes(field.column().colId())) {
-    return MultiColumnMenu({isReadonly});
+    return MultiColumnMenu(options);
   } else {
     return ColumnContextMenu({
-      disableModify: Boolean(field.disableModify.peek()),
       filterOpenFunc: () => filterTriggerCtl.open(),
-      useNewUI: this.gristDoc.app.useNewUI,
       sortSpec: this.gristDoc.viewModel.activeSection.peek().activeSortSpec.peek(),
       colId: field.column.peek().id.peek(),
-      isReadonly
+      ...options,
     });
   }
 };
+
+GridView.prototype._getColumnMenuOptions = function(copySelection) {
+  return {
+    numColumns: copySelection.fields.length,
+    disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
+    isReadonly: this.gristDoc.isReadonly.get(),
+    isFiltered: this.isFiltered(),
+    isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
+  };
+}
 
 GridView.prototype._columnFilterMenu = function(ctl, field) {
   this.ctxMenuHolder.autoDispose(ctl);

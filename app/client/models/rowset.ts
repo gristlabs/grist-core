@@ -48,13 +48,16 @@ export type RowsChanged = RowList | typeof ALL;
  * and `rowNotify(rows, value)` event to notify listeners of a value associated with a row.
  * For the `rowNotify` event, rows may be the rowset.ALL constant.
  */
-export class RowSource extends DisposableWithEvents {
+export abstract class RowSource extends DisposableWithEvents {
   /**
    * Returns an iterable over all rows in this RowSource. Should be implemented by derived classes.
    */
-  public getAllRows(): RowList {
-    throw new Error("RowSource#getAllRows: Not implemented");
-  }
+  public abstract getAllRows(): RowList;
+
+  /**
+   * Returns the number of rows in this row source.
+   */
+  public abstract getNumRows(): number;
 }
 
 // ----------------------------------------------------------------------
@@ -124,6 +127,15 @@ export class RowListener extends DisposableWithEvents {
 // ----------------------------------------------------------------------
 
 /**
+ * A trivial RowSource returning a fixed list of rows.
+ */
+export abstract class ArrayRowSource extends RowSource {
+  constructor(private _rows: RowId[]) { super(); }
+  public getAllRows(): RowList { return this._rows; }
+  public getNumRows(): number { return this._rows.length; }
+}
+
+/**
  * MappedRowSource wraps any other RowSource, and passes through all rows, replacing each row
  * identifier with the result of mapperFunc(row) call.
  *
@@ -155,6 +167,10 @@ export class MappedRowSource extends RowSource {
   public getAllRows(): RowList {
     return Array.from(this.parentRowSource.getAllRows(), this._mapperFunc);
   }
+
+  public getNumRows(): number {
+    return this.parentRowSource.getNumRows();
+  }
 }
 
 /**
@@ -179,6 +195,10 @@ export class ExtendedRowSource extends RowSource {
 
   public getAllRows(): RowList {
     return [...this.parentRowSource.getAllRows()].concat(this.extras);
+  }
+
+  public getNumRows(): number {
+    return this.parentRowSource.getNumRows() + this.extras.length;
   }
 }
 
@@ -207,6 +227,10 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
 
   public getAllRows(): RowList {
     return this._matchingRows.values();
+  }
+
+  public getNumRows(): number {
+    return this._matchingRows.size;
   }
 
   public onAddRows(rows: RowList) {
@@ -351,6 +375,10 @@ class RowGroupHelper<Value> extends RowSource {
 
   public getAllRows() {
     return this.rows.values();
+  }
+
+  public getNumRows(): number {
+    return this.rows.size;
   }
 
   public _addAll(rows: RowList) {
