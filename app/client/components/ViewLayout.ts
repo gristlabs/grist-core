@@ -18,6 +18,7 @@ import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
 import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
+import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -71,6 +72,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   private _freeze = false;
   private _layout: any;
   private _sectionIds: number[];
+  private _isResizing = Observable.create(this, false);
 
   constructor(public readonly gristDoc: GristDoc, viewId: number) {
     super();
@@ -99,6 +101,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const layoutSaveDelay = this.autoDispose(new Delay());
 
     this.listenTo(this._layout, 'layoutUserEditStop', () => {
+      this._isResizing.set(false);
       layoutSaveDelay.schedule(1000, () => {
         if (!this._layout) { return; }
         (this.viewModel.layoutSpecObj as any).setAndSave(this._layout.getLayoutSpec());
@@ -107,7 +110,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     });
 
     // Do not save if the user has started editing again.
-    this.listenTo(this._layout, 'layoutUserEditStart', () => layoutSaveDelay.cancel());
+    this.listenTo(this._layout, 'layoutUserEditStart', () => {
+      layoutSaveDelay.cancel();
+      this._isResizing.set(true);
+    });
 
     this.autoDispose(LayoutEditor.create(this._layout));
 
@@ -198,6 +204,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
        )),
       dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) =>
         dom('div.view_data_pane_container.flexvbox',
+          cssResizing.cls('', this._isResizing),
           dom.maybe(viewInstance.disableEditing, () =>
             dom('div.disable_viewpane.flexvbox', 'No data')
           ),
@@ -364,4 +371,12 @@ const cssLayoutBox = styled('div', `
       min-width: 40px;
     }
   }
+`);
+
+// This class is added while sections are being resized (or otherwise edited), to ensure that the
+// content of the section (such as an iframe) doesn't interfere with mouse drag-related events.
+// (It assumes that contained elements do not set pointer-events to another value; if that were
+// important then we'd need to use an overlay element during dragging.)
+const cssResizing = styled('div', `
+  pointer-events: none;
 `);
