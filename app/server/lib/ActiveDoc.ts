@@ -10,6 +10,7 @@ import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import {IMessage, MsgType} from 'grain-rpc';
 import * as imageSize from 'image-size';
+import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import remove = require('lodash/remove');
 import zipObject = require('lodash/zipObject');
@@ -635,7 +636,8 @@ export class ActiveDoc extends EventEmitter {
     // If row-level access is being controlled, filter the data appropriately.
     // Likewise if column-level access is being controlled.
     if (this._granularAccess.getReadPermission(tableAccess) !== 'allow') {
-      await this._granularAccess.filterData(docSession, data!);
+      data = cloneDeep(data!);  // Clone since underlying fetch may be cached and shared.
+      await this._granularAccess.filterData(docSession, data);
     }
     this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
