@@ -1,6 +1,6 @@
 import {CellValue} from 'app/common/DocActions';
 import {nativeCompare} from 'app/common/gutil';
-import {Disposable, Observable} from 'grainjs';
+import {Computed, Disposable, Observable} from 'grainjs';
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 
@@ -15,13 +15,24 @@ interface FilterState {
   values: Set<CellValue>;
 }
 
-// Converts a JSON string for a filter to a FilterState
-function makeFilterState(filterJson: string): FilterState {
-  const spec: FilterSpec = (filterJson && JSON.parse(filterJson)) || {};
+// Creates a FilterState. Accepts spec as a json string or a FilterSpec.
+function makeFilterState(spec: string | FilterSpec): FilterState {
+  if (typeof(spec) === 'string') {
+    return makeFilterState((spec && JSON.parse(spec)) || {});
+  }
   return {
     include: Boolean(spec.included),
     values: new Set(spec.included || spec.excluded || []),
   };
+}
+
+// Returns true if state and spec are equivalent, false otherwise.
+export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolean {
+  const other = makeFilterState(spec);
+  if (state.include !== other.include) { return false; }
+  if (state.values.size !== other.values.size) { return false; }
+  for (const val of other.values) { if (!state.values.has(val)) { return false; }}
+  return true;
 }
 
 // Returns a filter function for a particular column: the function takes a cell value and returns
@@ -47,18 +58,23 @@ export function getFilterFunc(filterJson: string): ColumnFilterFunc|null {
  * been customized.
  */
 export class ColumnFilter extends Disposable {
-  public readonly filterFunc: Observable<ColumnFilterFunc>;
+  public readonly filterFunc = Observable.create<ColumnFilterFunc>(this, () => true);
+
+  // Computed that returns true if filter is an inclusion filter, false otherwise.
+  public readonly isInclusionFilter: Computed<boolean> = Computed.create(this, this.filterFunc, () => this._include);
+
+  // Computed that returns the current filter state.
+  public readonly state: Computed<FilterState> = Computed.create(this, this.filterFunc, () => this._getState());
 
   private _include: boolean;
   private _values: Set<CellValue>;
 
   constructor(private _initialFilterJson: string) {
     super();
-    this.filterFunc = Observable.create<ColumnFilterFunc>(this, () => true);
     this.setState(_initialFilterJson);
   }
 
-  public setState(filterJson: string) {
+  public setState(filterJson: string|FilterSpec) {
     const state = makeFilterState(filterJson);
     this._include = state.include;
     this._values = state.values;
@@ -102,7 +118,11 @@ export class ColumnFilter extends Disposable {
   }
 
   private _updateState(): void {
-    this.filterFunc.set(makeFilterFunc({include: this._include, values: this._values}));
+    this.filterFunc.set(makeFilterFunc(this._getState()));
+  }
+
+  private _getState(): FilterState {
+    return {include: this._include, values: this._values};
   }
 }
 

@@ -4,7 +4,7 @@
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
 
-import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
+import {allInclusive, ColumnFilter, isEquivalentFilter} from 'app/client/models/ColumnFilter';
 import {ViewFieldRec} from 'app/client/models/DocModel';
 import {FilteredRowSource} from 'app/client/models/rowset';
 import {SectionFilter} from 'app/client/models/SectionFilter';
@@ -13,10 +13,10 @@ import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {cssCheckboxSquare, cssLabel, cssLabelText} from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menuCssClass, menuDivider, menuIcon} from 'app/client/ui2018/menus';
+import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
 import {localeCompare} from 'app/common/gutil';
-import {Computed, dom, input, makeTestId, Observable, styled} from 'grainjs';
+import {Computed, dom, IDisposableOwner, input, makeTestId, Observable, styled} from 'grainjs';
 import escapeRegExp = require('lodash/escapeRegExp');
 import identity = require('lodash/identity');
 import {IOpenController} from 'popweasel';
@@ -34,17 +34,12 @@ interface IFilterMenuOptions {
   onClose: () => void;
 }
 
-export function columnFilterMenu({ columnFilter, valueCounts, doSave, onClose }: IFilterMenuOptions): HTMLElement {
+export function columnFilterMenu(owner: IDisposableOwner,
+                                 { columnFilter, valueCounts, doSave, onClose }: IFilterMenuOptions): HTMLElement {
   // Save the initial state to allow reverting back to it on Cancel
   const initialStateJson = columnFilter.makeFilterJson();
 
   const testId = makeTestId('test-filter-menu-');
-
-  // Computed boolean reflecting whether current filter state is all-inclusive.
-  const includesAll: Computed<boolean> = Computed.create(null, columnFilter.filterFunc, () => {
-    const spec = columnFilter.makeFilterJson();
-    return spec === allInclusive;
-  });
 
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
@@ -58,79 +53,102 @@ export function columnFilterMenu({ columnFilter, valueCounts, doSave, onClose }:
 
   const valueCountArr: Array<[CellValue, IFilterCount]> = Array.from(valueCounts);
 
-  const openSearch = Observable.create(null, false);
-  const searchValueObs = Observable.create(null, '');
-  const filteredValues = Computed.create(null, openSearch, searchValueObs, (_use, isOpen, searchValue) => {
+  const searchValueObs = Observable.create(owner, '');
+
+  // computes a set of all keys that matches the search text.
+  const filterSet = Computed.create(owner, searchValueObs, (_use, searchValue) => {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    return valueCountArr.filter(([key]) => !isOpen || searchRegex.test(key as string))
-    .sort((a, b) => localeCompare(a[1].label, b[1].label));
+    return new Set(valueCountArr.filter(([key]) => searchRegex.test(key as string)).map(([key]) => key));
   });
+
+  // computes the sorted array of all values (ie: pair of key and IFilterCount) that matches the search text.
+  const filteredValues = Computed.create(owner, filterSet, (_use, filter) => {
+    return valueCountArr.filter(([key]) => filter.has(key))
+      .sort((a, b) => localeCompare(a[1].label, b[1].label));
+  });
+
+  // computes the array of all values that does NOT matches the search text
+  const otherValues = Computed.create(owner, filterSet, (_use, filter) => {
+    return valueCountArr.filter(([key]) => !filter.has(key));
+  });
+
+  // computes the total count across all values that don’t match the search text
+  const othersCount = Computed.create(owner, otherValues, (_use, others) => {
+    return others.reduce((acc, val) => acc + val[1].count, 0).toLocaleString();
+  });
+
+  // computes the array of keys that matches the search text
+  const filteredKeys = Computed.create(owner, filteredValues, (_use, values) => values.map(([key]) => key));
 
   let searchInput: HTMLInputElement;
   let reset = false;
+
+  // Gives focus to the searchInput on open
+  setTimeout(() => searchInput.focus(), 0);
 
   const filterMenu: HTMLElement = cssMenu(
     { tabindex: '-1' }, // Allow menu to be focused
     testId('wrapper'),
     dom.cls(menuCssClass),
-    dom.autoDispose(includesAll),
     dom.autoDispose(filterListener),
-    dom.autoDispose(openSearch),
-    dom.autoDispose(searchValueObs),
-    dom.autoDispose(filteredValues),
-    (elem) => { setTimeout(() => elem.focus(), 0); }, // Grab focus on open
     dom.onDispose(() => doSave(reset)),    // Save on disposal, which should always happen as part of closing.
     dom.onKeyDown({
       Enter: () => onClose(),
       Escape: () => onClose()
     }),
     cssMenuHeader(
-      cssSelectAll(testId('select-all'),
-        dom.hide(openSearch),
-        dom.on('click', () => includesAll.get() ? columnFilter.clear() : columnFilter.selectAll()),
-        dom.domComputed(includesAll, yesNo => [
-          menuIcon(yesNo ? 'CrossSmall' : 'Tick'),
-          yesNo ? 'Select none' : 'Select all'
-        ])
-      ),
-      dom.maybe(openSearch, () => { return [
-        cssLabel(
-          cssCheckboxSquare({type: 'checkbox', checked: includesAll.get()}, testId('search-select'),
-            dom.on('change', (_ev, elem) => {
-              if (!searchValueObs.get()) { // If no search has been entered, treat select/deselect as Select All
-                elem.checked ? columnFilter.selectAll() : columnFilter.clear();
-              } else { // Otherwise, add/remove specific matched values
-                filteredValues.get()
-                .forEach(([key]) => elem.checked ? columnFilter.add(key) : columnFilter.delete(key));
-              }
-            })
-          )
-        ),
-        searchInput = cssSearch(searchValueObs, { onInput: true },
-          testId('search-input'),
-          { type: 'search', placeholder: 'Search values' },
-          dom.show(openSearch),
-          dom.onKeyDown({
-            Enter: () => undefined,
-            Escape: () => {
-              setTimeout(() => filterMenu.focus(), 0); // Give focus back to menu
-              openSearch.set(false);
+      cssSearchIcon('Search'),
+      searchInput = cssSearch(
+        searchValueObs, { onInput: true },
+        testId('search-input'),
+        { type: 'search', placeholder: 'Search values' },
+        dom.onKeyDown({
+          Enter: () => {
+            if (searchValueObs.get()) {
+              columnFilter.setState({included: filteredKeys.get()});
             }
-          })
-        )
-      ]; }),
-      dom.domComputed(openSearch, isOpen => isOpen ?
-        cssSearchIcon('CrossBig', testId('search-close'), dom.on('click', () => {
-          openSearch.set(false);
+          },
+          Escape$: (ev) => {
+            if (searchValueObs.get()) {
+              searchValueObs.set('');
+              searchInput.focus();
+              ev.stopPropagation();
+            }
+          }
+        })
+      ),
+      dom.maybe(searchValueObs, () => cssSearchIcon(
+        'CrossSmall', testId('search-close'),
+        dom.on('click', () => {
           searchValueObs.set('');
-        })) :
-        cssSearchIcon('Search', testId('search-open'), dom.on('click', () => {
-          openSearch.set(true);
-          setTimeout(() => searchInput.focus(), 0);
-        }))
-      )
+          searchInput.focus();
+        }),
+      )),
     ),
     cssMenuDivider(),
+    cssMenuItem(
+      dom.domComputed((use) => {
+        const searchValue = use(searchValueObs);
+        const allSpec = searchValue ? {included: use(filteredKeys)} : {excluded: []};
+        const noneSpec = searchValue ? {excluded: use(filteredKeys)} : {included: []};
+        const state = use(columnFilter.state);
+        return [
+          cssSelectAll(
+            dom.text(searchValue ? 'All Shown' : 'All'),
+            cssSelectAll.cls('-disabled', isEquivalentFilter(state, allSpec)),
+            dom.on('click', () => columnFilter.setState(allSpec)),
+            testId('select-all'),
+          ),
+          cssDotSeparator('•'),
+          cssSelectAll(
+            searchValue ? 'All Except' : 'None',
+            cssSelectAll.cls('-disabled', isEquivalentFilter(state, noneSpec)),
+            dom.on('click', () => columnFilter.setState(noneSpec)),
+            testId('select-all'),
+          )
+        ];
+      })
+    ),
     cssItemList(
       testId('list'),
       dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults('No matching values')),
@@ -142,15 +160,33 @@ export function columnFilterMenu({ columnFilter, valueCounts, doSave, onClose }:
             (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); }),
             cssItemValue(value.label === undefined ? key as string : value.label),
         ),
-        cssItemCount(value.count.toLocaleString())) // Include comma separator
-      )
+        cssItemCount(value.count.toLocaleString(), testId('count')))) // Include comma separator
     ),
     cssMenuDivider(),
     cssMenuFooter(
-      cssApplyButton('Apply', testId('apply-btn'),
-        dom.on('click', () => { reset = true; onClose(); })),
-      basicButton('Cancel', testId('cancel-btn'),
-        dom.on('click', () => { columnFilter.setState(initialStateJson); onClose(); } )))
+      cssMenuItem(
+        testId('summary'),
+        cssLabel(
+          cssCheckboxSquare(
+            {type: 'checkbox'},
+            dom.on('change', (_ev, elem) => columnFilter.setState(
+              elem.checked ?
+                {excluded: filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
+                {included: filteredKeys.get().filter((key) => columnFilter.includes(key))}
+            )),
+            dom.prop('checked', (use) => !use(columnFilter.isInclusionFilter))
+          ),
+          cssItemValue(dom.text((use) => use(searchValueObs) ? 'Others' : 'Future Values')),
+        ),
+        dom.maybe(searchValueObs, () => cssItemCount(dom.text(othersCount)))
+      ),
+      cssMenuItem(
+        cssApplyButton('Apply', testId('apply-btn'),
+                       dom.on('click', () => { reset = true; onClose(); })),
+        basicButton('Cancel', testId('cancel-btn'),
+                    dom.on('click', () => { columnFilter.setState(initialStateJson); onClose(); } ))
+      )
+    )
   );
   return filterMenu;
 }
@@ -167,13 +203,16 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const valueMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
 
   const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
+  // TODO: as of now, this is not working for non text-or-numeric columns, ie: for Date column it is
+  // not possible to search for anything. Likely caused by the key being something completely
+  // different than the label.
   addCountsToMap(valueCounts, rowSource.getAllRows() as Iterable<number>, valueGetter, valueMapFunc);
   addCountsToMap(valueCounts, rowSource.getHiddenRows() as Iterable<number>, valueGetter, valueMapFunc);
 
   const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek());
   sectionFilter.setFilterOverride(field.getRowId(), columnFilter); // Will be removed on menu disposal
 
-  return columnFilterMenu({
+  return columnFilterMenu(openCtl, {
     columnFilter,
     valueCounts,
     onClose: () => openCtl.close(),
@@ -214,34 +253,45 @@ const cssMenu = styled('div', `
   max-height: 90vh;
   outline: none;
   background-color: white;
+  padding-top: 0;
+  padding-bottom: 12px;
 `);
 const cssMenuHeader = styled('div', `
+  height: 40px;
   flex-shrink: 0;
 
   display: flex;
   align-items: center;
 
-  margin: 0 8px;
+  margin: 0 16px;
 `);
 const cssSelectAll = styled('div', `
   display: flex;
   color: ${colors.lightGreen};
   cursor: default;
   user-select: none;
+  &-disabled {
+    color: ${colors.slate};
+  }
+`);
+const cssDotSeparator = styled('span', `
+  color: ${colors.lightGreen};
+  margin: 0 4px;
 `);
 const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
-  margin: 8px 0;
+  margin: 0;
 `);
 const cssItemList = styled('div', `
   flex-shrink: 1;
   overflow: auto;
-  padding-right: 8px; /* Space for scrollbar */
   min-height: 80px;
+  margin-top: 4px;
+  padding-bottom: 8px;
 `);
 const cssMenuItem = styled('div', `
   display: flex;
-  padding: 4px 8px;
+  padding: 8px 16px;
 `);
 const cssItemValue = styled(cssLabelText, `
   margin-right: 12px;
@@ -256,8 +306,11 @@ const cssItemCount = styled('div', `
 `);
 const cssMenuFooter = styled('div', `
   display: flex;
-  margin: 0 8px;
   flex-shrink: 0;
+  flex-direction: column;
+  & .${cssMenuItem.className} {
+    padding: 12px 16px;
+  }
 `);
 const cssApplyButton = styled(primaryButton, `
   margin-right: 4px;
@@ -268,7 +321,7 @@ const cssSearch = styled(input, `
   -webkit-appearance: none;
   -moz-appearance: none;
 
-  font-size: ${vars.controlFontSize};
+  font-size: ${vars.mediumFontSize};
 
   margin: 0px 16px 0px 8px;
   padding: 0px;
