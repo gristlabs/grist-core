@@ -3,9 +3,12 @@ import { urlState } from "app/client/models/gristUrlState";
 import { showExampleCard } from 'app/client/ui/ExampleCard';
 import { examples } from 'app/client/ui/ExampleInfo';
 import { createHelpTools, cssSectionHeader, cssSpacer, cssTools } from 'app/client/ui/LeftPanelCommon';
-import { cssLinkText, cssPageDisabledLink, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
+import { cssLinkText, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
+import { hoverTooltip, tooltipCloseButton } from 'app/client/ui/tooltips';
 import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
+import { userOverrideParams } from 'app/common/gristUrls';
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const testId = makeTestId('test-tools-');
@@ -22,10 +25,11 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     (aclUIEnabled ?
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-        cssPageEntry.cls('-disabled', !canUseAccessRules),
-        (canUseAccessRules ? cssPageLink : cssPageDisabledLink)(cssPageIcon('EyeShow'),
+        cssPageEntry.cls('-disabled', !isOwner),
+        cssPageLink(cssPageIcon('EyeShow'),
           cssLinkText('Access Rules'),
-          canUseAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null
+          canUseAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          isOverridden ? addRevertViewAsUI() : null,
         ),
         testId('access-rules'),
       ) :
@@ -83,6 +87,43 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   );
 }
 
+// When viewing a page as another user, the "Access Rules" page link includes a button to revert
+// the user and open the page, and a click on the page link shows a tooltip to revert.
+function addRevertViewAsUI() {
+  return [
+    // A button that allows reverting back to yourself.
+    dom('a',
+      cssExampleCardOpener.cls(''),
+      cssRevertViewAsButton.cls(''),
+      icon('Convert'),
+      urlState().setHref(userOverrideParams(null, {docPage: 'acl'})),
+      dom.on('click', (ev) => ev.stopPropagation()),    // Avoid refreshing the tooltip.
+      testId('revert-view-as'),
+    ),
+
+    // A tooltip that allows reverting back to yourself.
+    hoverTooltip((ctl) =>
+      cssConvertTooltip(icon('Convert'),
+        cssLink('Return to viewing as yourself',
+          urlState().setHref(userOverrideParams(null, {docPage: 'acl'})),
+        ),
+        tooltipCloseButton(ctl),
+      ),
+      {openOnClick: true}
+    ),
+  ];
+}
+
+const cssConvertTooltip = styled('div', `
+  display: flex;
+  align-items: center;
+  --icon-color: ${colors.lightGreen};
+
+  & > .${cssLink.className} {
+    margin-left: 8px;
+  }
+`);
+
 const cssExampleCardOpener = styled('div', `
   cursor: pointer;
   margin-right: 4px;
@@ -97,5 +138,15 @@ const cssExampleCardOpener = styled('div', `
   background-color: ${colors.lightGreen};
   &:hover {
     background-color: ${colors.darkGreen};
+  }
+  .${cssTools.className}-collapsed & {
+    display: none;
+  }
+`);
+
+const cssRevertViewAsButton = styled(cssExampleCardOpener, `
+  background-color: ${colors.darkGrey};
+  &:hover {
+    background-color: ${colors.slate};
   }
 `);

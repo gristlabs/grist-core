@@ -7,11 +7,11 @@ import {basicButton, basicButtonLink} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass} from 'app/client/ui2018/menus';
+import {userOverrideParams} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess, UserAccessData} from 'app/common/UserAPI';
 import {Disposable, dom, Observable, styled} from 'grainjs';
-import merge = require('lodash/merge');
 import {cssMenu, cssMenuWrap, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
 const roleNames: {[role: string]: string} = {
@@ -38,10 +38,9 @@ function buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOp
     ),
     basicButtonLink(cssUserButton.cls(''), cssUserButton.cls('-disabled', isCurrentUser),
       testId('acl-user-view-as'),
-      icon('FieldLink'), 'View As', {
-        href: urlState().makeUrl(
-          merge({}, urlState().state.get(), {docPage: '', params: {linkParameters: {aclAsUser: user.email}}})),
-      }),
+      icon('FieldLink'), 'View As',
+        urlState().setHref(userOverrideParams(user.email, {docPage: undefined})),
+      ),
     testId('acl-user-item'),
   );
 }

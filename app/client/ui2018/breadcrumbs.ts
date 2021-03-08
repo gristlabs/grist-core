@@ -10,6 +10,7 @@ import { colors, cssHideForNarrowScreen, mediaNotSmall, testId } from 'app/clien
 import { editableLabel } from 'app/client/ui2018/editableLabel';
 import { icon } from 'app/client/ui2018/icons';
 import { UserOverride } from 'app/common/DocListAPI';
+import { userOverrideParams } from 'app/common/gristUrls';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
 
@@ -102,7 +103,6 @@ export function docBreadcrumbs(
     docNameSave: (val: string) => Promise<void>,
     pageNameSave: (val: string) => Promise<void>,
     cancelRecoveryMode: () => Promise<void>,
-    cancelUserOverride: () => Promise<void>,
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
@@ -154,9 +154,12 @@ export function docBreadcrumbs(
         const userOverride = use(options.userOverride);
         if (userOverride) {
           return cssAlertTag(userOverride.user?.email || 'override',
-                             dom('a', dom.on('click', () => options.cancelUserOverride()),
-                                 icon('CrossSmall')),
-                             testId('user-override-tag'));
+            dom('a',
+              urlState().setHref(userOverrideParams(null)),
+              icon('CrossSmall')
+            ),
+            testId('user-override-tag')
+          );
         }
         if (use(options.isFiddle)) {
           return cssTag('fiddle', tooltip({title: fiddleExplanation}), testId('fiddle-tag'));

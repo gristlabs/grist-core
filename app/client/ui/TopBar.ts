@@ -44,7 +44,6 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           docNameSave: renameDoc,
           pageNameSave: getRenamePageFn(gristDoc),
           cancelRecoveryMode: getCancelRecoveryModeFn(gristDoc),
-          cancelUserOverride: getCancelUserOverrideFn(gristDoc),
           isPageNameReadOnly: (use) => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
           isDocNameReadOnly: (use) => use(gristDoc.isReadonly) || use(pageModel.isFork),
           isFork: pageModel.isFork,
@@ -102,15 +101,6 @@ function getCancelRecoveryModeFn(gristDoc: GristDoc): () => Promise<void> {
   return async () => {
     await gristDoc.app.topAppModel.api.getDocAPI(gristDoc.docPageModel.currentDocId.get()!)
       .recover(false);
-  };
-}
-
-function getCancelUserOverrideFn(gristDoc: GristDoc): () => Promise<void> {
-  return async () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('aclAsUser_');
-    url.searchParams.delete('aclAsUserId_');
-    window.location.assign(url.href);
   };
 }
 

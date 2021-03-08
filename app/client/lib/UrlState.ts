@@ -33,10 +33,12 @@ export interface UrlStateSpec<IUrlState> {
   delayPushUrl(prevState: IUrlState, newState: IUrlState): Promise<void>;
 }
 
+export type UpdateFunc<IUrlState> = (prevState: IUrlState) => IUrlState;
+
 /**
  * Represents the state of a page in browser history, as encoded in window.location URL.
  */
-export class UrlState<IUrlState> extends Disposable {
+export class UrlState<IUrlState extends object> extends Disposable {
   // Current state. This gets initialized in the constructor, and updated on navigation events.
   public state = observable<IUrlState>(this._getState());
 
@@ -56,9 +58,11 @@ export class UrlState<IUrlState> extends Disposable {
    * Creates a new history entry (navigable with Back/Forward buttons), encoding the given state
    * in the URL. This is similar to navigating to a new URL, but does not reload the page.
    */
-  public async pushUrl(urlState: IUrlState, options: {replace?: boolean, avoidReload?: boolean} = {}) {
+  public async pushUrl(urlState: IUrlState|UpdateFunc<IUrlState>,
+                       options: {replace?: boolean, avoidReload?: boolean} = {}) {
     const prevState = this.state.get();
-    const newState = this._stateImpl.updateState(prevState, urlState);
+    const newState = this._mergeState(prevState, urlState);
+
     const newUrl = this._stateImpl.encodeUrl(newState, this._window.location);
 
     // Don't create a new history entry if nothing changed as it would only be annoying.
@@ -87,11 +91,24 @@ export class UrlState<IUrlState> extends Disposable {
 
   /**
    * Creates a URL (e.g. to use in a link's href) encoding the given state. The `use` argument
-   * allows for this to be used in a computed, and is used by setLinkUrl().
+   * allows for this to be used in a computed, and is used by setLinkUrl() and setHref().
+   *
+   * If urlState is an object (such as IGristUrlState), it gets merged with previous state
+   * according to rules (in gristUrlState's updateState). Alternatively, it can be a function that
+   * takes previous state and returns the new one.
    */
-  public makeUrl(urlState: IUrlState, use: UseCB = unwrap): string {
-    const fullState = this._stateImpl.updateState(use(this.state), urlState);
+  public makeUrl(urlState: IUrlState|UpdateFunc<IUrlState>, use: UseCB = unwrap): string {
+    const fullState = this._mergeState(use(this.state), urlState);
     return this._stateImpl.encodeUrl(fullState, this._window.location);
+  }
+
+  /**
+   * Sets href on a dom element, e.g. dom('a', setHref({...})).
+   * This is similar to {href: makeUrl(urlState)}, but the destination URL will reflect the
+   * current url state (e.g. due to switching pages).
+   */
+  public setHref(urlState: IUrlState|UpdateFunc<IUrlState>): DomElementMethod {
+    return dom.attr('href', (use) => this.makeUrl(urlState, use));
   }
 
   /**
@@ -99,7 +116,7 @@ export class UrlState<IUrlState> extends Disposable {
    * both sets the href (e.g. to allow the link to be opened to a new tab), AND intercepts plain
    * clicks on it to "follow" the link without reloading the page.
    */
-  public setLinkUrl(urlState: IUrlState): DomElementMethod[] {
+  public setLinkUrl(urlState: IUrlState|UpdateFunc<IUrlState>): DomElementMethod[] {
     return [
       dom.attr('href', (use) => this.makeUrl(urlState, use)),
       dom.on('click', (ev) => {
@@ -122,6 +139,12 @@ export class UrlState<IUrlState> extends Disposable {
 
   private _getState(): IUrlState {
     return this._stateImpl.decodeUrl(this._window.location);
+  }
+
+  private _mergeState(prevState: IUrlState, newState: IUrlState|UpdateFunc<IUrlState>): IUrlState {
+    return (typeof newState === 'object') ?
+      this._stateImpl.updateState(prevState, newState) :
+      newState(prevState);
   }
 }
 

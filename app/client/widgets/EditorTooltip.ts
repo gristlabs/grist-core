@@ -1,4 +1,4 @@
-import {ITooltipControl, showTooltip} from 'app/client/ui/tooltips';
+import {ITooltipControl, showTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
@@ -11,7 +11,7 @@ export function showTooltipToCreateFormula(editorDom: HTMLElement, convert: () =
         dom.on('mousedown', (ev) => { ev.preventDefault(); convert(); }),
         testId('editor-tooltip-convert'),
       ),
-      cssCloseButton(icon('CrossSmall'), dom.on('click', ctl.close)),
+      tooltipCloseButton(ctl),
     );
   }
   const offerCtl = showTooltip(editorDom, buildTooltip, {key: 'col-to-formula'});
@@ -30,22 +30,5 @@ const cssConvertTooltip = styled('div', `
 
   & > .${cssLink.className} {
     margin-left: 8px;
-  }
-`);
-
-const cssCloseButton = styled('div', `
-  cursor: pointer;
-  user-select: none;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  text-align: center;
-  margin: -4px -4px -4px 8px;
-  --icon-color: white;
-  border-radius: 16px;
-
-  &:hover {
-    background-color: white;
-    --icon-color: black;
   }
 `);

@@ -297,6 +297,23 @@ export function useNewUI(newui: boolean|undefined) {
   return newui !== false;
 }
 
+// Returns a function suitable for user with makeUrl/setHref/etc, which updates aclAsUser*
+// linkParameters in the current state, unsetting them if email is null. Optional extraState
+// allows setting other properties (e.g. 'docPage') at the same time.
+export function userOverrideParams(email: string|null, extraState?: IGristUrlState) {
+  return function(prevState: IGristUrlState): IGristUrlState {
+    const combined = {...prevState, ...extraState};
+    const linkParameters = combined.params?.linkParameters || {};
+    if (email) {
+      linkParameters.aclAsUser = email;
+    } else {
+      delete linkParameters.aclAsUser;
+    }
+    delete linkParameters.aclAsUserId;
+    return {...combined, params: {...combined.params, linkParameters}};
+  };
+}
+
 /**
  * parseDocPage is a noop if p is 'new' or 'code', otherwise parse to integer
  */

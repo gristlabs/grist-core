@@ -131,19 +131,6 @@ export const cssPageLink = styled('a', `
   }
 `);
 
-// Styled like a cssPageLink, but in a disabled mode, without an actual link.
-export const cssPageDisabledLink = styled('span', `
-  display: flex;
-  align-items: center;
-  height: 32px;
-  line-height: 32px;
-  padding-left: 24px;
-  outline: none;
-  text-decoration: none;
-  outline: none;
-  color: inherit;
-`);
-
 export const cssLinkText = styled('span', `
   white-space: nowrap;
   overflow: hidden;
