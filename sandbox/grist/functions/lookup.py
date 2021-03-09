@@ -80,7 +80,7 @@ def VLOOKUP(table, **field_value_pairs):
   The returned object is a record whose fields are available using `.field` syntax. For example,
   `VLOOKUP(Employees, EmployeeID=$EmpID).Salary`.
 
-  Note that `VLOOKUP` isn't commonly needed in Grist, since [Reference columns](col-refs) are the
+  Note that `VLOOKUP` isn't commonly needed in Grist, since [Reference columns](col-refs.md) are the
   best way to link data between tables, and allow simple efficient usage such as `$Person.Age`.
 
   `VLOOKUP` is exactly quivalent to `table.lookupOne(**field_value_pairs)`. See
