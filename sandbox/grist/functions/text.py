@@ -56,7 +56,7 @@ def CODE(string):
 def CONCATENATE(string, *more_strings):
   """
   Joins together any number of text strings into one string. Also available under the name
-  `CONCAT`. Same as the Python expression `"".join(array_of_strings)`.
+  `CONCAT`. Similar to the Python expression `"".join(array_of_strings)`.
 
   >>> CONCATENATE("Stream population for ", "trout", " ", "species", " is ", 32, "/mile.")
   u'Stream population for trout species is 32/mile.'
@@ -64,13 +64,32 @@ def CONCATENATE(string, *more_strings):
   u'In 4 days it is 2016-01-01'
   >>> CONCATENATE("abc")
   u'abc'
+  >>> CONCATENATE(0, "abc")
+  u'0abc'
+  >>> CONCATENATE(2, " crème ", "brûlée".decode('utf8')) == "2 crème brûlée".decode('utf8')
+  True
+  """
+  return u''.join(val if isinstance(val, unicode) else str(val).decode('utf8')
+      for val in (string,) + more_strings)
+
+
+def CONCAT(string, *more_strings):
+  """
+  Joins together any number of text strings into one string. Also available under the name
+  `CONCATENATE`. Similar to the Python expression `"".join(array_of_strings)`.
+
+  >>> CONCAT("Stream population for ", "trout", " ", "species", " is ", 32, "/mile.")
+  u'Stream population for trout species is 32/mile.'
+  >>> CONCAT("In ", 4, " days it is ", datetime.date(2016,1,1))
+  u'In 4 days it is 2016-01-01'
+  >>> CONCAT("abc")
+  u'abc'
   >>> CONCAT(0, "abc")
   u'0abc'
+  >>> CONCAT(2, " crème ", "brûlée".decode('utf8')) == "2 crème brûlée".decode('utf8')
+  True
   """
-  return u''.join(unicode(val) for val in (string,) + more_strings)
-
-
-CONCAT = CONCATENATE
+  return CONCATENATE(string, *more_strings)
 
 
 def DOLLAR(number, decimals=2):
