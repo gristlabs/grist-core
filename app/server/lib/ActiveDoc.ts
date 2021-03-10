@@ -30,6 +30,7 @@ import {toTableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
+import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {byteString, countIf} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
@@ -933,15 +934,16 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  public async checkAclFormula(docSession: DocSession, text: string): Promise<void> {
+  public async checkAclFormula(docSession: DocSession, text: string): Promise<FormulaProperties> {
     // Checks can leak names of tables and columns.
-    if (await this._granularAccess.hasNuancedAccess(docSession)) { return; }
+    if (await this._granularAccess.hasNuancedAccess(docSession)) { return {}; }
     await this.waitForInitialization();
     try {
       const parsedAclFormula = await this._pyCall('parse_acl_formula', text);
       compileAclFormula(parsedAclFormula);
       // TODO We also need to check the validity of attributes, and of tables and columns
       // mentioned in resources and userAttribute rules.
+      return getFormulaProperties(parsedAclFormula);
     } catch (e) {
       e.message = e.message?.replace('[Sandbox] ', '');
       throw e;

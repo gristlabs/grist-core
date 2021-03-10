@@ -1,5 +1,6 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
+import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -226,7 +227,7 @@ export interface ActiveDocAPI {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  checkAclFormula(text: string): Promise<void>;
+  checkAclFormula(text: string): Promise<FormulaProperties>;
 
   /**
    * Returns the full set of tableIds, with the list of colIds for each table. This is intended

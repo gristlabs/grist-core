@@ -18,8 +18,9 @@ import {IOptionFull, menu, menuItemAsync} from 'app/client/ui2018/menus';
 import {emptyPermissionSet, MixedPermissionValue} from 'app/common/ACLPermissions';
 import {PartialPermissionSet, permissionSetToText, summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
 import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
+import { ApiError } from 'app/common/ApiError';
 import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
-import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
+import {FormulaProperties, getFormulaProperties, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
@@ -367,10 +368,11 @@ export class AccessRules extends Disposable {
     removeItem(this._userAttrRules, userAttr);
   }
 
-  public async checkAclFormula(text: string): Promise<void> {
+  public async checkAclFormula(text: string): Promise<FormulaProperties> {
     if (text) {
       return this._gristDoc.docComm.checkAclFormula(text);
     }
+    return {};
   }
 
   // Check if the given tableId, and optionally a list of colIds, are present in this document.
@@ -688,6 +690,13 @@ abstract class ObsRuleSet extends Disposable {
     const tableId = this._tableRules?.tableId;
     return (tableId && this.accessRules.getValidColIds(tableId)) || [];
   }
+
+  /**
+   * Check if this rule set is limited to a set of columns.
+   */
+  public hasColumns() {
+    return false;
+  }
 }
 
 class ColumnObsRuleSet extends ObsRuleSet {
@@ -729,6 +738,10 @@ class ColumnObsRuleSet extends ObsRuleSet {
   public getAvailableBits(): PermissionKey[] {
     // Create/Delete bits can't be set on a column-specific rule.
     return ['read', 'update'];
+  }
+
+  public hasColumns() {
+    return true;
   }
 }
 
@@ -887,6 +900,8 @@ class ObsRulePart extends Disposable {
   // If the formula failed validation, the error message to show. Blank if valid.
   private _formulaError = Observable.create(this, '');
 
+  private _formulaProperties = Observable.create<FormulaProperties>(this, getAclFormulaProperties(this._rulePart));
+
   // Error message if any validation failed.
   private _error: Computed<string>;
 
@@ -932,6 +947,25 @@ class ObsRulePart extends Disposable {
     return summarizePermissionSet(this._permissions.get());
   }
 
+  /**
+   * Verify that the rule is in a good state, optionally given a proposed permission change.
+   */
+  public sanityCheck(pset?: PartialPermissionSet) {
+    if (this._ruleSet.hasColumns() &&
+        (pset || this._permissions.get()).read &&
+        this._formulaProperties.get().hasRecOrNewRec) {
+      if (pset && pset.read && this._permissions.get().read) {
+        // We don't want users to set either allow or deny read permissions in
+        // row-dependent rules, but if such a permission is set, allow it to be
+        // toggled to enable the deny->allow->unset cycling in the UI.
+        return;
+      }
+      throw new ApiError('Control of the read permission for column rules is unavailable ' +
+                         'when the formula uses the rec variable. ' +
+                         'Sorry! We will get to it, promise.', 400);
+    }
+  }
+
   public buildRulePartDom() {
     return cssColumnGroup(
       cssCellIcon(
@@ -961,7 +995,7 @@ class ObsRulePart extends Disposable {
       ),
       cssCell1(cssCell.cls('-stretch'),
         permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
-          {disabled: this.isBuiltIn()},
+          {disabled: this.isBuiltIn(), sanityCheck: (pset) => this.sanityCheck(pset)},
           testId('rule-permissions')
         ),
       ),
@@ -993,7 +1027,8 @@ class ObsRulePart extends Disposable {
     this._checkPending.set(true);
     this._formulaError.set('');
     try {
-      await this._ruleSet.accessRules.checkAclFormula(text);
+      this._formulaProperties.set(await this._ruleSet.accessRules.checkAclFormula(text));
+      this.sanityCheck();
     } catch (e) {
       this._formulaError.set(e.message);
     } finally {
@@ -1115,6 +1150,11 @@ function removeItem<T>(observableArray: MutableObsArray<T>, item: T): boolean {
 
 function getChangedStatus(value: boolean): RuleStatus {
   return value ? RuleStatus.ChangedValid : RuleStatus.Unchanged;
+}
+
+function getAclFormulaProperties(part?: RulePart): FormulaProperties {
+  const aclFormulaParsed = part?.origRecord?.aclFormulaParsed;
+  return aclFormulaParsed ? getFormulaProperties(JSON.parse(String(aclFormulaParsed))) : {};
 }
 
 const cssOuter = styled('div', `

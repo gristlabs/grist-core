@@ -20,7 +20,7 @@ export type PermissionKey = keyof PartialPermissionSet;
 export function permissionsWidget(
   availableBits: PermissionKey[],
   pset: Observable<PartialPermissionSet>,
-  options: {disabled: boolean},
+  options: {disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void},
   ...args: DomElementArg[]
 ) {
   // These are the permission sets available to set via the dropdown.
@@ -28,6 +28,10 @@ export function permissionsWidget(
   const allowAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'allow');
   const denyAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'deny');
   const readOnly: PartialPermissionSet = makePermissionSet(availableBits, (b) => b === 'read' ? 'allow' : 'deny');
+  const setPermissions = (p: PartialPermissionSet) => {
+    options.sanityCheck?.(p);
+    pset.set(p);
+  };
 
   return cssPermissions(
     dom.forEach(availableBits, (bit) => {
@@ -38,7 +42,7 @@ export function permissionsWidget(
         dom.cls('disabled', options.disabled),
         // Cycle the bit's value on click, unless disabled.
         (options.disabled ? null :
-          dom.on('click', () => pset.set({...pset.get(), [bit]: next(pset.get()[bit])}))
+          dom.on('click', () => setPermissions({...pset.get(), [bit]: next(pset.get()[bit])}))
         )
       );
     }),
@@ -57,16 +61,16 @@ export function permissionsWidget(
           null
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
-        cssMenuItem(() => pset.set(allowAll), tick(isEqual(pset.get(), allowAll)), 'Allow All',
+        cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), 'Allow All',
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => pset.set(denyAll), tick(isEqual(pset.get(), denyAll)), 'Deny All',
+        cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), 'Deny All',
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => pset.set(readOnly), tick(isEqual(pset.get(), readOnly)), 'Read Only',
+        cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), 'Read Only',
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => pset.set(empty),
+        cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
           // all it "Clear" when offering to the user as the action.
           isEqual(pset.get(), empty) ? [tick(true), 'No Effect'] : [tick(false), 'Clear'],

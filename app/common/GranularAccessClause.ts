@@ -57,10 +57,40 @@ export type AclMatchFunc = (input: AclMatchInput) => boolean;
  */
 export type ParsedAclFormula = [string, ...Array<ParsedAclFormula|CellValue>];
 
+/**
+ * Observations about a formula.
+ */
+export interface FormulaProperties {
+  hasRecOrNewRec?: boolean;
+}
+
 export interface UserAttributeRule {
   origRecord?: RowRecord;         // Original record used to create this UserAttributeRule.
   name: string;       // Should be unique among UserAttributeRules.
   tableId: string;    // Table in which to look up an existing attribute.
   lookupColId: string;  // Column in tableId in which to do the lookup.
   charId: string;     // Attribute to look up, possibly a path. E.g. 'Email' or 'office.city'.
+}
+
+/**
+ * Check some key facts about the formula.
+ */
+export function getFormulaProperties(formula: ParsedAclFormula) {
+  const result: FormulaProperties = {}
+  if (usesRec(formula)) { result.hasRecOrNewRec = true; }
+  return result;
+}
+
+/**
+ * Check whether a formula mentions `rec` or `newRec`.
+ */
+export function usesRec(formula: ParsedAclFormula): boolean {
+  if (!Array.isArray(formula)) { throw new Error('expected a list'); }
+  if (formula[0] === 'Name' && (formula[1] === 'rec' || formula[1] === 'newRec')) {
+    return true;
+  }
+  return formula.some(el => {
+    if (!Array.isArray(el)) { return false; }
+    return usesRec(el as any);
+  });
 }
