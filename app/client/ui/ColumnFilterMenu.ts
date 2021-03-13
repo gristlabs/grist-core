@@ -15,7 +15,7 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider, menuIcon} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
-import {nativeCompare} from 'app/common/gutil';
+import {localeCompare} from 'app/common/gutil';
 import {Computed, dom, input, makeTestId, Observable, styled} from 'grainjs';
 import escapeRegExp = require('lodash/escapeRegExp');
 import identity = require('lodash/identity');
@@ -63,7 +63,7 @@ export function columnFilterMenu({ columnFilter, valueCounts, doSave, onClose }:
   const filteredValues = Computed.create(null, openSearch, searchValueObs, (_use, isOpen, searchValue) => {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
     return valueCountArr.filter(([key]) => !isOpen || searchRegex.test(key as string))
-    .sort((a, b) => nativeCompare(a[1].label, b[1].label));
+    .sort((a, b) => localeCompare(a[1].label, b[1].label));
   });
 
   let searchInput: HTMLInputElement;

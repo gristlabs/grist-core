@@ -13,7 +13,7 @@ import {UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
 import {DocAction} from 'app/common/DocActions';
 import {isBulkUpdateRecord, isUpdateRecord} from 'app/common/DocActions';
-import {getSetMapValue, nativeCompare} from 'app/common/gutil';
+import {getSetMapValue, localeCompare, nativeCompare} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 
 export interface ICellItem {
@@ -76,7 +76,7 @@ export class ColumnACIndexes {
 }
 
 function itemCompare(a: ICellItem, b: ICellItem) {
-  return nativeCompare(a.cleanText, b.cleanText) ||
-    nativeCompare(a.text, b.text) ||
+  return localeCompare(a.cleanText, b.cleanText) ||
+    localeCompare(a.text, b.text) ||
     nativeCompare(a.rowId, b.rowId);
 }

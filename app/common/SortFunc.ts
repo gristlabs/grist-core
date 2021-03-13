@@ -7,7 +7,7 @@
  * currently implemented.
  */
 import {ColumnGetters} from 'app/common/ColumnGetters';
-import {nativeCompare} from 'app/common/gutil';
+import {localeCompare, nativeCompare} from 'app/common/gutil';
 
 /**
  * Compare two cell values, paying attention to types and values. Note that native JS comparison
@@ -19,16 +19,27 @@ import {nativeCompare} from 'app/common/gutil';
  * because e.g. a numerical column may contain text (alttext) or null values.
  */
 export function typedCompare(val1: any, val2: any): number {
-  // TODO: We should use Intl.Collator for string comparisons to handle accented strings.
-  let type1, array1;
-  return nativeCompare(type1 = typeof val1, typeof val2) ||
-    // We need to worry about Array comparisons because formulas returing Any may return null or
-    // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
-    // distinguishing types would break the sort. Also, arrays need a special comparator.
-    (type1 === 'object' &&
-      (nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array) ||
-       (array1 && _arrayCompare(val1, val2)))) ||
-    nativeCompare(val1, val2);
+  let result: number, type1: string, array1: boolean;
+  // tslint:disable-next-line:no-conditional-assignment
+  if ((result = nativeCompare(type1 = typeof val1, typeof val2)) !== 0) {
+    return result;
+  }
+  // We need to worry about Array comparisons because formulas returing Any may return null or
+  // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
+  // distinguishing types would break the sort. Also, arrays need a special comparator.
+  if (type1 === 'object') {
+    // tslint:disable-next-line:no-conditional-assignment
+    if ((result = nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array)) !== 0) {
+      return result;
+    }
+    if (array1) {
+      return _arrayCompare(val1, val2);
+    }
+  }
+  if (type1 === 'string') {
+    return localeCompare(val1, val2);
+  }
+  return nativeCompare(val1, val2);
 }
 
 function _arrayCompare(val1: any[], val2: any[]): number {
@@ -36,7 +47,7 @@ function _arrayCompare(val1: any[], val2: any[]): number {
     if (i >= val2.length) {
       return 1;
     }
-    const value = nativeCompare(val1[i], val2[i]);
+    const value = typedCompare(val1[i], val2[i]);
     if (value) {
       return value;
     }

@@ -444,6 +444,11 @@ export function nativeCompare<T>(a: T, b: T): number {
   return (a < b ? -1 : (a > b ? 1 : 0));
 }
 
+// TODO: In the future, locale should be a value associated with the document or the user.
+export const defaultLocale = 'en-US';
+export const defaultCollator = new Intl.Collator(defaultLocale);
+export const localeCompare = defaultCollator.compare;
+
 /**
  * A copy of python`s `setdefault` function.
  * Sets key in mapInst to value, if key is not already set.

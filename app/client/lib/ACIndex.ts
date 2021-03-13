@@ -7,7 +7,7 @@
  * "lush" would only match the "L" in "Lavender".
  */
 
-import {nativeCompare, sortedIndex} from 'app/common/gutil';
+import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
 
 export interface ACItem {
@@ -80,7 +80,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       }
     }
 
-    allWords.sort((a, b) => nativeCompare(a.word, b.word));
+    allWords.sort((a, b) => localeCompare(a.word, b.word));
     this._words = allWords;
   }
 
