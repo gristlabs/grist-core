@@ -435,12 +435,7 @@ GridView.prototype.clearValues = function(selection) {
 
 GridView.prototype._clearColumns = function(selection) {
   const fields = selection.fields;
-  return this.gristDoc.docModel.columns.sendTableAction(
-    ['BulkUpdateRecord', fields.map(f => f.colRef.peek()), {
-      isFormula: fields.map(f => true),
-      formula: fields.map(f => ''),
-    }]
-  );
+  return this.gristDoc.clearColumns(fields.map(f => f.colRef.peek()));
 };
 
 GridView.prototype._convertFormulasToData = function(selection) {
@@ -449,12 +444,7 @@ GridView.prototype._convertFormulasToData = function(selection) {
   // prevented by ACL rules).
   const fields = selection.fields.filter(f => f.column.peek().isFormula.peek());
   if (!fields.length) { return null; }
-  return this.gristDoc.docModel.columns.sendTableAction(
-    ['BulkUpdateRecord', fields.map(f => f.colRef.peek()), {
-      isFormula: fields.map(f => false),
-      formula: fields.map(f => ''),
-    }]
-  );
+  return this.gristDoc.convertFormulasToData(fields.map(f => f.colRef.peek()));
 };
 
 GridView.prototype.selectAll = function() {

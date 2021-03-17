@@ -3,15 +3,17 @@ import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {DataRowModel} from 'app/client/models/DataRowModel';
+import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
+import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
 import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {Disposable, Holder, Observable} from 'grainjs';
+import {Disposable, Holder, IDisposable, MultiHolder, Observable} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
 type IEditorConstructor = typeof NewBaseEditor;
@@ -53,7 +55,7 @@ export class FieldEditor extends Disposable {
   private _editCommands: IEditorCommandGroup;
   private _editorCtor: IEditorConstructor;
   private _editorHolder: Holder<NewBaseEditor> = Holder.create(this);
-  private _saveEditPromise: Promise<boolean>|null = null;
+  private _saveEdit = asyncOnce(() => this._doSaveEdit());
 
   constructor(options: {
     gristDoc: GristDoc,
@@ -116,18 +118,7 @@ export class FieldEditor extends Disposable {
       this._offerToMakeFormula();
     }
 
-    // Whenever focus returns to the Clipboard component, close the editor by saving the value.
-    this._gristDoc.app.on('clipboard_focus', this._saveEdit, this);
-
-    // TODO: This should ideally include a callback that returns true only when the editor value
-    // has changed. Currently an open editor is considered unsaved even when unchanged.
-    UnsavedChange.create(this, async () => { await this._saveEdit(); });
-
-    this.onDispose(() => {
-      this._gristDoc.app.off('clipboard_focus', this._saveEdit, this);
-      // Unset field.editingFormula flag when the editor closes.
-      this._field.editingFormula(false);
-    });
+    setupEditorCleanup(this, this._gristDoc, this._field, this._saveEdit);
   }
 
   // cursorPos refers to the position of the caret within the editor.
@@ -143,23 +134,12 @@ export class FieldEditor extends Disposable {
     // we defer this mode until the user types something.
     this._field.editingFormula(isFormula && editValue !== undefined);
 
-    let formulaError: Observable<CellValue>|undefined;
-    if (column.isFormula() && isRaisedException(cellCurrentValue)) {
-      const fv = formulaError = Observable.create(null, cellCurrentValue);
-      this._gristDoc.docData.getFormulaError(column.table().tableId(),
-        this._field.colId(),
-        this._editRow.getRowId()
-      )
-      .then(value => { fv.set(value); })
-      .catch(reportError);
-    }
-
     // Replace the item in the Holder with a new one, disposing the previous one.
     const editor = this._editorHolder.autoDispose(editorCtor.create({
       gristDoc: this._gristDoc,
       field: this._field,
       cellValue,
-      formulaError,
+      formulaError: getFormulaError(this._gristDoc, this._editRow, column),
       editValue,
       cursorPos,
       commands: this._editCommands,
@@ -210,10 +190,6 @@ export class FieldEditor extends Disposable {
       const formulaValue = editValue.startsWith('=') ? editValue.slice(1) : editValue;
       this.rebuildEditor(true, formulaValue, 0);
     }
-  }
-
-  private async _saveEdit() {
-    return this._saveEditPromise || (this._saveEditPromise = this._doSaveEdit());
   }
 
   // Returns true if Enter/Shift+Enter should NOT move the cursor, for instance if the current
@@ -268,4 +244,95 @@ export class FieldEditor extends Disposable {
     await waitPromise;
     return isFormula || (saveIndex !== cursor.rowIndex());
   }
+}
+
+/**
+ * Open a formula editor in the side pane. Returns a Disposable that owns the editor.
+ */
+export function openSideFormulaEditor(options: {
+  gristDoc: GristDoc,
+  field: ViewFieldRec,
+  editRow: DataRowModel,      // Needed to get exception value, if any.
+  refElem: Element,           // Element in the side pane over which to position the editor.
+}): IDisposable {
+  const {gristDoc, field, editRow, refElem} = options;
+  const holder = MultiHolder.create(null);
+  const column = field.column();
+
+  // AsyncOnce ensures it's called once even if triggered multiple times.
+  const saveEdit = asyncOnce(async () => {
+    const formula = editor.getCellValue();
+    if (formula !== column.formula.peek()) {
+      await column.updateColValues({formula});
+    }
+    holder.dispose();     // Deactivate the editor.
+  });
+
+  // These are the commands for while the editor is active.
+  const editCommands = {
+    fieldEditSave: () => { saveEdit().catch(reportError); },
+    fieldEditSaveHere: () => { saveEdit().catch(reportError); },
+    fieldEditCancel: () => { holder.dispose(); },
+  };
+
+  // Replace the item in the Holder with a new one, disposing the previous one.
+  const editor = FormulaEditor.create(holder, {
+    gristDoc,
+    field,
+    cellValue: column.formula(),
+    formulaError: getFormulaError(gristDoc, editRow, column),
+    editValue: undefined,
+    cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
+    commands: editCommands,
+    cssClass: 'formula_editor_sidepane',
+  });
+  editor.attach(refElem);
+
+  // Enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
+  field.editingFormula(true);
+  setupEditorCleanup(holder, gristDoc, field, saveEdit);
+  return holder;
+}
+
+
+/**
+ * For an active editor, set up its cleanup:
+ * - saving on click-away (when focus returns to Grist "clipboard" element)
+ * - unset field.editingFormula mode
+ * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
+ */
+function setupEditorCleanup(
+  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, saveEdit: () => Promise<unknown>
+) {
+  // Whenever focus returns to the Clipboard component, close the editor by saving the value.
+  gristDoc.app.on('clipboard_focus', saveEdit);
+
+  // TODO: This should ideally include a callback that returns true only when the editor value
+  // has changed. Currently an open editor is considered unsaved even when unchanged.
+  UnsavedChange.create(owner, async () => { await saveEdit(); });
+
+  owner.onDispose(() => {
+    gristDoc.app.off('clipboard_focus', saveEdit);
+    // Unset field.editingFormula flag when the editor closes.
+    field.editingFormula(false);
+  });
+}
+
+/**
+ * If the cell at the given row and column is a formula value containing an exception, return an
+ * observable with this exception, and fetch more details to add to the observable.
+ */
+function getFormulaError(
+  gristDoc: GristDoc, editRow: DataRowModel, column: ColumnRec
+): Observable<CellValue>|undefined {
+  const colId = column.colId.peek();
+  let formulaError: Observable<CellValue>|undefined;
+  const cellCurrentValue = editRow.cells[colId].peek();
+  if (column.isFormula() && isRaisedException(cellCurrentValue)) {
+    const fv = formulaError = Observable.create(null, cellCurrentValue);
+    gristDoc.docData.getFormulaError(column.table().tableId(), colId, editRow.getRowId())
+      .then(value => { fv.set(value); })
+      .catch(reportError);
+  }
+  return formulaError;
 }

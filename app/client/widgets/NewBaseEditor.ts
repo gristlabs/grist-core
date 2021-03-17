@@ -38,7 +38,7 @@ export abstract class NewBaseEditor extends Disposable {
    * Editors and provided by FieldBuilder. TODO: remove this method once all editors have been
    * updated to new-style Disposables.
    */
-  public static create(owner: IDisposableOwner|null, options: Options): NewBaseEditor;
+  public static create<Opt extends Options>(owner: IDisposableOwner|null, options: Opt): NewBaseEditor;
   public static create(options: Options): NewBaseEditor;
   public static create(ownerOrOptions: any, options?: any): NewBaseEditor {
     return options ?

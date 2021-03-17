@@ -3,7 +3,6 @@ declare module "app/client/components/Clipboard";
 declare module "app/client/components/CodeEditorPanel";
 declare module "app/client/components/DetailView";
 declare module "app/client/components/DocConfigTab";
-declare module "app/client/components/FieldConfigTab";
 declare module "app/client/components/GridView";
 declare module "app/client/components/Layout";
 declare module "app/client/components/LayoutEditor";
@@ -38,10 +37,12 @@ declare module "app/client/components/BaseView" {
   import {Disposable} from 'app/client/lib/dispose';
   import {KoArray} from "app/client/lib/koArray";
   import * as BaseRowModel from "app/client/models/BaseRowModel";
+  import {DataRowModel} from 'app/client/models/DataRowModel';
   import {LazyArrayModel} from "app/client/models/DataTableModel";
   import * as DataTableModel from "app/client/models/DataTableModel";
   import {ViewFieldRec, ViewSectionRec} from "app/client/models/DocModel";
   import {SortedRowSet} from 'app/client/models/rowset';
+  import {FieldBuilder} from "app/client/widgets/FieldBuilder";
   import {DomArg} from 'grainjs';
   import {IOpenController} from 'popweasel';
 
@@ -53,7 +54,7 @@ declare module "app/client/components/BaseView" {
     public gristDoc: GristDoc;
     public cursor: Cursor;
     public sortedRows: SortedRowSet;
-    public activeFieldBuilder: ko.Computed<unknown>;
+    public activeFieldBuilder: ko.Computed<FieldBuilder>;
     public disableEditing: ko.Computed<boolean>;
     public isTruncated: ko.Observable<boolean>;
     protected tableModel: DataTableModel;
@@ -65,29 +66,31 @@ declare module "app/client/components/BaseView" {
     public getLoadingDonePromise(): Promise<void>;
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
+    public moveEditRowToCursor(): DataRowModel;
   }
   export = BaseView;
 }
 
-declare module "app/client/components/FieldConfigTab" {
+declare module "app/client/components/RefSelect" {
   import {GristDoc, TabContent} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';
+  import {ColumnRec} from "app/client/models/DocModel";
   import {DomArg} from 'grainjs';
+  import {DocModel} from "app/client/models/DocModel";
+  import {FieldBuilder} from "app/client/widgets/FieldBuilder";
 
-  namespace FieldConfigTab {}
-  class FieldConfigTab extends Disposable {
+  namespace RefSelect {}
+  class RefSelect extends Disposable {
     public isForeignRefCol: ko.Computed<boolean>;
-    public refSelect: any;
 
-    constructor(options: {gristDoc: GristDoc, fieldBuilder: unknown, contentCallback: unknown});
-    public buildConfigDomObj(): TabContent[];
-    // TODO: these should be made private or renamed.
-    public _buildNameDom(): DomArg;
-    public _buildFormulaDom(): DomArg;
-    public _buildTransformDom(): DomArg;
-    public _buildFormatDom(): DomArg;
+    constructor(options: {
+      docModel: DocModel,
+      origColumn: ColumnRec,
+      fieldBuilder: ko.Computed<FieldBuilder|null>,
+    });
+    public buildDom(): HTMLElement;
   }
-  export = FieldConfigTab;
+  export = RefSelect;
 }
 
 declare module "app/client/components/ViewConfigTab" {

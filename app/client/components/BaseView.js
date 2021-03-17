@@ -290,6 +290,18 @@ BaseView.prototype.activateEditorAtCursor = function(input) {
   }
 };
 
+/**
+ * Move the floating RowModel for editing to the current cursor position, and return it.
+ *
+ * This is used for opening the formula editor in the side panel; the current row is used to get
+ * possible exception info from the formula.
+ */
+BaseView.prototype.moveEditRowToCursor = function() {
+  var rowId = this.viewData.getRowId(this.cursor.rowIndex());
+  this.editRowModel.assign(rowId);
+  return this.editRowModel;
+};
+
 // Copy an anchor link for the current row to the clipboard.
 BaseView.prototype.copyLink = async function() {
   const rowId = this.viewData.getRowId(this.cursor.rowIndex());

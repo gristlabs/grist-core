@@ -14,15 +14,21 @@ const {menu, menuItem, menuText} = require('app/client/ui2018/menus');
 /**
  * Builder for the reference display multiselect.
  */
-function RefSelect(fieldConfigTab) {
-  this.docModel        = fieldConfigTab.gristDoc.docModel;
-  this.origColumn      = fieldConfigTab.origColumn;
-  this.colId           = fieldConfigTab.colId;
-  this.isForeignRefCol = fieldConfigTab.isForeignRefCol;
+function RefSelect(options) {
+  this.docModel        = options.docModel;
+  this.origColumn      = options.origColumn;
+  this.colId           = this.origColumn.colId;
+
+  // Indicates whether this is a ref col that references a different table.
+  // (That's the only time when RefSelect is offered.)
+  this.isForeignRefCol = this.autoDispose(ko.computed(() => {
+    const t = this.origColumn.refTable();
+    return Boolean(t && t.getRowId() !== this.origColumn.parentId());
+  }));
 
   // Computed for the current fieldBuilder's field, if it exists.
   this.fieldObs = this.autoDispose(ko.computed(() => {
-    let builder = fieldConfigTab.fieldBuilder();
+    let builder = options.fieldBuilder();
     return builder ? builder.field : null;
   }));
 

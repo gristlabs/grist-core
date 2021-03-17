@@ -19,7 +19,7 @@ import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
-import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
+import { FieldEditor, openSideFormulaEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
@@ -213,7 +213,7 @@ export class FieldBuilder extends Disposable {
       cssRow(
         grainjsDom.autoDispose(selectType),
         select(selectType, this.availableTypes, {
-          disabled: (use) => use(this.isTransformingFormula) || use(this.origColumn.disableModify) ||
+          disabled: (use) => use(this.isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
             use(this.isCallPending)
         }),
         testId('type-select')
@@ -301,7 +301,7 @@ export class FieldBuilder extends Disposable {
                      dom('span.glyphicon.glyphicon-flash'),
                      dom.testId("FieldBuilder_editTransform"),
                      kd.toggleClass('disabled', () => this.isTransformingType() || this.origColumn.isFormula() ||
-                       this.origColumn.disableModify())
+                       this.origColumn.disableModifyBase())
                    )
                  )
                ),
@@ -450,7 +450,6 @@ export class FieldBuilder extends Disposable {
     }
   }
 
-
   public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
     init?: string
   }) {
@@ -495,8 +494,20 @@ export class FieldBuilder extends Disposable {
     this.gristDoc.fieldEditorHolder.autoDispose(fieldEditor);
   }
 
-
   public isEditorActive() {
     return !this._fieldEditorHolder.isEmpty();
+  }
+
+  /**
+   * Open the formula editor in the side pane. It will be positioned over refElem.
+   */
+  public openSideFormulaEditor(editRow: DataRowModel, refElem: Element) {
+    const editorHolder = openSideFormulaEditor({
+      gristDoc: this.gristDoc,
+      field: this.field,
+      editRow,
+      refElem,
+    });
+    this.gristDoc.fieldEditorHolder.autoDispose(editorHolder);
   }
 }

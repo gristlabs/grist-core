@@ -9,8 +9,20 @@
 
 .formula_editor {
   background-color: white;
-  padding: 2px 0 2px 18px;
+  padding: 4px 0 2px 21px;
   z-index: 10;
+}
+
+/* styles specific to the formula editor in the side panel */
+.default_editor.formula_editor_sidepane {
+  border-radius: 3px;
+}
+.formula_editor_sidepane > .formula_editor {
+  padding: 5px 0 5px 24px;
+  border-radius: 3px;
+}
+.formula_editor_sidepane > .formula_field_edit::before, .formula_field_sidepane::before {
+  left: 4px;
 }
 
 .celleditor_cursor_editor {

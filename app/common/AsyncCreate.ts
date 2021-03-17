@@ -46,6 +46,22 @@ export class AsyncCreate<T> {
   }
 }
 
+
+/**
+ * A simpler version of AsyncCreate: given an async function f, returns another function that will
+ * call f once, and cache and return its value. On failure the result is cleared, so that
+ * subsequent calls will attempt calling f again.
+ */
+export function asyncOnce<T>(createFunc: () => Promise<T>): () => Promise<T> {
+  let value: Promise<T>|undefined;
+  function clearOnError(p: Promise<T>): Promise<T> {
+    p.catch(() => { value = undefined; });
+    return p;
+  }
+  return () => (value || (value = clearOnError(createFunc.call(null))));
+}
+
+
 /**
  * Supports a usage similar to AsyncCreate in a Map. Returns map.get(key) if it is set to a
  * resolved or pending promise. Otherwise, calls creator(key) to create and return a new promise,

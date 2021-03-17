@@ -492,6 +492,26 @@ export class GristDoc extends DisposableWithEvents {
     }
   }
 
+  // Turn the given columns into empty columns, losing any data stored in them.
+  public async clearColumns(colRefs: number[]): Promise<void> {
+    await this.docModel.columns.sendTableAction(
+      ['BulkUpdateRecord', colRefs, {
+        isFormula: colRefs.map(f => true),
+        formula: colRefs.map(f => ''),
+      }]
+    );
+  }
+
+  // Convert the given columns to data, saving the calculated values and unsetting the formulas.
+  public async convertFormulasToData(colRefs: number[]): Promise<void> {
+    return this.docModel.columns.sendTableAction(
+      ['BulkUpdateRecord', colRefs, {
+        isFormula: colRefs.map(f => false),
+        formula: colRefs.map(f => ''),
+      }]
+    );
+  }
+
   public getCsvLink() {
     return this.docComm.docUrl('gen_csv') + '?' + encodeQueryParams({
       ...this.docComm.getUrlParams(),

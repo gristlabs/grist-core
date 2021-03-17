@@ -32,8 +32,9 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // The column's display column
   _displayColModel: ko.Computed<ColumnRec>;
 
-  disableModify: ko.Computed<boolean>;
-  disableEditData: ko.Computed<boolean>;
+  disableModifyBase: ko.Computed<boolean>;    // True if column config can't be modified (name, type, etc.)
+  disableModify: ko.Computed<boolean>;        // True if column can't be modified or is being transformed.
+  disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
 
   isHiddenCol: ko.Computed<boolean>;
 
@@ -78,7 +79,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     }
   };
 
-  this.disableModify = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableModify = ko.pureComputed(() => this.disableModifyBase() || this.isTransforming());
   this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
 
   this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));

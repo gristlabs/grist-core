@@ -15,9 +15,10 @@
  */
 
 import * as commands from 'app/client/components/commands';
-import * as FieldConfigTab from 'app/client/components/FieldConfigTab';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
+import * as RefSelect from 'app/client/components/RefSelect';
 import * as ViewConfigTab from 'app/client/components/ViewConfigTab';
+import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
@@ -33,8 +34,9 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
+import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {StringUnion} from 'app/common/StringUnion';
-import {bundleChanges, Computed, Disposable, dom, DomArg, domComputed, DomContents,
+import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
         DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
@@ -180,40 +182,53 @@ export class RightPanel extends Disposable {
   }
 
   private _buildFieldContent(owner: MultiHolder) {
-    const obs: Observable<null|FieldConfigTab> = Observable.create(owner, null);
-    const fieldBuilder = this.autoDispose(ko.computed(() => {
+    const fieldBuilder = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
       return vsi && vsi.activeFieldBuilder();
     }));
-    const gristDoc = this._gristDoc;
-    const content = Observable.create<TabContent[]>(owner, []);
-    const contentCallback = (tabs: TabContent[]) => content.set(tabs);
-    imports.loadViewPane()
-      .then(ViewPane => {
-        if (owner.isDisposed()) { return; }
-        const fct = owner.autoDispose(ViewPane.FieldConfigTab.create({gristDoc, fieldBuilder, contentCallback}));
-        obs.set(fct);
-      })
-      .catch(reportError);
-    return dom.maybe(obs, (fct) =>
-      buildConfigContainer(
-        cssLabel('COLUMN TITLE'),
-        fct._buildNameDom(),
-        fct._buildFormulaDom(),
-        cssSeparator(),
-        cssLabel('COLUMN TYPE'),
-        fct._buildFormatDom(),
-        cssSeparator(),
-        dom.maybe(fct.isForeignRefCol, () => [
-          cssLabel('Add referenced columns'),
-          cssRow(fct.refSelect.buildDom()),
-          cssSeparator()
-        ]),
-        cssLabel('TRANSFORM'),
-        fct._buildTransformDom(),
-        this._disableIfReadonly(),
-      )
-    );
+
+    const docModel = this._gristDoc.docModel;
+    const origColRef = owner.autoDispose(ko.computed(() => fieldBuilder()?.origColumn.origColRef() || 0));
+    const origColumn = owner.autoDispose(docModel.columns.createFloatingRowModel(origColRef));
+    const isColumnValid = owner.autoDispose(ko.computed(() => Boolean(origColRef())));
+
+    // Builder for the reference display column multiselect.
+    const refSelect = owner.autoDispose(RefSelect.create({docModel, origColumn, fieldBuilder}));
+
+    return domAsync(imports.loadViewPane().then(ViewPane => {
+      const {buildNameConfig, buildFormulaConfig} = ViewPane.FieldConfig;
+      return dom.maybe(isColumnValid, () =>
+        buildConfigContainer(
+          dom.create(buildNameConfig, origColumn),
+          cssSeparator(),
+          dom.create(buildFormulaConfig, origColumn, this._gristDoc, this._activateFormulaEditor.bind(this)),
+          cssSeparator(),
+          cssLabel('COLUMN TYPE'),
+          dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
+            builder.buildSelectTypeDom(),
+            builder.buildSelectWidgetDom(),
+            builder.buildConfigDom()
+          ]),
+          cssSeparator(),
+          dom.maybe(refSelect.isForeignRefCol, () => [
+            cssLabel('Add referenced columns'),
+            cssRow(refSelect.buildDom()),
+            cssSeparator()
+          ]),
+          cssLabel('TRANSFORM'),
+          dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
+          this._disableIfReadonly(),
+        )
+      );
+    }));
+  }
+
+  // Helper to activate the side-pane formula editor over the given HTML element.
+  private _activateFormulaEditor(refElem: Element) {
+    const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
+    if (!vsi) { return; }
+    const editRowModel = vsi.moveEditRowToCursor();
+    vsi.activeFieldBuilder.peek().openSideFormulaEditor(editRowModel, refElem);
   }
 
   private _buildPageWidgetContent(_owner: MultiHolder) {
@@ -452,7 +467,7 @@ export class RightPanel extends Disposable {
   }
 }
 
-export function buildConfigContainer(...args: DomElementArg[]): DomArg {
+export function buildConfigContainer(...args: DomElementArg[]): HTMLElement {
   return cssConfigContainer(
     // The `position: relative;` style is needed for the overlay for the readonly mode. Note that
     // we cannot set it on the cssConfigContainer directly because it conflicts with how overflow
@@ -631,7 +646,7 @@ const cssTabContents = styled('div', `
 
 const cssSeparator = styled('div', `
   border-bottom: 1px solid ${colors.mediumGrey};
-  margin-top: 24px;
+  margin-top: 16px;
 `);
 
 const cssConfigContainer = styled('div', `
@@ -681,6 +696,6 @@ const cssListItem = styled('li', `
   padding: 4px 8px;
 `);
 
-const cssTextInput = styled(textInput, `
+export const cssTextInput = styled(textInput, `
   flex: 1 0 auto;
 `);

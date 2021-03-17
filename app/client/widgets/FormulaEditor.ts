@@ -13,6 +13,11 @@ import {dom, Observable, styled} from 'grainjs';
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
 
+export interface IFormulaEditorOptions extends Options {
+  cssClass?: string;
+}
+
+
 /**
  * Required parameters:
  * @param {RowModel} options.field: ViewSectionField (i.e. column) being edited.
@@ -30,7 +35,7 @@ export class FormulaEditor extends NewBaseEditor {
   private _dom: HTMLElement;
   private _editorPlacement: EditorPlacement;
 
-  constructor(options: Options) {
+  constructor(options: IFormulaEditorOptions) {
     super(options);
     this._formulaEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
@@ -49,6 +54,7 @@ export class FormulaEditor extends NewBaseEditor {
     this.autoDispose(this._formulaEditor);
     this._dom = dom('div.default_editor',
       createMobileButtons(options.commands),
+      options.cssClass ? dom.cls(options.cssClass) : null,
 
       // This shouldn't be needed, but needed for tests.
       dom.on('mousedown', (ev) => {
