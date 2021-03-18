@@ -155,6 +155,7 @@ export interface DocAuthResult {
   removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
                               // to removed documents for some purposes. Null on error.
   error?: ApiError;
+  cachedDoc?: Document;       // For cases where stale info is ok.
 }
 
 // Represent a DocAuthKey as a string.  The format is "<urlId>:<org> <userId>".
@@ -932,7 +933,8 @@ export class HomeDBManager extends EventEmitter {
       if (!forkId) { throw new ApiError('invalid document identifier', 400); }
       // We imagine current user owning trunk if there is no embedded userId, or
       // the embedded userId matches the current user.
-      const access = (forkUserId === undefined || forkUserId === userId) ? 'owners' : null;
+      const access = (forkUserId === undefined || forkUserId === userId) ? 'owners' :
+        (userId === this.getPreviewerUserId() ? 'viewers' : null);
       if (!access) { throw new ApiError("access denied", 403); }
       doc = {
         name: 'Untitled',
@@ -3854,7 +3856,7 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
   try {
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
-    return {docId: doc.id, access: doc.access, removed};
+    return {docId: doc.id, access: doc.access, removed, cachedDoc: doc};
   } catch (error) {
     return {docId: null, access: null, removed: null, error};
   }

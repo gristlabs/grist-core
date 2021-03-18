@@ -16,7 +16,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer,
         isSingleUserMode} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {getDocSessionCachedDoc, makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -181,26 +181,26 @@ export class DocManager extends EventEmitter {
 
     const accessId = this.makeAccessId(userId);
     const docSession = makeExceptionalDocSession('nascent', {browserSettings});
-    const result = await this._doImportDoc(docSession,
-                                           globalUploadSet.getUploadInfo(uploadId, accessId), {
-                                             naming: workspaceId ? 'saved' : 'unsaved',
-                                             userId,
-                                           });
-    if (workspaceId) {
+    const register = async (docId: string, docTitle: string) => {
+      if (!workspaceId || !this._homeDbManager) { return; }
       const queryResult = await this._homeDbManager.addDocument({userId}, workspaceId,
-                                                                {name: result.title}, result.id);
+                                                                {name: docTitle}, docId);
       if (queryResult.status !== 200) {
         // TODO The ready-to-add document is not yet in storageManager, but is in the filesystem. It
         // should get cleaned up in case of error here.
         throw new ApiError(queryResult.errMessage || 'unable to add imported document', queryResult.status);
       }
-    }
+    };
+    return this._doImportDoc(docSession,
+                             globalUploadSet.getUploadInfo(uploadId, accessId), {
+                               naming: workspaceId ? 'saved' : 'unsaved',
+                               register,
+                               userId,
+                             });
 
     // The imported document is associated with the worker that did the import.
     // We could break that association (see /api/docs/:docId/assign for how) if
     // we start using dedicated import workers.
-
-    return result;
   }
 
   /**
@@ -369,7 +369,8 @@ export class DocManager extends EventEmitter {
   public async createNewEmptyDoc(docSession: OptDocSession, basenameHint: string): Promise<ActiveDoc> {
     const docName = await this._createNewDoc(basenameHint);
     return mapSetOrClear(this._activeDocs, docName,
-                         this.gristServer.create.ActiveDoc(this, docName).createDoc(docSession));
+                         this._createActiveDoc(docSession, docName)
+                         .then(newDoc => newDoc.createDoc(docSession)));
   }
 
   /**
@@ -389,12 +390,15 @@ export class DocManager extends EventEmitter {
         }
       }
       if (!this._activeDocs.has(docName)) {
-        const newDoc = this.gristServer.create.ActiveDoc(this, docName, wantRecoveryMode);
-        // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
-        newDoc.on('backupMade', (bakPath: string) => {
-          this.emit('backupMade', bakPath);
-        });
-        return mapSetOrClear(this._activeDocs, docName, newDoc.loadDoc(docSession));
+        return mapSetOrClear(this._activeDocs, docName,
+                             this._createActiveDoc(docSession, docName, wantRecoveryMode)
+                             .then(newDoc => {
+                               // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
+                               newDoc.on('backupMade', (bakPath: string) => {
+                                 this.emit('backupMade', bakPath);
+                               });
+                               return newDoc.loadDoc(docSession);
+                             }));
       }
       const activeDoc = await this._activeDocs.get(docName)!;
       if (!activeDoc.muted) { return activeDoc; }
@@ -425,7 +429,28 @@ export class DocManager extends EventEmitter {
                                       encBundles: EncActionBundleFromHub[]): Promise<ActiveDoc> {
     const docName = await this._createNewDoc(basenameHint);
     return mapSetOrClear(this._activeDocs, docName,
-      this.gristServer.create.ActiveDoc(this, docName).downloadSharedDoc(docId, instanceId, encBundles));
+                         this._createActiveDoc({client: null}, docName)
+                         .then(newDoc => newDoc.downloadSharedDoc(docId, instanceId, encBundles)));
+  }
+
+  private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {
+    // Get URL for document for use with SELF_HYPERLINK().
+    const cachedDoc = getDocSessionCachedDoc(docSession);
+    let docUrl: string|undefined;
+    try {
+      if (cachedDoc) {
+        docUrl = await this.gristServer.getResourceUrl(cachedDoc);
+      } else {
+        docUrl = await this.gristServer.getDocUrl(docName);
+      }
+    } catch (e) {
+      // If there is no home url, we cannot construct links.  Accept this, for the benefit
+      // of legacy tests.
+      if (!String(e).match(/need APP_HOME_URL/)) {
+        throw e;
+      }
+    }
+    return this.gristServer.create.ActiveDoc(this, docName, {docUrl, safeMode});
   }
 
   /**
@@ -435,6 +460,7 @@ export class DocManager extends EventEmitter {
   private async _doImportDoc(docSession: OptDocSession, uploadInfo: UploadInfo,
                              options: {
                                naming: 'classic'|'saved'|'unsaved',
+                               register?: (docId: string, docTitle: string) => Promise<void>,
                                userId?: number,
                              }): Promise<DocCreationInfo> {
     try {
@@ -466,6 +492,7 @@ export class DocManager extends EventEmitter {
         default:
           throw new Error('naming mode not recognized');
       }
+      await options.register?.(id, basename);
       if (ext === '.grist') {
         // If the import is a grist file, copy it to the docs directory.
         // TODO: We should be skeptical of the upload file to close a possible

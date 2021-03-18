@@ -15,6 +15,8 @@ export interface ISandboxCreationOptions {
   entryPoint?: string;   // main script to call - leave undefined for default
   sandboxMount?: string; // if defined, make this path available read-only as "/sandbox"
   importMount?: string;  // if defined, make this path available read-only as "/importdir"
+
+  docUrl?: string;      // to support SELF_HYPERLINK.
 }
 
 export interface ISandbox {

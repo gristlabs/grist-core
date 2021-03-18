@@ -1,4 +1,5 @@
 import doctest
+import os
 import functions
 import moment
 
@@ -18,6 +19,8 @@ def date_tearDown(doc_test):
 # This works with the unittest module to turn all the doctests in the functions' doc-comments into
 # unittest test cases.
 def load_tests(loader, tests, ignore):
+  # Set DOC_URL for SELF_HYPERLINK()
+  os.environ['DOC_URL'] = 'https://docs.getgrist.com/sbaltsirg/Example'
   tests.addTests(doctest.DocTestSuite(functions.date, setUp = date_setUp, tearDown = date_tearDown))
   tests.addTests(doctest.DocTestSuite(functions.info, setUp = date_setUp, tearDown = date_tearDown))
   tests.addTests(doctest.DocTestSuite(functions.logical))
@@ -26,4 +29,5 @@ def load_tests(loader, tests, ignore):
   tests.addTests(doctest.DocTestSuite(functions.text))
   tests.addTests(doctest.DocTestSuite(functions.schedule,
                                       setUp = date_setUp, tearDown = date_tearDown))
+  tests.addTests(doctest.DocTestSuite(functions.lookup))
   return tests

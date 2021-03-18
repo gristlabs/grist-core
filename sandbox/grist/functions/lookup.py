@@ -1,4 +1,8 @@
 # pylint: disable=redefined-builtin, line-too-long
+from collections import OrderedDict
+import os
+from urllib import urlencode
+import urlparse
 from unimplemented import unimplemented
 
 @unimplemented
@@ -70,6 +74,57 @@ def ROW(cell_reference):
 def ROWS(range):
   """Returns the number of rows in a specified array or range."""
   raise NotImplementedError()
+
+def SELF_HYPERLINK(label=None, page=None, **kwargs):
+  """
+  Creates a link to the current document.  All parameters are optional.
+
+  The returned string is in URL format, optionally preceded by a label and a space
+  (the format expected for Grist Text columns with the HyperLink option enabled).
+
+  A numeric page number can be supplied, which will create a link to the
+  specified page.  To find the numeric page number you need, visit a page
+  and examine its URL for a `/p/NN` part.
+
+  Any number of arguments of the form `LinkKey_NAME` may be provided, to set
+  `user.LinkKey.NAME` values that will be available in access rules.  For example,
+  if a rule allows users to view rows when `user.LinkKey.Code == rec.Code`,
+  we might want to create links with `SELF_HYPERLINK(LinkKey_Code=$Code)`.
+
+  >>> SELF_HYPERLINK()
+  'https://docs.getgrist.com/sbaltsirg/Example'
+  >>> SELF_HYPERLINK(label='doc')
+  'doc https://docs.getgrist.com/sbaltsirg/Example'
+  >>> SELF_HYPERLINK(page=2)
+  'https://docs.getgrist.com/sbaltsirg/Example/p/2'
+  >>> SELF_HYPERLINK(LinkKey_Code='X1234')
+  'https://docs.getgrist.com/sbaltsirg/Example?Code_=X1234'
+  >>> SELF_HYPERLINK(label='order', page=3, LinkKey_Code='X1234', LinkKey_Name='Bi Ngo')
+  'order https://docs.getgrist.com/sbaltsirg/Example/p/3?Code_=X1234&Name_=Bi+Ngo'
+  >>> SELF_HYPERLINK(Linky_Link='Link')
+  Traceback (most recent call last):
+  ...
+  TypeError: unexpected keyword argument 'Linky_Link' (not of form LinkKey_NAME)
+  """
+  txt = os.environ.get('DOC_URL')
+  if not txt:
+    return None
+  if page:
+    txt += "/p/{}".format(page)
+  if kwargs:
+    parts = list(urlparse.urlparse(txt))
+    query = OrderedDict(urlparse.parse_qsl(parts[4]))
+    for [key, value] in kwargs.iteritems():
+      key_parts = key.split('LinkKey_')
+      if len(key_parts) == 2 and key_parts[0] == '':
+        query[key_parts[1] + '_'] = value
+      else:
+        raise TypeError("unexpected keyword argument '{}' (not of form LinkKey_NAME)".format(key))
+    parts[4] = urlencode(query)
+    txt = urlparse.urlunparse(parts)
+  if label:
+    txt = "{} {}".format(label, txt)
+  return txt
 
 def VLOOKUP(table, **field_value_pairs):
   """

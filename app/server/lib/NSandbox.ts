@@ -17,6 +17,7 @@ type SandboxMethod = (...args: any[]) => any;
 export interface ISandboxCommand {
   process: string;
   libraryPath: string;
+  docUrl: string;
 }
 
 export interface ISandboxOptions {
@@ -60,7 +61,7 @@ export class NSandbox implements ISandbox {
 
     if (command) {
       return spawn(command.process, pythonArgs,
-                   {env: {PYTHONPATH: command.libraryPath},
+                   {env: {PYTHONPATH: command.libraryPath, DOC_URL: command.docUrl},
                     cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
     }
 
@@ -346,6 +347,10 @@ export class NSandboxCreator implements ISandboxCreator {
     if (options.importMount) {
       selLdrArgs.push('-m', `${options.importMount}:/importdir:ro`);
     }
+    const docUrl = (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, '');
+    if (this._flavor === 'pynbox') {
+      selLdrArgs.push('-E', `DOC_URL=${docUrl}`);
+    }
     return new NSandbox({
       args,
       logCalls: options.logCalls,
@@ -355,7 +360,8 @@ export class NSandboxCreator implements ISandboxCreator {
       ...(this._flavor === 'pynbox' ? {} : {
         command: {
           process: pythonVersion,
-          libraryPath
+          libraryPath,
+          docUrl,
         }
       })
     });

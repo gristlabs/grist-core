@@ -129,9 +129,12 @@ export class ActiveDoc extends EventEmitter {
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
 
-  constructor(docManager: DocManager, docName: string, wantRecoveryMode?: boolean) {
+  constructor(docManager: DocManager, docName: string, options?: {
+    safeMode?: boolean,
+    docUrl?: string
+  }) {
     super();
-    if (wantRecoveryMode) { this._recoveryMode = true; }
+    if (options?.safeMode) { this._recoveryMode = true; }
     this._docManager = docManager;
     this._docName = docName;
     this.docStorage = new DocStorage(docManager.storageManager, docName);
@@ -148,6 +151,7 @@ export class ActiveDoc extends EventEmitter {
       logCalls: false,
       logTimes: true,
       logMeta: {docId: docName},
+      docUrl: options?.docUrl,
     });
 
     this._activeDocImport = new ActiveDocImport(this);

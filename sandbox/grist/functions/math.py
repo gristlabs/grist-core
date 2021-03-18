@@ -5,6 +5,7 @@ import itertools
 import math as _math
 import operator
 import random
+import uuid
 
 from functions.info import ISNUMBER, ISLOGICAL
 from functions.unimplemented import unimplemented
@@ -833,3 +834,7 @@ def TRUNC(value, places=0):
   """
   # TRUNC seems indistinguishable from ROUNDDOWN.
   return ROUNDDOWN(value, places)
+
+def UUID():
+  """Generate a random UUID-formatted string identifier."""
+  return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))

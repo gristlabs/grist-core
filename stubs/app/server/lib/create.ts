@@ -31,7 +31,7 @@ export const create: ICreate = {
     };
   },
   ExternalStorage() { return undefined; },
-  ActiveDoc(docManager, docName, wantSafeMode) { return new ActiveDoc(docManager, docName, wantSafeMode); },
+  ActiveDoc(docManager, docName, options) { return new ActiveDoc(docManager, docName, options); },
   DocManager(storageManager, pluginManager, homeDBManager, gristServer) {
     return new DocManager(storageManager, pluginManager, homeDBManager, gristServer);
   },

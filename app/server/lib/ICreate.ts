@@ -1,4 +1,3 @@
-import { GristLoadConfig } from 'app/common/gristUrls';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { ActiveDoc } from 'app/server/lib/ActiveDoc';
 import { ScopedSession } from 'app/server/lib/BrowserSession';
@@ -19,7 +18,7 @@ export interface ICreate {
   LoginSession(comm: Comm, sid: string, domain: string, scopeSession: ScopedSession,
                instanceManager: IInstanceManager|null): ILoginSession;
   Billing(dbManager: HomeDBManager): IBilling;
-  Notifier(dbManager: HomeDBManager, gristConfig: GristLoadConfig): INotifier;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   Shell(): IShell|undefined;
 
   // Create a space to store files externally, for storing either:
@@ -29,7 +28,7 @@ export interface ICreate {
   // should not interfere with each other.
   ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage|undefined;
 
-  ActiveDoc(docManager: DocManager, docName: string, safeMode?: boolean): ActiveDoc;
+  ActiveDoc(docManager: DocManager, docName: string, options: ICreateActiveDocOptions): ActiveDoc;
   DocManager(storageManager: IDocStorageManager, pluginManager: PluginManager,
              homeDbManager: HomeDBManager|null, gristServer: GristServer): DocManager;
   NSandbox(options: ISandboxCreationOptions): ISandbox;
@@ -37,4 +36,9 @@ export interface ICreate {
   sessionSecret(): string;
   // Get configuration information to show at start-up.
   configurationOptions(): {[key: string]: any};
+}
+
+export interface ICreateActiveDocOptions {
+  safeMode?: boolean;
+  docUrl?: string;
 }

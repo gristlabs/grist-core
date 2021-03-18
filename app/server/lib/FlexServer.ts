@@ -1,13 +1,17 @@
 import {BillingTask} from 'app/common/BillingAPI';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
-import {isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
+import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPathOnly,
+        parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
 import {UserConfig} from 'app/common/UserConfig';
 import * as version from 'app/common/version';
 import {ApiServer} from 'app/gen-server/ApiServer';
+import {Document} from "app/gen-server/entity/Document";
+import {Organization} from "app/gen-server/entity/Organization";
+import {Workspace} from 'app/gen-server/entity/Workspace';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -1102,8 +1106,48 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    const gristConfig = makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
-    this.notifier = this.create.Notifier(this.dbManager, gristConfig);
+    this.notifier = this.create.Notifier(this.dbManager, this);
+  }
+
+  public getGristConfig(): GristLoadConfig {
+    return makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
+  }
+
+  /**
+   * Get a url for a document.  The id provided should be a genuine docId, since we query
+   * the db for document details without including organization disambiguation.
+   */
+  public async getDocUrl(docId: string): Promise<string> {
+    if (!this.dbManager) { throw new Error('database missing'); }
+    const doc = await this.dbManager.getDoc({
+      userId: this.dbManager.getPreviewerUserId(),
+      urlId: docId,
+      showAll: true
+    });
+    return this.getResourceUrl(doc);
+  }
+
+  /**
+   * Get a url for an organization, workspace, or document.
+   */
+  public async getResourceUrl(resource: Organization|Workspace|Document): Promise<string> {
+    if (!this.dbManager) { throw new Error('database missing'); }
+    const gristConfig = this.getGristConfig();
+    const state: IGristUrlState = {};
+    let org: Organization;
+    if (resource instanceof Organization) {
+      org = resource;
+    } else if (resource instanceof Workspace) {
+      org = resource.org;
+      state.ws = resource.id;
+    } else {
+      org = resource.workspace.org;
+      state.doc = resource.id;
+      state.slug = getSlugIfNeeded(resource);
+    }
+    state.org = this.dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
+    if (!gristConfig.homeUrl) { throw new Error('Computing a resource URL requires a home URL'); }
+    return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl));
   }
 
   public addUsage() {

@@ -1,6 +1,7 @@
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {Role} from 'app/common/roles';
-import { FullUser } from 'app/common/UserAPI';
+import {FullUser} from 'app/common/UserAPI';
+import {Document} from 'app/gen-server/entity/Document';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer, getUser, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -147,4 +148,11 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
     return access;
   }
   throw new Error('getDocSessionAccess could not find access information in DocSession');
+}
+
+/**
+ * Get cached information about the document, if available.  May be stale.
+ */
+export function getDocSessionCachedDoc(docSession: OptDocSession): Document|undefined {
+  return (docSession.req as RequestWithLogin)?.docAuth?.cachedDoc;
 }

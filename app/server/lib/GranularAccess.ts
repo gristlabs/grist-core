@@ -938,7 +938,7 @@ export class GranularAccess implements GranularAccessForBundle {
     user.Name = fullUser?.name || null;
     // If viewed from a websocket, collect any link parameters included.
     // TODO: could also get this from rest api access, just via a different route.
-    user.Link = linkParameters;
+    user.LinkKey = linkParameters;
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
