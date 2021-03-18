@@ -58,7 +58,7 @@ export function columnFilterMenu(owner: IDisposableOwner,
   // computes a set of all keys that matches the search text.
   const filterSet = Computed.create(owner, searchValueObs, (_use, searchValue) => {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    return new Set(valueCountArr.filter(([key]) => searchRegex.test(key as string)).map(([key]) => key));
+    return new Set(valueCountArr.filter(([_, {label}]) => searchRegex.test(label)).map(([key]) => key));
   });
 
   // computes the sorted array of all values (ie: pair of key and IFilterCount) that matches the search text.
@@ -129,6 +129,9 @@ export function columnFilterMenu(owner: IDisposableOwner,
     cssMenuItem(
       dom.domComputed((use) => {
         const searchValue = use(searchValueObs);
+        // This is necessary to avoid a known bug in grainjs where filteredKeys does not get
+        // recalculated.
+        use(filteredKeys);
         const allSpec = searchValue ? {included: use(filteredKeys)} : {excluded: []};
         const noneSpec = searchValue ? {excluded: use(filteredKeys)} : {included: []};
         const state = use(columnFilter.state);
