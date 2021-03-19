@@ -42,6 +42,8 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     return [
       // The few Python keywords and constants we support.
       'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None',
+      // Some grist-specific constants:
+      'OWNER', 'EDITOR', 'VIEWER',
       // The common variables.
       'user', 'rec',
       // Other completions that depend on doc schema or other rules.

@@ -13,6 +13,12 @@ import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {AclMatchFunc, AclMatchInput, ParsedAclFormula} from 'app/common/GranularAccessClause';
 import constant = require('lodash/constant');
 
+const GRIST_CONSTANTS: Record<string, string> = {
+  EDITOR: 'editors',
+  OWNER: 'owners',
+  VIEWER: 'viewers',
+};
+
 /**
  * Compile a parsed ACL formula into an actual function that can evaluate a request.
  */
@@ -55,6 +61,7 @@ function _compileNode(parsedAclFormula: ParsedAclFormula): AclEvalFunc {
     case 'Const': return constant(parsedAclFormula[1] as CellValue);
     case 'Name': {
       const name = rawArgs[0] as keyof AclMatchInput;
+      if (GRIST_CONSTANTS[name]) { return constant(GRIST_CONSTANTS[name]); }
       if (!['user', 'rec', 'newRec'].includes(name)) {
         throw new Error(`Unknown variable '${name}'`);
       }

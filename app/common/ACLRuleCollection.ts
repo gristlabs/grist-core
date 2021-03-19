@@ -13,12 +13,12 @@ const DEFAULT_RULE_SET: RuleSet = {
   tableId: '*',
   colIds: '*',
   body: [{
-    aclFormula: "user.Access in ['editors', 'owners']",
+    aclFormula: "user.Access in [EDITOR, OWNER]",
     matchFunc:  (input) => ['editors', 'owners'].includes(String(input.user.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {
-    aclFormula: "user.Access in ['viewers']",
+    aclFormula: "user.Access in [VIEWER]",
     matchFunc:  (input) => ['viewers'].includes(String(input.user.Access)),
     permissions: parsePermissions('+R-CUDS'),
     permissionsText: '+R',
@@ -36,7 +36,7 @@ const EMERGENCY_RULE_SET: RuleSet = {
   tableId: '*',
   colIds: '*',
   body: [{
-    aclFormula: "user.Access in ['owners']",
+    aclFormula: "user.Access in [OWNER]",
     matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
