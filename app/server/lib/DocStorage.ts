@@ -355,7 +355,7 @@ export class DocStorage implements ISQLiteDB {
           // Create all new columns.
           for (const {colId, type} of newCols) {
             await db.exec(`ALTER TABLE ${quoteIdent(tableId)} ` +
-              `ADD COLUMN ${DocStorage._columnDef(colId, type)}`);
+              `ADD COLUMN ${DocStorage._columnDefWithBlobs(colId, type)}`);
           }
 
           // Fill them in with PENDING_VALUE. This way, on first load and Calculate, they would go
@@ -373,10 +373,11 @@ export class DocStorage implements ISQLiteDB {
 
   /**
    * Decodes a database row object, returning a new object with decoded values. This is needed for
-   * Grist data, which is encoded.
+   * Grist data, which is encoded.  Careful: doesn't handle booleans specially, should not
+   * be used within main Grist application.
    */
   public static decodeRowValues(dbRow: ResultRow): any {
-    return _.mapObject(dbRow, val => DocStorage._decodeValue(val));
+    return _.mapObject(dbRow, val => DocStorage._decodeValue(val, 'Any'));
   }
 
   /**
@@ -424,7 +425,7 @@ export class DocStorage implements ISQLiteDB {
     const rows = _.unzip(valueColumns);
     for (const row of rows) {
       for (let i = 0; i < row.length; i++) {
-        row[i] = DocStorage._encodeValue(marshaller, types[i], row[i]);
+        row[i] = DocStorage._encodeValue(marshaller, this._getSqlType(types[i]), row[i]);
       }
     }
     return rows;
@@ -438,26 +439,66 @@ export class DocStorage implements ISQLiteDB {
    * Note that SQLite may contain tables that aren't used for Grist data (e.g. attachments), for
    * which such encoding/marshalling is not used, and e.g. binary data is stored to BLOBs directly.
    */
-  private static _encodeValue(marshaller: marshal.Marshaller, type: string, val: any): Uint8Array {
-    if (Array.isArray(val) || val instanceof Uint8Array || Buffer.isBuffer(val) ||
-        Number.isNaN(val) ||
-        (type === 'Bool' && (val === 0 || val === 1)) ||
-        (type !== 'Bool' && (val === true || val === false))) {
+  private static _encodeValue(marshaller: marshal.Marshaller, sqlType: string, val: any): Uint8Array|string|number|boolean {
+    const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
-    } else {
-      return val;
+    };
+    // Marshall anything non-primitive.
+    if (Array.isArray(val) || val instanceof Uint8Array || Buffer.isBuffer(val)) {
+      return marshalled();
     }
+    // Leave nulls unchanged.
+    if (val === null) { return val; }
+    // At this point, we have a non-null primitive.  Check what is the Sqlite affinity
+    // of the destination.  May be NUMERIC, INTEGER, TEXT, or BLOB.  We handle REAL
+    // also even though it is not currently used.
+    const affinity = this._getAffinity(sqlType);
+    // For strings, numbers, and booleans, we have distinct strategies and problems.
+    switch (typeof(val)) {
+      case 'string':
+        // Strings are easy with TEXT and BLOB affinity, they can be stored verbatim.
+        if (affinity === 'TEXT' || affinity === 'BLOB') { return val; }
+        // With an INTEGER, NUMERIC, or REAL affinity, we need to be careful since
+        // if the string looks like a number it will get cast.
+        // See vdbe.c:applyNumericAffinity in SQLite source code for
+        // details.  From reading the code, anything that doesn't start
+        // with '+', '-' or '.', or a digit, or whitespace is certainly safe.
+        // Whitespace is a little bit fuzzy, could perhaps depend on locale depending
+        // on how compiled?
+        if (!/[-+ \t\n\r\v0-9.]/.test(val.charAt(0))) {
+          return val;
+        }
+        // We could make further tests, but that'll increase our odds of
+        // getting it wrong and letting a string through that gets unexpectedly
+        // converted.  So marshall everything else.
+        return marshalled();
+      case 'number':
+        // Marshal with TEXT affinity, and handle some other awkward cases.
+        if (affinity === 'TEXT' || Number.isNaN(val) || Object.is(val, -0.0) ||
+            (sqlType === 'BOOLEAN' && (val === 0 || val === 1))) {
+          return marshalled();
+        }
+        // Otherwise, SQLite will handle numbers safely.
+        return val;
+      case 'boolean':
+        // Booleans are only safe to store in columns of grist type Bool
+        // (SQL type BOOLEAN), since they will be consistently unencoded as
+        // booleans.
+        return (sqlType === 'BOOLEAN') ? val : marshalled();
+    }
+    return marshalled();
   }
 
   /**
    * Decodes Grist data received from SQLite; the inverse of _encodeValue().
+   * Type may be either grist or sql type.  Only used for a Bool/BOOLEAN check.
    */
-  private static _decodeValue(val: any, type: string = 'Any'): any {
+  private static _decodeValue(val: any, type: string): any {
     if (val instanceof Uint8Array || Buffer.isBuffer(val)) {
       val = marshal.loads(val);
     }
-    if (type === 'Bool' && (val === 0 || val === 1)) {
+    if ((type === 'Bool' || type === 'BOOLEAN') && (val === 0 || val === 1)) {
       // Boolean values come in as 0/1. If the column is of type "Bool", interpret those as
       // true/false (note that the data engine does this too).
       return Boolean(val);
@@ -470,9 +511,69 @@ export class DocStorage implements ISQLiteDB {
    * Helper to return SQL snippet for column definition, using its colId and Grist type.
    */
   private static _columnDef(colId: string, colType: string): string {
+    const colSqlType = DocStorage._getSqlType(colType);
+    return `${quoteIdent(colId)} ${colSqlType} DEFAULT ${DocStorage._formattedDefault(colType)}`;
+  }
+
+  /**
+   * As _columnDef(), but column type is strictly Blobs.  Used to maintain an old migration.
+   * TODO: could probably rip out the Blob migration and update all related tests.
+   */
+  private static _columnDefWithBlobs(colId: string, colType: string): string {
     return `${quoteIdent(colId)} BLOB DEFAULT ${DocStorage._formattedDefault(colType)}`;
   }
 
+  /**
+   * Based on a Grist type, pick a good Sqlite SQL type name to use.  Sqlite columns
+   * are loosely typed, and the types named here are not all distinct in terms of
+   * 'affinities', but they are helpful as comments.  Type names chosen from:
+   *   https://www.sqlite.org/datatype3.html#affinity_name_examples
+   */
+  private static _getSqlType(colType: string|null): string {
+    switch (colType) {
+      case 'Bool':
+        return 'BOOLEAN';
+      case 'Choice':
+      case 'Text':
+        return 'TEXT';
+      case 'Date':
+        return 'DATE';
+      case 'DateTime':
+        return 'DATETIME';
+      case 'Int':
+      case 'Id':
+      case 'Ref':
+      case 'Reference':
+        return 'INTEGER';
+      case 'Numeric':
+      case 'ManualSortPos':
+      case 'PositionNumber':
+        return 'NUMERIC';
+    }
+    if (colType && colType.startsWith('Ref:')) { return 'INTEGER'; }
+    return 'BLOB';
+  }
+
+  /**
+   * For a SQL type, figure out the closest affinity in Sqlite.
+   * Only SQL types output by _getSqlType are recognized.
+   * Result is one of NUMERIC, INTEGER, TEXT, or BLOB.
+   * We don't use REAL, the only remaining affinity.
+   */
+  private static _getAffinity(colType: string|null): string {
+    switch (colType) {
+      case 'TEXT':
+        return 'TEXT';
+      case 'INTEGER':
+        return 'INTEGER';
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'NUMERIC':
+        return 'NUMERIC';
+    }
+    return 'BLOB';
+  }
 
   // ======================================================================
   // Instance fields
@@ -673,7 +774,7 @@ export class DocStorage implements ISQLiteDB {
       const marshalled: Buffer = await this._getDB().allMarshal(
         `SELECT ${colSpec} FROM ${quoteIdent(tableId)} WHERE id IN (${sqlArg})`, rowIdChunk);
 
-      const colValues: TableColValues = marshal.loads(marshalled);
+      const colValues: TableColValues = this.decodeMarshalledData(marshalled, tableId);
       if (!fullValues) {
         fullValues = colValues;
       } else {
@@ -1242,9 +1343,11 @@ export class DocStorage implements ISQLiteDB {
     if (!colInfo) {
       return null;      // Column not found.
     }
+    const oldSqlType = colInfo.type || 'BLOB';
     const oldDefault = colInfo.dflt_value;
+    const newSqlType = newColType ? DocStorage._getSqlType(newColType) : oldSqlType;
     const newDefault = newColType ? DocStorage._formattedDefault(newColType) : oldDefault;
-    const newInfo = {name: newColId, type: 'BLOB', dflt_value: newDefault};
+    const newInfo = {name: newColId, type: newSqlType, dflt_value: newDefault};
     // Check if anything actually changed, and only rebuild the table then.
     if (Object.keys(newInfo).every(p => ((newInfo as any)[p] === colInfo[p]))) {
       return null;      // No changes.
@@ -1255,6 +1358,8 @@ export class DocStorage implements ISQLiteDB {
       sql: `CREATE TABLE ${quoteIdent(tableId)} (id INTEGER PRIMARY KEY${colSpecSql})`,
       oldDefault,
       newDefault,
+      oldSqlType,
+      newSqlType,
     };
   }
 
@@ -1286,6 +1391,7 @@ export class DocStorage implements ISQLiteDB {
                              newColType: string|null = null): Promise<void> {
     const result = await this._rebuildTableSql(tableId, colId, newColId, newColType);
     if (result) {
+      const q = quoteIdent;
       if (result.oldDefault !== result.newDefault) {
         // This isn't strictly necessary, but addresses a SQLite quirk that breaks our tests
         // (although likely unnoticeable in practice): an added column has "holes" for existing
@@ -1293,11 +1399,30 @@ export class DocStorage implements ISQLiteDB {
         // we do the soft-alter here, those values reflect the new default, i.e. change
         // unexpectedly. Setting the default values explicitly prevents this unexpected change.
         const dflt = result.oldDefault;
-        const q = quoteIdent;
         // (Note that comparison below must use "IS" rather than "=" to work for NULLs.)
         await this.exec(`UPDATE ${q(tableId)} SET ${q(colId)}=${dflt} WHERE ${q(colId)} IS ${dflt}`);
       }
       await this._alterTableSoft(tableId, result.sql);
+
+      // For any marshalled objects, check if we can now unmarshall them if they are the
+      // native type.
+      if (result.newSqlType !== result.oldSqlType) {
+        const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
+                                     `WHERE typeof(${q(colId)}) = 'blob'`);
+        const marshaller = new marshal.Marshaller({version: 2});
+        const sqlParams: Array<[any, number]> = [];
+        for (const cell of cells) {
+          const id: number = cell.id;
+          const value: any = cell.value;
+          const decodedValue = DocStorage._decodeValue(value, result.oldSqlType);
+          const newValue = DocStorage._encodeValue(marshaller, result.newSqlType, decodedValue);
+          if (!(newValue instanceof Uint8Array)) {
+            sqlParams.push([newValue, id]);
+          }
+        }
+        const sql = `UPDATE ${q(tableId)} SET ${q(colId)}=? WHERE id=?`;
+        await this._applyMaybeBulkUpdateOrAddSql(sql, sqlParams);
+      }
     }
   }
 
@@ -1331,6 +1456,8 @@ interface RebuildResult {
   sql: string;
   oldDefault: string;
   newDefault: string;
+  oldSqlType: string;
+  newSqlType: string;
 }
 
 // A summary of columns a database index is covering or should cover.

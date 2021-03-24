@@ -54,7 +54,7 @@
     "@gristlabs/connect-sqlite3": "0.9.11",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "4.0.6-grist.1",
+    "@gristlabs/sqlite3": "4.0.6-grist.2",
     "@popperjs/core": "2.3.3",
     "async-mutex": "0.2.4",
     "axios": "0.18.0",
