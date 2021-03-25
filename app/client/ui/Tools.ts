@@ -8,13 +8,13 @@ import { hoverTooltip, tooltipCloseButton } from 'app/client/ui/tooltips';
 import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
+import { menuAnnotate } from 'app/client/ui2018/menus';
 import { userOverrideParams } from 'app/common/gristUrls';
 import { Disposable, dom, makeTestId, Observable, observable, styled } from "grainjs";
 
 const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
-  const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
   const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
   const isOverridden = Boolean(gristDoc.docPageModel.userOverride.get());
   const canViewAccessRules = observable(false);
@@ -28,22 +28,22 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
 
-    (aclUIEnabled ?
-      cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-        cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
-        dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
-          return cssPageLink(
-            cssPageIcon('EyeShow'),
-            cssLinkText('Access Rules'),
-            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
-            isOverridden ? addRevertViewAsUI() : null,
-          );
-        }),
-        testId('access-rules'),
-      ) :
-      null
+    cssPageEntry(
+      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
+      cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
+      dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
+        return cssPageLink(
+          cssPageIcon('EyeShow'),
+          cssLinkText('Access Rules',
+            menuAnnotate('Beta', cssBetaTag.cls(''))
+          ),
+          _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          isOverridden ? addRevertViewAsUI() : null,
+        );
+      }),
+      testId('access-rules'),
     ),
+
     cssPageEntry(
       cssPageLink(cssPageIcon('Log'), cssLinkText('Document History'), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
@@ -157,5 +157,11 @@ const cssRevertViewAsButton = styled(cssExampleCardOpener, `
   background-color: ${colors.darkGrey};
   &:hover {
     background-color: ${colors.slate};
+  }
+`);
+
+const cssBetaTag = styled('div', `
+  .${cssPageEntry.className}-disabled & {
+    opacity: 0.4;
   }
 `);

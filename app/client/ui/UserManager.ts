@@ -55,8 +55,6 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
   const modelObs: Observable<UserManagerModel|null> = observable(null);
 
-  const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
-
   async function onConfirm(ctl: IModalControl) {
     const model = modelObs.get();
     if (model) {
@@ -107,15 +105,13 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         dom.on('click', () => ctl.close()),
         testId('um-cancel')
       ),
-      (aclUIEnabled ?
-        cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
-          dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
-          'Open Access Rules',
-          dom.on('click', (ev) => {
-            ev.preventDefault();
-            return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
-          }),
-        ) : null
+      cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
+        dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
+        'Open Access Rules',
+        dom.on('click', (ev) => {
+          ev.preventDefault();
+          return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+        }),
       ),
       testId('um-buttons'),
     )

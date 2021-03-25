@@ -65,7 +65,6 @@ export interface IGristUrlState {
     embed?: boolean;
     style?: InterfaceStyle;
     compare?: string;
-    aclUI?: boolean;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
                                               // Encoded in URL as query params with extra '_' suffix.
   };
@@ -264,9 +263,6 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
-  }
-  if (sp.has('aclUI')) {
-    state.params!.aclUI = isAffirmative(sp.get('aclUI'));
   }
   for (const [k, v] of sp.entries()) {
     if (k.endsWith('_')) {

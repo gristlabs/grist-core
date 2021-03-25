@@ -255,8 +255,8 @@ export function menuItemCmd(cmd: Command, label: string, ...args: DomElementArg[
   );
 }
 
-export function menuAnnotate(text: string) {
-  return cssAnnotateMenuItem('Beta');
+export function menuAnnotate(text: string, ...args: DomElementArg[]) {
+  return cssAnnotateMenuItem(text, ...args);
 }
 
 export const menuDivider = styled(weasel.cssMenuDivider, `

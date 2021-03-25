@@ -105,8 +105,8 @@ export const cssPageEntry = styled('div', `
   }
   &-disabled, &-disabled:hover, &-disabled.weasel-popup-open {
     background-color: initial;
-    color: ${colors.mediumGrey};
-    --icon-color: ${colors.mediumGrey};
+    color: ${colors.darkGrey};
+    --icon-color: ${colors.darkGrey};
   }
   .${cssTools.className}-collapsed > & {
     margin-right: 0;
