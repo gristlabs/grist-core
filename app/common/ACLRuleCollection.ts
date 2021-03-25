@@ -8,6 +8,8 @@ import sortBy = require('lodash/sortBy');
 
 const defaultMatchFunc: AclMatchFunc = () => true;
 
+export const SPECIAL_RULES_TABLE_ID = '*SPECIAL';
+
 // This is the hard-coded default RuleSet that's added to any user-created default rule.
 const DEFAULT_RULE_SET: RuleSet = {
   tableId: '*',
@@ -28,6 +30,39 @@ const DEFAULT_RULE_SET: RuleSet = {
     permissions: parsePermissions('none'),
     permissionsText: 'none',
   }],
+};
+
+const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
+  AccessRules: {
+    tableId: SPECIAL_RULES_TABLE_ID,
+    colIds: ['AccessRules'],
+    body: [{
+      aclFormula: "user.Access in [OWNER]",
+      matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+      permissions: parsePermissions('+R'),
+      permissionsText: '+R',
+    }, {
+      aclFormula: "",
+      matchFunc: defaultMatchFunc,
+      permissions: parsePermissions('none'),
+      permissionsText: 'none',
+    }],
+  },
+  FullCopies: {
+    tableId: SPECIAL_RULES_TABLE_ID,
+    colIds: ['FullCopies'],
+    body: [{
+      aclFormula: "user.Access in [OWNER]",
+      matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+      permissions: parsePermissions('+R'),
+      permissionsText: '+R',
+    }, {
+      aclFormula: "",
+      matchFunc: defaultMatchFunc,
+      permissions: parsePermissions('none'),
+      permissionsText: 'none',
+    }],
+  }
 };
 
 // If the user-created rules become dysfunctional, we can swap in this emergency set.
@@ -59,6 +94,7 @@ export class ACLRuleCollection {
   private _haveRules = false;
 
   // Map of tableId to list of column RuleSets (those with colIds other than '*')
+  // Includes also SPECIAL_RULES_TABLE_ID.
   private _columnRuleSets = new Map<string, RuleSet[]>();
 
   // Maps 'tableId:colId' to one of the RuleSets in the list _columnRuleSets.get(tableId).
@@ -130,6 +166,24 @@ export class ACLRuleCollection {
     const tableIds = new Set<string>();
     let defaultRuleSet: RuleSet = DEFAULT_RULE_SET;
 
+    // Collect special rules, combining them with corresponding defaults.
+    const specialRuleSets = new Map<string, RuleSet>(Object.entries(SPECIAL_RULE_SETS));
+    for (const ruleSet of ruleSets) {
+      if (ruleSet.tableId === SPECIAL_RULES_TABLE_ID) {
+        const specialType = String(ruleSet.colIds);
+        const specialDefault = specialRuleSets.get(specialType);
+        if (!specialDefault) {
+          throw new Error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
+        }
+        specialRuleSets.set(specialType, {...ruleSet, body: [...ruleSet.body, ...specialDefault.body]});
+      }
+    }
+
+    // Insert the special rule sets into colRuleSets.
+    for (const ruleSet of specialRuleSets.values()) {
+      getSetMapValue(colRuleSets, SPECIAL_RULES_TABLE_ID, () => []).push(ruleSet);
+    }
+
     this._haveRules = (ruleSets.length > 0);
     for (const ruleSet of ruleSets) {
       if (ruleSet.tableId === '*') {
@@ -142,6 +196,8 @@ export class ACLRuleCollection {
           // tableId of '*' cannot list particular columns.
           throw new Error(`Invalid rule for tableId ${ruleSet.tableId}, colIds ${ruleSet.colIds}`);
         }
+      } else if (ruleSet.tableId === SPECIAL_RULES_TABLE_ID) {
+        // Skip, since we handled these separately earlier.
       } else if (ruleSet.colIds === '*') {
         tableIds.add(ruleSet.tableId);
         if (tableRuleSets.has(ruleSet.tableId)) {

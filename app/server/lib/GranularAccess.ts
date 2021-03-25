@@ -21,7 +21,8 @@ import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
-import { IPermissionInfo, PermissionInfo, PermissionSetWithContext, TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
+import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
+import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
@@ -135,7 +136,7 @@ export class GranularAccess implements GranularAccessForBundle {
   // affected rows for the relevant table before and after each DocAction.  It
   // may contain some unaffected rows as well.  Other metadata is included if
   // needed.
-  private _steps: Promise<Array<ActionStep>>|null = null;
+  private _steps: Promise<ActionStep[]>|null = null;
   // Access control is done sequentially, bundle by bundle.  This is the current bundle.
   private _activeBundle: {
     docSession: OptDocSession,
@@ -173,7 +174,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Update granular access from DocData.
    */
   public async update() {
-    this._ruler.update(this._docData);
+    await this._ruler.update(this._docData);
 
     // Also clear the per-docSession cache of user attributes.
     this._userAttributesMap = new WeakMap();
