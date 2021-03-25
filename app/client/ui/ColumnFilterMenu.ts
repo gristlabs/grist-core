@@ -15,31 +15,26 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
-import {localeCompare} from 'app/common/gutil';
-import {Computed, dom, IDisposableOwner, input, makeTestId, Observable, styled} from 'grainjs';
-import escapeRegExp = require('lodash/escapeRegExp');
+import {Computed, Disposable, dom, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
 import identity = require('lodash/identity');
 import {IOpenController} from 'popweasel';
+import {ColumnFilterMenuModel, IFilterCount} from '../models/ColumnFilterMenuModel';
 
-
-interface IFilterCount {
-  label: string;
-  count: number;
-}
 
 interface IFilterMenuOptions {
-  columnFilter: ColumnFilter;
+  model: ColumnFilterMenuModel;
   valueCounts: Map<CellValue, IFilterCount>;
   doSave: (reset: boolean) => void;
   onClose: () => void;
 }
 
-export function columnFilterMenu(owner: IDisposableOwner,
-                                 { columnFilter, valueCounts, doSave, onClose }: IFilterMenuOptions): HTMLElement {
+const testId = makeTestId('test-filter-menu-');
+
+export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
+  const { model, doSave, onClose } = opts;
+  const { columnFilter } = model;
   // Save the initial state to allow reverting back to it on Cancel
   const initialStateJson = columnFilter.makeFilterJson();
-
-  const testId = makeTestId('test-filter-menu-');
 
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
@@ -51,34 +46,10 @@ export function columnFilterMenu(owner: IDisposableOwner,
     }
   });
 
-  const valueCountArr: Array<[CellValue, IFilterCount]> = Array.from(valueCounts);
+  const {searchValue: searchValueObs, filteredValues, filteredKeys} = model;
 
-  const searchValueObs = Observable.create(owner, '');
-
-  // computes a set of all keys that matches the search text.
-  const filterSet = Computed.create(owner, searchValueObs, (_use, searchValue) => {
-    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    return new Set(valueCountArr.filter(([_, {label}]) => searchRegex.test(label)).map(([key]) => key));
-  });
-
-  // computes the sorted array of all values (ie: pair of key and IFilterCount) that matches the search text.
-  const filteredValues = Computed.create(owner, filterSet, (_use, filter) => {
-    return valueCountArr.filter(([key]) => filter.has(key))
-      .sort((a, b) => localeCompare(a[1].label, b[1].label));
-  });
-
-  // computes the array of all values that does NOT matches the search text
-  const otherValues = Computed.create(owner, filterSet, (_use, filter) => {
-    return valueCountArr.filter(([key]) => !filter.has(key));
-  });
-
-  // computes the total count across all values that don’t match the search text
-  const othersCount = Computed.create(owner, otherValues, (_use, others) => {
-    return others.reduce((acc, val) => acc + val[1].count, 0).toLocaleString();
-  });
-
-  // computes the array of keys that matches the search text
-  const filteredKeys = Computed.create(owner, filteredValues, (_use, values) => values.map(([key]) => key));
+  const isAboveLimitObs = Computed.create(owner, (use) => use(model.valuesBeyondLimit).length > 0);
+  const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
 
   let searchInput: HTMLInputElement;
   let reset = false;
@@ -155,34 +126,39 @@ export function columnFilterMenu(owner: IDisposableOwner,
     cssItemList(
       testId('list'),
       dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults('No matching values')),
-      dom.forEach(filteredValues, ([key, value]) => cssMenuItem(
-        cssLabel(
-          cssCheckboxSquare({type: 'checkbox'},
-            dom.on('change', (_ev, elem) =>
-              elem.checked ? columnFilter.add(key) : columnFilter.delete(key)),
-            (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); }),
+      dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
+        cssMenuItem(
+          cssLabel(
+            cssCheckboxSquare({type: 'checkbox'},
+                              dom.on('change', (_ev, elem) =>
+                                     elem.checked ? columnFilter.add(key) : columnFilter.delete(key)),
+                              (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); }),
             cssItemValue(value.label === undefined ? key as string : value.label),
-        ),
-        cssItemCount(value.count.toLocaleString(), testId('count')))) // Include comma separator
+          ),
+          cssItemCount(value.count.toLocaleString(), testId('count')))
+      ))) // Include comma separator
     ),
     cssMenuDivider(),
     cssMenuFooter(
-      cssMenuItem(
-        testId('summary'),
-        cssLabel(
-          cssCheckboxSquare(
-            {type: 'checkbox'},
-            dom.on('change', (_ev, elem) => columnFilter.setState(
-              elem.checked ?
-                {excluded: filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
-                {included: filteredKeys.get().filter((key) => columnFilter.includes(key))}
-            )),
-            dom.prop('checked', (use) => !use(columnFilter.isInclusionFilter))
-          ),
-          cssItemValue(dom.text((use) => use(searchValueObs) ? 'Others' : 'Future Values')),
-        ),
-        dom.maybe(searchValueObs, () => cssItemCount(dom.text(othersCount)))
-      ),
+      dom.domComputed((use) => {
+        const isAboveLimit = use(isAboveLimitObs);
+        const searchValue = use(isSearchingObs);
+        if (isAboveLimit) {
+          return searchValue ? [
+            buildSummary('Other Matching', BeyondLimit, model),
+            buildSummary('Other Non-Matching', OtherValues, model),
+          ] : [
+            buildSummary('Other Values', BeyondLimit, model),
+            buildSummary('Future Values', OtherValues, model)
+          ];
+        } else {
+          return searchValue ? [
+            buildSummary('Others', OtherValues, model)
+          ] : [
+            buildSummary('Future Values', OtherValues, model)
+          ];
+        }
+      }),
       cssMenuItem(
         cssApplyButton('Apply', testId('apply-btn'),
                        dom.on('click', () => { reset = true; onClose(); })),
@@ -192,6 +168,90 @@ export function columnFilterMenu(owner: IDisposableOwner,
     )
   );
   return filterMenu;
+}
+
+// Describes the model for one summary checkbox.
+interface SummaryModel extends Disposable {
+
+  // Whether checkbox is checked
+  isChecked: Computed<boolean> ;
+
+  // Callback for when the checkbox is changed.
+  callback: (checked: boolean) => void;
+
+  // The count.
+  count: Computed<string>;
+}
+
+// Ctor that construct a SummaryModel.
+type SummaryModelCreator = new(columnFilter: ColumnFilterMenuModel) => SummaryModel;
+
+// Summaries all the values that are in `columnFilter.valuesBeyondLimit`, ie: it includes a count
+// for all the values and clicking the checkbox successively add/delete these values from the
+// `columnFilter`.
+class BeyondLimit extends Disposable implements SummaryModel {
+
+  public columnFilter = this.model.columnFilter;
+
+  public isChecked = Computed.create(this, (use) => (
+    !use(this.model.valuesBeyondLimit).find(([key, _val]) => !this.columnFilter.includes(key))
+  ));
+
+  public count = Computed.create(this, (use) => getCount(use(this.model.valuesBeyondLimit)).toLocaleString());
+
+  constructor(public model: ColumnFilterMenuModel) { super(); }
+
+  public callback(checked: boolean) {
+    const keys = this.model.valuesBeyondLimit.get().map(([key, _val]) => key);
+    if (checked) {
+      this.columnFilter.add(...keys);
+    } else {
+      this.columnFilter.delete(...keys);
+    }
+  }
+}
+
+// Summaries the values that are not in columnFilter.filteredValues, it includes both the values in
+// `columnFilter.otherValues` (ie: the values that are filtered out if user is using the search) and
+// the future values. The checkbox successively turns columnFilter into an inclusion/exclusion
+// filter. The count is hidden if `columnFilter.otherValues` is empty (ie: no search is peformed =>
+// only checkbox only toggles future values)
+class OtherValues extends Disposable implements SummaryModel {
+  public columnFilter = this.model.columnFilter;
+  public isChecked = Computed.create(this, (use) => !use(this.columnFilter.isInclusionFilter));
+
+  public count = Computed.create(this, (use) => {
+    const c = getCount(use(this.model.otherValues));
+    return c ? c.toLocaleString() : '';
+  });
+
+  constructor(public model: ColumnFilterMenuModel) { super(); }
+
+  public callback(checked: boolean) {
+    const columnFilter = this.columnFilter;
+    const filteredKeys = this.model.filteredKeys;
+    const state = checked ?
+      {excluded: filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
+      {included: filteredKeys.get().filter((key) => columnFilter.includes(key))};
+    return columnFilter.setState(state);
+  }
+}
+
+function buildSummary(label: string, SummaryModelCtor: SummaryModelCreator, model: ColumnFilterMenuModel) {
+  const summaryModel = new SummaryModelCtor(model);
+  return cssMenuItem(
+    dom.autoDispose(summaryModel),
+    testId('summary'),
+    cssLabel(
+      cssCheckboxSquare(
+        {type: 'checkbox'},
+        dom.on('change', (_ev, elem) => summaryModel.callback(elem.checked)),
+        dom.prop('checked', summaryModel.isChecked)
+      ),
+      cssItemValue(label),
+    ),
+    summaryModel.count !== undefined ? cssItemCount(dom.text(summaryModel.count), testId('count')) : null,
+  );
 }
 
 /**
@@ -213,10 +273,11 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   addCountsToMap(valueCounts, rowSource.getHiddenRows() as Iterable<number>, valueGetter, valueMapFunc);
 
   const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek());
+  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
   sectionFilter.setFilterOverride(field.getRowId(), columnFilter); // Will be removed on menu disposal
 
   return columnFilterMenu(openCtl, {
-    columnFilter,
+    model,
     valueCounts,
     onClose: () => openCtl.close(),
     doSave: (reset: boolean = false) => {
@@ -246,6 +307,10 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, values: Iterable
       valueMap.set(key, { label: labelMapFunc(v), count: 1 });
     }
   }
+}
+
+function getCount(values: Array<[CellValue, IFilterCount]>) {
+   return values.reduce((acc, val) => acc + val[1].count, 0);
 }
 
 const cssMenu = styled('div', `
@@ -311,9 +376,7 @@ const cssMenuFooter = styled('div', `
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  & .${cssMenuItem.className} {
-    padding: 12px 16px;
-  }
+  padding-top: 4px;
 `);
 const cssApplyButton = styled(primaryButton, `
   margin-right: 4px;

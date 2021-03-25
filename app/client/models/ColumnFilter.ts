@@ -85,13 +85,17 @@ export class ColumnFilter extends Disposable {
     return this._values.has(val) === this._include;
   }
 
-  public add(val: CellValue) {
-    this._include ? this._values.add(val) : this._values.delete(val);
+  public add(...values: CellValue[]) {
+    for (const val of values) {
+      this._include ? this._values.add(val) : this._values.delete(val);
+    }
     this._updateState();
   }
 
-  public delete(val: CellValue) {
-    this._include ? this._values.delete(val) : this._values.add(val);
+  public delete(...values: CellValue[]) {
+    for (const val of values) {
+      this._include ? this._values.delete(val) : this._values.add(val);
+    }
     this._updateState();
   }
 
