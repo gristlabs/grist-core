@@ -9,7 +9,7 @@ import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
 import { userOverrideParams } from 'app/common/gristUrls';
-import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
+import { Disposable, dom, makeTestId, Observable, observable, styled } from "grainjs";
 
 const testId = makeTestId('test-tools-');
 
@@ -17,7 +17,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const aclUIEnabled = Boolean(urlState().state.get().params?.aclUI);
   const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
   const isOverridden = Boolean(gristDoc.docPageModel.userOverride.get());
-  const canUseAccessRules = isOwner && !isOverridden;
+  const canViewAccessRules = observable(false);
+  function updateCanViewAccessRules() {
+    canViewAccessRules.set((isOwner && !isOverridden) ||
+                           gristDoc.docModel.rules.getNumRows() > 0);
+  }
+  owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
+  updateCanViewAccessRules();
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
@@ -25,12 +31,15 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     (aclUIEnabled ?
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-        cssPageEntry.cls('-disabled', !isOwner),
-        cssPageLink(cssPageIcon('EyeShow'),
-          cssLinkText('Access Rules'),
-          canUseAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
-          isOverridden ? addRevertViewAsUI() : null,
-        ),
+        cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
+        dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
+          return cssPageLink(
+            cssPageIcon('EyeShow'),
+            cssLinkText('Access Rules'),
+            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+            isOverridden ? addRevertViewAsUI() : null,
+          );
+        }),
         testId('access-rules'),
       ) :
       null

@@ -123,7 +123,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
 function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel), 'Manage Users',
-      dom.cls('disabled', !roles.canEditAccess(doc.access)),
+      dom.cls('disabled', !roles.canEditAccess(doc.access) || doc.isFork),
       testId('tb-share-option')
     ),
     menuDivider(),

@@ -24,6 +24,7 @@ import * as rowset from 'app/client/models/rowset';
 import {RowId} from 'app/client/models/rowset';
 import {schema, SchemaTypes} from 'app/common/schema';
 
+import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
@@ -111,6 +112,7 @@ export class DocModel {
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
   public replHist: MTM<REPLRec> = this._metaTableModel("_grist_REPL_Hist", createREPLRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
+  public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
 
   public allTables: KoArray<TableRec>;
   public allTableIds: KoArray<string>;

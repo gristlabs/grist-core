@@ -697,9 +697,8 @@ export class ActiveDoc extends EventEmitter {
    */
   public async findColFromValues(docSession: DocSession, values: any[], n: number,
                                  optTableId?: string): Promise<number[]> {
-    // This could leak information about private tables, so if user cannot read entire
-    // document, do nothing.
-    if (!await this._granularAccess.canReadEverything(docSession)) { return []; }
+    // This could leak information about private tables, so check for permission.
+    if (!await this._granularAccess.canScanData(docSession)) { return []; }
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._pyCall('find_col_from_values', values, n, optTableId);
@@ -843,7 +842,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async autocomplete(docSession: DocSession, txt: string, tableId: string): Promise<string[]> {
     // Autocompletion can leak names of tables and columns.
-    if (!await this._granularAccess.canReadEverything(docSession)) { return []; }
+    if (!await this._granularAccess.canScanData(docSession)) { return []; }
     await this.waitForInitialization();
     return this._pyCall('autocomplete', txt, tableId);
   }
@@ -895,7 +894,7 @@ export class ActiveDoc extends EventEmitter {
     const user = getDocSessionUser(docSession);
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
-    if (!user || !await this._granularAccess.canCopyEverything(docSession)) {
+    if (!user || !await this.canDownload(docSession)) {
       throw new ApiError('Insufficient access to document to copy it entirely', 403);
     }
     const userId = user.id;
@@ -960,7 +959,7 @@ export class ActiveDoc extends EventEmitter {
    * regardless of rules that may block access to them.
    */
   public async getAclResources(docSession: DocSession): Promise<{[tableId: string]: string[]}> {
-    if (await this._granularAccess.hasNuancedAccess(docSession) || !this.docData)  {
+    if (!this.docData || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
       throw new Error('Cannot list ACL resources');
     }
     const result: {[tableId: string]: string[]} = {};

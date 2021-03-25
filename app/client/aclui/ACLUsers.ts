@@ -57,7 +57,11 @@ export class ACLUsersPopup extends Disposable {
   public async init(pageModel: DocPageModel) {
     this._currentUser = pageModel.userOverride.get()?.user || pageModel.appModel.currentValidUser;
     const doc = pageModel.currentDoc.get();
-    if (doc) {
+    // Disabling "View as user" for forks for the moment.  The getDocAccess endpoint
+    // only succeeds for documents that exist in the DB currently.
+    // TODO: modify the getDocAccess endpoint to accept forks, through the kind of
+    // manipulation that getDoc does.  Then we can enable this button for forks.
+    if (doc && !doc.isFork) {
       const permissionData = await pageModel.appModel.api.getDocAccess(doc.id);
       if (this.isDisposed()) { return; }
       this._usersInDoc = permissionData.users.map(user => ({

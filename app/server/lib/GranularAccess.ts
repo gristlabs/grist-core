@@ -1,5 +1,5 @@
 import { ALL_PERMISSION_PROPS } from 'app/common/ACLPermissions';
-import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
+import { ACLRuleCollection, SPECIAL_RULES_TABLE_ID } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { Query } from 'app/common/ActiveDocAPI';
@@ -401,6 +401,23 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
+   * Check if user is explicitly permitted to download/copy document.
+   * They may be allowed to download in any case, see canCopyEverything.
+   */
+  public async hasFullCopiesPermission(docSession: OptDocSession): Promise<boolean> {
+    const permInfo = await this._getAccess(docSession);
+    return permInfo.getColumnAccess(SPECIAL_RULES_TABLE_ID, 'FullCopies').perms.read === 'allow';
+  }
+
+  /**
+   * Check if user may view Access Rules.
+   */
+  public async hasAccessRulesPermission(docSession: OptDocSession): Promise<boolean> {
+    const permInfo = await this._getAccess(docSession);
+    return permInfo.getColumnAccess(SPECIAL_RULES_TABLE_ID, 'AccessRules').perms.read === 'allow';
+  }
+
+  /**
    * Check whether user can read everything in document.  Checks both home-level and doc-level
    * permissions.
    */
@@ -409,6 +426,14 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
     return this.getReadPermission(permInfo.getFullAccess()) === 'allow';
+  }
+
+  /**
+   * An odd little right for findColFromValues and autocomplete.  Allow if user can read
+   * all data, or is an owner.  Might be worth making a special permission.
+   */
+  public async canScanData(docSession: OptDocSession): Promise<boolean> {
+    return await this.isOwner(docSession) || await this.canReadEverything(docSession);
   }
 
   /**
@@ -422,7 +447,8 @@ export class GranularAccess implements GranularAccessForBundle {
    * just a bit inconsistent.
    */
   public async canCopyEverything(docSession: OptDocSession): Promise<boolean> {
-    return (await this.isOwner(docSession)) || (await this.canReadEverything(docSession));
+    return await this.hasFullCopiesPermission(docSession) ||
+      await this.canReadEverything(docSession);
   }
 
   /**
@@ -469,7 +495,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const permInfo = await this._getAccess(docSession);
     const censor = new CensorshipInfo(permInfo, this._ruler.ruleCollection, tables,
-                                      await this.isOwner(docSession));
+                                      await this.hasAccessRulesPermission(docSession));
 
     for (const tableId of STRUCTURAL_TABLES) {
       censor.apply(tables[tableId]);
@@ -1181,7 +1207,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const censor = new CensorshipInfo(permissionInfo,
                                       ruler.ruleCollection,
                                       step.metaAfter,
-                                      await this.isOwner(cursor.docSession));
+                                      await this.hasAccessRulesPermission(cursor.docSession));
     if (censor.apply(act)) {
       results.push(act);
     }
@@ -1193,7 +1219,7 @@ export class GranularAccess implements GranularAccessForBundle {
       const censorBefore = new CensorshipInfo(permissionInfo,
                                               ruler.ruleCollection,
                                               step.metaBefore,
-                                              await this.isOwner(cursor.docSession));
+                                              await this.hasAccessRulesPermission(cursor.docSession));
       // For all views previously censored, if they are now uncensored,
       // add an UpdateRecord to expose them.
       for (const v of censorBefore.censoredViews) {
@@ -1478,7 +1504,7 @@ export class CensorshipInfo {
   public constructor(permInfo: PermissionInfo,
                      ruleCollection: ACLRuleCollection,
                      tables: {[key: string]: TableDataAction},
-                     private _isOwner: boolean) {
+                     private _canViewACLs: boolean) {
     // Collect a list of censored columns (by "<tableRef> <colId>").
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
@@ -1550,11 +1576,11 @@ export class CensorshipInfo {
     const ids = getRowIdsFromDocAction(a);
     if (!STRUCTURAL_TABLES.has(tableId)) { return true; }
     if (!(tableId in this.censored)) {
-      if (!this._isOwner && a[0] === 'TableData') {
+      if (!this._canViewACLs && a[0] === 'TableData') {
         a[2] = [];
         a[3] = {};
       }
-      return this._isOwner;
+      return this._canViewACLs;
     }
     const rec = new RecordEditor(a, undefined, true);
     const method = getCensorMethod(getTableId(a));

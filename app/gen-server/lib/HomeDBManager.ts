@@ -983,19 +983,16 @@ export class HomeDBManager extends EventEmitter {
       doc.trunkAccess = doc.access;
 
       // Forks without a user id are editable by anyone with view access to the trunk.
-      if (forkUserId === undefined && doc.access === 'viewers') { doc.access = 'editors'; }
+      if (forkUserId === undefined && roles.canView(doc.access)) { doc.access = 'owners'; }
       if (forkUserId !== undefined) {
         // A fork user id is known, so only that user should get to edit the fork.
         if (userId === forkUserId) {
-          // Promote to editor if just a viewer of the trunk.
-          if (doc.access === 'viewers') { doc.access = 'editors'; }
+          if (roles.canView(doc.access)) { doc.access = 'owners'; }
         } else {
           // reduce to viewer if not already viewer
           doc.access = roles.getWeakestRole('viewers', doc.access);
         }
       }
-      // No-one may be an owner of a fork, since there's no way to set up ACLs for it.
-      if (doc.access === 'owners') { doc.access = 'editors'; }
 
       // Finally, if we are viewing a snapshot, we can't edit it.
       if (snapshotId) {

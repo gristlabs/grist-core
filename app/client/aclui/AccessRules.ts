@@ -318,9 +318,10 @@ export class AccessRules extends Disposable {
           ),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
-        bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
-          dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden'),
-        ),
+        !this._gristDoc.docPageModel.isFork.get() ?
+          bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
+            dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden'),
+          ) : null,
       ),
       cssConditionError(dom.text(this._errorMessage), {style: 'margin-left: 16px'},
         testId('access-rules-error')

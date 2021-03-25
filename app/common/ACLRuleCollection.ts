@@ -44,8 +44,8 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
     }, {
       aclFormula: "",
       matchFunc: defaultMatchFunc,
-      permissions: parsePermissions('none'),
-      permissionsText: 'none',
+      permissions: parsePermissions('-R'),
+      permissionsText: '-R',
     }],
   },
   FullCopies: {
@@ -59,8 +59,8 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
     }, {
       aclFormula: "",
       matchFunc: defaultMatchFunc,
-      permissions: parsePermissions('none'),
-      permissionsText: 'none',
+      permissions: parsePermissions('-R'),
+      permissionsText: '-R',
     }],
   }
 };
@@ -100,6 +100,9 @@ export class ACLRuleCollection {
   // Maps 'tableId:colId' to one of the RuleSets in the list _columnRuleSets.get(tableId).
   private _tableColumnMap = new Map<string, RuleSet>();
 
+  // Rules for SPECIAL_RULES_TABLE_ID "columns".
+  private _specialRuleSets = new Map<string, RuleSet>();
+
   // Map of tableId to the single default RuleSet for the table (colIds of '*')
   private _tableRuleSets = new Map<string, RuleSet>();
 
@@ -119,6 +122,7 @@ export class ACLRuleCollection {
 
   // Return the RuleSet for "tableId:colId", or undefined if there isn't one for this column.
   public getColumnRuleSet(tableId: string, colId: string): RuleSet|undefined {
+    if (tableId === SPECIAL_RULES_TABLE_ID) { return this._specialRuleSets.get(colId); }
     return this._tableColumnMap.get(`${tableId}:${colId}`);
   }
 
@@ -220,6 +224,7 @@ export class ACLRuleCollection {
     this._defaultRuleSet = defaultRuleSet;
     this._tableIds = [...tableIds];
     this._userAttributeRules = userAttributeMap;
+    this._specialRuleSets = specialRuleSets;
   }
 
   /**
