@@ -26,7 +26,9 @@ import {FormulaProperties, RulePart, RuleSet, UserAttributeRule} from 'app/commo
 import {getFormulaProperties} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
+import * as roles from 'app/common/roles';
 import {SchemaTypes} from 'app/common/schema';
+import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess} from 'app/common/UserAPI';
 import {BaseObservable, Computed, Disposable, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {dom, DomElementArg, IDisposableOwner, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
@@ -91,6 +93,8 @@ export class AccessRules extends Disposable {
 
   private _aclUsersPopup = ACLUsersPopup.create(this);
 
+  private _publicEditAccess = Observable.create(this, false);
+
   constructor(private _gristDoc: GristDoc) {
     super();
     this._ruleStatus = Computed.create(this, (use) => {
@@ -110,7 +114,8 @@ export class AccessRules extends Disposable {
       );
     });
 
-    this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) => (s === RuleStatus.ChangedValid));
+    this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) =>
+      (s === RuleStatus.ChangedValid) && !use(this._publicEditAccess));
 
     this._userAttrChoices = Computed.create(this, this._userAttrRules, (use, rules) => {
       const result: IAttrOption[] = [
@@ -137,20 +142,10 @@ export class AccessRules extends Disposable {
     for (const tableId of ['_grist_ACLResources', '_grist_ACLRules']) {
       const tableData = this._gristDoc.docData.getTable(tableId)!;
       this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
+      this.autoDispose(this._gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
     }
 
     this.update().catch((e) => this._errorMessage.set(e.message));
-  }
-
-  public _onChange() {
-    if (this._ruleStatus.get() === RuleStatus.Unchanged) {
-      // If no changes, it's safe to just reload the rules from docData.
-      this.update().catch((e) => this._errorMessage.set(e.message));
-    } else {
-      this._errorMessage.set(
-        'Access rules have changed. Click Reset to revert your changes and refresh the rules.'
-      );
-    }
   }
 
   public get allTableIds() { return Object.keys(this._aclResources).sort(); }
@@ -164,11 +159,13 @@ export class AccessRules extends Disposable {
     if (this.isDisposed()) { return; }
     this._errorMessage.set('');
     const rules = this._ruleCollection;
+
     [ , , this._aclResources] = await Promise.all([
       rules.update(this._gristDoc.docData, {log: console}),
-      this._aclUsersPopup.init(this._gristDoc.docPageModel),
+      this._updateDocAccessData(),
       this._gristDoc.docComm.getAclResources(),
     ]);
+    if (this.isDisposed()) { return; }
 
     this._tableRules.set(
       rules.getAllTableIds()
@@ -292,7 +289,7 @@ export class AccessRules extends Disposable {
           dom.text((use) => {
             const s = use(this._ruleStatus);
             return s === RuleStatus.CheckPending ? 'Checking...' :
-              s === RuleStatus.Invalid ? 'Invalid' : 'Saved';
+              s === RuleStatus.Unchanged ? 'Saved' : 'Invalid';
           }),
           testId('rules-non-save')
         ),
@@ -318,12 +315,19 @@ export class AccessRules extends Disposable {
           ),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
+        // Disabling "View as user" for forks for the moment. TODO Modify getDocAccess endpoint
+        // to accept forks, through the kind of manipulation that getDoc does; then can enable.
         !this._gristDoc.docPageModel.isFork.get() ?
           bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
             dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden'),
           ) : null,
       ),
-      cssConditionError(dom.text(this._errorMessage), {style: 'margin-left: 16px'},
+      cssConditionError({style: 'margin-left: 16px'},
+        dom.maybe(this._publicEditAccess, () => dom('div',
+          'Public "Editor" access is incompatible with Access Rules. ' +
+          'To set rules, remove it or reduce to "Viewer".'
+        )),
+        dom.text(this._errorMessage),
         testId('access-rules-error')
       ),
       shadowScroll(
@@ -426,6 +430,38 @@ export class AccessRules extends Disposable {
 
   private _addUserAttributes() {
     this._userAttrRules.push(ObsUserAttributeRule.create(this._userAttrRules, this, undefined, {focus: true}));
+  }
+
+  private _onChange() {
+    if (this._ruleStatus.get() === RuleStatus.Unchanged) {
+      // If no changes, it's safe to just reload the rules from docData.
+      this.update().catch((e) => this._errorMessage.set(e.message));
+    } else {
+      this._errorMessage.set(
+        'Access rules have changed. Click Reset to revert your changes and refresh the rules.'
+      );
+    }
+  }
+
+  private async _updateDocAccessData() {
+    const pageModel = this._gristDoc.docPageModel;
+    const doc = pageModel.currentDoc.get();
+
+    // Note that the getDocAccess endpoint does not succeed for forks currently.
+    const permissionData = doc && !doc.isFork ? await pageModel.appModel.api.getDocAccess(doc.id) : null;
+    if (this.isDisposed()) { return; }
+
+    this._aclUsersPopup.init(pageModel, permissionData);
+
+    // We do not allow Public Editor access in combination with Granular ACL rules. When
+    // _publicEditAccess is on, we show a warning and prevent saving rules.
+    if (permissionData) {
+      const publicEditAccess = permissionData.users.some(user => (
+        (user.email === EVERYONE_EMAIL || user.email === ANONYMOUS_USER_EMAIL) &&
+        roles.canEdit(getRealAccess(user, permissionData))
+      ));
+      this._publicEditAccess.set(publicEditAccess);
+    }
   }
 }
 

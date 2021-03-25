@@ -10,7 +10,8 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {userOverrideParams} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess, UserAccessData} from 'app/common/UserAPI';
+import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL} from 'app/common/UserAPI';
+import {getRealAccess, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {Disposable, dom, Observable, styled} from 'grainjs';
 import {cssMenu, cssMenuWrap, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
@@ -54,16 +55,9 @@ export class ACLUsersPopup extends Disposable {
   private _usersInDoc: UserAccessData[] = [];
   private _currentUser: FullUser|null = null;
 
-  public async init(pageModel: DocPageModel) {
+  public init(pageModel: DocPageModel, permissionData: PermissionData|null) {
     this._currentUser = pageModel.userOverride.get()?.user || pageModel.appModel.currentValidUser;
-    const doc = pageModel.currentDoc.get();
-    // Disabling "View as user" for forks for the moment.  The getDocAccess endpoint
-    // only succeeds for documents that exist in the DB currently.
-    // TODO: modify the getDocAccess endpoint to accept forks, through the kind of
-    // manipulation that getDoc does.  Then we can enable this button for forks.
-    if (doc && !doc.isFork) {
-      const permissionData = await pageModel.appModel.api.getDocAccess(doc.id);
-      if (this.isDisposed()) { return; }
+    if (permissionData) {
       this._usersInDoc = permissionData.users.map(user => ({
         ...user,
         access: getRealAccess(user, permissionData),

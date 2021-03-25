@@ -45,7 +45,8 @@ export interface IUserManagerOptions {
 // required properties of the options.
 async function getModel(options: IUserManagerOptions): Promise<UserManagerModelImpl> {
   const permissionData = await options.permissionData;
-  return new UserManagerModelImpl(permissionData, options.resourceType, options.activeEmail);
+  return new UserManagerModelImpl(permissionData, options.resourceType, options.activeEmail,
+    options.docPageModel);
 }
 
 /**

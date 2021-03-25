@@ -522,6 +522,14 @@ export class GristDoc extends DisposableWithEvents {
     });
   }
 
+  public hasGranularAccessRules(): boolean {
+    const rulesTable = this.docData.getTable('_grist_ACLRules')!;
+    // To check if there are rules, ignore the default no-op rule created for an older incarnation
+    // of ACLs. It exists in older documents, and is still created for new ones. We detect it by
+    // the use of the deprecated 'permissions' field, and not the new 'permissionsText' field.
+    return rulesTable.numRecords() > rulesTable.filterRowIds({permissionsText: '', permissions: 63}).length;
+  }
+
   private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool|null {
     switch (tool) {
       case 'docHistory': {

@@ -1,3 +1,5 @@
+import {DocPageModel} from 'app/client/models/DocPageModel';
+import {reportError, UserError} from 'app/client/models/errors';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
@@ -120,7 +122,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   constructor(
     public initData: PermissionData,
     public resourceType: ResourceType,
-    private _activeUserEmail: string|null
+    private _activeUserEmail: string|null,
+    private _docPageModel?: DocPageModel,
   ) {
     super();
   }
@@ -194,13 +197,20 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         delta.maxInheritedRole = maxInheritedRole;
       }
     }
-    // Looping through the members has the side effect of updating the delta.
     const members = [...this.membersEdited.get()];
     if (this.publicMember) {
       members.push(this.publicMember);
     }
-    members.forEach((m, i) => {
-      const access = m.access.get();
+    // Loop through the members and update the delta.
+    for (const m of members) {
+      let access = m.access.get();
+      if (m === this.publicMember && access === roles.EDITOR &&
+          this._docPageModel?.gristDoc.get()?.hasGranularAccessRules()) {
+        access = roles.VIEWER;
+        reportError(new UserError(
+          'Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".'
+        ));
+      }
       if (!roles.isValidRole(access)) {
         throw new Error(`Cannot update user to invalid role ${access}`);
       }
@@ -208,7 +218,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         // Add users whose access changed.
         delta.users![m.email] = m.isRemoved ? null : access as roles.NonGuestRole;
       }
-    });
+    }
     return delta;
   }
 

@@ -96,7 +96,7 @@ export class Notification extends Expirable implements INotification {
 
   constructor(_opts: INotifyOptions) {
     super();
-    this.options = defaults({}, _opts, this.options)
+    this.options = defaults({}, _opts, this.options);
 
     if (this.options.expireSec > 0) {
       const expireTimer = setTimeout(() => this.expire(), 1000 * this.options.expireSec);
