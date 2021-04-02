@@ -1,6 +1,7 @@
 # explicitly list the files needed by docker.
 *
 !package.json
+!yarn.lock
 !tsconfig.json
 !stubs
 !app
@@ -9,3 +10,4 @@
 !static
 !bower_components
 !sandbox
+!test

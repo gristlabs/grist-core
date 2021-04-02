@@ -40,10 +40,10 @@ docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
 Here are the steps needed:
 
 ```sh
-npm install
-npm run build:prod
-npm run install:python
-npm start
+yarn install
+yarn run build:prod
+yarn run install:python
+yarn start
 # unauthenticated grist client available at http://localhost:8484
 # unauthenticated grist api available at http://localhost:8484/api/
 ```

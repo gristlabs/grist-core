@@ -403,7 +403,12 @@ export class FlexServer implements GristServer {
         name: 'You',
         email: process.env.GRIST_DEFAULT_EMAIL,
       };
-      await this.dbManager.getUserByLoginWithRetry(profile.email, profile);
+      const user = await this.dbManager.getUserByLoginWithRetry(profile.email, profile);
+      if (user) {
+        // No need to survey this user!
+        user.isFirstTimeUser = false;
+        await user.save();
+      }
     }
     // Report which database we are using, without sensitive credentials.
     this.info.push(['database', getDatabaseUrl(this.dbManager.connection.options, false)]);

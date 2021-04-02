@@ -6,7 +6,8 @@ FROM node:10 as builder
 
 # Install all node dependencies.
 ADD package.json package.json
-RUN npm i
+ADD yarn.lock yarn.lock
+RUN yarn install --frozen-lockfile
 
 # Build node code.
 ADD tsconfig.json tsconfig.json
@@ -14,7 +15,8 @@ ADD app app
 ADD stubs stubs
 ADD buildtools buildtools
 ADD static static
-RUN npm run build:prod
+ADD test/tsconfig.json test/tsconfig.json
+RUN yarn run build:prod
 
 # Install all python dependencies.
 ADD sandbox/requirements.txt requirements.txt
@@ -61,4 +63,4 @@ ENV GRIST_DATA_DIR=/persist/docs
 ENV GRIST_SESSION_COOKIE=grist_core
 ENV TYPEORM_DATABASE=/persist/home.sqlite3
 EXPOSE 8484
-CMD npm run start:prod
+CMD yarn run start:prod

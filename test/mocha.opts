@@ -1,0 +1,2 @@
+--require source-map-support/register
+test/init-mocha-webdriver

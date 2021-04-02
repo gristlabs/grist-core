@@ -1,0 +1,14 @@
+{
+  "extends": "../buildtools/tsconfig-base.json",
+  "include": [
+    "**/*",
+    "../app/server/declarations.d.ts",
+    "../app/server/declarations/**/*.d.ts",
+    "../stubs/app/server/declarations.d.ts",
+    "../stubs/app/server/declarations/**/*.d.ts"
+  ],
+  "references": [
+    { "path": "../app" },
+    { "path": "../stubs/app" },
+  ]
+}

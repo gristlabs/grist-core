@@ -5,6 +5,6 @@
   "references": [
     { "path": "./app" },
     { "path": "./stubs/app" },
-    // { "path": "./test" },
+    { "path": "./test" },
   ]
 }

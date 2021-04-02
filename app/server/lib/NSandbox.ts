@@ -327,7 +327,9 @@ export class NSandboxCreator implements ISandboxCreator {
     // In this case, expect to find library files in a virtualenv built by core
     // buildtools/prepare_python.sh
     const pythonVersion = 'python2.7';
-    const libraryPath = `grist:../venv/lib/${pythonVersion}/site-packages`;
+    const libraryPath =
+      path.join(process.cwd(), 'sandbox', 'grist') + ':' +
+      path.join(process.cwd(), 'venv', 'lib', pythonVersion, 'site-packages');
     const args = [options.entryPoint || defaultEntryPoint];
     if (!options.entryPoint && options.comment) {
       // When using default entry point, we can add on a comment as an argument - it isn't

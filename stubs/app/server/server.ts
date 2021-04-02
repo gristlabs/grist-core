@@ -4,8 +4,12 @@
  * By default, starts up on port 8484.
  */
 
+import {isAffirmative} from 'app/common/gutil';
+
+const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
+
 // Set log levels before importing anything.
-if (!process.env.DEBUG) {
+if (!debugging) {
   // Be a lot less noisy by default.
   setDefaultEnv('GRIST_LOG_LEVEL', 'error');
   setDefaultEnv('GRIST_LOG_SKIP_HTTP', 'true');
@@ -32,7 +36,7 @@ function setDefaultEnv(name: string, value: string) {
 // tslint:disable:no-console
 export async function main() {
   console.log('Welcome to Grist.');
-  if (!process.env.DEBUG) {
+  if (!debugging) {
     console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
     console.log('For full logs, re-run with DEBUG=1');
   }
@@ -45,7 +49,10 @@ export async function main() {
   // Make a blank db if needed.
   await updateDb();
   // Launch single-port, self-contained version of Grist.
-  await mergedServerMain(G.port, ["home", "docs", "static"]);
+  const server = await mergedServerMain(G.port, ["home", "docs", "static"]);
+  if (process.env.GRIST_TESTING_SOCKET) {
+    await server.addTestingHooks();
+  }
 }
 
 if (require.main === module) {
