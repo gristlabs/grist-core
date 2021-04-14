@@ -796,6 +796,14 @@ export class DocStorage implements ISQLiteDB {
    * are not easily stored as sqlite's native types.
    */
   public async fetchQuery(query: ExpandedQuery): Promise<Buffer> {
+    // Check if there are a lot of parameters, and if so, switch to a method that can support
+    // that.
+    const totalParameters = Object.values(query.filters).map(vs => vs.length).reduce((a, b) => a + b, 0);
+    if (totalParameters > maxSQLiteVariables) {
+      // Fall back on using temporary tables if there are many parameters.
+      return this._fetchQueryWithManyParameters(query);
+    }
+
     // Convert query to SQL.
     const params: any[] = [];
     const whereParts: string[] = [];
@@ -805,12 +813,7 @@ export class DocStorage implements ISQLiteDB {
       whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (${values.map(() => '?').join(', ')})`);
       params.push(...values);
     }
-    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
-    const limitClause = (typeof query.limit === 'number') ? `LIMIT ${query.limit}` : '';
-    const joinClauses = query.joins ? query.joins.join(' ') : '';
-    const selects = query.selects ? query.selects.join(', ') : '*';
-    const sql = `SELECT ${selects} FROM ${quoteIdent(query.tableId)} ` +
-      `${joinClauses} ${whereClause} ${limitClause}`;
+    const sql = this._getSqlForQuery(query, whereParts);
     return this._getDB().allMarshal(sql, params);
   }
 
@@ -1449,6 +1452,52 @@ export class DocStorage implements ISQLiteDB {
                           "WHERE m.type='table' " +
                           "AND tbl_name NOT LIKE '_grist%' " +
                           "ORDER BY tableId, colId") as any;
+  }
+
+  /**
+   * Implement a filtered query by adding any parameters into
+   * temporary tables, to avoid hitting an SQLite parameter limit.
+   * Backing for temporary tables lies outside of the document database,
+   * and operates with `synchronous=OFF` and `journal_mode=PERSIST`, so
+   * should be reasonably fast:
+   *   https://sqlite.org/tempfiles.html#temp_databases
+   */
+  public async _fetchQueryWithManyParameters(query: ExpandedQuery): Promise<Buffer> {
+    const db = this._getDB();
+    return db.execTransaction(async () => {
+      const tableNames: string[] = [];
+      const whereParts: string[] = [];
+      for (const colId of Object.keys(query.filters)) {
+        const values = query.filters[colId];
+        const tableName = `_grist_tmp_${tableNames.length}_${uuidv4().replace(/-/g, '_')}`;
+        await db.exec(`CREATE TEMPORARY TABLE ${tableName}(data)`);
+        for (const valuesChunk of chunk(values, maxSQLiteVariables)) {
+          const placeholders = valuesChunk.map(() => '(?)').join(',');
+          await db.run(`INSERT INTO ${tableName}(data) VALUES ${placeholders}`, valuesChunk);
+        }
+        whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (SELECT data FROM ${tableName})`);
+      }
+      const sql = this._getSqlForQuery(query, whereParts);
+      try {
+        return await db.allMarshal(sql);
+      } finally {
+        await Promise.all(tableNames.map(tableName => db.exec(`DROP TABLE ${tableName}`)));
+      }
+    });
+  }
+
+  /**
+   * Construct SQL for an ExpandedQuery.  Expects that filters have been converted into
+   * a set of WHERE terms that should be ANDed.
+   */
+  public _getSqlForQuery(query: ExpandedQuery, whereParts: string[]) {
+    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
+    const limitClause = (typeof query.limit === 'number') ? `LIMIT ${query.limit}` : '';
+    const joinClauses = query.joins ? query.joins.join(' ') : '';
+    const selects = query.selects ? query.selects.join(', ') : '*';
+    const sql = `SELECT ${selects} FROM ${quoteIdent(query.tableId)} ` +
+      `${joinClauses} ${whereClause} ${limitClause}`;
+    return sql;
   }
 }
 
