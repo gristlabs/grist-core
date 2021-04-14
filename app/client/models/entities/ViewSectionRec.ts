@@ -88,6 +88,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
 
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
+  activeFilterBar: modelUtil.CustomComputed<boolean>;
 
   // Save all filters of fields in the section.
   saveFilters(): Promise<void>;
@@ -131,6 +132,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     horizontalGridlines: true,
     zebraStripes: false,
     customView: '',
+    filterBar: false,
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: any) => defaults(obj || {}, defaultOptions));
@@ -272,4 +274,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.isSorted = ko.pureComputed(() => this.activeSortSpec().length > 0);
   this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
+
+  this.activeFilterBar = modelUtil.customValue(this.optionsObj.prop('filterBar'));
 }

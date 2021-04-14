@@ -1,13 +1,14 @@
 import {flipColDirection, parseSortColRefs} from 'app/client/lib/sortUtil';
 import {ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {CustomComputed} from 'app/client/models/modelUtil';
+import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
+import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
+import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider} from 'app/client/ui2018/menus';
 import {Computed, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import difference = require('lodash/difference');
-import {setPopupToCreateDom} from 'popweasel';
-import {makeViewLayoutMenu} from '../ui/ViewLayoutMenu';
-import {basicButton, primaryButton} from '../ui2018/buttons';
 
 const testId = makeTestId('test-section-menu-');
 
@@ -23,7 +24,8 @@ export function viewSectionMenu(docModel: DocModel, viewSection: ViewSectionRec,
   // it started in the "unsaved" state (in which a dynamic use()-based subscription to
   // emptySortFilterObs wouldn't be active, which could result in a wrong order of evaluation).
   const iconSuffixObs: Computed<IconSuffix> = Computed.create(null, emptySortFilterObs, (use, empty) => {
-    if (use(viewSection.filterSpecChanged) || !use(viewSection.activeSortJson.isSaved)) {
+    if (use(viewSection.filterSpecChanged) || !use(viewSection.activeSortJson.isSaved)
+        || !use(viewSection.activeFilterBar.isSaved)) {
       return '-unsaved';
     } else if (!empty) {
       return '-saved';
@@ -49,21 +51,26 @@ export function viewSectionMenu(docModel: DocModel, viewSection: ViewSectionRec,
         }),
         dom.domComputed(viewSection.filteredFields, fields =>
           makeFilterPanel(viewSection, fields)),
+        makeFilterBarToggle(viewSection.activeFilterBar),
         dom.domComputed(iconSuffixObs, iconSuffix => {
           const displaySave = iconSuffix === '-unsaved';
           return [
             displaySave ? cssMenuInfoHeader(
               cssSaveButton('Save', testId('btn-save'),
                 dom.on('click', async () => {
-                  await viewSection.activeSortJson.save(); // Save sort
-                  await viewSection.saveFilters();         // Save filter
+                  await docModel.docData.bundleActions("Update Sort&Filter settings", () => Promise.all([
+                    viewSection.activeSortJson.save(),  // Save sort
+                    viewSection.saveFilters(),          // Save filter
+                    viewSection.activeFilterBar.save(), // Save bar
+                  ]));
                 }),
                 dom.boolAttr('disabled', isReadonly),
               ),
               basicButton('Revert', testId('btn-revert'),
                 dom.on('click', () => {
-                  viewSection.activeSortJson.revert(); // Revert sort
-                  viewSection.revertFilters();         // Revert filter
+                  viewSection.activeSortJson.revert();  // Revert sort
+                  viewSection.revertFilters();          // Revert filter
+                  viewSection.activeFilterBar.revert(); // Revert bar
                 })
               )
             ) : null,
@@ -108,9 +115,28 @@ function makeSortPanel(section: ViewSectionRec, sortSpec: number[], getColumn: (
 
   return [
     cssMenuInfoHeader('Sorted by', testId('heading-sorted')),
-    sortColumns.length > 0 ? sortColumns : cssMenuText('(Default)')
+    sortColumns.length > 0 ? sortColumns : cssGrayedMenuText('(Default)')
   ];
 }
+
+export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
+  return cssMenuText(
+    cssMenuIconWrapper(
+      testId('btn'),
+      cssMenuIconWrapper.cls('-changed', (use) => !use(activeFilterBar.isSaved)),
+      dom.domComputed((use) => {
+        const filterBar = use(activeFilterBar);
+        const isSaved = use(activeFilterBar.isSaved);
+        return cssIcon(filterBar ? "Tick" : (isSaved ? "Plus" : "CrossSmall"),
+                       cssIcon.cls('-green', Boolean(filterBar)),
+                       testId('icon'));
+      }),
+    ),
+    dom.on('click', () => activeFilterBar(!activeFilterBar())),
+    cssMenuTextLabel("Toggle Filter Bar"),
+  );
+}
+
 
 function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]) {
   const fields = filteredFields.map(field => {
@@ -120,26 +146,18 @@ function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]
       cssMenuIconWrapper(
         cssMenuIconWrapper.cls('-changed', fieldChanged),
         cssIcon('FilterSimple'),
-        (elem) => {
-          const instance = section.viewInstance();
-          if (instance && instance.createFilterMenu) { // Should be set if using BaseView
-            setPopupToCreateDom(elem, ctl => instance.createFilterMenu(ctl, field), {
-              placement: 'bottom-end',
-              boundaries: 'viewport',
-              trigger: ['click']
-            });
-          }
-        }
+        attachColumnFilterMenu(section, field, {placement: 'bottom-end'}),
+        testId('filter-icon'),
       ),
       cssMenuTextLabel(field.label()),
-      cssMenuIconWrapper(cssIcon('Remove'), dom.on('click', () => field.activeFilter(''))),
+      cssMenuIconWrapper(cssIcon('Remove', testId('btn-remove-filter')), dom.on('click', () => field.activeFilter(''))),
       testId('filter-col')
     );
   });
 
   return [
     cssMenuInfoHeader('Filtered by', {style: 'margin-top: 4px'}, testId('heading-filtered')),
-    filteredFields.length > 0 ? fields : cssMenuText('(Not filtered)')
+    filteredFields.length > 0 ? fields : cssGrayedMenuText('(Not filtered)')
   ];
 }
 
@@ -184,7 +202,7 @@ const cssIconWrapper = styled('div', `
 `);
 
 const cssMenuIconWrapper = styled(cssIconWrapper, `
-  padding: 3px;
+  display: flex;
   margin: -3px 0;
   width: 22px;
   height: 22px;
@@ -211,6 +229,10 @@ const cssIcon = styled(icon, `
 
   .${clsOldUI.className} & {
     background-color: white;
+  }
+
+  &-green {
+    background-color: ${colors.lightGreen};
   }
 `);
 
@@ -251,9 +273,14 @@ const cssMenuInfoHeader = styled('div', `
 const cssMenuText = styled('div', `
   display: flex;
   align-items: center;
-  color: ${colors.slate};
   padding: 0px 24px 8px 24px;
   cursor: default;
+  white-space: nowrap;
+`);
+
+const cssGrayedMenuText = styled(cssMenuText, `
+  color: ${colors.slate};
+  padding-left: 24px;
 `);
 
 const cssMenuTextLabel = styled('span', `

@@ -12,6 +12,7 @@ import {Delay} from 'app/client/lib/Delay';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
+import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {colors, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
@@ -202,6 +203,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
           viewSectionMenu(this.docModel, vs, this.viewModel, this.gristDoc.isReadonly, this.gristDoc.app.useNewUI)
         )
        )),
+      dom.maybe(vs.activeFilterBar, () => dom.create(filterBar, vs)),
       dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) =>
         dom('div.view_data_pane_container.flexvbox',
           cssResizing.cls('', this._isResizing),

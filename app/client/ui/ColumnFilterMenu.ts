@@ -5,7 +5,7 @@
  */
 
 import {allInclusive, ColumnFilter, isEquivalentFilter} from 'app/client/models/ColumnFilter';
-import {ViewFieldRec} from 'app/client/models/DocModel';
+import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {FilteredRowSource} from 'app/client/models/rowset';
 import {SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
@@ -15,9 +15,9 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
-import {Computed, Disposable, dom, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
 import identity = require('lodash/identity');
-import {IOpenController} from 'popweasel';
+import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {ColumnFilterMenuModel, IFilterCount} from '../models/ColumnFilterMenuModel';
 
 
@@ -311,6 +311,24 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, values: Iterable
 
 function getCount(values: Array<[CellValue, IFilterCount]>) {
    return values.reduce((acc, val) => acc + val[1].count, 0);
+}
+
+const defaultPopupOptions: IPopupOptions = {
+  placement: 'bottom-start',
+  boundaries: 'viewport',
+  trigger: ['click'],
+};
+
+// Helper to attach the column filter menu.
+export function attachColumnFilterMenu(viewSection: ViewSectionRec, field: ViewFieldRec,
+                                       popupOptions: IPopupOptions): DomElementMethod {
+  const options = {...defaultPopupOptions, ...popupOptions};
+  return (elem) => {
+    const instance = viewSection.viewInstance();
+    if (instance && instance.createFilterMenu) { // Should be set if using BaseView
+      setPopupToCreateDom(elem, ctl => instance.createFilterMenu(ctl, field), options);
+    }
+  };
 }
 
 const cssMenu = styled('div', `
