@@ -133,9 +133,10 @@ export class GranularAccess implements GranularAccessForBundle {
 
   // When broadcasting a sequence of DocAction[]s, this contains the state of
   // affected rows for the relevant table before and after each DocAction.  It
-  // may contain some unaffected rows as well.  Other metadata is included if
-  // needed.
+  // may contain some unaffected rows as well.
   private _steps: Promise<ActionStep[]>|null = null;
+  // Intermediate metadata and rule state, if needed.
+  private _metaSteps: Promise<MetaStep[]>|null = null;
   // Access control is done sequentially, bundle by bundle.  This is the current bundle.
   private _activeBundle: {
     docSession: OptDocSession,
@@ -144,9 +145,12 @@ export class GranularAccess implements GranularAccessForBundle {
     undo: DocAction[],
     // Flag tracking whether a set of actions have been applied to the database or not.
     applied: boolean,
-    // Flag for whethere user actions mention a rule change (clients are asked to reload
+    // Flag for whether user actions mention a rule change (clients are asked to reload
     // in this case).
     hasDeliberateRuleChange: boolean,
+    // Flag for whether doc actions mention a rule change, even if passive due to
+    // schema changes.
+    hasAnyRuleChange: boolean,
   }|null;
 
   public constructor(
@@ -163,10 +167,12 @@ export class GranularAccess implements GranularAccessForBundle {
     if (this._activeBundle) { throw new Error('Cannot start a bundle while one is already in progress'); }
     this._activeBundle = {
       docSession, docActions, undo, userActions,
-      applied: false, hasDeliberateRuleChange: false,
+      applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false
     };
     this._activeBundle.hasDeliberateRuleChange =
       scanActionsRecursively(userActions, (a) => isAclTable(String(a[1])));
+    this._activeBundle.hasAnyRuleChange =
+      scanActionsRecursively(docActions, (a) => isAclTable(String(a[1])));
   }
 
   /**
@@ -290,6 +296,7 @@ export class GranularAccess implements GranularAccessForBundle {
       await this._updateRules(docActions);
     }
     this._steps = null;
+    this._metaSteps = null;
     this._prevUserAttributesMap = undefined;
     this._activeBundle = null;
   }
@@ -1054,6 +1061,16 @@ export class GranularAccess implements GranularAccessForBundle {
     return this._steps;
   }
 
+  private async _getMetaSteps(): Promise<Array<MetaStep>> {
+    if (!this._metaSteps) {
+      this._metaSteps = this._getUncachedMetaSteps().catch(e => {
+        log.error('meta step computation failed:', e);
+        throw e;
+      });
+    }
+    return this._metaSteps;
+  }
+
   /**
    * Prepare to compute intermediate states of rows, as
    * this._steps.  The computation should happen only if
@@ -1075,35 +1092,11 @@ export class GranularAccess implements GranularAccessForBundle {
       (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}),
       null,
     );
-    // In some cases, we track metadata.
-    const needMeta = docActions.some(a => isSchemaAction(a) || getTableId(a).startsWith('_grist_'));
-    const metaDocData = needMeta ? new DocData(
-      async (tableId) => {
-        const result = this._docData.getTable(tableId)?.getTableDataAction();
-        if (!result) { throw new Error('surprising load'); }
-        return result;
-      },
-      null,
-    ) : this._docData;
     // Load pre-existing rows touched by the bundle.
     await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
-    // If we need metadata, we read the structural tables.
-    if (needMeta) {
-      await Promise.all([...STRUCTURAL_TABLES].map(tableId => metaDocData.syncTable(tableId)));
-    }
     if (applied) {
       // Apply the undo actions, since the docActions have already been applied to the db.
       for (const docAction of [...undo].reverse()) { docData.receiveAction(docAction); }
-      if (needMeta) {
-        for (const docAction of [...undo].reverse()) { metaDocData.receiveAction(docAction); }
-      }
-    }
-    let meta = {} as {[key: string]: TableDataAction};
-    // Metadata is stored as a hash of TableDataActions.
-    if (needMeta) {
-      for (const tableId of STRUCTURAL_TABLES) {
-        meta[tableId] = cloneDeep(metaDocData.getTable(tableId)!.getTableDataAction());
-      }
     }
 
     // Now step forward, storing the before and after state for the table
@@ -1114,13 +1107,6 @@ export class GranularAccess implements GranularAccessForBundle {
     // a forward pass.  And for a series of updates to the same table, there'll
     // be duplicated before/after states that could be optimized.
     const steps = new Array<ActionStep>();
-    let ruler = this._ruler;
-    if (needMeta && applied) {
-      // Rules may have changed - back them off to a copy of their original state.
-      ruler = new Ruler(this);
-      ruler.update(metaDocData);
-    }
-    let replaceRuler = false;
     for (const docAction of docActions) {
       const tableId = getTableId(docAction);
       const tableData = docData.getTable(tableId);
@@ -1129,26 +1115,72 @@ export class GranularAccess implements GranularAccessForBundle {
       // If table is deleted, state afterwards doesn't matter.
       const rowsAfter = docData.getTable(tableId) ? cloneDeep(tableData?.getTableDataAction() || ['TableData', '', [], {}] as TableDataAction) : rowsBefore;
       const step: ActionStep = {action: docAction, rowsBefore, rowsAfter};
-      if (needMeta) {
-        step.metaBefore = meta;
-        if (STRUCTURAL_TABLES.has(tableId)) {
-          metaDocData.receiveAction(docAction);
-          // make shallow copy of all tables
-          meta = {...meta};
-          // replace table just modified with a deep copy
-          meta[tableId] = cloneDeep(metaDocData.getTable(tableId)!.getTableDataAction());
-        }
-        step.metaAfter = meta;
-        // replaceRuler logic avoids updating rules between paired changes of resources and rules.
-        if (isAclTable(tableId)) {
-          replaceRuler = true;
-        } else if (replaceRuler) {
-          ruler = new Ruler(this);
-          ruler.update(metaDocData);
-          replaceRuler = false;
-        }
-        step.ruler = ruler;
+      steps.push(step);
+    }
+    return steps;
+  }
+
+  /**
+   * Prepare to compute intermediate metadata and rules, as this._metaSteps.
+   */
+  private async _getUncachedMetaSteps(): Promise<Array<MetaStep>> {
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    const {docActions, undo, applied} = this._activeBundle;
+
+    const needMeta = docActions.some(a => isSchemaAction(a) || getTableId(a).startsWith('_grist_'));
+    if (!needMeta) {
+      // Sometimes, the intermediate states are trivial.
+      return docActions.map(action => ({action}));
+    }
+    const metaDocData = new DocData(
+      async (tableId) => {
+        const result = this._docData.getTable(tableId)?.getTableDataAction();
+        if (!result) { throw new Error('surprising load'); }
+        return result;
+      },
+      null,
+    );
+    // Read the structural tables.
+    await Promise.all([...STRUCTURAL_TABLES].map(tableId => metaDocData.syncTable(tableId)));
+    if (applied) {
+      for (const docAction of [...undo].reverse()) { metaDocData.receiveAction(docAction); }
+    }
+    let meta = {} as {[key: string]: TableDataAction};
+    // Metadata is stored as a hash of TableDataActions.
+    for (const tableId of STRUCTURAL_TABLES) {
+      meta[tableId] = cloneDeep(metaDocData.getTable(tableId)!.getTableDataAction());
+    }
+
+    // Now step forward, tracking metadata and rules through any changes that occur.
+    const steps = new Array<MetaStep>();
+    let ruler = this._ruler;
+    if (applied) {
+      // Rules may have changed - back them off to a copy of their original state.
+      ruler = new Ruler(this);
+      ruler.update(metaDocData);
+    }
+    let replaceRuler = false;
+    for (const docAction of docActions) {
+      const tableId = getTableId(docAction);
+      const step: MetaStep = {action: docAction};
+      step.metaBefore = meta;
+      if (STRUCTURAL_TABLES.has(tableId)) {
+        metaDocData.receiveAction(docAction);
+        // make shallow copy of all tables
+        meta = {...meta};
+        // replace table just modified with a deep copy
+        meta[tableId] = cloneDeep(metaDocData.getTable(tableId)!.getTableDataAction());
       }
+      step.metaAfter = meta;
+      // replaceRuler logic avoids updating rules between paired changes of resources and rules.
+      if (isAclTable(tableId)) {
+        replaceRuler = true;
+      } else if (replaceRuler) {
+        ruler = new Ruler(this);
+        ruler.update(metaDocData);
+        replaceRuler = false;
+      }
+      step.ruler = ruler;
       steps.push(step);
     }
     return steps;
@@ -1201,7 +1233,7 @@ export class GranularAccess implements GranularAccessForBundle {
   private async _filterOutgoingStructuralTables(cursor: ActionCursor, act: DataAction, results: DocAction[]) {
     // Filter out sensitive columns from tables.
     const permissionInfo = await this._getStepAccess(cursor);
-    const step = await this._getStep(cursor);
+    const step = await this._getMetaStep(cursor);
     if (!step.metaAfter) { throw new Error('missing metadata'); }
     act = cloneDeep(act); // Don't change original action.
     const ruler = await this._getRuler(cursor);
@@ -1263,16 +1295,16 @@ export class GranularAccess implements GranularAccessForBundle {
 
   private async _getRuler(cursor: ActionCursor) {
     if (cursor.actionIdx === null) { return this._ruler; }
-    if (!this._steps) {
-      throw new Error("No steps available");
-    }
-    const step = await this._getStep(cursor);
+    const step = await this._getMetaStep(cursor);
     return step.ruler || this._ruler;
   }
 
   private async _getStepAccess(cursor: ActionCursor) {
-    const step = await this._getStep(cursor);
-    if (step.ruler) { return step.ruler.getAccess(cursor.docSession); }
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    if (this._activeBundle.hasAnyRuleChange) {
+      const step = await this._getMetaStep(cursor);
+      if (step.ruler) { return step.ruler.getAccess(cursor.docSession); }
+    }
     // No rule changes!
     return this._getAccess(cursor.docSession);
   }
@@ -1280,6 +1312,12 @@ export class GranularAccess implements GranularAccessForBundle {
   private async _getStep(cursor: ActionCursor) {
     if (cursor.actionIdx === null) { throw new Error('No step available'); }
     const steps = await this._getSteps();
+    return steps[cursor.actionIdx];
+  }
+
+  private async _getMetaStep(cursor: ActionCursor) {
+    if (cursor.actionIdx === null) { throw new Error('No step available'); }
+    const steps = await this._getMetaSteps();
     return steps[cursor.actionIdx];
   }
 }
@@ -1336,6 +1374,9 @@ export interface ActionStep {
   rowsBefore: TableDataAction|undefined;  // only defined for actions modifying rows
   rowsAfter: TableDataAction|undefined;   // only defined for actions modifying rows
   rowsLast?: TableDataAction;             // cached calculation of where to point "newRec"
+}
+export interface MetaStep {
+  action: DocAction;
   metaBefore?: {[key: string]: TableDataAction};  // cached structural metadata before action
   metaAfter?: {[key: string]: TableDataAction};   // cached structural metadata after action
   ruler?: Ruler;                          // rules at this step
