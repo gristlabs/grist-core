@@ -13,7 +13,7 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
-import { getSetMapValue, isObject } from 'app/common/gutil';
+import { getSetMapValue, isObject, pruneArray } from 'app/common/gutil';
 import { canView, Role } from 'app/common/roles';
 import { FullUser } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -28,7 +28,6 @@ import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
-import pullAt = require('lodash/pullAt');
 
 // tslint:disable:no-bitwise
 
@@ -860,13 +859,15 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Removes the toRemove rows (indexes, not row ids) from the rowIds list and from
    * the colValues structure.
+   *
+   * toRemove must be sorted, lowest to highest.
    */
   private _removeRowsAt(toRemove: number[], rowIds: number[], colValues: BulkColValues|undefined) {
     if (toRemove.length > 0) {
-      pullAt(rowIds, toRemove);
+      pruneArray(rowIds, toRemove);
       if (colValues) {
         for (const values of Object.values(colValues)) {
-          pullAt(values, toRemove);
+          pruneArray(values, toRemove);
         }
       }
     }

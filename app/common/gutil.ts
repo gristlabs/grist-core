@@ -578,6 +578,35 @@ export function mapToObject<T>(keysArray: string[], callback: (key: string) => T
 }
 
 /**
+ * Remove the specified elements from the array, with the elements specified by
+ * their index.  The array arr is modified in-place.  The indexes must be provided
+ * in order, sorted lowest to highest, with no duplicates, or out-of-bound indices,
+ * etc (this method does no error checking; it is used in place of lodash-pullAt
+ * for performance reasons).
+ */
+export function pruneArray<T>(arr: T[], indexes: number[]) {
+  if (indexes.length === 0) { return; }
+  if (indexes.length === 1) {
+    arr.splice(indexes[0], 1);
+    return;
+  }
+  const len = arr.length;
+  let arrAt = 0;
+  let indexesAt = 0;
+  for (let i = 0; i < len; i++) {
+    if (i === indexes[indexesAt]) {
+      indexesAt++;
+      continue;
+    }
+    if (i !== arrAt) {
+      arr[arrAt] = arr[i];
+    }
+    arrAt++;
+  }
+  arr.length = arrAt;
+}
+
+/**
  * A List of python identifiers; the result of running keywords.kwlist in Python 2.7.6,
  * plus additional illegal identifiers None, False, True
  * Using [] instead of new Array causes a "comprehension error" for some reason
