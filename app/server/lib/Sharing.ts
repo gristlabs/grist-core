@@ -216,88 +216,90 @@ export class Sharing {
     const {sandboxActionBundle, undo, accessControl} =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions));
 
-    // A trivial action does not merit allocating an actionNum,
-    // logging, and sharing.  Since we currently don't store
-    // calculated values in the database, it is best not to log the
-    // action that initializes them when the document is opened cold
-    // (without cached ActiveDoc) - otherwise we'll end up with spam
-    // log entries for each time the document is opened cold.
-
-    const isCalculate = (userActions.length === 1 &&
-                         userActions[0][0] === 'Calculate');
-    const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
-
-    const actionNum = trivial ? 0 :
-      (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
-       this._actionHistory.getNextLocalActionNum());
-
-    const localActionBundle: LocalActionBundle = {
-      actionNum,
-      // The ActionInfo should go into the envelope that includes all recipients.
-      info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), info],
-      envelopes: sandboxActionBundle.envelopes,
-      stored: sandboxActionBundle.stored,
-      calc: sandboxActionBundle.calc,
-      undo,
-      userActions,
-      actionHash: null,        // Gets set below by _actionHistory.recordNext...
-      parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
-    };
-    this._logActionBundle(`doApplyUserActions (${Branch[branch]})`, localActionBundle);
-
-    // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
-    // have EDIT permission without VIEW). These are not sent to the browser or the database. But
-    // today they are reflected in the sandbox. Should we (or the sandbox) immediately undo the
-    // full change, and then redo only the actions addressed to ourselves? Let's cross that bridge
-    // when we come to it. For now we only log skipped envelopes as "alien" in _logActionBundle().
-    const ownActionBundle: LocalActionBundle = this._filterOwnActions(localActionBundle);
-
-    // Apply the action to the database, and record in the action log.
-    if (!trivial) {
-      await this._activeDoc.docStorage.execTransaction(async () => {
-        await this._activeDoc.docStorage.applyStoredActions(getEnvContent(ownActionBundle.stored));
-        if (this.isShared() && branch === Branch.Local) {
-          // this call will compute an actionHash for localActionBundle
-          await this._actionHistory.recordNextLocalUnsent(localActionBundle);
-        } else {
-          // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
-          // by the hub). The alternative of keeping actions on the "local" branch until sharing is
-          // enabled is less suitable, because such actions could have empty envelopes, and cannot
-          // be shared. Once sharing is enabled, we would share a snapshot at that time.
-          await this._actionHistory.recordNextShared(localActionBundle);
-        }
-        // Check isCalculate because that's not an action we should allow undo/redo for (it's not
-        // considered as performed by a particular client).
-        if (client && client.clientId && !isCalculate) {
-          this._actionHistory.setActionClientId(localActionBundle.actionHash!, client.clientId);
-        }
-      });
-    }
-    await this._activeDoc.processActionBundle(ownActionBundle);
-
-    // Broadcast the action to connected browsers.
-    const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
-      client,
-      retValues: sandboxActionBundle.retValues,
-      summarize: true,
-      // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
-      // date and other changes from external values may count as internal.
-      internal: isCalculate,
-    });
     try {
+
+      // A trivial action does not merit allocating an actionNum,
+      // logging, and sharing.  Since we currently don't store
+      // calculated values in the database, it is best not to log the
+      // action that initializes them when the document is opened cold
+      // (without cached ActiveDoc) - otherwise we'll end up with spam
+      // log entries for each time the document is opened cold.
+
+      const isCalculate = (userActions.length === 1 &&
+                           userActions[0][0] === 'Calculate');
+      const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
+
+      const actionNum = trivial ? 0 :
+        (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
+         this._actionHistory.getNextLocalActionNum());
+
+      const localActionBundle: LocalActionBundle = {
+        actionNum,
+        // The ActionInfo should go into the envelope that includes all recipients.
+        info: [findOrAddAllEnvelope(sandboxActionBundle.envelopes), info],
+        envelopes: sandboxActionBundle.envelopes,
+        stored: sandboxActionBundle.stored,
+        calc: sandboxActionBundle.calc,
+        undo,
+        userActions,
+        actionHash: null,        // Gets set below by _actionHistory.recordNext...
+        parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
+      };
+      this._logActionBundle(`doApplyUserActions (${Branch[branch]})`, localActionBundle);
+
+      // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
+      // have EDIT permission without VIEW). These are not sent to the browser or the database. But
+      // today they are reflected in the sandbox. Should we (or the sandbox) immediately undo the
+      // full change, and then redo only the actions addressed to ourselves? Let's cross that bridge
+      // when we come to it. For now we only log skipped envelopes as "alien" in _logActionBundle().
+      const ownActionBundle: LocalActionBundle = this._filterOwnActions(localActionBundle);
+
+      // Apply the action to the database, and record in the action log.
+      if (!trivial) {
+        await this._activeDoc.docStorage.execTransaction(async () => {
+          await this._activeDoc.docStorage.applyStoredActions(getEnvContent(ownActionBundle.stored));
+          if (this.isShared() && branch === Branch.Local) {
+            // this call will compute an actionHash for localActionBundle
+            await this._actionHistory.recordNextLocalUnsent(localActionBundle);
+          } else {
+            // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
+            // by the hub). The alternative of keeping actions on the "local" branch until sharing is
+            // enabled is less suitable, because such actions could have empty envelopes, and cannot
+            // be shared. Once sharing is enabled, we would share a snapshot at that time.
+            await this._actionHistory.recordNextShared(localActionBundle);
+          }
+          // Check isCalculate because that's not an action we should allow undo/redo for (it's not
+          // considered as performed by a particular client).
+          if (client && client.clientId && !isCalculate) {
+            this._actionHistory.setActionClientId(localActionBundle.actionHash!, client.clientId);
+          }
+        });
+      }
+      await this._activeDoc.processActionBundle(ownActionBundle);
+
+      // Broadcast the action to connected browsers.
+      const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
+        client,
+        retValues: sandboxActionBundle.retValues,
+        summarize: true,
+        // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
+        // date and other changes from external values may count as internal.
+        internal: isCalculate,
+      });
       await accessControl.appliedBundle();
       await accessControl.sendDocUpdateForBundle(actionGroup);
+      if (docSession) {
+        docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
+      }
+      return {
+        actionNum: localActionBundle.actionNum,
+        retValues: sandboxActionBundle.retValues,
+        isModification: sandboxActionBundle.stored.length > 0
+      };
     } finally {
+      // Make sure the bundle is marked as complete, even if some miscellaneous error occured.
       await accessControl.finishedBundle();
     }
-    if (docSession) {
-      docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
-    }
-    return {
-      actionNum: localActionBundle.actionNum,
-      retValues: sandboxActionBundle.retValues,
-      isModification: sandboxActionBundle.stored.length > 0
-    };
   }
 
   private _mergeAdjust(action: UserActionBundle): UserActionBundle {
@@ -379,8 +381,11 @@ export class Sharing {
       await accessControl.canApplyBundle();
     } catch (e) {
       // should not commit.  Don't write to db.  Remove changes from sandbox.
-      await this._activeDoc.applyActionsToDataEngine([['ApplyUndoActions', undo]]);
-      await accessControl.finishedBundle();
+      try {
+        await this._activeDoc.applyActionsToDataEngine([['ApplyUndoActions', undo]]);
+      } finally {
+        await accessControl.finishedBundle();
+      }
       throw e;
     }
     return {sandboxActionBundle, undo, docActions, accessControl};
