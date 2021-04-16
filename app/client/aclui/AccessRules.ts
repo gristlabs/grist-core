@@ -20,7 +20,6 @@ import {emptyPermissionSet, MixedPermissionValue, PartialPermissionSet} from 'ap
 import {parsePermissions, permissionSetToText} from 'app/common/ACLPermissions';
 import {summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
 import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
-import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {FormulaProperties, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {getFormulaProperties} from 'app/common/GranularAccessClause';
@@ -1146,19 +1145,7 @@ class ObsRulePart extends Disposable {
    * Verify that the rule is in a good state, optionally given a proposed permission change.
    */
   public sanityCheck(pset?: PartialPermissionSet) {
-    if (this._ruleSet.hasColumns() &&
-        (pset || this._permissions.get()).read &&
-        this._formulaProperties.get().hasRecOrNewRec) {
-      if (pset && pset.read && this._permissions.get().read) {
-        // We don't want users to set either allow or deny read permissions in
-        // row-dependent rules, but if such a permission is set, allow it to be
-        // toggled to enable the deny->allow->unset cycling in the UI.
-        return;
-      }
-      throw new ApiError('Control of the read permission for column rules is unavailable ' +
-                         'when the formula uses the rec variable. ' +
-                         'Sorry! We will get to it, promise.', 400);
-    }
+    // Nothing to do!  We now support all expressible rule permutations.
   }
 
   public buildRulePartDom(wide: boolean = false) {

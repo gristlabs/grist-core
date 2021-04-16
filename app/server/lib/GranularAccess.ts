@@ -651,7 +651,8 @@ export class GranularAccess implements GranularAccessForBundle {
     // Figure out which rows were forbidden to this session before this action vs
     // after this action.  We need to know both so that we can infer the state of the
     // client and send the correct change.
-    const ids = new Set(getRowIdsFromDocAction(action));
+    const orderedIds = getRowIdsFromDocAction(action);
+    const ids = new Set(orderedIds);
     const forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids));
     const forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids));
 
@@ -713,6 +714,37 @@ export class GranularAccess implements GranularAccessForBundle {
       this._removeRows(action, removals),
       this._makeRemovals(rowsAfter, forceRemoves),
     ].filter(isObject);
+
+    // Check whether there are column rules for this table, and if so whether they are row
+    // dependent.  If so, we may need to update visibility of cells not mentioned in the
+    // original DocAction.
+    // No censorship is done here, all we do at this point is pull in any extra cells that need
+    // to be updated for the current client.  Censorship for these cells, and any cells already
+    // present in the DocAction, is done by _filterRowsAndCells.
+    const ruler = await this._getRuler(cursor);
+    const tableId = getTableId(action);
+    const ruleSets = ruler.ruleCollection.getAllColumnRuleSets(tableId);
+    const colIds = new Set(([] as string[]).concat(...ruleSets.map(ruleSet => ruleSet.colIds === '*' ? [] : ruleSet.colIds)));
+    const access = await ruler.getAccess(cursor.docSession);
+    // Check columns in a consistent order, for determinism (easier testing).
+    // TODO: could pool some work between columns by doing them together rather than one by one.
+    for (const colId of [...colIds].sort()) {
+      // If the column is already in the DocAction, we can skip checking if we need to add it.
+      if (!action[3] || (colId in action[3])) { continue; }
+      // If the column is not row dependent, we have nothing to do.
+      if (access.getColumnAccess(tableId, colId).perms.read !== 'mixed') { continue; }
+      // Check column accessibility before and after.
+      const forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids, colId));
+      const forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids, colId));
+      // For any column that is in a visible row and for which accessibility has changed,
+      // pull it into the doc actions.  We don't censor cells yet, that happens later
+      // (if that's what needs doing).
+      const changedIds = orderedIds.filter(id => !forceRemoves.has(id) && !removals.has(id) &&
+                                        (forbiddenBefores.has(id) !== forbiddenAfters.has(id)));
+      if (changedIds.length > 0) {
+        revisedDocActions.push(this._makeColumnUpdate(rowsAfter, colId, new Set(changedIds)));
+      }
+    }
 
     // Return the results, also applying any cell-level access control.
     for (const action of revisedDocActions) {
@@ -842,7 +874,9 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   // Compute which of the row ids supplied are for rows forbidden for this session.
-  private async _getForbiddenRows(cursor: ActionCursor, data: TableDataAction, ids: Set<number>): Promise<number[]> {
+  // If colId is supplied, check instead whether that specific column is forbidden.
+  private async _getForbiddenRows(cursor: ActionCursor, data: TableDataAction, ids: Set<number>,
+                                  colId?: string): Promise<number[]> {
     const ruler = await this._getRuler(cursor);
     const rec = new RecordView(data, undefined);
     const input: AclMatchInput = {user: await this._getUser(cursor.docSession), rec};
@@ -856,8 +890,15 @@ export class GranularAccess implements GranularAccessForBundle {
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      if (this.getReadPermission(rowAccess) === 'deny') {
-        toRemove.push(rowIds[idx]);
+      if (!colId) {
+        if (this.getReadPermission(rowAccess) === 'deny') {
+          toRemove.push(rowIds[idx]);
+        }
+      } else {
+        const colAccess = rowPermInfo.getColumnAccess(tableId, colId);
+        if (this.getReadPermission(colAccess) === 'deny') {
+          toRemove.push(rowIds[idx]);
+        }
       }
     }
     return toRemove;
@@ -1049,6 +1090,16 @@ export class GranularAccess implements GranularAccessForBundle {
   private _makeRemovals(data: TableDataAction, rowIds: Set<number>): BulkRemoveRecord|null {
     if (rowIds.size === 0) { return null; }
     return ['BulkRemoveRecord', getTableId(data), [...rowIds]];
+  }
+
+  /**
+   * Make a BulkUpdateRecord for a particular column across a set of rows.
+   */
+  private _makeColumnUpdate(data: TableDataAction, colId: string, rowIds: Set<number>): BulkUpdateRecord {
+    const dataRowIds = data[2];
+    const selectedRowIds = dataRowIds.filter(r => rowIds.has(r));
+    const colData = data[3][colId].filter((value, idx) => rowIds.has(dataRowIds[idx]));
+    return ['BulkUpdateRecord', getTableId(data), selectedRowIds, {[colId]: colData}];
   }
 
   private async _getSteps(): Promise<Array<ActionStep>> {
