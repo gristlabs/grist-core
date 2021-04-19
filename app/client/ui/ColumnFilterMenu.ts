@@ -204,9 +204,9 @@ class BeyondLimit extends Disposable implements SummaryModel {
   public callback(checked: boolean) {
     const keys = this.model.valuesBeyondLimit.get().map(([key, _val]) => key);
     if (checked) {
-      this.columnFilter.add(...keys);
+      this.columnFilter.addMany(keys);
     } else {
-      this.columnFilter.delete(...keys);
+      this.columnFilter.deleteMany(keys);
     }
   }
 }
