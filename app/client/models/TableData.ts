@@ -2,8 +2,11 @@
  * TableData maintains a single table's data.
  */
 import {ColumnACIndexes} from 'app/client/models/ColumnACIndexes';
+import {ColumnCache} from 'app/client/models/ColumnCache';
 import {DocData} from 'app/client/models/DocData';
 import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
+import {isRaisedException} from 'app/common/gristTypes';
+import {countIf} from 'app/common/gutil';
 import {ColTypeMap, TableData as BaseTableData} from 'app/common/TableData';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Emitter} from 'grainjs';
@@ -18,6 +21,8 @@ export class TableData extends BaseTableData {
   public readonly dataLoadedEmitter = new Emitter();
 
   public readonly columnACIndexes = new ColumnACIndexes(this);
+
+  private _columnErrorCounts = new ColumnCache<number|undefined>(this);
 
   /**
    * Constructor for TableData.
@@ -90,6 +95,17 @@ export class TableData extends BaseTableData {
       }
     }
     return ret;
+  }
+
+  /**
+   * Counts and returns the number of error values in the given column. The count is cached to
+   * keep it faster for large tables, and the cache is cleared as needed on changes to the table.
+   */
+  public countErrors(colId: string): number|undefined {
+    return this._columnErrorCounts.getValue(colId, () => {
+      const values = this.getColValues(colId);
+      return values && countIf(values, isRaisedException);
+    });
   }
 
   /**
