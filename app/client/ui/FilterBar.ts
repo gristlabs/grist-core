@@ -1,14 +1,17 @@
+import { allInclusive } from "app/client/models/ColumnFilter";
 import { ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
 import { cssButton, cssButtonGroup } from "app/client/ui2018/buttons";
 import { colors, testId } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { menu, menuItemAsync } from "app/client/ui2018/menus";
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
 
 export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec) {
   return cssFilterBar(
     testId('filter-bar'),
     dom.forEach(viewSection.filteredFields, (field) => makeFilterField(viewSection, field)),
+    makePlusButton(viewSection),
     cssSpacer(),
     dom.maybe(viewSection.filterSpecChanged, () => [
       primaryButton(
@@ -30,16 +33,36 @@ function makeFilterField(viewSection: ViewSectionRec, field: ViewFieldRec) {
       testId('btn'),
       cssIcon('FilterSimple'),
       cssMenuTextLabel(dom.text(field.label)),
-      cssBtn.cls('-disabled', field.activeFilter.isSaved),
+      cssBtn.cls('-saved', field.activeFilter.isSaved),
       attachColumnFilterMenu(viewSection, field, {placement: 'bottom-start', attach: 'body'}),
     ),
     deleteButton(
       testId('delete'),
       cssIcon('CrossSmall'),
-      cssBtn.cls('-disabled', field.activeFilter.isSaved),
+      cssBtn.cls('-saved', field.activeFilter.isSaved),
       dom.on('click', () => field.activeFilter('')),
     )
   );
+}
+
+function makePlusButton(viewSectionRec: ViewSectionRec) {
+  return dom.domComputed((use) => {
+    const fields = use(use(viewSectionRec.viewFields).getObservable());
+    const anyFilter = fields.find((f) => use(f.isFiltered));
+    return cssPlusButton(
+      cssBtn.cls('-saved'),
+      cssIcon('Plus'),
+      menu(() => fields.map((f) => (
+        menuItemAsync(
+          () => f.activeFilter(allInclusive),
+          f.label.peek(),
+          dom.cls('disabled', f.isFiltered)
+        )
+      ))),
+      anyFilter ? null : cssPlusLabel('Add Filter'),
+      testId('add-filter-btn')
+    );
+  });
 }
 
 const cssFilterBar = styled('div', `
@@ -75,13 +98,13 @@ const cssBtn = styled('div', `
   .${cssFilterBar.className} > & {
     margin: 0 4px;
   }
-  &-disabled {
+  &-saved {
     color:        ${colors.light};
     --icon-color: ${colors.light};
     background-color: ${colors.slate};
     border-color: ${colors.slate};
   }
-  &-disabled:hover {
+  &-saved:hover {
     background-color: ${colors.darkGrey};
     border-color: ${colors.darkGrey};
   }
@@ -99,4 +122,10 @@ const deleteButton = styled(primaryButton, `
 const cssSpacer = styled('div', `
   width: 8px;
   flex-shrink: 0;
+`);
+const cssPlusButton = styled(primaryButton, `
+  padding: 3px 3px
+`);
+const cssPlusLabel = styled('span', `
+  margin: 0 12px 0 4px;
 `);

@@ -264,6 +264,7 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
   const formatter = field.createVisibleColFormatter();
   const valueMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
+  const activeFilterBar = field.viewSection.peek().activeFilterBar;
 
   const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
   // TODO: as of now, this is not working for non text-or-numeric columns, ie: for Date column it is
@@ -282,7 +283,8 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
     onClose: () => openCtl.close(),
     doSave: (reset: boolean = false) => {
       const spec = columnFilter.makeFilterJson();
-      field.activeFilter(spec === allInclusive ? '' : spec);
+      // If filter is moot and filter bar is hidden, let's remove the filter.
+      field.activeFilter((spec === allInclusive && !activeFilterBar.peek()) ? '' : spec);
       if (reset) {
         sectionFilter.resetTemporaryRows();
       }
