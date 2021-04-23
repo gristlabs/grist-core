@@ -180,11 +180,13 @@ export class ActiveDoc extends EventEmitter {
   public getLogMeta(docSession: OptDocSession, docMethod?: string): log.ILogMeta {
     const client = docSession.client;
     const access = getDocSessionAccess(docSession);
+    const user = getDocSessionUser(docSession);
     return {
       docId: this._docName,
       access,
       ...(docMethod ? {docMethod} : {}),
-      ...(client ? client.getLogMeta() : {}),
+      ...(user ? {userId: user.id, email: user.email} : {}),
+      ...(client ? client.getLogMeta() : {}),   // Client if present will repeat and add to user info.
     };
   }
 
