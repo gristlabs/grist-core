@@ -274,6 +274,7 @@ export class GristWSConnection extends Disposable {
     this.send(JSON.stringify({
       beat: 'alive',
       url: G.window.location.href,
+      docId: this._assignmentId,
     }));
   }
 

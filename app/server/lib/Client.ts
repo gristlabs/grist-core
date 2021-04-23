@@ -247,8 +247,11 @@ export class Client {
     const clientId = this.clientId;
     const request = JSON.parse(message);
     if (request.beat) {
+      const profile = this.getProfile();
       // this is a heart beat, to keep the websocket alive.  No need to reply.
-      log.rawInfo('heartbeat', {clientId, counter: this._counter, url: request.url});
+      log.rawInfo('heartbeat', {clientId, counter: this._counter, url: request.url,
+                                docId: request.docId,  // caution: trusting client for docId for this purpose.
+                                email: profile?.email, userId: this.getCachedUserId()});
       return;
     } else {
       log.info("%s: onMessage", this, shortDesc(message));
