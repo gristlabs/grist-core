@@ -1332,13 +1332,10 @@ export class GranularAccess implements GranularAccessForBundle {
     const tableAccess = permInfo.getTableAccess(tableId);
     const access = accessCheck.get(tableAccess);
     if (access === 'allow') { return; }
-    if (access === 'mixedColumns') {
-      // Somewhat abusing prune method by calling it with an access function that
-      // throws on denial.
-      this._pruneColumns(action, permInfo, tableId, accessCheck);
+    if (access === 'mixed') {
+      // Deal with row-level access for the mixed condition.
+      await this._checkRows(cursor, accessCheck);
     }
-    // The remainder is the mixed condition.
-    await this._checkRows(cursor, accessCheck);
     // Somewhat abusing prune method by calling it with an access function that
     // throws on denial.
     this._pruneColumns(action, permInfo, tableId, accessCheck);
