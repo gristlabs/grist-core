@@ -2,6 +2,7 @@
 /_build/
 /static/*.bundle.js
 /static/*.bundle.js.map
+/static/bundle.css
 
 # Build helper files.
 /.build*

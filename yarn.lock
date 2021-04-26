@@ -5957,6 +5957,11 @@ stack-trace@0.0.x:
   resolved "https://registry.yarnpkg.com/stack-trace/-/stack-trace-0.0.10.tgz#547c70b347e8d32b4e108ea1a2a159e5fdde19c0"
   integrity sha1-VHxws0fo0ytOEI6hoqFZ5f3eGcA=
 
+stackback@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/stackback/-/stackback-0.0.2.tgz#1ac8a0d9483848d1695e418b6d031a3c3ce68e3b"
+  integrity sha1-Gsig2Ug4SNFpXkGLbQMaPDzmjjs=
+
 static-extend@^0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/static-extend/-/static-extend-0.1.2.tgz#60809c39cbff55337226fd5e0b520f341f1fb5c6"
@@ -6893,6 +6898,13 @@ which@1.3.1, which@^1.2.14, which@^1.2.9:
   integrity sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==
   dependencies:
     isexe "^2.0.0"
+
+why-is-node-running@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/why-is-node-running/-/why-is-node-running-2.0.3.tgz#86619c2861405d3509f55268684fc85e7f4ce145"
+  integrity sha512-XmzbFN2T859avcs5qAsiiK1iu0nUpSUXRgiGsoHPcNijxhIlp1bPQWQk6ANUljDWqBtAbIR2jF1HxR0y2l2kCA==
+  dependencies:
+    stackback "0.0.2"
 
 wide-align@1.1.3, wide-align@^1.1.0:
   version "1.1.3"

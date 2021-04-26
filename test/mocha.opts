@@ -1,2 +1,3 @@
 --require source-map-support/register
+test/report-why-tests-hang
 test/init-mocha-webdriver

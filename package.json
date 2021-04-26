@@ -60,7 +60,8 @@
     "stats-webpack-plugin": "^0.7.0",
     "typescript": "3.9.3",
     "webpack": "4.41.0",
-    "webpack-cli": "3.3.2"
+    "webpack-cli": "3.3.2",
+    "why-is-node-running": "2.0.3"
   },
   "dependencies": {
     "@gristlabs/connect-sqlite3": "0.9.11",
