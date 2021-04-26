@@ -724,7 +724,9 @@ export class GranularAccess implements GranularAccessForBundle {
     const ruler = await this._getRuler(cursor);
     const tableId = getTableId(action);
     const ruleSets = ruler.ruleCollection.getAllColumnRuleSets(tableId);
-    const colIds = new Set(([] as string[]).concat(...ruleSets.map(ruleSet => ruleSet.colIds === '*' ? [] : ruleSet.colIds)));
+    const colIds = new Set(([] as string[]).concat(
+      ...ruleSets.map(ruleSet => ruleSet.colIds === '*' ? [] : ruleSet.colIds)
+    ));
     const access = await ruler.getAccess(cursor.docSession);
     // Check columns in a consistent order, for determinism (easier testing).
     // TODO: could pool some work between columns by doing them together rather than one by one.
@@ -1164,7 +1166,9 @@ export class GranularAccess implements GranularAccessForBundle {
       const rowsBefore = cloneDeep(tableData?.getTableDataAction() || ['TableData', '', [], {}] as TableDataAction);
       docData.receiveAction(docAction);
       // If table is deleted, state afterwards doesn't matter.
-      const rowsAfter = docData.getTable(tableId) ? cloneDeep(tableData?.getTableDataAction() || ['TableData', '', [], {}] as TableDataAction) : rowsBefore;
+      const rowsAfter = docData.getTable(tableId) ?
+        cloneDeep(tableData?.getTableDataAction() || ['TableData', '', [], {}] as TableDataAction) :
+        rowsBefore;
       const step: ActionStep = {action: docAction, rowsBefore, rowsAfter};
       steps.push(step);
     }
@@ -1208,7 +1212,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (applied) {
       // Rules may have changed - back them off to a copy of their original state.
       ruler = new Ruler(this);
-      ruler.update(metaDocData);
+      await ruler.update(metaDocData);
     }
     let replaceRuler = false;
     for (const docAction of docActions) {
@@ -1228,7 +1232,7 @@ export class GranularAccess implements GranularAccessForBundle {
         replaceRuler = true;
       } else if (replaceRuler) {
         ruler = new Ruler(this);
-        ruler.update(metaDocData);
+        await ruler.update(metaDocData);
         replaceRuler = false;
       }
       step.ruler = ruler;
@@ -1625,7 +1629,8 @@ export class CensorshipInfo {
       const tableId = tableRefToTableId.get(tableRef);
       if (!tableId) { throw new Error('table not found'); }
       const colId = rec.get('colId') as string;
-      if (this.censoredTables.has(tableRef) || (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
+      if (this.censoredTables.has(tableRef) ||
+          (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
         censoredColumnCodes.add(columnCode(tableRef, colId));
       }
     }

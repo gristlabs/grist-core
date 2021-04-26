@@ -25,8 +25,8 @@ export function makeSearchToolbarGroup(gristDoc: GristDoc) {
   // Active normally.
   const commandGroup = createGroup({
     find: () => { input.focus(); },
-    findNext: () => { searcher.findNext(); }, // tslint:disable-line:no-floating-promises TODO
-    findPrev: () => { searcher.findPrev(); }, // tslint:disable-line:no-floating-promises TODO
+    findNext: () => { searcher.findNext(); }, // eslint-disable-line @typescript-eslint/no-floating-promises
+    findPrev: () => { searcher.findPrev(); }, // eslint-disable-line @typescript-eslint/no-floating-promises
   }, null, true);
 
   // Return an array of one item (for a toolbar group of a single item). The item is an array of
@@ -49,7 +49,7 @@ export function makeSearchToolbarGroup(gristDoc: GristDoc) {
       // the searchbox is created so early that the actions like accept/cancel get overridden).
       dom.on('keydown', (e: KeyboardEvent) => {
         switch (e.keyCode) {
-          case 13: searcher.findNext(); break; // tslint:disable-line:no-floating-promises TODO
+          case 13: searcher.findNext(); break; // eslint-disable-line @typescript-eslint/no-floating-promises
           case 27: input.blur(); break;
         }
       })

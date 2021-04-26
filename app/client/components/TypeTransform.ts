@@ -22,7 +22,7 @@ import isEmpty = require('lodash/isEmpty');
 import pickBy = require('lodash/pickBy');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
-// tslint:disable:member-ordering
+/* eslint-disable @typescript-eslint/member-ordering */
 
 /**
  * Creates an instance of TypeTransform for a single field. Extends ColumnTransform.

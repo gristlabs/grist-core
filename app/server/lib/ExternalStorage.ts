@@ -133,7 +133,7 @@ export class KeyMappedExternalStorage implements ExternalStorage {
 export class ChecksummedExternalStorage implements ExternalStorage {
   private _closed: boolean = false;
 
-  constructor(readonly label: string, private _ext: ExternalStorage, private _options: {
+  constructor(public readonly label: string, private _ext: ExternalStorage, private _options: {
     maxRetries: number,         // how many time to retry inconsistent downloads
     initialDelayMs: number,     // how long to wait before retrying
     localHash: PropStorage,     // key/value store for hashes of downloaded content

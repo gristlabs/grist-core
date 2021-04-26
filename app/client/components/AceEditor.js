@@ -241,9 +241,9 @@ AceEditor.prototype._getContentHeight = function() {
 
 
 let _RangeConstructor = null; //singleton, load it lazily
-AceEditor.makeRange = function(a,b,c,d) {
+AceEditor.makeRange = function(a, b, c, d) {
   _RangeConstructor = _RangeConstructor || ace.acequire('ace/range').Range;
-  return new _RangeConstructor(a,b,c,d);
+  return new _RangeConstructor(a, b, c, d);
 };
 
 module.exports = AceEditor;

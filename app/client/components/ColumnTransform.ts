@@ -15,7 +15,7 @@ import * as ko from 'knockout';
 import noop = require('lodash/noop');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
-// tslint:disable:member-ordering
+/* eslint-disable @typescript-eslint/member-ordering */
 
 type AceEditor = any;
 
@@ -130,7 +130,7 @@ export class ColumnTransform extends Disposable {
       this.transformColumn = this.field.column();
       this.transformColumn.origColRef(this.origColumn.getRowId());
       this._setTransforming(true);
-      return await this.postAddTransformColumn();
+      return this.postAddTransformColumn();
     } finally {
       this.isCallPending(false);
     }
@@ -167,7 +167,7 @@ export class ColumnTransform extends Disposable {
   /**
    * A derived class can override to do some processing after this.transformColumn has been set.
    */
-  protected postAddTransformColumn() {
+  protected postAddTransformColumn(): void {
     // Nothing in base class.
   }
 
@@ -207,7 +207,7 @@ export class ColumnTransform extends Disposable {
     } finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
-      tableData.sendTableAction(['RemoveColumn', transformColId]);
+      void tableData.sendTableAction(['RemoveColumn', transformColId]);
       this.dispose();
     }
   }

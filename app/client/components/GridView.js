@@ -350,11 +350,11 @@ GridView.prototype.fillSelectionDown = function() {
   }).filter(colId => colId);
 
   var colInfo = _.object(colIds, colIds.map(colId => {
-     var val = this.tableModel.tableData.getValue(rowIds[0],colId);
+     var val = this.tableModel.tableData.getValue(rowIds[0], colId);
      return rowIds.map(() => val);
   }));
 
-  this.tableModel.sendTableAction(["BulkUpdateRecord",rowIds,colInfo]);
+  this.tableModel.sendTableAction(["BulkUpdateRecord", rowIds, colInfo]);
 };
 
 

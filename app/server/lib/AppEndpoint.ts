@@ -4,7 +4,7 @@
  * of the client-side code.
  */
 import * as express from 'express';
-import fetch, {RequestInit, Response as FetchResponse} from 'node-fetch';
+import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 
 import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseSubdomainStrictly} from 'app/common/gristUrls';

@@ -194,8 +194,8 @@ export const cssHideForNarrowScreen = styled('div', `
  * Attaches the global css properties to the document's root to them available in the page.
  */
 export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
-  dom.update(document.documentElement!, varsOnly ? dom.cls(cssVarsOnly.className) : dom.cls(cssRootVars));
-  document.documentElement!.classList.add(cssRoot.className);
+  dom.update(document.documentElement, varsOnly ? dom.cls(cssVarsOnly.className) : dom.cls(cssRootVars));
+  document.documentElement.classList.add(cssRoot.className);
   document.body.classList.add(cssBody.className);
   const theme = getTheme(productFlavor);
   if (theme.bodyClassName) {

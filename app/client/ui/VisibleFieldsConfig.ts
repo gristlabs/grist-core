@@ -352,7 +352,7 @@ function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
   return tableUtil.fieldInsertPositions(fields, index, 1)[0];
 }
 
-function getItemIndex<T>(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null): number {
+function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null): number {
   if (item !== null) {
     return collection.peek().indexOf(item);
   }

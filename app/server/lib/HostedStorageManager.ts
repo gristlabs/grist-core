@@ -239,7 +239,7 @@ export class HostedStorageManager implements IDocStorageManager {
     await this.prepareLocalDoc(docName, 'new');
     if (this._inventory) {
       await this._inventory.create(docName);
-      this._onInventoryChange(docName);
+      await this._onInventoryChange(docName);
     }
     this.markAsChanged(docName);
   }

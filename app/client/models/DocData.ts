@@ -100,7 +100,7 @@ export class DocData extends BaseDocData {
         this._nextDesc = options.description;
         this._lastActionNum = null;
         this._triggerBundleFinalize = triggerFinalize;
-        await prepareResolve(options.prepare());
+        prepareResolve(options.prepare());
         this._shouldIncludeInBundle = options.shouldIncludeInBundle;
 
         await triggerFinalizePromise;
@@ -162,7 +162,7 @@ export class DocData extends BaseDocData {
   public sendActions(actions: UserAction[], optDesc?: string): Promise<any[]> {
     // Some old code relies on this promise being a bluebird Promise.
     // TODO Remove bluebird and this cast.
-    return bluebird.Promise.resolve(this._sendActionsImpl(actions, optDesc)) as any;
+    return bluebird.Promise.resolve(this._sendActionsImpl(actions, optDesc)) as unknown as Promise<any[]>;
   }
 
   /**

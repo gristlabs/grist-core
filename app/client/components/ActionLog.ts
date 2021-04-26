@@ -262,7 +262,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     if (this._loaded || !this._gristDoc) { return; }
     this._loading(true);
     // Returned actions are ordered with earliest actions first.
-    const result = await this._gristDoc!.docComm.getActionSummaries();
+    const result = await this._gristDoc.docComm.getActionSummaries();
     this._loading(false);
     this._loaded = true;
     // Add the actions to our action log.

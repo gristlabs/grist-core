@@ -94,7 +94,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isReadonly = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isReadonly : false);
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
-  public readonly isRecoveryMode = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isRecoveryMode : false);
+  public readonly isRecoveryMode = Computed.create(this, this.currentDoc,
+                                                   (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSample = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSample : false);
@@ -133,8 +134,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         if (!urlId) {
           this._openerHolder.clear();
         } else {
-          FlowRunner.create(this._openerHolder, (flow: AsyncFlow) => this._openDoc(flow, urlId, urlOpenMode,
-                                                                                   state.params?.compare, linkParameters))
+          FlowRunner.create(this._openerHolder,
+            (flow: AsyncFlow) => this._openDoc(flow, urlId, urlOpenMode, state.params?.compare, linkParameters)
+          )
           .resultPromise.catch(err => this._onOpenError(err));
         }
       }
@@ -305,8 +307,10 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       menuIcon("Widget"), "Add Widget to Page", testId('dp-add-widget-to-page'),
       dom.cls('disabled', isReadonly)
     ),
-    menuItem(() => gristDoc.addEmptyTable().catch(reportError), menuIcon("TypeTable"), "Add Empty Table", testId('dp-empty-table'),
-            dom.cls('disabled', isReadonly)),
+    menuItem(() => gristDoc.addEmptyTable().catch(reportError),
+      menuIcon("TypeTable"), "Add Empty Table", testId('dp-empty-table'),
+      dom.cls('disabled', isReadonly)
+    ),
     menuDivider(),
     ...importSources.map((importSource, i) =>
       menuItem(importSource.action,

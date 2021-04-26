@@ -62,7 +62,7 @@ export class OnDemandActions {
       // Check that the actionType can be applied without the sandbox and also that the action
       // is on a data table.
       const isOnDemandAction = ACTION_TYPES.has(a[0] as string);
-      const isDataTableAction = typeof a[1] === 'string' && !(a[1] as string).startsWith('_grist_');
+      const isDataTableAction = typeof a[1] === 'string' && !a[1].startsWith('_grist_');
       if (a[0] === 'ApplyUndoActions') {
         // Split actions inside the undo action array.
         const [undoNormal, undoOnDemand] = this.splitByOnDemand(a[1] as UserAction[]);

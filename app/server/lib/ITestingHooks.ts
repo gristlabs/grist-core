@@ -1,8 +1,8 @@
 import {UserProfile} from 'app/common/LoginSessionAPI';
 
 export interface ITestingHooks {
-  getOwnPort(): number;
-  getPort(): number;
+  getOwnPort(): Promise<number>;
+  getPort(): Promise<number>;
   updateAuthToken(instId: string, authToken: string): Promise<void>;
   getAuthToken(instId: string): Promise<string|null>;
   useTestToken(instId: string, token: string): Promise<void>;

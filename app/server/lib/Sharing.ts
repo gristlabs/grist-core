@@ -155,7 +155,7 @@ export class Sharing {
   private async _rebaseLocalActions(): Promise<void> {
     const rebaseQueue: Deque<UserActionBundle> = new Deque<UserActionBundle>();
     try {
-      await this.createCheckpoint();
+      this.createCheckpoint();
       const actions: LocalActionBundle[] = await this._actionHistory.fetchAllLocal();
       assert(actions.length > 0);
       await this.doApplyUserActionBundle(this._createUndo(actions), null);
@@ -163,7 +163,7 @@ export class Sharing {
       await this._actionHistory.clearLocalActions();
     } catch (e) {
       log.error("Can't undo local actions; sharing is off");
-      await this.rollbackToCheckpoint();
+      this.rollbackToCheckpoint();
       // TODO this.disconnect();
       // TODO errorState = true;
       return;
@@ -185,11 +185,11 @@ export class Sharing {
       }
     }
     if (rebaseFailures.length > 0) {
-      await this.createBackupAtCheckpoint();
+      this.createBackupAtCheckpoint();
       // TODO we should notify the user too.
       log.error('Rebase failed to reapply some of your actions, backup of local at...');
     }
-    await this.releaseCheckpoint();
+    this.releaseCheckpoint();
   }
 
   // ======================================================================
@@ -374,7 +374,9 @@ export class Sharing {
     const docActions = getEnvContent(sandboxActionBundle.stored).concat(
       getEnvContent(sandboxActionBundle.calc));
 
-    const accessControl = this._activeDoc.getGranularAccessForBundle(docSession || makeExceptionalDocSession('share'), docActions, undo, userActions);
+    const accessControl = this._activeDoc.getGranularAccessForBundle(
+      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions
+    );
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.

@@ -7,7 +7,7 @@ import {DocData} from 'app/client/models/DocData';
 import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
 import {isRaisedException} from 'app/common/gristTypes';
 import {countIf} from 'app/common/gutil';
-import {ColTypeMap, TableData as BaseTableData} from 'app/common/TableData';
+import {TableData as BaseTableData, ColTypeMap} from 'app/common/TableData';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Emitter} from 'grainjs';
 

@@ -1,7 +1,7 @@
 /**
  * Implements an autocomplete dropdown.
  */
-import {createPopper, Instance as Popper, Modifier, Options as PopperOptions} from '@popperjs/core';
+import {createPopper, Modifier, Instance as Popper, Options as PopperOptions} from '@popperjs/core';
 import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
 import {reportError} from 'app/client/models/errors';
 import {Disposable, dom, EventCB, IDisposable} from 'grainjs';

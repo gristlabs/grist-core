@@ -21,7 +21,7 @@
     },
     "composite": true,
     "plugins": [{
-      "name": "typescript-tslint-plugin"
+      "name": "typescript-eslint-language-service"
     }],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

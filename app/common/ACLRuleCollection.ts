@@ -315,7 +315,7 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
   }
 
   for (const [resourceId, rules] of rulesByResource.entries()) {
-    const resourceRec = resourcesTable.getRecord(resourceId as number);
+    const resourceRec = resourcesTable.getRecord(resourceId);
     if (!resourceRec) {
       throw new Error(`ACLRule ${rules[0].id} refers to an invalid ACLResource ${resourceId}`);
       continue;

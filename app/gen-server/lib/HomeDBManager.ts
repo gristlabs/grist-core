@@ -8,8 +8,8 @@ import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import * as roles from 'app/common/roles';
 // TODO: API should implement UserAPI
 import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL,
-        ManagerDelta, NEW_DOCUMENT_CODE, Organization as OrgInfo,
-        OrganizationProperties, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
+        ManagerDelta, NEW_DOCUMENT_CODE, OrganizationProperties,
+        Organization as OrgInfo, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
         WorkspaceProperties} from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
@@ -1903,7 +1903,7 @@ export class HomeDBManager extends EventEmitter {
       name: u.name,
       email: u.logins.map((login: Login) => login.displayEmail)[0],
       picture: u.picture,
-      access: userRoleMap[u.id] as roles.Role
+      access: userRoleMap[u.id]
     }));
     return {
       status: 200,
@@ -2811,7 +2811,7 @@ export class HomeDBManager extends EventEmitter {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
       if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.docId) {
-        query = query.andWhere('docs.id = :docId', {docId: scope.specialPermit.docId!});
+        query = query.andWhere('docs.id = :docId', {docId: scope.specialPermit.docId});
         effectiveUserId = this.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
@@ -3051,7 +3051,7 @@ export class HomeDBManager extends EventEmitter {
       if (!groupProps.orgOnly || !inherit) {
         // Skip this group if it's an org only group and the resource inherits from a parent.
         const group = new Group();
-        group.name = groupProps.name as roles.Role;
+        group.name = groupProps.name;
         if (inherit) {
           this._setInheritance(group, inherit);
         }
@@ -3333,7 +3333,10 @@ export class HomeDBManager extends EventEmitter {
                   `${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
                   `then ${everyoneContribution} else (case when ` +
                   `${anonId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
-                  `then ${Permissions.PUBLIC} | acl_rules.permissions else acl_rules.permissions end) end)`, 8), 'permissions');
+                  `then ${Permissions.PUBLIC} | acl_rules.permissions else acl_rules.permissions end) end)`, 8
+            ),
+            'permissions'
+          );
         }
         q = q.from('acl_rules', 'acl_rules');
         q = this._getUsersAcls(q, users, accessStyle);

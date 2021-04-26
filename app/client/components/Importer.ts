@@ -153,7 +153,7 @@ export class Importer extends Disposable {
            } else if (item.kind ===  "url") {
             uploadResult = await fetchURL(this._docComm, item.url);
            } else {
-            throw new Error(`Import source of kind ${item!.kind} are not yet supported!`);
+            throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
           }
         }
       }
@@ -391,7 +391,7 @@ export class Importer extends Disposable {
 }
 
 function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
-  const origName = upload!.files[sourceInfo.uploadFileIndex].origName;
+  const origName = upload.files[sourceInfo.uploadFileIndex].origName;
   return sourceInfo.origTableName ? origName + ' - ' + sourceInfo.origTableName : origName;
 }
 

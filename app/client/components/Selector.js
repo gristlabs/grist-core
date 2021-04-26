@@ -264,7 +264,7 @@ CellSelector.prototype.rowCount = function() {
   return this.rowUpper() - this.rowLower() + 1;
 };
 
-CellSelector.prototype.selectArea = function(rowStartIdx,colStartIdx,rowEndIdx,colEndIdx) {
+CellSelector.prototype.selectArea = function(rowStartIdx, colStartIdx, rowEndIdx, colEndIdx) {
   this.row.start(rowStartIdx);
   this.col.start(colStartIdx);
   this.row.end(rowEndIdx);

@@ -145,7 +145,7 @@ export class FlexServer implements GristServer {
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
 
   constructor(public port: number, public name: string = 'flexServer',
-              readonly options: FlexServerOptions = {}) {
+              public readonly options: FlexServerOptions = {}) {
     this.app = express();
     this.app.set('port', port);
     this.appRoot = getAppRoot();

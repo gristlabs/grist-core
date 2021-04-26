@@ -84,7 +84,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
     // Listen to input value changes (debounced) to activate searching.
     const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
-    this.autoDispose(this.value.addListener(v => { findFirst(v); }));
+    this.autoDispose(this.value.addListener(v => { void findFirst(v); }));
   }
 
   public async findNext() {

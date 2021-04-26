@@ -76,7 +76,7 @@ export abstract class BaseComponent implements IForwarderDest {
   public async forwardMessage(msg: IMsgCustom): Promise<any> {
     if (!this._activated) { await this.activate(); }
     this.inactivityTimer.ping();
-    this.doForwardMessage(msg); // tslint:disable-line:no-floating-promises TODO
+    this.doForwardMessage(msg); // eslint-disable-line @typescript-eslint/no-floating-promises
   }
 
   protected abstract doForwardCall(c: IMsgRpcCall): Promise<any>;

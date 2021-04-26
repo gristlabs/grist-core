@@ -4,7 +4,7 @@ import { CellValue } from 'app/common/DocActions';
 import { isVersions } from 'app/common/gristTypes';
 import { inlineStyle } from 'app/common/gutil';
 import { BaseFormatter } from 'app/common/ValueFormatter';
-import { Diff, DIFF_DELETE, DIFF_INSERT, diff_match_patch as DiffMatchPatch, DIFF_EQUAL } from 'diff-match-patch';
+import { Diff, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch } from 'diff-match-patch';
 import { Computed, dom } from 'grainjs';
 
 /**

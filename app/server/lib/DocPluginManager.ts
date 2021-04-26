@@ -65,7 +65,12 @@ export class DocPluginManager {
   private _pluginInstances: PluginInstance[];
 
 
-  constructor(private _localPlugins: LocalPlugin[], private _appRoot: string, private _activeDoc: ActiveDoc, private _server: GristServer) {
+  constructor(
+    private _localPlugins: LocalPlugin[],
+    private _appRoot: string,
+    private _activeDoc: ActiveDoc,
+    private _server: GristServer
+  ) {
     this.gristDocAPI = new GristDocAPIImpl(_activeDoc);
     this._pluginInstances = [];
     this.ready = this._initialize();

@@ -715,7 +715,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getFormulaError(docSession: DocSession, tableId: string, colId: string,
                                rowId: number): Promise<CellValue> {
-    if (!this._granularAccess.hasTableAccess(docSession, tableId)) { return null; }
+    if (!await this._granularAccess.hasTableAccess(docSession, tableId)) { return null; }
     this.logInfo(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
@@ -1094,7 +1094,7 @@ export class ActiveDoc extends EventEmitter {
     ]);
 
     // Migrate the document if needed.
-    const values = marshal.loads(docInfoData!);
+    const values = marshal.loads(docInfoData);
     const versionCol = values.schemaVersion;
     const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0);
     if (docSchemaVersion < schemaVersion) {
@@ -1126,7 +1126,7 @@ export class ActiveDoc extends EventEmitter {
     const tableNames: string[] = await this._rawPyCall('load_meta_tables', tablesData, columnsData);
 
     // Figure out which tables are on-demand.
-    const tablesParsed: BulkColValues = marshal.loads(tablesData!);
+    const tablesParsed: BulkColValues = marshal.loads(tablesData);
     const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
     const onDemandNames = remove(tableNames, (t) => onDemandMap[t]);
 
@@ -1183,7 +1183,7 @@ export class ActiveDoc extends EventEmitter {
 
     const result: ApplyUAResult = await new Promise<ApplyUAResult>(
       (resolve, reject) =>
-        this._sharing!.addUserAction({action, docSession, resolve, reject}));
+        this._sharing.addUserAction({action, docSession, resolve, reject}));
     this.logDebug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {

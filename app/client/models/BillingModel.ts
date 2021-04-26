@@ -174,7 +174,7 @@ export class BillingModelImpl extends Disposable implements BillingModel {
             await this._billingAPI.updateAddress(newAddr || undefined, newSettings || undefined);
           }
           // If there is an org update, re-initialize the org in the client.
-          if (newSettings) { await this._appModel.topAppModel.initialize(); }
+          if (newSettings) { this._appModel.topAppModel.initialize(); }
         } else {
           throw new Error('BillingPage _submit error: no task in progress');
         }

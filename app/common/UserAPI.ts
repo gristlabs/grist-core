@@ -629,7 +629,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 }
 
 export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
-  constructor(readonly url: string, _options: IOptions = {}) {
+  constructor(public readonly url: string, _options: IOptions = {}) {
     super(_options);
   }
 
@@ -682,7 +682,7 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
 export class DocAPIImpl extends BaseAPI implements DocAPI {
   private _url: string;
 
-  constructor(url: string, readonly docId: string, options: IOptions = {}) {
+  constructor(url: string, public readonly docId: string, options: IOptions = {}) {
     super(options);
     this._url = `${url}/api/docs/${docId}`;
   }

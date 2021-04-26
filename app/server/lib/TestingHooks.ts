@@ -6,12 +6,14 @@ import * as Comm from 'app/server/lib/Comm';
 import {ILoginSession} from 'app/server/lib/ILoginSession';
 import * as log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
-import {createCheckers} from 'ts-interface-checker';
+import * as t from 'ts-interface-checker';
 import {FlexServer} from './FlexServer';
 import {IInstanceManager} from './IInstanceManager';
 import {ITestingHooks} from './ITestingHooks';
 import ITestingHooksTI from './ITestingHooks-ti';
 import {connect, fromCallback} from './serverUtils';
+
+const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});
 
 export function startTestingHooks(socketPath: string, port: number, instanceManager: IInstanceManager,
                                   comm: Comm, flexServer: FlexServer,
@@ -27,7 +29,7 @@ export function startTestingHooks(socketPath: string, port: number, instanceMana
       // Register the testing implementation.
       rpc.registerImpl('testing',
                        new TestingHooks(port, instanceManager, comm, flexServer, workerServers),
-                       createCheckers(ITestingHooksTI).ITestingHooks);
+                       tiCheckers.ITestingHooks);
     });
     server.listen(socketPath);
   });
@@ -47,7 +49,7 @@ export interface TestingHooksClient extends ITestingHooks {
 export async function connectTestingHooks(socketPath: string): Promise<TestingHooksClient> {
   const socket = await connect(socketPath);
   const rpc = connectToSocket(new Rpc({logger: {}}), socket);
-  return Object.assign(rpc.getStub<TestingHooks>('testing', createCheckers(ITestingHooksTI).ITestingHooks), {
+  return Object.assign(rpc.getStub<TestingHooks>('testing', tiCheckers.ITestingHooks), {
     close: () => socket.end(),
   });
 }
@@ -61,12 +63,12 @@ export class TestingHooks implements ITestingHooks {
     private _workerServers: FlexServer[]
   ) {}
 
-  public getOwnPort(): number {
+  public async getOwnPort(): Promise<number> {
     log.info("TestingHooks.getOwnPort called");
     return this._server.getOwnPort();
   }
 
-  public getPort(): number {
+  public async getPort(): Promise<number> {
     log.info("TestingHooks.getPort called");
     return this._port;
   }
@@ -100,7 +102,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.setServerVersion called with", version);
     this._comm.setServerVersion(version);
     for (const server of this._workerServers) {
-      await server.comm.setServerVersion(version);
+      server.comm.setServerVersion(version);
     }
   }
 
@@ -108,7 +110,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.disconnectClients called");
     this._comm.destroyAllClients();
     for (const server of this._workerServers) {
-      await server.comm.destroyAllClients();
+      server.comm.destroyAllClients();
     }
   }
 
@@ -134,7 +136,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.setClientPersistence called with", ttlMs);
     this._comm.testSetClientPersistence(ttlMs);
     for (const server of this._workerServers) {
-      await server.comm.testSetClientPersistence(ttlMs);
+      server.comm.testSetClientPersistence(ttlMs);
     }
   }
 
@@ -174,7 +176,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.flushAuthorizerCache called");
     this._server.dbManager.flushDocAuthCache();
     for (const server of this._workerServers) {
-      await server.dbManager.flushDocAuthCache();
+      server.dbManager.flushDocAuthCache();
     }
   }
 

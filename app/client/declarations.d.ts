@@ -35,7 +35,6 @@ declare module "app/client/components/BaseView" {
   import {Cursor, CursorPos} from 'app/client/components/Cursor';
   import {GristDoc} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';
-  import {KoArray} from "app/client/lib/koArray";
   import * as BaseRowModel from "app/client/models/BaseRowModel";
   import {DataRowModel} from 'app/client/models/DataRowModel';
   import {LazyArrayModel} from "app/client/models/DataTableModel";
@@ -72,10 +71,8 @@ declare module "app/client/components/BaseView" {
 }
 
 declare module "app/client/components/RefSelect" {
-  import {GristDoc, TabContent} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';
   import {ColumnRec} from "app/client/models/DocModel";
-  import {DomArg} from 'grainjs';
   import {DocModel} from "app/client/models/DocModel";
   import {FieldBuilder} from "app/client/widgets/FieldBuilder";
 
@@ -161,11 +158,11 @@ declare module "app/client/models/BaseRowModel" {
   class BaseRowModel extends Disposable {
     public id: ko.Computed<number>;
     public _index: ko.Observable<number|null>;
-    public getRowId(): number;
-    public updateColValues(colValues: ColValues): Promise<void>;
     public _table: TableModel;
     protected _rowId: number | 'new' | null;
     protected _fields: string[];
+    public getRowId(): number;
+    public updateColValues(colValues: ColValues): Promise<void>;
   }
   export = BaseRowModel;
 }
@@ -286,10 +283,9 @@ declare module "app/client/models/DataTableModel" {
   import * as BaseRowModel from "app/client/models/BaseRowModel";
   import {DocModel, TableRec} from "app/client/models/DocModel";
   import {TableQuerySets} from 'app/client/models/QuerySet';
-  import {RowSource, SortedRowSet} from "app/client/models/rowset";
+  import {SortedRowSet} from "app/client/models/rowset";
   import {TableData} from "app/client/models/TableData";
   import * as TableModel from "app/client/models/TableModel";
-  import {CellValue} from "app/common/DocActions";
 
   namespace DataTableModel {
     interface LazyArrayModel<T> extends KoArray<T | null> {

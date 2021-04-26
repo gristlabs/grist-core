@@ -316,7 +316,7 @@ export async function createTmpDir(options: tmp.Options): Promise<TmpDirResult> 
     try {
       // Still call the original callback, so that `tmp` module doesn't keep remembering about
       // this directory and doesn't try to delete it again on exit.
-      tmpCleanup();
+      await tmpCleanup();
     } catch (err) {
       // OK if it fails because the dir is already removed.
     }

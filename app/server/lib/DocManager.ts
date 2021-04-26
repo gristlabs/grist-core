@@ -16,7 +16,8 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer,
         isSingleUserMode} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {getDocSessionCachedDoc, makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {getDocSessionCachedDoc, makeExceptionalDocSession, makeOptDocSession} from 'app/server/lib/DocSession';
+import {OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -498,7 +499,7 @@ export class DocManager extends EventEmitter {
         // TODO: We should be skeptical of the upload file to close a possible
         // security vulnerability. See https://phab.getgrist.com/T457.
         const docName = await this._createNewDoc(id);
-        const docPath = await this.storageManager.getPath(docName);
+        const docPath: string = this.storageManager.getPath(docName);
         await docUtils.copyFile(uploadInfo.files[0].absPath, docPath);
         await this.storageManager.addToStorage(docName);
         return {title: basename, id: docName};

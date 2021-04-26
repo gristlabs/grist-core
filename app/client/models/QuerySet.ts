@@ -314,7 +314,7 @@ function convertQueryToRefs(docModel: DocModel, query: Query): QueryRefs {
   const tableRec: any = docModel.dataTables[query.tableId].tableMetaRow;
 
   const colRefsByColId: {[colId: string]: number} = {};
-  for (const col of (tableRec as any).columns.peek().peek()) {
+  for (const col of tableRec.columns.peek().peek()) {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
 

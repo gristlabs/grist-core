@@ -196,7 +196,7 @@ export class DocStorageManager implements IDocStorageManager {
    * Electron version only. Shows the given doc in the file explorer.
    */
   public async showItemInFolder(docName: string): Promise<void> {
-    this._shell.showItemInFolder(await this.getPath(docName));
+    this._shell.showItemInFolder(this.getPath(docName));
   }
 
   public async closeStorage() {

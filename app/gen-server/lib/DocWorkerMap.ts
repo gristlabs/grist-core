@@ -424,7 +424,7 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async updateDocStatus(docId: string, checksum: string): Promise<void> {
-    this.updateChecksum('doc', docId, checksum);
+    return this.updateChecksum('doc', docId, checksum);
   }
 
   public async updateChecksum(family: string, key: string, checksum: string) {

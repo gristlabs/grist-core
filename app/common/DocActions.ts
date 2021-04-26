@@ -82,7 +82,8 @@ const SCHEMA_ACTIONS = new Set(['AddTable', 'RemoveTable', 'RenameTable', 'AddCo
 /**
  * Determines whether a given action is a schema action or not.
  */
-export function isSchemaAction(action: DocAction): action is AddTable | RemoveTable | RenameTable | AddColumn | RemoveColumn | RenameColumn | ModifyColumn  {
+export function isSchemaAction(action: DocAction):
+    action is AddTable | RemoveTable | RenameTable | AddColumn | RemoveColumn | RenameColumn | ModifyColumn {
   return SCHEMA_ACTIONS.has(action[0]);
 }
 

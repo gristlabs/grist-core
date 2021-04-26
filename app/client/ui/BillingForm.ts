@@ -153,7 +153,7 @@ class BillingPaymentForm extends BillingSubForm {
   }) {
     super();
     const autofill = this._options.autofill;
-    const stripeAPIKey = (G.window as any).gristConfig.stripeAPIKey;
+    const stripeAPIKey = G.window.gristConfig.stripeAPIKey;
     try {
       this._stripe = G.Stripe(stripeAPIKey);
       this._elements = this._stripe.elements();
@@ -462,7 +462,7 @@ function checkRequired(propertyName: string) {
 // if the current observable value is valid.
 function createValidated(
   owner: IDisposableOwnerT<any>,
-  checkValidity: (value: string) => void
+  checkValidity: (value: string) => void|Promise<void>,
 ): IValidated<string> {
   const value = Observable.create(owner, '');
   const isInvalid = Observable.create<boolean>(owner, false);

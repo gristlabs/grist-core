@@ -4,7 +4,7 @@ export type ProductFlavor = string;
 export interface CustomTheme {
   bodyClassName?: string;
   wideLogo?: boolean;
-};
+}
 
 export function getTheme(flavor: string): CustomTheme {
   return {

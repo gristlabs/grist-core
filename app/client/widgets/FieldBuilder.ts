@@ -27,7 +27,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import { CellValue } from 'app/plugin/GristData';
 import { delay } from 'bluebird';
-import { Computed, Disposable, dom as grainjsDom, fromKo, Holder, IDisposable, makeTestId } from 'grainjs';
+import { Computed, Disposable, fromKo, dom as grainjsDom, Holder, IDisposable, makeTestId } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -77,7 +77,7 @@ export class FieldBuilder extends Disposable {
   private readonly widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
   private readonly docModel: DocModel;
 
-  public constructor(readonly gristDoc: GristDoc, readonly field: ViewFieldRec,
+  public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor) {
     super();
 

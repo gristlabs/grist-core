@@ -210,7 +210,9 @@ export class Housekeeper {
 
   // Call a document endpoint with a permit, cleaning up after the call.
   // Checks that the user is the support user.
-  private _withSupport(callback: (docId: string, headers: Record<string, string>) => Promise<Fetch.Response>): express.RequestHandler {
+  private _withSupport(
+    callback: (docId: string, headers: Record<string, string>) => Promise<Fetch.Response>
+  ): express.RequestHandler {
     return expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       if (userId !== this._dbManager.getSupportUserId()) {

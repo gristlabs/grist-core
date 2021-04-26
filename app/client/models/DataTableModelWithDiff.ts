@@ -27,13 +27,6 @@ const ROW_ID_SKIP = -1;
  * This should be the only part of the code that knows that.
  */
 export class ExtraRows {
-  readonly leftTableDelta?: TableDelta;
-  readonly rightTableDelta?: TableDelta;
-  readonly rightAddRows: Set<number>;
-  readonly rightRemoveRows: Set<number>;
-  readonly leftAddRows: Set<number>;
-  readonly leftRemoveRows: Set<number>;
-
   /**
    * Map back from a possibly synthetic row id to an original strictly-positive row id.
    */
@@ -44,7 +37,14 @@ export class ExtraRows {
     return { type: 'local-remove', id: -(rowId + 2) / 2 };
   }
 
-  public constructor(readonly tableId: string, readonly comparison?: DocStateComparisonDetails) {
+  public readonly leftTableDelta?: TableDelta;
+  public readonly rightTableDelta?: TableDelta;
+  public readonly rightAddRows: Set<number>;
+  public readonly rightRemoveRows: Set<number>;
+  public readonly leftAddRows: Set<number>;
+  public readonly leftRemoveRows: Set<number>;
+
+  public constructor(public readonly tableId: string, public readonly comparison?: DocStateComparisonDetails) {
     const remoteTableId = getRemoteTableId(tableId, comparison);
     this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[tableId];
     if (remoteTableId) {

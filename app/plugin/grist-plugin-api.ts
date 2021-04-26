@@ -133,7 +133,7 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
  */
 export function ready(): void {
   rpc.processIncoming();
-  rpc.sendReadyMessage();
+  void rpc.sendReadyMessage();
 }
 
 function getPluginPath(location: Location) {

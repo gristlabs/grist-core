@@ -55,7 +55,7 @@ export class TestServerMerged implements IMochaServer {
   public async restart(reset: boolean = false) {
     if (this.isExternalServer()) { return; }
     if (this._starts > 0) {
-      await this.resume();
+      this.resume();
       await this.stop();
     }
     this._starts++;

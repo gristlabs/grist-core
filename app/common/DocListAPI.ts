@@ -48,7 +48,7 @@ export interface OpenLocalDocResult {
   userOverride?: UserOverride;
 }
 
-export class UserOverride {
+export interface UserOverride {
   user: FullUser|null;
   access: Role|null;
 }

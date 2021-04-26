@@ -58,7 +58,7 @@ function ViewConfigTab(options) {
     }) || self.viewSectionData.at(0);
   }));
   this.isDetail = this.autoDispose(ko.computed(function() {
-    return ['detail','single'].includes(this.viewModel.activeSection().parentKey());
+    return ['detail', 'single'].includes(this.viewModel.activeSection().parentKey());
   }, this));
   this.isChart = this.autoDispose(ko.computed(function() {
       return this.viewModel.activeSection().parentKey() === 'chart';}, this));

@@ -215,10 +215,9 @@ export class DocWorkerApi {
 
     // Initiate a fork.  Used internally to implement ActiveDoc.fork.  Only usable via a Permit.
     this._app.post('/api/docs/:docId/create-fork', canEdit, throttled(async (req, res) => {
-      const mreq = req as RequestWithLogin;
       const docId = stringParam(req.params.docId);
       const srcDocId = stringParam(req.body.srcDocId);
-      if (srcDocId !== mreq.specialPermit?.otherDocId) { throw new Error('access denied'); }
+      if (srcDocId !== req.specialPermit?.otherDocId) { throw new Error('access denied'); }
       await this._docManager.storageManager.prepareFork(srcDocId, docId);
       res.json({srcDocId, docId});
     }));
@@ -249,7 +248,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/recover', canEdit, throttled(async (req, res) => {
       const recoveryModeRaw = req.body.recoveryMode;
       const recoveryMode = (typeof recoveryModeRaw === 'boolean') ? recoveryModeRaw : undefined;
-      if (!this._isOwner(req)) { throw new Error('Only owners can control recovery mode'); }
+      if (!await this._isOwner(req)) { throw new Error('Only owners can control recovery mode'); }
       const activeDoc = await this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req), recoveryMode);
       res.json({
         recoveryMode: activeDoc.recoveryMode

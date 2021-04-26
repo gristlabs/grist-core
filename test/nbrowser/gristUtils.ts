@@ -15,7 +15,7 @@ import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { TestState } from 'app/common/TestState';
-import { DocStateComparison, Organization as APIOrganization, UserAPIImpl, Workspace } from 'app/common/UserAPI';
+import { Organization as APIOrganization, DocStateComparison, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
@@ -163,7 +163,7 @@ export async function selectAll() {
  * Returns a WebElementPromise for the .viewsection_content element for the section which contains
  * the given RegExp content.
  */
-export function getSection(sectionOrTitle: string|WebElement): WebElement {
+export function getSection(sectionOrTitle: string|WebElement): WebElement|WebElementPromise {
   if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
   return driver.find(`.test-viewsection-title[value="${sectionOrTitle}" i]`)
     .findClosest('.viewsection_content');
@@ -1187,7 +1187,7 @@ export class Session {
 
   // Wipe the current site.  The current user ends up being its only owner and manager.
   public async resetSite() {
-    return resetOrg(await this.createHomeApi(), this.settings.org);
+    return resetOrg(this.createHomeApi(), this.settings.org);
   }
 
   // Return a session configured for the current session's site but a different user.

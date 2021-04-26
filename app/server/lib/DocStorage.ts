@@ -439,7 +439,9 @@ export class DocStorage implements ISQLiteDB {
    * Note that SQLite may contain tables that aren't used for Grist data (e.g. attachments), for
    * which such encoding/marshalling is not used, and e.g. binary data is stored to BLOBs directly.
    */
-  private static _encodeValue(marshaller: marshal.Marshaller, sqlType: string, val: any): Uint8Array|string|number|boolean {
+  private static _encodeValue(
+    marshaller: marshal.Marshaller, sqlType: string, val: any
+  ): Uint8Array|string|number|boolean {
     const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
@@ -1376,7 +1378,7 @@ export class DocStorage implements ISQLiteDB {
     // columns, or adding or removing or changing default values on a column."
     const row = await this.get("PRAGMA schema_version");
     assert(row && row.schema_version, "Could not retrieve schema_version.");
-    const newSchemaVersion = row!.schema_version + 1;
+    const newSchemaVersion = row.schema_version + 1;
     const tmpTableId = DocStorage._makeTmpTableId(tableId);
     await this._getDB().runEach(
       "PRAGMA writable_schema=ON",
@@ -1462,7 +1464,7 @@ export class DocStorage implements ISQLiteDB {
    * should be reasonably fast:
    *   https://sqlite.org/tempfiles.html#temp_databases
    */
-  public async _fetchQueryWithManyParameters(query: ExpandedQuery): Promise<Buffer> {
+  private async _fetchQueryWithManyParameters(query: ExpandedQuery): Promise<Buffer> {
     const db = this._getDB();
     return db.execTransaction(async () => {
       const tableNames: string[] = [];
@@ -1490,7 +1492,7 @@ export class DocStorage implements ISQLiteDB {
    * Construct SQL for an ExpandedQuery.  Expects that filters have been converted into
    * a set of WHERE terms that should be ANDed.
    */
-  public _getSqlForQuery(query: ExpandedQuery, whereParts: string[]) {
+  private _getSqlForQuery(query: ExpandedQuery, whereParts: string[]) {
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
     const limitClause = (typeof query.limit === 'number') ? `LIMIT ${query.limit}` : '';
     const joinClauses = query.joins ? query.joins.join(' ') : '';
