@@ -122,7 +122,7 @@ export class AccessRules extends Disposable {
         {ruleIndex: -1, value: 'Email', label: 'user.Email'},
         {ruleIndex: -1, value: 'UserID', label: 'user.UserID'},
         {ruleIndex: -1, value: 'Name', label: 'user.Name'},
-        {ruleIndex: -1, value: 'Link', label: 'user.Link'},
+        {ruleIndex: -1, value: 'LinkKey', label: 'user.LinkKey'},
         {ruleIndex: -1, value: 'Origin', label: 'user.Origin'},
       ];
       for (const [i, rule] of rules.entries()) {
