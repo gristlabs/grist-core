@@ -2,6 +2,7 @@ import {flipColDirection, parseSortColRefs} from 'app/client/lib/sortUtil';
 import {ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomComputed} from 'app/client/models/modelUtil';
 import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
+import {addFilterMenu} from 'app/client/ui/FilterBar';
 import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
@@ -9,6 +10,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider} from 'app/client/ui2018/menus';
 import {Computed, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import difference = require('lodash/difference');
+import {PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-section-menu-');
 
@@ -34,6 +36,8 @@ export function viewSectionMenu(docModel: DocModel, viewSection: ViewSectionRec,
     }
   });
 
+  const popupControls = new WeakMap<ViewFieldRec, PopupControl>();
+
   return cssMenu(
     testId('wrapper'),
     dom.autoDispose(emptySortFilterObs),
@@ -50,7 +54,8 @@ export function viewSectionMenu(docModel: DocModel, viewSection: ViewSectionRec,
                                (row: number) => docModel.columns.getRowModel(row));
         }),
         dom.domComputed(viewSection.filteredFields, fields =>
-          makeFilterPanel(viewSection, fields)),
+          makeFilterPanel(viewSection, fields, popupControls)),
+        makeAddFilterButton(viewSection, popupControls),
         makeFilterBarToggle(viewSection.activeFilterBar),
         dom.domComputed(iconSuffixObs, iconSuffix => {
           const displaySave = iconSuffix === '-unsaved';
@@ -119,6 +124,27 @@ function makeSortPanel(section: ViewSectionRec, sortSpec: number[], getColumn: (
   ];
 }
 
+export function makeAddFilterButton(viewSectionRec: ViewSectionRec,
+                                    popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+  return dom.domComputed((use) => {
+    const fields = use(use(viewSectionRec.viewFields).getObservable());
+    return cssMenuText(
+      cssMenuIconWrapper(
+        cssIcon('Plus'),
+        addFilterMenu(fields, popupControls, {
+          placement: 'bottom-end',
+          // Attach content to triggerElem's parent, which is needed to prevent view section menu to
+          // close when clicking an item of the add filter menu.
+          attach: null
+        }),
+        testId('plus-button'),
+        dom.on('click', (ev) => ev.stopPropagation()),
+      ),
+      cssMenuTextLabel('Add Filter'),
+    );
+  });
+}
+
 export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
   return cssMenuText(
     cssMenuIconWrapper(
@@ -138,7 +164,8 @@ export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
 }
 
 
-function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]) {
+function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[],
+                         popupControls: WeakMap<ViewFieldRec, PopupControl>) {
   const fields = filteredFields.map(field => {
     const fieldChanged = Computed.create(null, fromKo(field.activeFilter.isSaved), (_use, isSaved) => !isSaved);
     return cssMenuText(
@@ -146,7 +173,10 @@ function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]
       cssMenuIconWrapper(
         cssMenuIconWrapper.cls('-changed', fieldChanged),
         cssIcon('FilterSimple'),
-        attachColumnFilterMenu(section, field, {placement: 'bottom-end'}),
+        attachColumnFilterMenu(section, field, {
+          placement: 'bottom-end',
+          trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)],
+        }),
         testId('filter-icon'),
       ),
       cssMenuTextLabel(field.label()),

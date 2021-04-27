@@ -876,6 +876,25 @@ export async function toggleSidePanel(which: 'right'|'left', goal: 'open'|'close
 }
 
 /**
+ * Toggles (opens or closes) the filter bar for a section.
+ */
+export async function toggleFilterBar(goal: 'open'|'close'|'toggle' = 'toggle',
+                                      options: {section?: string|WebElement, save?: boolean} = {}) {
+  const isOpen = await driver.find('.test-filter-bar').isPresent();
+  if ((goal === 'close') && !isOpen ||
+      (goal === 'open') && isOpen ) {
+    return;
+  }
+  const menu = await openSectionMenu(options.section);
+  await menu.findContent('.grist-floating-menu > div', /Toggle Filter Bar/).find('.test-section-menu-btn').click();
+  if (options.save) {
+    await menu.findContent('.grist-floating-menu button', /Save/).click();
+    await waitForServer();
+  }
+  await menu.sendKeys(Key.ESCAPE);
+}
+
+/**
  * Opens the section menu for a section, or the active section if no section is given.
  */
 export async function openSectionMenu(section?: string|WebElement) {

@@ -6,12 +6,14 @@ import { colors, testId } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu, menuItemAsync } from "app/client/ui2018/menus";
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
+import { IMenuOptions, PopupControl } from "popweasel";
 
 export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec) {
+  const popupControls = new WeakMap<ViewFieldRec, PopupControl>();
   return cssFilterBar(
     testId('filter-bar'),
-    dom.forEach(viewSection.filteredFields, (field) => makeFilterField(viewSection, field)),
-    makePlusButton(viewSection),
+    dom.forEach(viewSection.filteredFields, (field) => makeFilterField(viewSection, field, popupControls)),
+    makePlusButton(viewSection, popupControls),
     cssSpacer(),
     dom.maybe(viewSection.filterSpecChanged, () => [
       primaryButton(
@@ -26,39 +28,64 @@ export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec)
   );
 }
 
-function makeFilterField(viewSection: ViewSectionRec, field: ViewFieldRec) {
+function makeFilterField(viewSection: ViewSectionRec, field: ViewFieldRec,
+                         popupControls: WeakMap<ViewFieldRec, PopupControl>) {
   return cssFilterBarItem(
     testId('filter-field'),
     primaryButton(
       testId('btn'),
       cssIcon('FilterSimple'),
       cssMenuTextLabel(dom.text(field.label)),
-      cssBtn.cls('-saved', field.activeFilter.isSaved),
-      attachColumnFilterMenu(viewSection, field, {placement: 'bottom-start', attach: 'body'}),
+      cssBtn.cls('-grayed', field.activeFilter.isSaved),
+      attachColumnFilterMenu(viewSection, field, {
+        placement: 'bottom-start', attach: 'body',
+        trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)]
+      }),
     ),
     deleteButton(
       testId('delete'),
       cssIcon('CrossSmall'),
-      cssBtn.cls('-saved', field.activeFilter.isSaved),
+      cssBtn.cls('-grayed', field.activeFilter.isSaved),
       dom.on('click', () => field.activeFilter('')),
     )
   );
 }
 
-function makePlusButton(viewSectionRec: ViewSectionRec) {
+export function addFilterMenu(fields: ViewFieldRec[], popupControls: WeakMap<ViewFieldRec, PopupControl>,
+                              options?: IMenuOptions) {
+  return (
+    menu((ctl) => [
+      ...fields.map((f) => (
+        menuItemAsync(
+          () => turnOnAndOpenFilter(f, popupControls),
+          f.label.peek(),
+          dom.cls('disabled', f.isFiltered),
+          testId('add-filter-item'),
+        )
+      )),
+      // We need to stop click event to propagate otherwise it would cause view section menu to
+      // close.
+      dom.on('click', (ev) => {
+        ctl.close();
+        ev.stopPropagation();
+      }),
+    ], options)
+  );
+}
+
+function turnOnAndOpenFilter(f: ViewFieldRec, popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+   f.activeFilter(allInclusive);
+   popupControls.get(f)?.open();
+}
+
+function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<ViewFieldRec, PopupControl>) {
   return dom.domComputed((use) => {
     const fields = use(use(viewSectionRec.viewFields).getObservable());
     const anyFilter = fields.find((f) => use(f.isFiltered));
     return cssPlusButton(
-      cssBtn.cls('-saved'),
+      cssBtn.cls('-grayed'),
       cssIcon('Plus'),
-      menu(() => fields.map((f) => (
-        menuItemAsync(
-          () => f.activeFilter(allInclusive),
-          f.label.peek(),
-          dom.cls('disabled', f.isFiltered)
-        )
-      ))),
+      addFilterMenu(fields, popupControls),
       anyFilter ? null : cssPlusLabel('Add Filter'),
       testId('add-filter-btn')
     );
@@ -98,13 +125,13 @@ const cssBtn = styled('div', `
   .${cssFilterBar.className} > & {
     margin: 0 4px;
   }
-  &-saved {
+  &-grayed {
     color:        ${colors.light};
     --icon-color: ${colors.light};
     background-color: ${colors.slate};
     border-color: ${colors.slate};
   }
-  &-saved:hover {
+  &-grayed:hover {
     background-color: ${colors.darkGrey};
     border-color: ${colors.darkGrey};
   }
