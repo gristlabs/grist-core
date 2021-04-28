@@ -1377,14 +1377,15 @@ export class GranularAccess implements GranularAccessForBundle {
   // TODO: deal with ReplaceTableData, which both deletes and creates rows.
   private async _getAccessForActionType(docSession: OptDocSession, a: DocAction,
                                         severity: 'check'|'fatal'): Promise<IAccessCheck> {
+    if (docSession.mode === 'system' || docSession.mode === 'nascent') {
+      return dummyAccessCheck;
+    }
     const tableId = getTableId(a);
     if (STRUCTURAL_TABLES.has(tableId)) {
       // Special case: ensure owners always have full access to ACL tables, so they
       // can change rules and don't get stuck.
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
-        return {
-          get() { return 'allow'; }
-        };
+        return dummyAccessCheck;
       }
       // Otherwise, access to structural tables currently follows the schemaEdit flag.
       return accessChecks[severity].schemaEdit;
@@ -1590,6 +1591,9 @@ export const accessChecks = {
 
 // The AccessCheck for the "read" permission is used enough to merit a shortcut.
 const readAccessCheck = accessChecks.check.read;
+
+// This AccessCheck allows everything.
+const dummyAccessCheck = { get() { return 'allow'; } }
 
 
 /**
