@@ -388,7 +388,7 @@ export class GranularAccess implements GranularAccessForBundle {
         return false;  // have to look closely
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
-      const accessCheck = getAccessForActionType(a, 'fatal');
+      const accessCheck = await this._getAccessForActionType(docSession, a, 'fatal');
       accessCheck.get(tableAccess);  // will throw if access denied.
       return true;
     } else {
@@ -613,7 +613,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * accessCheck may throw if denials are fatal.
    */
   private _pruneColumns(a: DocAction, permInfo: IPermissionInfo, tableId: string,
-                        accessCheck: AccessCheck): DocAction|null {
+                        accessCheck: IAccessCheck): DocAction|null {
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
     } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
@@ -759,7 +759,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Like _pruneRows, but fails immediately if access to any row is forbidden.
    * The accessCheck supplied should throw an error on denial.
    */
-  private async _checkRows(cursor: ActionCursor, accessCheck: AccessCheck): Promise<void> {
+  private async _checkRows(cursor: ActionCursor, accessCheck: IAccessCheck): Promise<void> {
     const {action} = cursor;
     // This check applies to data changes only.
     if (!isDataAction(action)) { return; }
@@ -808,7 +808,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Modify action in place, scrubbing any rows and cells to which access is not granted.
    */
   private async _filterRowsAndCells(cursor: ActionCursor, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
-                                    accessCheck: AccessCheck) {
+                                    accessCheck: IAccessCheck) {
     const ruler = await this._getRuler(cursor);
     const {docSession, action} = cursor;
     if (action && isSchemaAction(action)) {
@@ -1329,8 +1329,8 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   private async _checkIncomingDocAction(cursor: ActionCursor): Promise<void> {
-    const {action} = cursor;
-    const accessCheck = getAccessForActionType(action, 'fatal');
+    const {action, docSession} = cursor;
+    const accessCheck = await this._getAccessForActionType(docSession, action, 'fatal');
     const tableId = getTableId(action);
     const permInfo = await this._getStepAccess(cursor);
     const tableAccess = permInfo.getTableAccess(tableId);
@@ -1371,6 +1371,32 @@ export class GranularAccess implements GranularAccessForBundle {
     if (cursor.actionIdx === null) { throw new Error('No step available'); }
     const steps = await this._getMetaSteps();
     return steps[cursor.actionIdx];
+  }
+
+  // Get an AccessCheck appropriate for the specific action.
+  // TODO: deal with ReplaceTableData, which both deletes and creates rows.
+  private async _getAccessForActionType(docSession: OptDocSession, a: DocAction,
+                                        severity: 'check'|'fatal'): Promise<IAccessCheck> {
+    const tableId = getTableId(a);
+    if (STRUCTURAL_TABLES.has(tableId)) {
+      // Special case: ensure owners always have full access to ACL tables, so they
+      // can change rules and don't get stuck.
+      if (isAclTable(tableId) && await this.isOwner(docSession)) {
+        return {
+          get() { return 'allow'; }
+        };
+      }
+      // Otherwise, access to structural tables currently follows the schemaEdit flag.
+      return accessChecks[severity].schemaEdit;
+    } else if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
+      return accessChecks[severity].update;
+    } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
+      return accessChecks[severity].delete;
+    } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
+      return accessChecks[severity].create;
+    } else {
+      return accessChecks[severity].schemaEdit;
+    }
   }
 }
 
@@ -1529,8 +1555,11 @@ class UserAttributes {
   public override?: UserOverride;
 }
 
+interface IAccessCheck {
+  get(ps: PermissionSetWithContext): string;
+}
 
-class AccessCheck {
+class AccessCheck implements IAccessCheck {
   constructor(public access: 'update'|'delete'|'create'|'schemaEdit'|'read',
               public severity: 'check'|'fatal') {
   }
@@ -1562,21 +1591,6 @@ export const accessChecks = {
 // The AccessCheck for the "read" permission is used enough to merit a shortcut.
 const readAccessCheck = accessChecks.check.read;
 
-// Get an AccessCheck appropriate for the specific action.
-// TODO: deal with ReplaceTableData, which both deletes and creates rows.
-function getAccessForActionType(a: DocAction, severity: 'check'|'fatal'): AccessCheck {
-  if (STRUCTURAL_TABLES.has(getTableId(a))) {
-    return accessChecks[severity].schemaEdit;
-  } else if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
-    return accessChecks[severity].update;
-  } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
-    return accessChecks[severity].delete;
-  } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
-    return accessChecks[severity].create;
-  } else {
-    return accessChecks[severity].schemaEdit;
-  }
-}
 
 /**
  * Manage censoring metadata.
