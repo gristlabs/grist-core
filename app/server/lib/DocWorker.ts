@@ -7,7 +7,8 @@ import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {assertAccess, getOrSetDocAuth, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import * as Comm from 'app/server/lib/Comm';
-import {DocSession} from 'app/server/lib/DocSession';
+import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
+import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import * as log from 'app/server/lib/log';
 import {integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
@@ -75,6 +76,7 @@ export class DocWorker {
       // If template flag is on, remove data and history from the download.
       await removeData(tmpPath);
     }
+    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath);
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type('application/x-sqlite3')
       .download(tmpPath, (optStringParam(req.query.title) || docTitle || 'document') + ".grist", async (err: any) => {

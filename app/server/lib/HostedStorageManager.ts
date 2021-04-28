@@ -248,8 +248,9 @@ export class HostedStorageManager implements IDocStorageManager {
    * Initialize one document from another, associating the result with the current
    * worker.
    */
-  public async prepareFork(srcDocName: string, destDocName: string): Promise<void> {
+  public async prepareFork(srcDocName: string, destDocName: string): Promise<string> {
     await this.prepareLocalDoc(destDocName, srcDocName);
+    return this.getPath(destDocName);
   }
 
   // Gets a copy of the document, eg. for downloading.  Returns full file path.

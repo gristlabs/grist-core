@@ -12,7 +12,7 @@ export interface IDocStorageManager {
   // AsyncCreate[docName].
   prepareLocalDoc(docName: string): Promise<boolean>;
   prepareToCreateDoc(docName: string): Promise<void>;
-  prepareFork(srcDocName: string, destDocName: string): Promise<void>;
+  prepareFork(srcDocName: string, destDocName: string): Promise<string>;  // Returns filename.
 
   listDocs(): Promise<DocEntry[]>;
   deleteDoc(docName: string, deletePermanently?: boolean): Promise<void>;

@@ -90,8 +90,10 @@ export class DocStorageManager implements IDocStorageManager {
     // nothing to do
   }
 
-  public async prepareFork(srcDocName: string, destDocName: string): Promise<void> {
-    // nothing to do
+  public async prepareFork(srcDocName: string, destDocName: string): Promise<string> {
+    // This is implemented only to support old tests.
+    await fse.copy(this.getPath(srcDocName), this.getPath(destDocName));
+    return this.getPath(destDocName);
   }
 
   /**

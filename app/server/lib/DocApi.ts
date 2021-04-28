@@ -15,6 +15,7 @@ import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from 
 import { DocWorker } from "app/server/lib/DocWorker";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from 'app/server/lib/expressWrap';
+import { filterDocumentInPlace } from "app/server/lib/filterUtils";
 import { GristServer } from 'app/server/lib/GristServer';
 import { HashUtil } from 'app/server/lib/HashUtil';
 import { makeForkIds } from "app/server/lib/idUtils";
@@ -218,7 +219,8 @@ export class DocWorkerApi {
       const docId = stringParam(req.params.docId);
       const srcDocId = stringParam(req.body.srcDocId);
       if (srcDocId !== req.specialPermit?.otherDocId) { throw new Error('access denied'); }
-      await this._docManager.storageManager.prepareFork(srcDocId, docId);
+      const fname = await this._docManager.storageManager.prepareFork(srcDocId, docId);
+      await filterDocumentInPlace(docSessionFromRequest(req), fname);
       res.json({srcDocId, docId});
     }));
 
