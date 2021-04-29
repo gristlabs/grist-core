@@ -736,7 +736,10 @@ GridView.prototype.buildDom = function() {
 
     // Corner, bars and shadows
     // Corner and shadows (so it's fixed to the grid viewport)
-    self._cornerDom = dom('div.gridview_data_corner_overlay'),
+    self._cornerDom = dom(
+      'div.gridview_data_corner_overlay',
+      dom.on('click', () => this.selectAll()),
+    ),
     dom('div.scroll_shadow_top', kd.show(this.scrollShadow.top)),
     dom('div.scroll_shadow_left', kd.show(this.scrollShadow.left)),
     dom('div.gridview_header_backdrop_left'), //these hide behind the actual headers to keep them from flashing

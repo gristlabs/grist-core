@@ -728,7 +728,6 @@ export async function addNewTable() {
   await waitForServer();
 }
 
-
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
 export async function addNewPage(typeRe: RegExp, tableRe: RegExp, summarize?: RegExp[]) {
   const url = await driver.getCurrentUrl();

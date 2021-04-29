@@ -146,6 +146,7 @@
   top: 1px; /* go under 1px border on scrollpane */
   border-bottom: 1px solid lightgray;
   z-index: 3;
+  cursor: pointer;
 }
 
 .scroll_shadow_left {
