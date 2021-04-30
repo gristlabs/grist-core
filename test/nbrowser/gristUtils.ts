@@ -964,6 +964,10 @@ export async function copyKey() {
   return await isMac() ? Key.chord(Key.CONTROL, Key.INSERT) : Key.chord(Key.CONTROL, 'c');
 }
 
+export async function cutKey() {
+  return await isMac() ? Key.chord(Key.CONTROL, Key.DELETE) : Key.chord(Key.CONTROL, 'x');
+}
+
 export async function pasteKey() {
   return await isMac() ? Key.chord(Key.SHIFT, Key.INSERT) : Key.chord(Key.CONTROL, 'v');
 }

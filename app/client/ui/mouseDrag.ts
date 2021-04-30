@@ -17,7 +17,7 @@ export interface MouseDragHandler {
   onStop(endEv: MouseEvent): void;
 }
 
-export type MouseDragStart = (startEv: MouseEvent, elem: Element) => MouseDragHandler|null;
+export type MouseDragStart = (startEv: MouseEvent, elem: HTMLElement) => MouseDragHandler|null;
 
 export function mouseDragElem(elem: HTMLElement, onStart: MouseDragStart): IDisposable {
 
@@ -30,7 +30,7 @@ export function mouseDrag(onStart: MouseDragStart): DomElementMethod {
   return (elem) => { mouseDragElem(elem, onStart); };
 }
 
-function _startDragging(startEv: MouseEvent, elem: Element, onStart: MouseDragStart) {
+function _startDragging(startEv: MouseEvent, elem: HTMLElement, onStart: MouseDragStart) {
   const dragHandler = onStart(startEv, elem);
   if (dragHandler) {
 

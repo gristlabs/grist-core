@@ -18,3 +18,11 @@ export function isDesktop() {
 export function isIOS() {
   return navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
 }
+
+// Returns 'metaKey' on Mac / iOS, and 'ctrlKey' elsewhere. This is useful for various keyboard
+// interactions that use Control on Windows and Linux, and Command key on Mac for the same
+// purpose. Suitable to use with KeyboardEvent and MouseEvent.
+// (Note: Mousetrap.js uses the same logic to interpret its "mod" key alias.)
+export function modKeyProp(): 'metaKey'|'ctrlKey' {
+  return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
+}
