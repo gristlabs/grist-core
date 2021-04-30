@@ -4,88 +4,103 @@ import {CustomComputed} from 'app/client/models/modelUtil';
 import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
 import {addFilterMenu} from 'app/client/ui/FilterBar';
 import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuDivider} from 'app/client/ui2018/menus';
-import {Computed, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
+import {menu} from 'app/client/ui2018/menus';
+import {Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import difference = require('lodash/difference');
 import {PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-section-menu-');
 
-type IconSuffix = '' | '-saved' | '-unsaved';
+const TOOLTIP_DELAY_OPEN = 750;
 
-export function viewSectionMenu(docModel: DocModel, viewSection: ViewSectionRec, viewModel: ViewRec,
-                                isReadonly: Observable<boolean>, newUI = true) {
-  const emptySortFilterObs: Computed<boolean> = Computed.create(null, use => {
-    return use(viewSection.activeSortSpec).length === 0 && use(viewSection.filteredFields).length === 0;
-  });
+async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
+  await docModel.docData.bundleActions("Update Sort&Filter settings", () => Promise.all([
+    viewSection.activeSortJson.save(),  // Save sort
+    viewSection.saveFilters(),          // Save filter
+    viewSection.activeFilterBar.save(), // Save bar
+  ]));
+}
 
-  // Using a static subscription to emptySortFilterObs ensures that it's calculated first even if
-  // it started in the "unsaved" state (in which a dynamic use()-based subscription to
-  // emptySortFilterObs wouldn't be active, which could result in a wrong order of evaluation).
-  const iconSuffixObs: Computed<IconSuffix> = Computed.create(null, emptySortFilterObs, (use, empty) => {
-    if (use(viewSection.filterSpecChanged) || !use(viewSection.activeSortJson.isSaved)
-        || !use(viewSection.activeFilterBar.isSaved)) {
-      return '-unsaved';
-    } else if (!empty) {
-      return '-saved';
-    } else {
-      return '';
-    }
-  });
+function doRevert(viewSection: ViewSectionRec) {
+  viewSection.activeSortJson.revert();  // Revert sort
+  viewSection.revertFilters();          // Revert filter
+  viewSection.activeFilterBar.revert(); // Revert bar
+}
+
+export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, viewSection: ViewSectionRec,
+                                viewModel: ViewRec, isReadonly: Observable<boolean>) {
 
   const popupControls = new WeakMap<ViewFieldRec, PopupControl>();
+  const anyFilter = Computed.create(owner, (use) => Boolean(use(viewSection.filteredFields).length));
 
-  return cssMenu(
-    testId('wrapper'),
-    dom.autoDispose(emptySortFilterObs),
-    dom.autoDispose(iconSuffixObs),
-    dom.cls(clsOldUI.className, !newUI),
-    dom.maybe(iconSuffixObs, () => cssFilterIconWrapper(testId('filter-icon'), cssFilterIcon('Filter'))),
-    cssMenu.cls(iconSuffixObs),
-    cssDotsIconWrapper(cssDotsIcon('Dots')),
-    menu(_ctl => {
-      return [
-        dom.domComputed(use => {
-          use(viewSection.activeSortJson.isSaved); // Rebuild sort panel if sort gets saved. A little hacky.
-          return makeSortPanel(viewSection, use(viewSection.activeSortSpec),
-                               (row: number) => docModel.columns.getRowModel(row));
-        }),
-        dom.domComputed(viewSection.filteredFields, fields =>
-          makeFilterPanel(viewSection, fields, popupControls)),
-        makeAddFilterButton(viewSection, popupControls),
-        makeFilterBarToggle(viewSection.activeFilterBar),
-        dom.domComputed(iconSuffixObs, iconSuffix => {
-          const displaySave = iconSuffix === '-unsaved';
-          return [
+  const displaySaveObs: Computed<boolean> = Computed.create(owner, (use) => (
+    use(viewSection.filterSpecChanged)
+      || !use(viewSection.activeSortJson.isSaved)
+      || !use(viewSection.activeFilterBar.isSaved)
+  ));
+
+  const save = () => doSave(docModel, viewSection);
+  const revert = () => doRevert(viewSection);
+
+  return [
+    cssFilterMenuWrapper(
+      cssFixHeight.cls(''),
+      cssFilterMenuWrapper.cls('-unsaved', displaySaveObs),
+      testId('wrapper'),
+      cssMenu(
+        testId('sortAndFilter'),
+        cssFilterIconWrapper(
+          testId('filter-icon'),
+          cssFilterIconWrapper.cls('-any', anyFilter),
+          cssFilterIcon('Filter')
+        ),
+        menu(_ctl => [
+          dom.domComputed(use => {
+            use(viewSection.activeSortJson.isSaved); // Rebuild sort panel if sort gets saved. A little hacky.
+            return makeSortPanel(viewSection, use(viewSection.activeSortSpec),
+                                 (row: number) => docModel.columns.getRowModel(row));
+          }),
+          dom.domComputed(viewSection.filteredFields, fields =>
+                          makeFilterPanel(viewSection, fields, popupControls)),
+          makeAddFilterButton(viewSection, popupControls),
+          makeFilterBarToggle(viewSection.activeFilterBar),
+          dom.domComputed(displaySaveObs, displaySave => [
             displaySave ? cssMenuInfoHeader(
               cssSaveButton('Save', testId('btn-save'),
-                dom.on('click', async () => {
-                  await docModel.docData.bundleActions("Update Sort&Filter settings", () => Promise.all([
-                    viewSection.activeSortJson.save(),  // Save sort
-                    viewSection.saveFilters(),          // Save filter
-                    viewSection.activeFilterBar.save(), // Save bar
-                  ]));
-                }),
-                dom.boolAttr('disabled', isReadonly),
-              ),
+                            dom.on('click', save),
+                            dom.boolAttr('disabled', isReadonly)),
               basicButton('Revert', testId('btn-revert'),
-                dom.on('click', () => {
-                  viewSection.activeSortJson.revert();  // Revert sort
-                  viewSection.revertFilters();          // Revert filter
-                  viewSection.activeFilterBar.revert(); // Revert bar
-                })
-              )
+                          dom.on('click', revert))
             ) : null,
-            menuDivider()
-          ];
-        }),
-        ...makeViewLayoutMenu(viewModel, viewSection, isReadonly.get())
-      ];
-    })
-  );
+          ]),
+        ]),
+      ),
+      dom.maybe(displaySaveObs, () => cssSaveIconsWrapper(
+        cssSmallIconWrapper(
+          cssIcon('Tick'), cssSmallIconWrapper.cls('-green'),
+          dom.on('click', save),
+          hoverTooltip(() => 'Save', {key: 'sortFilterButton', openDelay: TOOLTIP_DELAY_OPEN}),
+          testId('small-btn-save'),
+        ),
+        cssSmallIconWrapper(
+          cssIcon('CrossSmall'), cssSmallIconWrapper.cls('-gray'),
+          dom.on('click', revert),
+          hoverTooltip(() => 'Revert', {key: 'sortFilterButton', openDelay: TOOLTIP_DELAY_OPEN}),
+          testId('small-btn-revert'),
+        ),
+      )),
+    ),
+    cssMenu(
+      testId('viewLayout'),
+      cssFixHeight.cls(''),
+      cssDotsIconWrapper(cssIcon('Dots')),
+      menu(_ctl => makeViewLayoutMenu(viewModel, viewSection, isReadonly.get()))
+    )
+  ];
 }
 
 function makeSortPanel(section: ViewSectionRec, sortSpec: number[], getColumn: (row: number) => ColumnRec) {
@@ -193,8 +208,11 @@ function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]
 
 const clsOldUI = styled('div', ``);
 
-const cssMenu = styled('div', `
+const cssFixHeight = styled('div', `
   margin-top: -3px; /* Section header is 24px, so need to move this up a little bit */
+`);
+
+const cssMenu = styled('div', `
 
   display: inline-flex;
   cursor: pointer;
@@ -208,19 +226,6 @@ const cssMenu = styled('div', `
 
   &:hover, &.weasel-popup-open {
     background-color: ${colors.mediumGrey};
-  }
-
-  &-unsaved, &-unsaved.weasel-popup-open {
-    border: 1px solid ${colors.lightGreen};
-    background-color: ${colors.lightGreen};
-  }
-  &-unsaved:hover {
-    border: 1px solid ${colors.darkGreen};
-    background-color: ${colors.darkGreen};
-  }
-  &-unsaved.${clsOldUI.className} {
-    border: 1px solid transparent;
-    background-color: ${colors.lightGreen};
   }
 `);
 
@@ -248,6 +253,20 @@ const cssMenuIconWrapper = styled(cssIconWrapper, `
   }
 `);
 
+const cssFilterMenuWrapper = styled('div', `
+  display: inline-flex;
+  margin-right: 10px;
+  border-radius: 3px;
+  align-items: center;
+  &-unsaved {
+    border: 1px solid ${colors.lightGreen};
+  }
+  & .${cssMenu.className} {
+    border: none;
+  }
+
+`);
+
 const cssIcon = styled(icon, `
   flex: none;
   cursor: pointer;
@@ -272,25 +291,21 @@ const cssDotsIconWrapper = styled(cssIconWrapper, `
   .${clsOldUI.className} & {
     border-radius: 0px;
   }
-
-  .${cssMenu.className}-unsaved & {
-    background-color: white;
-  }
-`);
-
-const cssDotsIcon = styled(cssIcon, `
-  .${clsOldUI.className}.${cssMenu.className}-unsaved & {
-    background-color: ${colors.slate};
-  }
 `);
 
 const cssFilterIconWrapper = styled(cssIconWrapper, `
   border-radius: 2px 0px 0px 2px;
+  .${cssFilterMenuWrapper.className}-unsaved & {
+    background-color: ${colors.lightGreen};
+  }
 `);
 
 const cssFilterIcon = styled(cssIcon, `
-  .${cssMenu.className}-unsaved & {
-    background-color: ${colors.light};
+  .${cssFilterIconWrapper.className}-any & {
+    background-color: ${colors.lightGreen};
+  }
+  .${cssFilterMenuWrapper.className}-unsaved & {
+    background-color: white;
   }
 `);
 
@@ -322,4 +337,27 @@ const cssMenuTextLabel = styled('span', `
 
 const cssSaveButton = styled(primaryButton, `
   margin-right: 8px;
+`);
+
+const cssSmallIconWrapper = styled('div', `
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  &-green {
+    background-color: ${colors.lightGreen};
+  }
+  &-gray {
+    background-color: ${colors.slate};
+  }
+  & > .${cssIcon.className} {
+    background-color: white;
+  }
+`);
+
+
+const cssSaveIconsWrapper = styled('div', `
+  padding: 0 6px 0 6px;
+  display: flex;
+  justify-content: space-between;
+  width: 54px;
 `);

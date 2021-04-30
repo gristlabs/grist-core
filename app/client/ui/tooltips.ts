@@ -74,12 +74,15 @@ export function showTooltip(
 ): ITooltipControl {
   const placement: Popper.Placement = options.placement || 'top';
   const key = options.key;
+  let closed = false;
 
   // If we had a previous tooltip with the same key, clean it up.
   if (key) { openTooltips.get(key)?.close(); }
 
   // Cleanup involves destroying the Popper instance, removing the element, etc.
   function close() {
+    if (closed) { return; }
+    closed = true;
     popper.destroy();
     dom.domDispose(content);
     content.remove();
@@ -97,6 +100,9 @@ export function showTooltip(
     placement,
   };
   const popper = new Popper(refElem, content, popperOptions);
+
+  // If refElem is disposed we close the tooltip.
+  dom.onDisposeElem(refElem, close);
 
   // Fade in the content using transitions.
   prepareForTransition(content, () => { content.style.opacity = '0'; });
@@ -142,6 +148,7 @@ export function setHoverTooltip(refElem: Element, tipContent: ITooltipContentFun
     tipControl = showTooltip(refElem, ctl => tipContent({...ctl, close}), options);
     dom.onElem(tipControl.getDom(), 'mouseenter', clearTimer);
     dom.onElem(tipControl.getDom(), 'mouseleave', scheduleCloseIfOpen);
+    dom.onDisposeElem(tipControl.getDom(), close);
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
   function close() {

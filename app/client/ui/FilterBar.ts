@@ -14,17 +14,6 @@ export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec)
     testId('filter-bar'),
     dom.forEach(viewSection.filteredFields, (field) => makeFilterField(viewSection, field, popupControls)),
     makePlusButton(viewSection, popupControls),
-    cssSpacer(),
-    dom.maybe(viewSection.filterSpecChanged, () => [
-      primaryButton(
-        'Save', testId('btn'),
-        dom.on('click', async () => await viewSection.saveFilters()),
-      ),
-      basicButton(
-        'Revert', testId('btn'),
-        dom.on('click', () => viewSection.revertFilters()),
-      )
-    ])
   );
 }
 
@@ -140,15 +129,8 @@ const primaryButton = (...args: IDomArgs<HTMLDivElement>) => (
   dom('div', cssButton.cls(''), cssButton.cls('-primary'),
       cssBtn.cls(''), ...args)
 );
-const basicButton = (...args: IDomArgs<HTMLDivElement>) => (
-  dom('div', cssButton.cls(''), cssBtn.cls(''), ...args)
-);
 const deleteButton = styled(primaryButton, `
   padding: 3px 4px;
-`);
-const cssSpacer = styled('div', `
-  width: 8px;
-  flex-shrink: 0;
 `);
 const cssPlusButton = styled(primaryButton, `
   padding: 3px 3px

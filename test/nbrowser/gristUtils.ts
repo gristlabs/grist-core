@@ -884,7 +884,7 @@ export async function toggleFilterBar(goal: 'open'|'close'|'toggle' = 'toggle',
       (goal === 'open') && isOpen ) {
     return;
   }
-  const menu = await openSectionMenu(options.section);
+  const menu = await openSectionMenu('sortAndFilter', options.section);
   await menu.findContent('.grist-floating-menu > div', /Toggle Filter Bar/).find('.test-section-menu-btn').click();
   if (options.save) {
     await menu.findContent('.grist-floating-menu button', /Save/).click();
@@ -896,9 +896,9 @@ export async function toggleFilterBar(goal: 'open'|'close'|'toggle' = 'toggle',
 /**
  * Opens the section menu for a section, or the active section if no section is given.
  */
-export async function openSectionMenu(section?: string|WebElement) {
+export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
-  await sectionElem.find('.test-section-menu-wrapper').click();
+  await sectionElem.find(`.test-section-menu-${which}`).click();
   return await driver.findWait('.grist-floating-menu', 100);
 }
 

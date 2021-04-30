@@ -200,7 +200,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         ),
         dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance: BaseView) => viewInstance.buildTitleControls()),
         dom('span.viewsection_buttons',
-          viewSectionMenu(this.docModel, vs, this.viewModel, this.gristDoc.isReadonly, this.gristDoc.app.useNewUI)
+          dom.create(viewSectionMenu, this.docModel, vs, this.viewModel, this.gristDoc.isReadonly)
         )
        )),
       dom.maybe(vs.activeFilterBar, () => dom.create(filterBar, vs)),
