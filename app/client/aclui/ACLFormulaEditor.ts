@@ -18,9 +18,11 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   // Set various editor options.
   editor.setTheme('ace/theme/chrome');
-  editor.setOptions({enableLiveAutocompletion: true});
+  // ACE editor resizes automatically when maxLines is set.
+  editor.setOptions({enableLiveAutocompletion: true, maxLines: 10});
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden
-  editor.renderer.setPadding(0);
+  editor.renderer.setPadding(5);
+  editor.renderer.setScrollMargin(4, 4, 0, 0);
   editor.$blockScrolling = Infinity;
   editor.setReadOnly(options.readOnly);
   editor.setFontSize('12');
@@ -64,22 +66,8 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Disable Tab/Shift+Tab commands to restore their regular behavior.
   (editor.commands as any).removeCommands(['indent', 'outdent']);
 
-  function resize() {
-    if (editor.renderer.lineHeight === 0) {
-      // Reschedule the resize, since it's not ready yet. Seems to happen occasionally.
-      setTimeout(resize, 50);
-    }
-    editorElem.style.width = 'auto';
-    editorElem.style.height = (Math.max(1, session.getScreenLength()) * editor.renderer.lineHeight) + 'px';
-    editor.resize();
-  }
-
   // Set the editor's initial value.
   editor.setValue(options.initialValue);
-
-  // Resize the editor on change, and initially once it's attached to the page.
-  editor.on('change', resize);
-  setTimeout(resize, 0);
 
   return cssConditionInputAce(
     cssConditionInputAce.cls('-disabled', options.readOnly),
@@ -91,7 +79,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 const cssConditionInputAce = styled('div', `
   width: 100%;
   min-height: 28px;
-  padding: 5px 6px 5px 6px;
+  padding: 1px;
   border-radius: 3px;
   border: 1px solid transparent;
   cursor: pointer;
@@ -123,5 +111,6 @@ const cssConditionInputAce = styled('div', `
 `);
 
 const cssAcePlaceholder = styled('div', `
+  padding: 4px 5px;
   opacity: 0.5;
 `);

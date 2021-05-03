@@ -726,6 +726,18 @@ abstract class ObsRuleSet extends Disposable {
       ),
       cssCell4(cssRuleBody.cls(''),
         dom.forEach(this._body, part => part.buildRulePartDom()),
+        dom.maybe(use => !this.hasDefaultCondition(use), () =>
+          cssColumnGroup(
+            {style: 'min-height: 28px'},
+            cssCellIcon(
+              cssIconButton(icon('Plus'),
+                dom.on('click', () => this.addRulePart(null)),
+                testId('rule-add'),
+              )
+            ),
+            testId('rule-extra-add'),
+          )
+        ),
       ),
       testId('rule-set'),
     );
@@ -738,8 +750,9 @@ abstract class ObsRuleSet extends Disposable {
     }
   }
 
-  public addRulePart(beforeRule: ObsRulePart) {
-    const i = this._body.get().indexOf(beforeRule);
+  public addRulePart(beforeRule: ObsRulePart|null) {
+    const body = this._body.get();
+    const i = beforeRule ? body.indexOf(beforeRule) : body.length;
     this._body.splice(i, 0, ObsRulePart.create(this._body, this, undefined));
   }
 
@@ -766,6 +779,11 @@ abstract class ObsRuleSet extends Disposable {
   public isLastCondition(use: UseCB, part: ObsRulePart): boolean {
     const body = use(this._body);
     return body[body.length - 1] === part;
+  }
+
+  public hasDefaultCondition(use: UseCB): boolean {
+    const body = use(this._body);
+    return body.length > 0 && body[body.length - 1].hasEmptyCondition(use);
   }
 
   /**
@@ -1125,6 +1143,10 @@ class ObsRulePart extends Disposable {
       permissionsText: permissionSetToText(this._permissions.get()),
       rulePos: this._rulePart?.origRecord?.rulePos as number|undefined,
     };
+  }
+
+  public hasEmptyCondition(use: UseCB): boolean {
+    return use(this._aclFormula) === '';
   }
 
   public matches(use: UseCB, aclFormula: string, permissionsText: string): boolean {
