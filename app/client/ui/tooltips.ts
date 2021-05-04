@@ -174,6 +174,9 @@ export function setHoverTooltip(refElem: Element, tipContent: ITooltipContentFun
     // If request, re-open on click.
     dom.onElem(refElem, 'click', () => { close(); open(); });
   }
+
+  // close tooltip if refElem is disposed
+  dom.onDisposeElem(refElem, close);
 }
 
 /**
