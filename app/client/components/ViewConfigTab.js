@@ -10,11 +10,13 @@ var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
 const {buildChartConfigDom} = require('./ChartView');
 const {Computed, dom: grainjsDom, makeTestId, Observable, styled} = require('grainjs');
-const {VisibleFieldsConfig} = require('app/client/ui/VisibleFieldsConfig');
 
 const {addToSort, flipColDirection, parseSortColRefs} = require('app/client/lib/sortUtil');
 const {reorderSortRefs, updatePositions} = require('app/client/lib/sortUtil');
+const {attachColumnFilterMenu} = require('app/client/ui/ColumnFilterMenu');
+const {addFilterMenu} = require('app/client/ui/FilterBar');
 const {cssIcon, cssRow} = require('app/client/ui/RightPanel');
+const {VisibleFieldsConfig} = require('app/client/ui/VisibleFieldsConfig');
 const {basicButton, primaryButton} = require('app/client/ui2018/buttons');
 const {colors} = require('app/client/ui2018/cssVars');
 const {cssDragger} = require('app/client/ui2018/draggableList');
@@ -247,6 +249,7 @@ ViewConfigTab.prototype.buildSortDom = function() {
       this._buildAddToSortBtn(columns),
       // Update/save/reset buttons visible when the sort has changed.
       cssRow(
+        cssExtraMarginTop.cls(''),
         grainjsDom.maybe(hasChanged, () => [
           primaryButton('Save', {style: 'margin-right: 8px;'},
             grainjsDom.on('click', () => { section.activeSortJson.save(); }),
@@ -481,39 +484,82 @@ ViewConfigTab.prototype._buildDetailTypeDom = function() {
 };
 
 ViewConfigTab.prototype._buildFilterDom = function() {
-  return kd.maybe(this.activeSectionData, sectionData => {
-    let section = sectionData.section;
-    return dom('div',
-      kf.row(
-        1, dom('div.glyphicon.glyphicon-filter.config_icon'),
-        4, kf.label('Filters'),
-        13, dom('div.kf_elem', kd.foreach(section.viewFields(), field => {
-          return dom('div.filter_list', kd.maybe(field.activeFilter, () => {
-            return dom('div.token',
-              dom('span.token-label', field.label()),
-              dom('span.close.glyphicon.glyphicon-remove',
-                dom.on('click', () => { field.activeFilter(''); })
-              )
-            );
-          }));
-        }))
-      ),
-      grainjsDom.maybe(section.filterSpecChanged, () => {
-        return kf.prompt(
-          kf.liteButtonGroup(
-            kf.liteButton(() => section.saveFilters(),
-              dom('span.config_icon.left_icon.glyphicon.glyphicon-save'), 'Save',
-              dom.testId('ViewConfigTab_saveFilter'),
-              kd.toggleClass('disabled', () => this.gristDoc.isReadonlyKo()),
-            ),
-            kf.liteButton(() => section.revertFilters(),
-              dom('span.config_icon.left_icon.glyphicon.glyphicon-refresh'), 'Reset',
-              dom.testId('ViewConfigTab_resetFilter')
-            )
-          )
+  return grainjsDom.maybe(this.activeSectionData, (sectionData) => {
+    const section = sectionData.section;
+    const docModel = this.gristDoc.docModel;
+    const popupControls = new WeakMap();
+    const activeFilterBar = section.activeFilterBar;
+
+    const hasChangedObs = Computed.create(null, (use) => use(section.filterSpecChanged) || !use(section.activeFilterBar.isSaved))
+
+    async function save() {
+      await docModel.docData.bundleActions("Update Filter settings", () => Promise.all([
+        section.saveFilters(),          // Save filter
+        section.activeFilterBar.save(), // Save bar
+      ]));
+    }
+    function revert() {
+      section.revertFilters();          // Revert filter
+      section.activeFilterBar.revert(); // Revert bar
+    }
+
+    return [
+      grainjsDom.forEach(section.filteredFields, (field) => {
+        return cssRow(
+          cssIconWrapper(
+            cssFilterIcon('FilterSimple', cssNoMarginLeft.cls('')),
+            attachColumnFilterMenu(section, field, {
+              placement: 'bottom-end', attach: 'body',
+              trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)],
+            }),
+          ),
+          cssLabel(grainjsDom.text(field.label)),
+          cssIconWrapper(
+            cssFilterIcon('Remove', dom.on('click', () => field.activeFilter('')),
+                          testId('remove-filter')),
+          ),
+          testId('filter'),
         );
-      })
-    );
+      }),
+      cssRow(
+        grainjsDom.domComputed((use) => {
+          const fields = use(use(section.viewFields).getObservable());
+          return cssTextBtn(
+            cssPlusIcon('Plus'), 'Add Filter',
+            addFilterMenu(fields, popupControls, {placement: 'bottom-end'}),
+            testId('add-filter-btn'),
+          );
+        }),
+      ),
+      cssRow(
+        cssTextBtn(
+          testId('toggle-filter-bar'),
+          grainjsDom.domComputed((use) => {
+            const filterBar = use(activeFilterBar);
+            return cssPlusIcon(
+              filterBar ? "Tick" : "Plus",
+              cssIcon.cls('-green', Boolean(filterBar)),
+              testId('toggle-filter-bar-icon'),
+            );
+          }),
+          grainjsDom.on('click', () => activeFilterBar(!activeFilterBar.peek())),
+          'Toggle Filter Bar',
+        )
+      ),
+      grainjsDom.maybe(hasChangedObs, () => cssRow(
+        cssExtraMarginTop.cls(''),
+        testId('save-filter-btns'),
+        primaryButton(
+          'Save', {style: 'margin-right: 8px'},
+          grainjsDom.on('click', save),
+          grainjsDom.boolAttr('disabled', this.gristDoc.isReadonly),
+        ),
+        basicButton(
+          'Revert',
+          grainjsDom.on('click', revert),
+        )
+      ))
+    ];
   });
 };
 
@@ -718,7 +764,6 @@ const cssSortIconPrimaryBtn = styled(cssSortIconBtn, `
 const cssTextBtn = styled('div', `
   color: ${colors.lightGreen};
   cursor: pointer;
-  height: 29px;
 
   &:hover {
     color: ${colors.darkGreen};
@@ -755,5 +800,24 @@ const cssSortRow = styled('div', `
 const cssFlex = styled('div', `
   flex: 1 1 0;
 `);
+
+const cssLabel = styled('div', `
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  flex-grow: 1;
+`);
+
+const cssExtraMarginTop = styled('div', `
+  margin-top: 28px;
+`);
+
+const cssFilterIcon = cssSortIconBtn;
+
+const cssNoMarginLeft = styled('div', `
+  margin-left: 0;
+`);
+
+const cssIconWrapper = styled('div', ``);
 
 module.exports = ViewConfigTab;

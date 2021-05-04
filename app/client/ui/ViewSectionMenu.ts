@@ -173,7 +173,7 @@ export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
                        testId('icon'));
       }),
     ),
-    dom.on('click', () => activeFilterBar(!activeFilterBar())),
+    dom.on('click', () => activeFilterBar(!activeFilterBar.peek())),
     cssMenuTextLabel("Toggle Filter Bar"),
   );
 }
