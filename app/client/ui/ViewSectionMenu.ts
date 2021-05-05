@@ -86,6 +86,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           dom.on('click', save),
           hoverTooltip(() => 'Save', {key: 'sortFilterButton', openDelay: TOOLTIP_DELAY_OPEN}),
           testId('small-btn-save'),
+          dom.hide(isReadonly),
         ),
         cssSmallIconWrapper(
           cssIcon('CrossSmall'), cssSmallIconWrapper.cls('-gray'),
@@ -346,6 +347,8 @@ const cssSmallIconWrapper = styled('div', `
   width: 16px;
   height: 16px;
   border-radius: 8px;
+  margin: 0 5px 0 5px;
+
   &-green {
     background-color: ${colors.lightGreen};
   }
@@ -359,8 +362,7 @@ const cssSmallIconWrapper = styled('div', `
 
 
 const cssSaveIconsWrapper = styled('div', `
-  padding: 0 6px 0 6px;
+  padding: 0 1px 0 1px;
   display: flex;
   justify-content: space-between;
-  width: 54px;
 `);
