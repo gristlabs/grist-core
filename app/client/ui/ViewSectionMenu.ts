@@ -1,10 +1,11 @@
 import {flipColDirection, parseSortColRefs} from 'app/client/lib/sortUtil';
+import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomComputed} from 'app/client/models/modelUtil';
 import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
 import {addFilterMenu} from 'app/client/ui/FilterBar';
-import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {hoverTooltip} from 'app/client/ui/tooltips';
+import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -43,7 +44,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
       || !use(viewSection.activeFilterBar.isSaved)
   ));
 
-  const save = () => doSave(docModel, viewSection);
+  const save = () => { doSave(docModel, viewSection).catch(reportError); };
   const revert = () => doRevert(viewSection);
 
   return [
@@ -58,23 +59,23 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           cssFilterIconWrapper.cls('-any', anyFilter),
           cssFilterIcon('Filter')
         ),
-        menu(_ctl => [
+        menu(ctl => [
           dom.domComputed(use => {
             use(viewSection.activeSortJson.isSaved); // Rebuild sort panel if sort gets saved. A little hacky.
             return makeSortPanel(viewSection, use(viewSection.activeSortSpec),
                                  (row: number) => docModel.columns.getRowModel(row));
           }),
           dom.domComputed(viewSection.filteredFields, fields =>
-                          makeFilterPanel(viewSection, fields, popupControls)),
+                          makeFilterPanel(viewSection, fields, popupControls, () => ctl.close())),
           makeAddFilterButton(viewSection, popupControls),
           makeFilterBarToggle(viewSection.activeFilterBar),
           dom.domComputed(displaySaveObs, displaySave => [
             displaySave ? cssMenuInfoHeader(
               cssSaveButton('Save', testId('btn-save'),
-                            dom.on('click', save),
+                            dom.on('click', () => { save(); ctl.close(); }),
                             dom.boolAttr('disabled', isReadonly)),
               basicButton('Revert', testId('btn-revert'),
-                          dom.on('click', revert))
+                          dom.on('click', () => { revert(); ctl.close(); }))
             ) : null,
           ]),
         ]),
@@ -180,7 +181,8 @@ export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
 
 
 function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[],
-                         popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+                         popupControls: WeakMap<ViewFieldRec, PopupControl>,
+                         onCloseContent: () => void) {
   const fields = filteredFields.map(field => {
     const fieldChanged = Computed.create(null, fromKo(field.activeFilter.isSaved), (_use, isSaved) => !isSaved);
     return cssMenuText(
@@ -191,6 +193,7 @@ function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[]
         attachColumnFilterMenu(section, field, {
           placement: 'bottom-end',
           trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)],
+          onCloseContent,
         }),
         testId('filter-icon'),
       ),

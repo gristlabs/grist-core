@@ -60,7 +60,7 @@ declare module "app/client/components/BaseView" {
 
     constructor(gristDoc: GristDoc, viewSectionModel: any);
     public setCursorPos(cursorPos: CursorPos): void;
-    public createFilterMenu(ctl: IOpenController, field: ViewFieldRec): HTMLElement;
+    public createFilterMenu(ctl: IOpenController, field: ViewFieldRec, onClose?: () => void): HTMLElement;
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public onResize(): void;

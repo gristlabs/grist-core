@@ -5,6 +5,7 @@
  */
 
 import {allInclusive, ColumnFilter, isEquivalentFilter} from 'app/client/models/ColumnFilter';
+import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {FilteredRowSource} from 'app/client/models/rowset';
 import {SectionFilter} from 'app/client/models/SectionFilter';
@@ -17,9 +18,8 @@ import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
 import {Computed, Disposable, dom, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
 import identity = require('lodash/identity');
+import noop = require('lodash/noop');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import {ColumnFilterMenuModel, IFilterCount} from '../models/ColumnFilterMenuModel';
-
 
 interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
@@ -258,7 +258,7 @@ function buildSummary(label: string, SummaryModelCtor: SummaryModelCreator, mode
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
 export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, field: ViewFieldRec,
-                                 rowSource: FilteredRowSource, tableData: TableData) {
+                                 rowSource: FilteredRowSource, tableData: TableData, onClose: () => void = noop) {
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
   const valueGetter = tableData.getRowPropFunc(field.column().colId())!;
   const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
@@ -280,7 +280,7 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   return columnFilterMenu(openCtl, {
     model,
     valueCounts,
-    onClose: () => openCtl.close(),
+    onClose: () => { openCtl.close(); onClose(); },
     doSave: (reset: boolean = false) => {
       const spec = columnFilter.makeFilterJson();
       // If filter is moot and filter bar is hidden, let's remove the filter.
@@ -321,14 +321,19 @@ const defaultPopupOptions: IPopupOptions = {
   trigger: ['click'],
 };
 
+interface IColumnFilterMenuOptions extends IPopupOptions {
+  // callback for when the content of the menu is closed by clicking the apply or revert buttons
+  onCloseContent?: () => void;
+}
+
 // Helper to attach the column filter menu.
 export function attachColumnFilterMenu(viewSection: ViewSectionRec, field: ViewFieldRec,
-                                       popupOptions: IPopupOptions): DomElementMethod {
+                                       popupOptions: IColumnFilterMenuOptions): DomElementMethod {
   const options = {...defaultPopupOptions, ...popupOptions};
   return (elem) => {
     const instance = viewSection.viewInstance();
     if (instance && instance.createFilterMenu) { // Should be set if using BaseView
-      setPopupToCreateDom(elem, ctl => instance.createFilterMenu(ctl, field), options);
+      setPopupToCreateDom(elem, ctl => instance.createFilterMenu(ctl, field, popupOptions.onCloseContent), options);
     }
   };
 }
