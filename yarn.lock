@@ -2,12 +2,12 @@
 # yarn lockfile v1
 
 
-"@gristlabs/connect-sqlite3@0.9.11":
-  version "0.9.11"
-  resolved "https://registry.yarnpkg.com/@gristlabs/connect-sqlite3/-/connect-sqlite3-0.9.11.tgz#c416958c7b5cf29670108e1d2ef81d5d7e05ec51"
-  integrity sha512-+gac0kvGvS/YXi/d+JDPPc5BIGI0QIoYWI6Yqpqzt3tis9zB1zXvKbQYeVFvpMV1we86YSTdbJYeYB7XdVUAyQ==
+"@gristlabs/connect-sqlite3@0.9.11-grist.1":
+  version "0.9.11-grist.1"
+  resolved "https://registry.yarnpkg.com/@gristlabs/connect-sqlite3/-/connect-sqlite3-0.9.11-grist.1.tgz#a9da7789786e1e32b94cdfb9749360f9eacd79da"
+  integrity sha512-AJr8y/hRPREM8YdyqV2aMw0yzsORjQyTiG0r0e8JZDJ6uPG/DQiIdTJqARF32dpfbTr6IN8/lXugNDLjqUizPQ==
   dependencies:
-    "@gristlabs/sqlite3" "^4.0.6-grist.1"
+    "@gristlabs/sqlite3" "^4.1.1-grist.1"
 
 "@gristlabs/express-session@1.17.0":
   version "1.17.0"
@@ -30,14 +30,13 @@
   dependencies:
     safe-buffer "^5.1.2"
 
-"@gristlabs/sqlite3@4.0.6-grist.2", "@gristlabs/sqlite3@^4.0.6-grist.1":
-  version "4.0.6-grist.2"
-  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.0.6-grist.2.tgz#23b23235175e086f3515076967c6f1fafd38d1dc"
-  integrity sha512-veBeOhPomY3DFn2G69IO/yvkExNimsa7IZuM2DrGT6vVKyvDl6veSruTSm7GX3JQkBm7y6guo3QPoIN0Kg1xWA==
+"@gristlabs/sqlite3@4.1.1-grist.1", "@gristlabs/sqlite3@^4.1.1-grist.1":
+  version "4.1.1-grist.1"
+  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.1.1-grist.1.tgz#8dfefaec9a1014e73d4ff2f098acdd9676adf5a7"
+  integrity sha512-pRMoxhLCNKs3r5ltACPMO2hwMeufMq6tz5VRwnk1AJg6qkk01HSO8C2blTOlrxxZUvXJjZSttmO3DYvrZH5UsA==
   dependencies:
-    nan "^2.12.1"
+    node-addon-api "2.0.0"
     node-pre-gyp "^0.11.0"
-    request "^2.87.0"
 
 "@popperjs/core@2.3.3":
   version "2.3.3"
@@ -4446,6 +4445,11 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
+node-addon-api@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-2.0.0.tgz#f9afb8d777a91525244b01775ea0ddbe1125483b"
+  integrity sha512-ASCL5U13as7HhOExbT6OlWJJUV/lLzL2voOSP1UVehpRD8FbSrSDjfScK/KwAvVTI5AS6r4VwbOMlIqtvRidnA==
+
 node-environment-flags@1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/node-environment-flags/-/node-environment-flags-1.0.6.tgz#a30ac13621f6f7d674260a54dede048c3982c088"
@@ -5451,7 +5455,7 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
-request@^2.45.0, request@^2.87.0, request@^2.88.0:
+request@^2.45.0, request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==
@@ -6920,10 +6924,10 @@ widest-line@^3.1.0:
   dependencies:
     string-width "^4.0.0"
 
-winston@2.4.4:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/winston/-/winston-2.4.4.tgz#a01e4d1d0a103cf4eada6fc1f886b3110d71c34b"
-  integrity sha512-NBo2Pepn4hK4V01UfcWcDlmiVTs7VTB1h7bgnB0rgP146bYhMxX0ypCz3lBOfNxCO4Zuek7yeT+y/zM1OfMw4Q==
+winston@2.4.5:
+  version "2.4.5"
+  resolved "https://registry.yarnpkg.com/winston/-/winston-2.4.5.tgz#f2e431d56154c4ea765545fc1003bd340c95b59a"
+  integrity sha512-TWoamHt5yYvsMarGlGEQE59SbJHqGsZV8/lwC+iCcGeAe0vUaOh+Lv6SYM17ouzC/a/LB1/hz/7sxFBtlu1l4A==
   dependencies:
     async "~1.0.0"
     colors "1.0.x"

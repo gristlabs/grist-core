@@ -64,10 +64,10 @@
     "why-is-node-running": "2.0.3"
   },
   "dependencies": {
-    "@gristlabs/connect-sqlite3": "0.9.11",
+    "@gristlabs/connect-sqlite3": "0.9.11-grist.1",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "4.0.6-grist.2",
+    "@gristlabs/sqlite3": "4.1.1-grist.1",
     "@popperjs/core": "2.3.3",
     "async-mutex": "0.2.4",
     "axios": "0.18.0",
@@ -113,7 +113,7 @@
     "ts-interface-checker": "0.1.6",
     "typeorm": "0.2.18",
     "uuid": "3.3.2",
-    "winston": "2.4.4",
+    "winston": "2.4.5",
     "ws": "6.1.0"
   },
   "resolutions": {
