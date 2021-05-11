@@ -47,7 +47,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
       // Some grist-specific constants:
       'OWNER', 'EDITOR', 'VIEWER',
       // The common variables.
-      'user', 'rec',
+      'user', 'rec', 'newRec',
       // Other completions that depend on doc schema or other rules.
       ...options.getSuggestions(prefix),
     ];

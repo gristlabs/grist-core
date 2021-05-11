@@ -131,7 +131,7 @@ class _EntityCollector(_TreeConverter):
     parent = self.visit(node.value)
 
     # We recognize a couple of specific patterns for entities that may be affected by renames.
-    if parent == ['Name', 'rec']:
+    if parent == ['Name', 'rec'] or parent == ['Name', 'newRec']:
       # rec.COL refers to the column from the table that the rule is on.
       self.entities.append(NamedEntity('recCol', node.last_token.startpos, node.attr, None))
     if parent == ['Name', 'user']:

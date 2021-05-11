@@ -1139,6 +1139,12 @@ export async function getTestState(): Promise<TestState> {
   return state || {};
 }
 
+// Get the full text from an element containing an Ace editor.
+export async function getAceText(el: WebElement): Promise<string> {
+  return driver.executeScript('return ace.edit(arguments[0]).getValue()',
+                              el.find('.ace_editor'));
+}
+
 // All users ('user1', etc.) that can be logged in using Session.user().
 export enum TestUserEnum {
   user1 = 'chimpy',
