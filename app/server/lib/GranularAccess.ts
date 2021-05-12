@@ -44,6 +44,14 @@ function isDataAction(a: UserAction): a is DataAction {
   return ACTION_WITH_TABLE_ID.has(String(a[0]));
 }
 
+function isAddRecordAction(a: DataAction): boolean {
+  return ['AddRecord', 'BulkAddRecord'].includes(a[0]);
+}
+
+function isRemoveRecordAction(a: DataAction): boolean {
+  return ['RemoveRecord', 'BulkRemoveRecord'].includes(a[0]);
+}
+
 // Check if a tableId is that of an ACL table.  Currently just _grist_ACLRules and
 // _grist_ACLResources are accepted.
 function isAclTable(tableId: string): boolean {
@@ -820,8 +828,19 @@ export class GranularAccess implements GranularAccessForBundle {
       return [];
     }
 
-    const rec = new RecordView(rowsBefore, undefined);
-    const newRec = new RecordView(rowsAfter, undefined);
+    // For user convenience, for creations and deletions we equate rec and newRec.
+    // This makes writing rules that control multiple permissions easier to write in
+    // practice.
+    let rowsRec = rowsBefore;
+    let rowsNewRec = rowsAfter;
+    if (isAddRecordAction(action)) {
+      rowsRec = rowsAfter;
+    } else if (isRemoveRecordAction(action)) {
+      rowsNewRec = rowsBefore;
+    }
+
+    const rec = new RecordView(rowsRec, undefined);
+    const newRec = new RecordView(rowsNewRec, undefined);
     const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec};
 
     const [, tableId, , colValues] = action;
@@ -840,10 +859,12 @@ export class GranularAccess implements GranularAccessForBundle {
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.
     let getRecIndex: (idx: number) => number|undefined = (idx) => idx;
     let getNewRecIndex: (idx: number) => number|undefined = (idx) => idx;
-    if (action !== rowsBefore) {
-      const recIndexes = new Map(rowsBefore[2].map((rowId, idx) => [rowId, idx]));
+    if (action !== rowsRec) {
+      const recIndexes = new Map(rowsRec[2].map((rowId, idx) => [rowId, idx]));
       getRecIndex = (idx) => recIndexes.get(rowIds[idx]);
-      const newRecIndexes = new Map(rowsAfter[2].map((rowId, idx) => [rowId, idx]));
+    }
+    if (action !== rowsNewRec) {
+      const newRecIndexes = new Map(rowsNewRec[2].map((rowId, idx) => [rowId, idx]));
       getNewRecIndex = (idx) => newRecIndexes.get(rowIds[idx]);
     }
 
