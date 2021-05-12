@@ -1,3 +1,4 @@
+import {CellValue} from 'app/common/DocActions';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -20,7 +21,7 @@ export class HyperLinkTextBox extends NTextBox {
     return cssFieldClip(
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      dom.maybe(value, () =>
+      dom.maybe((use) => Boolean(use(value)), () =>
         dom('a',
           dom.attr('href', (use) => _constructUrl(use(value))),
           dom.attr('target', '_blank'),
@@ -40,7 +41,7 @@ export class HyperLinkTextBox extends NTextBox {
 /**
  * Formats value like `foo bar baz` by discarding `baz` and returning `foo bar`.
  */
-function _formatValue(value: string|null|undefined): string {
+function _formatValue(value: CellValue): string {
   if (typeof value !== 'string') { return ''; }
   const index = value.lastIndexOf(' ');
   return index >= 0 ? value.slice(0, index) : value;
@@ -50,7 +51,8 @@ function _formatValue(value: string|null|undefined): string {
  * Given value like `foo bar baz`, constructs URL by checking if `baz` is a valid URL and,
  * if not, prepending `http://`.
  */
-function _constructUrl(value: string): string {
+function _constructUrl(value: CellValue): string {
+  if (typeof value !== 'string') { return ''; }
   const url = value.slice(value.lastIndexOf(' ') + 1);
   try {
     // Try to construct a valid URL

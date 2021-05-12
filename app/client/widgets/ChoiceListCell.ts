@@ -1,6 +1,7 @@
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {colors} from 'app/client/ui2018/cssVars';
 import {ChoiceTextBox} from 'app/client/widgets/ChoiceTextBox';
+import {CellValue} from 'app/common/DocActions';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, styled} from 'grainjs';
 
@@ -17,7 +18,9 @@ export class ChoiceListCell extends ChoiceTextBox {
       dom.cls('field_clip'),
       cssChoiceList.cls('-wrap', this.wrapping),
       dom.style('justify-content', this.alignment),
-      dom.domComputed((use) => use(row._isAddRow) ? null : [use(value), use(this._choiceSet)], (input) => {
+      dom.domComputed((use) => {
+        return use(row._isAddRow) ? null : [use(value), use(this._choiceSet)] as [CellValue, Set<string>];
+      }, (input) => {
         if (!input) { return null; }
         const [rawValue, choiceSet] = input;
         const val = decodeObject(rawValue);
@@ -27,7 +30,7 @@ export class ChoiceListCell extends ChoiceTextBox {
         return tokens.map(token =>
           cssToken(
             String(token),
-            cssInvalidToken.cls('-invalid', !choiceSet.has(token))
+            cssInvalidToken.cls('-invalid', !choiceSet.has(token as string))
           )
         );
       }),

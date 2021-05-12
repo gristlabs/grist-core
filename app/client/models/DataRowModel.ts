@@ -5,7 +5,7 @@ import * as DataTableModel from 'app/client/models/DataTableModel';
 import { IRowModel } from 'app/client/models/DocModel';
 import { ValidationRec } from 'app/client/models/entities/ValidationRec';
 import * as modelUtil from 'app/client/models/modelUtil';
-import { ColValues } from 'app/common/DocActions';
+import { CellValue, ColValues } from 'app/common/DocActions';
 import * as ko from 'knockout';
 
 /**
@@ -16,7 +16,7 @@ export class DataRowModel extends BaseRowModel {
   // Instances of this class are indexable, but that is a little awkward to type.
   // The cells field gives typed access to that aspect of the instance.  This is a
   // bit hacky, and should be cleaned up when BaseRowModel is ported to typescript.
-  public readonly cells: {[key: string]: modelUtil.KoSaveableObservable<any>} = this as any;
+  public readonly cells: {[key: string]: modelUtil.KoSaveableObservable<CellValue>} = this as any;
 
   public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
   public _isAddRow: ko.Observable<boolean>;
