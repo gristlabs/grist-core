@@ -100,6 +100,7 @@
           }],
           ["UpdateRecord", "Address", 11, {"region": "North America"}]
         ],
+        "direct": [true, false],
         "undo": [["RemoveRecord", "Address", 11]],
         "retValue": [ 11 ]
       },
@@ -118,6 +119,7 @@
           "name": "Georgetown University",
           "address": 11
         }]],
+        "direct": [true],
         "undo": [["RemoveRecord", "Schools", 9]],
         "retValue": [9]
       }
@@ -131,6 +133,7 @@
           ["UpdateRecord", "Students", 3, {"schoolRegion": "DC"}],
           ["UpdateRecord", "Students", 3, {"schoolShort": "Georgetown"}]
         ],
+        "direct": [true, false, false],
         "undo": [
           ["UpdateRecord", "Students", 3, {"school": 6}],
           ["UpdateRecord", "Students", 3, {"schoolRegion": "Europe"}],
@@ -188,6 +191,7 @@
            ["AddRecord", "Schools", 11, {"name": "Amherst College"}],
            ["UpdateRecord", "Schools", 10, {"name": "Williams College, Eureka"}]
           ],
+        "direct": [true, true, true, true, false],
         "undo": [
            ["ModifyColumn", "Schools", "name", {"formula": ""}],
            ["UpdateRecord", "_grist_Tables_column", 10, {"formula": ""}],
@@ -209,6 +213,7 @@
         // This tests that the formula for 'name' does NOT get recomputed
         // As it would, if default formulas created dependencies
         "stored" : [["UpdateRecord", "Schools", 10, { "address": 3}]],
+        "direct" : [true],
         "undo"   : [["UpdateRecord", "Schools", 10, { "address": 2}]]
       }
     }],
@@ -226,6 +231,7 @@
            ["AddRecord", "Schools", 12, {"address": 70}],
            ["UpdateRecord", "Schools", 12, {"name": "12$\\$$'\\'"}]
         ],
+        "direct": [true, true, true, false],
         "undo": [
            ["ModifyColumn", "Schools", "name", {"formula": "'Williams College, ' + $address.city"}],
            ["UpdateRecord", "_grist_Tables_column", 10, {"formula": "'Williams College, ' + $address.city"}],
@@ -268,6 +274,9 @@
           ["AddRecord", "Schools", 16, {"numStudents": "@+Infinity"}],
           ["BulkUpdateRecord", "Schools", [14, 15, 16], {"name": ["14$\\$$'\\'", "15$\\$$'\\'", "16$\\$$'\\'"]}]
        ],
+        "direct": [true, true, true, true, true,
+                   true, false, true,
+                   true, false],
         "undo"  : [
           ["RemoveColumn", "Schools", "numStudents"],
           ["RemoveRecord", "_grist_Tables_column", 30],
@@ -343,6 +352,7 @@
             "region": ["North America", "North America"]
           }]
         ],
+        "direct": [true, false, false],
         "undo": [["BulkRemoveRecord", "Address", [11, 12]]],
         "retValue": [ [11, 12] ]
       },
@@ -378,6 +388,7 @@
           ["UpdateRecord", "Address", 10, {"region": "N/A"}],
           ["UpdateRecord", "Students", 3, {"schoolRegion": "N/A"}]
         ],
+        "direct": [true, false, false],
         "undo": [
           ["UpdateRecord", "Address", 10, {"country": "UK"}],
           ["UpdateRecord", "Address", 10, {"region": "Europe"}],
@@ -399,6 +410,7 @@
           ["BulkUpdateRecord", "Students", [1, 2, 4, 5],
             {"schoolShort": ["columbia", "yale", "yale", "eureka"]}]
         ],
+        "direct": [true, false],
         "undo": [["BulkUpdateRecord", "Schools", [1, 2, 8],
           {"name": ["Eureka College", "Columbia University", "Yale University"]}],
           ["BulkUpdateRecord", "Students", [1, 2, 4, 5],
@@ -457,6 +469,7 @@
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
             {"fullName": ["BARACK Obama", "GEORGE W Bush", "BILL Clinton", "GEORGE H Bush", "RONALD Reagan", "JIMMY Carter", "GERALD Ford"]}]
         ],
+        "direct": [true, true, true, true, false],
         "undo": [
           ["ModifyColumn", "Students", "fullName",
             {"formula": "rec.firstName + ' ' + rec.lastName"}],
@@ -484,6 +497,7 @@
           ["UpdateRecord", "Students", 2, {"firstName" : "Richard", "lastName" : "Nixon"}],
           ["UpdateRecord", "Students", 2, {"fullName" : "RICHARD Nixon"}]
         ],
+        "direct": [true, false],
         "undo" : [
           ["UpdateRecord", "Students", 2, {"firstName" : "George W", "lastName" : "Bush"}],
           ["UpdateRecord", "Students", 2, {"fullName": "GEORGE W Bush"}]
@@ -540,6 +554,7 @@
           ["BulkUpdateRecord", "Schools", [7, 8], {"address": [0, 0]}],
           ["BulkUpdateRecord", "Students", [2, 4, 8], {"schoolRegion": [null, null, null]}]
         ],
+        "direct": [true, true, false],
         "undo": [
           ["AddRecord", "Address", 4, {"city": "New Haven", "country": "US", "region": "North America", "state": "CT"}],
           ["BulkUpdateRecord", "Schools", [7, 8], {"address": [4, 4]}],
@@ -560,6 +575,7 @@
           ["UpdateRecord", "Students", 6, {"schoolRegion": null}],
           ["UpdateRecord", "Students", 6, {"schoolShort": ""}]
         ],
+        "direct": [true, true, false, false],
         "undo": [
           ["AddRecord", "Schools", 5, {"name": "U.S. Naval Academy", "address": 3}],
           ["UpdateRecord", "Students", 6, {"school": 5}],
@@ -576,6 +592,7 @@
       "USER_ACTION": ["RemoveRecord", "Students", 1],
       "ACTIONS": {
         "stored": [["RemoveRecord", "Students", 1]],
+        "direct": [true],
         "undo": [["AddRecord", "Students", 1,
           {"firstName": "Barack", "fullName": "Barack Obama", "fullNameLen": 12, "lastName": "Obama", "school": 2, "schoolRegion": "NY", "schoolShort": "Columbia"}]
         ]
@@ -619,6 +636,7 @@
       "USER_ACTION": ["BulkRemoveRecord", "Students", [2, 5, 6, 8]],
       "ACTIONS": {
         "stored": [["BulkRemoveRecord", "Students", [2, 5, 6, 8]]],
+        "direct": [true],
         "undo": [["BulkAddRecord", "Students", [2, 5, 6, 8], {
           "firstName": ["George W", "Ronald", "Jimmy", "Gerald"],
           "lastName": ["Bush", "Reagan", "Carter", "Ford"],
@@ -641,6 +659,7 @@
           ["BulkUpdateRecord", "Students", [3, 4], {"schoolRegion": [null, null]}],
           ["BulkUpdateRecord", "Students", [3, 4], {"schoolShort": ["", ""]}]
         ],
+        "direct": [true, true, false, false],
         "undo": [
           ["BulkAddRecord", "Schools", [6, 8], {
             "name": ["Oxford University", "Yale University"],
@@ -707,6 +726,7 @@
             "widgetOptions": ""
           }]
         ],
+        "direct": [true, true],
         "undo": [
           ["RemoveColumn", "Address", "zip"],
           ["RemoveRecord", "_grist_Tables_column", 30]
@@ -735,6 +755,7 @@
       "ACTIONS": {
         "stored": [["BulkUpdateRecord", "Address", [2, 4, 7],
           {"zip": ["61530-0001", "06520-0002", "10027-0003"]}]],
+        "direct": [true],
         "undo": [["BulkUpdateRecord", "Address", [2, 4, 7],
           {"zip": ["", "", ""]}]]
       }
@@ -775,6 +796,7 @@
           ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10],
             {"zip5": ["61530", "", "06520", "10027", ""]}]
         ],
+        "direct": [true, true, false],
         "undo": [
           ["RemoveColumn", "Address", "zip5"],
           ["RemoveRecord", "_grist_Tables_column", 31]
@@ -819,6 +841,7 @@
           ["BulkUpdateRecord", "Schools", [1,2,5,6,7,8],
             {"zip": ["61530", "10027", "", "", "06520", "06520"]}]
         ],
+        "direct": [true, true, false],
         "undo": [
           ["RemoveColumn", "Schools", "zip"],
           ["RemoveRecord", "_grist_Tables_column", 32]
@@ -902,6 +925,9 @@
               "isFormula": true, "label": "world", "widgetOptions": ""}],
           ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 35, "parentId": 1, "parentPos": 2.0}]
         ],
+        "direct": [true, true,
+                   true, true, true, true, true, true, true,
+                   true, true, true],
         "undo": [
           ["RemoveTable", "Bar"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -964,6 +990,7 @@
       "USER_ACTION": ["UpdateRecord", "Address", 3, {"city": ""}],
       "ACTIONS": {
         "stored": [["UpdateRecord", "Address", 3, {"city": ""}]],
+        "direct": [true],
         "undo": [["UpdateRecord", "Address", 3, {"city": "Annapolis"}]]
       }
     }],
@@ -975,6 +1002,7 @@
         "stored": [
           ["RemoveRecord", "_grist_Tables_column", 21],
           ["RemoveColumn", "Address", "city"]],
+        "direct": [true, true],
         "undo": [
           ["AddRecord", "_grist_Tables_column", 21, {
             "parentId": 3,
@@ -1013,6 +1041,7 @@
           ["RemoveRecord", "_grist_Tables_column", 4],
           ["RemoveColumn", "Students", "fullNameLen"]
         ],
+        "direct": [true, true],
         "undo": [
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"fullNameLen": [12, 13, 12, 13, 13, 12, 11]}],
           ["AddRecord", "_grist_Tables_column", 4, {
@@ -1067,6 +1096,7 @@
               ["E","AttributeError"]]
             }]
         ],
+        "direct": [true, true, false],
         "undo": [
           ["AddRecord", "_grist_Tables_column", 27, {
             "parentId": 3,
@@ -1130,6 +1160,7 @@
           ["UpdateRecord", "Students", 3,
             {"schoolRegion": ["E","AttributeError"]}]
         ],
+        "direct": [true, true, true, true, true, true, false],
         "undo": [
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {"schoolShort": ["Columbia", "Yale", "Oxford", "Yale", "Eureka", "U.S.", "Yale"]}],
           ["AddRecord", "_grist_Tables_column", 5, {"parentPos": 5.0, "parentId": 1,
@@ -1224,6 +1255,8 @@
           ["RemoveColumn", "ViewTest", "hello"]
 
         ],
+        "direct": [true, true, true, true, true, true, true, true, true,
+                   true, true, true],
         "undo": [
           ["RemoveTable", "ViewTest"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -1267,6 +1300,7 @@
           ["UpdateRecord", "_grist_Tables_column", 4, {"colId": "nameLen"}],
           ["UpdateRecord", "Address", 10, {"town": "Ox-ford"}]
         ],
+        "direct": [true, true, true, true, true],
         "undo": [
           ["RenameColumn", "Address", "town", "city"],
           ["UpdateRecord", "_grist_Tables_column", 21, {"colId": "city"}],
@@ -1330,6 +1364,7 @@
           ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolRegion": [null, null, null]}],
           ["BulkUpdateRecord", "Students", [2, 4, 5], {"schoolShort": ["", "", ""]}]
         ],
+        "direct": [true, true, true, true, true, true, true, true, false, false],
         "undo": [
           ["RenameColumn", "Students", "university", "school"],
           ["ModifyColumn", "Students", "schoolShort",
@@ -1395,6 +1430,7 @@
             ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Int"}],
             ["UpdateRecord", "Address", 2, {"state": 73}]
         ],
+        "direct": [true, true, true],
         "undo": [
             ["ModifyColumn", "Address", "state", {"type": "Text"}],
             ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Text"}],
@@ -1447,6 +1483,7 @@
             ["ModifyColumn", "Address", "stateName", {"type": "Numeric"}],
             ["UpdateRecord", "_grist_Tables_column", 27, {"type": "Numeric"}]
         ],
+        "direct": [true, true, true, true, true],
         "undo": [
             ["RenameColumn", "Address", "stateName", "state"],
             ["ModifyColumn", "Students", "schoolRegion", { "formula":
@@ -1513,6 +1550,7 @@
           ["RenameColumn", "Students", "schoolShort", "short"],
           ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "short"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["RenameColumn", "Students", "short", "schoolShort"],
           ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "schoolShort"}]
@@ -1528,6 +1566,7 @@
           ["RenameColumn", "Students", "short", "school2"],
           ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "school2"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["RenameColumn", "Students", "school2", "short"],
           ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "short"}]
@@ -1564,6 +1603,7 @@
           ["ModifyColumn", "Address", "city", {"formula": "'Anytown'"}],
           ["UpdateRecord", "_grist_Tables_column", 21, {"formula": "'Anytown'"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["ModifyColumn", "Address", "city", {"formula": ""}],
           ["UpdateRecord", "_grist_Tables_column", 21, {"formula": ""}]
@@ -1597,6 +1637,7 @@
             "fullNameLen": [14,15,14,15,15,14,13]
           }]
         ],
+        "direct": [true, true, false, false],
         "undo": [
           ["ModifyColumn", "Students", "fullName",
             {"formula": "rec.firstName + ' ' + rec.lastName"}],
@@ -1628,6 +1669,7 @@
           ["UpdateRecord", "Students", 2, {"fullName": "Bush - G.W."}],
           ["UpdateRecord", "Students", 2, {"fullNameLen": 11}]
         ],
+        "direct": [true, true, false, false, false, false],
         "undo": [
           ["UpdateRecord", "Students", 2, {"firstName": "George W"}],
           ["RemoveRecord", "Address", 11],
@@ -1664,6 +1706,7 @@
             ["UpdateRecord", "_grist_Tables_column", 4,
               {"type": "Any"}]
         ],
+        "direct": [true, true, true, true, true, true],
         "undo": [
             ["ModifyColumn", "Students", "fullNameLen",
               {"type": "Any"}],
@@ -1707,6 +1750,7 @@
               {"fullNameLen": [13, 10, 13, 14, 14, 13, 12]}],
             ["UpdateRecord", "_grist_Tables_column", 4, {"isFormula": false}]
         ],
+        "direct": [true, true, true, true, true, false, true],
         "undo": [
             ["ModifyColumn", "Students", "fullNameLen",
               {"isFormula": true, "type": "Any"}],
@@ -1763,6 +1807,7 @@
           ["UpdateRecord", "Address", 2, {"city" : 567}],
           ["UpdateRecord", "_grist_Tables_column", 21, {"type" : "Int"}]
         ],
+        "direct": [true, true, false, true],
         "undo" : [
           ["UpdateRecord", "Address", 2, {"city": "Eureka"}],
           ["UpdateRecord", "Address", 2, {"city" : "567"}],
@@ -1780,6 +1825,7 @@
       ],
       "ACTIONS": {
         "stored": [["UpdateRecord", "Address", 2, {"city": "Eureka"}]],
+        "direct": [true],
         "undo" : [["UpdateRecord", "Address", 2, {"city" : 567}]]
       }
     }],
@@ -1801,6 +1847,7 @@
           ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Int"}]
 
         ],
+        "direct": [true, true, true, true, false, true],
         "undo": [
           ["ModifyColumn", "Address", "city", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 21, {"type": "Int"}],
@@ -1845,7 +1892,7 @@
           ["BulkUpdateRecord", "Address", [2, 3, 4, 7, 10, 11], {"state": [null, null, null, null, null, null]}],
           ["BulkUpdateRecord", "Students", [1, 2, 4, 5, 6, 8], {"schoolRegion": [null, null, null, null, null, null]}]
         ],
-
+        "direct": [true, true, false, false],
         "undo" : [
           ["ModifyColumn", "Address", "state", {"isFormula": false, "type": "Text"}],
           ["UpdateRecord", "_grist_Tables_column", 27, {"isFormula": false, "type": "Text"}],
@@ -1865,6 +1912,7 @@
      "USER_ACTION": ["UpdateRecord", "Students", 1, {"fullNameLen" : "Fourteen"}],
      "ACTIONS" : {
       "stored" : [["UpdateRecord", "Students", 1, {"fullNameLen": "Fourteen"}]],
+      "direct": [true],
       "undo" : [["UpdateRecord", "Students", 1, {"fullNameLen": 13}]]
      }
    }],
@@ -1890,6 +1938,7 @@
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
            {"schoolRegion": [["E", "TypeError"], 2, 1, 2, 2, 1, 2]}]
        ],
+       "direct": [true, true, true, true, false, false],
        "undo" : [
          ["ModifyColumn", "Students", "fullName", {"formula": "rec.lastName + ' - ' + rec.firstName"}],
          ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "rec.lastName + ' - ' + rec.firstName"}],
@@ -1920,6 +1969,7 @@
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
            {"fullName": ["Barack", "G.W.", "Bill", "George H", "Ronald", "Jimmy", "Gerald"]}]
        ],
+       "direct": [true, true, false],
        "undo" : [
          ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
          ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
@@ -1972,6 +2022,7 @@
           "formula": ["$firstName", "len($Entire_Name) - 1"]
         }]
       ],
+      "direct": [true, true, true],
       "undo" : [
         ["RenameColumn", "Students", "Entire_Name", "fullName"],
         ["ModifyColumn", "Students", "fullNameLen", {
@@ -2010,6 +2061,7 @@
             "parentPos": 2.0, "type": "DateTime", "widgetOptions": ""}
           ]
         ],
+        "direct": [true, true],
         "undo": [
           ["RemoveColumn", "foo", "c_date"],
           ["RemoveRecord", "_grist_Tables_column", 2]
@@ -2033,6 +2085,7 @@
           ["ModifyColumn", "foo", "c_date", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Int"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["ModifyColumn", "foo", "c_date", {"type": "DateTime"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "DateTime"}]
@@ -2056,6 +2109,7 @@
           ["ModifyColumn", "foo", "c_date", {"type": "Numeric"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Numeric"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["ModifyColumn", "foo", "c_date", {"type": "Int"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Int"}]
@@ -2080,6 +2134,7 @@
           ["ModifyColumn", "foo", "c_date", {"type": "DateTime"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "DateTime"}]
         ],
+        "direct": [true, true],
         "undo": [
           ["ModifyColumn", "foo", "c_date", {"type": "Numeric"}],
           ["UpdateRecord", "_grist_Tables_column", 2, {"type": "Numeric"}]
@@ -2169,6 +2224,9 @@
           ["AddRecord", "Bar", 3, {"foo": 1, "hello": "c", "manualSort": 3.0}],
           ["BulkUpdateRecord", "Bar", [1, 2, 3], {"world": ["A", "B", "C"]}]
         ],
+        "direct": [true, true, true, true, true, true, true, true,
+                   true, true, true, true, true, true, true, true, true,
+                   true, true, true, false],
         "undo": [
           ["RemoveTable", "Foo"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -2260,6 +2318,7 @@
            // As part of adding a table, we also set the primaryViewId.
            ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1}]
          ],
+         "direct": [true, true, true, true, true, true, true, true],
          "undo": [
            ["RemoveTable", "Foo"],
            ["RemoveRecord", "_grist_Tables", 4],
@@ -2290,6 +2349,7 @@
           ["RemoveRecord", "_grist_Tables", 4],
           ["RemoveTable", "Foo"]
         ],
+        "direct": [true, true, true, true, true, true, true, true],
         "undo": [
           ["AddRecord", "_grist_Views_section", 1,
             {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
@@ -2335,6 +2395,7 @@
               ["E","AttributeError"], ["E","AttributeError"]]
             }]
         ],
+        "direct": [true, true, true, true, true, false, false],
         "undo": [
           ["AddRecord", "_grist_Tables_column", 5,
             {"parentPos": 5.0, "parentId": 1,
@@ -2392,6 +2453,7 @@
           ["RemoveRecord", "_grist_Tables", 1],
           ["RemoveTable", "Students"]
         ],
+        "direct": [true, true, true],
         "undo": [
           ["BulkAddRecord", "_grist_Tables_column", [1, 2, 3, 4, 6, 9], {
             "colId": ["firstName", "lastName", "fullName", "fullNameLen", "schoolShort",
@@ -2466,6 +2528,7 @@
           ["ModifyColumn", "People", "school", {"type": "Ref:School"}],
           ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:School"}]
         ],
+        "direct": [true, true, true, true, true, true, true],
         "undo": [
           ["RenameTable", "People", "Students"],
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "Students"}],
@@ -2495,6 +2558,7 @@
           ["RenameTable", "PEOPLE", "People"],
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}]
         ],
+        "direct": [true, true, true, true],
         "undo": [
           ["RenameTable", "PEOPLE", "People"],
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "People"}],
@@ -2514,6 +2578,7 @@
           ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
           ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]
         ],
+        "direct": [true, true, false ,false],
         "undo": [
           ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
           ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}],
@@ -2577,6 +2642,7 @@
           ["ModifyColumn", "People", "school", {"type": "Ref:School"}],
           ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:School"}]
         ],
+        "direct": [true, true, true, true, true, true, true],
         "undo": [
           ["RenameTable", "People", "Students"],
           ["UpdateRecord", "_grist_Tables", 1, {"tableId": "Students"}],
@@ -2602,6 +2668,7 @@
           ["BulkUpdateRecord", "People", [2, 4], {"schoolRegion": [null, null]}],
           ["BulkUpdateRecord", "People", [2, 4], {"schoolShort": ["", ""]}]
         ],
+        "direct": [true, true, false, false],
         "undo": [
           ["AddRecord", "School", 8, {"name": "Yale University", "address": 4}],
           ["BulkUpdateRecord", "People", [2, 4], {"school": [8, 8]}],
@@ -2682,6 +2749,7 @@
           ["AddRecord", "_grist_REPL_Hist", 5,
             {"code": "foo(10)", "errorText": "", "outputText": "100\n"}]
         ],
+        "direct": [true, true, true, true, true, true, true],
         "undo" : [
           ["RemoveRecord", "_grist_REPL_Hist", 1],
           ["RemoveRecord", "_grist_REPL_Hist", 2],
@@ -2731,6 +2799,7 @@
               ["E","TypeError"], ["E","TypeError"], ["E","TypeError"], ["E","TypeError"]]
           }]
         ],
+        "direct": [true, true, true, false, true, true, true, false, false],
         "undo": [
           ["RemoveRecord", "_grist_REPL_Hist", 6],
 
@@ -2789,6 +2858,7 @@
           ["AddRecord", "_grist_REPL_Hist", 14,
             {"code": "setattr(sys.stderr, 'close', foo)", "errorText": "", "outputText": ""}]
         ],
+        "direct": [true, true, true, true, true, true, true, true],
         "undo": [
           ["RemoveRecord", "_grist_REPL_Hist", 7],
           ["RemoveRecord", "_grist_REPL_Hist", 8],
@@ -2846,6 +2916,7 @@
             false, "label": "table", "parentId": 1, "parentPos": 7.0, "type": "Text", "widgetOptions":
             ""}]
         ],
+        "direct": [true, true, true, true, true, true, true, true, true, true, true, true],
         "undo": [
           ["RemoveColumn", "foo", "on"],
           ["RemoveRecord", "_grist_Tables_column", 2],
@@ -2895,6 +2966,7 @@
           ["RenameColumn", "foo", "table", "transaction"],
           ["UpdateRecord", "_grist_Tables_column", 7, {"colId": "transaction"}]
         ],
+        "direct": [true, true, true, true, true, true, true, true, true, true, true, true],
         "undo": [
           ["RenameColumn", "foo", "select", "on"],
           ["UpdateRecord", "_grist_Tables_column", 2, {"colId": "on"}],

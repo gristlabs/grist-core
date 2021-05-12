@@ -123,7 +123,7 @@ class EngineTestCase(unittest.TestCase):
     self.assertEqualDocData({table_name: observed}, {table_name: expected})
 
 
-  action_group_action_fields = ("stored", "undo", "calc")
+  action_group_action_fields = ("stored", "undo", "calc", "direct")
 
   @classmethod
   def _formatActionGroup(cls, action_group, use_repr=False):
@@ -149,13 +149,12 @@ class EngineTestCase(unittest.TestCase):
     # Do some clean up on the observed data.
     observed = testutil.replace_nans(observed)
 
-    # Convert expected actions into a comparable form.
+    # Convert observed and expected actions into a comparable form.
     for k in self.action_group_action_fields:
       if k in observed:
-        observed[k] = map(actions.get_action_repr, observed[k])
+        observed[k] = map(get_comparable_repr, observed[k])
       if k in expected:
-        expected[k] = [actions.get_action_repr(a) if not isinstance(a, list) else a
-                       for a in expected[k]]
+        expected[k] = map(get_comparable_repr, expected[k])
 
     if observed != expected:
       o_lines = self._formatActionGroup(observed)
@@ -552,6 +551,11 @@ def create_test_case(name, body):
     self._run_test_body(name, body)
   setattr(TestEngine, name, run)
 
+ # Convert observed/expected action into a comparable form.
+def get_comparable_repr(a):
+  if isinstance(a, (list, int)):
+    return a
+  return actions.get_action_repr(a)
 
 # Parse and create test cases on module load. This way the python unittest feature to run only
 # particular test cases can apply to these cases too.

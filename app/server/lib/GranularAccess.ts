@@ -142,6 +142,7 @@ export class GranularAccess implements GranularAccessForBundle {
     docSession: OptDocSession,
     userActions: UserAction[],
     docActions: DocAction[],
+    isDirect: boolean[],
     undo: DocAction[],
     // Flag tracking whether a set of actions have been applied to the database or not.
     applied: boolean,
@@ -163,10 +164,10 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
-                                    userActions: UserAction[]): void {
+                                    userActions: UserAction[], isDirect: boolean[]): void {
     if (this._activeBundle) { throw new Error('Cannot start a bundle while one is already in progress'); }
     this._activeBundle = {
-      docSession, docActions, undo, userActions,
+      docSession, docActions, undo, userActions, isDirect,
       applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false
     };
     this._activeBundle.hasDeliberateRuleChange =
@@ -211,13 +212,17 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public async canApplyBundle() {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
-    const {docActions, docSession} = this._activeBundle;
+    const {docActions, docSession, isDirect} = this._activeBundle;
     if (this._activeBundle.hasDeliberateRuleChange && !await this.isOwner(docSession)) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners can modify access rules');
     }
     if (this._ruler.haveRules()) {
       await Promise.all(
-        docActions.map((action, actionIdx) => this._checkIncomingDocAction({docSession, action, actionIdx})));
+        docActions.map((action, actionIdx) => {
+          if (isDirect[actionIdx]) {
+            return this._checkIncomingDocAction({docSession, action, actionIdx});
+          }
+        }));
     }
 
     if (this._recoveryMode) {

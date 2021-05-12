@@ -57,6 +57,7 @@ export interface UserActionBundle {
 export interface SandboxActionBundle {
   envelopes: Envelope[];
   stored: Array<EnvContent<DocAction>>;
+  direct: Array<EnvContent<boolean>>;
   calc: Array<EnvContent<DocAction>>;
   undo: Array<EnvContent<DocAction>>;   // Inverse actions for all 'stored' actions.
   retValues: any[];                     // Contains retValue for each of userActions.

@@ -1125,6 +1125,7 @@ class Engine(object):
       self._bring_all_up_to_date()
 
     self.out_actions.flush_calc_changes()
+    self.out_actions.check_sanity()
     return self.out_actions
 
   def acl_split(self, action_group):
@@ -1247,6 +1248,7 @@ class Engine(object):
       self.user_actions.ApplyUndoActions(map(actions.get_action_repr, undo_actions))
       del self.out_actions.calc[len_calc:]
       del self.out_actions.stored[len_stored:]
+      del self.out_actions.direct[len_stored:]
       del self.out_actions.undo[len_undo:]
       del self.out_actions.retValues[len_ret:]
 

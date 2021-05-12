@@ -531,6 +531,7 @@ export class FlexServer implements GristServer {
   }
 
   public async close() {
+    if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     if (this.dbManager) {
       this.dbManager.removeAllListeners();
@@ -538,7 +539,6 @@ export class FlexServer implements GristServer {
     }
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
-    if (this.usage)       { this.usage.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     await this._shutdown();
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.

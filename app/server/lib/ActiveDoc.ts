@@ -1015,6 +1015,7 @@ export class ActiveDoc extends EventEmitter {
           // Note: onDemand stored/undo actions are arbitrarily processed/added after normal actions
           // and do not support access control.
           sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
+          sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
           sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
           sandboxActionBundle.retValues.push(retValues);
         }
@@ -1078,8 +1079,8 @@ export class ActiveDoc extends EventEmitter {
    * granular access rules.
    */
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
-                                    userActions: UserAction[]): GranularAccessForBundle {
-    this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions);
+                                    userActions: UserAction[], isDirect: boolean[]): GranularAccessForBundle {
+    this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions, isDirect);
     return this._granularAccess;
   }
 
@@ -1411,6 +1412,7 @@ function createEmptySandboxActionBundle(): SandboxActionBundle {
   return {
     envelopes: [],
     stored: [],
+    direct: [],
     calc: [],
     undo: [],
     retValues: []

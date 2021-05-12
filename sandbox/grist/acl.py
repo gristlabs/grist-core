@@ -40,6 +40,7 @@ def acl_read_split(action_group):
   bundle = action_obj.ActionBundle()
   bundle.envelopes.append(action_obj.Envelope(ALL_SET))
   bundle.stored.extend((0, da) for da in action_group.stored)
+  bundle.direct.extend((0, flag) for flag in action_group.direct)
   bundle.calc.extend((0, da) for da in action_group.calc)
   bundle.undo.extend((0, da) for da in action_group.undo)
   bundle.retValues = action_group.retValues

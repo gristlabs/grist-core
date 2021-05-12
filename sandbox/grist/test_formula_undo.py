@@ -44,6 +44,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
         ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 1, 2]}],
         ["UpdateRecord", "Students", 6, {"schoolIds": "1:2"}],
       ],
+      "direct": [True, False, False, False],
       "undo": [
         ["UpdateRecord", "Students", 6, {"schoolName": "Yale"}],
         ["UpdateRecord", "Students", 6, {"counter": "#6 Yale"}],
@@ -67,6 +68,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
         ["UpdateRecord", "Students", 6, {"schoolName": "Yale"}],
         ["UpdateRecord", "Students", 6, {"counter": "#8 Yale"}],
       ],
+      "direct": [True, True, True, True, False],  # undos currently fully direct; formula update is indirect.
       "undo": [
         ["UpdateRecord", "Students", 6, {"schoolIds": "1:2"}],
         ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 1, 2]}],
@@ -113,6 +115,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
         ["UpdateRecord", "_grist_Tables_column", 22, {"isFormula": False}],
         ["UpdateRecord", "Students", 6, {"newCol": "Boo!"}],
       ],
+      "direct": [True, True, True, False, True, True],
       "undo": [
         ["ModifyColumn", "Students", "newCol", {"type": "Any"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Any"}],
@@ -144,6 +147,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Any"}],
         ["ModifyColumn", "Students", "newCol", {"type": "Any"}],
       ],
+      "direct": [True, True, True, True, True, True],  # undos are currently fully direct.
       "undo": [
         ["UpdateRecord", "Students", 6, {"newCol": "Boo!"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"isFormula": False}],

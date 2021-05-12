@@ -373,9 +373,10 @@ export class Sharing {
     const undo = getEnvContent(sandboxActionBundle.undo);
     const docActions = getEnvContent(sandboxActionBundle.stored).concat(
       getEnvContent(sandboxActionBundle.calc));
+    const isDirect = getEnvContent(sandboxActionBundle.direct);
 
     const accessControl = this._activeDoc.getGranularAccessForBundle(
-      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions
+      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions, isDirect
     );
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside

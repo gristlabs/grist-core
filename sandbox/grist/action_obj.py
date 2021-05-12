@@ -23,6 +23,7 @@ class ActionGroup(object):
   def __init__(self):
     self.calc     = []
     self.stored   = []
+    self.direct   = []
     self.undo     = []
     self.retValues = []
     self.summary = ActionSummary()
@@ -31,7 +32,10 @@ class ActionGroup(object):
     """
     Merge the changes from self.summary into self.stored and self.undo, and clear the summary.
     """
+    length_before = len(self.stored)
     self.summary.convert_deltas_to_actions(self.stored, self.undo)
+    count = len(self.stored) - length_before
+    self.direct += [False] * count
     self.summary = ActionSummary()
 
   def flush_calc_changes_for_column(self, table_id, col_id):
@@ -39,13 +43,21 @@ class ActionGroup(object):
     Merge the changes for the given column from self.summary into self.stored and self.undo, and
     remove that column from the summary.
     """
+    length_before = len(self.stored)
     self.summary.pop_column_delta_as_actions(table_id, col_id, self.stored, self.undo)
+    count = len(self.stored) - length_before
+    self.direct += [False] * count
+
+  def check_sanity(self):
+    if len(self.stored) != len(self.direct):
+      raise AssertionError("failed to track origin of actions")
 
   def get_repr(self):
     return {
       "calc":     map(actions.get_action_repr, self.calc),
       "stored":   map(actions.get_action_repr, self.stored),
       "undo":     map(actions.get_action_repr, self.undo),
+      "direct": self.direct,
       "retValues": self.retValues
     }
 
@@ -77,6 +89,7 @@ class ActionBundle(object):
   def __init__(self):
     self.envelopes = []
     self.stored = []          # Pairs of (envIndex, docAction)
+    self.direct = []          # Pairs of (envIndex, boolean)
     self.calc = []            # Pairs of (envIndex, docAction)
     self.undo = []            # Pairs of (envIndex, docAction)
     self.retValues = []
@@ -86,6 +99,7 @@ class ActionBundle(object):
     return {
       "envelopes": [e.to_json_obj() for e in self.envelopes],
       "stored":    [(env, actions.get_action_repr(a)) for (env, a) in self.stored],
+      "direct":    self.direct,
       "calc":      [(env, actions.get_action_repr(a)) for (env, a) in self.calc],
       "undo":      [(env, actions.get_action_repr(a)) for (env, a) in self.undo],
       "retValues": self.retValues,

@@ -156,6 +156,7 @@ class UserActions(object):
       action = action.simplify()
     if action:
       self._engine.out_actions.stored.append(action)
+      self._engine.out_actions.direct.append(True)
       self._engine.apply_doc_action(action)
 
   def _bulk_action_iter(self, table_id, row_ids, col_values=None):
@@ -190,7 +191,9 @@ class UserActions(object):
 
   @useraction
   def InitNewDoc(self, timezone):
-    self._engine.out_actions.stored.extend(schema.schema_create_actions())
+    creation_actions = schema.schema_create_actions()
+    self._engine.out_actions.stored.extend(creation_actions)
+    self._engine.out_actions.direct += [True] * len(creation_actions)
     self._do_doc_action(actions.AddRecord("_grist_DocInfo", 1,
                                           {'schemaVersion': schema.SCHEMA_VERSION,
                                            'timezone': timezone}))
