@@ -1,3 +1,4 @@
+import json
 import types
 from collections import namedtuple
 
@@ -294,6 +295,26 @@ class PositionColumn(NumericColumn):
     return new_values, [(self._sorted_rows[i], pos) for (i, pos) in adjustments]
 
 
+class ChoiceListColumn(BaseColumn):
+  """
+  ChoiceListColumn's default value is None, but is presented to formulas as the empty list.
+  """
+  def set(self, row_id, value):
+    # When a JSON string is loaded, set it to a tuple parsed from it. When a list is loaded,
+    # convert to a tuple to keep values immutable.
+    if isinstance(value, basestring) and value.startswith('['):
+      try:
+        value = tuple(json.loads(value))
+      except Exception:
+        pass
+    elif isinstance(value, list):
+      value = tuple(value)
+    super(ChoiceListColumn, self).set(row_id, value)
+
+  def _make_rich_value(self, typed_value):
+    return () if typed_value is None else typed_value
+
+
 class BaseReferenceColumn(BaseColumn):
   """
   Base class for ReferenceColumn and ReferenceListColumn.
@@ -386,6 +407,7 @@ class ReferenceListColumn(BaseReferenceColumn):
 usertypes.BaseColumnType.ColType = DataColumn
 usertypes.Reference.ColType = ReferenceColumn
 usertypes.ReferenceList.ColType = ReferenceListColumn
+usertypes.ChoiceList.ColType = ChoiceListColumn
 usertypes.DateTime.ColType = DateTimeColumn
 usertypes.Date.ColType = DateColumn
 usertypes.PositionNumber.ColType = PositionColumn

@@ -91,6 +91,22 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       }
       break;
     }
+    case 'ChoiceList': {
+      // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
+      // light guessing for likely choices to suggest.
+      const choices = new Set<string>();
+      for (let value of tableData.getColValues(origCol.colId()) || []) {
+        value = String(value).trim();
+        const tags: string[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
+        for (const tag of tags) {
+          choices.add(tag.trim());
+          if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
+        }
+      }
+      choices.delete("");
+      widgetOptions = {choices: Array.from(choices)};
+      break;
+    }
     case 'Ref': {
       // Set suggested destination table and visible column.
       // Null if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
@@ -148,10 +164,15 @@ export function getDefaultFormula(
   const oldVisibleColName = isReferenceCol(origCol) ?
     getVisibleColName(docModel, origCol.visibleCol()) : undefined;
 
-  const origValFormula = oldVisibleColName ?
+  let origValFormula = oldVisibleColName ?
     // The `str()` below converts AltText to plain text.
     `$${colId}.${oldVisibleColName} if ISREF($${colId}) else str($${colId})` :
     `$${colId}`;
+
+  if (origCol.type.peek() === 'ChoiceList') {
+    origValFormula = `grist.ChoiceList.toString($${colId})`
+  }
+
   const toTypePure: string = gristTypes.extractTypeFromColType(newType);
 
   // The args are used to construct the call to grist.TYPE.typeConvert(value, [params]).

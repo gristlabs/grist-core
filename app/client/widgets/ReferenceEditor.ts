@@ -149,17 +149,21 @@ export class ReferenceEditor extends NTextEditor {
   }
 
   private _renderItem(item: ICellItem, highlightFunc: HighlightFunc) {
-    if (item.rowId === 'new') {
-      return cssRefItem(cssRefItem.cls('-new'),
-        cssPlusButton(cssPlusIcon('Plus')), item.text,
-        testId('ref-editor-item'), testId('ref-editor-new-item'),
-      );
-    }
-    return cssRefItem(cssRefItem.cls('-with-new', this._showAddNew),
-      buildHighlightedDom(item.text, highlightFunc, cssMatchText),
-      testId('ref-editor-item'),
+    return renderACItem(item.text, highlightFunc, item.rowId === 'new', this._showAddNew);
+  }
+}
+
+export function renderACItem(text: string, highlightFunc: HighlightFunc, isAddNew: boolean, withSpaceForNew: boolean) {
+  if (isAddNew) {
+    return cssRefItem(cssRefItem.cls('-new'),
+      cssPlusButton(cssPlusIcon('Plus')), text,
+      testId('ref-editor-item'), testId('ref-editor-new-item'),
     );
   }
+  return cssRefItem(cssRefItem.cls('-with-new', withSpaceForNew),
+    buildHighlightedDom(text, highlightFunc, cssMatchText),
+    testId('ref-editor-item'),
+  );
 }
 
 function nocaseEqual(a: string, b: string) {
@@ -172,7 +176,7 @@ const cssRefEditor = styled('div', `
   }
 `);
 
-const cssRefList = styled('div', `
+export const cssRefList = styled('div', `
   overflow-y: auto;
   padding: 8px 0 0 0;
   --weaseljs-menu-item-padding: 8px 16px;

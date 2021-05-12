@@ -4,7 +4,6 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
-import {alignmentSelect} from 'app/client/ui2018/buttonSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
@@ -31,28 +30,13 @@ export class ChoiceTextBox extends NTextBox {
         dom.style('text-align', this.alignment),
         dom.text((use) => use(row._isAddRow) ? '' : use(this.valueFormatter).format(use(value))),
       ),
-      cssDropdownIcon('Dropdown',
-        // When choices exist, click dropdown icon to open edit autocomplete.
-        dom.on('click', () => this._hasChoices() && commands.allCommands.editField.run()),
-        // When choices do not exist, open a single-item menu to open the sidepane choice option editor.
-        menu(() => [
-          menuItem(commands.allCommands.fieldTabOpen.run, 'Add Choice Options')
-        ], {
-          trigger: [(elem, ctl) => {
-            // Only open this menu if there are no choices.
-            dom.onElem(elem, 'click', () => this._hasChoices() || ctl.open());
-          }]
-        }),
-        testId('choice-dropdown')
-      )
+      this.buildDropdownMenu(),
     );
   }
 
   public buildConfigDom() {
     return [
-      cssRow(
-        alignmentSelect(this.alignment)
-      ),
+      super.buildConfigDom(),
       cssLabel('OPTIONS'),
       cssRow(
         dom.create(ListEntry, this._choiceValues, (values) => this._choices.saveOnly(values))
@@ -64,6 +48,27 @@ export class ChoiceTextBox extends NTextBox {
     return this.buildConfigDom();
   }
 
+  protected getChoiceValues(): Computed<string[]> {
+    return this._choiceValues;
+  }
+
+  protected buildDropdownMenu() {
+    return cssDropdownIcon('Dropdown',
+      // When choices exist, click dropdown icon to open edit autocomplete.
+      dom.on('click', () => this._hasChoices() && commands.allCommands.editField.run()),
+      // When choices do not exist, open a single-item menu to open the sidepane choice option editor.
+      menu(() => [
+        menuItem(commands.allCommands.fieldTabOpen.run, 'Add Choice Options')
+      ], {
+        trigger: [(elem, ctl) => {
+          // Only open this menu if there are no choices.
+          dom.onElem(elem, 'click', () => this._hasChoices() || ctl.open());
+        }]
+      }),
+      testId('choice-dropdown')
+    );
+  }
+
   private _hasChoices() {
     return this._choiceValues.get().length > 0;
   }
@@ -71,7 +76,6 @@ export class ChoiceTextBox extends NTextBox {
 
 const cssChoiceField = styled('div.field_clip', `
   display: flex;
-  justify-content: space-between;
 `);
 
 const cssChoiceText = styled('div', `
@@ -86,4 +90,5 @@ const cssDropdownIcon = styled(icon, `
   min-width: 16px;
   width: 16px;
   height: 16px;
+  margin-left: auto;
 `);

@@ -28,6 +28,8 @@ const nameToWidget = {
   'ReferenceEditor': ReferenceEditor,
   'ChoiceTextBox': ChoiceTextBox,
   'ChoiceEditor': require('./ChoiceEditor'),
+  'ChoiceListCell': require('./ChoiceListCell').ChoiceListCell,
+  'ChoiceListEditor': require('./ChoiceListEditor').ChoiceListEditor,
   'DateTimeTextBox': require('./DateTimeTextBox'),
   'DateTextBox': require('./DateTextBox'),
   'DateEditor': require('./DateEditor'),

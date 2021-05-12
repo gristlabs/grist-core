@@ -377,7 +377,7 @@ export class DocStorage implements ISQLiteDB {
    * be used within main Grist application.
    */
   public static decodeRowValues(dbRow: ResultRow): any {
-    return _.mapObject(dbRow, val => DocStorage._decodeValue(val, 'Any'));
+    return _.mapObject(dbRow, val => DocStorage._decodeValue(val, 'Any', 'BLOB'));
   }
 
   /**
@@ -425,7 +425,7 @@ export class DocStorage implements ISQLiteDB {
     const rows = _.unzip(valueColumns);
     for (const row of rows) {
       for (let i = 0; i < row.length; i++) {
-        row[i] = DocStorage._encodeValue(marshaller, this._getSqlType(types[i]), row[i]);
+        row[i] = DocStorage._encodeValue(marshaller, types[i], this._getSqlType(types[i]), row[i]);
       }
     }
     return rows;
@@ -440,12 +440,19 @@ export class DocStorage implements ISQLiteDB {
    * which such encoding/marshalling is not used, and e.g. binary data is stored to BLOBs directly.
    */
   private static _encodeValue(
-    marshaller: marshal.Marshaller, sqlType: string, val: any
+    marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any
   ): Uint8Array|string|number|boolean {
     const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
     };
+    if (gristType == 'ChoiceList') {
+      // See also app/plugin/objtype.ts for decodeObject(). Here we manually check and decode
+      // the "List" object type.
+      if (Array.isArray(val) && val[0] === 'L' && val.every(tok => (typeof(tok) === 'string'))) {
+        return JSON.stringify(val.slice(1));
+      }
+    }
     // Marshall anything non-primitive.
     if (Array.isArray(val) || val instanceof Uint8Array || Buffer.isBuffer(val)) {
       return marshalled();
@@ -494,19 +501,30 @@ export class DocStorage implements ISQLiteDB {
 
   /**
    * Decodes Grist data received from SQLite; the inverse of _encodeValue().
-   * Type may be either grist or sql type.  Only used for a Bool/BOOLEAN check.
+   * Both Grist and SQL types are expected. Used to interpret Bool/BOOLEANs, and to parse
+   * ChoiceList values.
    */
-  private static _decodeValue(val: any, type: string): any {
+  private static _decodeValue(val: any, gristType: string, sqlType: string): any {
     if (val instanceof Uint8Array || Buffer.isBuffer(val)) {
       val = marshal.loads(val);
     }
-    if ((type === 'Bool' || type === 'BOOLEAN') && (val === 0 || val === 1)) {
-      // Boolean values come in as 0/1. If the column is of type "Bool", interpret those as
-      // true/false (note that the data engine does this too).
-      return Boolean(val);
-    } else {
-      return val;
+    if (gristType === 'Bool') {
+      if (val === 0 || val === 1) {
+        // Boolean values come in as 0/1. If the column is of type "Bool", interpret those as
+        // true/false (note that the data engine does this too).
+        return Boolean(val);
+      }
     }
+    if (gristType === 'ChoiceList') {
+      if (typeof val === 'string' && val.startsWith('[')) {
+        try {
+          return ['L', ...JSON.parse(val)];
+        } catch (e) {
+          // Fall through without parsing
+        }
+      }
+    }
+    return val;
   }
 
   /**
@@ -538,6 +556,8 @@ export class DocStorage implements ISQLiteDB {
       case 'Choice':
       case 'Text':
         return 'TEXT';
+      case 'ChoiceList':
+        return 'TEXT';      // To be encoded as a JSON array of strings.
       case 'Date':
         return 'DATE';
       case 'DateTime':
@@ -842,7 +862,7 @@ export class DocStorage implements ISQLiteDB {
       const type = this._getGristType(tableId, col);
       const column = columnValues[col];
       for (let i = 0; i < column.length; i++) {
-        column[i] = DocStorage._decodeValue(column[i], type);
+        column[i] = DocStorage._decodeValue(column[i], type, DocStorage._getSqlType(type));
       }
     }
     return columnValues;
@@ -1348,6 +1368,7 @@ export class DocStorage implements ISQLiteDB {
     if (!colInfo) {
       return null;      // Column not found.
     }
+    const oldGristType = this._getGristType(tableId, colId);
     const oldSqlType = colInfo.type || 'BLOB';
     const oldDefault = colInfo.dflt_value;
     const newSqlType = newColType ? DocStorage._getSqlType(newColType) : oldSqlType;
@@ -1361,6 +1382,8 @@ export class DocStorage implements ISQLiteDB {
     const colSpecSql = DocStorage._prefixJoin(', ', infoRows.map(DocStorage._sqlColSpecFromDBInfo));
     return {
       sql: `CREATE TABLE ${quoteIdent(tableId)} (id INTEGER PRIMARY KEY${colSpecSql})`,
+      oldGristType,
+      newGristType: newColType || oldGristType,
       oldDefault,
       newDefault,
       oldSqlType,
@@ -1411,7 +1434,7 @@ export class DocStorage implements ISQLiteDB {
 
       // For any marshalled objects, check if we can now unmarshall them if they are the
       // native type.
-      if (result.newSqlType !== result.oldSqlType) {
+      if (result.newGristType !== result.oldGristType) {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
                                      `WHERE typeof(${q(colId)}) = 'blob'`);
         const marshaller = new marshal.Marshaller({version: 2});
@@ -1419,8 +1442,8 @@ export class DocStorage implements ISQLiteDB {
         for (const cell of cells) {
           const id: number = cell.id;
           const value: any = cell.value;
-          const decodedValue = DocStorage._decodeValue(value, result.oldSqlType);
-          const newValue = DocStorage._encodeValue(marshaller, result.newSqlType, decodedValue);
+          const decodedValue = DocStorage._decodeValue(value, result.oldGristType, result.oldSqlType);
+          const newValue = DocStorage._encodeValue(marshaller, result.newGristType, result.newSqlType, decodedValue);
           if (!(newValue instanceof Uint8Array)) {
             sqlParams.push([newValue, id]);
           }
@@ -1505,6 +1528,8 @@ export class DocStorage implements ISQLiteDB {
 
 interface RebuildResult {
   sql: string;
+  oldGristType: string;
+  newGristType: string;
   oldDefault: string;
   newDefault: string;
   oldSqlType: string;

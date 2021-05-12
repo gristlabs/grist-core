@@ -204,6 +204,22 @@ var typeDefs = {
     },
     default: 'TextBox'
   },
+  ChoiceList: {
+    label: 'Choice List',
+    icon: 'FieldChoice',
+    widgets: {
+      TextBox: {
+        cons: 'ChoiceListCell',
+        editCons: 'ChoiceListEditor',
+        icon: 'FieldTextbox',
+        options: {
+          alignment: 'left',
+          choices: null
+        }
+      }
+    },
+    default: 'TextBox'
+  },
   Ref: {
     label: 'Reference',
     icon: 'FieldReference',

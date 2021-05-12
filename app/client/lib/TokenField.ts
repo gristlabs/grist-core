@@ -22,7 +22,7 @@ import { colors, testId } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { csvDecodeRow, csvEncodeRow } from 'app/common/csvFormat';
 import { computedArray, IObsArraySplice, ObsArray, obsArray, Observable } from 'grainjs';
-import { Disposable, dom, DomContents, Holder, styled } from 'grainjs';
+import { Disposable, dom, DomElementArg, Holder, styled } from 'grainjs';
 
 export interface IToken {
   label: string;
@@ -30,10 +30,11 @@ export interface IToken {
 
 export interface ITokenFieldOptions {
   initialValue: IToken[];
-  renderToken: (token: IToken) => DomContents;
+  renderToken: (token: IToken) => DomElementArg;
   createToken: (inputText: string) => IToken|undefined;
   acOptions?: IAutocompleteOptions<IToken & ACItem>;
   openAutocompleteOnFocus?: boolean;
+  styles?: ITokenFieldStyles;
 
   // Allows overriding how tokens are copied to the clipboard, or retrieved from it.
   // By default, tokens are placed into clipboard as text/plain comma-separated token labels, with
@@ -87,11 +88,20 @@ export class TokenField extends Disposable {
     // obsArray interface, by listening to the splice events.
     this.autoDispose(this._tokens.addListener(this._recordUndo.bind(this)));
 
+    // Use overridden styles if any were provided.
+    const {cssTokenField, cssToken, cssInputWrapper, cssTokenInput, cssDeleteButton, cssDeleteIcon} =
+      {...tokenFieldStyles, ..._options.styles};
+
+    function stop(ev: Event) {
+      ev.stopPropagation();
+      ev.preventDefault();
+    }
+
     this._rootElem = cssTokenField(
       {tabIndex: '-1'},
       dom.forEach(this._tokens, (t) =>
         cssToken(this._options.renderToken(t.token),
-          cssDeleteIcon('CrossSmall', testId('tokenfield-delete')),
+          cssDeleteButton(cssDeleteIcon('CrossSmall'), testId('tokenfield-delete')),
           dom.cls('selected', (use) => use(this._selection).has(t)),
           dom.on('click', (ev) => this._onTokenClick(ev, t)),
           dom.on('mousedown', (ev) => this._onMouseDown(ev, t)),
@@ -102,18 +112,16 @@ export class TokenField extends Disposable {
         this._textInput = cssTokenInput(
           dom.on('focus', this._onInputFocus.bind(this)),
           dom.on('blur', () => { this._acHolder.clear(); }),
+          (this._acOptions ?
+            // Toggle the autocomplete on clicking the input box.
+            dom.on('click', () => this._acHolder.isEmpty() ? openAutocomplete() : this._acHolder.clear()) :
+            null
+          ),
           dom.onKeyDown({
-            Escape: () => { this._acHolder.clear(); },
-            Enter: addSelectedItem,
+            Escape$: (ev) => { this._acHolder.clear(); },
+            Enter$: (ev) => addSelectedItem() && stop(ev),
             ArrowDown$: openAutocomplete,
-            Tab$: (ev) => {
-              // Only treat tab specially if there is some token-adding in progress.
-              if (this._textInput.value !== '' || !this._acHolder.isEmpty()) {
-                ev.stopPropagation();
-                ev.preventDefault();
-                addSelectedItem();
-              }
-            },
+            Tab$: (ev) => addSelectedItem() && stop(ev),
           }),
           dom.on('input', openAutocomplete),
           testId('tokenfield-input'),
@@ -149,6 +157,21 @@ export class TokenField extends Disposable {
     elem.appendChild(this._rootElem);
   }
 
+  // Outer container for the tokens and new-entry input field.
+  public getRootElem(): HTMLElement {
+    return this._rootElem;
+  }
+
+  // The new-entry input field.
+  public getTextInput(): HTMLInputElement {
+    return this._textInput;
+  }
+
+  // The invisible input that has focus while we have some tokens selected.
+  public getHiddenInput(): HTMLInputElement {
+    return this._hiddenInput;
+  }
+
   // Open the autocomplete dropdown, if autocomplete was configured in the options.
   private _openAutocomplete() {
     if (this._acOptions && this._acHolder.isEmpty()) {
@@ -158,7 +181,7 @@ export class TokenField extends Disposable {
 
   // Adds the typed-in or selected item. If an item is selected in autocomplete dropdown, adds
   // that; otherwise if options.createToken is present, creates a token from text input value.
-  private _addSelectedItem() {
+  private _addSelectedItem(): boolean {
     let item: IToken|undefined = this._acHolder.get()?.getSelectedItem();
     if (!item && this._options.createToken && this._textInput.value) {
       item = this._options.createToken(this._textInput.value);
@@ -167,7 +190,9 @@ export class TokenField extends Disposable {
       this._tokens.push(new TokenWrap(item));
       this._textInput.value = '';
       this._acHolder.clear();
+      return true;
     }
+    return false;
   }
 
   // Handler for when text input is focused: clears selection, optionally opens dropdown.
@@ -514,6 +539,7 @@ const cssTokenField = styled('div', `
   border: 1px solid ${colors.darkGrey};
   border-radius: 3px;
   padding: 0 4px;
+  line-height: 16px;
 
   &.token-dragactive {
     cursor: grabbing;
@@ -527,7 +553,6 @@ const cssToken = styled('div', `
   background-color: ${colors.mediumGreyOpaque};
   padding: 4px;
   margin: 3px 2px;
-  line-height: 16px;
   user-select: none;
   cursor: grab;
 
@@ -558,6 +583,7 @@ const cssTokenInput = styled('input', `
   padding: 0;
   border: none;
   outline: none;
+  line-height: inherit;
 `);
 
 // This class is applied to tokens and the input box on start of dragging, to use them as drag
@@ -594,15 +620,31 @@ const cssHiddenInput = styled('input', `
   position: absolute;
 `);
 
-const cssDeleteIcon = styled(icon, `
-  vertical-align: bottom;
+const cssDeleteButton = styled('div', `
+  display: inline;
   margin-left: 4px;
+  vertical-align: bottom;
+  line-height: 1;
   cursor: pointer;
-  --icon-color: ${colors.slate};
-  &:hover {
-    --icon-color: ${colors.dark};
-  }
   .${cssTokenField.className}.token-dragactive & {
     cursor: unset;
   }
 `);
+
+const cssDeleteIcon = styled(icon, `
+  --icon-color: ${colors.slate};
+  &:hover {
+    --icon-color: ${colors.dark};
+  }
+`);
+
+export const tokenFieldStyles = {
+  cssTokenField,
+  cssToken,
+  cssInputWrapper,
+  cssTokenInput,
+  cssDeleteButton,
+  cssDeleteIcon,
+};
+
+export type ITokenFieldStyles = Partial<typeof tokenFieldStyles>;

@@ -11,7 +11,10 @@ Python's array.array. However, at least on the Python side, it means that we nee
 data structure for values of the wrong type, and the memory savings aren't that great to be worth
 the extra complexity.
 """
+import csv
+import cStringIO
 import datetime
+import json
 import six
 import objtypes
 from objtypes import AltText
@@ -29,6 +32,7 @@ _type_defaults = {
   'Blob':         None,
   'Bool':         False,
   'Choice':       '',
+  'ChoiceList':   None,
   'Date':         None,
   'DateTime':     None,
   'Id':           0,
@@ -317,6 +321,53 @@ class Choice(Text):
     when its value isn't one of them
   """
   pass
+
+
+class ChoiceList(BaseColumnType):
+  """
+  ChoiceList is the type for a field holding a list of strings from a set of acceptable choices.
+  """
+  def do_convert(self, value):
+    if not value:
+      return None
+    elif isinstance(value, basestring):
+      # If it's a string that looks like JSON, try to parse it as such.
+      if value.startswith('['):
+        try:
+          return tuple(str(item) for item in json.loads(value))
+        except Exception:
+          pass
+      return value
+    else:
+      # Accepts other kinds of iterables; if that doesn't work, fail the conversion too.
+      return tuple(str(item) for item in value)
+
+  @classmethod
+  def is_right_type(cls, value):
+    return value is None or (isinstance(value, (tuple, list)) and
+                             all(isinstance(item, basestring) for item in value))
+
+  @classmethod
+  def typeConvert(cls, value):
+    if isinstance(value, basestring) and not value.startswith('['):
+      # Try to parse as CSV. If this doesn't work, we'll still try usual conversions later.
+      try:
+        tags = next(csv.reader([value]))
+        return tuple(t.strip() for t in tags if t.strip())
+      except Exception:
+        pass
+    return value
+
+  @classmethod
+  def toString(cls, value):
+    if isinstance(value, (tuple, list)):
+      try:
+        buf = cStringIO.StringIO()
+        csv.writer(buf).writerow(value)
+        return buf.getvalue().strip()
+      except Exception:
+        pass
+    return value
 
 
 class PositionNumber(BaseColumnType):

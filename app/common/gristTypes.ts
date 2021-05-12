@@ -3,7 +3,8 @@ import isString = require('lodash/isString');
 
 // tslint:disable:object-literal-key-quotes
 
-export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'Date' | 'DateTime' |
+export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'ChoiceList' |
+  'Date' | 'DateTime' |
   'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';
 
 export type GristTypeInfo =
@@ -41,6 +42,7 @@ const _defaultValues: {[key in GristType]: [CellValue, string]} = {
   // Bool is only supported by SQLite as 0 and 1 values.
   'Bool':             [ false, "0" ],
   'Choice':           [ '',    "''"    ],
+  'ChoiceList':       [ null,  "NULL"  ],
   'Date':             [ null,  "NULL"  ],
   'DateTime':         [ null,  "NULL"  ],
   'Id':               [ 0,     "0"     ],
@@ -187,7 +189,8 @@ const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
     } else {
       return false;
     }
-  }
+  },
+  ChoiceList:     isListOrNull,
 };
 
 export function isRightType(type: string): undefined | ((value: CellValue, options?: any) => boolean) {
