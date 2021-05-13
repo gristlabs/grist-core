@@ -173,6 +173,7 @@ export class NSandbox implements ISandbox {
       if (this._isWriteClosed) { resolve(); }
       this.childProc.on('error', reject);
       this.childProc.on('close', resolve);
+      this.childProc.on('exit', resolve);
       this._close();
     });
 

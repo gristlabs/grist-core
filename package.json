@@ -99,7 +99,7 @@
     "moment-timezone": "0.5.21",
     "morgan": "1.9.1",
     "mousetrap": "1.6.2",
-    "multiparty": "4.2.1",
+    "multiparty": "4.2.2",
     "node-fetch": "2.2.0",
     "numeral": "2.0.6",
     "plotly.js-basic-dist": "1.51.1",
