@@ -71,6 +71,10 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   return cssConditionInputAce(
     cssConditionInputAce.cls('-disabled', options.readOnly),
+    // ACE editor calls preventDefault on clicks into the scrollbar area, which prevents focus
+    // being set when the click happens to be into there. To ensure we can focus on such clicks
+    // anyway, listen to the mousedown event in the capture phase.
+    dom.on('mousedown', () => { editor.focus(); }, {useCapture: true}),
     dom.onDispose(() => editor.destroy()),
     editorElem,
   );

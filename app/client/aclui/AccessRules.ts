@@ -1118,6 +1118,7 @@ class ObsRulePart extends Disposable {
     }
     this._error = Computed.create(this, (use) => {
       return use(this._formulaError) ||
+        this._warnInvalidColIds(use(this._formulaProperties).usedColIds) ||
         ( !this._ruleSet.isLastCondition(use, this) &&
           use(this._aclFormula) === '' &&
           permissionSetToText(use(this._permissions)) !== '' ?
@@ -1231,6 +1232,7 @@ class ObsRulePart extends Disposable {
     if (text === this._aclFormula.get()) { return; }
     this._aclFormula.set(text);
     this._checkPending.set(true);
+    this._formulaProperties.set({});
     this._formulaError.set('');
     try {
       this._formulaProperties.set(await this._ruleSet.accessRules.checkAclFormula(text));
@@ -1239,6 +1241,15 @@ class ObsRulePart extends Disposable {
       this._formulaError.set(e.message);
     } finally {
       this._checkPending.set(false);
+    }
+  }
+
+  private _warnInvalidColIds(colIds?: string[]) {
+    if (!colIds || !colIds.length) { return false; }
+    const allValid = new Set(this._ruleSet.getValidColIds());
+    const invalid = colIds.filter(c => !allValid.has(c));
+    if (invalid.length > 0) {
+      return `Invalid columns: ${invalid.join(', ')}`;
     }
   }
 }

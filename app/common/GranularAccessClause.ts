@@ -55,13 +55,15 @@ export type AclMatchFunc = (input: AclMatchInput) => boolean;
 /**
  * Representation of a parsed ACL formula.
  */
-export type ParsedAclFormula = [string, ...Array<ParsedAclFormula|CellValue>];
+type PrimitiveCellValue = number|string|boolean|null;
+export type ParsedAclFormula = [string, ...Array<ParsedAclFormula|PrimitiveCellValue>];
 
 /**
  * Observations about a formula.
  */
 export interface FormulaProperties {
   hasRecOrNewRec?: boolean;
+  usedColIds?: string[];
 }
 
 export interface UserAttributeRule {
@@ -78,6 +80,9 @@ export interface UserAttributeRule {
 export function getFormulaProperties(formula: ParsedAclFormula) {
   const result: FormulaProperties = {}
   if (usesRec(formula)) { result.hasRecOrNewRec = true; }
+  const colIds = new Set<string>();
+  collectRecColIds(formula, colIds);
+  result.usedColIds = Array.from(colIds);
   return result;
 }
 
@@ -86,11 +91,27 @@ export function getFormulaProperties(formula: ParsedAclFormula) {
  */
 export function usesRec(formula: ParsedAclFormula): boolean {
   if (!Array.isArray(formula)) { throw new Error('expected a list'); }
-  if (formula[0] === 'Name' && (formula[1] === 'rec' || formula[1] === 'newRec')) {
+  if (isRecOrNewRec(formula)) {
     return true;
   }
   return formula.some(el => {
     if (!Array.isArray(el)) { return false; }
-    return usesRec(el as any);
+    return usesRec(el);
   });
+}
+
+function isRecOrNewRec(formula: ParsedAclFormula|PrimitiveCellValue): boolean {
+  return Array.isArray(formula) &&
+    formula[0] === 'Name' &&
+    (formula[1] === 'rec' || formula[1] === 'newRec');
+}
+
+function collectRecColIds(formula: ParsedAclFormula, colIds: Set<string>): void {
+  if (!Array.isArray(formula)) { throw new Error('expected a list'); }
+  if (formula[0] === 'Attr' && isRecOrNewRec(formula[1])) {
+    const colId = formula[2];
+    colIds.add(String(colId));
+    return;
+  }
+  formula.forEach(el => Array.isArray(el) && collectRecColIds(el, colIds));
 }
