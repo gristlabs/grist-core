@@ -1422,6 +1422,20 @@ export function hexToRgb(hex: string) {
   return `rgba(${r}, ${g}, ${b}, 1)`;
 }
 
+/**
+ * Adds new column to the table.
+ * @param name Name of the column
+ */
+export async function addColumn(name: string) {
+  await scrollIntoView(await driver.find('.active_section .mod-add-column'));
+  await driver.find('.active_section .mod-add-column').click();
+  await waitForServer();
+  await waitAppFocus(false);
+  await driver.sendKeys(name);
+  await driver.sendKeys(Key.ENTER);
+  await waitForServer();
+}
+
 
 } // end of namespace gristUtils
 

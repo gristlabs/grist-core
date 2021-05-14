@@ -39,7 +39,7 @@ function TextEditor(options) {
       this.textInput = dom('textarea.celleditor_text_editor',
         kd.attr('placeholder', options.placeholder || ''),
         kd.style('text-align', this._alignment),
-        kd.value(gutil.undefDefault(options.editValue, String(options.cellValue))),
+        kd.value(gutil.undefDefault(options.editValue, String(options.cellValue == null ? "" : options.cellValue))),
         this.commandGroup.attach(),
 
         // Resize the textbox whenever user types in it.

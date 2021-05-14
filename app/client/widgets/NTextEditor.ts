@@ -33,7 +33,7 @@ export class NTextEditor extends NewBaseEditor {
         this._contentSizer = dom('div.celleditor_content_measure'),
         this.textInput = dom('textarea', dom.cls('celleditor_text_editor'),
           dom.style('text-align', this._alignment),
-          dom.prop('value', undefDefault(options.editValue, String(options.cellValue))),
+          dom.prop('value', undefDefault(options.editValue, String(options.cellValue ?? ""))),
           this.commandGroup.attach(),
           // Resize the textbox whenever user types in it.
           dom.on('input', () => this.resizeInput())
