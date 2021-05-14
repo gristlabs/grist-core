@@ -69,10 +69,9 @@ const STRUCTURAL_TABLES = new Set(['_grist_Tables', '_grist_Tables_column', '_gr
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but generally I've put them in this list if there are problems
 // tracking down what table the refer to, or they could allow creation/modification of a
-// formula.
+// formula, and are not handled elsewhere.
 const SPECIAL_ACTIONS = new Set(['InitNewDoc',
                                  'EvalCode',
-                                 'SetDisplayFormula',
                                  'UpdateSummaryViewSection',
                                  'DetachSummaryViewSection',
                                  'GenImporterView',
@@ -364,10 +363,22 @@ export class GranularAccess implements GranularAccessForBundle {
    * until the data engine translates the user actions to doc actions.
    */
   public async assertCanMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
+    let canCertainlyApply =  true;
     for (const action of actions) {
-      if (!await this.assertCanMaybeApplyUserAction(docSession, action)) { return false; }
+      if (!await this.assertCanMaybeApplyUserAction(docSession, action)) {
+        canCertainlyApply = false;
+        break;
+      }
     }
-    return true;
+    // If changes could include Python formulas, then user must have
+    // +S before we even consider passing these to the data engine.
+    // Since we don't track rule or schema changes at this stage, we
+    // approximate with the user's access rights at beginning of
+    // bundle.
+    if (!canCertainlyApply && scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
+      await this._assertSchemaAccess(docSession);
+    }
+    return canCertainlyApply;
   }
 
   /**
@@ -391,9 +402,9 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       return true;
     }
-    if (a[0] === 'ApplyUndoActions') {
+    if (name === 'ApplyUndoActions') {
       return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
-    } else if (a[0] === 'ApplyDocActions') {
+    } else if (name === 'ApplyDocActions') {
       return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (isDataAction(a)) {
       const tableId = getTableId(a);
@@ -407,6 +418,22 @@ export class GranularAccess implements GranularAccessForBundle {
     } else {
       return false;  // have to look closely
     }
+  }
+
+  /**
+   * For changes that could include Python formulas, check for schema access early.
+   */
+  public needEarlySchemaPermission(a: UserAction|DocAction): boolean {
+    const name = a[0] as string;
+    if (name === 'ModifyColumn' || name === 'SetDisplayFormula') {
+      return true;
+    } else if (isDataAction(a)) {
+      const tableId = getTableId(a);
+      if (tableId === '_grist_Tables_column' || tableId === '_grist_Validations') {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -585,6 +612,16 @@ export class GranularAccess implements GranularAccessForBundle {
       return info.Access as Role;
     }
     return getDocSessionAccess(docSession);
+  }
+
+  /**
+   * Asserts that user has schema access.
+   */
+  private async _assertSchemaAccess(docSession: OptDocSession) {
+    const permInfo = await this._getAccess(docSession);
+    if (permInfo.getFullAccess().perms.schemaEdit !== 'allow') {
+      throw new ErrorWithCode('ACL_DENY', `Schema access required`);
+    }
   }
 
   /**
