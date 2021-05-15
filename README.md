@@ -1,6 +1,6 @@
 # Grist
 
-Grist is a modern relational spreadsheet. It combine the flexibility of a spreadsheet with the
+Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the
 robustness of a database to organize your data and make you more productive.
 
 > :warning: This repository is in a pre-release state. Its release will be announced when it has
