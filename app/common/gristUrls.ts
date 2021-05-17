@@ -2,9 +2,10 @@ import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
+import {StringUnion} from 'app/common/StringUnion';
 import {Document} from 'app/common/UserAPI';
+import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
-import {StringUnion} from './StringUnion';
 
 export type IDocPage = number | 'new' | 'code' | 'acl';
 
@@ -299,7 +300,7 @@ export function useNewUI(newui: boolean|undefined) {
 export function userOverrideParams(email: string|null, extraState?: IGristUrlState) {
   return function(prevState: IGristUrlState): IGristUrlState {
     const combined = {...prevState, ...extraState};
-    const linkParameters = combined.params?.linkParameters || {};
+    const linkParameters = clone(combined.params?.linkParameters) || {};
     if (email) {
       linkParameters.aclAsUser = email;
     } else {

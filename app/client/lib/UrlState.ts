@@ -95,7 +95,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    *
    * If urlState is an object (such as IGristUrlState), it gets merged with previous state
    * according to rules (in gristUrlState's updateState). Alternatively, it can be a function that
-   * takes previous state and returns the new one.
+   * takes previous state and returns the new one (without mutating the previous state).
    */
   public makeUrl(urlState: IUrlState|UpdateFunc<IUrlState>, use: UseCB = unwrap): string {
     const fullState = this._mergeState(use(this.state), urlState);
