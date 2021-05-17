@@ -230,7 +230,7 @@ _.extend(Base.prototype, BackboneEvents);
  * These commands are common to GridView and DetailView.
  */
 BaseView.commonCommands = {
-  input: function(input) { this.activateEditorAtCursor(input); },
+  input: function(input) { this.activateEditorAtCursor({init: input}); },
   editField: function() { this.activateEditorAtCursor(); },
 
   insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
@@ -269,7 +269,7 @@ BaseView.prototype.getLoadingDonePromise = function() {
  * @param {String} input: If given, initialize the editor with the given input (rather than the
  *    original content of the cell).
  */
-BaseView.prototype.activateEditorAtCursor = function(input) {
+BaseView.prototype.activateEditorAtCursor = function(options) {
   var builder = this.activeFieldBuilder();
   if (builder.isEditorActive()) {
     return;
@@ -286,7 +286,7 @@ BaseView.prototype.activateEditorAtCursor = function(input) {
       return;
     }
     this.editRowModel.assign(rowId);
-    builder.buildEditorDom(this.editRowModel, lazyRow, { 'init': input });
+    builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
   }
 };
 

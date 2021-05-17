@@ -65,6 +65,7 @@ export type IconName = "ChartArea" |
   "Page" |
   "PanelLeft" |
   "PanelRight" |
+  "Pencil" |
   "PinBig" |
   "PinSmall" |
   "Pivot" |
@@ -155,6 +156,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Page",
   "PanelLeft",
   "PanelRight",
+  "Pencil",
   "PinBig",
   "PinSmall",
   "Pivot",

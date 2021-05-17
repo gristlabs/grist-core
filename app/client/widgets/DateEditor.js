@@ -41,7 +41,7 @@ function DateEditor(options) {
   TextEditor.call(this, _.defaults(options, { placeholder: placeholder }));
 
   // Set the edited value, if not explicitly given, to the formatted version of cellValue.
-  this.textInput.value = gutil.undefDefault(options.editValue,
+  this.textInput.value = gutil.undef(options.state, options.editValue,
     this.formatValue(options.cellValue, this.safeFormat));
 
   // Indicates whether keyboard navigation is active for the datepicker.

@@ -424,7 +424,7 @@ GridView.prototype.clearValues = function(selection) {
 
   const options = this._getColumnMenuOptions(selection);
   if (options.isFormula === true) {
-    this.activateEditorAtCursor('');
+    this.activateEditorAtCursor({ init: ''});
   } else {
     let clearAction = tableUtil.makeDeleteAction(selection);
     if (clearAction) {

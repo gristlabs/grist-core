@@ -102,6 +102,32 @@ export function undefDefault<T>(x: T|undefined, y: T): T {
   return (x !== void 0) ? x : y;
 }
 
+// for typescript 4
+// type Undef<T> = T extends [infer A, ...infer B] ? undefined extends A ? NonNullable<A> | Undef<B> : A : unknown;
+
+type Undef1<T> = T extends [infer A] ?
+    undefined extends A ? NonNullable<A> : A : unknown;
+
+type Undef2<T> = T extends [infer A, infer B] ?
+    undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
+
+type Undef3<T> = T extends [infer A, infer B, infer C] ?
+    undefined extends A ? NonNullable<A> | Undef2<[B, C]> : A : Undef2<T>;
+
+type Undef<T> = T extends [infer A, infer B, infer C, infer D] ?
+    undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
+
+/**
+ * Returns the first defined value from the list or unknown.
+ * Use with typed result, so the typescript type checker can provide correct type.
+ */
+export function undef<T extends Array<any>>(...list : T): Undef<T> {
+  for(const value of list) {
+    if (value !== undefined) return value;
+  }
+  return undefined as any;
+}
+
 /**
  * Parses json and returns the result, or returns defaultVal if parsing fails.
  */

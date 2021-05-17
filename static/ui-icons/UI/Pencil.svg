@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="-2 -2 20 20" version="1.1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+	<title>Icons / UI / Download</title>
+	<desc>Created with Sketch.</desc>
+<g class="nc-icon-wrapper" stroke-width="1" fill="none" stroke="#212121" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"><polygon points=" 13,0.5 15.5,3 7.5,11 4,12 5,8.5 " stroke="#212121"></polygon> <line x1="11" y1="2.5" x2="13.5" y2="5" stroke="#212121"></line> <path d="M13.5,9.5v5 c0,0.552-0.448,1-1,1h-11c-0.552,0-1-0.448-1-1v-11c0-0.552,0.448-1,1-1h5"></path> </g>
+</svg>

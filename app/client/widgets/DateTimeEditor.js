@@ -42,10 +42,22 @@ function DateTimeEditor(options) {
         kd.attr('placeholder', moment.tz('0', 'H', this.timezone).format(this._timeFormat)),
         kd.value(this.formatValue(options.cellValue, this._timeFormat)),
         this.commandGroup.attach(),
-        dom.on('input', () => this._resizeInput())
+        dom.on('input', () => this.onChange())
       )
     )
   );
+
+  // If the edit value is encoded json, use those values as a starting point
+  if (typeof options.state == 'string') {
+    try {
+      const { date, time } = JSON.parse(options.state);
+      this._dateInput.value = date;
+      this._timeInput.value = time;
+      this.onChange();
+    } catch(e) {
+      console.error("DateTimeEditor can't restore its previous state")
+    }
+  }
 }
 
 dispose.makeDisposable(DateTimeEditor);
@@ -76,6 +88,18 @@ DateTimeEditor.prototype._setFocus = function(index) {
     elem.selectionEnd = elem.value.length;
   }
 };
+
+/**
+ * Occurs when user types something into the editor
+ */
+DateTimeEditor.prototype.onChange = function() {
+  this._resizeInput();
+
+  // store editor state as an encoded JSON string
+  const date = this._dateInput.value;
+  const time = this._timeInput.value;
+  this.editorState.set(JSON.stringify({ date, time}));
+}
 
 DateTimeEditor.prototype.getCellValue = function() {
   let date = this._dateInput.value;

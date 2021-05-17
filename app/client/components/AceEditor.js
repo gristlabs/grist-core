@@ -25,6 +25,7 @@ function AceEditor(options) {
   this.saveValueOnBlurEvent = !(options && (options.saveValueOnBlurEvent === false));
   this.calcSize = (options && options.calcSize) || ((elem, size) => size);
   this.gristDoc = (options && options.gristDoc) || null;
+  this.editorState = (options && options.editorState) || null;
 
   this.editor = null;
   this.editorDom = null;
@@ -159,6 +160,15 @@ AceEditor.prototype.adjustContentToWidth = function() {
   }
 };
 
+/**
+ * Provides opportunity to execute some functionality when value in the editor has changed.
+ * Happens every time user types something to the control.
+ */
+AceEditor.prototype.onChange = function() {
+  if (this.editorState) this.editorState.set(this.getValue());
+  this.resize();
+};
+
 AceEditor.prototype.setFontSize = function(pxVal) {
   this.editor.setFontSize(pxVal);
   this.resize();
@@ -186,7 +196,7 @@ AceEditor.prototype._setup = function() {
   this.session.setTabSize(2);
   this.session.setUseWrapMode(true);
 
-  this.editor.on('change', this.resize.bind(this));
+  this.editor.on('change', this.onChange.bind(this));
   this.editor.$blockScrolling = Infinity;
   this.editor.setFontSize(11);
   this.resize();

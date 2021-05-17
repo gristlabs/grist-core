@@ -47,6 +47,10 @@
   background-color: var(--grist-color-selection);
 }
 
+.field.draft {
+  padding-right: 18px;
+}
+
 .field_clip {
   padding: 3px 3px 0px 3px;
   font-family: var(--grist-font-family-data);

@@ -60,6 +60,8 @@ export class Cursor extends Disposable {
   };
 
   public viewData: LazyArrayModel<BaseRowModel>;
+  // observable with current cursor position
+  public currentPosition: ko.Computed<CursorPos>;
 
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
@@ -70,12 +72,14 @@ export class Cursor extends Disposable {
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will
   // be out of sync.
   private _isLive: ko.Observable<boolean> = ko.observable(true);
+  private _sectionId: ko.Computed<number>;
 
   constructor(baseView: BaseView, optCursorPos?: CursorPos) {
     super();
     optCursorPos = optCursorPos || {};
     this.viewData = baseView.viewData;
 
+    this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()))
     this._rowId = ko.observable(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
@@ -97,6 +101,9 @@ export class Cursor extends Disposable {
 
     // On dispose, save the current cursor position to the section model.
     this.onDispose(() => { baseView.viewSection.lastCursorPos = this.getCursorPos(); });
+
+    // calculate current position
+    this.currentPosition = this.autoDispose(ko.computed(() => this._isLive() ? this.getCursorPos() : {}));
   }
 
   // Returns the cursor position with rowId, rowIndex, and fieldIndex.
@@ -104,7 +111,8 @@ export class Cursor extends Disposable {
     return {
       rowId: nullAsUndefined(this._rowId()),
       rowIndex: nullAsUndefined(this.rowIndex()),
-      fieldIndex: this.fieldIndex()
+      fieldIndex: this.fieldIndex(),
+      sectionId: this._sectionId()
     };
   }
 

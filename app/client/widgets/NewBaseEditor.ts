@@ -21,6 +21,7 @@ export interface Options {
   editValue?: string;
   cursorPos: number;
   commands: IEditorCommandGroup;
+  state? : any;
 }
 
 /**
@@ -53,6 +54,11 @@ export abstract class NewBaseEditor extends Disposable {
   public static skipEditor(typedVal: string|undefined, origVal: CellValue): CellValue|undefined {
     return undefined;
   }
+
+  /**
+   * Current state of the editor. Optional, not all editors will report theirs current state.
+   */
+  public editorState? : Observable<any>;
 
   constructor(protected options: Options) {
     super();

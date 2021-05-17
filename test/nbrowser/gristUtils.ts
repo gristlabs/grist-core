@@ -343,6 +343,14 @@ export async function resizeColumn(colOptions: IColHeader, deltaPx: number) {
 }
 
 /**
+ * Performs dbClick
+ * @param cell Element to click
+ */
+export async function dbClick(cell: WebElement) {
+  await driver.withActions(a => a.doubleClick(cell));
+}
+
+/**
  * Returns {rowNum, col} object representing the position of the cursor in the active view
  * section. RowNum is a 1-based number as in the row headers, and col is a 0-based index for
  * grid view or field name for detail view.
@@ -409,6 +417,14 @@ export async function enterFormula(formula: string) {
   }
   await driver.sendKeys(formula, Key.ENTER);
   await waitForServer();
+}
+
+/**
+ * Check that formula editor is shown and its value matches the given regexp.
+ */
+export async function getFormulaText() {
+  assert.equal(await driver.findWait('.test-formula-editor', 500).isDisplayed(), true);
+  return await driver.find('.code_editor_container').getText();
 }
 
 /**
@@ -1305,6 +1321,20 @@ export class Session {
     if (!noCleanup) {
       cleanup.addAfterAll(async () => {
         await api.deleteDoc(doc.id).catch(noop);
+        doc.id = '';
+      });
+    }
+    return doc;
+  }
+
+  // As for importFixturesDoc, but delete the document at the end of each test.
+  public async tempShortDoc(cleanup: Cleanup, fileName: string, options: ImportOpts = {load: true}) {
+    const doc = await this.importFixturesDoc(fileName, options);
+    const api = this.createHomeApi();
+    if (!noCleanup) {
+      cleanup.addAfterEach(async () => {
+        if (doc.id)
+          await api.deleteDoc(doc.id).catch(noop);
         doc.id = '';
       });
     }

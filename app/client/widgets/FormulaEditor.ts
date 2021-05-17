@@ -7,7 +7,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {undefDefault} from 'app/common/gutil';
+import {undef} from 'app/common/gutil';
 import {dom, Observable, styled} from 'grainjs';
 
 // How wide to expand the FormulaEditor when an error is shown in it.
@@ -37,12 +37,18 @@ export class FormulaEditor extends NewBaseEditor {
 
   constructor(options: IFormulaEditorOptions) {
     super(options);
+
+    const initialValue = undef(options.state as string | undefined, options.editValue, String(options.cellValue));
+    // create editor state observable (used by draft and latest position memory)
+    this.editorState = Observable.create(this, initialValue);
+
     this._formulaEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
       // and _editorPlacement created.
       calcSize: this._calcSize.bind(this),
       gristDoc: options.gristDoc,
       saveValueOnBlurEvent: true,
+      editorState : this.editorState
     });
 
     const allCommands = Object.assign({ setCursor: this._onSetCursor }, options.commands);
@@ -70,10 +76,15 @@ export class FormulaEditor extends NewBaseEditor {
           aceObj.setHighlightActiveLine(false);
           aceObj.getSession().setUseWrapMode(false);
           aceObj.renderer.setPadding(0);
-          const val = undefDefault(options.editValue, String(options.cellValue));
+          const val = initialValue;
           const pos = Math.min(options.cursorPos, val.length);
           this._formulaEditor.setValue(val, pos);
           this._formulaEditor.attachCommandGroup(this._commandGroup);
+
+          // enable formula editing if state was passed
+          if (options.state) {
+            options.field.editingFormula(true);
+          }
 
           // This catches any change to the value including e.g. via backspace or paste.
           aceObj.once("change", () => options.field.editingFormula(true));

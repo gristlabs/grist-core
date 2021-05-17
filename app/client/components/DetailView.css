@@ -47,6 +47,10 @@
   outline: 2px dashed var(--grist-color-cursor);
 }
 
+.g_record_detail_value.draft {
+  padding-right: 18px;
+}
+
 .detail_row_num {
   text-align: right;
   font-size: var(--grist-x-small-font-size);

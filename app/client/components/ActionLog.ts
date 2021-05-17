@@ -440,7 +440,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     const fieldIndex = viewSection.viewFields().peek().findIndex((f: any) => f.colId.peek() === colId);
 
     // Finally, move cursor position to the section, column (if we found it), and row.
-    this._gristDoc.moveToCursorPos({rowId, sectionId, fieldIndex});
+    this._gristDoc.moveToCursorPos({rowId, sectionId, fieldIndex}).catch(() => { /* do nothing */});
   }
 
 }

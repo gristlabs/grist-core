@@ -27,7 +27,8 @@ import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import { CellValue } from 'app/plugin/GristData';
 import { delay } from 'bluebird';
-import { Computed, Disposable, fromKo, dom as grainjsDom, Holder, IDisposable, makeTestId } from 'grainjs';
+import { Computed, Disposable, fromKo, dom as grainjsDom,
+         Holder, IDisposable, makeTestId } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -451,7 +452,8 @@ export class FieldBuilder extends Disposable {
   }
 
   public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
-    init?: string
+    init?: string,
+    state?: any
   }) {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.
@@ -485,6 +487,7 @@ export class FieldBuilder extends Disposable {
       cellElem,
       editorCtor,
       startVal: options.init,
+      state : options.state
     });
 
     // Put the FieldEditor into a holder in GristDoc too. This way any existing FieldEditor (perhaps

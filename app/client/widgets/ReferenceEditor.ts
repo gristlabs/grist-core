@@ -9,7 +9,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {Options} from 'app/client/widgets/NewBaseEditor';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
 import {CellValue} from 'app/common/DocActions';
-import {removePrefix, undefDefault} from 'app/common/gutil';
+import {removePrefix, undef} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {styled} from 'grainjs';
 
@@ -55,7 +55,7 @@ export class ReferenceEditor extends NTextEditor {
     // Decorate the editor to look like a reference column value (with a "link" icon).
     this.cellEditorDiv.classList.add(cssRefEditor.className);
     this.cellEditorDiv.appendChild(cssRefEditIcon('FieldReference'));
-    this.textInput.value = undefDefault(options.editValue, this._idToText(options.cellValue));
+    this.textInput.value = undef(options.state, options.editValue, this._idToText(options.cellValue));
 
     const needReload = (options.editValue === undefined && !tableData.isLoaded);
 
@@ -64,7 +64,7 @@ export class ReferenceEditor extends NTextEditor {
     docData.fetchTable(refTableId).then(() => {
       if (this.isDisposed()) { return; }
       if (needReload && this.textInput.value === '') {
-        this.textInput.value = undefDefault(options.editValue, this._idToText(options.cellValue));
+        this.textInput.value = undef(options.state, options.editValue, this._idToText(options.cellValue));
         this.resizeInput();
       }
       if (this._autocomplete) {

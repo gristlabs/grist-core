@@ -7,11 +7,14 @@ import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorBu
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from "app/common/DocActions";
-import {undefDefault} from 'app/common/gutil';
-import {dom} from 'grainjs';
+import {undef} from 'app/common/gutil';
+import {dom, Observable} from 'grainjs';
 
 
 export class NTextEditor extends NewBaseEditor {
+  // Observable with current editor state (used by drafts or latest edit/position component)
+  public readonly editorState : Observable<string>;
+
   protected cellEditorDiv: HTMLElement;
   protected textInput: HTMLTextAreaElement;
   protected commandGroup: any;
@@ -26,6 +29,11 @@ export class NTextEditor extends NewBaseEditor {
   constructor(options: Options) {
     super(options);
 
+    const initialValue : string = undef(
+        options.state as string | undefined,
+        options.editValue, String(options.cellValue ?? ""));
+    this.editorState = Observable.create<string>(this, initialValue);
+
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
     this._dom = dom('div.default_editor',
@@ -33,10 +41,9 @@ export class NTextEditor extends NewBaseEditor {
         this._contentSizer = dom('div.celleditor_content_measure'),
         this.textInput = dom('textarea', dom.cls('celleditor_text_editor'),
           dom.style('text-align', this._alignment),
-          dom.prop('value', undefDefault(options.editValue, String(options.cellValue ?? ""))),
+          dom.prop('value', initialValue),
           this.commandGroup.attach(),
-          // Resize the textbox whenever user types in it.
-          dom.on('input', () => this.resizeInput())
+          dom.on('input', () => this.onInput())
         )
       ),
       createMobileButtons(options.commands),
@@ -81,6 +88,18 @@ export class NTextEditor extends NewBaseEditor {
     const maxSize = this._editorPlacement.calcSizeWithPadding(this.textInput,
       {width: Infinity, height: Infinity}, {calcOnly: true});
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
+  }
+
+  /**
+   * Occurs when user types text in the textarea
+   *
+   */
+  protected onInput() {
+    // Resize the textbox whenever user types in it.
+    this.resizeInput()
+
+    // notify about current state
+    this.editorState.set(String(this.getTextValue()))
   }
 
   /**

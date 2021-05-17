@@ -8,6 +8,7 @@ var commands = require('../components/commands');
 const {testId} = require('app/client/ui2018/cssVars');
 const {createMobileButtons, getButtonMargins} = require('app/client/widgets/EditorButtons');
 const {EditorPlacement} = require('app/client/widgets/EditorPlacement');
+const { observable } = require('grainjs');
 
 /**
  * Required parameters:
@@ -31,6 +32,10 @@ function TextEditor(options) {
   this.options = options;
   this.commandGroup = this.autoDispose(commands.createGroup(options.commands, null, true));
   this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
+  // calculate initial value (state, requested edited value or a current cell value)
+  const initialValue = gutil.undef(options.state, options.editValue, String(options.cellValue == null ? "" : options.cellValue));
+  // create observable with current state
+  this.editorState = this.autoDispose(observable(initialValue));
 
   this.dom = dom('div.default_editor',
     dom('div.celleditor_cursor_editor', dom.testId('TextEditor_editor'),
@@ -39,11 +44,11 @@ function TextEditor(options) {
       this.textInput = dom('textarea.celleditor_text_editor',
         kd.attr('placeholder', options.placeholder || ''),
         kd.style('text-align', this._alignment),
-        kd.value(gutil.undefDefault(options.editValue, String(options.cellValue == null ? "" : options.cellValue))),
+        kd.value(initialValue),
         this.commandGroup.attach(),
 
         // Resize the textbox whenever user types in it.
-        dom.on('input', () => this._resizeInput())
+        dom.on('input', () => this.onChange())
       )
     ),
     createMobileButtons(options.commands),
@@ -84,6 +89,12 @@ TextEditor.prototype.setSizerLimits = function() {
 TextEditor.prototype.getCellValue = function() {
   return this.textInput.value;
 };
+
+TextEditor.prototype.onChange = function() {
+  if (this.editorState)
+    this.editorState.set(this.getTextValue());
+  this._resizeInput()
+}
 
 TextEditor.prototype.getTextValue = function() {
   return this.textInput.value;

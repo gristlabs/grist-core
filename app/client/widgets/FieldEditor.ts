@@ -13,8 +13,9 @@ import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
 import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {Disposable, Holder, IDisposable, MultiHolder, Observable} from 'grainjs';
+import {Disposable, Emitter, Holder, IDisposable, MultiHolder, Observable} from 'grainjs';
 import isEqual = require('lodash/isEqual');
+import { CellPosition } from "app/client/components/CellPosition";
 
 type IEditorConstructor = typeof NewBaseEditor;
 
@@ -46,7 +47,18 @@ export async function setAndSave(editRow: DataRowModel, field: ViewFieldRec, val
   }
 }
 
+export type FieldEditorStateEvent = {
+  position : CellPosition,
+  currentState : any,
+  type: string
+}
+
 export class FieldEditor extends Disposable {
+
+  public readonly saveEmitter = this.autoDispose(new Emitter());
+  public readonly cancelEmitter = this.autoDispose(new Emitter());
+  public readonly changeEmitter = this.autoDispose(new Emitter());
+
   private _gristDoc: GristDoc;
   private _field: ViewFieldRec;
   private _cursor: Cursor;
@@ -65,6 +77,7 @@ export class FieldEditor extends Disposable {
     cellElem: Element,
     editorCtor: IEditorConstructor,
     startVal?: string,
+    state?: any
   }) {
     super();
     this._gristDoc = options.gristDoc;
@@ -105,24 +118,30 @@ export class FieldEditor extends Disposable {
         .catch(reportError);
       },
       fieldEditSaveHere: () => { this._saveEdit().catch(reportError); },
-      fieldEditCancel: () => { this.dispose(); },
+      fieldEditCancel: () => { this._cancelEdit(); },
       prevField: () => { this._saveEdit().then(commands.allCommands.prevField.run).catch(reportError); },
       nextField: () => { this._saveEdit().then(commands.allCommands.nextField.run).catch(reportError); },
       makeFormula: () => this._makeFormula(),
       unmakeFormula: () => this._unmakeFormula(),
     };
 
-    this.rebuildEditor(isFormula, editValue, Number.POSITIVE_INFINITY);
+    const state : any = options.state;
+
+    this.rebuildEditor(isFormula, editValue, Number.POSITIVE_INFINITY, state);
 
     if (offerToMakeFormula) {
       this._offerToMakeFormula();
     }
 
+    // connect this editor to editor monitor, it will restore this editor
+    // when user or server refreshes the browser
+    this._gristDoc.editorMonitor.monitorEditor(this);
+
     setupEditorCleanup(this, this._gristDoc, this._field, this._saveEdit);
   }
 
   // cursorPos refers to the position of the caret within the editor.
-  public rebuildEditor(isFormula: boolean, editValue: string|undefined, cursorPos: number) {
+  public rebuildEditor(isFormula: boolean, editValue: string|undefined, cursorPos: number, state? : any) {
     const editorCtor: IEditorConstructor = isFormula ? FormulaEditor : this._editorCtor;
 
     const column = this._field.column();
@@ -142,9 +161,36 @@ export class FieldEditor extends Disposable {
       formulaError: getFormulaError(this._gristDoc, this._editRow, column),
       editValue,
       cursorPos,
+      state,
       commands: this._editCommands,
     }));
+
+    // if editor supports live changes, connect it to the change emitter
+    if (editor.editorState) {
+      editor.autoDispose(editor.editorState.addListener((currentState) => {
+        const event : FieldEditorStateEvent = {
+          position : this.cellPosition(),
+          currentState,
+          type : this._field.column.peek().pureType.peek()
+        }
+        this.changeEmitter.emit(event);
+      }));
+    }
+
     editor.attach(this._cellElem);
+  }
+
+  // calculate current cell's absolute position
+  private cellPosition() {
+    const rowId = this._editRow.getRowId();
+    const colRef = this._field.colRef.peek();
+    const sectionId = this._field.viewSection.peek().id.peek();
+    const position = {
+      rowId,
+      colRef,
+      sectionId
+    }
+    return position;
   }
 
   private _makeFormula() {
@@ -190,6 +236,17 @@ export class FieldEditor extends Disposable {
       const formulaValue = editValue.startsWith('=') ? editValue.slice(1) : editValue;
       this.rebuildEditor(true, formulaValue, 0);
     }
+  }
+
+  // Cancels the edit
+  private _cancelEdit() {
+    const event : FieldEditorStateEvent = {
+      position : this.cellPosition(),
+      currentState : this._editorHolder.get()?.editorState?.get(),
+      type : this._field.column.peek().pureType.peek()
+    }
+    this.cancelEmitter.emit(event);
+    this.dispose();
   }
 
   // Returns true if Enter/Shift+Enter should NOT move the cursor, for instance if the current
@@ -238,6 +295,14 @@ export class FieldEditor extends Disposable {
         waitPromise = setAndSave(this._editRow, this._field, value);
       }
     }
+
+    const event : FieldEditorStateEvent = {
+      position : this.cellPosition(),
+      currentState : this._editorHolder.get()?.editorState?.get(),
+      type : this._field.column.peek().pureType.peek()
+    }
+    this.saveEmitter.emit(event);
+
     const cursor = this._cursor;
     // Deactivate the editor. We are careful to avoid using `this` afterwards.
     this.dispose();

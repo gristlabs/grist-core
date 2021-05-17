@@ -51,6 +51,9 @@ import {IDisposable, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+import * as BaseView from 'app/client/components/BaseView';
+import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonitor";
+import { EditorMonitor } from "app/client/components/EditorMonitor";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -94,6 +97,10 @@ export class GristDoc extends DisposableWithEvents {
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
   public comparison: DocStateComparison|null;
+  // component for keeping track of latest cursor position
+  public cursorMonitor: CursorMonitor;
+  // component for keeping track of a cell that is being edited
+  public editorMonitor: EditorMonitor;
 
   // Emitter triggered when the main doc area is resized.
   public readonly resizeEmitter = this.autoDispose(new Emitter());
@@ -102,6 +109,12 @@ export class GristDoc extends DisposableWithEvents {
   // previous one if any. The holder is maintained by GristDoc, so that we are guaranteed at
   // most one instance of FieldEditor at any time.
   public readonly fieldEditorHolder = Holder.create(this);
+
+  // Holds current view that is currently rendered
+  public currentView : Observable<BaseView | null>;
+
+  // Holds current cursor position with a view id
+  public cursorPosition : Computed<ViewCursorPos | undefined>;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -160,8 +173,8 @@ export class GristDoc extends DisposableWithEvents {
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
       if (state.hash) {
         try {
-          const cursorPos = getCursorPosFromHash(state.hash);
-          await this._recursiveMoveToCursorPos(cursorPos, true, state.hash && state.hash.colRef);
+          const cursorPos = this._getCursorPosFromHash(state.hash);
+          await this.recursiveMoveToCursorPos(cursorPos, true);
         } catch (e) {
           reportError(e);
         } finally {
@@ -226,6 +239,45 @@ export class GristDoc extends DisposableWithEvents {
 
     // On window resize, trigger the resizeEmitter to update ViewLayout and individual BaseViews.
     this.autoDispose(dom.onElem(window, 'resize', () => this.resizeEmitter.emit()));
+
+    // create current view observer
+    this.currentView = Observable.create<BaseView | null>(this, null);
+    // first create a computed observable for current view
+    const viewInstance = Computed.create(this, (use) => {
+      const section = use(this.viewModel.activeSection);
+      const view = use(section.viewInstance);
+      return view;
+    });
+    // then listen if the view is present, because we still need to wait for it load properly
+    this.autoDispose(viewInstance.addListener(async (view) => {
+      if (!view) return;
+      await view.getLoadingDonePromise();
+      this.currentView.set(view);
+    }))
+
+    // create observable for current cursor position
+    this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
+      // get the BaseView
+      const view = use(viewInstance);
+      if (!view) return undefined;
+      // get current viewId
+      const viewId = use(this.activeViewId);
+      if (typeof viewId != 'number') return undefined;
+      // read latest position
+      const currentPosition = use(view.cursor.currentPosition);
+      if (currentPosition) return { ...currentPosition, viewId }
+      return undefined;
+    });
+
+    this.cursorMonitor = CursorMonitor.create(this, this);
+    this.editorMonitor = EditorMonitor.create(this, this);
+  }
+
+  /**
+   * Returns current document's id
+   */
+  public docId() {
+    return this.docPageModel.currentDocId.get()!;
   }
 
   public addOptionsTab(label: string, iconElem: any, contentObj: TabContent[], options: TabOptions): IDisposable {
@@ -271,7 +323,7 @@ export class GristDoc extends DisposableWithEvents {
    * Switch to the view/section and scroll to the record indicated by cursorPos. If cursorPos is
    * null, then moves to a position best suited for optActionGroup (not yet implemented).
    */
-  public moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: ActionGroup): void {
+  public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: ActionGroup): Promise<void> {
     if (!cursorPos || cursorPos.sectionId == null) {
       // TODO We could come up with a suitable cursorPos here based on the action itself.
       // This should only come up if trying to undo/redo after reloading a page (since the cursorPos
@@ -280,10 +332,14 @@ export class GristDoc extends DisposableWithEvents {
       // place from any action in the action log.
       return;
     }
-
-    this._switchToSectionId(cursorPos.sectionId)
-    .then(viewInstance => (viewInstance && viewInstance.setCursorPos(cursorPos)))
-    .catch(reportError);
+    try {
+      const viewInstance = await this._switchToSectionId(cursorPos.sectionId)
+      if (viewInstance) {
+        viewInstance.setCursorPos(cursorPos);
+      }
+    } catch(e) {
+      reportError(e);
+    }
   }
 
   /**
@@ -530,7 +586,99 @@ export class GristDoc extends DisposableWithEvents {
     return rulesTable.numRecords() > rulesTable.filterRowIds({permissionsText: '', permissions: 63}).length;
   }
 
-  private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool|null {
+  /**
+   * Move to the desired cursor position.  If colRef is supplied, the cursor will be
+   * moved to a field with that colRef.  Any linked sections that need their cursors
+   * moved in order to achieve the desired outcome are handled recursively.
+   * If setAsActiveSection is true, the section in cursorPos is set as the current
+   * active section.
+   */
+  public async recursiveMoveToCursorPos(cursorPos: CursorPos, setAsActiveSection: boolean): Promise<void> {
+    try {
+      if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
+      if (!cursorPos.rowId) { throw new Error('rowId required'); }
+      const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      const srcSection = section.linkSrcSection.peek();
+      if (srcSection.id.peek()) {
+        // We're in a linked section, so we need to recurse to make sure the row we want
+        // will be visible.
+        const linkTargetCol = section.linkTargetCol.peek();
+        let controller: any;
+        if (linkTargetCol.colId.peek()) {
+          const destTable = await this._getTableData(section);
+          controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
+        } else {
+          controller = cursorPos.rowId;
+        }
+        const colId = section.linkSrcCol.peek().colId.peek();
+        let srcRowId: any;
+        const isSrcSummary = srcSection.table.peek().summarySource.peek().id.peek();
+        if (!colId && !isSrcSummary) {
+          // Simple case - source linked by rowId, not a summary.
+          srcRowId = controller;
+        } else {
+          const srcTable = await this._getTableData(srcSection);
+          if (!colId) {
+            // must be a summary -- otherwise dealt with earlier.
+            const destTable = await this._getTableData(section);
+            const filter: { [key: string]: any } = {};
+            for (const c of srcSection.table.peek().columns.peek().peek()) {
+              if (c.summarySourceCol.peek()) {
+                const filterColId = c.summarySource.peek().colId.peek();
+                const destValue = destTable.getValue(cursorPos.rowId, filterColId);
+                filter[filterColId] = destValue;
+              }
+            }
+            const result = srcTable.filterRecords(filter); // Should just have one record, or 0.
+            srcRowId = result[0] && result[0].id;
+          } else {
+            srcRowId = srcTable.findRow(colId, controller);
+          }
+        }
+        if (!srcRowId || typeof srcRowId !== 'number') { throw new Error('cannot trace rowId'); }
+        await this.recursiveMoveToCursorPos({
+          rowId: srcRowId,
+          sectionId: srcSection.id.peek()
+        }, false);
+      }
+      const view: ViewRec = section.view.peek();
+      const viewId = view.getRowId();
+      if (viewId != this.activeViewId.get()) await this.openDocPage(view.getRowId());
+      if (setAsActiveSection) { view.activeSectionId(cursorPos.sectionId); }
+      const fieldIndex = cursorPos.fieldIndex;
+      const viewInstance = await waitObs(section.viewInstance);
+      if (!viewInstance) { throw new Error('view not found'); }
+      // Give any synchronous initial cursor setting a chance to happen.
+      await delay(0);
+      viewInstance.setCursorPos({ ...cursorPos, fieldIndex });
+      // TODO: column selection not working on card/detail view, or getting overridden -
+      // look into it (not a high priority for now since feature not easily discoverable
+      // in this view).
+    } catch (e) {
+      console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
+      throw new UserError('There was a problem finding the desired cell.');
+    }
+  }
+
+  /**
+   * Opens up an editor at cursor position
+   * @param input Optional. Cell's initial value
+   */
+  public async activateEditorAtCursor(options: { init?: string, state?: any}) {
+    const view = await this.waitForView();
+    view?.activateEditorAtCursor(options);
+  }
+
+  /**
+   * Waits for a view to be ready
+   */
+  private async waitForView() {
+    const view = await waitObs(this.viewModel.activeSection.peek().viewInstance);
+    await view?.getLoadingDonePromise();
+    return view;
+  }
+
+  private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool | null {
     switch (tool) {
       case 'docHistory': {
         return {icon: 'Log', label: 'Document History', content: this._docHistory};
@@ -623,80 +771,6 @@ export class GristDoc extends DisposableWithEvents {
     return waitObs(section.viewInstance);
   }
 
-  /**
-   * Move to the desired cursor position.  If colRef is supplied, the cursor will be
-   * moved to a field with that colRef.  Any linked sections that need their cursors
-   * moved in order to achieve the desired outcome are handled recursively.
-   * If setAsActiveSection is true, the section in cursorPos is set as the current
-   * active section.
-   */
-  private async _recursiveMoveToCursorPos(cursorPos: CursorPos, setAsActiveSection: boolean,
-                                          colRef?: number): Promise<void> {
-    try {
-      if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
-      if (!cursorPos.rowId) { throw new Error('rowId required'); }
-      const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
-      const srcSection = section.linkSrcSection.peek();
-      if (srcSection.id.peek()) {
-        // We're in a linked section, so we need to recurse to make sure the row we want
-        // will be visible.
-        const linkTargetCol = section.linkTargetCol.peek();
-        let controller: any;
-        if (linkTargetCol.colId.peek()) {
-          const destTable = await this._getTableData(section);
-          controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
-        } else {
-          controller = cursorPos.rowId;
-        }
-        const colId = section.linkSrcCol.peek().colId.peek();
-        let srcRowId: any;
-        const isSrcSummary = srcSection.table.peek().summarySource.peek().id.peek();
-        if (!colId && !isSrcSummary) {
-          // Simple case - source linked by rowId, not a summary.
-          srcRowId = controller;
-        } else {
-          const srcTable = await this._getTableData(srcSection);
-          if (!colId) {
-            // must be a summary -- otherwise dealt with earlier.
-            const destTable = await this._getTableData(section);
-            const filter: {[key: string]: any} = {};
-            for (const c of srcSection.table.peek().columns.peek().peek()) {
-              if (c.summarySourceCol.peek()) {
-                const filterColId = c.summarySource.peek().colId.peek();
-                const destValue = destTable.getValue(cursorPos.rowId, filterColId);
-                filter[filterColId] = destValue;
-              }
-            }
-            const result = srcTable.filterRecords(filter); // Should just have one record, or 0.
-            srcRowId = result[0] && result[0].id;
-          } else {
-            srcRowId = srcTable.findRow(colId, controller);
-          }
-        }
-        if (!srcRowId || typeof srcRowId !== 'number') { throw new Error('cannot trace rowId'); }
-        await this._recursiveMoveToCursorPos({
-          rowId: srcRowId,
-          sectionId: srcSection.id.peek()
-        }, false);
-      }
-      const view: ViewRec = section.view.peek();
-      await this.openDocPage(view.getRowId());
-      if (setAsActiveSection) { view.activeSectionId(cursorPos.sectionId); }
-      const fieldIndex = colRef ? section.viewFields().peek().findIndex(f => f.colRef.peek() === colRef) : undefined;
-      const viewInstance = await waitObs(section.viewInstance);
-      if (!viewInstance) { throw new Error('view not found'); }
-      // Give any synchronous initial cursor setting a chance to happen.
-      await delay(0);
-      viewInstance.setCursorPos({...cursorPos, fieldIndex});
-      // TODO: column selection not working on card/detail view, or getting overridden -
-      // look into it (not a high priority for now since feature not easily discoverable
-      // in this view).
-    } catch (e) {
-      console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
-      throw new UserError('There was a problem finding the desired cell.');
-    }
-  }
-
   private async _getTableData(section: ViewSectionRec): Promise<TableData> {
     const viewInstance = await waitObs(section.viewInstance);
     if (!viewInstance) { throw new Error('view not found'); }
@@ -705,13 +779,21 @@ export class GristDoc extends DisposableWithEvents {
     if (!table) { throw new Error('no section table'); }
     return table;
   }
-}
 
-/**
- * Convert a url hash to a cursor position.
- */
-function getCursorPosFromHash(hash: HashLink): CursorPos {
-  return { rowId: hash.rowId, sectionId: hash.sectionId };
+  /**
+   * Convert a url hash to a cursor position.
+   */
+  private _getCursorPosFromHash(hash: HashLink): CursorPos {
+    const cursorPos : CursorPos = { rowId: hash.rowId, sectionId: hash.sectionId };
+    if (cursorPos.sectionId != undefined && hash.colRef !== undefined){
+      // translate colRef to a fieldIndex
+      const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      const fieldIndex = section.viewFields.peek().all()
+          .findIndex(x=> x.colRef.peek() == hash.colRef);
+      if (fieldIndex >= 0) cursorPos.fieldIndex = fieldIndex;
+    }
+    return cursorPos;
+  }
 }
 
 async function finalizeAnchor() {
