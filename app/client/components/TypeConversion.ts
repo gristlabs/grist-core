@@ -80,31 +80,42 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     formula: "",          // Will be filled in at the end.
   };
 
+  const prevOptions = origCol.widgetOptionsJson.peek() || {};
   switch (toType) {
     case 'Choice': {
-      // Set suggested choices. Limit to 100, since too many choices is more likely to cause
-      // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
-      const columnData = tableData.getDistinctValues(origCol.colId(), 100);
-      if (columnData) {
-        columnData.delete("");
-        widgetOptions = {choices: Array.from(columnData, String)};
+      if (Array.isArray(prevOptions.choices)) {
+        // Use previous choices if they are set, e.g. if converting from ChoiceList
+        widgetOptions = {choices: prevOptions.choices};
+      } else {
+        // Set suggested choices. Limit to 100, since too many choices is more likely to cause
+        // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
+        const columnData = tableData.getDistinctValues(origCol.colId(), 100);
+        if (columnData) {
+          columnData.delete("");
+          widgetOptions = {choices: Array.from(columnData, String)};
+        }
       }
       break;
     }
     case 'ChoiceList': {
-      // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
-      // light guessing for likely choices to suggest.
-      const choices = new Set<string>();
-      for (let value of tableData.getColValues(origCol.colId()) || []) {
-        value = String(value).trim();
-        const tags: string[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
-        for (const tag of tags) {
-          choices.add(tag.trim());
-          if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
+      if (Array.isArray(prevOptions.choices)) {
+        // Use previous choices if they are set, e.g. if converting from ChoiceList
+        widgetOptions = {choices: prevOptions.choices};
+      } else {
+        // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
+        // light guessing for likely choices to suggest.
+        const choices = new Set<string>();
+        for (let value of tableData.getColValues(origCol.colId()) || []) {
+          value = String(value).trim();
+          const tags: string[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
+          for (const tag of tags) {
+            choices.add(tag.trim());
+            if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
+          }
         }
+        choices.delete("");
+        widgetOptions = {choices: Array.from(choices)};
       }
-      choices.delete("");
-      widgetOptions = {choices: Array.from(choices)};
       break;
     }
     case 'Ref': {
@@ -170,7 +181,7 @@ export function getDefaultFormula(
     `$${colId}`;
 
   if (origCol.type.peek() === 'ChoiceList') {
-    origValFormula = `grist.ChoiceList.toString($${colId})`
+    origValFormula = `grist.ChoiceList.toString($${colId})`;
   }
 
   const toTypePure: string = gristTypes.extractTypeFromColType(newType);
