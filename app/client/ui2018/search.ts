@@ -5,8 +5,10 @@
 import { createGroup } from 'app/client/components/commands';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
+import { hoverTooltip, IHoverTipOptions } from 'app/client/ui/tooltips';
 import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
-import { colors, mediaSmall } from 'app/client/ui2018/cssVars';
+import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
+import { colors, mediaSmall, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { dom, input, styled } from 'grainjs';
 import { noTestId, TestId } from 'grainjs';
@@ -27,6 +29,7 @@ const searchWrapper = styled('div', `
   height: 100%;
   max-height: 50px;
   transition: width 0.4s;
+  position: relative;
   &-expand {
     width: 100% !important;
     border: 1px solid grey;
@@ -71,13 +74,16 @@ const cssArrowBtn = styled('div', `
   font-size: 14px;
   padding: 3px;
   cursor: pointer;
-  margin: 2px;
+  margin: 2px 4px;
   visibility: hidden;
-
-  &.disabled {
-    color: ${colors.darkGrey};
-    cursor: default;
-  }
+  width: 24px;
+  height: 24px;
+  background-color: ${colors.mediumGrey};
+  --icon-color: ${colors.slate};
+  border-radius: 3px;
+  text-align: center;
+  display: flex;
+  align-items: center;
 
   .${searchWrapper.className}-expand & {
     visibility: visible;
@@ -86,9 +92,38 @@ const cssArrowBtn = styled('div', `
 
 const cssCloseBtn = styled(icon, `
   cursor: pointer;
+  background-color: ${colors.lightGreen};
+  margin-left: 4px;
+  flex-shrink: 0;
 `);
 
+const cssLabel = styled('span', `
+  font-size: ${vars.smallFontSize};
+  color: ${colors.slate};
+  white-space: nowrap;
+  margin-right: 12px;
+`);
+
+const cssOptions = styled('div', `
+  position: absolute;
+  right: 0;
+  top: 48px;
+  z-index: 1;
+`);
+
+const cssShortcut = styled('span', `
+  color: ${colors.slate};
+`);
+
+const searchArrowBtnTooltipOptions: IHoverTipOptions = {
+  key: 'searchArrowBtnTooltip',
+  openDelay: 500,
+  closeDelay: 100,
+};
+
 export function searchBar(model: SearchModel, testId: TestId = noTestId) {
+  let keepExpanded = false;
+
   const commandGroup = createGroup({
     find: () => { inputElem.focus(); inputElem.select(); },
     // On Mac, Firefox has a default behaviour witch causes to close the search bar on Cmd+g and
@@ -100,9 +135,13 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
   const toggleMenu = debounce((_value?: boolean) => {
     model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
   }, 100);
-  const inputElem = searchInput(model.value, {onInput: true},
+  const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
     {type: 'text', placeholder: 'Search in document'},
-    dom.on('blur', () => toggleMenu(false)),
+    dom.on('blur', () => (
+      keepExpanded ?
+        setTimeout(() => inputElem.focus(), 0) :
+        toggleMenu(false)
+    )),
     dom.onKeyDown({
       Enter: () => model.findNext(),
       Escape: () => toggleMenu(false),
@@ -131,21 +170,39 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     expandedSearch(
       testId('input'),
       inputElem,
-      cssArrowBtn('\u2329',
-        testId('prev'),
-        // Prevent focus from being stolen from the input
-        dom.on('mousedown', (event) => event.preventDefault()),
-        dom.on('click', () => model.findPrev()),
-        dom.cls('disabled', model.noMatch)),
-      cssArrowBtn('\u232A',
-        testId('next'),
-        // Prevent focus from being stolen from the input
-        dom.on('mousedown', (event) => event.preventDefault()),
-        dom.on('click', () => model.findNext()),
-        dom.cls('disabled', model.noMatch)),
+      dom.domComputed((use) => {
+        const noMatch = use(model.noMatch);
+        const isEmpty = use(model.isEmpty);
+        if (isEmpty) { return null; }
+        if (noMatch) { return cssLabel("No results"); }
+        return [
+          cssArrowBtn(
+            icon('Dropdown'),
+            testId('next'),
+            // Prevent focus from being stolen from the input
+            dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('click', () => model.findNext()),
+            hoverTooltip(() => ['Find Next ', cssShortcut('(Enter, ⌘G)')], searchArrowBtnTooltipOptions),
+          ),
+          cssArrowBtn(
+            icon('DropdownUp'),
+            testId('prev'),
+            // Prevent focus from being stolen from the input
+            dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('click', () => model.findPrev()),
+            hoverTooltip(() => ['Find Previous ', cssShortcut('(⌘⇧G)')], searchArrowBtnTooltipOptions),
+          )
+        ];
+      }),
       cssCloseBtn('CrossSmall',
         testId('close'),
-        dom.on('click', () => toggleMenu(false)))
+        dom.on('click', () => toggleMenu(false))),
+      cssOptions(
+        labeledSquareCheckbox(model.multiPage, 'Search all pages'),
+        dom.on('mouseenter', () => keepExpanded = true),
+        dom.on('mouseleave', () => keepExpanded = false),
+        testId('option-all-pages'),
+      ),
     )
   );
 }

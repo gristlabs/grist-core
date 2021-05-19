@@ -17,7 +17,9 @@ export interface SearchModel {
   value: Observable<string>;       // string in the search input
   isOpen: Observable<boolean>;     // indicates whether the search bar is expanded to show the input
   noMatch: Observable<boolean>;    // indicates if there are no search matches
+  isEmpty: Observable<boolean>;     // indicates whether the value is empty
   isRunning: Observable<boolean>;  // indicates that matching is in progress
+  multiPage: Observable<boolean>;   // if true will search across all pages
 
   findNext(): Promise<void>;       // find next match
   findPrev(): Promise<void>;       // find previous match
@@ -69,6 +71,8 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   public readonly isOpen = Observable.create(this, false);
   public readonly isRunning = Observable.create(this, false);
   public readonly noMatch = Observable.create(this, true);
+  public readonly isEmpty = Observable.create(this, true);
+  public readonly multiPage = Observable.create(this, false);
   private _searchRegexp: RegExp;
   private _tabStepper = new Stepper<any>();
   private _sectionStepper = new Stepper<ViewSectionRec>();
@@ -78,6 +82,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   private _fieldFormatters: BaseFormatter[];
   private _startPosition: SearchPosition;
   private _tabsSwitched: number = 0;
+  private _isRestartNeeded: boolean = false;
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -85,10 +90,21 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     // Listen to input value changes (debounced) to activate searching.
     const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
     this.autoDispose(this.value.addListener(v => { void findFirst(v); }));
+
+    // Set this.noMatch to false when multiPage gets turned ON.
+    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); }}));
+
+    // Schedule a search restart when user changes pages (otherwise search would resume from the
+    // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
+    this.autoDispose(this._gristDoc.activeViewId.addListener(() => {
+      if (!this.multiPage.get()) { this.noMatch.set(false); }
+      this._isRestartNeeded = true;
+    }));
   }
 
   public async findNext() {
     if (this.noMatch.get()) { return; }
+    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
     this._startPosition = this._getCurrentPosition();
     await this._nextField(1);
     return this._matchNext(1);
@@ -96,12 +112,15 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
   public async findPrev() {
     if (this.noMatch.get()) { return; }
+    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
     this._startPosition = this._getCurrentPosition();
     await this._nextField(-1);
     return this._matchNext(-1);
   }
 
   private _findFirst(value: string) {
+    this._isRestartNeeded = false;
+    this.isEmpty.set(!value);
     if (!value) { this.noMatch.set(true); return; }
     this._searchRegexp = makeRegexp(value);
     const tabs: any[] = this._gristDoc.docModel.allDocPages.peek();
@@ -155,7 +174,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
         if (p) { await p; }
 
         // Detect when we get back to the start position; this is where we break on no match.
-        if (this._isCurrentPosition(this._startPosition)) {
+        if (this._isCurrentPosition(this._startPosition) && !this._matches()) {
           console.log("SearchBar: reached start position without finding anything");
           this.noMatch.set(true);
           return;
@@ -256,6 +275,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   private async _nextTab(step: number) {
+    if (!this.multiPage.get()) { return; }
     await this._tabStepper.next(step, () => undefined);
     this._tabsSwitched++;
     // console.log("nextTab", this._tabStepper.index);
@@ -290,7 +310,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     const section = this._sectionStepper.value;
     if (!section.viewInstance.peek()) {
       const view = this._tabStepper.value.view.peek();
-      await this._gristDoc.openDocPage(view.getRowId());
+      await this._openDocPage(view.getRowId());
       console.log("SearchBar: loading view %s section %s", view.getRowId(), section.getRowId());
       const viewInstance: any = await waitObs(section.viewInstance);
       await viewInstance.getLoadingDonePromise();
@@ -328,6 +348,12 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       cursor.classList.add('search-match');
       setTimeout(() => cursor.classList.remove('search-match'), 20);
     }
+  }
+
+  // Opens doc page without triggering a restart.
+  private async _openDocPage(viewId: number) {
+    await this._gristDoc.openDocPage(viewId);
+    this._isRestartNeeded = false;
   }
 }
 
