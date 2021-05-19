@@ -654,6 +654,10 @@ export class GristDoc extends DisposableWithEvents {
       // TODO: column selection not working on card/detail view, or getting overridden -
       // look into it (not a high priority for now since feature not easily discoverable
       // in this view).
+
+      // even though the cursor is at right place, the scroll could not have yet happened
+      // wait for a bit (scroll is done in a setTimeout 0)
+      await delay(0);
     } catch (e) {
       console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
       throw new UserError('There was a problem finding the desired cell.');
