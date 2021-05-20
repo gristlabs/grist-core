@@ -15,21 +15,42 @@ import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {IOptionFull, menu, menuItemAsync} from 'app/client/ui2018/menus';
-import {emptyPermissionSet, MixedPermissionValue, PartialPermissionSet} from 'app/common/ACLPermissions';
-import {parsePermissions, permissionSetToText} from 'app/common/ACLPermissions';
-import {summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
+import {menu, menuItemAsync} from 'app/client/ui2018/menus';
+import {
+  emptyPermissionSet,
+  MixedPermissionValue,
+  parsePermissions,
+  PartialPermissionSet,
+  permissionSetToText,
+  summarizePermissions,
+  summarizePermissionSet
+} from 'app/common/ACLPermissions';
 import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
 import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
-import {FormulaProperties, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
-import {getFormulaProperties} from 'app/common/GranularAccessClause';
+import {
+  FormulaProperties,
+  getFormulaProperties,
+  RulePart,
+  RuleSet,
+  UserAttributeRule
+} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {SchemaTypes} from 'app/common/schema';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess} from 'app/common/UserAPI';
-import {BaseObservable, Computed, Disposable, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {dom, DomElementArg, IDisposableOwner, styled} from 'grainjs';
+import {
+  BaseObservable,
+  Computed,
+  Disposable,
+  dom,
+  DomElementArg,
+  IDisposableOwner,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled
+} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
 // tslint:disable:max-classes-per-file no-console
@@ -49,10 +70,11 @@ enum RuleStatus {
   CheckPending,
 }
 
-// Option for UserAttribute select() choices. RuleIndex is used to filter for only those user
+// UserAttribute autocomplete choices. RuleIndex is used to filter for only those user
 // attributes made available by the previous rules.
-interface IAttrOption extends IOptionFull<string> {
+interface IAttrOption {
   ruleIndex: number;
+  value: string;
 }
 
 /**
@@ -118,18 +140,18 @@ export class AccessRules extends Disposable {
 
     this._userAttrChoices = Computed.create(this, this._userAttrRules, (use, rules) => {
       const result: IAttrOption[] = [
-        {ruleIndex: -1, value: 'Access', label: 'user.Access'},
-        {ruleIndex: -1, value: 'Email', label: 'user.Email'},
-        {ruleIndex: -1, value: 'UserID', label: 'user.UserID'},
-        {ruleIndex: -1, value: 'Name', label: 'user.Name'},
-        {ruleIndex: -1, value: 'LinkKey', label: 'user.LinkKey'},
-        {ruleIndex: -1, value: 'Origin', label: 'user.Origin'},
+        {ruleIndex: -1, value: 'user.Access'},
+        {ruleIndex: -1, value: 'user.Email'},
+        {ruleIndex: -1, value: 'user.UserID'},
+        {ruleIndex: -1, value: 'user.Name'},
+        {ruleIndex: -1, value: 'user.LinkKey.'},
+        {ruleIndex: -1, value: 'user.Origin'},
       ];
       for (const [i, rule] of rules.entries()) {
         const tableId = use(rule.tableId);
         const name = use(rule.name);
         for (const colId of this.getValidColIds(tableId) || []) {
-          result.push({ruleIndex: i, value: `${name}.${colId}`, label: `user.${name}.${colId}`});
+          result.push({ruleIndex: i, value: `user.${name}.${colId}`});
         }
       }
       return result;
@@ -972,30 +994,37 @@ class ObsUserAttributeRule extends Disposable {
   private _name = Observable.create<string>(this, this._userAttr?.name || '');
   private _tableId = Observable.create<string>(this, this._userAttr?.tableId || '');
   private _lookupColId = Observable.create<string>(this, this._userAttr?.lookupColId || '');
-  private _charId = Observable.create<string>(this, this._userAttr?.charId || '');
+  private _charId = Observable.create<string>(this, 'user.' + (this._userAttr?.charId || ''));
   private _validColIds = Computed.create(this, this._tableId, (use, tableId) =>
     this._accessRules.getValidColIds(tableId) || []);
 
   private _userAttrChoices: Computed<IAttrOption[]>;
+  private _userAttrError = Observable.create(this, '');
 
   constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule,
               private _options: {focus?: boolean} = {}) {
     super();
-    this.formulaError = Computed.create(this, this._tableId, this._lookupColId, (use, tableId, colId) => {
-      // Don't check for errors if it's an existing rule and hasn't changed.
-      if (use(this._tableId) === this._userAttr?.tableId &&
-          use(this._lookupColId) === this._userAttr?.lookupColId) {
-        return '';
-      }
-      return _accessRules.checkTableColumns(tableId, colId ? [colId] : undefined);
-    });
+    this.formulaError = Computed.create(
+      this, this._tableId, this._lookupColId, this._userAttrError,
+      (use, tableId, colId, userAttrError) => {
+        if (userAttrError.length) {
+          return userAttrError;
+        }
+
+        // Don't check for errors if it's an existing rule and hasn't changed.
+        if (use(this._tableId) === this._userAttr?.tableId &&
+            use(this._lookupColId) === this._userAttr?.lookupColId) {
+          return '';
+        }
+        return _accessRules.checkTableColumns(tableId, colId ? [colId] : undefined);
+      });
     this.ruleStatus = Computed.create(this, use => {
       if (use(this.formulaError)) { return RuleStatus.Invalid; }
       return getChangedStatus(
         use(this._name) !== this._userAttr?.name ||
         use(this._tableId) !== this._userAttr?.tableId ||
         use(this._lookupColId) !== this._userAttr?.lookupColId ||
-        use(this._charId) !== this._userAttr?.charId
+        use(this._charId) !== 'user.' + this._userAttr?.charId
       );
     });
 
@@ -1005,14 +1034,7 @@ class ObsUserAttributeRule extends Disposable {
     this._userAttrChoices = Computed.create(this, _accessRules.userAttrRules, (use, rules) => {
       // Filter for only those choices created by previous rules.
       const index = rules.indexOf(this);
-      const result = use(this._accessRules.userAttrChoices).filter(c => (c.ruleIndex < index));
-
-      // If the currently-selected option isn't one of the choices, insert it too.
-      const charId = use(this._charId);
-      if (charId && !result.some(choice => (choice.value === charId))) {
-        result.unshift({ruleIndex: -1, value: charId, label: `user.${charId}`});
-      }
-      return result;
+      return use(this._accessRules.userAttrChoices).filter(c => (c.ruleIndex < index));
     });
   }
 
@@ -1033,8 +1055,21 @@ class ObsUserAttributeRule extends Disposable {
       cssCell4(cssRuleBody.cls(''),
         cssColumnGroup(
           cssCell1(
-            aclSelect(this._charId, this._userAttrChoices,
-              {defaultLabel: '[Select Attribute]'}),
+            aclFormulaEditor({
+              initialValue: this._charId.get(),
+              readOnly: false,
+              setValue: (text) => this._setUserAttr(text),
+              placeholder: '',
+              getSuggestions: () => this._userAttrChoices.get().map(choice => choice.value),
+              customiseEditor: (editor => {
+                editor.on('focus', () => {
+                  if (editor.getValue() == 'user.') {
+                    // TODO this weirdly only works on the first click
+                    (editor as any).completer?.showPopup(editor);
+                  }
+                })
+              })
+            }),
             testId('rule-userattr-attr'),
           ),
           cssCell1(
@@ -1059,22 +1094,52 @@ class ObsUserAttributeRule extends Disposable {
   }
 
   public getRule() {
+    const fullCharId = this._charId.get().trim();
+    const strippedCharId = fullCharId.startsWith('user.') ?
+      fullCharId.substring('user.'.length) : fullCharId;
     const spec = {
       name: this._name.get(),
       tableId: this._tableId.get(),
       lookupColId: this._lookupColId.get(),
-      charId: this._charId.get(),
+      charId: strippedCharId,
     };
     for (const [prop, value] of Object.entries(spec)) {
       if (!value) {
         throw new UserError(`Invalid user attribute rule: ${prop} must be set`);
       }
     }
+    if (this._getUserAttrError(fullCharId)) {
+      throw new UserError(`Invalid user attribute to look up`);
+    }
     return {
       id: this._userAttr?.origRecord?.id,
       rulePos: this._userAttr?.origRecord?.rulePos as number|undefined,
       userAttributes: JSON.stringify(spec),
     };
+  }
+
+  private _setUserAttr(text: string) {
+    if (text === this._charId.get()) {
+      return;
+    }
+    this._charId.set(text);
+    this._userAttrError.set(this._getUserAttrError(text) || '');
+  }
+
+  private _getUserAttrError(text: string): string | null {
+    text = text.trim();
+    if (text.startsWith('user.LinkKey')) {
+      if (/user\.LinkKey\.\w+$/.test(text)) {
+        return null;
+      }
+      return 'Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something';
+    }
+
+    const isChoice = this._userAttrChoices.get().map(choice => choice.value).includes(text);
+    if (!isChoice) {
+      return 'Not a valid user attribute';
+    }
+    return null;
   }
 }
 
@@ -1089,7 +1154,7 @@ class ObsRulePart extends Disposable {
 
   // Rule-specific completions for editing the formula, e.g. "user.Email" or "rec.City".
   private _completions = Computed.create<string[]>(this, (use) => [
-    ...use(this._ruleSet.accessRules.userAttrChoices).map(opt => opt.label),
+    ...use(this._ruleSet.accessRules.userAttrChoices).map(opt => opt.value),
     ...this._ruleSet.getValidColIds().map(colId => `rec.${colId}`),
     ...this._ruleSet.getValidColIds().map(colId => `newRec.${colId}`),
   ]);

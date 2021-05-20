@@ -9,6 +9,7 @@ export interface ACLFormulaOptions {
   placeholder: DomArg;
   setValue: (value: string) => void;
   getSuggestions: (prefix: string) => string[];
+  customiseEditor?: (editor: ace.Editor) => void;
 }
 
 export function aclFormulaEditor(options: ACLFormulaOptions) {
@@ -68,6 +69,10 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
 
   // Set the editor's initial value.
   editor.setValue(options.initialValue);
+
+  if (options.customiseEditor) {
+    options.customiseEditor(editor);
+  }
 
   return cssConditionInputAce(
     cssConditionInputAce.cls('-disabled', options.readOnly),
