@@ -5,6 +5,7 @@ import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {dom, styled} from 'grainjs';
+import {urlState, UrlStateImpl} from "../models/gristUrlState";
 
 /**
  * Creates a widget for displaying links.  Links can entered directly or following a title.
@@ -25,6 +26,8 @@ export class HyperLinkTextBox extends NTextBox {
         dom('a',
           dom.attr('href', (use) => _constructUrl(use(value))),
           dom.attr('target', '_blank'),
+          dom.on('click', (ev) =>
+              _onClickHyperlink(ev, new URL(_constructUrl(value.peek())))),
           // As per Google and Mozilla recommendations to prevent opened links
           // from running on the same process as Grist:
           // https://developers.google.com/web/tools/lighthouse/audits/noopener
@@ -61,6 +64,26 @@ function _constructUrl(value: CellValue): string {
     // Not a valid URL, so try to prefix it with http
     return 'http://' + url;
   }
+}
+
+/**
+ * If possible (i.e. if `url` points to somewhere in the current document)
+ * use pushUrl to navigate without reloading or opening a new tab
+ */
+async function _onClickHyperlink(ev: MouseEvent, url: URL) {
+  // Only override plain-vanilla clicks.
+  if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
+
+  const oldOrigin = window.location.origin;
+  const newOrigin = url.origin;
+  if (oldOrigin !== newOrigin) { return; }
+
+  const urlStateImpl = new UrlStateImpl(window as any);
+  const newUrlState = urlStateImpl.decodeUrl(url);
+  if (urlStateImpl.needPageLoad(urlState().state.get(), newUrlState)) { return; }
+
+  ev.preventDefault();
+  await urlState().pushUrl(newUrlState);
 }
 
 const cssFieldClip = styled('div.field_clip', `
