@@ -91,7 +91,7 @@ function _getLoginLogoutUrl(method: 'login'|'logout'|'signin', nextUrl: string):
  * only public interface is the urlState() accessor.
  */
 export class UrlStateImpl {
-  constructor(private window: {gristConfig?: Partial<GristLoadConfig>}) {}
+  constructor(private _window: {gristConfig?: Partial<GristLoadConfig>}) {}
 
   /**
    * The actual serialization of a url state into a URL. The URL has the form
@@ -105,7 +105,7 @@ export class UrlStateImpl {
    *    localhost:8080/o/<org>
    */
   public encodeUrl(state: IGristUrlState, baseLocation: Location | URL): string {
-    const gristConfig = this.window.gristConfig || {};
+    const gristConfig = this._window.gristConfig || {};
     return encodeUrl(gristConfig, state, baseLocation);
   }
 
@@ -113,7 +113,7 @@ export class UrlStateImpl {
    * Parse a URL location into an IGristUrlState object. See encodeUrl() documentation.
    */
   public decodeUrl(location: Location | URL): IGristUrlState {
-    const gristConfig = this.window.gristConfig || {};
+    const gristConfig = this._window.gristConfig || {};
     return decodeUrl(gristConfig, location);
   }
 
@@ -136,7 +136,7 @@ export class UrlStateImpl {
    * a matter of DocWorker requiring a different version (e.g. /v/OTHER/doc/...).
    */
   public needPageLoad(prevState: IGristUrlState, newState: IGristUrlState): boolean {
-    const gristConfig = this.window.gristConfig || {};
+    const gristConfig = this._window.gristConfig || {};
     const orgReload = prevState.org !== newState.org;
     // Reload when moving to/from a document or between doc and non-doc.
     const docReload = prevState.doc !== newState.doc;

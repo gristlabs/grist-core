@@ -118,7 +118,7 @@ export class Sharing {
     assert(this._hubQueue.isEmpty() && !this._pendingQueue.isEmpty());
     const userRequest: UserRequest = this._pendingQueue.shift()!;
     try {
-      const ret = await this.doApplyUserActionBundle(userRequest.action, userRequest.docSession);
+      const ret = await this._doApplyUserActionBundle(userRequest.action, userRequest.docSession);
       userRequest.resolve(ret);
     } catch (e) {
       log.warn("Unable to apply action...", e);
@@ -130,7 +130,7 @@ export class Sharing {
     assert(!this._hubQueue.isEmpty() && !this._actionHistory.haveLocalActions());
     const action: ActionBundle = this._hubQueue.shift()!;
     try {
-      await this.doApplySharedActionBundle(action);
+      await this._doApplySharedActionBundle(action);
     } catch (e) {
       log.error("Unable to apply hub action... skipping");
     }
@@ -155,15 +155,15 @@ export class Sharing {
   private async _rebaseLocalActions(): Promise<void> {
     const rebaseQueue: Deque<UserActionBundle> = new Deque<UserActionBundle>();
     try {
-      this.createCheckpoint();
+      this._createCheckpoint();
       const actions: LocalActionBundle[] = await this._actionHistory.fetchAllLocal();
       assert(actions.length > 0);
-      await this.doApplyUserActionBundle(this._createUndo(actions), null);
+      await this._doApplyUserActionBundle(this._createUndo(actions), null);
       rebaseQueue.push(...actions.map((a) => getUserActionBundle(a)));
       await this._actionHistory.clearLocalActions();
     } catch (e) {
       log.error("Can't undo local actions; sharing is off");
-      this.rollbackToCheckpoint();
+      this._rollbackToCheckpoint();
       // TODO this.disconnect();
       // TODO errorState = true;
       return;
@@ -178,34 +178,34 @@ export class Sharing {
       const action: UserActionBundle = rebaseQueue.shift()!;
       const adjusted: UserActionBundle = this._mergeAdjust(action);
       try {
-        await this.doApplyUserActionBundle(adjusted, null);
+        await this._doApplyUserActionBundle(adjusted, null);
       } catch (e) {
         log.warn("Unable to apply rebased action...");
         rebaseFailures.push([action, adjusted]);
       }
     }
     if (rebaseFailures.length > 0) {
-      this.createBackupAtCheckpoint();
+      this._createBackupAtCheckpoint();
       // TODO we should notify the user too.
       log.error('Rebase failed to reapply some of your actions, backup of local at...');
     }
-    this.releaseCheckpoint();
+    this._releaseCheckpoint();
   }
 
   // ======================================================================
 
-  private doApplySharedActionBundle(action: ActionBundle): Promise<UserResult> {
+  private _doApplySharedActionBundle(action: ActionBundle): Promise<UserResult> {
     const userActions: UserAction[] = [
       ['ApplyDocActions', action.stored.map(envContent => envContent[1])]
     ];
-    return this.doApplyUserActions(action.info[1], userActions, Branch.Shared, null);
+    return this._doApplyUserActions(action.info[1], userActions, Branch.Shared, null);
   }
 
-  private doApplyUserActionBundle(action: UserActionBundle, docSession: OptDocSession|null): Promise<UserResult> {
-    return this.doApplyUserActions(action.info, action.userActions, Branch.Local, docSession);
+  private _doApplyUserActionBundle(action: UserActionBundle, docSession: OptDocSession|null): Promise<UserResult> {
+    return this._doApplyUserActions(action.info, action.userActions, Branch.Local, docSession);
   }
 
-  private async doApplyUserActions(info: ActionInfo, userActions: UserAction[],
+  private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
                                    branch: Branch, docSession: OptDocSession|null): Promise<UserResult> {
     const client = docSession && docSession.client;
 
@@ -245,7 +245,7 @@ export class Sharing {
         actionHash: null,        // Gets set below by _actionHistory.recordNext...
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
-      this._logActionBundle(`doApplyUserActions (${Branch[branch]})`, localActionBundle);
+      this._logActionBundle(`_doApplyUserActions (${Branch[branch]})`, localActionBundle);
 
       // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
       // have EDIT permission without VIEW). These are not sent to the browser or the database. But
@@ -332,10 +332,10 @@ export class Sharing {
   }
 
   // Our beautiful little checkpointing interface, used to handle errors during rebase.
-  private createCheckpoint() { /* TODO */ }
-  private releaseCheckpoint() { /* TODO */ }
-  private rollbackToCheckpoint() { /* TODO */ }
-  private createBackupAtCheckpoint() { /* TODO */ }
+  private _createCheckpoint() { /* TODO */ }
+  private _releaseCheckpoint() { /* TODO */ }
+  private _rollbackToCheckpoint() { /* TODO */ }
+  private _createBackupAtCheckpoint() { /* TODO */ }
 
   /**
    * Reduces a LocalActionBundle down to only those actions addressed to ourselves.

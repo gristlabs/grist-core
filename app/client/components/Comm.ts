@@ -204,15 +204,16 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   public pendingRequests: Map<number, CommRequestInFlight>;
   public nextRequestNumber: number = 0;
 
+  protected listenTo: BackboneEvents["listenTo"];            // set by Backbone
+  protected trigger: BackboneEvents["trigger"];              // set by Backbone
+  protected stopListening: BackboneEvents["stopListening"];  // set by Backbone
+
   // This is a map from docId to the connection for the server that manages
   // that docId.  In classic Grist, which doesn't have fixed docIds or multiple
   // servers, the key is always "null".
   private _connections: Map<string|null, GristWSConnection> = new Map();
   private _collectedUserActions: UserAction[] | null;
   private _singleWorkerMode: boolean = getInitialDocAssignment() === null;  // is this classic Grist?
-  private listenTo: BackboneEvents["listenTo"];            // set by Backbone
-  private trigger: BackboneEvents["trigger"];              // set by Backbone
-  private stopListening: BackboneEvents["stopListening"];  // set by Backbone
 
   public create() {
     this.autoDisposeCallback(() => {

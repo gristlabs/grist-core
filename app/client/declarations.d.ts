@@ -45,9 +45,9 @@ declare module "app/client/components/BaseView" {
   import {DomArg} from 'grainjs';
   import {IOpenController} from 'popweasel';
 
-  type Options = {
-    init? : string,
-    state? : any
+  interface Options {
+    init?: string;
+    state?: any;
   }
 
   namespace BaseView {}
@@ -68,7 +68,7 @@ declare module "app/client/components/BaseView" {
     public createFilterMenu(ctl: IOpenController, field: ViewFieldRec, onClose?: () => void): HTMLElement;
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
-    public activateEditorAtCursor(options?: Options) : void;
+    public activateEditorAtCursor(options?: Options): void;
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;

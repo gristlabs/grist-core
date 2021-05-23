@@ -111,10 +111,10 @@ export class GristDoc extends DisposableWithEvents {
   public readonly fieldEditorHolder = Holder.create(this);
 
   // Holds current view that is currently rendered
-  public currentView : Observable<BaseView | null>;
+  public currentView: Observable<BaseView | null>;
 
   // Holds current cursor position with a view id
-  public cursorPosition : Computed<ViewCursorPos | undefined>;
+  public cursorPosition: Computed<ViewCursorPos | undefined>;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -250,22 +250,22 @@ export class GristDoc extends DisposableWithEvents {
     });
     // then listen if the view is present, because we still need to wait for it load properly
     this.autoDispose(viewInstance.addListener(async (view) => {
-      if (!view) return;
+      if (!view) { return; }
       await view.getLoadingDonePromise();
       this.currentView.set(view);
-    }))
+    }));
 
     // create observable for current cursor position
     this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
       // get the BaseView
       const view = use(viewInstance);
-      if (!view) return undefined;
+      if (!view) { return undefined; }
       // get current viewId
       const viewId = use(this.activeViewId);
-      if (typeof viewId != 'number') return undefined;
+      if (typeof viewId != 'number') { return undefined; }
       // read latest position
       const currentPosition = use(view.cursor.currentPosition);
-      if (currentPosition) return { ...currentPosition, viewId }
+      if (currentPosition) { return { ...currentPosition, viewId }; }
       return undefined;
     });
 
@@ -333,7 +333,7 @@ export class GristDoc extends DisposableWithEvents {
       return;
     }
     try {
-      const viewInstance = await this._switchToSectionId(cursorPos.sectionId)
+      const viewInstance = await this._switchToSectionId(cursorPos.sectionId);
       if (viewInstance) {
         viewInstance.setCursorPos(cursorPos);
       }
@@ -643,7 +643,7 @@ export class GristDoc extends DisposableWithEvents {
       }
       const view: ViewRec = section.view.peek();
       const viewId = view.getRowId();
-      if (viewId != this.activeViewId.get()) await this.openDocPage(view.getRowId());
+      if (viewId != this.activeViewId.get()) { await this.openDocPage(view.getRowId()); }
       if (setAsActiveSection) { view.activeSectionId(cursorPos.sectionId); }
       const fieldIndex = cursorPos.fieldIndex;
       const viewInstance = await waitObs(section.viewInstance);
@@ -669,14 +669,14 @@ export class GristDoc extends DisposableWithEvents {
    * @param input Optional. Cell's initial value
    */
   public async activateEditorAtCursor(options: { init?: string, state?: any}) {
-    const view = await this.waitForView();
+    const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
   }
 
   /**
    * Waits for a view to be ready
    */
-  private async waitForView() {
+  private async _waitForView() {
     const view = await waitObs(this.viewModel.activeSection.peek().viewInstance);
     await view?.getLoadingDonePromise();
     return view;
@@ -788,13 +788,13 @@ export class GristDoc extends DisposableWithEvents {
    * Convert a url hash to a cursor position.
    */
   private _getCursorPosFromHash(hash: HashLink): CursorPos {
-    const cursorPos : CursorPos = { rowId: hash.rowId, sectionId: hash.sectionId };
+    const cursorPos: CursorPos = { rowId: hash.rowId, sectionId: hash.sectionId };
     if (cursorPos.sectionId != undefined && hash.colRef !== undefined){
       // translate colRef to a fieldIndex
       const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
       const fieldIndex = section.viewFields.peek().all()
           .findIndex(x=> x.colRef.peek() == hash.colRef);
-      if (fieldIndex >= 0) cursorPos.fieldIndex = fieldIndex;
+      if (fieldIndex >= 0) { cursorPos.fieldIndex = fieldIndex; }
     }
     return cursorPos;
   }

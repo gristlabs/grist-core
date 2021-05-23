@@ -21,7 +21,7 @@ export interface Options {
   editValue?: string;
   cursorPos: number;
   commands: IEditorCommandGroup;
-  state? : any;
+  state?: any;
 }
 
 /**
@@ -58,7 +58,7 @@ export abstract class NewBaseEditor extends Disposable {
   /**
    * Current state of the editor. Optional, not all editors will report theirs current state.
    */
-  public editorState? : Observable<any>;
+  public editorState?: Observable<any>;
 
   constructor(protected options: Options) {
     super();

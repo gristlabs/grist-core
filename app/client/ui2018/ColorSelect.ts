@@ -82,7 +82,7 @@ function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, f
     }),
 
     // gives focus and binds keydown events
-    (elem: any) => {setTimeout(() => elem.focus(), 0); },
+    (elem: any) => { setTimeout(() => elem.focus(), 0); },
     onKeyDown({
       Escape: () => { revert(); },
       Enter: () => { ctl.close(); },
@@ -158,7 +158,7 @@ class PickerComponent extends Disposable {
           ),
           cssHexBox(
             this._color,
-            async (val) => { if (isValidHex(val)) {this._model.setValue(val); }},
+            async (val) => { if (isValidHex(val)) { this._model.setValue(val); } },
             testId(`${title}-hex`),
             // select the hex value on click. Doing it using settimeout allows to avoid some
             // sporadically losing the selection just after the click.

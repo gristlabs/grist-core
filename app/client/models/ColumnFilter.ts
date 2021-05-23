@@ -31,7 +31,7 @@ export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolea
   const other = makeFilterState(spec);
   if (state.include !== other.include) { return false; }
   if (state.values.size !== other.values.size) { return false; }
-  for (const val of other.values) { if (!state.values.has(val)) { return false; }}
+  for (const val of other.values) { if (!state.values.has(val)) { return false; } }
   return true;
 }
 

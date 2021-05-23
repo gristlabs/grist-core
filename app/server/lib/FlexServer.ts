@@ -907,7 +907,7 @@ export class FlexServer implements GristServer {
       this.tagChecker.requireTag
     ];
 
-    this.addSupportPaths(docAccessMiddleware);
+    this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
       addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this.dbManager, this);
@@ -1081,8 +1081,8 @@ export class FlexServer implements GristServer {
         );
         const config = {errPage, errMessage: err.message || err};
         await this._sendAppPage(req, resp, {path: 'error.html', status: err.status || 400, config});
-      } catch (err) {
-        return next(err);
+      } catch (error) {
+        return next(error);
       }
     });
   }
@@ -1183,7 +1183,7 @@ export class FlexServer implements GristServer {
   }
 
   // Adds endpoints that support imports and exports.
-  private addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
+  private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
 
     this.app.get('/download', ...docAccessMiddleware, expressWrap(async (req, res) => {

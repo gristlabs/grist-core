@@ -126,34 +126,34 @@ export class WrappedObj {
  * communication with PyPy-based sandbox.)
  */
 export class Marshaller {
-  private memBuf: MemBuffer;
-  private readonly floatCode: number;
-  private readonly stringCode: number;
+  private _memBuf: MemBuffer;
+  private readonly _floatCode: number;
+  private readonly _stringCode: number;
 
   constructor(options?: MarshalOptions) {
-    this.memBuf = new MemBuffer(undefined);
-    this.floatCode = options && options.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
-    this.stringCode = options && options.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
+    this._memBuf = new MemBuffer(undefined);
+    this._floatCode = options && options.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
+    this._stringCode = options && options.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
   }
 
   public dump(): Uint8Array {
     // asByteArray returns a view on the underlying data, and the constructor creates a new copy.
     // For some usages, we may want to avoid making the copy.
-    const bytes = new Uint8Array(this.memBuf.asByteArray());
-    this.memBuf.clear();
+    const bytes = new Uint8Array(this._memBuf.asByteArray());
+    this._memBuf.clear();
     return bytes;
   }
 
   public dumpAsBuffer(): Buffer {
-    const bytes = Buffer.from(this.memBuf.asByteArray());
-    this.memBuf.clear();
+    const bytes = Buffer.from(this._memBuf.asByteArray());
+    this._memBuf.clear();
     return bytes;
   }
 
   public getCode(value: any) {
     switch (typeof value) {
-      case 'number': return isInteger(value) ? marshalCodes.INT : this.floatCode;
-      case 'string': return this.stringCode;
+      case 'number': return isInteger(value) ? marshalCodes.INT : this._floatCode;
+      case 'string': return this._stringCode;
       case 'boolean': return value ? marshalCodes.TRUE : marshalCodes.FALSE;
       case 'undefined': return marshalCodes.NONE;
       case 'object': {
@@ -181,16 +181,16 @@ export class Marshaller {
     if (value instanceof WrappedObj) {
       value = value.value;
     }
-    this.memBuf.writeUint8(code);
+    this._memBuf.writeUint8(code);
     switch (code) {
       case marshalCodes.NULL:       return;
       case marshalCodes.NONE:       return;
       case marshalCodes.FALSE:      return;
       case marshalCodes.TRUE:       return;
-      case marshalCodes.INT:        return this.memBuf.writeInt32LE(value);
+      case marshalCodes.INT:        return this._memBuf.writeInt32LE(value);
       case marshalCodes.INT64:      return this._writeInt64(value);
       case marshalCodes.FLOAT:      return this._writeStringFloat(value);
-      case marshalCodes.BFLOAT:     return this.memBuf.writeFloat64LE(value);
+      case marshalCodes.BFLOAT:     return this._memBuf.writeFloat64LE(value);
       case marshalCodes.STRING:
         return (value instanceof Uint8Array || Buffer.isBuffer(value) ?
           this._writeByteArray(value) :
@@ -219,8 +219,8 @@ export class Marshaller {
       // TODO We could actually support 53 bits or so.
       throw new Error("Marshaller: int64 still only supports 32-bit ints for now: " + value);
     }
-    this.memBuf.writeInt32LE(value);
-    this.memBuf.writeInt32LE(value >= 0 ? 0 : -1);
+    this._memBuf.writeInt32LE(value);
+    this._memBuf.writeInt32LE(value >= 0 ? 0 : -1);
   }
 
   private _writeStringFloat(value: number) {
@@ -230,28 +230,28 @@ export class Marshaller {
     if (bytes.byteLength >= 127) {
       throw new Error("Marshaller: Trying to write a float that takes " + bytes.byteLength + " bytes");
     }
-    this.memBuf.writeUint8(bytes.byteLength);
-    this.memBuf.writeByteArray(bytes);
+    this._memBuf.writeUint8(bytes.byteLength);
+    this._memBuf.writeByteArray(bytes);
   }
 
   private _writeByteArray(value: Uint8Array|Buffer) {
     // This works for both Uint8Arrays and Node Buffers.
-    this.memBuf.writeInt32LE(value.length);
-    this.memBuf.writeByteArray(value);
+    this._memBuf.writeInt32LE(value.length);
+    this._memBuf.writeByteArray(value);
   }
 
   private _writeUtf8String(value: string) {
-    const offset = this.memBuf.size();
+    const offset = this._memBuf.size();
     // We don't know the length until we write the value.
-    this.memBuf.writeInt32LE(0);
-    this.memBuf.writeString(value);
-    const byteLength = this.memBuf.size() - offset - 4;
+    this._memBuf.writeInt32LE(0);
+    this._memBuf.writeString(value);
+    const byteLength = this._memBuf.size() - offset - 4;
     // Overwrite the 0 length we wrote earlier with the correct byte length.
-    this.memBuf.asDataView.setInt32(this.memBuf.startPos + offset, byteLength, true);
+    this._memBuf.asDataView.setInt32(this._memBuf.startPos + offset, byteLength, true);
   }
 
   private _writeList(array: unknown[]) {
-    this.memBuf.writeInt32LE(array.length);
+    this._memBuf.writeInt32LE(array.length);
     for (const item of array) {
       this.marshal(item);
     }
@@ -264,7 +264,7 @@ export class Marshaller {
       this.marshal(key);
       this.marshal(obj[key]);
     }
-    this.memBuf.writeUint8(marshalCodes.NULL);
+    this._memBuf.writeUint8(marshalCodes.NULL);
   }
 }
 
@@ -283,17 +283,17 @@ const TwoTo15 = 0x8000;         // 2**15
  */
 export class Unmarshaller extends EventEmitter {
   public memBuf: MemBuffer;
-  private consumer: any = null;
+  private _consumer: any = null;
   private _lastCode: number|null = null;
-  private readonly bufferToString: boolean;
-  private emitter: (v: any) => boolean;
-  private stringTable: Array<string|Uint8Array> = [];
+  private readonly _bufferToString: boolean;
+  private _emitter: (v: any) => boolean;
+  private _stringTable: Array<string|Uint8Array> = [];
 
   constructor(options?: UnmarshalOptions) {
     super();
     this.memBuf = new MemBuffer(undefined);
-    this.bufferToString = Boolean(options && options.bufferToString);
-    this.emitter = this.emit.bind(this, 'value');
+    this._bufferToString = Boolean(options && options.bufferToString);
+    this._emitter = this.emit.bind(this, 'value');
   }
 
   /**
@@ -301,7 +301,7 @@ export class Unmarshaller extends EventEmitter {
    * @param {Uint8Array|Buffer} byteArray: Uint8Array or Node Buffer with bytes to parse.
    */
   public push(byteArray: Uint8Array|Buffer) {
-    this.parse(byteArray, this.emitter);
+    this.parse(byteArray, this._emitter);
   }
 
   /**
@@ -312,13 +312,13 @@ export class Unmarshaller extends EventEmitter {
     this.memBuf.writeByteArray(byteArray);
     try {
       while (this.memBuf.size() > 0) {
-        this.consumer = this.memBuf.makeConsumer();
+        this._consumer = this.memBuf.makeConsumer();
 
         // Have to reset stringTable for interned strings before each top-level parse call.
-        this.stringTable.length = 0;
+        this._stringTable.length = 0;
 
         const value = this._parse();
-        this.memBuf.consume(this.consumer);
+        this.memBuf.consume(this._consumer);
         if (valueCB(value) === false) {
           return;
         }
@@ -341,7 +341,7 @@ export class Unmarshaller extends EventEmitter {
   }
 
   private _parse(): unknown {
-    const code = this.memBuf.readUint8(this.consumer);
+    const code = this.memBuf.readUint8(this._consumer);
     this._lastCode = code;
     switch (code) {
       case marshalCodes.NULL:       return null;
@@ -374,12 +374,12 @@ export class Unmarshaller extends EventEmitter {
   }
 
   private _parseInt() {
-    return this.memBuf.readInt32LE(this.consumer);
+    return this.memBuf.readInt32LE(this._consumer);
   }
 
   private _parseInt64() {
-    const low = this.memBuf.readInt32LE(this.consumer);
-    const hi = this.memBuf.readInt32LE(this.consumer);
+    const low = this.memBuf.readInt32LE(this._consumer);
+    const hi = this.memBuf.readInt32LE(this._consumer);
     if ((hi === 0 && low >= 0) || (hi === -1 && low < 0)) {
       return low;
     }
@@ -395,46 +395,46 @@ export class Unmarshaller extends EventEmitter {
   private _parseLong() {
     // The format is a 32-bit size whose sign is the sign of the result, followed by 16-bit digits
     // in base 2**15.
-    const size = this.memBuf.readInt32LE(this.consumer);
+    const size = this.memBuf.readInt32LE(this._consumer);
     const sign = size < 0 ? -1 : 1;
     const numDigits = size < 0 ? -size : size;
     const digits = [];
     for (let i = 0; i < numDigits; i++) {
-      digits.push(this.memBuf.readInt16LE(this.consumer));
+      digits.push(this.memBuf.readInt16LE(this._consumer));
     }
     return new BigInt(TwoTo15, digits, sign).toNative();
   }
 
   private _parseStringFloat() {
-    const len = this.memBuf.readUint8(this.consumer);
-    const buf = this.memBuf.readString(this.consumer, len);
+    const len = this.memBuf.readUint8(this._consumer);
+    const buf = this.memBuf.readString(this._consumer, len);
     return parseFloat(buf);
   }
 
   private _parseBinaryFloat() {
-    return this.memBuf.readFloat64LE(this.consumer);
+    return this.memBuf.readFloat64LE(this._consumer);
   }
 
   private _parseByteString(): string|Uint8Array {
-    const len = this.memBuf.readInt32LE(this.consumer);
-    return (this.bufferToString ?
-      this.memBuf.readString(this.consumer, len) :
-      this.memBuf.readByteArray(this.consumer, len));
+    const len = this.memBuf.readInt32LE(this._consumer);
+    return (this._bufferToString ?
+      this.memBuf.readString(this._consumer, len) :
+      this.memBuf.readByteArray(this._consumer, len));
   }
 
   private _parseInterned() {
     const s = this._parseByteString();
-    this.stringTable.push(s);
+    this._stringTable.push(s);
     return s;
   }
 
   private _parseStringRef() {
     const index = this._parseInt();
-    return this.stringTable[index];
+    return this._stringTable[index];
   }
 
   private _parseList() {
-    const len = this.memBuf.readInt32LE(this.consumer);
+    const len = this.memBuf.readInt32LE(this._consumer);
     const value = [];
     for (let i = 0; i < len; i++) {
       value[i] = this._parse();
@@ -461,8 +461,8 @@ export class Unmarshaller extends EventEmitter {
   }
 
   private _parseUnicode() {
-    const len = this.memBuf.readInt32LE(this.consumer);
-    return this.memBuf.readString(this.consumer, len);
+    const len = this.memBuf.readInt32LE(this._consumer);
+    return this.memBuf.readString(this._consumer, len);
   }
 }
 

@@ -13,7 +13,7 @@ import {dom, Observable} from 'grainjs';
 
 export class NTextEditor extends NewBaseEditor {
   // Observable with current editor state (used by drafts or latest edit/position component)
-  public readonly editorState : Observable<string>;
+  public readonly editorState: Observable<string>;
 
   protected cellEditorDiv: HTMLElement;
   protected textInput: HTMLTextAreaElement;
@@ -29,7 +29,7 @@ export class NTextEditor extends NewBaseEditor {
   constructor(options: Options) {
     super(options);
 
-    const initialValue : string = undef(
+    const initialValue: string = undef(
         options.state as string | undefined,
         options.editValue, String(options.cellValue ?? ""));
     this.editorState = Observable.create<string>(this, initialValue);
@@ -96,10 +96,10 @@ export class NTextEditor extends NewBaseEditor {
    */
   protected onInput() {
     // Resize the textbox whenever user types in it.
-    this.resizeInput()
+    this.resizeInput();
 
     // notify about current state
-    this.editorState.set(String(this.getTextValue()))
+    this.editorState.set(String(this.getTextValue()));
   }
 
   /**

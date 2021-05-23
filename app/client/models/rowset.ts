@@ -368,25 +368,25 @@ export class FilteredRowSource extends BaseFilteredRowSource {
  * Private helper object that maintains a set of rows for a particular group.
  */
 class RowGroupHelper<Value> extends RowSource {
-  private rows: Set<RowId> = new Set();
+  private _rows: Set<RowId> = new Set();
   constructor(public readonly groupValue: Value) {
     super();
   }
 
   public getAllRows() {
-    return this.rows.values();
+    return this._rows.values();
   }
 
   public getNumRows(): number {
-    return this.rows.size;
+    return this._rows.size;
   }
 
   public _addAll(rows: RowList) {
-    for (const r of rows) { this.rows.add(r); }
+    for (const r of rows) { this._rows.add(r); }
   }
 
   public _removeAll(rows: RowList) {
-    for (const r of rows) { this.rows.delete(r); }
+    for (const r of rows) { this._rows.delete(r); }
   }
 }
 

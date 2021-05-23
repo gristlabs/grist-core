@@ -28,8 +28,8 @@ import pickBy = require('lodash/pickBy');
  * Creates an instance of TypeTransform for a single field. Extends ColumnTransform.
  */
 export class TypeTransform extends ColumnTransform {
-  private reviseTypeChange = Observable.create(this, false);
-  private transformWidget: Computed<NewAbstractWidget|null>;
+  private _reviseTypeChange = Observable.create(this, false);
+  private _transformWidget: Computed<NewAbstractWidget|null>;
 
   constructor(gristDoc: GristDoc, fieldBuilder: FieldBuilder) {
     super(gristDoc, fieldBuilder);
@@ -37,7 +37,7 @@ export class TypeTransform extends ColumnTransform {
 
     // The display widget of the new transform column. Used to build the transform config menu.
     // Only set while transforming.
-    this.transformWidget = Computed.create(this, fromKo(fieldBuilder.widgetImpl), (use, widget) => {
+    this._transformWidget = Computed.create(this, fromKo(fieldBuilder.widgetImpl), (use, widget) => {
       return use(this.origColumn.isTransforming) ? widget : null;
     });
   }
@@ -49,12 +49,12 @@ export class TypeTransform extends ColumnTransform {
     // An observable to disable all buttons before the dom get removed.
     const disableButtons = Observable.create(null, false);
 
-    this.reviseTypeChange.set(false);
+    this._reviseTypeChange.set(false);
     this.editor = this.autoDispose(AceEditor.create({ observable: this.transformColumn.formula }));
     return dom('div',
       testId('type-transform-top'),
-      dom.maybe(this.transformWidget, transformWidget => transformWidget.buildTransformConfigDom()),
-      dom.maybe(this.reviseTypeChange, () =>
+      dom.maybe(this._transformWidget, transformWidget => transformWidget.buildTransformConfigDom()),
+      dom.maybe(this._reviseTypeChange, () =>
         dom('div.transform_editor', this.buildEditorDom(),
           testId("type-transform-formula")
         )
@@ -64,7 +64,7 @@ export class TypeTransform extends ColumnTransform {
           'Cancel', testId("type-transform-cancel"),
           dom.cls('disabled', disableButtons)
         ),
-        dom.domComputed(this.reviseTypeChange, revising => {
+        dom.domComputed(this._reviseTypeChange, revising => {
           if (revising) {
             return basicButton(dom.on('click', () => this.editor.writeObservable()),
               'Preview', testId("type-transform-update"),
@@ -72,7 +72,7 @@ export class TypeTransform extends ColumnTransform {
               { title: 'Update formula (Shift+Enter)' }
             );
           } else {
-            return basicButton(dom.on('click', () => { this.reviseTypeChange.set(true); }),
+            return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),
               'Revise', testId("type-transform-revise"),
               dom.cls('disabled', disableButtons)
             );

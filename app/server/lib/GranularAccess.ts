@@ -598,7 +598,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const message = { actionGroup, docActions };
     await this._docClients.broadcastDocMessage(client, 'docUserAction',
                                                message,
-                                               (docSession) => this._filterDocUpdate(docSession, message));
+                                               (_docSession) => this._filterDocUpdate(_docSession, message));
   }
 
   /**
@@ -786,21 +786,21 @@ export class GranularAccess implements GranularAccessForBundle {
       // If the column is not row dependent, we have nothing to do.
       if (access.getColumnAccess(tableId, colId).perms.read !== 'mixed') { continue; }
       // Check column accessibility before and after.
-      const forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids, colId));
-      const forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids, colId));
+      const _forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids, colId));
+      const _forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids, colId));
       // For any column that is in a visible row and for which accessibility has changed,
       // pull it into the doc actions.  We don't censor cells yet, that happens later
       // (if that's what needs doing).
       const changedIds = orderedIds.filter(id => !forceRemoves.has(id) && !removals.has(id) &&
-                                        (forbiddenBefores.has(id) !== forbiddenAfters.has(id)));
+                                        (_forbiddenBefores.has(id) !== _forbiddenAfters.has(id)));
       if (changedIds.length > 0) {
         revisedDocActions.push(this._makeColumnUpdate(rowsAfter, colId, new Set(changedIds)));
       }
     }
 
     // Return the results, also applying any cell-level access control.
-    for (const action of revisedDocActions) {
-      await this._filterRowsAndCells({...cursor, action}, rowsAfter, rowsAfter, readAccessCheck);
+    for (const a of revisedDocActions) {
+      await this._filterRowsAndCells({...cursor, action: a}, rowsAfter, rowsAfter, readAccessCheck);
     }
     return revisedDocActions;
   }
@@ -1656,7 +1656,7 @@ export const accessChecks = {
 const readAccessCheck = accessChecks.check.read;
 
 // This AccessCheck allows everything.
-const dummyAccessCheck = { get() { return 'allow'; } }
+const dummyAccessCheck = { get() { return 'allow'; } };
 
 
 /**

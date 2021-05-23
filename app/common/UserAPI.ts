@@ -633,8 +633,8 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
     super(_options);
   }
 
-  public async importDocToWorkspace(uploadId: number, workspaceId: number, browserSettings?: BrowserSettings)
-    : Promise<DocCreationInfo> {
+  public async importDocToWorkspace(uploadId: number, workspaceId: number, browserSettings?: BrowserSettings):
+      Promise<DocCreationInfo> {
     return this.requestJson(`${this.url}/api/workspaces/${workspaceId}/import`, {
       method: 'POST',
       body: JSON.stringify({ uploadId, browserSettings })

@@ -681,7 +681,7 @@ export class HostedStorageManager implements IDocStorageManager {
         lastModified: t,
         snapshotId: newSnapshotId,
         metadata
-      }
+      };
       await this._inventory.add(docId, snapshot, prevSnapshotId);
       await this._onInventoryChange(docId);
     } finally {

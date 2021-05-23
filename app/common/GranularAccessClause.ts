@@ -78,7 +78,7 @@ export interface UserAttributeRule {
  * Check some key facts about the formula.
  */
 export function getFormulaProperties(formula: ParsedAclFormula) {
-  const result: FormulaProperties = {}
+  const result: FormulaProperties = {};
   if (usesRec(formula)) { result.hasRecOrNewRec = true; }
   const colIds = new Set<string>();
   collectRecColIds(formula, colIds);

@@ -188,11 +188,13 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       if (!snapshotIds) {
         await this._options.latestVersion.save(key, DELETED_TOKEN);
         await this._options.sharedHash.save(key, DELETED_TOKEN);
-      } else for (const snapshotId of snapshotIds) {
-        // Removing snapshots breaks their partial immutability, so we mark them
-        // as deleted in redis so that we don't get stale info from S3 if we check
-        // for their existence.  Nothing currently depends on this in practice.
-        await this._options.sharedHash.save(this._keyWithSnapshot(key, snapshotId), DELETED_TOKEN);
+      } else {
+        for (const snapshotId of snapshotIds) {
+          // Removing snapshots breaks their partial immutability, so we mark them
+          // as deleted in redis so that we don't get stale info from S3 if we check
+          // for their existence.  Nothing currently depends on this in practice.
+          await this._options.sharedHash.save(this._keyWithSnapshot(key, snapshotId), DELETED_TOKEN);
+        }
       }
     } catch (err) {
       log.error("ext %s delete: %s failure to remove, error %s", this.label, key, err.message);

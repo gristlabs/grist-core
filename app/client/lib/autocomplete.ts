@@ -55,18 +55,18 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
   constructor(
     private _triggerElem: HTMLInputElement | HTMLTextAreaElement,
-    private readonly options: IAutocompleteOptions<Item>,
+    private readonly _options: IAutocompleteOptions<Item>,
   ) {
     super();
 
     const content = cssMenuWrap(
-      this._menuContent = cssMenu({class: options.menuCssClass || ''},
-        dom.forEach(this._items, (item) => options.renderItem(item, this._highlightFunc)),
+      this._menuContent = cssMenu({class: _options.menuCssClass || ''},
+        dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
         dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
         dom.on('mouseleave', (ev) => this._setSelected(-1, true)),
         dom.on('click', (ev) => {
           this._setSelected(this._findTargetItem(ev.target), true);
-          if (options.onClick) { options.onClick(); }
+          if (_options.onClick) { _options.onClick(); }
         })
       ),
       // Prevent trigger element from being blurred on click.
@@ -91,7 +91,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this.onDispose(() => { dom.domDispose(content); content.remove(); });
 
     // Prepare and create the Popper instance, which places the content according to the options.
-    const popperOptions = merge({}, defaultPopperOptions, options.popperOptions);
+    const popperOptions = merge({}, defaultPopperOptions, _options.popperOptions);
     this._popper = createPopper(_triggerElem, content, popperOptions);
     this.onDispose(() => this._popper.destroy());
   }
@@ -110,7 +110,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     const elem = (this._menuContent.children[index] as HTMLElement) || null;
     const prev = this._selected;
     if (elem !== prev) {
-      const clsName = this.options.selectedCssClass || 'selected';
+      const clsName = this._options.selectedCssClass || 'selected';
       if (prev) { prev.classList.remove(clsName); }
       if (elem) {
         elem.classList.add(clsName);
@@ -123,7 +123,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     if (updateValue) {
       // Update trigger's value with the selected choice, or else with the last typed value.
       if (elem) {
-        this._triggerElem.value = this.options.getItemText(this.getSelectedItem()!);
+        this._triggerElem.value = this._options.getItemText(this.getSelectedItem()!);
       } else {
         this._triggerElem.value = this._lastAsTyped;
       }
@@ -147,7 +147,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this._lastAsTyped = inputVal;
     // TODO We should perhaps debounce the search() call in some clever way, to avoid unnecessary
     // searches while typing. Today, search() is synchronous in practice, so it doesn't matter.
-    const acResults = await this.options.search(inputVal);
+    const acResults = await this._options.search(inputVal);
     this._highlightFunc = acResults.highlightFunc;
     this._items.set(acResults.items);
 

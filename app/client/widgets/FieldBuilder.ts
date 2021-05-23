@@ -66,30 +66,30 @@ export class FieldBuilder extends Disposable {
   public readonly widgetImpl: ko.Computed<NewAbstractWidget>;
   public readonly diffImpl: NewAbstractWidget;
 
-  private readonly availableTypes: Computed<Array<IOptionFull<string>>>;
-  private readonly readOnlyPureType: ko.PureComputed<string>;
-  private readonly isRightType: ko.PureComputed<(value: CellValue, options?: any) => boolean>;
-  private readonly refTableId: ko.Computed<string | null>;
-  private readonly isRef: ko.Computed<boolean>;
+  private readonly _availableTypes: Computed<Array<IOptionFull<string>>>;
+  private readonly _readOnlyPureType: ko.PureComputed<string>;
+  private readonly _isRightType: ko.PureComputed<(value: CellValue, options?: any) => boolean>;
+  private readonly _refTableId: ko.Computed<string | null>;
+  private readonly _isRef: ko.Computed<boolean>;
   private readonly _rowMap: Map<DataRowModel, Element>;
-  private readonly isTransformingFormula: ko.Computed<boolean>;
-  private readonly isTransformingType: ko.Computed<boolean>;
+  private readonly _isTransformingFormula: ko.Computed<boolean>;
+  private readonly _isTransformingType: ko.Computed<boolean>;
   private readonly _fieldEditorHolder: Holder<IDisposable>;
-  private readonly widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
-  private readonly docModel: DocModel;
+  private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
+  private readonly _docModel: DocModel;
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor) {
     super();
 
-    this.docModel = gristDoc.docModel;
+    this._docModel = gristDoc.docModel;
     this.origColumn = field.column();
     this.options = field.widgetOptionsJson;
 
-    this.readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
+    this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
 
     // Observable with a list of available types.
-    this.availableTypes = Computed.create(this, (use) => {
+    this._availableTypes = Computed.create(this, (use) => {
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
       _.each(UserType.typeDefs, (def: any, key: string|number) => {
@@ -108,17 +108,17 @@ export class FieldBuilder extends Disposable {
     });
 
     // Observable which evaluates to a *function* that decides if a value is valid.
-    this.isRightType = ko.pureComputed(function() {
-      return gristTypes.isRightType(this.readOnlyPureType()) || _.constant(false);
+    this._isRightType = ko.pureComputed(function() {
+      return gristTypes.isRightType(this._readOnlyPureType()) || _.constant(false);
     }, this);
 
     // Returns a boolean indicating whether the column is type Reference.
-    this.isRef = this.autoDispose(ko.computed(() => {
+    this._isRef = this.autoDispose(ko.computed(() => {
       return gutil.startsWith(this.field.column().type(), 'Ref:');
     }));
 
     // Gives the table ID to which the reference points.
-    this.refTableId = this.autoDispose(ko.computed({
+    this._refTableId = this.autoDispose(ko.computed({
       read: () => gutil.removePrefix(this.field.column().type(), "Ref:"),
       write: val => this._setType(`Ref:${val}`)
     }));
@@ -148,11 +148,11 @@ export class FieldBuilder extends Disposable {
     this.columnTransform = null;
 
     // Returns a boolean indicating whether a formula transform is in progress.
-    this.isTransformingFormula = this.autoDispose(ko.computed(() => {
+    this._isTransformingFormula = this.autoDispose(ko.computed(() => {
       return this.field.column().isTransforming() && this.columnTransform instanceof FormulaTransform;
     }));
     // Returns a boolean indicating whether a type transform is in progress.
-    this.isTransformingType = this.autoDispose(ko.computed(() => {
+    this._isTransformingType = this.autoDispose(ko.computed(() => {
       return (this.field.column().isTransforming() || this.isCallPending()) &&
         (this.columnTransform instanceof TypeTransform);
     }));
@@ -165,14 +165,14 @@ export class FieldBuilder extends Disposable {
     this._rowMap = new Map();
 
     // Returns the constructor for the widget, and only notifies subscribers on changes.
-    this.widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(function() {
+    this._widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(function() {
       return UserTypeImpl.getWidgetConstructor(this.options().widget,
-                                               this.readOnlyPureType());
+                                               this._readOnlyPureType());
     }, this)).onlyNotifyUnequal());
 
     // Computed builder for the widget.
     this.widgetImpl = this.autoDispose(koUtil.computedBuilder(() => {
-      const cons = this.widgetCons();
+      const cons = this._widgetCons();
       // Must subscribe to `colId` so that field.colId is rechecked on transform.
       return cons.create.bind(cons, this.field, this.field.colId());
     }, this).extend({ deferred: true }));
@@ -180,11 +180,8 @@ export class FieldBuilder extends Disposable {
     this.diffImpl = this.autoDispose(DiffBox.create(this.field));
   }
 
-// dispose.makeDisposable(FieldBuilder);
-
-
   public buildSelectWidgetDom() {
-    return grainjsDom.maybe((use) => !use(this.isTransformingType) && use(this.readOnlyPureType), type => {
+    return grainjsDom.maybe((use) => !use(this._isTransformingType) && use(this._readOnlyPureType), type => {
       const typeWidgets = getTypeDefinition(type).widgets;
       const widgetOptions = Object.keys(typeWidgets).map(label => ({
         label,
@@ -206,32 +203,32 @@ export class FieldBuilder extends Disposable {
    * Build the type change dom.
    */
   public buildSelectTypeDom() {
-    const selectType = Computed.create(null, (use) => use(fromKo(this.readOnlyPureType)));
-    selectType.onWrite(newType => newType === this.readOnlyPureType.peek() || this._setType(newType));
+    const selectType = Computed.create(null, (use) => use(fromKo(this._readOnlyPureType)));
+    selectType.onWrite(newType => newType === this._readOnlyPureType.peek() || this._setType(newType));
     const onDispose = () => (this.isDisposed() || selectType.set(this.field.column().pureType()));
 
     return [
       cssRow(
         grainjsDom.autoDispose(selectType),
-        select(selectType, this.availableTypes, {
-          disabled: (use) => use(this.isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
+        select(selectType, this._availableTypes, {
+          disabled: (use) => use(this._isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
             use(this.isCallPending)
         }),
         testId('type-select')
       ),
-      grainjsDom.maybe((use) => use(this.isRef) && !use(this.isTransformingType), () => this._buildRefTableSelect()),
-      grainjsDom.maybe(this.isTransformingType, () => {
+      grainjsDom.maybe((use) => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
+      grainjsDom.maybe(this._isTransformingType, () => {
         // Editor dom must be built before preparing transform.
         return dom('div.type_transform_prompt',
                    kf.prompt(
                      dom('div',
-                         grainjsDom.maybe(this.isRef, () => this._buildRefTableSelect()),
+                         grainjsDom.maybe(this._isRef, () => this._buildRefTableSelect()),
                          grainjsDom.maybe((use) => use(this.field.column().isTransforming),
                                           () => this.columnTransform!.buildDom())
-                        )
+                     )
                    ),
                    grainjsDom.onDispose(onDispose)
-                  );
+        );
       })
     ];
   }
@@ -242,7 +239,7 @@ export class FieldBuilder extends Disposable {
       // Do not type transform a new/empty column or a formula column. Just make a best guess for
       // the full type, and set it.
       const column = this.field.column();
-      column.type.setAndSave(addColTypeSuffix(newType, column, this.docModel)).catch(reportError);
+      column.type.setAndSave(addColTypeSuffix(newType, column, this._docModel)).catch(reportError);
     } else if (!this.columnTransform) {
       this.columnTransform = TypeTransform.create(null, this.gristDoc, this);
       return this.columnTransform.prepare(newType);
@@ -256,7 +253,7 @@ export class FieldBuilder extends Disposable {
   // Builds the reference type table selector. Built when the column is type reference.
   public _buildRefTableSelect() {
     const allTables = Computed.create(null, (use) =>
-                                      use(this.docModel.allTableIds.getObservable()).map(tableId => ({
+                                      use(this._docModel.allTableIds.getObservable()).map(tableId => ({
                                         value: tableId,
                                         label: tableId,
                                         icon: 'FieldTable' as const
@@ -266,7 +263,7 @@ export class FieldBuilder extends Disposable {
       cssLabel('DATA FROM TABLE'),
       cssRow(
         dom.autoDispose(allTables),
-        select(fromKo(this.refTableId), allTables),
+        select(fromKo(this._refTableId), allTables),
         testId('ref-table-select')
       )
     ];
@@ -301,15 +298,15 @@ export class FieldBuilder extends Disposable {
                    kf.checkButton(transformButton,
                      dom('span.glyphicon.glyphicon-flash'),
                      dom.testId("FieldBuilder_editTransform"),
-                     kd.toggleClass('disabled', () => this.isTransformingType() || this.origColumn.isFormula() ||
+                     kd.toggleClass('disabled', () => this._isTransformingType() || this.origColumn.isFormula() ||
                        this.origColumn.disableModifyBase())
                    )
                  )
                ),
-               kd.maybe(this.isTransformingFormula, () => {
+               kd.maybe(this._isTransformingFormula, () => {
                  return this.columnTransform!.buildDom();
                })
-              );
+    );
   }
 
   /**
@@ -319,7 +316,7 @@ export class FieldBuilder extends Disposable {
     // NOTE: adding a grainjsDom .maybe here causes the disposable order of the widgetImpl and
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
-      kd.maybe(() => !this.isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
+      kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
         dom('div',
             widget.buildConfigDom(),
             widget.buildColorConfigDom(),
@@ -401,7 +398,7 @@ export class FieldBuilder extends Disposable {
       if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
       const value = row.cells[this.field.colId()];
       const cell = value && value();
-      if (value && this.isRightType()(cell, this.options) || row._isAddRow.peek()) {
+      if (value && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
         return this.widgetImpl();
       } else if (gristTypes.isVersions(cell)) {
         return this.diffImpl;
@@ -462,7 +459,7 @@ export class FieldBuilder extends Disposable {
       return;
     }
 
-    const editorCtor = UserTypeImpl.getEditorConstructor(this.options().widget, this.readOnlyPureType());
+    const editorCtor = UserTypeImpl.getEditorConstructor(this.options().widget, this._readOnlyPureType());
     // constructor may be null for a read-only non-formula field, though not today.
     if (!editorCtor) {
       // Actually, we only expect buildEditorDom() to be called when isEditorActive() is false (i.e.

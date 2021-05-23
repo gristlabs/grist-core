@@ -1333,8 +1333,9 @@ export class Session {
     const api = this.createHomeApi();
     if (!noCleanup) {
       cleanup.addAfterEach(async () => {
-        if (doc.id)
+        if (doc.id) {
           await api.deleteDoc(doc.id).catch(noop);
+        }
         doc.id = '';
       });
     }

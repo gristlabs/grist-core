@@ -18,7 +18,7 @@ export async function duplicatePage(gristDoc: GristDoc, pageId: number) {
   const pagesTable = gristDoc.docModel.pages;
   const pageName = pagesTable.rowModels[pageId].view.peek().name.peek();
   let inputEl: HTMLInputElement;
-  setTimeout(() => {inputEl.focus(); inputEl.select(); }, 100);
+  setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100);
 
   confirmModal('Duplicate page', 'Save', () => makeDuplicate(gristDoc, pageId, inputEl.value), (
     dom('div', [

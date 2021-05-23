@@ -25,7 +25,7 @@ export class EditorMonitor extends Disposable {
     this._store = new EditMemoryStorage(doc.docId(), store);
 
     // listen to document events to handle view load event
-    this._listenToReload(doc)
+    this._listenToReload(doc);
   }
 
   /**
@@ -67,7 +67,7 @@ export class EditorMonitor extends Disposable {
       }
       executed = true;
       // if view wasn't rendered (page is displaying history or code view) do nothing
-      if (!view) return;
+      if (!view) { return; }
       const lastEdit = this._restorePosition();
       if (lastEdit) {
         // set the cursor at right cell
@@ -98,11 +98,11 @@ function typedListener(owner: IDisposableOwner) {
 type EditorState = any;
 
 // Schema for value stored in the local storage
-type LastEditData = {
+interface LastEditData {
   // absolute position for a cell
-  position: CellPosition,
+  position: CellPosition;
   // editor's state
-  value: EditorState
+  value: EditorState;
 }
 
 // Abstraction for working with local storage
@@ -111,7 +111,7 @@ class EditMemoryStorage {
   private _entry: LastEditData | null = null;
   private _timestamp = 0;
 
-  constructor(private _docId: string, private storage = getStorage()) {
+  constructor(private _docId: string, private _storage = getStorage()) {
   }
 
   public updateValue(pos: CellPosition, value: EditorState): void {
@@ -138,7 +138,7 @@ class EditMemoryStorage {
   }
 
   protected load() {
-    const storage = this.storage;
+    const storage = this._storage;
     const data = storage.getItem(this._key());
     this._entry = null;
     this._timestamp = 0;
@@ -150,7 +150,7 @@ class EditMemoryStorage {
           console.error("[EditMemory] Data in local storage has a different structure");
           return;
         }
-        this._entry = entry
+        this._entry = entry;
         this._timestamp = timestamp;
       } catch (e) {
         console.error("[EditMemory] Can't deserialize date from local storage");
@@ -159,7 +159,7 @@ class EditMemoryStorage {
   }
 
   protected save(): void {
-    const storage = this.storage;
+    const storage = this._storage;
 
     // if entry was removed - clear the storage
     if (!this._entry) {

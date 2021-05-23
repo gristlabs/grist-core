@@ -105,7 +105,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         }),
         // Close if clicking into the background. (The default modal's behavior for this isn't
         // triggered because our content covers the whole screen.)
-        dom.on('click', (ev, elem) => { if (ev.target === elem) { ctl.close(); }}),
+        dom.on('click', (ev, elem) => { if (ev.target === elem) { ctl.close(); } }),
         ...this._buildDom(ctl)
       ];
     }, {noEscapeKey: true});

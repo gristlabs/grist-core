@@ -27,7 +27,7 @@ export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly 
     if (docAction[0] === 'RenameTable') {
       if (addedTables.has(currentTableId)) {
         addedTables.delete(currentTableId);
-        addedTables.add(docAction[2])
+        addedTables.add(docAction[2]);
         continue;
       }
       tableIds.delete(currentTableId);

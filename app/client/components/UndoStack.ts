@@ -117,13 +117,13 @@ export class UndoStack extends dispose.Disposable {
       // context where the change was originally made. We jump first immediately to feel more
       // responsive, then again when the action is done. The second jump matters more for most
       // changes, but the first is the important one when Undoing an AddRecord.
-      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => {/* do nothing */})
+      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
       await this._gristDoc.docComm.applyUserActionsById(
         actionGroups.map(a => a.actionNum),
         actionGroups.map(a => a.actionHash),
         isUndo,
         { otherId: ag.actionNum });
-      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => {/* do nothing */})
+      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
     } catch (err) {
       err.message = `Failed to apply ${isUndo ? 'undo' : 'redo'} action: ${err.message}`;
       throw err;

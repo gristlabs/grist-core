@@ -128,8 +128,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     find: () => { inputElem.focus(); inputElem.select(); },
     // On Mac, Firefox has a default behaviour witch causes to close the search bar on Cmd+g and
     // Cmd+shirt+G. Returning false is a Mousetrap convenience which prevents that.
-    findNext: () => {model.findNext().catch(reportError); return false; },
-    findPrev: () => {model.findPrev().catch(reportError); return false; },
+    findNext: () => { model.findNext().catch(reportError); return false; },
+    findPrev: () => { model.findPrev().catch(reportError); return false; },
   }, null, true);
 
   const toggleMenu = debounce((_value?: boolean) => {

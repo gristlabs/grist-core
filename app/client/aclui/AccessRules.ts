@@ -1067,7 +1067,7 @@ class ObsUserAttributeRule extends Disposable {
                     // TODO this weirdly only works on the first click
                     (editor as any).completer?.showPopup(editor);
                   }
-                })
+                });
               })
             }),
             testId('rule-userattr-attr'),

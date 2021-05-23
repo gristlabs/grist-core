@@ -49,7 +49,7 @@ export function getAvailablePort(firstPort: number = 8000, optCount: number = 20
 export function connect(options: { port: number, host?: string, localAddress?: string, localPort?: string,
                                    family?: number, allowHalfOpen?: boolean; }): Promise<net.Socket>;
 export function connect(port: number, host?: string): Promise<net.Socket>;
-export function connect(path: string): Promise<net.Socket>;   // tslint:disable-line:unified-signatures
+export function connect(sockPath: string): Promise<net.Socket>;
 export function connect(arg: any, ...moreArgs: any[]): Promise<net.Socket> {
   return new Promise((resolve, reject) => {
     const s = net.connect(arg, ...moreArgs, () => resolve(s));

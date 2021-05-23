@@ -47,10 +47,10 @@ export async function setAndSave(editRow: DataRowModel, field: ViewFieldRec, val
   }
 }
 
-export type FieldEditorStateEvent = {
-  position : CellPosition,
-  currentState : any,
-  type: string
+export interface FieldEditorStateEvent {
+  position: CellPosition;
+  currentState: any;
+  type: string;
 }
 
 export class FieldEditor extends Disposable {
@@ -125,7 +125,7 @@ export class FieldEditor extends Disposable {
       unmakeFormula: () => this._unmakeFormula(),
     };
 
-    const state : any = options.state;
+    const state: any = options.state;
 
     this.rebuildEditor(isFormula, editValue, Number.POSITIVE_INFINITY, state);
 
@@ -141,7 +141,7 @@ export class FieldEditor extends Disposable {
   }
 
   // cursorPos refers to the position of the caret within the editor.
-  public rebuildEditor(isFormula: boolean, editValue: string|undefined, cursorPos: number, state? : any) {
+  public rebuildEditor(isFormula: boolean, editValue: string|undefined, cursorPos: number, state?: any) {
     const editorCtor: IEditorConstructor = isFormula ? FormulaEditor : this._editorCtor;
 
     const column = this._field.column();
@@ -168,11 +168,11 @@ export class FieldEditor extends Disposable {
     // if editor supports live changes, connect it to the change emitter
     if (editor.editorState) {
       editor.autoDispose(editor.editorState.addListener((currentState) => {
-        const event : FieldEditorStateEvent = {
-          position : this.cellPosition(),
+        const event: FieldEditorStateEvent = {
+          position: this._cellPosition(),
           currentState,
-          type : this._field.column.peek().pureType.peek()
-        }
+          type: this._field.column.peek().pureType.peek()
+        };
         this.changeEmitter.emit(event);
       }));
     }
@@ -181,7 +181,7 @@ export class FieldEditor extends Disposable {
   }
 
   // calculate current cell's absolute position
-  private cellPosition() {
+  private _cellPosition() {
     const rowId = this._editRow.getRowId();
     const colRef = this._field.colRef.peek();
     const sectionId = this._field.viewSection.peek().id.peek();
@@ -189,7 +189,7 @@ export class FieldEditor extends Disposable {
       rowId,
       colRef,
       sectionId
-    }
+    };
     return position;
   }
 
@@ -240,11 +240,11 @@ export class FieldEditor extends Disposable {
 
   // Cancels the edit
   private _cancelEdit() {
-    const event : FieldEditorStateEvent = {
-      position : this.cellPosition(),
-      currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek()
-    }
+    const event: FieldEditorStateEvent = {
+      position: this._cellPosition(),
+      currentState: this._editorHolder.get()?.editorState?.get(),
+      type: this._field.column.peek().pureType.peek()
+    };
     this.cancelEmitter.emit(event);
     this.dispose();
   }
@@ -296,11 +296,11 @@ export class FieldEditor extends Disposable {
       }
     }
 
-    const event : FieldEditorStateEvent = {
-      position : this.cellPosition(),
-      currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek()
-    }
+    const event: FieldEditorStateEvent = {
+      position: this._cellPosition(),
+      currentState: this._editorHolder.get()?.editorState?.get(),
+      type: this._field.column.peek().pureType.peek()
+    };
     this.saveEmitter.emit(event);
 
     const cursor = this._cursor;

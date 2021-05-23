@@ -92,7 +92,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     this.autoDispose(this.value.addListener(v => { void findFirst(v); }));
 
     // Set this.noMatch to false when multiPage gets turned ON.
-    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); }}));
+    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
 
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.

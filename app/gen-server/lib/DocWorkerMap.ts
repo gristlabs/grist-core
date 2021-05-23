@@ -337,9 +337,9 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (docId === 'import') {
       const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
       try {
-        const workerId = await this._client.srandmemberAsync(`workers-available-default`);
-        if (!workerId) { throw new Error('no doc worker available'); }
-        const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+        const _workerId = await this._client.srandmemberAsync(`workers-available-default`);
+        if (!_workerId) { throw new Error('no doc worker available'); }
+        const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
         return {
           docMD5: null,

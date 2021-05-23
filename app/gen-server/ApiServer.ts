@@ -364,7 +364,7 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       await this._dbManager.connection.transaction(async manager => {
         const user = await manager.findOne(User, userId);
-        if (!user) {return handleDeletedUser(); }
+        if (!user) { return handleDeletedUser(); }
         user.apiKey = null;
         await manager.save(User, user);
       });

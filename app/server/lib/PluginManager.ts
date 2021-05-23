@@ -51,7 +51,7 @@ export class PluginManager {
     };
   }
 
-  public dirs(): PluginDirectories {return this._dirs; }
+  public dirs(): PluginDirectories { return this._dirs; }
 
   /**
    * Create tmp dir and load plugins.

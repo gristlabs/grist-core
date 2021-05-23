@@ -121,9 +121,9 @@ type Undef<T> = T extends [infer A, infer B, infer C, infer D] ?
  * Returns the first defined value from the list or unknown.
  * Use with typed result, so the typescript type checker can provide correct type.
  */
-export function undef<T extends Array<any>>(...list : T): Undef<T> {
+export function undef<T extends Array<any>>(...list: T): Undef<T> {
   for(const value of list) {
-    if (value !== undefined) return value;
+    if (value !== undefined) { return value; }
   }
   return undefined as any;
 }
@@ -853,7 +853,7 @@ export function isValidHex(val: string): boolean {
  */
 export async function isLongerThan(promise: Promise<any>, timeoutMsec: number): Promise<boolean> {
   let isPending = true;
-  const done = () => {isPending = false; };
+  const done = () => { isPending = false; };
   await Promise.race([
     promise.then(done, done),
     delay(timeoutMsec)

@@ -45,7 +45,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     return cssMultiSelectorWrapper(
       cssItemList(testId('list'),
         dom.forEach(this._incItems, item => this.buildItemDom(item)),
-        this.buildAddItemDom(this._options.addItemLabel, this._options.addItemText)
+        this._buildAddItemDom(this._options.addItemLabel, this._options.addItemText)
       ),
     );
   }
@@ -60,7 +60,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
 
   // Called with an item from `_allItems`
   protected async remove(item: Item): Promise<void> {
-    const idx = this.findIncIndex(item);
+    const idx = this._findIncIndex(item);
     if (idx === -1) { return; }
     this._incItems.splice(idx, 1);
   }
@@ -70,7 +70,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
 
   // Replaces an existing item (if found) with a new one
   protected async changeItem(item: Item, newItem: Item): Promise<void> {
-    const idx = this.findIncIndex(item);
+    const idx = this._findIncIndex(item);
     if (idx === -1) { return; }
     this._incItems.splice(idx, 1, newItem);
   }
@@ -82,7 +82,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
                            selectCb: (newItem: Item) => void,
                            selectOptions?: {}): Element {
     const obs = computed(use => selectedValue).onWrite(async value => {
-      const newItem = this.findItemByValue(value);
+      const newItem = this._findItemByValue(value);
       if (newItem) {
         selectCb(newItem);
       }
@@ -115,17 +115,17 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   }
 
   // Returns the index (order) of the item if it's been included, or -1 otherwise.
-  private findIncIndex(item: Item): number {
+  private _findIncIndex(item: Item): number {
     return this._incItems.get().findIndex(_item => _item === item);
   }
 
   // Returns the item object given it's value, or undefined if not found.
-  private findItemByValue(value: string): Item | undefined {
+  private _findItemByValue(value: string): Item | undefined {
     return this._allItems.get().find(_item => _item.value === value);
   }
 
   // Builds the about-to-be-added item
-  private buildAddItemDom(defLabel: string, defText: string): Element {
+  private _buildAddItemDom(defLabel: string, defText: string): Element {
     const addNewItem: Observable<boolean> = observable(false);
     return dom('li', testId('add-item'),
       dom.domComputed(addNewItem, isAdding => isAdding

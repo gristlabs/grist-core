@@ -105,7 +105,7 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
   let inputEl: HTMLInputElement;
 
   // When label changes updates the input, unless in the middle of editing.
-  const lis = value.addListener((val) => { if (status !== Status.EDITING) { setValue(val); }});
+  const lis = value.addListener((val) => { if (status !== Status.EDITING) { setValue(val); } });
 
   function setValue(val: string) {
     inputEl.value = val;

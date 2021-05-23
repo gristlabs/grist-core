@@ -207,7 +207,7 @@ export class TreeNodeRecord implements TreeNode {
   // Get all the records included in this item.
   public getRecords(): TreeRecord[] {
     const records = [] as TreeRecord[];
-    if (this.index !== "root") {records.push(this._records[this.index]); }
+    if (this.index !== "root") { records.push(this._records[this.index]); }
     walkTree(this, (item: TreeItemRecord) => records.push(this._records[item.index]));
     return records;
   }
@@ -255,7 +255,7 @@ export function find(model: TreeNode, func: (item: TreeItem) => boolean): TreeIt
   if (children) {
     for (const child of children.get()) {
       const found = func(child) && child || find(child, func);
-      if (found) {return found; }
+      if (found) { return found; }
     }
   }
 }

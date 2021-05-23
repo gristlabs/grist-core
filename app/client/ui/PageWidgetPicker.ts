@@ -196,7 +196,7 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect, value, tables, columns, onSaveCB, options),
 
     // gives focus and binds keydown events
-    (elem: any) => {setTimeout(() => elem.focus(), 0); },
+    (elem: any) => { setTimeout(() => elem.focus(), 0); },
     onKeyDown({
       Escape: () => ctl.close(),
       Enter: () => isValid() && onSaveCB()

@@ -240,7 +240,7 @@ export function getAffectedTables(summary: ActionSummary): string[] {
  */
 export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|null): string|null {
   if (tableIdAfter === null) { return tableIdAfter; }
-  const rename = renames.find(rename => rename[1] === tableIdAfter);
+  const rename = renames.find(_rename => _rename[1] === tableIdAfter);
   return rename ? rename[0] : tableIdAfter;
 }
 
@@ -250,7 +250,7 @@ export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|nul
  */
 export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string|null): string|null {
   if (tableIdBefore === null) { return tableIdBefore; }
-  const rename = renames.find(rename => rename[0] === tableIdBefore);
+  const rename = renames.find(_rename => _rename[0] === tableIdBefore);
   const tableIdAfter = rename ? rename[1] : tableIdBefore;
   if (tableIdAfter?.startsWith('-')) { return null; }
   return tableIdAfter;

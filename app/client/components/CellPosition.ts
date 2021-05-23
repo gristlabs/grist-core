@@ -28,8 +28,9 @@ export function samePosition(a: CellPosition, b: CellPosition) {
  * @param docModel Document model
  */
 export function fromCursor(position: CursorPos, docModel: DocModel): CellPosition | null {
-  if (!position.sectionId || !position.rowId || position.fieldIndex == null)
+  if (!position.sectionId || !position.rowId || position.fieldIndex == null) {
     return null;
+  }
 
   const section = docModel.viewSections.getRowModel(position.sectionId);
   const colRef = section.viewFields().peek()[position.fieldIndex]?.colRef.peek();

@@ -245,8 +245,8 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           // The flash value may change to true, and then immediately to false. We highlight it
           // using a transition, and scroll into view, when it turns back to false.
           transition(flash, {
-            prepare(elem, val) { if (!val) { elem.style.backgroundColor = colors.slate.toString(); }},
-            run(elem, val) { if (!val) { elem.style.backgroundColor = ''; scrollIntoViewIfNeeded(elem); }},
+            prepare(elem, val) { if (!val) { elem.style.backgroundColor = colors.slate.toString(); } },
+            run(elem, val) { if (!val) { elem.style.backgroundColor = ''; scrollIntoViewIfNeeded(elem); } },
           })
         ),
         css.docRowWrapper.cls('-renaming', isRenaming),

@@ -31,6 +31,7 @@ CodeEditorPanel.prototype.buildDom = function() {
     kd.scope(this._schema, function(schema) {
       // The reason to scope and rebuild instead of using `kd.text(schema)` is because
       // hljs.highlightBlock(elem) replaces `elem` with a whole new dom tree.
+      if (!schema) { return null; }
       return dom(
         'code.g-code-viewer.python',
         schema,

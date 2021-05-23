@@ -172,7 +172,7 @@ if (typeof window !== 'undefined') {
   // running under mocha. For now, we only provide a disfunctional implementation. It allows
   // plugins to call methods like registerFunction() without failing, so that plugin code may be
   // imported, but the methods don't do anything useful.
-  rpc.setSendMessage((data) => {return; });
+  rpc.setSendMessage((data) => { return; });
 }
 
 function createRpcLogger(): IRpcLogger {

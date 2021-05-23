@@ -106,6 +106,8 @@ export class GristWSConnection extends Disposable {
   public useCount: number = 0;
   public on: BackboneEvents['on'];    // set by Backbone
 
+  protected trigger: BackboneEvents['trigger']; // set by Backbone
+
   private _clientId: string|null;
   private _clientCounter: string;     // Identifier of this GristWSConnection object in this browser tab session
   private _assignmentId: string|null;
@@ -118,7 +120,6 @@ export class GristWSConnection extends Disposable {
   private _reconnectAttempts: number = 0;
   private _wantReconnect: boolean = true;
   private _ws: WebSocket|null = null;
-  private trigger: BackboneEvents['trigger']; // set by Backbone
 
   constructor(private _settings: GristWSSettings = new GristWSSettingsBrowser()) {
     super();

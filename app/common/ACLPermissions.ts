@@ -171,7 +171,7 @@ export function summarizePermissionSet(pset: PartialPermissionSet): MixedPermiss
   for (const key of Object.keys(pset) as Array<keyof PartialPermissionSet>) {
     const pWithSome = pset[key];
     // "Some" postfix is not significant for summarization.
-    const p = pWithSome === 'allowSome' ? 'allow' : (pWithSome === 'denySome' ? 'deny' : pWithSome)
+    const p = pWithSome === 'allowSome' ? 'allow' : (pWithSome === 'denySome' ? 'deny' : pWithSome);
     if (!p || p === sign) { continue; }
     if (!sign) {
       sign = p;

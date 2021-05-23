@@ -61,7 +61,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
           // Doesn't actually close, just unrefs stream so node becomes close-able.
           store.client.unref();
         }});
-    }
+    };
   } else {
     const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
     promisifyAll(SQLiteStore.prototype);
@@ -72,7 +72,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
         table: 'sessions'
       });
       return assignIn(store, { async close() {}});
-    }
+    };
   }
 }
 
