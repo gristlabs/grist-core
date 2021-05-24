@@ -969,7 +969,8 @@ GridView.prototype.buildDom = function() {
 
 /** @inheritdoc */
 GridView.prototype.onResize = function() {
-  if (this.activeFieldBuilder().isEditorActive()) {
+  const activeFieldBuilder = this.activeFieldBuilder();
+  if (activeFieldBuilder && activeFieldBuilder.isEditorActive()) {
     // When the editor is active, the common case for a resize is if the virtual keyboard is being
     // shown on mobile device. In that case, we need to scroll active cell into view, and need to
     // do it synchronously, to allow repositioning the editor to it in response to the same event.
