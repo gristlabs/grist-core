@@ -144,7 +144,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     )),
     dom.onKeyDown({
       Enter: () => model.findNext(),
-      Escape: () => toggleMenu(false),
+      Escape: () => { keepExpanded = false; toggleMenu(false); },
       // Catch both Tab and Shift+Tab to prevent focus entering unrelated editable label.
       Tab: () => toggleMenu(false),
     }),
