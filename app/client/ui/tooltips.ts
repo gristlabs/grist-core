@@ -56,12 +56,16 @@ const openTooltips = new Map<string, ITooltipControl>();
  * Show tipContent briefly (2s by default), in a tooltip next to refElem (on top of it, by default).
  * See also ITipOptions.
  */
-export function showTransientTooltip(refElem: Element, tipContent: DomContents, options: ITransientTipOptions = {}) {
-  const ctl = showTooltip(refElem, () => tipContent, options);
+export function showTransientTooltip(
+  refElem: Element,
+  tipContent: DomContents | ITooltipContentFunc,
+  options: ITransientTipOptions = {}) {
+  const ctl = showTooltip(refElem, typeof tipContent == 'function' ? tipContent : () => tipContent, options);
   const origClose = ctl.close;
   ctl.close = () => { clearTimeout(timer); origClose(); };
 
   const timer = setTimeout(ctl.close, options.timeoutMs || 2000);
+  return ctl;
 }
 
 /**

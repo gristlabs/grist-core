@@ -213,7 +213,7 @@ export class Notifier extends Disposable implements INotifier {
   }
 
   /**
-   * Creates a basic toast user error. By default, expires in 5 seconds.
+   * Creates a basic toast user error. By default, expires in 10 seconds.
    * Takes an options objects to configure `expireSec` and `canUserClose`.
    * Set `expireSec` to 0 to prevent expiration.
    *

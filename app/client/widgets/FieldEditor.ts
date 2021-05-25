@@ -47,10 +47,14 @@ export async function setAndSave(editRow: DataRowModel, field: ViewFieldRec, val
   }
 }
 
+/**
+ * Event that is fired when editor stat has changed
+ */
 export interface FieldEditorStateEvent {
-  position: CellPosition;
-  currentState: any;
-  type: string;
+  position: CellPosition,
+  wasModified: boolean,
+  currentState: any,
+  type: string
 }
 
 export class FieldEditor extends Disposable {
@@ -68,6 +72,8 @@ export class FieldEditor extends Disposable {
   private _editorCtor: IEditorConstructor;
   private _editorHolder: Holder<NewBaseEditor> = Holder.create(this);
   private _saveEdit = asyncOnce(() => this._doSaveEdit());
+  private _editorHasChanged = false;
+  private _isFormula = false;
 
   constructor(options: {
     gristDoc: GristDoc,
@@ -91,13 +97,13 @@ export class FieldEditor extends Disposable {
     let offerToMakeFormula = false;
 
     const column = this._field.column();
-    let isFormula: boolean = column.isRealFormula.peek();
+    this._isFormula = column.isRealFormula.peek();
     let editValue: string|undefined = startVal;
     if (startVal && gutil.startsWith(startVal, '=')) {
-      if (isFormula || this._field.column().isEmpty()) {
+      if (this._isFormula  || this._field.column().isEmpty()) {
         // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
         // start editing ignoring the initial '='.
-        isFormula = true;
+        this._isFormula  = true;
         editValue = gutil.removePrefix(startVal, '=') as string;
       } else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
@@ -127,7 +133,7 @@ export class FieldEditor extends Disposable {
 
     const state: any = options.state;
 
-    this.rebuildEditor(isFormula, editValue, Number.POSITIVE_INFINITY, state);
+    this.rebuildEditor(editValue, Number.POSITIVE_INFINITY, state);
 
     if (offerToMakeFormula) {
       this._offerToMakeFormula();
@@ -141,8 +147,8 @@ export class FieldEditor extends Disposable {
   }
 
   // cursorPos refers to the position of the caret within the editor.
-  public rebuildEditor(isFormula: boolean, editValue: string|undefined, cursorPos: number, state?: any) {
-    const editorCtor: IEditorConstructor = isFormula ? FormulaEditor : this._editorCtor;
+  public rebuildEditor(editValue: string|undefined, cursorPos: number, state?: any) {
+    const editorCtor: IEditorConstructor = this._isFormula ? FormulaEditor : this._editorCtor;
 
     const column = this._field.column();
     const cellCurrentValue = this._editRow.cells[this._field.colId()].peek();
@@ -151,8 +157,9 @@ export class FieldEditor extends Disposable {
     // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
     // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
     // we defer this mode until the user types something.
-    this._field.editingFormula(isFormula && editValue !== undefined);
+    this._field.editingFormula(this._isFormula && editValue !== undefined);
 
+    this._editorHasChanged = false;
     // Replace the item in the Holder with a new one, disposing the previous one.
     const editor = this._editorHolder.autoDispose(editorCtor.create({
       gristDoc: this._gristDoc,
@@ -168,8 +175,10 @@ export class FieldEditor extends Disposable {
     // if editor supports live changes, connect it to the change emitter
     if (editor.editorState) {
       editor.autoDispose(editor.editorState.addListener((currentState) => {
+        this._editorHasChanged = true;
         const event: FieldEditorStateEvent = {
-          position: this._cellPosition(),
+          position : this.cellPosition(),
+          wasModified : this._editorHasChanged,
           currentState,
           type: this._field.column.peek().pureType.peek()
         };
@@ -180,8 +189,12 @@ export class FieldEditor extends Disposable {
     editor.attach(this._cellElem);
   }
 
+  public getDom() {
+    return this._editorHolder.get()?.getDom();
+  }
+
   // calculate current cell's absolute position
-  private _cellPosition() {
+  public cellPosition() {
     const rowId = this._editRow.getRowId();
     const colRef = this._field.colRef.peek();
     const sectionId = this._field.viewSection.peek().id.peek();
@@ -198,8 +211,9 @@ export class FieldEditor extends Disposable {
     // On keyPress of "=" on textInput, consider turning the column into a formula.
     if (editor && !this._field.editingFormula.peek() && editor.getCursorPos() === 0) {
       if (this._field.column().isEmpty()) {
+        this._isFormula = true;
         // If we typed '=' an empty column, convert it to a formula.
-        this.rebuildEditor(true, editor.getTextValue(), 0);
+        this.rebuildEditor(editor.getTextValue(), 0);
         return false;
       } else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
@@ -217,7 +231,8 @@ export class FieldEditor extends Disposable {
       !this._field.column().isRealFormula()) {
       // Restore a plain '=' character. This gives a way to enter "=" at the start if line. The
       // second backspace will delete it.
-      this.rebuildEditor(false, '=' + editor.getTextValue(), 1);
+      this._isFormula = false;
+      this.rebuildEditor('=' + editor.getTextValue(), 1);
       return false;
     }
     return true;    // don't stop propagation.
@@ -234,16 +249,18 @@ export class FieldEditor extends Disposable {
     if (editor) {
       const editValue = editor.getTextValue();
       const formulaValue = editValue.startsWith('=') ? editValue.slice(1) : editValue;
-      this.rebuildEditor(true, formulaValue, 0);
+      this._isFormula = true;
+      this.rebuildEditor(formulaValue, 0);
     }
   }
 
   // Cancels the edit
   private _cancelEdit() {
     const event: FieldEditorStateEvent = {
-      position: this._cellPosition(),
-      currentState: this._editorHolder.get()?.editorState?.get(),
-      type: this._field.column.peek().pureType.peek()
+      position : this.cellPosition(),
+      wasModified : this._editorHasChanged,
+      currentState : this._editorHolder.get()?.editorState?.get(),
+      type : this._field.column.peek().pureType.peek()
     };
     this.cancelEmitter.emit(event);
     this.dispose();
@@ -297,9 +314,10 @@ export class FieldEditor extends Disposable {
     }
 
     const event: FieldEditorStateEvent = {
-      position: this._cellPosition(),
-      currentState: this._editorHolder.get()?.editorState?.get(),
-      type: this._field.column.peek().pureType.peek()
+      position : this.cellPosition(),
+      wasModified : this._editorHasChanged,
+      currentState : this._editorHolder.get()?.editorState?.get(),
+      type : this._field.column.peek().pureType.peek()
     };
     this.saveEmitter.emit(event);
 

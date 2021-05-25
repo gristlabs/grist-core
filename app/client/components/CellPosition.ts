@@ -1,24 +1,25 @@
 import { CursorPos } from "app/client/components/Cursor";
-import { DocModel } from "app/client/models/DocModel";
+import { DocModel, ViewFieldRec } from "app/client/models/DocModel";
+import BaseRowModel = require("app/client/models/BaseRowModel");
 
 /**
  * Absolute position of a cell in a document
  */
-export interface CellPosition {
-  sectionId: number;
-  rowId: number;
-  colRef: number;
-}
-
-/**
- * Checks if two positions are equal.
- * @param a First position
- * @param b Second position
- */
-export function samePosition(a: CellPosition, b: CellPosition) {
-  return a && b && a.colRef == b.colRef &&
-    a.sectionId == b.sectionId &&
-    a.rowId == b.rowId;
+export abstract class CellPosition {
+  public static equals(a: CellPosition, b: CellPosition) {
+    return a && b && a.colRef == b.colRef &&
+      a.sectionId == b.sectionId &&
+      a.rowId == b.rowId;
+  }
+  public static create(row: BaseRowModel, field: ViewFieldRec): CellPosition {
+    const rowId = row.id.peek();
+    const colRef = field.colRef.peek();
+    const sectionId = field.viewSection.peek().id.peek();
+    return { rowId, colRef, sectionId };
+  }
+  public sectionId: number;
+  public rowId: number | string;
+  public colRef: number;
 }
 
 /**
@@ -36,7 +37,7 @@ export function fromCursor(position: CursorPos, docModel: DocModel): CellPositio
   const colRef = section.viewFields().peek()[position.fieldIndex]?.colRef.peek();
 
   const cursorPosition = {
-    rowId: position.rowId,
+    rowId: position.rowId as (string | number), // TODO: cursor position is wrongly typed
     colRef,
     sectionId: position.sectionId,
   };
@@ -57,7 +58,7 @@ export function toCursor(position: CellPosition, docModel: DocModel): CursorPos 
     .findIndex(x => x.colRef.peek() == position.colRef);
 
   const cursorPosition = {
-    rowId: position.rowId,
+    rowId: position.rowId as number, // this is hack, as cursor position can accept string
     fieldIndex,
     sectionId: position.sectionId
   };

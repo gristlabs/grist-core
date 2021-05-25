@@ -492,6 +492,10 @@ export class FieldBuilder extends Disposable {
     // still maintain a Holder in this FieldBuilder is mainly to match older behavior; changing that
     // will entail a number of other tweaks related to the order of creating and disposal.
     this.gristDoc.fieldEditorHolder.autoDispose(fieldEditor);
+
+    // expose the active editor in a grist doc as an observable
+    fieldEditor.onDispose(() => this.gristDoc.activeEditor.set(null));
+    this.gristDoc.activeEditor.set(fieldEditor);
   }
 
   public isEditorActive() {

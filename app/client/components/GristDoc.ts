@@ -54,6 +54,8 @@ import isEqual = require('lodash/isEqual');
 import * as BaseView from 'app/client/components/BaseView';
 import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonitor";
 import { EditorMonitor } from "app/client/components/EditorMonitor";
+import { FieldEditor } from "app/client/widgets/FieldEditor";
+import { Drafts } from "app/client/components/Drafts";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -101,6 +103,8 @@ export class GristDoc extends DisposableWithEvents {
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited
   public editorMonitor: EditorMonitor;
+  // component for keeping track of a cell that is being edited
+  public draftMonitor: Drafts;
 
   // Emitter triggered when the main doc area is resized.
   public readonly resizeEmitter = this.autoDispose(new Emitter());
@@ -109,6 +113,8 @@ export class GristDoc extends DisposableWithEvents {
   // previous one if any. The holder is maintained by GristDoc, so that we are guaranteed at
   // most one instance of FieldEditor at any time.
   public readonly fieldEditorHolder = Holder.create(this);
+  // active field editor
+  public readonly activeEditor: Observable<FieldEditor | null> = Observable.create(this, null);
 
   // Holds current view that is currently rendered
   public currentView: Observable<BaseView | null>;
@@ -269,6 +275,7 @@ export class GristDoc extends DisposableWithEvents {
       return undefined;
     });
 
+    this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
   }

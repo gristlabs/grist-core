@@ -119,6 +119,10 @@ export class FormulaEditor extends NewBaseEditor {
     this._formulaEditor.editor.focus();
   }
 
+  public getDom(): HTMLElement {
+    return this._dom;
+  }
+
   public getCellValue() {
     return this._formulaEditor.getValue();
   }
