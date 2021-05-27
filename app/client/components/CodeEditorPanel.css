@@ -17,3 +17,7 @@
 .g-code-viewer.hljs {
   background-color: inherit;
 }
+
+.g-code-panel-denied {
+  text-align: center;
+}

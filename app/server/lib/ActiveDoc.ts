@@ -658,6 +658,12 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fetchTableSchema(docSession: DocSession): Promise<string> {
     this.logInfo(docSession, "fetchTableSchema(%s)", docSession);
+    // Permit code view if user can read everything, or can download/copy (perhaps
+    // via an exceptional permission for sample documents)
+    if (!(await this._granularAccess.canReadEverything(docSession) ||
+          await this.canDownload(docSession))) {
+      throw new ApiError('Cannot view code, it may contain private material', 403);
+    }
     await this.waitForInitialization();
     return this._pyCall('fetch_table_schema');
   }

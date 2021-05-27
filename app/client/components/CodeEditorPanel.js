@@ -14,6 +14,7 @@ hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
 function CodeEditorPanel(gristDoc) {
   this._gristDoc = gristDoc;
   this._schema = ko.observable('');
+  this._denied = ko.observable(false);
 
   this.listenTo(this._gristDoc, 'schemaUpdateAction', this.onSchemaAction);
   this.onSchemaAction(); // Fetch the schema to initialize
@@ -28,6 +29,10 @@ CodeEditorPanel.prototype.buildDom = function() {
   // interfere with text selection even for un-focusable elements.
   return dom('div.g-code-panel.clipboard',
     {tabIndex: "-1"},
+    kd.maybe(this._denied, () => dom('div.g-code-panel-denied',
+      dom('h2', kd.text('Access denied')),
+      dom('div', kd.text('Code View is available only when you have full document access.')),
+    )),
     kd.scope(this._schema, function(schema) {
       // The reason to scope and rebuild instead of using `kd.text(schema)` is because
       // hljs.highlightBlock(elem) replaces `elem` with a whole new dom tree.
@@ -45,13 +50,22 @@ CodeEditorPanel.prototype.buildDom = function() {
   );
 };
 
-CodeEditorPanel.prototype.onSchemaAction = function(actions) {
-  return this._gristDoc.docComm.fetchTableSchema()
-  .then(schema => {
+CodeEditorPanel.prototype.onSchemaAction = async function(actions) {
+  try {
+    const schema = await this._gristDoc.docComm.fetchTableSchema();
     if (!this.isDisposed()) {
       this._schema(schema);
+      this._denied(false);
     }
-  });
+  } catch (err) {
+    if (!String(err).match(/Cannot view code/)) {
+      throw err;
+    }
+    if (!this.isDisposed()) {
+      this._schema('');
+      this._denied(true);
+    }
+  }
 };
 
 module.exports = CodeEditorPanel;
