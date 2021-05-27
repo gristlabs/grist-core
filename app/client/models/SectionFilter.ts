@@ -1,20 +1,15 @@
 import {KoArray} from 'app/client/lib/koArray';
 import {ViewFieldRec} from 'app/client/models/DocModel';
-import {FilterFunc, RowId} from 'app/client/models/rowset';
+import {RowId} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
-import {CellValue} from 'app/common/DocActions';
 import {Computed, Disposable, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {ColumnFilter, ColumnFilterFunc, getFilterFunc} from './ColumnFilter';
-
-type RowValueFunc = (rowId: RowId) => CellValue;
+import {ColumnFilter} from './ColumnFilter';
+import {buildRowFilter, RowFilterFunc, RowValueFunc } from "app/common/RowFilterFunc";
+import {buildColFilter} from "app/common/ColumnFilterFunc";
 
 interface OpenColumnFilter {
   fieldRef: number;
   colFilter: ColumnFilter;
-}
-
-function buildColFunc(getter: RowValueFunc, filterFunc: ColumnFilterFunc): FilterFunc {
-  return (rowId: RowId) => filterFunc(getter(rowId));
 }
 
 /**
@@ -28,7 +23,7 @@ function buildColFunc(getter: RowValueFunc, filterFunc: ColumnFilterFunc): Filte
  * results in their being displayed (obviating the need to maintain their rowId explicitly).
  */
 export class SectionFilter extends Disposable {
-  public readonly sectionFilterFunc: Observable<FilterFunc>;
+  public readonly sectionFilterFunc: Observable<RowFilterFunc<RowId>>;
 
   private _openFilterOverride: Observable<OpenColumnFilter|null> = Observable.create(this, null);
   private _tempRows: MutableObsArray<RowId> = obsArray();
@@ -38,16 +33,16 @@ export class SectionFilter extends Disposable {
 
     const columnFilterFunc = Computed.create(this, this._openFilterOverride, (use, openFilter) => {
       const fields = use(use(viewFields).getObservable());
-      const funcs: Array<FilterFunc | null> = fields.map(f => {
+      const funcs: Array<RowFilterFunc<RowId> | null> = fields.map(f => {
         const filterFunc = (openFilter && openFilter.fieldRef === f.getRowId()) ?
           use(openFilter.colFilter.filterFunc) :
-          getFilterFunc(use(f.activeFilter));
+          buildColFilter(use(f.activeFilter));
 
         const getter = tableData.getRowPropFunc(use(f.colId));
 
         if (!filterFunc || !getter) { return null; }
 
-        return buildColFunc(getter as RowValueFunc, filterFunc);
+        return buildRowFilter(getter as RowValueFunc<RowId>, filterFunc);
       })
       .filter(f => f !== null); // Filter out columns that don't have a filter
 

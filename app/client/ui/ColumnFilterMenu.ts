@@ -4,7 +4,7 @@
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
 
-import {allInclusive, ColumnFilter, isEquivalentFilter} from 'app/client/models/ColumnFilter';
+import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {FilteredRowSource} from 'app/client/models/rowset';
@@ -20,6 +20,7 @@ import {Computed, Disposable, dom, DomElementMethod, IDisposableOwner, input, ma
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
+import {isEquivalentFilter} from "app/common/FilterState";
 
 interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;

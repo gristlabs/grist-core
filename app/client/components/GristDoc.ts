@@ -576,13 +576,19 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getCsvLink() {
-    return this.docComm.docUrl('gen_csv') + '?' + encodeQueryParams({
+    const filters = this.viewModel.activeSection.peek().filteredFields.get().map(field=> ({
+      colRef : field.colRef.peek(),
+      filter : field.activeFilter.peek()
+    }));
+    const params = {
       ...this.docComm.getUrlParams(),
       title: this.docPageModel.currentDocTitle.get(),
       viewSection: this.viewModel.activeSectionId(),
       tableId: this.viewModel.activeSection().table().tableId(),
-      activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec())
-    });
+      activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
+      filters : JSON.stringify(filters),
+    };
+    return this.docComm.docUrl('gen_csv') + '?' + encodeQueryParams(params);
   }
 
   public hasGranularAccessRules(): boolean {

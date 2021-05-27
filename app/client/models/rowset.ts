@@ -25,6 +25,7 @@ import koArray, {KoArray} from 'app/client/lib/koArray';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {CompareFunc, sortedIndex} from 'app/common/gutil';
 import {SkippableRows} from 'app/common/TableData';
+import {RowFilterFunc} from "app/common/RowFilterFunc";
 
 /**
  * Special constant value that can be used for the `rows` array for the 'rowNotify'
@@ -206,8 +207,6 @@ export class ExtendedRowSource extends RowSource {
 // FilteredRowSource
 // ----------------------------------------------------------------------
 
-export type FilterFunc = (row: RowId) => boolean;
-
 interface FilterRowChanges {
   adds?: RowId[];
   updates?: RowId[];
@@ -221,7 +220,7 @@ interface FilterRowChanges {
 export class BaseFilteredRowSource extends RowListener implements RowSource {
   protected _matchingRows: Set<RowId> = new Set();   // Set of rows matching the filter.
 
-  constructor(protected _filterFunc: FilterFunc) {
+  constructor(protected _filterFunc: RowFilterFunc<RowId>) {
     super();
   }
 
@@ -327,7 +326,7 @@ export class FilteredRowSource extends BaseFilteredRowSource {
    * Change the filter function. This may trigger 'remove' and 'add' events as necessary to indicate
    * that rows stopped or started matching the new filter.
    */
-  public updateFilter(filterFunc: FilterFunc) {
+  public updateFilter(filterFunc: RowFilterFunc<RowId>) {
     this._filterFunc = filterFunc;
     const changes: FilterRowChanges = {};
     // After the first call, _excludedRows may have additional rows, but there is no harm in it,

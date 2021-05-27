@@ -28,7 +28,7 @@
  */
 import * as DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
-import {BaseFilteredRowSource, FilterFunc, RowId, RowList, RowSource} from 'app/client/models/rowset';
+import {BaseFilteredRowSource, RowId, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {ActiveDocAPI, Query} from 'app/common/ActiveDocAPI';
 import {TableDataAction} from 'app/common/DocActions';
@@ -36,6 +36,7 @@ import {DocData} from 'app/common/DocData';
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
 import {TableData as BaseTableData} from 'app/common/TableData';
+import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {tbind} from 'app/common/tbind';
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
@@ -295,7 +296,7 @@ export class TableQuerySets {
 /**
  * Returns a filtering function which tells whether a row matches the given query.
  */
-export function getFilterFunc(docData: DocData, query: Query): FilterFunc {
+export function getFilterFunc(docData: DocData, query: Query): RowFilterFunc<RowId> {
   // NOTE we rely without checking on tableId and colIds being valid.
   const tableData: BaseTableData = docData.getTable(query.tableId)!;
   const colIds = Object.keys(query.filters).sort();

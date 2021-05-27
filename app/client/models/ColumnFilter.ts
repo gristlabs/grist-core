@@ -1,53 +1,8 @@
 import {CellValue} from 'app/common/DocActions';
 import {nativeCompare} from 'app/common/gutil';
 import {Computed, Disposable, Observable} from 'grainjs';
-
-export type ColumnFilterFunc = (value: CellValue) => boolean;
-
-interface FilterSpec { // Filter object as stored in the db
-  included?: CellValue[];
-  excluded?: CellValue[];
-}
-
-// A more efficient representation of filter state for a column than FilterSpec.
-interface FilterState {
-  include: boolean;
-  values: Set<CellValue>;
-}
-
-// Creates a FilterState. Accepts spec as a json string or a FilterSpec.
-function makeFilterState(spec: string | FilterSpec): FilterState {
-  if (typeof(spec) === 'string') {
-    return makeFilterState((spec && JSON.parse(spec)) || {});
-  }
-  return {
-    include: Boolean(spec.included),
-    values: new Set(spec.included || spec.excluded || []),
-  };
-}
-
-// Returns true if state and spec are equivalent, false otherwise.
-export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolean {
-  const other = makeFilterState(spec);
-  if (state.include !== other.include) { return false; }
-  if (state.values.size !== other.values.size) { return false; }
-  for (const val of other.values) { if (!state.values.has(val)) { return false; } }
-  return true;
-}
-
-// Returns a filter function for a particular column: the function takes a cell value and returns
-// whether it's accepted according to the given FilterState.
-function makeFilterFunc({include, values}: FilterState): ColumnFilterFunc {
-  // NOTE: This logic results in complex values and their stringified JSON representations as equivalent.
-  // For example, a TypeError in the formula column and the string '["E","TypeError"]' would be seen as the same.
-  // TODO: This narrow corner case seems acceptable for now, but may be worth revisiting.
-  return (val: CellValue) => (values.has(Array.isArray(val) ? JSON.stringify(val) : val) === include);
-}
-
-// Given a JSON string, returns a ColumnFilterFunc
-export function getFilterFunc(filterJson: string): ColumnFilterFunc|null {
- return filterJson ? makeFilterFunc(makeFilterState(filterJson)) : null;
-}
+import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
+import {FilterSpec, FilterState, makeFilterState} from "app/common/FilterState";
 
 /**
  * ColumnFilter implements a custom filter on a column, i.e. a filter that's diverged from what's

@@ -30,8 +30,8 @@ export class DocWorker {
     this._comm = comm;
   }
 
-  public getCSV(req: express.Request, res: express.Response): void {
-    return generateCSV(req, res, this._comm);
+  public async getCSV(req: express.Request, res: express.Response): Promise<void> {
+    await generateCSV(req, res, this._comm);
   }
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
