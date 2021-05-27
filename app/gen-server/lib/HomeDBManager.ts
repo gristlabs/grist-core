@@ -2277,15 +2277,24 @@ export class HomeDBManager extends EventEmitter {
   public normalizeOrgDomain(orgId: number, domain: string|null,
                             ownerId: number|undefined, mergePersonalOrgs: boolean = true,
                             suppressDomain: boolean = false): string {
-    if (!domain) {
-      if (ownerId) {
-        // This is an org with no domain set, and an owner set.
-        domain = mergePersonalOrgs ? this.mergedOrgDomain() : `docs-${this._idPrefix}${ownerId}`;
-      } else {
-        // This is an org with no domain or owner set.
-        domain = `o-${this._idPrefix}${orgId}`;
+    if (ownerId) {
+      // An org with an ownerId set is a personal org.  Historically, those orgs
+      // have a subdomain like docs-NN where NN is the user ID.
+      const personalDomain = `docs-${this._idPrefix}${ownerId}`;
+      // In most cases now we pool all personal orgs as a single virtual org.
+      // So when mergePersonalOrgs is on, and the subdomain is either not set
+      // (as it is in the database for personal orgs) or set to something
+      // like docs-NN (as it is in the API), normalization should just return the
+      // single merged org ("docs" or "docs-s").
+      if (mergePersonalOrgs && (!domain || domain === personalDomain)) {
+        domain = this.mergedOrgDomain();
       }
-    } else if (suppressDomain)  {
+      if (!domain) {
+        domain = personalDomain;
+      }
+    } else if (suppressDomain || !domain) {
+      // If no subdomain is set, or custom subdomains or forbidden, return something
+      // uninspiring but unique, like o-NN where NN is the org ID.
       domain = `o-${this._idPrefix}${orgId}`;
     }
     return domain;

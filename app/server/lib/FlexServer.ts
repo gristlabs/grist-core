@@ -1147,7 +1147,7 @@ export class FlexServer implements GristServer {
       state.ws = resource.id;
     } else {
       org = resource.workspace.org;
-      state.doc = resource.id;
+      state.doc = resource.urlId || resource.id;
       state.slug = getSlugIfNeeded(resource);
     }
     state.org = this.dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);

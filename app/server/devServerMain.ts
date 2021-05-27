@@ -88,9 +88,16 @@ export async function main() {
     return;
   }
 
+  // The home server and web server(s) are effectively identical in Grist deployments
+  // now, but remain distinct in some test setups.
   const homeServerPort = getPort("HOME_PORT", 9000);
+  const webServerPort = getPort("PORT", 8080);
   if (!process.env.APP_HOME_URL) {
-    process.env.APP_HOME_URL = `http://localhost:${homeServerPort}`;
+    // All servers need to know a "main" URL for Grist.  This is generally
+    // that of the web server.  In some test setups, the web server port is left
+    // at 0 to be auto-allocated, but for those tests it suffices to use the home
+    // server port.
+    process.env.APP_HOME_URL = `http://localhost:${webServerPort || homeServerPort}`;
   }
 
   // Bring up the static resource server
@@ -107,7 +114,6 @@ export async function main() {
 
   // If a distinct webServerPort is specified, we listen also on that port, though serving
   // exactly the same content.  This is handy for testing CORS issues.
-  const webServerPort = getPort("PORT", 8080);
   if (webServerPort !== 0 && webServerPort !== homeServerPort) {
     await home.startCopy('webServer', webServerPort);
   }
