@@ -26,12 +26,20 @@ export interface SearchModel {
 }
 
 interface SearchPosition {
-  tabIndex: number;
+  pageIndex: number;
   sectionIndex: number;
   rowIndex: number;
   fieldIndex: number;
 }
 
+/**
+ * Stepper is an helper class that is used to implement stepping through all the cells of a
+ * document. Fields belongs to rows, rows belongs to section and sections to pages. So this is four
+ * steppers that must be used together, one for each level (field, rows, section and pages). When a
+ * stepper reaches the end of its array, this is the `nextArrayFunc` callback, passed to the
+ * `next()`, that is responsible for both taking a step at the higher level and updating the
+ * stepper's array.
+ */
 class Stepper<T> {
   public array: ReadonlyArray<T> = [];
   public index: number = 0;
@@ -64,75 +72,69 @@ class Stepper<T> {
 }
 
 /**
- * Implementation of SearchModel used to construct the search UI.
+ * Interface that represents an ongoing search job which stops on the first match found.
  */
-export class SearchModelImpl extends Disposable implements SearchModel {
-  public readonly value = Observable.create(this, '');
-  public readonly isOpen = Observable.create(this, false);
-  public readonly isRunning = Observable.create(this, false);
-  public readonly noMatch = Observable.create(this, true);
-  public readonly isEmpty = Observable.create(this, true);
-  public readonly multiPage = Observable.create(this, false);
+interface IFinder {
+  matchFound: boolean;             // true if a match was found
+  startPosition: SearchPosition;   // position at which to stop searching for a new match
+  abort(): void;                   // abort current search
+  matchNext(step: number): Promise<void>;      // next match
+  nextField(step: number): Promise<void>|void; // move the current position
+  getCurrentPosition(): SearchPosition;        // get the current position
+}
+
+// A callback to opening a page: useful to switch to next page during an ongoing search.
+type DocPageOpener = (viewId: number) => Promise<void>;
+
+/**
+ * An implementation of an IFinder.
+ */
+class FinderImpl implements IFinder {
+  public matchFound = false;
+  public startPosition: SearchPosition;
+
   private _searchRegexp: RegExp;
-  private _tabStepper = new Stepper<any>();
+  private _pageStepper = new Stepper<any>();
   private _sectionStepper = new Stepper<ViewSectionRec>();
   private _sectionTableData: TableData;
   private _rowStepper = new Stepper<number>();
   private _fieldStepper = new Stepper<ViewFieldRec>();
   private _fieldFormatters: BaseFormatter[];
-  private _startPosition: SearchPosition;
-  private _tabsSwitched: number = 0;
-  private _isRestartNeeded: boolean = false;
+  private _pagesSwitched: number = 0;
+  private _aborted = false;
+  private _clearCursorHighlight: (() => void)|undefined;
 
-  constructor(private _gristDoc: GristDoc) {
-    super();
-
-    // Listen to input value changes (debounced) to activate searching.
-    const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
-    this.autoDispose(this.value.addListener(v => { void findFirst(v); }));
-
-    // Set this.noMatch to false when multiPage gets turned ON.
-    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
-
-    // Schedule a search restart when user changes pages (otherwise search would resume from the
-    // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
-    this.autoDispose(this._gristDoc.activeViewId.addListener(() => {
-      if (!this.multiPage.get()) { this.noMatch.set(false); }
-      this._isRestartNeeded = true;
-    }));
-  }
-
-  public async findNext() {
-    if (this.noMatch.get()) { return; }
-    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
-    this._startPosition = this._getCurrentPosition();
-    await this._nextField(1);
-    return this._matchNext(1);
-  }
-
-  public async findPrev() {
-    if (this.noMatch.get()) { return; }
-    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
-    this._startPosition = this._getCurrentPosition();
-    await this._nextField(-1);
-    return this._matchNext(-1);
-  }
-
-  private _findFirst(value: string) {
-    this._isRestartNeeded = false;
-    this.isEmpty.set(!value);
-    if (!value) { this.noMatch.set(true); return; }
+  constructor(private _gristDoc: GristDoc, value: string, private _openDocPageCB: DocPageOpener,
+              public multiPage: Observable<boolean>) {
     this._searchRegexp = makeRegexp(value);
-    const tabs: any[] = this._gristDoc.docModel.allDocPages.peek();
-    this._tabStepper.array = tabs;
-    this._tabStepper.index = tabs.findIndex(t => t.viewRef() === this._gristDoc.activeViewId.get());
-    if (this._tabStepper.index < 0) { this.noMatch.set(true); return; }
+  }
 
-    const view = this._tabStepper.value.view.peek();
+  public abort() {
+    this._aborted = true;
+    if (this._clearCursorHighlight) { this._clearCursorHighlight(); }
+  }
+
+  public getCurrentPosition(): SearchPosition {
+    return {
+      pageIndex: this._pageStepper.index,
+      sectionIndex: this._sectionStepper.index,
+      rowIndex: this._rowStepper.index,
+      fieldIndex: this._fieldStepper.index,
+    };
+  }
+
+  // Initialize the steppers. Returns false if anything goes wrong.
+  public init(): boolean {
+    const pages: any[] = this._gristDoc.docModel.allDocPages.peek();
+    this._pageStepper.array = pages;
+    this._pageStepper.index = pages.findIndex(t => t.viewRef() === this._gristDoc.activeViewId.get());
+    if (this._pageStepper.index < 0) { return false; }
+
+    const view = this._pageStepper.value.view.peek();
     const sections: any[] = view.viewSections().peek();
     this._sectionStepper.array = sections;
     this._sectionStepper.index = sections.findIndex(s => s.getRowId() === view.activeSectionId());
-    if (this._sectionStepper.index < 0) { this.noMatch.set(true); return; }
+    if (this._sectionStepper.index < 0) { return false; }
 
     this._initNewSectionShown();
 
@@ -141,97 +143,63 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     const pos = viewInstance.cursor.getCursorPos();
     this._rowStepper.index = pos.rowIndex!;
     this._fieldStepper.index = pos.fieldIndex!;
-
-    this._startPosition = this._getCurrentPosition();
-    return this._matchNext(1);
+    return true;
   }
 
-  private async _matchNext(step: number): Promise<void> {
-    const indicatorTimer = setTimeout(() => this.isRunning.set(true), 300);
-    try {
-      const searchRegexp = this._searchRegexp;
-      let count = 0;
-      let lastBreak = Date.now();
+  public async matchNext(step: number): Promise<void> {
+    let count = 0;
+    let lastBreak = Date.now();
 
-      this._tabsSwitched = 0;
-      while (!this._matches() || ((await this._loadSection(step)) && !this._matches())) {
-        // To avoid hogging the CPU for too long, check time periodically, and if we've been running
-        // for long enough, take a brief break. We choose a 5ms break every 20ms; and only check
-        // time every 100 iterations, to avoid excessive overhead purely due to time checks.
-        if ((++count) % 100 === 0 && Date.now() >= lastBreak + 20) {
-          await delay(5);
-          lastBreak = Date.now();
+    this._pagesSwitched = 0;
 
-          // After other code had a chance to run, it's possible that we are now searching for
-          // something else, in which case abort this task.
-          if (this._searchRegexp !== searchRegexp) {
-            console.log("SearchBar: aborting search since a new one was started");
-            return;
-          }
-        }
+    while (!this._matches() || ((await this._loadSection(step)) && !this._matches())) {
 
-        const p = this._nextField(step);
-        if (p) { await p; }
+      // If search was aborted, simply returns.
+      if (this._aborted) { return; }
 
-        // Detect when we get back to the start position; this is where we break on no match.
-        if (this._isCurrentPosition(this._startPosition) && !this._matches()) {
-          console.log("SearchBar: reached start position without finding anything");
-          this.noMatch.set(true);
-          return;
-        }
-
-        // A fail-safe to prevent certain bugs from causing infinite loops; break also if we scan
-        // through tabs too many times.
-        // TODO: test it by disabling the check above.
-        if (this._tabsSwitched > this._tabStepper.array.length) {
-          console.log("SearchBar: aborting search due to too many tab switches");
-          this.noMatch.set(true);
-          return;
-        }
+      // To avoid hogging the CPU for too long, check time periodically, and if we've been running
+      // for long enough, take a brief break. We choose a 5ms break every 20ms; and only check
+      // time every 100 iterations, to avoid excessive overhead purely due to time checks.
+      if ((++count) % 100 === 0 && Date.now() >= lastBreak + 20) {
+        await delay(5);
+        lastBreak = Date.now();
       }
-      console.log("SearchBar: found a match at %s", JSON.stringify(this._getCurrentPosition()));
-      this.noMatch.set(false);
-      await this._highlight();
-    } finally {
-      clearTimeout(indicatorTimer);
-      this.isRunning.set(false);
+
+      const p = this.nextField(step);
+      if (p) { await p; }
+
+      // Detect when we get back to the start position; this is where we break on no match.
+      if (this._isCurrentPosition(this.startPosition) && !this._matches()) {
+        console.log("SearchBar: reached start position without finding anything");
+        this.matchFound = false;
+        return;
+      }
+
+      // A fail-safe to prevent certain bugs from causing infinite loops; break also if we scan
+      // through pages too many times.
+      // TODO: test it by disabling the check above.
+      if (this._pagesSwitched > this._pageStepper.array.length) {
+        console.log("SearchBar: aborting search due to too many page switches");
+        this.matchFound = false;
+        return;
+      }
     }
+    console.log("SearchBar: found a match at %s", JSON.stringify(this.getCurrentPosition()));
+    this.matchFound = true;
+    await this._highlight();
   }
 
-  private _getCurrentPosition(): SearchPosition {
-    // It's important to call _getCurrentPosition() in the visible tab, since other tabs will not
-    // use the currently visible version of the data (with the same sort and filter).
-    return {
-      tabIndex: this._tabStepper.index,
-      sectionIndex: this._sectionStepper.index,
-      rowIndex: this._rowStepper.index,
-      fieldIndex: this._fieldStepper.index,
-    };
-  }
-
-  private _isCurrentPosition(pos: SearchPosition): boolean {
-    return (
-      this._tabStepper.index === pos.tabIndex &&
-      this._sectionStepper.index === pos.sectionIndex &&
-      this._rowStepper.index === pos.rowIndex &&
-      this._fieldStepper.index === pos.fieldIndex
-    );
-  }
-
-  private _nextField(step: number): Promise<void>|void {
+  public nextField(step: number): Promise<void>|void {
     return this._fieldStepper.next(step, () => this._nextRow(step));
-    // console.log("nextField", this._fieldStepper.index);
   }
 
   private _nextRow(step: number) {
     return this._rowStepper.next(step, () => this._nextSection(step));
-    // console.log("nextRow", this._rowStepper.index);
   }
 
   private async _nextSection(step: number) {
     // Switching sections is rare enough that we don't worry about optimizing away `await` calls.
-    await this._sectionStepper.next(step, () => this._nextTab(step));
-    // console.log("nextSection", this._sectionStepper.index);
+    await this._sectionStepper.next(step, () => this._nextPage(step));
     await this._initNewSectionAny();
   }
 
@@ -266,26 +234,25 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     if (viewInstance) {
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
     } else {
-      // If we are searching through another tab (not currently loaded), we will NOT have a
+      // If we are searching through another page (not currently loaded), we will NOT have a
       // viewInstance, but we use the unsorted unfiltered row list, and if we find a match, the
-      // _loadSection() method will load the tab and we'll repeat the search with a viewInstance.
+      // _loadSection() method will load the page and we'll repeat the search with a viewInstance.
       await tableModel.fetch();
       this._rowStepper.array = this._sectionTableData.getRowIds();
     }
   }
 
-  private async _nextTab(step: number) {
+  private async _nextPage(step: number) {
     if (!this.multiPage.get()) { return; }
-    await this._tabStepper.next(step, () => undefined);
-    this._tabsSwitched++;
-    // console.log("nextTab", this._tabStepper.index);
+    await this._pageStepper.next(step, () => undefined);
+    this._pagesSwitched++;
 
-    const view = this._tabStepper.value.view.peek();
+    const view = this._pageStepper.value.view.peek();
     this._sectionStepper.array = view.viewSections().peek();
   }
 
   private _matches(): boolean {
-    if (this._tabStepper.index < 0 || this._sectionStepper.index < 0 ||
+    if (this._pageStepper.index < 0 || this._sectionStepper.index < 0 ||
         this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
       console.warn("match outside");
       return false;
@@ -305,11 +272,11 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   private async _loadSection(step: number): Promise<boolean> {
     // If we found a match in a section for which we don't have a valid BaseView instance, we need
     // to load the BaseView and start searching the section again, since the match we found does
-    // not take into account sort or filters. So we switch to the right tab, wait for the
+    // not take into account sort or filters. So we switch to the right page, wait for the
     // viewInstance to be created, reset the section info, and return true to continue searching.
     const section = this._sectionStepper.value;
     if (!section.viewInstance.peek()) {
-      const view = this._tabStepper.value.view.peek();
+      const view = this._pageStepper.value.view.peek();
       await this._openDocPage(view.getRowId());
       console.log("SearchBar: loading view %s section %s", view.getRowId(), section.getRowId());
       const viewInstance: any = await waitObs(section.viewInstance);
@@ -325,15 +292,19 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
   // Highlights the cell at the current position.
   private async _highlight() {
-    const view = this._tabStepper.value.view.peek();
-    await this._gristDoc.openDocPage(view.getRowId());
+    if (this._aborted) { return; }
+    const view = this._pageStepper.value.view.peek();
+    await this._openDocPage(view.getRowId());
 
+    if (this._aborted) { return; }
     const section = this._sectionStepper.value;
     view.activeSectionId(section.getRowId());
 
     // We may need to wait for the BaseView instance to load.
     const viewInstance = await waitObs<any>(section.viewInstance);
     await viewInstance.getLoadingDonePromise();
+
+    if (this._aborted) { return; }
     viewInstance.setCursorPos({
       rowIndex: this._rowStepper.index,
       fieldIndex: this._fieldStepper.index,
@@ -343,10 +314,116 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     // this ad-hoc way rather than use observables, to avoid the overhead of *every* cell
     // depending on an additional observable.
     await delay(0);
+
+    if (this._aborted) { return; }
     const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
     if (cursor) {
       cursor.classList.add('search-match');
-      setTimeout(() => cursor.classList.remove('search-match'), 20);
+      this._clearCursorHighlight = () => {
+        cursor.classList.remove('search-match');
+        clearTimeout(timeout);
+        this._clearCursorHighlight = undefined;
+      };
+      const timeout = setTimeout(this._clearCursorHighlight, 20);
+    }
+  }
+
+  private _isCurrentPosition(pos: SearchPosition): boolean {
+    return (
+      this._pageStepper.index === pos.pageIndex &&
+        this._sectionStepper.index === pos.sectionIndex &&
+        this._rowStepper.index === pos.rowIndex &&
+        this._fieldStepper.index === pos.fieldIndex
+    );
+  }
+
+  private _openDocPage(viewId: number) {
+    if (this._aborted) { return; }
+    return this._openDocPageCB(viewId);
+  }
+}
+
+/**
+ * Implementation of SearchModel used to construct the search UI.
+ */
+export class SearchModelImpl extends Disposable implements SearchModel {
+  public readonly value = Observable.create(this, '');
+  public readonly isOpen = Observable.create(this, false);
+  public readonly isRunning = Observable.create(this, false);
+  public readonly noMatch = Observable.create(this, true);
+  public readonly isEmpty = Observable.create(this, true);
+  public readonly multiPage = Observable.create(this, false);
+
+  private _isRestartNeeded = false;
+  private _finder: IFinder|null = null;
+
+  constructor(private _gristDoc: GristDoc) {
+    super();
+
+    // Listen to input value changes (debounced) to activate searching.
+    const findFirst = debounce((_value: string) => this._findFirst(_value), 100);
+    this.autoDispose(this.value.addListener(v => { this.isRunning.set(true); void findFirst(v); }));
+
+    // Set this.noMatch to false when multiPage gets turned ON.
+    this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
+
+    // Schedule a search restart when user changes pages (otherwise search would resume from the
+    // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
+    this.autoDispose(this._gristDoc.activeViewId.addListener(() => {
+      if (!this.multiPage.get()) { this.noMatch.set(false); }
+      this._isRestartNeeded = true;
+    }));
+  }
+
+  public async findNext() {
+    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    await this._run(async (finder) => {
+      await finder.nextField(1);
+      await finder.matchNext(1);
+    });
+  }
+
+  public async findPrev() {
+    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    await this._run(async (finder) => {
+      await finder.nextField(-1);
+      await finder.matchNext(-1);
+    });
+  }
+
+  private async _findFirst(value: string) {
+    this._isRestartNeeded = false;
+    this.isEmpty.set(!value);
+    this._updateFinder(value);
+    if (!value || !this._finder) { this.noMatch.set(true); return; }
+    await this._run(async (finder) => {
+      await finder.matchNext(1);
+    });
+  }
+
+  private _updateFinder(value: string) {
+    if (this._finder) { this._finder.abort(); }
+    const impl = new FinderImpl(this._gristDoc, value, this._openDocPage.bind(this), this.multiPage);
+    const isValid = impl.init();
+    this._finder = isValid ? impl : null;
+  }
+
+  // Internal helper that runs cb, passing it the current `this._finder` as first argument and sets
+  // this.isRunning to true until the call resolves. It also takes care of updating this.noMatch.
+  private async _run(cb: (finder: IFinder) => Promise<void>) {
+
+    const finder = this._finder;
+    if (!finder) { throw new Error("SearchModel: finder is not defined"); }
+
+    try {
+      this.isRunning.set(true);
+      finder.startPosition = finder.getCurrentPosition();
+      await cb(finder);
+    } finally {
+      this.isRunning.set(false);
+      this.noMatch.set(!finder.matchFound);
     }
   }
 
