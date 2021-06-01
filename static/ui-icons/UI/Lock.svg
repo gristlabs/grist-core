@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Icons / UI / Lock</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-Lock" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M12,6 L10,6 L10,4 C10,2.8954305 9.1045695,2 8,2 C6.8954305,2 6,2.8954305 6,4 L6,6 L4,6 L4,4 C4,1.790861 5.790861,0 8,0 C10.209139,0 12,1.790861 12,4 L12,6 Z" id="Path" fill="#000000" fill-rule="nonzero"></path>
+        <path d="M14,7 L2,7 C1.44771525,7 1,7.44771525 1,8 L1,15 C1,15.5522847 1.44771525,16 2,16 L14,16 C14.5522847,16 15,15.5522847 15,15 L15,8 C15,7.44771525 14.5522847,7 14,7 Z M8,13 C6.8954305,13 6,12.1045695 6,11 C6,9.8954305 6.8954305,9 8,9 C9.1045695,9 10,9.8954305 10,11 C10,12.1045695 9.1045695,13 8,13 Z" id="Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>
