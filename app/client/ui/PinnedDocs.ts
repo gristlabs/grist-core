@@ -31,45 +31,49 @@ export function createPinnedDocs(home: HomeModel) {
  */
 export function buildPinnedDoc(home: HomeModel, doc: Document, example?: IExampleInfo): HTMLElement {
   const renaming = observable<Document|null>(null);
-  const isRenaming = computed((use) => use(renaming) === doc);
+  const isRenamingDoc = computed((use) => use(renaming) === doc);
   const docTitle = example?.title || doc.name;
   return pinnedDocWrapper(
-    dom.autoDispose(isRenaming),
-    pinnedDoc(
-      urlState().setLinkUrl(docUrl(doc)),
-      pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
-      pinnedDocPreview(
-        example?.bgColor ? dom.style('background-color', example.bgColor) : null,
-        (example?.imgUrl ?
-          cssImage({src: example.imgUrl}) :
-          [docInitials(docTitle), pinnedDocThumbnail()]
-        ),
-        (doc.public && !example ? cssPublicIcon('PublicFilled', testId('public')) : null),
-      ),
-      pinnedDocFooter(
-        dom.domComputed(isRenaming, (yesNo) => yesNo ?
-          pinnedDocEditorInput({
-            initialValue: doc.name || '',
-            save: async (val) => (val !== doc.name) ? home.renameDoc(doc.id, val) : undefined,
-            close: () => renaming.set(null),
-          }, testId('doc-name-editor'))
-          :
-          pinnedDocTitle(
-            dom.text(docTitle),
-            testId('pinned-doc-name'),
-            // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
-            // either 'list' or 'icons' views.
-            testId('doc-name')
+    dom.autoDispose(isRenamingDoc),
+    dom.domComputed(isRenamingDoc, (isRenaming) => 
+      pinnedDoc(
+        isRenaming ? null : urlState().setLinkUrl(docUrl(doc)),
+        pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
+        pinnedDocPreview(
+          example?.bgColor ? dom.style('background-color', example.bgColor) : null,
+          (example?.imgUrl ?
+            cssImage({src: example.imgUrl}) :
+            [docInitials(docTitle), pinnedDocThumbnail()]
           ),
+          (doc.public && !example ? cssPublicIcon('PublicFilled', testId('public')) : null),
         ),
-        cssPinnedDocDesc(
-          example?.desc || capitalizeFirst(getTimeFromNow(doc.updatedAt)),
-          testId('pinned-doc-desc')
+        pinnedDocFooter(
+          (isRenaming ?
+            pinnedDocEditorInput({
+              initialValue: doc.name || '',
+              save: async (val) => (val !== doc.name) ? home.renameDoc(doc.id, val) : undefined,
+              close: () => renaming.set(null),
+            }, testId('doc-name-editor'))
+            :
+            pinnedDocTitle(
+              dom.text(docTitle),
+              testId('pinned-doc-name'),
+              // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
+              // either 'list' or 'icons' views.
+              testId('doc-name')
+            )
+          ),
+          cssPinnedDocDesc(
+            example?.desc || capitalizeFirst(getTimeFromNow(doc.updatedAt)),
+            testId('pinned-doc-desc')
+          )
         )
       )
     ),
     example ? null : pinnedDocOptions(icon('Dots'),
       menu(() => makeDocOptionsMenu(home, doc, renaming), {placement: 'bottom-start'}),
+      // Clicks on the menu trigger shouldn't follow the link that it's contained in.
+      dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
       testId('pinned-doc-options')
     ),
     testId('pinned-doc')
