@@ -16,7 +16,7 @@
  */
 
 import { colors } from 'app/client/ui2018/cssVars';
-import { dom, DomArg, styled } from 'grainjs';
+import { Computed, dom, DomArg, styled } from 'grainjs';
 import { Observable } from 'grainjs';
 
 export const cssLabel = styled('label', `
@@ -50,7 +50,7 @@ export const cssCheckboxSquare = styled('input', `
 
   --radius: 3px;
 
-  &:checked:enabled {
+  &:checked:enabled, &:indeterminate:enabled {
     --color: ${colors.lightGreen};
   }
 
@@ -59,7 +59,8 @@ export const cssCheckboxSquare = styled('input', `
     cursor: not-allowed;
   }
 
-  .${cssLabel.className}:hover > &:checked:enabled {
+  .${cssLabel.className}:hover > &:checked:enabled,
+  .${cssLabel.className}:hover > &:indeterminate:enabled, {
     --color: ${colors.darkGreen};
   }
 
@@ -79,11 +80,11 @@ export const cssCheckboxSquare = styled('input', `
     border-radius: var(--radius);
   }
 
-  &:checked::before, &:disabled::before {
+  &:checked::before, &:disabled::before, &:indeterminate::before {
     background-color: var(--color);
   }
 
-  &:checked::after {
+  &:checked::after, &:indeterminate::after {
     content: '';
     position: absolute;
     height: 16px;
@@ -93,6 +94,10 @@ export const cssCheckboxSquare = styled('input', `
     -webkit-mask-position: center;
     -webkit-mask-repeat: no-repeat;
     background-color: ${colors.light};
+  }
+
+  &:not(:checked):indeterminate::after {
+    -webkit-mask-image: var(--icon-Minus);
   }
 
   &:not(:disabled)::after {
@@ -142,4 +147,28 @@ export function labeledSquareCheckbox(obs: Observable<boolean>, label: string, .
 
 export function labeledCircleCheckbox(obs: Observable<boolean>, label: string, ...domArgs: CheckboxArg[]) {
   return checkbox(obs, cssCheckboxCircle, label, ...domArgs);
+}
+
+export const Indeterminate = 'indeterminate';
+export type TriState = boolean|'indeterminate';
+
+function triStateCheckbox(
+  obs: Observable<TriState>, cssCheckbox: typeof cssCheckboxSquare, label: string = '',  ...domArgs: CheckboxArg[]
+) {
+  const checkboxObs = Computed.create(null, obs, (_use, state) => state === true)
+    .onWrite((checked) => obs.set(checked));
+  return checkbox(
+    checkboxObs, cssCheckbox, label,
+    dom.prop('indeterminate', (use) => use(obs) === 'indeterminate'),
+    dom.autoDispose(checkboxObs),
+    ...domArgs
+  );
+}
+
+export function triStateSquareCheckbox(obs: Observable<TriState>, ...domArgs: CheckboxArg[]) {
+  return triStateCheckbox(obs, cssCheckboxSquare, '', ...domArgs);
+}
+
+export function labeledTriStateSquareCheckbox(obs: Observable<TriState>, label: string, ...domArgs: CheckboxArg[]) {
+  return triStateCheckbox(obs, cssCheckboxSquare, label, ...domArgs);
 }
