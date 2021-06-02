@@ -2420,20 +2420,27 @@ export class HomeDBManager extends EventEmitter {
    */
   private async _repairWorkspaceGuests(scope: Scope, wsId: number, transaction?: EntityManager): Promise<void> {
     return await this._runInTransaction(transaction, async manager => {
+      // Get guest group for workspace.
       const wsQuery = this._workspace(scope, wsId, {manager})
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'groups')
-      .leftJoinAndSelect('workspaces.docs', 'docs')
-      .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
-      .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users');
-      const workspace: Workspace = (await wsQuery.getOne())!;
+      .leftJoinAndSelect('acl_rules.group', 'groups');
+       const workspace: Workspace = (await wsQuery.getOne())!;
       const wsGuestGroup = workspace.aclRules.map(aclRule => aclRule.group)
         .find(_grp => _grp.name === roles.GUEST);
       if (!wsGuestGroup) {
         throw new Error(`_repairWorkspaceGuests error: could not find ${roles.GUEST} ACL group`);
       }
-      wsGuestGroup.memberUsers = this._filterEveryone(getResourceUsers(workspace.docs));
+
+      // Get explicitly added users of docs inside the workspace, as a separate query
+      // to avoid multiplying rows and to allow filtering the result in sql.
+      const wsWithDocsQuery = this._workspace(scope, wsId, {manager})
+        .leftJoinAndSelect('workspaces.docs', 'docs')
+        .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
+        .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
+        .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
+        .andWhere('doc_users.id is not null');
+      const wsWithDocs = await wsWithDocsQuery.getOne();
+      wsGuestGroup.memberUsers = this._filterEveryone(getResourceUsers(wsWithDocs?.docs || []));
       await manager.save(wsGuestGroup);
     });
   }

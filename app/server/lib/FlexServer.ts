@@ -153,9 +153,15 @@ export class FlexServer implements GristServer {
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(['appRoot', this.appRoot]);
     // This directory hold Grist documents.
-    this.docsRoot = fse.realpathSync(path.resolve((this.options && this.options.dataDir) ||
-                                                  process.env.GRIST_DATA_DIR ||
-                                                  getAppPathTo(this.appRoot, 'samples')));
+    const docsRoot = path.resolve((this.options && this.options.dataDir) ||
+                                  process.env.GRIST_DATA_DIR ||
+                                  getAppPathTo(this.appRoot, 'samples'));
+    // Create directory if it doesn't exist.
+    // TODO: track down all dependencies on 'samples' existing in tests and
+    // in dev environment, and remove them.  Then it would probably be best
+    // to simply fail if the docs root directory does not exist.
+    fse.mkdirpSync(docsRoot);
+    this.docsRoot = fse.realpathSync(docsRoot);
     this.info.push(['docsRoot', this.docsRoot]);
 
     const homeUrl = process.env.APP_HOME_URL;
