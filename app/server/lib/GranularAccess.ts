@@ -888,9 +888,9 @@ export class GranularAccess implements GranularAccessForBundle {
     if (colValues === undefined) {
       censorAt = () => 1;
     } else if (Array.isArray(action[2])) {
-      censorAt = (colId, idx) => (colValues as BulkColValues)[colId][idx] = 'CENSORED';  // TODO Pick a suitable value
+      censorAt = (colId, idx) => (colValues as BulkColValues)[colId][idx] = ['C'];  // censored
     } else {
-      censorAt = (colId) => (colValues as ColValues)[colId] = 'CENSORED';  // TODO Pick a suitable value
+      censorAt = (colId) => (colValues as ColValues)[colId] = ['C'];  // censored
     }
 
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.

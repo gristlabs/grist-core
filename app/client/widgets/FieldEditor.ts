@@ -152,7 +152,19 @@ export class FieldEditor extends Disposable {
 
     const column = this._field.column();
     const cellCurrentValue = this._editRow.cells[this._field.colId()].peek();
-    const cellValue = column.isFormula() ? column.formula() : cellCurrentValue;
+    let cellValue: CellValue;
+    if (column.isFormula()) {
+      cellValue = column.formula();
+    } else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === 'C') {
+      // This cell value is censored by access control rules
+      // Really the rules should also block editing, but in case they don't, show a blank value
+      // rather than a 'C'. However if the user tries to edit the cell and then clicks away
+      // without typing anything the empty string is saved, deleting what was there.
+      // We should probably just automatically block updates where reading is not allowed.
+      cellValue = '';
+    } else {
+      cellValue = cellCurrentValue;
+    }
 
     // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
     // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),

@@ -110,6 +110,19 @@ export class SkipValue {
 }
 
 /**
+ * A placeholder for a value hidden by access control rules.
+ * Depending on the types of the columns involved, copying
+ * a censored value and pasting elsewhere will either use
+ * CensoredValue.__repr__ (python) or CensoredValue.toString (typescript)
+ * so they should match
+ */
+export class CensoredValue {
+  public toString() {
+    return 'CENSORED';
+  }
+}
+
+/**
  * Produces a Grist-encoded version of the value, e.g. turning a Date into ['d', timestamp].
  * Returns ['U', repr(value)] if it fails to encode otherwise.
  *
@@ -135,6 +148,8 @@ export function encodeObject(value: unknown): CellValue {
         // TODO Depending on how it's used, may want to return ['d', timestamp] for UTC midnight.
         return ['D', timestamp, 'UTC'];
       }
+    } else if (value instanceof CensoredValue) {
+      return ['C'];
     } else if (value instanceof RaisedException) {
       return ['E', value.name, value.message, value.details];
     } else if (Array.isArray(value)) {
@@ -172,6 +187,7 @@ export function decodeObject(value: CellValue): unknown {
       case 'P': return new PendingValue();
       case 'R': return new Reference(String(args[0]), args[1]);
       case 'S': return new SkipValue();
+      case 'C': return new CensoredValue();
       case 'U': return new UnknownValue(args[0]);
     }
   } catch (e) {

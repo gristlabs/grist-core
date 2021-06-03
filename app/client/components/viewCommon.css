@@ -78,6 +78,27 @@
   background-color: unset;
 }
 
+.field_clip.invalid.field-error-C {
+  background-color: unset;
+  color: var(--grist-color-dark-grey);
+  padding-left: 18px;
+}
+
+.field_clip.invalid.field-error-C::before {
+  /* based on standard icon styles */
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background-color: var(--grist-color-dark-grey);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-image: var(--icon-Lock);
+}
+
 .field_clip.field-error-U {
   color: #6363a2;
   background-color: unset;

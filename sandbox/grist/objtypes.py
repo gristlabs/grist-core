@@ -105,6 +105,17 @@ class UnmarshallableValue(object):
 # document was just migrated.
 _pending_sentinel = object()
 
+# A placeholder for a value hidden by access control rules.
+# Depending on the types of the columns involved, copying
+# a censored value and pasting elsewhere will either use
+# CensoredValue.__repr__ (python) or CensoredValue.toString (typescript)
+# so they should match
+class CensoredValue(object):
+  def __repr__(self):
+    return 'CENSORED'
+
+_censored_sentinel = CensoredValue()
+
 
 _max_js_int = 1<<31
 
@@ -178,6 +189,8 @@ def encode_object(value):
       return ['O', {key: encode_object(val) for key, val in value.iteritems()}]
     elif value == _pending_sentinel:
       return ['P']
+    elif value == _censored_sentinel:
+      return ['C']
     elif isinstance(value, UnmarshallableValue):
       return ['U', value.value_repr]
   except Exception as e:
@@ -218,6 +231,8 @@ def decode_object(value):
       return {decode_object(key): decode_object(val) for key, val in args[0].iteritems()}
     elif code == 'P':
       return _pending_sentinel
+    elif code == 'C':
+      return _censored_sentinel
     elif code == 'U':
       return UnmarshallableValue(args[0])
     raise KeyError("Unknown object type code %r" % code)
