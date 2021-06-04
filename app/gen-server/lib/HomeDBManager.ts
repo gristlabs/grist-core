@@ -2423,8 +2423,9 @@ export class HomeDBManager extends EventEmitter {
       // Get guest group for workspace.
       const wsQuery = this._workspace(scope, wsId, {manager})
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'groups');
-       const workspace: Workspace = (await wsQuery.getOne())!;
+      .leftJoinAndSelect('acl_rules.group', 'groups')
+      .leftJoinAndSelect('groups.memberUsers', 'users');
+      const workspace: Workspace = (await wsQuery.getOne())!;
       const wsGuestGroup = workspace.aclRules.map(aclRule => aclRule.group)
         .find(_grp => _grp.name === roles.GUEST);
       if (!wsGuestGroup) {
@@ -2440,8 +2441,8 @@ export class HomeDBManager extends EventEmitter {
         .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
-      wsGuestGroup.memberUsers = this._filterEveryone(getResourceUsers(wsWithDocs?.docs || []));
-      await manager.save(wsGuestGroup);
+      await this._setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
+                                this._filterEveryone(getResourceUsers(wsWithDocs?.docs || [])));
     });
   }
 
@@ -2471,9 +2472,36 @@ export class HomeDBManager extends EventEmitter {
         throw new Error(`_repairOrgGuests error: found ${orgGroups.length} ${roles.GUEST} ACL group(s)`);
       }
       const orgGuestGroup = orgGroups[0]!;
-      orgGuestGroup.memberUsers = this._filterEveryone(getResourceUsers(org.workspaces));
-      await manager.save(orgGuestGroup);
+      await this._setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
+                                this._filterEveryone(getResourceUsers(org.workspaces)));
     });
+  }
+
+  /**
+   * Update the set of users in a group.  TypeORM's .save() method appears to be
+   * unreliable for a ManyToMany relation with a table with a multi-column primary
+   * key, so we make the update using explicit deletes and inserts.
+   */
+  private async _setGroupUsers(manager: EntityManager, groupId: number, usersBefore: User[],
+                               usersAfter: User[]) {
+    const userIdsBefore = new Set(usersBefore.map(u => u.id));
+    const userIdsAfter = new Set(usersAfter.map(u => u.id));
+    const toDelete = [...userIdsBefore].filter(id => !userIdsAfter.has(id));
+    const toAdd = [...userIdsAfter].filter(id => !userIdsBefore.has(id));
+    if (toDelete.length > 0) {
+      await manager.createQueryBuilder()
+        .delete()
+        .from('group_users')
+        .whereInIds(toDelete.map(id => ({user_id: id, group_id: groupId})))
+        .execute();
+    }
+    if (toAdd.length > 0) {
+      await manager.createQueryBuilder()
+        .insert()
+        .into('group_users')
+        .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
+        .execute();
+    }
   }
 
   /**
