@@ -195,11 +195,17 @@ export class RightPanel extends Disposable {
     // Builder for the reference display column multiselect.
     const refSelect = owner.autoDispose(RefSelect.create({docModel, origColumn, fieldBuilder}));
 
+    // build cursor position observable
+    const cursor = owner.autoDispose(ko.computed(() => {
+      const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
+      return vsi?.cursor.currentPosition() ?? {};
+    }));
+
     return domAsync(imports.loadViewPane().then(ViewPane => {
       const {buildNameConfig, buildFormulaConfig} = ViewPane.FieldConfig;
       return dom.maybe(isColumnValid, () =>
         buildConfigContainer(
-          dom.create(buildNameConfig, origColumn),
+          dom.create(buildNameConfig, origColumn, cursor),
           cssSeparator(),
           dom.create(buildFormulaConfig, origColumn, this._gristDoc, this._activateFormulaEditor.bind(this)),
           cssSeparator(),

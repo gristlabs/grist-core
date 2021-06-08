@@ -1,5 +1,6 @@
 import type {GristDoc} from 'app/client/components/GristDoc';
 import type {ColumnRec} from 'app/client/models/entities/ColumnRec';
+import type {CursorPos} from "app/client/components/Cursor";
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
@@ -8,9 +9,10 @@ import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {sanitizeIdent} from 'app/common/gutil';
 import {Computed, dom, fromKo, MultiHolder, Observable, styled, subscribe} from 'grainjs';
+import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
 
-export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec) {
+export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, cursor: ko.Computed<CursorPos>) {
   const untieColId = origColumn.untieColIdFromLabel;
 
   const editedLabel = Observable.create(owner, '');
@@ -18,11 +20,23 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec) {
     '$' + (edited ? sanitizeIdent(edited) : use(origColumn.colId)));
   const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith('$') ? val.slice(1) : val);
 
+  // We will listen to cursor position and force a blur event on
+  // the text input, which will trigger save before the column observable
+  // will change its value.
+  // Otherwise, blur will be invoked after column change and save handler will
+  // update a different column.
+  let editor: HTMLInputElement | undefined;
+  owner.autoDispose(
+   cursor.subscribe(() => {
+     editor?.blur();
+   })
+  );
+
   return [
     cssLabel('COLUMN LABEL AND ID'),
     cssRow(
       cssColLabelBlock(
-        textInput(fromKo(origColumn.label),
+        editor = textInput(fromKo(origColumn.label),
           async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
           dom.boolAttr('disabled', origColumn.disableModify),
