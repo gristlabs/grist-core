@@ -59,16 +59,20 @@ export class Reference extends NTextBox {
 
   public buildConfigDom() {
     return [
+      this.buildTransformConfigDom(),
+      cssLabel('CELL FORMAT'),
+      super.buildConfigDom()
+    ];
+  }
+
+  public buildTransformConfigDom() {
+    return [
       cssLabel('SHOW COLUMN'),
       cssRow(
         select(this._visibleColRef, this._validCols),
         testId('fbuilder-ref-col-select')
       )
     ];
-  }
-
-  public buildTransformConfigDom() {
-    return this.buildConfigDom();
   }
 
   public buildDom(row: DataRowModel) {
@@ -92,6 +96,8 @@ export class Reference extends NTextBox {
     });
     return dom('div.field_clip',
       dom.autoDispose(formattedValue),
+      dom.style('text-align', this.alignment),
+      dom.cls('text_wrapping', this.wrapping),
       cssRefIcon('FieldReference',
         testId('ref-link-icon')
       ),
@@ -101,6 +107,7 @@ export class Reference extends NTextBox {
 }
 
 const cssRefIcon = styled(icon, `
+  float: left;
   background-color: ${colors.slate};
   margin: -1px 2px 2px 0;
 `);

@@ -228,7 +228,9 @@ var typeDefs = {
         cons: 'Reference',
         editCons: 'ReferenceEditor',
         icon: 'FieldReference',
-        options: {}
+        options: {
+          alignment: 'left'
+        }
       }
     },
     default: 'Reference'
