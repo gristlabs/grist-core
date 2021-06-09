@@ -248,16 +248,25 @@ export class GristDoc extends DisposableWithEvents {
 
     // create current view observer
     this.currentView = Observable.create<BaseView | null>(this, null);
-    // first create a computed observable for current view
+
+    // create computed observable for viewInstance - if it is loaded or not
+
+    // Add an artificial intermediary computed only to delay the evaluation of currentView, so
+    // that it happens after section.viewInstance is set. If it happens before, then
+    // section.viewInstance is seen as null, and as it gets updated, GrainJS refuses to
+    // recalculate this computed since it was already calculated in the same tick.
+    const activeViewId = Computed.create(this, (use) => use(this.activeViewId));
     const viewInstance = Computed.create(this, (use) => {
       const section = use(this.viewModel.activeSection);
+      const viewId = use(activeViewId);
       const view = use(section.viewInstance);
-      return view;
+      return (typeof viewId === 'number') ? view : null;
     });
     // then listen if the view is present, because we still need to wait for it load properly
     this.autoDispose(viewInstance.addListener(async (view) => {
       if (!view) { return; }
       await view.getLoadingDonePromise();
+      // finally set the current view as fully loaded
       this.currentView.set(view);
     }));
 
