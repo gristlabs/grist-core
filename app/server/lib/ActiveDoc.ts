@@ -783,7 +783,8 @@ export class ActiveDoc extends EventEmitter {
     // Granular access control implemented ultimately in _applyUserActions.
     // It could be that error cases and timing etc leak some info prior to this
     // point.
-    return this.applyUserActions(docSession, actions, options);
+    // Undos are best effort now by default.
+    return this.applyUserActions(docSession, actions, {bestEffort: undo, ...(options||{})});
   }
 
   /**
@@ -1170,6 +1171,9 @@ export class ActiveDoc extends EventEmitter {
     this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
+    if (options?.bestEffort) {
+      actions = await this._granularAccess.prefilterUserActions(docSession, actions);
+    }
     await this._granularAccess.assertCanMaybeApplyUserActions(docSession, actions);
 
     const user = docSession.mode === 'system' ? 'grist' :

@@ -20,6 +20,7 @@ export const enum GristObjCode {
   DateTime        = 'D',
   Date            = 'd',
   Skip            = 'S',
+  Censored        = 'C',
   Reference       = 'R',
   Exception       = 'E',
   Pending         = 'P',
@@ -129,6 +130,10 @@ export function isVersions(value: CellValue): value is [GristObjCode.Versions, C
 
 export function isSkip(value: CellValue): value is [GristObjCode.Skip] {
   return getObjCode(value) === GristObjCode.Skip;
+}
+
+export function isCensored(value: CellValue): value is [GristObjCode.Censored] {
+  return getObjCode(value) === GristObjCode.Censored;
 }
 
 /**
