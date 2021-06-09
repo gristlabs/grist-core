@@ -172,6 +172,8 @@ def encode_object(value):
       return str(value)
     elif isinstance(value, records.Record):
       return ['R', value._table.table_id, value._row_id]
+    elif isinstance(value, RecordStub):
+      return ['R', value.table_id, value.row_id]
     elif isinstance(value, datetime):
       return ['D', moment.dt_to_ts(value), value.tzinfo.zone.name if value.tzinfo else 'UTC']
     elif isinstance(value, date):
