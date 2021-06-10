@@ -153,7 +153,9 @@ export class GristDoc extends DisposableWithEvents {
     const defaultViewId = this.docInfo.newDefaultViewId;
 
     // Grainjs observable for current view id, which may be a string such as 'code'.
-    this.activeViewId = Computed.create(this, urlState().state, (use, s) => s.docPage || defaultViewId.peek());
+    this.activeViewId = Computed.create(this, (use) => {
+      return use(urlState().state).docPage || use(defaultViewId);
+    });
 
     // This viewModel reflects the currently active view, relying on the fact that
     // createFloatingRowModel() supports an observable rowId for its argument.
