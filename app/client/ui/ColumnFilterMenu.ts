@@ -114,14 +114,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             dom.text(searchValue ? 'All Shown' : 'All'),
             cssSelectAll.cls('-disabled', isEquivalentFilter(state, allSpec)),
             dom.on('click', () => columnFilter.setState(allSpec)),
-            testId('select-all'),
+            testId('bulk-action'),
           ),
           cssDotSeparator('•'),
           cssSelectAll(
             searchValue ? 'All Except' : 'None',
             cssSelectAll.cls('-disabled', isEquivalentFilter(state, noneSpec)),
             dom.on('click', () => columnFilter.setState(noneSpec)),
-            testId('select-all'),
+            testId('bulk-action'),
           )
         ];
       })
