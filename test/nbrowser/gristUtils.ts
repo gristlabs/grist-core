@@ -7,7 +7,7 @@ import * as fse from 'fs-extra';
 import escapeRegExp = require('lodash/escapeRegExp');
 import noop = require('lodash/noop');
 import startCase = require('lodash/startCase');
-import { assert, driver, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
+import { assert, driver, error, IRectangle, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods } from 'mocha-webdriver';
 import * as path from 'path';
 
@@ -1465,6 +1465,20 @@ export async function addColumn(name: string) {
   await driver.sendKeys(name);
   await driver.sendKeys(Key.ENTER);
   await waitForServer();
+}
+
+/**
+ * Changes browser window dimension to FullHd for a test suit.
+ */
+export function bigScreen() {
+  let oldRect!: IRectangle;
+  before(async function () {
+    oldRect = await driver.manage().window().getRect();
+    await driver.manage().window().setRect({ width: 1920, height: 1080 });
+  });
+  after(async function () {
+    await driver.manage().window().setRect(oldRect);
+  });
 }
 
 
