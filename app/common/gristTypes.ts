@@ -137,11 +137,18 @@ export function isCensored(value: CellValue): value is [GristObjCode.Censored] {
 }
 
 /**
+ * Returns whether a value (as received in a DocAction) represents a list.
+ */
+ export function isList(value: CellValue): value is [GristObjCode.List, ...unknown[]] {
+  return Array.isArray(value) && value[0] === GristObjCode.List;
+}
+
+/**
  * Returns whether a value (as received in a DocAction) represents a list or is null,
  * which is a valid value for list types in grist.
  */
 export function isListOrNull(value: CellValue): boolean {
-  return value === null || (Array.isArray(value) && value[0] === GristObjCode.List);
+  return value === null || isList(value);
 }
 
 /**

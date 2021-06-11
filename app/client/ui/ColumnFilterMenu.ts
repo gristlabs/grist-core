@@ -21,6 +21,8 @@ import identity = require('lodash/identity');
 import noop = require('lodash/noop');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {isEquivalentFilter} from "app/common/FilterState";
+import {decodeObject} from 'app/plugin/objtypes';
+import {isList} from 'app/common/gristTypes';
 
 interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
@@ -261,20 +263,21 @@ function buildSummary(label: string, SummaryModelCtor: SummaryModelCreator, mode
 export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, field: ViewFieldRec,
                                  rowSource: FilteredRowSource, tableData: TableData, onClose: () => void = noop) {
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const valueGetter = tableData.getRowPropFunc(field.column().colId())!;
+  const keyMapFunc = tableData.getRowPropFunc(field.column().colId())!;
   const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
   const formatter = field.createVisibleColFormatter();
-  const valueMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
+  const labelMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
   const activeFilterBar = field.viewSection.peek().activeFilterBar;
+  const columnType = field.column().type.peek();
 
   const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
   // TODO: as of now, this is not working for non text-or-numeric columns, ie: for Date column it is
   // not possible to search for anything. Likely caused by the key being something completely
   // different than the label.
-  addCountsToMap(valueCounts, rowSource.getAllRows() as Iterable<number>, valueGetter, valueMapFunc);
-  addCountsToMap(valueCounts, rowSource.getHiddenRows() as Iterable<number>, valueGetter, valueMapFunc);
+  addCountsToMap(valueCounts, rowSource.getAllRows() as Iterable<number>, { keyMapFunc, labelMapFunc, columnType });
+  addCountsToMap(valueCounts, rowSource.getHiddenRows() as Iterable<number>, { keyMapFunc, labelMapFunc, columnType });
 
-  const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek());
+  const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek(), columnType);
   const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
   sectionFilter.setFilterOverride(field.getRowId(), columnFilter); // Will be removed on menu disposal
 
@@ -293,21 +296,51 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   });
 }
 
+interface ICountOptions {
+  keyMapFunc?: (v: any) => any;
+  labelMapFunc?: (v: any) => any;
+  columnType?: string;
+}
+
 /**
- * For each value in Iterable, adds a key mapped with `keyMapFunc` and a value object with a `label` mapped
+ * For each row id in Iterable, adds a key mapped with `keyMapFunc` and a value object with a `label` mapped
  * with `labelMapFunc` and a `count` representing the total number of times the key has been encountered.
+ *
+ * The optional column type controls how complex cell values are decomposed into keys (e.g. Choice Lists have
+ * the possible choices as keys).
  */
-function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, values: Iterable<CellValue>,
-                        keyMapFunc: (v: any) => any = identity, labelMapFunc: (v: any) => any = identity) {
-  for (const v of values) {
-    let key = keyMapFunc(v);
+function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: Iterable<Number>,
+                        { keyMapFunc = identity, labelMapFunc = identity, columnType }: ICountOptions) {
+
+  for (const rowId of rowIds) {
+    let key = keyMapFunc(rowId);
+
+    // If row contains a list and the column is a Choice List, treat each choice as a separate key
+    if (isList(key) && columnType === 'ChoiceList') {
+      const list = decodeObject(key);
+      addListCountsToMap(valueMap, list as unknown[]);
+      continue;
+    }
 
     // For complex values, serialize the value to allow them to be properly stored
     if (Array.isArray(key)) { key = JSON.stringify(key); }
     if (valueMap.get(key)) {
       valueMap.get(key)!.count++;
     } else {
-      valueMap.set(key, { label: labelMapFunc(v), count: 1 });
+      valueMap.set(key, { label: labelMapFunc(rowId), count: 1 });
+    }
+  }
+}
+
+/**
+ * Adds each item in `list` to `valueMap`.
+ */
+function addListCountsToMap(valueMap: Map<CellValue, IFilterCount>, list: any[]) {
+  for (const item of list) {
+    if (valueMap.get(item)) {
+      valueMap.get(item)!.count++;
+    } else {
+      valueMap.set(item, { label: item, count: 1 });
     }
   }
 }

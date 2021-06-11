@@ -24,7 +24,7 @@ export class ColumnFilter extends Disposable {
   private _include: boolean;
   private _values: Set<CellValue>;
 
-  constructor(private _initialFilterJson: string) {
+  constructor(private _initialFilterJson: string, private _columnType?: string) {
     super();
     this.setState(_initialFilterJson);
   }
@@ -85,7 +85,7 @@ export class ColumnFilter extends Disposable {
   }
 
   private _updateState(): void {
-    this.filterFunc.set(makeFilterFunc(this._getState()));
+    this.filterFunc.set(makeFilterFunc(this._getState(), this._columnType));
   }
 
   private _getState(): FilterState {

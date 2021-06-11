@@ -90,7 +90,7 @@ export async function makeCSV(
     const displayCol = tableColsById[field.displayCol || col.displayCol || col.id];
     const colWidgetOptions = gutil.safeJsonParse(col.widgetOptions, {});
     const fieldWidgetOptions = gutil.safeJsonParse(field.widgetOptions, {});
-    const filterFunc = buildColFilter(filters.find(x => x.colRef === field.colRef)?.filter);
+    const filterFunc = buildColFilter(filters.find(x => x.colRef === field.colRef)?.filter, col.type);
     return {
       id: displayCol.id,
       colId: displayCol.colId,

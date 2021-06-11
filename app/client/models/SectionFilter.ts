@@ -36,7 +36,7 @@ export class SectionFilter extends Disposable {
       const funcs: Array<RowFilterFunc<RowId> | null> = fields.map(f => {
         const filterFunc = (openFilter && openFilter.fieldRef === f.getRowId()) ?
           use(openFilter.colFilter.filterFunc) :
-          buildColFilter(use(f.activeFilter));
+          buildColFilter(use(f.activeFilter), use(f.column).type());
 
         const getter = tableData.getRowPropFunc(use(f.colId));
 
