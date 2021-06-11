@@ -34,6 +34,10 @@ import repl
 
 log = logger.Logger(__name__, logger.INFO)
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+
 class OrderError(Exception):
   """
   An exception thrown and handled internally, representing when
