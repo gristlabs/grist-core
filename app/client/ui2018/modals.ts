@@ -212,7 +212,10 @@ export async function spinnerModal<T>(
 
     return [
       cssModalSpinner.cls(''),
-      cssModalTitle(title),
+      cssModalTitle(
+        title,
+        testId('modal-spinner-title'),
+      ),
       cssSpinner(loadingSpinner()),
       testId('modal-spinner'),
     ];

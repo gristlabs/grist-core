@@ -158,8 +158,9 @@ export function buildPageWidgetPicker(
   // calls onSave and closes the popup. Failure must be handled by the caller.
   async function onSaveCB() {
     ctl.close();
+    const type = value.type.get();
     const savePromise = onSave({
-      type: value.type.get(),
+      type,
       table: value.table.get(),
       summarize: value.summarize.get(),
       columns: sortedAs(value.columns.get(), columns.get().map((col) => col.id.peek())),
@@ -169,7 +170,7 @@ export function buildPageWidgetPicker(
     // If savePromise throws an error, before or after timeout, we let the error propagate as it
     // should be handle by the caller.
     if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
-      const label = getWidgetTypes(value.type.get()).label;
+      const label = getWidgetTypes(type).label;
       await spinnerModal(`Building ${label} widget`, savePromise);
     }
   }
