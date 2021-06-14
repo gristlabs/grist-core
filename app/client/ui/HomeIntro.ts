@@ -103,15 +103,15 @@ function _buildExampleListDocs(home: HomeModel, workspace: Workspace, viewSettin
       testId('examples-desc'),
     ),
     dom.domComputed(viewSettings.currentView, (view) =>
-      dom.forEach(workspace.docs, doc => buildExampleItem(doc, home, view))
+      dom.forEach(workspace.docs, doc => buildExampleItem(doc, home, workspace, view))
     ),
   ];
 }
 
-function buildExampleItem(doc: Document, home: HomeModel, view: 'list'|'icons') {
+function buildExampleItem(doc: Document, home: HomeModel, workspace: Workspace, view: 'list'|'icons') {
   const ex = examples.find((e) => e.matcher.test(doc.name));
   if (view === 'icons') {
-    return buildPinnedDoc(home, doc, ex);
+    return buildPinnedDoc(home, doc, workspace, ex);
   } else {
     return css.docRowWrapper(
       cssDocRowLink(

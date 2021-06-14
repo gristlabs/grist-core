@@ -200,7 +200,7 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
     return dom.forEach(docs, doc => {
       if (view === 'icons') {
         return dom.update(
-          buildPinnedDoc(home, doc),
+          buildPinnedDoc(home, doc, workspace),
           testId('doc'),
         );
       }
@@ -347,7 +347,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
   ];
 }
 
-function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, workspace: Workspace) {
+export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, workspace: Workspace) {
   function hardDeleteDoc() {
     confirmModal(`Permanently Delete "${doc.name}"?`, 'Delete Forever',
       () => home.deleteDoc(doc.id, true).catch(reportError),
