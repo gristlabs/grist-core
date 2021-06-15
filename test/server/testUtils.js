@@ -260,19 +260,29 @@ exports.fixturesRoot = fixturesRoot;
 exports.appRoot = getAppRoot();
 
 /**
- * Copy the given filename from the fixtures directory (test/fixtures) to the provided copyPath.
+ * Copy the given filename from the fixtures directory (test/fixtures)
+ * to the storage manager root.
  * @param {string} alias - Optional alias that lets you rename the document on disk.
  */
 function useFixtureDoc(fileName, storageManager, alias = fileName) {
   var srcPath = path.resolve(fixturesRoot, "docs", fileName);
-  var docName = path.basename(alias ? alias : fileName, ".grist");
+  return useLocalDoc(srcPath, storageManager, alias)
+   .tap(docName => log.info("Using fixture %s as %s", fileName, docName + ".grist"))
+}
+exports.useFixtureDoc = useFixtureDoc;
+
+/**
+ * Copy the given filename from srcPath to the storage manager root.
+ * @param {string} alias - Optional alias that lets you rename the document on disk.
+ */
+function useLocalDoc(srcPath, storageManager, alias = srcPath) {
+  var docName = path.basename(alias || srcPath, ".grist");
   return docUtils.createNumbered(docName, "-",
     name => docUtils.createExclusive(storageManager.getPath(name))
   )
-  .tap(docName => log.info("Using fixture %s as %s", fileName, docName + ".grist"))
   .tap(docName => docUtils.copyFile(srcPath, storageManager.getPath(docName)))
   .tap(docName => storageManager.markAsChanged(docName));
 }
-exports.useFixtureDoc = useFixtureDoc;
+exports.useLocalDoc = useLocalDoc;
 
 exports.assert = assert;

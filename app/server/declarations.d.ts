@@ -31,7 +31,7 @@ declare module "app/server/lib/shutdown" {
   export function addCleanupHandler<T>(context: T, method: (this: T) => void, timeout?: number, name?: string): void;
   export function removeCleanupHandlers<T>(context: T): void;
   export function cleanupOnSignals(...signalNames: string[]): void;
-  export function exit(optExitCode?: number): void;
+  export function exit(optExitCode?: number): Promise<void>;
 }
 
 // There is a @types/bluebird, but it's not great, and breaks for some of our usages.

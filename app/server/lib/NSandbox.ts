@@ -11,14 +11,9 @@ import {Throttle} from 'app/server/lib/Throttle';
 import {ChildProcess, spawn, SpawnOptions} from 'child_process';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
+import * as _ from 'lodash';
 
 type SandboxMethod = (...args: any[]) => any;
-
-export interface ISandboxCommand {
-  process: string;
-  libraryPath: string;
-  docUrl: string;
-}
 
 export interface ISandboxOptions {
   args: string[];         // The arguments to pass to the python process.
@@ -29,13 +24,8 @@ export interface ISandboxOptions {
   selLdrArgs?: string[];  // Arguments passed to selLdr, for instance the following sets an
                           // environment variable `{ ... selLdrArgs: ['-E', 'PYTHONPATH=grist'] ... }`.
   logMeta?: log.ILogMeta; // Log metadata (e.g. including docId) to report in all log messages.
-  command?: ISandboxCommand;
-}
-
-// Options for low-level spawning of selLdr sandbox process.
-export interface ISpawnOptions extends SpawnOptions {
-  unsilenceLog?: boolean;  // Don't silence the sel_ldr logging.
-  command?: ISandboxCommand;
+  command?: string;
+  env?: NodeJS.ProcessEnv;
 }
 
 type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
@@ -49,24 +39,30 @@ export class NSandbox implements ISandbox {
    * nacl/bin/run script, but without the reliance on bash. We can't use bash when -r/-w options
    * because on Windows it doesn't pass along the open file descriptors. Bash is also unavailable
    * when installing a standalone version on Windows.
-   * @param selLdrArgs: Arguments to pass to sel_ldr;
-   * @param pythonArgs: Arguments to pass to python within the sandbox.
-   * @param spawnOptions: extra options for child_process.spawn(), such as 'stdio'.
    */
-  public static spawn(selLdrArgs: string[], pythonArgs: string[], spawnOptions: ISpawnOptions = {}): ChildProcess {
-    const unsilenceLog = spawnOptions.unsilenceLog;
-    delete spawnOptions.unsilenceLog;
-    const command = spawnOptions.command;
-    delete spawnOptions.command;
-
+  public static spawn(options: ISandboxOptions): ChildProcess {
+    const {command, args: pythonArgs, unsilenceLog, env} = options;
+    const spawnOptions: SpawnOptions = {
+      stdio: ['pipe', 'pipe', 'pipe', 'pipe', 'pipe'],
+      env,
+    };
     if (command) {
-      return spawn(command.process, pythonArgs,
-                   {env: {PYTHONPATH: command.libraryPath, DOC_URL: command.docUrl},
-                    cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+      return spawn(command, pythonArgs,
+                   {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
     }
 
     const noLog = unsilenceLog ? [] :
       (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
+    // We use these options to set up communication with the sandbox:
+    // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
+    //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
+    // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
+    //         This becomes `this._streamFromSandbox`
+    const selLdrArgs = ['-r', '3:3', '-w', '4:4', ...options.selLdrArgs || []];
+    for (const [key, value] of _.toPairs(env)) {
+      selLdrArgs.push("-E");
+      selLdrArgs.push(`${key}=${value}`);
+    }
     return spawn('sandbox/nacl/bin/sel_ldr', [
         '-B', './sandbox/nacl/lib/irt_core.nexe', '-m', './sandbox/nacl/root:/:ro',
         ...noLog,
@@ -75,7 +71,7 @@ export class NSandbox implements ISandbox {
         '--library-path', '/slib', '/python/bin/python2.7.nexe',
         ...pythonArgs
       ],
-      {env: {}, ...spawnOptions},
+      spawnOptions,
     );
   }
 
@@ -104,18 +100,7 @@ export class NSandbox implements ISandbox {
     this._logTimes = Boolean(options.logTimes || options.logCalls);
     this._exportedFunctions = options.exports || {};
 
-    const selLdrArgs = options.selLdrArgs || [];
-
-    // We use these options to set up communication with the sandbox:
-    // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
-    //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
-    // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
-    //         This becomes `this._streamFromSandbox`
-    this.childProc = NSandbox.spawn(['-r', '3:3', '-w', '4:4', ...selLdrArgs], options.args, {
-      stdio: ['pipe', 'pipe', 'pipe', 'pipe', 'pipe'],
-      unsilenceLog: options.unsilenceLog,
-      command: options.command
-    });
+    this.childProc = NSandbox.spawn(options);
 
     this._logMeta = {sandboxPid: this.childProc.pid, ...options.logMeta};
     log.rawDebug("Sandbox started", this._logMeta);
@@ -322,15 +307,9 @@ export class NSandboxCreator implements ISandboxCreator {
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
+    const pynbox = this._flavor === 'pynbox';
     // Main script to run.
-    const defaultEntryPoint = this._flavor === 'pynbox' ? 'grist/main.pyc' : 'grist/main.py';
-    // Python library path is only configurable when flavor is unsandboxed.
-    // In this case, expect to find library files in a virtualenv built by core
-    // buildtools/prepare_python.sh
-    const pythonVersion = 'python2.7';
-    const libraryPath =
-      path.join(process.cwd(), 'sandbox', 'grist') + ':' +
-      path.join(process.cwd(), 'venv', 'lib', pythonVersion, 'site-packages');
+    const defaultEntryPoint = pynbox ? 'grist/main.pyc' : 'grist/main.py';
     const args = [options.entryPoint || defaultEntryPoint];
     if (!options.entryPoint && options.comment) {
       // When using default entry point, we can add on a comment as an argument - it isn't
@@ -343,30 +322,44 @@ export class NSandboxCreator implements ISandboxCreator {
       selLdrArgs.push(
         // TODO: Only modules that we share with plugins should be mounted. They could be gathered in
         // a "$APPROOT/sandbox/plugin" folder, only which get mounted.
-        // TODO: These settings only make sense for pynbox flavor.
-        '-E', 'PYTHONPATH=grist:thirdparty',
         '-m', `${options.sandboxMount}:/sandbox:ro`);
     }
     if (options.importMount) {
       selLdrArgs.push('-m', `${options.importMount}:/importdir:ro`);
     }
-    const docUrl = (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, '');
-    if (this._flavor === 'pynbox') {
-      selLdrArgs.push('-E', `DOC_URL=${docUrl}`);
-    }
+    const pythonVersion = 'python2.7';
+    const env: NodeJS.ProcessEnv = {
+      // Python library path is only configurable when flavor is unsandboxed.
+      // In this case, expect to find library files in a virtualenv built by core
+      // buildtools/prepare_python.sh
+      PYTHONPATH: pynbox ? 'grist:thirdparty' :
+        path.join(process.cwd(), 'sandbox', 'grist') + ':' +
+        path.join(process.cwd(), 'venv', 'lib', pythonVersion, 'site-packages'),
+
+      DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, ''),
+
+      // Making time and randomness act deterministically for testing purposes.
+      // See test/utils/recordPyCalls.ts
+      ...(process.env.LIBFAKETIME_PATH ? {  // path to compiled binary
+        DETERMINISTIC_MODE: '1',  // tells python to seed the random module
+        FAKETIME: "2020-01-01 00:00:00",  // setting for libfaketime
+
+        // For Linux
+        LD_PRELOAD: process.env.LIBFAKETIME_PATH,
+
+        // For Mac (https://github.com/wolfcw/libfaketime/blob/master/README.OSX)
+        DYLD_INSERT_LIBRARIES: process.env.LIBFAKETIME_PATH,
+        DYLD_FORCE_FLAT_NAMESPACE: '1',
+      } : {}),
+    };
     return new NSandbox({
       args,
       logCalls: options.logCalls,
       logMeta: options.logMeta,
       logTimes: options.logTimes,
       selLdrArgs,
-      ...(this._flavor === 'pynbox' ? {} : {
-        command: {
-          process: pythonVersion,
-          libraryPath,
-          docUrl,
-        }
-      })
+      env,
+      ...(pynbox ? {} : {command: pythonVersion}),
     });
   }
 }
