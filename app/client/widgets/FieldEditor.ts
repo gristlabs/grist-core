@@ -74,6 +74,7 @@ export class FieldEditor extends Disposable {
   private _saveEdit = asyncOnce(() => this._doSaveEdit());
   private _editorHasChanged = false;
   private _isFormula = false;
+  private _readonly = false;
 
   constructor(options: {
     gristDoc: GristDoc,
@@ -83,7 +84,8 @@ export class FieldEditor extends Disposable {
     cellElem: Element,
     editorCtor: IEditorConstructor,
     startVal?: string,
-    state?: any
+    state?: any,
+    readonly: boolean
   }) {
     super();
     this._gristDoc = options.gristDoc;
@@ -92,6 +94,7 @@ export class FieldEditor extends Disposable {
     this._editRow = options.editRow;
     this._editorCtor = options.editorCtor;
     this._cellElem = options.cellElem;
+    this._readonly = options.readonly;
 
     const startVal = options.startVal;
     let offerToMakeFormula = false;
@@ -99,7 +102,7 @@ export class FieldEditor extends Disposable {
     const column = this._field.column();
     this._isFormula = column.isRealFormula.peek();
     let editValue: string|undefined = startVal;
-    if (startVal && gutil.startsWith(startVal, '=')) {
+    if (!options.readonly && startVal && gutil.startsWith(startVal, '=')) {
       if (this._isFormula  || this._field.column().isEmpty()) {
         // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
         // start editing ignoring the initial '='.
@@ -131,9 +134,24 @@ export class FieldEditor extends Disposable {
       unmakeFormula: () => this._unmakeFormula(),
     };
 
-    const state: any = options.state;
+    // for readonly editor rewire commands, most of this also could be
+    // done by just overriding the saveEdit method, but this is more clearer
+    if (options.readonly) {
+      this._editCommands.fieldEditSave = () => {
+        // those two lines are tightly coupled - without disposing first
+        // it will run itself in a loop. But this is needed for a GridView
+        // which navigates to the next row on save.
+        this._editCommands.fieldEditCancel();
+        commands.allCommands.fieldEditSave.run();
+      };
+      this._editCommands.fieldEditSaveHere = this._editCommands.fieldEditCancel;
+      this._editCommands.prevField = () => { this._cancelEdit(); commands.allCommands.prevField.run(); };
+      this._editCommands.nextField = () => { this._cancelEdit(); commands.allCommands.nextField.run(); };
+      this._editCommands.makeFormula = () => true; /* don't stop propagation */
+      this._editCommands.unmakeFormula = () => true;
+    }
 
-    this.rebuildEditor(editValue, Number.POSITIVE_INFINITY, state);
+    this.rebuildEditor(editValue, Number.POSITIVE_INFINITY, options.state);
 
     if (offerToMakeFormula) {
       this._offerToMakeFormula();
@@ -143,7 +161,12 @@ export class FieldEditor extends Disposable {
     // when user or server refreshes the browser
     this._gristDoc.editorMonitor.monitorEditor(this);
 
-    setupEditorCleanup(this, this._gristDoc, this._field, this._saveEdit);
+    // for readonly field we don't need to do anything special
+    if (!options.readonly) {
+      setupEditorCleanup(this, this._gristDoc, this._field, this._saveEdit);
+    } else {
+      setupReadonlyEditorCleanup(this, this._gristDoc, this._field, () => this._cancelEdit());
+    }
   }
 
   // cursorPos refers to the position of the caret within the editor.
@@ -166,10 +189,16 @@ export class FieldEditor extends Disposable {
       cellValue = cellCurrentValue;
     }
 
-    // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
-    // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
-    // we defer this mode until the user types something.
-    this._field.editingFormula(this._isFormula && editValue !== undefined);
+    const error = getFormulaError(this._gristDoc, this._editRow, column);
+
+    // For readonly mode use the default behavior of Formula Editor
+    // TODO: cleanup this flag - it gets modified in too many places
+    if (!this._readonly){
+      // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
+      // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
+      // we defer this mode until the user types something.
+      this._field.editingFormula(this._isFormula && editValue !== undefined);
+    }
 
     this._editorHasChanged = false;
     // Replace the item in the Holder with a new one, disposing the previous one.
@@ -177,11 +206,12 @@ export class FieldEditor extends Disposable {
       gristDoc: this._gristDoc,
       field: this._field,
       cellValue,
-      formulaError: getFormulaError(this._gristDoc, this._editRow, column),
+      formulaError: error,
       editValue,
       cursorPos,
       state,
       commands: this._editCommands,
+      readonly : this._readonly
     }));
 
     // if editor supports live changes, connect it to the change emitter
@@ -268,6 +298,7 @@ export class FieldEditor extends Disposable {
 
   // Cancels the edit
   private _cancelEdit() {
+    if (this.isDisposed()) { return; }
     const event: FieldEditorStateEvent = {
       position : this.cellPosition(),
       wasModified : this._editorHasChanged,
@@ -380,6 +411,7 @@ export function openSideFormulaEditor(options: {
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
     cssClass: 'formula_editor_sidepane',
+    readonly : false
   });
   editor.attach(refElem);
 
@@ -389,6 +421,20 @@ export function openSideFormulaEditor(options: {
   return holder;
 }
 
+/**
+ * For an readonly editor, set up its cleanup:
+ * - canceling on click-away (when focus returns to Grist "clipboard" element)
+ */
+function setupReadonlyEditorCleanup(
+  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, cancelEdit: () => any
+) {
+  // Whenever focus returns to the Clipboard component, close the editor by saving the value.
+  gristDoc.app.on('clipboard_focus', cancelEdit);
+  owner.onDispose(() => {
+    field.editingFormula(false);
+    gristDoc.app.off('clipboard_focus', cancelEdit);
+  });
+}
 
 /**
  * For an active editor, set up its cleanup:

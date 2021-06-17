@@ -8,7 +8,7 @@ var commands = require('../components/commands');
 const {testId} = require('app/client/ui2018/cssVars');
 const {createMobileButtons, getButtonMargins} = require('app/client/widgets/EditorButtons');
 const {EditorPlacement} = require('app/client/widgets/EditorPlacement');
-const { observable } = require('grainjs');
+const {observable} = require('grainjs');
 
 /**
  * Required parameters:
@@ -38,12 +38,14 @@ function TextEditor(options) {
   this.editorState = this.autoDispose(observable(initialValue));
 
   this.dom = dom('div.default_editor',
+    kd.toggleClass("readonly_editor", options.readonly),
     dom('div.celleditor_cursor_editor', dom.testId('TextEditor_editor'),
       testId('widget-text-editor'),   // new-style testId matches NTextEditor, for more uniform tests.
       this.contentSizer = dom('div.celleditor_content_measure'),
       this.textInput = dom('textarea.celleditor_text_editor',
         kd.attr('placeholder', options.placeholder || ''),
         kd.style('text-align', this._alignment),
+        kd.boolAttr('readonly', options.readonly),
         kd.value(initialValue),
         this.commandGroup.attach(),
 

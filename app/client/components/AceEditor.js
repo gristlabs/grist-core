@@ -26,6 +26,7 @@ function AceEditor(options) {
   this.calcSize = (options && options.calcSize) || ((elem, size) => size);
   this.gristDoc = (options && options.gristDoc) || null;
   this.editorState = (options && options.editorState) || null;
+  this._readonly = options.readonly || false;
 
   this.editor = null;
   this.editorDom = null;
@@ -112,6 +113,11 @@ AceEditor.prototype.attachCommandGroup = function(commandGroup) {
   _.each(commandGroup.knownKeys, (command, key) => {
     this.editor.commands.addCommand({
       name: command,
+      // We are setting readonly as true to enable all commands
+      // in a readonly mode.
+      // Because FieldEditor in readonly mode will rewire all commands that
+      // modify state, we are safe to enable them.
+      readOnly: this._readonly,
       bindKey: {
         win: key,
         mac: key,

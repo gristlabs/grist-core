@@ -21,14 +21,14 @@ import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
 import { FieldEditor, openSideFormulaEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
+import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import { CellValue } from 'app/plugin/GristData';
-import { delay } from 'bluebird';
 import { Computed, Disposable, fromKo, dom as grainjsDom,
-         Holder, IDisposable, makeTestId } from 'grainjs';
+         Holder, IDisposable, makeTestId, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -77,6 +77,7 @@ export class FieldBuilder extends Disposable {
   private readonly _fieldEditorHolder: Holder<IDisposable>;
   private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
   private readonly _docModel: DocModel;
+  private readonly _readonly: Computed<boolean>;
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor) {
@@ -87,6 +88,8 @@ export class FieldBuilder extends Disposable {
     this.options = field.widgetOptionsJson;
 
     this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
+
+    this._readonly = Computed.create(this, (use) => use(gristDoc.isReadonly) || use(field.disableEditData));
 
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
@@ -407,11 +410,13 @@ export class FieldBuilder extends Disposable {
       }
     }, this).extend({ deferred: true })).onlyNotifyUnequal();
 
+
     return (elem: Element) => {
       this._rowMap.set(row, elem);
       dom(elem,
           dom.autoDispose(widgetObs),
           kd.cssClass(this.field.formulaCssClass),
+          kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
                                          kd.toggleClass('active_cursor', isActive)
                                         )),
@@ -426,28 +431,6 @@ export class FieldBuilder extends Disposable {
     };
   }
 
-  /**
-   * Flash the cursor in the given row briefly to indicate that editing in this cell is disabled.
-   */
-  public async flashCursorReadOnly(mainRow: DataRowModel) {
-    const mainCell = this._rowMap.get(mainRow);
-    // Abort if a cell is not found (i.e. if this is a ChartView)
-    if (!mainCell) { return; }
-    const elem = mainCell.querySelector('.active_cursor');
-    if (elem && !elem.classList.contains('cursor_read_only')) {
-      elem.classList.add('cursor_read_only');
-      const div = elem.appendChild(dom('div.cursor_read_only_lock.glyphicon.glyphicon-lock'));
-      try {
-        await delay(200);
-        elem.classList.add('cursor_read_only_fade');
-        await delay(400);
-      } finally {
-        elem.classList.remove('cursor_read_only', 'cursor_read_only_fade');
-        elem.removeChild(div);
-      }
-    }
-  }
-
   public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
     init?: string,
     state?: any
@@ -459,7 +442,16 @@ export class FieldBuilder extends Disposable {
       return;
     }
 
-    const editorCtor = UserTypeImpl.getEditorConstructor(this.options().widget, this._readOnlyPureType());
+    // If this is censored value, don't open up the editor, unless it is a formula field.
+    const cell = editRow.cells[this.field.colId()];
+    const value = cell && cell();
+    if (gristTypes.isCensored(value) && !this.origColumn.isFormula.peek()) {
+      this._fieldEditorHolder.clear();
+      return;
+    }
+
+    const editorCtor: typeof NewBaseEditor =
+      UserTypeImpl.getEditorConstructor(this.options().widget, this._readOnlyPureType());
     // constructor may be null for a read-only non-formula field, though not today.
     if (!editorCtor) {
       // Actually, we only expect buildEditorDom() to be called when isEditorActive() is false (i.e.
@@ -468,7 +460,13 @@ export class FieldBuilder extends Disposable {
       return;
     }
 
-    if (saveWithoutEditor(editorCtor, editRow, this.field, options.init)) {
+    // if editor doesn't support readonly mode, don't show it
+    if (this._readonly.get() && editorCtor.supportsReadonly && !editorCtor.supportsReadonly()) {
+      this._fieldEditorHolder.clear();
+      return;
+    }
+
+    if (!this._readonly.get() && saveWithoutEditor(editorCtor, editRow, this.field, options.init)) {
       this._fieldEditorHolder.clear();
       return;
     }
@@ -483,8 +481,9 @@ export class FieldBuilder extends Disposable {
       editRow,
       cellElem,
       editorCtor,
-      startVal: options.init,
-      state : options.state
+      state: options.state,
+      startVal: this._readonly.get() ? undefined : options.init, // don't start with initial value
+      readonly: this._readonly.get() // readonly for editor will not be observable
     });
 
     // Put the FieldEditor into a holder in GristDoc too. This way any existing FieldEditor (perhaps

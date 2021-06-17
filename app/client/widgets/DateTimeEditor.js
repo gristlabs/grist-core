@@ -7,6 +7,7 @@ const kd = require('../lib/koDom');
 const DateEditor = require('./DateEditor');
 const gutil = require('app/common/gutil');
 const { parseDate } = require('app/common/parseDate');
+const TextEditor = require('./TextEditor');
 
 /**
  * DateTimeEditor - Editor for DateTime type. Includes a dropdown datepicker.
@@ -18,10 +19,14 @@ function DateTimeEditor(options) {
 
   // Adjust the command group.
   var origCommands = options.commands;
-  options.commands = Object.assign({}, origCommands, {
-    prevField: () => this._focusIndex() === 1 ? this._setFocus(0) : origCommands.prevField(),
-    nextField: () => this._focusIndex() === 0 ? this._setFocus(1) : origCommands.nextField(),
-  });
+
+  // don't modify navigation for readonly mode
+  if (!options.readonly) {
+    options.commands = Object.assign({}, origCommands, {
+      prevField: () => this._focusIndex() === 1 ? this._setFocus(0) : origCommands.prevField(),
+      nextField: () => this._focusIndex() === 0 ? this._setFocus(1) : origCommands.nextField(),
+    });
+  }
 
   // Call the superclass.
   DateEditor.call(this, options);
@@ -32,20 +37,37 @@ function DateTimeEditor(options) {
   // modifies that to be two side-by-side textareas.
   this._dateSizer = this.contentSizer;    // For consistency with _timeSizer and _timeInput.
   this._dateInput = this.textInput;
-  dom(this.dom, kd.toggleClass('celleditor_datetime', true));
-  dom(this.dom.firstChild, kd.toggleClass('celleditor_datetime_editor', true));
-  this.dom.appendChild(
-    dom('div.celleditor_cursor_editor.celleditor_datetime_editor',
-      this._timeSizer = dom('div.celleditor_content_measure'),
-      this._timeInput = dom('textarea.celleditor_text_editor',
-        // Use a placeholder of 12:00am, since that is the autofill time value.
-        kd.attr('placeholder', moment.tz('0', 'H', this.timezone).format(this._timeFormat)),
-        kd.value(this.formatValue(options.cellValue, this._timeFormat)),
-        this.commandGroup.attach(),
-        dom.on('input', () => this.onChange())
+
+  const isValid = _.isNumber(options.cellValue);
+  const formatted = this.formatValue(options.cellValue, this._timeFormat);
+  // Use a placeholder of 12:00am, since that is the autofill time value.
+  const placeholder = moment.tz('0', 'H', this.timezone).format(this._timeFormat);
+
+  // for readonly
+  if (options.readonly) {
+    if (!isValid) {
+      // do nothing - DateEditor will show correct error
+    } else {
+      // append time format or a placeholder
+      const time = (formatted || placeholder);
+      const sep = time ? ' ' : '';
+      this.textInput.value = this.textInput.value + sep + time;
+    }
+  } else {
+    dom(this.dom, kd.toggleClass('celleditor_datetime', true));
+    dom(this.dom.firstChild, kd.toggleClass('celleditor_datetime_editor', true));
+    this.dom.appendChild(
+      dom('div.celleditor_cursor_editor.celleditor_datetime_editor',
+        this._timeSizer = dom('div.celleditor_content_measure'),
+        this._timeInput = dom('textarea.celleditor_text_editor',
+          kd.attr('placeholder', placeholder),
+          kd.value(formatted),
+          this.commandGroup.attach(),
+          dom.on('input', () => this.onChange())
+        )
       )
-    )
-  );
+    );
+  }
 
   // If the edit value is encoded json, use those values as a starting point
   if (typeof options.state == 'string') {
@@ -65,6 +87,9 @@ _.extend(DateTimeEditor.prototype, DateEditor.prototype);
 
 DateTimeEditor.prototype.setSizerLimits = function() {
   var maxSize = this.editorPlacement.calcSize({width: Infinity, height: Infinity}, {calcOnly: true});
+  if (this.options.readonly) {
+    return;
+  }
   this._dateSizer.style.maxWidth =
     this._timeSizer.style.maxWidth = Math.ceil(maxSize.width / 2 - 6) + 'px';
 };
@@ -118,6 +143,12 @@ DateTimeEditor.prototype.getCellValue = function() {
  * Overrides the resizing function in TextEditor.
  */
 DateTimeEditor.prototype._resizeInput = function() {
+
+  // for readonly field, we will use logic from a super class
+  if (this.options.readonly) {
+    TextEditor.prototype._resizeInput.call(this);
+    return;
+  }
   // Use the size calculation provided in options.calcSize (that takes into account cell size and
   // screen size), with both date and time parts as the input. The resulting size is applied to
   // the parent (containing date + time), with date and time each expanding or shrinking from the

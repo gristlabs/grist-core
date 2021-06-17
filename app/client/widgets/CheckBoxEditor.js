@@ -18,4 +18,7 @@ CheckBoxEditor.skipEditor = function(typedVal, cellVal) {
   }
 }
 
+// For documentation, see NewBaseEditor.ts
+CheckBoxEditor.supportsReadonly = function() { return false; }
+
 module.exports = CheckBoxEditor;

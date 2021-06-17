@@ -22,6 +22,7 @@ export interface Options {
   cursorPos: number;
   commands: IEditorCommandGroup;
   state?: any;
+  readonly: boolean;
 }
 
 /**
@@ -53,6 +54,13 @@ export abstract class NewBaseEditor extends Disposable {
    */
   public static skipEditor(typedVal: string|undefined, origVal: CellValue): CellValue|undefined {
     return undefined;
+  }
+
+  /**
+   * Check if editor supports readonly mode (default: true)
+   */
+  public static supportsReadonly(): boolean {
+    return true;
   }
 
   /**

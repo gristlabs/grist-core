@@ -53,8 +53,12 @@ export class ReferenceEditor extends NTextEditor {
     this._visibleCol = vcol.colId() || 'id';
 
     // Decorate the editor to look like a reference column value (with a "link" icon).
-    this.cellEditorDiv.classList.add(cssRefEditor.className);
-    this.cellEditorDiv.appendChild(cssRefEditIcon('FieldReference'));
+    // But not on readonly mode - here we will reuse default decoration
+    if (!options.readonly) {
+      this.cellEditorDiv.classList.add(cssRefEditor.className);
+      this.cellEditorDiv.appendChild(cssRefEditIcon('FieldReference'));
+    }
+
     this.textInput.value = undef(options.state, options.editValue, this._idToText(options.cellValue));
 
     const needReload = (options.editValue === undefined && !tableData.isLoaded);
@@ -80,6 +84,8 @@ export class ReferenceEditor extends NTextEditor {
 
   public attach(cellElem: Element): void {
     super.attach(cellElem);
+    // don't create autocomplete for readonly mode
+    if (this.options.readonly) { return; }
     this._autocomplete = this.autoDispose(new Autocomplete<ICellItem>(this.textInput, {
       menuCssClass: menuCssClass + ' ' + cssRefList.className,
       search: this._doSearch.bind(this),

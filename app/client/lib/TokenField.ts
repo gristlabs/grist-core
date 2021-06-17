@@ -35,6 +35,7 @@ export interface ITokenFieldOptions {
   acOptions?: IAutocompleteOptions<IToken & ACItem>;
   openAutocompleteOnFocus?: boolean;
   styles?: ITokenFieldStyles;
+  readonly?: boolean;
 
   // Allows overriding how tokens are copied to the clipboard, or retrieved from it.
   // By default, tokens are placed into clipboard as text/plain comma-separated token labels, with
@@ -89,7 +90,13 @@ export class TokenField extends Disposable {
     this.autoDispose(this._tokens.addListener(this._recordUndo.bind(this)));
 
     // Use overridden styles if any were provided.
-    const {cssTokenField, cssToken, cssInputWrapper, cssTokenInput, cssDeleteButton, cssDeleteIcon} =
+    const {
+      cssTokenField,
+      cssToken,
+      cssInputWrapper,
+      cssTokenInput,
+      cssDeleteButton,
+      cssDeleteIcon} =
       {...tokenFieldStyles, ..._options.styles};
 
     function stop(ev: Event) {
@@ -101,15 +108,18 @@ export class TokenField extends Disposable {
       {tabIndex: '-1'},
       dom.forEach(this._tokens, (t) =>
         cssToken(this._options.renderToken(t.token),
-          cssDeleteButton(cssDeleteIcon('CrossSmall'), testId('tokenfield-delete')),
           dom.cls('selected', (use) => use(this._selection).has(t)),
-          dom.on('click', (ev) => this._onTokenClick(ev, t)),
-          dom.on('mousedown', (ev) => this._onMouseDown(ev, t)),
+          _options.readonly ? null : [
+            cssDeleteButton(cssDeleteIcon('CrossSmall'), testId('tokenfield-delete')),
+            dom.on('click', (ev) =>  this._onTokenClick(ev, t)),
+            dom.on('mousedown', (ev) => this._onMouseDown(ev, t))
+          ],
           testId('tokenfield-token')
         ),
       ),
       cssInputWrapper(
         this._textInput = cssTokenInput(
+          dom.boolAttr("readonly", this._options.readonly ?? false),
           dom.on('focus', this._onInputFocus.bind(this)),
           dom.on('blur', () => { this._acHolder.clear(); }),
           (this._acOptions ?
@@ -174,6 +184,8 @@ export class TokenField extends Disposable {
 
   // Open the autocomplete dropdown, if autocomplete was configured in the options.
   private _openAutocomplete() {
+    // don't open dropdown in a readonly mode
+    if (this._options.readonly) { return; }
     if (this._acOptions && this._acHolder.isEmpty()) {
       Autocomplete.create(this._acHolder, this._textInput, this._acOptions);
     }

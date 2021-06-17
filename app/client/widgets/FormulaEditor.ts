@@ -47,11 +47,15 @@ export class FormulaEditor extends NewBaseEditor {
       // and _editorPlacement created.
       calcSize: this._calcSize.bind(this),
       gristDoc: options.gristDoc,
-      saveValueOnBlurEvent: true,
-      editorState : this.editorState
+      saveValueOnBlurEvent: !options.readonly,
+      editorState : this.editorState,
+      readonly: options.readonly
     });
 
-    const allCommands = Object.assign({ setCursor: this._onSetCursor }, options.commands);
+    const allCommands = !options.readonly
+        ? Object.assign({ setCursor: this._onSetCursor }, options.commands)
+        // for readonly mode don't grab cursor when clicked away - just move the cursor
+        : options.commands;
     this._commandGroup = this.autoDispose(createGroup(allCommands, this, options.field.editingFormula));
 
     const hideErrDetails = Observable.create(null, true);
@@ -59,6 +63,8 @@ export class FormulaEditor extends NewBaseEditor {
 
     this.autoDispose(this._formulaEditor);
     this._dom = dom('div.default_editor',
+      // switch border shadow
+      dom.cls("readonly_editor", options.readonly),
       createMobileButtons(options.commands),
       options.cssClass ? dom.cls(options.cssClass) : null,
 
@@ -70,7 +76,10 @@ export class FormulaEditor extends NewBaseEditor {
       dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
         // We don't always enter editing mode immediately, e.g. not on double-clicking a cell.
         // In those cases, we'll switch as soon as the user types or clicks into the editor.
-        dom.on('mousedown', () => options.field.editingFormula(true)),
+        dom.on('mousedown', () => {
+          // but don't do it when this is a readonly mode
+          options.field.editingFormula(true);
+        }),
         this._formulaEditor.buildDom((aceObj: any) => {
           aceObj.setFontSize(11);
           aceObj.setHighlightActiveLine(false);
@@ -82,10 +91,13 @@ export class FormulaEditor extends NewBaseEditor {
           this._formulaEditor.attachCommandGroup(this._commandGroup);
 
           // enable formula editing if state was passed
-          if (options.state) {
+          if (options.state || options.readonly) {
             options.field.editingFormula(true);
           }
-
+          if (options.readonly) {
+            this._formulaEditor.enable(false);
+            aceObj.gotoLine(0, 0); // By moving, ace editor won't highlight anything
+          }
           // This catches any change to the value including e.g. via backspace or paste.
           aceObj.once("change", () => options.field.editingFormula(true));
         })
@@ -147,7 +159,10 @@ export class FormulaEditor extends NewBaseEditor {
 
   // TODO: update regexes to unicode?
   private _onSetCursor(row: DataRowModel, col: ViewFieldRec) {
+
     if (!col) { return; } // if clicked on row header, no col to insert
+
+    if (this.options.readonly) { return; }
 
     const aceObj = this._formulaEditor.getEditor();
 

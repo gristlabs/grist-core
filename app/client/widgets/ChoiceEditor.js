@@ -13,7 +13,7 @@ function ChoiceEditor(options) {
   this.choices = options.field.widgetOptionsJson.peek().choices || [];
 
   // Add autocomplete if there are any choices to select from
-  if (this.choices.length > 0) {
+  if (this.choices.length > 0 && !options.readonly) {
 
     autocomplete(this.textInput, this.choices, {
       allowNothingSelected: true,

@@ -7,6 +7,32 @@
   box-shadow: 0 0 3px 2px var(--grist-color-cursor);
 }
 
+.readonly_editor {
+  box-shadow: 0 0 3px 2px var(--grist-color-slate);
+}
+
+/* make room for lock icon */
+.readonly_editor .celleditor_cursor_editor .celleditor_text_editor,
+.readonly_editor .celleditor_cursor_editor .celleditor_content_measure {
+  padding-left: 18px;
+}
+
+.readonly_editor::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 4px 3px 0 3px;
+  width: 13px;
+  height: 13px;
+  background-color: #D0D0D0;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-image: var(--icon-Lock);
+}
+
+
 .formula_editor {
   background-color: white;
   padding: 4px 0 2px 21px;

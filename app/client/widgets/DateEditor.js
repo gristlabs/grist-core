@@ -35,60 +35,75 @@ function DateEditor(options) {
   // Strip moment format string to remove markers unsupported by the datepicker.
   this.safeFormat = DateEditor.parseMomentToSafe(this.dateFormat);
 
+  this._readonly = options.readonly;
+
   // Use the default local timezone to format the placeholder date.
   let defaultTimezone = moment.tz.guess();
   let placeholder = moment.tz(defaultTimezone).format(this.safeFormat);
+  if (options.readonly) {
+    // clear placeholder for readonly mode
+    placeholder = null;
+  }
   TextEditor.call(this, _.defaults(options, { placeholder: placeholder }));
 
+  const isValid = _.isNumber(options.cellValue);
+  const formatted = this.formatValue(options.cellValue, this.safeFormat);
+  // Formatted value will be empty if a cell contains an error,
+  // but for a readonly mode we actually want to show what user typed
+  // into the cell.
+  const readonlyValue = isValid ? formatted : options.cellValue;
+  const cellValue = options.readonly ? readonlyValue : formatted;
+
   // Set the edited value, if not explicitly given, to the formatted version of cellValue.
-  this.textInput.value = gutil.undef(options.state, options.editValue,
-    this.formatValue(options.cellValue, this.safeFormat));
+  this.textInput.value = gutil.undef(options.state, options.editValue, cellValue);
 
-  // Indicates whether keyboard navigation is active for the datepicker.
-  this._keyboardNav = false;
+  if (!options.readonly) {
+    // Indicates whether keyboard navigation is active for the datepicker.
+    this._keyboardNav = false;
 
-  // Attach the datepicker.
-  this._datePickerWidget = $(this.textInput).datepicker({
-    keyboardNavigation: false,
-    forceParse: false,
-    todayHighlight: true,
-    todayBtn: 'linked',
-    // Convert the stripped format string to one suitable for the datepicker.
-    format: DateEditor.parseSafeToCalendar(this.safeFormat)
-  });
-  this.autoDisposeCallback(() => this._datePickerWidget.datepicker('remove'));
+    // Attach the datepicker.
+    this._datePickerWidget = $(this.textInput).datepicker({
+      keyboardNavigation: false,
+      forceParse: false,
+      todayHighlight: true,
+      todayBtn: 'linked',
+      // Convert the stripped format string to one suitable for the datepicker.
+      format: DateEditor.parseSafeToCalendar(this.safeFormat)
+    });
+    this.autoDisposeCallback(() => this._datePickerWidget.datepicker('remove'));
 
-  // NOTE: Datepicker interferes with normal enter and escape functionality. Add an event handler
-  // to the DatePicker to prevent interference with normal behavior.
-  this._datePickerWidget.on('keydown', e => {
-    // If enter or escape is pressed, destroy the datepicker and re-dispatch the event.
-    if (e.keyCode === 13 || e.keyCode === 27) {
-      this._datePickerWidget.datepicker('remove');
-      // The current target of the event will be the textarea.
-      setTimeout(() => e.currentTarget.dispatchEvent(e.originalEvent), 0);
-    }
-  });
+    // NOTE: Datepicker interferes with normal enter and escape functionality. Add an event handler
+    // to the DatePicker to prevent interference with normal behavior.
+    this._datePickerWidget.on('keydown', e => {
+      // If enter or escape is pressed, destroy the datepicker and re-dispatch the event.
+      if (e.keyCode === 13 || e.keyCode === 27) {
+        this._datePickerWidget.datepicker('remove');
+        // The current target of the event will be the textarea.
+        setTimeout(() => e.currentTarget.dispatchEvent(e.originalEvent), 0);
+      }
+    });
 
-  // When the up/down arrow is pressed, modify the datepicker options to take control of
-  // the arrow keys for date selection.
-  let datepickerCommands = Object.assign({}, options.commands, {
-    datepickerFocus: () => { this._allowKeyboardNav(true); }
-  });
-  this._datepickerCommands = this.autoDispose(commands.createGroup(datepickerCommands, this, true));
+    // When the up/down arrow is pressed, modify the datepicker options to take control of
+    // the arrow keys for date selection.
+    let datepickerCommands = Object.assign({}, options.commands, {
+      datepickerFocus: () => { this._allowKeyboardNav(true); }
+    });
+    this._datepickerCommands = this.autoDispose(commands.createGroup(datepickerCommands, this, true));
 
-  this._datePickerWidget.on('show', () => {
-    // A workaround to allow clicking in the datepicker without losing focus.
-    dom(document.querySelector('.datepicker'),
-      kd.attr('tabIndex', 0),                   // allows datepicker to gain focus
-      kd.toggleClass('clipboard_focus', true)   // tells clipboard to not steal focus from us
-    );
-    // Attach command group to the input to allow switching keyboard focus to the datepicker.
-    dom(this.textInput,
-      // If the user inputs text into the textbox, take keyboard focus from the datepicker.
-      dom.on('input', () => { this._allowKeyboardNav(false); }),
-      this._datepickerCommands.attach()
-    );
-  });
+    this._datePickerWidget.on('show', () => {
+      // A workaround to allow clicking in the datepicker without losing focus.
+      dom(document.querySelector('.datepicker'),
+        kd.attr('tabIndex', 0),                   // allows datepicker to gain focus
+        kd.toggleClass('clipboard_focus', true)   // tells clipboard to not steal focus from us
+      );
+      // Attach command group to the input to allow switching keyboard focus to the datepicker.
+      dom(this.textInput,
+        // If the user inputs text into the textbox, take keyboard focus from the datepicker.
+        dom.on('input', () => { this._allowKeyboardNav(false); }),
+        this._datepickerCommands.attach()
+      );
+    });
+  }
 }
 
 dispose.makeDisposable(DateEditor);

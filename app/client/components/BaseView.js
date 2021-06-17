@@ -278,16 +278,12 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
   // LazyArrayModel row model which is also used to build the cell dom. Needed since
   // it may be used as a key to retrieve the cell dom, which is useful for editor placement.
   var lazyRow = this.getRenderedRowModel(rowId);
-  if (builder.field.disableEditData() || this.gristDoc.isReadonly.get()) {
-    builder.flashCursorReadOnly(lazyRow);
-  } else {
-    if (!lazyRow) {
-      // TODO scroll into view. For now, just don't activate the editor.
-      return;
-    }
-    this.editRowModel.assign(rowId);
-    builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
+  if (!lazyRow) {
+    // TODO scroll into view. For now, just don't activate the editor.
+    return;
   }
+  this.editRowModel.assign(rowId);
+  builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
 };
 
 /**

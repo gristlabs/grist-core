@@ -130,6 +130,22 @@ function attr(attrName, valueOrFunc) {
 }
 exports.attr = attr;
 
+/**
+ * Sets or removes a boolean attribute of a DOM element. According to the spec, empty string is a
+ * valid true value for the attribute, and the false value is indicated by the attribute's absence.
+ * @param {String} attrName The name of the attribute to bind, e.g. 'href'.
+ * @param {Object} valueOrFunc An observable, a constant, or a function for a computed observable.
+ */
+function boolAttr(attrName, valueOrFunc) {
+  return makeBinding(valueOrFunc, function(elem, value) {
+    if (!value) {
+      elem.removeAttribute(attrName);
+    } else {
+      elem.setAttribute(attrName, '');
+    }
+  });
+}
+exports.boolAttr = boolAttr;
 
 /**
  * Keeps the style property `property` of a DOM element in sync with an observable value.

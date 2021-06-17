@@ -10,7 +10,6 @@ import {CellValue} from "app/common/DocActions";
 import {undef} from 'app/common/gutil';
 import {dom, Observable} from 'grainjs';
 
-
 export class NTextEditor extends NewBaseEditor {
   // Observable with current editor state (used by drafts or latest edit/position component)
   public readonly editorState: Observable<string>;
@@ -36,12 +35,18 @@ export class NTextEditor extends NewBaseEditor {
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
-    this._dom = dom('div.default_editor',
-      this.cellEditorDiv = dom('div.celleditor_cursor_editor', testId('widget-text-editor'),
+    this._dom =
+    dom('div.default_editor',
+      // add readonly class
+      dom.cls("readonly_editor", options.readonly),
+      this.cellEditorDiv = dom('div.celleditor_cursor_editor',
+        testId('widget-text-editor'),
         this._contentSizer = dom('div.celleditor_content_measure'),
-        this.textInput = dom('textarea', dom.cls('celleditor_text_editor'),
+        this.textInput = dom('textarea',
+          dom.cls('celleditor_text_editor'),
           dom.style('text-align', this._alignment),
           dom.prop('value', initialValue),
+          dom.boolAttr('readonly', options.readonly),
           this.commandGroup.attach(),
           dom.on('input', () => this.onInput())
         )

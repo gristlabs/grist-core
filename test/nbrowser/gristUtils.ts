@@ -331,6 +331,12 @@ export async function getColumnNames() {
     .filter(name => name !== '+');
 }
 
+export async function getCardFieldLabels() {
+  const section = await driver.findWait('.active_section', 4000);
+  const labels = await section.findAll(".g_record_detail_label", el => el.getText());
+  return labels;
+}
+
 /**
  * Resize the given grid column by a given number of pixels.
  */
@@ -371,6 +377,12 @@ export async function getCursorPosition() {
     // This must be a detail view, and we just got the info we need.
     return {rowNum: parseInt(rowNum, 10), col: colName};
   } else {
+    // We might be on a single card record
+    const counter = await section.findAll(".grist-single-record__menu__count");
+    if (counter.length) {
+      const cardRow = (await counter[0].getText()).split(' OF ')[0];
+      return { rowNum : parseInt(cardRow), col: colName };
+    }
     // Otherwise, it's a grid view, and we need to use indices to look up the info.
     const gridRows = await section.findAll('.gridview_data_row_num');
     const gridRowNum = await gridRows[rowIndex].getText();

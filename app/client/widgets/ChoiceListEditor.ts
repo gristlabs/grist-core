@@ -70,10 +70,13 @@ export class ChoiceListEditor extends NewBaseEditor {
       createToken: label => new ChoiceItem(label, !choiceSet.has(label)),
       acOptions,
       openAutocompleteOnFocus: true,
+      readonly : options.readonly,
       styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
     });
 
     this._dom = dom('div.default_editor',
+      dom.cls("readonly_editor", options.readonly),
+      dom.cls(cssReadonlyStyle.className, options.readonly),
       this.cellEditorDiv = cssCellEditor(testId('widget-text-editor'),
         this._contentSizer = cssContentSizer(),
         elem => this._tokenField.attach(elem),
@@ -280,4 +283,9 @@ const cssInputSizer = styled('div', `
 const cssChoiceList = styled('div', `
   z-index: 1001;
   box-shadow: 0 0px 8px 0 rgba(38,38,51,0.6)
+`);
+
+const cssReadonlyStyle = styled('div', `
+  padding-left: 16px;
+  background: white;
 `);

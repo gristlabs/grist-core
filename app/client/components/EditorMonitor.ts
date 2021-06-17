@@ -58,6 +58,9 @@ export class EditorMonitor extends Disposable {
     // will be invoked only once
     let executed = false;
 
+    // don't restore on readonly mode
+    if (doc.isReadonly.get()) { return; }
+
     // on view shown
     this._currentViewListener.autoDispose(doc.currentView.addListener(async view => {
       if (executed) {

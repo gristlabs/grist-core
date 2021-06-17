@@ -149,16 +149,18 @@ export class AttachmentsEditor extends NewBaseEditor {
                 testId('pw-download')
               ),
             ),
-            cssButton(cssButtonIcon('FieldAttachment'), 'Add',
-              dom.on('click', () => this._select()),
-              testId('pw-add')
-            ),
-            dom.maybe(this._selected, selected =>
-              cssButton(cssButtonIcon('Remove'), 'Delete',
-                dom.on('click', () => this._remove()),
-                testId('pw-remove')
+            this.options.readonly ? null : [
+              cssButton(cssButtonIcon('FieldAttachment'), 'Add',
+                dom.on('click', () => this._select()),
+                testId('pw-add')
               ),
-            )
+              dom.maybe(this._selected, () =>
+                cssButton(cssButtonIcon('Remove'), 'Delete',
+                  dom.on('click', () => this._remove()),
+                  testId('pw-remove')
+                ),
+              )
+            ]
           ),
           cssCloseButton(cssBigIcon('CrossBig'), dom.on('click', () => ctl.close()),
             testId('pw-close')),
@@ -172,12 +174,12 @@ export class AttachmentsEditor extends NewBaseEditor {
         dom.hide(use => !use(this._attachments).length || use(this._index) === use(this._attachments).length - 1),
         dom.on('click', () => this._moveIndex(1))
       ),
-      dom.domComputed(this._selected, selected => renderContent(selected)),
+      dom.domComputed(this._selected, selected => renderContent(selected, this.options.readonly)),
 
       // Drag-over logic
       (elem: HTMLElement) => dragOverClass(elem, cssDropping.className),
-      cssDragArea(cssWarning('Drop files here to attach')),
-      dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
+      cssDragArea(this.options.readonly ? null : cssWarning('Drop files here to attach')),
+      this.options.readonly ? null : dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
       testId('pw-modal')
     ];
   }
@@ -235,10 +237,10 @@ function isInEditor(ev: KeyboardEvent): boolean {
   return (ev.target as HTMLElement).tagName === 'INPUT';
 }
 
-function renderContent(att: Attachment|null): HTMLElement {
+function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
   const commonArgs = [cssContent.cls(''), testId('pw-attachment-content')];
   if (!att) {
-    return cssWarning('No attachments', cssDetails('Drop files here to attach.'), ...commonArgs);
+    return cssWarning('No attachments', readonly ? null : cssDetails('Drop files here to attach.'), ...commonArgs);
   } else if (att.hasPreview) {
     return dom('img', dom.attr('src', att.url), ...commonArgs);
   } else if (att.fileType.startsWith('video/')) {
