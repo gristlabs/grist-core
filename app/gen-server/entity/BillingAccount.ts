@@ -12,6 +12,13 @@ interface BillingAccountStatus {
   message?: string;
 }
 
+// A structure for billing options relevant to an external authority, for sites
+// created outside of Grist's regular billing flow.
+export interface ExternalBillingOptions {
+  authority: string;   // The name of the external authority.
+  invoiceId?: string;  // An id of an invoice or other external billing context.
+}
+
 /**
  * This relates organizations to products.  It holds any stripe information
  * needed to be able to update and pay for the product that applies to the
@@ -48,6 +55,12 @@ export class BillingAccount extends BaseEntity {
 
   @Column({name: 'stripe_plan_id', type: String, nullable: true})
   public stripePlanId: string | null;
+
+  @Column({name: 'external_id', type: String, nullable: true})
+  public externalId: string | null;
+
+  @Column({name: 'external_options', type: nativeValues.jsonEntityType, nullable: true})
+  public externalOptions: ExternalBillingOptions | null;
 
   @OneToMany(type => BillingAccountManager, manager => manager.billingAccount)
   public managers: BillingAccountManager[];

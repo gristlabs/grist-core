@@ -17,7 +17,7 @@ import { PluginManager } from 'app/server/lib/PluginManager';
 export interface ICreate {
   LoginSession(comm: Comm, sid: string, domain: string, scopeSession: ScopedSession,
                instanceManager: IInstanceManager|null): ILoginSession;
-  Billing(dbManager: HomeDBManager): IBilling;
+  Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   Shell(): IShell|undefined;
 

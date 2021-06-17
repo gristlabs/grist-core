@@ -1139,6 +1139,18 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Get a url for a team site.
+   */
+  public async getOrgUrl(orgKey: string|number): Promise<string> {
+    if (!this.dbManager) { throw new Error('database missing'); }
+    const org = await this.dbManager.getOrg({
+      userId: this.dbManager.getPreviewerUserId(),
+      showAll: true
+    }, orgKey);
+    return this.getResourceUrl(this.dbManager.unwrapQueryResult(org));
+  }
+
+  /**
    * Get a url for an organization, workspace, or document.
    */
   public async getResourceUrl(resource: Organization|Workspace|Document): Promise<string> {
@@ -1448,7 +1460,7 @@ export class FlexServer implements GristServer {
   private _getBilling(): IBilling {
     if (!this._billing) {
       if (!this.dbManager) { throw new Error("need dbManager"); }
-      this._billing = this.create.Billing(this.dbManager);
+      this._billing = this.create.Billing(this.dbManager, this);
     }
     return this._billing;
   }

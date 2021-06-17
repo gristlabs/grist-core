@@ -20,6 +20,7 @@ export interface GristServer {
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getDocUrl(docId: string): Promise<string>;
+  getOrgUrl(orgKey: string|number): Promise<string>;
   getResourceUrl(resource: Organization|Workspace|Document): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;

@@ -70,7 +70,10 @@ export function addOrg(
   return dbManager.connection.transaction(async manager => {
     const user = await manager.findOne(User, userId);
     if (!user) { return handleDeletedUser(); }
-    const query = await dbManager.addOrg(user, props, false, true, manager);
+    const query = await dbManager.addOrg(user, props, {
+      setUserAsOwner: false,
+      useNewPlan: true
+    }, manager);
     if (query.status !== 200) { throw new ApiError(query.errMessage!, query.status); }
     return query.data!;
   });

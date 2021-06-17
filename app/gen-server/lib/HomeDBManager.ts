@@ -13,7 +13,7 @@ import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL,
         WorkspaceProperties} from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
+import {BillingAccount, ExternalBillingOptions} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
@@ -522,7 +522,10 @@ export class HomeDBManager extends EventEmitter {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.
-        const result = await this.addOrg(user, {name: "Personal"}, true, true, manager);
+        const result = await this.addOrg(user, {name: "Personal"}, {
+          setUserAsOwner: true,
+          useNewPlan: true
+        }, manager);
         if (result.status !== 200) {
           throw new Error(result.errMessage);
         }
@@ -742,6 +745,18 @@ export class HomeDBManager extends EventEmitter {
       }
       return resources[0];
     });
+  }
+
+  /**
+   * Look up an org by an external id.  External IDs are used in integrations, and
+   * simply offer an alternate way to identify an org.
+   */
+  public async getOrgByExternalId(externalId: string): Promise<Organization|undefined> {
+    const query = this._orgs()
+      .leftJoinAndSelect('orgs.billingAccount', 'billing_accounts')
+      .leftJoinAndSelect('billing_accounts.product', 'products')
+      .where('external_id = :externalId', {externalId});
+    return query.getOne();
   }
 
   /**
@@ -1077,7 +1092,10 @@ export class HomeDBManager extends EventEmitter {
    *
    */
   public async addOrg(user: User, props: Partial<OrganizationProperties>,
-                      setUserAsOwner: boolean, useNewPlan: boolean,
+                      options: { setUserAsOwner: boolean,
+                                 useNewPlan: boolean,
+                                 externalId?: string,
+                                 externalOptions?: ExternalBillingOptions },
                       transaction?: EntityManager): Promise<QueryResult<number>> {
     const notifications: Array<() => void> = [];
     const name = props.name;
@@ -1102,18 +1120,18 @@ export class HomeDBManager extends EventEmitter {
       // Create or find a billing account to associate with this org.
       const billingAccountEntities = [];
       let billingAccount;
-      if (useNewPlan) {
+      if (options.useNewPlan) {
         const productNames = getDefaultProductNames();
-        let productName = setUserAsOwner ? productNames.personal : productNames.teamInitial;
+        let productName = options.setUserAsOwner ? productNames.personal : productNames.teamInitial;
         // A bit fragile: this is called during creation of support@ user, before
         // getSupportUserId() is available, but with setUserAsOwner of true.
-        if (!setUserAsOwner && user.id === this.getSupportUserId()) {
+        if (!options.setUserAsOwner && user.id === this.getSupportUserId()) {
           // For teams created by support@getgrist.com, set the product to something
           // good so payment not needed.  This is useful for testing.
           productName = productNames.team;
         }
         billingAccount = new BillingAccount();
-        billingAccount.individual = setUserAsOwner;
+        billingAccount.individual = options.setUserAsOwner;
         const dbProduct = await manager.findOne(Product, {name: productName});
         if (!dbProduct) {
           throw new Error('Cannot find product for new organization');
@@ -1124,6 +1142,13 @@ export class HomeDBManager extends EventEmitter {
         billingAccountManager.user = user;
         billingAccountManager.billingAccount = billingAccount;
         billingAccountEntities.push(billingAccountManager);
+        if (options.externalId) {
+          // save will fail if externalId is a duplicate.
+          billingAccount.externalId = options.externalId;
+        }
+        if (options.externalOptions) {
+          billingAccount.externalOptions = options.externalOptions;
+        }
       } else {
         // Use the billing account from the user's personal org to start with.
         billingAccount = await manager.createQueryBuilder()
@@ -1132,6 +1157,9 @@ export class HomeDBManager extends EventEmitter {
           .leftJoinAndSelect('billing_accounts.orgs', 'orgs')
           .where('orgs.owner_id = :userId', {userId: user.id})
           .getOne();
+        if (options.externalId && billingAccount?.externalId !== options.externalId) {
+          throw new ApiError('Conflicting external identifier', 400);
+        }
         if (!billingAccount) {
           throw new ApiError('Cannot find an initial plan for organization', 500);
         }
@@ -1144,7 +1172,7 @@ export class HomeDBManager extends EventEmitter {
       if (domain) {
         org.domain = domain;
       }
-      if (setUserAsOwner) {
+      if (options.setUserAsOwner) {
         org.owner = user;
       }
       // Create the special initial permission groups for the new org.
@@ -1180,7 +1208,7 @@ export class HomeDBManager extends EventEmitter {
       // count are not checked, this will succeed unconditionally.
       await this._doAddWorkspace(savedOrg, {name: 'Home'}, manager);
 
-      if (!setUserAsOwner) {
+      if (!options.setUserAsOwner) {
         // This user just made a team site (once this transaction is applied).
         // Emit a notification.
         notifications.push(this._teamCreatorNotification(user.id));
@@ -1247,6 +1275,14 @@ export class HomeDBManager extends EventEmitter {
         if (props.domain) {
           if (org.owner) {
             throw new ApiError('Cannot set a domain for a personal organization', 400);
+          }
+          try {
+            checkSubdomainValidity(props.domain);
+          } catch (e) {
+            return {
+              status: 400,
+              errMessage: `Domain is not permitted: ${e.message}`
+            };
           }
         }
         org.updateFromProperties(props);
