@@ -1,8 +1,8 @@
+import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
 import {CellValue} from 'app/common/DocActions';
+import {FilterSpec, FilterState, makeFilterState} from "app/common/FilterState";
 import {nativeCompare} from 'app/common/gutil';
 import {Computed, Disposable, Observable} from 'grainjs';
-import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
-import {FilterSpec, FilterState, makeFilterState} from "app/common/FilterState";
 
 /**
  * ColumnFilter implements a custom filter on a column, i.e. a filter that's diverged from what's

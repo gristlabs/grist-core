@@ -647,7 +647,7 @@ BaseView.prototype.getLastDataRowIndex = function() {
  * Creates and opens ColumnFilterMenu for a given field, and returns its PopupControl.
  */
 BaseView.prototype.createFilterMenu = function(openCtl, field, onClose) {
-  return createFilterMenu(openCtl, this._sectionFilter, field, this._filteredRowSource, this.tableModel.tableData, onClose);
+  return createFilterMenu(openCtl, this._sectionFilter, field, this._mainRowSource, this.tableModel.tableData, onClose);
 };
 
 /**

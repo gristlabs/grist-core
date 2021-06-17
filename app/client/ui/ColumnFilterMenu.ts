@@ -7,20 +7,25 @@
 import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {FilteredRowSource} from 'app/client/models/rowset';
-import {SectionFilter} from 'app/client/models/SectionFilter';
+import {RowId, RowSource} from 'app/client/models/rowset';
+import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {cssCheckboxSquare, cssLabel, cssLabelText} from 'app/client/ui2018/checkbox';
+import {cssCheckboxSquare, cssLabel, cssLabelText, Indeterminate,
+        labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
-import {Computed, Disposable, dom, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
+import {isEquivalentFilter} from "app/common/FilterState";
+import {Computed, dom, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
+import concat = require('lodash/concat');
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
+import partition = require('lodash/partition');
+import some = require('lodash/some');
+import tail = require('lodash/tail');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import {isEquivalentFilter} from "app/common/FilterState";
 import {decodeObject} from 'app/plugin/objtypes';
 import {isList} from 'app/common/gristTypes';
 
@@ -49,7 +54,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     }
   });
 
-  const {searchValue: searchValueObs, filteredValues, filteredKeys} = model;
+  const {searchValue: searchValueObs, filteredValues, filteredKeys, isSortedByCount} = model;
 
   const isAboveLimitObs = Computed.create(owner, (use) => use(model.valuesBeyondLimit).length > 0);
   const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
@@ -124,7 +129,12 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             testId('bulk-action'),
           )
         ];
-      })
+      }),
+      cssSortIcon(
+        'Sort',
+        cssSortIcon.cls('-active', isSortedByCount),
+        dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
+      )
     ),
     cssItemList(
       testId('list'),
@@ -146,19 +156,22 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       dom.domComputed((use) => {
         const isAboveLimit = use(isAboveLimitObs);
         const searchValue = use(isSearchingObs);
+        const otherValues = use(model.otherValues);
+        const anyOtherValues = Boolean(otherValues.length);
+        const valuesBeyondLimit = use(model.valuesBeyondLimit);
         if (isAboveLimit) {
           return searchValue ? [
-            buildSummary('Other Matching', BeyondLimit, model),
-            buildSummary('Other Non-Matching', OtherValues, model),
+            buildSummary('Other Matching', valuesBeyondLimit, false, model),
+            buildSummary('Other Non-Matching', otherValues, true, model),
           ] : [
-            buildSummary('Other Values', BeyondLimit, model),
-            buildSummary('Future Values', OtherValues, model)
+            buildSummary('Other Values', concat(otherValues, valuesBeyondLimit), false, model),
+            buildSummary('Future Values', [], true, model),
           ];
         } else {
-          return searchValue ? [
-            buildSummary('Others', OtherValues, model)
+          return anyOtherValues ? [
+            buildSummary('Others', otherValues, true, model)
           ] : [
-            buildSummary('Future Values', OtherValues, model)
+            buildSummary('Future Values', [], true, model)
           ];
         }
       }),
@@ -173,95 +186,93 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   return filterMenu;
 }
 
-// Describes the model for one summary checkbox.
-interface SummaryModel extends Disposable {
 
-  // Whether checkbox is checked
-  isChecked: Computed<boolean> ;
+/**
+ * Builds a tri-state checkbox that summaries the state of all the `values`. The special value
+ * `Future Values` which turns the filter into an inclusion filter or exclusion filter, can be
+ * added to the summary using `switchFilterType`. Uses `label` as label and also expects
+ * `model` as the column filter menu model.
+ *
+ * The checkbox appears checked if all values of the summary are included, unchecked if none, and in
+ * the indeterminate state if values are in mixed state.
+ *
+ * On user clicks, if checkbox is checked, it does uncheck all the values, and if the
+ * `switchFilterType` is true it also converts the filter into an inclusion filter. But if the
+ * checkbox is unchecked, or in the Indeterminate state, it does check all the values, and if the
+ * `switchFilterType` is true it also converts the filter into an exlusion filter.
+ */
+function buildSummary(label: string|Computed<string>, values: Array<[CellValue, IFilterCount]>,
+                      switchFilterType: boolean, model: ColumnFilterMenuModel) {
+  const columnFilter = model.columnFilter;
+  const checkboxState = Computed.create(
+    null, columnFilter.isInclusionFilter, columnFilter.filterFunc,
+    (_use, isInclusionFilter) => {
 
-  // Callback for when the checkbox is changed.
-  callback: (checked: boolean) => void;
+      // let's gather all sub options.
+      const subOptions = values.map((val) => ({getState: () => columnFilter.includes(val[0])}));
+      if (switchFilterType) {
+        subOptions.push({getState: () => !isInclusionFilter});
+      }
 
-  // The count.
-  count: Computed<string>;
-}
+      // At this point if sub options is still empty let's just return false (unchecked).
+      if (!subOptions.length) { return false; }
 
-// Ctor that construct a SummaryModel.
-type SummaryModelCreator = new(columnFilter: ColumnFilterMenuModel) => SummaryModel;
+      // let's compare the state for first sub options against all the others. If there is one
+      // different, then state should be `Indeterminate`, otherwise, the state will the the same as
+      // the one of the first sub option.
+      const first = subOptions[0].getState();
+      if (some(tail(subOptions), (val) => val.getState() !== first)) { return Indeterminate; }
+      return first;
 
-// Summaries all the values that are in `columnFilter.valuesBeyondLimit`, ie: it includes a count
-// for all the values and clicking the checkbox successively add/delete these values from the
-// `columnFilter`.
-class BeyondLimit extends Disposable implements SummaryModel {
+    }).onWrite((val) => {
 
-  public columnFilter = this.model.columnFilter;
+      if (switchFilterType) {
 
-  public isChecked = Computed.create(this, (use) => (
-    !use(this.model.valuesBeyondLimit).find(([key, _val]) => !this.columnFilter.includes(key))
-  ));
+        // Note that if `includeFutureValues` is true, we only needs to toggle the filter type
+        // between exclusive and inclusive. Doing this will automatically excludes/includes all
+        // other values, so no need for extra steps.
+        const state = val ?
+          {excluded: model.filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
+          {included: model.filteredKeys.get().filter((key) => columnFilter.includes(key))};
+        columnFilter.setState(state);
 
-  public count = Computed.create(this, (use) => getCount(use(this.model.valuesBeyondLimit)).toLocaleString());
+      } else {
 
-  constructor(public model: ColumnFilterMenuModel) { super(); }
+        const keys = values.map(([key]) => key);
+        if (val) {
+          columnFilter.addMany(keys);
+        } else {
+          columnFilter.deleteMany(keys);
+        }
+      }
+    });
 
-  public callback(checked: boolean) {
-    const keys = this.model.valuesBeyondLimit.get().map(([key, _val]) => key);
-    if (checked) {
-      this.columnFilter.addMany(keys);
-    } else {
-      this.columnFilter.deleteMany(keys);
-    }
-  }
-}
-
-// Summaries the values that are not in columnFilter.filteredValues, it includes both the values in
-// `columnFilter.otherValues` (ie: the values that are filtered out if user is using the search) and
-// the future values. The checkbox successively turns columnFilter into an inclusion/exclusion
-// filter. The count is hidden if `columnFilter.otherValues` is empty (ie: no search is peformed =>
-// only checkbox only toggles future values)
-class OtherValues extends Disposable implements SummaryModel {
-  public columnFilter = this.model.columnFilter;
-  public isChecked = Computed.create(this, (use) => !use(this.columnFilter.isInclusionFilter));
-
-  public count = Computed.create(this, (use) => {
-    const c = getCount(use(this.model.otherValues));
-    return c ? c.toLocaleString() : '';
-  });
-
-  constructor(public model: ColumnFilterMenuModel) { super(); }
-
-  public callback(checked: boolean) {
-    const columnFilter = this.columnFilter;
-    const filteredKeys = this.model.filteredKeys;
-    const state = checked ?
-      {excluded: filteredKeys.get().filter((key) => !columnFilter.includes(key))} :
-      {included: filteredKeys.get().filter((key) => columnFilter.includes(key))};
-    return columnFilter.setState(state);
-  }
-}
-
-function buildSummary(label: string, SummaryModelCtor: SummaryModelCreator, model: ColumnFilterMenuModel) {
-  const summaryModel = new SummaryModelCtor(model);
   return cssMenuItem(
-    dom.autoDispose(summaryModel),
+    dom.autoDispose(checkboxState),
     testId('summary'),
-    cssLabel(
-      cssCheckboxSquare(
-        {type: 'checkbox'},
-        dom.on('change', (_ev, elem) => summaryModel.callback(elem.checked)),
-        dom.prop('checked', summaryModel.isChecked)
-      ),
-      cssItemValue(label),
+    labeledTriStateSquareCheckbox(
+      checkboxState,
+      `${label} ${formatUniqueCount(values)}`.trim()
     ),
-    summaryModel.count !== undefined ? cssItemCount(dom.text(summaryModel.count), testId('count')) : null,
+    cssItemCount(formatCount(values), testId('count')),
   );
+}
+
+function formatCount(values: Array<[CellValue, IFilterCount]>) {
+  const count = getCount(values);
+  return count ? count.toLocaleString() : '';
+}
+
+function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
+  const count = values.length;
+  return count ? '(' + count.toLocaleString() + ')' : '';
 }
 
 /**
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
 export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, field: ViewFieldRec,
-                                 rowSource: FilteredRowSource, tableData: TableData, onClose: () => void = noop) {
+                                 rowSource: RowSource, tableData: TableData, onClose: () => void = noop) {
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
   const keyMapFunc = tableData.getRowPropFunc(field.column().colId())!;
   const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
@@ -270,16 +281,23 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const activeFilterBar = field.viewSection.peek().activeFilterBar;
   const columnType = field.column().type.peek();
 
-  const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
-  // TODO: as of now, this is not working for non text-or-numeric columns, ie: for Date column it is
-  // not possible to search for anything. Likely caused by the key being something completely
-  // different than the label.
-  addCountsToMap(valueCounts, rowSource.getAllRows() as Iterable<number>, { keyMapFunc, labelMapFunc, columnType });
-  addCountsToMap(valueCounts, rowSource.getHiddenRows() as Iterable<number>, { keyMapFunc, labelMapFunc, columnType });
+  function getFilterFunc(f: ViewFieldRec, colFilter: ColumnFilterFunc|null) {
+    return f.getRowId() === field.getRowId() ? null : colFilter;
+  }
+  const filterFunc = Computed.create(null, use => sectionFilter.buildFilterFunc(getFilterFunc, use));
+  openCtl.autoDispose(filterFunc);
 
   const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek(), columnType);
-  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
   sectionFilter.setFilterOverride(field.getRowId(), columnFilter); // Will be removed on menu disposal
+
+  const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
+  const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
+  addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType});
+  addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
+                                                               areHiddenRows: true});
+
+  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
+
 
   return columnFilterMenu(openCtl, {
     model,
@@ -300,6 +318,7 @@ interface ICountOptions {
   keyMapFunc?: (v: any) => any;
   labelMapFunc?: (v: any) => any;
   columnType?: string;
+  areHiddenRows?: boolean;
 }
 
 /**
@@ -309,39 +328,38 @@ interface ICountOptions {
  * The optional column type controls how complex cell values are decomposed into keys (e.g. Choice Lists have
  * the possible choices as keys).
  */
-function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: Iterable<Number>,
-                        { keyMapFunc = identity, labelMapFunc = identity, columnType }: ICountOptions) {
+function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
+                        { keyMapFunc = identity, labelMapFunc = identity, columnType,
+                          areHiddenRows = false }: ICountOptions) {
 
   for (const rowId of rowIds) {
     let key = keyMapFunc(rowId);
 
     // If row contains a list and the column is a Choice List, treat each choice as a separate key
     if (isList(key) && columnType === 'ChoiceList') {
-      const list = decodeObject(key);
-      addListCountsToMap(valueMap, list as unknown[]);
+      const list = decodeObject(key) as unknown[];
+      for (const item of list) {
+        addSingleCountToMap(valueMap, item, () => item, areHiddenRows);
+      }
       continue;
     }
-
     // For complex values, serialize the value to allow them to be properly stored
     if (Array.isArray(key)) { key = JSON.stringify(key); }
-    if (valueMap.get(key)) {
-      valueMap.get(key)!.count++;
-    } else {
-      valueMap.set(key, { label: labelMapFunc(rowId), count: 1 });
-    }
+    addSingleCountToMap(valueMap, key, () => labelMapFunc(rowId), areHiddenRows);
   }
 }
 
 /**
- * Adds each item in `list` to `valueMap`.
+ * Adds the `value` to `valueMap` using `labelGetter` to get the label and increments `count` unless
+ * isHiddenRow is true.
  */
-function addListCountsToMap(valueMap: Map<CellValue, IFilterCount>, list: any[]) {
-  for (const item of list) {
-    if (valueMap.get(item)) {
-      valueMap.get(item)!.count++;
-    } else {
-      valueMap.set(item, { label: item, count: 1 });
-    }
+function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any, labelGetter: () => any,
+                       isHiddenRow: boolean) {
+  if (!valueMap.has(value)) {
+    valueMap.set(value, { label: labelGetter(), count: 0 });
+  }
+  if (!isHiddenRow) {
+    valueMap.get(value)!.count++;
   }
 }
 
@@ -404,6 +422,7 @@ const cssSelectAll = styled('div', `
 const cssDotSeparator = styled('span', `
   color: ${colors.lightGreen};
   margin: 0 4px;
+  user-select: none;
 `);
 const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
@@ -463,4 +482,11 @@ const cssNoResults = styled(cssMenuItem, `
   font-style: italic;
   color: ${colors.slate};
   justify-content: center;
+`);
+const cssSortIcon = styled(icon, `
+  --icon-color: ${colors.slate};
+  margin-left: auto;
+  &-active {
+    --icon-color: ${colors.lightGreen}
+  }
 `);
