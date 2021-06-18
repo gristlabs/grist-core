@@ -131,25 +131,35 @@ class Graph(object):
     If dirty_rows is ALL_ROWS, the whole column is affected, and dependencies get recomputed from
     scratch. ALL_ROWS propagates to all dependent columns, so those also get recomputed in full.
     """
-    if include_self:
-      if recompute_map.get(dirty_node) == ALL_ROWS:
-        return
-      if dirty_rows == ALL_ROWS:
-        recompute_map[dirty_node] = ALL_ROWS
-        # If all rows are being recomputed, clear the dependencies of the affected column. (We add
-        # dependencies in the course of recomputing, but we can only start from an empty set of
-        # dependencies if we are about to recompute all rows.)
-        self.clear_dependencies(dirty_node)
-      else:
-        out_rows = recompute_map.setdefault(dirty_node, SortedSet())
-        prev_count = len(out_rows)
-        out_rows.update(dirty_rows)
-        # Don't bother recursing into dependencies if we didn't actually update anything.
-        if len(out_rows) <= prev_count:
-          return
+    to_invalidate = [(dirty_node, dirty_rows)]
 
-    # Iterate through a copy of _in_node_map, because recursive clear_dependencies may modify it.
-    for edge in list(self._in_node_map.get(dirty_node, ())):
-      affected_rows = (ALL_ROWS if dirty_rows == ALL_ROWS else
-                       edge.relation.get_affected_rows(dirty_rows))
-      self.invalidate_deps(edge.out_node, affected_rows, recompute_map, include_self=True)
+    while to_invalidate:
+      dirty_node, dirty_rows = to_invalidate.pop()
+      if include_self:
+        if recompute_map.get(dirty_node) == ALL_ROWS:
+          continue
+        if dirty_rows == ALL_ROWS:
+          recompute_map[dirty_node] = ALL_ROWS
+          # If all rows are being recomputed, clear the dependencies of the affected column. (We add
+          # dependencies in the course of recomputing, but we can only start from an empty set of
+          # dependencies if we are about to recompute all rows.)
+          self.clear_dependencies(dirty_node)
+        else:
+          out_rows = recompute_map.setdefault(dirty_node, SortedSet())
+          prev_count = len(out_rows)
+          out_rows.update(dirty_rows)
+          # Don't bother recursing into dependencies if we didn't actually update anything.
+          if len(out_rows) <= prev_count:
+            continue
+
+      include_self = True
+
+      for edge in self._in_node_map.get(dirty_node, ()):
+        affected_rows = (ALL_ROWS if dirty_rows == ALL_ROWS else
+                         edge.relation.get_affected_rows(dirty_rows))
+
+        # Previously this was:
+        #   self.invalidate_deps(edge.out_node, affected_rows, recompute_map, include_self=True)
+        # but that led to a recursion error, so now we do the equivalent
+        # without actual recursion, hence the while loop
+        to_invalidate.append((edge.out_node, affected_rows))
