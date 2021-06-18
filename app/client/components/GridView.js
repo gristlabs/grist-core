@@ -29,7 +29,7 @@ const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 const {Holder} = require('grainjs');
 const {menu} = require('../ui2018/menus');
 const {calcFieldsCondition} = require('../ui/GridViewMenus');
-const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, RowContextMenu} = require('../ui/GridViewMenus');
+const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, RowContextMenu, freezeAction} = require('../ui/GridViewMenus');
 const {setPopupToCreateDom} = require('popweasel');
 const {testId} = require('app/client/ui2018/cssVars');
 
@@ -41,6 +41,10 @@ const {testId} = require('app/client/ui2018/cssVars');
 // it was.
 const SHORT_CLICK_IN_MS = 500;
 
+// size of the plus width ()
+const PLUS_WIDTH = 40;
+// size of the row number field (we assume 4rem)
+const ROW_NUMBER_WIDTH = 52;
 
 /**
  * GridView component implements the view of a grid of cells.
@@ -59,7 +63,10 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.rowShadowAdjust = 0; // pixel dist from mouse click y-coord and the clicked row's top offset
   this.colShadowAdjust = 0; // ^ for x-coord and clicked col's left offset
   this.scrollLeft = ko.observable(0);
+  this.isScrolledLeft = this.autoDispose(ko.computed(() => this.scrollLeft() > 0));
   this.scrollTop = ko.observable(0);
+  this.isScrolledTop = this.autoDispose(ko.computed(() => this.scrollTop() > 0));
+
   this.cellSelector = this.autoDispose(selector.CellSelector.create(this, {
     // This is a bit of a hack to prevent dragging when there's an open column menu
     isDisabled: () => Boolean(!this.ctxMenuHolder.isEmpty())
@@ -85,7 +92,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
     const leftEdge = this.scrollPane.scrollLeft;
     const rightEdge = leftEdge + viewWidth;
 
-    //If cell doesnt fit onscreen, scroll to fit
+    //If cell doesn't fit onscreen, scroll to fit
     const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
     this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
   }));
@@ -94,13 +101,68 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   // Some observables for the scroll markers that show that the view is cut off on a side.
   this.scrollShadow = {
-    left: ko.observable(false),
-    top: ko.observable(false),
+    left: this.isScrolledLeft,
+    top: this.isScrolledTop
   };
 
   //--------------------------------------------------
   // Set up row and column context menus.
   this.ctxMenuHolder = Holder.create(this);
+
+  //--------------------------------------------------
+  // Set frozen columns variables
+
+  // keep track of the width for this component
+  this.width = ko.observable(0);
+  // helper for clarity
+  this.numFrozen = this.viewSection.numFrozen;
+  // calculate total width of all frozen columns
+  this.frozenWidth = this.autoDispose(ko.pureComputed(() => this.colRightOffsets().getSumTo(this.numFrozen())));
+  // show frozenLine when have some frozen columns and not scrolled left
+  this.frozenLine = this.autoDispose(ko.pureComputed(() => this.numFrozen() && !this.isScrolledLeft()));
+  // even if some columns are frozen, we still want to move them left
+  // when screen is too narrow - here we will calculate how much space
+  // is needed to move all the frozen columns left in order to show some
+  // unfrozen columns to user (by default we will try to show at least one not
+  // frozen column and a plus button)
+  this.frozenOffset = this.autoDispose(ko.computed(() => {
+    // get the last field
+    const fields = this.viewSection.viewFields().all();
+    const lastField = fields[fields.length-1];
+    // get the last field width (or zero - grid can have zero columns)
+    const revealWidth = lastField ? lastField.widthDef() : 0;
+    // calculate the offset: start from zero, then move all left to hide frozen columns,
+    // then to right to fill whole width, then to left to reveal last column and plus button
+    const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_WIDTH;
+    // Final check - we actually don't want to have
+    // the split (between frozen and normal columns) be moved left too far,
+    // it should stop at the middle of the available grid space (whole width - row number width).
+    // This can happen when last column is too wide, and we are not able to show it in a full width.
+    // To calculate the middle point: hide all frozen columns (by moving them maximum to the left)
+    // and then move them to right by half width of the section.
+    const middleOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() / 2;
+    // final offset is the bigger number of those two (offsets are negative - so take
+    // the number that is closer to 0)
+    const offset = Math.floor(Math.max(initialOffset, middleOffset));
+    // offset must be negative (we are moving columns left), if we ended up moving
+    // frozen columns to the right, don't move them at all
+    return offset > 0 ? 0 : Math.abs(offset);
+  }));
+  // observable for left scroll - but return left only when columns are frozen
+  // this will be used to move frozen border alongside with the scrollpane
+  this.frozenScrollOffset = this.autoDispose(ko.computed(() => this.numFrozen() ? this.scrollLeft() : 0));
+  // observable that will indicate if shadow is needed on top of frozen columns
+  this.frozenShadow = this.autoDispose(ko.computed(() => {
+    return this.numFrozen() && this.frozenOffset() && this.isScrolledLeft();
+  }));
+  // calculate column right offsets
+  this.frozenPositions = this.autoDispose(this.viewSection.viewFields().map(function(field){
+    return ko.pureComputed(() => this.colRightOffsets().getSumTo(field._index()));
+  }, this));
+  // calculate frozen state for all columns
+  this.frozenMap = this.autoDispose(this.viewSection.viewFields().map(function(field){
+    return ko.pureComputed(() => field._index() < this.numFrozen());
+  }, this));
 
   //--------------------------------------------------
   // Create and attach the DOM for the view.
@@ -110,6 +172,8 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   }, this));
   this.header = null;
   this._cornerDom = null;
+  // dom for adding new column - used by freeze calculation
+  this._modField = null;
   this.scrollPane = null;
   this.viewPane = this.autoDispose(this.buildDom());
   this.attachSelectorHandlers();
@@ -202,6 +266,23 @@ GridView.gridCommands = {
   },
   addSortDesc: function() {
     addToSort(this.viewSection.activeSortSpec, -this.currentColumn().getRowId());
+  },
+  toggleFreeze: function() {
+    // get column selection
+    const selection = this.getSelection();
+    // convert it menu option
+    const options = this._getColumnMenuOptions(selection);
+    // generate action that is available for freeze toggle
+    const action = freezeAction(options);
+    // if no action, do nothing
+    if (!action) { return; }
+    // if grist document is in readonly - simply change the value
+    // without saving
+    if (this.gristDoc.isReadonly.get()) {
+      this.viewSection.rawNumFrozen(action.numFrozen);
+      return;
+    }
+    this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
   }
 };
 
@@ -252,7 +333,7 @@ GridView.prototype.paste = function(data, cutCallback) {
   // as frozen (and get marked as unsorted if necessary) for any update even if the update comes
   // from a different peer.
 
-  // convert row-wise data to column-wise so that it better resembles a useraction
+  // convert row-wise data to column-wise so that it better resembles a user action
   let pasteData = _.unzip(data);
   let pasteHeight = pasteData[0].length;
   let pasteWidth = pasteData.length;
@@ -701,10 +782,9 @@ GridView.prototype.domToColModel = function(elem, elemType) {
 //TODO : is this necessary? make passive. Also this could be removed soon I think
 GridView.prototype.onScroll = function() {
   var pane = this.scrollPane;
-  this.scrollShadow.left(pane.scrollLeft > 0);
-  this.scrollShadow.top(pane.scrollTop > 0);
   this.scrollLeft(pane.scrollLeft);
   this.scrollTop(pane.scrollTop);
+  this.width(pane.clientWidth);
 };
 
 
@@ -733,7 +813,10 @@ GridView.prototype.buildDom = function() {
   return dom(
     'div.gridview_data_pane.flexvbox',
     this.gristDoc.app.addNewUIClass(),
-
+    // offset for frozen columns - how much move them to the left
+    kd.style('--frozen-offset', this.frozenOffset),
+    // total width of frozen columns
+    kd.style('--frozen-width', this.frozenWidth),
     // Corner, bars and shadows
     // Corner and shadows (so it's fixed to the grid viewport)
     self._cornerDom = dom(
@@ -741,9 +824,16 @@ GridView.prototype.buildDom = function() {
       dom.on('click', () => this.selectAll()),
     ),
     dom('div.scroll_shadow_top', kd.show(this.scrollShadow.top)),
-    dom('div.scroll_shadow_left', kd.show(this.scrollShadow.left)),
+    dom('div.scroll_shadow_left',
+      kd.show(this.scrollShadow.left),
+      // pass current scroll position
+      kd.style('--frozen-scroll-offset', this.frozenScrollOffset)),
+    dom('div.frozen_line', kd.show(this.frozenLine)),
     dom('div.gridview_header_backdrop_left'), //these hide behind the actual headers to keep them from flashing
     dom('div.gridview_header_backdrop_top'),
+    dom('div.gridview_left_border'), //these hide behind the actual headers to keep them from flashing
+    // left shadow that will be visible on top of frozen columns
+    dom('div.scroll_shadow_frozen', kd.show(this.frozenShadow)),
 
     // Drag indicators
     self.colLine = dom(
@@ -794,6 +884,8 @@ GridView.prototype.buildDom = function() {
               let filterTriggerCtl;
               return dom(
                 'div.column_name.field',
+                kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
+                kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()))),
                 dom.autoDispose(isEditingLabel),
                 dom.testId("GridView_columnLabel"),
                 kd.style('width', field.widthPx),
@@ -829,8 +921,9 @@ GridView.prototype.buildDom = function() {
               );
             }),
             this.isPreview ? null : kd.maybe(() => !this.gristDoc.isReadonlyKo(), () => (
-              dom('div.column_name.mod-add-column.field',
+              this._modField = dom('div.column_name.mod-add-column.field',
                 '+',
+                kd.style("width", PLUS_WIDTH + 'px'),
                 dom.on('click', ev => {
                   // If there are no hidden columns, clicking the plus just adds a new column.
                   // If there are hidden columns, display a dropdown menu.
@@ -880,6 +973,7 @@ GridView.prototype.buildDom = function() {
 
       // rowid dom
       dom('div.gridview_data_row_num',
+        kd.style("width", ROW_NUMBER_WIDTH + 'px'),
         dom('div.gridview_data_row_info',
           kd.toggleClass('linked_dst', () => {
             // Must ensure that linkedRowId is not null to avoid drawing on rows whose
@@ -948,6 +1042,8 @@ GridView.prototype.buildDom = function() {
           });
           return dom(
             'div.field',
+            kd.style('--frozen-position', () => ko.unwrap(self.frozenPositions.at(field._index()))),
+            kd.toggleClass("frozen", () => ko.unwrap(self.frozenMap.at(field._index()))),
             kd.toggleClass('scissors', isCopyActive),
             dom.autoDispose(isCopyActive),
             dom.autoDispose(isCellSelected),
@@ -979,6 +1075,7 @@ GridView.prototype.onResize = function() {
   } else {
     this.scrolly.scheduleUpdateSize();
   }
+  this.width(this.scrollPane.clientWidth)
 };
 
 /** @inheritdoc */
@@ -1265,7 +1362,10 @@ GridView.prototype.columnContextMenu = function(ctl, copySelection, field, filte
 
 GridView.prototype._getColumnMenuOptions = function(copySelection) {
   return {
+    columnIndices: copySelection.fields.map(f => f._index()),
+    totalColumnCount : this.viewSection.viewFields.peek().peekLength,
     numColumns: copySelection.fields.length,
+    numFrozen: this.viewSection.numFrozen.peek(),
     disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
     isReadonly: this.gristDoc.isReadonly.get(),
     isFiltered: this.isFiltered(),

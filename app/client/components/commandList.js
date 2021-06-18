@@ -332,6 +332,10 @@ exports.groups = [{
       keys: ['Alt+Shift+-'],
       desc: 'Hide the currently selected column'
     }, {
+      name: 'toggleFreeze',
+      keys: [],
+      desc: 'Freeze or unfreeze selected columns'
+    }, {
       name: 'deleteFields',
       keys: ['Alt+-'],
       desc: 'Delete the currently selected columns'

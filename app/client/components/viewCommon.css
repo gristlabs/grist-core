@@ -1,3 +1,6 @@
+/*
+  record class is used for grid view header and rows
+ */
 .record {
   display: -webkit-flex;
   display: flex;
@@ -10,6 +13,13 @@
   border-color: var(--grist-color-dark-grey);
   border-left-style: solid;  /* left border, against rownumbers div, always on */
   border-bottom-width: 1px; /* style: none, set by record-hlines*/
+  /* Record background is white by default.
+     It gets overridden by the add row, zebra stripes.
+     It also gets overridden by selecting rows - but in that case background comes from
+     selected fields - this still remains white.
+     TODO: consider making this color the single source
+  */
+  background: white;
 }
 
 .record.record-hlines {  /* Overwrites style, width set on element */

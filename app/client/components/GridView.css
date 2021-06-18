@@ -149,15 +149,53 @@
   cursor: pointer;
 }
 
+/* Left most shadow - displayed next to row numbers or when columns are frozen - after last frozen column */
 .scroll_shadow_left {
-  height: 100%; /* Just needs to be tall enough to flow off the bottom*/
+  height: 100%;
   width: 0px;
-  left: 4rem;
+  /* Unfortunately we need to calculate this using scroll position.
+     We could use sticky position here, but we would need to move this component inside the
+     scroll pane. We don't want to do this, because we want the scroll shadow to be render
+     on top of the scroll bar. Fortunately it doesn't jitter on firefox - where scroll event is asynchronous.
+     Variables used here:
+     - frozen-width : total width of frozen columns plus row numbers width
+     - scroll-offset: current left offset of the scroll pane
+     - frozen-offset: when frozen columns are wider then the screen, we want them to move left initially,
+                      this value is the position where this movement should stop.
+   */
+  left: calc(4em + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
   box-shadow: -6px 0 6px 6px #444;
   /* shadow should only show to the right of it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   z-index: 3;
+}
+
+/* Right shadow - normally not displayed - activated when grid has frozen columns */
+.scroll_shadow_frozen {
+  height: 100%;
+  width: 0px;
+  left: 4em;
+  box-shadow: -8px 0 14px 4px #444;
+  -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
+  clip-path: polygon(0 0, 28px 0, 24px 100%, 0 100%);
+  z-index: 3;
+  position: absolute;
+}
+
+/* line that indicates where the frozen columns end */
+.frozen_line {
+  position:absolute;
+  height: 100%;
+  width: 2px;
+  /* this value is the same as for the left shadow - but doesn't need to really on the scroll offset
+     as this component will be hidden when the scroll starts
+   */
+  left: calc(4em + var(--frozen-width, 0) * 1px);
+  background-color: #999999;
+  z-index: 3;
+  user-select: none;
+  pointer-events: none
 }
 
 .scroll_shadow_top {
@@ -179,6 +217,17 @@
   top: 1px; /* go under 1px border on scrollpane */
   z-index: 1;
   border-right: 1px solid lightgray;
+}
+
+.gridview_left_border {
+  position: absolute;
+  width: 0px; /* Matches rowid width (+border) */
+  height: 100%;
+  z-index: 3;
+  left: calc(4rem);
+  border-right: 1px solid var(--grist-color-dark-grey) !important;
+  user-select: none;
+  pointer-events: none
 }
 
 .gridview_header_backdrop_top {
@@ -241,6 +290,49 @@
   background-color: #F0F0F0;
   opacity: 0.5;
   pointer-events: none; /* prevents row drag shadow from stealing row headers clicks */
+}
+
+/* ================ Freezing columns */
+
+/* style header and a data field */
+.record .field.frozen {
+  position: sticky;
+  left: calc(4em + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
+  z-index: 1;
+}
+
+/* for data field we need to reuse color from record (add-row and zebra stripes) */
+.gridview_row .record .field.frozen {
+  background-color: inherit;
+}
+
+/* HACK: add box shadow to fix outline overflow from active cursor */
+.gridview_row .record .field.frozen {
+  box-shadow: 0px 1px 0px white;
+}
+
+.gridview_row .record.record-hlines .field.frozen {
+  box-shadow: 0px 1px 0px var(--grist-color-dark-grey);
+}
+
+/* selected field has a transparent color - with frozen fields we can't do it */
+.gridview_row .field.frozen.selected {
+  background-color: var(--grist-color-selection-opaque);
+}
+
+/* make room for a frozen line by adding margin to first not frozen field - in header and in data */
+.field.frozen + .field:not(.frozen) {
+  margin-left: 1px;
+}
+
+/* printing frozen fields is straightforward - just need to remove transparency */
+@media print {
+  .field.frozen  {
+    background: white !important;
+  }
+  .column_names .column_name.frozen {
+    background: var(--grist-color-light-grey) !important;
+  }
 }
 
 /* Etc */

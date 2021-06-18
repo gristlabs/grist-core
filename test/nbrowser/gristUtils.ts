@@ -1479,6 +1479,14 @@ export async function addColumn(name: string) {
   await waitForServer();
 }
 
+// Select a range of columns, clicking on col1 and dragging to col2.
+export async function selectColumnRange(col1: string, col2: string) {
+  await getColumnHeader({col: col1}).mouseMove();
+  await driver.mouseDown();
+  await getColumnHeader({col: col2}).mouseMove();
+  await driver.mouseUp();
+}
+
 /**
  * Changes browser window dimension to FullHd for a test suit.
  */

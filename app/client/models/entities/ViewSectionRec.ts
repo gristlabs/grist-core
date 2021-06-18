@@ -89,6 +89,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
   activeFilterBar: modelUtil.CustomComputed<boolean>;
+  // Number of frozen columns
+  rawNumFrozen: modelUtil.CustomComputed<number>;
+  // Number for frozen columns to display.
+  // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
+  numFrozen: ko.Computed<number>;
 
   // Save all filters of fields in the section.
   saveFilters(): Promise<void>;
@@ -133,6 +138,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     zebraStripes: false,
     customView: '',
     filterBar: false,
+    numFrozen: 0
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: any) => defaults(obj || {}, defaultOptions));
@@ -276,4 +282,17 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
 
   this.activeFilterBar = modelUtil.customValue(this.optionsObj.prop('filterBar'));
+
+  // Number of frozen columns
+  this.rawNumFrozen = modelUtil.customValue(this.optionsObj.prop('numFrozen'));
+  // Number for frozen columns to display
+  this.numFrozen = ko.pureComputed(() =>
+    Math.max(
+      0,
+      Math.min(
+        this.rawNumFrozen(),
+        this.viewFields().all().length - 1
+      )
+    )
+  );
 }

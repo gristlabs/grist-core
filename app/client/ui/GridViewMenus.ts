@@ -71,10 +71,14 @@ interface IMultiColumnContextMenu {
   // For multiple selection, true/false means the value applies to all columns, 'mixed' means it's
   // true for some columns, but not all.
   numColumns: number;
+  numFrozen: number;
   disableModify: boolean|'mixed';  // If the columns are read-only.
   isReadonly: boolean;
   isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.
   isFormula: boolean|'mixed';
+  columnIndices: number[];
+  totalColumnCount: number;
+  disableFrozenMenu: boolean;
 }
 
 interface IColumnContextMenu extends IMultiColumnContextMenu {
@@ -94,6 +98,7 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
   const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colId);
+
   return [
     menuItemCmd(allCommands.fieldTabOpen, 'Column Options'),
     menuItem(filterOpenFunc, 'Filter Data'),
@@ -142,9 +147,9 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
     ] : null,
     menuItemCmd(allCommands.renameField, 'Rename column', disableForReadonlyColumn),
     menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
-
+    freezeMenuItemCmd(options),
     menuDivider(),
-    MultiColumnMenu(options),
+    MultiColumnMenu((options.disableFrozenMenu = true, options)),
     testId('column-menu'),
   ];
 }
@@ -165,10 +170,11 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
     (num > 1 ? `Clear ${num} entire columns` : 'Clear entire column') :
     (num > 1 ? `Clear ${num} columns` : 'Clear column');
   const nameDeleteColumns = num > 1 ? `Delete ${num} columns` : 'Delete column';
+  const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
   return [
     // TODO This should be made to work too for multiple columns.
     // menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
-
+    frozenMenu ? [frozenMenu, menuDivider()]: null,
     // Offered only when selection includes formula columns, and converts only those.
     (options.isFormula ?
       menuItemCmd(allCommands.convertFormulasToData, 'Convert formula to data',
@@ -183,8 +189,117 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
 
     menuDivider(),
     menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left', disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right', disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right', disableForReadonlyView)
   ];
+}
+
+export function freezeAction(options: IMultiColumnContextMenu): { text: string; numFrozen: number; } | null {
+ /**
+   * When user clicks last column - don't offer freezing
+   * When user clicks on a normal column - offer him to freeze all the columns to the
+   * left (inclusive).
+   * When user clicks on a frozen column - offer him to unfreeze all the columns to the
+   * right (inclusive)
+   * When user clicks on a set of columns then:
+   * - If the set of columns contains the last columns that are frozen - offer unfreezing only those columns
+   * - If the set of columns is right after the frozen columns or spans across - offer freezing only those columns
+   *
+   * All of the above are a single command - toggle freeze
+   */
+
+  const length = options.numColumns;
+
+  // make some assertions - number of columns selected should always be > 0
+  if (length === 0) { return null; }
+
+  const indices = options.columnIndices;
+  const firstColumnIndex = indices[0];
+  const lastColumnIndex = indices[indices.length - 1];
+  const numFrozen = options.numFrozen;
+
+  // if set has last column in it - don't offer freezing
+  if (lastColumnIndex == options.totalColumnCount - 1) {
+    return null;
+  }
+
+  const isNormalColumn = length === 1 && (firstColumnIndex + 1) > numFrozen;
+  const isFrozenColumn = length === 1 && (firstColumnIndex+ 1) <= numFrozen;
+  const isSet = length > 1;
+  const isLastFrozenSet = isSet && lastColumnIndex + 1 === numFrozen;
+  const isFirstNormalSet = isSet && firstColumnIndex === numFrozen;
+  const isSpanSet = isSet && firstColumnIndex <= numFrozen && lastColumnIndex >= numFrozen;
+
+  let text = '';
+
+  if (!isSet) {
+    if (isNormalColumn) {
+      // text to show depends on what user selected and how far are we from
+      // last frozen column
+
+      // if user clicked the first column or a column just after frozen set
+      if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
+        text = 'Freeze this column';
+      } else {
+        // else user clicked any other column that is farther, offer to freeze
+        // proper number of column
+        const properNumber = firstColumnIndex - numFrozen + 1;
+        text = `Freeze ${properNumber} ${numFrozen ? 'more ' : ''}columns`;
+      }
+      return {
+        text,
+        numFrozen : firstColumnIndex + 1
+      };
+    } else if (isFrozenColumn) {
+      // when user clicked last column in frozen set - offer to unfreeze this column
+      if (firstColumnIndex + 1 === numFrozen) {
+        text = `Unfreeze this column`;
+      } else {
+        // else user clicked column that is not the last in a frozen set
+        // offer to unfreeze proper number of columns
+        const properNumber = numFrozen - firstColumnIndex;
+        text = `Unfreeze ${properNumber === numFrozen ? 'all' : properNumber} columns`;
+      }
+      return {
+        text,
+        numFrozen : indices[0]
+      };
+    } else {
+      return null;
+    }
+  } else {
+    if (isLastFrozenSet) {
+      text = `Unfreeze ${length} columns`;
+      return {
+        text,
+        numFrozen : numFrozen - length
+      };
+    } else if (isFirstNormalSet) {
+      text = `Freeze ${length} columns`;
+      return {
+        text,
+        numFrozen : numFrozen + length
+      };
+    } else if (isSpanSet) {
+      const toFreeze = lastColumnIndex + 1 - numFrozen;
+      text = `Freeze ${toFreeze == 1 ? 'one more column' : (`${toFreeze} more columns`)}`;
+      return {
+        text,
+        numFrozen : numFrozen + toFreeze
+      };
+    }  else {
+      return null;
+    }
+  }
+}
+
+function freezeMenuItemCmd(options: IMultiColumnContextMenu) {
+  // calculate action available for this options
+  const toggle = freezeAction(options);
+  // if we can't offer freezing - don't create a menu at all
+  // this shouldn't happen - as current design offers some action on every column
+  if (!toggle) { return null; }
+  // create menu item if we have something to offer
+  return menuItemCmd(allCommands.toggleFreeze, toggle.text);
 }
 
 // Returns 'Add to sort' is there are columns in the sort spec but colId is not part of it. Returns
