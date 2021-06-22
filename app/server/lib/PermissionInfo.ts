@@ -25,11 +25,17 @@ export type PermissionSetWithContext = PermissionSetWithContextOf<PermissionSet<
 // Accumulator for memos of relevant rules.
 export type MemoSet = PermissionSet<string[]>;
 
-// Merge MemoSets straightforwardly, by concatenation.
+// Merge MemoSets by collecting all memos with de-duplication.
 export function mergeMemoSets(psets: MemoSet[]): MemoSet {
   const result: Partial<MemoSet> = {};
   for (const prop of ALL_PERMISSION_PROPS) {
-    result[prop] = ([] as string[]).concat(...psets.map(p => p[prop]));
+    const merged = new Set<string>();
+    for (const p of psets) {
+      for (const memo of p[prop]) {
+        merged.add(memo);
+      }
+    }
+    result[prop] = [...merged];
   }
   return result as MemoSet;
 }
