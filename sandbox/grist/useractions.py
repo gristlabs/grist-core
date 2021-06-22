@@ -4,6 +4,8 @@ import re
 import json
 import sys
 
+import six
+
 import acl
 from acl_formula import parse_acl_formula_json
 import actions
@@ -45,7 +47,7 @@ _modify_col_schema_props = {'type', 'formula', 'isFormula'}
 # A few generic helpers.
 def select_keys(dict_obj, keys):
   """Return copy of dict_obj containing only the given keys."""
-  return {k: v for k, v in dict_obj.iteritems() if k in keys}
+  return {k: v for k, v in six.iteritems(dict_obj) if k in keys}
 
 def has_value(dict_obj, key, value):
   """Returns True if dict_obj contains key, and its value is value."""
@@ -78,7 +80,7 @@ def useraction(method):
   """
   Decorator for a method, which creates an action class with the same name and arguments.
   """
-  code = method.func_code
+  code = method.__code__
   name = method.__name__
   cls = namedtuple(name, code.co_varnames[1:code.co_argcount])
   setattr(_current_module, name, cls)
@@ -148,7 +150,7 @@ class UserActions(object):
     # Map of methods implementing particular (action_name, table_id) combinations. It mirrors
     # global _action_method_overrides, but with methods *bound* to this UserActions instance.
     self._overrides = {key: method.__get__(self, UserActions)
-                       for key, method in _action_method_overrides.iteritems()}
+                       for key, method in six.iteritems(_action_method_overrides)}
 
   def _do_doc_action(self, action):
     if hasattr(action, 'simplify'):
@@ -169,7 +171,7 @@ class UserActions(object):
     for i, row_id in enumerate(row_ids):
       rec = table.get_record(row_id)
       yield ((i, rec) if col_values is None else
-             (i, rec, {k: v[i] for k, v in col_values.iteritems()}))
+             (i, rec, {k: v[i] for k, v in six.iteritems(col_values)}))
 
   def _collect_back_references(self, table_recs):
     """
@@ -273,13 +275,13 @@ class UserActions(object):
   @useraction
   def AddRecord(self, table_id, row_id, column_values):
     return self.BulkAddRecord(
-      table_id, [row_id], {key: [val] for key, val in column_values.iteritems()}
+      table_id, [row_id], {key: [val] for key, val in six.iteritems(column_values)}
     )[0]
 
   @useraction
   def BulkAddRecord(self, table_id, row_ids, column_values):
     column_values = actions.decode_bulk_values(column_values)
-    for col_id, values in column_values.iteritems():
+    for col_id, values in six.iteritems(column_values):
       self._ensure_column_accepts_data(table_id, col_id, values)
     method = self._overrides.get(('BulkAddRecord', table_id), self.doBulkAddOrReplace)
     return method(table_id, row_ids, column_values)
@@ -339,7 +341,7 @@ class UserActions(object):
   def _addACLRules(self, table_id, row_ids, col_values):
     # Automatically populate aclFormulaParsed value by parsing aclFormula.
     if 'aclFormula' in col_values:
-      col_values['aclFormulaParsed'] = map(parse_acl_formula_json, col_values['aclFormula'])
+      col_values['aclFormulaParsed'] = [parse_acl_formula_json(v) for v in col_values['aclFormula']]
     return self.doBulkAddOrReplace(table_id, row_ids, col_values)
 
   #----------------------------------------
@@ -371,7 +373,7 @@ class UserActions(object):
   @useraction
   def UpdateRecord(self, table_id, row_id, columns):
     self.BulkUpdateRecord(table_id, [row_id],
-                          {key: [col] for key, col in columns.iteritems()})
+                          {key: [col] for key, col in six.iteritems(columns)})
 
   @useraction
   def BulkUpdateRecord(self, table_id, row_ids, columns):
@@ -380,7 +382,7 @@ class UserActions(object):
     # Handle special tables, updates to which imply metadata actions.
 
     # Check that the update is valid.
-    for col_id, values in columns.iteritems():
+    for col_id, values in six.iteritems(columns):
       self._ensure_column_accepts_data(table_id, col_id, values)
 
       # Additionally check that we are not trying to modify group-by values in a summary column
@@ -413,7 +415,7 @@ class UserActions(object):
 
   @override_action('BulkUpdateRecord', '_grist_Tables')
   def _updateTableRecords(self, table_id, row_ids, col_values):
-    avoid_tableid_set = set(self._engine.tables.viewkeys())
+    avoid_tableid_set = set(self._engine.tables)
     update_pairs = []
     for i, rec, values in self._bulk_action_iter(table_id, row_ids, col_values):
       update_pairs.append((rec, values))
@@ -451,9 +453,9 @@ class UserActions(object):
     if table_renames:
       # Build up a dictionary mapping col_ref of each affected formula to the new formula text.
       formula_updates = self._prepare_formula_renames(
-        {(old, None): new for (old, new) in table_renames.iteritems()})
+        {(old, None): new for (old, new) in six.iteritems(table_renames)})
       # Add the changes to the dict of col_updates. sort for reproducible order.
-      for col_rec, new_formula in sorted(formula_updates.iteritems()):
+      for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
         col_updates.setdefault(col_rec, {})['formula'] = new_formula
 
     # If a table changes to onDemand, any empty columns (formula columns with no set formula)
@@ -464,7 +466,7 @@ class UserActions(object):
     for col in empty_cols:
       col_updates.setdefault(col, {}).update(isFormula=False, type='Text')
 
-    for col, values in col_updates.iteritems():
+    for col, values in six.iteritems(col_updates):
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
@@ -482,7 +484,7 @@ class UserActions(object):
     # Internal functions are used to prevent unintended additional changes from occurring.
     # Specifically, this prevents widgetOptions and displayCol from being cleared as a side
     # effect of the column type change.
-    for col, values in col_updates.iteritems():
+    for col, values in six.iteritems(col_updates):
       self.doModifyColumn(col.tableId, col.colId, values)
     self.doBulkUpdateFromPairs('_grist_Tables_column', col_updates.items())
     make_acl_updates()
@@ -516,7 +518,7 @@ class UserActions(object):
 
     # Collect all renamings that we are about to apply.
     renames = {(c.parentId.tableId, c.colId): values['colId']
-               for c, values in col_updates.iteritems()
+               for c, values in six.iteritems(col_updates)
                if has_diff_value(values, 'colId', c.colId)}
 
     if renames:
@@ -524,7 +526,7 @@ class UserActions(object):
       formula_updates = self._prepare_formula_renames(renames)
 
       # For any affected columns, include the formula into the update.
-      for col_rec, new_formula in sorted(formula_updates.iteritems()):
+      for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
         col_updates.setdefault(col_rec, {}).setdefault('formula', new_formula)
 
     update_pairs = col_updates.items()
@@ -534,7 +536,7 @@ class UserActions(object):
       if col.summarySourceCol:
         underlying = col_updates.get(col.summarySourceCol, {})
         if not all(value == getattr(col, key) or has_value(underlying, key, value)
-                   for key, value in values.iteritems()):
+                   for key, value in six.iteritems(values)):
           raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
@@ -576,7 +578,7 @@ class UserActions(object):
   def _updateACLRules(self, table_id, row_ids, col_values):
     # Automatically populate aclFormulaParsed value by parsing aclFormula.
     if 'aclFormula' in col_values:
-      col_values['aclFormulaParsed'] = map(parse_acl_formula_json, col_values['aclFormula'])
+      col_values['aclFormulaParsed'] = [parse_acl_formula_json(v) for v in col_values['aclFormula']]
     return self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
   def _prepare_formula_renames(self, renames):
@@ -605,7 +607,7 @@ class UserActions(object):
     # Apply the collected patches to each affected formula, converting to unicode to apply the
     # patches and back to byte string for how we maintain string values.
     result = {}
-    for col_rec, patches in patches_map.iteritems():
+    for col_rec, patches in six.iteritems(patches_map):
       formula = col_rec.formula.decode('utf8')
       replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
       result[col_rec] = replacer.get_text().encode('utf8')
@@ -1066,7 +1068,7 @@ class UserActions(object):
     # metadata record. We implement the former interface by forwarding to the latter.
     col = self._docmodel.get_column_rec(table_id, col_id)
 
-    update_values = {k: v for k, v in col_info.iteritems() if k in _modifiable_col_fields}
+    update_values = {k: v for k, v in six.iteritems(col_info) if k in _modifiable_col_fields}
     if '_position' in col_info:
       update_values['parentPos'] = col_info['_position']
     self._docmodel.update([col], **update_values)
@@ -1093,7 +1095,7 @@ class UserActions(object):
     old_col_info = schema.col_to_dict(self._engine.schema[table_id].columns[col_id],
                                       include_id=False)
 
-    col_info = {k: v for k, v in col_info.iteritems() if old_col_info.get(k, v) != v}
+    col_info = {k: v for k, v in six.iteritems(col_info) if old_col_info.get(k, v) != v}
     if not col_info:
       log.info("useractions.ModifyColumn is a noop")
       return
@@ -1182,7 +1184,7 @@ class UserActions(object):
 
     # Get the values from the columns and check which have changed.
     all_row_ids = list(table.row_ids)
-    all_src_values = map(src_column.raw_get, all_row_ids)
+    all_src_values = [src_column.raw_get(r) for r in all_row_ids]
 
     dst_column = table.get_column(dst_col_id)
     changed_rows, changed_values = [], []
@@ -1230,7 +1232,7 @@ class UserActions(object):
     Add the given table with columns without creating views.
     """
     # If needed, transform table_id into a valid identifier, and add a suffix to make it unique.
-    table_id = identifiers.pick_table_ident(table_id, avoid=self._engine.tables.viewkeys())
+    table_id = identifiers.pick_table_ident(table_id, avoid=six.viewkeys(self._engine.tables))
 
     # Sanitize and de-duplicate column identifiers.
     col_ids = [c['id'] for c in columns]

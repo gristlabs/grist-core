@@ -8,7 +8,7 @@ class TestMessyTables(unittest.TestCase):
   def test_any_tableset(self):
     path = os.path.join(os.path.dirname(__file__),
                         "fixtures", "nyc_schools_progress_report_ec_2013.xlsx")
-    with open(path, "r") as f:
+    with open(path, "rb") as f:
       table_set = messytables.any.any_tableset(f, extension=os.path.splitext(path)[1])
 
     self.assertIsInstance(table_set, messytables.XLSTableSet)

@@ -7,6 +7,8 @@ import math
 import numbers
 import re
 
+import six
+
 import column
 from functions import date      # pylint: disable=import-error
 from functions.unimplemented import unimplemented
@@ -217,7 +219,7 @@ def ISTEXT(value):
   >>> ISTEXT(datetime.date(2011, 1, 1))
   False
   """
-  return isinstance(value, (basestring, AltText))
+  return isinstance(value, (six.string_types, AltText))
 
 
 # Regexp for matching email. See ISEMAIL for justification.

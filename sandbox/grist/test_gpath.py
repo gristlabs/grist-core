@@ -36,10 +36,10 @@ class TestGpath(unittest.TestCase):
     self.assertEqual(self.obj["hello"], "blah")
 
   def test_set_strict(self):
-    with self.assertRaisesRegexp(Exception, r"non-existent"):
+    with self.assertRaisesRegex(Exception, r"non-existent"):
       gpath.place(self.obj, ["bar", 4], 17)
 
-    with self.assertRaisesRegexp(Exception, r"not a plain object"):
+    with self.assertRaisesRegex(Exception, r"not a plain object"):
       gpath.place(self.obj, ["foo", 0], 17)
 
 
@@ -54,13 +54,13 @@ class TestGpath(unittest.TestCase):
                      ["asdf", {"bar": 1}, {"bar": 2}, "hello", {"baz": 3}, "world"])
 
   def test_insert_strict(self):
-    with self.assertRaisesRegexp(Exception, r'not an array'):
+    with self.assertRaisesRegex(Exception, r'not an array'):
       gpath.insert(self.obj, ["foo"], "asdf")
 
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.insert(self.obj, ["foo", -1], 17)
 
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.insert(self.obj, ["foo", "foo"], 17)
 
   def test_update(self):
@@ -75,13 +75,13 @@ class TestGpath(unittest.TestCase):
 
   def test_update_strict(self):
     """update should be strict"""
-    with self.assertRaisesRegexp(Exception, r'non-existent'):
+    with self.assertRaisesRegex(Exception, r'non-existent'):
       gpath.update(self.obj, ["bar", 4], 17)
-    with self.assertRaisesRegexp(Exception, r'not an array'):
+    with self.assertRaisesRegex(Exception, r'not an array'):
       gpath.update(self.obj, ["foo"], 17)
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.update(self.obj, ["foo", -1], 17)
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.update(self.obj, ["foo", None], 17)
 
   def test_remove(self):
@@ -96,13 +96,13 @@ class TestGpath(unittest.TestCase):
 
   def test_remove_strict(self):
     """remove should be strict"""
-    with self.assertRaisesRegexp(Exception, r'non-existent'):
+    with self.assertRaisesRegex(Exception, r'non-existent'):
       gpath.remove(self.obj, ["bar", 4])
-    with self.assertRaisesRegexp(Exception, r'not an array'):
+    with self.assertRaisesRegex(Exception, r'not an array'):
       gpath.remove(self.obj, ["foo"])
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.remove(self.obj, ["foo", -1])
-    with self.assertRaisesRegexp(Exception, r'invalid.*index'):
+    with self.assertRaisesRegex(Exception, r'invalid.*index'):
       gpath.remove(self.obj, ["foo", None])
 
   def test_glob(self):
@@ -112,7 +112,7 @@ class TestGpath(unittest.TestCase):
     self.assertEqual(gpath.place(self.obj, ["foo", "*", "bar"], 17), 3)
     self.assertEqual(self.obj["foo"], [{"bar": 17}, {"bar": 17}, {"baz": 3, "bar": 17}])
 
-    with self.assertRaisesRegexp(Exception, r'non-existent object at \/foo\/\*\/bad'):
+    with self.assertRaisesRegex(Exception, r'non-existent object at \/foo\/\*\/bad'):
       gpath.place(self.obj, ["foo", "*", "bad", "test"], 10)
 
     self.assertEqual(gpath.update(self.obj, ["foo", "*"], "hello"), 3)
@@ -120,9 +120,9 @@ class TestGpath(unittest.TestCase):
 
   def test_glob_strict_wildcard(self):
     """should only support tail wildcard for updates"""
-    with self.assertRaisesRegexp(Exception, r'invalid array index'):
+    with self.assertRaisesRegex(Exception, r'invalid array index'):
       gpath.remove(self.obj, ["foo", "*"])
-    with self.assertRaisesRegexp(Exception, r'invalid array index'):
+    with self.assertRaisesRegex(Exception, r'invalid array index'):
       gpath.insert(self.obj, ["foo", "*"], 1)
 
   def test_glob_wildcard_keys(self):
@@ -132,7 +132,7 @@ class TestGpath(unittest.TestCase):
     self.assertEqual(gpath.place(self.obj, ["foo", 0, "*"], 17), 1)
     self.assertEqual(self.obj["foo"], [{"bar": 1, '*': 17}, {"bar": 2}, {"baz": 3}])
 
-    with self.assertRaisesRegexp(Exception, r'non-existent'):
+    with self.assertRaisesRegex(Exception, r'non-existent'):
       gpath.place(self.obj, ["*", 0, "bar"], 17)
 
   def test_glob_nested(self):

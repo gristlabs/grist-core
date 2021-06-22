@@ -1,4 +1,4 @@
-from info import lazy_value_or_error, is_error
+from .info import lazy_value_or_error, is_error
 from usertypes import AltText   # pylint: disable=unused-import,import-error
 
 
@@ -63,7 +63,7 @@ def IF(logical_expression, value_if_true, value_if_false):
   0.0
 
   More tests:
-  >>> IF(True, lambda: (1/0), lambda: (17))
+  >>> IF(True, lambda: (1/0), lambda: (17))  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
   ...
   ZeroDivisionError: integer division or modulo by zero

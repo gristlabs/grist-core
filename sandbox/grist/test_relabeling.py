@@ -1,7 +1,8 @@
 import relabeling
 
 from sortedcontainers import SortedListWithKey
-from itertools import izip
+from six.moves import zip as izip, xrange
+
 import unittest
 import sys
 
@@ -264,7 +265,7 @@ class TestRelabeling(unittest.TestCase):
       slist.insert_items([(i, float('-inf')), (-i, float('inf'))])
 
     self.assertEqual(slist.get_values(),
-                     rev_range(2000) + [v for v,k in initial] + range(0, -2000, -1))
+                     rev_range(2000) + [v for v,k in initial] + list(xrange(0, -2000, -1)))
     #print slist.num_update_events, slist.num_updated_keys
     self.assertLess(slist.avg_updated_keys(), 3)
     self.assertLess(slist.num_update_events, 80)
@@ -276,7 +277,7 @@ class TestRelabeling(unittest.TestCase):
       slist.insert_items([(i, ins_item.key)])
 
     # Check the end result
-    self.assertEqual(slist.get_values(), ['a', 'b'] + range(1000) + ['c', 'd'])
+    self.assertEqual(slist.get_values(), ['a', 'b'] + list(xrange(1000)) + ['c', 'd'])
     self.assertAlmostEqual(slist.avg_updated_keys(), 3.5, delta=1)
     self.assertLess(slist.num_update_events, 40)
 
@@ -299,7 +300,7 @@ class TestRelabeling(unittest.TestCase):
     ins_item = slist.find_value('c')
     for i in xrange(1000):
       slist.insert_items([(i, ins_item.key)], prepare_inserts=r.prepare_inserts_dumb)
-    self.assertEqual(slist.get_values(), ['a', 'b'] + range(1000) + ['c', 'd'])
+    self.assertEqual(slist.get_values(), ['a', 'b'] + list(xrange(1000)) + ['c', 'd'])
     self.assertGreater(slist.avg_updated_keys(), 8)
 
   def test_renumber_right_dumb(self):
@@ -334,7 +335,7 @@ class TestRelabeling(unittest.TestCase):
     #  aL1, al0, al1, a, ar1, ar0, aR1, ...
     #  aL1, al0, aL2, al1, al2, a, ar2, ar1, aR2, ar0, aR1, ...
     def left_half(val):
-      half = range(2*N - 1)
+      half = list(xrange(2*N - 1))
       half[0::2] = ['%sL%d' % (val, i) for i in xrange(1, N + 1)]
       half[1::2] = ['%sl%d' % (val, i) for i in xrange(0, N - 1)]
       half[-1] = '%sl%d' % (val, N - 1)
@@ -355,7 +356,7 @@ class TestRelabeling(unittest.TestCase):
 
 
 def rev_range(n):
-  return list(reversed(range(n)))
+  return list(reversed(list(xrange(n))))
 
 if __name__ == "__main__":
   unittest.main()

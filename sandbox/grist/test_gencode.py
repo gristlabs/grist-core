@@ -2,6 +2,8 @@ import unittest
 import difflib
 import re
 
+from six.moves import xrange
+
 import gencode
 import identifiers
 import records

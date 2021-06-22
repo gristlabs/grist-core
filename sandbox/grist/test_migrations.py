@@ -1,5 +1,7 @@
 import unittest
 
+import six
+
 import actions
 import schema
 import table_data_set
@@ -23,7 +25,7 @@ class TestMigrations(unittest.TestCase):
 
       # Figure out the missing actions.
       doc_actions = []
-      for table_id in sorted(current_schema.viewkeys() | migrated_schema.viewkeys()):
+      for table_id in sorted(six.viewkeys(current_schema) | six.viewkeys(migrated_schema)):
         if table_id not in migrated_schema:
           doc_actions.append(actions.AddTable(table_id, current_schema[table_id].values()))
         elif table_id not in current_schema:
@@ -31,7 +33,7 @@ class TestMigrations(unittest.TestCase):
         else:
           current_cols = current_schema[table_id]
           migrated_cols = migrated_schema[table_id]
-          for col_id in sorted(current_cols.viewkeys() | migrated_cols.viewkeys()):
+          for col_id in sorted(six.viewkeys(current_cols) | six.viewkeys(migrated_cols)):
             if col_id not in migrated_cols:
               doc_actions.append(actions.AddColumn(table_id, col_id, current_cols[col_id]))
             elif col_id not in current_cols:
@@ -39,7 +41,7 @@ class TestMigrations(unittest.TestCase):
             else:
               current_info = current_cols[col_id]
               migrated_info = migrated_cols[col_id]
-              delta = {k: v for k, v in current_info.iteritems() if v != migrated_info.get(k)}
+              delta = {k: v for k, v in six.iteritems(current_info) if v != migrated_info.get(k)}
               if delta:
                 doc_actions.append(actions.ModifyColumn(table_id, col_id, delta))
 

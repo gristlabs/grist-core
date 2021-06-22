@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import re
-from date import DATEADD, NOW, DTIME
+from .date import DATEADD, NOW, DTIME
 from moment_parse import MONTH_NAMES, DAY_NAMES
 
 # Limit exports to schedule, so that upper-case constants like MONTH_NAMES, DAY_NAMES don't end up

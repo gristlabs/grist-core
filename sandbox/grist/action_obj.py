@@ -54,9 +54,9 @@ class ActionGroup(object):
 
   def get_repr(self):
     return {
-      "calc":     map(actions.get_action_repr, self.calc),
-      "stored":   map(actions.get_action_repr, self.stored),
-      "undo":     map(actions.get_action_repr, self.undo),
+      "calc":     [actions.get_action_repr(a) for a in self.calc],
+      "stored":   [actions.get_action_repr(a) for a in self.stored],
+      "undo":     [actions.get_action_repr(a) for a in self.undo],
       "direct": self.direct,
       "retValues": self.retValues
     }
@@ -64,9 +64,9 @@ class ActionGroup(object):
   @classmethod
   def from_json_obj(cls, data):
     ag = ActionGroup()
-    ag.calc   = map(actions.action_from_repr, data.get('calc', []))
-    ag.stored = map(actions.action_from_repr, data.get('stored', []))
-    ag.undo   = map(actions.action_from_repr, data.get('undo', []))
+    ag.calc   = [actions.action_from_repr(a) for a in data.get('calc', [])]
+    ag.stored = [actions.action_from_repr(a) for a in data.get('stored', [])]
+    ag.undo   = [actions.action_from_repr(a) for a in data.get('undo', [])]
     ag.retValues = data.get('retValues', [])
     return ag
 

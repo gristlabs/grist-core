@@ -2,6 +2,9 @@
 Tests that formula error messages (traceback) are correct
 """
 import textwrap
+
+import six
+
 import depend
 import test_engine
 import testutil
@@ -48,14 +51,19 @@ else:
     self.assertIsInstance(exc.error, type_)
     self.assertEqual(str(exc.error), message)
     if tracebackRegexp:
-      self.assertRegexpMatches(exc.details, tracebackRegexp)
+      self.assertRegex(exc.details, tracebackRegexp)
 
   def test_formula_errors(self):
     self.load_sample(self.sample)
 
-    self.assertFormulaError(self.engine.get_formula_error('Math', 'excel_formula', 3),
-                            TypeError, 'SQRT() takes exactly 1 argument (2 given)',
-                            r"TypeError: SQRT\(\) takes exactly 1 argument \(2 given\)")
+    if six.PY2:
+      self.assertFormulaError(self.engine.get_formula_error('Math', 'excel_formula', 3),
+                              TypeError, 'SQRT() takes exactly 1 argument (2 given)',
+                              r"TypeError: SQRT\(\) takes exactly 1 argument \(2 given\)")
+    else:
+      self.assertFormulaError(self.engine.get_formula_error('Math', 'excel_formula', 3),
+                              TypeError, 'SQRT() takes 1 positional argument but 2 were given',
+                              r"TypeError: SQRT\(\) takes 1 positional argument but 2 were given")
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'built_in_formula', 3),
                             TypeError, "'int' object is not iterable")

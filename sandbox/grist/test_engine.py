@@ -4,6 +4,8 @@ import json
 import unittest
 from collections import namedtuple
 
+import six
+
 import actions
 import column
 import engine
@@ -22,6 +24,8 @@ View = namedtuple('View', 'id sections')
 Section = namedtuple('Section', 'id parentKey tableRef fields')
 Field = namedtuple('Field', 'id colRef')
 
+unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
+unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
 
 class EngineTestCase(unittest.TestCase):
   """
@@ -152,9 +156,9 @@ class EngineTestCase(unittest.TestCase):
     # Convert observed and expected actions into a comparable form.
     for k in self.action_group_action_fields:
       if k in observed:
-        observed[k] = map(get_comparable_repr, observed[k])
+        observed[k] = [get_comparable_repr(v) for v in observed[k]]
       if k in expected:
-        expected[k] = map(get_comparable_repr, expected[k])
+        expected[k] = [get_comparable_repr(v) for v in expected[k]]
 
     if observed != expected:
       o_lines = self._formatActionGroup(observed)
@@ -192,13 +196,13 @@ class EngineTestCase(unittest.TestCase):
     output = {t: self.engine.fetch_table(t) for t in self.engine.schema}
     output = testutil.replace_nans(output)
     output = actions.encode_objects(output)
-    print ''.join(self._getEngineDataLines(output))
+    print(''.join(self._getEngineDataLines(output)))
 
   def dump_actions(self, out_actions):
     """
     Prints out_actions in human-readable format, for help in writing / debugging tets.
     """
-    print "\n".join(self._formatActionGroup(out_actions.__dict__))
+    print("\n".join(self._formatActionGroup(out_actions.__dict__)))
 
   def assertTableData(self, table_name, data=[], cols="all", rows="all", sort=None):
     """
@@ -237,7 +241,7 @@ class EngineTestCase(unittest.TestCase):
     if sort:
       row_ids.sort(key=lambda r: sort(table.get_record(r)))
 
-    observed_col_data = {c.col_id: map(c.raw_get, row_ids) for c in columns if c.col_id != "id"}
+    observed_col_data = {c.col_id: [c.raw_get(r) for r in row_ids] for c in columns if c.col_id != "id"}
     observed = actions.TableData(table_name, row_ids, observed_col_data)
     self.assertEqualDocData({table_name: observed}, {table_name: expected},
                             col_names=col_names)
@@ -286,7 +290,7 @@ class EngineTestCase(unittest.TestCase):
     """
     schema = sample["SCHEMA"]
     self.engine.load_meta_tables(schema['_grist_Tables'], schema['_grist_Tables_column'])
-    for data in sample["DATA"].itervalues():
+    for data in six.itervalues(sample["DATA"]):
       self.engine.load_table(data)
     self.engine.load_done()
 
@@ -426,11 +430,11 @@ class TestEngine(EngineTestCase):
             sample = self.samples[data.pop("USE_SAMPLE")]
             expected_data = sample["DATA"].copy()
           expected_data.update({t: testutil.table_data_from_rows(t, tdata[0], tdata[1:])
-                                for (t, tdata) in data.iteritems()})
+                                for (t, tdata) in six.iteritems(data)})
           self.assertCorrectEngineData(expected_data)
         else:
           raise ValueError("Unrecognized step %s in test script" % step)
-      except Exception, e:
+      except Exception as e:
         prefix = "LINE %s: " % line
         e.args = (prefix + e.args[0],) + e.args[1:] if e.args else (prefix,)
         raise
@@ -526,7 +530,7 @@ class TestEngine(EngineTestCase):
     # Simulate an error inside a DocAction, and make sure we restore the schema (don't leave it in
     # inconsistent with metadata).
     self.load_sample(testutil.parse_test_sample(self.sample1))
-    with self.assertRaisesRegexp(AttributeError, r"'BAD'"):
+    with self.assertRaisesRegex(AttributeError, r"'BAD'"):
       self.add_column('Address', 'bad', isFormula=False, type="BAD")
     self.engine.assert_schema_consistent()
 

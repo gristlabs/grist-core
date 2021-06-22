@@ -161,7 +161,7 @@ class Text(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (basestring, NoneType))
+    return isinstance(value, (six.string_types, NoneType))
 
   @classmethod
   def typeConvert(cls, value):
@@ -203,11 +203,11 @@ class Bool(BaseColumnType):
     # recognize. Everything else will result in alttext.
     if not value:
       return False
-    if isinstance(value, (float, int, long)):
+    if isinstance(value, (float, six.integer_types)):
       return True
     if isinstance(value, AltText):
       value = str(value)
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
       if value.lower() in ("false", "no", "0"):
         return False
       if value.lower() in ("true", "yes", "1"):
@@ -235,7 +235,7 @@ class Int(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return value is None or (isinstance(value, (int, long)) and not isinstance(value, bool) and
+    return value is None or (isinstance(value, six.integer_types) and not isinstance(value, bool) and
       objtypes.is_int_short(value))
 
 
@@ -252,7 +252,7 @@ class Numeric(BaseColumnType):
     # TODO: Python distinguishes ints from floats, while JS only has floats. A value that can be
     # interpreted as an int will upon being entered have type 'float', but after database reload
     # will have type 'int'.
-    return isinstance(value, (float, int, long, NoneType)) and not isinstance(value, bool)
+    return isinstance(value, (float, six.integer_types, NoneType)) and not isinstance(value, bool)
 
 
 class Date(Numeric):
@@ -267,9 +267,9 @@ class Date(Numeric):
       return moment.dt_to_ts(value)
     elif isinstance(value, datetime.date):
       return moment.date_to_ts(value)
-    elif isinstance(value, (float, int, long)):
+    elif isinstance(value, (float, six.integer_types)):
       return float(value)
-    elif isinstance(value, basestring):
+    elif isinstance(value, six.string_types):
       # We also accept a date in ISO format (YYYY-MM-DD), the time portion is optional and ignored
       return moment.parse_iso_date(value)
     else:
@@ -277,7 +277,7 @@ class Date(Numeric):
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (float, int, long, NoneType))
+    return isinstance(value, (float, six.integer_types, NoneType))
 
   @classmethod
   def typeConvert(cls, value, date_format, timezone='UTC'):   # pylint: disable=arguments-differ
@@ -306,9 +306,9 @@ class DateTime(Date):
       return moment.dt_to_ts(value, self.timezone)
     elif isinstance(value, datetime.date):
       return moment.date_to_ts(value, self.timezone)
-    elif isinstance(value, (float, int, long)):
+    elif isinstance(value, (float, six.integer_types)):
       return float(value)
-    elif isinstance(value, basestring):
+    elif isinstance(value, six.string_types):
       # We also accept a datetime in ISO format (YYYY-MM-DD[T]HH:mm:ss)
       return moment.parse_iso(value, self.timezone)
     else:
@@ -330,7 +330,7 @@ class ChoiceList(BaseColumnType):
   def do_convert(self, value):
     if not value:
       return None
-    elif isinstance(value, basestring):
+    elif isinstance(value, six.string_types):
       # If it's a string that looks like JSON, try to parse it as such.
       if value.startswith('['):
         try:
@@ -345,11 +345,11 @@ class ChoiceList(BaseColumnType):
   @classmethod
   def is_right_type(cls, value):
     return value is None or (isinstance(value, (tuple, list)) and
-                             all(isinstance(item, basestring) for item in value))
+                             all(isinstance(item, six.string_types) for item in value))
 
   @classmethod
   def typeConvert(cls, value):
-    if isinstance(value, basestring) and not value.startswith('['):
+    if isinstance(value, six.string_types) and not value.startswith('['):
       # Try to parse as CSV. If this doesn't work, we'll still try usual conversions later.
       try:
         tags = next(csv.reader([value]))
@@ -383,7 +383,7 @@ class PositionNumber(BaseColumnType):
   @classmethod
   def is_right_type(cls, value):
     # Same as Numeric, but does not support None.
-    return isinstance(value, (float, int, long)) and not isinstance(value, bool)
+    return isinstance(value, (float, six.integer_types)) and not isinstance(value, bool)
 
 
 class ManualSortPos(PositionNumber):
@@ -411,7 +411,7 @@ class Id(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return (isinstance(value, (int, long)) and not isinstance(value, bool) and
+    return (isinstance(value, six.integer_types) and not isinstance(value, bool) and
       objtypes.is_int_short(value))
 
 

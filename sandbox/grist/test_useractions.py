@@ -689,7 +689,7 @@ class TestUserActions(test_engine.EngineTestCase):
 
     # Simple failure: bad action (last argument should be a dict). It shouldn't cause any actions
     # in the first place, just raise an exception about the argument being an int.
-    with self.assertRaisesRegexp(AttributeError, r"'int'"):
+    with self.assertRaisesRegex(AttributeError, r"'int'"):
       self.apply_user_action(['AddColumn', 'Address', "A", 17])
 
     # Do some successful actions, just to make sure we know what they look like.
@@ -699,14 +699,14 @@ class TestUserActions(test_engine.EngineTestCase):
     )])
 
     # More complicated: here some actions should succeed, but get reverted when a later one fails.
-    with self.assertRaisesRegexp(AttributeError, r"'int'"):
+    with self.assertRaisesRegex(AttributeError, r"'int'"):
       self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
         ['UpdateRecord', 'Address', 11, {"city": "New York3"}],
         ['AddColumn', 'Address', "C", {"isFormula": True}],
         ['AddColumn', 'Address', "D", 17]
       )])
 
-    with self.assertRaisesRegexp(Exception, r"non-existent record #77"):
+    with self.assertRaisesRegex(Exception, r"non-existent record #77"):
       self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
         ['UpdateRecord', 'Address', 11, {"city": "New York4"}],
         ['UpdateRecord', 'Address', 77, {"city": "Chicago"}],

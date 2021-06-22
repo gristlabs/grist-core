@@ -1,6 +1,9 @@
 import json
 import re
 
+import six
+from six.moves import xrange
+
 import actions
 import identifiers
 import schema
@@ -56,12 +59,12 @@ def create_migrations(all_tables, metadata_only=False):
   user_schema = schema.build_schema(all_tables['_grist_Tables'],
                                     all_tables['_grist_Tables_column'],
                                     include_builtin=False)
-  for t in user_schema.itervalues():
+  for t in six.itervalues(user_schema):
     tdset.apply_doc_action(actions.AddTable(t.tableId, schema.cols_to_dict_list(t.columns)))
 
   # For each old table/column, construct an AddTable action using the current schema.
   new_schema = {a.table_id: a for a in schema.schema_create_actions()}
-  for table_id, data in sorted(all_tables.iteritems()):
+  for table_id, data in sorted(six.iteritems(all_tables)):
     # User tables should already be in tdset; the rest must be metadata tables.
     # (If metadata_only is true, there is simply nothing to skip here.)
     if table_id not in tdset.all_tables:
@@ -94,7 +97,7 @@ def get_last_migration_version():
   """
   Returns the last schema version number for which we have a migration defined.
   """
-  return max(all_migrations.iterkeys())
+  return max(all_migrations)
 
 def migration(schema_version, need_all_tables=False):
   """
@@ -330,16 +333,16 @@ def migration7(tdset):
   # - It doesn't fix types of Reference columns that refer to old-style summary tables
   #   (if the user created some such columns manually).
 
-  doc_actions = filter(None, [
+  doc_actions = [action for action in [
     maybe_add_column(tdset, '_grist_Tables', 'summarySourceTable', 'Ref:_grist_Tables'),
     maybe_add_column(tdset, '_grist_Tables_column', 'summarySourceCol', 'Ref:_grist_Tables_column')
-  ])
+  ] if action]
 
   # Maps tableRef to Table object.
   tables_map = {t.id: t for t in actions.transpose_bulk_action(tdset.all_tables['_grist_Tables'])}
 
   # Maps tableName to tableRef
-  table_name_to_ref = {t.tableId: t.id for t in tables_map.itervalues()}
+  table_name_to_ref = {t.tableId: t.id for t in six.itervalues(tables_map)}
 
   # List of Column objects
   columns = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables_column']))
@@ -362,14 +365,14 @@ def migration7(tdset):
   # Summary tables used to be named as "Summary_<SourceName>_<ColRef1>_<ColRef2>". This regular
   # expression parses that.
   summary_re = re.compile(r'^Summary_(\w+?)((?:_\d+)*)$')
-  for t in tables_map.itervalues():
+  for t in six.itervalues(tables_map):
     m = summary_re.match(t.tableId)
     if not m or m.group(1) not in table_name_to_ref:
       continue
     # We have a valid summary table.
     source_table_name = m.group(1)
     source_table_ref = table_name_to_ref[source_table_name]
-    groupby_colrefs = map(int, m.group(2).strip("_").split("_"))
+    groupby_colrefs = [int(x) for x in m.group(2).strip("_").split("_")]
     # Prepare a new-style name for the summary table. Be sure not to conflict with existing tables
     # or with each other (i.e. don't rename multiple tables to the same name).
     new_name = summary.encode_summary_table_name(source_table_name)

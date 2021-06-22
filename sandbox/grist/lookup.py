@@ -1,3 +1,5 @@
+import six
+
 import column
 import depend
 import records
@@ -85,7 +87,7 @@ class LookupMapColumn(column.BaseColumn):
   def _invalidate_affected(self, affected_keys):
     # For each known relation, figure out which referring rows are affected, and invalidate them.
     # The engine will notice that there have been more invalidations, and recompute things again.
-    for node, rel in self._lookup_relations.iteritems():
+    for node, rel in six.iteritems(self._lookup_relations):
       affected_rows = rel.get_affected_rows_by_keys(affected_keys)
       self._engine.invalidate_records(node.table_id, affected_rows, col_ids=(node.col_id,))
 

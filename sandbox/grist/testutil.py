@@ -3,6 +3,8 @@ import math
 import os
 import re
 
+import six
+
 import actions
 import logger
 
@@ -103,7 +105,7 @@ def parse_test_sample(obj, samples={}):
     }
 
   data = {t: table_data_from_rows(t, data[0], data[1:])
-          for t, data in obj["DATA"].iteritems()}
+          for t, data in six.iteritems(obj["DATA"])}
   return {"SCHEMA": schema, "DATA": data}
 
 

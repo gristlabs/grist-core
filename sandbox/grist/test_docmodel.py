@@ -244,6 +244,6 @@ class TestDocModel(test_engine.EngineTestCase):
 
     # Verify that positions are set such that the order is what we asked for.
     student_columns = self.engine.docmodel.tables.lookupOne(tableId='Students').columns
-    self.assertEqual(map(int, student_columns), [1,2,4,5,6,25,22,23])
+    self.assertEqual(list(map(int, student_columns)), [1,2,4,5,6,25,22,23])
     school_columns = self.engine.docmodel.tables.lookupOne(tableId='Schools').columns
-    self.assertEqual(map(int, school_columns), [24,10,12])
+    self.assertEqual(list(map(int, school_columns)), [24,10,12])

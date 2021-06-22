@@ -19,6 +19,8 @@ import re
 import imp
 from collections import OrderedDict
 
+import six
+
 import codebuilder
 from column import is_visible_column
 import summary
@@ -123,7 +125,7 @@ class GenCode(object):
     source_table_id = summary.decode_summary_table_name(table_id)
 
     # Sort columns by "isFormula" to output all data columns before all formula columns.
-    columns = sorted(table_info.columns.itervalues(), key=lambda c: c.isFormula)
+    columns = sorted(six.itervalues(table_info.columns), key=lambda c: c.isFormula)
     if filter_for_user:
       columns = [c for c in columns if is_visible_column(c.colId)]
     parts = ["@grist.UserTable\nclass %s:\n" % table_id]
@@ -136,9 +138,9 @@ class GenCode(object):
     if summary_tables:
       # Include summary formulas, for the user's information.
       formulas = OrderedDict((c.colId, c) for s in summary_tables
-                             for c in s.columns.itervalues() if c.isFormula)
+                             for c in six.itervalues(s.columns) if c.isFormula)
       parts.append(indent(textbuilder.Text("\nclass _Summary:\n")))
-      for col_info in formulas.itervalues():
+      for col_info in six.itervalues(formulas):
         parts.append(indent(self._make_field(col_info, table_id), levels=2))
 
     return textbuilder.Combiner(parts)
@@ -147,7 +149,7 @@ class GenCode(object):
     """Regenerates the code text and usercode module from upated document schema."""
     # Collect summary tables to group them by source table.
     summary_tables = {}
-    for table_info in schema.itervalues():
+    for table_info in six.itervalues(schema):
       source_table_id = summary.decode_summary_table_name(table_info.tableId)
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
@@ -156,7 +158,7 @@ class GenCode(object):
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
     userparts = fullparts[:]
-    for table_info in schema.itervalues():
+    for table_info in six.itervalues(schema):
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
       if not _is_special_table(table_info.tableId):
@@ -191,5 +193,5 @@ def _is_special_table(table_id):
 def exec_module_text(module_text):
   # pylint: disable=exec-used
   mod = imp.new_module("usercode")
-  exec module_text in mod.__dict__
+  exec(module_text, mod.__dict__)
   return mod

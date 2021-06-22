@@ -5,6 +5,7 @@ import unittest
 from acl_formula import parse_acl_formula
 import test_engine
 
+
 class TestACLFormula(unittest.TestCase):
   def test_basic(self):
     # Test a few basic formulas and structures, hitting everything we expect to support
@@ -104,19 +105,19 @@ class TestACLFormula(unittest.TestCase):
     self.assertRaises(SyntaxError, parse_acl_formula, "def foo(): pass")
 
     # Unsupported node type
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "max(rec)")
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "user.id in {1, 2, 3}")
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "1 if user.IsAnon else 2")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "max(rec)")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "user.id in {1, 2, 3}")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "1 if user.IsAnon else 2")
 
     # Unsupported operation
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "1 | 2")
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "1 << 2")
-    self.assertRaisesRegexp(ValueError, r'Unsupported syntax', parse_acl_formula, "~test")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "1 | 2")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "1 << 2")
+    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_acl_formula, "~test")
 
     # Syntax error
     self.assertRaises(SyntaxError, parse_acl_formula, "[(]")
     self.assertRaises(SyntaxError, parse_acl_formula, "user.id in (1,2))")
-    self.assertRaisesRegexp(SyntaxError, r'invalid syntax on line 1 col 9', parse_acl_formula, "foo and !bar")
+    self.assertRaisesRegex(SyntaxError, r'invalid syntax on line 1 col 9', parse_acl_formula, "foo and !bar")
 
 class TestACLFormulaUserActions(test_engine.EngineTestCase):
   def test_acl_actions(self):

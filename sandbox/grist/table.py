@@ -1,6 +1,9 @@
 import collections
 import types
 
+import six
+from six.moves import xrange
+
 import column
 import depend
 import docmodel
@@ -211,7 +214,7 @@ class Table(object):
     new_cols['id'] = self._id_column
 
     # List of Columns in the same order as they appear in the generated Model definition.
-    col_items = [c for c in self.Model.__dict__.iteritems() if not c[0].startswith("_")]
+    col_items = [c for c in six.iteritems(self.Model.__dict__) if not c[0].startswith("_")]
     col_items.sort(key=lambda c: self._get_sort_order(c[1]))
 
     for col_id, col_model in col_items:
@@ -219,11 +222,11 @@ class Table(object):
       new_cols[col_id] = self._create_or_update_col(col_id, col_model, default_func)
 
     # Used for auto-completion as a record with correct properties of correct types.
-    self.sample_record = _make_sample_record(self.table_id, new_cols.itervalues())
+    self.sample_record = _make_sample_record(self.table_id, six.itervalues(new_cols))
 
     # Note that we reuse previous special columns like lookup maps, since those not affected by
     # column changes should stay the same. These get removed when unneeded using other means.
-    new_cols.update(sorted(self._special_cols.iteritems()))
+    new_cols.update(sorted(six.iteritems(self._special_cols)))
 
     # Set the new columns.
     self.all_columns = new_cols
@@ -289,7 +292,7 @@ class Table(object):
     """
     return ((0, col_model._creation_order)
             if not isinstance(col_model, types.FunctionType) else
-            (1, col_model.func_code.co_firstlineno))
+            (1, col_model.__code__.co_firstlineno))
 
   def next_row_id(self):
     """
@@ -302,7 +305,7 @@ class Table(object):
     Resizes all columns as needed so that all valid row_ids are valid indices into all columns.
     """
     size = self.row_ids.max() + 1
-    for col_obj in self.all_columns.itervalues():
+    for col_obj in six.itervalues(self.all_columns):
       col_obj.growto(size)
 
   def get_column(self, col_id):
@@ -325,7 +328,7 @@ class Table(object):
     """
     # The tuple of keys used determines the LookupMap we need.
     sort_by = kwargs.pop('sort_by', None)
-    col_ids = tuple(sorted(kwargs.iterkeys()))
+    col_ids = tuple(sorted(kwargs))
     key = tuple(kwargs[c] for c in col_ids)
 
     lookup_map = self._get_lookup_map(col_ids)
@@ -383,7 +386,7 @@ class Table(object):
     # TODO: It should use indices, to avoid linear searching
     # TODO: It should create dependencies as needed when used from formulas.
     # TODO: It should return Record instead, for convenience of user formulas
-    col_values = [(self.all_columns[col_id], value) for (col_id, value) in kwargs.iteritems()]
+    col_values = [(self.all_columns[col_id], value) for (col_id, value) in six.iteritems(kwargs)]
     for row_id in self.row_ids:
       if all(col.raw_get(row_id) == value for col, value in col_values):
         return row_id
@@ -398,7 +401,7 @@ class Table(object):
     # TODO: It should use indices, to avoid linear searching
     # TODO: It should create dependencies as needed when used from formulas.
     # TODO: It should return Record instead, for convenience of user formulas
-    col_values = [(self.all_columns[col_id], value) for (col_id, value) in kwargs.iteritems()]
+    col_values = [(self.all_columns[col_id], value) for (col_id, value) in six.iteritems(kwargs)]
     for row_id in self.row_ids:
       if all(col.raw_get(row_id) == value for col, value in col_values):
         yield row_id

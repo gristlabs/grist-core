@@ -4,9 +4,11 @@ Helper class for handling formula autocomplete.
 It's intended to use with rlcompleter.Completer. It allows finding global names using
 lowercase searches, and adds function usage information to some results.
 """
-import __builtin__
+from six.moves import builtins
 import inspect
 from collections import namedtuple
+
+import six
 
 # funcname is the function name, e.g. "MAX"
 # argspec is the signature, e.g. "(arg, *more_args)"
@@ -16,7 +18,7 @@ Completion = namedtuple('Completion', ['funcname', 'argspec', 'isgrist'])
 def is_grist_func(func):
   try:
     return inspect.getmodule(func).__name__.startswith('functions.')
-  except Exception, e:
+  except Exception as e:
     return e
 
 class AutocompleteContext(object):
@@ -24,7 +26,7 @@ class AutocompleteContext(object):
     # rlcompleter is case-sensitive. This is hard to work around while maintaining attribute
     # lookups. As a middle ground, we only introduce lowercase versions of all global names.
     self._context = {
-      key: value for key, value in usercode_context.iteritems()
+      key: value for key, value in six.iteritems(usercode_context)
       # Don't propose unimplemented functions in autocomplete
       if not (value and callable(value) and getattr(value, 'unimplemented', None))
     }
@@ -32,7 +34,7 @@ class AutocompleteContext(object):
     # Prepare detailed Completion objects for functions where we can supply more info.
     # TODO It would be nice to include builtin functions too, but getargspec doesn't work there.
     self._functions = {}
-    for key, value in self._context.iteritems():
+    for key, value in six.iteritems(self._context):
       if value and callable(value):
         argspec = inspect.formatargspec(*inspect.getargspec(value))
         self._functions[key] = Completion(key, argspec, is_grist_func(value))
@@ -47,7 +49,7 @@ class AutocompleteContext(object):
       lower = key.lower()
       if lower == key:
         continue
-      if lower not in self._context and lower not in __builtin__.__dict__:
+      if lower not in self._context and lower not in builtins.__dict__:
         self._lowercase[lower] = key
       else:
         # This is still good enough to find a match for, and translate back to the original.
@@ -59,7 +61,7 @@ class AutocompleteContext(object):
         self._lowercase[lower] = key
 
     # Add the lowercase names to the context, and to the detailed completions in _functions.
-    for lower, key in self._lowercase.iteritems():
+    for lower, key in six.iteritems(self._lowercase):
       self._context[lower] = self._context[key]
       if key in self._functions:
         self._functions[lower] = self._functions[key]

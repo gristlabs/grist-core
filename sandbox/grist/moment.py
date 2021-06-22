@@ -3,10 +3,11 @@ from collections import namedtuple
 import marshal
 from time import time
 import bisect
-import itertools
 import os
 import moment_parse
 import iso8601
+import six
+from six.moves import zip
 
 # This is prepared by sandbox/install_tz.py
 ZoneRecord = namedtuple("ZoneRecord", ("name", "abbrs", "offsets", "untils"))
@@ -92,7 +93,7 @@ class tz(object):
     self._tzinfo = tzinfo(zonelabel)
     if isinstance(dt, datetime):
       timestamp = dt_to_ts(dt.replace(tzinfo=self._tzinfo)) * 1000
-    elif isinstance(dt, (float, int, long)):
+    elif isinstance(dt, (float, six.integer_types)):
       timestamp = dt
     else:
       raise TypeError("'dt' should be a datetime object or a numeric type")
@@ -181,7 +182,7 @@ class Zone(object):
     # "Until" times adjusted by the corresponding offsets. These are used in translating from
     # datetime to absolute timestamp.
     self.offset_untils = [until - offset * 60000 for (until, offset) in
-                          itertools.izip(self.untils, self.offsets)]
+                          zip(self.untils, self.offsets)]
     # Cache of TzInfo objects for this Zone, used by get_tzinfo(). There could be multiple TzInfo
     # objects, one for each possible offset, but their behavior only differs for ambiguous time.
     self._tzinfo = {}

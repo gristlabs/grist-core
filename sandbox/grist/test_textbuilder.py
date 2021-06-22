@@ -9,7 +9,7 @@ class TestTextBuilder(unittest.TestCase):
   def test_validate_patch(self):
     text = "To be or not to be"
     patch = make_patch(text, 3, 8, "SEE OR")
-    self.assertEquals(textbuilder.validate_patch(text, patch), None)
+    self.assertEqual(textbuilder.validate_patch(text, patch), None)
     with self.assertRaises(ValueError):
       textbuilder.validate_patch('X' + text, patch)
 
@@ -19,15 +19,15 @@ class TestTextBuilder(unittest.TestCase):
     patches = make_regexp_patches(t1.get_text(), re.compile(r'be|to', re.I),
                                   lambda m: (m.group() + m.group()).upper())
     t2 = textbuilder.Replacer(t1, patches)
-    self.assertEquals(t2.get_text(), "TOTO BEBE or not\n  TOTO BEBE?\n")
-    self.assertEquals(t2.map_back_patch(make_patch(t2.get_text(), 0, 4, "xxx")),
+    self.assertEqual(t2.get_text(), "TOTO BEBE or not\n  TOTO BEBE?\n")
+    self.assertEqual(t2.map_back_patch(make_patch(t2.get_text(), 0, 4, "xxx")),
                       (t1.get_text(), value, Patch(0, 2, "To", "xxx")))
-    self.assertEquals(t2.map_back_patch(make_patch(t2.get_text(), 5, 9, "xxx")),
+    self.assertEqual(t2.map_back_patch(make_patch(t2.get_text(), 5, 9, "xxx")),
                       (t1.get_text(), value, Patch(3, 5, "be", "xxx")))
-    self.assertEquals(t2.map_back_patch(make_patch(t2.get_text(), 18, 23, "xxx")),
+    self.assertEqual(t2.map_back_patch(make_patch(t2.get_text(), 18, 23, "xxx")),
                       (t1.get_text(), value, Patch(14, 17, " to", "xxx")))
     # Match the entire second line
-    self.assertEquals(t2.map_back_patch(make_patch(t2.get_text(), 17, 29, "xxx")),
+    self.assertEqual(t2.map_back_patch(make_patch(t2.get_text(), 17, 29, "xxx")),
                       (t1.get_text(), value, Patch(13, 21, "  to be?", "xxx")))
 
   def test_combiner(self):

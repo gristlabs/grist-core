@@ -11,6 +11,9 @@ import sys
 import time
 import traceback
 from collections import namedtuple, OrderedDict, Hashable
+
+import six
+from six.moves import zip
 from sortedcontainers import SortedSet
 
 import acl
@@ -34,8 +37,9 @@ import repl
 
 log = logger.Logger(__name__, logger.INFO)
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+if six.PY2:
+  reload(sys)
+  sys.setdefaultencoding('utf8')
 
 
 class OrderError(Exception):
@@ -260,11 +264,11 @@ class Engine(object):
     table = self.tables[data.table_id]
 
     # Clear all columns, whether or not they are present in the data.
-    for column in table.all_columns.itervalues():
+    for column in six.itervalues(table.all_columns):
       column.clear()
 
     # Only load columns that aren't stored.
-    columns = {col_id: data for (col_id, data) in data.columns.iteritems()
+    columns = {col_id: data for (col_id, data) in six.iteritems(data.columns)
                if table.has_column(col_id)}
 
     # Add the records.
@@ -296,10 +300,10 @@ class Engine(object):
     table.grow_to_max()
 
     # Load the new values.
-    for col_id, values in column_values.iteritems():
+    for col_id, values in six.iteritems(column_values):
       column = table.get_column(col_id)
       column.growto(growto_size)
-      for row_id, value in itertools.izip(row_ids, values):
+      for row_id, value in zip(row_ids, values):
         column.set(row_id, value)
 
     # Invalidate new records to cause the formula columns to get recomputed.
@@ -314,16 +318,16 @@ class Engine(object):
 
     query_cols = []
     if query:
-      query_cols = [(table.get_column(col_id), values) for (col_id, values) in query.iteritems()]
+      query_cols = [(table.get_column(col_id), values) for (col_id, values) in six.iteritems(query)]
     row_ids = [r for r in table.row_ids
                if all((c.raw_get(r) in values) for (c, values) in query_cols)]
 
-    for c in table.all_columns.itervalues():
+    for c in six.itervalues(table.all_columns):
       # pylint: disable=too-many-boolean-expressions
       if ((formulas or not c.is_formula())
           and (private or not c.is_private())
           and c.col_id != "id" and not column.is_virtual_column(c.col_id)):
-        column_values[c.col_id] = map(c.raw_get, row_ids)
+        column_values[c.col_id] = [c.raw_get(r) for r in row_ids]
 
     return actions.TableData(table_id, row_ids, column_values)
 
@@ -355,8 +359,11 @@ class Engine(object):
     """
     schema_actions = schema.schema_create_actions()
     table_actions = [_get_table_actions(table) for table in self.docmodel.tables.all]
-    record_actions = [self._get_record_actions(table_id) for (table_id,t) in self.tables.iteritems()
-      if t.next_row_id() > 1]
+    record_actions = [
+      self._get_record_actions(table_id)
+      for (table_id,t) in six.iteritems(self.tables)
+      if t.next_row_id() > 1
+    ]
     return schema_actions + table_actions + record_actions
 
   # Returns a BulkAddRecord action which can be used to add the currently existing data to an empty
@@ -414,10 +421,10 @@ class Engine(object):
     meta_tables = self.fetch_table('_grist_Tables')
     meta_columns = self.fetch_table('_grist_Tables_column')
     gen_schema = schema.build_schema(meta_tables, meta_columns)
-    gen_schema_dicts = {k: (t.tableId, dict(t.columns.iteritems()))
-                        for k, t in gen_schema.iteritems()}
-    cur_schema_dicts = {k: (t.tableId, dict(t.columns.iteritems()))
-                        for k, t in self.schema.iteritems()}
+    gen_schema_dicts = {k: (t.tableId, dict(t.columns))
+                        for k, t in six.iteritems(gen_schema)}
+    cur_schema_dicts = {k: (t.tableId, dict(t.columns))
+                        for k, t in six.iteritems(self.schema)}
     if cur_schema_dicts != gen_schema_dicts:
       import pprint
       import difflib
@@ -448,7 +455,7 @@ class Engine(object):
 
   def dump_recompute_map(self):
     log.debug("Recompute map (%d nodes):" % len(self.recompute_map))
-    for node, dirty_rows in self.recompute_map.iteritems():
+    for node, dirty_rows in six.iteritems(self.recompute_map):
       log.debug("  Node %s: %s" % (node, dirty_rows))
 
   @contextlib.contextmanager
@@ -507,7 +514,7 @@ class Engine(object):
     Called at end of _bring_all_up_to_date or _bring_lookups_up_to_date.
     Issues actions for any accumulated cell changes.
     """
-    for node, changes in self._changes_map.iteritems():
+    for node, changes in six.iteritems(self._changes_map):
       table = self.tables[node.table_id]
       col = table.get_column(node.col_id)
       # If there are changes, save them in out_actions.
@@ -876,7 +883,7 @@ class Engine(object):
     table = self.tables[action.table_id]
     new_values = {}
     extra_actions = []
-    for col_id, values in column_values.iteritems():
+    for col_id, values in six.iteritems(column_values):
       col_obj = table.get_column(col_id)
       values = [col_obj.convert(val) for val in values]
 
@@ -895,7 +902,7 @@ class Engine(object):
       # above does it for columns explicitly mentioned; this section does it for the other
       # columns, using their default values as input to prepare_new_values().
       ignore_data = isinstance(action, actions.ReplaceTableData)
-      for col_id, col_obj in table.all_columns.iteritems():
+      for col_id, col_obj in six.iteritems(table.all_columns):
         if col_id in column_values or column.is_virtual_column(col_id) or col_obj.is_formula():
           continue
         defaults = [col_obj.getdefault() for r in row_ids]
@@ -922,7 +929,7 @@ class Engine(object):
     table = self.tables[action.table_id]
 
     # Collect for each column the Column object and a list of new values.
-    cols = [(table.get_column(col_id), values) for (col_id, values) in column_values.iteritems()]
+    cols = [(table.get_column(col_id), values) for (col_id, values) in six.iteritems(column_values)]
 
     # In comparisons below, we rely here on Python's "==" operator to check for equality. After a
     # type conversion, it may compare the new type to the old, e.g. 1 == 1.0 == True. It's
@@ -988,18 +995,18 @@ class Engine(object):
     old_tables = self.tables
 
     self.tables = {}
-    for table_id, user_table in self.gencode.usercode.__dict__.iteritems():
+    for table_id, user_table in six.iteritems(self.gencode.usercode.__dict__):
       if isinstance(user_table, table_module.UserTable):
         self.tables[table_id] = (old_tables.get(table_id) or table_module.Table(table_id, self))
 
     # Now update the table model for each table, and tie it to its UserTable object.
-    for table_id, table in self.tables.iteritems():
+    for table_id, table in six.iteritems(self.tables):
       user_table = getattr(self.gencode.usercode, table_id)
       self._update_table_model(table, user_table)
       user_table._set_table_impl(table)
 
     # For any tables that are gone, use self._update_table_model to clean them up.
-    for table_id, table in old_tables.iteritems():
+    for table_id, table in six.iteritems(old_tables):
       if table_id not in self.tables:
         self._update_table_model(table, None)
         self._repl.locals.pop(table_id, None)
@@ -1032,8 +1039,8 @@ class Engine(object):
       table._rebuild_model(user_table)
       new_columns = table.all_columns
 
-    added_col_ids = new_columns.viewkeys() - old_columns.viewkeys()
-    deleted_col_ids = old_columns.viewkeys() - new_columns.viewkeys()
+    added_col_ids = six.viewkeys(new_columns) - six.viewkeys(old_columns)
+    deleted_col_ids = six.viewkeys(old_columns) - six.viewkeys(new_columns)
 
     # Invalidate the columns that got added and anything that depends on them.
     if added_col_ids:
@@ -1101,7 +1108,7 @@ class Engine(object):
         if self._schema_updated:
           self.assert_schema_consistent()
 
-    except Exception, e:
+    except Exception as e:
       # Save full exception info, so that we can rethrow accurately even if undo also fails.
       exc_info = sys.exc_info()
       # If we get an exception, we should revert all changes applied so far, to keep things
@@ -1249,7 +1256,7 @@ class Engine(object):
       (len_calc, len_stored, len_undo, len_ret) = checkpoint
       undo_actions = self.out_actions.undo[len_undo:]
       log.info("Reverting %d doc actions" % len(undo_actions))
-      self.user_actions.ApplyUndoActions(map(actions.get_action_repr, undo_actions))
+      self.user_actions.ApplyUndoActions([actions.get_action_repr(a) for a in undo_actions])
       del self.out_actions.calc[len_calc:]
       del self.out_actions.stored[len_stored:]
       del self.out_actions.direct[len_stored:]

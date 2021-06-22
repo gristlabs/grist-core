@@ -1,6 +1,8 @@
+import six
+
 import actions
-import schema
 import logger
+import schema
 from objtypes import strict_equal
 
 log = logger.Logger(__name__, logger.INFO)
@@ -15,7 +17,7 @@ class DocActions(object):
 
   def AddRecord(self, table_id, row_id, column_values):
     self.BulkAddRecord(
-      table_id, [row_id], {key: [val] for key, val in column_values.iteritems()})
+      table_id, [row_id], {key: [val] for key, val in six.iteritems(column_values)})
 
   def BulkAddRecord(self, table_id, row_ids, column_values):
     table = self._engine.tables[table_id]
@@ -42,9 +44,9 @@ class DocActions(object):
     # Collect the undo values, and unset all values in the column (i.e. set to defaults), just to
     # make sure we don't have stale values hanging around.
     undo_values = {}
-    for column in table.all_columns.itervalues():
+    for column in six.itervalues(table.all_columns):
       if not column.is_private() and column.col_id != "id":
-        col_values = map(column.raw_get, row_ids)
+        col_values = [column.raw_get(r) for r in row_ids]
         default = column.getdefault()
         # If this column had all default values, don't include it into the undo BulkAddRecord.
         if not all(strict_equal(val, default) for val in col_values):
@@ -62,7 +64,7 @@ class DocActions(object):
 
   def UpdateRecord(self, table_id, row_id, columns):
     self.BulkUpdateRecord(
-      table_id, [row_id], {key: [val] for key, val in columns.iteritems()})
+      table_id, [row_id], {key: [val] for key, val in six.iteritems(columns)})
 
   def BulkUpdateRecord(self, table_id, row_ids, columns):
     table = self._engine.tables[table_id]
@@ -72,9 +74,9 @@ class DocActions(object):
 
     # Load the updated values.
     undo_values = {}
-    for col_id, values in columns.iteritems():
+    for col_id, values in six.iteritems(columns):
       col = table.get_column(col_id)
-      undo_values[col_id] = map(col.raw_get, row_ids)
+      undo_values[col_id] = [col.raw_get(r) for r in row_ids]
       for (row_id, value) in zip(row_ids, values):
         col.set(row_id, value)
 
@@ -185,7 +187,7 @@ class DocActions(object):
       log.info("ModifyColumn called which was a noop")
       return
 
-    undo_col_info = {k: v for k, v in schema.col_to_dict(old, include_id=False).iteritems()
+    undo_col_info = {k: v for k, v in six.iteritems(schema.col_to_dict(old, include_id=False))
                      if k in col_info}
 
     # Remove the column from the schema, then re-add it, to force creation of a new column object.
@@ -249,7 +251,7 @@ class DocActions(object):
 
     # Copy over all columns from the old table to the new.
     new_table = self._engine.tables[new_table_id]
-    for new_column in new_table.all_columns.itervalues():
+    for new_column in six.itervalues(new_table.all_columns):
       if not new_column.is_private():
         new_column.copy_from_column(old_table.get_column(new_column.col_id))
     new_table.grow_to_max()   # We need to bring formula columns to the right size too.

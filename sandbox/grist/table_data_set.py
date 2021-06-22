@@ -1,4 +1,6 @@
-from itertools import izip
+from six.moves import zip as izip
+import six
+
 import actions
 from usertypes import get_type_default
 
@@ -29,7 +31,7 @@ class TableDataSet(object):
   def apply_doc_action(self, action):
     try:
       getattr(self, action.__class__.__name__)(*action)
-    except Exception, e:
+    except Exception as e:
       log.warn("ERROR applying action %s: %s" % (action, e))
       raise
 
@@ -48,12 +50,12 @@ class TableDataSet(object):
   # Actions on records.
   #----------------------------------------
   def AddRecord(self, table_id, row_id, columns):
-    self.BulkAddRecord(table_id, [row_id], {key: [val] for key, val in columns.iteritems()})
+    self.BulkAddRecord(table_id, [row_id], {key: [val] for key, val in six.iteritems(columns)})
 
   def BulkAddRecord(self, table_id, row_ids, columns):
     table_data = self.all_tables[table_id]
     table_data.row_ids.extend(row_ids)
-    for col, values in table_data.columns.iteritems():
+    for col, values in six.iteritems(table_data.columns):
       if col in columns:
         values.extend(columns[col])
       else:
@@ -67,19 +69,19 @@ class TableDataSet(object):
   def BulkRemoveRecord(self, table_id, row_ids):
     table_data = self.all_tables[table_id]
     remove_set = set(row_ids)
-    for col, values in table_data.columns.iteritems():
+    for col, values in six.iteritems(table_data.columns):
       values[:] = [v for r, v in izip(table_data.row_ids, values) if r not in remove_set]
     table_data.row_ids[:] = [r for r in table_data.row_ids if r not in remove_set]
 
   def UpdateRecord(self, table_id, row_id, columns):
     self.BulkUpdateRecord(
-      table_id, [row_id], {key: [val] for key, val in columns.iteritems()})
+      table_id, [row_id], {key: [val] for key, val in six.iteritems(columns)})
 
   def BulkUpdateRecord(self, table_id, row_ids, columns):
     table_data = self.all_tables[table_id]
     rowid_map = {r:i for i, r in enumerate(table_data.row_ids)}
     table_indices = [rowid_map[r] for r in row_ids]
-    for col, values in columns.iteritems():
+    for col, values in six.iteritems(columns):
       if col in table_data.columns:
         col_values = table_data.columns[col]
         for i, v in izip(table_indices, values):
@@ -88,7 +90,7 @@ class TableDataSet(object):
   def ReplaceTableData(self, table_id, row_ids, columns):
     table_data = self.all_tables[table_id]
     del table_data.row_ids[:]
-    for col, values in table_data.columns.iteritems():
+    for col, values in six.iteritems(table_data.columns):
       del values[:]
     self.BulkAddRecord(table_id, row_ids, columns)
 

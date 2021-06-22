@@ -5,7 +5,11 @@ import dateutil.parser
 import numbers
 import re
 
-from unimplemented import unimplemented
+import six
+from six import unichr
+from six.moves import xrange
+
+from .unimplemented import unimplemented
 from usertypes import AltText   # pylint: disable=import-error
 
 def CHAR(table_number):
@@ -478,7 +482,7 @@ def SUBSTITUTE(text, old_text, new_text, instance_num=None):
   if not old_text:
     return text
 
-  if not isinstance(new_text, basestring):
+  if not isinstance(new_text, six.string_types):
     new_text = str(new_text)
 
   if instance_num is None:

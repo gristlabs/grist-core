@@ -14,6 +14,8 @@ import sys
 import unittest
 sys.path.append('/thirdparty')
 
+import six
+
 def main():
   # Change to the directory of this file (/grist in sandbox), to discover everything under it.
   os.chdir(os.path.dirname(__file__))
@@ -23,7 +25,9 @@ def main():
   if "--xunit" in argv:
     import xmlrunner
     argv.remove("--xunit")
-    utf8_stdout = codecs.getwriter('utf8')(sys.stdout)
+    utf8_stdout = sys.stdout
+    if six.PY2:
+      utf8_stdout = codecs.getwriter('utf8')(utf8_stdout)
     test_runner = xmlrunner.XMLTestRunner(stream=utf8_stdout)
 
   if all(arg.startswith("-") for arg in argv[1:]):

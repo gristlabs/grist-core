@@ -104,6 +104,11 @@ class _TreeConverter(ast.NodeVisitor):
       return ["Const", named_constants[node.id]]
     return ["Name", node.id]
 
+  def visit_Constant(self, node):
+    return ["Const", node.value]
+
+  visit_NameConstant = visit_Constant
+
   def visit_Attribute(self, node):
     return ["Attr", self.visit(node.value), node.attr]
 

@@ -17,6 +17,7 @@ from math import isnan
 
 import moment
 import records
+import six
 
 
 class UnmarshallableError(ValueError):
@@ -186,9 +187,9 @@ def encode_object(value):
       # Represent RecordSet (e.g. result of lookupRecords) in the same way as a RecordList.
       return ['L'] + [encode_object(int(item)) for item in value]
     elif isinstance(value, dict):
-      if not all(isinstance(key, basestring) for key in value):
+      if not all(isinstance(key, six.string_types) for key in value):
         raise UnmarshallableError("Dict with non-string keys")
-      return ['O', {key: encode_object(val) for key, val in value.iteritems()}]
+      return ['O', {key: encode_object(val) for key, val in six.iteritems(value)}]
     elif value == _pending_sentinel:
       return ['P']
     elif value == _censored_sentinel:
@@ -230,7 +231,7 @@ def decode_object(value):
     elif code == 'L':
       return [decode_object(item) for item in args]
     elif code == 'O':
-      return {decode_object(key): decode_object(val) for key, val in args[0].iteritems()}
+      return {decode_object(key): decode_object(val) for key, val in six.iteritems(args[0])}
     elif code == 'P':
       return _pending_sentinel
     elif code == 'C':

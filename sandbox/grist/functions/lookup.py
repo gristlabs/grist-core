@@ -1,9 +1,10 @@
 # pylint: disable=redefined-builtin, line-too-long
 from collections import OrderedDict
 import os
-from urllib import urlencode
-import urlparse
-from unimplemented import unimplemented
+
+import six
+from six.moves import urllib_parse
+from .unimplemented import unimplemented
 
 @unimplemented
 def ADDRESS(row, column, absolute_relative_mode, use_a1_notation, sheet):
@@ -112,16 +113,16 @@ def SELF_HYPERLINK(label=None, page=None, **kwargs):
   if page:
     txt += "/p/{}".format(page)
   if kwargs:
-    parts = list(urlparse.urlparse(txt))
-    query = OrderedDict(urlparse.parse_qsl(parts[4]))
-    for [key, value] in kwargs.iteritems():
+    parts = list(urllib_parse.urlparse(txt))
+    query = OrderedDict(urllib_parse.parse_qsl(parts[4]))
+    for [key, value] in sorted(six.iteritems(kwargs)):
       key_parts = key.split('LinkKey_')
       if len(key_parts) == 2 and key_parts[0] == '':
         query[key_parts[1] + '_'] = value
       else:
         raise TypeError("unexpected keyword argument '{}' (not of form LinkKey_NAME)".format(key))
-    parts[4] = urlencode(query)
-    txt = urlparse.urlunparse(parts)
+    parts[4] = urllib_parse.urlencode(query)
+    txt = urllib_parse.urlunparse(parts)
   if label:
     txt = "{} {}".format(label, txt)
   return txt

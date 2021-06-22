@@ -1,3 +1,6 @@
+from six.moves import xrange
+
+
 def _is_array(obj):
   return isinstance(obj, list)
 

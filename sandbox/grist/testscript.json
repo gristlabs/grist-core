@@ -454,16 +454,16 @@
       // Check that Update Record on _grist_Tables_column properly triggers schema-change actions
       "USER_ACTIONS": [
         ["UpdateRecord", "_grist_Tables_column", 3,
-          {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+          {"formula": "rec.firstName.upper() + ' ' + rec.lastName"}],
         ["UpdateRecord", "_grist_Tables_column", 6,
           {"colId" : "shortSchool"}]
       ],
       "ACTIONS": {
         "stored": [
           ["ModifyColumn", "Students", "fullName",
-            {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+            {"formula": "rec.firstName.upper() + ' ' + rec.lastName"}],
           ["UpdateRecord", "_grist_Tables_column", 3,
-            {"formula": "str.upper(rec.firstName) + ' ' + rec.lastName"}],
+            {"formula": "rec.firstName.upper() + ' ' + rec.lastName"}],
           ["RenameColumn", "Students", "schoolShort", "shortSchool"],
           ["UpdateRecord", "_grist_Tables_column", 6, {"colId": "shortSchool"}],
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
@@ -1921,14 +1921,14 @@
      // Check formula error handling
      "USER_ACTIONS" : [
        ["ModifyColumn", "Students", "fullName", {"formula" : "!#@%&T#$UDSAIKVFsdhifzsk" }],
-       ["ModifyColumn", "Students", "schoolRegion", {"formula" : "5*len($firstName) / $fullNameLen" }]
+       ["ModifyColumn", "Students", "schoolRegion", {"formula" : "5*len($firstName) // $fullNameLen" }]
      ],
      "ACTIONS" : {
        "stored" : [
          ["ModifyColumn", "Students", "fullName", {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
          ["UpdateRecord", "_grist_Tables_column", 3, {"formula": "!#@%&T#$UDSAIKVFsdhifzsk"}],
-         ["ModifyColumn", "Students", "schoolRegion", {"formula": "5*len($firstName) / $fullNameLen"}],
-         ["UpdateRecord", "_grist_Tables_column", 9, {"formula": "5*len($firstName) / $fullNameLen"}],
+         ["ModifyColumn", "Students", "schoolRegion", {"formula": "5*len($firstName) // $fullNameLen"}],
+         ["UpdateRecord", "_grist_Tables_column", 9, {"formula": "5*len($firstName) // $fullNameLen"}],
          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
            {"fullName" : [["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"],
              ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"], ["E","SyntaxError"]]
@@ -2719,15 +2719,15 @@
     ["APPLY", {
       "USER_ACTIONS": [
         // Basic tests
-        ["EvalCode", "print 'cats'", null],
-        ["EvalCode", "2 * 3 - 1 / 7 + 4", null],
+        ["EvalCode", "print('cats')", null],
+        ["EvalCode", "2 * 3 - 1 // 7 + 4", null],
         // Exception
         ["EvalCode", "raise Exception('everything broke')", null],
         // Incomplete structure
         ["EvalCode", "for x in range(1, 100):", null],
         // Re-evaluation
-        ["EvalCode", "print 'cats'", 1],
-        ["EvalCode", "print 'dogs'", 1],
+        ["EvalCode", "print('cats')", 1],
+        ["EvalCode", "print('dogs')", 1],
         // Function definition
         ["EvalCode", "def foo(x):\n\treturn x * 10\n", null],
         ["EvalCode", "foo(10)", null]
@@ -2735,15 +2735,15 @@
       "ACTIONS" : {
         "stored" : [
           ["AddRecord", "_grist_REPL_Hist", 1,
-            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+            {"code": "print('cats')", "errorText": "", "outputText": "cats\n"}],
           ["AddRecord", "_grist_REPL_Hist", 2,
-            {"code": "2 * 3 - 1 / 7 + 4", "errorText": "", "outputText": "10\n"}],
+            {"code": "2 * 3 - 1 // 7 + 4", "errorText": "", "outputText": "10\n"}],
           ["AddRecord", "_grist_REPL_Hist", 3,
             {"code": "raise Exception('everything broke')", "errorText": "Traceback (most recent call last):\n  File \"<input>\", line 1, in <module>\nException: everything broke\n", "outputText": ""}],
           ["UpdateRecord", "_grist_REPL_Hist", 1,
-            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+            {"code": "print('cats')", "errorText": "", "outputText": "cats\n"}],
           ["UpdateRecord", "_grist_REPL_Hist", 1,
-            {"code": "print 'dogs'", "errorText": "", "outputText": "dogs\n"}],
+            {"code": "print('dogs')", "errorText": "", "outputText": "dogs\n"}],
           ["AddRecord", "_grist_REPL_Hist", 4,
             {"code": "def foo(x):\n\treturn x * 10\n", "errorText": "", "outputText": ""}],
           ["AddRecord", "_grist_REPL_Hist", 5,
@@ -2755,9 +2755,9 @@
           ["RemoveRecord", "_grist_REPL_Hist", 2],
           ["RemoveRecord", "_grist_REPL_Hist", 3],
           ["UpdateRecord", "_grist_REPL_Hist", 1,
-            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+            {"code": "print('cats')", "errorText": "", "outputText": "cats\n"}],
           ["UpdateRecord", "_grist_REPL_Hist", 1,
-            {"code": "print 'cats'", "errorText": "", "outputText": "cats\n"}],
+            {"code": "print('cats')", "errorText": "", "outputText": "cats\n"}],
           ["RemoveRecord", "_grist_REPL_Hist", 4],
           ["RemoveRecord", "_grist_REPL_Hist", 5]
         ],

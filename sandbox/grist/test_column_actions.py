@@ -338,7 +338,7 @@ class TestColumnActions(test_engine.EngineTestCase):
     self.init_sample_data()
 
     # Test that we cannot remove group-by columns from summary tables directly.
-    with self.assertRaisesRegexp(ValueError, "cannot remove .* group-by"):
+    with self.assertRaisesRegex(ValueError, "cannot remove .* group-by"):
       self.apply_user_action(["BulkRemoveRecord", '_grist_Tables_column', [20,18]])
 
     # Test that group-by columns in summary tables get removed.

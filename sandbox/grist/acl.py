@@ -67,7 +67,7 @@ def prepare_acl_table_renames(docmodel, useractions, table_renames_dict):
         if rule_info.get("tableId") in table_renames_dict:
           rule_info["tableId"] = table_renames_dict[rule_info.get("tableId")]
           rule_updates.append((rule_rec, {'userAttributes': json.dumps(rule_info)}))
-      except Exception, e:
+      except Exception as e:
         log.warn("Error examining aclRule: %s" % (e,))
 
   def do_renames():
@@ -103,7 +103,7 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
         if new_col_id:
           rule_info["lookupColId"] = new_col_id
           rule_updates.append((rule_rec, {'userAttributes': json.dumps(rule_info)}))
-      except Exception, e:
+      except Exception as e:
         log.warn("Error examining aclRule: %s" % (e,))
 
   # Go through again checking if anything in ACL formulas is affected by the rename.

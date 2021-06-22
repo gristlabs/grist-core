@@ -38,8 +38,8 @@ class Sandbox(object):
 
   def __init__(self):
     self._functions = {}
-    self._external_input = os.fdopen(3, "r", 64*1024)
-    self._external_output = os.fdopen(4, "w", 64*1024)
+    self._external_input = os.fdopen(3, "rb", 64*1024)
+    self._external_output = os.fdopen(4, "wb", 64*1024)
 
   def _send_to_js(self, msgCode, msgBody):
     # (Note that marshal version 2 is the default; we specify it explicitly for clarity. The

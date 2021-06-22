@@ -2,6 +2,8 @@ import json
 import types
 from collections import namedtuple
 
+import six
+
 import depend
 import objtypes
 import usertypes
@@ -302,7 +304,7 @@ class ChoiceListColumn(BaseColumn):
   def set(self, row_id, value):
     # When a JSON string is loaded, set it to a tuple parsed from it. When a list is loaded,
     # convert to a tuple to keep values immutable.
-    if isinstance(value, basestring) and value.startswith('['):
+    if isinstance(value, six.string_types) and value.startswith(u'['):
       try:
         value = tuple(json.loads(value))
       except Exception:

@@ -97,6 +97,8 @@ class Record(object):
   def __nonzero__(self):
     return bool(self._row_id)
 
+  __bool__ = __nonzero__
+
   def __repr__(self):
     return "%s[%s]" % (self._table.table_id, self._row_id)
 
@@ -143,6 +145,8 @@ class RecordSet(object):
 
   def __nonzero__(self):
     return bool(self._row_ids)
+
+  __bool__ = __nonzero__
 
   def __eq__(self, other):
     return (isinstance(other, RecordSet) and

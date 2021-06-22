@@ -31,7 +31,7 @@ class TestSummary2(test_engine.EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
 
     # Check that we cannot add a non-formula column.
-    with self.assertRaisesRegexp(ValueError, r'non-formula column'):
+    with self.assertRaisesRegex(ValueError, r'non-formula column'):
       self.apply_user_action(["AddColumn", "GristSummary_7_Address", "average",
                               {"type": "Text", "isFormula": False}])
 
@@ -171,7 +171,7 @@ class TestSummary2(test_engine.EngineTestCase):
 
     # Check that we cannot rename a summary group-by column. (Perhaps it's better to raise an
     # exception, but currently we translate the invalid request to a no-op.)
-    with self.assertRaisesRegexp(ValueError, r'Cannot modify .* group-by'):
+    with self.assertRaisesRegex(ValueError, r'Cannot modify .* group-by'):
       self.apply_user_action(["RenameColumn", "GristSummary_7_Address", "state", "s"])
 
     # Verify all data. We'll repeat this after renamings to make sure there are no errors.
@@ -353,46 +353,46 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
     # (1) no adding/removing/renaming non-formula columns.
-    with self.assertRaisesRegexp(ValueError, r'non-formula column'):
+    with self.assertRaisesRegex(ValueError, r'non-formula column'):
       self.apply_user_action(["AddColumn", "GristSummary_7_Address", "foo",
                               {"type": "Numeric", "isFormula": False}])
 
-    with self.assertRaisesRegexp(ValueError, r'group-by column'):
+    with self.assertRaisesRegex(ValueError, r'group-by column'):
       self.apply_user_action(["RemoveColumn", "GristSummary_7_Address", "state"])
 
-    with self.assertRaisesRegexp(ValueError, r'Cannot modify .* group-by'):
+    with self.assertRaisesRegex(ValueError, r'Cannot modify .* group-by'):
       self.apply_user_action(["RenameColumn", "GristSummary_7_Address", "state", "st"])
 
     # (2) no converting between formula/non-formula
-    with self.assertRaisesRegexp(ValueError, r'Cannot change .* formula and data'):
+    with self.assertRaisesRegex(ValueError, r'Cannot change .* formula and data'):
       self.apply_user_action(["ModifyColumn", "GristSummary_7_Address", "amount",
                               {"isFormula": False}])
 
-    with self.assertRaisesRegexp(ValueError, r'Cannot change .* formula and data'):
+    with self.assertRaisesRegex(ValueError, r'Cannot change .* formula and data'):
       self.apply_user_action(["ModifyColumn", "GristSummary_7_Address", "state",
                               {"isFormula": True}])
 
     # (3) no editing values in non-formula columns
-    with self.assertRaisesRegexp(ValueError, r'Cannot enter data .* group-by'):
+    with self.assertRaisesRegex(ValueError, r'Cannot enter data .* group-by'):
       self.apply_user_action(["UpdateRecord", "GristSummary_7_Address", 6, {"state": "ny"}])
 
     # (4) no removing rows (this is questionable b/c empty rows might be OK to remove)
-    with self.assertRaisesRegexp(ValueError, r'Cannot remove record .* summary'):
+    with self.assertRaisesRegex(ValueError, r'Cannot remove record .* summary'):
       self.apply_user_action(["RemoveRecord", "GristSummary_7_Address", 6])
 
     # (5) no renaming summary tables.
-    with self.assertRaisesRegexp(ValueError, r'cannot rename .* summary'):
+    with self.assertRaisesRegex(ValueError, r'cannot rename .* summary'):
       self.apply_user_action(["RenameTable", "GristSummary_7_Address", "GristSummary_hello"])
 
     # Check that we can add an empty column, then set a formula for it.
     self.apply_user_action(["AddColumn", "GristSummary_7_Address", "foo", {}])
     self.apply_user_action(["ModifyColumn", "GristSummary_7_Address", "foo", {"formula": "1+1"}])
-    with self.assertRaisesRegexp(ValueError, "Can't save .* to formula"):
+    with self.assertRaisesRegex(ValueError, "Can't save .* to formula"):
       self.apply_user_action(["UpdateRecord", "GristSummary_7_Address", 1, {"foo": "hello"}])
 
     # But we cannot add an empty column, then add a value to it.
     self.apply_user_action(["AddColumn", "GristSummary_7_Address", "foo2", {}])
-    with self.assertRaisesRegexp(ValueError, r'Cannot change .* between formula and data'):
+    with self.assertRaisesRegex(ValueError, r'Cannot change .* between formula and data'):
       self.apply_user_action(["UpdateRecord", "GristSummary_7_Address", 1, {"foo2": "hello"}])
 
     self.assertTableData('GristSummary_7_Address', cols="all", data=[

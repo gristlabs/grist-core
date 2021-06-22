@@ -9,6 +9,8 @@ sys.path.append('thirdparty')
 import marshal
 import functools
 
+import six
+
 from acl_formula import parse_acl_formula
 import actions
 import sandbox
@@ -86,7 +88,7 @@ def main():
   @export
   def fetch_meta_tables(formulas=True):
     return {table_id: actions.get_action_repr(table_data)
-            for (table_id, table_data) in eng.fetch_meta_tables(formulas).iteritems()}
+            for (table_id, table_data) in six.iteritems(eng.fetch_meta_tables(formulas))}
 
   @export
   def load_meta_tables(meta_tables, meta_columns):
@@ -100,8 +102,8 @@ def main():
   @export
   def create_migrations(all_tables, metadata_only=False):
     doc_actions = migrations.create_migrations(
-      {t: table_data_from_db(t, data) for t, data in all_tables.iteritems()}, metadata_only)
-    return map(actions.get_action_repr, doc_actions)
+      {t: table_data_from_db(t, data) for t, data in six.iteritems(all_tables)}, metadata_only)
+    return [actions.get_action_repr(action) for action in doc_actions]
 
   @export
   def get_version():

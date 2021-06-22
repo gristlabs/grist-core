@@ -1,5 +1,6 @@
 import re
 import csv
+from functools import reduce
 
 # Monkey-patch csv.Sniffer class, in which the quote/delimiter detection has silly bugs in the
 # regexp that it uses. It also seems poorly-implemented in other ways. We can probably do better

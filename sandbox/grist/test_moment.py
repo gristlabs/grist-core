@@ -21,7 +21,7 @@ class TestMoment(unittest.TestCase):
     [datetime(1979, 10, 28, 6, 0, 0), 309938400000, "EST", 300, 1, 0],
     # - 2037 -
     [datetime(2037, 3, 8, 6, 59, 59), 2120108399000, "EST", 300, 1, 59],
-    [datetime(2037, 03, 8, 7, 0, 0), 2120108400000, "EDT", 240, 3, 0],
+    [datetime(2037, 3, 8, 7, 0, 0), 2120108400000, "EDT", 240, 3, 0],
     [datetime(2037, 11, 1, 5, 59, 59), 2140667999000, "EDT", 240, 1, 59]
   ]
   new_york_errors = [
@@ -255,7 +255,7 @@ class TestMoment(unittest.TestCase):
 
   def test_dt_to_ds(self):
     # Verify that dt_to_ts works for both naive and aware datetime objects.
-    value_dt = datetime(2015, 03, 14, 0, 0)     # In UTC
+    value_dt = datetime(2015, 3, 14, 0, 0)     # In UTC
     value_sec = 1426291200
     tzla = moment.get_zone('America/Los_Angeles')
     def format_utc(ts):
@@ -287,7 +287,7 @@ class TestMoment(unittest.TestCase):
     self.assertEqual(value_dt_aware.strftime(fmt), '2015-02-13 20:00:00 EST')
 
   def test_date_to_ts(self):
-    d = date(2015, 03, 14)
+    d = date(2015, 3, 14)
     tzla = moment.get_zone('America/Los_Angeles')
     def format_utc(ts):
       return moment.ts_to_dt(ts, moment.get_zone('UTC')).strftime(fmt)

@@ -44,6 +44,7 @@ import itertools
 import math
 import struct
 
+from six.moves import zip, xrange
 from sortedcontainers import SortedList, SortedListWithKey
 
 
@@ -79,7 +80,7 @@ def prepare_inserts_dumb(sortedlist, keys):
     ins_groups.append((len(sortedlist), 0))
     for index, ins_count in ins_groups:
       adj_count = index - prev_index
-      adjustments.extend(itertools.izip(xrange(prev_index, index),
+      adjustments.extend(zip(xrange(prev_index, index),
                                         frange_from(next_key, adj_count)))
       next_key += adj_count
       insertions.extend(frange_from(next_key, ins_count))
@@ -233,7 +234,7 @@ class ListWithAdjustments(object):
     prev_keys.sort()
     new_keys = get_range(new_begin_key, new_end_key, count)
 
-    for (old_key, is_insert, i), new_key in itertools.izip(prev_keys, new_keys):
+    for (old_key, is_insert, i), new_key in zip(prev_keys, new_keys):
       if is_insert:
         self._insertions.remove(old_key)
         self._insertions.add(new_key)
@@ -303,7 +304,7 @@ def all_distinct(iterable):
   """
   a, b = itertools.tee(iterable)
   next(b, None)
-  return all(x != y for x, y in itertools.izip(a, b))
+  return all(x != y for x, y in zip(a, b))
 
 
 def range_around_float(x, i):

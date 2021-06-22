@@ -1,12 +1,15 @@
 # pylint: disable=unused-argument
 
 from __future__ import absolute_import
-import itertools
 import math as _math
 import operator
 import os
 import random
 import uuid
+from functools import reduce
+
+from six.moves import zip, xrange
+import six
 
 from functions.info import ISNUMBER, ISLOGICAL
 from functions.unimplemented import unimplemented
@@ -358,7 +361,7 @@ def INT(value):
   return int(_math.floor(value))
 
 def _lcm(a, b):
-  return a * b / _gcd(a, b)
+  return a * b // _gcd(a, b)
 
 def LCM(value1, *more_values):
   """
@@ -790,7 +793,7 @@ def SUMPRODUCT(array1, *more_arrays):
   >>> SUMPRODUCT([-0.25, -0.25], [-2, -2], [-3, -3])
   -3.0
   """
-  return sum(reduce(operator.mul, values) for values in itertools.izip(array1, *more_arrays))
+  return sum(reduce(operator.mul, values) for values in zip(array1, *more_arrays))
 
 @unimplemented
 def SUMSQ(value1, value2):
@@ -842,4 +845,7 @@ def TRUNC(value, places=0):
 
 def UUID():
   """Generate a random UUID-formatted string identifier."""
-  return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))
+  if six.PY2:
+    return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))
+  else:
+    return str(uuid.UUID(bytes=bytes([random.randrange(0, 256) for _ in range(0, 16)]), version=4))

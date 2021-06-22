@@ -4,7 +4,7 @@ import timeit
 import unittest
 
 import moment
-import schedule
+from . import schedule
 from functions.date import DTIME
 from functions import date as _date
 
@@ -68,7 +68,7 @@ class TestSchedule(unittest.TestCase):
     self.assertDate(RDU(DT("2018-09-04 14:38:11"), "seconds"), "2018-09-04 14:38:11")
     self.assertDate(RDU(DT("2018-09-04 14:38:11") - TICK, "seconds"), "2018-09-04 14:38:10")
 
-    with self.assertRaisesRegexp(ValueError, r"Invalid unit inches"):
+    with self.assertRaisesRegex(ValueError, r"Invalid unit inches"):
       RDU(DT("2018-09-04 14:38:11"), "inches")
 
   def test_round_down_to_unit_tz(self):
@@ -99,11 +99,11 @@ class TestSchedule(unittest.TestCase):
     self.assertEqual(schedule._parse_interval("25-months"), (25, "months"))
     self.assertEqual(schedule._parse_interval("3-day"), (3, "days"))
     self.assertEqual(schedule._parse_interval("2-hour"), (2, "hours"))
-    with self.assertRaisesRegexp(ValueError, "Not a valid interval"):
+    with self.assertRaisesRegex(ValueError, "Not a valid interval"):
       schedule._parse_interval("1Year")
-    with self.assertRaisesRegexp(ValueError, "Not a valid interval"):
+    with self.assertRaisesRegex(ValueError, "Not a valid interval"):
       schedule._parse_interval("1y")
-    with self.assertRaisesRegexp(ValueError, "Unknown unit"):
+    with self.assertRaisesRegex(ValueError, "Unknown unit"):
       schedule._parse_interval("1-daily")
 
   def test_parse_slot(self):
@@ -145,41 +145,41 @@ class TestSchedule(unittest.TestCase):
 
   def test_parse_slot_errors(self):
     # Test failures with duplicate units
-    with self.assertRaisesRegexp(ValueError, 'Duplicate unit'):
+    with self.assertRaisesRegex(ValueError, 'Duplicate unit'):
       schedule._parse_slot('+1d +2d', 'weeks')
-    with self.assertRaisesRegexp(ValueError, 'Duplicate unit'):
+    with self.assertRaisesRegex(ValueError, 'Duplicate unit'):
       schedule._parse_slot('9:30am +2H', 'days')
-    with self.assertRaisesRegexp(ValueError, 'Duplicate unit'):
+    with self.assertRaisesRegex(ValueError, 'Duplicate unit'):
       schedule._parse_slot('/15 +1d', 'months')
-    with self.assertRaisesRegexp(ValueError, 'Duplicate unit'):
+    with self.assertRaisesRegex(ValueError, 'Duplicate unit'):
       schedule._parse_slot('Feb-1 12:30pm +20M', 'years')
 
     # Test failures with improper slot types
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot.*for unit'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot.*for unit'):
       schedule._parse_slot('Feb-1', 'weeks')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot.*for unit'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot.*for unit'):
       schedule._parse_slot('Monday', 'months')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot.*for unit'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot.*for unit'):
       schedule._parse_slot('4/15', 'hours')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot.*for unit'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot.*for unit'):
       schedule._parse_slot('/1', 'years')
 
     # Test failures with outright invalid slot syntax.
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot'):
       schedule._parse_slot('Feb:1', 'weeks')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot'):
       schedule._parse_slot('/1d', 'months')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot'):
       schedule._parse_slot('10', 'hours')
-    with self.assertRaisesRegexp(ValueError, 'Invalid slot'):
+    with self.assertRaisesRegex(ValueError, 'Invalid slot'):
       schedule._parse_slot('H1', 'years')
 
     # Test failures with unknown values
-    with self.assertRaisesRegexp(ValueError, 'Unknown month'):
+    with self.assertRaisesRegex(ValueError, 'Unknown month'):
       schedule._parse_slot('februarium-1', 'years')
-    with self.assertRaisesRegexp(ValueError, 'Unknown day of the week'):
+    with self.assertRaisesRegex(ValueError, 'Unknown day of the week'):
       schedule._parse_slot('snu', 'weeks')
-    with self.assertRaisesRegexp(ValueError, 'Unknown unit'):
+    with self.assertRaisesRegex(ValueError, 'Unknown unit'):
       schedule._parse_slot('+1t', 'hours')
 
   def test_schedule(self):
@@ -250,14 +250,14 @@ from datetime import datetime
     ]
     self.assertEqual(timing_schedule_full(), expected_result)
     t = min(timeit.repeat(stmt="t.timing_schedule_full()", setup=setup, number=N, repeat=3))
-    print "\n*** SCHEDULE call with 4 points: %.2f us" % (t * 1000000 / N)
+    print("\n*** SCHEDULE call with 4 points: %.2f us" % (t * 1000000 / N))
 
     t = min(timeit.repeat(stmt="t.timing_schedule_init()", setup=setup, number=N, repeat=3))
-    print "*** Schedule constructor: %.2f us" % (t * 1000000 / N)
+    print("*** Schedule constructor: %.2f us" % (t * 1000000 / N))
 
     self.assertEqual(timing_schedule_series(), expected_result)
     t = min(timeit.repeat(stmt="t.timing_schedule_series()", setup=setup, number=N, repeat=3))
-    print "*** Schedule series with 4 points: %.2f us" % (t * 1000000 / N)
+    print("*** Schedule series with 4 points: %.2f us" % (t * 1000000 / N))
 
 def timing_schedule_full():
   return list(schedule.SCHEDULE("weekly: Mo 10:30am, We 10:30pm",

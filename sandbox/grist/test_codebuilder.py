@@ -2,6 +2,8 @@
 import unittest
 
 import codebuilder
+import six
+
 
 def make_body(formula, default=None):
   return codebuilder.make_formula_body(formula, default).get_text()
@@ -122,7 +124,7 @@ for a in rec:
 return rec
 """)
 
-    self.assertRegexpMatches(make_body(body),
+    self.assertRegex(make_body(body),
                              r"raise SyntaxError\('Grist disallows assignment" +
                              r" to the special variable \"rec\" on line 4 col 7'\)")
 
@@ -135,8 +137,8 @@ return rec
     self.assertEqual(make_body(u"'résumé' + $foo"), u"return 'résumé' + rec.foo")
 
     # Check the return type of make_body()
-    self.assertEqual(type(make_body("foo")), unicode)
-    self.assertEqual(type(make_body(u"foo")), unicode)
+    self.assertEqual(type(make_body("foo")), six.text_type)
+    self.assertEqual(type(make_body(u"foo")), six.text_type)
 
 
   def test_wrap_logical(self):

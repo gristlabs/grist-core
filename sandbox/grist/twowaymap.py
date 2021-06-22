@@ -14,6 +14,8 @@ value previously set, since the "right" dataset is "single" values), m.lookup_le
 that value, and m.lookup_right(value) returns a `set` of keys that map to the value.
 """
 
+import six
+
 # Special sentinel value which can never be legitimately stored in TwoWayMap, to easily tell the
 # difference between a present and absent value.
 _NIL = object()
@@ -47,6 +49,8 @@ class TwoWayMap(object):
   def __nonzero__(self):
     return bool(self._fwd)
 
+  __bool__ = __nonzero__
+
   def lookup_left(self, left, default=None):
     """ Returns the value(s) on the right corresponding to the given value on the left. """
     return self._fwd.get(left, default)
@@ -65,11 +69,11 @@ class TwoWayMap(object):
 
   def left_all(self):
     """ Returns an iterable over all values on the left."""
-    return self._fwd.iterkeys()
+    return six.iterkeys(self._fwd)
 
   def right_all(self):
     """ Returns an iterable over all values on the right."""
-    return self._bwd.iterkeys()
+    return six.iterkeys(self._bwd)
 
   def insert(self, left, right):
     """ Insert the (left, right) value pair. """

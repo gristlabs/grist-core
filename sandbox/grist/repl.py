@@ -57,7 +57,7 @@ class REPLInterpreter(code.InteractiveInterpreter):
         # like get/set attr and have that hurt us
         sys.stdout = user_output
         sys.stderr = user_output
-        exec code in self.locals
+        exec(code, self.locals)
       except:
         # bare except to catch absolutely all things the user can throw
         self.showtraceback()

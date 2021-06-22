@@ -287,7 +287,8 @@ class ImportActions(object):
           src_col_id = _import_transform_col_prefix + curr_col["colId"]
         log.debug("Copying from: " + src_col_id)
 
-        column_data[curr_col["colId"]] = map(hidden_table.get_column(src_col_id).raw_get, row_ids)
+        src_col = hidden_table.get_column(src_col_id)
+        column_data[curr_col["colId"]] = [src_col.raw_get(r) for r in row_ids]
 
 
     # ========= Cleanup, Prepare new table (if needed), insert data

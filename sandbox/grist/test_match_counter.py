@@ -3,6 +3,10 @@ import string
 import timeit
 import unittest
 from collections import Hashable
+
+import six
+from six.moves import xrange
+
 import match_counter
 from testutil import repeat_until_passes
 
@@ -22,7 +26,7 @@ class MatchCounterOther(object):
         pass
 
     matches = 0
-    for v, n in self.sample_counts.iteritems():
+    for v, n in six.iteritems(self.sample_counts):
       if n > 0:
         matches += 1
         self.sample_counts[v] = 0

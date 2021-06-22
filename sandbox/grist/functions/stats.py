@@ -1,9 +1,9 @@
 # pylint: disable=redefined-builtin, line-too-long, unused-argument
 
-from math import _chain, _chain_numeric, _chain_numeric_a
-from info import ISNUMBER, ISLOGICAL
-from date import DATE       # pylint: disable=unused-import
-from unimplemented import unimplemented
+from .math import _chain, _chain_numeric, _chain_numeric_a
+from .info import ISNUMBER, ISLOGICAL
+from .date import DATE       # pylint: disable=unused-import
+from .unimplemented import unimplemented
 
 def _average(iterable):
   total, count = 0.0, 0
@@ -326,7 +326,7 @@ def MEDIAN(value, *more_values):
   3
   >>> MEDIAN(3, 5, 1, 4, 2)
   3
-  >>> MEDIAN(xrange(10))
+  >>> MEDIAN(range(10))
   4.5
   >>> MEDIAN("Hello", "123", DATE(2015, 1, 1), 12.3)
   12.3
@@ -340,9 +340,9 @@ def MEDIAN(value, *more_values):
     raise ValueError("MEDIAN requires at least one number")
   count = len(values)
   if count % 2 == 0:
-    return (values[count / 2 - 1] + values[count / 2]) / 2.0
+    return (values[count // 2 - 1] + values[count // 2]) / 2.0
   else:
-    return values[(count - 1) / 2]
+    return values[(count - 1) // 2]
 
 
 def MIN(value, *more_values):

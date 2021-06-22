@@ -26,7 +26,7 @@ class TestUndo(test_engine.EngineTestCase):
     # Now undo just the first action. The list of undo DocActions for it does not mention the
     # newly added column, and fails to clean it up. This would leave the doc in an inconsistent
     # state, and we should not allow it.
-    with self.assertRaisesRegexp(AssertionError,
+    with self.assertRaisesRegex(AssertionError,
         re.compile(r"Internal schema inconsistent.*'NewCol'", re.S)):
       self.apply_undo_actions(out_actions1.undo)
 
@@ -40,7 +40,7 @@ class TestUndo(test_engine.EngineTestCase):
     # In practice it's harmless: properly calculated fields get restored correct, and the private
     # metadata fields get brought up-to-date when used via Record interface, which is what we do
     # using this assertEqual().
-    self.assertEqual([[r.id, r.tableId, map(int, r.columns)]
+    self.assertEqual([[r.id, r.tableId, list(map(int, r.columns))]
                       for r in self.engine.docmodel.tables.table.filter_records()], [
       [1,   "Students", [1,2,4,5,6]],
       [2,   "Schools", [10,12]],
@@ -73,7 +73,7 @@ class TestUndo(test_engine.EngineTestCase):
 
     # The undo failed, and data should look as before the undo.
     self.engine.assert_schema_consistent()
-    self.assertEqual([[r.id, r.tableId, map(int, r.columns)]
+    self.assertEqual([[r.id, r.tableId, list(map(int, r.columns))]
                       for r in self.engine.docmodel.tables.table.filter_records()], [
       [1,   "Students", [1,2,4,5,6]],
       [2,   "Schools", [10,12]],

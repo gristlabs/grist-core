@@ -127,7 +127,7 @@ def _create_syntax_error_code(builder, input_text, err):
 def infer(node):
   try:
     return next(node.infer(), None)
-  except astroid.exceptions.InferenceError, e:
+  except astroid.exceptions.InferenceError as e:
     return "InferenceError on %r: %r" % (node, e)
 
 
@@ -137,7 +137,7 @@ def _is_table(node):
   """
   Return true if obj is a class defining a user table.
   """
-  return (isinstance(node, astroid.nodes.Class) and node.decorators and
+  return (isinstance(node, astroid.nodes.ClassDef) and node.decorators and
           node.decorators.nodes[0].as_string() == 'grist.UserTable')
 
 
@@ -202,7 +202,7 @@ class InferReferenceFormula(InferenceTip):
   Inference helper to treat functions decorated with `grist.formulaType(grist.Reference("Foo"))`
   as returning instances of table `Foo`.
   """
-  node_class = astroid.nodes.Function
+  node_class = astroid.nodes.FunctionDef
 
   @classmethod
   def filter(cls, node):
@@ -320,4 +320,4 @@ def parse_grist_names(builder):
           start, end = tok.startpos, tok.endpos
           parsed_names.append(make_tuple(start, end, obj.name, node.arg))
 
-  return filter(None, parsed_names)
+  return [name for name in parsed_names if name]

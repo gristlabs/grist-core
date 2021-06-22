@@ -10,6 +10,9 @@ Before changing this file, please review:
 
 import itertools
 from collections import OrderedDict, namedtuple
+
+import six
+
 import actions
 
 SCHEMA_VERSION = 21
@@ -310,7 +313,7 @@ def cols_to_dict_list(cols):
 
 def clone_schema(schema):
   return OrderedDict((t, SchemaTable(s.tableId, s.columns.copy()))
-                     for (t, s) in schema.iteritems())
+                     for (t, s) in six.iteritems(schema))
 
 def build_schema(meta_tables, meta_columns, include_builtin=True):
   """

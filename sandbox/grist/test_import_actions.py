@@ -13,7 +13,7 @@ class TestImportActions(test_engine.EngineTestCase):
                                                 {'id': 'Zip', 'type': 'Int'}]])
     self.apply_user_action(['BulkAddRecord', 'Source', [1, 2], {'Name': ['John', 'Alison'],
                                                                 'City': ['New York', 'Boston'],
-                                                                'Zip': [03011, 07003]}])
+                                                                'Zip': [3011, 7003]}])
     self.assertTableData('_grist_Tables_column', cols="subset", data=[
       ["id",  "colId",      "type",           "isFormula",  "formula"],
       [1,     "manualSort", "ManualSortPos",  False,        ""],
@@ -79,8 +79,8 @@ class TestImportActions(test_engine.EngineTestCase):
 
     self.assertTableData('Source', cols="all", data=[
       ["id",  "Name",   "City",     "Zip",  "gristHelper_Import_Name", "gristHelper_Import_City", "manualSort"],
-      [1,     "John",   "New York", 03011,  "John",                    "New York",                1.0],
-      [2,     "Alison", "Boston",   07003,  "Alison",                  "Boston",                  2.0],
+      [1,     "John",   "New York", 3011,  "John",                    "New York",                1.0],
+      [2,     "Alison", "Boston",   7003,  "Alison",                  "Boston",                  2.0],
     ])
 
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
@@ -107,8 +107,8 @@ class TestImportActions(test_engine.EngineTestCase):
 
     self.assertTableData('Source', cols="all", data=[
       ["id",  "Name",   "City",     "Zip",  "gristHelper_Import_State", "manualSort"],
-      [1,     "John",   "New York", 03011,  "",                         1.0],
-      [2,     "Alison", "Boston",   07003,  "",                         2.0],
+      [1,     "John",   "New York", 3011,  "",                         1.0],
+      [2,     "Alison", "Boston",   7003,  "",                         2.0],
     ])
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],
@@ -168,8 +168,8 @@ class TestImportActions(test_engine.EngineTestCase):
 
     self.assertTableData('Source', cols="all", data=[
       ["id",  "Name",   "City",     "Zip",  "gristHelper_Import_Name", "gristHelper_Import_City", "gristHelper_Import_Zip", "manualSort"],
-      [1,     "John",   "New York", 03011,  "John",                    "New York",                03011,                    1.0],
-      [2,     "Alison", "Boston",   07003,  "Alison",                  "Boston",                  07003,                    2.0],
+      [1,     "John",   "New York", 3011,  "John",                    "New York",                3011,                    1.0],
+      [2,     "Alison", "Boston",   7003,  "Alison",                  "Boston",                  7003,                    2.0],
     ])
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],

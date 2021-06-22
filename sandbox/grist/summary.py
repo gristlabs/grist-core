@@ -1,6 +1,9 @@
 from collections import namedtuple
 import json
 import re
+
+import six
+
 import logger
 log = logger.Logger(__name__, logger.INFO)
 
@@ -17,7 +20,7 @@ def _make_col_info(col=None, **values):
 
 def _get_colinfo_dict(col_info, with_id=False):
   """Return a dict suitable to use with AddColumn or AddTable (when with_id=True) actions."""
-  col_values = {k: v for k, v in col_info._asdict().iteritems() if v is not None and k != 'colId'}
+  col_values = {k: v for k, v in six.iteritems(col_info._asdict()) if v is not None and k != 'colId'}
   if with_id:
     col_values['id'] = col_info.colId
   return col_values
@@ -78,9 +81,10 @@ def _update_sort_spec(sort_spec, old_table, new_table):
 
   try:
     old_sort_spec = json.loads(sort_spec)
-    new_sort_spec = filter(None, [adjust(col_spec) for col_spec in old_sort_spec])
+    new_sort_spec = [adjust(col_spec) for col_spec in old_sort_spec]
+    new_sort_spec = [col_spec for col_spec in new_sort_spec if col_spec]
     return json.dumps(new_sort_spec, separators=(',', ':'))
-  except Exception, e:
+  except Exception:
     log.warn("update_summary_section: can't parse sortColRefs JSON; clearing sortColRefs")
     return ''
 

@@ -7,6 +7,8 @@ It is similar in purpose to DocModel.js on the client side.
 """
 import itertools
 
+import six
+
 import records
 import usertypes
 import relabeling
@@ -107,7 +109,7 @@ def enhance_model(model_class):
   extras_class = getattr(MetaTableExtras, model_class.__name__, None)
   if not extras_class:
     return
-  for name, member in extras_class.__dict__.iteritems():
+  for name, member in six.iteritems(extras_class.__dict__):
     if not name.startswith("__"):
       member.__name__ = name
       member.is_private = True
@@ -238,7 +240,7 @@ class DocModel(object):
       table_obj = record_set_or_table._table
       group_by = record_set_or_table._group_by
       if group_by:
-        values.update((k, [v] * count) for k, v in group_by.iteritems() if k not in values)
+        values.update((k, [v] * count) for k, v in six.iteritems(group_by) if k not in values)
     else:
       table_obj = record_set_or_table.table
 
@@ -281,14 +283,14 @@ def _unify_col_values(col_values, count):
   Helper that converts a dict mapping keys to values or lists of values to all lists. Non-list
   values get turned into lists by repeating them count times.
   """
-  assert all(len(v) == count for v in col_values.itervalues() if isinstance(v, list))
+  assert all(len(v) == count for v in six.itervalues(col_values) if isinstance(v, list))
   return {k: (v if isinstance(v, list) else [v] * count)
-          for k, v in col_values.iteritems()}
+          for k, v in six.iteritems(col_values)}
 
 def _get_col_values_count(col_values):
   """
   Helper that returns the length of the first list in among the values of col_values. If none of
   the values is a list, returns 1.
   """
-  first_list = next((v for v in col_values.itervalues() if isinstance(v, list)), None)
+  first_list = next((v for v in six.itervalues(col_values) if isinstance(v, list)), None)
   return len(first_list) if first_list is not None else 1
