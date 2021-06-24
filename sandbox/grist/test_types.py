@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long
+import six
 
 import logger
 import testutil
@@ -25,7 +26,7 @@ class TestTypes(test_engine.EngineTestCase):
       "Types": [
         ["id", "text",     "numeric",  "int",      "bool",     "date"],
         [11,   "New York", "New York", "New York", "New York", "New York"],
-        [12,   "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö"],
+        [12,   u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö"],
         [13,   False,      False,      False,      False,      False],
         [14,   True,       True,       True,       True,       True],
         [15,   1509556595, 1509556595, 1509556595, 1509556595, 1509556595],
@@ -61,20 +62,20 @@ class TestTypes(test_engine.EngineTestCase):
 
     self.assertPartialOutActions(out_actions, {
       "stored": [["BulkUpdateRecord", "Types", self.all_row_ids, {
-        "text":    [None,"","1","0","8.153","1509556595","True","False","Chîcágö","New York"],
-        "numeric": [None, None, 1.0, 0.0, 8.153, 1509556595.0, 1.0, 0.0, "Chîcágö", "New York"],
-        "int":     [None, None, 1, 0, 8, 1509556595, 1, 0, "Chîcágö", "New York"],
-        "bool":    [False, False, True, False, True, True, True, False, "Chîcágö", "New York"],
+        "text":    [None,"","1","0","8.153","1509556595","True","False",u"Chîcágö","New York"],
+        "numeric": [None, None, 1.0, 0.0, 8.153, 1509556595.0, 1.0, 0.0, u"Chîcágö", "New York"],
+        "int":     [None, None, 1, 0, 8, 1509556595, 1, 0, u"Chîcágö", "New York"],
+        "bool":    [False, False, True, False, True, True, True, False, u"Chîcágö", "New York"],
         "date":    [None, None, 1.0, 0.0, 8.153, 1509556595.0, 1.0, 0.0, 1548115200.0, "New York"]
         }],
         ["UpdateRecord", "Formulas", 1, {"division": 0.0}],
       ],
       "undo": [["BulkUpdateRecord", "Types", self.all_row_ids, {
-        "text":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
-        "numeric": ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
-        "int":     ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
-        "bool":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, False, True, "", None],
-        "date":    ["New York", "Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None]
+        "text":    ["New York", u"Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
+        "numeric": ["New York", u"Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
+        "int":     ["New York", u"Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None],
+        "bool":    ["New York", u"Chîcágö", False, True, 1509556595, 8.153, False, True, "", None],
+        "date":    ["New York", u"Chîcágö", False, True, 1509556595, 8.153, 0, 1, "", None]
         }],
         ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
       ]
@@ -90,7 +91,7 @@ class TestTypes(test_engine.EngineTestCase):
       [16,   "1509556595", 1509556595, 1509556595, True,       1509556595.0],
       [17,   "True",       1.0,        1,          True,       1.0],
       [18,   "False",      0.0,        0,          False,      0.0],
-      [19,   "Chîcágö",    "Chîcágö",  "Chîcágö",  "Chîcágö",  1548115200.0],
+      [19,   u"Chîcágö",    u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  1548115200.0],
       [20,   "New York",   "New York", "New York", "New York", "New York"]
     ])
 
@@ -184,7 +185,7 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertTableData("Types", data=[
       ["id", "text",      "numeric",   "int",       "bool",      "date"],
       [11,   "New York",  "New York",  "New York",  "New York",  "New York"],
-      [12,   "Chîcágö",   "Chîcágö",   "Chîcágö",   "Chîcágö",   "Chîcágö"],
+      [12,   u"Chîcágö",   u"Chîcágö",   u"Chîcágö",   u"Chîcágö",   u"Chîcágö"],
       [13,   False,       "False",     "False",     "False",     "False"],
       [14,   True,        "True",      "True",      "True",      "True"],
       [15,   1509556595,  "1509556595.0","1509556595","1509556595","1509556595.0"],
@@ -283,7 +284,7 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertTableData("Types", data=[
       ["id", "text",     "numeric",  "int",      "bool",     "date"],
       [11,   "New York", "New York", "New York", "New York", "New York"],
-      [12,   "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö"],
+      [12,   u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö"],
       [13,   0.0,        False,      0.0,        0.0,        0.0],
       [14,   1.0,        True,       1.0,        1.0,        1.0],
       [15,   1509556595, 1509556595, 1509556595, 1509556595, 1509556595],
@@ -327,15 +328,13 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [13, 14, 16, 19],
          {"numeric": [0, 1, 8, None]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Int"}],
-        ["UpdateRecord", "Formulas", 1, {"division": 0}],
-      ],
+      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0}]],  # Only in Python 2 due to integer division,
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 16, 19],
           {"numeric": [False, True, 8.153, ""]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
-        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
-      ]
+      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0.5}]],  # Only in Python 2 due to integer division
     })
 
     # Test Int -> Int conversion
@@ -383,7 +382,7 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertTableData("Types", data=[
       ["id", "text",     "numeric",  "int",      "bool",     "date"],
       [11,   "New York", "New York", "New York", "New York", "New York"],
-      [12,   "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö"],
+      [12,   u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö"],
       [13,   0,          0,          False,      0,          0],
       [14,   1,          1,          True,       1,          1],
       [15,   1509556595, 1509556595, 1509556595, 1509556595, 1509556595],
@@ -428,15 +427,13 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [True, True, False, True, False, False]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Bool"}],
-        ["UpdateRecord", "Formulas", 1, {"division": 0}],
-      ],
+      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0}]],  # Only in Python 2 due to integer division,
       "undo": [
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [1509556595.0, 8.153, 0.0, 1.0, "", None]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
-        ["UpdateRecord", "Formulas", 1, {"division": 0.5}],
-      ]
+      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0.5}]],  # Only in Python 2 due to integer division
     })
 
     # Test Int -> Bool conversion
@@ -484,7 +481,7 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertTableData("Types", data=[
       ["id", "text",     "numeric",  "int",      "bool",     "date"],
       [11,   "New York", "New York", "New York", "New York", "New York"],
-      [12,   "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö"],
+      [12,   u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö"],
       [13,   False,      False,      False,      False,      False],
       [14,   True,       True,       True,       True,       True],
       [15,   True,       True,       True,       1509556595, True],
@@ -585,7 +582,7 @@ class TestTypes(test_engine.EngineTestCase):
     self.assertTableData("Types", data=[
       ["id", "text",     "numeric",  "int",      "bool",     "date"],
       [11,   "New York", "New York", "New York", "New York", "New York"],
-      [12,   "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö",  "Chîcágö"],
+      [12,   u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö",  u"Chîcágö"],
       [13,   0.0,        0.0,        0.0,        0.0,        False],
       [14,   1.0,        1.0,        1.0,        1.0,        True],
       [15,   1509556595, 1509556595, 1509556595, 1509556595, 1509556595],

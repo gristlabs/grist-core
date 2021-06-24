@@ -268,11 +268,43 @@ class DateTimeColumn(NumericColumn):
   def sample_value(self):
     return _sample_datetime
 
+
+class MixedTypesKey(object):
+  """
+  Sort key that can contain different types.
+  This mimics Python 2 where values of different types can be compared,
+  falling back on some comparison of the types when the values
+  can't be compared normally.
+  """
+
+  __slots__ = ("value",)
+
+  def __init__(self, value):
+    self.value = value
+
+  def __repr__(self):
+    return "MixedTypesKey({self.value!r})".format(self=self)
+
+  def __eq__(self, other):
+    return self.value == other.value
+
+  def __lt__(self, other):
+    try:
+      return self.value < other.value
+    except TypeError:
+      return type(self.value).__name__ < type(other.value).__name__
+
+
+if six.PY2:
+  def MixedTypesKey(x):
+    return x
+
+
 class PositionColumn(NumericColumn):
   def __init__(self, table, col_id, col_info):
     super(PositionColumn, self).__init__(table, col_id, col_info)
     # This is a list of row_ids, ordered by the position.
-    self._sorted_rows = SortedListWithKey(key=self.raw_get)
+    self._sorted_rows = SortedListWithKey(key=lambda x: MixedTypesKey(self.raw_get(x)))
 
   def set(self, row_id, value):
     self._sorted_rows.discard(row_id)
@@ -282,7 +314,8 @@ class PositionColumn(NumericColumn):
 
   def copy_from_column(self, other_column):
     super(PositionColumn, self).copy_from_column(other_column)
-    self._sorted_rows = SortedListWithKey(other_column._sorted_rows[:], key=self.raw_get)
+    self._sorted_rows = SortedListWithKey(other_column._sorted_rows[:],
+                                          key=lambda x: MixedTypesKey(self.raw_get(x)))
 
   def prepare_new_values(self, values, ignore_data=False, action_summary=None):
     # This does the work of adjusting positions and relabeling existing rows with new position
@@ -290,9 +323,11 @@ class PositionColumn(NumericColumn):
     # used for updating a position for an existing row: we'll find a new value for it; later when
     # this value is set, the old position will be removed and the new one added.
     if ignore_data:
-      rows = SortedListWithKey([], key=self.raw_get)
+      rows = []
     else:
       rows = self._sorted_rows
+    # prepare_inserts expects floats as keys, not MixedTypesKeys
+    rows = SortedListWithKey(rows, key=self.raw_get)
     adjustments, new_values = relabeling.prepare_inserts(rows, values)
     return new_values, [(self._sorted_rows[i], pos) for (i, pos) in adjustments]
 

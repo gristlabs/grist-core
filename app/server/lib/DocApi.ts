@@ -639,7 +639,7 @@ async function handleSandboxError<T>(tableId: string, colNames: string[], p: Pro
       if (match) {
         throw new ApiError(`Invalid row id ${match[1]}`, 400);
       }
-      match = e.message.match(/\[Sandbox\] KeyError '(.*?)'/);
+      match = e.message.match(/\[Sandbox\] KeyError u?'(.*?)'/);
       if (match) {
         if (match[1] === tableId) {
           throw new ApiError(`Table not found "${tableId}"`, 404);

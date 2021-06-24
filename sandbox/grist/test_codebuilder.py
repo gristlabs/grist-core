@@ -92,7 +92,6 @@ class TestCodeBuilder(unittest.TestCase):
 
     # Check for reasonable behaviour with non-empty text and no statements.
     self.assertEqual(make_body('# comment'), '# comment\npass')
-    self.assertEqual(make_body('\\'), '\\\npass')
 
     self.assertEqual(make_body('rec = 1'), "# rec = 1\n" +
                      "raise SyntaxError('Grist disallows assignment " +

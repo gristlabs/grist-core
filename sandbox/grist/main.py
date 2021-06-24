@@ -36,6 +36,7 @@ def table_data_from_db(table_name, table_data_repr):
   if table_data_repr is None:
     return actions.TableData(table_name, [], {})
   table_data_parsed = marshal.loads(table_data_repr)
+  table_data_parsed = {key.decode("utf8"): value for key, value in table_data_parsed.items()}
   id_col = table_data_parsed.pop("id")
   return actions.TableData(table_name, id_col,
                            actions.decode_bulk_values(table_data_parsed, _decode_db_value))
@@ -44,14 +45,8 @@ def _decode_db_value(value):
   # Decode database values received from SQLite's allMarshal() call. These are encoded by
   # marshalling certain types and storing as BLOBs (received in Python as binary strings, as
   # opposed to text which is received as unicode). See also encodeValue() in DocStorage.js
-
-  # TODO For the moment, the sandbox uses binary strings throughout (with text in utf8 encoding).
-  # We should switch to representing text with unicode instead. This requires care, at least in
-  # fixing various occurrences of str() in our code, which may fail and which return wrong type.
   t = type(value)
-  if t == unicode:
-    return value.encode('utf8')
-  elif t == str:
+  if t == six.binary_type:
     return objtypes.decode_object(marshal.loads(value))
   else:
     return value

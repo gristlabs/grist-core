@@ -59,7 +59,7 @@ def parse_testscript(script_path=None):
         all_lines.append(line)
   full_text = "".join(all_lines)
 
-  script = byteify(json.loads(full_text))
+  script = json.loads(full_text)
 
   samples = {}
   test_cases = []
@@ -107,16 +107,6 @@ def parse_test_sample(obj, samples={}):
   data = {t: table_data_from_rows(t, data[0], data[1:])
           for t, data in six.iteritems(obj["DATA"])}
   return {"SCHEMA": schema, "DATA": data}
-
-
-def byteify(data):
-  """
-  Convert all unicode strings in a parsed JSON object into utf8-encoded strings. We deal with
-  utf8-encoded strings throughout the test.
-  """
-  if isinstance(data, unicode):
-    return data.encode('utf-8')
-  return actions.convert_recursive_helper(byteify, data)
 
 
 def replace_nans(data):

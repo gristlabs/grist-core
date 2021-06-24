@@ -73,7 +73,8 @@ def create_migrations(all_tables, metadata_only=False):
         new_col_info = {c['id']: c for c in new_schema[table_id].columns}
       # Use an incomplete default for unknown (i.e. deprecated) columns; some uses of the column
       # would be invalid, such as adding a new record with missing values.
-      col_info = sorted([new_col_info.get(col_id, {'id': col_id}) for col_id in data.columns])
+      col_info = sorted([new_col_info.get(col_id, {'id': col_id}) for col_id in data.columns],
+                        key=lambda c: list(six.iteritems(c)))
       tdset.apply_doc_action(actions.AddTable(table_id, col_info))
 
     # And load in the original data, interpreting the TableData object as BulkAddRecord action.
@@ -177,7 +178,7 @@ def migration1(tdset):
   if rows:
     values = {'tableRef': [r[0] for r in rows],
               'viewRef':  [r[1] for r in rows]}
-    row_ids = range(1, len(rows) + 1)
+    row_ids = list(xrange(1, len(rows) + 1))
     doc_actions.append(actions.ReplaceTableData('_grist_TabItems', row_ids, values))
 
   return tdset.apply_doc_actions(doc_actions)
@@ -212,14 +213,14 @@ def migration2(tdset):
     return actions.BulkUpdateRecord('_grist_Tables', row_ids, values)
 
   def create_tab_bar_action(views_to_table):
-    row_ids = range(1, len(views_to_table) + 1)
+    row_ids = list(xrange(1, len(views_to_table) + 1))
     return actions.ReplaceTableData('_grist_TabBar', row_ids, {
       'viewRef': sorted(views_to_table.keys())
     })
 
   def create_table_views_action(views_to_table, primary_views):
     related_views = sorted(set(views_to_table.keys()) - set(primary_views.values()))
-    row_ids = range(1, len(related_views) + 1)
+    row_ids = list(xrange(1, len(related_views) + 1))
     return actions.ReplaceTableData('_grist_TableViews', row_ids, {
       'tableRef': [views_to_table[v] for v in related_views],
       'viewRef':  related_views,
@@ -757,7 +758,7 @@ def migration20(tdset):
     # the name of primary view's is the same as the tableId
     return (view.name, -1)
   views.sort(key=view_key)
-  row_ids = range(1, len(views) + 1)
+  row_ids = list(xrange(1, len(views) + 1))
   return tdset.apply_doc_actions([
     actions.AddTable('_grist_Pages', [
       schema.make_column('viewRef', 'Ref:_grist_Views'),

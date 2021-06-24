@@ -6,8 +6,9 @@ slight changes in order to be convenient for Grist's purposes
 
 import code
 import sys
-from StringIO import StringIO
 from collections import namedtuple
+
+import six
 
 SUCCESS    = 0
 INCOMPLETE = 1
@@ -38,7 +39,7 @@ class REPLInterpreter(code.InteractiveInterpreter):
     old_stdout = sys.stdout
     old_stderr = sys.stderr
 
-    user_output = StringIO()
+    user_output = six.StringIO()
 
     self.error_text = ""
     try:
@@ -67,7 +68,10 @@ class REPLInterpreter(code.InteractiveInterpreter):
         sys.stderr = old_stderr
 
     program_output = user_output.getvalue()
-    user_output.close()
+    try:
+      user_output.close()
+    except:
+      pass
 
     return EvalTuple(program_output, self.error_text, status)
 

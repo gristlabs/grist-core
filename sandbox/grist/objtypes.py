@@ -163,14 +163,16 @@ def encode_object(value):
   Returns ['U', repr(value)] if it fails to encode otherwise.
   """
   try:
-    if isinstance(value, (str, unicode, float, bool)) or value is None:
+    if isinstance(value, (six.text_type, float, bool)) or value is None:
       return value
-    elif isinstance(value, (long, int)):
+    elif isinstance(value, six.binary_type):
+      return value.decode('utf8')
+    elif isinstance(value, six.integer_types):
       if not is_int_short(value):
         raise UnmarshallableError("Integer too large")
       return value
     elif isinstance(value, AltText):
-      return str(value)
+      return six.text_type(value)
     elif isinstance(value, records.Record):
       return ['R', value._table.table_id, value._row_id]
     elif isinstance(value, RecordStub):
@@ -210,13 +212,6 @@ def decode_object(value):
   """
   try:
     if not isinstance(value, (list, tuple)):
-      if isinstance(value, unicode):
-        # TODO For now, the sandbox uses binary strings throughout; see TODO in main.py for more
-        # on this. Strings that come from JS become Python binary strings, and we will not see
-        # unicode here. But we may see it if unmarshalling data that comes from DB, since
-        # DocStorage encodes/decodes values by marshaling JS strings as unicode. For consistency,
-        # convert those unicode strings to binary strings too.
-        return value.encode('utf8')
       return value
     code = value[0]
     args = value[1:]

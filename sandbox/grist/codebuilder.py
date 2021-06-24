@@ -118,9 +118,10 @@ def _create_syntax_error_code(builder, input_text, err):
   output_offset = output_ln.line_to_offset(err.lineno, err.offset - 1 if err.offset else 0)
   input_offset = builder.map_back_offset(output_offset)
   line, col = input_ln.offset_to_line(input_offset)
-  return "%s\nraise %s('%s on line %d col %d')" % (
+  message = '%s on line %d col %d' % (err.args[0], line, col + 1)
+  return "%s\nraise %s(%r)" % (
     textbuilder.line_start_re.sub('# ', input_text.rstrip()),
-    type(err).__name__, err.args[0], line, col + 1)
+    type(err).__name__, message)
 
 #----------------------------------------------------------------------
 

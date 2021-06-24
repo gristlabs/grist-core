@@ -77,9 +77,9 @@ class Graph(object):
     """
     Print out the graph to stdout, for debugging.
     """
-    print "Dependency graph (%d edges):" % len(self._all_edges)
+    print("Dependency graph (%d edges):" % len(self._all_edges))
     for edge in sorted(self._all_edges):
-      print "  %s" % (edge,)
+      print("  %s" % (edge,))
 
   def add_edge(self, out_node, in_node, relation):
     """

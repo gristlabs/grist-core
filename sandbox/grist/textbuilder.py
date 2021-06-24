@@ -157,7 +157,11 @@ class Combiner(Builder):
   def __init__(self, parts):
     self._parts = parts
     self._offsets = []
-    text_parts = [(p if isinstance(p, basestring) else p.get_text()) for p in self._parts]
+    text_parts = [
+      (p if isinstance(p, six.text_type) else
+       p.decode('utf8') if isinstance(p, six.binary_type) else
+       p.get_text())
+      for p in self._parts]
     self._text = ''.join(text_parts)
 
     offset = 0

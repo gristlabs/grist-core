@@ -34,12 +34,13 @@ import table as table_module
 import useractions
 import column
 import repl
+import urllib_patch  # noqa imported for side effect
 
 log = logger.Logger(__name__, logger.INFO)
 
 if six.PY2:
   reload(sys)
-  sys.setdefaultencoding('utf8')
+  sys.setdefaultencoding('utf8')  # noqa
 
 
 class OrderError(Exception):
@@ -1125,8 +1126,14 @@ class Engine(object):
       except Exception:
         log.error("Inconsistent schema after revert on failure: %s" % traceback.format_exc())
 
-      # Re-raise the original exception (simple `raise` wouldn't do if undo also fails above).
-      raise exc_info[0], exc_info[1], exc_info[2]
+      # Re-raise the original exception
+      # In Python 2, 'raise' raises the most recent exception,
+      # which may come from the try/except just above
+      # Python 3 keeps track of nested exceptions better
+      if six.PY2:
+        six.reraise(*exc_info)
+      else:
+        raise
 
     # Note that recalculations and auto-removals get included after processing all useractions.
     self._bring_all_up_to_date()
@@ -1183,8 +1190,15 @@ class Engine(object):
           self.rebuild_usercode()
         except Exception:
           log.error("Error rebuilding usercode after restoring schema: %s" % traceback.format_exc())
-      # Re-raise the original exception (simple `raise` wouldn't do if rebuild also fails above).
-      raise exc_info[0], exc_info[1], exc_info[2]
+
+      # Re-raise the original exception
+      # In Python 2, 'raise' raises the most recent exception,
+      # which may come from the try/except just above
+      # Python 3 keeps track of nested exceptions better
+      if six.PY2:
+        six.reraise(*exc_info)
+      else:
+        raise
 
     # If any columns got deleted, destroy them to clear _back_references in other tables, and to
     # force errors if anything still uses them. Also clear them from calc actions if needed.

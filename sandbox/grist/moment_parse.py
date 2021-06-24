@@ -47,6 +47,7 @@ DATE_TOKENS_REGEX = re.compile("("+("|".join(DATE_TOKENS))+")")
 # List of separators to replace and match any standard date/time separators
 SEP = r"[\s/.\-:,]*"
 SEP_REGEX = re.compile(SEP)
+SEP_REPLACEMENT = SEP.replace("\\", "\\\\")
 
 # Maps date parse format to compile regex
 FORMAT_CACHE = {}
@@ -77,7 +78,8 @@ def parse(date_string, parse_format, zonelabel='UTC', override_current_date=None
     # e.g. "MM-YY" -> "(?P<mm>\d{1,2})-(?P<yy>\d{2})"
     # Note that DATE_TOKENS is ordered so that the longer letter chains are recognized first
     tokens = DATE_TOKENS_REGEX.split(parse_format)
-    tokens = [DATE_TOKENS[t] if t in DATE_TOKENS else SEP_REGEX.sub(SEP, t) for t in tokens]
+    tokens = [DATE_TOKENS[t] if t in DATE_TOKENS else SEP_REGEX.sub(SEP_REPLACEMENT, t)
+              for t in tokens]
 
     # Compile new token string ignoring case (for month names)
     parser = re.compile(''.join(tokens), re.I)

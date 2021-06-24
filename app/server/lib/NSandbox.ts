@@ -78,7 +78,7 @@ export class NSandbox implements ISandbox {
   public readonly childProc: ChildProcess;
   private _logTimes: boolean;
   private _exportedFunctions: {[name: string]: SandboxMethod};
-  private _marshaller = new marshal.Marshaller({stringToBuffer: true, version: 2});
+  private _marshaller = new marshal.Marshaller({stringToBuffer: false, version: 2});
   private _unmarshaller = new marshal.Unmarshaller({ bufferToString: false });
 
   // Members used for reading from the sandbox process.

@@ -142,8 +142,9 @@ class TzInfo(_tzinfo):
   def tzname(self, dt):
     """Implementation of tzinfo.tzname interface."""
     abbr = self.zone.dt_tzname(dt, self._favor_offset)
-    # tzname must return a string, not unicode.
-    return abbr.encode('utf8') if isinstance(abbr, unicode) else abbr
+    if six.PY2 and isinstance(abbr, six.text_type):
+      abbr = abbr.encode('utf8')
+    return abbr
 
   def dst(self, dt):
     """Implementation of tzinfo.dst interface."""

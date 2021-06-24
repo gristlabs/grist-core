@@ -5,6 +5,8 @@ import tokenize
 from collections import namedtuple
 
 import asttokens
+import six
+
 
 def parse_acl_formula(acl_formula):
   """
@@ -26,10 +28,12 @@ def parse_acl_formula(acl_formula):
     Attr                    node, attr_name
     Comment                 node, comment
   """
+  if isinstance(acl_formula, six.binary_type):
+    acl_formula = acl_formula.decode('utf8')
   try:
     tree = ast.parse(acl_formula, mode='eval')
     result = _TreeConverter().visit(tree)
-    for part in tokenize.generate_tokens(io.StringIO(acl_formula.decode('utf-8')).readline):
+    for part in tokenize.generate_tokens(io.StringIO(acl_formula).readline):
       if part[0] == tokenize.COMMENT and part[1].startswith('#'):
         result = ['Comment', result, part[1][1:].strip()]
         break

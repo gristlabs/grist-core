@@ -2768,7 +2768,7 @@
     ["APPLY", {
       "USER_ACTIONS": [
         // Access to usercode before and after re-generation
-        ["EvalCode", "list(Students.all.firstName)", null],
+        ["EvalCode", "list(map(str, Students.all.firstName))", null],
         ["UpdateRecord", "Students", 1, {"firstName": "2e6"}],
         ["ModifyColumn", "Students", "firstName", { "type" : "Numeric" }],
         ["EvalCode", "list(Students.all.firstName)", 6],
@@ -2778,7 +2778,7 @@
       "ACTIONS": {
         "stored": [
           ["AddRecord", "_grist_REPL_Hist", 6,
-            {"code": "list(Students.all.firstName)", "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
+            {"code": "list(map(str, Students.all.firstName))", "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
 
           ["UpdateRecord", "Students", 1, {"firstName": "2e6"}],
           ["ModifyColumn", "Students", "firstName", {"type": "Numeric"}],
@@ -2808,7 +2808,7 @@
           ["ModifyColumn", "Students", "firstName", {"type": "Text"}],
           ["UpdateRecord", "_grist_Tables_column", 1, {"type": "Text"}],
 
-          ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
+          ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(map(str, Students.all.firstName))",
            "errorText": "", "outputText": "['Barack', 'George W', 'Bill', 'George H', 'Ronald', 'Jimmy', 'Gerald']\n"}],
           ["UpdateRecord", "_grist_REPL_Hist", 6, {"code": "list(Students.all.firstName)",
             "errorText": "",
@@ -2825,7 +2825,7 @@
     ["APPLY", {
       "USER_ACTIONS": [
         // Syntax Error
-        ["EvalCode", "*!@&$fjjj112#(8!", null],
+        ["EvalCode", "not correct c", null],
         // Other continuations
         ["EvalCode", "map(filter, ", null],
         ["EvalCode", "[1,2,3,", null],
@@ -2834,15 +2834,14 @@
         ["EvalCode", "sys.exit(0)", null],
         // User reassignment of sys.stdout/sys.stderr
         ["EvalCode", "sys.stdout = None", null],
-        ["EvalCode", "delattr(sys.stderr, 'close')", null],
         ["EvalCode", "setattr(sys.stdout, 'getvalue', lambda : 2)", null],
-        ["EvalCode", "def foo():\n global stdout\n exec 'stdout = 2'\n", null],
+        ["EvalCode", "def foo():\n global stdout\n exec('stdout = 2')\n", null],
         ["EvalCode", "setattr(sys.stderr, 'close', foo)", null]
       ],
       "ACTIONS": {
         "stored": [
           ["AddRecord", "_grist_REPL_Hist", 7,
-            {"code": "*!@&$fjjj112#(8!", "errorText": "  File \"<input>\", line 1\n    *!@&$fjjj112#(8!\n    ^\nSyntaxError: invalid syntax\n", "outputText": ""}],
+            {"code": "not correct c", "errorText": "  File \"<input>\", line 1\n    not correct c\n                ^\nSyntaxError: invalid syntax\n", "outputText": ""}],
           ["AddRecord", "_grist_REPL_Hist", 8,
             {"code": "import sys", "errorText": "", "outputText": ""}],
           ["AddRecord", "_grist_REPL_Hist", 9,
@@ -2850,15 +2849,13 @@
           ["AddRecord", "_grist_REPL_Hist", 10,
             {"code": "sys.stdout = None", "errorText": "", "outputText": ""}],
           ["AddRecord", "_grist_REPL_Hist", 11,
-            {"code": "delattr(sys.stderr, 'close')", "errorText": "Traceback (most recent call last):\n  File \"<input>\", line 1, in <module>\nAttributeError: StringIO instance has no attribute 'close'\n", "outputText": ""}],
-          ["AddRecord", "_grist_REPL_Hist", 12,
             {"code": "setattr(sys.stdout, 'getvalue', lambda : 2)", "errorText": "", "outputText": 2}],
+          ["AddRecord", "_grist_REPL_Hist", 12,
+            {"code": "def foo():\n global stdout\n exec('stdout = 2')\n", "errorText": "", "outputText": ""}],
           ["AddRecord", "_grist_REPL_Hist", 13,
-            {"code": "def foo():\n global stdout\n exec 'stdout = 2'\n", "errorText": "", "outputText": ""}],
-          ["AddRecord", "_grist_REPL_Hist", 14,
             {"code": "setattr(sys.stderr, 'close', foo)", "errorText": "", "outputText": ""}]
         ],
-        "direct": [true, true, true, true, true, true, true, true],
+        "direct": [true, true, true, true, true, true, true],
         "undo": [
           ["RemoveRecord", "_grist_REPL_Hist", 7],
           ["RemoveRecord", "_grist_REPL_Hist", 8],
@@ -2866,10 +2863,9 @@
           ["RemoveRecord", "_grist_REPL_Hist", 10],
           ["RemoveRecord", "_grist_REPL_Hist", 11],
           ["RemoveRecord", "_grist_REPL_Hist", 12],
-          ["RemoveRecord", "_grist_REPL_Hist", 13],
-          ["RemoveRecord", "_grist_REPL_Hist", 14]
+          ["RemoveRecord", "_grist_REPL_Hist", 13]
         ],
-        "retValue" : [true,false,false,true,true,true,true,true,true,true ]
+        "retValue" : [true,false,false,true,true,true,true,true,true ]
       }
     }]
   ]

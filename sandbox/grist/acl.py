@@ -109,8 +109,7 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
   # Go through again checking if anything in ACL formulas is affected by the rename.
   for rule_rec in docmodel.aclRules.all:
     if rule_rec.aclFormula:
-      # Positions are obtained from unicode version of formulas, so that's what we must patch
-      formula = rule_rec.aclFormula.decode('utf8')
+      formula = rule_rec.aclFormula
       patches = []
 
       for entity in parse_acl_grist_entities(rule_rec.aclFormula):
@@ -129,7 +128,7 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
         patches.append(patch)
 
       replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
-      txt = replacer.get_text().encode('utf8')
+      txt = replacer.get_text()
       rule_updates.append((rule_rec, {'aclFormula': txt,
                                       'aclFormulaParsed': parse_acl_formula_json(txt)}))
 

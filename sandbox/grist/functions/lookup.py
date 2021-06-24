@@ -93,15 +93,15 @@ def SELF_HYPERLINK(label=None, page=None, **kwargs):
   we might want to create links with `SELF_HYPERLINK(LinkKey_Code=$Code)`.
 
   >>> SELF_HYPERLINK()
-  'https://docs.getgrist.com/sbaltsirg/Example'
+  u'https://docs.getgrist.com/sbaltsirg/Example'
   >>> SELF_HYPERLINK(label='doc')
-  'doc https://docs.getgrist.com/sbaltsirg/Example'
+  u'doc https://docs.getgrist.com/sbaltsirg/Example'
   >>> SELF_HYPERLINK(page=2)
-  'https://docs.getgrist.com/sbaltsirg/Example/p/2'
+  u'https://docs.getgrist.com/sbaltsirg/Example/p/2'
   >>> SELF_HYPERLINK(LinkKey_Code='X1234')
-  'https://docs.getgrist.com/sbaltsirg/Example?Code_=X1234'
+  u'https://docs.getgrist.com/sbaltsirg/Example?Code_=X1234'
   >>> SELF_HYPERLINK(label='order', page=3, LinkKey_Code='X1234', LinkKey_Name='Bi Ngo')
-  'order https://docs.getgrist.com/sbaltsirg/Example/p/3?Code_=X1234&Name_=Bi+Ngo'
+  u'order https://docs.getgrist.com/sbaltsirg/Example/p/3?Code_=X1234&Name_=Bi+Ngo'
   >>> SELF_HYPERLINK(Linky_Link='Link')
   Traceback (most recent call last):
   ...
@@ -110,6 +110,7 @@ def SELF_HYPERLINK(label=None, page=None, **kwargs):
   txt = os.environ.get('DOC_URL')
   if not txt:
     return None
+  txt = six.text_type(txt)
   if page:
     txt += "/p/{}".format(page)
   if kwargs:
@@ -124,7 +125,7 @@ def SELF_HYPERLINK(label=None, page=None, **kwargs):
     parts[4] = urllib_parse.urlencode(query)
     txt = urllib_parse.urlunparse(parts)
   if label:
-    txt = "{} {}".format(label, txt)
+    txt = u"{} {}".format(label, txt)
   return txt
 
 def VLOOKUP(table, **field_value_pairs):

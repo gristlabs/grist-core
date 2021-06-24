@@ -5,6 +5,7 @@ import json
 import sys
 
 import six
+from six.moves import xrange
 
 import acl
 from acl_formula import parse_acl_formula_json
@@ -109,7 +110,7 @@ def from_repr(user_action):
   try:
     return action_type(*user_action[1:])
   except TypeError as e:
-    raise TypeError("%s: %s" % (user_action[0], e.message))
+    raise TypeError("%s: %s" % (user_action[0], str(e)))
 
 def _make_clean_col_info(col_info, col_id=None):
   """
@@ -332,7 +333,7 @@ class UserActions(object):
 
     # Invalidate new records, including the omitted columns that may have default formulas,
     # in order to get dynamically-computed default values.
-    omitted_cols = table.all_columns.viewkeys() - column_values.viewkeys()
+    omitted_cols = six.viewkeys(table.all_columns) - six.viewkeys(column_values)
     self._engine.invalidate_records(table_id, filled_row_ids, data_cols_to_recompute=omitted_cols)
 
     return filled_row_ids
@@ -599,18 +600,16 @@ class UserActions(object):
         col_rec = self._docmodel.get_column_rec(formula_table, formula_col)
         # Create a patch and append to the list for this col_rec.
         name = col_id or table_id
-        # Positions are obtained from unicode version of formulas, so that's what we must patch
-        formula = col_rec.formula.decode('utf8')
+        formula = col_rec.formula
         patch = textbuilder.make_patch(formula, pos, pos + len(name), new_name)
         patches_map.setdefault(col_rec, []).append(patch)
 
-    # Apply the collected patches to each affected formula, converting to unicode to apply the
-    # patches and back to byte string for how we maintain string values.
+    # Apply the collected patches to each affected formula
     result = {}
-    for col_rec, patches in six.iteritems(patches_map):
-      formula = col_rec.formula.decode('utf8')
+    for col_rec, patches in patches_map.items():
+      formula = col_rec.formula
       replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
-      result[col_rec] = replacer.get_text().encode('utf8')
+      result[col_rec] = replacer.get_text()
     return result
 
 

@@ -12,7 +12,6 @@ data structure for values of the wrong type, and the memory savings aren't that 
 the extra complexity.
 """
 import csv
-import cStringIO
 import datetime
 import json
 import six
@@ -31,7 +30,7 @@ _type_defaults = {
   'Attachments':  None,
   'Blob':         None,
   'Bool':         False,
-  'Choice':       '',
+  'Choice':       u'',
   'ChoiceList':   None,
   'Date':         None,
   'DateTime':     None,
@@ -42,7 +41,7 @@ _type_defaults = {
   'PositionNumber': float('inf'),
   'Ref':          0,
   'RefList':      None,
-  'Text':         '',
+  'Text':         u'',
 }
 
 def get_type_default(col_type):
@@ -131,10 +130,7 @@ class BaseColumnType(object):
     except Exception as e:
       # If conversion failed, return a string to serve as alttext.
       try:
-        if isinstance(value_to_convert, six.text_type):
-          # str() will fail for a non-ascii unicode object, which needs an explicit encoding.
-          return value_to_convert.encode('utf8')
-        return str(value_to_convert)
+        return six.text_type(value_to_convert)
       except Exception:
         # If converting to string failed, we should still produce something.
         return objtypes.safe_repr(value_to_convert)
@@ -157,7 +153,12 @@ class Text(BaseColumnType):
   """
   @classmethod
   def do_convert(cls, value):
-    return str(value) if value is not None else None
+    if isinstance(value, six.binary_type):
+      return value.decode('utf8')
+    elif value is None:
+      return None
+    else:
+      return six.text_type(value)
 
   @classmethod
   def is_right_type(cls, value):
@@ -176,11 +177,11 @@ class Blob(BaseColumnType):
   """
   @classmethod
   def do_convert(cls, value):
-    return str(value) if value is not None else None
+    return value
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (basestring, NoneType))
+    return isinstance(value, (six.binary_type, NoneType))
 
 
 class Any(BaseColumnType):
@@ -190,7 +191,7 @@ class Any(BaseColumnType):
   @classmethod
   def do_convert(cls, value):
     # Convert AltText values to plain text when assigning to type Any.
-    return str(value) if isinstance(value, AltText) else value
+    return six.text_type(value) if isinstance(value, AltText) else value
 
 
 class Bool(BaseColumnType):
@@ -206,7 +207,7 @@ class Bool(BaseColumnType):
     if isinstance(value, (float, six.integer_types)):
       return True
     if isinstance(value, AltText):
-      value = str(value)
+      value = six.text_type(value)
     if isinstance(value, six.string_types):
       if value.lower() in ("false", "no", "0"):
         return False
@@ -334,13 +335,13 @@ class ChoiceList(BaseColumnType):
       # If it's a string that looks like JSON, try to parse it as such.
       if value.startswith('['):
         try:
-          return tuple(str(item) for item in json.loads(value))
+          return tuple(six.text_type(item) for item in json.loads(value))
         except Exception:
           pass
       return value
     else:
       # Accepts other kinds of iterables; if that doesn't work, fail the conversion too.
-      return tuple(str(item) for item in value)
+      return tuple(six.text_type(item) for item in value)
 
   @classmethod
   def is_right_type(cls, value):
@@ -362,7 +363,7 @@ class ChoiceList(BaseColumnType):
   def toString(cls, value):
     if isinstance(value, (tuple, list)):
       try:
-        buf = cStringIO.StringIO()
+        buf = six.StringIO()
         csv.writer(buf).writerow(value)
         return buf.getvalue().strip()
       except Exception:
@@ -434,7 +435,7 @@ class Reference(Id):
   @classmethod
   def typeConvert(cls, value, ref_table, visible_col=None):  # pylint: disable=arguments-differ
     if ref_table and visible_col:
-      return ref_table.lookupOne(**{visible_col: value}) or str(value)
+      return ref_table.lookupOne(**{visible_col: value}) or six.text_type(value)
     else:
       return value
 

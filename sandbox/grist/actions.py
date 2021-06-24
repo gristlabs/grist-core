@@ -116,7 +116,7 @@ def action_from_repr(doc_action):
   try:
     return decode_objects(action_type(*doc_action[1:]))
   except TypeError as e:
-    raise TypeError("%s: %s" % (doc_action[0], e.message))
+    raise TypeError("%s: %s" % (doc_action[0], str(e)))
 
 
 def convert_recursive_helper(converter, data):

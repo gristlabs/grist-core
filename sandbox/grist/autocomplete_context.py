@@ -70,6 +70,9 @@ class AutocompleteContext(object):
     return self._context
 
   def process_result(self, result):
+    # 'for' suggests the autocompletion 'for ' in python 3
+    result = result.rstrip()
+
     # Callables are returned by rlcompleter with a trailing "(".
     if result.endswith('('):
       funcname = result[0:-1]

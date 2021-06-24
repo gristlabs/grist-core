@@ -1,16 +1,17 @@
 # -*- coding: UTF-8 -*-
 
 import datetime
-import dateutil.parser
 import numbers
 import re
 
+import dateutil.parser
 import six
 from six import unichr
 from six.moves import xrange
 
+from usertypes import AltText  # pylint: disable=import-error
 from .unimplemented import unimplemented
-from usertypes import AltText   # pylint: disable=import-error
+
 
 def CHAR(table_number):
   """
@@ -26,7 +27,7 @@ def CHAR(table_number):
 
 
 # See http://stackoverflow.com/a/93029/328565
-_control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
+_control_chars = ''.join(map(unichr, list(xrange(0,32)) + list(xrange(127,160))))
 _control_char_re = re.compile('[%s]' % re.escape(_control_chars))
 
 def CLEAN(text):
@@ -58,7 +59,7 @@ def CODE(string):
 
 
 def CONCATENATE(string, *more_strings):
-  """
+  u"""
   Joins together any number of text strings into one string. Also available under the name
   `CONCAT`. Similar to the Python expression `"".join(array_of_strings)`.
 
@@ -70,11 +71,15 @@ def CONCATENATE(string, *more_strings):
   u'abc'
   >>> CONCATENATE(0, "abc")
   u'0abc'
-  >>> CONCATENATE(2, " crème ", "brûlée".decode('utf8')) == "2 crème brûlée".decode('utf8')
-  True
+  >>> assert CONCATENATE(2, u" crème ", u"brûlée") == u'2 crème brûlée'
+  >>> assert CONCATENATE(2,  " crème ", u"brûlée") == u'2 crème brûlée'
+  >>> assert CONCATENATE(2,  " crème ",  "brûlée") == u'2 crème brûlée'
   """
-  return u''.join(val if isinstance(val, unicode) else str(val).decode('utf8')
-      for val in (string,) + more_strings)
+  return u''.join(
+    val.decode('utf8') if isinstance(val, six.binary_type) else
+    six.text_type(val)
+    for val in (string,) + more_strings
+  )
 
 
 def CONCAT(string, *more_strings):
@@ -90,8 +95,7 @@ def CONCAT(string, *more_strings):
   u'abc'
   >>> CONCAT(0, "abc")
   u'0abc'
-  >>> CONCAT(2, " crème ", "brûlée".decode('utf8')) == "2 crème brûlée".decode('utf8')
-  True
+  >>> assert CONCAT(2, u" crème ", u"brûlée") == u'2 crème brûlée'
   """
   return CONCATENATE(string, *more_strings)
 
@@ -443,47 +447,56 @@ def SUBSTITUTE(text, old_text, new_text, instance_num=None):
   Same as `text.replace(old_text, new_text)` when instance_num is omitted.
 
   >>> SUBSTITUTE("Sales Data", "Sales", "Cost")
-  'Cost Data'
+  u'Cost Data'
   >>> SUBSTITUTE("Quarter 1, 2008", "1", "2", 1)
-  'Quarter 2, 2008'
+  u'Quarter 2, 2008'
   >>> SUBSTITUTE("Quarter 1, 2011", "1", "2", 3)
-  'Quarter 1, 2012'
+  u'Quarter 1, 2012'
 
   More tests:
   >>> SUBSTITUTE("Hello world", "", "-")
-  'Hello world'
+  u'Hello world'
   >>> SUBSTITUTE("Hello world", " ", "-")
-  'Hello-world'
+  u'Hello-world'
   >>> SUBSTITUTE("Hello world", " ", 12.1)
-  'Hello12.1world'
+  u'Hello12.1world'
   >>> SUBSTITUTE(u"Hello world", u" ", 12.1)
   u'Hello12.1world'
   >>> SUBSTITUTE("Hello world", "world", "")
-  'Hello '
+  u'Hello '
   >>> SUBSTITUTE("Hello", "world", "")
-  'Hello'
+  u'Hello'
 
   Overlapping matches are all counted when looking for instance_num.
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx')
-  'xxxxxxxx'
+  u'xxxxxxxx'
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx', 1)
-  'xxxxabab'
+  u'xxxxabab'
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx', 2)
-  'abxxxxab'
+  u'abxxxxab'
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx', 3)
-  'ababxxxx'
+  u'ababxxxx'
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx', 4)
-  'abababab'
+  u'abababab'
   >>> SUBSTITUTE('abababab', 'abab', 'xxxx', 0)
   Traceback (most recent call last):
   ...
   ValueError: instance_num invalid
+  >>> SUBSTITUTE( "crème",  "è", "e")
+  u'creme'
+  >>> SUBSTITUTE(u"crème", u"è", "e")
+  u'creme'
+  >>> SUBSTITUTE(u"crème",  "è", "e")
+  u'creme'
+  >>> SUBSTITUTE( "crème", u"è", "e")
+  u'creme'
   """
+  text = six.text_type(text)
+  old_text = six.text_type(old_text)
+  new_text = six.text_type(new_text)
+
   if not old_text:
     return text
-
-  if not isinstance(new_text, six.string_types):
-    new_text = str(new_text)
 
   if instance_num is None:
     return text.replace(old_text, new_text)
@@ -505,22 +518,23 @@ def T(value):
   Returns value if value is text, or the empty string when value is not text.
 
   >>> T('Text')
-  'Text'
+  u'Text'
   >>> T(826)
-  ''
+  u''
   >>> T('826')
-  '826'
+  u'826'
   >>> T(False)
-  ''
+  u''
   >>> T('100 points')
-  '100 points'
+  u'100 points'
   >>> T(AltText('Text'))
-  'Text'
+  u'Text'
   >>> T(float('nan'))
-  ''
+  u''
   """
-  return (value if isinstance(value, basestring) else
-          str(value) if isinstance(value, AltText) else "")
+  return (value.decode('utf8') if isinstance(value, six.binary_type) else
+          value if isinstance(value, six.text_type) else
+          six.text_type(value) if isinstance(value, AltText) else u"")
 
 
 @unimplemented
@@ -565,8 +579,7 @@ def VALUE(text):
 
   >>> VALUE("$1,000")
   1000
-  >>> VALUE("16:48:00") - VALUE("12:00:00")
-  datetime.timedelta(0, 17280)
+  >>> assert VALUE("16:48:00") - VALUE("12:00:00") == datetime.timedelta(0, 17280)
   >>> VALUE("01/01/2012")
   datetime.datetime(2012, 1, 1, 0, 0)
   >>> VALUE("")

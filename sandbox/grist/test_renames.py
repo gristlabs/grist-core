@@ -330,23 +330,23 @@ class TestRenames(test_engine.EngineTestCase):
   def test_renames_with_non_ascii(self):
     # Test that presence of unicode does not interfere with formula adjustments for renaming.
     self.load_sample(self.sample)
-    self.add_column("Address", "CityUpper", formula="'Øî'+$city.upper()+'áü'")
+    self.add_column("Address", "CityUpper", formula=u"'Øî'+$city.upper()+'áü'")
     out_actions = self.apply_user_action(["RenameColumn", "Address", "city", "ciudad"])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "Address", "city", "ciudad"],
       ["ModifyColumn", "People", "city", {"formula": "$addr.ciudad"}],
-      ["ModifyColumn", "Address", "CityUpper", {"formula": "'Øî'+$ciudad.upper()+'áü'"}],
+      ["ModifyColumn", "Address", "CityUpper", {"formula": u"'Øî'+$ciudad.upper()+'áü'"}],
       ["BulkUpdateRecord", "_grist_Tables_column", [21, 24, 25], {
         "colId": ["ciudad", "city", "CityUpper"],
-        "formula": ["", "$addr.ciudad", "'Øî'+$ciudad.upper()+'áü'"],
+        "formula": ["", "$addr.ciudad", u"'Øî'+$ciudad.upper()+'áü'"],
       }]
     ]})
     self.assertTableData("Address", cols="all", data=[
       ["id",  "ciudad",     "CityUpper"],
-      [11,    "New York",   "ØîNEW YORKáü"],
-      [12,    "Colombia",   "ØîCOLOMBIAáü"],
-      [13,    "New Haven",  "ØîNEW HAVENáü"],
-      [14,    "West Haven", "ØîWEST HAVENáü"],
+      [11,    "New York",   u"ØîNEW YORKáü"],
+      [12,    "Colombia",   u"ØîCOLOMBIAáü"],
+      [13,    "New Haven",  u"ØîNEW HAVENáü"],
+      [14,    "West Haven", u"ØîWEST HAVENáü"],
     ])
 
   def test_rename_updates_properties(self):

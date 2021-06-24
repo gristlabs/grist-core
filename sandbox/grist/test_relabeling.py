@@ -256,7 +256,7 @@ class TestRelabeling(unittest.TestCase):
     self._do_test_renumber_ends([])
 
   def test_renumber_endpoints2(self):
-    self._do_test_renumber_ends(zip("abcd", [40,50,60,70]))
+    self._do_test_renumber_ends(list(zip("abcd", [40,50,60,70])))
 
   def _do_test_renumber_ends(self, initial):
     # Test insertions that happen together on the left and on the right.
