@@ -1673,7 +1673,8 @@ export class HomeDBManager extends EventEmitter {
       // Pick out properties that are allowed to be changed, to prevent accidental updating
       // of other information.
       const updated = pick(billingAccountCopy, 'inGoodStanding', 'status', 'stripeCustomerId',
-        'stripeSubscriptionId', 'stripePlanId', 'product');
+                           'stripeSubscriptionId', 'stripePlanId', 'product', 'externalId',
+                           'externalOptions');
       billingAccount.paid = undefined;  // workaround for a typeorm bug fixed upstream in
                                         // https://github.com/typeorm/typeorm/pull/4035
       await transaction.save(Object.assign(billingAccount, updated));

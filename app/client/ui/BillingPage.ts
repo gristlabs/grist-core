@@ -25,7 +25,8 @@ const taskActions = {
   updatePlan:    'Update Plan',
   addCard:       'Add Payment Method',
   updateCard:    'Update Payment Method',
-  updateAddress: 'Update Address'
+  updateAddress: 'Update Address',
+  signUpLite:    'Complete Sign Up'
 };
 
 /**
@@ -310,10 +311,10 @@ export class BillingPage extends Disposable {
     // If there is an immediate charge required, require re-entering the card info.
     // Show all forms on sign up.
     this._form = new BillingForm(org, (...args) => this._model.isDomainAvailable(...args), {
-      payment: task !== 'updateAddress',
-      address: task === 'signUp' || task === 'updateAddress',
-      settings: task === 'signUp' || task === 'updateAddress',
-      domain: task === 'signUp'
+      payment: ['signUp', 'updatePlan', 'addCard', 'updateCard'].includes(task),
+      address: ['signUp', 'updateAddress'].includes(task),
+      settings: ['signUp', 'signUpLite', 'updateAddress'].includes(task),
+      domain: ['signUp', 'signUpLite'].includes(task)
     }, { address: currentAddress, settings: currentSettings, card: this._formData.card });
     return dom('div',
       dom.onDispose(() => {
@@ -447,6 +448,8 @@ export class BillingPage extends Disposable {
   }
 
   private _buildDomainSummary(domain: string|null) {
+    const task = this._model.currentTask.get();
+    if (task === 'signUpLite') { return null; }
     return css.summaryItem(
       css.summaryHeader(
         css.billingBoldText('Billing Info'),

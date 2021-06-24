@@ -175,6 +175,19 @@ export class BillingModelImpl extends Disposable implements BillingModel {
           }
           // If there is an org update, re-initialize the org in the client.
           if (newSettings) { this._appModel.topAppModel.initialize(); }
+        } else if (task === 'signUpLite') {
+          // This is a sign up variant where payment info is handled externally.
+          // All that can change here is company name, and domain.
+          const org = this._appModel.currentOrg;
+          const name = formData.settings && formData.settings.name;
+          const domain = formData.settings && formData.settings.domain;
+          const newSettings = org && (name !== org.name || domain !== org.domain) && formData.settings;
+          // If the address or settings have a new value, run the update.
+          if (newSettings) {
+            await this._billingAPI.updateAddress(undefined, newSettings || undefined);
+          }
+          // If there is an org update, re-initialize the org in the client.
+          if (newSettings) { this._appModel.topAppModel.initialize(); }
         } else {
           throw new Error('BillingPage _submit error: no task in progress');
         }
