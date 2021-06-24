@@ -129,90 +129,125 @@ export class BillingPage extends Disposable {
       ),
       css.summaryBlock(
         css.billingHeader('Billing Summary'),
-        dom.maybe(this._model.subscription, sub => {
-          const plans = this._model.plans.get();
-          const moneyPlan = sub.upcomingPlan || sub.activePlan;
-          const changingPlan = sub.upcomingPlan && sub.upcomingPlan.amount > 0;
-          const cancellingPlan = sub.upcomingPlan && sub.upcomingPlan.amount === 0;
-          const validPlan = sub.isValidPlan;
-          const planId = validPlan ? sub.activePlan.id : sub.lastPlanId;
-          return [
-            css.summaryFeatures(
-              validPlan ? [
-                makeSummaryFeature(['You are subscribed to the ', sub.activePlan.nickname, ' plan']),
-              ] : [
-                makeSummaryFeature(['This team site is not in good standing'],
-                                   {isBad: true}),
-              ],
-
-              // If the plan is changing, include the date the current plan ends
-              // and the plan that will be in effect afterwards.
-              changingPlan ? [
-                makeSummaryFeature(['Your current plan ends on ', dateFmt(sub.periodEnd)]),
-                makeSummaryFeature(['On this date, you will be subscribed to the ',
-                  sub.upcomingPlan!.nickname, ' plan'])
-              ] : null,
-              cancellingPlan ? [
-                makeSummaryFeature(['Your subscription ends on ', dateFmt(sub.periodEnd)]),
-                makeSummaryFeature(['On this date, your team site will become ',  'read-only',
-                  ' for one month, then removed'])
-              ] : null,
-              moneyPlan.amount ? [
-                makeSummaryFeature([`Your team site has `, `${sub.userCount}`,
-                  ` member${sub.userCount > 1 ? 's' : ''}`]),
-                makeSummaryFeature([`Your ${moneyPlan.interval}ly subtotal is `,
-                  getPriceString(moneyPlan.amount * sub.userCount)]),
-                sub.discountName ? makeSummaryFeature([`You receive the `, sub.discountName]) : null,
-                // When on a free trial, Stripe reports trialEnd time, but it seems to always
-                // match periodEnd for a trialing subscription, so we just use that.
-                sub.isInTrial ? makeSummaryFeature(['Your free trial ends on ', dateFmtFull(sub.periodEnd)]) : null,
-                makeSummaryFeature([`Your next invoice is `, getPriceString(sub.nextTotal),
-                    ' on ', dateFmt(sub.periodEnd)]),
-              ] : null,
-              getSubscriptionProblem(sub),
-              testId('summary')
-            ),
-            (sub.lastInvoiceUrl ?
-              dom('div',
-                css.billingTextBtn({ style: 'margin: 10px 0;' },
-                  cssBreadcrumbsLink(
-                    css.billingIcon('Page'), 'View last invoice',
-                    { href: sub.lastInvoiceUrl, target: '_blank' },
-                    testId('invoice-link')
-                  )
-                )
-              ) :
-              null
-            ),
-            (moneyPlan.amount === 0 && planId) ? css.billingTextBtn({ style: 'margin: 10px 0;' },
-              // If the plan was cancellled, make the text indicate that changing the plan will
-              // renew the subscription (abort the cancellation).
-              css.billingIcon('Settings'), 'Renew subscription',
-              urlState().setLinkUrl({
-                billing: 'payment',
-                params: {
-                  billingTask: 'updatePlan',
-                  billingPlan: planId
-                }
-              }),
-              testId('update-plan')
-            ) : null,
-            // Do not show the cancel subscription option if it was already cancelled.
-            plans.length > 0 && moneyPlan.amount > 0 ? css.billingTextBtn({ style: 'margin: 10px 0;' },
-              css.billingIcon('Settings'), 'Cancel subscription',
-              urlState().setLinkUrl({
-                billing: 'payment',
-                params: {
-                  billingTask: 'updatePlan',
-                  billingPlan: plans[0].id
-                }
-              }),
-              testId('cancel-subscription')
-            ) : null
-          ];
-        })
+        this.buildSubscriptionSummary(),
       )
     );
+  }
+
+  public buildSubscriptionSummary() {
+    return dom.maybe(this._model.subscription, sub => {
+      const plans = this._model.plans.get();
+      const moneyPlan = sub.upcomingPlan || sub.activePlan;
+      const changingPlan = sub.upcomingPlan && sub.upcomingPlan.amount > 0;
+      const cancellingPlan = sub.upcomingPlan && sub.upcomingPlan.amount === 0;
+      const validPlan = sub.isValidPlan;
+      const planId = validPlan ? sub.activePlan.id : sub.lastPlanId;
+      // If on a "Tier" coupon, present information differently, emphasizing the coupon
+      // name and minimizing the plan.
+      const tier = sub.discountName && sub.discountName.includes(' Tier ');
+      const planName = tier ? sub.discountName! : sub.activePlan.nickname;
+      return [
+        css.summaryFeatures(
+          validPlan ? [
+            makeSummaryFeature(['You are subscribed to the ', planName, ' plan']),
+          ] : [
+            makeSummaryFeature(['This team site is not in good standing'],
+                               {isBad: true}),
+          ],
+
+          // If the plan is changing, include the date the current plan ends
+          // and the plan that will be in effect afterwards.
+          changingPlan ? [
+            makeSummaryFeature(['Your current plan ends on ', dateFmt(sub.periodEnd)]),
+            makeSummaryFeature(['On this date, you will be subscribed to the ',
+                                sub.upcomingPlan!.nickname, ' plan'])
+          ] : null,
+          cancellingPlan ? [
+            makeSummaryFeature(['Your subscription ends on ', dateFmt(sub.periodEnd)]),
+            makeSummaryFeature(['On this date, your team site will become ',  'read-only',
+                                ' for one month, then removed'])
+          ] : null,
+          moneyPlan.amount ? [
+            makeSummaryFeature([`Your team site has `, `${sub.userCount}`,
+                                ` member${sub.userCount > 1 ? 's' : ''}`]),
+            tier ? this.buildAppSumoPlanNotes(sub.discountName!) : null,
+            // Currently the subtotal is misleading and scary when tiers are in effect.
+            // In this case, for now, just report what will be invoiced.
+            !tier ? makeSummaryFeature([`Your ${moneyPlan.interval}ly subtotal is `,
+                                        getPriceString(moneyPlan.amount * sub.userCount)]) : null,
+            (sub.discountName && !tier) ? makeSummaryFeature([`You receive the `, sub.discountName]) : null,
+            // When on a free trial, Stripe reports trialEnd time, but it seems to always
+            // match periodEnd for a trialing subscription, so we just use that.
+            sub.isInTrial ? makeSummaryFeature(['Your free trial ends on ', dateFmtFull(sub.periodEnd)]) : null,
+            makeSummaryFeature([`Your next invoice is `, getPriceString(sub.nextTotal),
+                                ' on ', dateFmt(sub.periodEnd)]),
+          ] : null,
+          getSubscriptionProblem(sub),
+          testId('summary')
+        ),
+        (sub.lastInvoiceUrl ?
+         dom('div',
+             css.billingTextBtn({ style: 'margin: 10px 0;' },
+                                cssBreadcrumbsLink(
+                                  css.billingIcon('Page'), 'View last invoice',
+                                  { href: sub.lastInvoiceUrl, target: '_blank' },
+                                  testId('invoice-link')
+                                )
+                               )
+            ) :
+         null
+        ),
+        (moneyPlan.amount === 0 && planId) ? css.billingTextBtn(
+          { style: 'margin: 10px 0;' },
+          // If the plan was cancellled, make the text indicate that changing the plan will
+          // renew the subscription (abort the cancellation).
+          css.billingIcon('Settings'), 'Renew subscription',
+          urlState().setLinkUrl({
+            billing: 'payment',
+            params: {
+              billingTask: 'updatePlan',
+              billingPlan: planId
+            }
+          }),
+          testId('update-plan')
+        ) : null,
+        // Do not show the cancel subscription option if it was already cancelled.
+        plans.length > 0 && moneyPlan.amount > 0 ? css.billingTextBtn(
+          { style: 'margin: 10px 0;' },
+          css.billingIcon('Settings'), 'Cancel subscription',
+          urlState().setLinkUrl({
+            billing: 'payment',
+            params: {
+              billingTask: 'updatePlan',
+              billingPlan: plans[0].id
+            }
+          }),
+          testId('cancel-subscription')
+        ) : null
+      ];
+    });
+  }
+
+  public buildAppSumoPlanNotes(name: string) {
+    // TODO: move AppSumo plan knowledge elsewhere.
+    let users = 0;
+    switch (name) {
+      case 'AppSumo Tier 1':
+        users = 1;
+        break;
+      case 'AppSumo Tier 2':
+        users = 3;
+        break;
+      case 'AppSumo Tier 3':
+        users = 8;
+        break;
+    }
+    if (users > 0) {
+      return makeSummaryFeature([`Your AppSumo plan covers `,
+                                 `${users}`,
+                                 ` member${users > 1 ? 's' : ''}`]);
+    }
+    return null;
   }
 
   public buildPlansPage() {
@@ -561,6 +596,8 @@ export class BillingPage extends Disposable {
   private _buildPaymentSummary(task: BillingTask) {
     if (task === 'signUp' || task === 'updatePlan') {
       return dom.maybe(this._model.signupPlan, _plan => this._buildPlanPaymentSummary(_plan, task));
+    } else if (task === 'signUpLite') {
+      return this.buildSubscriptionSummary();
     } else if (task === 'addCard' || task === 'updateCard') {
       return makeSummaryFeature('You are updating the default payment method');
     } else if (task === 'updateAddress') {

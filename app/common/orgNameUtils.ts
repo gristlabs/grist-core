@@ -41,6 +41,8 @@ export function checkSubdomainValidity(subdomain: string): void {
   }
   // 'docs-*' is reserved for personal orgs.
   if (subdomain.startsWith('docs-')) { throw new Error('Domain cannot use reserved prefix "docs-".'); }
+  // 'o-*' is reserved for automatic org domains.
+  if (subdomain.startsWith('o-')) { throw new Error('Domain cannot use reserved prefix "o-".'); }
   // 'doc-worker-*' is reserved for doc workers.
   if (subdomain.startsWith('doc-worker-')) { throw new Error('Domain cannot use reserved prefix "doc-worker-".'); }
   // special subdomains like _domainkey.

@@ -668,6 +668,24 @@ export class FlexServer implements GristServer {
           const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
           return res.redirect(`${prefix}/welcome/user`);
         }
+        if (mreq.org && mreq.org.startsWith('o-')) {
+          // We are on a team site without a custom subdomain.
+          // If the user is a billing manager for the org, and the org
+          // is supposed to have a custom subdomain, forward the user
+          // to a page to set it.
+
+          // TODO: this is more or less a hack for AppSumo signup flow,
+          // and could be removed if/when signup flow is revamped.
+
+          // If "welcomeNewUser" is ever added to billing pages, we'd need
+          // to avoid a redirect loop.
+
+          const orgInfo = this.dbManager.unwrapQueryResult(await this.dbManager.getOrg({userId: user.id}, mreq.org));
+          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.product.features.vanityDomain) {
+          const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
+          return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
+          }
+        }
         next();
       });
 
