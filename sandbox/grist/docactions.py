@@ -80,6 +80,12 @@ class DocActions(object):
       for (row_id, value) in zip(row_ids, values):
         col.set(row_id, value)
 
+      # Non-formula columns may get invalidated and recalculated if they have a trigger formula.
+      # Prevent such recalculation if we set an explicit value for them (we want to prevent it
+      # even if triggered by something else within the same useraction).
+      if not col.is_formula():
+        self._engine.prevent_recalc(col.node, row_ids, should_prevent=True)
+
     # Generate the undo action.
     self._engine.out_actions.undo.append(
         actions.BulkUpdateRecord(table_id, row_ids, undo_values).simplify())

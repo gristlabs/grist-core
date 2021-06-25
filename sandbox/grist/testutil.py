@@ -99,14 +99,22 @@ def parse_test_sample(obj, samples={}):
       '_grist_Tables_column': table_data_from_rows(
         '_grist_Tables_column',
         ("parentId", "parentPos", "id", "colId", "type", "isFormula",
-         "formula", "label", "widgetOptions"),
-        [[table_row_id, i+1] + e for (table_row_id, _, entries) in raw_schema
+         "formula", "label", "widgetOptions", "recalcWhen", "recalcDeps"),
+        [[table_row_id, i+1] + col_schema_row(*e) for (table_row_id, _, entries) in raw_schema
          for (i, e) in enumerate(entries)])
     }
 
   data = {t: table_data_from_rows(t, data[0], data[1:])
           for t, data in six.iteritems(obj["DATA"])}
   return {"SCHEMA": schema, "DATA": data}
+
+
+def col_schema_row(id_, colId, type_, isFormula, formula="",
+                   label="", widgetOptions="", recalcWhen=0, recalcDeps=None):
+  """
+  Helper to specify columns in test SCHEMA descriptions, to allow omitting some column properties.
+  """
+  return [id_, colId, type_, isFormula, formula, label, widgetOptions, recalcWhen, recalcDeps]
 
 
 def replace_nans(data):

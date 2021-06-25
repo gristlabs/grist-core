@@ -14,6 +14,7 @@ import usertypes
 import relabeling
 import table
 import moment
+from schema import RecalcWhen
 
 # pylint:disable=redefined-outer-name
 
@@ -82,6 +83,13 @@ class MetaTableExtras(object):
       Returns the number of cols and fields using this col as a display col
       """
       return len(rec.usedByCols) + len(rec.usedByFields)
+
+    def recalcOnChangesToSelf(rec, table):
+      """
+      Whether the column is a trigger-formula column that depends on itself, used for
+      data-cleaning. (A manual change to it will trigger its own recalculation.)
+      """
+      return rec.recalcWhen == RecalcWhen.DEFAULT and rec.id in rec.recalcDeps
 
     def setAutoRemove(rec, table):
       """Marks the col for removal if it's a display helper col with no more users."""

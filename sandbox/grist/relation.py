@@ -65,6 +65,19 @@ class IdentityRelation(Relation):
   # test_dependencies_relations_bug for a detailed description of a bug this can cause.]
 
 
+class SingleRowsIdentityRelation(IdentityRelation):
+  """
+  Represents an identity relation, but one which refuses to pass along ALL_ROWS. In other words,
+  if a full column changed (i.e. ALL_ROWS), none of the dependent cells will be considered
+  changed. But when specific rows are changed, those changes propagate.
+
+  This is used for trigger formulas, to ensure they don't recalculate in full when a dependency
+  column is renamed or modified (as opposed to particular records).
+  """
+  def get_affected_rows(self, input_rows):
+    return [] if input_rows == depend.ALL_ROWS else input_rows
+
+
 class ComposedRelation(Relation):
   """
   Represents a composition of two Relations. E.g. if referring side maps Students to Schools, and
@@ -107,6 +120,8 @@ class ReferenceRelation(Relation):
   def get_affected_rows(self, input_rows):
     # Each input row (target of the reference link) may be pointed to by multiple references,
     # so we need to take the union of all of those sets.
+    if input_rows == depend.ALL_ROWS:
+      return depend.ALL_ROWS
     affected_rows = set()
     for target_row_id in input_rows:
       affected_rows.update(self.inverse_map.get(target_row_id, ()))

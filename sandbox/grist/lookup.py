@@ -172,6 +172,8 @@ class _LookupRelation(relation.Relation):
     return "_LookupRelation(%s->%s)" % (self._referring_node, self.target_table)
 
   def get_affected_rows(self, target_row_ids):
+    if target_row_ids == depend.ALL_ROWS:
+      return depend.ALL_ROWS
     # Each target row (result of a lookup by key) is associated with a key, and all rows that
     # looked up an affected key are affected by a change to any associated row. We remember which
     # rows looked up which key in self._row_key_map, so that when some target row changes to a new

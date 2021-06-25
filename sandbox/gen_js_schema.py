@@ -16,6 +16,7 @@ _ts_types = {
   "Int":            "number",
   "PositionNumber": "number",
   "Ref":            "number",
+  "RefList":        "number[]",
   "Text":           "string",
 }
 

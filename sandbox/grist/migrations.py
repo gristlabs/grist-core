@@ -780,3 +780,11 @@ def migration21(tdset):
     add_column('_grist_ACLRules', 'rulePos', 'PositionNumber'),
     add_column('_grist_ACLRules', 'userAttributes', 'Text'),
   ])
+
+
+@migration(schema_version=22)
+def migration22(tdset):
+  return tdset.apply_doc_actions([
+    add_column('_grist_Tables_column', 'recalcWhen', 'Int'),
+    add_column('_grist_Tables_column', 'recalcDeps', 'RefList:_grist_Tables_column'),
+  ])

@@ -292,7 +292,9 @@ class EngineTestCase(unittest.TestCase):
     self.engine.load_meta_tables(schema['_grist_Tables'], schema['_grist_Tables_column'])
     for data in six.itervalues(sample["DATA"]):
       self.engine.load_table(data)
-    self.engine.load_done()
+    # We used to call load_done() at the end; in practice, Grist's ActiveDoc does not call
+    # load_done, but applies the "Calculate" user action. Do that for more realistic tests.
+    self.apply_user_action(['Calculate'])
 
   # The following are convenience methods for tests deriving from EngineTestCase.
   def add_column(self, table_name, col_name, **kwargs):

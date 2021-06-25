@@ -14,6 +14,7 @@ import column
 import identifiers
 from objtypes import strict_equal
 import schema
+from schema import RecalcWhen
 import summary
 import import_actions
 import repl
@@ -331,10 +332,18 @@ class UserActions(object):
 
     self._do_doc_action(action)
 
-    # Invalidate new records, including the omitted columns that may have default formulas,
-    # in order to get dynamically-computed default values.
-    omitted_cols = six.viewkeys(table.all_columns) - six.viewkeys(column_values)
-    self._engine.invalidate_records(table_id, filled_row_ids, data_cols_to_recompute=omitted_cols)
+    # Invalidate new records, including the columns that may have default formulas (trigger
+    # formulas set to recalculate on new records), to get dynamically-computed default values.
+    recalc_cols = set()
+    for col_id in table.all_columns:
+      if col_id in column_values:
+        continue
+      col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+      if col_rec.recalcWhen == RecalcWhen.NEVER:
+        continue
+      recalc_cols.add(col_id)
+
+    self._engine.invalidate_records(table_id, filled_row_ids, data_cols_to_recompute=recalc_cols)
 
     return filled_row_ids
 
@@ -362,6 +371,27 @@ class UserActions(object):
 
     # Finally, update the record
     self._do_doc_action(action)
+
+    # Invalidate trigger-formula columns affected by this update.
+    table = self._engine.tables[table_id]
+    column_values = action[2]
+    if column_values:     # Only if this is a non-trivial update.
+      for col_id, col_obj in table.all_columns.iteritems():
+        if col_obj.is_formula() or not col_obj.has_formula():
+          continue
+        col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+
+        # Schedule for recalculation those trigger-formulas that depend on any manual update.
+        if col_rec.recalcWhen == RecalcWhen.MANUAL_UPDATES:
+          self._engine.invalidate_column(col_obj, row_ids, recompute_data_col=True)
+
+        # When we have an explicit value for a trigger-formula, the logic in docactions.py
+        # normally prevents recalculation so that the explicit value would stay (it is also
+        # important for undos). For a data-cleaning column (one that depends on itself), a manual
+        # change *should* trigger recalculation, so we un-prevent it here.
+        if col_id in column_values and col_rec.recalcOnChangesToSelf:
+          self._engine.prevent_recalc(col_obj.node, row_ids, should_prevent=False)
+
 
   # Helper to perform doBulkUpdateRecord using record update value pairs. This saves
   #  the steps of separating the value pairs into row ids and column values.
@@ -556,6 +586,10 @@ class UserActions(object):
     self._docmodel.update([f for c in type_changed for f in c.viewFields],
                           widgetOptions='', displayCol=0)
 
+    # If the column update changes its trigger-formula conditions, rebuild dependencies.
+    if any(("recalcWhen" in values or "recalcDeps" in values) for c, values in update_pairs):
+      self._engine.trigger_columns_changed()
+
     self.doBulkUpdateFromPairs(table_id, update_pairs)
     make_acl_updates()
 
@@ -727,14 +761,16 @@ class UserActions(object):
     self._do_doc_action(actions.BulkRemoveRecord(table_id, row_ids))
 
     # Also remove any references to this row from other tables.
+    row_id_set = set(row_ids)
     for ref_col in table._back_references:
-      if ref_col.is_formula():
+      if ref_col.is_formula() or not isinstance(ref_col, column.BaseReferenceColumn):
         continue
-      affected_rows = sorted(ref_col._relation.get_affected_rows(row_ids))
-      if affected_rows:
-        self._do_doc_action(actions.BulkUpdateRecord(ref_col.table_id, affected_rows, {
-          ref_col.col_id: [ref_col.getdefault() for row_id in affected_rows]
-        }))
+      updates = ref_col.get_updates_for_removed_target_rows(row_id_set)
+      if updates:
+        self._do_doc_action(actions.BulkUpdateRecord(ref_col.table_id,
+          [row_id for (row_id, value) in updates],
+          { ref_col.col_id: [value for (row_id, value) in updates] }
+        ))
 
   @useraction
   def RemoveRecord(self, table_id, row_id):
@@ -986,6 +1022,10 @@ class UserActions(object):
       'widgetOptions': col_info.get('widgetOptions', ''),
       'label': col_info.get('label', col_id),
     })
+    if 'recalcWhen' in col_info:
+      values['recalcWhen'] = col_info['recalcWhen']
+    if 'recalcDeps' in col_info:
+      values['recalcDeps'] = col_info['recalcDeps']
     visible_col = col_info.get('visibleCol', 0)
     if visible_col:
       values['visibleCol'] = visible_col

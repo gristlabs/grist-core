@@ -155,8 +155,7 @@ class Graph(object):
       include_self = True
 
       for edge in self._in_node_map.get(dirty_node, ()):
-        affected_rows = (ALL_ROWS if dirty_rows == ALL_ROWS else
-                         edge.relation.get_affected_rows(dirty_rows))
+        affected_rows = edge.relation.get_affected_rows(dirty_rows)
 
         # Previously this was:
         #   self.invalidate_deps(edge.out_node, affected_rows, recompute_map, include_self=True)

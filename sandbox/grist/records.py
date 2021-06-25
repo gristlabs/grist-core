@@ -150,8 +150,7 @@ class RecordSet(object):
 
   def __eq__(self, other):
     return (isinstance(other, RecordSet) and
-        (self._table, self._row_ids, self._group_by, self._sort_by) ==
-        (other._table, other._row_ids, other._group_by, other._sort_by))
+        (self._table, self._row_ids) == (other._table, other._row_ids))
 
   def __ne__(self, other):
     return not self.__eq__(other)
@@ -159,6 +158,14 @@ class RecordSet(object):
   def __iter__(self):
     for row_id in self._row_ids:
       yield self.Record(self._table, row_id, self._source_relation)
+
+  def __contains__(self, item):
+    """item may be a Record or its row_id."""
+    if isinstance(item, int):
+      return item in self._row_ids
+    if isinstance(item, Record) and item._table == self._table:
+      return int(item) in self._row_ids
+    return False
 
   def get_one(self):
     row_id = min(self._row_ids) if self._row_ids else 0

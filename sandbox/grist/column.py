@@ -71,7 +71,7 @@ class BaseColumn(object):
     self.node = depend.Node(self.table_id, col_id)
     self._is_formula = col_info.is_formula
     self._is_private = bool(col_info.method) and getattr(col_info.method, 'is_private', False)
-    self.method = col_info.method
+    self.update_method(col_info.method)
 
     # Always initialize to include the special empty record at index 0.
     self.growto(1)
@@ -82,7 +82,11 @@ class BaseColumn(object):
     'method' function. The method may refer to variables in the generated "usercode" module, and
     it's important that all such references are to the rebuilt "usercode" module.
     """
-    self.method = method
+    if not self._is_formula and method:
+      # Include the current value of the cell as the third parameter (to default formulas).
+      self.method = lambda rec, table: method(rec, table, self.get_cell_value(int(rec)))
+    else:
+      self.method = method
 
   def is_formula(self):
     """
@@ -394,6 +398,21 @@ class BaseReferenceColumn(BaseColumn):
   def sample_value(self):
     return self._target_table.sample_record
 
+  def get_updates_for_removed_target_rows(self, target_row_ids):
+    """
+    Returns a list of pairs of (row_id, new_value) for values in this column that need to be
+    updated when target_row_ids are removed from the referenced table.
+    """
+    affected_rows = sorted(self._relation.get_affected_rows(target_row_ids))
+    return [(row_id, self._raw_get_without(row_id, target_row_ids)) for row_id in affected_rows]
+
+  def _raw_get_without(self, _row_id, _target_row_ids):
+    """
+    Returns a Ref or RefList cell value with the specified target_row_ids removed, assuming one of
+    them is actually present in the value. For References, it just leaves the default value.
+    """
+    return self.getdefault()
+
 
 class ReferenceColumn(BaseReferenceColumn):
   """
@@ -439,6 +458,14 @@ class ReferenceListColumn(BaseReferenceColumn):
       return typed_value
     return self._target_table.RecordSet(self._target_table, typed_value, self._relation)
 
+  def _raw_get_without(self, row_id, target_row_ids):
+    """
+    Returns the RefList cell value at row_id with the specified target_row_ids removed.
+    """
+    raw = self.raw_get(row_id)
+    if self.type_obj.is_right_type(raw):
+      raw = [r for r in raw if r not in target_row_ids] or None
+    return raw
 
 # Set up the relationship between usertypes objects and column objects.
 usertypes.BaseColumnType.ColType = DataColumn

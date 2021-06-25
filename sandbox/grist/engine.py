@@ -29,7 +29,9 @@ import logger
 import match_counter
 import objtypes
 from objtypes import strict_equal
+from relation import SingleRowsIdentityRelation
 import schema
+from schema import RecalcWhen
 import table as table_module
 import useractions
 import column
@@ -119,6 +121,7 @@ class Engine(object):
         - Then load_table() must be called once for each of the other tables (both special tables,
           and user tables), with that table's data (no need to call it for empty tables).
         - Finally, load_done() must be called once to finish initialization.
+          NOTE: instead of load_done(), Grist now applies the no-op 'Calculate' user action.
 
     Other methods:
 
@@ -218,6 +221,13 @@ class Engine(object):
     # Create the object that knows how to interpret UserActions.
     self.user_actions = useractions.UserActions(self)
 
+    # Map from node to set of row_ids, for cells that should not be recalculated because they are
+    # data columns manually changed in this UserAction.
+    self._prevent_recompute_map = {}
+
+    # Whether any trigger columns may need to have their dependencies rebuilt.
+    self._have_trigger_columns_changed = True
+
     # A flag for when a useraction causes a schema change, to verify consistency afterwards.
     self._schema_updated = False
 
@@ -278,6 +288,7 @@ class Engine(object):
   def load_done(self):
     """
     Finalizes the loading of data into this Engine.
+    NOTE: instead of load_done(), Grist now applies the no-op 'Calculate' user action.
     """
     self._bring_all_up_to_date()
 
@@ -728,6 +739,11 @@ class Engine(object):
     if dirty_rows == depend.ALL_ROWS:
       dirty_rows = SortedSet(r for r in table.row_ids if r not in exclude)
       self.recompute_map[node] = dirty_rows
+
+    exempt = self._prevent_recompute_map.get(node, None)
+    if exempt:
+      dirty_rows.difference_update(exempt)
+
     require_rows = sorted(require_rows or [])
 
     # Prevents dependency creation for non-formula nodes. A non-formula column may include a
@@ -984,6 +1000,13 @@ class Engine(object):
     self.dep_graph.invalidate_deps(col_obj.node, row_ids, self.recompute_map,
                                    include_self=include_self)
 
+  def prevent_recalc(self, node, row_ids, should_prevent):
+    prevented = self._prevent_recompute_map.setdefault(node, set())
+    if should_prevent:
+      prevented.update(row_ids)
+    else:
+      prevented.difference_update(row_ids)
+
   def rebuild_usercode(self):
     """
     Compiles the usercode from the schema, and updates all tables and columns to match.
@@ -1015,6 +1038,9 @@ class Engine(object):
     # Update docmodel with references to the updated metadata tables.
     self.docmodel.update_tables()
 
+    # Set flag to rebuild dependencies of trigger columns after any potential renames, etc.
+    self.trigger_columns_changed()
+
     # The order here is important to make sure that when we update the usercode,
     # we don't overwrite with outdated usercode entries
     self._repl.locals.update(self.gencode.usercode.__dict__)
@@ -1023,6 +1049,8 @@ class Engine(object):
     # Update the context used for autocompletions.
     self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)
 
+  def trigger_columns_changed(self):
+    self._have_trigger_columns_changed = True
 
   def _update_table_model(self, table, user_table):
     """
@@ -1058,6 +1086,35 @@ class Engine(object):
       for c in table.get_helper_columns():
         self.delete_column(c)
 
+  def _maybe_update_trigger_dependencies(self):
+    if not self._have_trigger_columns_changed:
+      return
+    self._have_trigger_columns_changed = False
+
+    # Without being very smart, if trigger-formula dependencies change for any columns, rebuild
+    # them for all columns. Specifically, we will create nodes and edges in the dependency graph.
+    for table_id, table in self.tables.iteritems():
+      if table_id.startswith('_grist_'):
+        # We can skip metadata tables, there are no trigger-formulas there.
+        continue
+      for col_id, col_obj in table.all_columns.iteritems():
+        if col_obj.is_formula() or not col_obj.has_formula():
+          continue
+        col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+
+        out_node = depend.Node(table_id, col_id)
+        rel = SingleRowsIdentityRelation(table_id)
+        self.dep_graph.clear_dependencies(out_node)
+
+        # When we have explicit dependencies, add them to dep_graph.
+        if col_rec.recalcWhen == RecalcWhen.DEFAULT:
+          for dc in col_rec.recalcDeps:
+            in_node = depend.Node(table_id, dc.colId)
+            edge = depend.Edge(out_node, in_node, rel)
+            if edge not in self._recompute_edge_set:
+              self._recompute_edge_set.add(edge)
+              self.dep_graph.add_edge(*edge)
+
 
   def delete_column(self, col_obj):
     # Remove the column from its table.
@@ -1067,7 +1124,8 @@ class Engine(object):
     # Invalidate anything that depends on the column being deleted. The column may be gone from
     # the table itself, so we use invalidate_column directly.
     self.invalidate_column(col_obj)
-    # Remove reference to the column from the recompute_map.
+    # Remove reference to the column from the dependency graph and the recompute_map.
+    self.dep_graph.clear_dependencies(col_obj.node)
     self.recompute_map.pop(col_obj.node, None)
     # Mark the column to be destroyed at the end of applying this docaction.
     self._gone_columns.append(col_obj)
@@ -1103,6 +1161,11 @@ class Engine(object):
     try:
       for user_action in user_actions:
         self._schema_updated = False
+
+        # At the start of each useraction, clear exemptions. These are used to avoid recalcs of
+        # trigger-formula columns for which the same useractions sets an explicit value.
+        self._prevent_recompute_map.clear()
+
         self.out_actions.retValues.append(self._apply_one_user_action(user_action))
 
         # If the UserAction touched the schema, check that it is now consistent with metadata.
@@ -1134,6 +1197,9 @@ class Engine(object):
         six.reraise(*exc_info)
       else:
         raise
+
+    # If needed, rebuild dependencies for trigger formulas.
+    self._maybe_update_trigger_dependencies()
 
     # Note that recalculations and auto-removals get included after processing all useractions.
     self._bring_all_up_to_date()

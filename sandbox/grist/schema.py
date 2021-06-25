@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 21
+SCHEMA_VERSION = 22
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -78,6 +78,14 @@ def schema_create_actions():
       # E.g. Foo.person may have a visibleCol pointing to People.Name, with the displayCol
       # pointing to Foo._gristHelper_DisplayX column with the formula "$person.Name".
       make_column("visibleCol",       "Ref:_grist_Tables_column"),
+
+      # Instructions when to recalculate the formula on a column with isFormula=False (previously
+      # known as a "default formula"). Values are RecalcWhen constants defined below.
+      make_column("recalcWhen",       "Int"),
+
+      # List of fields that should trigger a calculation of a formula in a data column. Only
+      # applies when recalcWhen is RecalcWhen.DEFAULT, and defaults to the empty list.
+      make_column("recalcDeps",       "RefList:_grist_Tables_column"),
     ]),
 
     # DEPRECATED: Previously used to keep import options, and allow the user to change them.
@@ -283,6 +291,17 @@ def schema_create_actions():
       make_column('child',  'Ref:_grist_ACLPrincipals'),
     ]),
   ]
+
+
+class RecalcWhen(object):
+  """
+  Constants for column's recalcWhen field, which determine when a formula associated with a data
+  column would get calculated.
+  """
+  DEFAULT = 0         # Calculate on new records or when any field in recalcDeps changes. If
+                      # recalcDeps includes this column itself, it's a "data-cleaning" formula.
+  NEVER = 1           # Don't calculate automatically (but user can trigger manually)
+  MANUAL_UPDATES = 2  # Calculate on new records and on manual updates to any data field.
 
 
 # These are little structs to represent the document schema that's used in code generation.
