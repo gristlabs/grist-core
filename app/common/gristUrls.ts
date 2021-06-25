@@ -14,7 +14,7 @@ export type IDocPage = number | 'new' | 'code' | 'acl';
 export const HomePage = StringUnion('all', 'workspace', 'trash');
 export type IHomePage = typeof HomePage.type;
 
-export const WelcomePage = StringUnion('user', 'info', 'teams');
+export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify');
 export type WelcomePage = typeof WelcomePage.type;
 
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.

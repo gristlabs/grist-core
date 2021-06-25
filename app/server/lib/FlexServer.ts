@@ -989,6 +989,11 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
+    // These are some special-purpose pre-sign-up welcome pages, with no middleware.
+    this.app.get(['/welcome/signup', '/welcome/verify'], expressWrap(async (req, resp, next) => {
+      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
+    }));
+
     this.app.get('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
     }));

@@ -52,6 +52,11 @@ export function getLoginUrl(nextUrl: string = _getCurrentUrl()): string {
   return _getLoginLogoutUrl('login', nextUrl);
 }
 
+// Get url for the signup page, which will then redirect to nextUrl (current page by default).
+export function getSignupUrl(nextUrl: string = _getCurrentUrl()): string {
+  return _getLoginLogoutUrl('signup', nextUrl);
+}
+
 // Get url for the logout page, which will then redirect to nextUrl (signed-out page by default).
 export function getLogoutUrl(nextUrl: string = getSignedOutUrl()): string {
   return _getLoginLogoutUrl('logout', nextUrl);
@@ -79,7 +84,7 @@ function _getCurrentUrl(): string {
 }
 
 // Helper for getLoginUrl()/getLogoutUrl().
-function _getLoginLogoutUrl(method: 'login'|'logout'|'signin', nextUrl: string): string {
+function _getLoginLogoutUrl(method: 'login'|'logout'|'signin'|'signup', nextUrl: string): string {
   const startUrl = new URL(window.location.href);
   startUrl.pathname = '/' + method;
   startUrl.searchParams.set('next', nextUrl);
