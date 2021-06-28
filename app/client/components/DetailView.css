@@ -52,15 +52,32 @@
 }
 
 .detail_row_num {
-  text-align: right;
   font-size: var(--grist-x-small-font-size);
   font-weight: normal;
   color: var(--grist-color-slate);
   padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.detail_row_num .menu_toggle  {
+  margin-left: 0.5rem;
+}
+
+.detail_row_num:hover .menu_toggle,
+.detail_row_num .menu_toggle.weasel-popup-open {
+  color: var(--color-link-default);
+}
+
+/* hide menu on layout editor */
+.detailview_layout_editor .menu_toggle {
+  visibility: hidden !important;
 }
 
 .detail_row_num::before {
   content: "ROW ";
+  margin-right: 2px;
 }
 
 .detail-left.disabled, .detail-right.disabled, .detail-add-btn.disabled {
@@ -198,6 +215,10 @@
   overflow: hidden;
   margin-left: 3px;     /* to align with the .field_clip content */
   margin-right: -1px;   /* allow labels to overflow into the padding */
+}
+
+.detail_theme_record_compact .menu_toggle {
+  transform: translateY(-1px);
 }
 
 /*** form theme ***/

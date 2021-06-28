@@ -31,42 +31,6 @@ export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
       }, `Show column ${col.label()}`))
   ];
 }
-
-interface IRowContextMenu {
-  disableInsert: boolean;
-  disableDelete: boolean;
-  isViewSorted: boolean;
-}
-
-export function RowContextMenu({ disableInsert, disableDelete, isViewSorted }: IRowContextMenu) {
-  const result: Element[] = [];
-  if (isViewSorted) {
-    // When the view is sorted, any newly added records get shifts instantly at the top or
-    // bottom. It could be very confusing for users who might expect the record to stay above or
-    // below the active row. Thus in this case we show a single `insert row` command.
-    result.push(
-      menuItemCmd(allCommands.insertRecordAfter, 'Insert row',
-        dom.cls('disabled', disableInsert)),
-    );
-  } else {
-    result.push(
-      menuItemCmd(allCommands.insertRecordBefore, 'Insert row above',
-        dom.cls('disabled', disableInsert)),
-      menuItemCmd(allCommands.insertRecordAfter, 'Insert row below',
-        dom.cls('disabled', disableInsert)),
-    );
-  }
-  result.push(
-    menuDivider(),
-    menuItemCmd(allCommands.deleteRecords, 'Delete',
-      dom.cls('disabled', disableDelete)),
-  );
-  result.push(
-    menuDivider(),
-    menuItemCmd(allCommands.copyLink, 'Copy anchor link'));
-  return result;
-}
-
 interface IMultiColumnContextMenu {
   // For multiple selection, true/false means the value applies to all columns, 'mixed' means it's
   // true for some columns, but not all.

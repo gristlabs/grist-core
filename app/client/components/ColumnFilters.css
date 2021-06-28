@@ -6,41 +6,13 @@
 /* Make visible if open or in column header hover */
 .g-column-menu-btn.open,
 .g-column-menu-btn.active,
-.column_name:hover .g-column-menu-btn {
+.column_name:hover .g-column-menu-btn,
+.column_name .g-column-menu-btn.weasel-popup-open {
   visibility: visible;
 }
 
 .g-column-menu-btn.hide-on-inactive:not(.active) {
   visibility: hidden;
-}
-
-.g-column-menu-btn > span.glyphicon {
-  padding: 1px;
-  margin-left: 2px;
-  margin-right: 2px;
-  background-color: #fff;
-  color: #999;
-  border: 1px solid #999;
-  border-radius: 3px;
-  font-size: 1rem;
-}
-
-.g-column-menu-btn.left-btn > span.glyphicon {
-  margin: 0 0 0 2px;
-}
-
-.g-column-menu-btn.right-btn > span.glyphicon {
-  margin: 0 2px 0 0;
-}
-
-.g-column-menu-btn:hover > span.glyphicon {
-  color: #333;
-  border: 1px solid #333;
-}
-
-.g-column-menu-btn.active > span.glyphicon {
-  color: #33f;
-  border-color: #33f;
 }
 
 .g-column-menu {

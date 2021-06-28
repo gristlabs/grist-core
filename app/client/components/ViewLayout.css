@@ -3,6 +3,10 @@
   flex: 1 1 0px;
 }
 
+.viewsection_buttons {
+  margin-left: 4px;
+}
+
 .viewsection_title {
   flex-shrink: 0;
   align-items: baseline;

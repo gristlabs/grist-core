@@ -8,8 +8,30 @@ import {dom} from 'grainjs';
  * Returns a list of menu items for a view section.
  */
 export function makeViewLayoutMenu(viewModel: ViewRec, viewSection: ViewSectionRec, isReadonly: boolean) {
-  const gristDoc = viewSection.viewInstance.peek()!.gristDoc;
+  const viewInstance = viewSection.viewInstance.peek()!;
+  const gristDoc = viewInstance.gristDoc;
+
+  // get current row index from cursor
+  const cursorRow = viewInstance.cursor.rowIndex.peek();
+  // get row id from current data
+  // rowId can be string - it is wrongly typed in cursor and in viewData
+  const rowId = (cursorRow !== null ? viewInstance.viewData.getRowId(cursorRow) : null) as string|null|number;
+  const isAddRow = rowId === 'new';
+
+  const contextMenu = [
+    menuItemCmd(allCommands.deleteRecords,
+      'Delete record',
+      testId('section-delete-card'),
+      dom.cls('disabled', isReadonly || isAddRow)),
+    menuItemCmd(allCommands.copyLink,
+      'Copy anchor link',
+      testId('section-card-link'),
+    ),
+    menuDivider(),
+  ];
+
   return [
+    dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
     menuItemCmd(allCommands.printSection, 'Print widget', testId('print-section')),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       'Download as CSV', testId('download-section')),

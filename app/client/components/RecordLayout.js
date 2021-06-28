@@ -32,9 +32,12 @@ var dispose = require('../lib/dispose');
 var dom = require('../lib/dom');
 var {Delay} = require('../lib/Delay');
 var kd = require('../lib/koDom');
-
 var Layout = require('./Layout');
 var RecordLayoutEditor = require('./RecordLayoutEditor');
+var commands = require('./commands');
+var {menuToggle} = require('app/client/ui/MenuToggle');
+var {menu} = require('../ui2018/menus');
+var {testId} = require('app/client/ui2018/cssVars');
 
 /**
  * Construct a RecordLayout.
@@ -47,6 +50,7 @@ var RecordLayoutEditor = require('./RecordLayoutEditor');
 function RecordLayout(options) {
   this.viewSection = options.viewSection;
   this.buildFieldDom = options.buildFieldDom;
+  this.buildContextMenu = options.buildContextMenu;
   this.isEditingLayout = ko.observable(false);
   this.editIndex = ko.observable(0);
   this.layoutEditor = ko.observable(null);    // RecordLayoutEditor when one is active.
@@ -328,7 +332,23 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
       this.layoutEditor.peek().dispose();
       this.layoutEditor(null);
     }) : null,
-    dom('div.detail_row_num', kd.text(() => (row._index() + 1))),
+    dom('div.detail_row_num',
+      kd.text(() => (row._index() + 1)),
+      dom.on('contextmenu', ev => {
+        // This is a little hack to position the menu the same way as with a click,
+        // the same hack as on a column menu.
+        ev.preventDefault();
+        ev.currentTarget.querySelector('.menu_toggle').click();
+      }),
+      menuToggle(null,
+        dom.on('click', () => {
+          this.viewSection.hasFocus(true);
+          commands.allCommands.setCursor.run(row);
+        }),
+        menu(() => this.buildContextMenu(row)),
+        testId('card-menu-trigger')
+      )
+    ),
     dom('div.g_record_detail_inner', layout.rootElem)
   );
 };

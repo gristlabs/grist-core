@@ -13,6 +13,7 @@ var BaseView      = require('./BaseView');
 var CopySelection = require('./CopySelection');
 var RecordLayout  = require('./RecordLayout');
 var commands      = require('./commands');
+const {RowContextMenu} = require('../ui/RowContextMenu');
 
 /**
  * DetailView component implements a list of record layouts.
@@ -28,6 +29,7 @@ function DetailView(gristDoc, viewSectionModel) {
   this.recordLayout = this.autoDispose(RecordLayout.create({
     viewSection: this.viewSection,
     buildFieldDom: this.buildFieldDom.bind(this),
+    buildContextMenu : this.buildContextMenu.bind(this),
     resizeCallback: () => {
       if (!this._isSingle) {
         this.scrolly().updateSize();
@@ -205,6 +207,15 @@ DetailView.prototype.getSelection = function() {
   );
 };
 
+DetailView.prototype.buildContextMenu = function(row, options) {
+  const defaults = {
+    disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
+    disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || row._isAddRow()),
+    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
+  };
+  return RowContextMenu(options ? Object.assign(defaults, options) : defaults);
+}
+
 /**
  * Builds the DOM for the given field of the given row.
  * @param {MetaRowModel|String} field: Model for the field to render. For a new field being added,
@@ -262,6 +273,8 @@ DetailView.prototype.buildDom = function() {
     // Add .detailview_single when showing a single card or while editing layout.
     kd.toggleClass('detailview_single',
       () => this._isSingle || this.recordLayout.isEditingLayout()),
+    // Add a marker class that editor is active - used for hiding context menu toggle.
+    kd.toggleClass('detailview_layout_editor', this.recordLayout.isEditingLayout),
     kd.maybe(this.recordLayout.isEditingLayout, () => {
       const rowId = this.viewData.getRowId(this.recordLayout.editIndex.peek());
       const record = this.getRenderedRowModel(rowId);

@@ -83,6 +83,21 @@
   cursor: pointer;
 }
 
+/* Menu toggle on a row */
+.gridview_data_row_num .menu_toggle {
+  visibility: hidden;
+  position: absolute;
+  top: 2px;
+  right: 0px;
+}
+
+/* Show on hover or when menu is opened */
+.gridview_data_row_num:hover .menu_toggle,
+.gridview_data_row_num .menu_toggle.weasel-popup-open  {
+  visibility: visible;
+}
+
+
 @media print {
   /* For printing, !important tag is needed for background colors to be respected; but normally,
    * do not want !important, as it interferes with row selection.
@@ -339,8 +354,8 @@
 
 .g-column-main-menu {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 3px;
+  right: 2px;
 }
 
 

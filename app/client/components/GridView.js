@@ -29,9 +29,13 @@ const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 const {Holder} = require('grainjs');
 const {menu} = require('../ui2018/menus');
 const {calcFieldsCondition} = require('../ui/GridViewMenus');
-const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, RowContextMenu, freezeAction} = require('../ui/GridViewMenus');
+const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
+const {RowContextMenu} = require('../ui/RowContextMenu');
+
 const {setPopupToCreateDom} = require('popweasel');
 const {testId} = require('app/client/ui2018/cssVars');
+const {menuToggle} = require('app/client/ui/MenuToggle');
+
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
 // Anything longer than this time (in milliseconds) should be interpreted as a drag
@@ -901,8 +905,9 @@ GridView.prototype.buildDom = function() {
                   kf.editableLabel(field.displayLabel, isEditingLabel, renameCommands),
                   dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true)
                 ),
-                this.isPreview ? null : dom('div.g-column-main-menu.g-column-menu-btn.right-btn',
-                  dom('span.glyphicon.glyphicon-triangle-bottom'),
+                this.isPreview ? null : menuToggle(null,
+                  kd.cssClass('g-column-main-menu'),
+                  kd.cssClass('g-column-menu-btn'),
                   // Prevent mousedown on the dropdown triangle from initiating column drag.
                   dom.on('mousedown', () => false),
                   // Select the column if it's not part of a multiselect.
@@ -993,17 +998,26 @@ GridView.prototype.buildDom = function() {
             );
           }
         }),
+        dom.on('contextmenu', ev => {
+          // This is a little hack to position the menu the same way as with a click,
+          // the same hack as on a column menu.
+          ev.preventDefault();
+          ev.currentTarget.querySelector('.menu_toggle').click();
+        }),
+        menuToggle(null,
+          dom.on('click', ev => self.maybeSelectRow(ev.currentTarget.parentNode, row.getRowId())),
+          menu(() => RowContextMenu({
+            disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
+            disableDelete: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.getSelection().onlyAddRowSelected()),
+            isViewSorted: self.viewSection.activeSortSpec.peek().length > 0,
+          }), { trigger: ['click'] }),
+          // Prevent mousedown on the dropdown triangle from initiating row drag.
+          dom.on('mousedown', () => false),
+          testId('row-menu-trigger'),
+        ),
         kd.toggleClass('selected', () =>
           !row._isAddRow() && self.cellSelector.isRowSelected(row._index())),
-        dom.on('contextmenu', ev => self.maybeSelectRow(ev.currentTarget, row.getRowId())),
-        menu(ctl => RowContextMenu({
-          disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
-          disableDelete: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.getSelection().onlyAddRowSelected()),
-          isViewSorted: self.viewSection.activeSortSpec.peek().length > 0,
-        }), { trigger: ['contextmenu'] }),
       ),
-
-
       dom('div.record',
         kd.toggleClass('record-add', row._isAddRow),
         kd.style('borderLeftWidth', v.borderWidthPx),
@@ -1379,6 +1393,8 @@ GridView.prototype._columnFilterMenu = function(ctl, field) {
 };
 
 GridView.prototype.maybeSelectColumn = function (elem, field) {
+  // Change focus before running command so that the correct viewsection's cursor is moved.
+  this.viewSection.hasFocus(true);
   const selectedColIds = this.getSelection().colIds;
   if (selectedColIds.length > 1 && selectedColIds.includes(field.column().colId())) {
     return; // No need to select the column because it's included in the multi-selection
@@ -1387,6 +1403,8 @@ GridView.prototype.maybeSelectColumn = function (elem, field) {
 };
 
 GridView.prototype.maybeSelectRow = function(elem, rowId) {
+  // Change focus before running command so that the correct viewsection's cursor is moved.
+  this.viewSection.hasFocus(true);
   // If the clicked row was not already in the selection, move the selection to the row.
   if (!this.getSelection().rowIds.includes(rowId)) {
     this.assignCursor(elem, selector.ROW);
