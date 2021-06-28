@@ -266,7 +266,11 @@ export class FieldBuilder extends Disposable {
       cssLabel('DATA FROM TABLE'),
       cssRow(
         dom.autoDispose(allTables),
-        select(fromKo(this._refTableId), allTables),
+        select(fromKo(this._refTableId), allTables, {
+          // Disallow changing the destination table when the column should not be modified
+          // (specifically when it's a group-by column of a summary table).
+          disabled: this.origColumn.disableModifyBase,
+        }),
         testId('ref-table-select')
       )
     ];

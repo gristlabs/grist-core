@@ -4,6 +4,7 @@ import re
 
 import six
 
+from column import is_visible_column
 import logger
 log = logger.Logger(__name__, logger.INFO)
 
@@ -20,7 +21,8 @@ def _make_col_info(col=None, **values):
 
 def _get_colinfo_dict(col_info, with_id=False):
   """Return a dict suitable to use with AddColumn or AddTable (when with_id=True) actions."""
-  col_values = {k: v for k, v in six.iteritems(col_info._asdict()) if v is not None and k != 'colId'}
+  col_values = {k: v for k, v in six.iteritems(col_info._asdict())
+                     if v is not None and k != 'colId'}
   if with_id:
     col_values['id'] = col_info.colId
   return col_values
@@ -140,7 +142,10 @@ class SummaryActions(object):
     if created:
       # Set the summarySourceCol field for all the group-by columns in the table.
       self.docmodel.update(groupby_columns,
-                           summarySourceCol=[c.id for c in source_groupby_columns])
+                           summarySourceCol=[c.id for c in source_groupby_columns],
+                           visibleCol=[c.visibleCol for c in source_groupby_columns])
+      for col in groupby_columns:
+        self.useractions.maybe_copy_display_formula(col.summarySourceCol, col)
       assert summary_table.summaryKey == key
 
     return (summary_table, groupby_columns, formula_columns)
@@ -242,7 +247,7 @@ class SummaryActions(object):
     # same-named column with the sum of the values in the group.
     groupby_col_ids = {c.colId for c in source_groupby_columns}
     for col in source_table.columns:
-      if col.colId in groupby_col_ids or col.colId == 'group':
+      if col.colId in groupby_col_ids or col.colId == 'group' or not is_visible_column(col.colId):
         continue
       c = self._find_sister_column(source_table, col.colId)
       if c:

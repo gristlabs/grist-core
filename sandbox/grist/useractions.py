@@ -567,7 +567,8 @@ class UserActions(object):
       if col.summarySourceCol:
         underlying = col_updates.get(col.summarySourceCol, {})
         if not all(value == getattr(col, key) or has_value(underlying, key, value)
-                   for key, value in six.iteritems(values)):
+                   for key, value in six.iteritems(values)
+                   if key not in ('displayCol', 'visibleCol')):
           raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
@@ -1216,10 +1217,7 @@ class UserActions(object):
                           displayCol=[dst_col.displayCol if src_col.displayCol else 0])
 
     # Copy over display column as well, if the source column has one.
-    # TODO: Should use the same formula renaming logic that is used when renaming columns.
-    if src_col.displayCol:
-      self.SetDisplayFormula(dst_col.parentId.tableId, None, dst_col.id,
-        re.sub((r'\$%s\b' % src_col.colId), '$' + dst_col.colId, src_col.displayCol.formula))
+    self.maybe_copy_display_formula(src_col, dst_col)
 
     # Get the values from the columns and check which have changed.
     all_row_ids = list(table.row_ids)
@@ -1235,6 +1233,16 @@ class UserActions(object):
     # Produce the BulkUpdateRecord update.
     self._do_doc_action(actions.BulkUpdateRecord(table_id, changed_rows,
                                                  {dst_col_id: changed_values}))
+
+
+  def maybe_copy_display_formula(self, src_col, dst_col):
+    """
+    If src_col has a displayCol set, create an equivalent one for dst_col.
+    """
+    # TODO: Should use the same formula renaming logic that is used when renaming columns.
+    if src_col.displayCol:
+      self.SetDisplayFormula(dst_col.parentId.tableId, None, dst_col.id,
+        re.sub((r'\$%s\b' % src_col.colId), '$' + dst_col.colId, src_col.displayCol.formula))
 
   #----------------------------------------
   # User actions on tables.
