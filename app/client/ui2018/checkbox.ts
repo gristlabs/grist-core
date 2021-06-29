@@ -120,7 +120,7 @@ export const cssLabelText = styled('span', `
 type CheckboxArg = DomArg<HTMLInputElement>;
 
 function checkbox(
-  obs: Observable<boolean>, cssCheckbox: typeof cssCheckboxSquare, label: string = '',  ...domArgs: CheckboxArg[]
+  obs: Observable<boolean>, cssCheckbox: typeof cssCheckboxSquare, label: DomArg = '',  ...domArgs: CheckboxArg[]
 ) {
   return cssLabel(
     cssCheckbox(
@@ -141,11 +141,11 @@ export function circleCheckbox(obs: Observable<boolean>, ...domArgs: CheckboxArg
   return checkbox(obs, cssCheckboxCircle, '', ...domArgs);
 }
 
-export function labeledSquareCheckbox(obs: Observable<boolean>, label: string, ...domArgs: CheckboxArg[]) {
+export function labeledSquareCheckbox(obs: Observable<boolean>, label: DomArg, ...domArgs: CheckboxArg[]) {
   return checkbox(obs, cssCheckboxSquare, label, ...domArgs);
 }
 
-export function labeledCircleCheckbox(obs: Observable<boolean>, label: string, ...domArgs: CheckboxArg[]) {
+export function labeledCircleCheckbox(obs: Observable<boolean>, label: DomArg, ...domArgs: CheckboxArg[]) {
   return checkbox(obs, cssCheckboxCircle, label, ...domArgs);
 }
 

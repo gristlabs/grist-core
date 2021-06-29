@@ -529,7 +529,7 @@ GridView.prototype._convertFormulasToData = function(selection) {
   // prevented by ACL rules).
   const fields = selection.fields.filter(f => f.column.peek().isFormula.peek());
   if (!fields.length) { return null; }
-  return this.gristDoc.convertFormulasToData(fields.map(f => f.colRef.peek()));
+  return this.gristDoc.convertIsFormula(fields.map(f => f.colRef.peek()), {toFormula: false});
 };
 
 GridView.prototype.selectAll = function() {

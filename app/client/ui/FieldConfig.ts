@@ -2,6 +2,7 @@ import type {GristDoc} from 'app/client/components/GristDoc';
 import type {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import type {CursorPos} from "app/client/components/Cursor";
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
+import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
@@ -68,7 +69,8 @@ export function buildFormulaConfig(
   owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor
 ) {
   const clearColumn = () => gristDoc.clearColumns([origColumn.id.peek()]);
-  const convertToData = () => gristDoc.convertFormulasToData([origColumn.id.peek()]);
+  const convertIsFormula =
+    (opts: {toFormula: boolean, noRecalc?: boolean}) => gristDoc.convertIsFormula([origColumn.id.peek()], opts);
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
 
   return dom.maybe(use => {
@@ -98,7 +100,7 @@ export function buildFormulaConfig(
         return [
           buildHeader('EMPTY COLUMN', () => [
             menuItem(clearColumn, 'Clear column', dom.cls('disabled', true)),
-            menuItem(convertToData, 'Make into data column'),
+            menuItem(() => convertIsFormula({toFormula: false}), 'Make into data column'),
           ]),
           buildFormulaRow(),
         ];
@@ -106,17 +108,27 @@ export function buildFormulaConfig(
         return [
           buildHeader('FORMULA COLUMN', () => [
             menuItem(clearColumn, 'Clear column'),
-            menuItem(convertToData, 'Convert to data column'),
+            menuItem(() => convertIsFormula({toFormula: false, noRecalc: true}), 'Convert to data column'),
           ]),
           buildFormulaRow(),
         ];
       } else {
         return [
-          buildHeader('DATA COLUMN', () => [
-            menuItem(clearColumn, 'Clear and make into formula'),
-          ]),
-          buildFormulaRow('Default formula'),
-          cssHintRow('Default formula for new records'),
+          buildHeader('DATA COLUMN', () => {
+            return origColumn.formula.peek() ? [
+              // If there is a formula available, offer a separate option to convert to formula
+              // without clearing it.
+              menuItem(clearColumn, 'Clear column'),
+              menuItem(() => convertIsFormula({toFormula: true}), 'Convert to formula column'),
+            ] : [
+              menuItem(clearColumn, 'Clear and make into formula'),
+            ];
+          }),
+          buildFormulaRow('Optional formula'),
+          dom.domComputed(use => Boolean(use(origColumn.formula)), (haveFormula) => haveFormula ?
+            dom.create(buildFormulaTriggers, origColumn) :
+            cssHintRow('For default values, automatic updates, and data-cleaning.')
+          )
         ];
       }
     }
@@ -238,7 +250,6 @@ const cssDropdownLabel = styled(cssInlineLabel, `
 const cssHintRow = styled('div', `
   margin: -4px 16px 8px 16px;
   color: ${colors.slate};
-  text-align: center;
 `);
 
 const cssColLabelBlock = styled('div', `

@@ -1,6 +1,7 @@
 import {Command} from 'app/client/components/commands';
 import {NeedUpgradeError, reportError} from 'app/client/models/errors';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {cssSelectBtn} from 'app/client/ui2018/select';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {commonUrls} from 'app/common/gristUrls';
@@ -278,24 +279,6 @@ const cssSelectMenuElem = styled(cssMenuElem, `
 const cssSelectBtnContainer = styled('div', `
   position: relative;
   width: 100%;
-`);
-
-const cssSelectBtn = styled('div', `
-  width: 100%;
-  height: 30px;
-  line-height: 16px;
-  background-color: white;
-  font-size: ${vars.mediumFontSize};
-  padding: 5px;
-  border: 1px solid ${colors.darkGrey};
-  color: ${colors.dark};
-  --icon-color: ${colors.dark};
-  border-radius: 3px;
-  cursor: pointer;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  display: flex;
 `);
 
 const cssSelectBtnLink = styled('div', `

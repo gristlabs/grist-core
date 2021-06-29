@@ -31,7 +31,7 @@ export const schema = {
     summarySourceCol    : "Ref:_grist_Tables_column",
     displayCol          : "Ref:_grist_Tables_column",
     visibleCol          : "Ref:_grist_Tables_column",
-    recalcWhen          : "Text",
+    recalcWhen          : "Int",
     recalcDeps          : "RefList:_grist_Tables_column",
   },
 
@@ -204,8 +204,8 @@ export interface SchemaTypes {
     summarySourceCol: number;
     displayCol: number;
     visibleCol: number;
-    recalcWhen: string;
-    recalcDeps: number[];
+    recalcWhen: number;
+    recalcDeps: ['L', ...number[]]|null;
   };
 
   "_grist_Imports": {

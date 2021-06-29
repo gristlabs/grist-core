@@ -227,6 +227,17 @@ export function getGristType(pureType: string): string {
 }
 
 /**
+ * Enum for values of columns' recalcWhen property, corresponding to Python definitions in
+ * schema.py.
+ */
+export enum RecalcWhen {
+  DEFAULT = 0,         // Calculate on new records or when any field in recalcDeps changes.
+  NEVER = 1,           // Don't calculate automatically (but user can trigger manually)
+  MANUAL_UPDATES = 2,  // Calculate on new records and on manual updates to any data field.
+}
+
+
+/**
  * Converts SQL type strings produced by the Sequelize library into its corresponding
  * Grist type. The list of types is based on an analysis of SQL type string outputs
  * produced by the Sequelize library (mostly covered in lib/data-types.js). Some

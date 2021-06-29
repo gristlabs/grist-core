@@ -3,6 +3,7 @@ import { colors, testId, vars } from 'app/client/ui2018/cssVars';
 import { textInput } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
 import { isValidHex } from "app/common/gutil";
+import { cssSelectBtn } from 'app/client/ui2018/select';
 import { Computed, Disposable, dom, DomArg, Observable, onKeyDown, styled } from "grainjs";
 import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 
@@ -315,17 +316,5 @@ const cssColorSquare = styled('div', `
 
 const cssButtonIcon = styled(cssColorSquare, `
   margin-right: 6px;
-`);
-
-const cssSelectBtn = styled('div', `
-  display: flex;
-  width: 100%;
-  height: 30px;
-  justify-content: space-between;
-  border-radius: 3px;
-  border: 1px solid #D9D9D9;
-  padding: 5px 9px;
-  user-select: none;
-  cursor: pointer;
-  background-color: white;
+  margin-left: 4px;
 `);

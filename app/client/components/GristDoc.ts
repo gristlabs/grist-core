@@ -42,6 +42,7 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
+import {RecalcWhen} from 'app/common/gristTypes';
 import {encodeQueryParams, waitObs} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
@@ -572,16 +573,20 @@ export class GristDoc extends DisposableWithEvents {
       ['BulkUpdateRecord', colRefs, {
         isFormula: colRefs.map(f => true),
         formula: colRefs.map(f => ''),
+        // Set recalc settings to defaults when emptying a column.
+        recalcWhen: colRefs.map(f => RecalcWhen.DEFAULT),
+        recalcDeps: colRefs.map(f => null),
       }]
     );
   }
 
   // Convert the given columns to data, saving the calculated values and unsetting the formulas.
-  public async convertFormulasToData(colRefs: number[]): Promise<void> {
+  public async convertIsFormula(colRefs: number[], opts: {toFormula: boolean, noRecalc?: boolean}): Promise<void> {
     return this.docModel.columns.sendTableAction(
       ['BulkUpdateRecord', colRefs, {
-        isFormula: colRefs.map(f => false),
-        formula: colRefs.map(f => ''),
+        isFormula: colRefs.map(f => opts.toFormula),
+        recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
+        recalcDeps: colRefs.map(f => null),
       }]
     );
   }

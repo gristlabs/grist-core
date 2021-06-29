@@ -457,7 +457,8 @@ class ReferenceList(BaseColumnType):
       assert value._table.table_id == self.table_id
       return objtypes.RecordList(value._row_ids, group_by=value._group_by, sort_by=value._sort_by)
     elif not value:
-      return []
+      # Represent an empty ReferenceList as None (also its default value). Formulas will see [].
+      return None
     return [Reference.do_convert(val) for val in value]
 
   @classmethod
