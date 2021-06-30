@@ -13,7 +13,7 @@ import six
 
 from acl_formula import parse_acl_formula
 import actions
-import sandbox
+from sandbox import Sandbox
 import engine
 import migrations
 import schema
@@ -22,15 +22,6 @@ import objtypes
 
 import logger
 log = logger.Logger(__name__, logger.INFO)
-
-def export(method):
-  # Wrap each method so that it logs a message that it's being called.
-  @functools.wraps(method)
-  def wrapper(*args, **kwargs):
-    log.debug("calling %s" % method.__name__)
-    return method(*args, **kwargs)
-
-  sandbox.register(method.__name__, wrapper)
 
 def table_data_from_db(table_name, table_data_repr):
   if table_data_repr is None:
@@ -51,8 +42,17 @@ def _decode_db_value(value):
   else:
     return value
 
-def main():
+def run(sandbox):
   eng = engine.Engine()
+
+  def export(method):
+    # Wrap each method so that it logs a message that it's being called.
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+      log.debug("calling %s" % method.__name__)
+      return method(*args, **kwargs)
+
+    sandbox.register(method.__name__, wrapper)
 
   @export
   def apply_user_actions(action_reprs):
@@ -113,6 +113,10 @@ def main():
   export(eng.load_done)
 
   sandbox.run()
+
+def main():
+  sandbox = Sandbox.connected_to_js_pipes()
+  run(sandbox)
 
 if __name__ == "__main__":
   main()

@@ -11,7 +11,6 @@ Usage:
 
 import os
 import marshal
-import signal
 import sys
 import traceback
 
@@ -36,10 +35,16 @@ class Sandbox(object):
   DATA = True
   EXC = False
 
-  def __init__(self):
+  def __init__(self, external_input, external_output):
     self._functions = {}
-    self._external_input = os.fdopen(3, "rb", 64*1024)
-    self._external_output = os.fdopen(4, "wb", 64*1024)
+    self._external_input = external_input
+    self._external_output = external_output
+
+  @classmethod
+  def connected_to_js_pipes(cls):
+    external_input = os.fdopen(3, "rb", 64 * 1024)
+    external_output = os.fdopen(4, "wb", 64 * 1024)
+    return cls(external_input, external_output)
 
   def _send_to_js(self, msgCode, msgBody):
     # (Note that marshal version 2 is the default; we specify it explicitly for clarity. The
@@ -87,14 +92,19 @@ class Sandbox(object):
     if break_on_response:
       raise Exception("Sandbox disconnected unexpectedly")
 
+default_sandbox = None
 
-sandbox = Sandbox()
+def get_default_sandbox():
+  global default_sandbox
+  if default_sandbox is None:
+    default_sandbox = Sandbox.connected_to_js_pipes()
+  return default_sandbox
 
 def call_external(name, *args):
-  return sandbox.call_external(name, *args)
+  return get_default_sandbox().call_external(name, *args)
 
 def register(func_name, func):
-  sandbox.register(func_name, func)
+  get_default_sandbox().register(func_name, func)
 
 def run():
-  sandbox.run()
+  get_default_sandbox().run()

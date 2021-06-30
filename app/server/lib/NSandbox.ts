@@ -12,6 +12,7 @@ import {ChildProcess, spawn, SpawnOptions} from 'child_process';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
 import * as _ from 'lodash';
+import * as fs from "fs";
 
 type SandboxMethod = (...args: any[]) => any;
 
@@ -32,6 +33,10 @@ type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
 
 // Type for basic message identifiers, available as constants in sandboxUtil.
 type MsgCode = null | true | false;
+
+// Optional root folder to store binary data sent to and from the sandbox
+// See test_replay.py
+const recordBuffersRoot = process.env.RECORD_SANDBOX_BUFFERS_DIR;
 
 export class NSandbox implements ISandbox {
   /**
@@ -92,6 +97,9 @@ export class NSandbox implements ISandbox {
 
   private _throttle: Throttle | undefined;
 
+  // Create a unique subdirectory for each sandbox process so they can be replayed separately
+  private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
+
   /*
    * Callers may listen to events from sandbox.childProc (a ChildProcess), e.g. 'close' and 'error'.
    * The sandbox listens for 'aboutToExit' event on the process, to properly shut down.
@@ -135,6 +143,11 @@ export class NSandbox implements ISandbox {
         pid: this.childProc.pid,
         logMeta: this._logMeta,
       });
+    }
+
+    if (this._recordBuffersDir) {
+      log.rawDebug(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
+      fs.mkdirSync(this._recordBuffersDir, {recursive: true});
     }
   }
 
@@ -231,7 +244,11 @@ export class NSandbox implements ISandbox {
     }
     this._marshaller.marshal(msgCode);
     this._marshaller.marshal(data);
-    return this._streamToSandbox.write(this._marshaller.dumpAsBuffer());
+    const buf = this._marshaller.dumpAsBuffer();
+    if (this._recordBuffersDir) {
+      fs.appendFileSync(path.resolve(this._recordBuffersDir, "input"), buf);
+    }
+    return this._streamToSandbox.write(buf);
   }
 
 
@@ -241,6 +258,9 @@ export class NSandbox implements ISandbox {
   private _onSandboxData(data: any) {
     this._unmarshaller.parse(data, buf => {
       const value = marshal.loads(buf, { bufferToString: true });
+      if (this._recordBuffersDir) {
+        fs.appendFileSync(path.resolve(this._recordBuffersDir, "output"), buf);
+      }
       this._onSandboxMsg(value[0], value[1]);
     });
   }
