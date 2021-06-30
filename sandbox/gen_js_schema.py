@@ -3,11 +3,7 @@
 Generates a JS schema file from sandbox/grist/schema.py.
 """
 
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), 'grist'))
-
-import schema   # pylint: disable=import-error,wrong-import-position
+import schema   # pylint: disable=import-error
 
 # These are the types that appear in Grist metadata columns.
 _ts_types = {
