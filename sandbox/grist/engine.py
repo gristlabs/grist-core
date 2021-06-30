@@ -1093,11 +1093,11 @@ class Engine(object):
 
     # Without being very smart, if trigger-formula dependencies change for any columns, rebuild
     # them for all columns. Specifically, we will create nodes and edges in the dependency graph.
-    for table_id, table in self.tables.iteritems():
+    for table_id, table in six.iteritems(self.tables):
       if table_id.startswith('_grist_'):
         # We can skip metadata tables, there are no trigger-formulas there.
         continue
-      for col_id, col_obj in table.all_columns.iteritems():
+      for col_id, col_obj in six.iteritems(table.all_columns):
         if col_obj.is_formula() or not col_obj.has_formula():
           continue
         col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)

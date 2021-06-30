@@ -338,9 +338,10 @@ class UserActions(object):
     for col_id in table.all_columns:
       if col_id in column_values:
         continue
-      col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
-      if col_rec.recalcWhen == RecalcWhen.NEVER:
-        continue
+      if not table_id.startswith('_grist_'):
+        col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+        if col_rec.recalcWhen == RecalcWhen.NEVER:
+          continue
       recalc_cols.add(col_id)
 
     self._engine.invalidate_records(table_id, filled_row_ids, data_cols_to_recompute=recalc_cols)
@@ -376,7 +377,7 @@ class UserActions(object):
     table = self._engine.tables[table_id]
     column_values = action[2]
     if column_values:     # Only if this is a non-trivial update.
-      for col_id, col_obj in table.all_columns.iteritems():
+      for col_id, col_obj in six.iteritems(table.all_columns):
         if col_obj.is_formula() or not col_obj.has_formula():
           continue
         col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
