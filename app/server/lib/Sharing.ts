@@ -1,7 +1,13 @@
-import {ActionBundle, LocalActionBundle, UserActionBundle} from 'app/common/ActionBundle';
-import {ActionInfo, Envelope, getEnvContent} from 'app/common/ActionBundle';
+import {
+  ActionBundle,
+  ActionInfo,
+  Envelope,
+  getEnvContent,
+  LocalActionBundle,
+  UserActionBundle
+} from 'app/common/ActionBundle';
 import {DocAction, UserAction} from 'app/common/DocActions';
-import {allToken, Peer} from 'app/common/sharing';
+import {allToken} from 'app/common/sharing';
 import {timeFormat} from 'app/common/timeFormat';
 import * as log from 'app/server/lib/log';
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -51,16 +57,6 @@ export class Sharing {
     this._workCoordinator = new WorkCoordinator(() => this._doNextStep());
   }
 
-  /** Initialize the sharing for a previously-shared doc. */
-  public async openSharedDoc(hub: any, docId: string): Promise<void> {
-    throw new Error('openSharedDoc not implemented');
-  }
-
-  /** Initialize the sharing for a newly-shared doc. */
-  public async createSharedDoc(hub: any, docId: string, docName: string, peers: Peer[]): Promise<void> {
-    throw new Error('openSharedDoc not implemented');
-  }
-
   /**
    * Returns whether this doc is shared. It's shared if and only if HubDocClient is set (though it
    * may be disconnected).
@@ -76,10 +72,6 @@ export class Sharing {
 
   public async sendLocalAction(): Promise<void> {
     throw new Error('sendLocalAction not implemented');
-  }
-
-  public async shareDoc(docName: string, peers: Peer[]): Promise<void> {
-    throw new Error('shareDoc not implemented');
   }
 
   public async removeInstanceFromDoc(): Promise<string> {

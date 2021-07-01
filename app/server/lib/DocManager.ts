@@ -1,23 +1,24 @@
 import * as pidusage from '@gristlabs/pidusage';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
-import noop = require('lodash/noop');
 import * as path from 'path';
 
 import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} from 'app/common/DocListAPI';
-import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
 import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer,
-        isSingleUserMode} from 'app/server/lib/Authorizer';
+import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {getDocSessionCachedDoc, makeExceptionalDocSession, makeOptDocSession} from 'app/server/lib/DocSession';
-import {OptDocSession} from 'app/server/lib/DocSession';
+import {
+  getDocSessionCachedDoc,
+  makeExceptionalDocSession,
+  makeOptDocSession,
+  OptDocSession
+} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -26,6 +27,7 @@ import * as log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import noop = require('lodash/noop');
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -121,15 +123,6 @@ export class DocManager extends EventEmitter {
     const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, docId);
     await activeDoc.addInitialTable(docSession);
     return activeDoc.docName;
-  }
-
-  /**
-   * Download a shared doc by creating a new doc and applying to it the shared doc snapshot actions.
-   * Also marks the invite to the doc as ignored, since it has already been accepted.
-   * @returns {Promise:String} The name of the new document.
-   */
-  public async downloadSharedDoc(client: Client, docId: string, docName: string): Promise<string> {
-    throw new Error('downloadSharedDoc not implemented');
   }
 
   /**
@@ -415,23 +408,6 @@ export class DocManager extends EventEmitter {
   public isAnonymous(userId: number): boolean {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
     return userId === this._homeDbManager.getAnonymousUserId();
-  }
-
-  /**
-   * Helper function for creating a new shared document given the doc snapshot bundles received
-   * from the sharing hub.
-   * @param {String} basenameHint: Suggested base name to use (no directory, no extension).
-   * @param {String} docId: The docId of the doc received from the hub.
-   * @param {String} instanceId: The user instanceId creating the doc.
-   * @param {EncActionBundleFromHub[]} encBundles: The action bundles making up the doc snapshot.
-   * @returns {Promise:ActiveDoc} ActiveDoc for the newly created document.
-   */
-  protected async _createNewSharedDoc(basenameHint: string, docId: string, instanceId: string,
-                                      encBundles: EncActionBundleFromHub[]): Promise<ActiveDoc> {
-    const docName = await this._createNewDoc(basenameHint);
-    return mapSetOrClear(this._activeDocs, docName,
-                         this._createActiveDoc({client: null}, docName)
-                         .then(newDoc => newDoc.downloadSharedDoc(docId, instanceId, encBundles)));
   }
 
   private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {

@@ -743,7 +743,6 @@ export class FlexServer implements GristServer {
     this.comm = new Comm(this.server, {
       settings: this.settings,
       sessions: this.sessions,
-      instanceStore: null,   // no instanceStore
       hosts: this._hosts,
       httpsServer: this.httpsServer,
     });
@@ -846,7 +845,7 @@ export class FlexServer implements GristServer {
 
   public async addTestingHooks(workerServers?: FlexServer[]) {
     if (process.env.GRIST_TESTING_SOCKET) {
-      await startTestingHooks(process.env.GRIST_TESTING_SOCKET, this.port, null!, this.comm, this,
+      await startTestingHooks(process.env.GRIST_TESTING_SOCKET, this.port, this.comm, this,
                               workerServers || []);
       this._hasTestingHooks = true;
     }
@@ -900,16 +899,7 @@ export class FlexServer implements GristServer {
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
 
-    if (isSingleUserMode()) {
-      // Load standalone stuff only if needed.  Hosted grist doesn't currently need basket,
-      // sharing, etc.
-      const extras = await import('app/server/lib/StandaloneExtras');
-      this.electronServerMethods = extras.addStandaloneMethods({
-        flexServer: this,
-        docManager: this._docManager,
-        storageManager: this._storageManager,
-      });
-    } else {
+    if (!isSingleUserMode()) {
       this.comm.registerMethods({
         openDoc:                  docManager.openDoc.bind(docManager),
       });

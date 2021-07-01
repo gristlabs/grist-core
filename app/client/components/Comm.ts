@@ -195,7 +195,6 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   public getNewInvites = this._wrapMethod('getNewInvites');
   public getLocalInvites = this._wrapMethod('getLocalInvites');
   public ignoreLocalInvite = this._wrapMethod('ignoreLocalInvite');
-  public downloadSharedDoc = this._wrapMethod('downloadSharedDoc');
   public showItemInFolder = this._wrapMethod('showItemInFolder');
   public getBasketTables = this._wrapMethod('getBasketTables');
   public embedTable = this._wrapMethod('embedTable');

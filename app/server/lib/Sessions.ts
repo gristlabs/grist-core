@@ -2,7 +2,6 @@ import {ScopedSession} from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
 import {GristServer} from 'app/server/lib/GristServer';
 import {cookieName, SessionStore} from 'app/server/lib/gristSessions';
-import {IInstanceManager} from 'app/server/lib/IInstanceManager';
 import {ILoginSession} from 'app/server/lib/ILoginSession';
 import * as cookie from 'cookie';
 import * as cookieParser from 'cookie-parser';
@@ -67,12 +66,10 @@ export class Sessions {
    *
    */
   public getOrCreateLoginSession(sid: string, domain: string, comm: Comm,
-                                 instanceManager: IInstanceManager|null,
                                  userSelector: string): ILoginSession {
     const sess = this.getOrCreateSession(sid, domain, userSelector);
     if (!sess.loginSession) {
-      sess.loginSession = this._server.create.LoginSession(comm, sid, domain, sess.scopedSession,
-                                                           instanceManager);
+      sess.loginSession = this._server.create.LoginSession(comm, sid, domain, sess.scopedSession);
     }
     return sess.loginSession;
   }

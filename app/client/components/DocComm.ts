@@ -45,7 +45,6 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   public getFormulaError = this._wrapMethod("getFormulaError");
   public fetchURL = this._wrapMethod("fetchURL");
   public autocomplete = this._wrapMethod("autocomplete");
-  public shareDoc = this._wrapMethod("shareDoc");
   public removeInstanceFromDoc = this._wrapMethod("removeInstanceFromDoc");
   public getActionSummaries = this._wrapMethod("getActionSummaries");
   public startBundleUserActions = this._wrapMethod("startBundleUserActions");

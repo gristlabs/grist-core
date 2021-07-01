@@ -56,12 +56,6 @@ interface SharingAPI {
    */
   ignoreLocalInvite(docId: string): Promise<void>;
 
-  /**
-   * Downloads a shared doc by creating a new doc and applying the snapshot actions associated
-   * with the given docId on the sharing hub. Must be called from a logged in account and instance
-   * invited to download the doc. Returns the actual non-conflicting docName used.
-   */
-  downloadSharedDoc(docId: string, docName: string): Promise<string>;
 }
 
 interface MiscAPI {

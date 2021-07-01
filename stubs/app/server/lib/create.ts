@@ -1,9 +1,7 @@
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { DocManager } from 'app/server/lib/DocManager';
-import { ICreate } from 'app/server/lib/ICreate';
-import { LoginSession } from 'app/server/lib/LoginSession';
-import { NSandboxCreator } from 'app/server/lib/NSandbox';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {ICreate} from 'app/server/lib/ICreate';
+import {LoginSession} from 'app/server/lib/LoginSession';
+import {NSandboxCreator} from 'app/server/lib/NSandbox';
 
 // Use raw python - update when pynbox or other solution is set up for core.
 const sandboxCreator = new NSandboxCreator('unsandboxed');
@@ -12,11 +10,11 @@ export const create: ICreate = {
   LoginSession() {
     return new LoginSession();
   },
-  Billing(dbManager: HomeDBManager) {
+  Billing() {
     return {
-      addEndpoints(app: any) { /* do nothing */ },
+      addEndpoints() { /* do nothing */ },
       addEventHandlers() { /* do nothing */ },
-      addWebhooks(app: any) { /* do nothing */ }
+      addWebhooks() { /* do nothing */ }
     };
   },
   Notifier() {
@@ -32,9 +30,6 @@ export const create: ICreate = {
   },
   ExternalStorage() { return undefined; },
   ActiveDoc(docManager, docName, options) { return new ActiveDoc(docManager, docName, options); },
-  DocManager(storageManager, pluginManager, homeDBManager, gristServer) {
-    return new DocManager(storageManager, pluginManager, homeDBManager, gristServer);
-  },
   NSandbox(options) {
     return sandboxCreator.create(options);
   },

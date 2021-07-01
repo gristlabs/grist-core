@@ -3,19 +3,17 @@ import * as net from 'net';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
 import * as Comm from 'app/server/lib/Comm';
-import {ILoginSession} from 'app/server/lib/ILoginSession';
 import * as log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
 import * as t from 'ts-interface-checker';
 import {FlexServer} from './FlexServer';
-import {IInstanceManager} from './IInstanceManager';
 import {ITestingHooks} from './ITestingHooks';
 import ITestingHooksTI from './ITestingHooks-ti';
 import {connect, fromCallback} from './serverUtils';
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});
 
-export function startTestingHooks(socketPath: string, port: number, instanceManager: IInstanceManager,
+export function startTestingHooks(socketPath: string, port: number,
                                   comm: Comm, flexServer: FlexServer,
                                   workerServers: FlexServer[]): Promise<net.Server> {
   // Create socket server listening on the given path for testing connections.
@@ -28,7 +26,7 @@ export function startTestingHooks(socketPath: string, port: number, instanceMana
       const rpc = connectToSocket(new Rpc({logger: {}}), socket);
       // Register the testing implementation.
       rpc.registerImpl('testing',
-                       new TestingHooks(port, instanceManager, comm, flexServer, workerServers),
+                       new TestingHooks(port, comm, flexServer, workerServers),
                        tiCheckers.ITestingHooks);
     });
     server.listen(socketPath);
@@ -57,7 +55,6 @@ export async function connectTestingHooks(socketPath: string): Promise<TestingHo
 export class TestingHooks implements ITestingHooks {
   constructor(
     private _port: number,
-    private _instanceManager: IInstanceManager,
     private _comm: Comm,
     private _server: FlexServer,
     private _workerServers: FlexServer[]
@@ -71,24 +68,6 @@ export class TestingHooks implements ITestingHooks {
   public async getPort(): Promise<number> {
     log.info("TestingHooks.getPort called");
     return this._port;
-  }
-
-  public async updateAuthToken(instId: string, authToken: string): Promise<void> {
-    log.info("TestingHooks.updateAuthToken called with", instId, authToken);
-    const loginSession = this._getLoginSession(instId);
-    await loginSession.updateTokenForTesting(authToken);
-  }
-
-  public async getAuthToken(instId: string): Promise<string|null> {
-    log.info("TestingHooks.getAuthToken called with", instId);
-    const loginSession = this._getLoginSession(instId);
-    return await loginSession.getCurrentTokenForTesting();
-  }
-
-  public async useTestToken(instId: string, token: string): Promise<void> {
-    log.info("TestingHooks.useTestToken called with", token);
-    const loginSession = this._getLoginSession(instId);
-    return await loginSession.useTestToken(token);
   }
 
   public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void> {
@@ -201,7 +180,4 @@ export class TestingHooks implements ITestingHooks {
     return prev;
   }
 
-  private _getLoginSession(instId: string): ILoginSession {
-    return this._instanceManager.getLoginSession(instId);
-  }
 }

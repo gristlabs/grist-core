@@ -19,13 +19,4 @@ export class LoginSession implements ILoginSession {
   public async testSetProfile(profile: UserProfile|null): Promise<void> {
     // do nothing
   }
-  public async updateTokenForTesting(idToken: string): Promise<void> {
-    // do nothing
-  }
-  public async getCurrentTokenForTesting(): Promise<string|null> {
-    return null;
-  }
-  public async useTestToken(idToken: string): Promise<void> {
-    // do nothing
-  }
 }

@@ -1,7 +1,6 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
-import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {IMessage} from 'grain-rpc';
@@ -178,11 +177,6 @@ export interface ActiveDocAPI {
    * formula in table `tableId`.
    */
   autocomplete(txt: string, tableId: string): Promise<string[]>;
-
-  /**
-   * Shares the doc and invites peers.
-   */
-  shareDoc(peers: Peer[]): Promise<void>;
 
   /**
    * Removes the current instance from the doc.

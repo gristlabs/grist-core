@@ -10,31 +10,38 @@ import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import {IMessage, MsgType} from 'grain-rpc';
 import * as imageSize from 'image-size';
-import cloneDeep = require('lodash/cloneDeep');
-import flatten = require('lodash/flatten');
-import remove = require('lodash/remove');
-import zipObject = require('lodash/zipObject');
 import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import * as tmp from 'tmp';
 
-import {getEnvContent, LocalActionBundle} from 'app/common/ActionBundle';
-import {SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
+import {getEnvContent, LocalActionBundle, SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup} from 'app/common/ActionGroup';
-import {ApplyUAOptions, ApplyUAResult, ForkResult} from 'app/common/ActiveDocAPI';
-import {DataSourceTransformed, ImportResult, Query, QueryResult} from 'app/common/ActiveDocAPI';
+import {
+  ApplyUAOptions,
+  ApplyUAResult,
+  DataSourceTransformed,
+  ForkResult,
+  ImportResult,
+  Query,
+  QueryResult
+} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
-import {BulkColValues, CellValue, DocAction, RowRecord, TableDataAction, UserAction} from 'app/common/DocActions';
-import {toTableDataAction} from 'app/common/DocActions';
+import {
+  BulkColValues,
+  CellValue,
+  DocAction,
+  RowRecord,
+  TableDataAction,
+  toTableDataAction,
+  UserAction
+} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
-import {EncActionBundleFromHub} from 'app/common/EncActionBundle';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {byteString, countIf} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
-import {Peer} from 'app/common/sharing';
 import {UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -55,13 +62,23 @@ import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport} from './ActiveDocImport';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, getDocSessionAccess, getDocSessionUser, getDocSessionUserId,
-        makeExceptionalDocSession, OptDocSession} from './DocSession';
+import {
+  DocSession,
+  getDocSessionAccess,
+  getDocSessionUser,
+  getDocSessionUserId,
+  makeExceptionalDocSession,
+  OptDocSession
+} from './DocSession';
 import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import cloneDeep = require('lodash/cloneDeep');
+import flatten = require('lodash/flatten');
+import remove = require('lodash/remove');
+import zipObject = require('lodash/zipObject');
 
 bluebird.promisifyAll(tmp);
 
@@ -404,21 +421,6 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Create a document given encrypted action bundles from the sharing hub. Part of the process
-   * of downloading a shared doc.
-   * TODO: Not only the snapshot but all actions shared to the hub before download are applied
-   * directly to the database, meaning they cannot be undone by this instance. We may want to
-   * consider applying actions following the snapshot differently.
-   */
-  public async downloadSharedDoc(
-    docId: string,
-    instanceId: string,
-    encBundles: EncActionBundleFromHub[]
-  ): Promise<ActiveDoc> {
-    throw new Error('downloadSharedDoc not implemented');
-  }
-
-  /**
    * Finish initializing ActiveDoc, by initializing ActionHistory, Sharing, and docData.
    */
   public async _initDoc(docSession: OptDocSession|null): Promise<void> {
@@ -432,12 +434,6 @@ export class ActiveDoc extends EventEmitter {
     }, this.recoveryMode, this._docManager.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
-
-    await this.openSharedDoc(docSession);
-  }
-
-  public async openSharedDoc(docSession: OptDocSession|null) {
-    // Doesn't do anything special in this base class.
   }
 
   /**
@@ -810,15 +806,6 @@ export class ActiveDoc extends EventEmitter {
   public async testUpdateIndexes() {
     const indexes = this._onDemandActions.getDesiredIndexes();
     await this.docStorage.updateIndexes(indexes);
-  }
-
-  /**
-   * Shares the doc and invites peers.
-   * @param {Array} peers - Array of peer objects with which the doc should be shared.
-   * @returns {Promise} Return promise for docId on completion.
-   */
-  public async shareDoc(docSession: DocSession, peers: Peer[]): Promise<void> {
-    throw new Error('shareDoc not implemented');
   }
 
   public async removeInstanceFromDoc(docSession: DocSession): Promise<void> {

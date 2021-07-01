@@ -3,9 +3,6 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 export interface ITestingHooks {
   getOwnPort(): Promise<number>;
   getPort(): Promise<number>;
-  updateAuthToken(instId: string, authToken: string): Promise<void>;
-  getAuthToken(instId: string): Promise<string|null>;
-  useTestToken(instId: string, token: string): Promise<void>;
   setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void>;
   setServerVersion(version: string|null): Promise<void>;
   disconnectClients(): Promise<void>;

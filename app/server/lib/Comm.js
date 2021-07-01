@@ -82,7 +82,6 @@ function Comm(server, options) {
   this.sessions = options.sessions;
 
   this._settings = options.settings;
-  this._instanceManager = options.instanceManager;
   this._hosts = options.hosts;
 
   // This maps method names to their implementation.
@@ -125,7 +124,7 @@ Comm.prototype.getClient = function(clientId) {
 Comm.prototype.getOrCreateSession = function(sid, req, userSelector) {
   // LoginSessions are specific to a session id / org combination.
   const org = req.org || "";
-  return this.sessions.getOrCreateLoginSession(sid, org, this, this._instanceManager,
+  return this.sessions.getOrCreateLoginSession(sid, org, this,
                                                userSelector);
 };
 

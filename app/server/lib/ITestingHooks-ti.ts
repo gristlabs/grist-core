@@ -7,9 +7,6 @@ import * as t from "ts-interface-checker";
 export const ITestingHooks = t.iface([], {
   "getOwnPort": t.func("number"),
   "getPort": t.func("number"),
-  "updateAuthToken": t.func("void", t.param("instId", "string"), t.param("authToken", "string")),
-  "getAuthToken": t.func(t.union("string", "null"), t.param("instId", "string")),
-  "useTestToken": t.func("void", t.param("instId", "string"), t.param("token", "string")),
   "setLoginSessionProfile": t.func("void", t.param("gristSidCookie", "string"), t.param("profile", t.union("UserProfile", "null")), t.param("org", "string", true)),
   "setServerVersion": t.func("void", t.param("version", t.union("string", "null"))),
   "disconnectClients": t.func("void"),
