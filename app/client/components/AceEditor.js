@@ -20,12 +20,14 @@ var modelUtil = require('../models/modelUtil');
  *  element. Both desiredSize and the return value are objects with 'width' and 'height' members.
  */
 function AceEditor(options) {
+  options = options || {};
   // Observable subscription is not created until the dom is built
-  this.observable = (options && options.observable) || null;
-  this.saveValueOnBlurEvent = !(options && (options.saveValueOnBlurEvent === false));
-  this.calcSize = (options && options.calcSize) || ((elem, size) => size);
-  this.gristDoc = (options && options.gristDoc) || null;
-  this.editorState = (options && options.editorState) || null;
+  this.observable = options.observable || null;
+  this.saveValueOnBlurEvent = !(options.saveValueOnBlurEvent === false);
+  this.calcSize = options.calcSize || ((_elem, size) => size);
+  this.gristDoc = options.gristDoc || null;
+  this.field = options.field || null;
+  this.editorState = options.editorState || null;
   this._readonly = options.readonly || false;
 
   this.editor = null;
@@ -183,10 +185,11 @@ AceEditor.prototype.setFontSize = function(pxVal) {
 AceEditor.prototype._setup = function() {
   // Standard editor setup
   this.editor = this.autoDisposeWith('destroy', ace.edit(this.editorDom));
-  if (this.gristDoc) {
+  if (this.gristDoc && this.field) {
     const getSuggestions = (prefix) => {
       const tableId = this.gristDoc.viewModel.activeSection().table().tableId();
-      return this.gristDoc.docComm.autocomplete(prefix, tableId);
+      const columnId = this.field.column().colId();
+      return this.gristDoc.docComm.autocomplete(prefix, tableId, columnId);
     };
     setupAceEditorCompletions(this.editor, {getSuggestions});
   }

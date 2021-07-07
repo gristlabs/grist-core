@@ -1281,7 +1281,7 @@ class Engine(object):
     if not self._compute_stack:
       self._bring_lookups_up_to_date(doc_action)
 
-  def autocomplete(self, txt, table_id):
+  def autocomplete(self, txt, table_id, column_id):
     """
     Return a list of suggested completions of the python fragment supplied.
     """
@@ -1294,6 +1294,13 @@ class Engine(object):
 
     context = self._autocomplete_context.get_context()
     context['rec'] = table.sample_record
+
+    # Remove values from the context that need to be recomputed.
+    context.pop('value', None)
+
+    column = table.get_column(column_id) if table.has_column(column_id) else None
+    if column and not column.is_formula():
+      context['value'] = column.sample_value()
 
     completer = rlcompleter.Completer(context)
     results = []

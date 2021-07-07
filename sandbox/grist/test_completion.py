@@ -1,5 +1,6 @@
 import testsamples
 import test_engine
+from schema import RecalcWhen
 
 class TestCompletion(test_engine.EngineTestCase):
   def setUp(self):
@@ -12,19 +13,45 @@ class TestCompletion(test_engine.EngineTestCase):
     self.add_column('Students', 'lastVisit', type='DateTime:America/New_York')
     self.add_column('Schools', 'yearFounded', type='Int')
     self.add_column('Schools', 'budget', type='Numeric')
+    self.add_column('Schools', 'lastModified',
+      type="DateTime:America/Los_Angeles", isFormula=False, formula="NOW()",
+      recalcWhen=RecalcWhen.MANUAL_UPDATES
+    )
+    self.add_column('Schools', 'lastModifier',
+      type="Text", isFormula=False, formula="foo@getgrist.com",
+      recalcWhen=RecalcWhen.MANUAL_UPDATES
+    )
 
   def test_keyword(self):
-    self.assertEqual(self.engine.autocomplete("for", "Address"),
+    self.assertEqual(self.engine.autocomplete("for", "Address", "city"),
                      ["for", "format("])
 
   def test_grist(self):
-    self.assertEqual(self.engine.autocomplete("gri", "Address"),
+    self.assertEqual(self.engine.autocomplete("gri", "Address", "city"),
                      ["grist"])
 
+  def test_value(self):
+    # Should only appear if column exists and is a trigger formula.
+    self.assertEqual(self.engine.autocomplete("val", "Schools", "lastModified"),
+                     ["value"])
+    self.assertEqual(self.engine.autocomplete("val", "Students", "schoolCities"),
+                     [])
+    self.assertEqual(self.engine.autocomplete("val", "Students", "nonexistentColumn"),
+                     [])
+    self.assertEqual(self.engine.autocomplete("valu", "Schools", "lastModifier"),
+                     ["value"])
+    # Should have same type as column.
+    self.assertGreaterEqual(set(self.engine.autocomplete("value.", "Schools", "lastModifier")),
+                            {'value.startswith(', 'value.replace(', 'value.title('})
+    self.assertGreaterEqual(set(self.engine.autocomplete("value.", "Schools", "lastModified")),
+                            {'value.month', 'value.strftime(', 'value.replace('})
+    self.assertGreaterEqual(set(self.engine.autocomplete("value.m", "Schools", "lastModified")),
+                            {'value.month', 'value.minute'})
+
   def test_function(self):
-    self.assertEqual(self.engine.autocomplete("MEDI", "Address"),
+    self.assertEqual(self.engine.autocomplete("MEDI", "Address", "city"),
         [('MEDIAN', '(value, *more_values)', True)])
-    self.assertEqual(self.engine.autocomplete("ma", "Address"), [
+    self.assertEqual(self.engine.autocomplete("ma", "Address", "city"), [
       ('MAX', '(value, *more_values)', True),
       ('MAXA', '(value, *more_values)', True),
       'map(',
@@ -33,30 +60,30 @@ class TestCompletion(test_engine.EngineTestCase):
     ])
 
   def test_member(self):
-    self.assertEqual(self.engine.autocomplete("datetime.tz", "Address"),
+    self.assertEqual(self.engine.autocomplete("datetime.tz", "Address", "city"),
                      ["datetime.tzinfo("])
 
   def test_case_insensitive(self):
-    self.assertEqual(self.engine.autocomplete("medi", "Address"),
+    self.assertEqual(self.engine.autocomplete("medi", "Address", "city"),
         [('MEDIAN', '(value, *more_values)', True)])
-    self.assertEqual(self.engine.autocomplete("std", "Address"), [
+    self.assertEqual(self.engine.autocomplete("std", "Address", "city"), [
       ('STDEV', '(value, *more_values)', True),
       ('STDEVA', '(value, *more_values)', True),
       ('STDEVP', '(value, *more_values)', True),
       ('STDEVPA', '(value, *more_values)', True)
     ])
-    self.assertEqual(self.engine.autocomplete("stu", "Address"),
+    self.assertEqual(self.engine.autocomplete("stu", "Address", "city"),
         ["Students"])
 
     # Add a table name whose lowercase version conflicts with a builtin.
     self.apply_user_action(['AddTable', 'Max', []])
-    self.assertEqual(self.engine.autocomplete("max", "Address"), [
+    self.assertEqual(self.engine.autocomplete("max", "Address", "city"), [
       ('MAX', '(value, *more_values)', True),
       ('MAXA', '(value, *more_values)', True),
       'Max',
       'max(',
     ])
-    self.assertEqual(self.engine.autocomplete("MAX", "Address"), [
+    self.assertEqual(self.engine.autocomplete("MAX", "Address", "city"), [
       ('MAX', '(value, *more_values)', True),
       ('MAXA', '(value, *more_values)', True),
     ])
@@ -64,89 +91,93 @@ class TestCompletion(test_engine.EngineTestCase):
 
   def test_suggest_globals_and_tables(self):
     # Should suggest globals and table names.
-    self.assertEqual(self.engine.autocomplete("ME", "Address"),
+    self.assertEqual(self.engine.autocomplete("ME", "Address", "city"),
         [('MEDIAN', '(value, *more_values)', True)])
-    self.assertEqual(self.engine.autocomplete("Ad", "Address"), ['Address'])
-    self.assertGreaterEqual(set(self.engine.autocomplete("S", "Address")), {
+    self.assertEqual(self.engine.autocomplete("Ad", "Address", "city"), ['Address'])
+    self.assertGreaterEqual(set(self.engine.autocomplete("S", "Address", "city")), {
       'Schools',
       'Students',
       ('SUM', '(value1, *more_values)', True),
       ('STDEV', '(value, *more_values)', True),
     })
-    self.assertGreaterEqual(set(self.engine.autocomplete("s", "Address")), {
+    self.assertGreaterEqual(set(self.engine.autocomplete("s", "Address", "city")), {
       'Schools',
       'Students',
       'sum(',
       ('SUM', '(value1, *more_values)', True),
       ('STDEV', '(value, *more_values)', True),
     })
-    self.assertEqual(self.engine.autocomplete("Addr", "Schools"), ['Address'])
+    self.assertEqual(self.engine.autocomplete("Addr", "Schools", "budget"), ['Address'])
 
   def test_suggest_columns(self):
-    self.assertEqual(self.engine.autocomplete("$ci", "Address"),
+    self.assertEqual(self.engine.autocomplete("$ci", "Address", "city"),
                      ["$city"])
-    self.assertEqual(self.engine.autocomplete("rec.i", "Address"),
+    self.assertEqual(self.engine.autocomplete("rec.i", "Address", "city"),
                      ["rec.id"])
-    self.assertEqual(len(self.engine.autocomplete("$", "Address")),
+    self.assertEqual(len(self.engine.autocomplete("$", "Address", "city")),
                      2)
 
     # A few more detailed examples.
-    self.assertEqual(self.engine.autocomplete("$", "Students"),
+    self.assertEqual(self.engine.autocomplete("$", "Students", "school"),
                      ['$birthDate', '$firstName', '$id', '$lastName', '$lastVisit',
                       '$school', '$schoolCities', '$schoolIds', '$schoolName'])
-    self.assertEqual(self.engine.autocomplete("$fi", "Students"), ['$firstName'])
-    self.assertEqual(self.engine.autocomplete("$school", "Students"),
+    self.assertEqual(self.engine.autocomplete("$fi", "Students", "birthDate"), ['$firstName'])
+    self.assertEqual(self.engine.autocomplete("$school", "Students", "lastVisit"),
         ['$school', '$schoolCities', '$schoolIds', '$schoolName'])
 
   def test_suggest_lookup_methods(self):
     # Should suggest lookup formulas for tables.
-    self.assertEqual(self.engine.autocomplete("Address.", "Students"), [
+    self.assertEqual(self.engine.autocomplete("Address.", "Students", "firstName"), [
       'Address.all',
       ('Address.lookupOne', '(colName=<value>, ...)', True),
       ('Address.lookupRecords', '(colName=<value>, ...)', True),
     ])
 
-    self.assertEqual(self.engine.autocomplete("Address.lookup", "Students"), [
+    self.assertEqual(self.engine.autocomplete("Address.lookup", "Students", "lastName"), [
       ('Address.lookupOne', '(colName=<value>, ...)', True),
       ('Address.lookupRecords', '(colName=<value>, ...)', True),
     ])
 
-    self.assertEqual(self.engine.autocomplete("address.look", "Students"), [
+    self.assertEqual(self.engine.autocomplete("address.look", "Students", "schoolName"), [
       ('Address.lookupOne', '(colName=<value>, ...)', True),
       ('Address.lookupRecords', '(colName=<value>, ...)', True),
     ])
 
   def test_suggest_column_type_methods(self):
     # Should treat columns as correct types.
-    self.assertGreaterEqual(set(self.engine.autocomplete("$firstName.", "Students")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$firstName.", "Students", "firstName")),
                             {'$firstName.startswith(', '$firstName.replace(', '$firstName.title('})
-    self.assertGreaterEqual(set(self.engine.autocomplete("$birthDate.", "Students")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$birthDate.", "Students", "lastName")),
                             {'$birthDate.month', '$birthDate.strftime(', '$birthDate.replace('})
-    self.assertGreaterEqual(set(self.engine.autocomplete("$lastVisit.m", "Students")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$lastVisit.m", "Students", "firstName")),
                             {'$lastVisit.month', '$lastVisit.minute'})
-    self.assertGreaterEqual(set(self.engine.autocomplete("$school.", "Students")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$school.", "Students", "firstName")),
                             {'$school.address', '$school.name',
                              '$school.yearFounded', '$school.budget'})
-    self.assertEqual(self.engine.autocomplete("$school.year", "Students"),
+    self.assertEqual(self.engine.autocomplete("$school.year", "Students", "lastName"),
                      ['$school.yearFounded'])
-    self.assertGreaterEqual(set(self.engine.autocomplete("$yearFounded.", "Schools")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$yearFounded.", "Schools", "budget")),
                             {'$yearFounded.denominator',    # Only integers have this
                              '$yearFounded.bit_length(',    # and this
                              '$yearFounded.real'})
-    self.assertGreaterEqual(set(self.engine.autocomplete("$budget.", "Schools")),
+    self.assertGreaterEqual(set(self.engine.autocomplete("$budget.", "Schools", "budget")),
                             {'$budget.is_integer(',    # Only floats have this
                              '$budget.real'})
 
   def test_suggest_follows_references(self):
     # Should follow references and autocomplete those types.
-    self.assertEqual(self.engine.autocomplete("$school.name.st", "Students"),
+    self.assertEqual(self.engine.autocomplete("$school.name.st", "Students", "firstName"),
                      ['$school.name.startswith(', '$school.name.strip('])
-    self.assertGreaterEqual(set(self.engine.autocomplete("$school.yearFounded.", "Students")),
-                            {'$school.yearFounded.denominator',
-                             '$school.yearFounded.bit_length(',
-                             '$school.yearFounded.real'})
+    self.assertGreaterEqual(
+      set(self.engine.autocomplete("$school.yearFounded.","Students", "firstName")),
+      {
+        '$school.yearFounded.denominator',
+        '$school.yearFounded.bit_length(',
+        '$school.yearFounded.real'
+      }
+    )
 
-    self.assertEqual(self.engine.autocomplete("$school.address.", "Students"),
+    self.assertEqual(self.engine.autocomplete("$school.address.", "Students", "lastName"),
                      ['$school.address.city', '$school.address.id'])
-    self.assertEqual(self.engine.autocomplete("$school.address.city.st", "Students"),
+    self.assertEqual(self.engine.autocomplete("$school.address.city.st", "Students", "lastName"),
                      ['$school.address.city.startswith(', '$school.address.city.strip('])

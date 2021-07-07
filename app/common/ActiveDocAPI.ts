@@ -174,9 +174,9 @@ export interface ActiveDocAPI {
 
   /**
    * Find and return a list of auto-complete suggestions that start with `txt`, when editing a
-   * formula in table `tableId`.
+   * formula in table `tableId` and column `columnId`.
    */
-  autocomplete(txt: string, tableId: string): Promise<string[]>;
+  autocomplete(txt: string, tableId: string, columnId: string): Promise<string[]>;
 
   /**
    * Removes the current instance from the doc.

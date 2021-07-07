@@ -45,6 +45,7 @@ export class FormulaEditor extends NewBaseEditor {
     this._formulaEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
       // and _editorPlacement created.
+      field: options.field,
       calcSize: this._calcSize.bind(this),
       gristDoc: options.gristDoc,
       saveValueOnBlurEvent: !options.readonly,

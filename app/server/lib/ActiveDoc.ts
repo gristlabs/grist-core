@@ -836,11 +836,11 @@ export class ActiveDoc extends EventEmitter {
     docSession.linkId = 0;
   }
 
-  public async autocomplete(docSession: DocSession, txt: string, tableId: string): Promise<string[]> {
+  public async autocomplete(docSession: DocSession, txt: string, tableId: string, columnId: string): Promise<string[]> {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
     await this.waitForInitialization();
-    return this._pyCall('autocomplete', txt, tableId);
+    return this._pyCall('autocomplete', txt, tableId, columnId);
   }
 
   public fetchURL(docSession: DocSession, url: string): Promise<UploadResult> {

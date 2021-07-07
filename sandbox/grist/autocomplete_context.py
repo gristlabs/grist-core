@@ -60,6 +60,9 @@ class AutocompleteContext(object):
           lower += '*'
         self._lowercase[lower] = key
 
+    # Lowercase 'value' is used in trigger formulas, and is not the same as 'VALUE'.
+    self._lowercase.pop('value', None)
+
     # Add the lowercase names to the context, and to the detailed completions in _functions.
     for lower, key in six.iteritems(self._lowercase):
       self._context[lower] = self._context[key]

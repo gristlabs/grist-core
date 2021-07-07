@@ -73,8 +73,8 @@ def run(sandbox):
     return eng.acl_split(action_group).to_json_obj()
 
   @export
-  def autocomplete(txt, table_id):
-    return eng.autocomplete(txt, table_id)
+  def autocomplete(txt, table_id, column_id):
+    return eng.autocomplete(txt, table_id, column_id)
 
   @export
   def find_col_from_values(values, n, opt_table_id):

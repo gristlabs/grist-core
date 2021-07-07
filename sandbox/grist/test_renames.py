@@ -312,11 +312,17 @@ class TestRenames(test_engine.EngineTestCase):
     # Renaming a table should not leave the old name available for auto-complete.
     self.load_sample(self.sample)
     names = {"People", "Persons"}
-    self.assertEqual(names.intersection(self.engine.autocomplete("Pe", "Address")), {"People"})
+    self.assertEqual(
+      names.intersection(self.engine.autocomplete("Pe", "Address", "city")),
+      {"People"}
+    )
 
     # Rename the table and ensure that "People" is no longer present among top-level names.
     out_actions = self.apply_user_action(["RenameTable", "People", "Persons"])
-    self.assertEqual(names.intersection(self.engine.autocomplete("Pe", "Address")), {"Persons"})
+    self.assertEqual(
+      names.intersection(self.engine.autocomplete("Pe", "Address", "city")),
+      {"Persons"}
+    )
 
   def test_rename_to_id(self):
     # Check that we renaming a column to "Id" disambiguates it with a suffix.
