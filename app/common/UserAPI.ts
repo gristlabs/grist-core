@@ -65,6 +65,9 @@ export interface BillingAccount {
   individual: boolean;
   product: Product;
   isManager: boolean;
+  externalOptions?: {
+    invoiceId?: string;
+  };
 }
 
 // Information about the product associated with an org or orgs.

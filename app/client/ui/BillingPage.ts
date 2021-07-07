@@ -182,6 +182,7 @@ export class BillingPage extends Disposable {
             makeSummaryFeature([`Your next invoice is `, getPriceString(sub.nextTotal),
                                 ' on ', dateFmt(sub.periodEnd)]),
           ] : null,
+          tier ? this.buildAppSumoLink(this._appModel.currentOrg?.billingAccount?.externalOptions?.invoiceId) : null,
           getSubscriptionProblem(sub),
           testId('summary')
         ),
@@ -248,6 +249,22 @@ export class BillingPage extends Disposable {
                                  ` member${users > 1 ? 's' : ''}`]);
     }
     return null;
+  }
+
+  // Include a precise link back to AppSumo for changing plans.
+  public buildAppSumoLink(invoiceId: string | undefined) {
+    if (!invoiceId) { return null; }
+    return dom('div',
+               css.billingTextBtn({ style: 'margin: 10px 0;' },
+                                  cssBreadcrumbsLink(
+                                    css.billingIcon('Plus'), 'Change your AppSumo plan',
+                                    {
+                                      href: `https://appsumo.com/account/redemption/${invoiceId}/#change-plan`,
+                                      target: '_blank'
+                                    },
+                                    testId('appsumo-link')
+                                  )
+                                 ));
   }
 
   public buildPlansPage() {
