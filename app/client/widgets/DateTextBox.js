@@ -8,7 +8,10 @@ var AbstractWidget = require('./AbstractWidget');
 
 const {fromKoSave} = require('app/client/lib/fromKoSave');
 const {alignmentSelect} = require('app/client/ui2018/buttonSelect');
-const {cssRow} = require('app/client/ui/RightPanel');
+const {cssRow, cssLabel} = require('app/client/ui/RightPanel');
+const {cssTextInput} = require("app/client/ui2018/editableLabel");
+const {styled, fromKo} = require('grainjs');
+const {select} = require('app/client/ui2018/menus');
 
 /**
  * DateTextBox - The most basic widget for displaying simple date information.
@@ -54,13 +57,10 @@ _.extend(DateTextBox.prototype, AbstractWidget.prototype);
 DateTextBox.prototype.buildDateConfigDom = function() {
   var self = this;
   return dom('div',
-    kf.row(
-      1, dom('div.glyphicon.glyphicon-calendar.config_icon'),
-      8, kf.label('Date Format'),
-      9, dom(kf.select(self.standardDateFormat, self.dateFormatOptions), dom.testId("Widget_dateFormat"))
-    ),
+    cssLabel("Date Format"),
+    cssRow(dom(select(fromKo(self.standardDateFormat), self.dateFormatOptions), dom.testId("Widget_dateFormat"))),
     kd.maybe(self.isCustomDateFormat, function() {
-      return dom(kf.text(self.dateFormat), dom.testId("Widget_dateCustomFormat"));
+      return cssRow(dom(textbox(self.dateFormat), dom.testId("Widget_dateCustomFormat")));
     })
   );
 };
@@ -85,5 +85,34 @@ DateTextBox.prototype.buildDom = function(row) {
     kd.text(() => row._isAddRow() ? '' : this.valueFormatter().format(value()))
   );
 };
+
+// clean up old koform styles
+const cssClean = styled('div', `
+  flex: 1;
+  margin: 0px;
+`)
+
+// override focus - to look like modern ui
+const cssFocus = styled('div', `
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 3px 2px var(--grist-color-cursor);
+    border: 1px solid transparent;
+  }
+`)
+
+// helper method to create old style textbox that looks like a new one
+function textbox(value) {
+  const textDom = kf.text(value);
+  const tzInput = textDom.querySelector('input');
+  dom(tzInput,
+    kd.cssClass(cssTextInput.className),
+    kd.cssClass(cssFocus.className)
+  );
+  dom(textDom,
+    kd.cssClass(cssClean.className)
+  );
+  return textDom;
+}
 
 module.exports = DateTextBox;
