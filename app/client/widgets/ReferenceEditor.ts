@@ -128,7 +128,12 @@ export class ReferenceEditor extends NTextEditor {
     if (matches.length > 0) {
       return matches[0].value;
     } else {
-      return this.textInput.value;
+      const value = this.textInput.value;
+      if (this._visibleCol === 'id') {
+        // If the value is a valid number (non-NaN), save as a numeric rowId; else as text.
+        return +value || value;
+      }
+      return value;
     }
   }
 

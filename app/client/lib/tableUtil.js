@@ -107,7 +107,7 @@ function makePasteHtml(tableData, selection, includeColHeaders) {
           let rawValue = col.rawGetter(rowId);
           let fmtValue = col.fmtGetter(rowId);
           let dataOptions = {};
-          if (rawValue != fmtValue) {
+          if (rawValue !== fmtValue) {
             dataOptions['data-grist-raw-value'] = JSON.stringify(rawValue);
           }
           return dom('td', dataOptions, fmtValue);
