@@ -13,7 +13,7 @@ import six
 
 from acl_formula import parse_acl_formula
 import actions
-from sandbox import Sandbox
+from sandbox import get_default_sandbox
 import engine
 import migrations
 import schema
@@ -115,8 +115,7 @@ def run(sandbox):
   sandbox.run()
 
 def main():
-  sandbox = Sandbox.connected_to_js_pipes()
-  run(sandbox)
+  run(get_default_sandbox())
 
 if __name__ == "__main__":
   main()

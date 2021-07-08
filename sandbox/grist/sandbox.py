@@ -42,9 +42,25 @@ class Sandbox(object):
 
   @classmethod
   def connected_to_js_pipes(cls):
+    """
+    Send data on two specially-opened side channels.
+    """
     external_input = os.fdopen(3, "rb", 64 * 1024)
     external_output = os.fdopen(4, "wb", 64 * 1024)
     return cls(external_input, external_output)
+
+  @classmethod
+  def use_common_pipes(cls):
+    """
+    Send data via stdin/stdout, rather than specially-opened side channels.
+    Duplicate stdin/stdout, close, and reopen as binary file objects.
+    """
+    os.dup2(0, 3)
+    os.dup2(1, 4)
+    os.close(0)
+    os.close(1)
+    sys.stdout = sys.stderr
+    return Sandbox.connected_to_js_pipes()
 
   def _send_to_js(self, msgCode, msgBody):
     # (Note that marshal version 2 is the default; we specify it explicitly for clarity. The
@@ -97,7 +113,10 @@ default_sandbox = None
 def get_default_sandbox():
   global default_sandbox
   if default_sandbox is None:
-    default_sandbox = Sandbox.connected_to_js_pipes()
+    if os.environ.get('PIPE_MODE') == 'minimal':
+      default_sandbox = Sandbox.use_common_pipes()
+    else:
+      default_sandbox = Sandbox.connected_to_js_pipes()
   return default_sandbox
 
 def call_external(name, *args):

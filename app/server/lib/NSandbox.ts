@@ -8,7 +8,7 @@ import * as log from 'app/server/lib/log';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
 import {Throttle} from 'app/server/lib/Throttle';
-import {ChildProcess, spawn, SpawnOptions} from 'child_process';
+import {ChildProcess, spawn} from 'child_process';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
 import * as _ from 'lodash';
@@ -47,10 +47,23 @@ export class NSandbox implements ISandbox {
    */
   public static spawn(options: ISandboxOptions): ChildProcess {
     const {command, args: pythonArgs, unsilenceLog, env} = options;
-    const spawnOptions: SpawnOptions = {
-      stdio: ['pipe', 'pipe', 'pipe', 'pipe', 'pipe'],
-      env,
+    const spawnOptions = {
+      stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
+      env
     };
+    const selLdrArgs = [];
+    if (!NSandbox._useMinimalPipes(env)) {
+      // add two more pipes
+      spawnOptions.stdio.push('pipe', 'pipe');
+      // We use these options to set up communication with the sandbox:
+      // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
+      //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
+      // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
+      //         This becomes `this._streamFromSandbox`
+      selLdrArgs.push('-r', '3:3', '-w', '4:4');
+    }
+    if (options.selLdrArgs) { selLdrArgs.push(...options.selLdrArgs); }
+
     if (command) {
       return spawn(command, pythonArgs,
                    {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
@@ -58,12 +71,6 @@ export class NSandbox implements ISandbox {
 
     const noLog = unsilenceLog ? [] :
       (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
-    // We use these options to set up communication with the sandbox:
-    // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
-    //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
-    // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
-    //         This becomes `this._streamFromSandbox`
-    const selLdrArgs = ['-r', '3:3', '-w', '4:4', ...options.selLdrArgs || []];
     for (const [key, value] of _.toPairs(env)) {
       selLdrArgs.push("-E");
       selLdrArgs.push(`${key}=${value}`);
@@ -78,6 +85,15 @@ export class NSandbox implements ISandbox {
       ],
       spawnOptions,
     );
+  }
+
+  // Check if environment is configured for minimal pipes.
+  private static _useMinimalPipes(env: NodeJS.ProcessEnv | undefined) {
+    if (!env?.PIPE_MODE) { return false; }
+    if (env.PIPE_MODE !== 'minimal') {
+      throw new Error(`unrecognized pipe mode: ${env.PIPE_MODE}`);
+    }
+    return true;
   }
 
   public readonly childProc: ChildProcess;
@@ -111,16 +127,21 @@ export class NSandbox implements ISandbox {
     this.childProc = NSandbox.spawn(options);
 
     this._logMeta = {sandboxPid: this.childProc.pid, ...options.logMeta};
-    log.rawDebug("Sandbox started", this._logMeta);
 
-    this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
-    this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
+    if (NSandbox._useMinimalPipes(options.env)) {
+      log.rawDebug("3-pipe Sandbox started", this._logMeta);
+      this._streamToSandbox = this.childProc.stdin;
+      this._streamFromSandbox = this.childProc.stdout;
+    } else {
+      log.rawDebug("5-pipe Sandbox started", this._logMeta);
+      this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
+      this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
+      this.childProc.stdout.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
+    }
+    this.childProc.stderr.on('data', sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta));
 
     this.childProc.on('close', this._onExit.bind(this));
     this.childProc.on('error', this._onError.bind(this));
-
-    this.childProc.stdout.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
-    this.childProc.stderr.on('data', sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta));
 
     this._streamFromSandbox.on('data', (data) => this._onSandboxData(data));
     this._streamFromSandbox.on('end', () => this._onSandboxClose());
@@ -357,6 +378,9 @@ export class NSandboxCreator implements ISandboxCreator {
         path.join(process.cwd(), 'venv', 'lib', pythonVersion, 'site-packages'),
 
       DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, ''),
+
+      // use stdin/stdout/stderr only.
+      PIPE_MODE: 'minimal',
 
       // Making time and randomness act deterministically for testing purposes.
       // See test/utils/recordPyCalls.ts
