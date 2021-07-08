@@ -1,20 +1,21 @@
 import {createGroup} from 'app/client/components/commands';
-import {ACIndexImpl, ACItem, ACResults} from 'app/client/lib/ACIndex';
+import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {cssRefList, renderACItem} from 'app/client/widgets/ReferenceEditor';
+import {cssPlusButton, cssPlusIcon, cssRefList} from 'app/client/widgets/ReferenceEditor';
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {dom, styled} from 'grainjs';
+import {ChoiceOptions, getFillColor, getTextColor} from 'app/client/widgets/ChoiceTextBox';
 
-class ChoiceItem implements ACItem, IToken {
+export class ChoiceItem implements ACItem, IToken {
   public cleanText: string = this.label.toLowerCase().trim();
   constructor(
     public label: string,
@@ -27,7 +28,7 @@ export class ChoiceListEditor extends NewBaseEditor {
   protected cellEditorDiv: HTMLElement;
   protected commandGroup: any;
 
-  private _tokenField: TokenField;
+  private _tokenField: TokenField<ChoiceItem>;
   private _textInput: HTMLInputElement;
   private _dom: HTMLElement;
   private _editorPlacement: EditorPlacement;
@@ -40,10 +41,14 @@ export class ChoiceListEditor extends NewBaseEditor {
   private _enableAddNew: boolean = true;
   private _showAddNew: boolean = false;
 
+  private _choiceOptionsByName: ChoiceOptions;
+
   constructor(options: Options) {
     super(options);
 
     const choices: string[] = options.field.widgetOptionsJson.peek().choices || [];
+    this._choiceOptionsByName = options.field.widgetOptionsJson
+      .peek().choiceOptions || {};
     const acItems = choices.map(c => new ChoiceItem(c, false));
     const choiceSet = new Set(choices);
 
@@ -51,8 +56,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     const acOptions: IAutocompleteOptions<ChoiceItem> = {
       menuCssClass: menuCssClass + ' ' + cssRefList.className + ' ' + cssChoiceList.className + ' test-autocomplete',
       search: async (term: string) => this._maybeShowAddNew(acIndex.search(term), term),
-      renderItem: (item: ChoiceItem, highlightFunc) =>
-        renderACItem(item.label, highlightFunc, item.isNew || false, this._showAddNew),
+      renderItem: (item, highlightFunc) => this._renderACItem(item, highlightFunc),
       getItemText: (item) => item.label,
     };
 
@@ -64,9 +68,14 @@ export class ChoiceListEditor extends NewBaseEditor {
     const startLabels: unknown[] = options.editValue || !Array.isArray(cellValue) ? [] : cellValue;
     const startTokens = startLabels.map(label => new ChoiceItem(String(label), !choiceSet.has(String(label))));
 
-    this._tokenField = TokenField.create(this, {
+    this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {
       initialValue: startTokens,
-      renderToken: item => [item.label, cssInvalidToken.cls('-invalid', (item as ChoiceItem).isInvalid)],
+      renderToken: item => [
+        item.label,
+        dom.style('background-color', getFillColor(this._choiceOptionsByName[item.label])),
+        dom.style('color', getTextColor(this._choiceOptionsByName[item.label])),
+        cssInvalidToken.cls('-invalid', item.isInvalid)
+      ],
       createToken: label => new ChoiceItem(label, !choiceSet.has(label)),
       acOptions,
       openAutocompleteOnFocus: true,
@@ -138,7 +147,7 @@ export class ChoiceListEditor extends NewBaseEditor {
   }
 
   public async prepForSave() {
-    const tokens = this._tokenField.tokensObs.get() as ChoiceItem[];
+    const tokens = this._tokenField.tokensObs.get();
     const newChoices = tokens.filter(t => t.isNew).map(t => t.label);
     if (newChoices.length > 0) {
       const choices = this.options.field.widgetOptionsJson.prop('choices');
@@ -205,6 +214,27 @@ export class ChoiceListEditor extends NewBaseEditor {
     }
     return result;
   }
+
+  private _renderACItem(item: ChoiceItem, highlightFunc: HighlightFunc) {
+    const options = this._choiceOptionsByName[item.label];
+    const fillColor = getFillColor(options);
+    const textColor = getTextColor(options);
+
+    return cssItem(
+      (item.isNew ?
+        [cssItem.cls('-new'), cssPlusButton(cssPlusIcon('Plus'))] :
+        [cssItem.cls('-with-new', this._showAddNew)]
+      ),
+      cssItemLabel(
+        buildHighlightedDom(item.label, highlightFunc, cssMatchText),
+        dom.style('background-color', fillColor),
+        dom.style('color', textColor),
+        testId('choice-list-editor-item-label')
+      ),
+      testId('choice-list-editor-item'),
+      item.isNew ? testId('choice-list-editor-new-item') : null,
+    );
+  }
 }
 
 const cssCellEditor = styled('div', `
@@ -228,6 +258,10 @@ const cssToken = styled(tokenFieldStyles.cssToken, `
   padding: 1px 4px;
   margin: 2px;
   line-height: 16px;
+
+  &.selected {
+    box-shadow: inset 0 0 0 1px ${colors.lightGreen};
+  }
 `);
 
 const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
@@ -280,7 +314,7 @@ const cssInputSizer = styled('div', `
 `);
 
 // Set z-index to be higher than the 1000 set for .cell_editor.
-const cssChoiceList = styled('div', `
+export const cssChoiceList = styled('div', `
   z-index: 1001;
   box-shadow: 0 0px 8px 0 rgba(38,38,51,0.6)
 `);
@@ -288,4 +322,50 @@ const cssChoiceList = styled('div', `
 const cssReadonlyStyle = styled('div', `
   padding-left: 16px;
   background: white;
+`);
+
+// We need to know the height of the sticky "+" element.
+const addNewHeight = '37px';
+
+export const cssItem = styled('li', `
+  display: block;
+  font-family: ${vars.fontFamily};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+  padding: var(--weaseljs-menu-item-padding, 8px 24px);
+  cursor: pointer;
+
+  &.selected {
+    background-color: ${colors.mediumGreyOpaque};
+    color: ${colors.dark};
+  }
+  &-with-new {
+    scroll-margin-bottom: ${addNewHeight};
+  }
+  &-new {
+    display: flex;
+    align-items: center;
+    color: ${colors.slate};
+    position: sticky;
+    bottom: 0px;
+    height: ${addNewHeight};
+    background-color: white;
+    border-top: 1px solid ${colors.mediumGreyOpaque};
+    scroll-margin-bottom: initial;
+  }
+  &-new.selected {
+    color: ${colors.lightGrey};
+  }
+`);
+
+export const cssItemLabel = styled('div', `
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 3px;
+`);
+
+export const cssMatchText = styled('span', `
+  text-decoration: underline;
 `);

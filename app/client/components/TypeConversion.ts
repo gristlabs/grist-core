@@ -85,7 +85,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     case 'Choice': {
       if (Array.isArray(prevOptions.choices)) {
         // Use previous choices if they are set, e.g. if converting from ChoiceList
-        widgetOptions = {choices: prevOptions.choices};
+        widgetOptions = {choices: prevOptions.choices, choiceOptions: prevOptions.choiceOptions};
       } else {
         // Set suggested choices. Limit to 100, since too many choices is more likely to cause
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
@@ -100,7 +100,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     case 'ChoiceList': {
       if (Array.isArray(prevOptions.choices)) {
         // Use previous choices if they are set, e.g. if converting from ChoiceList
-        widgetOptions = {choices: prevOptions.choices};
+        widgetOptions = {choices: prevOptions.choices, choiceOptions: prevOptions.choiceOptions};
       } else {
         // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
         // light guessing for likely choices to suggest.

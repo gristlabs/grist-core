@@ -227,7 +227,7 @@ const cssRefItem = styled('li', `
   }
 `);
 
-const cssPlusButton = styled('div', `
+export const cssPlusButton = styled('div', `
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -242,7 +242,7 @@ const cssPlusButton = styled('div', `
   }
 `);
 
-const cssPlusIcon = styled(icon, `
+export const cssPlusIcon = styled(icon, `
   background-color: ${colors.light};
 `);
 

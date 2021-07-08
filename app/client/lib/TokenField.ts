@@ -21,83 +21,97 @@ import { Autocomplete, IAutocompleteOptions } from 'app/client/lib/autocomplete'
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { csvDecodeRow, csvEncodeRow } from 'app/common/csvFormat';
-import { computedArray, IObsArraySplice, ObsArray, obsArray, Observable } from 'grainjs';
+import { computedArray, IDisposableCtor, IObsArraySplice, ObsArray, obsArray, Observable } from 'grainjs';
 import { Disposable, dom, DomElementArg, Holder, styled } from 'grainjs';
 
 export interface IToken {
   label: string;
 }
 
-export interface ITokenFieldOptions {
-  initialValue: IToken[];
-  renderToken: (token: IToken) => DomElementArg;
-  createToken: (inputText: string) => IToken|undefined;
-  acOptions?: IAutocompleteOptions<IToken & ACItem>;
+export interface ITokenFieldOptions<Token extends IToken> {
+  initialValue: Token[];
+  renderToken: (token: Token) => DomElementArg;
+  createToken: (inputText: string) => Token|undefined;
+  acOptions?: IAutocompleteOptions<Token & ACItem>;
   openAutocompleteOnFocus?: boolean;
   styles?: ITokenFieldStyles;
   readonly?: boolean;
+  keyBindings?: ITokenFieldKeyBindings;
 
   // Allows overriding how tokens are copied to the clipboard, or retrieved from it.
   // By default, tokens are placed into clipboard as text/plain comma-separated token labels, with
   // CSV escaping, and pasted from clipboard by applying createToken() to parsed CSV text.
-  tokensToClipboard?: (tokens: IToken[], clipboard: DataTransfer) => void;
-  clipboardToTokens?: (clipboard: DataTransfer) => IToken[];
+  tokensToClipboard?: (tokens: Token[], clipboard: DataTransfer) => void;
+  clipboardToTokens?: (clipboard: DataTransfer) => Token[];
 }
 
+/**
+ * Overrides for default TokenField shortcut bindings.
+ *
+ * Values should be Key Values (https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values).
+ */
+export interface ITokenFieldKeyBindings {
+  previous?: string;
+  next?: string;
+}
+
+const defaultKeyBindings: Required<ITokenFieldKeyBindings> = {
+  previous: 'ArrowLeft',
+  next: 'ArrowRight'
+};
+
 // TokenWrap serves to distinguish multiple instances of the same token in the list.
-class TokenWrap {
-  constructor(public token: IToken) {}
+class TokenWrap<Token extends IToken> {
+  constructor(public token: Token) {}
 }
 
 class UndoItem {
   constructor(public redo: () => void, public undo: () => void) {}
 }
 
-export class TokenField extends Disposable {
-  public tokensObs: ObsArray<IToken>;
+export class TokenField<Token extends IToken = IToken> extends Disposable {
+  public static ctor<T extends IToken>(): IDisposableCtor<TokenField<T>, [ITokenFieldOptions<T>]> {
+    return this;
+  }
 
-  private _acHolder = Holder.create<Autocomplete<IToken & ACItem>>(this);
-  private _acOptions: IAutocompleteOptions<IToken & ACItem>|undefined;
+  public tokensObs: ObsArray<Token>;
+
+  private _acHolder = Holder.create<Autocomplete<Token & ACItem>>(this);
+  private _acOptions: IAutocompleteOptions<Token & ACItem>|undefined;
   private _rootElem: HTMLElement;
   private _textInput: HTMLInputElement;
+  private _styles: Required<ITokenFieldStyles>;
 
   // ClipboardAPI events work as expected only when the focus is in an actual input.
   // This is where we place focus when we have some tokens selected.
   private _hiddenInput: HTMLInputElement;
 
   // Keys to navigate tokens. In a vertical list, these would be changed to Up/Down.
-  // TODO Support a vertical list.
-  private _keyPrev = 'ArrowLeft';
-  private _keyNext = 'ArrowRight';
+  private _keyBindings: Required<ITokenFieldKeyBindings>;
 
-  private _tokens = this.autoDispose(obsArray<TokenWrap>());
-  private _selection = Observable.create(this, new Set<TokenWrap>());
-  private _selectionAnchor: TokenWrap|null = null;
+  private _tokens = this.autoDispose(obsArray<TokenWrap<Token>>());
+  private _selection = Observable.create(this, new Set<TokenWrap<Token>>());
+  private _selectionAnchor: TokenWrap<Token>|null = null;
   private _undoStack: UndoItem[] = [];
   private _undoIndex = 0;   // The last action done; next to undo.
   private _inUndoRedo = false;
 
-  constructor(private _options: ITokenFieldOptions) {
+  constructor(private _options: ITokenFieldOptions<Token>) {
     super();
     const addSelectedItem = this._addSelectedItem.bind(this);
     const openAutocomplete = this._openAutocomplete.bind(this);
     this._acOptions = _options.acOptions && {..._options.acOptions, onClick: addSelectedItem};
     this._tokens.set(_options.initialValue.map(t => new TokenWrap(t)));
     this.tokensObs = this.autoDispose(computedArray(this._tokens, t => t.token));
+    this._keyBindings = {...defaultKeyBindings, ..._options.keyBindings};
 
     // We can capture undo info in a consistent way as long as we change _tokens using its
     // obsArray interface, by listening to the splice events.
     this.autoDispose(this._tokens.addListener(this._recordUndo.bind(this)));
 
     // Use overridden styles if any were provided.
-    const {
-      cssTokenField,
-      cssToken,
-      cssInputWrapper,
-      cssTokenInput,
-      cssDeleteButton,
-      cssDeleteIcon} =
-      {...tokenFieldStyles, ..._options.styles};
+    this._styles = {...tokenFieldStyles, ..._options.styles};
+    const {cssTokenField, cssToken, cssInputWrapper, cssTokenInput, cssDeleteButton, cssDeleteIcon} = this._styles;
 
     function stop(ev: Event) {
       ev.stopPropagation();
@@ -141,8 +155,8 @@ export class TokenField extends Disposable {
         a$: this._maybeSelectAllTokens.bind(this),
         Backspace$: this._maybeBackspace.bind(this),
         Delete$: this._maybeDelete.bind(this),
-        [this._keyPrev + '$']: (ev) => this._maybeAdvance(ev, -1),
-        [this._keyNext + '$']: (ev) => this._maybeAdvance(ev, +1),
+        [this._keyBindings.previous + '$']: (ev) => this._maybeAdvance(ev, -1),
+        [this._keyBindings.next + '$']: (ev) => this._maybeAdvance(ev, +1),
         // ['Mod+z'] triggers undo; ['Mod+Shift+Z', 'Ctrl+y' ] trigger redo
         z$: (ev) => { if (ev[modKeyProp()]) { ev.shiftKey ? this._redo(ev) : this._undo(ev); } },
         y$: (ev) => { if (ev.ctrlKey && !ev.shiftKey) { this._redo(ev); } },
@@ -155,7 +169,7 @@ export class TokenField extends Disposable {
           }
         }),
       ),
-      dom.on('focus', () => this._hiddenInput.focus()),
+      dom.on('focus', () => this._hiddenInput.focus({preventScroll: true})),
       dom.on('copy', this._onCopyEvent.bind(this)),
       dom.on('cut', this._onCutEvent.bind(this)),
       dom.on('paste', this._onPasteEvent.bind(this)),
@@ -182,6 +196,13 @@ export class TokenField extends Disposable {
     return this._hiddenInput;
   }
 
+  // Replaces a token (if it exists)
+  public replaceToken(label: string, newToken: Token): void {
+    const tokenIdx = this._tokens.get().findIndex(t => t.token.label === label);
+    if (tokenIdx === -1) { return; }
+    this._tokens.splice(tokenIdx, 1, new TokenWrap(newToken));
+  }
+
   // Open the autocomplete dropdown, if autocomplete was configured in the options.
   private _openAutocomplete() {
     // don't open dropdown in a readonly mode
@@ -194,7 +215,7 @@ export class TokenField extends Disposable {
   // Adds the typed-in or selected item. If an item is selected in autocomplete dropdown, adds
   // that; otherwise if options.createToken is present, creates a token from text input value.
   private _addSelectedItem(): boolean {
-    let item: IToken|undefined = this._acHolder.get()?.getSelectedItem();
+    let item: Token|undefined = this._acHolder.get()?.getSelectedItem();
     if (!item && this._options.createToken && this._textInput.value) {
       item = this._options.createToken(this._textInput.value);
     }
@@ -218,10 +239,10 @@ export class TokenField extends Disposable {
 
   // Handle for a click on a token or the token's delete button. This handles selection, including
   // Shift+Click and Ctrl+Click.
-  private _onTokenClick(ev: MouseEvent, t: TokenWrap) {
+  private _onTokenClick(ev: MouseEvent, t: TokenWrap<Token>) {
     const idx = this._tokens.get().indexOf(t);
     if (idx < 0) { return; }
-    if (ev.target && (ev.target as HTMLElement).matches('.' + cssDeleteIcon.className)) {
+    if (ev.target && (ev.target as HTMLElement).matches('.' + this._styles.cssDeleteIcon.className)) {
       // Delete token.
       this._tokens.splice(idx, 1);
     } else {
@@ -266,6 +287,7 @@ export class TokenField extends Disposable {
     if (this._textInput.value === '') {
       ev.stopPropagation();
       ev.preventDefault();
+      if (ev.repeat) { return; }
       if (this._selection.get().size === 0) {
         this._tokens.pop();
       } else {
@@ -307,7 +329,7 @@ export class TokenField extends Disposable {
       }
     } else {
       // For arrow keys, move to the next token after the selection.
-      let next: TokenWrap|null = null;
+      let next: TokenWrap<Token>|null = null;
       if (this._selection.get().size > 0) {
         next = this._getNextToken(this._selection.get(), advance);
       } else if (advance < 0 && tokens.length > 0) {
@@ -323,7 +345,7 @@ export class TokenField extends Disposable {
     }
   }
 
-  private _toggleTokenSelection(token: TokenWrap) {
+  private _toggleTokenSelection(token: TokenWrap<Token>) {
     const selection = this._selection.get();
     if (selection.has(token)) {
       selection.delete(token);
@@ -334,13 +356,13 @@ export class TokenField extends Disposable {
     this._selection.setAndTrigger(selection);
   }
 
-  private _resetTokenSelection(token: TokenWrap|null) {
+  private _resetTokenSelection(token: TokenWrap<Token>|null) {
     this._selectionAnchor = token;
     this._selection.set(token ? new Set([token]) : new Set());
   }
 
   // Delete the given set of tokens, and select either the following or the preceding one.
-  private _deleteTokens(toDelete: Set<TokenWrap>, advance: 1|-1|0) {
+  private _deleteTokens(toDelete: Set<TokenWrap<Token>>, advance: 1|-1|0) {
     if (this._selection.get().size === 0) { return; }
     const selectAfter = advance ? this._getNextToken(toDelete, advance) : null;
     this._tokens.set(this._tokens.get().filter(t => !toDelete.has(t)));
@@ -348,13 +370,13 @@ export class TokenField extends Disposable {
     this._setFocus();
   }
 
-  private _getNextToken(selection: Set<TokenWrap>, advance: 1|-1): TokenWrap|null {
+  private _getNextToken(selection: Set<TokenWrap<Token>>, advance: 1|-1): TokenWrap<Token>|null {
     const [first, last] = this._getSelectedIndexRange(selection);
     if (last < 0) { return null; }
     return this._tokens.get()[advance > 0 ? last + 1 : first - 1] || null;
   }
 
-  private _getSelectedIndexRange(selection: Set<TokenWrap>): [number, number] {
+  private _getSelectedIndexRange(selection: Set<TokenWrap<Token>>): [number, number] {
     const tokens = this._tokens.get();
     let first = -1, last = -1;
     for (let i = 0; i < tokens.length; i++) {
@@ -390,13 +412,13 @@ export class TokenField extends Disposable {
   private _onPasteEvent(ev: ClipboardEvent) {
     if (!ev.clipboardData) { return; }
     ev.preventDefault();
-    let tokens: IToken[];
+    let tokens: Token[];
     if (this._options.clipboardToTokens) {
       tokens = this._options.clipboardToTokens(ev.clipboardData);
     } else {
       const text = ev.clipboardData.getData('text/plain');
       const values = csvDecodeRow(text);
-      tokens = values.map(v => this._options.createToken(v)).filter((t): t is IToken => Boolean(t));
+      tokens = values.map(v => this._options.createToken(v)).filter((t): t is Token => Boolean(t));
     }
     if (!tokens.length) { return; }
     const wrappedTokens = tokens.map(t => new TokenWrap(t));
@@ -417,10 +439,10 @@ export class TokenField extends Disposable {
 
   // For a mousedown on a token, register events for mousemove/mouseup, and start dragging as soon
   // as mousemove occurs.
-  private _onMouseDown(startEvent: MouseEvent, t: TokenWrap) {
+  private _onMouseDown(startEvent: MouseEvent, t: TokenWrap<Token>) {
     const xInitial = startEvent.clientX;
     const yInitial = startEvent.clientY;
-    const dragTargetSelector = `.${cssToken.className}, .${cssInputWrapper.className}`;
+    const dragTargetSelector = `.${this._styles.cssToken.className}, .${this._styles.cssInputWrapper.className}`;
 
     let started = false;
     let allTargets: HTMLElement[];
@@ -468,7 +490,7 @@ export class TokenField extends Disposable {
       // end (just before or over the input box), destToken will be undefined.
       const index = allTargets.indexOf(ev.target as HTMLElement);
       if (index < 0) { return; }
-      const destToken: TokenWrap|undefined = this._tokens.get()[index];
+      const destToken: TokenWrap<Token>|undefined = this._tokens.get()[index];
 
       const selection = this._selection.get();
       if (selection.has(destToken)) { return; }   // Not actually moving anywhere new.
@@ -491,7 +513,7 @@ export class TokenField extends Disposable {
     const stopLis = dom.onElem(document, 'mouseup', onStop, {useCapture: true});
   }
 
-  private _recordUndo(val: TokenWrap[], prev: TokenWrap[], change?: IObsArraySplice<TokenWrap>) {
+  private _recordUndo(val: TokenWrap<Token>[], prev: TokenWrap<Token>[], change?: IObsArraySplice<TokenWrap<Token>>) {
     if (this._inUndoRedo) { return; }
     const splice = change || {start: 0, numAdded: val.length, deleted: [...prev]};
     const newTokens = val.slice(splice.start, splice.start + splice.numAdded);

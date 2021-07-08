@@ -198,7 +198,8 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           alignment: 'left',
-          choices: null
+          choices: null,
+          choiceOptions: null
         }
       }
     },
@@ -214,7 +215,8 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           alignment: 'left',
-          choices: null
+          choices: null,
+          choiceOptions: null
         }
       }
     },

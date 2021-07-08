@@ -36,6 +36,25 @@ export function colorSelect(textColor: Observable<string>, fillColor: Observable
   return selectBtn;
 }
 
+export function colorButton(textColor: Observable<string>, fillColor: Observable<string>,
+  onSave: () => Promise<void>): Element {
+  const iconBtn = cssIconBtn(
+    icon(
+      'Dropdown',
+      dom.style('background-color', textColor),
+      testId('color-button-dropdown')
+    ),
+    dom.style('background-color', (use) => use(fillColor).slice(0, 7)),
+    dom.on('click', (e) => { e.stopPropagation(); e.preventDefault(); }),
+    testId('color-button'),
+  );
+
+  const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, textColor, fillColor, onSave);
+  setPopupToCreateDom(iconBtn, domCreator, { ...defaultMenuOptions, placement: 'bottom-end' });
+
+  return iconBtn;
+}
+
 function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, fillColor: Observable<string>,
                           onSave: () => Promise<void>): Element {
   const textColorModel = PickerModel.create(null, textColor);
@@ -317,4 +336,14 @@ const cssColorSquare = styled('div', `
 const cssButtonIcon = styled(cssColorSquare, `
   margin-right: 6px;
   margin-left: 4px;
+`);
+
+const cssIconBtn = styled('div', `
+  min-width: 18px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `);
