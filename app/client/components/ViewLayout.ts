@@ -22,6 +22,7 @@ import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, s
 import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
+import {icon} from 'app/client/ui2018/icons';
 
 // tslint:disable:no-console
 
@@ -187,18 +188,20 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasFocus)),
       dom.cls('active_section', vs.hasFocus),
 
-      dom.maybe((use) => use(vs.viewInstance) !== null, () => dom('div.viewsection_title.flexhbox',
+      dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
         dom('span.viewsection_drag_indicator.glyphicon.glyphicon-option-vertical',
           // Makes element grabbable only if grist is not readonly.
           dom.cls('layout_grabbable', (use) => !use(this.gristDoc.isReadonlyKo))),
-        dom('div.flexitem.flexhbox',
+        dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
+          cssSigmaIcon('Pivot', testId('sigma'))),
+        dom('div.viewsection_titletext_container.flexitem.flexhbox',
           dom('span.viewsection_titletext', editableLabel(
             fromKo(vs.titleDef),
             (val) => vs.titleDef.saveOnly(val),
             testId('viewsection-title'),
           )),
         ),
-        dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance: BaseView) => viewInstance.buildTitleControls()),
+        viewInstance.buildTitleControls(),
         dom('span.viewsection_buttons',
           dom.create(viewSectionMenu, this.docModel, vs, this.viewModel, this.gristDoc.isReadonly)
         )
@@ -298,6 +301,12 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }
   }
 }
+
+const cssSigmaIcon = styled(icon, `
+  bottom: 1px;
+  margin-right: 5px;
+  background-color: ${colors.slate}
+`);
 
 const cssViewLeaf = styled('div', `
   @media ${mediaSmall} {

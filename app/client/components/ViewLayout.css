@@ -9,7 +9,6 @@
 
 .viewsection_title {
   flex-shrink: 0;
-  align-items: baseline;
   cursor: default;
   height: 24px;
   margin-left: -16px;   /* to include drag handle that shows up on hover */
@@ -23,6 +22,9 @@
 .viewsection_titletext {
   cursor: text;
   overflow: hidden;
+}
+.viewsection_titletext_container {
+  height: max-content;
 }
 
 .viewsection_content {
@@ -42,7 +44,7 @@
 /* TODO should be switched to use new icon */
 .viewsection_drag_indicator {
   visibility: hidden;
-  top: 0px;
+  top: 1px;
   width: 16px;
   height: 16px;
   margin: 0;
