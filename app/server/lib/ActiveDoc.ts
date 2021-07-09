@@ -484,7 +484,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If no more clients, schedule a shutdown.
     if (this.docClients.clientCount() === 0) {
-      this.logInfo(docSession, "will self-close in %ds", Deps.ACTIVEDOC_TIMEOUT);
+      this.logInfo(docSession, "will self-close in %d ms", this._inactivityTimer.getDelay());
       this._inactivityTimer.enable();
     }
   }
