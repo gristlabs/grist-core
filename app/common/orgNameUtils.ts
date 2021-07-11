@@ -16,6 +16,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
   'docs', 'api', 'static',
   'ftp', 'imap', 'pop', 'smtp', 'mail', 'git', 'blog', 'wiki', 'support', 'kb', 'help',
   'admin', 'store', 'dev', 'beta', 'dev',
+  'community', 'try', 'wpx',
 
   // a few random tech brands
   'google', 'apple', 'microsoft', 'ms', 'facebook', 'fb', 'twitter', 'youtube', 'yt',
