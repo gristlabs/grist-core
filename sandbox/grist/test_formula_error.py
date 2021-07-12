@@ -66,7 +66,14 @@ else:
                               r"TypeError: SQRT\(\) takes 1 positional argument but 2 were given")
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'built_in_formula', 3),
-                            TypeError, "'int' object is not iterable")
+                            TypeError, "'int' object is not iterable",
+                            textwrap.dedent(
+                              r"""
+                                File "usercode", line \d+, in built_in_formula
+                                  return max\(5\)
+                              TypeError: 'int' object is not iterable
+                              """
+                            ))
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'syntax_err', 3),
                             SyntaxError, "invalid syntax on line 5 col 9")
@@ -76,7 +83,13 @@ else:
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'other_err', 3),
                             TypeError, "'int' object is not iterable",
-                            r"line \d+, in other_err")
+                            textwrap.dedent(
+                              r"""
+                                File "usercode", line \d+, in other_err
+                                  if sum\(3, 5\) > 6:
+                              TypeError: 'int' object is not iterable
+                              """
+                            ))
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'custom_err', 3),
                             Exception, "hello")

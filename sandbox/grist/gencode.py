@@ -15,6 +15,7 @@ The schema for grist data is:
     "formula": <opt_string>,
   }
 """
+import linecache
 import re
 import imp
 from collections import OrderedDict
@@ -194,6 +195,17 @@ def _is_special_table(table_id):
 
 def exec_module_text(module_text):
   # pylint: disable=exec-used
-  mod = imp.new_module("usercode")
-  exec(module_text, mod.__dict__)
+  filename = "usercode"
+  mod = imp.new_module(filename)
+
+  # Ensure that source lines show in tracebacks
+  linecache.cache[filename] = (
+    len(module_text),
+    None,
+    [line + '\n' for line in module_text.splitlines()],
+    filename,
+  )
+
+  code_obj = compile(module_text, filename, "exec")
+  exec(code_obj, mod.__dict__)
   return mod
