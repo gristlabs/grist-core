@@ -1164,7 +1164,7 @@ export class ActiveDoc extends EventEmitter {
     await this._granularAccess.assertCanMaybeApplyUserActions(docSession, actions);
 
     const user = docSession.mode === 'system' ? 'grist' :
-      (client && client.session ? (await client.session.getEmail()) : "");
+      (client?.getProfile()?.email || '');
 
     // Create the UserActionBundle.
     const action: UserActionBundle = {

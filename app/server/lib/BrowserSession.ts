@@ -8,19 +8,19 @@ export interface SessionUserObj {
   // a grist-internal identify for the user, if known.
   userId?: number;
 
-  // The user profile object. When updated, all clients get a message with the update.
+  // The user profile object.
   profile?: UserProfile;
 
-  // Authentication provider string indicating the login method used.
+  // [UNUSED] Authentication provider string indicating the login method used.
   authProvider?: string;
 
-  // Login ID token used to access AWS services.
+  // [UNUSED] Login ID token used to access AWS services.
   idToken?: string;
 
-  // Login access token used to access other AWS services.
+  // [UNUSED] Login access token used to access other AWS services.
   accessToken?: string;
 
-  // Login refresh token used to retrieve new ID and access tokens.
+  // [UNUSED] Login refresh token used to retrieve new ID and access tokens.
   refreshToken?: string;
 }
 
@@ -131,6 +131,26 @@ export class ScopedSession {
   public async getScopedSession(prev?: SessionObj): Promise<SessionUserObj> {
     const session = prev || await this._getSession();
     return getSessionUser(session, this._org, this._userSelector) || {};
+  }
+
+  // Retrieves the user profile from the session.
+  public async getSessionProfile(prev?: SessionObj): Promise<UserProfile|null> {
+    return (await this.getScopedSession(prev)).profile || null;
+  }
+
+  // Updates a user profile. The session may have multiple profiles associated with different
+  // email addresses. This will update the one with a matching email address, or add a new one.
+  // This is mainly used to know which emails are logged in in this session; fields like name and
+  // picture URL come from the database instead.
+  public async updateUserProfile(profile: UserProfile|null): Promise<void> {
+    if (profile) {
+      await this.operateOnScopedSession(async user => {
+        user.profile = profile;
+        return user;
+      });
+    } else {
+      await this.clearScopedSession();
+    }
   }
 
   /**

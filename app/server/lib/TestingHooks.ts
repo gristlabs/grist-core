@@ -73,8 +73,8 @@ export class TestingHooks implements ITestingHooks {
   public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void> {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
     const sessionId = this._comm.getSessionIdFromCookie(gristSidCookie);
-    const loginSession = this._comm.getOrCreateSession(sessionId, {org});
-    return await loginSession.testSetProfile(profile);
+    const scopedSession = this._comm.getOrCreateSession(sessionId, {org});
+    return await scopedSession.updateUserProfile(profile);
   }
 
   public async setServerVersion(version: string|null): Promise<void> {

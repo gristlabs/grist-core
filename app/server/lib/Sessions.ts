@@ -1,16 +1,9 @@
 import {ScopedSession} from 'app/server/lib/BrowserSession';
-import * as Comm from 'app/server/lib/Comm';
 import {GristServer} from 'app/server/lib/GristServer';
 import {cookieName, SessionStore} from 'app/server/lib/gristSessions';
-import {ILoginSession} from 'app/server/lib/ILoginSession';
 import * as cookie from 'cookie';
 import * as cookieParser from 'cookie-parser';
 import {Request} from 'express';
-
-interface Session {
-  scopedSession: ScopedSession;
-  loginSession?: ILoginSession;
-}
 
 /**
  *
@@ -21,8 +14,7 @@ interface Session {
  * from code related to websockets.
  *
  * The collection caches all existing interfaces to sessions.
- * LoginSessions play an important role in standalone Grist and address
- * end-to-end sharing concerns.  ScopedSessions play an important role in
+ * ScopedSessions play an important role in
  * hosted Grist and address per-organization scoping of identity.
  *
  * TODO: now this is separated out, we could refactor to share sessions
@@ -32,7 +24,7 @@ interface Session {
  *
  */
 export class Sessions {
-  private _sessions = new Map<string, Session>();
+  private _sessions = new Map<string, ScopedSession>();
 
   constructor(private _sessionSecret: string, private _sessionStore: SessionStore, private _server: GristServer) {
   }
@@ -41,7 +33,7 @@ export class Sessions {
    * Get the session id and organization from the request, and return the
    * identified session.
    */
-  public getOrCreateSessionFromRequest(req: Request): Session {
+  public getOrCreateSessionFromRequest(req: Request): ScopedSession {
     const sid = this.getSessionIdFromRequest(req);
     const org = (req as any).org;
     if (!sid) { throw new Error("session not found"); }
@@ -51,27 +43,14 @@ export class Sessions {
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, domain: string, userSelector: string): Session {
+  public getOrCreateSession(sid: string, domain: string, userSelector: string): ScopedSession {
     const key = this._getSessionOrgKey(sid, domain, userSelector);
     if (!this._sessions.has(key)) {
       const scopedSession = new ScopedSession(sid, this._sessionStore, domain, userSelector);
-      this._sessions.set(key, {scopedSession});
+      this._server.create.adjustSession(scopedSession);
+      this._sessions.set(key, scopedSession);
     }
     return this._sessions.get(key)!;
-  }
-
-  /**
-   * Access a LoginSession interface, creating it if necessary.  For creation,
-   * purposes, Comm, and optionally InstanceManager objects are needed.
-   *
-   */
-  public getOrCreateLoginSession(sid: string, domain: string, comm: Comm,
-                                 userSelector: string): ILoginSession {
-    const sess = this.getOrCreateSession(sid, domain, userSelector);
-    if (!sess.loginSession) {
-      sess.loginSession = this._server.create.LoginSession(comm, sid, domain, sess.scopedSession);
-    }
-    return sess.loginSession;
   }
 
   /**

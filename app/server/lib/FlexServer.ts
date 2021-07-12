@@ -788,15 +788,12 @@ export class FlexServer implements GristServer {
       this.app.get('/test/login', expressWrap(async (req, res) => {
         log.warn("Serving unauthenticated /test/login endpoint, made available because GRIST_TEST_LOGIN is set.");
 
-        const session = this.sessions.getOrCreateSessionFromRequest(req);
+        const scopedSession = this.sessions.getOrCreateSessionFromRequest(req);
         const profile: UserProfile = {
           email: optStringParam(req.query.email) || 'chimpy@getgrist.com',
           name: optStringParam(req.query.name) || 'Chimpy McBanana',
         };
-        await session.scopedSession.operateOnScopedSession(async user => {
-          user.profile = profile;
-          return user;
-        });
+        await scopedSession.updateUserProfile(profile);
         res.send(`<!doctype html>
           <html><body>
           <p>Logged in as ${JSON.stringify(profile)}.<p>
@@ -811,8 +808,8 @@ export class FlexServer implements GristServer {
     }
 
     this.app.get('/logout', expressWrap(async (req, resp) => {
-      const session = this.sessions.getOrCreateSessionFromRequest(req);
-      const userSession = await session.scopedSession.getScopedSession();
+      const scopedSession = this.sessions.getOrCreateSessionFromRequest(req);
+      const userSession = await scopedSession.getScopedSession();
 
       // If 'next' param is missing, redirect to "/" on our requested hostname.
       const next = optStringParam(req.query.next) || (req.protocol + '://' + req.get('host') + '/');
@@ -823,9 +820,7 @@ export class FlexServer implements GristServer {
       // Express-session will save these changes.
       const expressSession = (req as any).session;
       if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
-      if (session.loginSession) {
-        await session.loginSession.clearSession();
-      }
+      await scopedSession.clearScopedSession();
       resp.redirect(redirectUrl);
     }));
 

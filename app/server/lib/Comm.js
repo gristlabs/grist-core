@@ -78,7 +78,7 @@ function Comm(server, options) {
   this._clients = {};       // Maps clientIds to Client objects.
   this.clientList = [];     // List of all active Clients, ordered by clientId.
 
-  // Maps sessionIds to LoginSession objects.
+  // Maps sessionIds to ScopedSession objects.
   this.sessions = options.sessions;
 
   this._settings = options.settings;
@@ -118,14 +118,13 @@ Comm.prototype.getClient = function(clientId) {
 };
 
 /**
- * Returns a LoginSession object with the given session id from the list of sessions,
+ * Returns a ScopedSession object with the given session id from the list of sessions,
  *  or adds a new one and returns that.
  */
 Comm.prototype.getOrCreateSession = function(sid, req, userSelector) {
-  // LoginSessions are specific to a session id / org combination.
+  // ScopedSessions are specific to a session id / org combination.
   const org = req.org || "";
-  return this.sessions.getOrCreateLoginSession(sid, org, this,
-                                               userSelector);
+  return this.sessions.getOrCreateSession(sid, org, userSelector);
 };
 
 
@@ -230,13 +229,13 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
 
   // Add a Session object to the client.
   log.info(`Comm ${client}: using session ${sessionId}`);
-  const loginSession = this.getOrCreateSession(sessionId, req, userSelector);
-  client.setSession(loginSession);
+  const scopedSession = this.getOrCreateSession(sessionId, req, userSelector);
+  client.setSession(scopedSession);
 
   // Delegate message handling to the client
   websocket.on('message', client.onMessage.bind(client));
 
-  loginSession.getSessionProfile()
+  scopedSession.getSessionProfile()
   .then((profile) => {
     log.debug(`Comm ${client}: sending clientConnect with ` +
       `${client._missedMessages.length} missed messages`);

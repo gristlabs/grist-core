@@ -8,9 +8,9 @@ import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
+import {ScopedSession} from 'app/server/lib/BrowserSession';
 import {DocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
-import {ILoginSession} from 'app/server/lib/ILoginSession';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
@@ -61,9 +61,9 @@ void(MESSAGE_TYPES_NO_AUTH);
 export class Client {
   public readonly clientId: string;
 
-  public session: ILoginSession|null = null;
-
   public browserSettings: BrowserSettings = {};
+
+  private _session: ScopedSession|null = null;
 
   // Maps docFDs to DocSession objects.
   private _docFDs: Array<DocSession|null> = [];
@@ -221,21 +221,16 @@ export class Client {
     }
   }
 
-  // Assigns the client to the given login session and the session to the client.
-  public setSession(session: ILoginSession): void {
-    this.unsetSession();
-    this.session = session;
-    session.clients.add(this);
+  // Assigns the given ScopedSession to the client.
+  public setSession(session: ScopedSession): void {
+    this._session = session;
   }
 
-  // Unsets the current login session and removes the client from it.
-  public unsetSession(): void {
-    if (this.session) { this.session.clients.delete(this); }
-    this.session = null;
+  public getSession(): ScopedSession|null {
+    return this._session;
   }
 
   public destroy() {
-    this.unsetSession();
     this._destroyed = true;
   }
 
@@ -316,6 +311,14 @@ export class Client {
       };
     }
     return this._profile;
+  }
+
+  public async getSessionProfile(): Promise<UserProfile|null|undefined> {
+    return this._session?.getSessionProfile();
+  }
+
+  public async getSessionEmail(): Promise<string|null> {
+    return (await this.getSessionProfile())?.email || null;
   }
 
   public getCachedUserId(): number|null {

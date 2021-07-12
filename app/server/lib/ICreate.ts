@@ -1,18 +1,19 @@
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ScopedSession} from 'app/server/lib/BrowserSession';
-import * as Comm from 'app/server/lib/Comm';
 import {DocManager} from 'app/server/lib/DocManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
-import {ILoginSession} from 'app/server/lib/ILoginSession';
 import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 
 export interface ICreate {
-  LoginSession(comm: Comm, sid: string, domain: string, scopeSession: ScopedSession): ILoginSession;
+  // A ScopedSession knows which user is logged in to an org. This method may be used to replace
+  // its behavior with stubs when logins aren't available.
+  adjustSession(scopedSession: ScopedSession): void;
+
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   Shell(): IShell|undefined;

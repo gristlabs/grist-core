@@ -52,7 +52,7 @@
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "mocha": "5.2.0",
-    "mocha-webdriver": "0.2.8",
+    "mocha-webdriver": "0.2.9",
     "moment-locales-webpack-plugin": "^1.2.0",
     "nodemon": "^2.0.4",
     "selenium-webdriver": "3.6.0",

@@ -4,7 +4,7 @@ declare module "app/server/lib/User";
 
 declare module "app/server/lib/Comm" {
   import {Client, ClientMethod} from "app/server/lib/Client";
-  import {LoginSession} from "app/server/lib/LoginSession";
+  import {ScopedSession} from "app/server/lib/BrowserSession";
   import * as http from "http";
 
   class Comm {
@@ -14,7 +14,7 @@ declare module "app/server/lib/Comm" {
     public setServerVersion(serverVersion: string|null): void;
     public setServerActivation(active: boolean): void;
     public getSessionIdFromCookie(gristSidCookie: string): string;
-    public getOrCreateSession(sessionId: string, req: any): LoginSession;
+    public getOrCreateSession(sessionId: string, req: any): ScopedSession;
     public registerMethods(methods: {[name: string]: ClientMethod}): void;
     public getClient(clientId: string): Client;
     public testServerShutdown(): Promise<void>;
