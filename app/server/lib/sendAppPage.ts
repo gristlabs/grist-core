@@ -24,7 +24,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
                                 baseDomain?: string, req?: express.Request
 ): GristLoadConfig {
   // .invalid is a TLD the IETF promises will never exist.
-  const pluginUrl = process.env.APP_UNTRUSTED_URL || 'plugins.invalid';
+  const pluginUrl = process.env.APP_UNTRUSTED_URL || 'http://plugins.invalid';
   const pathOnly = (process.env.GRIST_ORG_IN_PATH === "true") ||
     (homeUrl && new URL(homeUrl).hostname === 'localhost') || false;
   const mreq = req as RequestWithOrg|undefined;
@@ -37,6 +37,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     supportAnon: shouldSupportAnon(),
     pluginUrl,
     stripeAPIKey: process.env.STRIPE_PUBLIC_API_KEY,
+    googleClientId: process.env.GOOGLE_CLIENT_ID,
     helpScoutBeaconId: process.env.HELP_SCOUT_BEACON_ID,
     maxUploadSizeImport: (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || undefined,
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,

@@ -158,6 +158,9 @@ export class Importer extends Disposable {
         }
       }
     } catch (err) {
+      if (!this._openModalCtl) {
+        this._showImportDialog();
+      }
       this._renderError(err.message);
       return;
     }
@@ -267,7 +270,7 @@ export class Importer extends Disposable {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
       await this._gristDoc.openDocPage(tableRowModel.primaryViewId());
     }
-    this._openModalCtl!.close();
+    this._openModalCtl?.close();
     this.dispose();
   }
 
@@ -276,7 +279,7 @@ export class Importer extends Disposable {
       await this._docComm.cancelImportFiles(
         this._getTransformedDataSource(this._uploadResult), this._getHiddenTableIds());
     }
-    this._openModalCtl!.close();
+    this._openModalCtl?.close();
     this.dispose();
   }
 

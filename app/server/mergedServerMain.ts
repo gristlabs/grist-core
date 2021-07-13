@@ -128,6 +128,10 @@ export async function main(port: number, serverTypes: ServerType[],
     await server.addDoc();
   }
 
+  if (includeHome) {
+    server.addClientSecrets();
+  }
+
   server.finalize();
 
   server.summary();

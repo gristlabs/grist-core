@@ -96,28 +96,38 @@ export interface OrgUrlInfo {
 }
 
 /**
- * Given host name, baseDomain, and pluginUrl, determine whether to interpret host
+ * Given host (optionally with port), baseDomain, and pluginUrl, determine whether to interpret host
  * as a custom domain, a native domain, or a plugin domain.
  */
-export function getHostType(hostname: string, options: {
+export function getHostType(host: string, options: {
   baseDomain?: string, pluginUrl?: string
 }): 'native' | 'custom' | 'plugin' {
-  if (options.pluginUrl && hostname.toLowerCase() === new URL(options.pluginUrl).hostname.toLowerCase()) {
-    return 'plugin';
+
+  if (options.pluginUrl) {
+    const url = new URL(options.pluginUrl);
+    if (url.host.toLowerCase() === host.toLowerCase()) {
+      return 'plugin';
+    }
   }
+
+  const hostname = host.split(":")[0];
   if (!options.baseDomain) { return 'native'; }
   if (hostname !== 'localhost' && !hostname.endsWith(options.baseDomain)) { return 'custom'; }
   return 'native';
 }
 
-export function getOrgUrlInfo(newOrg: string, currentHostname: string, options: OrgUrlOptions): OrgUrlInfo {
+export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgUrlOptions): OrgUrlInfo {
   if (newOrg === options.singleOrg) {
     return {};
   }
-  if (!options.baseDomain || currentHostname === 'localhost') {
-    return {orgInPath: newOrg};
+  const hostType = getHostType(currentHost, options);
+  if (hostType !== 'plugin') {
+    const hostname = currentHost.split(":")[0];
+    if (!options.baseDomain || hostname === 'localhost') {
+      return {orgInPath: newOrg};
+    }
   }
-  if (newOrg === options.org && getHostType(currentHostname, options) !== 'native') {
+  if (newOrg === options.org && hostType !== 'native') {
     return {};
   }
   return {hostname: newOrg + options.baseDomain};
@@ -140,7 +150,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.org) {
     // We figure out where to stick the org using the gristConfig and the current host.
-    const {hostname, orgInPath} = getOrgUrlInfo(state.org, baseLocation.hostname, gristConfig);
+    const {hostname, orgInPath} = getOrgUrlInfo(state.org, baseLocation.host, gristConfig);
     if (hostname) {
       url.hostname = hostname;
     }
@@ -419,6 +429,9 @@ export interface GristLoadConfig {
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
+
+  // Google Client Id, used in Google integration (ex: Google Drive Plugin)
+  googleClientId?: string;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

@@ -747,6 +747,27 @@ export class FlexServer implements GristServer {
       httpsServer: this.httpsServer,
     });
   }
+  /**
+   * Add endpoint that servers a javascript file with various api keys that
+   * are used by the client libraries.
+   */
+  public addClientSecrets() {
+    if (this._check('clientSecret')) { return; }
+    this.app.get('/client-secret.js', expressWrap(async (req, res) => {
+      const config = this.getGristConfig();
+      // Currently we are exposing only Google keys.
+      // Those keys are eventually visible by the client, but should be usable
+      // only from Grist's domains.
+      const secrets = {
+        googleClientId : config.googleClientId,
+      };
+      res.set('Content-Type', 'application/javascript');
+      res.status(200);
+      res.send(`
+        window.gristClientSecret = ${JSON.stringify(secrets)}
+      `);
+    }));
+  }
 
   public addLoginRoutes() {
     if (this._check('login', 'org', 'sessions')) { return; }
@@ -1416,7 +1437,7 @@ export class FlexServer implements GristServer {
    * path.
    */
   private _getOrgRedirectUrl(req: RequestWithLogin, subdomain: string, pathname: string = req.originalUrl): string {
-    const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.hostname, {
+    const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, {
       org: req.org,
       baseDomain: this._defaultBaseDomain,
       pluginUrl: this._pluginUrl,

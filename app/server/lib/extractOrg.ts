@@ -64,9 +64,8 @@ export class Hosts {
   // Extract org info in a request. This applies to the low-level IncomingMessage type (rather
   // than express.Request that derives from it) to be usable with websocket requests too.
   public async getOrgInfo(req: IncomingMessage): Promise<RequestOrgInfo> {
-    const host = req.headers.host || '';
-    const hostname = host.split(':')[0];    // Strip out port (ignores IPv6 but is OK for us).
-    const info = await this.getOrgInfoFromParts(hostname, req.url!);
+    const host = req.headers.host!;
+    const info = await this.getOrgInfoFromParts(host, req.url!);
     // "Organization" header is used in proxying to doc worker, so respect it if
     // no org info found in url.
     if (!info.org && req.headers.organization) {
@@ -77,7 +76,9 @@ export class Hosts {
 
   // Extract org, isCustomHost, and the URL with /o/ORG stripped away. Throws ApiError for
   // mismatching org or invalid custom domain. Hostname should not include port.
-  public async getOrgInfoFromParts(hostname: string, urlPath: string): Promise<RequestOrgInfo> {
+  public async getOrgInfoFromParts(host: string, urlPath: string): Promise<RequestOrgInfo> {
+    const hostname = host.split(':')[0];    // Strip out port (ignores IPv6 but is OK for us).
+
     // Extract the org from the host and URL path.
     const parts = extractOrgParts(hostname, urlPath);
 
@@ -87,7 +88,7 @@ export class Hosts {
       return {org: singleOrg, url: parts.pathRemainder, isCustomHost: false};
     }
 
-    const hostType = this._getHostType(hostname);
+    const hostType = this._getHostType(host);
     if (hostType === 'native') {
       if (parts.mismatch) {
         throw new ApiError(`Wrong org for this domain: ` +
@@ -147,14 +148,14 @@ export class Hosts {
   private async _redirectHost(req: Request, resp: Response, next: NextFunction) {
     const {org} = req as RequestWithOrg;
 
-    if (org && this._getHostType(req.hostname) === 'native' && !this._dbManager.isMergedOrg(org)) {
+    if (org && this._getHostType(req.headers.host!) === 'native' && !this._dbManager.isMergedOrg(org)) {
       // Check if the org has a preferred host.
       const orgHost = await mapGetOrSet(this._org2host, org, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, {domain: org});
         return o && o.host || undefined;
       });
       if (orgHost && orgHost !== req.hostname) {
-        const url = new URL(`${req.protocol}://${req.get('host')}${req.path}`);
+        const url = new URL(`${req.protocol}://${req.headers.host}${req.path}`);
         url.hostname = orgHost;  // assigning hostname rather than host preserves port.
         return resp.redirect(url.href);
       }
@@ -162,7 +163,7 @@ export class Hosts {
     return next();
   }
 
-  private _getHostType(hostname: string) {
-    return getHostType(hostname, {baseDomain: this._baseDomain, pluginUrl: this._pluginUrl});
+  private _getHostType(host: string) {
+    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl: this._pluginUrl});
   }
 }

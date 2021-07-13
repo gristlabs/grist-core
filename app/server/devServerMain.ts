@@ -34,6 +34,22 @@ function getPort(envVarName: string, fallbackPort: number): number {
   return val ? parseInt(val, 10) : fallbackPort;
 }
 
+// Checks whether to serve user content on same domain but on different port
+function checkUserContentPort(): number | null {
+  if (process.env.APP_UNTRUSTED_URL && process.env.APP_HOME_URL) {
+    const homeUrl = new URL(process.env.APP_HOME_URL);
+    const pluginUrl = new URL(process.env.APP_UNTRUSTED_URL);
+    // If the hostname of both home and plugin url are the same,
+    // but the ports are different
+    if (homeUrl.hostname === pluginUrl.hostname &&
+        homeUrl.port !== pluginUrl.port) {
+      const port = parseInt(pluginUrl.port || '80', 10);
+      return port;
+    }
+  }
+  return null;
+}
+
 export async function main() {
   log.info("==========================================================================");
   log.info("== devServer");
@@ -76,6 +92,12 @@ export async function main() {
     }
   }
 
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    // those key is only for development purposes
+    // and is no secret as it is publicly visible in a plugin page
+    process.env.GOOGLE_CLIENT_ID  = '632317221841-ce66sfp00rf92dip4548dn4hf2ga79us.apps.googleusercontent.com';
+  }
+
   if (process.env.GRIST_SINGLE_PORT) {
     log.info("==========================================================================");
     log.info("== mergedServer");
@@ -85,6 +107,14 @@ export async function main() {
     }
     const server = await mergedServerMain(port, ["home", "docs", "static"]);
     await server.addTestingHooks();
+    // If plugin content is served from same host but on different port,
+    // run webserver on that port
+    const userPort = checkUserContentPort();
+    if (userPort !== null) {
+      log.info("==========================================================================");
+      log.info("== userContent");
+      await server.startCopy('pluginServer', userPort);
+    }
     return;
   }
 
@@ -116,6 +146,15 @@ export async function main() {
   // exactly the same content.  This is handy for testing CORS issues.
   if (webServerPort !== 0 && webServerPort !== homeServerPort) {
     await home.startCopy('webServer', webServerPort);
+  }
+
+  // If plugin content is served from same host but on different port,
+  // run webserver on that port
+  const userPort = checkUserContentPort();
+  if (userPort !== null) {
+    log.info("==========================================================================");
+    log.info("== userContent");
+    await home.startCopy('pluginServer', userPort);
   }
 
   // Bring up the docWorker(s)
