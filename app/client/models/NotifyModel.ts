@@ -34,7 +34,7 @@ export interface IProgress extends Expirable {
 }
 
 // Identifies supported actions. These are implemented in NotifyUI.
-export type NotifyAction = 'upgrade' | 'renew' | 'report-problem' | 'ask-for-help';
+export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem' | 'ask-for-help';
 
 export interface INotifyOptions {
   message: string | (() => DomElementArg);     // A string, or a function that builds dom.

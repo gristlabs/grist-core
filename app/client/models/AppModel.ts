@@ -104,7 +104,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
             org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserError(
             'This team site is suspended. Documents can be read, but not modified.',
-            {actions: ['renew']}
+            {actions: ['renew', 'personal']}
           );
         }
       }

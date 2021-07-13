@@ -31,6 +31,17 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       return dom('a', cssToastAction.cls(''), 'Renew', {target: '_blank'},
                  {href: urlState().makeUrl({billing: 'billing'})});
 
+    case 'personal':
+      if (!appModel) { return null; }
+      return cssToastAction('Go to your free personal site', dom.on('click', async () => {
+        const info = await appModel.api.getSessionAll();
+        const orgs = info.orgs.filter(org => org.owner && org.owner.id === appModel.currentUser?.id);
+        if (orgs.length !== 1) {
+          throw new Error('Cannot find personal site, sorry!');
+        }
+        window.location.assign(urlState().makeUrl({org: orgs[0].domain || undefined}));
+      }));
+
     case 'report-problem':
       return cssToastAction('Report a problem', testId('toast-report-problem'),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));

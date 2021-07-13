@@ -110,8 +110,9 @@ export function getDefaultProductNames() {
   return {
     personal: 'starter',  // Personal site start off on a functional plan.
     teamInitial: 'stub',  // Team site starts off on a limited plan, requiring subscription.
-    team: 'team',         // Functional team site
-  };
+    teamCancel: 'suspended',  // Team site that has been 'turned off'.
+    team: 'team',         // Functional team site.
+ };
 }
 
 /**
