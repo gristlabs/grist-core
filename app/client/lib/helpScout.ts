@@ -108,7 +108,7 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
 
   // The beacon remembers its content, so reset it when switching between reporting errors and
   // sending a message.
-  const openType = errors ? 'error' : 'message';
+  const openType = errors?.length ? 'error' : 'message';
   if (openType !== lastOpenType) {
     Beacon('reset');
     lastOpenType = openType;
@@ -128,7 +128,7 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
   }
 
   const attrs: ISessionData = {};
-  if (errors) {
+  if (errors?.length) {
     // If sending errors, prefill part of the message (the user sees this and can add to it), and
     // include more detailed errors with stack traces into session-data.
     const messages = errors.map(({error, timestamp}) =>
@@ -180,7 +180,7 @@ export function beaconOpenMessage(options: IBeaconOpenOptions) {
   if (options.includeAppErrors && app) {
     errors.push(...app.notifier.getFullAppErrors());
   }
-  _beaconOpen(getBeaconUserObj(app), options);
+  _beaconOpen(getBeaconUserObj(app), {...options, errors});
 }
 
 

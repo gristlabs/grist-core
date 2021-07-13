@@ -32,7 +32,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
                  {href: urlState().makeUrl({billing: 'billing'})});
 
     case 'report-problem':
-      return cssToastAction('Report a problem',
+      return cssToastAction('Report a problem', testId('toast-report-problem'),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));
 
     case 'ask-for-help': {
