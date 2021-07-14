@@ -23,6 +23,7 @@ import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
+import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import * as log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
@@ -476,7 +477,9 @@ export class DocManager extends EventEmitter {
         // security vulnerability. See https://phab.getgrist.com/T457.
         const docName = await this._createNewDoc(id);
         const docPath: string = this.storageManager.getPath(docName);
-        await docUtils.copyFile(uploadInfo.files[0].absPath, docPath);
+        const srcDocPath = uploadInfo.files[0].absPath;
+        await checkAllegedGristDoc(docSession, srcDocPath);
+        await docUtils.copyFile(srcDocPath, docPath);
         await this.storageManager.addToStorage(docName);
         return {title: basename, id: docName};
       } else {

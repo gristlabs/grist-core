@@ -10,26 +10,21 @@
 
 /* global before, after */
 
-const _         = require('underscore');
-const chai      = require('chai');
-const assert    = chai.assert;
-const chaiAsPromised = require('chai-as-promised');
-const path      = require('path');
-const util = require('util');
+import * as _ from 'underscore';
+import * as chai from 'chai';
+import { assert } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import * as path from 'path';
+import * as fse from 'fs-extra';
+import * as tmp from 'tmp-promise';
+import * as winston from 'winston';
+import { serialize } from 'winston/lib/winston/common';
 
-const Promise   = require('bluebird');
-const fs        = Promise.promisifyAll(require('fs'));
-const tmp       = Promise.promisifyAll(require('tmp'));
-const tmpFile   = Promise.promisify(tmp.file, {multiArgs: true});
-const winston   = require('winston');
-const {serialize}   = require('winston/lib/winston/common');
-
-const docUtils  = require('app/server/lib/docUtils');
-const log       = require('app/server/lib/log');
-const {getAppRoot} = require('app/server/lib/places');
+import * as docUtils from 'app/server/lib/docUtils';
+import * as log from 'app/server/lib/log';
+import { getAppRoot } from 'app/server/lib/places';
 
 chai.use(chaiAsPromised);
-Promise.config({longStackTraces: true});
 
 /**
  * Creates a temporary file with the given contents.
@@ -38,17 +33,14 @@ Promise.config({longStackTraces: true});
  *    is useful to see the content while debugging a test.
  * @returns {Promise} A promise for the path of the new file.
  */
-function writeTmpFile(content, optKeep) {
+export async function writeTmpFile(content: any, optKeep?: boolean) {
   // discardDescriptor ensures tmp module closes it. It can lead to horrible bugs to close this
   // descriptor yourself, since tmp also closes it on exit, and if it's a different descriptor by
   // that time, it can lead to a crash. See https://github.com/raszi/node-tmp/issues/168
-  return tmpFile({keep: optKeep, discardDescriptor: true})
-  .spread(function(path) {
-    return fs.writeFileAsync(path, content)
-    .thenReturn(path);
-  });
+  const obj = await tmp.file({keep: optKeep, discardDescriptor: true});
+  await fse.writeFile(obj.path, content);
+  return obj.path;
 }
-exports.writeTmpFile = writeTmpFile;
 
 /**
  * Creates a temporary file with `numLines` of generated data, each line about 30 bytes long.
@@ -58,33 +50,35 @@ exports.writeTmpFile = writeTmpFile;
  *    is useful to see the content while debugging a test.
  * @returns {Promise} A promise for the path of the new file.
  */
-function generateTmpFile(numLines, optKeep) {
+export async function generateTmpFile(numLines: number, optKeep?: boolean) {
   // Generate a bigger data file.
-  var data = [];
-  for (var i = 0; i < numLines; i++) {
+  const data = [];
+  for (let i = 0; i < numLines; i++) {
     data.push(i + " abcdefghijklmnopqrstuvwxyz\n");
   }
   return writeTmpFile(data.join(""), optKeep);
 }
-exports.generateTmpFile = generateTmpFile;
 
 
 
 /**
  * Helper class to capture log output when we want to test it.
  */
-var CaptureTransport = function(options) {
-  this._captureFunc = options.captureFunc;
-  if (options.name) {
-    this.name = options.name;
+class CaptureTransport extends winston.Transport {
+  private _captureFunc: (level: string, msg: string, meta: any) => void;
+
+  public constructor(options: any) {
+    super();
+    this._captureFunc = options.captureFunc;
+    if (options.name) {
+      this.name = options.name;
+    }
   }
-};
-util.inherits(CaptureTransport, winston.Transport);
-CaptureTransport.prototype.name = 'CaptureTransport';
-CaptureTransport.prototype.log = function(level, msg, meta, callback) {
-  this._captureFunc(level, msg, meta);
-  callback(null);
-};
+
+  public log(level: string, msg: string, meta: any, callback: () => void) {
+    this._captureFunc(level, msg, meta);
+  }
+}
 
 
 /**
@@ -94,7 +88,7 @@ CaptureTransport.prototype.log = function(level, msg, meta, callback) {
  *
  * This should be called at the suite level (i.e. inside describe()).
  */
-function setTmpLogLevel(level, optCaptureFunc) {
+export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, msg: string, meta: any) => void) {
   // If verbose is set in the environment, sabotage all reductions in logging level.
   // Handier than modifying the setTmpLogLevel line and then remembering to set it back
   // before committing.
@@ -102,28 +96,28 @@ function setTmpLogLevel(level, optCaptureFunc) {
     level = 'debug';
   }
 
-  var prevLogLevel = null;
+  let prevLogLevel: string|undefined = undefined;
+  const name = _.uniqueId('CaptureLog');
 
   before(function() {
-    if (this.runnable().parent.root) {
+    if (this.runnable().parent?.root) {
       throw new Error("setTmpLogLevel should be called at suite level, not at root level");
     }
 
     prevLogLevel = log.transports.file.level;
     log.transports.file.level = level;
     if (optCaptureFunc) {
-      log.add(CaptureTransport, { captureFunc: optCaptureFunc });
+      log.add(CaptureTransport as any, { captureFunc: optCaptureFunc, name });  // typing is off.
     }
   });
 
   after(function() {
     if (optCaptureFunc) {
-      log.remove(CaptureTransport);
+      log.remove(name);
     }
     log.transports.file.level = prevLogLevel;
   });
 }
-exports.setTmpLogLevel = setTmpLogLevel;
 
 
 /**
@@ -131,33 +125,33 @@ exports.setTmpLogLevel = setTmpLogLevel;
  * captures those at minLevel and higher. Returns a promise for the array of "level: message"
  * strings. These may be tested using testUtils.assertMatchArray(). Callback may return a promise.
  */
-function captureLog(minLevel, callback) {
-  const messages = [];
+export async function captureLog(minLevel: string, callback: any) {
+  const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
   const name = _.uniqueId('CaptureLog');
 
-  function capture(level, msg, meta) {
-    if (log.levels[level] <= log.levels[minLevel]) {
+  function capture(level: string, msg: string, meta: any) {
+    if ((log as any).levels[level] <= (log as any).levels[minLevel]) {  // winston types are off?
       messages.push(level + ': ' + msg + (meta ? ' ' + serialize(meta) : ''));
     }
   }
 
-  log.transports.file.level = -1;   // Suppress all log output.
-  log.add(CaptureTransport, { captureFunc: capture, name: name });
-  return Promise.try(() => callback())
-  .finally(() => {
+  log.transports.file.level = -1 as any;   // Suppress all log output.
+  log.add(CaptureTransport as any, { captureFunc: capture, name });  // types are off.
+  try {
+    await callback();
+  } finally {
     log.remove(name);
     log.transports.file.level = prevLogLevel;
-  })
-  .return(messages);
+  }
+  return messages;
 }
-exports.captureLog = captureLog;
 
 
 /**
  * Asserts that each string of stringArray matches the corresponding regex in regexArray.
  */
-function assertMatchArray(stringArray, regexArray) {
+export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
   for (let i = 0; i < Math.min(stringArray.length, regexArray.length); i++) {
     assert.match(stringArray[i], regexArray[i]);
   }
@@ -166,7 +160,6 @@ function assertMatchArray(stringArray, regexArray) {
   assert.isAtLeast(stringArray.length, regexArray.length,
     'Not all expected strings were seen');
 }
-exports.assertMatchArray = assertMatchArray;
 
 /**
  * Helper method for handling expected Promise rejections.
@@ -175,7 +168,7 @@ exports.assertMatchArray = assertMatchArray;
  * @param {String} errCode - Error code to check against `err.code` from the caller.
  * @param {RegExp} errRegexp - Regular expression to check against `err.message` from the caller.
  */
-function expectRejection(promise, errCode, errRegexp) {
+export function expectRejection(promise: Promise<any>, errCode: number, errRegexp: RegExp) {
   return promise
   .then(function() {
     assert(false, "Expected promise to return an error: " + errCode);
@@ -192,7 +185,6 @@ function expectRejection(promise, errCode, errRegexp) {
     }
   });
 }
-exports.expectRejection = expectRejection;
 
 /**
  * Reads in doc actions from a test script. Used in DocStorage_Script.js and DocData.js.
@@ -203,46 +195,46 @@ exports.expectRejection = expectRejection;
  * @param {String} file - Input test script
  * @returns {Promise:Object} - Parsed test script object
  */
-exports.readTestScript = function(file) {
-  return fs.readFileAsync(file, {encoding: 'utf8'})
-  .then(function(fullText) {
-    var allLines = [];
-    fullText.split("\n").forEach(function(line, i) {
-      if (line.match(/^\s*\/\//)) {
-        allLines.push('');
-      } else {
-        line = line.replace(/"(APPLY|CHECK_OUTPUT|LOAD_SAMPLE)"\s*,/, '"$1@' + (i + 1) + '",');
-        allLines.push(line);
-      }
-    });
-    return JSON.parse(allLines.join("\n"));
+export async function readTestScript(file: string) {
+  const fullText = await fse.readFile(file, {encoding: 'utf8'});
+  const allLines: string[] = [];
+  fullText.split("\n").forEach(function(line, i) {
+    if (line.match(/^\s*\/\//)) {
+      allLines.push('');
+    } else {
+      line = line.replace(/"(APPLY|CHECK_OUTPUT|LOAD_SAMPLE)"\s*,/, '"$1@' + (i + 1) + '",');
+      allLines.push(line);
+    }
   });
-};
+  return JSON.parse(allLines.join("\n"));
+}
 
 /**
  * For a test case step, such as ["APPLY", {actions}], checks if the step name has an encoded line
  * number, strips it, runs the callback with the step data, and inserts the line number into any
  * errors thrown by the callback.
  */
-exports.processTestScriptSteps = function(body, stepCallback) {
-  return Promise.each(body, function(step) {
-    var stepName = step[0];
-    var lineNoPos = stepName.indexOf('@');
-    var lineNum = (lineNoPos === -1) ? null : stepName.slice(lineNoPos + 1);
+export async function processTestScriptSteps<T>(body: Promise<[string, T]>[],
+                                                stepCallback: (step: [string, T]) => Promise<void>) {
+  for (const promise of body) {
+    const step = await promise;
+    const stepName = step[0];
+    const lineNoPos = stepName.indexOf('@');
+    const lineNum = (lineNoPos === -1) ? null : stepName.slice(lineNoPos + 1);
     step[0] = (lineNoPos === -1) ? stepName : stepName.slice(0, lineNoPos);
-    return Promise.try(() => stepCallback(step))
-    .catch(function(e) {
+    try {
+      await stepCallback(step);
+    } catch (e) {
       e.message = "LINE " + lineNum + ": " + e.message;
       throw e;
-    });
-  });
-};
+    }
+  }
+}
 
 /**
  * Helper that substitutes every instance of `from` value to `to` value. Iterates down the object.
  */
-function deepSubstitute(obj, from, to) {
-  assert.lengthOf(arguments, 3, 'Must specify obj, from, and to params');
+export function deepSubstitute(obj: any, from: any, to: any): any {
   from = _.isArray(from) ? from : [from];
   if (_.isArray(obj)) {
     return obj.map(el => deepSubstitute(el, from, to));
@@ -252,37 +244,47 @@ function deepSubstitute(obj, from, to) {
     return from.indexOf(obj) !== -1 ? to : obj;
   }
 }
-exports.deepSubstitute = deepSubstitute;
 
-const fixturesRoot = path.resolve(getAppRoot(), 'test', 'fixtures');
-exports.fixturesRoot = fixturesRoot;
+export const fixturesRoot = path.resolve(getAppRoot(), 'test', 'fixtures');
 
-exports.appRoot = getAppRoot();
+export const appRoot = getAppRoot();
 
 /**
  * Copy the given filename from the fixtures directory (test/fixtures)
  * to the storage manager root.
  * @param {string} alias - Optional alias that lets you rename the document on disk.
  */
-function useFixtureDoc(fileName, storageManager, alias = fileName) {
-  var srcPath = path.resolve(fixturesRoot, "docs", fileName);
-  return useLocalDoc(srcPath, storageManager, alias)
-   .tap(docName => log.info("Using fixture %s as %s", fileName, docName + ".grist"))
+export async function useFixtureDoc(fileName: string, storageManager: any, alias: string = fileName) {
+  const srcPath = path.resolve(fixturesRoot, "docs", fileName);
+  const docName = await useLocalDoc(srcPath, storageManager, alias);
+  log.info("Using fixture %s as %s", fileName, docName + ".grist");
+  return docName;
 }
-exports.useFixtureDoc = useFixtureDoc;
 
 /**
  * Copy the given filename from srcPath to the storage manager root.
  * @param {string} alias - Optional alias that lets you rename the document on disk.
  */
-function useLocalDoc(srcPath, storageManager, alias = srcPath) {
-  var docName = path.basename(alias || srcPath, ".grist");
-  return docUtils.createNumbered(docName, "-",
-    name => docUtils.createExclusive(storageManager.getPath(name))
-  )
-  .tap(docName => docUtils.copyFile(srcPath, storageManager.getPath(docName)))
-  .tap(docName => storageManager.markAsChanged(docName));
+export async function useLocalDoc(srcPath: string, storageManager: any, alias: string = srcPath) {
+  let docName = path.basename(alias || srcPath, ".grist");
+  docName = await docUtils.createNumbered(
+    docName, "-",
+    (name: string) => docUtils.createExclusive(storageManager.getPath(name)));
+  await docUtils.copyFile(srcPath, storageManager.getPath(docName));
+  await storageManager.markAsChanged(docName);
+  return docName;
 }
-exports.useLocalDoc = useLocalDoc;
 
-exports.assert = assert;
+// an helper to copy a fixtures document to destPath
+export async function copyFixtureDoc(docName: string, destPath: string) {
+  const srcPath = path.resolve(fixturesRoot, 'docs', docName);
+  await docUtils.copyFile(srcPath, destPath);
+}
+
+// a helper to read a fixtures document into memory
+export async function readFixtureDoc(docName: string) {
+  const srcPath = path.resolve(fixturesRoot, 'docs', docName);
+  return fse.readFile(srcPath);
+}
+
+export { assert };

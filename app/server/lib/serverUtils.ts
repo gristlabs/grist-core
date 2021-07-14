@@ -1,8 +1,13 @@
 import * as bluebird from 'bluebird';
-import {ChildProcess} from 'child_process';
+import { ChildProcess } from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
-import {ConnectionOptions} from 'typeorm';
+import { ConnectionOptions } from 'typeorm';
+import * as uuidv4 from 'uuid/v4';
+
+import * as log from 'app/server/lib/log';
+import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
+import { getDocSessionAccess, getDocSessionUser, OptDocSession } from './DocSession';
 
 /**
  * Promisify a node-style callback function. E.g.
@@ -113,4 +118,34 @@ export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: b
   } else {
     return `${options.type}://?`;
   }
+}
+
+/**
+ * Collect checks to be applied to incoming documents that are alleged to be
+ * Grist documents. For now, the only check is a sqlite-level integrity check,
+ * as suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
+ */
+export async function checkAllegedGristDoc(docSession: OptDocSession, fname: string) {
+  const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
+  const integrityCheckResults = await db.all('PRAGMA integrity_check');
+  if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== 'ok') {
+    const uuid = uuidv4();
+    log.info('Integrity check failure on import', {uuid, integrityCheckResults,
+                                                   ...getLogMetaFromDocSession(docSession)});
+    throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
+  }
+}
+
+/**
+ * Extract access, userId, email, and client (if applicable) from session, for logging purposes.
+ */
+export function getLogMetaFromDocSession(docSession: OptDocSession) {
+  const client = docSession.client;
+  const access = getDocSessionAccess(docSession);
+  const user = getDocSessionUser(docSession);
+  return {
+    access,
+    ...(user ? {userId: user.id, email: user.email} : {}),
+    ...(client ? client.getLogMeta() : {}),   // Client if present will repeat and add to user info.
+  };
 }

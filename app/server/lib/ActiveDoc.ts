@@ -64,7 +64,6 @@ import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {
   DocSession,
-  getDocSessionAccess,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -74,6 +73,7 @@ import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
+import {getLogMetaFromDocSession} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -195,15 +195,10 @@ export class ActiveDoc extends EventEmitter {
 
   // Constructs metadata for logging, given a Client or an OptDocSession.
   public getLogMeta(docSession: OptDocSession, docMethod?: string): log.ILogMeta {
-    const client = docSession.client;
-    const access = getDocSessionAccess(docSession);
-    const user = getDocSessionUser(docSession);
     return {
+      ...getLogMetaFromDocSession(docSession),
       docId: this._docName,
-      access,
       ...(docMethod ? {docMethod} : {}),
-      ...(user ? {userId: user.id, email: user.email} : {}),
-      ...(client ? client.getLogMeta() : {}),   // Client if present will repeat and add to user info.
     };
   }
 

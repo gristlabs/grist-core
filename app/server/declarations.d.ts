@@ -100,3 +100,7 @@ declare module '@gristlabs/pidusage' {
 }
 
 declare module "csv";
+
+declare module 'winston/lib/winston/common' {
+  export function serialize(meta: any): string;
+}

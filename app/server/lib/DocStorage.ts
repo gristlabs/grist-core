@@ -677,7 +677,8 @@ export class DocStorage implements ISQLiteDB {
       // "PRAGMA journal_mode        = WAL;" +
       // "PRAGMA auto_vacuum         = 0;" +
       // "PRAGMA synchronous         = NORMAL"
-      "PRAGMA synchronous         = OFF;"
+      "PRAGMA synchronous         = OFF;" +
+      "PRAGMA trusted_schema      = OFF;"  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
     );
   }
 
