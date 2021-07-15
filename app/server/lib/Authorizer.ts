@@ -271,6 +271,9 @@ export function redirectToLoginUnconditionally(
 ) {
   return async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
+    // Tell express-session to set our cookie: session handling post-login relies on it.
+    mreq.session.alive = true;
+
     // Redirect to sign up if it doesn't look like the user has ever logged in (on
     // this browser)  After logging in, `users` will be set in the session.  Even after
     // logging out again, `users` will still be set.
