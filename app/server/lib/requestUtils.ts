@@ -193,6 +193,8 @@ export function pruneAPIResult<T>(data: T): T {
       // Do not include removedAt field if it is not set.  It is not relevant to regular
       // situations where the user is working with non-deleted resources.
       if (key === 'removedAt' && value === null) { return undefined; }
+      // Don't bother sending option fields if there are no options set.
+      if (key === 'options' && value === null) { return undefined; }
       return INTERNAL_FIELDS.has(key) ? undefined : value;
     });
   return JSON.parse(output);

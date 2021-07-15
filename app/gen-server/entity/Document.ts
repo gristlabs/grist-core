@@ -1,6 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {Role} from 'app/common/roles';
-import {DocumentProperties, documentPropertyKeys, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
+import {DocumentOptions, DocumentProperties, documentPropertyKeys, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
 import {AclRuleDoc} from "./AclRule";
@@ -55,6 +55,9 @@ export class Document extends Resource {
   @OneToMany(type => Alias, alias => alias.doc)
   public aliases: Alias[];
 
+  @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})
+  public options: DocumentOptions | null;
+
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);
   }
@@ -68,5 +71,45 @@ export class Document extends Resource {
       }
       this.urlId = props.urlId;
     }
+    if (props.options !== undefined) {
+      // Options are merged over the existing state - unless options
+      // object is set to "null", in which case the state is wiped
+      // completely.
+      if (props.options === null) {
+        this.options = null;
+      } else {
+        this.options = this.options || {};
+        if (props.options.description !== undefined) {
+          this.options.description = props.options.description;
+        }
+        if (props.options.openMode !== undefined) {
+          this.options.openMode = props.options.openMode;
+        }
+        if (props.options.icon !== undefined) {
+          this.options.icon = sanitizeIcon(props.options.icon);
+        }
+        // Normalize so that null equates with absence.
+        for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {
+          if (this.options[key] === null) {
+            delete this.options[key];
+          }
+        }
+        // Normalize so that no options set equates with absense.
+        if (Object.keys(this.options).length === 0) {
+          this.options = null;
+        }
+      }
+    }
   }
+}
+
+// Check that icon points to an expected location.  This will definitely
+// need changing, it is just a placeholder as the icon feature is developed.
+function sanitizeIcon(icon: string|null) {
+  if (icon === null) { return icon; }
+  const url = new URL(icon);
+  if (url.protocol !== 'https:' || url.host !== 'grist-static.com' || !url.pathname.startsWith('/icons/')) {
+    throw new ApiError('invalid document icon', 400);
+  }
+  return url.href;
 }

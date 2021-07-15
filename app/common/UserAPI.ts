@@ -4,7 +4,7 @@ import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {BulkColValues, TableColValues, UserAction} from 'app/common/DocActions';
-import {DocCreationInfo} from 'app/common/DocListAPI';
+import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {Features} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
@@ -104,11 +104,22 @@ export interface Workspace extends WorkspaceProperties {
   isSupportWorkspace?: boolean;
 }
 
+// Non-core options for a document.
+// "Non-core" means bundled into a single options column in the database.
+// TODO: consider smoothing over this distinction in the API.
+export interface DocumentOptions {
+  description?: string|null;
+  icon?: string|null;
+  openMode?: OpenDocMode|null;
+}
+
 export interface DocumentProperties extends CommonProperties {
   isPinned: boolean;
   urlId: string|null;
+  options: DocumentOptions|null;
 }
-export const documentPropertyKeys = [...commonPropertyKeys, 'isPinned', 'urlId'];
+
+export const documentPropertyKeys = [...commonPropertyKeys, 'isPinned', 'urlId', 'options'];
 
 export interface Document extends DocumentProperties {
   id: string;
