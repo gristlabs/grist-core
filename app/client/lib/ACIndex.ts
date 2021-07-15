@@ -132,12 +132,10 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
 
-    // The best match is the first item. If it actually starts with the search text, AND has a
-    // strictly better score than other items, highlight it as a default selection. Otherwise, no
-    // item will be auto-selected.
+    // The best match is the first item. If any word in the item actually starts with the search
+    // text, highlight it as a default selection. Otherwise, no item will be auto-selected.
     let selectIndex = -1;
-    if (items.length > 0 && items[0].cleanText.startsWith(cleanedSearchText) &&
-        (sortedMatches.length <= 1 || sortedMatches[1][1] < sortedMatches[0][1])) {
+    if (items.length > 0 && sortedMatches.length > 0 && startsWithText(items[0], cleanedSearchText)) {
       selectIndex = 0;
     }
     return {items, highlightFunc, selectIndex};
@@ -247,4 +245,14 @@ function findCommonPrefixLength(text1: string, text2: string): number {
   let i = 0;
   while (i < text1.length && text1[i] === text2[i]) { ++i; }
   return i;
+}
+
+/**
+ * Checks whether `item` starts with `text`, or has any words that start with `text`.
+ */
+function startsWithText(item: ACItem, text: string): boolean {
+  if (item.cleanText.startsWith(text)) { return true; }
+
+  const words = item.cleanText.split(wordSepRegexp);
+  return words.some(w => w.startsWith(text));
 }

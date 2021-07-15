@@ -4,8 +4,9 @@ import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, Observabl
 import {icon} from 'app/client/ui2018/icons';
 import isEqual = require('lodash/isEqual');
 import uniqBy = require('lodash/uniqBy');
-import {IToken, TokenField} from '../lib/TokenField';
-import {ChoiceOptionsByName, DEFAULT_TEXT_COLOR, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {IToken, TokenField} from 'app/client/lib/TokenField';
+import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {colorButton} from 'app/client/ui2018/ColorSelect';
 import {createCheckers, iface, ITypeSuite, opt} from 'ts-interface-checker';
 
@@ -82,7 +83,7 @@ export class ChoiceListEntry extends Disposable {
             return new ChoiceItem(label, this._choiceOptionsByName.get().get(label));
           }),
           renderToken: token => this._renderToken(token),
-          createToken: label => label.trim() !== '' ? new ChoiceItem(label.trim()) : undefined,
+          createToken: label => new ChoiceItem(label),
           clipboardToTokens: clipboardToChoices,
           tokensToClipboard: (tokens, clipboard) => {
             // Save tokens as JSON for parts of the UI that support deserializing it properly (e.g. ChoiceListEntry).
@@ -91,6 +92,7 @@ export class ChoiceListEntry extends Disposable {
             clipboard.setData('text/plain', tokens.map(t => t.label).join('\n'));
           },
           openAutocompleteOnFocus: false,
+          trimLabels: true,
           styles: {cssTokenField, cssToken, cssTokenInput, cssInputWrapper, cssDeleteButton, cssDeleteIcon},
           keyBindings: {
             previous: 'ArrowUp',
@@ -116,7 +118,8 @@ export class ChoiceListEntry extends Disposable {
               testId('choice-list-entry-cancel')
             )
           ),
-          dom.onKeyDown({Escape$: () => this._save()}),
+          dom.onKeyDown({Escape$: () => this._cancel()}),
+          dom.onKeyDown({Enter$: () => this._save()}),
         );
       } else {
         const someValues = Computed.create(null, this._values, (_use, values) =>
@@ -168,7 +171,7 @@ export class ChoiceListEntry extends Disposable {
     if (!tokenField) { return; }
 
     const tokens = tokenField.tokensObs.get();
-    const tokenInputVal = tokenField.getTextInput().value.trim();
+    const tokenInputVal = tokenField.getTextInputValue();
     if (tokenInputVal !== '') {
       tokens.push(new ChoiceItem(tokenInputVal));
     }
@@ -266,7 +269,7 @@ function clipboardToChoices(clipboard: DataTransfer): ChoiceItem[] {
 
   const maybeText = clipboard.getData('text/plain');
   if (maybeText) {
-    return maybeText.split('\n').filter(t => t.trim() !== '').map(label => new ChoiceItem(label));
+    return maybeText.split('\n').map(label => new ChoiceItem(label));
   }
 
   return [];
@@ -349,7 +352,7 @@ const cssTokenLabel = styled('span', `
   margin-left: 6px;
   display: inline-block;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre;
   overflow: hidden;
 `);
 

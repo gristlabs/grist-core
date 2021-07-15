@@ -1,14 +1,12 @@
-import * as commands from 'app/client/components/commands';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
-import {colors, testId} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItem} from 'app/client/ui2018/menus';
+import {testId} from 'app/client/ui2018/cssVars';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, styled} from 'grainjs';
+import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 
 export interface IChoiceOptions {
   textColor: string;
@@ -17,9 +15,6 @@ export interface IChoiceOptions {
 
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
-
-const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value;
-export const DEFAULT_TEXT_COLOR = '#000000';
 
 export function getFillColor(choiceOptions?: IChoiceOptions) {
   return choiceOptions?.fillColor ?? DEFAULT_FILL_COLOR;
@@ -52,21 +47,20 @@ export class ChoiceTextBox extends NTextBox {
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
         dom.domComputed((use) => {
-          if (use(row._isAddRow)) { return cssChoiceText(''); }
+          if (use(row._isAddRow)) { return null; }
 
           const formattedValue = use(this.valueFormatter).format(use(value));
-          if (formattedValue === '') { return cssChoiceText(''); }
+          if (formattedValue === '') { return null; }
 
           const choiceOptions = use(this._choiceOptionsByName).get(formattedValue);
-          return cssChoiceText(
-            dom.style('background-color', getFillColor(choiceOptions)),
-            dom.style('color', getTextColor(choiceOptions)),
+          return choiceToken(
             formattedValue,
+            choiceOptions || {},
+            dom.cls(cssChoiceText.className),
             testId('choice-text')
           );
         }),
       ),
-      this.buildDropdownMenu(),
     );
   }
 
@@ -102,27 +96,6 @@ export class ChoiceTextBox extends NTextBox {
   protected getChoiceOptions(): Computed<ChoiceOptionsByName> {
     return this._choiceOptionsByName;
   }
-
-  protected buildDropdownMenu() {
-    return cssDropdownIcon('Dropdown',
-      // When choices exist, click dropdown icon to open edit autocomplete.
-      dom.on('click', () => this._hasChoices() && commands.allCommands.editField.run()),
-      // When choices do not exist, open a single-item menu to open the sidepane choice option editor.
-      menu(() => [
-        menuItem(commands.allCommands.fieldTabOpen.run, 'Add Choice Options')
-      ], {
-        trigger: [(elem, ctl) => {
-          // Only open this menu if there are no choices.
-          dom.onElem(elem, 'click', () => this._hasChoices() || ctl.open());
-        }]
-      }),
-      testId('choice-dropdown')
-    );
-  }
-
-  private _hasChoices() {
-    return this._choiceValues.get().length > 0;
-  }
 }
 
 // Converts a POJO containing choice options to an ES6 Map
@@ -142,8 +115,6 @@ function toObject(choiceOptions: ChoiceOptionsByName): ChoiceOptions {
 }
 
 const cssChoiceField = styled('div.field_clip', `
-  display: flex;
-  align-items: center;
   padding: 0 3px;
 `);
 
@@ -155,20 +126,7 @@ const cssChoiceTextWrapper = styled('div', `
 `);
 
 const cssChoiceText = styled('div', `
-  border-radius: 3px;
-  padding: 1px 4px;
   margin: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   height: min-content;
   line-height: 16px;
-`);
-
-const cssDropdownIcon = styled(icon, `
-  cursor: pointer;
-  background-color: ${colors.lightGreen};
-  min-width: 16px;
-  width: 16px;
-  height: 16px;
-  margin-left: auto;
 `);

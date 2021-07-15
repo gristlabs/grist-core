@@ -11,14 +11,14 @@ import {RowId, RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {cssCheckboxSquare, cssLabel, cssLabelText, Indeterminate,
-        labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {cssLabel as cssCheckboxLabel, cssCheckboxSquare, cssLabelText, Indeterminate, labeledTriStateSquareCheckbox
+       } from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
 import {isEquivalentFilter} from "app/common/FilterState";
-import {Computed, dom, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
+import {Computed, dom, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
 import concat = require('lodash/concat');
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
@@ -28,18 +28,22 @@ import tail = require('lodash/tail');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {decodeObject} from 'app/plugin/objtypes';
 import {isList} from 'app/common/gristTypes';
+import {choiceToken} from 'app/client/widgets/ChoiceToken';
+import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
 
 interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
   valueCounts: Map<CellValue, IFilterCount>;
   doSave: (reset: boolean) => void;
   onClose: () => void;
+  renderValue: (key: CellValue, value: IFilterCount) => DomElementArg;
 }
 
 const testId = makeTestId('test-filter-menu-');
 
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doSave, onClose } = opts;
+  const { model, doSave, onClose, renderValue } = opts;
   const { columnFilter } = model;
   // Save the initial state to allow reverting back to it on Cancel
   const initialStateJson = columnFilter.makeFilterJson();
@@ -142,11 +146,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
         cssMenuItem(
           cssLabel(
-            cssCheckboxSquare({type: 'checkbox'},
-                              dom.on('change', (_ev, elem) =>
-                                     elem.checked ? columnFilter.add(key) : columnFilter.delete(key)),
-                              (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); }),
-            cssItemValue(value.label === undefined ? key as string : value.label),
+            cssCheckboxSquare(
+              {type: 'checkbox'},
+              dom.on('change', (_ev, elem) =>
+                elem.checked ? columnFilter.add(key) : columnFilter.delete(key)),
+              (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
+              dom.style('position', 'relative'),
+            ),
+            renderValue(key, value),
           ),
           cssItemCount(value.count.toLocaleString(), testId('count')))
       ))) // Include comma separator
@@ -311,7 +318,43 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
         sectionFilter.resetTemporaryRows();
       }
     },
+    renderValue: getRenderFunc(columnType, field),
   });
+}
+
+/**
+ * Returns a callback function for rendering values in a filter menu.
+ *
+ * For example, Choice and Choice List columns will differ from other
+ * column types by rendering their values as colored tokens instead of
+ * text.
+ */
+function getRenderFunc(columnType: string, field: ViewFieldRec) {
+  if (['Choice', 'ChoiceList'].includes(columnType)) {
+    const options = field.column().widgetOptionsJson.peek();
+    const choiceSet: Set<string> = new Set(options.choices || []);
+    const choiceOptions: ChoiceOptions = options.choiceOptions || {};
+
+    return (_key: CellValue, value: IFilterCount) => {
+      if (value.label === '') {
+        return cssItemValue(value.label);
+      }
+
+      return choiceToken(
+        value.label,
+        {
+          fillColor: choiceOptions[value.label]?.fillColor,
+          textColor: choiceOptions[value.label]?.textColor,
+        },
+        dom.cls(cssToken.className),
+        cssInvalidToken.cls('-invalid', !choiceSet.has(value.label)),
+        testId('choice-token')
+      );
+    };
+  }
+
+  return (key: CellValue, value: IFilterCount) =>
+    cssItemValue(value.label === undefined ? String(key) : value.label);
 }
 
 interface ICountOptions {
@@ -439,10 +482,10 @@ const cssMenuItem = styled('div', `
   display: flex;
   padding: 8px 16px;
 `);
-const cssItemValue = styled(cssLabelText, `
+export const cssItemValue = styled(cssLabelText, `
   margin-right: 12px;
   color: ${colors.dark};
-  white-space: nowrap;
+  white-space: pre;
 `);
 const cssItemCount = styled('div', `
   flex-grow: 1;
@@ -489,4 +532,12 @@ const cssSortIcon = styled(icon, `
   &-active {
     --icon-color: ${colors.lightGreen}
   }
+`);
+const cssLabel = styled(cssCheckboxLabel, `
+  align-items: center;
+  font-weight: initial;   /* negate bootstrap */
+`);
+const cssToken = styled('div', `
+  margin-left: 8px;
+  margin-right: 12px;
 `);

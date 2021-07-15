@@ -2,18 +2,19 @@ import {createGroup} from 'app/client/components/commands';
 import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {cssPlusButton, cssPlusIcon, cssRefList} from 'app/client/widgets/ReferenceEditor';
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {dom, styled} from 'grainjs';
 import {ChoiceOptions, getFillColor, getTextColor} from 'app/client/widgets/ChoiceTextBox';
+import {choiceToken, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
+import {icon} from 'app/client/ui2018/icons';
 
 export class ChoiceItem implements ACItem, IToken {
   public cleanText: string = this.label.toLowerCase().trim();
@@ -36,8 +37,8 @@ export class ChoiceListEditor extends NewBaseEditor {
   private _inputSizer: HTMLElement;     // Part of _contentSizer to size the text input
   private _alignment: string;
 
-  // Whether to include a button to show a new choice. (It would make sense to disable it when
-  // user cannot change the column configuration.)
+  // Whether to include a button to show a new choice.
+  // TODO: Disable when the user cannot change column configuration.
   private _enableAddNew: boolean = true;
   private _showAddNew: boolean = false;
 
@@ -54,7 +55,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     const acIndex = new ACIndexImpl<ChoiceItem>(acItems);
     const acOptions: IAutocompleteOptions<ChoiceItem> = {
-      menuCssClass: menuCssClass + ' ' + cssRefList.className + ' ' + cssChoiceList.className + ' test-autocomplete',
+      menuCssClass: `${menuCssClass} ${cssChoiceList.className} test-autocomplete`,
       search: async (term: string) => this._maybeShowAddNew(acIndex.search(term), term),
       renderItem: (item, highlightFunc) => this._renderACItem(item, highlightFunc),
       getItemText: (item) => item.label,
@@ -80,6 +81,7 @@ export class ChoiceListEditor extends NewBaseEditor {
       acOptions,
       openAutocompleteOnFocus: true,
       readonly : options.readonly,
+      trimLabels: true,
       styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
     });
 
@@ -146,6 +148,10 @@ export class ChoiceListEditor extends NewBaseEditor {
     return this._textInput.selectionStart || 0;
   }
 
+  /**
+   * Updates list of valid choices with any new ones that may have been
+   * added from directly inside the editor (via the "add new" item in autocomplete).
+   */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
     const newChoices = tokens.filter(t => t.isNew).map(t => t.label);
@@ -202,33 +208,39 @@ export class ChoiceListEditor extends NewBaseEditor {
     this._textInput.style.width = this._inputSizer.getBoundingClientRect().width + 'px';
   }
 
+  /**
+   * If the search text does not match anything exactly, adds 'new' item to it.
+   *
+   * Also see: prepForSave.
+   */
   private _maybeShowAddNew(result: ACResults<ChoiceItem>, text: string): ACResults<ChoiceItem> {
-    // If the search text does not match anything exactly, add 'new' item for it. See also prepForSave.
     this._showAddNew = false;
-    if (this._enableAddNew && text) {
-      const addNewItem = new ChoiceItem(text, false, true);
-      if (!result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
-        result.items.push(addNewItem);
-        this._showAddNew = true;
-      }
+    const trimmedText = text.trim();
+    if (!this._enableAddNew || !trimmedText) { return result; }
+
+    const addNewItem = new ChoiceItem(trimmedText, false, true);
+    if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
+      return result;
     }
+
+    result.items.push(addNewItem);
+    this._showAddNew = true;
+
     return result;
   }
 
   private _renderACItem(item: ChoiceItem, highlightFunc: HighlightFunc) {
     const options = this._choiceOptionsByName[item.label];
-    const fillColor = getFillColor(options);
-    const textColor = getTextColor(options);
 
-    return cssItem(
+    return cssChoiceACItem(
       (item.isNew ?
-        [cssItem.cls('-new'), cssPlusButton(cssPlusIcon('Plus'))] :
-        [cssItem.cls('-with-new', this._showAddNew)]
+        [cssChoiceACItem.cls('-new'), cssPlusButton(cssPlusIcon('Plus'))] :
+        [cssChoiceACItem.cls('-with-new', this._showAddNew)]
       ),
-      cssItemLabel(
+      choiceToken(
         buildHighlightedDom(item.label, highlightFunc, cssMatchText),
-        dom.style('background-color', fillColor),
-        dom.style('color', textColor),
+        options || {},
+        dom.style('max-width', '100%'),
         testId('choice-list-editor-item-label')
       ),
       testId('choice-list-editor-item'),
@@ -258,6 +270,7 @@ const cssToken = styled(tokenFieldStyles.cssToken, `
   padding: 1px 4px;
   margin: 2px;
   line-height: 16px;
+  white-space: pre;
 
   &.selected {
     box-shadow: inset 0 0 0 1px ${colors.lightGreen};
@@ -316,7 +329,10 @@ const cssInputSizer = styled('div', `
 // Set z-index to be higher than the 1000 set for .cell_editor.
 export const cssChoiceList = styled('div', `
   z-index: 1001;
-  box-shadow: 0 0px 8px 0 rgba(38,38,51,0.6)
+  box-shadow: 0 0px 8px 0 rgba(38,38,51,0.6);
+  overflow-y: auto;
+  padding: 8px 0 0 0;
+  --weaseljs-menu-item-padding: 8px 16px;
 `);
 
 const cssReadonlyStyle = styled('div', `
@@ -324,48 +340,25 @@ const cssReadonlyStyle = styled('div', `
   background: white;
 `);
 
-// We need to know the height of the sticky "+" element.
-const addNewHeight = '37px';
-
-export const cssItem = styled('li', `
-  display: block;
-  font-family: ${vars.fontFamily};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  outline: none;
-  padding: var(--weaseljs-menu-item-padding, 8px 24px);
-  cursor: pointer;
-
-  &.selected {
-    background-color: ${colors.mediumGreyOpaque};
-    color: ${colors.dark};
-  }
-  &-with-new {
-    scroll-margin-bottom: ${addNewHeight};
-  }
-  &-new {
-    display: flex;
-    align-items: center;
-    color: ${colors.slate};
-    position: sticky;
-    bottom: 0px;
-    height: ${addNewHeight};
-    background-color: white;
-    border-top: 1px solid ${colors.mediumGreyOpaque};
-    scroll-margin-bottom: initial;
-  }
-  &-new.selected {
-    color: ${colors.lightGrey};
-  }
-`);
-
-export const cssItemLabel = styled('div', `
-  display: inline-block;
-  padding: 1px 4px;
-  border-radius: 3px;
-`);
-
 export const cssMatchText = styled('span', `
   text-decoration: underline;
+`);
+
+export const cssPlusButton = styled('div', `
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+  margin-right: 8px;
+  text-align: center;
+  background-color: ${colors.lightGreen};
+  color: ${colors.light};
+
+  .selected > & {
+    background-color: ${colors.darkGreen};
+  }
+`);
+
+export const cssPlusIcon = styled(icon, `
+  background-color: ${colors.light};
 `);

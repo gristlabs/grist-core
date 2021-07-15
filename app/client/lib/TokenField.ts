@@ -36,6 +36,7 @@ export interface ITokenFieldOptions<Token extends IToken> {
   openAutocompleteOnFocus?: boolean;
   styles?: ITokenFieldStyles;
   readonly?: boolean;
+  trimLabels?: boolean;
   keyBindings?: ITokenFieldKeyBindings;
 
   // Allows overriding how tokens are copied to the clipboard, or retrieved from it.
@@ -101,7 +102,10 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     const addSelectedItem = this._addSelectedItem.bind(this);
     const openAutocomplete = this._openAutocomplete.bind(this);
     this._acOptions = _options.acOptions && {..._options.acOptions, onClick: addSelectedItem};
-    this._tokens.set(_options.initialValue.map(t => new TokenWrap(t)));
+
+    const initialTokens = _options.initialValue;
+    this._maybeTrimLabels(initialTokens);
+    this._tokens.set(initialTokens.map(t => new TokenWrap(t)));
     this.tokensObs = this.autoDispose(computedArray(this._tokens, t => t.token));
     this._keyBindings = {...defaultKeyBindings, ..._options.keyBindings};
 
@@ -191,12 +195,19 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     return this._textInput;
   }
 
+  /**
+   * Returns the current value of the text input.
+   */
+  public getTextInputValue(): string {
+    return this._options.trimLabels ? this._textInput.value.trim() : this._textInput.value;
+  }
+
   // The invisible input that has focus while we have some tokens selected.
   public getHiddenInput(): HTMLInputElement {
     return this._hiddenInput;
   }
 
-  // Replaces a token (if it exists)
+  // Replaces a token (if it exists).
   public replaceToken(label: string, newToken: Token): void {
     const tokenIdx = this._tokens.get().findIndex(t => t.token.label === label);
     if (tokenIdx === -1) { return; }
@@ -216,8 +227,9 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   // that; otherwise if options.createToken is present, creates a token from text input value.
   private _addSelectedItem(): boolean {
     let item: Token|undefined = this._acHolder.get()?.getSelectedItem();
-    if (!item && this._options.createToken && this._textInput.value) {
-      item = this._options.createToken(this._textInput.value);
+    const textInput = this.getTextInputValue();
+    if (!item && this._options.createToken && textInput) {
+      item = this._options.createToken(textInput);
     }
     if (item) {
       this._tokens.push(new TokenWrap(item));
@@ -421,6 +433,8 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       tokens = values.map(v => this._options.createToken(v)).filter((t): t is Token => Boolean(t));
     }
     if (!tokens.length) { return; }
+    this._maybeTrimLabels(tokens);
+    tokens = this._getNonEmptyTokens(tokens);
     const wrappedTokens = tokens.map(t => new TokenWrap(t));
     this._combineUndo(() => {
       this._deleteTokens(this._selection.get(), 1);
@@ -565,6 +579,25 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         this._inUndoRedo = false;
       }
     }
+  }
+
+  /**
+   * Trims all labels in `tokens` if the option is set.
+   *
+   * Note: mutates `tokens`.
+   */
+  private _maybeTrimLabels(tokens: Token[]): void {
+    if (!this._options.trimLabels) { return; }
+    tokens.forEach(t => {
+      t.label = t.label.trim();
+    });
+  }
+
+  /**
+   * Returns a filtered array of tokens that don't have empty labels.
+   */
+  private _getNonEmptyTokens(tokens: Token[]): Token[] {
+    return tokens.filter(t => t.label !== '');
   }
 }
 

@@ -48,7 +48,7 @@ export class ReferenceEditor extends NTextEditor {
 
     // Whether we should enable the "Add New" entry to allow adding new items to the target table.
     const vcol = field.visibleColModel();
-    this._enableAddNew = vcol && !vcol.isRealFormula();
+    this._enableAddNew = vcol && !vcol.isRealFormula() && !!vcol.colId();
 
     this._visibleCol = vcol.colId() || 'id';
 
@@ -144,18 +144,26 @@ export class ReferenceEditor extends NTextEditor {
     return String(value || '');
   }
 
+  /**
+   * If the search text does not match anything exactly, adds 'new' item to it.
+   *
+   * Also see: prepForSave.
+   */
   private async _doSearch(text: string): Promise<ACResults<ICellItem>> {
     const acIndex = this._tableData.columnACIndexes.getColACIndex(this._visibleCol, this._formatter);
     const result = acIndex.search(text);
-    // If the search text does not match anything exactly, add 'new' item for it. See also prepForSave.
+
     this._showAddNew = false;
-    if (this._enableAddNew && text) {
-      const cleanText = text.trim().toLowerCase();
-      if (!result.items.find((item) => item.cleanText === cleanText)) {
-        result.items.push({rowId: 'new', text, cleanText});
-        this._showAddNew = true;
-      }
+    if (!this._enableAddNew || !text) { return result; }
+
+    const cleanText = text.trim().toLowerCase();
+    if (result.items.find((item) => item.cleanText === cleanText)) {
+      return result;
     }
+
+    result.items.push({rowId: 'new', text, cleanText});
+    this._showAddNew = true;
+
     return result;
   }
 
@@ -187,7 +195,7 @@ const cssRefEditor = styled('div', `
   }
 `);
 
-export const cssRefList = styled('div', `
+const cssRefList = styled('div', `
   overflow-y: auto;
   padding: 8px 0 0 0;
   --weaseljs-menu-item-padding: 8px 16px;
@@ -199,7 +207,7 @@ const addNewHeight = '37px';
 const cssRefItem = styled('li', `
   display: block;
   font-family: ${vars.fontFamily};
-  white-space: nowrap;
+  white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
   outline: none;
@@ -227,7 +235,7 @@ const cssRefItem = styled('li', `
   }
 `);
 
-export const cssPlusButton = styled('div', `
+const cssPlusButton = styled('div', `
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -242,7 +250,7 @@ export const cssPlusButton = styled('div', `
   }
 `);
 
-export const cssPlusIcon = styled(icon, `
+const cssPlusIcon = styled(icon, `
   background-color: ${colors.light};
 `);
 

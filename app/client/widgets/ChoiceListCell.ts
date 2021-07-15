@@ -3,12 +3,11 @@ import {colors, testId} from 'app/client/ui2018/cssVars';
 import {
   ChoiceOptionsByName,
   ChoiceTextBox,
-  getFillColor,
-  getTextColor
 } from 'app/client/widgets/ChoiceTextBox';
 import {CellValue} from 'app/common/DocActions';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, styled} from 'grainjs';
+import {choiceToken} from 'app/client/widgets/ChoiceToken';
 
 /**
  * ChoiceListCell - A cell that renders a list of choice tokens.
@@ -37,13 +36,13 @@ export class ChoiceListCell extends ChoiceTextBox {
         // Handle any unexpected values we might get (non-array, or array with non-strings).
         const tokens: unknown[] = Array.isArray(val) ? val : [val];
         return tokens.map(token =>
-            cssToken(
-              String(token),
-              cssInvalidToken.cls('-invalid', !choiceSet.has(token as string)),
-              dom.style('background-color', getFillColor(choiceOptionsByName.get(String(token)))),
-              dom.style('color', getTextColor(choiceOptionsByName.get(String(token)))),
-              testId('choice-list-cell-token')
-            ),
+          choiceToken(
+            String(token),
+            choiceOptionsByName.get(String(token)) || {},
+            cssInvalidToken.cls('-invalid', !choiceSet.has(String(token))),
+            dom.cls(cssToken.className),
+            testId('choice-list-cell-token')
+          )
         );
       }),
     );
@@ -67,9 +66,6 @@ const cssChoiceList = styled('div', `
 const cssToken = styled('div', `
   flex: 0 1 auto;
   min-width: 0px;
-  overflow: hidden;
-  border-radius: 3px;
-  padding: 1px 4px;
   margin: 2px;
   line-height: 16px;
 `);
