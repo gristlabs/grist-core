@@ -835,7 +835,8 @@ export class ActiveDoc extends EventEmitter {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
     await this.waitForInitialization();
-    return this._pyCall('autocomplete', txt, tableId, columnId);
+    const user = await this._granularAccess.getCachedUser(docSession);
+    return this._pyCall('autocomplete', txt, tableId, columnId, user.toJSON());
   }
 
   public fetchURL(docSession: DocSession, url: string): Promise<UploadResult> {
@@ -980,7 +981,10 @@ export class ActiveDoc extends EventEmitter {
    * Should only be called by a Sharing object, with this._modificationLock held, since the
    * actions may need to be rolled back if final access control checks fail.
    */
-  public async applyActionsToDataEngine(userActions: UserAction[]): Promise<SandboxActionBundle> {
+  public async applyActionsToDataEngine(
+    docSession: OptDocSession|null,
+    userActions: UserAction[]
+  ): Promise<SandboxActionBundle> {
     const [normalActions, onDemandActions] = this._onDemandActions.splitByOnDemand(userActions);
 
     let sandboxActionBundle: SandboxActionBundle;
@@ -989,7 +993,8 @@ export class ActiveDoc extends EventEmitter {
       if (normalActions[0][0] !== 'Calculate') {
         await this.waitForInitialization();
       }
-      sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions);
+      const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
+      sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.

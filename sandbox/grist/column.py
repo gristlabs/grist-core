@@ -82,11 +82,7 @@ class BaseColumn(object):
     'method' function. The method may refer to variables in the generated "usercode" module, and
     it's important that all such references are to the rebuilt "usercode" module.
     """
-    if not self._is_formula and method:
-      # Include the current value of the cell as the third parameter (to default formulas).
-      self.method = lambda rec, table: method(rec, table, self.get_cell_value(int(rec)))
-    else:
-      self.method = method
+    self.method = method
 
   def is_formula(self):
     """

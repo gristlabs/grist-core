@@ -77,12 +77,15 @@ class GenCode(object):
     self._usercode = None
 
   def _make_formula_field(self, col_info, table_id, name=None, include_type=True,
-      include_value_arg=False):
+      additional_params=()):
     """Returns the code for a formula field."""
     # If the caller didn't specify a special name, use the colId
     name = name or col_info.colId
 
-    decl = "def %s(rec, table%s):\n" % (name, (", value" if include_value_arg else ""))
+    decl = "def %s(%s):\n" % (
+      name,
+      ', '.join(['rec', 'table'] + list(additional_params))
+    )
 
     # This is where we get to use the formula cache, and save the work of rebuilding formulas.
     key = (table_id, col_info.colId, col_info.formula)
@@ -105,7 +108,7 @@ class GenCode(object):
       parts.append(self._make_formula_field(col_info, table_id,
                                             name=table.get_default_func_name(col_info.colId),
                                             include_type=False,
-                                            include_value_arg=True))
+                                            additional_params=['value', 'user']))
     parts.append("%s = %s\n" % (col_info.colId, get_grist_type(col_info.type)))
     return textbuilder.Combiner(parts)
 

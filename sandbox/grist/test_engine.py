@@ -334,14 +334,14 @@ class EngineTestCase(unittest.TestCase):
   def add_records(self, table_name, col_names, row_data):
     return self.apply_user_action(self.add_records_action(table_name, [col_names] + row_data))
 
-  def apply_user_action(self, user_action_repr, is_undo=False):
+  def apply_user_action(self, user_action_repr, is_undo=False, user=None):
     if not is_undo:
       log.debug("Applying user action %r" % (user_action_repr,))
       if self._undo_state_tracker is not None:
         doc_state = self.getFullEngineData()
 
     self.call_counts.clear()
-    out_actions = self.engine.apply_user_actions([useractions.from_repr(user_action_repr)])
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(user_action_repr)], user)
     out_actions.calls = self.call_counts.copy()
 
     if not is_undo and self._undo_state_tracker is not None:

@@ -210,6 +210,11 @@ export class GranularAccess implements GranularAccessForBundle {
     return this._getUser(docSession);
   }
 
+  public async getCachedUser(docSession: OptDocSession): Promise<UserInfo> {
+    const access = await this._getAccess(docSession);
+    return access.getUser();
+  }
+
   /**
    * Check whether user has any access to table.
    */
@@ -1182,7 +1187,7 @@ export class GranularAccess implements GranularAccessForBundle {
     } else {
       fullUser = getDocSessionUser(docSession);
     }
-    const user: UserInfo = {};
+    const user = new User();
     user.Access = access;
     user.UserID = fullUser?.id || null;
     user.Email = fullUser?.email || null;
@@ -2060,4 +2065,42 @@ export function filterColValues(action: DataAction,
   }
   // Return all actions, in a consistent order for test purposes.
   return [action, ...[...parts.keys()].sort().map(key => parts.get(key)!)];
+}
+
+/**
+ * Information about a user, including any user attributes.
+ *
+ * Serializes into a more compact JSON form that excludes full
+ * row data, only keeping user info and table/row ids for any
+ * user attributes.
+ *
+ * See `user.py` for the sandbox equivalent that deserializes objects of this class.
+ */
+export class User implements UserInfo {
+  public Name: string | null = null;
+  public UserID: number | null = null;
+  public Access: Role | null = null;
+  public Origin: string | null = null;
+  public LinkKey: Record<string, string | undefined> = {};
+  public Email: string | null = null;
+  [attribute: string]: any;
+
+  constructor(_info: Record<string, unknown> = {}) {
+    Object.assign(this, _info);
+  }
+
+  public toJSON() {
+    const results: {[key: string]: any} = {};
+    for (const [key, value] of Object.entries(this)) {
+      if (value instanceof RecordView) {
+        // Only include the table id and first matching row id.
+        results[key] = [getTableId(value.data), value.get('id')];
+      } else if (value instanceof EmptyRecordView) {
+        results[key] = null;
+      } else {
+        results[key] = value;
+      }
+    }
+    return results;
+  }
 }

@@ -55,8 +55,8 @@ def run(sandbox):
     sandbox.register(method.__name__, wrapper)
 
   @export
-  def apply_user_actions(action_reprs):
-    action_group = eng.apply_user_actions([useractions.from_repr(u) for u in action_reprs])
+  def apply_user_actions(action_reprs, user=None):
+    action_group = eng.apply_user_actions([useractions.from_repr(u) for u in action_reprs], user)
     return eng.acl_split(action_group).to_json_obj()
 
   @export
@@ -73,8 +73,8 @@ def run(sandbox):
     return eng.acl_split(action_group).to_json_obj()
 
   @export
-  def autocomplete(txt, table_id, column_id):
-    return eng.autocomplete(txt, table_id, column_id)
+  def autocomplete(txt, table_id, column_id, user):
+    return eng.autocomplete(txt, table_id, column_id, user)
 
   @export
   def find_col_from_values(values, n, opt_table_id):

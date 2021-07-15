@@ -361,7 +361,7 @@ export class Sharing {
   }
 
   private async _applyActionsToDataEngine(docSession: OptDocSession|null, userActions: UserAction[]) {
-    const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(userActions);
+    const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
     const undo = getEnvContent(sandboxActionBundle.undo);
     const docActions = getEnvContent(sandboxActionBundle.stored).concat(
       getEnvContent(sandboxActionBundle.calc));
@@ -377,7 +377,7 @@ export class Sharing {
     } catch (e) {
       // should not commit.  Don't write to db.  Remove changes from sandbox.
       try {
-        await this._activeDoc.applyActionsToDataEngine([['ApplyUndoActions', undo]]);
+        await this._activeDoc.applyActionsToDataEngine(docSession, [['ApplyUndoActions', undo]]);
       } finally {
         await accessControl.finishedBundle();
       }

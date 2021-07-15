@@ -522,3 +522,62 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       [1,   "Whale",   3,       "Arthur",    "Arthur",  "Neptune",  "Neptune",  "Indian",    time3],
       [2,   "Manatee", 2,       "Poseidon",  "",        "Poseidon", "Poseidon", "ATLANTIC",  time2],
     ])
+
+  def test_last_modified_by_recipe(self):
+    user1 = {
+      'Name': 'Foo Bar',
+      'UserID': 1,
+      'StudentInfo': ['Students', 1],
+      'LinkKey': {},
+      'Origin': None,
+      'Email': 'foo.bar@getgrist.com',
+      'Access': 'owners'
+    }
+    user2 = {
+      'Name': 'Baz Qux',
+      'UserID': 2,
+      'StudentInfo': ['Students', 1],
+      'LinkKey': {},
+      'Origin': None,
+      'Email': 'baz.qux@getgrist.com',
+      'Access': 'owners'
+    }
+    # Use formula to store last modified by data (user name and email). Check that it works as expected.
+    self.load_sample(self.sample)
+    self.add_column('Creatures', 'LastModifiedBy', type='Text', isFormula=False,
+      formula="user.Name + ' <' + user.Email + '>'", recalcWhen=RecalcWhen.MANUAL_UPDATES
+    )
+    self.assertTableData("Creatures", data=[
+      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd", "BossAll", "OceanName", "LastModifiedBy"],
+      [1,   "Dolphin", 2,       "Arthur",    "Arthur",  "Arthur",  "Arthur",  "Atlantic",  ""],
+    ])
+
+    self.apply_user_action(
+      ['AddRecord', "Creatures", None, {"Name": "Manatee", "Ocean": 2}],
+      user=user1
+    )
+    self.apply_user_action(
+      ['UpdateRecord', "Creatures", 1, {"Ocean": 3}],
+      user=user2
+    )
+
+    self.assertTableData("Creatures", data=[
+      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll",  "OceanName", "LastModifiedBy"],
+      [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "Neptune",  "Neptune",  "Indian",    "Baz Qux <baz.qux@getgrist.com>"],
+      [2,   "Manatee", 2,       "Poseidon",  "",        "Poseidon", "Poseidon", "Atlantic",  "Foo Bar <foo.bar@getgrist.com>"],
+    ])
+
+    # An indirect change doesn't affect the user, but a direct change does.
+    self.apply_user_action(
+      ['UpdateRecord', "Oceans", 2, {"Name": "ATLANTIC"}],
+      user=user2
+    )
+    self.apply_user_action(
+      ['UpdateRecord', "Creatures", 1, {"Name": "Whale"}],
+      user=user1
+    )
+    self.assertTableData("Creatures", data=[
+      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll",  "OceanName", "LastModifiedBy"],
+      [1,   "Whale",   3,       "Arthur",    "Arthur",  "Neptune",  "Neptune",  "Indian",    "Foo Bar <foo.bar@getgrist.com>"],
+      [2,   "Manatee", 2,       "Poseidon",  "",        "Poseidon", "Poseidon", "ATLANTIC",  "Foo Bar <foo.bar@getgrist.com>"],
+    ])

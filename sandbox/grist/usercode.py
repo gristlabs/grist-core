@@ -53,7 +53,7 @@ class Address:
   city = grist.Text()
   state = grist.Text()
 
-  def _default_country(rec, table, value):
+  def _default_country(rec, table, value, user):
     return 'US'
   country = grist.Text()
 

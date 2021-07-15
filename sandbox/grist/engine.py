@@ -33,16 +33,17 @@ from relation import SingleRowsIdentityRelation
 import schema
 from schema import RecalcWhen
 import table as table_module
+from user import User # pylint:disable=wrong-import-order
 import useractions
 import column
 import repl
-import urllib_patch  # noqa imported for side effect
+import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
 log = logger.Logger(__name__, logger.INFO)
 
 if six.PY2:
   reload(sys)
-  sys.setdefaultencoding('utf8')  # noqa
+  sys.setdefaultencoding('utf8')  # noqa # pylint:disable=no-member
 
 
 class OrderError(Exception):
@@ -129,7 +130,7 @@ class Engine(object):
         Returns a TableData object containing the full data for the table. Formula columns
         are included only if formulas is True.
 
-      apply_user_actions(user_actions)
+      apply_user_actions(user_actions, user)
         Applies a list of UserActions, which are tuples consisting of the name of the action
         method (as defind in useractions.py) and the arguments to it. Returns ActionGroup tuple,
         containing several categories of DocActions, including the results of computations.
@@ -237,6 +238,9 @@ class Engine(object):
     # Stores an exception representing the first unevaluated cell met while recomputing the
     # current cell.
     self._cell_required_error = None
+
+    # User that is currently applying user actions.
+    self._user = None
 
     # Initial empty context for autocompletions; we update it when we generate the usercode module.
     self._autocomplete_context = AutocompleteContext({})
@@ -860,7 +864,10 @@ class Engine(object):
     try:
       if cycle:
         raise depend.CircularRefError("Circular Reference")
-      result = col.method(record, table.user_table)
+      if not col.is_formula():
+        result = col.method(record, table.user_table, col.get_cell_value(int(record)), self._user)
+      else:
+        result = col.method(record, table.user_table)
       if self._cell_required_error:
         raise self._cell_required_error  # pylint: disable=raising-bad-type
       self.formula_tracer(col, record)
@@ -1146,7 +1153,7 @@ class Engine(object):
     """
     self._unused_lookups.add(lookup_map_column)
 
-  def apply_user_actions(self, user_actions):
+  def apply_user_actions(self, user_actions, user=None):
     """
     Applies the list of user_actions. Returns an ActionGroup.
     """
@@ -1156,7 +1163,7 @@ class Engine(object):
     # everything, and only filter what we send.
 
     self.out_actions = action_obj.ActionGroup()
-
+    self._user = User(user, self.tables) if user else None
     checkpoint = self._get_undo_checkpoint()
     try:
       for user_action in user_actions:
@@ -1210,6 +1217,7 @@ class Engine(object):
 
     self.out_actions.flush_calc_changes()
     self.out_actions.check_sanity()
+    self._user = None
     return self.out_actions
 
   def acl_split(self, action_group):
@@ -1281,7 +1289,7 @@ class Engine(object):
     if not self._compute_stack:
       self._bring_lookups_up_to_date(doc_action)
 
-  def autocomplete(self, txt, table_id, column_id):
+  def autocomplete(self, txt, table_id, column_id, user):
     """
     Return a list of suggested completions of the python fragment supplied.
     """
@@ -1297,10 +1305,13 @@ class Engine(object):
 
     # Remove values from the context that need to be recomputed.
     context.pop('value', None)
+    context.pop('user', None)
 
     column = table.get_column(column_id) if table.has_column(column_id) else None
     if column and not column.is_formula():
+      # Add trigger formula completions.
       context['value'] = column.sample_value()
+      context['user'] = User(user, self.tables, is_sample=True)
 
     completer = rlcompleter.Completer(context)
     results = []

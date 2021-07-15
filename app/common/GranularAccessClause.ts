@@ -1,5 +1,6 @@
 import { PartialPermissionSet } from 'app/common/ACLPermissions';
 import { CellValue, RowRecord } from 'app/common/DocActions';
+import { Role } from './roles';
 
 export interface RuleSet {
   tableId: '*' | string;
@@ -36,7 +37,16 @@ export interface InfoEditor {
 }
 
 // Represents user info, which may include properties which are themselves RowRecords.
-export type UserInfo = Record<string, CellValue|InfoView|Record<string, string>>;
+export interface UserInfo {
+  Name: string | null;
+  Email: string | null;
+  Access: Role | null;
+  Origin: string | null;
+  LinkKey: Record<string, string | undefined>;
+  UserID: number | null;
+  [attributes: string]: unknown;
+  toJSON(): {[key: string]: any};
+}
 
 /**
  * Input into the AclMatchFunc. Compiled formulas evaluate AclMatchInput to produce a boolean.

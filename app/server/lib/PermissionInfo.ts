@@ -3,7 +3,7 @@ import { ALL_PERMISSION_PROPS, emptyPermissionSet,
          MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
          toMixed } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
-import { AclMatchInput, RuleSet } from 'app/common/GranularAccessClause';
+import { AclMatchInput, RuleSet, UserInfo } from 'app/common/GranularAccessClause';
 import { getSetMapValue } from 'app/common/gutil';
 import * as log from 'app/server/lib/log';
 import { mapValues } from 'lodash';
@@ -77,6 +77,10 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
     tableAccess.push(this._getDocDefaultAspect());
 
     return this._mergeFullAccess(tableAccess);
+  }
+
+  public getUser(): UserInfo {
+    return this._input.user;
   }
 
   protected abstract _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedT): MixedT;
