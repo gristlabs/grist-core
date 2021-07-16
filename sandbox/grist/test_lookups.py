@@ -633,7 +633,7 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     # A helper for comparing Record objects below.
     schools_table = self.engine.tables['Schools']
     def SchoolsRec(row_id):
-      return schools_table.Record(schools_table, row_id, None)
+      return schools_table.Record(row_id, None)
 
     # We'll play with schools "Columbia" and "Eureka", which are rows 1,3,5 in the Students table.
     self.assertTableData("Students", cols="subset", rows="subset", data=[
@@ -680,7 +680,7 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     # A helper for comparing Record objects below.
     schools_table = self.engine.tables['Schools']
     def SchoolsRec(row_id):
-      return schools_table.Record(schools_table, row_id, None)
+      return schools_table.Record(row_id, None)
 
     # We'll play with schools "Columbia" and "Eureka", which are rows 1,3,5 in the Students table.
     self.assertTableData("Students", cols="subset", rows="all", data=[

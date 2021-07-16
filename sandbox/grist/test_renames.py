@@ -380,7 +380,7 @@ class TestRenames(test_engine.EngineTestCase):
     from datetime import date
     # A helper for comparing Record objects below.
     people_table = self.engine.tables['People']
-    people_rec = lambda row_id: people_table.Record(people_table, row_id, None)
+    people_rec = lambda row_id: people_table.Record(row_id, None)
 
     # Verify the data and calculations are correct.
     self.assertTableData("Address", cols="all", data=[

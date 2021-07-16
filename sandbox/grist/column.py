@@ -421,7 +421,7 @@ class ReferenceColumn(BaseReferenceColumn):
       return typed_value
     # For a Reference, values must either refer to an existing record, or be 0. In all tables,
     # the 0 index will contain the all-defaults record.
-    return self._target_table.Record(self._target_table, typed_value, self._relation)
+    return self._target_table.Record(typed_value, self._relation)
 
   def _update_references(self, row_id, old_value, new_value):
     if old_value:
@@ -452,7 +452,7 @@ class ReferenceListColumn(BaseReferenceColumn):
     # If we refer to an invalid table, return integers rather than fail completely.
     if not self._target_table:
       return typed_value
-    return self._target_table.RecordSet(self._target_table, typed_value, self._relation)
+    return self._target_table.RecordSet(typed_value, self._relation)
 
   def _raw_get_without(self, row_id, target_row_ids):
     """

@@ -213,6 +213,8 @@ class TestCompletion(test_engine.EngineTestCase):
   def test_suggest_lookup_methods(self):
     # Should suggest lookup formulas for tables.
     self.assertEqual(self.engine.autocomplete("Address.", "Students", "firstName", self.user), [
+      ('Address.Record', '', True),
+      ('Address.RecordSet', '', True),
       'Address.all',
       ('Address.lookupOne', '(colName=<value>, ...)', True),
       ('Address.lookupRecords', '(colName=<value>, ...)', True),

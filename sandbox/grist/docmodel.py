@@ -253,7 +253,7 @@ class DocModel(object):
       table_obj = record_set_or_table.table
 
     row_ids = self._engine.user_actions.BulkAddRecord(table_obj.table_id, [None] * count, values)
-    return [table_obj.Record(table_obj, r, None) for r in row_ids]
+    return [table_obj.Record(r, None) for r in row_ids]
 
   def insert(self, record_set, position, **col_values):
     """

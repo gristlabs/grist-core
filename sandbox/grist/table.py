@@ -61,13 +61,18 @@ class UserTable(object):
     self.Model = model_class
     column_ids = {col for col in model_class.__dict__ if not col.startswith("_")}
     column_ids.add('id')
-    self.Record = type('Record', (records.Record,), {})
-    self.RecordSet = type('RecordSet', (records.RecordSet,), {})
-    self.RecordSet.Record = self.Record
     self.table = None
 
   def _set_table_impl(self, table_impl):
     self.table = table_impl
+
+  @property
+  def Record(self):
+    return self.table.Record
+
+  @property
+  def RecordSet(self):
+    return self.table.RecordSet
 
   # Note these methods are named camelCase since they are a public interface exposed to formulas,
   # and we decided camelCase was a more user-friendly choice for user-facing functions.
@@ -200,6 +205,18 @@ class Table(object):
     # For a summary table, the name of the special helper column auto-added to the source table.
     self._summary_helper_col_id = None
 
+    # Add Record and RecordSet subclasses which fill in this table as the first argument
+    class Record(records.Record):
+      def __init__(inner_self, *args, **kwargs):  # pylint: disable=no-self-argument
+        super(Record, inner_self).__init__(self, *args, **kwargs)
+
+    class RecordSet(records.RecordSet):
+      def __init__(inner_self, *args, **kwargs):  # pylint: disable=no-self-argument
+        super(RecordSet, inner_self).__init__(self, *args, **kwargs)
+
+    self.Record = Record
+    self.RecordSet = RecordSet
+
   def _rebuild_model(self, user_table):
     """
     Sets class-wide properties from a new Model class for the table (inner class within the table
@@ -207,8 +224,6 @@ class Table(object):
     """
     self.user_table = user_table
     self.Model = user_table.Model
-    self.Record = user_table.Record
-    self.RecordSet = user_table.RecordSet
 
     new_cols = collections.OrderedDict()
     new_cols['id'] = self._id_column
@@ -337,7 +352,7 @@ class Table(object):
       row_ids = sorted(row_id_set, key=lambda r: self._get_col_value(sort_by, r, rel))
     else:
       row_ids = sorted(row_id_set)
-    return self.RecordSet(self, row_ids, rel, group_by=kwargs, sort_by=sort_by)
+    return self.RecordSet(row_ids, rel, group_by=kwargs, sort_by=sort_by)
 
   def lookup_one_record(self, **kwargs):
     return self.lookup_records(**kwargs).get_one()
@@ -416,7 +431,7 @@ class Table(object):
     # user-actions caused by formula side-effects (e.g. as trigged by lookupOrAddDerived())
     if row_id not in self.row_ids:
       raise KeyError("'get_record' found no matching record")
-    return self.Record(self, row_id, None)
+    return self.Record(row_id, None)
 
   def filter_records(self, **kwargs):
     """
@@ -427,7 +442,7 @@ class Table(object):
     # See note in get_record() about using this call from formulas.
 
     for row_id in self.filter(**kwargs):
-      yield self.Record(self, row_id, None)
+      yield self.Record(row_id, None)
 
 
   # TODO: document everything here.

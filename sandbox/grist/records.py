@@ -61,6 +61,12 @@ class Record(object):
       table - Table object, in which this record lives.
       row_id - The ID of the record within table.
       relation - Relation object for how this record was obtained; used in dependency tracking.
+
+    In general you shouldn't call this constructor directly, but rather:
+
+        table.Record(row_id, relation)
+
+    which provides the table argument automatically.
     """
     self._table = table
     self._row_id = row_id
@@ -103,8 +109,8 @@ class Record(object):
     return "%s[%s]" % (self._table.table_id, self._row_id)
 
   def _clone_with_relation(self, src_relation):
-    return self.__class__(self._table, self._row_id,
-                          relation=src_relation.compose(self._source_relation))
+    return self._table.Record(self._row_id,
+                              relation=src_relation.compose(self._source_relation))
 
 
 class RecordSet(object):
@@ -157,7 +163,7 @@ class RecordSet(object):
 
   def __iter__(self):
     for row_id in self._row_ids:
-      yield self.Record(self._table, row_id, self._source_relation)
+      yield self._table.Record(row_id, self._source_relation)
 
   def __contains__(self, item):
     """item may be a Record or its row_id."""
@@ -169,7 +175,7 @@ class RecordSet(object):
 
   def get_one(self):
     row_id = min(self._row_ids) if self._row_ids else 0
-    return self.Record(self._table, row_id, self._source_relation)
+    return self._table.Record(row_id, self._source_relation)
 
   def _get_col(self, col_id):
     return self._table._get_col_subset(col_id, self._row_ids, self._source_relation)
@@ -180,10 +186,10 @@ class RecordSet(object):
     return self._table._attribute_error(name, self._source_relation)
 
   def _clone_with_relation(self, src_relation):
-    return self.__class__(self._table, self._row_ids,
-                          relation=src_relation.compose(self._source_relation),
-                          group_by=self._group_by,
-                          sort_by=self._sort_by)
+    return self._table.RecordSet(self._row_ids,
+                                 relation=src_relation.compose(self._source_relation),
+                                 group_by=self._group_by,
+                                 sort_by=self._sort_by)
 
 
 class ColumnView(object):

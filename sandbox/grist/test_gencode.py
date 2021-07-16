@@ -82,9 +82,6 @@ class TestGenCode(unittest.TestCase):
     gcode.make_module(self.schema)
     module = gcode.usercode
     self.assertTrue(isinstance(module.Students, table.UserTable))
-    self.assertTrue(issubclass(module.Students.Record, records.Record))
-    self.assertTrue(issubclass(module.Students.RecordSet, records.RecordSet))
-    self.assertIs(module.Students.RecordSet.Record, module.Students.Record)
 
   def test_pick_col_ident(self):
     self.assertEqual(identifiers.pick_col_ident("asdf"), "asdf")

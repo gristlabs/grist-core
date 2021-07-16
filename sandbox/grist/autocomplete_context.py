@@ -42,6 +42,8 @@ class AutocompleteContext(object):
     # Add in the important UserTable methods, with custom friendlier descriptions.
     self._functions['.lookupOne'] = Completion('.lookupOne', '(colName=<value>, ...)', True)
     self._functions['.lookupRecords'] = Completion('.lookupRecords', '(colName=<value>, ...)', True)
+    self._functions['.Record'] = Completion('.Record', '', True)
+    self._functions['.RecordSet'] = Completion('.RecordSet', '', True)
 
     # Remember the original name for each lowercase one.
     self._lowercase = {}

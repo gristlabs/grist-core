@@ -860,7 +860,7 @@ class Engine(object):
     usercode_reference = self.gencode.usercode
 
     checkpoint = self._get_undo_checkpoint()
-    record = table.Record(table, row_id, table._identity_relation)
+    record = table.Record(row_id, table._identity_relation)
     try:
       if cycle:
         raise depend.CircularRefError("Circular Reference")
