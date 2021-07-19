@@ -60,6 +60,7 @@ export interface IGristUrlState {
   newui?: boolean;
   billing?: BillingPage;
   welcome?: WelcomePage;
+  welcomeTour?: boolean;
   params?: {
     billingPlan?: string;
     billingTask?: BillingTask;
@@ -290,11 +291,14 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
     if (hashMap.has('#') && hashMap.get('#') === 'a1') {
       const link: HashLink = {};
-      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
+      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof Omit<HashLink, 'welcomeTour'>>) {
         const ch = key.substr(0, 1);
         if (hashMap.has(ch)) { link[key] = parseInt(hashMap.get(ch)!, 10); }
       }
       state.hash = link;
+    }
+    if (hashMap.has('#') && hashMap.get('#') === 'repeat-welcome-tour') {
+      state.welcomeTour = true;
     }
   }
   return state;

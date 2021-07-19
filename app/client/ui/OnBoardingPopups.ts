@@ -7,12 +7,12 @@
  *  Usage:
  *
  *    // create the list of message
- *    const messages = [{id: 'add-new-btn', buildDom: () => dom('div', 'Adds New button let's you ...')},
+ *    const messages = [{id: 'add-new-btn', placement: 'right', buildDom: () => ... },
  *                      {id: 'share-btn', buildDom: () => ... ];
  *
  *
  *    // attach each message to the corresponding element
- *    dom('div', 'Add New', ..., attachOnBoardingMsg('add-new-btn', {placement: 'right'}));
+ *    dom('div', 'Add New', ..., dom.cls('tour-add-new-btn'));
  *
  *    // start
  *    startOnBoarding(message, onFinishCB);
@@ -22,22 +22,45 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementMethod, makeTestId, styled, svg } from "grainjs";
-import { createPopper, Placement, Options as PopperOptions } from '@popperjs/core';
-import { pull, range } from "lodash";
-import { bigBasicButton, bigPrimaryButton } from "../ui2018/buttons";
-import { colors } from "../ui2018/cssVars";
+import { Disposable, dom, DomElementArg, makeTestId, styled, svg } from "grainjs";
+import { createPopper, Placement } from '@popperjs/core';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
+import * as Mousetrap from 'app/client/lib/Mousetrap';
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { colors, vars } from "app/client/ui2018/cssVars";
+import range = require("lodash/range");
 
 const testId = makeTestId('test-onboarding-');
 
 // Describes an onboarding popup. Each popup is uniquely identified by its id.
 export interface IOnBoardingMsg {
 
-  // Identifies one message
-  id: string,
+  // A CSS selector pointing to the reference element
+  selector: string,
 
-  // Build the popup's content
-  buildDom: () => HTMLElement,
+  // Title
+  title: DomElementArg,
+
+  // Body
+  body?: DomElementArg,
+
+  // If true show the message as a modal centered on the screen.
+  showHasModal?: boolean,
+
+  // The popper placement.
+  placement?: Placement,
+
+  // Adjusts the popup offset so that it is positioned relative to the content of the reference
+  // element. This is useful when the reference element has padding and no border (ie: such as
+  // icons). In which case, and when set to true, it will fill the gap between popups and the UI
+  // part it's pointing at. If `cropPadding` is falsy otherwise, the popup might look a bit distant.
+  cropPadding?: boolean,
+
+  // The popper offset.
+  offset?: [number, number],
+
+  // Skip the message
+  skip?: boolean;
 }
 
 export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => void) {
@@ -45,39 +68,12 @@ export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => vo
   ctl.start();
 }
 
-// Onboarding popup options.
-export interface IOnBoardingPopupOptions {
-  placement?: Placement;
+class OnBoardingError extends Error {
+  public name = 'OnBoardingError';
+  constructor(message: string) {
+    super(message);
+  }
 }
-
-function attachOnBoardingElem(elem: HTMLElement, messageId: string, opts: IOnBoardingPopupOptions) {
-  const val = {elem, messageId, ...opts};
-  registry.push(val);
-  dom.onDisposeElem(elem, () => pull(registry, val));
-}
-
-// A dom method that let you attach an boarding message to an element. This causes the onboarding
-// message to be shown in a tooltip like popup pointing at this element. More info in the module
-// description.
-export function attachOnBoardingMsg(messageId: string, opts: IOnBoardingPopupOptions): DomElementMethod {
-  return (elem) => attachOnBoardingElem(elem, messageId, opts);
-}
-
-// Onboarding popup's options.
-interface IOnboardingRegistryItem {
-
-  // the message id
-  messageId: string;
-
-  // The popper placement, optional.
-  placement?: Placement,
-
-  // the element,
-  elem: HTMLElement,
-}
-
-// List of all registered element
-const registry: Array<IOnboardingRegistryItem> = [];
 
 class OnBoardingPopupsCtl extends Disposable {
   private _index = -1;
@@ -88,7 +84,7 @@ class OnBoardingPopupsCtl extends Disposable {
   constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: () => void) {
     super();
     if (this._messages.length === 0) {
-      throw new Error('messages should not be an empty list');
+      throw new OnBoardingError('messages should not be an empty list');
     }
     this.onDispose(() => {
       this._openPopupCtl?.close();
@@ -98,6 +94,10 @@ class OnBoardingPopupsCtl extends Disposable {
   public start(): void {
     this._showOverlay();
     this._next();
+    Mousetrap.setPaused(true);
+    this.onDispose(() => {
+      Mousetrap.setPaused(false);
+    });
   }
 
   private _finish() {
@@ -107,13 +107,31 @@ class OnBoardingPopupsCtl extends Disposable {
 
   private _next(): void {
     this._index = this._index + 1;
-    const {id} = this._messages[this._index];
-    const entry = registry.find((opts) => opts.messageId === id);
-    if (!entry) { throw new Error(`Missing on-boarding entry for message: ${id}`); }
-    const {elem, placement} = entry;
+    const entry = this._messages[this._index];
+    if (entry.skip) { this._next(); }
 
     // close opened popup if any
     this._openPopupCtl?.close();
+
+    if (entry.showHasModal) {
+      this._showHasModal();
+    } else {
+      this._showHasPopup();
+    }
+  }
+
+  private _showHasPopup() {
+    const content = this._buildPopupContent();
+    const entry = this._messages[this._index];
+    const elem = document.querySelector<HTMLElement>(entry.selector);
+    const {placement} = entry;
+
+    // The element the popup refers to is not present. To the user we show nothing and simply skip
+    // it to the next.
+    if (!elem) {
+      console.warn(`On boarding tour: element ${entry.selector} not found!`);
+      return this._next();
+    }
 
     // Cleanup
     function close() {
@@ -122,14 +140,14 @@ class OnBoardingPopupsCtl extends Disposable {
       content.remove();
     }
 
-    // Add the content element
-    const content = this._buildPopupContent();
+    this._openPopupCtl = {close};
     document.body.appendChild(content);
+    this._addFocusLayer(content);
 
     // Create a popper for positioning the popup content relative to the reference element
-    const popperOptions: Partial<PopperOptions> = { placement };
+    const adjacentPadding = entry.cropPadding ? this._getAdjacentPadding(elem, placement) : 0;
     const popper = createPopper(elem, content, {
-      ...popperOptions,
+      placement,
       modifiers: [{
         name: 'arrow',
         options: {
@@ -138,19 +156,66 @@ class OnBoardingPopupsCtl extends Disposable {
       }, {
         name: 'offset',
         options: {
-          offset: [-12, 12],
+          offset: [0, 12 - adjacentPadding],
         }
       }],
     });
+  }
+
+  private _addFocusLayer(container: HTMLElement) {
+    dom.autoDisposeElem(container, new FocusLayer({
+      defaultFocusElem: container,
+      allowFocus: (elem) => (elem !== document.body)
+    }));
+  }
+
+  // Get the padding length for the side that will be next to the popup.
+  private _getAdjacentPadding(elem: HTMLElement, placement?: Placement) {
+    if (placement) {
+      let padding = '';
+      if (placement.includes('bottom')) {
+        padding = getComputedStyle(elem).paddingBottom;
+      }
+      else if (placement.includes('top')) {
+        padding = getComputedStyle(elem).paddingTop;
+      }
+      else if (placement.includes('left')) {
+        padding = getComputedStyle(elem).paddingLeft;
+      }
+      else if (placement.includes('right')) {
+        padding = getComputedStyle(elem).paddingRight;
+      }
+      // Note: getComputedStyle return value in pixel, hence no need to handle other unit. See here
+      // for reference:
+      // https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle#notes.
+      if (padding && padding.endsWith('px')) {
+        return Number(padding.slice(0, padding.length - 2));
+      }
+    }
+    return 0;
+  }
+
+  private _showHasModal() {
+    const content = this._buildPopupContent();
+    dom.update(this._overlay, content);
+    this._addFocusLayer(content);
+
+    function close() {
+      content.remove();
+      dom.domDispose(content);
+    }
+
     this._openPopupCtl = {close};
   }
 
   private _buildPopupContent() {
-    return Container(this._arrowEl, ContentWrapper(
-      this._messages[this._index].buildDom(),
+    const container = Container({tabindex: '-1'}, this._arrowEl, ContentWrapper(
+      cssTitle(this._messages[this._index].title),
+      cssBody(this._messages[this._index].body),
       this._buildFooter(),
       testId('popup'),
     ));
+    return container;
   }
 
   private _buildFooter() {
@@ -186,12 +251,13 @@ class OnBoardingPopupsCtl extends Disposable {
 
 function buildArrow() {
   return ArrowContainer(
-    svg('svg', { style: 'width: 14px; height: 36px;' },
-        svg('path', {'d': 'M 2 16 h 12 v 16 Z'}))
+    svg('svg', { style: 'width: 13px; height: 34px;' },
+        svg('path', {'d': 'M 2 19 h 13 v 18 Z'}))
   );
 }
 
 const Container = styled('div', `
+  align-self: center;
   border: 2px solid ${colors.lightGreen};
   border-radius: 3px;
   z-index: 1000;
@@ -199,6 +265,7 @@ const Container = styled('div', `
   position: relative;
   background-color: white;
   box-shadow: 0 2px 18px 0 rgba(31,37,50,0.31), 0 0 1px 0 rgba(76,86,103,0.24);
+  outline: unset;
 `);
 
 function sideSelectorChunk(side: 'top'|'bottom'|'left'|'right') {
@@ -219,7 +286,7 @@ const ArrowContainer = styled('div', `
   }
 
   ${sideSelectorChunk('bottom')} > & {
-    top: -24px;
+    top: -23px;
   }
 
   ${sideSelectorChunk('right')} > & {
@@ -282,10 +349,22 @@ const Overlay = styled('div', `
   position: fixed;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
   z-index: 999;
   overflow-y: auto;
+`);
+
+const cssTitle = styled('div', `
+  font-size: ${vars.xxxlargeFontSize};
+  font-weight: ${vars.headerControlTextWeight};
+  color: ${colors.dark};
+  margin: 0 0 16px 0;
+  line-height: 32px;
+`);
+
+const cssBody = styled('div', `
 `);

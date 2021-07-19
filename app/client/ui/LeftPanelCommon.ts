@@ -29,13 +29,18 @@ export function createHelpTools(appModel: AppModel, spacer = true): DomContents 
   return [
     spacer ? cssSpacer() : null,
     cssPageEntry(
-      cssPageLink(cssPageIcon('Feedback'), cssLinkText('Give Feedback'),
-        dom.on('click', () => beaconOpenMessage({appModel}))),
+      cssPageLink(cssPageIcon('Feedback'),
+        cssLinkText('Give Feedback', dom.cls('tour-feedback')),
+        dom.on('click', () => beaconOpenMessage({appModel})),
+      ),
       dom.hide(isEfcr),
       testId('left-feedback'),
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Help'), {href: commonUrls.help, target: '_blank'}, cssLinkText('Help Center')),
+      cssPageLink(cssPageIcon('Help'), {href: commonUrls.help, target: '_blank'}, cssLinkText(
+        'Help Center',
+        dom.cls('tour-help-center')
+      )),
       dom.hide(isEfcr),
     ),
   ];

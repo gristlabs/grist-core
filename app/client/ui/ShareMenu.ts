@@ -88,7 +88,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
   if (!buttonText) {
     // Regular circular button that opens a menu.
     return cssHoverCircle({ style: `margin: 5px;` },
-      cssTopBarBtn('Share'),
+      cssTopBarBtn('Share', dom.cls('tour-share-icon')),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
       testId('tb-share'),
     );
@@ -318,4 +318,3 @@ const cssMenuIconLink = styled('a', `
 const cssMenuIcon = styled(icon, `
   display: block;
 `);
-

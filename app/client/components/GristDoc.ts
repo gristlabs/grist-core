@@ -34,6 +34,7 @@ import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
+import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {ActionGroup} from 'app/common/ActionGroup';
@@ -189,6 +190,23 @@ export class GristDoc extends DisposableWithEvents {
         } finally {
           setTimeout(finalizeAnchor, 0);
         }
+      }
+    }));
+
+    // Start welcome tour if flag is present in the url hash.
+    this.autoDispose(subscribe(urlState().state, async (_use, state) => {
+      if (state.welcomeTour) {
+        await this._waitForView();
+        await delay(0); // we need to wait an extra bit.
+        // TODO:
+        //   1) url needs cleanup, #repeat-welcome-tour sticks to it and so even when navigating
+        // to home page. This could eventually become an issue: if user opens another document it
+        // would starts the onboarding tour again.
+        //   2) Makes sure the right panel is opened with the Column tab selected. Because some
+        // of the messages relates to that part of the UI.
+        //   3) On boarding tours were not designed with mobile support in mind. So probably a
+        // good idea to disable.
+        startWelcomeTour(() => null);
       }
     }));
 

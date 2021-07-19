@@ -106,6 +106,7 @@ export function pagePanels(page: PageContents) {
         (!right || right.hideOpener ? null :
           cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
             testId('right-opener'),
+            dom.cls('tour-creator-panel'),
             dom.on('click', () => toggleObs(right.panelOpen)),
             cssHideForNarrowScreen.cls(''))
         ),

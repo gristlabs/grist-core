@@ -217,7 +217,8 @@ export class FieldBuilder extends Disposable {
           disabled: (use) => use(this._isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
             use(this.isCallPending)
         }),
-        testId('type-select')
+        testId('type-select'),
+        grainjsDom.cls('tour-type-selector'),
       ),
       grainjsDom.maybe((use) => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
       grainjsDom.maybe(this._isTransformingType, () => {

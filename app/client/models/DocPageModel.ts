@@ -152,7 +152,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
             // "Add New" menu should have the same width as the "Add New" button that opens it.
             stretchToSelector: `.${cssAddNewButton.className}`
           }),
-          testId('dp-add-new')
+          testId('dp-add-new'),
+          dom.cls('tour-add-new'),
         ),
         cssScrollPane(
           dom.create(buildPagesDom, activeDoc, leftPanelOpen),
