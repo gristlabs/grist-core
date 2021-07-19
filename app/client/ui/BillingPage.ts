@@ -557,7 +557,7 @@ export class BillingPage extends Disposable {
             testId('company-address-country')
           )
         ) : null,
-      ] : 'Fetching address...'
+      ] : css.billingHintText('Fetching address...')
     );
   }
 
@@ -568,7 +568,7 @@ export class BillingPage extends Disposable {
         css.summaryHeader(
           css.billingBoldText(`Payment Card`),
         ),
-        'Fetching card preview...'
+        css.billingHintText('Fetching card preview...')
       );
     } else if (card) {
       // There is a card attached to the account.

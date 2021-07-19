@@ -239,6 +239,9 @@ export class BillingModelImpl extends Disposable implements BillingModel {
   private async _fetchSubscription(forceReload: boolean = false): Promise<void> {
     if (forceReload || this.subscription.get() === undefined) {
       try {
+        // Unset while fetching for forceReload, so that the user (and tests) can tell that a
+        // fetch is pending.
+        this.subscription.set(undefined);
         const sub = await this._billingAPI.getSubscription();
         bundleChanges(() => {
           this.plans.set(sub.plans);
