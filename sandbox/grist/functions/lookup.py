@@ -1,5 +1,5 @@
 # pylint: disable=redefined-builtin, line-too-long
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import os
 
 import six
@@ -150,3 +150,25 @@ def VLOOKUP(table, **field_value_pairs):
   ```
   """
   return table.lookupOne(**field_value_pairs)
+
+class CONTAINS(namedtuple("CONTAINS", "value")):
+  """
+  Use this marker with `Table.lookupRecords` to find records
+  where a column contains the given value, e.g:
+
+      MoviesTable.lookupRecords(genre=CONTAINS("Drama"))
+
+  will return records in `MoviesTable` where the column `genre`
+  is a list or other container such as `["Comedy", "Drama"]`,
+  i.e. `"Drama" in $genre`.
+
+  Note that the column being looked up (e.g. `genre`)
+  must have values of a container type such as list, tuple, or set.
+  In particular the values mustn't be strings, e.g. `"Comedy-Drama"` won't match
+  even though `"Drama" in "Comedy-Drama"` is `True` in Python.
+  It also won't match substrings within container elements, e.g. `["Comedy-Drama"]`.
+  """
+  # While users should apply this marker to values in queries, internally
+  # the marker is moved to the column ID so that the LookupMapColumn knows how to
+  # update its index correctly for that column.
+  pass

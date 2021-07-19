@@ -1,4 +1,5 @@
 import collections
+import itertools
 import types
 
 import six
@@ -7,12 +8,12 @@ from six.moves import xrange
 import column
 import depend
 import docmodel
+import logger
 import lookup
 import records
 import relation as relation_module    # "relation" is used too much as a variable name below.
 import usertypes
 
-import logger
 log = logger.Logger(__name__, logger.INFO)
 
 
@@ -205,6 +206,11 @@ class Table(object):
     # For a summary table, the name of the special helper column auto-added to the source table.
     self._summary_helper_col_id = None
 
+    # For a summary table, True in the common case where every source record belongs
+    # to just one group in the summary table, False if grouping by list columns
+    # which are 'flattened' so source records may appear in multiple groups
+    self._summary_simple = None
+
     # Add Record and RecordSet subclasses which fill in this table as the first argument
     class Record(records.Record):
       def __init__(inner_self, *args, **kwargs):  # pylint: disable=no-self-argument
@@ -254,20 +260,84 @@ class Table(object):
     if summary_src not in self._engine.tables:
       self._summary_source_table = None
       self._summary_helper_col_id = None
+      self._summary_simple = None
     else:
       self._summary_source_table = self._engine.tables[summary_src]
       self._summary_helper_col_id = "#summary#%s" % self.table_id
       # Figure out the group-by columns: these are all the non-formula columns.
       groupby_cols = tuple(sorted(col_id for (col_id, col_model) in col_items
                                   if not isinstance(col_model, types.FunctionType)))
+      self._summary_simple = not any(
+        isinstance(
+          self._summary_source_table.all_columns.get(group_col),
+          column.ChoiceListColumn
+        )
+        for group_col in groupby_cols
+      )
       # Add the special helper column to the source table.
       self._summary_source_table._add_update_summary_col(self, groupby_cols)
 
   def _add_update_summary_col(self, summary_table, groupby_cols):
     # TODO: things need to be removed also from summary_cols when a summary table is deleted.
-    @usertypes.formulaType(usertypes.Reference(summary_table.table_id))
-    def _updateSummary(rec, table):   # pylint: disable=unused-argument
-      return summary_table.lookupOrAddDerived(**{c: getattr(rec, c) for c in groupby_cols})
+
+    # Grouping by list columns is significantly more complex and this comes with a
+    # performance cost, so in the common case we use the simpler older implementation
+    # In particular _updateSummary returns (possibly creating) just one reference
+    # instead of a list, which getSummarySourceGroup looks up directly instead
+    # of using CONTAINS, which in turn allows using SimpleLookupMapColumn
+    # instead of the similarly slower and more complicated ContainsLookupMapColumn
+    # All of these branches should be interchangeable and produce equivalent results
+    # when no list columns or CONTAINS are involved,
+    # especially since we need to be able to summarise by a combination of list and non-list
+    # columns or lookupRecords with a combination of CONTAINS and normal values,
+    # these are just performance optimisations
+    if summary_table._summary_simple:
+      @usertypes.formulaType(usertypes.Reference(summary_table.table_id))
+      def _updateSummary(rec, table):  # pylint: disable=unused-argument
+        return summary_table.lookupOrAddDerived(**{c: getattr(rec, c) for c in groupby_cols})
+    else:
+      @usertypes.formulaType(usertypes.ReferenceList(summary_table.table_id))
+      def _updateSummary(rec, table):  # pylint: disable=unused-argument
+        # Create a row in the summary table for every combination of values in
+        # ChoiceList columns
+        lookup_values = []
+        for group_col in groupby_cols:
+          lookup_value = getattr(rec, group_col)
+          if isinstance(self.all_columns[group_col], column.ChoiceListColumn):
+            # Check that ChoiceList cells have appropriate types.
+            # Don't iterate over characters of a string.
+            if isinstance(lookup_value, (six.binary_type, six.text_type)):
+              return []
+            try:
+              # We only care about the unique choices
+              lookup_value = set(lookup_value)
+            except TypeError:
+              return []
+          else:
+            lookup_value = [lookup_value]
+          lookup_values.append(lookup_value)
+
+        result = []
+        values_to_add = {}
+        new_row_ids = []
+
+        for values_tuple in sorted(itertools.product(*lookup_values)):
+          values_dict = dict(zip(groupby_cols, values_tuple))
+          row_id = summary_table.lookup_one_record(**values_dict)._row_id
+          if row_id:
+            result.append(row_id)
+          else:
+            for col, value in six.iteritems(values_dict):
+              values_to_add.setdefault(col, []).append(value)
+            new_row_ids.append(None)
+
+        if new_row_ids and not self._engine.is_triggered_by_table_action(summary_table.table_id):
+          result += self._engine.user_actions.BulkAddRecord(
+            summary_table.table_id, new_row_ids, values_to_add
+          )
+
+        return result
+
     _updateSummary.is_private = True
     col_id = summary_table._summary_helper_col_id
     col_obj = self._create_or_update_col(col_id, _updateSummary)
@@ -343,8 +413,20 @@ class Table(object):
     """
     # The tuple of keys used determines the LookupMap we need.
     sort_by = kwargs.pop('sort_by', None)
-    col_ids = tuple(sorted(kwargs))
-    key = tuple(kwargs[c] for c in col_ids)
+    key = []
+    col_ids = []
+    for col_id in sorted(kwargs):
+      value = kwargs[col_id]
+      if isinstance(value, lookup.CONTAINS):
+        value = value.value
+        # While users should use CONTAINS on lookup values,
+        # the marker is moved to col_id so that the LookupMapColumn knows how to
+        # update its index correctly for that column.
+        col_id = lookup.CONTAINS(col_id)
+      key.append(value)
+      col_ids.append(col_id)
+    col_ids = tuple(col_ids)
+    key = tuple(key)
 
     lookup_map = self._get_lookup_map(col_ids)
     row_id_set, rel = lookup_map.do_lookup(key)
@@ -365,14 +447,19 @@ class Table(object):
     """
     # LookupMapColumn is a Node, so identified by (table_id, col_id) pair, so we make up a col_id
     # to identify this lookup object uniquely in this Table.
-    lookup_col_id = "#lookup#" + ":".join(col_ids_tuple)
+    lookup_col_id = "#lookup#" + ":".join(map(str, col_ids_tuple))
     lmap = self._special_cols.get(lookup_col_id)
     if not lmap:
       # Check that the table actually has all the columns we looking up.
       for c in col_ids_tuple:
+        c = lookup.extract_column_id(c)
         if not self.has_column(c):
           raise KeyError("Table %s has no column %s" % (self.table_id, c))
-      lmap = lookup.LookupMapColumn(self, lookup_col_id, col_ids_tuple)
+      if any(isinstance(col_id, lookup.CONTAINS) for col_id in col_ids_tuple):
+        column_class = lookup.ContainsLookupMapColumn
+      else:
+        column_class = lookup.SimpleLookupMapColumn
+      lmap = column_class(self, lookup_col_id, col_ids_tuple)
       self._special_cols[lookup_col_id] = lmap
       self.all_columns[lookup_col_id] = lmap
     return lmap
@@ -389,8 +476,17 @@ class Table(object):
     return record
 
   def getSummarySourceGroup(self, rec):
-    return (self._summary_source_table.lookup_records(**{self._summary_helper_col_id: int(rec)})
-            if self._summary_source_table else None)
+    if self._summary_source_table:
+      # See comment in _add_update_summary_col.
+      # _summary_source_table._summary_simple determines whether
+      # the column named self._summary_helper_col_id is a single reference
+      # or a reference list.
+      lookup_value = rec if self._summary_simple else lookup.CONTAINS(rec)
+      return self._summary_source_table.lookup_records(**{
+        self._summary_helper_col_id: lookup_value
+      })
+    else:
+      return None
 
   def get(self, **kwargs):
     """

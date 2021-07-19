@@ -706,3 +706,43 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       [5,     "Eureka",     SchoolsRec(1),  "New York"  ],
       [6,     "Yale",       SchoolsRec(3),  "New Haven" ],
     ])
+
+  def test_contains(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Source", [
+          [11, "choicelist1", "ChoiceList", False, "", "choicelist1", ""],
+          [12, "choicelist2", "ChoiceList", False, "", "choicelist2", ""],
+          [13, "text1",       "Text",       False, "", "text1",       ""],
+          [14, "text2",       "Text",       False, "", "text1",       ""],
+          [15, "contains1", "RefList:Source", True,
+           "Source.lookupRecords(choicelist1=CONTAINS($text1))",
+           "contains1", ""],
+          [16, "contains2", "RefList:Source", True,
+           "Source.lookupRecords(choicelist2=CONTAINS($text2))",
+           "contains2", ""],
+          [17, "contains_both", "RefList:Source", True,
+           "Source.lookupRecords(choicelist1=CONTAINS($text1), choicelist2=CONTAINS($text2))",
+           "contains_both", ""],
+          [17, "combined", "RefList:Source", True,
+           "Source.lookupRecords(choicelist1=CONTAINS($text1), text2='x')",
+           "combined", ""],
+        ]]
+      ],
+      "DATA": {
+        "Source": [
+          ["id", "choicelist1", "text1", "choicelist2", "text2"],
+          [101,  ["a"],         "a",     ["x"],         "y"],
+          [102,  ["b"],         "b",     ["y"],         "x"],
+          [103,  ["a", "b"],    "c",     ["x", "y"],    "c"],
+        ]
+      }
+    })
+    self.load_sample(sample)
+
+    self.assertTableData("Source", cols="subset", data=[
+          ["id", "contains1", "contains2", "contains_both", "combined"],
+          [101,  [101, 103],  [102, 103],  [103],           []],
+          [102,  [102, 103],  [101, 103],  [103],           [102]],
+          [103,  [],          [],          [],              []],
+    ])

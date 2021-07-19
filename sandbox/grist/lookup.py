@@ -1,3 +1,6 @@
+import itertools
+from abc import abstractmethod
+
 import six
 
 import column
@@ -6,6 +9,7 @@ import records
 import relation
 import twowaymap
 import usertypes
+from functions.lookup import CONTAINS
 
 import logger
 log = logger.Logger(__name__, logger.INFO)
@@ -21,7 +25,7 @@ def _extract(cell_value):
   return cell_value
 
 
-class LookupMapColumn(column.BaseColumn):
+class BaseLookupMapColumn(column.BaseColumn):
   """
   Conceptually a LookupMapColumn is associated with a table ("target table") and maintains for
   each row a key (which is a tuple of values from the named columns), which is fast to look up.
@@ -39,15 +43,17 @@ class LookupMapColumn(column.BaseColumn):
   def __init__(self, table, col_id, col_ids_tuple):
     # Note that self._recalc_rec_method is passed in as the formula's "method".
     col_info = column.ColInfo(usertypes.Any(), is_formula=True, method=self._recalc_rec_method)
-    super(LookupMapColumn, self).__init__(table, col_id, col_info)
+    super(BaseLookupMapColumn, self).__init__(table, col_id, col_info)
 
     self._col_ids_tuple = col_ids_tuple
     self._engine = table._engine
 
     # Two-way map between rowIds of the target table (on the left) and key tuples (on the right).
-    # Multiple rows can map to the same key. The map is populated by engine's _recompute when this
+    # Multiple rows can naturally map to the same key.
+    # Multiple keys can map to the same row if CONTAINS() is used
+    # The map is populated by engine's _recompute when this
     # node is brought up-to-date.
-    self._row_key_map = twowaymap.TwoWayMap(left=set, right="single")
+    self._row_key_map = self._make_row_key_map()
     self._engine.invalidate_column(self)
 
     # Map of referring Node to _LookupRelation. Different tables may do lookups using this
@@ -55,6 +61,11 @@ class LookupMapColumn(column.BaseColumn):
     # between referring rows and the lookup keys. This map stores these relations.
     self._lookup_relations = {}
 
+  @abstractmethod
+  def _make_row_key_map(self):
+    raise NotImplementedError
+
+  @abstractmethod
   def _recalc_rec_method(self, rec, table):
     """
     LookupMapColumn acts as a formula column, and this method is the "formula" called whenever
@@ -62,27 +73,21 @@ class LookupMapColumn(column.BaseColumn):
     cause the LookupMapColumn to be invalidated for the corresponding rows, and brought up to date
     during formula recomputation by calling this method. It shold take O(1) time per affected row.
     """
-    old_key = self._row_key_map.lookup_left(rec._row_id)
+    raise NotImplementedError
 
-    # Note that getattr(rec, col_id) is what creates the correct dependency, as well as ensures
-    # that the columns used to index by are brought up-to-date (in case they are formula columns).
-    new_key = tuple(_extract(rec._get_col(_col_id)) for _col_id in self._col_ids_tuple)
-
-    try:
-      self._row_key_map.insert(rec._row_id, new_key)
-    except TypeError:
-      # If key is not hashable, ignore it, just remove the old_key then.
-      self._row_key_map.remove(rec._row_id, old_key)
-      new_key = None
-
-    # It's OK if None is one of the values, since None will just never be found as a key.
-    self._invalidate_affected({old_key, new_key})
+  @abstractmethod
+  def _get_keys(self, target_row_id):
+    """
+    Get the keys associated with the given target row id.
+    """
+    raise NotImplementedError
 
   def unset(self, row_id):
     # This is called on record removal, and is necessary to deal with removed records.
-    old_key = self._row_key_map.lookup_left(row_id)
-    self._row_key_map.remove(row_id, old_key)
-    self._invalidate_affected({old_key})
+    old_keys = self._get_keys(row_id)
+    for old_key in old_keys:
+      self._row_key_map.remove(row_id, old_key)
+    self._invalidate_affected(old_keys)
 
   def _invalidate_affected(self, affected_keys):
     # For each known relation, figure out which referring rows are affected, and invalidate them.
@@ -129,12 +134,6 @@ class LookupMapColumn(column.BaseColumn):
 
     return row_ids, rel
 
-  def _get_key(self, target_row_id):
-    """
-    Helper used by _LookupRelation to get the key associated with the given target row id.
-    """
-    return self._row_key_map.lookup_left(target_row_id)
-
   # Override various column methods, since LookupMapColumn doesn't care to store any values. To
   # outside code, it looks like a column of None's.
   def raw_get(self, value):
@@ -145,6 +144,83 @@ class LookupMapColumn(column.BaseColumn):
     return None
   def set(self, row_id, value):
     pass
+
+# For performance, prefer SimpleLookupMapColumn when no CONTAINS is used
+# in lookups, although the two implementations should be equivalent
+# See also table._add_update_summary_col
+
+class SimpleLookupMapColumn(BaseLookupMapColumn):
+  def _make_row_key_map(self):
+    return twowaymap.TwoWayMap(left=set, right="single")
+
+  def _recalc_rec_method(self, rec, table):
+    old_key = self._row_key_map.lookup_left(rec._row_id)
+
+    # Note that rec._get_col(_col_id) is what creates the correct dependency, as well as ensures
+    # that the columns used to index by are brought up-to-date (in case they are formula columns).
+    new_key = tuple(_extract(rec._get_col(_col_id)) for _col_id in self._col_ids_tuple)
+
+    try:
+      self._row_key_map.insert(rec._row_id, new_key)
+    except TypeError:
+      # If key is not hashable, ignore it, just remove the old_key then.
+      self._row_key_map.remove(rec._row_id, old_key)
+      new_key = None
+
+    # It's OK if None is one of the values, since None will just never be found as a key.
+    self._invalidate_affected({old_key, new_key})
+
+  def _get_keys(self, target_row_id):
+    return {self._row_key_map.lookup_left(target_row_id)}
+
+
+class ContainsLookupMapColumn(BaseLookupMapColumn):
+  def _make_row_key_map(self):
+    return twowaymap.TwoWayMap(left=set, right=set)
+
+  def _recalc_rec_method(self, rec, table):
+    # Create a key in the index for every combination of values in columns
+    # looked up with CONTAINS()
+    new_keys_groups = []
+    for col_id in self._col_ids_tuple:
+      # Note that _get_col is what creates the correct dependency, as well as ensures
+      # that the columns used to index by are brought up-to-date (in case they are formula columns).
+      group = rec._get_col(extract_column_id(col_id))
+
+      if isinstance(col_id, CONTAINS):
+        # Check that the cell targeted by CONTAINS() has an appropriate type.
+        # Don't iterate over characters of a string.
+        # group = [] essentially means there are no new keys in this call
+        if isinstance(group, (six.binary_type, six.text_type)):
+          group = []
+      else:
+        group = [group]
+
+      try:
+        # We only care about the unique key values
+        group = set(group)
+      except TypeError:
+        group = []
+
+      new_keys_groups.append([_extract(v) for v in group])
+
+    new_keys = set(itertools.product(*new_keys_groups))
+
+    row_id = rec._row_id
+    old_keys = self._get_keys(row_id)
+    for old_key in old_keys - new_keys:
+      self._row_key_map.remove(row_id, old_key)
+
+    for new_key in new_keys - old_keys:
+      self._row_key_map.insert(row_id, new_key)
+
+    # Invalidate all keys which were either inserted or removed
+    self._invalidate_affected(new_keys ^ old_keys)
+
+  def _get_keys(self, target_row_id):
+    # Need to copy the return value since it's the actual set
+    # stored in the map and may be modified
+    return set(self._row_key_map.lookup_left(target_row_id, ()))
 
 
 #----------------------------------------------------------------------
@@ -174,11 +250,14 @@ class _LookupRelation(relation.Relation):
   def get_affected_rows(self, target_row_ids):
     if target_row_ids == depend.ALL_ROWS:
       return depend.ALL_ROWS
-    # Each target row (result of a lookup by key) is associated with a key, and all rows that
+    # Each target row (result of a lookup by key)
+    # is associated with a set of keys,and all rows that
     # looked up an affected key are affected by a change to any associated row. We remember which
     # rows looked up which key in self._row_key_map, so that when some target row changes to a new
     # key, we can know which referring rows need to be recomputed.
-    return self.get_affected_rows_by_keys({ self._lookup_map._get_key(r) for r in target_row_ids })
+    return self.get_affected_rows_by_keys(
+      set().union(*[self._lookup_map._get_keys(r) for r in target_row_ids])
+    )
 
   def get_affected_rows_by_keys(self, keys):
     """
@@ -218,3 +297,10 @@ class _LookupRelation(relation.Relation):
     # lookup map can get cleaned up.
     self._row_key_map.clear()
     self._lookup_map._delete_relation(self._referring_node)
+
+
+def extract_column_id(c):
+  if isinstance(c, CONTAINS):
+    return c.value
+  else:
+    return c
