@@ -179,6 +179,11 @@ export class GranularAccess implements GranularAccessForBundle {
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
                                     userActions: UserAction[], isDirect: boolean[]): void {
     if (this._activeBundle) { throw new Error('Cannot start a bundle while one is already in progress'); }
+    // This should never happen - attempts to write to a pre-fork session should be
+    // caught by an Authorizer.  But let's be paranoid, since we may be pretending to
+    // be an owner for granular access purposes, and owners can write if we're not
+    // careful!
+    if (docSession.forkingAsOwner) { throw new Error('Should never modify a prefork'); }
     this._activeBundle = {
       docSession, docActions, undo, userActions, isDirect,
       applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false
@@ -695,17 +700,28 @@ export class GranularAccess implements GranularAccessForBundle {
                                                (_docSession) => this._filterDocUpdate(_docSession, message));
   }
 
+  // Remove cached access information for a given session.
+  public flushAccess(docSession: OptDocSession) {
+    this._ruler.flushAccess(docSession);
+    this._userAttributesMap.delete(docSession);
+    this._prevUserAttributesMap?.delete(docSession);
+  }
+
   /**
    * Get the role the session user has for this document.  User may be overridden,
    * in which case the role of the override is returned.
+   * The forkingAsOwner flag of docSession should not be respected for non-owners,
+   * so that the pseudo-ownership it offers is restricted to granular access within a
+   * document (as opposed to document-level operations).
    */
   private async _getNominalAccess(docSession: OptDocSession): Promise<Role> {
     const linkParameters = docSession.authorizer?.getLinkParameters() || {};
-    if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
+    const baseAccess = getDocSessionAccess(docSession);
+    if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
       const info = await this._getUser(docSession);
       return info.Access as Role;
     }
-    return getDocSessionAccess(docSession);
+    return baseAccess;
   }
 
   /**
@@ -1162,6 +1178,14 @@ export class GranularAccess implements GranularAccessForBundle {
     let fullUser: FullUser | null;
     const attrs = this._getUserAttributes(docSession);
     access = getDocSessionAccess(docSession);
+
+    if (docSession.forkingAsOwner) {
+      // For granular access purposes, we become an owner.
+      // It is a bit of a bluff, done on the understanding that this session will
+      // never be used to edit the document, and that any edits will be done on a
+      // fork.
+      access = 'owners';
+    }
 
     // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
     if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
@@ -1654,6 +1678,10 @@ export class Ruler {
     // single request. Caching based on docSession is riskier since those persist across requests.
     return getSetMapValue(this._permissionInfoMap as Map<OptDocSession, Promise<PermissionInfo>>, docSession,
       async () => new PermissionInfo(this.ruleCollection, {user: await this._owner.getUser(docSession)}));
+  }
+
+  public flushAccess(docSession: OptDocSession) {
+    this._permissionInfoMap.delete(docSession);
   }
 
   /**

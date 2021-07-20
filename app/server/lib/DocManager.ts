@@ -288,11 +288,38 @@ export class DocManager extends EventEmitter {
       throw new Error(`document ${docId} cannot be opened right now`);
     }
 
+    // Get a fresh DocSession object.
     const docSession = activeDoc.addClient(client, auth);
+
+    // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
+    // an owner for granular access purposes.
+    if (mode === 'fork') {
+      if (await activeDoc.canForkAsOwner(docSession)) {
+        // Mark the session specially and flush any cached access
+        // information.  It is easier to make this a property of the
+        // session than to try computing it later in the heat of
+        // battle, since it introduces a loop where a user property
+        // (user.Access) depends on evaluating rules, but rules need
+        // the user properties in order to be evaluated.  It is also
+        // somewhat justifiable even if permissions change later on
+        // the theory that the fork is theoretically happening at this
+        // instance).
+        docSession.forkingAsOwner = true;
+        activeDoc.flushAccess(docSession);
+      } else {
+        // TODO: it would be kind to pass on a message to the client
+        // to let them know they won't be able to fork.  They'll get
+        // an error when they make their first change.  But currently
+        // we only have the blunt instrument of throwing an error,
+        // which would prevent access to the document entirely.
+      }
+    }
+
     const [metaTables, recentActions] = await Promise.all([
       activeDoc.fetchMetaTables(docSession),
       activeDoc.getRecentActions(docSession, false)
     ]);
+
     this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
 
     return {

@@ -577,6 +577,22 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.canCopyEverything(docSession);
   }
 
+  // Check if it is appropriate for the user to be treated as an owner of
+  // the document for granular access purposes when in "prefork" mode
+  // (meaning a document has been opened with the intent to fork it, but
+  // an initial modification has not yet been made).
+  // Currently, we decide it is appropriate if the user has access to all
+  // the data in the document, either directly or via the special
+  // "FullCopies" permission.
+  public async canForkAsOwner(docSession: OptDocSession) {
+    return this._granularAccess.canCopyEverything(docSession);
+  }
+
+  // Remove cached access information for a given session.
+  public flushAccess(docSession: OptDocSession) {
+    return this._granularAccess.flushAccess(docSession);
+  }
+
   /**
    * Fetches a particular table from the data engine to return to the client.
    * @param {String} tableId: The string identifier of the table.

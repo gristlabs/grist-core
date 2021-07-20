@@ -19,6 +19,7 @@ export interface OptDocSession {
   // special permissions for creating, plugins, system, and share access
   mode?: 'nascent'|'plugin'|'system'|'share';
   authorizer?: Authorizer;
+  forkingAsOwner?: boolean;  // Set if it is appropriate in a pre-fork state to become an owner.
 }
 
 export function makeOptDocSession(client: Client|null, browserSettings?: BrowserSettings): OptDocSession {
@@ -66,6 +67,8 @@ export class DocSession implements OptDocSession {
    * Linked actions appear as one action and can be undone/redone in a single step.
    */
   public linkId?: number;
+
+  public forkingAsOwner?: boolean;
 
   constructor(
     public readonly activeDoc: ActiveDoc,
