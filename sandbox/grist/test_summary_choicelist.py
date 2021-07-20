@@ -142,10 +142,10 @@ class TestSummaryChoiceList(EngineTestCase):
       {k: type(v) for k, v in self.engine.tables["Source"]._special_cols.items()},
       {
         '#summary#GristSummary_6_Source': column.ReferenceListColumn,
-        "#lookup#CONTAINS(value='#summary#GristSummary_6_Source')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source')":
           lookup.ContainsLookupMapColumn,
         '#summary#GristSummary_6_Source2': column.ReferenceListColumn,
-        "#lookup#CONTAINS(value='#summary#GristSummary_6_Source2')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source2')":
           lookup.ContainsLookupMapColumn,
 
         # simple summary and lookup
@@ -153,7 +153,7 @@ class TestSummaryChoiceList(EngineTestCase):
         '#lookup##summary#GristSummary_6_Source3': lookup.SimpleLookupMapColumn,
 
         '#summary#GristSummary_6_Source4': column.ReferenceListColumn,
-        "#lookup#CONTAINS(value='#summary#GristSummary_6_Source4')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source4')":
           lookup.ContainsLookupMapColumn,
       }
     )

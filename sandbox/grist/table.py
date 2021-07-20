@@ -417,12 +417,12 @@ class Table(object):
     col_ids = []
     for col_id in sorted(kwargs):
       value = kwargs[col_id]
-      if isinstance(value, lookup.CONTAINS):
+      if isinstance(value, lookup._Contains):
         value = value.value
         # While users should use CONTAINS on lookup values,
         # the marker is moved to col_id so that the LookupMapColumn knows how to
         # update its index correctly for that column.
-        col_id = lookup.CONTAINS(col_id)
+        col_id = lookup._Contains(col_id)
       key.append(value)
       col_ids.append(col_id)
     col_ids = tuple(col_ids)
@@ -455,7 +455,7 @@ class Table(object):
         c = lookup.extract_column_id(c)
         if not self.has_column(c):
           raise KeyError("Table %s has no column %s" % (self.table_id, c))
-      if any(isinstance(col_id, lookup.CONTAINS) for col_id in col_ids_tuple):
+      if any(isinstance(col_id, lookup._Contains) for col_id in col_ids_tuple):
         column_class = lookup.ContainsLookupMapColumn
       else:
         column_class = lookup.SimpleLookupMapColumn
@@ -481,7 +481,7 @@ class Table(object):
       # _summary_source_table._summary_simple determines whether
       # the column named self._summary_helper_col_id is a single reference
       # or a reference list.
-      lookup_value = rec if self._summary_simple else lookup.CONTAINS(rec)
+      lookup_value = rec if self._summary_simple else lookup._Contains(rec)
       return self._summary_source_table.lookup_records(**{
         self._summary_helper_col_id: lookup_value
       })

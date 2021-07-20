@@ -9,7 +9,7 @@ import records
 import relation
 import twowaymap
 import usertypes
-from functions.lookup import CONTAINS
+from functions.lookup import _Contains
 
 import logger
 log = logger.Logger(__name__, logger.INFO)
@@ -187,7 +187,7 @@ class ContainsLookupMapColumn(BaseLookupMapColumn):
       # that the columns used to index by are brought up-to-date (in case they are formula columns).
       group = rec._get_col(extract_column_id(col_id))
 
-      if isinstance(col_id, CONTAINS):
+      if isinstance(col_id, _Contains):
         # Check that the cell targeted by CONTAINS() has an appropriate type.
         # Don't iterate over characters of a string.
         # group = [] essentially means there are no new keys in this call
@@ -300,7 +300,7 @@ class _LookupRelation(relation.Relation):
 
 
 def extract_column_id(c):
-  if isinstance(c, CONTAINS):
+  if isinstance(c, _Contains):
     return c.value
   else:
     return c

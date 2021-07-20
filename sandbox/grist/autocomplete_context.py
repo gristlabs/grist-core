@@ -35,7 +35,7 @@ class AutocompleteContext(object):
     # TODO It would be nice to include builtin functions too, but getargspec doesn't work there.
     self._functions = {}
     for key, value in six.iteritems(self._context):
-      if value and callable(value) and not isinstance(value, type):
+      if value and callable(value):
         argspec = inspect.formatargspec(*inspect.getargspec(value))
         self._functions[key] = Completion(key, argspec, is_grist_func(value))
 

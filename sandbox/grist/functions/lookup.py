@@ -151,7 +151,7 @@ def VLOOKUP(table, **field_value_pairs):
   """
   return table.lookupOne(**field_value_pairs)
 
-class CONTAINS(namedtuple("CONTAINS", "value")):
+class _Contains(namedtuple("_Contains", "value")):
   """
   Use this marker with `Table.lookupRecords` to find records
   where a column contains the given value, e.g:
@@ -171,4 +171,13 @@ class CONTAINS(namedtuple("CONTAINS", "value")):
   # While users should apply this marker to values in queries, internally
   # the marker is moved to the column ID so that the LookupMapColumn knows how to
   # update its index correctly for that column.
+  # The _Contains class is used internally, especially with isinstance()
+  # The CONTAINS function is for users
+  # Having a function as the interface makes things like docs and autocomplete
+  # work more consistently
   pass
+
+def CONTAINS(value):
+  return _Contains(value)
+
+CONTAINS.__doc__ = _Contains.__doc__
