@@ -12,7 +12,6 @@ import {DocComm, DocUserAction} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
-import * as REPLTab from 'app/client/components/REPLTab';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -80,7 +79,7 @@ export interface TabOptions {
   category?: any;
 }
 
-const RightPanelTool = StringUnion("none", "docHistory", "validations", "repl");
+const RightPanelTool = StringUnion("none", "docHistory", "validations");
 
 export interface IExtraTool {
   icon: IconName;
@@ -247,13 +246,6 @@ export class GristDoc extends DisposableWithEvents {
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
 
     this.autoDispose(DocConfigTab.create({gristDoc: this}));
-
-    const replTab = this.autoDispose(REPLTab.create(this));
-    this.autoDispose(this.addOptionsTab(
-      'REPL', dom('span.glyphicon.glyphicon-console'),
-      replTab.buildConfigDomObj(),
-      { hideSearchContent: true }
-    ));
 
     this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
 
@@ -737,10 +729,6 @@ export class GristDoc extends DisposableWithEvents {
       case 'validations': {
         const content = this._rightPanelTabs.get("Validate Data");
         return content ? {icon: 'Validation', label: 'Validation Rules', content} : null;
-      }
-      case 'repl': {
-        const content = this._rightPanelTabs.get("REPL");
-        return content ? {icon: 'Repl', label: 'REPL', content} : null;
       }
       case 'none':
       default: {

@@ -17,7 +17,6 @@ import schema
 from schema import RecalcWhen
 import summary
 import import_actions
-import repl
 import textbuilder
 import usertypes
 import treeview
@@ -238,37 +237,6 @@ class UserActions(object):
     of any dirty cells.
     """
     pass
-
-  #--------------------------------------
-  # User Actions on usercode
-  #--------------------------------------
-
-  @useraction
-  def EvalCode(self, code, row_id):
-    """
-    Evaluates code in the REPL.
-    a return value of false indicates that the user's code was incomplete
-    (and in this case, we do not create any docactions)
-    otherwise, we either add a new record to the REPL_hist (row_id=null) or Update an existing
-    record (row_id=num) with the results of evaluating the code.
-    """
-    evaluation = self._engine.eval_user_code(code)
-    if evaluation.status == repl.INCOMPLETE:
-      return False
-
-
-    hist = self._engine.tables["_grist_REPL_Hist"]
-    record = { "code" : code, "outputText" : evaluation.output, "errorText" : evaluation.error }
-    if row_id is None:
-      # This is a new evaluation, append it to the REPL history
-      action = actions.AddRecord(hist.table_id, hist.next_row_id(), record)
-    else:
-      # This is a re-evaluation, update the old retValue
-      action = actions.UpdateRecord(hist.table_id, row_id, record)
-
-    self._do_doc_action(action)
-
-    return True
 
   #----------------------------------------
   # User actions on records.

@@ -28,7 +28,6 @@ import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRe
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
-import {createREPLRec, REPLRec} from 'app/client/models/entities/REPLRec';
 import {createTabBarRec, TabBarRec} from 'app/client/models/entities/TabBarRec';
 import {createTableRec, TableRec} from 'app/client/models/entities/TableRec';
 import {createTableViewRec, TableViewRec} from 'app/client/models/entities/TableViewRec';
@@ -42,7 +41,6 @@ import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/V
 export {ColumnRec} from 'app/client/models/entities/ColumnRec';
 export {DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 export {PageRec} from 'app/client/models/entities/PageRec';
-export {REPLRec} from 'app/client/models/entities/REPLRec';
 export {TabBarRec} from 'app/client/models/entities/TabBarRec';
 export {TableRec} from 'app/client/models/entities/TableRec';
 export {TableViewRec} from 'app/client/models/entities/TableViewRec';
@@ -110,7 +108,6 @@ export class DocModel {
   public tableViews: MTM<TableViewRec> = this._metaTableModel("_grist_TableViews", createTableViewRec);
   public tabBar: MTM<TabBarRec> = this._metaTableModel("_grist_TabBar", createTabBarRec);
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
-  public replHist: MTM<REPLRec> = this._metaTableModel("_grist_REPL_Hist", createREPLRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
 

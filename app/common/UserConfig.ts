@@ -25,6 +25,5 @@ export interface ISupportedFeatures {
   // Plugin views, REPL, and Validations all need work, but are exposed here to allow existing
   // tests to continue running. These only affect client-side code.
   customViewPlugin?: boolean;
-  replTool?: boolean;
   validationsTool?: boolean;
 }

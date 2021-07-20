@@ -36,7 +36,6 @@ import table as table_module
 from user import User # pylint:disable=wrong-import-order
 import useractions
 import column
-import repl
 import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
 log = logger.Logger(__name__, logger.INFO)
@@ -231,9 +230,6 @@ class Engine(object):
 
     # A flag for when a useraction causes a schema change, to verify consistency afterwards.
     self._schema_updated = False
-
-    # Locals dict for recently executed code in the REPL
-    self._repl = repl.REPLInterpreter()
 
     # Stores an exception representing the first unevaluated cell met while recomputing the
     # current cell.
@@ -976,11 +972,6 @@ class Engine(object):
        for (col_obj, values) in cols}
     )
 
-  def eval_user_code(self, src):
-    ret = self._repl.runsource(src)
-    self.gencode.usercode.__dict__.update(self._repl.locals)
-    return ret
-
   def invalidate_records(self, table_id, row_ids=depend.ALL_ROWS, col_ids=None,
                          data_cols_to_recompute=frozenset()):
     """
@@ -1017,8 +1008,6 @@ class Engine(object):
   def rebuild_usercode(self):
     """
     Compiles the usercode from the schema, and updates all tables and columns to match.
-    Also, keeps the locals in the repl in sync with the user code, so that the repl has access to
-    usercode and vice-versa.
     """
     self.gencode.make_module(self.schema)
 
@@ -1040,18 +1029,12 @@ class Engine(object):
     for table_id, table in six.iteritems(old_tables):
       if table_id not in self.tables:
         self._update_table_model(table, None)
-        self._repl.locals.pop(table_id, None)
 
     # Update docmodel with references to the updated metadata tables.
     self.docmodel.update_tables()
 
     # Set flag to rebuild dependencies of trigger columns after any potential renames, etc.
     self.trigger_columns_changed()
-
-    # The order here is important to make sure that when we update the usercode,
-    # we don't overwrite with outdated usercode entries
-    self._repl.locals.update(self.gencode.usercode.__dict__)
-    self.gencode.usercode.__dict__.update(self._repl.locals)
 
     # Update the context used for autocompletions.
     self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)

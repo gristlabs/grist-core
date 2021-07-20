@@ -54,12 +54,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         cssPageLink(cssPageIcon('Validation'), cssLinkText('Validate Data'), testId('validate'),
           dom.on('click', () => gristDoc.showTool('validations'))))
     ),
-    // TODO: polish repl and add it back.
-    dom.maybe((use) => use(gristDoc.app.features).replTool, () =>
-      cssPageEntry(
-        cssPageLink(cssPageIcon('Repl'), cssLinkText('REPL'), testId('repl'),
-          dom.on('click', () => gristDoc.showTool('repl'))))
-    ),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
