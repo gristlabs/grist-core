@@ -1232,7 +1232,7 @@ export class FlexServer implements GristServer {
 
   public addGoogleAuthEndpoint() {
     if (this._check('google-auth')) { return; }
-    const messagePage = makeMessagePage(this, getAppPathTo(this.appRoot, 'static'));
+    const messagePage = makeMessagePage(getAppPathTo(this.appRoot, 'static'));
     addGoogleAuthEndpoint(this.app, messagePage);
   }
 

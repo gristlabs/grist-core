@@ -4,12 +4,9 @@
   <meta charset="utf8">
 </head>
 <body>
-  <!-- INSERT CONFIG -->
   <!-- INSERT MESSAGE -->
   <script>
-    // Determine proper home url for origin parameter
-    const origin = gristConfig.pathOnly ? gristConfig.homeUrl : `https://${gristConfig.org}${gristConfig.baseDomain}`;
-    window.opener.postMessage(message, origin);
+    window.opener.postMessage(message, message.origin);
   </script>
 </body>
 </html>

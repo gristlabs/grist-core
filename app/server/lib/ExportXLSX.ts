@@ -11,7 +11,7 @@ export async function makeXLSX(
   activeDoc: ActiveDoc,
   req: express.Request): Promise<ArrayBuffer> {
   const content = await exportDoc(activeDoc, req);
-  const data = await convertToExcel(content, req.host === 'localhost');
+  const data = await convertToExcel(content, req.hostname === 'localhost');
   return data;
 }
 

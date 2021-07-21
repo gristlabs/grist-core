@@ -1,10 +1,10 @@
-import {auth} from '@googleapis/oauth2';
-import {ApiError} from 'app/common/ApiError';
-import {parseSubdomain} from 'app/common/gristUrls';
-import {expressWrap} from 'app/server/lib/expressWrap';
+import { auth } from '@googleapis/oauth2';
+import { ApiError } from 'app/common/ApiError';
+import { parseSubdomain } from 'app/common/gristUrls';
+import { expressWrap } from 'app/server/lib/expressWrap';
 import * as log from 'app/server/lib/log';
 import * as express from 'express';
-import {URL} from 'url';
+import { URL } from 'url';
 
 /**
  * Google Auth Endpoint for performing server side authentication. More information can be found
@@ -130,15 +130,18 @@ export function addGoogleAuthEndpoint(
   log.info(`GoogleAuth - auth handler at ${getFullAuthEndpointUrl()}`);
 
   expressApp.get(authHandlerPath, expressWrap(async (req: express.Request, res: express.Response) => {
+
     // Test if the code is in a query string. Google sends it back after user has given a concent for
     // our request. It is encrypted (with CLIENT_SECRET) and signed with redirect url.
+    // In state query parameter we will receive an url that was send as part of the request to Google.
+
     if (req.query.code) {
       log.debug("GoogleAuth - response from Google with valid code");
-      messagePage(req, res, { code: req.query.code });
+      messagePage(req, res, { code: req.query.code, origin: req.query.state });
     } else if (req.query.error) {
       log.debug("GoogleAuth - response from Google with error code", req.query.error);
       if (req.query.error === "access_denied") {
-        messagePage(req, res, { error: req.query.error });
+        messagePage(req, res, { error: req.query.error, origin: req.query.state });
       } else {
         // This should not happen, either code or error is a mandatory query parameter.
         throw new ApiError("Error authenticating with Google", 500);
@@ -146,13 +149,17 @@ export function addGoogleAuthEndpoint(
     } else {
       const oAuth2Client = _googleAuthClient();
       const scope = req.query.scope || DRIVE_SCOPE;
+      // Create url for origin parameter for a popup window.
+      const origin = `${req.protocol}://${req.headers.host}`;
       const authUrl = oAuth2Client.generateAuthUrl({
         scope,
-        prompt: 'select_account'
+        prompt: 'select_account',
+        state: origin
       });
       log.debug(`GoogleAuth - redirecting to Google consent screen`, {
         authUrl,
-        scope
+        scope,
+        state: origin
       });
       res.redirect(authUrl);
     }
