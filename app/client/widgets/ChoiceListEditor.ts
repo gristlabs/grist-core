@@ -157,7 +157,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     const newChoices = tokens.filter(t => t.isNew).map(t => t.label);
     if (newChoices.length > 0) {
       const choices = this.options.field.widgetOptionsJson.prop('choices');
-      await choices.saveOnly([...choices.peek(), ...new Set(newChoices)]);
+      await choices.saveOnly([...(choices.peek() || []), ...new Set(newChoices)]);
     }
   }
 

@@ -80,7 +80,7 @@ ChoiceEditor.prototype.prepForSave = async function() {
   const selectedItem = this.autocomplete && this.autocomplete.getSelectedItem();
   if (selectedItem && selectedItem.isNew) {
     const choices = this.options.field.widgetOptionsJson.prop('choices');
-    await choices.saveOnly([...choices.peek(), selectedItem.label]);
+    await choices.saveOnly([...(choices.peek() || []), selectedItem.label]);
   }
 }
 
