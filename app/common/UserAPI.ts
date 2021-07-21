@@ -344,6 +344,13 @@ export interface DocAPI {
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
   getDownloadUrl(template?: boolean): string;
+  /**
+   * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
+   * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
+   * @param code Authorization code returned from Google (requested via Grist's Google Auth Endpoint)
+   * @param title Name of the spreadsheet that will be created (should use a Grist document's title)
+   */
+  sendToDrive(code: string, title: string): Promise<{url: string}>;
 }
 
 // Operations that are supported by a doc worker.
@@ -774,5 +781,12 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public getDownloadUrl(template: boolean = false) {
     return this._url + `/download?template=${Number(template)}`;
+  }
+
+  public async sendToDrive(code: string, title: string): Promise<{url: string}> {
+    const url = new URL(`${this._url}/send-to-drive`);
+    url.searchParams.append('title', title);
+    url.searchParams.append('code', code);
+    return this.requestJson(url.href);
   }
 }

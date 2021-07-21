@@ -65,6 +65,8 @@
     "why-is-node-running": "2.0.3"
   },
   "dependencies": {
+    "@googleapis/drive": "0.3.1",
+    "@googleapis/oauth2": "0.2.0",
     "@gristlabs/connect-sqlite3": "0.9.11-grist.1",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/pidusage": "2.0.17",
@@ -84,6 +86,7 @@
     "diff-match-patch": "1.0.5",
     "double-ended-queue": "2.1.0-0",
     "electron": "3.0.7",
+    "exceljs": "4.2.1",
     "express": "4.16.4",
     "file-type": "14.1.4",
     "fs-extra": "7.0.0",

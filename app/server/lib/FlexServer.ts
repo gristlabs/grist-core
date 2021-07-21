@@ -45,7 +45,7 @@ import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint'
 import {PluginManager} from 'app/server/lib/PluginManager';
 import {adaptServerUrl, addOrgToPath, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
         TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
-import {ISendAppPageOptions, makeGristConfig, makeSendAppPage} from 'app/server/lib/sendAppPage';
+import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -64,6 +64,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
+import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1229,6 +1230,12 @@ export class FlexServer implements GristServer {
     }
   }
 
+  public addGoogleAuthEndpoint() {
+    if (this._check('google-auth')) { return; }
+    const messagePage = makeMessagePage(this, getAppPathTo(this.appRoot, 'static'));
+    addGoogleAuthEndpoint(this.app, messagePage);
+  }
+
   // Adds endpoints that support imports and exports.
   private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
@@ -1250,6 +1257,10 @@ export class FlexServer implements GristServer {
 
     this.app.get('/gen_csv', ...docAccessMiddleware, expressWrap(async (req, res) => {
       return this._docWorker.getCSV(req, res);
+    }));
+
+    this.app.get('/gen_xlsx', ...docAccessMiddleware, expressWrap(async (req, res) => {
+      return this._docWorker.getXLSX(req, res);
     }));
 
     this.app.get('/attachment', ...docAccessMiddleware,

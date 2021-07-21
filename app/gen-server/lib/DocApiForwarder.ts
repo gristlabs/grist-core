@@ -42,6 +42,7 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/remove', withDoc);
     app.delete('/api/docs/:docId', withDoc);
     app.use('/api/docs/:docId/download', withDoc);
+    app.use('/api/docs/:docId/send-to-drive', withDoc);
     app.use('/api/docs/:docId/fork', withDoc);
     app.use('/api/docs/:docId/create-fork', withDoc);
     app.use('/api/docs/:docId/apply', withDoc);

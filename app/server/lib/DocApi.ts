@@ -28,6 +28,8 @@ import * as contentDisposition from 'content-disposition';
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import fetch from 'node-fetch';
 import * as path from 'path';
+import { exportToDrive } from "app/server/lib/GoogleExport";
+import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -92,6 +94,8 @@ export class DocWorkerApi {
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // check document exists, don't check user access
     const docExists = expressWrap(this._assertAccess.bind(this, null, false));
+    // converts google code to access token and adds it to request object
+    const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
@@ -442,6 +446,8 @@ export class DocWorkerApi {
       const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
       res.json(result);
     }));
+
+    this._app.get('/api/docs/:docId/send-to-drive', canView, decodeGoogleToken, withDoc(exportToDrive));
 
     // Create a document.  When an upload is included, it is imported as the initial
     // state of the document.  Otherwise a fresh empty document is created.

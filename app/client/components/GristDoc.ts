@@ -601,6 +601,14 @@ export class GristDoc extends DisposableWithEvents {
     );
   }
 
+  public getXlsxLink() {
+    const params = {
+      ...this.docComm.getUrlParams(),
+      title: this.docPageModel.currentDocTitle.get(),
+    };
+    return this.docComm.docUrl(`gen_xlsx`) + '?' + encodeQueryParams(params);
+  }
+
   public getCsvLink() {
     const filters = this.viewModel.activeSection.peek().filteredFields.get().map(field=> ({
       colRef : field.colRef.peek(),
@@ -614,7 +622,7 @@ export class GristDoc extends DisposableWithEvents {
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
       filters : JSON.stringify(filters),
     };
-    return this.docComm.docUrl('gen_csv') + '?' + encodeQueryParams(params);
+    return this.docComm.docUrl(`gen_csv`) + '?' + encodeQueryParams(params);
   }
 
   public hasGranularAccessRules(): boolean {

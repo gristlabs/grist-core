@@ -121,6 +121,7 @@ export async function main(port: number, serverTypes: ServerType[],
     server.addBillingPages();
     server.addWelcomePaths();
     server.addLogEndpoint();
+    server.addGoogleAuthEndpoint();
   }
 
   if (includeDocs) {

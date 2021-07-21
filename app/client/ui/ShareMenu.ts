@@ -3,6 +3,7 @@ import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
+import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {colors, mediaXSmall, testId} from 'app/client/ui2018/cssVars';
@@ -222,6 +223,10 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     ),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       menuIcon('Download'), 'Export CSV', testId('tb-share-option')),
+    menuItemLink({ href: gristDoc.getXlsxLink(), target: '_blank', download: ''},
+      menuIcon('Download'), 'Export XLSX', testId('tb-share-option')),
+    menuItem(() => sendToDrive(doc, pageModel),
+      menuIcon('Download'), 'Send to Google Drive', testId('tb-share-option')),
   ];
 }
 

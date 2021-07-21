@@ -133,7 +133,7 @@ export function undef<T extends Array<any>>(...list: T): Undef<T> {
  */
 export function safeJsonParse(json: string, defaultVal: any): any {
   try {
-    return JSON.parse(json);
+    return json !== '' && json !== undefined ? JSON.parse(json) : defaultVal;
   } catch (e) {
     return defaultVal;
   }

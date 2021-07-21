@@ -47,6 +47,22 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
 }
 
 /**
+ * Creates a method that will send html page that will immediately post a message to a parent window.
+ * Primary used for Google Auth Grist's endpoint, but can be used in future in any other server side
+ * authentication flow.
+ */
+export function makeMessagePage(server: GristServer, staticDir: string) {
+  return async (req: express.Request, resp: express.Response, message: any) => {
+    const config = server.getGristConfig();
+    const fileContent = await fse.readFile(path.join(staticDir, "message.html"), 'utf8');
+    const content = fileContent
+      .replace("<!-- INSERT CONFIG -->", `<script>window.gristConfig = ${JSON.stringify(config)};</script>`)
+      .replace("<!-- INSERT MESSAGE -->", `<script>window.message = ${JSON.stringify(message)};</script>`);
+    resp.status(200).type('html').send(content);
+  };
+}
+
+/**
  * Send a simple template page, read from file at pagePath (relative to static/), with certain
  * placeholders replaced.
  */
