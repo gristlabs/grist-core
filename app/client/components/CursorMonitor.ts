@@ -1,8 +1,8 @@
-import { CursorPos } from "app/client/components/Cursor";
-import { getStorage } from "app/client/lib/localStorageObs";
-import { IDocPage } from "app/common/gristUrls";
-import { Disposable } from "grainjs";
-import { GristDoc } from "app/client/components/GristDoc";
+import {CursorPos} from 'app/client/components/Cursor';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {getStorage} from 'app/client/lib/localStorageObs';
+import {IDocPage} from 'app/common/gristUrls';
+import {Disposable} from 'grainjs';
 
 /**
  * Enriched cursor position with a view id
@@ -54,6 +54,12 @@ export class CursorMonitor extends Disposable {
   }
 
   private _whenDocumentLoadsRestorePosition(doc: GristDoc) {
+    // if doc was opened with a hash link, don't restore last position
+    if (doc.hasCustomNav.get()) {
+      this._restored = true;
+      return;
+    }
+
     // on view shown
     this.autoDispose(doc.currentView.addListener(async view => {
       // if the position was restored for this document do nothing

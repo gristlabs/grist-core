@@ -43,7 +43,7 @@ import {isSchemaAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
 import {RecalcWhen} from 'app/common/gristTypes';
-import {encodeQueryParams, waitObs} from 'app/common/gutil';
+import {encodeQueryParams, undef, waitObs} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
@@ -106,7 +106,8 @@ export class GristDoc extends DisposableWithEvents {
   public editorMonitor: EditorMonitor;
   // component for keeping track of a cell that is being edited
   public draftMonitor: Drafts;
-
+  // will document perform its own navigation (from anchor link)
+  public hasCustomNav: Observable<boolean>;
   // Emitter triggered when the main doc area is resized.
   public readonly resizeEmitter = this.autoDispose(new Emitter());
 
@@ -295,6 +296,11 @@ export class GristDoc extends DisposableWithEvents {
       const currentPosition = use(view.cursor.currentPosition);
       if (currentPosition) { return { ...currentPosition, viewId }; }
       return undefined;
+    });
+
+    this.hasCustomNav = Computed.create(this, urlState().state, (_, state) => {
+      const hash = state.hash;
+      return !!(hash && (undef(hash.colRef, hash.rowId, hash.sectionId) !== undefined));
     });
 
     this.draftMonitor = Drafts.create(this, this);

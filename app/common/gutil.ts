@@ -105,8 +105,7 @@ export function undefDefault<T>(x: T|undefined, y: T): T {
 // for typescript 4
 // type Undef<T> = T extends [infer A, ...infer B] ? undefined extends A ? NonNullable<A> | Undef<B> : A : unknown;
 
-type Undef1<T> = T extends [infer A] ?
-    undefined extends A ? NonNullable<A> : A : unknown;
+type Undef1<T> = T extends [infer A] ? A : unknown;
 
 type Undef2<T> = T extends [infer A, infer B] ?
     undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
@@ -116,6 +115,23 @@ type Undef3<T> = T extends [infer A, infer B, infer C] ?
 
 type Undef<T> = T extends [infer A, infer B, infer C, infer D] ?
     undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
+
+/*
+
+Undef<T> can detect correct type that will be returned as a first defined value:
+
+const t1: number = undef(1, 1 as number | undefined);
+const t1: number | undefined = undef(2 as number | undefined, 3 as number | undefined);
+const t3: number = undef(3 as number | undefined, undefined, 4);
+const t4: number = undef(1, '');
+const t5: number = undef(1 as number | undefined, 4);
+const t6: string = undef('1', 2);
+const t7: string | number = undef(undefined, 2 as number | undefined, '3');
+const t8: string = undef(undefined, undefined, '3');
+const t9: string = undef(undefined, '2' as string | undefined, '3');
+const ta: string | number | undefined = undef(undefined, '2' as string | undefined, 3 as number | undefined);
+const tb: string | number = undef(undefined, '2' as string | undefined, 3 as number | undefined, 5);
+*/
 
 /**
  * Returns the first defined value from the list or unknown.
@@ -127,6 +143,7 @@ export function undef<T extends Array<any>>(...list: T): Undef<T> {
   }
   return undefined as any;
 }
+
 
 /**
  * Parses json and returns the result, or returns defaultVal if parsing fails.
