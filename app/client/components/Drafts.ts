@@ -344,7 +344,7 @@ class EditorAdapter extends Disposable implements Editor {
   public readonly activated: TypedEmitter<CellPosition> = this.autoDispose(new Emitter());
   public readonly cellCancelled: TypedEmitter<StateChanged> = this.autoDispose(new Emitter());
 
-  private _holder = MultiHolder.create(this);
+  private _holder = Holder.create<MultiHolder>(this);
 
   constructor(private _doc: GristDoc) {
     super();
@@ -358,11 +358,11 @@ class EditorAdapter extends Disposable implements Editor {
       // when the editor is created we assume that it is visible to the user
       this.activated.emit(editor.cellPosition());
 
-      // auto dispose all the previous listeners
-      this._holder.dispose();
-      this._holder = MultiHolder.create(this);
+      // Auto dispose the previous MultiHolder along with all the previous listeners, and create a
+      // new MultiHolder for the new ones.
+      const mholder = MultiHolder.create(this._holder);
 
-      this._holder.autoDispose(editor.changeEmitter.addListener((e: FieldEditorStateEvent) => {
+      mholder.autoDispose(editor.changeEmitter.addListener((e: FieldEditorStateEvent) => {
         this.cellModified.emit({
           position: e.position,
           state: e.currentState,
@@ -371,7 +371,7 @@ class EditorAdapter extends Disposable implements Editor {
       }));
 
       // when user presses escape
-      this._holder.autoDispose(editor.cancelEmitter.addListener((e: FieldEditorStateEvent) => {
+      mholder.autoDispose(editor.cancelEmitter.addListener((e: FieldEditorStateEvent) => {
         this.cellCancelled.emit({
           position: e.position,
           state: e.currentState,
@@ -380,7 +380,7 @@ class EditorAdapter extends Disposable implements Editor {
       }));
 
       // when user presses enter to save the value
-      this._holder.autoDispose(editor.saveEmitter.addListener((e: FieldEditorStateEvent) => {
+      mholder.autoDispose(editor.saveEmitter.addListener((e: FieldEditorStateEvent) => {
         this.cellSaved.emit({
           position: e.position,
           state: e.currentState,

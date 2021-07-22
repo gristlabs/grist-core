@@ -9,6 +9,7 @@
 
 import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
+import escapeRegExp = require("lodash/escapeRegExp");
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
@@ -67,7 +68,9 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
   // Creates an index for the given list of items.
   // The max number of items to suggest may be set using _maxResults (default is 50).
-  constructor(items: Item[], private _maxResults: number = 50) {
+  // If _keepOrder is true, best matches will be suggested in the order they occur in items,
+  // rather than order by best score.
+  constructor(items: Item[], private _maxResults: number = 50, private _keepOrder = false) {
     this._allItems = items.slice(0);
 
     // Collects [word, occurrence, position] tuples for all words in _allItems.
@@ -116,14 +119,19 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       .sort((a, b) => nativeCompare(b[1], a[1]) || nativeCompare(a[0], b[0]))
       .slice(0, this._maxResults);
 
-    const items: Item[] = sortedMatches.map(([index, score]) => this._allItems[index]);
+    const itemIndices: number[] = sortedMatches.map(([index, score]) => index);
 
-    // Append enough non-matching items to reach maxResults.
-    for (let i = 0; i < this._allItems.length && items.length < this._maxResults; i++) {
+    // Append enough non-matching indices to reach maxResults.
+    for (let i = 0; i < this._allItems.length && itemIndices.length < this._maxResults; i++) {
       if (this._allItems[i].cleanText && !myMatches.has(i)) {
-        items.push(this._allItems[i]);
+        itemIndices.push(i);
       }
     }
+
+    if (this._keepOrder) {
+      itemIndices.sort(nativeCompare);
+    }
+    const items = itemIndices.map(index => this._allItems[index]);
 
     if (!cleanedSearchText) {
       // In this case we are just returning the first few items.
@@ -132,11 +140,11 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
 
-    // The best match is the first item. If any word in the item actually starts with the search
-    // text, highlight it as a default selection. Otherwise, no item will be auto-selected.
-    let selectIndex = -1;
-    if (items.length > 0 && sortedMatches.length > 0 && startsWithText(items[0], cleanedSearchText)) {
-      selectIndex = 0;
+    // If we have a best match, and any word in it actually starts with the search text, report it
+    // as a default selection for highlighting. Otherwise, no item will be auto-selected.
+    let selectIndex = sortedMatches.length > 0 ? itemIndices.indexOf(sortedMatches[0][0]) : -1;
+    if (selectIndex >= 0 && !startsWithText(items[selectIndex], cleanedSearchText, searchWords)) {
+      selectIndex = -1;
     }
     return {items, highlightFunc, selectIndex};
   }
@@ -248,11 +256,13 @@ function findCommonPrefixLength(text1: string, text2: string): number {
 }
 
 /**
- * Checks whether `item` starts with `text`, or has any words that start with `text`.
+ * Checks whether `item` starts with `text`, or whether all words of text are prefixes of the
+ * words of `item`. (E.g. it would return true if item is "New York", and text is "ne yo".)
  */
-function startsWithText(item: ACItem, text: string): boolean {
+function startsWithText(item: ACItem, text: string, searchWords: string[]): boolean {
   if (item.cleanText.startsWith(text)) { return true; }
 
-  const words = item.cleanText.split(wordSepRegexp);
-  return words.some(w => w.startsWith(text));
+  const regexp = new RegExp(searchWords.map(w => `\\b` + escapeRegExp(w)).join('.*'));
+  const cleanText = item.cleanText.split(wordSepRegexp).join(' ');
+  return regexp.test(cleanText);
 }

@@ -31,6 +31,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {QuerySetManager} from 'app/client/models/QuerySet';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
+import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
@@ -60,8 +61,8 @@ import { Drafts } from "app/client/components/Drafts";
 
 const G = getBrowserGlobals('document', 'window');
 
-// Re-export DocComm to move it from main webpack bundle to the one with GristDoc.
-export {DocComm};
+// Re-export some tools to move them from main webpack bundle to the one with GristDoc.
+export {DocComm, showDocSettingsModal};
 
 export interface TabContent {
   showObs?: any;

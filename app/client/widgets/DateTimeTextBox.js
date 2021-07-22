@@ -1,4 +1,3 @@
-/* globals $ */
 var _ = require('underscore');
 var ko = require('knockout');
 var moment = require('moment-timezone');
@@ -11,11 +10,11 @@ var gutil = require('app/common/gutil');
 
 const {fromKoSave} = require('app/client/lib/fromKoSave');
 const {alignmentSelect} = require('app/client/ui2018/buttonSelect');
-const {testId} = require('app/client/ui2018/cssVars');
 const {cssRow, cssLabel} = require('app/client/ui/RightPanel');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
-const {styled, fromKo} = require('grainjs');
+const {dom: gdom, styled, fromKo} = require('grainjs');
 const {select} = require('app/client/ui2018/menus');
+const {buildTZAutocomplete} = require('app/client/widgets/TZAutocomplete');
 
 
 /**
@@ -24,25 +23,11 @@ const {select} = require('app/client/ui2018/menus');
 function DateTimeTextBox(field) {
   DateTextBox.call(this, field);
 
-  this.timezoneOptions = moment.tz.names();
-
-  this.isInvalidTimezone = ko.observable(false);
-
   // Returns the timezone from the end of the type string
-  this.timezone = this.autoDispose(ko.computed({
-    owner: this,
-    read: function() {
-      return gutil.removePrefix(field.column().type(), "DateTime:");
-    },
-    write: function(val) {
-      if (_.contains(this.timezoneOptions, val)) {
-        field.column().type.setAndSave('DateTime:' + val);
-        this.isInvalidTimezone(false);
-      } else {
-        this.isInvalidTimezone(true);
-      }
-    }
-  }));
+  this._timezone = this.autoDispose(ko.computed(() =>
+    gutil.removePrefix(field.column().type(), "DateTime:")));
+
+  this._setTimezone = (val) => field.column().type.setAndSave('DateTime:' + val);
 
   this.timeFormat = this.options.prop('timeFormat');
   this.isCustomTimeFormat = this.options.prop('isCustomTimeFormat');
@@ -79,38 +64,9 @@ _.extend(DateTimeTextBox.prototype, DateTextBox.prototype);
  */
 DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
   var self = this;
-
-  // Set up autocomplete for the timezone entry.
-  var textDom = textbox(self.timezone);
-  var tzInput = textDom.querySelector('input');
-  $(tzInput).autocomplete({
-    source: self.timezoneOptions,
-    classes : {
-      "ui-autocomplete": cssAutocomplete.className
-    },
-    minLength: 1,
-    delay: 10,
-    position : { my: "left top", at: "left bottom+4" },
-    select: function(event, ui) {
-      self.timezone(ui.item.value);
-      return false;
-    }
-  });
-
   return dom('div',
     cssLabel("Timezone"),
-    cssRow(
-      dom(textDom,
-        kd.toggleClass('invalid-text', this.isInvalidTimezone),
-        dom.testId("Widget_tz"),
-        dom.on('keydown', (e) => {
-          switch (e.keyCode) {
-            case 13: $(tzInput).autocomplete('close'); break;
-          }
-        }),
-        testId('widget-tz')
-      )
-    ),
+    cssRow(gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone)),
     self.buildDateConfigDom(),
     cssLabel("Time Format"),
     cssRow(dom(select(fromKo(self.standardTimeFormat), self.timeFormatOptions), dom.testId("Widget_timeFormat"))),
@@ -139,35 +95,6 @@ const cssFocus = styled('div', `
     outline: none;
     box-shadow: 0 0 3px 2px #5e9ed6;
     border: 1px solid transparent;
-  }
-`)
-
-// override styles for jquery auto-complete - to make it look like weasel select menu
-const cssAutocomplete = styled('ui', `
-  min-width: 208px;
-  font-family: var(--grist-font-family);
-  font-size: var(--grist-medium-font-size);
-  line-height: initial;
-  max-width: 400px;
-  border: 0px !important;
-  max-height: 500px;
-  overflow-y: auto;
-  margin-top: 3px;
-  padding: 8px 0px 16px 0px;
-  box-shadow: 0 2px 20px 0 rgb(38 38 51 / 60%);
-  & li {
-    padding: 8px 16px;
-  }
-  & li:hover {
-    background: #5AC09C;
-  }
-  & li div {
-    border: 0px !important;
-    margin: 0px !important;
-  }
-  & li:hover div {
-    background: transparent !important;
-    color: white !important;
   }
 `)
 

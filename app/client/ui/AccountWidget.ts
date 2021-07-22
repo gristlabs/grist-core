@@ -1,8 +1,7 @@
-import {loadUserManager} from 'app/client/lib/imports';
+import {loadGristDoc, loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
-import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {showProfileModal} from 'app/client/ui/ProfileDialog';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
@@ -82,7 +81,8 @@ export class AccountWidget extends Disposable {
 
     // The 'Document Settings' item, when there is an open document.
     const documentSettingsItem = (gristDoc ?
-      menuItem(() => showDocSettingsModal(gristDoc.docInfo, this._docPageModel!), 'Document Settings',
+      menuItem(async () => (await loadGristDoc()).showDocSettingsModal(gristDoc.docInfo, this._docPageModel!),
+        'Document Settings',
         testId('dm-doc-settings')) :
       null);
 
