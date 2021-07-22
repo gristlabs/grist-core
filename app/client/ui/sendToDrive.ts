@@ -1,5 +1,4 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {getHomeUrl} from 'app/client/models/AppModel';
 import {reportError} from 'app/client/models/errors';
 import {spinnerModal} from 'app/client/ui2018/modals';
 import type { DocPageModel } from 'app/client/models/DocPageModel';
@@ -15,7 +14,7 @@ const G = getBrowserGlobals('window');
  * https://developers.google.com/identity/protocols/oauth2/scopes
  */
 function getGoogleAuthEndpoint(scope?: string) {
-  return new URL(`auth/google?scope=${scope || ''}`, getHomeUrl()).href;
+  return new URL(`auth/google?scope=${scope || ''}`, window.location.origin).href;
 }
 
 /**

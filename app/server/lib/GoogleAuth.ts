@@ -1,10 +1,11 @@
-import { auth } from '@googleapis/oauth2';
-import { ApiError } from 'app/common/ApiError';
-import { parseSubdomain } from 'app/common/gristUrls';
-import { expressWrap } from 'app/server/lib/expressWrap';
+import {auth} from '@googleapis/oauth2';
+import {ApiError} from 'app/common/ApiError';
+import {parseSubdomain} from 'app/common/gristUrls';
+import {expressWrap} from 'app/server/lib/expressWrap';
 import * as log from 'app/server/lib/log';
+import {getOriginUrl} from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import { URL } from 'url';
+import {URL} from 'url';
 
 /**
  * Google Auth Endpoint for performing server side authentication. More information can be found
@@ -150,7 +151,7 @@ export function addGoogleAuthEndpoint(
       const oAuth2Client = _googleAuthClient();
       const scope = req.query.scope || DRIVE_SCOPE;
       // Create url for origin parameter for a popup window.
-      const origin = `${req.protocol}://${req.headers.host}`;
+      const origin = getOriginUrl(req);
       const authUrl = oAuth2Client.generateAuthUrl({
         scope,
         prompt: 'select_account',

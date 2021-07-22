@@ -237,3 +237,16 @@ export function optIntegerParam(p: any): number|undefined {
 export interface RequestWithGristInfo extends Request {
   gristInfo?: string;
 }
+
+/**
+ * Returns original request origin. In case, when a client was connected to proxy
+ * or load balancer, it reads protocol from forwarded headers.
+ * More can be read on:
+ * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
+ * https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
+ */
+export function getOriginUrl(req: Request) {
+  const host = req.headers.host!;
+  const protocol = req.get("X-Forwarded-Proto") || req.protocol;
+  return `${protocol}://${host}`;
+}
