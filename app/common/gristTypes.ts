@@ -1,5 +1,6 @@
 import { CellValue, CellVersions } from 'app/common/DocActions';
 import isString = require('lodash/isString');
+import {removePrefix} from "./gutil";
 
 // tslint:disable:object-literal-key-quotes
 
@@ -10,7 +11,8 @@ export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'Ch
 export type GristTypeInfo =
   {type: 'DateTime', timezone: string} |
   {type: 'Ref', tableId: string} |
-  {type: Exclude<GristType, 'DateTime'|'Ref'>};
+  {type: 'RefList', tableId: string} |
+  {type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'>};
 
 
 // Letter codes for CellValue types encoded as [code, args...] tuples.
@@ -76,6 +78,7 @@ export function extractInfoFromColType(colType: string): GristTypeInfo {
   const colon = colType.indexOf(':');
   const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
   return (type === 'Ref') ? {type, tableId: String(arg)} :
+    (type === 'RefList')  ? {type, tableId: String(arg)} :
     (type === 'DateTime') ? {type, timezone: String(arg)} :
     {type} as GristTypeInfo;
 }
@@ -320,4 +323,12 @@ export function sequelizeToGristType(sqlType: string): GristType {
     default:
       throw new Error('Unrecognized datatype: `' + sqlType + '`');
   }
+}
+
+export function getReferencedTableId(type: string) {
+  return removePrefix(type, "Ref:") || removePrefix(type, "RefList:");
+}
+
+export function isFullReferencingType(type: string) {
+  return type.startsWith('Ref:') || type.startsWith('RefList:');
 }

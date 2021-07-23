@@ -49,7 +49,7 @@ export class ChoiceListCell extends ChoiceTextBox {
   }
 }
 
-const cssChoiceList = styled('div', `
+export const cssChoiceList = styled('div', `
   display: flex;
   align-items: start;
   padding: 0 3px;
@@ -63,7 +63,7 @@ const cssChoiceList = styled('div', `
   }
 `);
 
-const cssToken = styled('div', `
+export const cssToken = styled('div', `
   flex: 0 1 auto;
   min-width: 0px;
   margin: 2px;

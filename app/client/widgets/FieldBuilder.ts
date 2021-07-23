@@ -25,7 +25,7 @@ import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
 import * as gristTypes from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
+import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import { CellValue } from 'app/plugin/GristData';
 import { Computed, Disposable, fromKo, dom as grainjsDom,
          Holder, IDisposable, makeTestId, toKo } from 'grainjs';
@@ -115,15 +115,22 @@ export class FieldBuilder extends Disposable {
       return gristTypes.isRightType(this._readOnlyPureType()) || _.constant(false);
     }, this);
 
-    // Returns a boolean indicating whether the column is type Reference.
+    // Returns a boolean indicating whether the column is type Reference or ReferenceList.
     this._isRef = this.autoDispose(ko.computed(() => {
-      return gutil.startsWith(this.field.column().type(), 'Ref:');
+      return isFullReferencingType(this.field.column().type());
     }));
 
     // Gives the table ID to which the reference points.
     this._refTableId = this.autoDispose(ko.computed({
-      read: () => gutil.removePrefix(this.field.column().type(), "Ref:"),
-      write: val => this._setType(`Ref:${val}`)
+      read: () => getReferencedTableId(this.field.column().type()),
+      write: val => {
+        const type = this.field.column().type();
+        if (type.startsWith('Ref:')) {
+          void this._setType(`Ref:${val}`);
+        } else {
+          void this._setType(`RefList:${val}`);
+        }
+      }
     }));
 
     this.widget = ko.pureComputed({

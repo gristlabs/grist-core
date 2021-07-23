@@ -286,7 +286,7 @@ class RecordList(list):
     self._sort_by = sort_by
 
   def __repr__(self):
-    return "RecordList(%r, group_by=%r, sort_by=%r)" % (
+    return "RecordList(%s, group_by=%r, sort_by=%r)" % (
       list.__repr__(self), self._group_by, self._sort_by)
 
 

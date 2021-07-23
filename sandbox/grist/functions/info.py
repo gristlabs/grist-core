@@ -188,10 +188,10 @@ def ISREF(value):
   """
   Checks whether a value is a table record.
 
-  For example, if a column person is of type Reference to the People table, then ISREF($person)
-  is True.
-  Similarly, ISREF(People.lookupOne(name=$name)) is True. For any other type of value,
-  ISREF() would evaluate to False.
+  For example, if a column `person` is of type Reference to the `People` table,
+  then `ISREF($person)` is `True`.
+  Similarly, `ISREF(People.lookupOne(name=$name))` is `True`. For any other type of value,
+  `ISREF()` would evaluate to `False`.
 
   >>> ISREF(17)
   False
@@ -200,6 +200,25 @@ def ISREF(value):
 
   """
   return isinstance(value, Record)
+
+
+def ISREFLIST(value):
+  """
+  Checks whether a value is a [`RecordSet`](#recordset),
+  the type of values in Reference List columns.
+
+  For example, if a column `people` is of type Reference List to the `People` table,
+  then `ISREFLIST($people)` is `True`.
+  Similarly, `ISREFLIST(People.lookupRecords(name=$name))` is `True`. For any other type of value,
+  `ISREFLIST()` would evaluate to `False`.
+
+  >>> ISREFLIST(17)
+  False
+  >>> ISREFLIST("Roger")
+  False
+
+  """
+  return isinstance(value, RecordSet)
 
 
 def ISTEXT(value):

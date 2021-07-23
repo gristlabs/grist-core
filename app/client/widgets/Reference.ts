@@ -5,7 +5,7 @@ import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
-import {isVersions} from 'app/common/gristTypes';
+import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Computed, dom, styled} from 'grainjs';
 import * as ko from 'knockout';
@@ -14,10 +14,11 @@ import * as ko from 'knockout';
  * Reference - The widget for displaying references to another table's records.
  */
 export class Reference extends NTextBox {
+  protected _formatValue: Computed<(val: any) => string>;
+
   private _refValueFormatter: ko.Computed<BaseFormatter>;
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<Array<IOptionFull<number>>>;
-  private _formatValue: Computed<(val: any) => string>;
 
   constructor(field: ViewFieldRec) {
     super(field);
@@ -38,7 +39,7 @@ export class Reference extends NTextBox {
           label: use(col.label),
           value: col.getRowId(),
           icon: 'FieldColumn',
-          disabled: use(col.type).startsWith('Ref:') || use(col.isTransforming)
+          disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming)
         }))
         .concat([{label: 'Row ID', value: 0, icon: 'FieldColumn'}]);
     });

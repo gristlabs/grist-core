@@ -8,6 +8,7 @@ import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import * as UserType from 'app/client/widgets/UserType';
 import * as gristTypes from 'app/common/gristTypes';
+import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
 
@@ -26,9 +27,11 @@ export interface ColInfo {
  */
 export function addColTypeSuffix(type: string, column: ColumnRec, docModel: DocModel) {
   switch (type) {
-    case "Ref": {
+    case "Ref":
+    case "RefList":
+    {
       const refTableId = getRefTableIdFromData(docModel, column) || column.table().primaryTableId();
-      return 'Ref:' + refTableId;
+      return `${type}:${refTableId}`;
     }
     case "DateTime":
       return 'DateTime:' + docModel.docInfo.getRowModel(1).timezone();
@@ -118,10 +121,12 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       }
       break;
     }
-    case 'Ref': {
+    case 'Ref':
+    case 'RefList':
+    {
       // Set suggested destination table and visible column.
       // Null if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
-      const optTableId = gutil.removePrefix(toTypeMaybeFull, "Ref:")!;
+      const optTableId = gutil.removePrefix(toTypeMaybeFull, `${toType}:`)!;
 
       // Finds a reference suggestion column and sets it as the current reference value.
       const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
@@ -138,7 +143,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         console.warn("Inappropriate column received from findColFromValues");
         break;
       }
-      colInfo.type = `Ref:${suggestedTableId}`;
+      colInfo.type = `${toType}:${suggestedTableId}`;
       colInfo.visibleCol = suggestedColRef;
       break;
     }
@@ -177,8 +182,10 @@ export function getDefaultFormula(
 
   let origValFormula = oldVisibleColName ?
     // The `str()` below converts AltText to plain text.
-    `$${colId}.${oldVisibleColName} if ISREF($${colId}) else str($${colId})` :
-    `$${colId}`;
+    `($${colId}.${oldVisibleColName}
+    if ISREF($${colId}) or ISREFLIST($${colId})
+    else str($${colId}))`
+    : `$${colId}`;
 
   if (origCol.type.peek() === 'ChoiceList') {
     origValFormula = `grist.ChoiceList.toString($${colId})`;
@@ -190,8 +197,10 @@ export function getDefaultFormula(
   // Optional parameters depend on the type; see sandbox/grist/usertypes.py
   const args: string[] = [origValFormula];
   switch (toTypePure) {
-    case 'Ref': {
-      const table = gutil.removePrefix(newType, "Ref:");
+    case 'Ref':
+    case 'RefList':
+    {
+      const table = gutil.removePrefix(newType, toTypePure + ":");
       args.push(table || 'None');
       const visibleColName = getVisibleColName(docModel, newVisibleCol);
       if (visibleColName) {
@@ -222,7 +231,7 @@ function getVisibleColName(docModel: DocModel, visibleColRef: number): string|un
   return visibleColRef ? docModel.columns.getRowModel(visibleColRef).colId() : undefined;
 }
 
-// Returns whether the given column model is of type Ref.
+// Returns whether the given column model is of type Ref or RefList.
 function isReferenceCol(colModel: ColumnRec) {
-  return gristTypes.extractTypeFromColType(colModel.type()) === 'Ref';
+  return isFullReferencingType(colModel.type());
 }

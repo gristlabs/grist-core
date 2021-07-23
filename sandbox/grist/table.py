@@ -270,7 +270,7 @@ class Table(object):
       self._summary_simple = not any(
         isinstance(
           self._summary_source_table.all_columns.get(group_col),
-          column.ChoiceListColumn
+          (column.ChoiceListColumn, column.ReferenceListColumn)
         )
         for group_col in groupby_cols
       )
@@ -299,12 +299,13 @@ class Table(object):
       @usertypes.formulaType(usertypes.ReferenceList(summary_table.table_id))
       def _updateSummary(rec, table):  # pylint: disable=unused-argument
         # Create a row in the summary table for every combination of values in
-        # ChoiceList columns
+        # list type columns
         lookup_values = []
         for group_col in groupby_cols:
           lookup_value = getattr(rec, group_col)
-          if isinstance(self.all_columns[group_col], column.ChoiceListColumn):
-            # Check that ChoiceList cells have appropriate types.
+          if isinstance(self.all_columns[group_col],
+                        (column.ChoiceListColumn, column.ReferenceListColumn)):
+            # Check that ChoiceList/ReferenceList cells have appropriate types.
             # Don't iterate over characters of a string.
             if isinstance(lookup_value, (six.binary_type, six.text_type)):
               return []

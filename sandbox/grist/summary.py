@@ -121,11 +121,16 @@ class SummaryActions(object):
     """
     key = tuple(sorted(int(c) for c in source_groupby_columns))
 
-    groupby_colinfo = [_make_col_info(col=c,
-                                      isFormula=False,
-                                      formula='',
-                                      type='Choice' if c.type == 'ChoiceList' else c.type)
-                       for c in source_groupby_columns]
+    groupby_colinfo = [
+      _make_col_info(
+        col=c,
+        isFormula=False,
+        formula='',
+        type='Choice' if c.type == 'ChoiceList' else
+        c.type.replace('RefList:', 'Ref:')
+      )
+      for c in source_groupby_columns
+    ]
     summary_table = next((t for t in source_table.summaryTables if t.summaryKey == key), None)
     created = False
     if not summary_table:

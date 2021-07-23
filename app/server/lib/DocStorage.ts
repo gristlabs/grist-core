@@ -26,6 +26,7 @@ import * as _ from 'underscore';
 import * as util from 'util';
 import * as uuidv4 from "uuid/v4";
 import { ISQLiteDB, MigrationHooks, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
+import {isList} from "app/common/gristTypes";
 
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
@@ -449,7 +450,11 @@ export class DocStorage implements ISQLiteDB {
     if (gristType == 'ChoiceList') {
       // See also app/plugin/objtype.ts for decodeObject(). Here we manually check and decode
       // the "List" object type.
-      if (Array.isArray(val) && val[0] === 'L' && val.every(tok => (typeof(tok) === 'string'))) {
+      if (isList(val) && val.every(tok => (typeof(tok) === 'string'))) {
+        return JSON.stringify(val.slice(1));
+      }
+    } else if (gristType?.startsWith('RefList:')) {
+      if (isList(val) && val.slice(1).every((tok: any) => (typeof(tok) === 'number'))) {
         return JSON.stringify(val.slice(1));
       }
     }
@@ -515,7 +520,7 @@ export class DocStorage implements ISQLiteDB {
         return Boolean(val);
       }
     }
-    if (gristType === 'ChoiceList') {
+    if (gristType === 'ChoiceList' || gristType?.startsWith('RefList:')) {
       if (typeof val === 'string' && val.startsWith('[')) {
         try {
           return ['L', ...JSON.parse(val)];
@@ -557,6 +562,8 @@ export class DocStorage implements ISQLiteDB {
       case 'Text':
         return 'TEXT';
       case 'ChoiceList':
+      case 'RefList':
+      case 'ReferenceList':
         return 'TEXT';      // To be encoded as a JSON array of strings.
       case 'Date':
         return 'DATE';
@@ -572,7 +579,14 @@ export class DocStorage implements ISQLiteDB {
       case 'PositionNumber':
         return 'NUMERIC';
     }
-    if (colType && colType.startsWith('Ref:')) { return 'INTEGER'; }
+    if (colType) {
+      if (colType.startsWith('Ref:')) {
+        return 'INTEGER';
+      }
+      if (colType.startsWith('RefList:')) {
+        return 'TEXT';      // To be encoded as a JSON array of strings.
+      }
+    }
     return 'BLOB';
   }
 

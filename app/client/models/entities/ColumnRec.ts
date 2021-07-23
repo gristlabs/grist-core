@@ -2,7 +2,7 @@ import {KoArray} from 'app/client/lib/koArray';
 import {DocModel, IRowModel, recordSet, refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
-import {removePrefix} from 'app/common/gutil';
+import {getReferencedTableId} from 'app/common/gristTypes';
 import * as ko from 'knockout';
 
 // Represents a column in a user-defined table.
@@ -87,7 +87,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // Returns the rowModel for the referenced table, or null, if this is not a reference column.
   this.refTable = ko.pureComputed(() => {
-    const refTableId = removePrefix(this.type() || "", 'Ref:');
+    const refTableId = getReferencedTableId(this.type() || "");
     return refTableId ? docModel.allTables.all().find(t => t.tableId() === refTableId) || null : null;
   });
 }

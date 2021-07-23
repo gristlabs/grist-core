@@ -7,6 +7,8 @@ const UserType = require('./UserType');
 const {HyperLinkEditor} = require('./HyperLinkEditor');
 const {NTextEditor} = require('./NTextEditor');
 const {ReferenceEditor} = require('./ReferenceEditor');
+const {ReferenceList} = require('./ReferenceList');
+const {ReferenceListEditor} = require('./ReferenceListEditor');
 const {HyperLinkTextBox} = require('./HyperLinkTextBox');
 const {ChoiceTextBox } = require('./ChoiceTextBox');
 const {Reference} = require('./Reference');
@@ -26,6 +28,8 @@ const nameToWidget = {
   'Reference': Reference,
   'Switch': require('./Switch'),
   'ReferenceEditor': ReferenceEditor,
+  'ReferenceList': ReferenceList,
+  'ReferenceListEditor': ReferenceListEditor,
   'ChoiceTextBox': ChoiceTextBox,
   'ChoiceEditor': require('./ChoiceEditor'),
   'ChoiceListCell': require('./ChoiceListCell').ChoiceListCell,

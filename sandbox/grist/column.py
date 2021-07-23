@@ -440,6 +440,14 @@ class ReferenceListColumn(BaseReferenceColumn):
   ReferenceListColumn maintains for each row a list of references (row IDs) into another table.
   Accessing them yields RecordSets.
   """
+  def set(self, row_id, value):
+    if isinstance(value, six.string_types) and value.startswith(u'['):
+      try:
+        value = json.loads(value)
+      except Exception:
+        pass
+    super(ReferenceListColumn, self).set(row_id, value)
+
   def _update_references(self, row_id, old_list, new_list):
     for old_value in old_list or ():
       self._relation.remove_reference(row_id, old_value)

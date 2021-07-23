@@ -453,6 +453,14 @@ class ReferenceList(BaseColumnType):
     return "RefList"
 
   def do_convert(self, value):
+    if isinstance(value, six.string_types):
+      # If it's a string that looks like JSON, try to parse it as such.
+      if value.startswith('['):
+        try:
+          value = json.loads(value)
+        except Exception:
+          pass
+
     if isinstance(value, RecordSet):
       assert value._table.table_id == self.table_id
       return objtypes.RecordList(value._row_ids, group_by=value._group_by, sort_by=value._sort_by)
@@ -466,9 +474,24 @@ class ReferenceList(BaseColumnType):
     return value is None or (isinstance(value, list) and
                              all(Reference.is_right_type(val) for val in value))
 
+  @classmethod
+  def typeConvert(cls, value, ref_table, visible_col=None):  # noqa # pylint: disable=arguments-differ
+    # TODO this is based on Reference.typeConvert.
+    #  It doesn't make much sense as a conversion but I don't know what would
+    if ref_table and visible_col:
+      return ref_table.lookupRecords(**{visible_col: value}) or six.text_type(value)
+    else:
+      return value
+
+
 class Attachments(ReferenceList):
   """
   Currently attachment type is the field for holding data for attachments.
   """
   def __init__(self):
     super(Attachments, self).__init__('_grist_Attachments')
+
+  @classmethod
+  def typeConvert(cls, value):  # noqa # pylint: disable=arguments-differ
+    # Don't use ReferenceList.typeConvert which is called with a different number of arguments
+    return value
