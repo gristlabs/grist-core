@@ -27,6 +27,7 @@ import {UrlState} from 'app/client/lib/UrlState';
 import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, useNewUI} from 'app/common/gristUrls';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
+import {CellValue} from "app/plugin/GristData";
 
 /**
  * Returns a singleton UrlState object, initializing it on first use.
@@ -162,5 +163,51 @@ export class UrlStateImpl {
     if (newState.docPage !== prevState.docPage) {
       return unsavedChanges.saveChanges();
     }
+  }
+}
+
+/**
+ * Given value like `foo bar baz`, constructs URL by checking if `baz` is a valid URL and,
+ * if not, prepending `http://`.
+ */
+export function constructUrl(value: CellValue): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  const url = value.slice(value.lastIndexOf(' ') + 1);
+  try {
+    // Try to construct a valid URL
+    return (new URL(url)).toString();
+  } catch (e) {
+    // Not a valid URL, so try to prefix it with http
+    return 'http://' + url;
+  }
+}
+
+/**
+ * If urlValue contains a URL to the current document that can be navigated to without a page reload,
+ * returns a parsed IGristUrlState that can be passed to urlState().pushState() to do that navigation.
+ * Otherwise, returns null.
+ */
+export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null {
+  const urlString = constructUrl(urlValue);
+  let url: URL;
+  try {
+    url = new URL(urlString);
+  } catch {
+    return null;
+  }
+  const oldOrigin = window.location.origin;
+  const newOrigin = url.origin;
+  if (oldOrigin !== newOrigin) {
+    return null;
+  }
+
+  const urlStateImpl = new UrlStateImpl(window as any);
+  const result = urlStateImpl.decodeUrl(url);
+  if (urlStateImpl.needPageLoad(urlState().state.get(), result)) {
+    return null;
+  } else {
+    return result;
   }
 }

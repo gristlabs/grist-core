@@ -35,6 +35,7 @@ import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
+import {startDocTour} from "app/client/ui/DocTour";
 import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {ActionGroup} from 'app/common/ActionGroup';
@@ -196,7 +197,7 @@ export class GristDoc extends DisposableWithEvents {
 
     // Start welcome tour if flag is present in the url hash.
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      if (state.welcomeTour) {
+      if (state.welcomeTour || state.docTour) {
         await this._waitForView();
         await delay(0); // we need to wait an extra bit.
         // TODO:
@@ -207,7 +208,11 @@ export class GristDoc extends DisposableWithEvents {
         // of the messages relates to that part of the UI.
         //   3) On boarding tours were not designed with mobile support in mind. So probably a
         // good idea to disable.
-        startWelcomeTour(() => null);
+        if (state.welcomeTour) {
+          startWelcomeTour(() => null);
+        } else {
+          await startDocTour(this.docData, () => null);
+        }
       }
     }));
 

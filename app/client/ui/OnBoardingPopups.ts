@@ -29,6 +29,10 @@ import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { colors, vars } from "app/client/ui2018/cssVars";
 import range = require("lodash/range");
+import {IGristUrlState} from "app/common/gristUrls";
+import {urlState} from "app/client/models/gristUrlState";
+import {delay} from "app/common/delay";
+import {reportError} from "app/client/models/errors";
 
 const testId = makeTestId('test-onboarding-');
 
@@ -61,11 +65,14 @@ export interface IOnBoardingMsg {
 
   // Skip the message
   skip?: boolean;
+
+  // If present, will be passed to urlState().pushUrl() to navigate to the location defined by that state
+  urlState?: IGristUrlState;
 }
 
 export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => void) {
   const ctl = new OnBoardingPopupsCtl(messages, onFinishCB);
-  ctl.start();
+  ctl.start().catch(reportError);
 }
 
 class OnBoardingError extends Error {
@@ -91,9 +98,9 @@ class OnBoardingPopupsCtl extends Disposable {
     });
   }
 
-  public start(): void {
+  public async start() {
     this._showOverlay();
-    this._next();
+    await this._next();
     Mousetrap.setPaused(true);
     this.onDispose(() => {
       Mousetrap.setPaused(false);
@@ -105,22 +112,27 @@ class OnBoardingPopupsCtl extends Disposable {
     this.dispose();
   }
 
-  private _next(): void {
+  private async _next() {
     this._index = this._index + 1;
     const entry = this._messages[this._index];
-    if (entry.skip) { this._next(); }
+    if (entry.skip) { await this._next(); }
 
     // close opened popup if any
     this._openPopupCtl?.close();
 
+    if (entry.urlState) {
+      await urlState().pushUrl(entry.urlState);
+      await delay(100);  // make sure cursor is in correct place
+    }
+
     if (entry.showHasModal) {
       this._showHasModal();
     } else {
-      this._showHasPopup();
+      await this._showHasPopup();
     }
   }
 
-  private _showHasPopup() {
+  private async _showHasPopup() {
     const content = this._buildPopupContent();
     const entry = this._messages[this._index];
     const elem = document.querySelector<HTMLElement>(entry.selector);
