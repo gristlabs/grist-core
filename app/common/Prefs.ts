@@ -23,6 +23,9 @@ export interface UserOrgPrefs extends Prefs {
   // The numbers are the `id` from IExampleInfo in app/client/ui/ExampleInfo.
   // By living in UserOrgPrefs, this applies only to the examples-containing org.
   seenExamples?: number[];
+
+  // List of document IDs where the user has seen and dismissed the document tour.
+  seenDocTours?: string[];
 }
 
 export type OrgPrefs = Prefs;

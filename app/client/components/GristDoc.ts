@@ -63,7 +63,7 @@ import { Drafts } from "app/client/components/Drafts";
 const G = getBrowserGlobals('document', 'window');
 
 // Re-export some tools to move them from main webpack bundle to the one with GristDoc.
-export {DocComm, showDocSettingsModal};
+export {DocComm, showDocSettingsModal, startDocTour};
 
 export interface TabContent {
   showObs?: any;

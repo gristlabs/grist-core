@@ -1,44 +1,24 @@
-import {AppModel} from 'app/client/models/AppModel';
-import {getUserOrgPrefObs} from 'app/client/models/UserPrefs';
 import {IExampleInfo} from 'app/client/ui/ExampleInfo';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {colors, mediaXSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {dom, Observable, styled} from 'grainjs';
+import {dom, styled} from 'grainjs';
+import {AutomaticHelpToolInfo} from "app/client/ui/Tools";
 
 let prevCardClose: (() => void)|null = null;
 
 // Open a popup with a card introducing this example, if the user hasn't dismissed it in the past.
 export function showExampleCard(
-  example: IExampleInfo, appModel: AppModel, btnElem: HTMLElement, reopen: boolean = false
+  example: IExampleInfo, toolInfo: AutomaticHelpToolInfo
 ) {
-  const prefObs: Observable<number[]|undefined> = getUserOrgPrefObs(appModel, 'seenExamples');
-  const seenExamples = prefObs.get() || [];
-
-  // If this example was previously dismissed, don't show the card, unless the user is reopening it.
-  if (!reopen && seenExamples.includes(example.id)) {
-    return;
-  }
-
-  // When an example card is closed, if it's the first time it's dismissed, save this fact, to avoid
-  // opening the card again in the future.
-  async function markAsSeen() {
-    if (!seenExamples.includes(example.id)) {
-      const seen = new Set(seenExamples);
-      seen.add(example.id);
-      prefObs.set([...seen].sort());
-    }
-  }
+  const {elem: btnElem, markAsSeen, reopen} = toolInfo;
 
   // Close the example card.
   function close() {
     prevCardClose = null;
     collapseAndRemoveCard(cardElem, btnElem.getBoundingClientRect());
-    // If we fail to save this preference, it's probably not worth alerting the user about,
-    // so just log to console.
-    // tslint:disable-next-line:no-console
-    markAsSeen().catch((err) => console.warn("Failed to save userPref", err));
+    markAsSeen();
   }
 
   const card = example.welcomeCard;
