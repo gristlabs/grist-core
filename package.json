@@ -48,6 +48,7 @@
     "@types/sqlite3": "3.1.6",
     "@types/tmp": "0.0.33",
     "@types/uuid": "3.4.4",
+    "@types/which": "2.0.1",
     "catw": "1.0.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",

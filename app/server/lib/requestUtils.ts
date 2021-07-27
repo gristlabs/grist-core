@@ -233,6 +233,10 @@ export function optIntegerParam(p: any): number|undefined {
   return undefined;
 }
 
+export function optJsonParam(p: any, defaultValue: any): any {
+  if (typeof p !== 'string') { return defaultValue; }
+  return gutil.safeJsonParse(p, defaultValue);
+}
 
 export interface RequestWithGristInfo extends Request {
   gristInfo?: string;

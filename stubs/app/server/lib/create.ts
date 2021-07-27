@@ -4,7 +4,7 @@ import {ScopedSession} from 'app/server/lib/BrowserSession';
 import {NSandboxCreator} from 'app/server/lib/NSandbox';
 
 // Use raw python - update when pynbox or other solution is set up for core.
-const sandboxCreator = new NSandboxCreator('unsandboxed');
+const sandboxCreator = new NSandboxCreator({defaultFlavor: 'unsandboxed'});
 
 export const create: ICreate = {
   adjustSession(scopedSession: ScopedSession): void {

@@ -1,0 +1,24 @@
+name: core
+version: 0.0.0
+description: Grist core features
+components:
+  safePython: sandbox/main.py
+contributions:
+  fileParsers:
+    - fileExtensions: ["csv"]
+      parseFile:
+        component: safePython
+        name: csv_parser
+    - fileExtensions: ["xls", "xlsx", "tsv", "txt", "xlsm"]
+      parseFile:
+        component: safePython
+        name: xls_parser
+    - fileExtensions: ["json"]
+      parseFile:
+        component: safePython
+        name: json_parser
+
+scripts:
+  build:
+  # Note that ${XUNIT:+xxx} inserts "xxx" when XUNIT is set, and nothing otherwise.
+  test: $GRIST_PYTHON -m runtests discover -v -s /sandbox ${XUNIT:+--xunit}

@@ -3,7 +3,7 @@ import {ApiError} from 'app/common/ApiError';
 import {parseSubdomain} from 'app/common/gristUrls';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import * as log from 'app/server/lib/log';
-import {getOriginUrl} from 'app/server/lib/requestUtils';
+import {getOriginUrl, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import {URL} from 'url';
 
@@ -93,13 +93,13 @@ export async function googleAuthTokenMiddleware(
   res: express.Response,
   next: express.NextFunction) {
   // If access token is in place, proceed
-  if (!req.query.code) {
+  if (!optStringParam(req.query.code)) {
     throw new ApiError("Google Auth endpoint requires a code parameter in the query string", 400);
   } else {
     try {
       const oAuth2Client = _googleAuthClient();
       // Decrypt code that was send back from Google Auth service. Uses GOOGLE_CLIENT_SECRET key.
-      const tokenResponse = await oAuth2Client.getToken(req.query.code);
+      const tokenResponse = await oAuth2Client.getToken(stringParam(req.query.code));
       // Get the access token (access token will be present in a default request configuration).
       const access_token = tokenResponse.tokens.access_token!;
       req.query.access_token = access_token;
@@ -122,7 +122,7 @@ export function addGoogleAuthEndpoint(
   messagePage: (req: express.Request, res: express.Response, message: any) => any
 ) {
   if (!process.env.GOOGLE_CLIENT_SECRET) {
-    log.error("Failed to create GoogleAuth endpoint: GOOGLE_CLIENT_SECRET is not defined");
+    log.warn("Failed to create GoogleAuth endpoint: GOOGLE_CLIENT_SECRET is not defined");
     expressApp.get(authHandlerPath, expressWrap(async (req: express.Request, res: express.Response) => {
       throw new Error("Send to Google Drive is not configured.");
     }));
@@ -136,20 +136,22 @@ export function addGoogleAuthEndpoint(
     // our request. It is encrypted (with CLIENT_SECRET) and signed with redirect url.
     // In state query parameter we will receive an url that was send as part of the request to Google.
 
-    if (req.query.code) {
+    if (optStringParam(req.query.code)) {
       log.debug("GoogleAuth - response from Google with valid code");
-      messagePage(req, res, { code: req.query.code, origin: req.query.state });
-    } else if (req.query.error) {
-      log.debug("GoogleAuth - response from Google with error code", req.query.error);
-      if (req.query.error === "access_denied") {
-        messagePage(req, res, { error: req.query.error, origin: req.query.state });
+      messagePage(req, res, { code: stringParam(req.query.code),
+                              origin: stringParam(req.query.state) });
+    } else if (optStringParam(req.query.error)) {
+      log.debug("GoogleAuth - response from Google with error code", stringParam(req.query.error));
+      if (stringParam(req.query.error) === "access_denied") {
+        messagePage(req, res, { error: stringParam(req.query.error),
+                                origin: stringParam(req.query.state) });
       } else {
         // This should not happen, either code or error is a mandatory query parameter.
         throw new ApiError("Error authenticating with Google", 500);
       }
     } else {
       const oAuth2Client = _googleAuthClient();
-      const scope = req.query.scope || DRIVE_SCOPE;
+      const scope = optStringParam(req.query.scope) || DRIVE_SCOPE;
       // Create url for origin parameter for a popup window.
       const origin = getOriginUrl(req);
       const authUrl = oAuth2Client.generateAuthUrl({

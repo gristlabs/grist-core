@@ -10,6 +10,7 @@ import {TableData} from 'app/common/TableData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
+import { integerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
@@ -68,17 +69,17 @@ export interface ExportParameters {
   tableId: string;
   viewSectionId: number;
   sortOrder: number[];
-  filters: Filter[]
+  filters: Filter[];
 }
 
 /**
  * Gets export parameters from a request.
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
-  const tableId = req.query.tableId;
-  const viewSectionId = parseInt(req.query.viewSection, 10);
-  const sortOrder = gutil.safeJsonParse(req.query.activeSortSpec, null) as number[];
-  const filters: Filter[] = gutil.safeJsonParse(req.query.filters, []) || [];
+  const tableId = stringParam(req.query.tableId);
+  const viewSectionId = integerParam(req.query.viewSection);
+  const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
+  const filters: Filter[] = optJsonParam(req.query.filters, []);
 
   return {
     tableId,

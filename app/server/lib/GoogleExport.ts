@@ -3,6 +3,7 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {makeXLSX} from 'app/server/lib/ExportXLSX';
 import * as log from 'app/server/lib/log';
+import {optStringParam} from 'app/server/lib/requestUtils';
 import {Request, Response} from 'express';
 import {PassThrough} from 'stream';
 
@@ -16,7 +17,7 @@ export async function exportToDrive(
   res: Response
 ) {
   // Token should come from auth middleware
-  const access_token = req.query.access_token;
+  const access_token = optStringParam(req.query.access_token);
   if (!access_token) {
     throw new Error("No access token - Can't send file to Google Drive");
   }
@@ -78,6 +79,6 @@ async function sendFileToDrive(fileNameNoExt: string, data: ArrayBuffer, oauth_t
 // Makes excel file the same way as export to excel works.
 async function prepareFile(doc: ActiveDoc, req: Request) {
   const data = await makeXLSX(doc, req);
-  const name = (req.query.title || doc.docName);
+  const name = (optStringParam(req.query.title) || doc.docName);
   return { name, data };
 }

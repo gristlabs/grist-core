@@ -12,21 +12,59 @@ import {ChildProcess, spawn} from 'child_process';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
 import * as _ from 'lodash';
-import * as fs from "fs";
+import * as fs from 'fs';
+import * as which from 'which';
 
 type SandboxMethod = (...args: any[]) => any;
 
-export interface ISandboxOptions {
+/**
+ *
+ * A collection of options for weird and wonderful ways to run Grist.
+ * The sandbox at heart is just python, but run in different ways
+ * (sandbox 'flavors': pynbox, docker, gvisor, and unsandboxed).
+ *
+ * The "command" is an external program/container to call to run the
+ * sandbox, and it depends on sandbox flavor. Pynbox is built into
+ * Grist and has a hard-wired command, so the command option should be
+ * empty.  For gvisor and unsandboxed, command is the path to an
+ * external program to run.  For docker, it is the name of an image.
+ *
+ * Once python is running, ordinarily some Grist code should be
+ * started by setting `useGristEntrypoint` (the only exception is
+ * in tests).
+ *
+ * The Grist code that runs is by default grist/main.py.  For plugins,
+ * this is overridden, to run whatever is specified by plugin.script.
+ *
+ */
+interface ISandboxOptions {
+  command?: string;       // External program or container to call to run the sandbox.
   args: string[];         // The arguments to pass to the python process.
+
+  // When doing imports, the sandbox is started somewhat differently.
+  // Directories are shared with the sandbox that are not otherwise.
+  // Options for that that are collected in `plugin`.  TODO: update
+  // ISandboxCreationOptions to talk about directories instead of
+  // mounts, since it may not be possible to remap directories as
+  // mounts (e.g. for unsandboxed operation).
+  plugin?: {
+    importDir: string;  // a directory containing data file(s) to import.
+    pluginDir: string;  // a directory containing code for running the import.
+    script: string;     // an entrypoint, relative to pluginDir.
+  }
+
+  docUrl?: string;               // URL to the document, for SELF_HYPERLINK
+  minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
+  deterministicMode?: boolean;   // Whether to override time + randomness
+
   exports?: {[name: string]: SandboxMethod}; // Functions made available to the sandboxed process.
   logCalls?: boolean;     // (Not implemented) Whether to log all system calls from the python sandbox.
   logTimes?: boolean;     // Whether to log time taken by calls to python sandbox.
-  unsilenceLog?: boolean; // Don't silence the sel_ldr logging.
-  selLdrArgs?: string[];  // Arguments passed to selLdr, for instance the following sets an
-                          // environment variable `{ ... selLdrArgs: ['-E', 'PYTHONPATH=grist'] ... }`.
+  unsilenceLog?: boolean; // Don't silence the sel_ldr logging (pynbox only).
   logMeta?: log.ILogMeta; // Log metadata (e.g. including docId) to report in all log messages.
-  command?: string;
-  env?: NodeJS.ProcessEnv;
+
+  useGristEntrypoint?: boolean;  // Should be set for everything except tests, which
+                                 // may want to pass arguments to python directly.
 }
 
 type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
@@ -39,62 +77,6 @@ type MsgCode = null | true | false;
 const recordBuffersRoot = process.env.RECORD_SANDBOX_BUFFERS_DIR;
 
 export class NSandbox implements ISandbox {
-  /**
-   * Helper function to run the nacl sandbox. It takes care of most arguments, similarly to
-   * nacl/bin/run script, but without the reliance on bash. We can't use bash when -r/-w options
-   * because on Windows it doesn't pass along the open file descriptors. Bash is also unavailable
-   * when installing a standalone version on Windows.
-   */
-  public static spawn(options: ISandboxOptions): ChildProcess {
-    const {command, args: pythonArgs, unsilenceLog, env} = options;
-    const spawnOptions = {
-      stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
-      env
-    };
-    const selLdrArgs = [];
-    if (!NSandbox._useMinimalPipes(env)) {
-      // add two more pipes
-      spawnOptions.stdio.push('pipe', 'pipe');
-      // We use these options to set up communication with the sandbox:
-      // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
-      //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
-      // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
-      //         This becomes `this._streamFromSandbox`
-      selLdrArgs.push('-r', '3:3', '-w', '4:4');
-    }
-    if (options.selLdrArgs) { selLdrArgs.push(...options.selLdrArgs); }
-
-    if (command) {
-      return spawn(command, pythonArgs,
-                   {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
-    }
-
-    const noLog = unsilenceLog ? [] :
-      (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
-    for (const [key, value] of _.toPairs(env)) {
-      selLdrArgs.push("-E");
-      selLdrArgs.push(`${key}=${value}`);
-    }
-    return spawn('sandbox/nacl/bin/sel_ldr', [
-        '-B', './sandbox/nacl/lib/irt_core.nexe', '-m', './sandbox/nacl/root:/:ro',
-        ...noLog,
-        ...selLdrArgs,
-        './sandbox/nacl/lib/runnable-ld.so',
-        '--library-path', '/slib', '/python/bin/python2.7.nexe',
-        ...pythonArgs
-      ],
-      spawnOptions,
-    );
-  }
-
-  // Check if environment is configured for minimal pipes.
-  private static _useMinimalPipes(env: NodeJS.ProcessEnv | undefined) {
-    if (!env?.PIPE_MODE) { return false; }
-    if (env.PIPE_MODE !== 'minimal') {
-      throw new Error(`unrecognized pipe mode: ${env.PIPE_MODE}`);
-    }
-    return true;
-  }
 
   public readonly childProc: ChildProcess;
   private _logTimes: boolean;
@@ -119,16 +101,25 @@ export class NSandbox implements ISandbox {
   /*
    * Callers may listen to events from sandbox.childProc (a ChildProcess), e.g. 'close' and 'error'.
    * The sandbox listens for 'aboutToExit' event on the process, to properly shut down.
+   *
+   * Grist interacts with the sandbox via message passing through pipes to an isolated
+   * process.  Some read-only shared code is made available to the sandbox.
+   * For plugins, read-only data files are made available.
+   *
+   * At the time of writing, Grist has been using an NaCl sandbox with python2.7 compiled
+   * for it for several years (pynbox), and we are now experimenting with other sandboxing
+   * options.  Variants can be activated by passing in a non-default "spawner" function.
+   *
    */
-  constructor(options: ISandboxOptions) {
+  constructor(options: ISandboxOptions, spawner: SpawnFn = pynbox) {
     this._logTimes = Boolean(options.logTimes || options.logCalls);
     this._exportedFunctions = options.exports || {};
 
-    this.childProc = NSandbox.spawn(options);
+    this.childProc = spawner(options);
 
     this._logMeta = {sandboxPid: this.childProc.pid, ...options.logMeta};
 
-    if (NSandbox._useMinimalPipes(options.env)) {
+    if (options.minimalPipeMode) {
       log.rawDebug("3-pipe Sandbox started", this._logMeta);
       this._streamToSandbox = this.childProc.stdin;
       this._streamFromSandbox = this.childProc.stdout;
@@ -343,67 +334,365 @@ export class NSandbox implements ISandbox {
   }
 }
 
+/**
+ * Functions for spawning all of the currently supported sandboxes.
+ */
+const spawners = {
+  pynbox,             // Grist's "classic" sandbox - python2 within NaCl.
+  unsandboxed,        // No sandboxing, straight to host python.
+                      // This offers no protection to the host.
+  docker,             // Run sandboxes in distinct docker containers.
+  gvisor,             // Gvisor's runsc sandbox.
+};
+
+/**
+ * A sandbox factory.  This doesn't do very much beyond remembering a default
+ * flavor of sandbox (which at the time of writing differs between hosted grist and
+ * grist-core), and trying to regularize creation options a bit.
+ *
+ * The flavor of sandbox to use can be overridden by two environment variables:
+ *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (pynbox, unsandboxed, docker,
+ *     gvisor)
+ *   - GRIST_SANDBOX: a program or image name to run as the sandbox.  Not needed for
+ *     pynbox (it is either built in or not avaiable).  For unsandboxed, should be an
+ *     absolute path to python within a virtualenv with all requirements installed.
+ *     For docker, it should be `grist-docker-sandbox` (an image built via makefile
+ *     in `sandbox/docker`) or a derived image.  For gvisor, it should be the full path
+ *     to `sandbox/gvisor/run.py` (if runsc available locally) or to
+ *     `sandbox/gvisor/wrap_in_docker.sh` (if runsc should be run using the docker
+ *     image built in that directory).  Gvisor is not yet available in grist-core.
+ */
 export class NSandboxCreator implements ISandboxCreator {
-  public constructor(private _flavor: 'pynbox' | 'unsandboxed') {
+  private _flavor: keyof typeof spawners;
+  private _command?: string;
+
+  public constructor(options: {defaultFlavor: keyof typeof spawners}) {
+    const flavor = process.env.GRIST_SANDBOX_FLAVOR || options.defaultFlavor;
+    if (!Object.keys(spawners).includes(flavor)) {
+      throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
+    }
+    this._flavor = flavor as keyof typeof spawners;
+    this._command = process.env.GRIST_SANDBOX;
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
-    const pynbox = this._flavor === 'pynbox';
-    // Main script to run.
-    const defaultEntryPoint = pynbox ? 'grist/main.pyc' : 'grist/main.py';
-    const args = [options.entryPoint || defaultEntryPoint];
+    const args: string[] = [];
     if (!options.entryPoint && options.comment) {
       // When using default entry point, we can add on a comment as an argument - it isn't
       // used, but will show up in `ps` output for the sandbox process.  Comment is intended
       // to be a document name/id.
       args.push(options.comment);
     }
-    const selLdrArgs: string[] = [];
-    if (options.sandboxMount) {
-      selLdrArgs.push(
-        // TODO: Only modules that we share with plugins should be mounted. They could be gathered in
-        // a "$APPROOT/sandbox/plugin" folder, only which get mounted.
-        '-m', `${options.sandboxMount}:/sandbox:ro`);
-    }
-    if (options.importMount) {
-      selLdrArgs.push('-m', `${options.importMount}:/importdir:ro`);
-    }
-    const pythonVersion = 'python2.7';
-    const env: NodeJS.ProcessEnv = {
-      // Python library path is only configurable when flavor is unsandboxed.
-      // In this case, expect to find library files in a virtualenv built by core
-      // buildtools/prepare_python.sh
-      PYTHONPATH: pynbox ? 'grist:thirdparty' :
-        path.join(process.cwd(), 'sandbox', 'grist') + ':' +
-        path.join(process.cwd(), 'venv', 'lib', pythonVersion, 'site-packages'),
-
-      DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, ''),
-
-      // use stdin/stdout/stderr only.
-      PIPE_MODE: 'minimal',
-
-      // Making time and randomness act deterministically for testing purposes.
-      // See test/utils/recordPyCalls.ts
-      ...(process.env.LIBFAKETIME_PATH ? {  // path to compiled binary
-        DETERMINISTIC_MODE: '1',  // tells python to seed the random module
-        FAKETIME: "2020-01-01 00:00:00",  // setting for libfaketime
-
-        // For Linux
-        LD_PRELOAD: process.env.LIBFAKETIME_PATH,
-
-        // For Mac (https://github.com/wolfcw/libfaketime/blob/master/README.OSX)
-        DYLD_INSERT_LIBRARIES: process.env.LIBFAKETIME_PATH,
-        DYLD_FORCE_FLAT_NAMESPACE: '1',
-      } : {}),
-    };
-    return new NSandbox({
+    const translatedOptions: ISandboxOptions = {
+      minimalPipeMode: true,
+      deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
+      docUrl: options.docUrl,
       args,
       logCalls: options.logCalls,
-      logMeta: options.logMeta,
+      logMeta: {flavor: this._flavor, command: this._command,
+                entryPoint: options.entryPoint || '(default)',
+                ...options.logMeta},
       logTimes: options.logTimes,
-      selLdrArgs,
-      env,
-      ...(pynbox ? {} : {command: pythonVersion}),
-    });
+      command: this._command,
+      useGristEntrypoint: true,
+    };
+    if (options.entryPoint) {
+      translatedOptions.plugin = {
+        script: options.entryPoint,
+        pluginDir: options.sandboxMount || '',
+        importDir: options.importMount || '',
+      };
+    }
+    return new NSandbox(translatedOptions, spawners[this._flavor]);
   }
 }
+
+// A function that takes sandbox options and starts a sandbox process.
+type SpawnFn = (options: ISandboxOptions) => ChildProcess;
+
+/**
+ * Helper function to run a nacl sandbox. It takes care of most arguments, similarly to
+ * nacl/bin/run script, but without the reliance on bash. We can't use bash when -r/-w options
+ * because on Windows it doesn't pass along the open file descriptors. Bash is also unavailable
+ * when installing a standalone version on Windows.
+ *
+ * This is quite old code, with attention to Windows support that is no longer tested.
+ * I've done my best to avoid changing behavior by not touching it too much.
+ */
+function pynbox(options: ISandboxOptions): ChildProcess {
+  const {command, args: pythonArgs, unsilenceLog, plugin} = options;
+  if (command) {
+    throw new Error("NaCl can only run the specific python2.7 package built for it");
+  }
+  if (options.useGristEntrypoint) {
+    pythonArgs.unshift(plugin?.script || 'grist/main.pyc');
+  }
+  const spawnOptions = {
+    stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
+    env: getWrappingEnv(options)
+  };
+  const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
+  if (plugin) {
+
+    // TODO: Only modules that we share with plugins should be mounted. They could be gathered in
+    // a "$APPROOT/sandbox/plugin" folder, only which get mounted.
+    wrapperArgs.addMount(`${plugin.pluginDir}:/sandbox:ro`);
+    wrapperArgs.addMount(`${plugin.importDir}:/importdir:ro`);
+  }
+
+  if (!options.minimalPipeMode) {
+    // add two more pipes
+    spawnOptions.stdio.push('pipe', 'pipe');
+    // We use these options to set up communication with the sandbox:
+    // -r 3:3  to associate a file descriptor 3 on the outside of the sandbox with FD 3 on the
+    //         inside, for reading from the inside. This becomes `this._streamToSandbox`.
+    // -w 4:4  to associate FD 4 on the outside with FD 4 on the inside for writing from the inside.
+    //         This becomes `this._streamFromSandbox`
+    wrapperArgs.push('-r', '3:3', '-w', '4:4');
+  }
+  wrapperArgs.addAllEnv(getInsertedEnv(options));
+  wrapperArgs.addEnv('PYTHONPATH', 'grist:thirdparty');
+
+  const noLog = unsilenceLog ? [] :
+    (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
+  return spawn('sandbox/nacl/bin/sel_ldr', [
+    '-B', './sandbox/nacl/lib/irt_core.nexe', '-m', './sandbox/nacl/root:/:ro',
+    ...noLog,
+    ...wrapperArgs.get(),
+    './sandbox/nacl/lib/runnable-ld.so',
+    '--library-path', '/slib', '/python/bin/python2.7.nexe',
+    ...pythonArgs
+  ], spawnOptions);
+}
+
+/**
+ * Helper function to run python without sandboxing.  GRIST_SANDBOX should have
+ * been set with an absolute path to a version of python within a virtualenv that
+ * has all the dependencies installed (e.g. the sandbox_venv3 virtualenv created
+ * by `./build python3`.  Using system python works too, if all dependencies have
+ * been installed globally.
+ */
+function unsandboxed(options: ISandboxOptions): ChildProcess {
+  const {args: pythonArgs, plugin} = options;
+  const paths = getAbsolutePaths(options);
+  if (options.useGristEntrypoint) {
+    pythonArgs.unshift(paths.plugin?.script || paths.main);
+  }
+  const spawnOptions = {
+    stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
+    env: {
+      PYTHONPATH: paths.engine,
+      IMPORTDIR: plugin?.importDir,
+      ...getInsertedEnv(options),
+      ...getWrappingEnv(options),
+    }
+  };
+  if (!options.minimalPipeMode) {
+    spawnOptions.stdio.push('pipe', 'pipe');
+  }
+  let command = options.command;
+  if (!command) {
+    // No command specified.  In this case, grist-core looks for a "venv"
+    // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
+    // TODO: rationalize this, it is a product of haphazard growth.
+    for (const venv of ['sandbox_venv3', 'venv']) {
+      const pythonPath = path.join(process.cwd(), venv, 'bin', 'python');
+      if (fs.existsSync(pythonPath)) {
+        command = pythonPath;
+        break;
+      }
+    }
+    // Fall back on system python.
+    if (!command) {
+      command = which.sync('python');
+    }
+  }
+  return spawn(command, pythonArgs,
+               {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+}
+
+/**
+ * Helper function to run python in gvisor's runsc, with multiple
+ * sandboxes run within the same container.  GRIST_SANDBOX should
+ * point to `sandbox/gvisor/run.py` (to map call onto gvisor's runsc
+ * directly) or `wrap_in_docker.sh` (to use runsc within a container).
+ * Be sure to read setup instructions in that directory.
+ */
+function gvisor(options: ISandboxOptions): ChildProcess {
+  const {command, args: pythonArgs} = options;
+  if (!command) { throw new Error("gvisor operation requires GRIST_SANDBOX"); }
+  if (!options.minimalPipeMode) {
+    throw new Error("gvisor only supports 3-pipe operation");
+  }
+  const paths = getAbsolutePaths(options);
+  const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
+  wrapperArgs.addEnv('PYTHONPATH', paths.engine);
+  wrapperArgs.addAllEnv(getInsertedEnv(options));
+  wrapperArgs.addMount(paths.sandboxDir);
+  if (paths.plugin) {
+    wrapperArgs.addMount(paths.plugin.pluginDir);
+    wrapperArgs.addMount(paths.plugin.importDir);
+    wrapperArgs.addEnv('IMPORTDIR', paths.plugin.importDir);
+    pythonArgs.unshift(paths.plugin.script);
+  } else if (options.useGristEntrypoint) {
+    pythonArgs.unshift(paths.main);
+  }
+  if (options.deterministicMode) {
+    wrapperArgs.push('--faketime', FAKETIME);
+  }
+  return spawn(command, [...wrapperArgs.get(), 'python', '--', ...pythonArgs]);
+}
+
+/**
+ * Helper function to run python in a container. Each sandbox run in a
+ * distinct container.  GRIST_SANDBOX should be the name of an image where
+ * `python` can be run and all Grist dependencies are installed.  See
+ * `sandbox/docker` for more.
+ */
+function docker(options: ISandboxOptions): ChildProcess {
+  const {args: pythonArgs, command} = options;
+  if (options.useGristEntrypoint) {
+    pythonArgs.unshift(options.plugin?.script || 'grist/main.py');
+  }
+  if (!options.minimalPipeMode) {
+    throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
+  }
+  const paths = getAbsolutePaths(options);
+  const plugin = paths.plugin;
+  const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
+  if (plugin) {
+    wrapperArgs.addMount(`${plugin.pluginDir}:/sandbox:ro`);
+    wrapperArgs.addMount(`${plugin.importDir}:/importdir:ro`);
+  }
+  wrapperArgs.addMount(`${paths.engine}:/grist:ro`);
+  wrapperArgs.addAllEnv(getInsertedEnv(options));
+  wrapperArgs.addEnv('PYTHONPATH', 'grist:thirdparty');
+  const commandParts: string[] = ['python'];
+  if (options.deterministicMode) {
+    // DETERMINISTIC_MODE is already set by getInsertedEnv().  We also take
+    // responsibility here for running faketime around python.
+    commandParts.unshift('faketime', '-f', FAKETIME);
+  }
+  const dockerPath = which.sync('docker');
+  return spawn(dockerPath, [
+    'run', '--rm', '-i', '--network', 'none',
+    ...wrapperArgs.get(),
+    command || 'grist-docker-sandbox',  // this is the docker image to use
+    ...commandParts,
+    ...pythonArgs,
+  ]);
+}
+
+/**
+ * Collect environment variables that should end up set within the sandbox.
+ */
+function getInsertedEnv(options: ISandboxOptions) {
+  const env: NodeJS.ProcessEnv = {
+    DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, ''),
+
+    // use stdin/stdout/stderr only.
+    PIPE_MODE: options.minimalPipeMode ? 'minimal' : 'classic',
+  };
+
+  if (options.deterministicMode) {
+    // Making time and randomness act deterministically for testing purposes.
+    // See test/utils/recordPyCalls.ts
+    // tells python to seed the random module
+    env.DETERMINISTIC_MODE = '1';
+  }
+  return env;
+}
+
+/**
+ * Collect environment variables to activate faketime if needed.  The paths
+ * here only make sense for unsandboxed operation, or for pynbox.  For gvisor,
+ * faketime doesn't work, and must be done inside the sandbox.  For docker,
+ * likewise wrapping doesn't make sense.  In those cases, LIBFAKETIME_PATH can
+ * just be set to ON to activate faketime in a sandbox dependent manner.
+ */
+function getWrappingEnv(options: ISandboxOptions) {
+  const env: NodeJS.ProcessEnv = options.deterministicMode ? {
+    // Making time and randomness act deterministically for testing purposes.
+    // See test/utils/recordPyCalls.ts
+    FAKETIME,  // setting for libfaketime
+    // For Linux
+    LD_PRELOAD: process.env.LIBFAKETIME_PATH,
+
+    // For Mac (https://github.com/wolfcw/libfaketime/blob/master/README.OSX)
+    DYLD_INSERT_LIBRARIES: process.env.LIBFAKETIME_PATH,
+    DYLD_FORCE_FLAT_NAMESPACE: '1',
+  } : {};
+  return env;
+}
+
+/**
+ * Extract absolute paths from options.  By sticking with the directory
+ * structure on the host rather than remapping, we can simplify nesting
+ * wrappers, or cases where remapping isn't possible.  It does leak the names
+ * of the host directories though, and there could be silly complications if the
+ * directories have spaces or other idiosyncracies.  When committing to a sandbox
+ * technology, for stand-alone Grist, it would be worth rethinking this.
+ */
+function getAbsolutePaths(options: ISandboxOptions) {
+  // Get path to sandbox directory - this is a little idiosyncratic to work well
+  // in grist-core.  It is important to use real paths since we may be viewing
+  // the file system through a narrow window in a container.
+  const sandboxDir = path.join(fs.realpathSync(path.join(process.cwd(), 'sandbox', 'grist')),
+                               '..');
+  // Copy plugin options, and then make them absolute.
+  const plugin = options.plugin && { ...options.plugin };
+  if (plugin) {
+    plugin.pluginDir = fs.realpathSync(plugin.pluginDir);
+    plugin.importDir = fs.realpathSync(plugin.importDir);
+    // Plugin dir is ..../sandbox, and entry point is sandbox/...
+    // This may not be a general rule, it may be just for the "core" plugin, but
+    // that suffices for now.
+    plugin.script = path.join(plugin.pluginDir, '..', plugin.script);
+  }
+  return {
+    sandboxDir,
+    plugin,
+    main: path.join(sandboxDir, 'grist/main.py'),
+    engine: path.join(sandboxDir, 'grist'),
+  };
+}
+
+/**
+ * A tiny abstraction to make code setting up command line arguments a bit
+ * easier to read.  The sandboxes are quite similar in spirit, but differ
+ * a bit in exact flags used.
+ */
+class FlagBag {
+  private _args: string[] = [];
+
+  constructor(private _options: {env: '--env'|'-E', mount: '-m'|'-v'}) {
+  }
+
+  // channel env variables for sandbox via -E / --env
+  public addEnv(key: string, value: string|undefined) {
+    this._args.push(this._options.env, key + '=' + (value || ''));
+  }
+
+  // Channel all of the supplied env variables
+  public addAllEnv(env: NodeJS.ProcessEnv) {
+    for (const [key, value] of _.toPairs(env)) {
+      this.addEnv(key, value);
+    }
+  }
+
+  // channel shared directory for sandbox via -m / -v
+  public addMount(share: string) {
+    this._args.push(this._options.mount, share);
+  }
+
+  // add some ad-hoc arguments
+  public push(...args: string[]) {
+    this._args.push(...args);
+  }
+
+  // get the final list of arguments
+  public get() { return this._args; }
+}
+
+// Standard time to default to if faking time.
+const FAKETIME = '2020-01-01 00:00:00';
