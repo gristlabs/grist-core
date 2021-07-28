@@ -4,11 +4,14 @@ import * as _ from "lodash";
 import {Placement} from "@popperjs/core";
 import {placements} from "@popperjs/core/lib/enums";
 import {sameDocumentUrlState} from "../models/gristUrlState";
+import {dom} from "grainjs";
+import {IconList, IconName} from "../ui2018/IconList";
+import {cssButtons, cssLinkBtn, cssLinkIcon} from "./ExampleCard";
 
 
 export async function startDocTour(docData: DocData, onFinishCB: () => void) {
   const docTour: IOnBoardingMsg[] = await makeDocTour(docData) || invalidDocTour;
-  (window as any)._gristDocTour = docTour;  // for easy testing
+  exposeDocTour(docTour);
   startOnBoarding(docTour, onFinishCB);
 }
 
@@ -32,7 +35,10 @@ async function makeDocTour(docData: DocData): Promise<IOnBoardingMsg[] | null> {
       return String(tableData.getValue(rowId, colId) || "");
     }
     const title = getValue("Title");
-    const body = getValue("Body");
+    let body: HTMLElement | string = getValue("Body");
+    const linkText = getValue("Link_Text");
+    const linkUrl = getValue("Link_URL");
+    const linkIcon = getValue("Link_Icon") as IconName;
     const locationValue = getValue("Location");
     let placement = getValue("Placement");
 
@@ -43,6 +49,27 @@ async function makeDocTour(docData: DocData): Promise<IOnBoardingMsg[] | null> {
     const urlState = sameDocumentUrlState(locationValue);
     if (!placements.includes(placement as Placement)) {
       placement = "auto";
+    }
+
+    let validLinkUrl = true;
+    try {
+      new URL(linkUrl);
+    } catch {
+      validLinkUrl = false;
+    }
+
+    if (validLinkUrl && linkText) {
+      body = dom(
+        'div',
+        dom('p', body),
+        dom('p',
+          cssButtons(cssLinkBtn(
+            IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
+            linkText,
+            {href: linkUrl, target: '_blank'},
+          ))
+        ),
+      );
     }
 
     return {
@@ -59,4 +86,16 @@ async function makeDocTour(docData: DocData): Promise<IOnBoardingMsg[] | null> {
     return null;
   }
   return result;
+}
+
+// for easy testing
+function exposeDocTour(docTour: IOnBoardingMsg[]) {
+  (window as any)._gristDocTour = () =>
+    docTour.map(msg => ({
+      ...msg,
+      body: typeof msg.body === "string" ? msg.body
+        : (msg.body as HTMLElement)?.outerHTML
+          .replace(/_grain\d+_/g, "_grainXXX_"),
+      urlState: msg.urlState?.hash
+    }));
 }

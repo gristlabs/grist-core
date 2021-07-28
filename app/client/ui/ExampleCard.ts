@@ -143,17 +143,17 @@ const cssInfo = styled('div', `
   line-height: 1.6;
 `);
 
-const cssButtons = styled('div', `
+export const cssButtons = styled('div', `
   display: flex;
 `);
 
-const cssLinkBtn = styled(cssLink, `
+export const cssLinkBtn = styled(cssLink, `
   &:not(:last-child) {
     margin-right: 32px;
   }
 `);
 
-const cssLinkIcon = styled(icon, `
+export const cssLinkIcon = styled(icon, `
   margin-right: 8px;
   margin-top: -2px;
 `);
