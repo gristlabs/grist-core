@@ -85,6 +85,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel) {
   owner.autoDispose(subscribe(pageModel.currentPage, pageModel.currentWS, (use, page, ws) => {
     const name = (
       page === 'trash' ? 'Trash' :
+      page === 'templates' ? 'Examples & Templates' :
       ws ? ws.name : appModel.currentOrgName
     );
     document.title = `${name} - Grist`;

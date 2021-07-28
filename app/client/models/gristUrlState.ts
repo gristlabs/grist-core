@@ -37,9 +37,23 @@ export function urlState(): UrlState<IGristUrlState> {
 }
 let _urlState: UrlState<IGristUrlState>|undefined;
 
-// Returns url parameters appropriate for the specified document, specifically `doc` and `slug`.
-export function docUrl(doc: Document): IGristUrlState {
-  return {doc: doc.urlId || doc.id, slug: getSlugIfNeeded(doc)};
+/**
+ * Returns url parameters appropriate for the specified document.
+ *
+ * In addition to setting `doc` and `slug`, it sets additional parameters
+ * from `params` if any are supplied.
+ */
+export function docUrl(doc: Document, params: {org?: string} = {}): IGristUrlState {
+  const state: IGristUrlState = {
+    doc: doc.urlId || doc.id,
+    slug: getSlugIfNeeded(doc),
+  };
+
+  // TODO: Get non-sample documents with `org` set to fully work (a few tests fail).
+  if (params.org) {
+    state.org = params.org;
+  }
+  return state;
 }
 
 // Returns the home page for the current org.

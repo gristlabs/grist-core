@@ -1078,16 +1078,20 @@ export function openRowMenu(rowNum: number) {
  * either the `Copy As Template` or `Save Copy` (when on a forked document) button. Accept optional
  * `destName` and `destWorkspace` to change the default destination.
  */
-export async function completeCopy(destName?: string, destWorkspace?: string) {
+export async function completeCopy(options: {destName?: string, destWorkspace?: string, destOrg?: string} = {}) {
   await driver.findWait('.test-modal-dialog', 1000);
-  if (destName !== undefined) {
+  if (options.destName !== undefined) {
     const nameElem = await driver.find('.test-copy-dest-name').doClick();
     await setValue(nameElem, '');
-    await nameElem.sendKeys(destName);
+    await nameElem.sendKeys(options.destName);
   }
-  if (destWorkspace !== undefined) {
-    await driver.find('.test-copy-dest-workspace .test-select-open').click();
-    await driver.findContent('.test-select-menu li', destWorkspace).click();
+  if (options.destOrg !== undefined) {
+    await driver.find('.test-copy-dest-org .test-select-open').click();
+    await driver.findContent('.test-select-menu li', options.destOrg).click();
+  }
+  if (options.destWorkspace !== undefined) {
+    await driver.findWait('.test-copy-dest-workspace .test-select-open', 1000).click();
+    await driver.findContent('.test-select-menu li', options.destWorkspace).click();
   }
 
   // save the urlId
@@ -1130,6 +1134,8 @@ export async function wipeToasts(): Promise<void> {
 /**
  * Call this at suite level, to share the "Examples & Templates" workspace in before() and restore
  * it in after().
+ *
+ * TODO: Should remove once support workspaces are removed from backend.
  */
 export function shareSupportWorkspaceForSuite() {
   let api: UserAPIImpl|undefined;
@@ -1146,6 +1152,7 @@ export function shareSupportWorkspaceForSuite() {
       'everyone@getgrist.com': 'viewers',
       'anon@getgrist.com': 'viewers',
     }});
+    await server.removeLogin();
   });
 
   after(async function() {
@@ -1498,6 +1505,97 @@ export function bigScreen() {
   });
   after(async function () {
     await driver.manage().window().setRect(oldRect);
+  });
+}
+
+/**
+ * Adds samples to the Examples & Templates page.
+ */
+async function addSamples() {
+  const homeApi = createHomeApi('support', 'docs');
+
+  // Create the Grist Templates org.
+  await homeApi.newOrg({name: 'Grist Templates', domain: 'templates'});
+
+  // Add 2 template workspaces.
+  const templatesApi = createHomeApi('support', 'templates');
+  await templatesApi.newWorkspace({name: 'CRM'}, 'current');
+  await templatesApi.newWorkspace({name: 'Other'}, 'current');
+
+  // Add a featured template to the CRM workspace.
+  const exampleDocId = (await importFixturesDoc('support', 'templates', 'CRM',
+    'video/Lightweight CRM.grist', {load: false, newName: 'Lightweight CRM.grist'})).id;
+  await templatesApi.updateDoc(
+    exampleDocId,
+    {
+      isPinned: true,
+      options: {
+        description: 'CRM template and example for linking data, and creating productive layouts.',
+        icon: 'https://grist-static.com/icons/lightweight-crm.png',
+        openMode: 'fork'
+      },
+      urlId: 'lightweight-crm'
+    }
+  );
+
+  // Add additional templates to the Other workspace.
+  const investmentDocId = (await importFixturesDoc('support', 'templates', 'Other',
+  'Investment Research.grist', {load: false, newName: 'Investment Research.grist'})).id;
+  await templatesApi.updateDoc(
+    investmentDocId,
+    {
+      isPinned: true,
+      options: {
+        description: 'Example for analyzing and visualizing with summary tables and linked charts.',
+        icon: 'https://grist-static.com/icons/data-visualization.png',
+        openMode: 'fork'
+      },
+      urlId: 'investment-research'
+    },
+  );
+  const afterschoolDocId = (await importFixturesDoc('support', 'templates', 'Other',
+  'video/Afterschool Program.grist', {load: false, newName: 'Afterschool Program.grist'})).id;
+  await templatesApi.updateDoc(
+    afterschoolDocId,
+    {
+      isPinned: true,
+      options: {
+        description: 'Example for how to model business data, use formulas, and manage complexity.',
+        icon: 'https://grist-static.com/icons/business-management.png',
+        openMode: 'fork'
+      },
+      urlId: 'afterschool-program'
+    },
+  );
+
+  for (const id of [exampleDocId, investmentDocId, afterschoolDocId]) {
+    await homeApi.updateDocPermissions(id, {users: {
+      'everyone@getgrist.com': 'viewers',
+      'anon@getgrist.com': 'viewers',
+    }});
+  }
+}
+
+/**
+ * Removes the Grist Templates org.
+ */
+function removeTemplatesOrg() {
+  const homeApi = createHomeApi('support', 'docs');
+  return homeApi.deleteOrg('templates');
+}
+
+/**
+ * Call this at suite level to add sample documents to the
+ * "Examples & Templates" page in before(), and remove added samples
+ * in after().
+ */
+export function addSamplesForSuite() {
+  before(async function() {
+    await addSamples();
+  });
+
+  after(async function() {
+    await removeTemplatesOrg();
   });
 }
 

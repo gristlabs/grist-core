@@ -203,7 +203,8 @@ export function setupRequirement(options: TestSuiteOptions) {
   const cleanup = setupCleanup();
   if (options.samples) {
     if (!server.isExternalServer()) {
-      gu.shareSupportWorkspaceForSuite();
+      gu.shareSupportWorkspaceForSuite(); // TODO: Remove after the support workspace is removed from the backend.
+      gu.addSamplesForSuite();
     }
   }
 
@@ -213,29 +214,6 @@ export function setupRequirement(options: TestSuiteOptions) {
       // Non-dev servers should already meet the requirements; in any case we should not
       // fiddle with them here.
       return;
-    }
-
-    // Optionally ensure that at least one example document is present.
-    if (options.samples) {
-      const homeApi = gu.createHomeApi('support', 'docs');
-      const wss = await homeApi.getOrgWorkspaces('current');
-      const exampleWs = wss.find(ws => ws.name === 'Examples & Templates');
-      if (!exampleWs) {
-        throw new Error('missing example workspace');
-      }
-      // Only add the example if one isn't already there.
-      if (!exampleWs.docs.some((doc) => (doc.name === 'My Lightweight CRM'))) {
-
-        const exampleDocId = (await gu.importFixturesDoc('support', 'docs', 'Examples & Templates',
-          'video/Lightweight CRM.grist', {load: false, newName: 'My Lightweight CRM.grist'})).id;
-
-        // Remove it after the suite.
-        cleanup.addAfterAll(() => homeApi.deleteDoc(exampleDocId));
-      }
-      await homeApi.updateWorkspacePermissions(exampleWs.id, {users: {
-        'everyone@getgrist.com': 'viewers',
-        'anon@getgrist.com': 'viewers',
-      }});
     }
 
     // Optionally ensure that a team site is available for tests.

@@ -9,7 +9,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import * as css from 'app/client/ui/DocMenuCss';
-import {buildExampleList, buildExampleListBody, buildHomeIntro} from 'app/client/ui/HomeIntro';
+import {buildHomeIntro} from 'app/client/ui/HomeIntro';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
@@ -25,6 +25,9 @@ import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
 import {Computed, computed, dom, DomContents, makeTestId, Observable, observable} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
+import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {bigBasicButton} from 'app/client/ui2018/buttons';
 
 const testId = makeTestId('test-dm-');
 
@@ -56,17 +59,28 @@ function createLoadedDocMenu(home: HomeModel) {
       ([page, workspace, showIntro]) => {
         const viewSettings: ViewSettings =
           page === 'trash' ? makeLocalViewSettings(home, 'trash') :
+          page === 'templates' ? makeLocalViewSettings(home, 'templates') :
           workspace ? makeLocalViewSettings(home, workspace.id) :
           home;
 
         return [
-          // Hide the sort option when only showing examples, since we keep them in a specific order.
-          buildPrefs(viewSettings, {hideSort: Boolean(showIntro || workspace?.isSupportWorkspace)}),
+          // Hide the sort option only when showing intro.
+          buildPrefs(viewSettings, {hideSort: showIntro}),
 
           // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded or
           dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
             css.docListHeader(css.docHeaderIconDark('PinBig'), 'Pinned Documents'),
-            createPinnedDocs(home),
+            createPinnedDocs(home, home.currentWSPinnedDocs),
+          ]),
+
+          // Build the featured templates dom if on the Examples & Templates page.
+          dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
+            css.featuredTemplatesHeader(
+              css.featuredTemplatesIcon('Idea'),
+              'Featured',
+              testId('featured-templates-header')
+            ),
+            createPinnedDocs(home, home.featuredTemplates, true),
           ]),
 
           dom.maybe(home.available, () => [
@@ -75,6 +89,10 @@ function createLoadedDocMenu(home: HomeModel) {
               css.docListHeader(
                 (
                   page === 'all' ? 'All Documents' :
+                  page === 'templates' ?
+                    dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
+                      hasFeaturedTemplates ? 'More Examples & Templates' : 'Examples & Templates'
+                  ) :
                   page === 'trash' ? 'Trash' :
                   workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
                 ),
@@ -86,6 +104,7 @@ function createLoadedDocMenu(home: HomeModel) {
                 dom('div',
                   showIntro ? buildHomeIntro(home) : null,
                   buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
+                  shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
                 ) :
               (page === 'trash') ?
                 dom('div',
@@ -95,14 +114,16 @@ function createLoadedDocMenu(home: HomeModel) {
                   ),
                   buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
                 ) :
-              workspace ?
-              (workspace.isSupportWorkspace ?
-                buildExampleListBody(home, workspace, viewSettings) :
-                css.docBlock(
-                  buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
-                  testId('doc-block')
-                )
-              ) : css.docBlock('Workspace not found')
+              (page === 'templates') ?
+                dom('div',
+                  buildAllTemplates(home, home.templateWorkspaces, viewSettings)
+                ) :
+                workspace && !workspace.isSupportWorkspace ?
+                  css.docBlock(
+                    buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
+                    testId('doc-block')
+                  ) :
+                  css.docBlock('Workspace not found')
             )
           ]),
         ];
@@ -115,44 +136,99 @@ function buildAllDocsBlock(
   home: HomeModel, workspaces: Observable<Workspace[]>,
   showIntro: boolean, flashDocId: Observable<string|null>, viewSettings: ViewSettings,
 ) {
-  const org = home.app.currentOrg;
   return dom.forEach(workspaces, (ws) => {
-    const isPersonalOrg = Boolean(org && org.owner);
-    if (ws.isSupportWorkspace) {
-      // Show the example docs in the "All Documents" list for all personal orgs
-      // and for non-personal orgs when showing intro.
-      if (!isPersonalOrg && !showIntro) { return null; }
-      return buildExampleList(home, ws, viewSettings);
-    } else {
-      // Show docs in regular workspaces. For empty orgs, we show the intro and skip
-      // the empty workspace headers. Workspaces are still listed in the left panel.
-      if (showIntro) { return null; }
-      return css.docBlock(
-        css.docBlockHeaderLink(
-          css.wsLeft(
-            css.docHeaderIcon('Folder'),
-            workspaceName(home.app, ws),
-          ),
-
-          (ws.removedAt ?
-            [
-              css.docRowUpdatedAt(`Deleted ${getTimeFromNow(ws.removedAt)}`),
-              css.docMenuTrigger(icon('Dots')),
-              menu(() => makeRemovedWsOptionsMenu(home, ws),
-                {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),
-            ] :
-            urlState().setLinkUrl({ws: ws.id})
-          ),
-
-          dom.hide((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
-            use(home.singleWorkspace))),
-
-          testId('ws-header'),
+    // Don't show the support workspace -- examples/templates are now retrieved from a special org.
+    // TODO: Remove once support workspaces are removed from the backend.
+    if (ws.isSupportWorkspace) { return null; }
+    // Show docs in regular workspaces. For empty orgs, we show the intro and skip
+    // the empty workspace headers. Workspaces are still listed in the left panel.
+    if (showIntro) { return null; }
+    return css.docBlock(
+      css.docBlockHeaderLink(
+        css.wsLeft(
+          css.docHeaderIcon('Folder'),
+          workspaceName(home.app, ws),
         ),
-        buildWorkspaceDocBlock(home, ws, flashDocId, viewSettings),
-        testId('doc-block')
-      );
-    }
+
+        (ws.removedAt ?
+          [
+            css.docRowUpdatedAt(`Deleted ${getTimeFromNow(ws.removedAt)}`),
+            css.docMenuTrigger(icon('Dots')),
+            menu(() => makeRemovedWsOptionsMenu(home, ws),
+              {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),
+          ] :
+          urlState().setLinkUrl({ws: ws.id})
+        ),
+
+        dom.hide((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
+          use(home.singleWorkspace))),
+
+        testId('ws-header'),
+      ),
+      buildWorkspaceDocBlock(home, ws, flashDocId, viewSettings),
+      testId('doc-block')
+    );
+  });
+}
+
+/**
+ * Builds the collapsible examples and templates section at the bottom of
+ * the All Documents page.
+ *
+ * If there are no featured templates, builds nothing.
+ */
+function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
+  return dom.domComputed(home.featuredTemplates, templates => {
+    if (templates.length === 0) { return null; }
+
+    const hideTemplatesObs = localStorageBoolObs('hide-examples');
+    return css.templatesDocBlock(
+      dom.autoDispose(hideTemplatesObs),
+      css.templatesHeader(
+        'Examples & Templates',
+        dom.domComputed(hideTemplatesObs, (collapsed) =>
+          collapsed ? css.templatesHeaderIcon('Expand') : css.templatesHeaderIcon('Collapse')
+        ),
+        dom.on('click', () => hideTemplatesObs.set(!hideTemplatesObs.get())),
+        testId('all-docs-templates-header'),
+      ),
+      dom.maybe((use) => !use(hideTemplatesObs), () => [
+        buildTemplateDocs(home, templates, viewSettings),
+        bigBasicButton(
+          'Discover More Templates',
+          urlState().setLinkUrl({homePage: 'templates'}),
+          testId('all-docs-templates-discover-more'),
+        )
+      ]),
+      css.docBlock.cls((use) => '-' + use(home.currentView)),
+      testId('all-docs-templates'),
+    );
+  });
+}
+
+/**
+ * Builds all templates.
+ *
+ * Templates are grouped by workspace, with each workspace representing a category of
+ * templates. Categories are rendered as collapsible menus, and the contained templates
+ * can be viewed in both icon and list view.
+ *
+ * Used on the Examples & Templates below the featured templates.
+ */
+function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Workspace[]>, viewSettings: ViewSettings) {
+  return dom.forEach(templateWorkspaces, workspace => {
+    return css.templatesDocBlock(
+      css.templateBlockHeader(
+        css.wsLeft(
+          css.docHeaderIcon('Folder'),
+          workspace.name,
+        ),
+        testId('templates-header'),
+      ),
+      buildTemplateDocs(home, workspace.docs, viewSettings),
+      css.docBlock.cls((use) => '-' + use(viewSettings.currentView)),
+      testId('templates'),
+    );
   });
 }
 
@@ -429,4 +505,14 @@ function scrollIntoViewIfNeeded(target: Element) {
   if (rect.top < 0) {
     target.scrollIntoView(true);
   }
+}
+
+/**
+ * Returns true if templates should be shown in All Documents.
+ */
+function shouldShowTemplates(home: HomeModel, showIntro: boolean): boolean {
+  const org = home.app.currentOrg;
+  const isPersonalOrg = Boolean(org && org.owner);
+  // Show templates for all personal orgs, and for non-personal orgs when showing intro.
+  return isPersonalOrg || showIntro;
 }

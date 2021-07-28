@@ -49,12 +49,16 @@ export interface HomeModel {
   showIntro: Observable<boolean>;               // set if no docs and we should show intro.
   singleWorkspace: Observable<boolean>;         // set if workspace name should be hidden.
   trashWorkspaces: Observable<Workspace[]>;     // only set when viewing trash
+  templateWorkspaces: Observable<Workspace[]>;  // Only set when viewing templates or all documents.
 
   // currentWS is undefined when currentPage is not "workspace" or if currentWSId doesn't exist.
   currentWS: Observable<Workspace|undefined>;
 
   // List of pinned docs to show for currentWS.
   currentWSPinnedDocs: Observable<Document[]>;
+
+  // List of featured templates from templateWorkspaces.
+  featuredTemplates: Observable<Document[]>;
 
   currentSort: Observable<SortPref>;
   currentView: Observable<ViewPref>;
@@ -91,6 +95,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly available = Observable.create(this, false);
   public readonly singleWorkspace = Observable.create(this, true);
   public readonly trashWorkspaces = Observable.create<Workspace[]>(this, []);
+  public readonly templateWorkspaces = Observable.create<Workspace[]>(this, []);
 
   // Get the workspace details for the workspace with id of currentWSId.
   public readonly currentWS = Computed.create(this, (use) =>
@@ -103,6 +108,11 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     return sortBy(docs.filter(doc => doc.isPinned), (doc) => doc.name.toLowerCase());
   });
 
+  public readonly featuredTemplates = Computed.create(this, this.templateWorkspaces, (_use, templates) => {
+    const featuredTemplates = flatten((templates).map(t => t.docs)).filter(t => t.isPinned);
+    return sortBy(featuredTemplates, (t) => t.name.toLowerCase());
+  });
+
   public readonly currentSort: Observable<SortPref>;
   public readonly currentView: Observable<ViewPref>;
 
@@ -111,7 +121,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly newDocWorkspace = Computed.create(this, this.currentPage, this.currentWS, (use, page, ws) => {
     // Anonymous user can create docs, but in unsaved mode.
     if (!this.app.currentValidUser) { return "unsaved"; }
-    if (page === 'trash') { return null; }
+    if (['templates', 'trash'].includes(page)) { return null; }
     const destWS = (page === 'all') ? (use(this.workspaces)[0] || null) : ws;
     return destWS && roles.canEdit(destWS.access) ? destWS : null;
   });
@@ -222,48 +232,59 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   // Fetches and updates workspaces, which include contained docs as well.
   private async _updateWorkspaces() {
     const org = this._app.currentOrg;
-    if (org) {
-      this.loading.set(true);
-      const promises = Promise.all([
-        this._fetchWorkspaces(org.id, false).catch(reportError),
-        (this.currentPage.get() === 'trash') ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
-      ]);
-      if (await isLongerThan(promises, DELAY_BEFORE_SPINNER_MS)) {
-        this.loading.set("slow");
-      }
-      const [wss, trashWss] = await promises;
-
-      // bundleChanges defers computeds' evaluations until all changes have been applied.
-      bundleChanges(() => {
-        this.workspaces.set(wss || []);
-        this.trashWorkspaces.set(trashWss || []);
-        this.loading.set(false);
-        this.available.set(!!wss);
-        // Hide workspace name if we are showing a single workspace, and active product
-        // doesn't allow adding workspaces.  It is important to check both conditions because
-        //   * A personal org, where workspaces can't be added, can still have multiple
-        //     workspaces via documents shared by other users.
-        //   * An org with workspace support might happen to just have one workspace right
-        //     now, but it is good to show names to highlight the possibility of adding more.
-        this.singleWorkspace.set(!!wss && wss.length === 1 && _isSingleWorkspaceMode(this._app));
-      });
-    } else {
+    if (!org) {
       this.workspaces.set([]);
       this.trashWorkspaces.set([]);
+      this.templateWorkspaces.set([]);
+      return;
     }
+
+    this.loading.set(true);
+    const currentPage = this.currentPage.get();
+    const promises = [
+      this._fetchWorkspaces(org.id, false).catch(reportError),                                 // workspaces
+      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null, // trash
+      null                                                                                     // templates
+    ];
+
+    const shouldFetchTemplates = ['all', 'templates'].includes(currentPage);
+    if (shouldFetchTemplates) {
+      const onlyFeatured = currentPage === 'all';
+      promises[2] = this._fetchTemplates(onlyFeatured);
+    }
+
+    const promise = Promise.all(promises);
+    if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
+      this.loading.set("slow");
+    }
+    const [wss, trashWss, templateWss] = await promise;
+
+    // bundleChanges defers computeds' evaluations until all changes have been applied.
+    bundleChanges(() => {
+      this.workspaces.set(wss || []);
+      this.trashWorkspaces.set(trashWss || []);
+      this.templateWorkspaces.set(templateWss || []);
+      this.loading.set(false);
+      this.available.set(!!wss);
+      // Hide workspace name if we are showing a single (non-support) workspace, and active
+      // product doesn't allow adding workspaces.  It is important to check both conditions because:
+      //   * A personal org, where workspaces can't be added, can still have multiple
+      //     workspaces via documents shared by other users.
+      //   * An org with workspace support might happen to just have one workspace right
+      //     now, but it is good to show names to highlight the possibility of adding more.
+      const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
+      this.singleWorkspace.set(
+        !!nonSupportWss && nonSupportWss.length === 1 && _isSingleWorkspaceMode(this._app)
+      );
+    });
   }
 
   private async _fetchWorkspaces(orgId: number, forRemoved: boolean) {
-    let wss: Workspace[] = [];
-    try {
-      if (forRemoved) {
-        wss = await this._app.api.forRemoved().getOrgWorkspaces(orgId);
-      } else {
-        wss = await this._app.api.getOrgWorkspaces(orgId);
-      }
-    } catch (e) {
-      return null;
+    let api = this._app.api;
+    if (forRemoved) {
+        api = api.forRemoved();
     }
+    const wss = await api.getOrgWorkspaces(orgId);
     if (this.isDisposed()) { return null; }
     for (const ws of wss) {
       ws.docs = sortBy(ws.docs, (doc) => doc.name.toLowerCase());
@@ -273,6 +294,13 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
         for (const doc of ws.docs) {
           doc.removedAt = doc.removedAt || ws.removedAt;
         }
+      }
+
+      // Populate doc.workspace, which is used by DocMenu/PinnedDocs and
+      // is useful in cases where there are multiple workspaces containing
+      // pinned documents that need to be sorted in alphabetical order.
+      for (const doc of ws.docs) {
+        doc.workspace = doc.workspace ?? ws;
       }
     }
     // Sort workspaces such that workspaces from the personal orgs of others
@@ -284,6 +312,27 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     return sortBy(wss, (ws) => [ws.isSupportWorkspace,
                                 ownerName(this._app, ws).toLowerCase(),
                                 ws.name.toLowerCase()]);
+  }
+
+  private async _fetchTemplates(onlyFeatured: boolean) {
+    let templateWss: Workspace[] = [];
+    try {
+      templateWss = await this._app.api.getTemplates(onlyFeatured);
+    } catch {
+      // If the org doesn't exist (404), return nothing and don't report error to user.
+      return null;
+    }
+    if (this.isDisposed()) { return null; }
+    for (const ws of templateWss) {
+      for (const doc of ws.docs) {
+        // Populate doc.workspace, which is used by DocMenu/PinnedDocs and
+        // is useful in cases where there are multiple workspaces containing
+        // pinned documents that need to be sorted in alphabetical order.
+        doc.workspace = doc.workspace ?? ws;
+      }
+      ws.docs = sortBy(ws.docs, (doc) => doc.name.toLowerCase());
+    }
+    return templateWss;
   }
 
   private async _saveUserOrgPref<K extends keyof UserOrgPrefs>(key: K, value: UserOrgPrefs[K]) {
@@ -315,7 +364,7 @@ function getViewPrefDefault(workspaces: Workspace[]): ViewPref {
  * Create observables for per-workspace view settings which default to org-wide settings, but can
  * be changed independently and persisted in localStorage.
  */
-export function makeLocalViewSettings(home: HomeModel|null, wsId: number|'trash'|'all'): ViewSettings {
+export function makeLocalViewSettings(home: HomeModel|null, wsId: number|'trash'|'all'|'templates'): ViewSettings {
   const userId = home?.app.currentUser?.id || 0;
   const sort = localStorageObs(`u=${userId}:ws=${wsId}:sort`);
   const view = localStorageObs(`u=${userId}:ws=${wsId}:view`);

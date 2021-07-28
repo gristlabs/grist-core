@@ -114,6 +114,7 @@ export interface Scope {
   users?: AvailableUsers;        // Set if available identities.
   includeSupport?: boolean;      // When set, include sample resources shared by support to scope.
   showRemoved?: boolean;         // When set, query is scoped to removed workspaces/docs.
+  showOnlyPinned?: boolean;      // When set, query is scoped only to pinned docs.
   showAll?: boolean;             // When set, return both removed and regular resources.
   specialPermit?: Permit;        // When set, extra rights are granted on a specific resource.
 }
@@ -764,49 +765,16 @@ export class HomeDBManager extends EventEmitter {
    */
   public async getOrgWorkspaces(scope: Scope, orgKey: string|number,
                                 options: QueryOptions = {}): Promise<QueryResult<Workspace[]>> {
-    const {userId} = scope;
-    const supportId = this._specialUserIds[SUPPORT_EMAIL];
-    let queryBuilder = this.org(scope, orgKey, options)
-      .leftJoinAndSelect('orgs.workspaces', 'workspaces')
-      .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
-      .leftJoin('orgs.billingAccount', 'account')
-      .leftJoin('account.product', 'product')
-      .addSelect('product.features')
-      .addSelect('product.id')
-      .addSelect('account.id')
-      // order the support org (aka Samples/Examples) after other ones.
-      .orderBy('coalesce(orgs.owner_id = :supportId, false)')
-      .setParameter('supportId', supportId)
-      .addOrderBy('(orgs.owner_id = :userId)', 'DESC')
-      .setParameter('userId', userId)
-      // For consistency of results, particularly in tests, order workspaces by name.
-      .addOrderBy('workspaces.name')
-      .addOrderBy('docs.created_at')
-      .leftJoinAndSelect('orgs.owner', 'org_users');
-    // If merged org, we need to take some special steps.
-    if (this.isMergedOrg(orgKey)) {
-      // Add information about owners of personal orgs.
-      queryBuilder = queryBuilder
-        .leftJoinAndSelect('org_users.logins', 'org_logins');
-      // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
-      queryBuilder = this._filterByOrgGroups(queryBuilder, userId);
-      // The anonymous user is a special case; include only examples from support user.
-      if (userId === this.getAnonymousUserId()) {
-        queryBuilder = queryBuilder.andWhere('orgs.owner_id = :supportId', { supportId });
-      }
-    }
-    queryBuilder = this._addIsSupportWorkspace(userId, queryBuilder, 'orgs', 'workspaces');
-    // Add access information and query limits
-    // TODO: allow generic org limit once sample/support workspace is done differently
-    queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs'], 'list');
-
-    const result = await this._verifyAclPermissions(queryBuilder, { scope });
+    const query = this._orgWorkspaces(scope, orgKey, options);
+    const result = await this._verifyAclPermissions(query, { scope });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.
       for (const o of result.data) {
         for (const ws of o.workspaces) {
           ws.owner = o.owner;
+          // Include the org's domain so that the UI can build doc URLs that include the org.
+          ws.orgDomain = o.domain;
         }
       }
       // For org-specific requests, we still have the org's workspaces, plus the Samples workspace
@@ -815,7 +783,6 @@ export class HomeDBManager extends EventEmitter {
     }
     return result;
   }
-
 
   /**
    * Returns a QueryResult for the workspace with the given workspace id. The workspace
@@ -2410,6 +2377,51 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * Construct a QueryBuilder for a select query on a specific org's workspaces given by orgId.
+   * Provides options for running in a transaction and adding permission info.
+   * See QueryOptions documentation above.
+   */
+  private _orgWorkspaces(scope: Scope, org: string|number|null,
+                         options: QueryOptions = {}): SelectQueryBuilder<Organization> {
+    const {userId} = scope;
+    const supportId = this._specialUserIds[SUPPORT_EMAIL];
+    let query = this.org(scope, org, options)
+      .leftJoinAndSelect('orgs.workspaces', 'workspaces')
+      .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
+      .leftJoin('orgs.billingAccount', 'account')
+      .leftJoin('account.product', 'product')
+      .addSelect('product.features')
+      .addSelect('product.id')
+      .addSelect('account.id')
+      // order the support org (aka Samples/Examples) after other ones.
+      .orderBy('coalesce(orgs.owner_id = :supportId, false)')
+      .setParameter('supportId', supportId)
+      .addOrderBy('(orgs.owner_id = :userId)', 'DESC')
+      .setParameter('userId', userId)
+      // For consistency of results, particularly in tests, order workspaces by name.
+      .addOrderBy('workspaces.name')
+      .addOrderBy('docs.created_at')
+      .leftJoinAndSelect('orgs.owner', 'org_users');
+
+    // If merged org, we need to take some special steps.
+    if (this.isMergedOrg(org)) {
+      // Add information about owners of personal orgs.
+      query = query.leftJoinAndSelect('org_users.logins', 'org_logins');
+      // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
+      query = this._filterByOrgGroups(query, userId);
+      // The anonymous user is a special case; include only examples from support user.
+      if (userId === this.getAnonymousUserId()) {
+        query = query.andWhere('orgs.owner_id = :supportId', { supportId });
+      }
+    }
+    query = this._addIsSupportWorkspace(userId, query, 'orgs', 'workspaces');
+    // Add access information and query limits
+    // TODO: allow generic org limit once sample/support workspace is done differently
+    query = this._applyLimit(query, {...scope, org: undefined}, ['orgs', 'workspaces', 'docs'], 'list');
+    return query;
+    }
+
+  /**
    * Check if urlId is already in use in the given org, and throw an error if so.
    * If the org is a personal org, we check for use of the urlId in any personal org.
    * If docId is set, we permit the urlId to be in use by that doc.
@@ -2924,6 +2936,8 @@ export class HomeDBManager extends EventEmitter {
     const onDefault = 'docs.workspace_id = workspaces.id';
     if (scope.showAll) {
       return onDefault;
+    } else if (scope.showOnlyPinned) {
+      return `${onDefault} AND docs.is_pinned = TRUE AND (workspaces.removed_at IS NULL AND docs.removed_at IS NULL)`;
     } else if (scope.showRemoved) {
       return `${onDefault} AND (workspaces.removed_at IS NOT NULL OR docs.removed_at IS NOT NULL)`;
     } else {

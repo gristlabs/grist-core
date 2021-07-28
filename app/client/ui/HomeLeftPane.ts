@@ -19,13 +19,10 @@ import {computed, dom, DomElementArg, Observable, observable, styled} from 'grai
 export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: HomeModel) {
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
-  const samplesWorkspace = computed<Workspace|undefined>((use) =>
-    use(home.workspaces).find((ws) => Boolean(ws.isSupportWorkspace)));
 
   return cssContent(
     dom.autoDispose(creating),
     dom.autoDispose(renaming),
-    dom.autoDispose(samplesWorkspace),
     addNewButton(leftPanelOpen,
       menu(() => addMenu(home, creating), {
         placement: 'bottom-start',
@@ -96,13 +93,11 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         )
       )),
       cssTools(
-        dom.maybe(samplesWorkspace, (ws) =>
-          cssPageEntry(
-            cssPageEntry.cls('-selected', (use) => use(home.currentWSId) === ws.id),
-            cssPageLink(cssPageIcon('FieldTable'), cssLinkText(workspaceName(home.app, ws)),
-              urlState().setLinkUrl({ws: ws.id}),
-              testId('dm-samples-workspace'),
-            ),
+        cssPageEntry(
+          cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
+          cssPageLink(cssPageIcon('FieldTable'), cssLinkText("Examples & Templates"),
+            urlState().setLinkUrl({homePage: "templates"}),
+            testId('dm-templates-page'),
           ),
         ),
         cssPageEntry(

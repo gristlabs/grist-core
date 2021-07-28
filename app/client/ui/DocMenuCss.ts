@@ -31,6 +31,15 @@ export const docListHeader = styled('div', `
   font-weight: ${vars.headerControlTextWeight};
 `);
 
+export const templatesHeader = styled(docListHeader, `
+  cursor: pointer;
+`);
+
+export const featuredTemplatesHeader = styled(docListHeader, `
+  display: flex;
+  align-items: center;
+`);
+
 export const docBlock = styled('div', `
   max-width: 550px;
   min-width: 300px;
@@ -39,6 +48,10 @@ export const docBlock = styled('div', `
   &-icons {
     max-width: unset;
   }
+`);
+
+export const templatesDocBlock = styled(docBlock, `
+  margin-top: 32px;
 `);
 
 export const docHeaderIconDark = styled(icon, `
@@ -50,7 +63,18 @@ export const docHeaderIcon = styled(docHeaderIconDark, `
   --icon-color: ${colors.slate};
 `);
 
-export const docBlockHeaderLink = styled('a', `
+export const featuredTemplatesIcon = styled(icon, `
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+`);
+
+export const templatesHeaderIcon = styled(docHeaderIcon, `
+  width: 24px;
+  height: 24px;
+`);
+
+const docBlockHeader = `
   display: flex;
   align-items: center;
   height: 40px;
@@ -65,7 +89,11 @@ export const docBlockHeaderLink = styled('a', `
     outline: none;
     color: inherit;
   }
-`);
+`;
+
+export const docBlockHeaderLink = styled('a', docBlockHeader);
+
+export const templateBlockHeader = styled('div', docBlockHeader);
 
 export const wsLeft = styled('div', `
   flex: 1 0 50%;

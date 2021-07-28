@@ -28,7 +28,6 @@ import {Holder, Observable, subscribe} from 'grainjs';
 
 export interface DocInfo extends Document {
   isReadonly: boolean;
-  isSample: boolean;
   isPreFork: boolean;
   isFork: boolean;
   isRecoveryMode: boolean;
@@ -59,7 +58,6 @@ export interface DocPageModel {
   isRecoveryMode: Observable<boolean>;
   userOverride: Observable<UserOverride|null>;
   isBareFork: Observable<boolean>;
-  isSample: Observable<boolean>;
 
   importSources: ImportSource[];
 
@@ -98,7 +96,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
                                                    (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
-  public readonly isSample = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSample : false);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -123,7 +120,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;
-      const urlOpenMode = state.mode || 'default';
+      const urlOpenMode = state.mode;
       const linkParameters = state.params?.linkParameters;
       const docKey = this._getDocKey(state);
       if (docKey !== this._openerDocKey) {
@@ -226,7 +223,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     );
   }
 
-  private async _openDoc(flow: AsyncFlow, urlId: string, urlOpenMode: OpenDocMode,
+  private async _openDoc(flow: AsyncFlow, urlId: string, urlOpenMode: OpenDocMode | undefined,
                          comparisonUrlId: string | undefined,
                          linkParameters: Record<string, string> | undefined): Promise<void> {
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
@@ -326,11 +323,21 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   ];
 }
 
-function buildDocInfo(doc: Document, mode: OpenDocMode): DocInfo {
+function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const idParts = parseUrlId(doc.urlId || doc.id);
   const isFork = Boolean(idParts.forkId || idParts.snapshotId);
-  const isSample = !isFork && Boolean(doc.workspace.isSupportWorkspace);
-  const openMode = isSample ? 'fork' : mode;
+
+  let openMode = mode;
+  if (!openMode) {
+    if (isFork) {
+      // Ignore the document 'openMode' setting if the doc is an unsaved fork.
+      openMode = 'default';
+    } else {
+      // Try to use the document's 'openMode' if it's set.
+      openMode = doc.options?.openMode ?? 'default';
+    }
+  }
+
   const isPreFork = (openMode === 'fork');
   const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
   const isEditable = canEdit(doc.access) || isPreFork;
@@ -339,7 +346,6 @@ function buildDocInfo(doc: Document, mode: OpenDocMode): DocInfo {
     isFork,
     isRecoveryMode: false,  // we don't know yet, will learn when doc is opened.
     userOverride: null,     // ditto.
-    isSample,
     isPreFork,
     isBareFork,
     isReadonly: !isEditable,

@@ -1,13 +1,9 @@
-import {DomContents} from 'grainjs';
-
 export interface IExampleInfo {
   id: number;
-  matcher: RegExp;
+  urlId: string;
   title: string;
   imgUrl: string;
   tutorialUrl: string;
-  bgColor: string;
-  desc: () => DomContents;
   welcomeCard: WelcomeCard;
 }
 
@@ -19,12 +15,10 @@ interface WelcomeCard {
 
 export const examples: IExampleInfo[] = [{
   id: 1,    // Identifies the example in UserPrefs.seenExamples
-  matcher: /Lightweight CRM/,
+  urlId: 'lightweight-crm',
   title: 'Lightweight CRM',
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/lightweight-crm.png',
   tutorialUrl: 'https://support.getgrist.com/lightweight-crm/',
-  bgColor: '#FDEDD7',
-  desc: () => 'CRM template and example for linking data, and creating productive layouts.',
   welcomeCard: {
     title: 'Welcome to the Lightweight CRM template',
     text: 'Check out our related tutorial for how to link data, and create ' +
@@ -33,12 +27,10 @@ export const examples: IExampleInfo[] = [{
   },
 }, {
   id: 2,    // Identifies the example in UserPrefs.seenExamples
-  matcher: /Investment Research/,
+  urlId: 'investment-research',
   title: 'Investment Research',
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/data-visualization.png',
   tutorialUrl: 'https://support.getgrist.com/investment-research/',
-  bgColor: '#CEF2E4',
-  desc: () => 'Example for analyzing and visualizing with summary tables and linked charts.',
   welcomeCard: {
     title: 'Welcome to the Investment Research template',
     text: 'Check out our related tutorial to learn how to create summary tables and charts, ' +
@@ -47,12 +39,10 @@ export const examples: IExampleInfo[] = [{
   },
 }, {
   id: 3,    // Identifies the example in UserPrefs.seenExamples
-  matcher: /Afterschool Program/,
+  urlId: 'afterschool-program',
   title: 'Afterschool Program',
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/business-management.png',
   tutorialUrl: 'https://support.getgrist.com/afterschool-program/',
-  bgColor: '#D7E3F5',
-  desc: () => 'Example for how to model business data, use formulas, and manage complexity.',
   welcomeCard: {
     title: 'Welcome to the Afterschool Program template',
     text: 'Check out our related tutorial for how to model business data, use formulas, ' +

@@ -66,8 +66,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     ),
     cssSpacer(),
     dom.maybe(gristDoc.docPageModel.currentDoc, (doc) => {
-      if (!doc.workspace.isSupportWorkspace) { return null; }
-      const ex = examples.find((e) => e.matcher.test(doc.name));
+      const ex = examples.find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
         cssPageLink(cssPageIcon('Page'), cssLinkText('How-to Tutorial'), testId('tutorial'),

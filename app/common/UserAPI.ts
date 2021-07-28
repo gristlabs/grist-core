@@ -94,6 +94,7 @@ export interface Workspace extends WorkspaceProperties {
   id: number;
   docs: Document[];
   org: Organization;
+  orgDomain?: string;
   access: roles.Role;
   owner?: FullUser;  // Set when workspaces are in the "docs" pseudo-organization,
                      // assembled from multiple personal organizations.
@@ -270,6 +271,7 @@ export interface UserAPI {
   getWorkspace(workspaceId: number): Promise<Workspace>;
   getOrg(orgId: number|string): Promise<Organization>;
   getOrgWorkspaces(orgId: number|string): Promise<Workspace[]>;
+  getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
   getDoc(docId: string): Promise<Document>;
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
   newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number>;
@@ -400,6 +402,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async getOrgWorkspaces(orgId: number|string): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=1`,
       { method: 'GET' });
+  }
+
+  public async getTemplates(onlyFeatured: boolean = false): Promise<Workspace[]> {
+    return this.requestJson(`${this._url}/api/templates?onlyFeatured=${onlyFeatured ? 1 : 0}`, { method: 'GET' });
   }
 
   public async getDoc(docId: string): Promise<Document> {

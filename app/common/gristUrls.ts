@@ -11,7 +11,7 @@ export type IDocPage = number | 'new' | 'code' | 'acl';
 
 // What page to show in the user's home area. Defaults to 'workspace' if a workspace is set, and
 // to 'all' otherwise.
-export const HomePage = StringUnion('all', 'workspace', 'trash');
+export const HomePage = StringUnion('all', 'workspace', 'templates', 'trash');
 export type IHomePage = typeof HomePage.type;
 
 export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify');
@@ -174,8 +174,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     if (state.docPage) {
       parts.push(`/p/${state.docPage}`);
     }
-  } else {
-    if (state.homePage === 'trash') { parts.push('p/trash'); }
+  } else if (state.homePage === 'trash' || state.homePage === 'templates') {
+    parts.push(`p/${state.homePage}`);
   }
 
   if (state.billing) {

@@ -17,6 +17,11 @@ import {Request} from 'express';
 import {User} from './entity/User';
 import {HomeDBManager} from './lib/HomeDBManager';
 
+// Special public organization that contains examples and templates.
+const TEMPLATES_ORG_DOMAIN = process.env.GRIST_ID_PREFIX ?
+  `templates-${process.env.GRIST_ID_PREFIX}` :
+  'templates';
+
 // exposed for testing purposes
 export const Deps = {
   apiKeyGenerator: () => crypto.randomBytes(20).toString('hex')
@@ -219,6 +224,17 @@ export class ApiServer {
     this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
       const wsId = integerParam(req.params.wid);
       const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
+      return sendReply(req, res, query);
+    }));
+
+    // GET /api/templates/
+    // Get all templates (or only featured templates if `onlyFeatured` is set).
+    this._app.get('/api/templates/', expressWrap(async (req, res) => {
+      const onlyFeatured = isParameterOn(req.query.onlyFeatured);
+      const query = await this._dbManager.getOrgWorkspaces(
+        {...getScope(req), showOnlyPinned: onlyFeatured},
+        TEMPLATES_ORG_DOMAIN
+      );
       return sendReply(req, res, query);
     }));
 
