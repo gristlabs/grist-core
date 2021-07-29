@@ -224,7 +224,7 @@ export function setupRequirement(options: TestSuiteOptions) {
       if (deployment) { orgName = `${orgName}-${deployment}`; }
       let isNew: boolean = false;
       try {
-        await api.newOrg({name: orgName, domain: orgName});
+        await api.newOrg({name: 'Test Grist', domain: orgName});
         isNew = true;
       } catch (e) {
         // Assume the org already exists.

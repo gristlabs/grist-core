@@ -245,6 +245,7 @@ const cssPinnedDocDesc = styled(cssPinnedDocTimestamp, `
   margin: 8px 16px 16px 16px;
   color: ${colors.slate};
   height: 48px;
+  line-height: 16px;
   -webkit-box-orient: vertical;
   display: -webkit-box;
   -webkit-line-clamp: 3;

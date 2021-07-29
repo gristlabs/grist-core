@@ -1213,34 +1213,36 @@ export function translateUser(userName: TestUser): {email: string, name: string}
  */
 export class Session {
   // private constructor - access sessions via session() or Session.default
-  private constructor(public settings: { email: string, org: string,
-                                         name: string, workspace: string }) {
+  private constructor(public settings: { email: string, orgDomain: string,
+                                         orgName: string, name: string,
+                                         workspace: string }) {
   }
 
   // Get a session configured for the personal site of a default user.
   public static get default() {
     // Start with an empty session, then fill in the personal site (typically docs, or docs-s
     // in staging), and then fill in a default user (currently gristoid+chimpy@gmail.com).
-    return new Session({name: '', email: '', org: '', workspace: 'Home'}).personalSite.user();
+    return new Session({name: '', email: '', orgDomain: '', orgName: '', workspace: 'Home'}).personalSite.user();
   }
 
   // Return a session configured for the personal site of the current session's user.
   public get personalSite() {
-    return this.customTeamSite('docs');
+    const orgName = this.settings.name ? `@${this.settings.name}` : '';
+    return this.customTeamSite('docs', orgName);
   }
 
   // Return a session configured for a default team site and the current session's user.
   public get teamSite() {
-    return this.customTeamSite('test-grist');
+    return this.customTeamSite('test-grist', 'Test Grist');
   }
 
   // Return a session configured for a particular team site and the current session's user.
-  public customTeamSite(org: string = 'test-grist') {
+  public customTeamSite(orgDomain: string = 'test-grist', orgName = 'Test Grist') {
     const deployment = process.env.GRIST_ID_PREFIX;
     if (deployment) {
-      org = `${org}-${deployment}`;
+      orgDomain = `${orgDomain}-${deployment}`;
     }
-    return new Session({...this.settings, org});
+    return new Session({...this.settings, orgDomain, orgName});
   }
 
   // Return a session configured to create and import docs in the given workspace.
@@ -1250,7 +1252,7 @@ export class Session {
 
   // Wipe the current site.  The current user ends up being its only owner and manager.
   public async resetSite() {
-    return resetOrg(this.createHomeApi(), this.settings.org);
+    return resetOrg(this.createHomeApi(), this.settings.orgDomain);
   }
 
   // Return a session configured for the current session's site but a different user.
@@ -1279,7 +1281,7 @@ export class Session {
       await removeLogin();
       if (this.settings.email === 'anon@getgrist.com') { return this; }
     }
-    await server.simulateLogin(this.settings.name, this.settings.email, this.settings.org,
+    await server.simulateLogin(this.settings.name, this.settings.email, this.settings.orgDomain,
                                {isFirstLogin: false, cacheCredentials: true, ...options});
     return this;
   }
@@ -1299,9 +1301,9 @@ export class Session {
       // ok, we may not be in a page associated with a user.
     }
     return currentUser && currentUser.email === this.settings.email &&
-      currentOrg && (currentOrg.name === this.settings.org ||
+      currentOrg && (currentOrg.name === this.settings.orgName ||
                      // This is an imprecise check for personal sites, but adequate for tests.
-                     (currentOrg.owner && (this.settings.org.startsWith('docs'))));
+                     (currentOrg.owner && (this.settings.orgDomain.startsWith('docs'))));
   }
 
   // Load a document on a site.
@@ -1319,17 +1321,17 @@ export class Session {
   public async loadRelPath(relPath: string) {
     const part = relPath.match(/^\/o\/([^/]*)(\/.*)/);
     if (part) {
-      if (part[1] !== this.settings.org) {
-        throw new Error(`org mismatch: ${this.settings.org} vs ${part[1]}`);
+      if (part[1] !== this.settings.orgDomain) {
+        throw new Error(`org mismatch: ${this.settings.orgDomain} vs ${part[1]}`);
       }
       relPath = part[2];
     }
-    await driver.get(server.getUrl(this.settings.org, relPath));
+    await driver.get(server.getUrl(this.settings.orgDomain, relPath));
   }
 
   // Import a file into the current site + workspace.
   public async importFixturesDoc(fileName: string, options: ImportOpts = {load: true}) {
-    return importFixturesDoc(this.settings.name, this.settings.org, this.settings.workspace, fileName,
+    return importFixturesDoc(this.settings.name, this.settings.orgDomain, this.settings.workspace, fileName,
                              {email: this.settings.email, ...options});
   }
 
@@ -1362,8 +1364,8 @@ export class Session {
   }
 
   public async tempNewDoc(cleanup: Cleanup, docName: string, {load} = {load: true}) {
-    const docId = await createNewDoc(this.settings.name, this.settings.org, this.settings.workspace, docName,
-                                     {email: this.settings.email});
+    const docId = await createNewDoc(this.settings.name, this.settings.orgDomain, this.settings.workspace,
+                                     docName, {email: this.settings.email});
     if (load) {
       await this.loadDoc(`/doc/${docId}`);
     }
@@ -1389,9 +1391,9 @@ export class Session {
   // Get an appropriate home api object.
   public createHomeApi() {
     if (this.settings.email === 'anon@getgrist.com') {
-      return createHomeApi(null, this.settings.org);
+      return createHomeApi(null, this.settings.orgDomain);
     }
-    return createHomeApi(this.settings.name, this.settings.org, this.settings.email);
+    return createHomeApi(this.settings.name, this.settings.orgDomain, this.settings.email);
   }
 
   // Get the id of this user.
@@ -1404,7 +1406,8 @@ export class Session {
 
   public get email() { return this.settings.email; }
   public get name()  { return this.settings.name;  }
-  public get org()   { return this.settings.org; }
+  public get orgDomain()   { return this.settings.orgDomain; }
+  public get orgName()   { return this.settings.orgName; }
   public get workspace()   { return this.settings.workspace; }
 
   public async downloadDoc(fname: string, urlId?: string) {
