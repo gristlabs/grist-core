@@ -904,9 +904,10 @@ class DefaultObsRuleSet extends ObsRuleSet {
 function getSpecialRuleDescription(type: string): string {
   switch (type) {
     case 'AccessRules':
-      return 'Allow everyone to view Access Rules';
+      return 'Allow everyone to view Access Rules.';
     case 'FullCopies':
-      return 'Allow everyone to download and copy the full document even if they have incomplete access to it';
+      return 'Allow everyone to copy the entire document, or view it in full in fiddle mode.\n' +
+        'Useful for examples and templates, but not for sensitive data.';
     default: return type;
   }
 }
@@ -914,7 +915,7 @@ function getSpecialRuleDescription(type: string): string {
 function getSpecialRuleName(type: string): string {
   switch (type) {
     case 'AccessRules': return 'Permission to view Access Rules';
-    case 'FullCopies': return 'Permission to download and copy the document in full';
+    case 'FullCopies': return 'Permission to access the document in full when needed';
     default: return type;
   }
 }
@@ -934,6 +935,7 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
       dom.autoDispose(isExpanded),
       dom.autoDispose(allowEveryone),
       cssRuleDescription(
+        {style: 'white-space: pre-line;'},  // preserve line breaks in long descriptions
         cssIconButton(icon('Expand'),
           dom.style('transform', (use) => use(isExpanded) ? 'rotate(90deg)' : ''),
           dom.on('click', () => isExpanded.set(!isExpanded.get())),
