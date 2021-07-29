@@ -97,7 +97,13 @@ export async function makeCopy(doc: Document, app: AppModel, modalTitle: string)
     signupModal('To save your changes, please sign up, then reload this page.');
     return;
   }
-  const orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
+  let orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
+  if (orgs) {
+    // TODO: Need a more robust way to detect and exclude the templates org.
+    // Don't show the templates org since it's selected by default, and
+    // is not writable to.
+    orgs = orgs.filter(o => o.domain !== 'templates' && o.domain !== 'templates-s');
+  }
 
   // Show a dialog with a form to select destination.
   saveModal((ctl, owner) => {
@@ -122,7 +128,7 @@ class SaveCopyModal extends Disposable {
     (!name.trim() || !ws || !roles.canEdit(ws.access)));
 
   // Only show workspaces for team sites, since they are not a feature of personal orgs.
-  private _showWorkspaces = Computed.create(this, this._destOrg, (use, org) => (org && !org.owner));
+  private _showWorkspaces = Computed.create(this, this._destOrg, (use, org) => Boolean(org && !org.owner));
 
   // If orgs is non-null, then we show a selector for orgs.
   constructor(private _doc: Document, private _app: AppModel, private _orgs: Organization[]|null) {
@@ -134,7 +140,7 @@ class SaveCopyModal extends Disposable {
       // Set _destOrg to an Organization object from _orgs array; there should be one equivalent
       // to currentOrg, but we need the actual object for select() to recognize it as selected.
       const orgId = this._app.currentOrg.id;
-      this._destOrg.set(this._orgs.find((org) => org.id === orgId) || null);
+      this._destOrg.set(this._orgs.find((org) => org.id === orgId) || this._orgs[0]);
     }
     this.autoDispose(subscribe(this._destOrg, (use, org) => this._updateWorkspaces(org).catch(reportError)));
   }
