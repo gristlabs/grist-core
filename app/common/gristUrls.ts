@@ -7,7 +7,7 @@ import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
 
-export type IDocPage = number | 'new' | 'code' | 'acl';
+export type IDocPage = number | 'new' | 'code' | 'acl' | 'GristDocTour';
 
 // What page to show in the user's home area. Defaults to 'workspace' if a workspace is set, and
 // to 'all' otherwise.
@@ -329,8 +329,8 @@ export function userOverrideParams(email: string|null, extraState?: IGristUrlSta
  * parseDocPage is a noop if p is 'new' or 'code', otherwise parse to integer
  */
 function parseDocPage(p: string) {
-  if (['new', 'code', 'acl'].includes(p)) {
-    return p as 'new'|'code'|'acl';
+  if (['new', 'code', 'acl', 'GristDocTour'].includes(p)) {
+    return p as 'new'|'code'|'acl'|'GristDocTour';
   }
   return parseInt(p, 10);
 }

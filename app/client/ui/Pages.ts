@@ -69,7 +69,15 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     actions.isRemoveDisabled = () => (docModel.allTables.all().length <= 1);
   }
 
-  return buildPageDom(pageName, actions, urlState().setLinkUrl({docPage: viewId}));
+  const maybeHiddenPageName = Computed.create(activeDoc, (use) => {
+    const name = use(pageName);
+    if (name === 'GristDocTour' && !activeDoc.showDocTourTable) {
+      return '';
+    }
+    return name;
+  });
+
+  return buildPageDom(maybeHiddenPageName, actions, urlState().setLinkUrl({docPage: viewId}));
 }
 
 // Select another page in cyclic ordering of pages. Order is downard if given a positive `delta`,

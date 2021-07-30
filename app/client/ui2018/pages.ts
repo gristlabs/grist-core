@@ -5,7 +5,6 @@ import { colors } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
-import * as ko from "knockout";
 
 const testId = makeTestId('test-docpage-');
 
@@ -18,15 +17,12 @@ export interface PageActions {
   isReadonly: Observable<boolean>;
 }
 
-// to work with existing code we need to support both knockout and grainjs observable
-type NameType = Observable<string>|ko.Observable<string>;
-
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
 // but later we'll support user selected icon), the name and a dots menu containing a "Rename" and
 // "Remove" entries. Clicking "Rename" turns the page name into an editable input, which then call
 // the actions.onRename callback with the new name. Setting actions.onRemove to undefined disables
 // the item in the menu.
-export function buildPageDom(name: NameType, actions: PageActions, ...args: DomElementArg[]) {
+export function buildPageDom(name: Observable<string>, actions: PageActions, ...args: DomElementArg[]) {
 
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -59,7 +55,7 @@ export function buildPageDom(name: NameType, actions: PageActions, ...args: DomE
             cssPageInitial(dom.text((use) => use(name)[0])),
             cssEditorInput(
               {
-                initialValue: typeof name === 'function' ? name() : name.get() || '',
+                initialValue: name.get() || '',
                 save: (val) => actions.onRename(val),
                 close: () => isRenaming.set(false)
               },

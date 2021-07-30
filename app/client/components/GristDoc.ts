@@ -59,6 +59,7 @@ import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonito
 import { EditorMonitor } from "app/client/components/EditorMonitor";
 import { FieldEditor } from "app/client/widgets/FieldEditor";
 import { Drafts } from "app/client/components/Drafts";
+import {findIndex} from "lodash";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -94,6 +95,7 @@ export class GristDoc extends DisposableWithEvents {
   public viewModel: ViewRec;
   public activeViewId: Computed<IDocPage>;
   public currentPageName: Observable<string>;
+  public showDocTourTable: boolean = false;
   public docData: DocData;
   public docInfo: DocInfoRec;
   public docPluginManager: DocPluginManager;
@@ -158,7 +160,17 @@ export class GristDoc extends DisposableWithEvents {
 
     // Grainjs observable for current view id, which may be a string such as 'code'.
     this.activeViewId = Computed.create(this, (use) => {
-      return use(urlState().state).docPage || use(defaultViewId);
+      let result = use(urlState().state).docPage;
+      if (result === 'GristDocTour') {
+        // GristDocTour is a special table that is usually hidden from users, but putting /p/GristDocTour
+        // in the URL navigates to it and makes it visible in the list of pages in the sidebar
+        this.showDocTourTable = true;
+        result = findIndex(this.docModel.views.rowModels, view => view?.name.peek() === result);
+        if (result === -1) {
+          result = undefined;  // not found, back to the default
+        }
+      }
+      return result || use(defaultViewId);
     });
 
     // This viewModel reflects the currently active view, relying on the fact that
@@ -335,7 +347,7 @@ export class GristDoc extends DisposableWithEvents {
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
         viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
-        viewId === 'new' ? null :
+        viewId === 'new' || viewId == 'GristDocTour' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),
     );
