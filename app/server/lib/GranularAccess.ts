@@ -636,7 +636,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // If user has right to read everything, return immediately.
     if (await this.canReadEverything(docSession)) { return tables; }
     // If we are going to modify metadata, make a copy.
-    tables = JSON.parse(JSON.stringify(tables));
+    tables = cloneDeep(tables);
 
     const permInfo = await this._getAccess(docSession);
     const censor = new CensorshipInfo(permInfo, this._ruler.ruleCollection, tables,

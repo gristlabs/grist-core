@@ -621,6 +621,20 @@ export class ActiveDoc extends EventEmitter {
 
     this._granularAccess.assertCanRead(tableAccess);
 
+    if (query.tableId.startsWith('_gristsys_')) {
+      throw new Error('Cannot fetch _gristsys tables');
+    }
+
+    if (query.tableId.startsWith('_grist_') && !await this._granularAccess.canReadEverything(docSession)) {
+      // Metadata tables may need filtering, and this can't be done by looking at a single
+      // table.  So we pick out the table we want from fetchMetaTables (which has applied
+      // filtering).
+      const tables = await this.fetchMetaTables(docSession);
+      const table = tables[query.tableId];
+      if (table) { return table; }
+      // If table not found, continue, to give a consistent error for a table not found.
+    }
+
     // Some tests read _grist_ tables via the api.  The _fetchQueryFromDB method
     // currently cannot read those tables, so we load them from the data engine
     // when ready.

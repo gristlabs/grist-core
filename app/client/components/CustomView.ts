@@ -10,10 +10,10 @@ import * as DataTableModel from 'app/client/models/DataTableModel';
 import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { CustomViewSectionDef } from 'app/client/models/entities/ViewSectionRec';
 import {SortedRowSet} from 'app/client/models/rowset';
-import { BulkColValues, RowRecord } from 'app/common/DocActions';
+import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
 import { PluginInstance } from 'app/common/PluginInstance';
-import {GristView} from 'app/plugin/GristAPI';
+import {GristDocAPI, GristView} from 'app/plugin/GristAPI';
 import {Events as BackboneEvents} from 'backbone';
 import {MsgType, Rpc} from 'grain-rpc';
 import * as ko from 'knockout';
@@ -238,15 +238,23 @@ export class CustomView extends Disposable {
     const someAccess = (access !== 'none');
     const fullAccess = (access === 'full');
 
-    // Create an Rpc object to manage messaging.  If full access is granted,
-    // allow forwarding to the back-end; otherwise restrict to APIs explicitly
-    // made available here.
-    const rpc = fullAccess ? this.gristDoc.docPluginManager.makeAnonForwarder() :
-      new Rpc({});
+    // Create an Rpc object to manage messaging.
+    const rpc = new Rpc({});
     // Now, we create a listener for message events (if access was granted), making sure
     // to respond only to messages from our iframe.
     const listener = someAccess ? (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
+        // Previously, we forwarded messages targeted at "grist" to the back-end.
+        // Now, we process them immediately in the context of the client for access
+        // control purposes.  To do that, any message that comes in with mdest of
+        // "grist" will have that destination wiped, and we provide a local
+        // implementation of the interface.
+        // It feels like it should be possible to deal with the mdest more cleanly,
+        // with a rpc.registerForwarder('grist', { ... }), but it seems somehow hard
+        // to call a locally registered interface of an rpc object?
+        if (event.data.mdest === 'grist') {
+          event.data.mdest = '';
+        }
         rpc.receiveMessage(event.data);
         if (event.data.mtype === MsgType.Ready) {
           // After, the "ready" message, send a notification with cursor
@@ -274,6 +282,34 @@ export class CustomView extends Disposable {
         fetchSelectedTable: () => this._getSelectedTable(),
         fetchSelectedRecord: (rowId: number) => this._getSelectedRecord(rowId),
       });
+      // Add a GristDocAPI implementation.  Apart from getDocName (which I think
+      // is from a time before names and ids diverged, so I'm not actually sure
+      // what it should return), require full access since the methods can view/edit
+      // parts of the document beyond the table the widget is associated with.
+      // Access rights will be that of the user viewing the document.
+      // TODO: add something to calls to identify the origin, so it could be
+      // controlled by access rules if desired.
+      const assertFullAccess = () => {
+        if (!fullAccess) { throw new Error('full access not granted'); }
+      };
+      rpc.registerImpl<GristDocAPI>('GristDocAPI', {
+        getDocName: () => this.gristDoc.docId,
+        listTables: async () => {
+          assertFullAccess();
+          // Could perhaps read tableIds from this.gristDoc.docModel.allTableIds.all()?
+          const tables = await this.gristDoc.docComm.fetchTable('_grist_Tables');
+          // Tables the user doesn't have access to are just blanked out.
+          return tables[3].tableId.filter(tableId => tableId !== '');
+        },
+        fetchTable: async (tableId: string) => {
+          assertFullAccess();
+          return fromTableDataAction(await this.gristDoc.docComm.fetchTable(tableId));
+        },
+        applyUserActions: (actions: any[][]) => {
+          assertFullAccess();
+          return this.gristDoc.docComm.applyUserActions(actions, {desc: undefined});
+        }
+      });
     } else {
       // Direct messages to /dev/null otherwise.  Important to setSendMessage
       // or they will be queued indefinitely.
@@ -285,7 +321,8 @@ export class CustomView extends Disposable {
       // There's an existing RPC object we are replacing.
       // Unregister anything that may have been registered previously.
       // TODO: add a way to clean up more systematically to grain-rpc.
-      this._rpc.unregisterForwarder('*');
+      this._rpc.unregisterForwarder('grist');
+      this._rpc.unregisterImpl('GristDocAPI');
       this._rpc.unregisterImpl('GristView');
     }
     this._rpc = rpc;
