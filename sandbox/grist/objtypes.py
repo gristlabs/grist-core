@@ -263,16 +263,41 @@ class RaisedException(object):
     # and to DB (for when we store formula results). There are two concerns: one is that it's
     # potentially quite verbose; the other is that it's makes the tests more annoying (again b/c
     # verbose).
+    error = self.error
+    location = ""
+    while isinstance(error, CellError):
+      if not location:
+        location = "\n(in referenced cell {error.location})".format(error=error)
+      error = error.error
+    name = type(error).__name__
     if self.details:
-      return [type(self.error).__name__, str(self.error), self.details]
-    if isinstance(self.error, InvalidTypedValue):
-      return [type(self.error).__name__, self.error.typename, self.error.value]
-    return [type(self.error).__name__]
+      return [name, str(error) + location, self.details]
+    if isinstance(error, InvalidTypedValue):
+      return [name, error.typename, error.value]
+    return [name]
 
   @classmethod
   def decode_args(cls, *args):
     # Decoding of a RaisedException is only enough to re-encode it.
     return cls(None, encoded_error=list(args))
+
+
+class CellError(Exception):
+  def __init__(self, table_id, col_id, row_id, error):
+    super(CellError, self).__init__(table_id, col_id, row_id, error)
+    self.table_id = table_id
+    self.col_id = col_id
+    self.row_id = row_id
+    self.error = error
+
+  def __str__(self):
+    return (
+      "{self.error.__class__.__name__} in referenced cell {self.location}"
+    ).format(self=self)
+
+  @property
+  def location(self):
+    return "{self.table_id}[{self.row_id}].{self.col_id}".format(self=self)
 
 
 class RecordList(list):

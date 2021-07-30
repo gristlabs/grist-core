@@ -12,6 +12,7 @@ import six
 import column
 from functions import date      # pylint: disable=import-error
 from functions.unimplemented import unimplemented
+from objtypes import CellError
 from usertypes import AltText   # pylint: disable=import-error
 from records import Record, RecordSet
 
@@ -597,6 +598,9 @@ def _prepare_record_dict(record, dates_as_iso=False, expand_refs=0):
       result[col_id] = val
     except Exception as e:
       result[col_id] = None
+      while isinstance(e, CellError):
+        # The extra information from CellError is redundant here
+        e = e.error  # pylint: disable=no-member
       errors[col_id] = "%s: %s" % (type(e).__name__, str(e))
 
   if errors:

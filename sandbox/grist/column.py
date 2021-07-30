@@ -147,7 +147,12 @@ class BaseColumn(object):
     """
     raw = self.raw_get(row_id)
     if isinstance(raw, objtypes.RaisedException):
-      raise raw.error
+      if isinstance(raw.error, depend.CircularRefError):
+        # Wrapping a CircularRefError in a CellError is often redundant, but
+        # TODO a CellError is still useful if the calling cell is not involved in the cycle
+        raise raw.error
+      else:
+        raise objtypes.CellError(self.table_id, self.col_id, row_id, raw.error)
     if self.type_obj.is_right_type(raw):
       return self._make_rich_value(raw)
     return usertypes.AltText(str(raw), self.type_obj.typename())
