@@ -33,6 +33,7 @@ import {IGristUrlState} from "app/common/gristUrls";
 import {urlState} from "app/client/models/gristUrlState";
 import {delay} from "app/common/delay";
 import {reportError} from "app/client/models/errors";
+import {cssBigIcon, cssCloseButton} from "./ExampleCard";
 
 const testId = makeTestId('test-onboarding-');
 
@@ -82,8 +83,16 @@ class OnBoardingError extends Error {
   }
 }
 
+/**
+ * Current index in the list of messages.
+ * This allows closing the tour and reopening where you left off.
+ * Since it's a single global value, mixing unrelated tours
+ * (e.g. the generic welcome tour and a specific document tour)
+ * in a single page load won't work well.
+ */
+let ctlIndex = 0;
+
 class OnBoardingPopupsCtl extends Disposable {
-  private _index = -1;
   private _openPopupCtl: {close: () => void}|undefined;
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
@@ -93,6 +102,11 @@ class OnBoardingPopupsCtl extends Disposable {
     if (this._messages.length === 0) {
       throw new OnBoardingError('messages should not be an empty list');
     }
+
+    // In case we're reopening after deleting some rows of GristDocTour,
+    // ensure ctlIndex is still within bounds
+    ctlIndex = Math.min(ctlIndex, this._messages.length - 1);
+
     this.onDispose(() => {
       this._openPopupCtl?.close();
     });
@@ -100,7 +114,7 @@ class OnBoardingPopupsCtl extends Disposable {
 
   public async start() {
     this._showOverlay();
-    await this._next();
+    await this._move(0);
     Mousetrap.setPaused(true);
     this.onDispose(() => {
       Mousetrap.setPaused(false);
@@ -112,10 +126,23 @@ class OnBoardingPopupsCtl extends Disposable {
     this.dispose();
   }
 
-  private async _next() {
-    this._index = this._index + 1;
-    const entry = this._messages[this._index];
-    if (entry.skip) { await this._next(); }
+  private async _move(movement: number, maybeClose = false) {
+    const newIndex = ctlIndex + movement;
+    const entry = this._messages[newIndex];
+    if (!entry) {
+      if (maybeClose) {
+        // User finished the tour, close and restart from the beginning if they reopen
+        ctlIndex = 0;
+        this._finish();
+      }
+      return;  // gone out of bounds, probably by keyboard shortcut
+    }
+    ctlIndex = newIndex;
+    if (entry.skip) {
+      // movement = 0 when starting a tour, make sure we don't get stuck in a loop
+      await this._move(movement || +1);
+      return;
+    }
 
     // close opened popup if any
     this._openPopupCtl?.close();
@@ -128,13 +155,13 @@ class OnBoardingPopupsCtl extends Disposable {
     if (entry.showHasModal) {
       this._showHasModal();
     } else {
-      await this._showHasPopup();
+      await this._showHasPopup(movement);
     }
   }
 
-  private async _showHasPopup() {
+  private async _showHasPopup(movement: number) {
     const content = this._buildPopupContent();
-    const entry = this._messages[this._index];
+    const entry = this._messages[ctlIndex];
     const elem = document.querySelector<HTMLElement>(entry.selector);
     const {placement} = entry;
 
@@ -142,7 +169,8 @@ class OnBoardingPopupsCtl extends Disposable {
     // it to the next.
     if (!elem) {
       console.warn(`On boarding tour: element ${entry.selector} not found!`);
-      return this._next();
+      // movement = 0 when starting a tour, make sure we don't get stuck in a loop
+      return this._move(movement || +1);
     }
 
     // Cleanup
@@ -221,32 +249,46 @@ class OnBoardingPopupsCtl extends Disposable {
   }
 
   private _buildPopupContent() {
-    const container = Container({tabindex: '-1'}, this._arrowEl, ContentWrapper(
-      cssTitle(this._messages[this._index].title),
-      cssBody(this._messages[this._index].body),
-      this._buildFooter(),
-      testId('popup'),
-    ));
-    return container;
+    return Container(
+      {tabindex: '-1'},
+      this._arrowEl,
+      ContentWrapper(
+        cssCloseButton(cssBigIcon('CrossBig'),
+          dom.on('click', () => this._finish()),
+          testId('close'),
+        ),
+        cssTitle(this._messages[ctlIndex].title),
+        cssBody(this._messages[ctlIndex].body),
+        this._buildFooter(),
+        testId('popup'),
+      ),
+      dom.onKeyDown({
+        Escape:     () => this._finish(),
+        ArrowLeft:  () => this._move(-1),
+        ArrowRight: () => this._move(+1),
+        Enter:      () => this._move(+1, true),
+      }),
+    );
   }
 
   private _buildFooter() {
     const nSteps = this._messages.length;
-    const isLastStep = this._index === nSteps - 1;
+    const isLastStep = ctlIndex === nSteps - 1;
+    const isFirstStep = ctlIndex === 0;
     return Footer(
       ProgressBar(
-        range(nSteps).map((i) => Dot(Dot.cls('-done', i > this._index))),
+        range(nSteps).map((i) => Dot(Dot.cls('-done', i > ctlIndex))),
       ),
       Buttons(
         bigBasicButton(
-          'Finish', testId('finish'),
-          dom.on('click', () => this._finish()),
-          {style: 'margin-right: 8px;'},
+          'Previous', testId('previous'),
+          dom.on('click', () => this._move(-1)),
+          dom.prop('disabled', isFirstStep),
+          {style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}`},
         ),
         bigPrimaryButton(
-          'Next', testId('next'),
-          dom.on('click', () => this._next()),
-          dom.prop('disabled', isLastStep),
+          isLastStep ? 'Finish' : 'Next', testId('next'),
+          dom.on('click', () => this._move(+1, true)),
         ),
       )
     );

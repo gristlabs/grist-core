@@ -158,7 +158,7 @@ export const cssLinkIcon = styled(icon, `
   margin-top: -2px;
 `);
 
-const cssCloseButton = styled('div', `
+export const cssCloseButton = styled('div', `
   position: absolute;
   top: 8px;
   right: 8px;
@@ -172,6 +172,6 @@ const cssCloseButton = styled('div', `
   }
 `);
 
-const cssBigIcon = styled(icon, `
+export const cssBigIcon = styled(icon, `
   padding: 12px;
 `);
