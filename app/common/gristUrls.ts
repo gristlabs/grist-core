@@ -207,6 +207,12 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
     url.hash = hashParts.join('.');
+  } else if (state.welcomeTour) {
+    url.hash = 'repeat-welcome-tour';
+  } else if (state.docTour) {
+    url.hash = 'repeat-doc-tour';
+  } else {
+    url.hash = '';
   }
   return url.href;
 }

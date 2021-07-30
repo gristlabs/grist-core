@@ -5,6 +5,7 @@ import {canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
+import {UserOrgPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 // TODO: API should implement UserAPI
 import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL,
@@ -531,6 +532,13 @@ export class HomeDBManager extends EventEmitter {
           throw new Error(result.errMessage);
         }
         needUpdate = true;
+
+        // We just created a personal org; set userOrgPrefs that should apply for new users only.
+        const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
+        const orgId = result.data;
+        if (orgId) {
+          await this.updateOrg({userId: user.id}, orgId, {userOrgPrefs}, manager);
+        }
       }
       if (needUpdate) {
         // We changed the db - reload user in order to give consistent results.
@@ -1201,7 +1209,8 @@ export class HomeDBManager extends EventEmitter {
   public async updateOrg(
     scope: Scope,
     orgKey: string|number,
-    props: Partial<OrganizationProperties>
+    props: Partial<OrganizationProperties>,
+    transaction?: EntityManager,
   ): Promise<QueryResult<number>> {
 
     // Check the scope of the modifications.
@@ -1224,7 +1233,7 @@ export class HomeDBManager extends EventEmitter {
     }
 
     // TODO: Unsetting a domain will likely have to be supported; also possibly prefs.
-    return await this._connection.transaction(async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions,

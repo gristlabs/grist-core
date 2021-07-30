@@ -52,14 +52,17 @@ export class HomeUtil {
     loginMethod?: UserProfile['loginMethod'],
     freshAccount?: boolean,
     isFirstLogin?: boolean,
+    showGristTour?: boolean,
     cacheCredentials?: boolean,
   } = {}) {
     const {loginMethod, isFirstLogin} = defaults(options, {loginMethod: 'Email + Password'});
+    const showGristTour = options.showGristTour ?? (options.freshAccount ?? isFirstLogin);
 
     // For regular tests, we can log in through a testing hook.
     if (!this.server.isExternalServer()) {
       if (options.freshAccount) { await this._deleteUserByEmail(email); }
       if (isFirstLogin !== undefined) { await this._setFirstLogin(email, isFirstLogin); }
+      if (showGristTour !== undefined) { await this._initShowGristTour(email, showGristTour); }
       // TestingHooks communicates via JSON, so it's impossible to send an `undefined` value for org
       // through it. Using the empty string happens to work though.
       const testingHooks = await this.server.getTestingHooks();
@@ -85,6 +88,9 @@ export class HomeUtil {
       if (isFirstLogin === false) {
         await this._fillWelcomePageIfPresent(name);
       }
+    }
+    if (options.freshAccount) {
+      this._apiKey.delete(email);
     }
     if (options.cacheCredentials) {
       // Take this opportunity to cache access info.
@@ -299,6 +305,16 @@ export class HomeUtil {
     if (user) {
       user.isFirstTimeUser = isFirstLogin;
       await user.save();
+    }
+  }
+
+  private async _initShowGristTour(email: string, showGristTour: boolean) {
+    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+    const dbManager = await this.server.getDatabase();
+    const user = await dbManager.getUserByLogin(email);
+    if (user && user.personalOrg) {
+      const userOrgPrefs = {showGristTour};
+      await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userOrgPrefs});
     }
   }
 

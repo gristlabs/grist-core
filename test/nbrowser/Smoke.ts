@@ -37,6 +37,7 @@ describe("Smoke", function() {
     await openMainPage();
     await driver.findContent('button', /Create Empty Document/).click();
     await gu.waitForDocToLoad(20000);
+    await gu.dismissWelcomeTourIfNeeded();
     await gu.getCell('A', 1).click();
     await gu.enterCell('123');
     await driver.navigate().refresh();

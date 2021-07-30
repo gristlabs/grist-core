@@ -29,6 +29,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {QuerySetManager} from 'app/client/models/QuerySet';
+import {getUserOrgPrefObs} from "app/client/models/UserPrefs";
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
@@ -36,7 +37,7 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {startDocTour} from "app/client/ui/DocTour";
-import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {delay} from 'app/common/delay';
@@ -135,6 +136,7 @@ export class GristDoc extends DisposableWithEvents {
   private _docHistory: DocHistory;
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _viewLayout: ViewLayout|null = null;
+  private _showGristTour = getUserOrgPrefObs(this.docPageModel.appModel, 'showGristTour');
 
   constructor(
     public readonly app: App,
@@ -209,19 +211,21 @@ export class GristDoc extends DisposableWithEvents {
 
     // Start welcome tour if flag is present in the url hash.
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      if (state.welcomeTour || state.docTour) {
+      if (state.welcomeTour || state.docTour || this._shouldAutoStartWelcomeTour()) {
+        // On boarding tours were not designed with mobile support in mind. Disable until fixed.
+        if (isNarrowScreen()) {
+          return;
+        }
         await this._waitForView();
         await delay(0); // we need to wait an extra bit.
-        // TODO:
-        //   1) url needs cleanup, #repeat-welcome-tour sticks to it and so even when navigating
-        // to home page. This could eventually become an issue: if user opens another document it
-        // would starts the onboarding tour again.
-        //   2) Makes sure the right panel is opened with the Column tab selected. Because some
-        // of the messages relates to that part of the UI.
-        //   3) On boarding tours were not designed with mobile support in mind. So probably a
-        // good idea to disable.
-        if (state.welcomeTour) {
-          startWelcomeTour(() => null);
+
+        // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
+        // #repeat-doc-tour are used as triggers, but will immediately disappear.
+        await urlState().pushUrl({welcomeTour: false, docTour: false},
+          {replace: true, avoidReload: true});
+
+        if (!state.docTour) {
+          startWelcomeTour(() => this._showGristTour.set(false));
         } else {
           await startDocTour(this.docData, () => null);
         }
@@ -864,6 +868,24 @@ export class GristDoc extends DisposableWithEvents {
       if (fieldIndex >= 0) { cursorPos.fieldIndex = fieldIndex; }
     }
     return cursorPos;
+  }
+
+  /**
+   * For first-time users on personal org, start a welcome tour.
+   */
+  private _shouldAutoStartWelcomeTour(): boolean {
+    // TODO: decide what to do when both a docTour and grist welcome tour are available.
+
+    // Only show the tour if one is on a personal org and can edit. This excludes templates (on
+    // the Templates org, which may have their own tour) and team sites (where user's intended
+    // role is often other than document creator).
+    const appModel = this.docPageModel.appModel;
+    if (!appModel.currentOrg?.owner || this.isReadonly.get()) {
+      return false;
+    }
+    // Use the showGristTour pref if set; otherwise default to true for anonymous users, and false
+    // for real returning users.
+    return this._showGristTour.get() ?? (!appModel.currentValidUser);
   }
 }
 

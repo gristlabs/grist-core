@@ -183,7 +183,7 @@ export class RightPanel extends Disposable {
 
   private _buildFieldContent(owner: MultiHolder) {
     const fieldBuilder = owner.autoDispose(ko.computed(() => {
-      const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
+      const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
       return vsi && vsi.activeFieldBuilder();
     }));
 
@@ -197,7 +197,7 @@ export class RightPanel extends Disposable {
 
     // build cursor position observable
     const cursor = owner.autoDispose(ko.computed(() => {
-      const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
+      const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
       return vsi?.cursor.currentPosition() ?? {};
     }));
 

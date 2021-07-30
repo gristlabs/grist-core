@@ -22,7 +22,7 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementArg, makeTestId, styled, svg } from "grainjs";
+import { Disposable, dom, DomElementArg, Holder, makeTestId, styled, svg } from "grainjs";
 import { createPopper, Placement } from '@popperjs/core';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
@@ -71,8 +71,12 @@ export interface IOnBoardingMsg {
   urlState?: IGristUrlState;
 }
 
+// There should only be one tour at a time. Use a holder to dispose the previous tour when
+// starting a new one.
+const tourSingleton = Holder.create<OnBoardingPopupsCtl>(null);
+
 export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => void) {
-  const ctl = new OnBoardingPopupsCtl(messages, onFinishCB);
+  const ctl = OnBoardingPopupsCtl.create(tourSingleton, messages, onFinishCB);
   ctl.start().catch(reportError);
 }
 

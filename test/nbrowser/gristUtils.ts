@@ -154,6 +154,15 @@ export async function waitForUrl(pattern: RegExp|string, waitMs: number = 2000) 
   await driver.wait(() => testCurrentUrl(pattern), waitMs);
 }
 
+
+export async function dismissWelcomeTourIfNeeded() {
+  const elem = driver.find('.test-onboarding-close');
+  if (await elem.isPresent()) {
+    await elem.click();
+  }
+  await waitForServer();
+}
+
 // Selects all text when a text element is currently active.
 export async function selectAll() {
   await driver.executeScript('document.activeElement.select()');

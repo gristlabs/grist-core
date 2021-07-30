@@ -1,6 +1,9 @@
+import * as commands from 'app/client/components/commands';
+import { urlState } from 'app/client/models/gristUrlState';
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
 import { colors } from 'app/client/ui2018/cssVars';
 import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
 import { dom, styled } from "grainjs";
 
 export const welcomeTour: IOnBoardingMsg[] = [
@@ -58,30 +61,30 @@ export const welcomeTour: IOnBoardingMsg[] = [
   },
   {
     selector: '.tour-help-center',
-    title: 'Keep learning',
+    title: 'Flying higher',
     body: () => [
-      dom('p', 'Unlock Grist\'s hidden power. Dive into our documentation, videos, ',
-          'and tutorials to take your spreadsheet-database to the next level. '),
-    ],
-    placement: 'right',
-  },
-  {
-    selector: '.tour-feedback',
-    title: 'Give feedback',
-    body: () => [
-      dom('p', 'Use ', Key('Give Feedback'), ' button (', Icon('Feedback'), ') for issues or questions. '),
+      dom('p', 'Use ', Key(GreyIcon('Help'), 'Help Center'), ' for documentation, videos, and tutorials.'),
+      dom('p', 'Use ', Key(GreyIcon('Feedback'), 'Give Feedback'), ' for issues or questions.'),
     ],
     placement: 'right',
   },
   {
     selector: '.tour-welcome',
     title: 'Welcome to Grist!',
+    body: () => [
+      dom('p', 'Browse our ',
+        cssLink({target: '_blank', href: urlState().makeUrl({homePage: "templates"})},
+          'template library', cssInlineIcon('FieldLink')),
+        "to discover what's possible and get inspired."
+      ),
+    ],
     showHasModal: true,
   }
 
 ];
 
 export function startWelcomeTour(onFinishCB: () => void) {
+  commands.allCommands.fieldTabOpen.run();
   startOnBoarding(welcomeTour, onFinishCB);
 }
 
@@ -95,7 +98,8 @@ const KeyStrong = styled(KeyContent, `
   font-weight: 700;
 `);
 
-const Key = styled('code', `
+const Key = styled('div', `
+  display: inline-block;
   padding: 2px 5px;
   border-radius: 4px;
   margin: 0px 2px;
@@ -109,4 +113,13 @@ const Key = styled('code', `
 
 const Icon = styled(icon, `
   --icon-color: ${colors.lightGreen};
+`);
+
+const GreyIcon = styled(icon, `
+  --icon-color: ${colors.slate};
+  margin-right: 8px;
+`);
+
+const cssInlineIcon = styled(icon, `
+  margin: -3px 8px 0 4px;
 `);

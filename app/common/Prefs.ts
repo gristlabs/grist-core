@@ -24,6 +24,11 @@ export interface UserOrgPrefs extends Prefs {
   // By living in UserOrgPrefs, this applies only to the examples-containing org.
   seenExamples?: number[];
 
+  // Whether the user should see the onboarding tour of Grist. False by default, since existing
+  // users should not see it. New users get this set to true when the user is created. This
+  // applies to the personal org only; the tour is currently only shown there.
+  showGristTour?: boolean;
+
   // List of document IDs where the user has seen and dismissed the document tour.
   seenDocTours?: string[];
 }

@@ -168,7 +168,7 @@ export const mediaXSmall = `(max-width: ${smallScreenWidth - 0.02}px)`;
 
 export const mediaDeviceNotSmall = `(min-device-width: ${mediumScreenWidth}px)`;
 
-function isNarrowScreen() {
+export function isNarrowScreen() {
   return window.innerWidth < mediumScreenWidth;
 }
 
