@@ -1103,6 +1103,8 @@ export async function completeCopy(options: {destName?: string, destWorkspace?: 
     await driver.findContent('.test-select-menu li', options.destWorkspace).click();
   }
 
+  await waitForServer();
+
   // save the urlId
   const urlId = await getCurrentUrlId();
 
