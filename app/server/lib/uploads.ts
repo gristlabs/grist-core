@@ -337,36 +337,45 @@ export async function fetchURL(url: string, accessId: string|null): Promise<Uplo
  */
 async function _fetchURL(url: string, accessId: string|null, fileName: string,
                          headers?: {[key: string]: string}): Promise<UploadResult> {
-  const response: FetchResponse = await Deps.fetch(url, {
-    redirect: 'follow',
-    follow: 10,
-    headers
-  });
-  await _checkForError(response);
-  if (fileName === '') {
-    const disposition = response.headers.get('content-disposition') || '';
-    fileName = contentDisposition.parse(disposition).parameters.filename || 'document.grist';
+  try {
+    const response: FetchResponse = await Deps.fetch(url, {
+      redirect: 'follow',
+      follow: 10,
+      headers
+    });
+    await _checkForError(response);
+    if (fileName === '') {
+      const disposition = response.headers.get('content-disposition') || '';
+      fileName = contentDisposition.parse(disposition).parameters.filename || 'document.grist';
+    }
+    const mimeType = response.headers.get('content-type');
+    const {tmpDir, cleanupCallback} = await createTmpDir({});
+    // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
+    const destPath = path.join(tmpDir, 'upload-content');
+    await new Promise((resolve, reject) => {
+      const dest = fse.createWriteStream(destPath, {autoClose: true});
+      response.body.on('error', reject);
+      dest.on('error', reject);
+      dest.on('finish', resolve);
+      response.body.pipe(dest);
+    });
+    const uploadedFile: FileUploadInfo = {
+      absPath: path.resolve(destPath),
+      origName: fileName,
+      size: (await fse.stat(destPath)).size,
+      ext: await guessExt(destPath, fileName, mimeType),
+    };
+    log.debug(`done fetching url: ${url} to ${destPath}`);
+    const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
+    return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
+  } catch(err) {
+    if (err?.code === "EPROTO" || // https vs http error
+        err?.code === "ECONNREFUSED" || // server does not listen
+        err?.code === "ENOTFOUND") { // could not resolve domain
+      throw new ApiError(`Can't connect to the server. The URL seems to be invalid. Error code ${err.code}`, 400);
+    }
+    throw err;
   }
-  const mimeType = response.headers.get('content-type');
-  const {tmpDir, cleanupCallback} = await createTmpDir({});
-  // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
-  const destPath = path.join(tmpDir, 'upload-content');
-  await new Promise((resolve, reject) => {
-    const dest = fse.createWriteStream(destPath, {autoClose: true});
-    response.body.on('error', reject);
-    dest.on('error', reject);
-    dest.on('finish', resolve);
-    response.body.pipe(dest);
-  });
-  const uploadedFile: FileUploadInfo = {
-    absPath: path.resolve(destPath),
-    origName: fileName,
-    size: (await fse.stat(destPath)).size,
-    ext: await guessExt(destPath, fileName, mimeType),
-  };
-  log.debug(`done fetching url: ${url} to ${destPath}`);
-  const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
-  return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
 }
 
 /**
@@ -392,9 +401,31 @@ async function fetchDoc(homeUrl: string, docId: string, req: Request, accessId: 
 
 // Re-issue failures as exceptions.
 async function _checkForError(response: FetchResponse) {
-  if (response.ok) { return; }
+  if (response.status === 403) {
+    throw new ApiError("Access to this resource was denied.", response.status);
+  }
+  if (response.ok) {
+    const contentType = response.headers.get("content-type");
+    if (contentType?.startsWith("text/html")) {
+      // Probably we hit some login page
+      if (response.url.startsWith("https://accounts.google.com")) {
+        throw new ApiError("Importing directly from a Google Drive URL is not supported yet. " +
+        'Use the "Import from Google Drive" menu option instead.', 403);
+      } else {
+        throw new ApiError("Could not import the requested file, check if you have all required permissions.", 403);
+      }
+    }
+    return;
+   }
   const body = await response.json().catch(() => ({}));
-  throw new ApiError(body.error || response.statusText, response.status, body.details);
+  if (response.status === 404) {
+    throw new ApiError("File can't be found at the requested URL.", 404);
+  } else if (response.status >= 500 && response.status < 600) {
+    throw new ApiError(`Remote server returned an error (${body.error || response.statusText})`,
+      response.status, body.details);
+  } else {
+    throw new ApiError(body.error || response.statusText, response.status, body.details);
+  }
 }
 
 /**
