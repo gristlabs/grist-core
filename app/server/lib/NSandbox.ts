@@ -350,7 +350,7 @@ const spawners = {
  * flavor of sandbox (which at the time of writing differs between hosted grist and
  * grist-core), and trying to regularize creation options a bit.
  *
- * The flavor of sandbox to use can be overridden by two environment variables:
+ * The flavor of sandbox to use can be overridden by some environment variables:
  *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (pynbox, unsandboxed, docker,
  *     gvisor)
  *   - GRIST_SANDBOX: a program or image name to run as the sandbox.  Not needed for
@@ -361,6 +361,8 @@ const spawners = {
  *     to `sandbox/gvisor/run.py` (if runsc available locally) or to
  *     `sandbox/gvisor/wrap_in_docker.sh` (if runsc should be run using the docker
  *     image built in that directory).  Gvisor is not yet available in grist-core.
+ *   - PYTHON_VERSION: for gvisor, this is mandatory, and must be set to "2" or "3".
+ *     It is ignored by other flavors.
  */
 export class NSandboxCreator implements ISandboxCreator {
   private _flavor: keyof typeof spawners;
@@ -540,7 +542,11 @@ function gvisor(options: ISandboxOptions): ChildProcess {
   if (options.deterministicMode) {
     wrapperArgs.push('--faketime', FAKETIME);
   }
-  return spawn(command, [...wrapperArgs.get(), 'python', '--', ...pythonArgs]);
+  const pythonVersion = process.env.PYTHON_VERSION;
+  if (pythonVersion !== '2' && pythonVersion !== '3') {
+    throw new Error("PYTHON_VERSION must be set to 2 or 3");
+  }
+  return spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
 }
 
 /**
