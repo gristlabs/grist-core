@@ -350,7 +350,8 @@ const cssViewLeafInactive = styled('div', `
     }
     & > .view_data_pane_container,
     & .viewsection_buttons,
-    & .grist-single-record__menu {
+    & .grist-single-record__menu,
+    & > .filter_bar {
       display: none;
     }
   }

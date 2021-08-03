@@ -81,7 +81,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<V
   });
 }
 
-const cssFilterBar = styled('div', `
+const cssFilterBar = styled('div.filter_bar', `
   display: flex;
   flex-direction: row;
   margin-bottom: 8px;
