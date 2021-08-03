@@ -5,6 +5,7 @@ import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithGrist} from 'app/server/lib/FlexServer';
+import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
 import {GristServer} from 'app/server/lib/GristServer';
 import {guessExt} from 'app/server/lib/guessExt';
 import * as log from 'app/server/lib/log';
@@ -338,11 +339,16 @@ export async function fetchURL(url: string, accessId: string|null): Promise<Uplo
 async function _fetchURL(url: string, accessId: string|null, fileName: string,
                          headers?: {[key: string]: string}): Promise<UploadResult> {
   try {
-    const response: FetchResponse = await Deps.fetch(url, {
-      redirect: 'follow',
-      follow: 10,
-      headers
-    });
+    let response: FetchResponse;
+    if (isDriveUrl(url)) {
+      response = await downloadFromGDrive(url);
+    } else {
+      response = await Deps.fetch(url, {
+        redirect: 'follow',
+        follow: 10,
+        headers
+      });
+    }
     await _checkForError(response);
     if (fileName === '') {
       const disposition = response.headers.get('content-disposition') || '';

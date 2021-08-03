@@ -760,7 +760,7 @@ export class FlexServer implements GristServer {
       // Those keys are eventually visible by the client, but should be usable
       // only from Grist's domains.
       const secrets = {
-        googleClientId : config.googleClientId,
+        googleClientId: config.googleClientId,
       };
       res.set('Content-Type', 'application/javascript');
       res.status(200);

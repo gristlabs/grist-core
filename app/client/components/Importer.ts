@@ -7,7 +7,7 @@
 import {GristDoc} from "app/client/components/GristDoc";
 import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {fetchURL, selectFiles, uploadFiles} from 'app/client/lib/uploads';
+import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {openFilePicker} from "app/client/ui/FileDialog";
@@ -55,7 +55,10 @@ export class Importer extends Disposable {
    * Imports using the given plugin importer, or the built-in file-picker when null is passed in.
    */
   public static async selectAndImport(
-    gristDoc: GristDoc, importSourceElem: ImportSourceElement|null, createPreview: CreatePreviewFunc
+    gristDoc: GristDoc,
+    imports: ImportSourceElement[],
+    importSourceElem: ImportSourceElement|null,
+    createPreview: CreatePreviewFunc
   ) {
     // In case of using built-in file picker we want to get upload result before instantiating Importer
     // because if the user dismisses the dialog without picking a file,
@@ -84,9 +87,33 @@ export class Importer extends Disposable {
         }
       }
     }
-    // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
-    Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(uploadResult)
-    .catch((err) => reportError(err));
+    // HACK: The url plugin does not support importing from google drive, and we don't want to
+    // ask a user for permission to access all his files (needed to download a single file from an URL).
+    // So to have a nice user experience, we will switch to the built-in google drive plugin and allow
+    // user to chose a file manually.
+    // Suggestion for the future is:
+    // (1) ask the user for the greater permission,
+    // (2) detect when the permission is not granted, and open the picker-based plugin in that case.
+    try {
+      // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
+      await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(uploadResult);
+    } catch(err1) {
+      // If the url was a Google Drive Url, run the google drive plugin.
+      if (!(err1 instanceof GDriveUrlNotSupported)) {
+        reportError(err1);
+      } else {
+        const gdrivePlugin = imports.find((p) => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
+        if (!gdrivePlugin) {
+          reportError(err1);
+        } else {
+          try {
+            await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(uploadResult);
+          } catch(err2) {
+            reportError(err2);
+          }
+        }
+      }
+    }
   }
 
   private _docComm = this._gristDoc.docComm;
@@ -143,6 +170,11 @@ export class Importer extends Disposable {
         const importSource = await this._importSourceElem.importSourceStub.getImportSource(handle);
         plugin.removeRenderTarget(handle);
 
+        if (!this._openModalCtl) {
+          this._showImportDialog();
+        }
+        this._renderSpinner();
+
         if (importSource) {
           // If data has been picked, upload it.
           const item = importSource.item;
@@ -150,14 +182,26 @@ export class Importer extends Disposable {
             const files = item.files.map(({content, name}) => new File([content], name));
             uploadResult = await uploadFiles(files, {docWorkerUrl: this._docComm.docWorkerUrl,
                                                      sizeLimit: 'import'});
-           } else if (item.kind ===  "url") {
-            uploadResult = await fetchURL(this._docComm, item.url);
-           } else {
+          } else if (item.kind ===  "url") {
+            try {
+              uploadResult = await fetchURL(this._docComm, item.url);
+            } catch(err) {
+              if (isDriveUrl(item.url)) {
+                throw new GDriveUrlNotSupported(item.url);
+              } else {
+                throw err;
+              }
+            }
+          } else {
             throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
           }
         }
       }
     } catch (err) {
+      if (err instanceof GDriveUrlNotSupported) {
+        await this._cancelImport();
+        throw err;
+      }
       if (!this._openModalCtl) {
         this._showImportDialog();
       }
@@ -393,11 +437,17 @@ export class Importer extends Disposable {
   }
 }
 
+// Used for switching from URL plugin to Google drive plugin
+class GDriveUrlNotSupported extends Error {
+  constructor(public url: string) {
+    super(`This url ${url} is not supported`);
+  }
+}
+
 function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
   const origName = upload.files[sourceInfo.uploadFileIndex].origName;
   return sourceInfo.origTableName ? origName + ' - ' + sourceInfo.origTableName : origName;
 }
-
 
 const cssActionLink = styled('div', `
   display: inline-flex;

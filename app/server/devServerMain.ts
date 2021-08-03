@@ -93,9 +93,11 @@ export async function main() {
   }
 
   if (!process.env.GOOGLE_CLIENT_ID) {
-    // those key is only for development purposes
-    // and is no secret as it is publicly visible in a plugin page
-    process.env.GOOGLE_CLIENT_ID  = '632317221841-ce66sfp00rf92dip4548dn4hf2ga79us.apps.googleusercontent.com';
+    log.warn('GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.');
+  }
+
+  if (!process.env.GOOGLE_API_KEY) {
+    log.warn('GOOGLE_API_KEY is not defined, Url plugin will not be able to access public files.');
   }
 
   if (process.env.GRIST_SINGLE_PORT) {

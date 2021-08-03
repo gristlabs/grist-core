@@ -239,11 +239,11 @@ export class GristDoc extends DisposableWithEvents {
     const importMenuItems = [
       {
         label: 'Import from file',
-        action: () => Importer.selectAndImport(this, null, createPreview),
+        action: () => Importer.selectAndImport(this, importSourceElems, null, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
         label: importSourceElem.importSource.label,
-        action: () => Importer.selectAndImport(this, importSourceElem, createPreview)
+        action: () => Importer.selectAndImport(this, importSourceElems, importSourceElem, createPreview)
       }))
     ];
 

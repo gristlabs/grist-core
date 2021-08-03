@@ -154,6 +154,12 @@ export async function uploadFiles(
 export async function fetchURL(
   docComm: DocComm, url: string, onProgress: ProgressCB = noop
   ): Promise<UploadResult> {
+
+  if (isDriveUrl(url)) {
+    // don't download from google drive, immediately fallback to server side.
+    return docComm.fetchURL(url);
+  }
+
   let response: Response;
   try {
     response = await window.fetch(url);
@@ -171,6 +177,12 @@ export async function fetchURL(
   const fileObj = new File([await response.blob()], fileName, options);
   const res = await uploadFiles([fileObj], {docWorkerUrl: docComm.docWorkerUrl}, onProgress);
   return res!;
+}
+
+export function isDriveUrl(url: string) {
+  if (!url) { return null; }
+  const match = /^https:\/\/(docs|drive).google.com\/(spreadsheets|file)\/d\/([^/]*)/i.exec(url);
+  return !!match;
 }
 
 /**
