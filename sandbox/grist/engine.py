@@ -69,13 +69,6 @@ class OrderError(Exception):
 # An item of work to be done by Engine._update
 WorkItem = namedtuple('WorkItem', ('node', 'row_ids', 'locks'))
 
-# Returns an AddTable action which can be used to reproduce the given docmodel table
-def _get_table_actions(table):
-  schema_cols = [schema.make_column(c.colId, c.type, formula=c.formula, isFormula=c.isFormula)
-                 for c in table.columns]
-  return actions.AddTable(table.tableId, schema_cols)
-
-
 # skip private members, and methods we don't want to expose to users.
 skipped_completions = re.compile(r'\.(_|lookupOrAddDerived|getSummarySourceGroup)')
 
@@ -355,34 +348,6 @@ class Engine(object):
     """
     return {table_id: self.fetch_table(table_id, formulas=formulas)
             for table_id in self.tables if table_id.startswith('_grist_')}
-
-  def fetch_snapshot(self):
-    """
-    Returns a full list of actions which when applied sequentially recreate the doc database to
-    its current state.
-    """
-    action_group = action_obj.ActionGroup()
-    action_group.stored = self._get_snapshot_actions()
-    return action_group
-
-  def _get_snapshot_actions(self):
-    """
-    Returns a list of action objects which recreate the document database when applied.
-    """
-    schema_actions = schema.schema_create_actions()
-    table_actions = [_get_table_actions(table) for table in self.docmodel.tables.all]
-    record_actions = [
-      self._get_record_actions(table_id)
-      for (table_id,t) in six.iteritems(self.tables)
-      if t.next_row_id() > 1
-    ]
-    return schema_actions + table_actions + record_actions
-
-  # Returns a BulkAddRecord action which can be used to add the currently existing data to an empty
-  # version of the table with the given table_id.
-  def _get_record_actions(self, table_id):
-    table_data = self.fetch_table(table_id, formulas=False)
-    return actions.BulkAddRecord(table_id, table_data.row_ids, table_data.columns)
 
   def find_col_from_values(self, values, n, opt_table_id=None):
     """

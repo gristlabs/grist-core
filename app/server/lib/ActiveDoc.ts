@@ -1049,11 +1049,6 @@ export class ActiveDoc extends EventEmitter {
     return sandboxActionBundle;
   }
 
-  public async fetchSnapshot() {
-    await this.waitForInitialization();
-    return this._pyCall('fetch_snapshot');
-  }
-
   // Needed for test/server/migrations.js tests
   public async testGetVersionFromDataEngine() {
     return this._pyCall('get_version');

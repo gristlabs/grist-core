@@ -68,11 +68,6 @@ def run(sandbox):
     return eng.fetch_table_schema()
 
   @export
-  def fetch_snapshot():
-    action_group = eng.fetch_snapshot()
-    return eng.acl_split(action_group).to_json_obj()
-
-  @export
   def autocomplete(txt, table_id, column_id, user):
     return eng.autocomplete(txt, table_id, column_id, user)
 
