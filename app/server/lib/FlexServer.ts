@@ -645,7 +645,7 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public addLandingPages() {
+  public async addLandingPages() {
     // TODO: check if isSingleUserMode() path can be removed from this method
     if (this._check('landing', 'map', isSingleUserMode() ? null : 'homedb')) { return; }
     this.addSessions();
@@ -710,6 +710,7 @@ export class FlexServer implements GristServer {
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
       dbManager: this.dbManager,
+      plugins : (await this._addPluginManager()).getPlugins()
     });
   }
 

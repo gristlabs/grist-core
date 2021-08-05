@@ -1,6 +1,5 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {TableDataAction} from 'app/common/DocActions';
-import {LocalPlugin} from 'app/common/plugin';
 import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
 import {FullUser} from 'app/common/UserAPI';
@@ -43,7 +42,6 @@ export interface OpenLocalDocResult {
   clientId: string;  // the docFD is meaningful only in the context of this session
   doc: {[tableId: string]: TableDataAction};
   log: ActionGroup[];
-  plugins: LocalPlugin[];
   recoveryMode?: boolean;
   userOverride?: UserOverride;
 }

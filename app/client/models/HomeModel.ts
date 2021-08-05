@@ -1,4 +1,7 @@
+import {ClientScope} from 'app/client/components/ClientScope';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
+import {HomePluginManager} from 'app/client/lib/HomePluginManager';
+import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {UserError} from 'app/client/models/errors';
@@ -10,9 +13,9 @@ import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import * as moment from 'moment';
 import flatten = require('lodash/flatten');
 import sortBy = require('lodash/sortBy');
-import * as moment from 'moment';
 
 const DELAY_BEFORE_SPINNER_MS = 500;
 
@@ -62,6 +65,7 @@ export interface HomeModel {
 
   currentSort: Observable<SortPref>;
   currentView: Observable<ViewPref>;
+  importSources: Observable<ImportSourceElement[]>;
 
   // The workspace for new docs, or "unsaved" to only allow unsaved-doc creation, or null if the
   // user isn't allowed to create a doc.
@@ -96,6 +100,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly singleWorkspace = Observable.create(this, true);
   public readonly trashWorkspaces = Observable.create<Workspace[]>(this, []);
   public readonly templateWorkspaces = Observable.create<Workspace[]>(this, []);
+  public readonly importSources = Observable.create<ImportSourceElement[]>(this, []);
 
   // Get the workspace details for the workspace with id of currentWSId.
   public readonly currentWS = Computed.create(this, (use) =>
@@ -133,7 +138,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 
-  constructor(private _app: AppModel) {
+  constructor(private _app: AppModel, clientScope: ClientScope) {
     super();
 
     if (!this.app.currentValidUser) {
@@ -155,6 +160,14 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
     this.autoDispose(subscribe(this.currentPage, this.currentWSId, (use) =>
       this._updateWorkspaces().catch(reportError)));
+
+    // Defer home plugin initialization
+    const pluginManager = new HomePluginManager(
+      _app.topAppModel.plugins,
+      _app.topAppModel.getUntrustedContentOrigin()!,
+      clientScope);
+    const importSources = ImportSourceElement.fromArray(pluginManager.pluginsList);
+    this.importSources.set(importSources);
   }
 
   // Accessor for the AppModel containing this HomeModel.

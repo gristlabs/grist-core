@@ -63,7 +63,7 @@ export class App extends DisposableWithEvents {
       this.autoDispose(Clipboard.create(this));
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
-      // scrolling and showing of mobile keyboard). But we still rely on 'cliboard_focus' and
+      // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
       // 'clipboard_blur' events to know when the "app" has a focus (rather than a particular
       // input), by making document.body focusable and using a FocusLayer with it as the default.
       document.body.setAttribute('tabindex', '-1');
@@ -172,7 +172,7 @@ export class App extends DisposableWithEvents {
     this.autoDispose(createAppUI(this.topAppModel, this));
   }
 
-  // We want to test erors from Selenium, but errors we can trigger using driver.executeScript()
+  // We want to test errors from Selenium, but errors we can trigger using driver.executeScript()
   // will be impossible for the application to report properly (they seem to be considered not of
   // "same-origin"). So this silly callback is for tests to generate a fake error.
   public testTriggerError(msg: string) { throw new Error(msg); }
@@ -184,7 +184,7 @@ export class App extends DisposableWithEvents {
 
   // When called as a dom method, adds the "newui" class when ?newui=1 is set. For example
   //    dom('div.some-old-class', this.app.addNewUIClass(), ...)
-  // Then you may overridde newui styles in CSS by using selectors like:
+  // Then you may override newui styles in CSS by using selectors like:
   //    .some-old-class.newui { ... }
   public addNewUIClass(): DomElementMethod {
     return (elem) => { if (this.useNewUI) { elem.classList.add('newui'); } };
@@ -204,28 +204,6 @@ export class App extends DisposableWithEvents {
   public reload() {
     G.window.location.reload(true);
     return true;
-  }
-
-  /**
-   * Returns the UntrustedContentOrigin use settings. Throws if not defined. The configured
-   * UntrustedContentOrign should not include the port, it is defined at runtime.
-   */
-  public getUntrustedContentOrigin() {
-
-    if (G.window.isRunningUnderElectron) {
-      // when loaded within webviews it is safe to serve plugin's content from the same domain
-      return "";
-    }
-
-    const origin =  G.window.gristConfig.pluginUrl;
-    if (!origin) {
-      throw new Error("Missing untrustedContentOrigin configuration");
-    }
-    if (origin.match(/:[0-9]+$/)) {
-      // Port number already specified, no need to add.
-      return origin;
-    }
-    return origin + ":" + G.window.location.port;
   }
 
   // Get the user profile for testing purposes

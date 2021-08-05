@@ -147,7 +147,7 @@ export class DocPluginManager {
   }
 
   /**
-   * Returns a promise which resolves with the list of plugins definitions.
+   * Returns a list of plugins definitions.
    */
   public getPlugins(): LocalPlugin[] {
     return this._localPlugins;

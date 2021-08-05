@@ -6,6 +6,7 @@
 
 import {GristDoc} from "app/client/components/GristDoc";
 import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
+import {PluginScreen} from "app/client/components/PluginScreen";
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
@@ -14,15 +15,13 @@ import {openFilePicker} from "app/client/ui/FileDialog";
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IOptionFull, linkSelect} from 'app/client/ui2018/menus';
-import {cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
+import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {DataSourceTransformed, ImportResult, ImportTableResult} from "app/common/ActiveDocAPI";
 import {TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
 import {byteString} from "app/common/gutil";
 import {UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
-import {RenderTarget} from 'app/plugin/RenderOptions';
 import {Computed, Disposable, dom, DomContents, IDisposable, Observable, styled} from 'grainjs';
 
 // Special values for import destinations; null means "new table".
@@ -118,9 +117,8 @@ export class Importer extends Disposable {
 
   private _docComm = this._gristDoc.docComm;
   private _uploadResult?: UploadResult;
-  private _openModalCtl: IModalControl|null = null;
-  private _importerContent = Observable.create<DomContents>(this, null);
 
+  private _screen: PluginScreen;
   private _parseOptions = Observable.create<ParseOptions>(this, {});
   private _sourceInfoArray = Observable.create<SourceInfo[]>(this, []);
   private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
@@ -143,6 +141,7 @@ export class Importer extends Disposable {
   constructor(private _gristDoc: GristDoc, private _importSourceElem: ImportSourceElement|null,
               private _createPreview: CreatePreviewFunc) {
     super();
+    this._screen = PluginScreen.create(this, _importSourceElem?.importSource.label || "Import from file");
   }
 
   /*
@@ -158,22 +157,10 @@ export class Importer extends Disposable {
                                                           multiple: true, sizeLimit: 'import'});
       } else {
         const plugin = this._importSourceElem.plugin;
-
-        // registers a render target for plugin to render inline.
-        const handle: RenderTarget = plugin.addRenderTarget((el, opt = {}) => {
-          el.style.width = "100%";
-          el.style.height = opt.height || "200px";
-          this._showImportDialog();
-          this._renderPlugin(el);
-        });
-
+        const handle = this._screen.renderPlugin(plugin);
         const importSource = await this._importSourceElem.importSourceStub.getImportSource(handle);
         plugin.removeRenderTarget(handle);
-
-        if (!this._openModalCtl) {
-          this._showImportDialog();
-        }
-        this._renderSpinner();
+        this._screen.renderSpinner();
 
         if (importSource) {
           // If data has been picked, upload it.
@@ -202,10 +189,7 @@ export class Importer extends Disposable {
         await this._cancelImport();
         throw err;
       }
-      if (!this._openModalCtl) {
-        this._showImportDialog();
-      }
-      this._renderError(err.message);
+      this._screen.renderError(err.message);
       return;
     }
 
@@ -271,8 +255,7 @@ export class Importer extends Disposable {
   }
 
   private async _reImport(upload: UploadResult) {
-    this._renderSpinner();
-    this._showImportDialog();
+    this._screen.renderSpinner();
     try {
       const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 100};
       const importResult: ImportResult = await this._docComm.importFiles(
@@ -300,12 +283,12 @@ export class Importer extends Disposable {
 
     } catch (e) {
       console.warn("Import failed", e);
-      this._renderError(e.message);
+      this._screen.renderError(e.message);
     }
   }
 
   private async _finishImport(upload: UploadResult) {
-    this._renderSpinner();
+    this._screen.renderSpinner();
     const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
     const importResult: ImportResult = await this._docComm.finishImportFiles(
       this._getTransformedDataSource(upload), parseOptions, this._getHiddenTableIds());
@@ -314,7 +297,7 @@ export class Importer extends Disposable {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
       await this._gristDoc.openDocPage(tableRowModel.primaryViewId());
     }
-    this._openModalCtl?.close();
+    this._screen.close();
     this.dispose();
   }
 
@@ -323,23 +306,8 @@ export class Importer extends Disposable {
       await this._docComm.cancelImportFiles(
         this._getTransformedDataSource(this._uploadResult), this._getHiddenTableIds());
     }
-    this._openModalCtl?.close();
+    this._screen.close();
     this.dispose();
-  }
-
-  private _showImportDialog() {
-    if (this._openModalCtl) { return; }
-    modal((ctl, owner) => {
-      this._openModalCtl = ctl;
-      return [
-        cssModalOverrides.cls(''),
-        dom.domComputed(this._importerContent),
-        testId('importer-dialog'),
-      ];
-    }, {
-      noClickAway: true,
-      noEscapeKey: true,
-    });
   }
 
   private _buildModalTitle(rightElement?: DomContents) {
@@ -347,36 +315,10 @@ export class Importer extends Disposable {
     return cssModalHeader(cssModalTitle(title), rightElement);
   }
 
-  // The importer state showing just a spinner, when the user has to wait. We don't even let the
-  // user cancel it, because the cleanup can only happen properly once the wait completes.
-  private _renderSpinner() {
-    this._importerContent.set([this._buildModalTitle(), cssSpinner(loadingSpinner())]);
-  }
-
-  // The importer state showing the inline element from the plugin (e.g. to enter URL in case of
-  // import-from-url).
-  private _renderPlugin(inlineElement: HTMLElement) {
-    this._importerContent.set([this._buildModalTitle(), inlineElement]);
-  }
-
-  // The importer state showing just an error.
-  private _renderError(message: string) {
-    this._importerContent.set([
-      this._buildModalTitle(),
-      cssModalBody('Import failed: ', message, testId('importer-error')),
-      cssModalButtons(
-        bigBasicButton('Close',
-          dom.on('click', () => this._cancelImport()),
-          testId('modal-cancel'),
-        ),
-      ),
-    ]);
-  }
-
   // The importer state showing import in progress, with a list of tables, and a preview.
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
-    this._importerContent.set([
+    this._screen.render([
       this._buildModalTitle(
         schema ? cssActionLink(cssLinkIcon('Settings'), 'Import options',
           testId('importer-options-link'),
@@ -424,7 +366,7 @@ export class Importer extends Disposable {
 
   // The importer state showing parse options that may be changed.
   private _renderParseOptions(schema: ParseOptionSchema[], upload: UploadResult) {
-    this._importerContent.set([
+    this._screen.render([
       this._buildModalTitle(),
       dom.create(buildParseOptionsForm, schema, this._parseOptions.get() as ParseOptionValues,
         (p: ParseOptions) => {
@@ -464,28 +406,6 @@ const cssActionLink = styled('div', `
 const cssLinkIcon = styled(icon, `
   flex: none;
   margin-right: 4px;
-`);
-
-const cssModalOverrides = styled('div', `
-  max-height: calc(100% - 32px);
-  display: flex;
-  flex-direction: column;
-  & > .${cssModalButtons.className} {
-    margin-top: 16px;
-  }
-`);
-
-const cssModalBody = styled('div', `
-  padding: 16px 0;
-  overflow-y: auto;
-  max-width: 470px;
-`);
-
-const cssSpinner = styled('div', `
-  display: flex;
-  align-items: center;
-  height: 80px;
-  margin: auto;
 `);
 
 const cssModalHeader = styled('div', `

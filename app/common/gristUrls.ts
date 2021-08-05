@@ -2,6 +2,7 @@ import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
+import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
@@ -442,6 +443,9 @@ export interface GristLoadConfig {
 
   // Google Client Id, used in Google integration (ex: Google Drive Plugin)
   googleClientId?: string;
+
+  // List of registered plugins (used by HomePluginManager and DocPluginManager)
+  plugins?: LocalPlugin[];
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

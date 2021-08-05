@@ -1,11 +1,11 @@
 import {loadUserManager} from 'app/client/lib/imports';
+import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
-import {docImport} from 'app/client/ui/HomeImports';
-import {createHelpTools, cssLeftPanel, cssScrollPane, cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
+import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
 import {cssLinkText, cssPageEntry, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
 import {transientInput} from 'app/client/ui/transientInput';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -14,7 +14,9 @@ import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/cli
 import {confirmModal} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
 import {Workspace} from 'app/common/UserAPI';
-import {computed, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
+import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
+import {createHelpTools, cssLeftPanel, cssScrollPane,
+        cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
 
 export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: HomeModel) {
   const creating = observable<boolean>(false);
@@ -138,6 +140,23 @@ export async function importDocAndOpen(home: HomeModel) {
   }
 }
 
+export async function importFromPluginAndOpen(home: HomeModel, source: ImportSourceElement) {
+  try {
+    const destWS = home.newDocWorkspace.get();
+    if (!destWS) { return; }
+    const docId = await importFromPlugin(
+      home.app,
+      destWS === "unsaved" ? "unsaved" : destWS.id,
+      source);
+    if (docId) {
+      const doc = await home.app.api.getDoc(docId);
+      await urlState().pushUrl(docUrl(doc));
+    }
+  } catch (err) {
+    reportError(err);
+  }
+}
+
 function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[] {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role|null = org ? org.access : null;
@@ -152,6 +171,14 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
+    domComputed(home.importSources, importSources => ([
+      ...importSources.map((source, i) =>
+      menuItem(() => importFromPluginAndOpen(home, source),
+        menuIcon('Import'),
+        source.importSource.label,
+        testId(`dm-import-plugin`)
+      ))
+    ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), "Create Workspace",

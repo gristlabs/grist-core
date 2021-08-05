@@ -66,7 +66,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
   }
   return dom.domComputed(appModel.pageType, (pageType) => {
     if (pageType === 'home') {
-      return dom.create(pagePanelsHome, appModel);
+      return dom.create(pagePanelsHome, appModel, appObj);
     } else if (pageType === 'billing') {
       return domAsync(loadBillingPage().then(bp => dom.create(bp.BillingPage, appModel)));
     } else if (pageType === 'welcome') {
@@ -77,8 +77,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
   });
 }
 
-function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel) {
-  const pageModel = HomeModelImpl.create(owner, appModel);
+function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
+  const pageModel = HomeModelImpl.create(owner, appModel, app.clientScope);
   const leftPanelOpen = Observable.create(owner, true);
 
   // Set document title to strings like "Home - Grist" or "Org Name - Grist".

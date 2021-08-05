@@ -9,6 +9,7 @@ import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseSubdomainStrictly} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
+import {LocalPlugin} from "app/common/plugin";
 import {Document as APIDocument} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -29,6 +30,7 @@ export interface AttachOptions {
   docWorkerMap: IDocWorkerMap|null;
   sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   dbManager: HomeDBManager;
+  plugins: LocalPlugin[];
 }
 
 /**
@@ -149,11 +151,11 @@ async function getWorker(docWorkerMap: IDocWorkerMap, assignmentId: string,
 }
 
 export function attachAppEndpoint(options: AttachOptions): void {
-  const {app, middleware, docMiddleware, docWorkerMap, forceLogin, sendAppPage, dbManager} = options;
+  const {app, middleware, docMiddleware, docWorkerMap, forceLogin, sendAppPage, dbManager, plugins} = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
-    sendAppPage(req, res, {path: 'app.html', status: 200, config: {}, googleTagManager: 'anon'})));
+    sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins}, googleTagManager: 'anon'})));
 
   app.get('/api/worker/:assignmentId([^/]+)/?*', expressWrap(async (req, res) => {
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
@@ -180,7 +182,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       return next();
     }
     if (!docWorkerMap) {
-      return await sendAppPage(req, res, {path: 'app.html', status: 200, config: {},
+      return await sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins},
                                           googleTagManager: 'anon'});
     }
     const mreq = req as RequestWithLogin;
@@ -255,6 +257,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       assignmentId: docId,
       getWorker: {[docId]: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req)},
       getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
+      plugins
     }});
   });
   // The * is a wildcard in express 4, rather than a regex symbol.

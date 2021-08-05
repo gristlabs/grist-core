@@ -10,8 +10,8 @@ import {cssLeftPanel, cssScrollPane} from 'app/client/ui/LeftPanelCommon';
 import {buildPagesDom} from 'app/client/ui/Pages';
 import {openPageWidgetPicker} from 'app/client/ui/PageWidgetPicker';
 import {tools} from 'app/client/ui/Tools';
-import {testId} from 'app/client/ui2018/cssVars';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
+import {testId} from 'app/client/ui2018/cssVars';
 import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
@@ -21,8 +21,8 @@ import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit} from 'app/common/roles';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 import {Holder, Observable, subscribe} from 'grainjs';
+import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 
 // tslint:disable:no-console
 
@@ -271,7 +271,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
     const gristDoc = gdModule.GristDoc.create(flow, this._appObj, docComm, this, openDocResponse,
-                                              {comparison});
+                                              this.appModel.topAppModel.plugins, {comparison});
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));

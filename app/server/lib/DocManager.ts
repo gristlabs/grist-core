@@ -327,7 +327,6 @@ export class DocManager extends EventEmitter {
       clientId: docSession.client.clientId,
       doc: metaTables,
       log: recentActions,
-      plugins: activeDoc.docPluginManager.getPlugins(),
       recoveryMode: activeDoc.recoveryMode,
       userOverride: await activeDoc.getUserOverride(docSession),
     };

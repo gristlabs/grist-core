@@ -1,4 +1,6 @@
+import {PluginScreen} from 'app/client/components/PluginScreen';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
+import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {IMPORTABLE_EXTENSIONS, uploadFiles} from 'app/client/lib/uploads';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {IProgress} from 'app/client/models/NotifyModel';
@@ -22,6 +24,14 @@ export async function docImport(app: AppModel, workspaceId: number|"unsaved"): P
 
   if (!files.length) { return null; }
 
+  return await fileImport(files, app, workspaceId);
+}
+
+/**
+ * Imports a document from a file and returns its docId.
+ */
+export async function fileImport(
+  files: File[], app: AppModel, workspaceId: number | "unsaved"): Promise<string | null> {
   // There is just one file (thanks to {multiple: false} above).
   const progressUI = app.notifier.createProgressIndicator(files[0].name, byteString(files[0].size));
   const progress = ImportProgress.create(progressUI, progressUI, files[0]);
@@ -108,5 +118,46 @@ export class ImportProgress extends Disposable {
     const importProgress = elapsedSeconds / (elapsedSeconds + this._estImportSeconds);
     const progress = this._uploadFraction + importProgress * (1 - this._uploadFraction);
     this._progressUI.setProgress(100 * progress);
+  }
+}
+
+/**
+ * Imports document through a plugin from a home/welcome screen.
+ */
+export async function importFromPlugin(
+  app: AppModel,
+  workspaceId: number | "unsaved",
+  importSourceElem: ImportSourceElement
+) {
+  const screen = PluginScreen.create(null, importSourceElem.importSource.label);
+  try {
+
+    const plugin = importSourceElem.plugin;
+    const handle = screen.renderPlugin(plugin);
+    const importSource = await importSourceElem.importSourceStub.getImportSource(handle);
+    plugin.removeRenderTarget(handle);
+
+    if (importSource) {
+      // If data has been picked, upload it.
+      const item = importSource.item;
+      if (item.kind === "fileList") {
+        const files = item.files.map(({ content, name }) => new File([content], name));
+        const docId = await fileImport(files, app, workspaceId);
+        screen.close();
+        return docId;
+      } else if (item.kind === "url") {
+        //TODO: importing from url is not yet implemented.
+        //uploadResult = await fetchURL(this._docComm, item.url);
+        throw new Error("Url is not supported yet");
+      } else {
+        throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
+      }
+    } else {
+      screen.close();
+      return null;
+    }
+  } catch (err) {
+    screen.renderError(err.message);
+    return null;
   }
 }

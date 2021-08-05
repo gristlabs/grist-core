@@ -109,7 +109,7 @@ export async function main(port: number, serverTypes: ServerType[],
       server.addDocApiForwarder();
     }
     server.addJsonSupport();
-    server.addLandingPages();
+    await server.addLandingPages();
     // todo: add support for home api to standalone app
     if (!includeApp) {
       server.addHomeApi();

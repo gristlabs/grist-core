@@ -47,6 +47,7 @@ import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {encodeQueryParams, undef, waitObs} from 'app/common/gutil';
+import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
@@ -143,6 +144,7 @@ export class GristDoc extends DisposableWithEvents {
     public readonly docComm: DocComm,
     public readonly docPageModel: DocPageModel,
     openDocResponse: OpenLocalDocResult,
+    plugins: LocalPlugin[],
     options: {
       comparison?: DocStateComparison  // initial comparison with another document
     } = {}
@@ -152,8 +154,8 @@ export class GristDoc extends DisposableWithEvents {
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = new DocModel(this.docData);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
-    this.docPluginManager = new DocPluginManager(openDocResponse.plugins, app.getUntrustedContentOrigin(),
-      this.docComm, app.clientScope);
+    this.docPluginManager = new DocPluginManager(plugins,
+      app.topAppModel.getUntrustedContentOrigin(), this.docComm, app.clientScope);
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfo.getRowModel(1);

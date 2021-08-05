@@ -126,6 +126,13 @@ export interface ImportSource {
   label: string;
 
   /**
+   * Whether this import source can be exposed on a home screen for all users. Home imports
+   * support only a safeBrowser component and have no access to current document. Primarily used as
+   * an external/cloud storage providers.
+   */
+  safeHome?: boolean;
+
+  /**
    * Implementation of ImportSourceAPI. Supports safeBrowser component, which allows you to create
    * custom UI to show to the user. Or describe UI using a .json or .yml config file and use
    * {component: "builtIn", name: "importSourceConfig", path: "your-config"}.

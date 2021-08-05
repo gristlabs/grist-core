@@ -1,3 +1,4 @@
+import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
@@ -5,12 +6,14 @@ import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {Features} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
+import {LocalPlugin} from 'app/common/plugin';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 export {reportError} from 'app/client/models/errors';
 
 export type PageType = "doc" | "home" | "billing" | "welcome";
+const G = getBrowserGlobals('document', 'window');
 
 // TopAppModel is the part of the app model that persists across org and user switches.
 export interface TopAppModel {
@@ -20,6 +23,7 @@ export interface TopAppModel {
   currentSubdomain: Observable<string|undefined>;
 
   notifier: Notifier;
+  plugins: LocalPlugin[];
 
   // Everything else gets fully rebuilt when the org/user changes. This is to ensure that
   // different parts of the code aren't using different users/orgs while the switch is pending.
@@ -30,6 +34,11 @@ export interface TopAppModel {
 
   // Rebuilds the AppModel and consequently the AppUI, without changing the user or the org.
   reload(): void;
+
+  /**
+   * Returns the UntrustedContentOrigin use settings. Throws if not defined.
+   */
+  getUntrustedContentOrigin(): string;
 }
 
 // AppModel is specific to the currently loaded organization and active user. It gets rebuilt when
@@ -59,6 +68,8 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly currentSubdomain = Computed.create(this, urlState().state, (use, s) => s.org);
   public readonly notifier = Notifier.create(this);
   public readonly appObs = Observable.create<AppModel|null>(this, null);
+  public readonly plugins: LocalPlugin[] = [];
+  private readonly _gristConfig?: GristLoadConfig;
 
   constructor(
     window: {gristConfig?: GristLoadConfig},
@@ -68,10 +79,12 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     setErrorNotifier(this.notifier);
     this.isSingleOrg = Boolean(window.gristConfig && window.gristConfig.singleOrg);
     this.productFlavor = getFlavor(window.gristConfig && window.gristConfig.org);
+    this._gristConfig = window.gristConfig;
 
     // Initially, and on any change to subdomain, call initialize() to get the full Organization
     // and the FullUser to use for it (the user may change when switching orgs).
     this.autoDispose(subscribe(this.currentSubdomain, (use) => this.initialize()));
+    this.plugins = this._gristConfig?.plugins || [];
   }
 
   public initialize(): void {
@@ -85,6 +98,23 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       const {currentUser, currentOrg, orgError} = app;
       AppModelImpl.create(this.appObs, this, currentUser, currentOrg, orgError);
     }
+  }
+
+  public getUntrustedContentOrigin() {
+    if (G.window.isRunningUnderElectron) {
+      // when loaded within webviews it is safe to serve plugin's content from the same domain
+      return "";
+    }
+
+    const origin =  this._gristConfig?.pluginUrl;
+    if (!origin) {
+      throw new Error("Missing untrustedContentOrigin configuration");
+    }
+    if (origin.match(/:[0-9]+$/)) {
+      // Port number already specified, no need to add.
+      return origin;
+    }
+    return origin + ":" + G.window.location.port;
   }
 
   private async _doInitialize() {

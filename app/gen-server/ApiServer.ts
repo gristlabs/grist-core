@@ -98,7 +98,7 @@ export class ApiServer {
    */
   constructor(
     private _app: express.Application,
-    private _dbManager: HomeDBManager,
+    private _dbManager: HomeDBManager
   ) {
     this._addEndpoints();
   }

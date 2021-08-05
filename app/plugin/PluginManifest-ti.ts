@@ -28,6 +28,7 @@ export const BarePlugin = t.iface([], {
 
 export const ImportSource = t.iface([], {
   "label": "string",
+  "safeHome": t.opt("boolean"),
   "importSource": "Implementation",
   "importProcessor": t.opt("Implementation"),
 });
