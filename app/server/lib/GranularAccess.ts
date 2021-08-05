@@ -653,6 +653,13 @@ export class GranularAccess implements GranularAccessForBundle {
    * access level and any row-level access functions needed.
    */
   public async getTableAccess(docSession: OptDocSession, tableId: string): Promise<TablePermissionSetWithContext> {
+    if (this._hasExceptionalFullAccess(docSession)) {
+      return {
+        perms: {read: 'allow', create: 'allow', delete: 'allow', update: 'allow', schemaEdit: 'allow'},
+        ruleType: 'table',
+        getMemos() { throw new Error('never needed'); }
+      };
+    }
     return (await this._getAccess(docSession)).getTableAccess(tableId);
   }
 
@@ -665,6 +672,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const cursor: ActionCursor = {docSession, action: data, actionIdx: null};
     const tableId = getTableId(data);
     if (this.getReadPermission(permInfo.getTableAccess(tableId)) === 'mixed') {
+      const readAccessCheck = this._readAccessCheck(docSession);
       await this._filterRowsAndCells(cursor, data, data, readAccessCheck, true);
     }
 
@@ -684,7 +692,7 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   public assertCanRead(ps: PermissionSetWithContext) {
-    readAccessCheck.throwIfDenied(ps);
+    accessChecks.fatal.read.get(ps);
   }
 
   /**
@@ -732,6 +740,18 @@ export class GranularAccess implements GranularAccessForBundle {
     if (permInfo.getFullAccess().perms.schemaEdit !== 'allow') {
       throw new ErrorWithCode('ACL_DENY', `Schema access required`);
     }
+  }
+
+  // The AccessCheck for the "read" permission is used enough to merit a shortcut.
+  // We just need to be careful to retain unfettered access for exceptional sessions.
+  private _readAccessCheck(docSession: OptDocSession): IAccessCheck {
+    return this._hasExceptionalFullAccess(docSession) ? dummyAccessCheck : accessChecks.check.read;
+  }
+
+  // Return true for special system sessions or document-creation sessions, where
+  // unfettered access is appropriate.
+  private _hasExceptionalFullAccess(docSession: OptDocSession): Boolean {
+    return docSession.mode === 'system' || docSession.mode === 'nascent';
   }
 
   /**
@@ -909,6 +929,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     // Return the results, also applying any cell-level access control.
+    const readAccessCheck = this._readAccessCheck(cursor.docSession);
     for (const a of revisedDocActions) {
       await this._filterRowsAndCells({...cursor, action: a}, rowsAfter, rowsAfter, readAccessCheck, false);
     }
@@ -1518,6 +1539,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const permInfo = await this._getStepAccess(cursor);
     const tableAccess = permInfo.getTableAccess(tableId);
     const access = this.getReadPermission(tableAccess);
+    const readAccessCheck = this._readAccessCheck(cursor.docSession);
     const results: DocAction[] = [];
     if (access === 'deny') {
       // filter out this data.
@@ -1636,7 +1658,7 @@ export class GranularAccess implements GranularAccessForBundle {
   // TODO: deal with ReplaceTableData, which both deletes and creates rows.
   private async _getAccessForActionType(docSession: OptDocSession, a: DocAction,
                                         severity: 'check'|'fatal'): Promise<IAccessCheck> {
-    if (docSession.mode === 'system' || docSession.mode === 'nascent') {
+    if (this._hasExceptionalFullAccess(docSession)) {
       return dummyAccessCheck;
     }
     const tableId = getTableId(a);
@@ -1821,6 +1843,7 @@ class UserAttributes {
 
 interface IAccessCheck {
   get(ps: PermissionSetWithContext): string;
+  throwIfDenied(ps: PermissionSetWithContext): void;
 }
 
 class AccessCheck implements IAccessCheck {
@@ -1852,11 +1875,11 @@ export const accessChecks = {
 };
 
 
-// The AccessCheck for the "read" permission is used enough to merit a shortcut.
-const readAccessCheck = accessChecks.check.read;
-
 // This AccessCheck allows everything.
-const dummyAccessCheck = { get() { return 'allow'; } };
+const dummyAccessCheck: IAccessCheck = {
+  get() { return 'allow'; },
+  throwIfDenied() {}
+};
 
 
 /**
