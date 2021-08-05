@@ -106,6 +106,7 @@ export function docBreadcrumbs(
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
+    isBareFork: Observable<boolean>,
     isFiddle: Observable<boolean>,
     isRecoveryMode: Observable<boolean>,
     userOverride: Observable<UserOverride|null>,
@@ -114,25 +115,31 @@ export function docBreadcrumbs(
   }
   ): Element {
     return cssBreadcrumbs(
-      cssIcon('Home',
+      dom.domComputed<[boolean, PartialWorkspace|null]>(
+        (use) => [use(options.isBareFork), use(workspace)],
+        ([isBareFork, ws]) => {
+          if (isBareFork || !ws) { return null; }
+          return [
+            cssIcon('Home',
               testId('bc-home'),
               cssHideForNarrowScreen.cls('')),
-      dom.maybe(workspace, _workspace => [
-        cssWorkspaceName(
-          urlState().setLinkUrl({ws: _workspace.id}),
-          dom.text(_workspace.name),
-          testId('bc-workspace'),
-          cssHideForNarrowScreen.cls('')
-        ),
-        cssWorkspaceNarrowScreen(
-          'Expand',
-          urlState().setLinkUrl({ws: _workspace.id}),
-          testId('bc-workspace-ns')
-        ),
-        separator(' / ',
-                  testId('bc-separator'),
-                  cssHideForNarrowScreen.cls(''))
-      ]),
+            cssWorkspaceName(
+              urlState().setLinkUrl({ws: ws.id}),
+              dom.text(ws.name),
+              testId('bc-workspace'),
+              cssHideForNarrowScreen.cls('')
+            ),
+            cssWorkspaceNarrowScreen(
+              'Expand',
+              urlState().setLinkUrl({ws: ws.id}),
+              testId('bc-workspace-ns')
+            ),
+            separator(' / ',
+                      testId('bc-separator'),
+                      cssHideForNarrowScreen.cls(''))
+          ];
+        }
+      ),
       editableLabel(
         docName, options.docNameSave, testId('bc-doc'), cssEditableName.cls(''),
         dom.boolAttr('disabled', options.isDocNameReadOnly || false),

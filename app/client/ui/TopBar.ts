@@ -47,6 +47,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isPageNameReadOnly: (use) => use(gristDoc.isReadonly) || typeof use(gristDoc.activeViewId) !== 'number',
           isDocNameReadOnly: (use) => use(gristDoc.isReadonly) || use(pageModel.isFork),
           isFork: pageModel.isFork,
+          isBareFork: pageModel.isBareFork,
           isRecoveryMode: pageModel.isRecoveryMode,
           userOverride: pageModel.userOverride,
           isFiddle: Computed.create(owner, (use) => use(pageModel.isPrefork)),
