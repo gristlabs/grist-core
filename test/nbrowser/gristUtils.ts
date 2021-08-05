@@ -42,7 +42,6 @@ export const removeLogin = homeUtil.removeLogin.bind(homeUtil);
 export const setValue = homeUtil.setValue.bind(homeUtil);
 export const isOnLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const checkLoginPage = homeUtil.checkLoginPage.bind(homeUtil);
-export const openUserProfile = homeUtil.openUserProfile.bind(homeUtil);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -1613,6 +1612,14 @@ export function addSamplesForSuite() {
   });
 }
 
+export async function openUserProfile() {
+  await driver.findWait('.test-dm-account', 1000).click();
+  // Since the AccountWidget loads orgs and the user data asynchronously, the menu
+  // can expand itself causing the click to land on a wrong button.
+  await waitForServer();
+  await driver.findContent('.grist-floating-menu li', 'Profile Settings').click();
+  await driver.findWait('.test-login-method', 5000);
+}
 
 } // end of namespace gristUtils
 

@@ -243,12 +243,6 @@ export class HomeUtil {
     );
   }
 
-  public async openUserProfile() {
-    await this.driver.findWait('.test-dm-account', 1000).click();
-    await this.driver.findContent('.grist-floating-menu li', 'Profile Settings').click();
-    await this.driver.findWait('.test-login-method', 5000);
-  }
-
   /**
    * Returns whether we are currently on the Cognito login page.
    */
