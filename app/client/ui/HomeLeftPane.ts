@@ -176,6 +176,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
       menuItem(() => importFromPluginAndOpen(home, source),
         menuIcon('Import'),
         source.importSource.label,
+        dom.cls('disabled', !home.newDocWorkspace.get()),
         testId(`dm-import-plugin`)
       ))
     ])),
