@@ -4,7 +4,6 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
 import {IMsgCustom, IMsgRpcCall} from 'grain-rpc';
-import * as path from 'path';
 
 // TODO safePython component should be able to call other components function
 // TODO calling a function on safePython component with a name that was not register chould fail
@@ -22,10 +21,10 @@ export class SafePythonComponent extends BaseComponent {
 
   // safe python component does not need pluginInstance.rpc because it is not possible to forward
   // calls to other component from within python
-  constructor(private _localPlugin: LocalPlugin,
-              private _mainPath: string, private _tmpDir: string,
+  constructor(_localPlugin: LocalPlugin,
+              private _tmpDir: string,
               docName: string, private _server: GristServer,
-              rpcLogger = createRpcLogger(log, `PLUGIN ${_localPlugin.id}/${_mainPath} SafePython:`)) {
+              rpcLogger = createRpcLogger(log, `PLUGIN ${_localPlugin.id} SafePython:`)) {
     super(_localPlugin.manifest, rpcLogger);
     this._logMeta = {plugin: _localPlugin.id, docId: docName};
   }
@@ -39,8 +38,6 @@ export class SafePythonComponent extends BaseComponent {
       throw new Error("Sanbox should have a tmpDir");
     }
     this._sandbox = this._server.create.NSandbox({
-      entryPoint: this._mainPath,
-      sandboxMount: path.join(this._localPlugin.path, 'sandbox'),
       importMount: this._tmpDir,
       logTimes: true,
       logMeta: this._logMeta,

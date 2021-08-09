@@ -5,10 +5,10 @@ import math
 import os
 import unittest
 
-import import_xls
+from imports import import_xls
 
 def _get_fixture(filename):
-  return [os.path.join(os.path.dirname(__file__), "test/fixtures", filename), filename]
+  return [os.path.join(os.path.dirname(__file__), "fixtures", filename), filename]
 
 
 class TestImportXLS(unittest.TestCase):

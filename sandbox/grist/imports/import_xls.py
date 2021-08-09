@@ -2,19 +2,18 @@
 This module reads a file path that is passed in using ActiveDoc.importFile()
 and returns a object formatted so that it can be used by grist for a bulk add records action
 """
-import os
 import csv
-import itertools
 import logging
+import os
 
 import chardet
 import messytables
+import messytables.excel
 import six
 from six.moves import zip
 
 import parse_data
-import import_utils
-
+from imports import import_utils
 
 log = logging.getLogger(__name__)
 
@@ -116,3 +115,36 @@ def parse_open_file(file_obj, orig_name, table_name_hint=None):
     parse_options = {}
 
   return parse_options, export_list
+
+
+# This change was initially introduced in https://phab.getgrist.com/D2145
+# Monkey-patching done in https://phab.getgrist.com/D2965
+# to move towards normal dependency management
+@staticmethod
+def from_xlrdcell(xlrd_cell, sheet, col, row):
+  from messytables.excel import (
+    XLS_TYPES, StringType, DateType, InvalidDateError, xlrd, time, datetime, XLSCell
+  )
+  value = xlrd_cell.value
+  cell_type = XLS_TYPES.get(xlrd_cell.ctype, StringType())
+  if cell_type == DateType(None):
+    # Try-catch added by Dmitry, to avoid failing even if we see a date we can't handle.
+    try:
+      if value == 0:
+        raise InvalidDateError
+      year, month, day, hour, minute, second = \
+        xlrd.xldate_as_tuple(value, sheet.book.datemode)
+      if (year, month, day) == (0, 0, 0):
+        value = time(hour, minute, second)
+      else:
+        value = datetime(year, month, day, hour, minute, second)
+    except Exception:
+      # Keep going, and we'll just interpret the date as a number.
+      pass
+  messy_cell = XLSCell(value, type=cell_type)
+  messy_cell.sheet = sheet
+  messy_cell.xlrd_cell = xlrd_cell
+  messy_cell.xlrd_pos = (row, col)  # necessary for properties, note not (x,y)
+  return messy_cell
+
+messytables.excel.XLSCell.from_xlrdcell = from_xlrdcell

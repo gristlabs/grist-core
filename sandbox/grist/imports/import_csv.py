@@ -10,7 +10,7 @@ import six
 from six.moves import zip
 
 import parse_data
-import import_utils
+from imports import import_utils
 
 
 log = logging.getLogger(__name__)

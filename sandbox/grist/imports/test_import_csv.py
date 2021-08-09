@@ -1,12 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# Run tests with:
-#
-# ./sandbox/nacl/bin/sel_ldr -E PYTHONPATH=/grist:/thirdparty -B ./sandbox/nacl/lib/irt_core.nexe -l /dev/null -m ./sandbox/nacl/root:/:ro -m ./plugins/core/sandbox:/sandbox:ro ./sandbox/nacl/lib/runnable-ld.so --library-path /slib /python/bin/python2.7.nexe -m unittest discover -v -s /sandbox #pylint: disable=line-too-long
-#
-#
-# TODO: run test automatically
-#
-import math
 import os
 import textwrap
 import unittest
@@ -15,11 +7,11 @@ import csv
 import calendar
 import datetime
 
-import import_csv
+from imports import import_csv
 
 
 def _get_fixture(filename):
-  return os.path.join(os.path.dirname(__file__), "test/fixtures", filename)
+  return os.path.join(os.path.dirname(__file__), "fixtures", filename)
 
 
 def bytes_io_from_str(string):

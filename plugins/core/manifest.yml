@@ -20,5 +20,4 @@ contributions:
 
 scripts:
   build:
-  # Note that ${XUNIT:+xxx} inserts "xxx" when XUNIT is set, and nothing otherwise.
-  test: $GRIST_PYTHON -m runtests discover -v -s /sandbox ${XUNIT:+--xunit}
+  test:

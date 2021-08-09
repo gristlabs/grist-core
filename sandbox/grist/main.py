@@ -11,14 +11,15 @@ import functools
 
 import six
 
-from acl_formula import parse_acl_formula
 import actions
-from sandbox import get_default_sandbox
 import engine
 import migrations
 import schema
 import useractions
 import objtypes
+from acl_formula import parse_acl_formula
+from sandbox import get_default_sandbox
+from imports.register import register_import_parsers
 
 import logger
 log = logger.Logger(__name__, logger.INFO)
@@ -106,6 +107,8 @@ def run(sandbox):
   export(parse_acl_formula)
   export(eng.load_empty)
   export(eng.load_done)
+
+  register_import_parsers(sandbox)
 
   sandbox.run()
 

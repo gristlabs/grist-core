@@ -1,5 +1,5 @@
 import unittest
-from dateguess import guess, guess_bulk
+from imports.dateguess import guess, guess_bulk
 
 
 class TestGuesser(unittest.TestCase):

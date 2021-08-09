@@ -1,5 +1,5 @@
 from unittest import TestCase
-import import_json
+from imports import import_json
 
 class TestImportJSON(TestCase):
 

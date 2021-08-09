@@ -31,27 +31,17 @@ type SandboxMethod = (...args: any[]) => any;
  *
  * Once python is running, ordinarily some Grist code should be
  * started by setting `useGristEntrypoint` (the only exception is
- * in tests).
- *
- * The Grist code that runs is by default grist/main.py.  For plugins,
- * this is overridden, to run whatever is specified by plugin.script.
- *
+ * in tests) which runs grist/main.py.
  */
 interface ISandboxOptions {
   command?: string;       // External program or container to call to run the sandbox.
   args: string[];         // The arguments to pass to the python process.
 
-  // When doing imports, the sandbox is started somewhat differently.
-  // Directories are shared with the sandbox that are not otherwise.
-  // Options for that that are collected in `plugin`.  TODO: update
+  // TODO: update
   // ISandboxCreationOptions to talk about directories instead of
   // mounts, since it may not be possible to remap directories as
   // mounts (e.g. for unsandboxed operation).
-  plugin?: {
-    importDir: string;  // a directory containing data file(s) to import.
-    pluginDir: string;  // a directory containing code for running the import.
-    script: string;     // an entrypoint, relative to pluginDir.
-  }
+  importDir?: string;  // a directory containing data file(s) to import by plugins
 
   docUrl?: string;               // URL to the document, for SELF_HYPERLINK
   minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
@@ -397,14 +387,8 @@ export class NSandboxCreator implements ISandboxCreator {
       logTimes: options.logTimes,
       command: this._command,
       useGristEntrypoint: true,
+      importDir: options.importMount,
     };
-    if (options.entryPoint) {
-      translatedOptions.plugin = {
-        script: options.entryPoint,
-        pluginDir: options.sandboxMount || '',
-        importDir: options.importMount || '',
-      };
-    }
     return new NSandbox(translatedOptions, spawners[this._flavor]);
   }
 }
@@ -422,24 +406,20 @@ type SpawnFn = (options: ISandboxOptions) => ChildProcess;
  * I've done my best to avoid changing behavior by not touching it too much.
  */
 function pynbox(options: ISandboxOptions): ChildProcess {
-  const {command, args: pythonArgs, unsilenceLog, plugin} = options;
+  const {command, args: pythonArgs, unsilenceLog, importDir} = options;
   if (command) {
     throw new Error("NaCl can only run the specific python2.7 package built for it");
   }
   if (options.useGristEntrypoint) {
-    pythonArgs.unshift(plugin?.script || 'grist/main.pyc');
+    pythonArgs.unshift('grist/main.pyc');
   }
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
     env: getWrappingEnv(options)
   };
   const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
-  if (plugin) {
-
-    // TODO: Only modules that we share with plugins should be mounted. They could be gathered in
-    // a "$APPROOT/sandbox/plugin" folder, only which get mounted.
-    wrapperArgs.addMount(`${plugin.pluginDir}:/sandbox:ro`);
-    wrapperArgs.addMount(`${plugin.importDir}:/importdir:ro`);
+  if (importDir) {
+    wrapperArgs.addMount(`${importDir}:/importdir:ro`);
   }
 
   if (!options.minimalPipeMode) {
@@ -475,16 +455,16 @@ function pynbox(options: ISandboxOptions): ChildProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): ChildProcess {
-  const {args: pythonArgs, plugin} = options;
+  const {args: pythonArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
   if (options.useGristEntrypoint) {
-    pythonArgs.unshift(paths.plugin?.script || paths.main);
+    pythonArgs.unshift(paths.main);
   }
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
     env: {
       PYTHONPATH: paths.engine,
-      IMPORTDIR: plugin?.importDir,
+      IMPORTDIR: importDir,
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
     }
@@ -531,12 +511,11 @@ function gvisor(options: ISandboxOptions): ChildProcess {
   wrapperArgs.addEnv('PYTHONPATH', paths.engine);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addMount(paths.sandboxDir);
-  if (paths.plugin) {
-    wrapperArgs.addMount(paths.plugin.pluginDir);
-    wrapperArgs.addMount(paths.plugin.importDir);
-    wrapperArgs.addEnv('IMPORTDIR', paths.plugin.importDir);
-    pythonArgs.unshift(paths.plugin.script);
-  } else if (options.useGristEntrypoint) {
+  if (paths.importDir) {
+    wrapperArgs.addMount(paths.importDir);
+    wrapperArgs.addEnv('IMPORTDIR', paths.importDir);
+  }
+  if (options.useGristEntrypoint) {
     pythonArgs.unshift(paths.main);
   }
   if (options.deterministicMode) {
@@ -558,17 +537,15 @@ function gvisor(options: ISandboxOptions): ChildProcess {
 function docker(options: ISandboxOptions): ChildProcess {
   const {args: pythonArgs, command} = options;
   if (options.useGristEntrypoint) {
-    pythonArgs.unshift(options.plugin?.script || 'grist/main.py');
+    pythonArgs.unshift('grist/main.py');
   }
   if (!options.minimalPipeMode) {
     throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
   }
   const paths = getAbsolutePaths(options);
-  const plugin = paths.plugin;
   const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
-  if (plugin) {
-    wrapperArgs.addMount(`${plugin.pluginDir}:/sandbox:ro`);
-    wrapperArgs.addMount(`${plugin.importDir}:/importdir:ro`);
+  if (paths.importDir) {
+    wrapperArgs.addMount(`${paths.importDir}:/importdir:ro`);
   }
   wrapperArgs.addMount(`${paths.engine}:/grist:ro`);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
@@ -646,18 +623,12 @@ function getAbsolutePaths(options: ISandboxOptions) {
   const sandboxDir = path.join(fs.realpathSync(path.join(process.cwd(), 'sandbox', 'grist')),
                                '..');
   // Copy plugin options, and then make them absolute.
-  const plugin = options.plugin && { ...options.plugin };
-  if (plugin) {
-    plugin.pluginDir = fs.realpathSync(plugin.pluginDir);
-    plugin.importDir = fs.realpathSync(plugin.importDir);
-    // Plugin dir is ..../sandbox, and entry point is sandbox/...
-    // This may not be a general rule, it may be just for the "core" plugin, but
-    // that suffices for now.
-    plugin.script = path.join(plugin.pluginDir, '..', plugin.script);
+  if (options.importDir) {
+    options.importDir = fs.realpathSync(options.importDir);
   }
   return {
     sandboxDir,
-    plugin,
+    importDir: options.importDir,
     main: path.join(sandboxDir, 'grist/main.py'),
     engine: path.join(sandboxDir, 'grist'),
   };

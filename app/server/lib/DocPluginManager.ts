@@ -200,7 +200,7 @@ export class DocPluginManager {
         if (components) {
           const { safePython, unsafeNode } = components;
           if (safePython) {
-            const comp = pluginInstance.safePython = new SafePythonComponent(plugin, safePython, this._tmpDir,
+            const comp = pluginInstance.safePython = new SafePythonComponent(plugin, this._tmpDir,
               this._activeDoc.docName, this._server);
             pluginInstance.rpc.registerForwarder(safePython, comp);
           }

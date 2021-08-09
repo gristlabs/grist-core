@@ -7,7 +7,7 @@ dictionary with "type" and "data" fields, where "type" is a Grist type string, a
 of values. All "data" lists will have the same length.
 """
 
-import dateguess
+from imports import dateguess
 import datetime
 import logging
 import re

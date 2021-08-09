@@ -78,7 +78,7 @@ from itertools import count, chain
 
 import six
 
-import import_utils
+from imports import import_utils
 
 Ref = namedtuple('Ref', ['table_name', 'rowid'])
 Row = namedtuple('Row', ['values', 'parent', 'ref'])
