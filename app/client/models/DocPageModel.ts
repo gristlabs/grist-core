@@ -303,7 +303,8 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
       menuIcon("Widget"), "Add Widget to Page", testId('dp-add-widget-to-page'),
-      dom.cls('disabled', isReadonly)
+      // disable for readonly doc and all special views
+      dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
       menuIcon("TypeTable"), "Add Empty Table", testId('dp-empty-table'),
