@@ -257,11 +257,35 @@ class TestSummaryChoiceList(EngineTestCase):
       [2, "b", [102, 103, 105, 106, 108, 109], 6],
     ])
 
-    self.assertTableData('GristSummary_6_Source2', data=[
+    summary_data = [
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [101, 103, 107, 109], 4],
       [2, "a", "d", [104, 106, 107, 109], 4],
       [3, "b", "c", [102, 103, 108, 109], 4],
       [4, "b", "d", [105, 106, 108, 109], 4],
       [5, "a", "e", [], 0],
+    ]
+
+    self.assertTableData('GristSummary_6_Source2', data=summary_data)
+
+    # Verify that "DetachSummaryViewSection" useraction works correctly.
+    self.apply_user_action(["DetachSummaryViewSection", 2])
+
+    self.assertTables([
+      self.starting_table, summary_table1, summary_table3, summary_table4,
+      Table(
+        6, "Table1", primaryViewId=5, summarySourceTable=0,
+        columns=[
+          Column(27, "manualSort", "ManualSortPos", isFormula=False, formula="", summarySourceCol=0),
+          Column(28, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=0),
+          Column(29, "choices2", "Choice", isFormula=False, formula="", summarySourceCol=0),
+          Column(30, "count", "Int", isFormula=True, summarySourceCol=0,
+                 formula="len($group)"),
+          Column(31, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
+                 formula="Source.lookupRecords(choices1=CONTAINS($choices1), choices2=CONTAINS($choices2))"),
+
+        ],
+      )
     ])
+
+    self.assertTableData('Table1', data=summary_data, cols="subset")

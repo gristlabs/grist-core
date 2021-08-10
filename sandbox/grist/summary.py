@@ -301,8 +301,15 @@ class SummaryActions(object):
     col_info = [_make_col_info(col=c) for c in field_col_recs if c.colId != 'group']
 
     # Prepare the 'group' column, which is that one column that's different from the original.
-    group_args = ', '.join('%s=$%s' % (c.summarySourceCol.colId, c.colId)
-                           for c in field_col_recs if c.summarySourceCol)
+    group_args = ', '.join(
+      '%s=%s' % (
+        c.summarySourceCol.colId,
+        'CONTAINS($%s)' % c.colId
+        if c.summarySourceCol.type.startswith(('ChoiceList', 'RefList:')) else
+        '$%s' % c.colId,
+      )
+      for c in field_col_recs if c.summarySourceCol
+    )
     col_info.append(_make_col_info(colId='group', type='RefList:%s' % source_table_id,
                                    isFormula=True,
                                    formula='%s.lookupRecords(%s)' % (source_table_id, group_args)))
