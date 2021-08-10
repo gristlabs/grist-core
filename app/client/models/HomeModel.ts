@@ -126,8 +126,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly newDocWorkspace = Computed.create(this, this.currentPage, this.currentWS, (use, page, ws) => {
     // Anonymous user can create docs, but in unsaved mode.
     if (!this.app.currentValidUser) { return "unsaved"; }
-    if (['templates', 'trash'].includes(page)) { return null; }
-    const destWS = (page === 'all') ? (use(this.workspaces)[0] || null) : ws;
+    if (page === 'trash') { return null; }
+    const destWS = (['all', 'templates'].includes(page)) ? (use(this.workspaces)[0] || null) : ws;
     return destWS && roles.canEdit(destWS.access) ? destWS : null;
   });
 
