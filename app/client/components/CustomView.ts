@@ -57,11 +57,14 @@ export class CustomView extends Disposable {
   private _updateData: () => void;   // debounced call to let the view know linked data changed.
   private _updateCursor: () => void; // debounced call to let the view know linked cursor changed.
   private _rpc: Rpc;  // rpc connection to view.
+  private _emptyWidgetPage: string;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel);
 
     this._customDef =  this.viewSection.customDef;
+
+    this._emptyWidgetPage = new URL("custom-widget.html", gristDoc.app.topAppModel.getUntrustedContentOrigin()).href;
 
     this.autoDisposeCallback(() => {
       if (this._customSection) {
@@ -227,7 +230,7 @@ export class CustomView extends Disposable {
     // in a simple and unambiguous way.
     let fullUrl: string;
     if (!baseUrl) {
-      fullUrl = baseUrl;
+      fullUrl = this._emptyWidgetPage;
     } else {
       const url = new URL(baseUrl);
       url.searchParams.append('access', access);
