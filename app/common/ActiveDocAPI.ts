@@ -62,15 +62,32 @@ export interface ImportTableResult {
  *    {tableId: "Projects", filters: {}}
  *    {tableId: "Employees", filters: {Status: ["Active"], Dept: ["Sales", "HR"]}}
  */
-export interface Query {
+interface BaseQuery {
   tableId: string;
   filters: {
     [colId: string]: any[];
   };
+}
 
+/**
+ * Query that can only be used on the client side.
+ * Allows filtering with more complex operations.
+ */
+export interface ClientQuery extends BaseQuery {
+  operations?: {
+    [colId: string]: QueryOperation;
+  }
+}
+
+/**
+ * Query intended to be sent to a server.
+ */
+export interface ServerQuery extends BaseQuery {
   // Queries to server for onDemand tables will set a limit to avoid bringing down the browser.
   limit?: number;
 }
+
+export type QueryOperation = "in" | "intersects";
 
 /**
  * Response from useQuerySet(). A query returns data AND creates a subscription to receive
@@ -113,7 +130,7 @@ export interface ActiveDocAPI {
    * docActions that affect this query's results. The subscription remains functional even when
    * tables or columns get renamed.
    */
-  useQuerySet(query: Query): Promise<QueryResult>;
+  useQuerySet(query: ServerQuery): Promise<QueryResult>;
 
   /**
    * Removes the subscription to a Query, identified by QueryResult.querySubId, so that the

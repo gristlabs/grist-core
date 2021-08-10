@@ -30,8 +30,8 @@ import * as DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
 import {BaseFilteredRowSource, RowId, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
-import {ActiveDocAPI, Query} from 'app/common/ActiveDocAPI';
-import {TableDataAction} from 'app/common/DocActions';
+import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
+import {CellValue, TableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
@@ -41,6 +41,8 @@ import {tbind} from 'app/common/tbind';
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
+import {isList} from "app/common/gristTypes";
+import {decodeObject} from "app/plugin/objtypes";
 
 // Limit on the how many rows to request for OnDemand tables.
 const ON_DEMAND_ROW_LIMIT = 10000;
@@ -54,8 +56,10 @@ const MAX_SQL_PARAMS = 500;
  */
 export interface QueryRefs {
   tableRef: number;
-  filterPairs: Array<[number, any[]]>;
+  filterTuples: Array<FilterTuple>;
 }
+
+type FilterTuple = [number, QueryOperation, any[]];
 
 /**
  * QuerySetManager keeps track of all queries for a GristDoc instance. It is also responsible for
@@ -83,7 +87,7 @@ export class QuerySetManager extends Disposable {
     }));
   }
 
-  public useQuerySet(owner: IDisposableOwnerT<IRefCountSub<QuerySet>>, query: Query): QuerySet {
+  public useQuerySet(owner: IDisposableOwnerT<IRefCountSub<QuerySet>>, query: ClientQuery): QuerySet {
     // Convert the query to a string key which identifies it.
     const queryKey: string = encodeQuery(convertQueryToRefs(this._docModel, query));
 
@@ -150,8 +154,10 @@ export class DynamicQuerySet extends RowSource {
    * argument to cb() is true if any data was changed, and false if not. Note that for a series of
    * makeQuery() calls, cb() is always called at least once, and always asynchronously.
    */
-  public makeQuery(filters: {[colId: string]: any[]}, cb: (err: Error|null, changed: boolean) => void): void {
-    const query: Query = {tableId: this._tableModel.tableData.tableId, filters};
+  public makeQuery(filters: {[colId: string]: any[]},
+                   operations: {[colId: string]: QueryOperation},
+                   cb: (err: Error|null, changed: boolean) => void): void {
+    const query: ClientQuery = {tableId: this._tableModel.tableData.tableId, filters, operations};
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
 
     // CB should be called asynchronously, since surprising hard-to-debug interactions can happen
@@ -200,7 +206,7 @@ export class QuerySet extends BaseFilteredRowSource {
 
   constructor(docModel: DocModel, docComm: ActiveDocAPI, queryKey: string, qsm: QuerySetManager) {
     const queryRefs: QueryRefs = decodeQuery(queryKey);
-    const query: Query = convertQueryFromRefs(docModel, queryRefs);
+    const query: ClientQuery = convertQueryFromRefs(docModel, queryRefs);
 
     super(getFilterFunc(docModel.docData, query));
     this.isTruncated = false;
@@ -296,22 +302,34 @@ export class TableQuerySets {
 /**
  * Returns a filtering function which tells whether a row matches the given query.
  */
-export function getFilterFunc(docData: DocData, query: Query): RowFilterFunc<RowId> {
+export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFunc<RowId> {
   // NOTE we rely without checking on tableId and colIds being valid.
   const tableData: BaseTableData = docData.getTable(query.tableId)!;
-  const colIds = Object.keys(query.filters).sort();
-  const colPairs = colIds.map(
-    (c) => [tableData.getRowPropFunc(c)!, new Set(query.filters[c])] as [RowPropFunc, Set<any>]);
-  return (rowId: RowId) => colPairs.every(([getter, values]) => values.has(getter(rowId)));
+  const colFuncs = Object.keys(query.filters).sort().map(
+    (colId) => {
+      const getter = tableData.getRowPropFunc(colId)!;
+      const values = new Set(query.filters[colId]);
+      switch (query.operations![colId]) {
+        case "intersects":
+          return (rowId: RowId) => {
+            const value = getter(rowId) as CellValue;
+            return isList(value) &&
+              (decodeObject(value) as unknown[]).some(v => values.has(v));
+          };
+        case "in":
+          return (rowId: RowId) => values.has(getter(rowId));
+        default:
+          throw new Error("Unknown operation");
+      }
+    });
+  return (rowId: RowId) => colFuncs.every(f => f(rowId));
 }
-
-type RowPropFunc = (rowId: RowId) => any;
 
 /**
  * Helper that converts a Query (with tableId/colIds) to an object with tableRef/colRefs (i.e.
  * rowIds), and consistently sorted. We use that to identify a Query across table/column renames.
  */
-function convertQueryToRefs(docModel: DocModel, query: Query): QueryRefs {
+function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
   const tableRec: any = docModel.dataTables[query.tableId].tableMetaRow;
 
   const colRefsByColId: {[colId: string]: number} = {};
@@ -319,26 +337,32 @@ function convertQueryToRefs(docModel: DocModel, query: Query): QueryRefs {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
 
-  const colIds = Object.keys(query.filters);
-  const filterPairs = colIds.map((c) => [colRefsByColId[c], query.filters[c]] as [number, any]);
+  const filterTuples = Object.keys(query.filters).map((colId) => {
+    const values = query.filters[colId];
+    // Keep filter values sorted by value, for consistency.
+    values.sort(nativeCompare);
+    return [colRefsByColId[colId], query.operations![colId], values] as FilterTuple;
+  });
   // Keep filters sorted by colRef, for consistency.
-  filterPairs.sort((a, b) => nativeCompare(a[0], b[0]));
-  // Keep filter values sorted by value, for consistency.
-  filterPairs.forEach(([colRef, values]) => values.sort(nativeCompare));
-  return {tableRef: tableRec.getRowId(), filterPairs};
+  filterTuples.sort((a, b) =>
+    nativeCompare(a[0], b[0]) || nativeCompare(a[1], b[1]));
+  return {tableRef: tableRec.getRowId(), filterTuples};
 }
 
 /**
  * Helper to convert a QueryRefs (using tableRef/colRefs) object back to a Query (using
  * tableId/colIds).
  */
-function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): Query {
+function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): ClientQuery {
   const tableRec = docModel.dataTablesByRef.get(queryRefs.tableRef)!.tableMetaRow;
   const filters: {[colId: string]: any[]} = {};
-  for (const [colRef, values] of queryRefs.filterPairs) {
-    filters[docModel.columns.getRowModel(colRef).colId.peek()] = values;
+  const operations: {[colId: string]: QueryOperation} = {};
+  for (const [colRef, operation, values] of queryRefs.filterTuples) {
+    const colId = docModel.columns.getRowModel(colRef).colId.peek();
+    filters[colId] = values;
+    operations[colId] = operation;
   }
-  return {tableId: tableRec.tableId.peek(), filters};
+  return {tableId: tableRec.tableId.peek(), filters, operations};
 }
 
 /**
@@ -349,13 +373,13 @@ function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): Query {
  * guaranteed. This is important to produce consistent results (same query => same encoding).
  */
 function encodeQuery(queryRefs: QueryRefs): string {
-  return JSON.stringify([queryRefs.tableRef, queryRefs.filterPairs]);
+  return JSON.stringify([queryRefs.tableRef, queryRefs.filterTuples]);
 }
 
 // Decode an encoded QueryRefs.
 function decodeQuery(queryKey: string): QueryRefs {
-  const [tableRef, filterPairs] = JSON.parse(queryKey);
-  return {tableRef, filterPairs};
+  const [tableRef, filterTuples] = JSON.parse(queryKey);
+  return {tableRef, filterTuples};
 }
 
 /**
@@ -364,7 +388,7 @@ function decodeQuery(queryKey: string): QueryRefs {
  */
 function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.Computed<boolean> {
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
-  const colFlags: Array<ko.Observable<boolean>> = queryRefs.filterPairs.map(
-    ([colRef, values]) => docModel.columns.getRowModel(colRef)._isDeleted);
+  const colFlags: Array<ko.Observable<boolean>> = queryRefs.filterTuples.map(
+    ([colRef, , ]) => docModel.columns.getRowModel(colRef)._isDeleted);
   return ko.computed(() => Boolean(tableFlag() || colFlags.some((c) => c())));
 }

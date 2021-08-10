@@ -980,13 +980,22 @@ class Engine(object):
     old_tables = self.tables
 
     self.tables = {}
+    sorted_tables = []
     for table_id, user_table in six.iteritems(self.gencode.usercode.__dict__):
-      if isinstance(user_table, table_module.UserTable):
-        self.tables[table_id] = (old_tables.get(table_id) or table_module.Table(table_id, self))
+      if not  isinstance(user_table, table_module.UserTable):
+        continue
+      self.tables[table_id] = table = (
+          old_tables.get(table_id) or table_module.Table(table_id, self)
+      )
+
+      # Process non-summary tables first so that summary tables
+      # can read correct metadata about their source tables
+      key = (hasattr(user_table.Model, '_summarySourceTable'), table_id)
+      sorted_tables.append((key, table, user_table))
+    sorted_tables.sort()
 
     # Now update the table model for each table, and tie it to its UserTable object.
-    for table_id, table in six.iteritems(self.tables):
-      user_table = getattr(self.gencode.usercode, table_id)
+    for _, table, user_table in sorted_tables:
       self._update_table_model(table, user_table)
       user_table._set_table_impl(table)
 

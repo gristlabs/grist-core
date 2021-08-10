@@ -1,4 +1,4 @@
-import {Query} from 'app/common/ActiveDocAPI';
+import {ServerQuery} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {DocData} from 'app/common/DocData';
 import {parseFormula} from 'app/common/Formula';
@@ -10,7 +10,7 @@ import {quoteIdent} from 'app/server/lib/SQLiteDB';
  * formulas.  Use of this representation should be limited to within a
  * trusted part of Grist since it assembles SQL strings.
  */
-export interface ExpandedQuery extends Query {
+export interface ExpandedQuery extends ServerQuery {
   // Errors detected for given columns because of formula issues.  We
   // need to make sure the result of the query contains these error
   // objects.  It is awkward to write a sql selection that constructs
@@ -38,7 +38,7 @@ export interface ExpandedQuery extends Query {
  *
  * If onDemandFormulas is set, ignore stored formula columns, and compute them using SQL.
  */
-export function expandQuery(iquery: Query, docData: DocData, onDemandFormulas: boolean = true): ExpandedQuery {
+export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormulas: boolean = true): ExpandedQuery {
   const query: ExpandedQuery = {
     tableId: iquery.tableId,
     filters: iquery.filters,

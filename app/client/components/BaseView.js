@@ -26,6 +26,7 @@ const {copyToClipboard} = require('app/client/lib/copyToClipboard');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
+const {encodeObject} = require("app/plugin/objtypes");
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -140,7 +141,12 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   this._linkingFilter = this.autoDispose(ko.computed(() => {
     const linking = this._linkingState();
-    return linking && linking.filterColValues ? linking.filterColValues() : {};
+    const result = linking && linking.filterColValues ? linking.filterColValues() : {filters: {}};
+    result.operations = result.operations || {};
+    for (const key in result.filters) {
+      result.operations[key] = result.operations[key] || 'in';
+    }
+    return result;
   }));
 
   // A computed for the rowId of the row selected by section linking.
@@ -204,7 +210,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
   // dependency changes.
   this.autoDispose(ko.computed(() => {
     this._isLoading(true);
-    this._queryRowSource.makeQuery(this._linkingFilter(), (err) => {
+    const linkingFilter = this._linkingFilter();
+    this._queryRowSource.makeQuery(linkingFilter.filters, linkingFilter.operations, (err) => {
       if (this.isDisposed()) { return; }
       if (err) { window.gristNotify(`Query error: ${err.message}`); }
       this.onTableLoaded();
@@ -373,8 +380,11 @@ BaseView.prototype._parsePasteForView = function(data, cols) {
 };
 
 BaseView.prototype._getDefaultColValues = function() {
-  const filterValues = this._linkingFilter.peek();
-  return _.mapObject(_.pick(filterValues, v => (v.length > 0)), v => v[0]);
+  const {filters, operations} = this._linkingFilter.peek();
+  return _.mapObject(
+      _.pick(filters, v => (v.length > 0)),
+      (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0]
+  );
 };
 
 /**

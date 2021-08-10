@@ -77,7 +77,7 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
             }
           }
         }
-        return {[tgtColId]: Array.from(srcValues)};
+        return {filters: {[tgtColId]: Array.from(srcValues)}};
       }));
     } else if (srcColId) {
       let srcRowModel = this.autoDispose(srcTableModel.createFloatingRowModel());
@@ -88,13 +88,13 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
         this.filterColValues = this.autoDispose(ko.computed(() => {
           const srcRowId = srcSection.activeRowId();
           srcRowModel.assign(srcRowId);
-          return {[tgtColId]: [srcCell()]};
+          return {filters: {[tgtColId]: [srcCell()]}};
         }));
       }
     } else {
       this.filterColValues = this.autoDispose(ko.computed(() => {
         const srcRowId = srcSection.activeRowId();
-        return {[tgtColId]: [srcRowId]};
+        return {filters: {[tgtColId]: [srcRowId]}};
       }));
     }
   } else if (isSummaryOf(srcSection.table(), tgtSection.table())) {
@@ -103,17 +103,24 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
     // those in the srcSection).
     // TODO: This approach doesn't help cursor-linking (the other direction). If we have the
     // inverse of summary-table's 'group' column, we could implement both, and more efficiently.
+    const isDirectSummary = srcSection.table().summarySourceTable() === tgtSection.table().getRowId();
     this.filterColValues = this.autoDispose(ko.computed(() => {
       const srcRowId = srcSection.activeRowId();
-      const filter = {};
-      for (const c of srcSection.table().columns().all()) {
-        if (c.summarySourceCol()) {
-          const colId = c.summarySource().colId();
-          const srcValue = srcTableData.getValue(srcRowId, colId);
-          filter[colId] = [srcValue];
+      const filters = {};
+      const operations = {};
+      for (const c of srcSection.table().groupByColumns()) {
+        const col = c.summarySource();
+        const colId = col.colId();
+        const srcValue = srcTableData.getValue(srcRowId, colId);
+        filters[colId] = [srcValue];
+        if (isDirectSummary) {
+          const tgtColType = col.type();
+          if (tgtColType === 'ChoiceList' || tgtColType.startsWith('RefList:')) {
+            operations[colId] = 'intersects';
+          }
         }
       }
-      return filter;
+      return {filters, operations};
     }));
   } else if (isSummaryOf(tgtSection.table(), srcSection.table())) {
     // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a

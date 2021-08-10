@@ -2,7 +2,7 @@ import { ALL_PERMISSION_PROPS } from 'app/common/ACLPermissions';
 import { ACLRuleCollection, SPECIAL_RULES_TABLE_ID } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
-import { Query } from 'app/common/ActiveDocAPI';
+import { ServerQuery } from 'app/common/ActiveDocAPI';
 import { ApiError } from 'app/common/ApiError';
 import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord } from 'app/common/DocActions';
 import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
@@ -170,7 +170,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public constructor(
     private _docData: DocData,
     private _docClients: DocClients,
-    private _fetchQueryFromDB: (query: Query) => Promise<TableDataAction>,
+    private _fetchQueryFromDB: (query: ServerQuery) => Promise<TableDataAction>,
     private _recoveryMode: boolean,
     private _homeDbManager: HomeDBManager | null,
     private _docId: string) {
@@ -202,13 +202,6 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // Also clear the per-docSession cache of user attributes.
     this._userAttributesMap = new WeakMap();
-  }
-
-  /**
-   * Check whether user can carry out query.
-   */
-  public hasQueryAccess(docSession: OptDocSession, query: Query) {
-    return this.hasTableAccess(docSession, query.tableId);
   }
 
   public getUser(docSession: OptDocSession): Promise<UserInfo> {

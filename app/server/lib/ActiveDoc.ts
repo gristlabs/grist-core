@@ -22,8 +22,8 @@ import {
   DataSourceTransformed,
   ForkResult,
   ImportResult,
-  Query,
-  QueryResult
+  QueryResult,
+  ServerQuery
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -612,7 +612,7 @@ export class ActiveDoc extends EventEmitter {
    * @param {Boolean} waitForFormulas: If true, wait for all data to be loaded/calculated.  If false,
    * special "pending" values may be returned.
    */
-  public async fetchQuery(docSession: OptDocSession, query: Query,
+  public async fetchQuery(docSession: OptDocSession, query: ServerQuery,
                           waitForFormulas: boolean = false): Promise<TableDataAction> {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
@@ -693,7 +693,7 @@ export class ActiveDoc extends EventEmitter {
    * Makes a query (documented elsewhere) and subscribes to it, so that the client receives
    * docActions that affect this query's results.
    */
-  public async useQuerySet(docSession: OptDocSession, query: Query): Promise<QueryResult> {
+  public async useQuerySet(docSession: OptDocSession, query: ServerQuery): Promise<QueryResult> {
     this.logInfo(docSession, "useQuerySet(%s, %s)", docSession, query);
     // TODO implement subscribing to the query.
     // - Convert tableId+colIds to TableData/ColData references
@@ -1356,7 +1356,7 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
-  private async _fetchQueryFromDB(query: Query, onDemand: boolean): Promise<TableDataAction> {
+  private async _fetchQueryFromDB(query: ServerQuery, onDemand: boolean): Promise<TableDataAction> {
     // Expand query to compute formulas (or include placeholders for them).
     const expandedQuery = expandQuery(query, this.docData!, onDemand);
     const marshalled = await this.docStorage.fetchQuery(expandedQuery);
@@ -1372,7 +1372,7 @@ export class ActiveDoc extends EventEmitter {
     return toTableDataAction(query.tableId, table);
   }
 
-  private async _fetchQueryFromDataEngine(query: Query): Promise<TableDataAction> {
+  private async _fetchQueryFromDataEngine(query: ServerQuery): Promise<TableDataAction> {
     return this._pyCall('fetch_table', query.tableId, true, query.filters);
   }
 
