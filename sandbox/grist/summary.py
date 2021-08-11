@@ -91,6 +91,21 @@ def _update_sort_spec(sort_spec, old_table, new_table):
     return ''
 
 
+def summary_groupby_col_type(source_type):
+  """
+  Returns the type of a groupby column in a summary table
+  given the type of the corresponding column in the source table.
+  Most types are returned unchanged.
+  When a source table is grouped by a list-type (RefList/ChoiceList) column
+  the column is 'flattened' into the corresponding non-list type
+  in the summary table.
+  """
+  if source_type == 'ChoiceList':
+    return 'Choice'
+  else:
+    return source_type.replace('RefList:', 'Ref:')
+
+
 class SummaryActions(object):
 
   def __init__(self, useractions, docmodel):
@@ -126,8 +141,7 @@ class SummaryActions(object):
         col=c,
         isFormula=False,
         formula='',
-        type='Choice' if c.type == 'ChoiceList' else
-        c.type.replace('RefList:', 'Ref:')
+        type=summary_groupby_col_type(c.type)
       )
       for c in source_groupby_columns
     ]

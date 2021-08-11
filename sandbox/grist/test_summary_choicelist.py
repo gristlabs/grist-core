@@ -35,7 +35,7 @@ class TestSummaryChoiceList(EngineTestCase):
 
   # ----------------------------------------------------------------------
 
-  def test_create_view_section(self):
+  def test_summary_by_choice_list(self):
     self.load_sample(self.sample)
 
     # Verify the starting table; there should be no views yet.
@@ -289,3 +289,66 @@ class TestSummaryChoiceList(EngineTestCase):
     ])
 
     self.assertTableData('Table1', data=summary_data, cols="subset")
+
+  def test_change_choice_to_choicelist(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Source", [
+          [10, "other", "Text", False, "", "other", ""],
+          [11, "choices1", "Choice", False, "", "choice", ""],
+        ]]
+      ],
+      "DATA": {
+        "Source": [
+          ["id", "choices1", "other"],
+          [21, "a", "foo"],
+          [22, "b", "bar"],
+        ]
+      }
+    })
+
+    starting_table = Table(1, "Source", primaryViewId=0, summarySourceTable=0, columns=[
+      Column(10, "other", "Text", isFormula=False, formula="", summarySourceCol=0),
+      Column(11, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=0),
+    ])
+
+    self.load_sample(sample)
+
+    # Verify the starting table; there should be no views yet.
+    self.assertTables([starting_table])
+    self.assertViews([])
+
+    # Create a summary section, grouped by the "choices1" column.
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11]])
+
+    summary_table = Table(
+      2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
+      columns=[
+        Column(12, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
+        Column(13, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(14, "count", "Int", isFormula=True, summarySourceCol=0,
+               formula="len($group)"),
+      ],
+    )
+
+    data = [
+      ["id", "choices1", "group", "count"],
+      [1, "a", [21], 1],
+      [2, "b", [22], 1],
+    ]
+
+    self.assertTables([starting_table, summary_table])
+    self.assertTableData('GristSummary_6_Source', data=data)
+
+    # Change the column from Choice to ChoiceList
+    self.apply_user_action(["UpdateRecord", "_grist_Tables_column", 11, {"type": "ChoiceList"}])
+
+    # Changing type in reality is a bit more complex than these actions
+    # so we put the correct values in place directly
+    self.apply_user_action(["BulkUpdateRecord", "Source", [21, 22],
+                            {"choices1": [["L", "a"], ["L", "b"]]}])
+
+    starting_table.columns[1] = starting_table.columns[1]._replace(type="ChoiceList")
+    self.assertTables([starting_table, summary_table])
+    self.assertTableData('GristSummary_6_Source', data=data)

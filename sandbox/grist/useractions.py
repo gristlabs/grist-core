@@ -36,7 +36,7 @@ _modifiable_col_fields = {'type', 'widgetOptions', 'formula', 'isFormula', 'labe
                           'untieColIdFromLabel'}
 
 # Fields of _grist_Tables_column table that are inherited by group-by columns from their source.
-_inherited_groupby_col_fields = {'colId', 'type', 'widgetOptions', 'label', 'untieColIdFromLabel'}
+_inherited_groupby_col_fields = {'colId', 'widgetOptions', 'label', 'untieColIdFromLabel'}
 
 # Fields of _grist_Tables_column table that are inherited by summary formula columns from source.
 _inherited_summary_col_fields = {'colId', 'label'}
@@ -513,8 +513,11 @@ class UserActions(object):
     # A list of individual (col_rec, values) updates, where values is a per-column dict.
     col_updates = OrderedDict()
     avoid_colid_set = set()
+    rebuild_summary_tables = set()
     for i, col_rec, values in self._bulk_action_iter(table_id, row_ids, col_values):
-      col_updates.update(self._adjust_one_column_update(col_rec, values, avoid_colid_set))
+      col_updates.update(
+        self._adjust_one_column_update(col_rec, values, avoid_colid_set, rebuild_summary_tables)
+      )
 
     # Collect all renamings that we are about to apply.
     renames = {(c.parentId.tableId, c.colId): values['colId']
@@ -561,6 +564,11 @@ class UserActions(object):
       self._engine.trigger_columns_changed()
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
+
+    for table_id in rebuild_summary_tables:
+      table = self._engine.tables[table_id]
+      self._engine._update_table_model(table, table.user_table)
+
     make_acl_updates()
 
 
@@ -622,7 +630,7 @@ class UserActions(object):
     col_obj = table.get_column(col_rec.colId)
     return (col_obj.raw_get(r) for r in table.row_ids)
 
-  def _adjust_one_column_update(self, col, col_values, avoid_colid_set):
+  def _adjust_one_column_update(self, col, col_values, avoid_colid_set, rebuild_summary_tables):
     # Adjust an update for a single column, implementing the meat of _updateColumnRecords().
     # Returns a list of (col, values) pairs (containing the input column but possibly more).
     # Note that it may modify col_values in-place, and may reuse it for multiple results.
@@ -672,7 +680,12 @@ class UserActions(object):
     else:             # A non-summary-table column.
       # If there are group-by columns based on this, change their properties to match (including
       # colId, for renaming), except formula/isFormula.
-      add(col.summaryGroupByColumns, select_keys(col_values, _inherited_groupby_col_fields))
+      changes = select_keys(col_values, _inherited_groupby_col_fields)
+      if 'type' in col_values:
+        changes['type'] = summary.summary_groupby_col_type(col_values['type'])
+        if col_values['type'] != changes['type']:
+          rebuild_summary_tables.update(t.tableId for t in col.summaryGroupByColumns.parentId)
+      add(col.summaryGroupByColumns, changes)
 
       # If there are summary tables with a same-named formula column, rename those to match.
       add(self._get_sister_columns(col.parentId, col),

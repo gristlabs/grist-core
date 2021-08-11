@@ -341,6 +341,9 @@ class Table(object):
 
     _updateSummary.is_private = True
     col_id = summary_table._summary_helper_col_id
+    if self.has_column(col_id):
+      # Column type may have changed, replace completely
+      self.delete_column(self.get_column(col_id))
     col_obj = self._create_or_update_col(col_id, _updateSummary)
     self._special_cols[col_id] = col_obj
     self.all_columns[col_id] = col_obj
