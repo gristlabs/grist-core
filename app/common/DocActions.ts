@@ -117,6 +117,18 @@ export interface TableColValues {
   [colId: string]: CellValue[];
 }
 
+// Multiple records in record-oriented format
+export interface TableRecordValues {
+  records: TableRecordValue[];
+}
+
+export interface TableRecordValue {
+  id: number;
+  fields: {
+    [colId: string]: CellValue
+  };
+}
+
 // Both UserActions and DocActions are represented as [ActionName, ...actionArgs].
 // TODO I think it's better to represent DocAction as a Buffer containing the marshalled action.
 

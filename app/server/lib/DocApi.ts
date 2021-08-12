@@ -1,7 +1,7 @@
 import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
-import { fromTableDataAction, TableColValues } from 'app/common/DocActions';
+import {CellValue, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -30,6 +30,8 @@ import fetch from 'node-fetch';
 import * as path from 'path';
 import { exportToDrive } from "app/server/lib/GoogleExport";
 import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
+import * as _ from "lodash";
+import {isRaisedException} from "app/common/gristTypes";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -107,8 +109,7 @@ export class DocWorkerApi {
       res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body));
     }));
 
-    // Get the specified table.
-    this._app.get('/api/docs/:docId/tables/:tableId/data', canView, withDoc(async (activeDoc, req, res) => {
+    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin) {
       const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
@@ -119,8 +120,40 @@ export class DocWorkerApi {
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
       const params = getQueryParameters(req);
-      res.json(applyQueryParameters(fromTableDataAction(tableData), params));
-    }));
+      return applyQueryParameters(fromTableDataAction(tableData), params);
+    }
+
+    // Get the specified table in column-oriented format
+    this._app.get('/api/docs/:docId/tables/:tableId/data', canView,
+      withDoc(async (activeDoc, req, res) => {
+        res.json(await getTableData(activeDoc, req));
+      })
+    );
+
+    // Get the specified table in record-oriented format
+    this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
+      withDoc(async (activeDoc, req, res) => {
+        const columnData = await getTableData(activeDoc, req);
+        const fieldNames = Object.keys(columnData)
+          .filter(k => !(
+            ["id", "manualSort"].includes(k)
+            || k.startsWith("gristHelper_")
+          ));
+        const records = columnData.id.map((id, index) => {
+          const result: TableRecordValue = {id, fields: {}};
+          for (const key of fieldNames) {
+            let value = columnData[key][index];
+            if (isRaisedException(value)) {
+              _.set(result, ["errors", key], (value as string[])[1]);
+              value = null;
+            }
+            result.fields[key] = value;
+          }
+          return result;
+        });
+        res.json({records});
+      })
+    );
 
     // The upload should be a multipart post with an 'upload' field containing one or more files.
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
@@ -153,10 +186,10 @@ export class DocWorkerApi {
         .send(fileData);
     }));
 
-    // Adds records.
-    this._app.post('/api/docs/:docId/tables/:tableId/data', canEdit, withDoc(async (activeDoc, req, res) => {
+    async function addRecords(
+      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: {[colId: string]: CellValue[]}
+    ): Promise<number[]> {
       const tableId = req.params.tableId;
-      const columnValues = req.body;
       const colNames = Object.keys(columnValues);
       // user actions expect [null, ...] as row ids, first let's figure the number of items to add by
       // looking at the length of a column
@@ -166,8 +199,31 @@ export class DocWorkerApi {
       const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
         docSessionFromRequest(req),
         [['BulkAddRecord', tableId, rowIds, columnValues]]));
-      res.json(sandboxRes.retValues[0]);
-    }));
+      return sandboxRes.retValues[0];
+    }
+
+    function recordFieldsToColValues(fields: {[colId: string]: CellValue}[]): {[colId: string]: CellValue[]} {
+      return _.mapValues(fields[0], (_value, key) => _.map(fields, key));
+    }
+
+    // Adds records given in a column oriented format,
+    // returns an array of row IDs
+    this._app.post('/api/docs/:docId/tables/:tableId/data', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const ids = await addRecords(req, activeDoc, req.body);
+        res.json(ids);
+      })
+    );
+
+    // Adds records given in a record oriented format,
+    // returns in the same format as GET /records but without the fields object for now
+    this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const ids = await addRecords(req, activeDoc, recordFieldsToColValues(_.map(req.body.records, 'fields')));
+        const records = ids.map(id => ({id}));
+        res.json({records});
+      })
+    );
 
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
       const tableId = req.params.tableId;
@@ -228,20 +284,41 @@ export class DocWorkerApi {
       res.json({srcDocId, docId});
     }));
 
-    // Update records. The records to update are identified by their id column. Any invalid id fails
+    // Update records identified by rowIds. Any invalid id fails
     // the request and returns a 400 error code.
-    this._app.patch('/api/docs/:docId/tables/:tableId/data', canEdit, withDoc(async (activeDoc, req, res) => {
+    async function updateRecords(
+      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: {[colId: string]: CellValue[]}, rowIds: number[]
+    ) {
       const tableId = req.params.tableId;
-      const columnValues = req.body;
       const colNames = Object.keys(columnValues);
-      const rowIds = columnValues.id;
-      // sandbox expects no id column
-      delete columnValues.id;
       await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
         docSessionFromRequest(req),
         [['BulkUpdateRecord', tableId, rowIds, columnValues]]));
-      res.json(null);
-    }));
+    }
+
+    // Update records given in column format
+    // The records to update are identified by their id column.
+    this._app.patch('/api/docs/:docId/tables/:tableId/data', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const columnValues = req.body;
+        const rowIds = columnValues.id;
+        // sandbox expects no id column
+        delete columnValues.id;
+        await updateRecords(req, activeDoc, columnValues, rowIds);
+        res.json(null);
+      })
+    );
+
+    // Update records given in records format
+    this._app.patch('/api/docs/:docId/tables/:tableId/records', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const records = req.body.records;
+        const rowIds = _.map(records, 'id');
+        const columnValues = recordFieldsToColValues(_.map(records, 'fields'));
+        await updateRecords(req, activeDoc, columnValues, rowIds);
+        res.json(null);
+      })
+    );
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
