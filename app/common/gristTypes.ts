@@ -329,6 +329,10 @@ export function getReferencedTableId(type: string) {
   return removePrefix(type, "Ref:") || removePrefix(type, "RefList:");
 }
 
+export function isRefListType(type: string) {
+  return type.startsWith('RefList:');
+}
+
 export function isFullReferencingType(type: string) {
-  return type.startsWith('Ref:') || type.startsWith('RefList:');
+  return type.startsWith('Ref:') || isRefListType(type);
 }

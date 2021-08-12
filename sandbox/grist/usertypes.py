@@ -166,9 +166,15 @@ class Text(BaseColumnType):
 
   @classmethod
   def typeConvert(cls, value):
-    # When converting NULLs (that typically show up as a plain empty cell for Numeric or Date
-    # columns) to Text, it makes more sense to end up with a plain blank text cell.
-    return '' if value is None else value
+    if value is None:
+      # When converting NULLs (that typically show up as a plain empty cell for Numeric or Date
+      # columns) to Text, it makes more sense to end up with a plain blank text cell.
+      return ''
+    elif isinstance(value, bool):
+      # Normalize True/False to true/false (Toggle columns use true/false).
+      return str(value).lower()
+    else:
+      return value
 
 
 class Blob(BaseColumnType):
@@ -350,6 +356,8 @@ class ChoiceList(BaseColumnType):
 
   @classmethod
   def typeConvert(cls, value):
+    if value is None:
+      return value
     if isinstance(value, six.string_types) and not value.startswith('['):
       # Try to parse as CSV. If this doesn't work, we'll still try usual conversions later.
       try:
@@ -357,6 +365,8 @@ class ChoiceList(BaseColumnType):
         return tuple(t.strip() for t in tags if t.strip())
       except Exception:
         pass
+    if not isinstance(value, (tuple, list)):
+      value = [Choice.typeConvert(value)]
     return value
 
   @classmethod
@@ -434,7 +444,7 @@ class Reference(Id):
 
   @classmethod
   def typeConvert(cls, value, ref_table, visible_col=None):  # pylint: disable=arguments-differ
-    if ref_table and visible_col:
+    if value and ref_table and visible_col:
       return ref_table.lookupOne(**{visible_col: value}) or six.text_type(value)
     else:
       return value
@@ -478,7 +488,7 @@ class ReferenceList(BaseColumnType):
   def typeConvert(cls, value, ref_table, visible_col=None):  # noqa # pylint: disable=arguments-differ
     # TODO this is based on Reference.typeConvert.
     #  It doesn't make much sense as a conversion but I don't know what would
-    if ref_table and visible_col:
+    if value and ref_table and visible_col:
       return ref_table.lookupRecords(**{visible_col: value}) or six.text_type(value)
     else:
       return value

@@ -76,8 +76,8 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   // Helper which adds/removes/updates field's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
 
-  // Helper for Reference columns, which returns a formatter according to the visibleCol
-  // associated with field. Subscribes to observables if used within a computed.
+  // Helper for Reference/ReferenceList columns, which returns a formatter according
+  // to the visibleCol associated with field. Subscribes to observables if used within a computed.
   createVisibleColFormatter(): BaseFormatter;
 }
 
@@ -160,7 +160,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.displayColModel = refRecord(docModel.columns, this.displayColRef);
   this.visibleColModel = refRecord(docModel.columns, this.visibleColRef);
 
-  // Helper for Reference columns, which returns a formatter according to the visibleCol
+  // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
   // Subscribes to observables if used within a computed.
   // TODO: It would be better to replace this with a pureComputed whose value is a formatter.

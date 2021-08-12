@@ -27,7 +27,7 @@ import some = require('lodash/some');
 import tail = require('lodash/tail');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {decodeObject} from 'app/plugin/objtypes';
-import {isList} from 'app/common/gristTypes';
+import {isList, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
@@ -281,12 +281,9 @@ function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
 export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, field: ViewFieldRec,
                                  rowSource: RowSource, tableData: TableData, onClose: () => void = noop) {
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const keyMapFunc = tableData.getRowPropFunc(field.column().colId())!;
-  const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
-  const formatter = field.createVisibleColFormatter();
-  const labelMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
-  const activeFilterBar = field.viewSection.peek().activeFilterBar;
   const columnType = field.column().type.peek();
+  const {keyMapFunc, labelMapFunc} = getMapFuncs(columnType, tableData, field);
+  const activeFilterBar = field.viewSection.peek().activeFilterBar;
 
   function getFilterFunc(f: ViewFieldRec, colFilter: ColumnFilterFunc|null) {
     return f.getRowId() === field.getRowId() ? null : colFilter;
@@ -320,6 +317,37 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
     },
     renderValue: getRenderFunc(columnType, field),
   });
+}
+
+/**
+ * Returns two callback functions, `keyMapFunc` and `labelMapFunc`,
+ * which map row ids to cell values and labels respectively.
+ *
+ * The functions vary based on the `columnType`. For example,
+ * Reference Lists have a unique `labelMapFunc` that returns a list
+ * of all labels in a given cell, rather than a single label.
+ *
+ * Used by ColumnFilterMenu to compute counts of unique cell
+ * values and display them with an appropriate label.
+ */
+function getMapFuncs(columnType: string, tableData: TableData, field: ViewFieldRec) {
+  const keyMapFunc = tableData.getRowPropFunc(field.column().colId())!;
+  const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
+  const formatter = field.createVisibleColFormatter();
+
+  let labelMapFunc: (rowId: number) => string | string[];
+  if (isRefListType(columnType)) {
+    labelMapFunc = (rowId: number) => {
+      const maybeLabels = labelGetter(rowId);
+      if (!maybeLabels) { return ''; }
+      const labels = isList(maybeLabels) ? maybeLabels.slice(1) : [maybeLabels];
+      return labels.map(l => formatter.formatAny(l));
+    };
+  } else {
+    labelMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
+  }
+
+  return {keyMapFunc, labelMapFunc};
 }
 
 /**
@@ -358,9 +386,9 @@ function getRenderFunc(columnType: string, field: ViewFieldRec) {
 }
 
 interface ICountOptions {
+  columnType: string;
   keyMapFunc?: (v: any) => any;
   labelMapFunc?: (v: any) => any;
-  columnType?: string;
   areHiddenRows?: boolean;
 }
 
@@ -379,11 +407,21 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
     let key = keyMapFunc(rowId);
 
     // If row contains a list and the column is a Choice List, treat each choice as a separate key
-    if (isList(key) && columnType === 'ChoiceList') {
+    if (isList(key) && (columnType === 'ChoiceList')) {
       const list = decodeObject(key) as unknown[];
       for (const item of list) {
         addSingleCountToMap(valueMap, item, () => item, areHiddenRows);
       }
+      continue;
+    }
+
+    // If row contains a Reference List, treat each reference as a separate key
+    if (isList(key) && isRefListType(columnType)) {
+      const refIds = decodeObject(key) as unknown[];
+      const refLabels = labelMapFunc(rowId);
+      refIds.forEach((id, i) => {
+        addSingleCountToMap(valueMap, id, () => refLabels[i], areHiddenRows);
+      });
       continue;
     }
     // For complex values, serialize the value to allow them to be properly stored

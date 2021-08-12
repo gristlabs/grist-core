@@ -11,6 +11,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
+import {decodeObject} from 'app/plugin/objtypes';
 
 export interface ColInfo {
   type: string;
@@ -92,9 +93,11 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       } else {
         // Set suggested choices. Limit to 100, since too many choices is more likely to cause
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
-        const columnData = tableData.getDistinctValues(origCol.colId(), 100);
+        const colId = isReferenceCol(origCol) ? origDisplayCol.colId() : origCol.colId();
+        const columnData = tableData.getDistinctValues(colId, 100);
         if (columnData) {
           columnData.delete("");
+          columnData.delete(null);
           widgetOptions = {choices: Array.from(columnData, String)};
         }
       }
@@ -108,8 +111,10 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
         // light guessing for likely choices to suggest.
         const choices = new Set<string>();
-        for (let value of tableData.getColValues(origCol.colId()) || []) {
-          value = String(value).trim();
+        const colId = isReferenceCol(origCol) ? origDisplayCol.colId() : origCol.colId();
+        for (let value of tableData.getColValues(colId) || []) {
+          if (value === null) { continue; }
+          value = String(decodeObject(value)).trim();
           const tags: string[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
           for (const tag of tags) {
             choices.add(tag.trim());

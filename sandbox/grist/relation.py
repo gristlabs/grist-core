@@ -131,7 +131,7 @@ class ReferenceRelation(Relation):
     self.inverse_map.setdefault(target_row_id, set()).add(referring_row_id)
 
   def remove_reference(self, referring_row_id, target_row_id):
-    self.inverse_map[target_row_id].remove(referring_row_id)
+    self.inverse_map[target_row_id].discard(referring_row_id)
 
   def clear(self):
     self.inverse_map.clear()

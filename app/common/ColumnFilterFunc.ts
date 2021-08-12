@@ -1,7 +1,7 @@
 import { CellValue } from "app/common/DocActions";
 import { FilterState, makeFilterState } from "app/common/FilterState";
 import { decodeObject } from "app/plugin/objtypes";
-import { isList } from "./gristTypes";
+import { isList, isRefListType } from "./gristTypes";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 
@@ -13,7 +13,7 @@ export function makeFilterFunc({ include, values }: FilterState,
   // For example, a TypeError in the formula column and the string '["E","TypeError"]' would be seen as the same.
   // TODO: This narrow corner case seems acceptable for now, but may be worth revisiting.
   return (val: CellValue) => {
-    if (isList(val) && columnType === 'ChoiceList') {
+    if (isList(val) && (columnType === 'ChoiceList' || isRefListType(String(columnType)))) {
       const list = decodeObject(val) as unknown[];
       return list.some(item => values.has(item as any) === include);
     }

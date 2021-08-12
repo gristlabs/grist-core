@@ -28,7 +28,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import { CellValue } from 'app/plugin/GristData';
 import { Computed, Disposable, fromKo, dom as grainjsDom,
-         Holder, IDisposable, makeTestId, toKo } from 'grainjs';
+         Holder, IDisposable, makeTestId, styled, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -222,7 +222,8 @@ export class FieldBuilder extends Disposable {
         grainjsDom.autoDispose(selectType),
         select(selectType, this._availableTypes, {
           disabled: (use) => use(this._isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
-            use(this.isCallPending)
+            use(this.isCallPending),
+          menuCssClass: cssTypeSelectMenu.className,
         }),
         testId('type-select'),
         grainjsDom.cls('tour-type-selector'),
@@ -526,3 +527,7 @@ export class FieldBuilder extends Disposable {
     this.gristDoc.fieldEditorHolder.autoDispose(editorHolder);
   }
 }
+
+const cssTypeSelectMenu = styled('div', `
+  max-height: 500px;
+`);

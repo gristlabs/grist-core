@@ -6,7 +6,7 @@
  *
  * It is available as tableData.columnACIndexes.
  *
- * It is currently used for auto-complete in the ReferenceEditor widget.
+ * It is currently used for auto-complete in the ReferenceEditor and ReferenceListEditor widgets.
  */
 import {ACIndex, ACIndexImpl} from 'app/client/lib/ACIndex';
 import {ColumnCache} from 'app/client/models/ColumnCache';

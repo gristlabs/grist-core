@@ -77,32 +77,55 @@ export class Reference extends NTextBox {
   }
 
   public buildDom(row: DataRowModel) {
+    // Note: we require 2 observables here because changes to the cell value (reference id)
+    // and the display value (display column) are not bundled. This can cause `formattedValue`
+    // to briefly display incorrect values (e.g. [Blank] when adding a reference to an empty cell)
+    // because the cell value changes before the display column has a chance to update.
+    //
+    // TODO: Look into a better solution (perhaps updating the display formula to return [Blank]).
+    const referenceId = Computed.create(null, (use) => {
+      const id = row.cells[use(this.field.colId)];
+      return id && use(id);
+    });
     const formattedValue = Computed.create(null, (use) => {
+      let [value, hasBlankReference] = ['', false];
       if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
         // Work around JS errors during certain changes (noticed when visibleCol field gets removed
         // for a column using per-field settings).
-        return "";
+        return {value, hasBlankReference};
       }
-      const value = row.cells[use(use(this.field.displayColModel).colId)];
-      if (!value) { return ""; }
-      const content = use(value);
-      if (isVersions(content)) {
+
+      const displayValueObs = row.cells[use(use(this.field.displayColModel).colId)];
+      if (!displayValueObs) {
+        return {value, hasBlankReference};
+      }
+
+      const displayValue = use(displayValueObs);
+      value = isVersions(displayValue) ?
         // We can arrive here if the reference value is unchanged (viewed as a foreign key)
         // but the content of its displayCol has changed.  Postponing doing anything about
         // this until we have three-way information for computed columns.  For now,
         // just showing one version of the cell.  TODO: elaborate.
-        return use(this._formatValue)(content[1].local || content[1].parent);
-      }
-      return use(this._formatValue)(content);
+        use(this._formatValue)(displayValue[1].local || displayValue[1].parent) :
+        use(this._formatValue)(displayValue);
+
+      hasBlankReference = referenceId.get() !== 0 && value.trim() === '';
+
+      return {value, hasBlankReference};
     });
-    return dom('div.field_clip',
+
+    return cssRef(
       dom.autoDispose(formattedValue),
+      dom.autoDispose(referenceId),
+      cssRef.cls('-blank', use => use(formattedValue).hasBlankReference),
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      cssRefIcon('FieldReference',
-        testId('ref-link-icon')
-      ),
-      dom.text(formattedValue)
+      cssRefIcon('FieldReference', testId('ref-link-icon')),
+      dom.text(use => {
+        if (use(referenceId) === 0) { return ''; }
+        if (use(formattedValue).hasBlankReference) { return '[Blank]'; }
+        return use(formattedValue).value;
+      })
     );
   }
 }
@@ -111,4 +134,10 @@ const cssRefIcon = styled(icon, `
   float: left;
   background-color: ${colors.slate};
   margin: -1px 2px 2px 0;
+`);
+
+const cssRef = styled('div.field_clip', `
+  &-blank {
+    color: ${colors.slate}
+  }
 `);

@@ -9,7 +9,8 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {Options} from 'app/client/widgets/NewBaseEditor';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
 import {CellValue} from 'app/common/DocActions';
-import {removePrefix, undef} from 'app/common/gutil';
+import {getReferencedTableId} from 'app/common/gristTypes';
+import {undef} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {styled} from 'grainjs';
 
@@ -31,7 +32,7 @@ export class ReferenceEditor extends NTextEditor {
     const field = options.field;
 
     // Get the table ID to which the reference points.
-    const refTableId = removePrefix(field.column().type(), "Ref:");
+    const refTableId = getReferencedTableId(field.column().type());
     if (!refTableId) {
       throw new Error("ReferenceEditor used for non-Reference column");
     }
@@ -195,7 +196,9 @@ const cssRefEditor = styled('div', `
   }
 `);
 
-const cssRefList = styled('div', `
+// Set z-index to be higher than the 1000 set for .cell_editor.
+export const cssRefList = styled('div', `
+  z-index: 1001;
   overflow-y: auto;
   padding: 8px 0 0 0;
   --weaseljs-menu-item-padding: 8px 16px;
@@ -235,7 +238,7 @@ const cssRefItem = styled('li', `
   }
 `);
 
-const cssPlusButton = styled('div', `
+export const cssPlusButton = styled('div', `
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -250,7 +253,7 @@ const cssPlusButton = styled('div', `
   }
 `);
 
-const cssPlusIcon = styled(icon, `
+export const cssPlusIcon = styled(icon, `
   background-color: ${colors.light};
 `);
 

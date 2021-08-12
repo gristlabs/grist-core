@@ -103,9 +103,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     const openAutocomplete = this._openAutocomplete.bind(this);
     this._acOptions = _options.acOptions && {..._options.acOptions, onClick: addSelectedItem};
 
-    const initialTokens = _options.initialValue;
-    this._maybeTrimLabels(initialTokens);
-    this._tokens.set(initialTokens.map(t => new TokenWrap(t)));
+    this.setTokens(_options.initialValue);
     this.tokensObs = this.autoDispose(computedArray(this._tokens, t => t.token));
     this._keyBindings = {...defaultKeyBindings, ..._options.keyBindings};
 
@@ -205,6 +203,26 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   // The invisible input that has focus while we have some tokens selected.
   public getHiddenInput(): HTMLInputElement {
     return this._hiddenInput;
+  }
+
+  /**
+   * Returns the Autocomplete instance used by the TokenField.
+   */
+  public getAutocomplete(): Autocomplete<Token & ACItem> | null {
+    return this._acHolder.get();
+  }
+
+  /**
+   * Sets the `tokens` that the TokenField should be populated with.
+   *
+   * Can be called after the TokenField is created to override the
+   * stored tokens. This is useful for delayed token initialization,
+   * where `tokens` may need to be set shortly after the TokenField
+   * is opened (e.g. ReferenceListEditor).
+   */
+  public setTokens(tokens: Token[]): void {
+    const formattedTokens = this._maybeTrimTokens(tokens);
+    this._tokens.set(formattedTokens.map(t => new TokenWrap(t)));
   }
 
   // Replaces a token (if it exists).
@@ -433,7 +451,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       tokens = values.map(v => this._options.createToken(v)).filter((t): t is Token => Boolean(t));
     }
     if (!tokens.length) { return; }
-    this._maybeTrimLabels(tokens);
+    tokens = this._maybeTrimTokens(tokens);
     tokens = this._getNonEmptyTokens(tokens);
     const wrappedTokens = tokens.map(t => new TokenWrap(t));
     this._combineUndo(() => {
@@ -582,15 +600,11 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   }
 
   /**
-   * Trims all labels in `tokens` if the option is set.
-   *
-   * Note: mutates `tokens`.
+   * Returns an array of tokens formatted according to the `trimLabels` option.
    */
-  private _maybeTrimLabels(tokens: Token[]): void {
-    if (!this._options.trimLabels) { return; }
-    tokens.forEach(t => {
-      t.label = t.label.trim();
-    });
+  private _maybeTrimTokens(tokens: Token[]): Token[] {
+    if (!this._options.trimLabels) { return tokens; }
+    return tokens.map(t => ({...t, label: t.label.trim()}));
   }
 
   /**

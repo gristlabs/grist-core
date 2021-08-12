@@ -103,11 +103,12 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   const _menu = cssSelectMenuElem(testId('select-menu'));
   const _btn = cssSelectBtn(testId('select-open'));
 
+  const {menuCssClass: menuClass, ...otherOptions} = options;
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
-    menuCssClass: _menu.className,
+    menuCssClass: _menu.className + ' ' + (menuClass || ''),
     buttonCssClass: _btn.className,
-    ...options,
+    ...otherOptions,
   };
 
   return weasel.select(obs, optionArray, selectOptions, (op) =>

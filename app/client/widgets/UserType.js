@@ -237,21 +237,21 @@ var typeDefs = {
     },
     default: 'Reference'
   },
-  // RefList: {
-  //   label: 'Reference List',
-  //   icon: 'FieldReference',
-  //   widgets: {
-  //     Reference: {
-  //       cons: 'ReferenceList',
-  //       editCons: 'ReferenceListEditor',
-  //       icon: 'FieldReference',
-  //       options: {
-  //         alignment: 'left'
-  //       }
-  //     }
-  //   },
-  //   default: 'Reference'
-  // },
+  RefList: {
+    label: 'Reference List',
+    icon: 'FieldReference',
+    widgets: {
+      Reference: {
+        cons: 'ReferenceList',
+        editCons: 'ReferenceListEditor',
+        icon: 'FieldReference',
+        options: {
+          alignment: 'left'
+        }
+      }
+    },
+    default: 'Reference'
+  },
   Attachments: {
     label: 'Attachment',
     icon: 'FieldAttachment',
