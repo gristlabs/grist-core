@@ -183,7 +183,7 @@ def encode_object(value):
       return ['d', moment.date_to_ts(value)]
     elif isinstance(value, RaisedException):
       return ['E'] + value.encode_args()
-    elif isinstance(value, (list, tuple, RecordList, records.ColumnView)):
+    elif isinstance(value, (list, tuple, RecordList)):
       return ['L'] + [encode_object(item) for item in value]
     elif isinstance(value, records.RecordSet):
       # Represent RecordSet (e.g. result of lookupRecords) in the same way as a RecordList.

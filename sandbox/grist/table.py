@@ -547,26 +547,19 @@ class Table(object):
 
   # TODO: document everything here.
 
-  def _use_column(self, col_id, relation, row_ids):
-    """
-    relation - Describes how the record was obtained, on which col_id is being accessed.
-    """
-    col = self.all_columns[col_id]
-    # The _use_node call both creates a dependency and brings formula columns up-to-date.
-    self._engine._use_node(col.node, relation, row_ids)
-    return col
-
   # Called when record.foo is accessed
   def _get_col_value(self, col_id, row_id, relation):
-    return records.adjust_record(relation,
-                          self._use_column(col_id, relation, [row_id]).get_cell_value(row_id))
+    [value] = self._get_col_subset(col_id, [row_id], relation)
+    return value
 
   def _attribute_error(self, col_id, relation):
     self._engine._use_node(self._new_columns_node, relation)
     raise AttributeError("Table '%s' has no column '%s'" % (self.table_id, col_id))
 
-  # Called when record_set.foo is accessed. Should return something like a ColumnView.
+  # Called when record_set.foo is accessed
   def _get_col_subset(self, col_id, row_ids, relation):
-    # TODO: when column is a reference, we ought to return RecordSet. Otherwise ColumnView
-    # looks like a RecordSet (returns Records), but doesn't support property access.
-    return records.ColumnView(self._use_column(col_id, relation, row_ids), row_ids, relation)
+    col = self.all_columns[col_id]
+    # creates a dependency and brings formula columns up-to-date.
+    self._engine._use_node(col.node, relation, row_ids)
+    # TODO: when column is a reference, support property access in return value
+    return [records.adjust_record(relation, col.get_cell_value(row_id)) for row_id in row_ids]
