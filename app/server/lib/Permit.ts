@@ -25,10 +25,13 @@
  *   - Optionally, remove the permit with removePermit().
  */
 export interface Permit {
-  docId?: string;
-  workspaceId?: number;
-  org?: string|number;
+  docId?: string;       // A particular document.
+  workspaceId?: number; // A particular workspace.
+  org?: string|number;  // A particular org.
   otherDocId?: string;  // For operations involving two documents.
+  sessionId?: string;   // A particular session.
+  url?: string;         // A particular url.
+  action?: string;      // A string denoting what kind of action the permit applies to.
 }
 
 /* A store of permits */
@@ -36,7 +39,7 @@ export interface IPermitStore {
 
   // Store a permit, and return the key it is stored in.
   // Permits are transient, and will expire.
-  setPermit(permit: Permit): Promise<string>;
+  setPermit(permit: Permit, ttlMs?: number): Promise<string>;
 
   // Get any permit associated with the given key, or null if none.
   getPermit(permitKey: string): Promise<Permit|null>;
@@ -48,12 +51,16 @@ export interface IPermitStore {
   close(): Promise<void>;
 }
 
+export interface IPermitStores {
+  getPermitStore(prefix: string, defaultTtlMs?: number): IPermitStore;
+}
+
 // Create a well formatted permit key from a seed string.
-export function formatPermitKey(seed: string) {
-  return `permit-${seed}`;
+export function formatPermitKey(seed: string, prefix: string) {
+  return `permit-${prefix}-${seed}`;
 }
 
 // Check that permit key is well formatted.
-export function checkPermitKey(key: string): boolean {
-  return key.startsWith('permit-');
+export function checkPermitKey(key: string, prefix: string): boolean {
+  return key.startsWith(`permit-${prefix}-`);
 }

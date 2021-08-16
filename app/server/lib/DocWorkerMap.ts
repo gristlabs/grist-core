@@ -5,7 +5,7 @@
 
 import { IChecksumStore } from 'app/server/lib/IChecksumStore';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
-import { IPermitStore } from 'app/server/lib/Permit';
+import { IPermitStores } from 'app/server/lib/Permit';
 
 export interface DocWorkerInfo {
   id: string;
@@ -36,7 +36,7 @@ export interface DocStatus {
 /**
  * Assignment of documents to workers, and other storage related to distributed work.
  */
-export interface IDocWorkerMap extends IPermitStore, IElectionStore, IChecksumStore {
+export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumStore {
   // Looks up which DocWorker is responsible for this docId.
   getDocWorker(docId: string): Promise<DocStatus|null>;
 

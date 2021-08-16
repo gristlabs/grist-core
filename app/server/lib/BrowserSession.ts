@@ -22,6 +22,10 @@ export interface SessionUserObj {
 
   // [UNUSED] Login refresh token used to retrieve new ID and access tokens.
   refreshToken?: string;
+
+  // State for SAML-mediated logins.
+  samlNameId?: string;
+  samlSessionIndex?: string;
 }
 
 // Session state maintained for a particular browser. It is identified by a cookie. There may be

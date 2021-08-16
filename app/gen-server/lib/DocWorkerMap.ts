@@ -2,7 +2,7 @@ import {MapWithTTL} from 'app/common/AsyncCreate';
 import * as version from 'app/common/version';
 import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import * as log from 'app/server/lib/log';
-import {checkPermitKey, formatPermitKey, Permit} from 'app/server/lib/Permit';
+import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
 import {promisifyAll} from 'bluebird';
 import mapValues = require('lodash/mapValues');
 import {createClient, Multi, RedisClient} from 'redis';
@@ -27,8 +27,8 @@ const PERMIT_TTL_MSEC = 1 * 60 * 1000;  // 1 minute
 class DummyDocWorkerMap implements IDocWorkerMap {
   private _worker?: DocWorkerInfo;
   private _available: boolean = false;
-  private _permits = new MapWithTTL<string, string>(PERMIT_TTL_MSEC);
   private _elections = new MapWithTTL<string, string>(1);  // default ttl never used
+  private _permitStores = new Map<string, IPermitStore>();
 
   public async getDocWorker(docId: string) {
     if (!this._worker) { throw new Error('no workers'); }
@@ -70,23 +70,38 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     return [];
   }
 
-  public async setPermit(permit: Permit): Promise<string> {
-    const key = formatPermitKey(uuidv4());
-    this._permits.set(key, JSON.stringify(permit));
-    return key;
-  }
-
-  public async getPermit(key: string): Promise<Permit> {
-    const result = this._permits.get(key);
-    return result ? JSON.parse(result) : null;
-  }
-
-  public async removePermit(key: string): Promise<void> {
-    this._permits.delete(key);
+  public getPermitStore(prefix: string, defaultTtlMs?: number): IPermitStore {
+    let store = this._permitStores.get(prefix);
+    if (store) { return store; }
+    const _permits = new MapWithTTL<string, string>(defaultTtlMs || PERMIT_TTL_MSEC);
+    store = {
+      async setPermit(permit: Permit, ttlMs?: number): Promise<string> {
+        const key = formatPermitKey(uuidv4(), prefix);
+        if (ttlMs) {
+          _permits.setWithCustomTTL(key, JSON.stringify(permit), ttlMs);
+        } else {
+          _permits.set(key, JSON.stringify(permit));
+        }
+        return key;
+      },
+      async getPermit(key: string): Promise<Permit> {
+        const result = _permits.get(key);
+        return result ? JSON.parse(result) : null;
+      },
+      async removePermit(key: string): Promise<void> {
+        _permits.delete(key);
+      },
+      async close(): Promise<void> {
+        _permits.clear();
+      }
+    };
+    this._permitStores.set(prefix, store);
+    return store;
   }
 
   public async close(): Promise<void> {
-    this._permits.clear();
+    await Promise.all([...this._permitStores.values()].map(store => store.close()));
+    this._permitStores.clear();
     this._elections.clear();
   }
 
@@ -436,24 +451,30 @@ export class DocWorkerMap implements IDocWorkerMap {
     return checksum === 'null' ? null : checksum;
   }
 
-  public async setPermit(permit: Permit): Promise<string> {
-    const key = formatPermitKey(uuidv4());
-    const duration = (this._options && this._options.permitMsec) || PERMIT_TTL_MSEC;
-      // seems like only integer seconds are supported?
-    await this._client.setexAsync(key, Math.ceil(duration / 1000.0),
-                                  JSON.stringify(permit));
-    return key;
-  }
-
-  public async getPermit(key: string): Promise<Permit|null> {
-    if (!checkPermitKey(key)) { throw new Error('permit could not be read'); }
-    const result = await this._client.getAsync(key);
-    return result && JSON.parse(result);
-  }
-
-  public async removePermit(key: string): Promise<void> {
-    if (!checkPermitKey(key)) { throw new Error('permit could not be read'); }
-    await this._client.delAsync(key);
+  public getPermitStore(prefix: string, defaultTtlMs?: number): IPermitStore {
+    const permitMsec = defaultTtlMs || (this._options && this._options.permitMsec) || PERMIT_TTL_MSEC;
+    const client = this._client;
+    return {
+      async setPermit(permit: Permit, ttlMs?: number): Promise<string> {
+        const key = formatPermitKey(uuidv4(), prefix);
+        // seems like only integer seconds are supported?
+        const duration = ttlMs || permitMsec;
+        await client.setexAsync(key, Math.ceil(duration / 1000.0), JSON.stringify(permit));
+        return key;
+      },
+      async getPermit(key: string): Promise<Permit|null> {
+        if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
+        const result = await client.getAsync(key);
+        return result && JSON.parse(result);
+      },
+      async removePermit(key: string): Promise<void> {
+        if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
+        await client.delAsync(key);
+      },
+      async close() {
+        // nothing to do
+      }
+    };
   }
 
   public async close(): Promise<void> {

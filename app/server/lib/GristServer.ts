@@ -2,7 +2,6 @@ import { GristLoadConfig } from 'app/common/gristUrls';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
-import { SessionUserObj } from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
@@ -24,12 +23,14 @@ export interface GristServer {
   getResourceUrl(resource: Organization|Workspace|Document): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
+  getExternalPermitStore(): IPermitStore;
+  getSessions(): Sessions;
 }
 
 export interface GristLoginMiddleware {
-  getLoginRedirectUrl(target: URL): Promise<string>;
-  getSignUpRedirectUrl(target: URL): Promise<string>;
-  getLogoutRedirectUrl(nextUrl: URL, userSession: SessionUserObj): Promise<string>;
+  getLoginRedirectUrl(req: express.Request, target: URL): Promise<string>;
+  getSignUpRedirectUrl(req: express.Request, target: URL): Promise<string>;
+  getLogoutRedirectUrl(req: express.Request, nextUrl: URL): Promise<string>;
 
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express, comm: Comm, sessions: Sessions, hosts: Hosts): string;

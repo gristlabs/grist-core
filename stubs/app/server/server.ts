@@ -41,8 +41,10 @@ export async function main() {
     console.log('For full logs, re-run with DEBUG=1');
   }
 
-  // There's no login system released yet, so set a default email address.
-  setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
+  // If SAML is not configured, there's no login system, so force a default email address.
+  if (!process.env.GRIST_SAML_SP_HOST) {
+    setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
+  }
   // Set directory for uploaded documents.
   setDefaultEnv('GRIST_DATA_DIR', 'docs');
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);

@@ -266,8 +266,8 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
  * Returns a handler that redirects the user to a login or signup page.
  */
 export function redirectToLoginUnconditionally(
-  getLoginRedirectUrl: (redirectUrl: URL) => Promise<string>,
-  getSignUpRedirectUrl: (redirectUrl: URL) => Promise<string>
+  getLoginRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
+  getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>
 ) {
   return async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
@@ -281,9 +281,9 @@ export function redirectToLoginUnconditionally(
     log.debug(`Authorizer: redirecting to ${signUp ? 'sign up' : 'log in'}`);
     const redirectUrl = new URL(req.protocol + '://' + req.get('host') + req.originalUrl);
     if (signUp) {
-      return resp.redirect(await getSignUpRedirectUrl(redirectUrl));
+      return resp.redirect(await getSignUpRedirectUrl(req, redirectUrl));
     } else {
-      return resp.redirect(await getLoginRedirectUrl(redirectUrl));
+      return resp.redirect(await getLoginRedirectUrl(req, redirectUrl));
     }
   };
 }
@@ -296,8 +296,8 @@ export function redirectToLoginUnconditionally(
  */
 export function redirectToLogin(
   allowExceptions: boolean,
-  getLoginRedirectUrl: (redirectUrl: URL) => Promise<string>,
-  getSignUpRedirectUrl: (redirectUrl: URL) => Promise<string>,
+  getLoginRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
+  getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
   dbManager: HomeDBManager
 ): RequestHandler {
   const redirectUnconditionally = redirectToLoginUnconditionally(getLoginRedirectUrl,

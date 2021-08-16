@@ -21,7 +21,6 @@ import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {addRequestUser, getUser, getUserId, isSingleUserMode,
         redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {SessionUserObj} from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
@@ -97,7 +96,6 @@ export class FlexServer implements GristServer {
   public host: string;
   public tag: string;
   public info = new Array<[string, any]>();
-  public sessions: Sessions;
   public dbManager: HomeDBManager;
   public notifier: INotifier;
   public usage: Usage;
@@ -117,9 +115,12 @@ export class FlexServer implements GristServer {
   private _docWorker: DocWorker;
   private _hosts: Hosts;
   private _pluginManager: PluginManager;
+  private _sessions: Sessions;
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
   private _docWorkerMap: IDocWorkerMap;
+  private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
+  private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
   private _disableS3: boolean = false;
   private _healthy: boolean = true;  // becomes false if a serious error has occurred and
@@ -140,9 +141,9 @@ export class FlexServer implements GristServer {
   private _redirectToLoginUnconditionally: express.RequestHandler | null;
   private _redirectToOrgMiddleware: express.RequestHandler;
   private _redirectToHostMiddleware: express.RequestHandler;
-  private _getLoginRedirectUrl: (target: URL) => Promise<string>;
-  private _getSignUpRedirectUrl: (target: URL) => Promise<string>;
-  private _getLogoutRedirectUrl: (nextUrl: URL, userSession: SessionUserObj) => Promise<string>;
+  private _getLoginRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
+  private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
+  private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
 
   constructor(public port: number, public name: string = 'flexServer',
@@ -234,8 +235,18 @@ export class FlexServer implements GristServer {
   }
 
   public getPermitStore(): IPermitStore {
-    if (!this._docWorkerMap) { throw new Error('no permit store available'); }
-    return this._docWorkerMap;
+    if (!this._internalPermitStore) { throw new Error('no permit store available'); }
+    return this._internalPermitStore;
+  }
+
+  public getExternalPermitStore(): IPermitStore {
+    if (!this._externalPermitStore) { throw new Error('no permit store available'); }
+    return this._externalPermitStore;
+  }
+
+  public getSessions(): Sessions {
+    if (!this._sessions) { throw new Error('no sessions available'); }
+    return this._sessions;
   }
 
   public addLogging() {
@@ -424,6 +435,8 @@ export class FlexServer implements GristServer {
   public addDocWorkerMap() {
     if (this._check('map')) { return; }
     this._docWorkerMap = getDocWorkerMap();
+    this._internalPermitStore = this._docWorkerMap.getPermitStore('internal');
+    this._externalPermitStore = this._docWorkerMap.getPermitStore('external');
   }
 
   // Set up the main express middleware used.  For a single user setup, without logins,
@@ -438,7 +451,7 @@ export class FlexServer implements GristServer {
       // If GRIST_DEFAULT_EMAIL is set, login as that user when no other credentials
       // presented.
       const fallbackEmail = process.env.GRIST_DEFAULT_EMAIL || null;
-      this._userIdMiddleware = expressWrap(addRequestUser.bind(null, this.dbManager, this._docWorkerMap,
+      this._userIdMiddleware = expressWrap(addRequestUser.bind(null, this.dbManager, this._internalPermitStore,
                                                                fallbackEmail));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
       // middleware to authorize doc access to the app. Note that this requires the userId
@@ -579,7 +592,7 @@ export class FlexServer implements GristServer {
       res.status(200).send(`Grist ${this.name} is alive and is interested in you.`);
     });
 
-    this.sessions = sessions;
+    this._sessions = sessions;
     this._sessionStore = sessionStore;
   }
 
@@ -734,7 +747,7 @@ export class FlexServer implements GristServer {
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
-    this._loginMiddleware = await getLoginMiddleware();
+    this._loginMiddleware = await getLoginMiddleware(this);
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
     this._getLogoutRedirectUrl = tbind(this._loginMiddleware.getLogoutRedirectUrl, this._loginMiddleware);
@@ -744,7 +757,7 @@ export class FlexServer implements GristServer {
     if (this._check('comm', 'start')) { return; }
     this.comm = new Comm(this.server, {
       settings: this.settings,
-      sessions: this.sessions,
+      sessions: this._sessions,
       hosts: this._hosts,
       httpsServer: this.httpsServer,
     });
@@ -792,7 +805,7 @@ export class FlexServer implements GristServer {
         signUp = (mreq.session.users === undefined);
       }
       const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-      resp.redirect(await getRedirectUrl(new URL(next)));
+      resp.redirect(await getRedirectUrl(req, new URL(next)));
     }
 
     this.app.get('/login', expressWrap(redirectToLoginOrSignup.bind(this, false)));
@@ -811,7 +824,7 @@ export class FlexServer implements GristServer {
       this.app.get('/test/login', expressWrap(async (req, res) => {
         log.warn("Serving unauthenticated /test/login endpoint, made available because GRIST_TEST_LOGIN is set.");
 
-        const scopedSession = this.sessions.getOrCreateSessionFromRequest(req);
+        const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
         const profile: UserProfile = {
           email: optStringParam(req.query.email) || 'chimpy@getgrist.com',
           name: optStringParam(req.query.name) || 'Chimpy McBanana',
@@ -831,12 +844,11 @@ export class FlexServer implements GristServer {
     }
 
     this.app.get('/logout', expressWrap(async (req, resp) => {
-      const scopedSession = this.sessions.getOrCreateSessionFromRequest(req);
-      const userSession = await scopedSession.getScopedSession();
+      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
 
       // If 'next' param is missing, redirect to "/" on our requested hostname.
       const next = optStringParam(req.query.next) || (req.protocol + '://' + req.get('host') + '/');
-      const redirectUrl = await this._getLogoutRedirectUrl(new URL(next), userSession);
+      const redirectUrl = await this._getLogoutRedirectUrl(req, new URL(next));
 
       // Clear session so that user needs to log in again at the next request.
       // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
@@ -857,7 +869,7 @@ export class FlexServer implements GristServer {
     this.app.get('/verified', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'verified'}})));
 
-    const comment = this._loginMiddleware.addEndpoints(this.app, this.comm, this.sessions, this._hosts);
+    const comment = this._loginMiddleware.addEndpoints(this.app, this.comm, this._sessions, this._hosts);
     this.info.push(['loginMiddlewareComment', comment]);
   }
 
@@ -1057,7 +1069,7 @@ export class FlexServer implements GristServer {
             throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
           }
 
-          permitKey = await this._docWorkerMap.setPermit({docId});
+          permitKey = await this._internalPermitStore.setPermit({docId});
           const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
             method: 'POST',
             headers: {'Permit': permitKey, 'Content-Type': 'application/json'},
@@ -1071,7 +1083,7 @@ export class FlexServer implements GristServer {
           log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: body});
         } finally {
           if (permitKey) {
-            await this._docWorkerMap.removePermit(permitKey);
+            await this._internalPermitStore.removePermit(permitKey);
           }
         }
 
@@ -1212,7 +1224,7 @@ export class FlexServer implements GristServer {
   public async addHousekeeper() {
     if (this._check('housekeeper', 'start', 'homedb', 'map', 'json', 'api-mw')) { return; }
     const store = this._docWorkerMap;
-    this.housekeeper = new Housekeeper(this.dbManager, this, store, store);
+    this.housekeeper = new Housekeeper(this.dbManager, this, this._internalPermitStore, store);
     this.housekeeper.addEndpoints(this.app);
     await this.housekeeper.start();
   }

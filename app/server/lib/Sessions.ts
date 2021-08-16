@@ -30,11 +30,11 @@ export class Sessions {
   }
 
   /**
-   * Get the session id and organization from the request, and return the
-   * identified session.
+   * Get the session id and organization from the request (or just pass it in if known), and
+   * return the identified session.
    */
-  public getOrCreateSessionFromRequest(req: Request): ScopedSession {
-    const sid = this.getSessionIdFromRequest(req);
+  public getOrCreateSessionFromRequest(req: Request, sessionId?: string): ScopedSession {
+    const sid = sessionId || this.getSessionIdFromRequest(req);
     const org = (req as any).org;
     if (!sid) { throw new Error("session not found"); }
     return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
