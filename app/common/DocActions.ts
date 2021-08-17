@@ -123,7 +123,7 @@ export interface TableRecordValues {
 }
 
 export interface TableRecordValue {
-  id: number;
+  id: number | string;
   fields: {
     [colId: string]: CellValue
   };

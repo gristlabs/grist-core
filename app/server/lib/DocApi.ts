@@ -155,6 +155,46 @@ export class DocWorkerApi {
       })
     );
 
+    // Get the columns of the specified table in recordish format
+    this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
+      withDoc(async (activeDoc, req, res) => {
+        const metaTables = await handleSandboxError("", [],
+          activeDoc.fetchMetaTables(docSessionFromRequest(req)));
+
+        const [, , tableRefs, tableData] = metaTables["_grist_Tables"];
+        const [, , colRefs, columnData] = metaTables["_grist_Tables_column"];
+
+        const tableId = req.params.tableId;
+        const tableRowIndex = tableData.tableId.indexOf(tableId);
+        if (tableRowIndex === -1) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+        const tableRef = tableRefs[tableRowIndex];
+
+        // colId is pulled out of fields and used as the root id
+        const fieldNames = _.without(Object.keys(columnData), "colId");
+
+        const columns: TableRecordValue[] = [];
+        (columnData.colId as string[]).forEach((id, index) => {
+          if (
+            // TODO param to include hidden columns
+            // By default we want the list of returned colums to match the fields in /records
+            id === "manualSort" || id.startsWith("gristHelper_") || !id ||
+            // Filter columns from the requested table
+            columnData.parentId[index] !== tableRef
+          ) {
+            return;
+          }
+          const column: TableRecordValue = {id, fields: {colRef: colRefs[index]}};
+          for (const key of fieldNames) {
+            column.fields[key] = columnData[key][index];
+          }
+          columns.push(column);
+        });
+        res.json({columns});
+      })
+    );
+
     // The upload should be a multipart post with an 'upload' field containing one or more files.
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
     this._app.post('/api/docs/:docId/attachments', canEdit, withDoc(async (activeDoc, req, res) => {
