@@ -6,6 +6,7 @@ module.exports = {
   target: 'web',
   entry: {
     main: "app/client/app.js",
+    errorPages: "app/client/errorMain.js",
   },
   output: {
     filename: "[name].bundle.js",

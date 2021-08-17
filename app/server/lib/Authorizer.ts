@@ -94,7 +94,6 @@ export function isSingleUserMode(): boolean {
  *   - req.users: set for org-and-session-based logins, with list of profiles in session
  */
 export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPermitStore,
-                                     fallbackEmail: string|null,
                                      req: Request, res: Response, next: NextFunction) {
   const mreq = req as RequestWithLogin;
   let profile: UserProfile|undefined;
@@ -234,18 +233,6 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
   }
 
-  if (!mreq.userId && fallbackEmail) {
-    const user = await dbManager.getUserByLogin(fallbackEmail);
-    if (user) {
-      mreq.user = user;
-      mreq.userId = user.id;
-      mreq.userIsAuthorized = true;
-      const fullUser = dbManager.makeFullUser(user);
-      mreq.users = [fullUser];
-      profile = fullUser;
-    }
-  }
-
   // If no userId has been found yet, fall back on anonymous.
   if (!mreq.userId) {
     const anon = dbManager.getAnonymousUser();
@@ -309,11 +296,16 @@ export function redirectToLogin(
     if (mreq.userIsAuthorized) { return next(); }
 
     try {
-      // Otherwise it's an anonymous user. Proceed normally only if the org allows anon access.
-      if (mreq.userId && mreq.org && allowExceptions) {
+      // Otherwise it's an anonymous user. Proceed normally only if the org allows anon access,
+      // or if the org is not set (FlexServer._redirectToOrg will deal with that case).
+      if (mreq.userId && allowExceptions) {
         // Anonymous user has qualified access to merged org.
-        if (dbManager.isMergedOrg(mreq.org)) { return next(); }
-        const result = await dbManager.getOrg({userId: mreq.userId}, mreq.org || null);
+        // If no org is set, leave it to other middleware.  One common case where the
+        // org is not set is when it is embedded in the url, and the user visits '/'.
+        // If we immediately require a login, it could fail if no cookie exists yet.
+        // Also, '/o/docs' allows anonymous access.
+        if (!mreq.org || dbManager.isMergedOrg(mreq.org)) { return next(); }
+        const result = await dbManager.getOrg({userId: mreq.userId}, mreq.org);
         if (result.status === 200) { return next(); }
       }
 

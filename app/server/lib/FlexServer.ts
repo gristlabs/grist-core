@@ -96,17 +96,17 @@ export class FlexServer implements GristServer {
   public host: string;
   public tag: string;
   public info = new Array<[string, any]>();
-  public dbManager: HomeDBManager;
   public notifier: INotifier;
   public usage: Usage;
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public comm: Comm;
   public settings: any;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
+  private _comm: Comm;
+  private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string|undefined;
   private _pluginUrl: string|undefined;
   private _billing: IBilling;
@@ -247,6 +247,21 @@ export class FlexServer implements GristServer {
   public getSessions(): Sessions {
     if (!this._sessions) { throw new Error('no sessions available'); }
     return this._sessions;
+  }
+
+  public getComm(): Comm {
+    if (!this._comm) { throw new Error('no Comm available'); }
+    return this._comm;
+  }
+
+  public getHosts(): Hosts {
+    if (!this._hosts) { throw new Error('no hosts available'); }
+    return this._hosts;
+  }
+
+  public getHomeDBManager(): HomeDBManager {
+    if (!this._dbManager) { throw new Error('no home db available'); }
+    return this._dbManager;
   }
 
   public addLogging() {
@@ -406,30 +421,17 @@ export class FlexServer implements GristServer {
   // Prepare cache for managing org-to-host relationship.
   public addHosts() {
     if (this._check('hosts', 'homedb')) { return; }
-    this._hosts = new Hosts(this._defaultBaseDomain, this.dbManager, this._pluginUrl);
+    this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager, this._pluginUrl);
   }
 
   public async initHomeDBManager() {
     if (this._check('homedb')) { return; }
-    this.dbManager = new HomeDBManager();
-    this.dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
-    await this.dbManager.connect();
-    await this.dbManager.initializeSpecialIds();
-    // If working without a login system, make sure default user exists.
-    if (process.env.GRIST_DEFAULT_EMAIL) {
-      const profile: UserProfile = {
-        name: 'You',
-        email: process.env.GRIST_DEFAULT_EMAIL,
-      };
-      const user = await this.dbManager.getUserByLoginWithRetry(profile.email, profile);
-      if (user) {
-        // No need to survey this user!
-        user.isFirstTimeUser = false;
-        await user.save();
-      }
-    }
+    this._dbManager = new HomeDBManager();
+    this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
+    await this._dbManager.connect();
+    await this._dbManager.initializeSpecialIds();
     // Report which database we are using, without sensitive credentials.
-    this.info.push(['database', getDatabaseUrl(this.dbManager.connection.options, false)]);
+    this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
   }
 
   public addDocWorkerMap() {
@@ -448,11 +450,7 @@ export class FlexServer implements GristServer {
       // Middleware to redirect landing pages to preferred host
       this._redirectToHostMiddleware = this._hosts.redirectHost;
       // Middleware to add the userId to the express request object.
-      // If GRIST_DEFAULT_EMAIL is set, login as that user when no other credentials
-      // presented.
-      const fallbackEmail = process.env.GRIST_DEFAULT_EMAIL || null;
-      this._userIdMiddleware = expressWrap(addRequestUser.bind(null, this.dbManager, this._internalPermitStore,
-                                                               fallbackEmail));
+      this._userIdMiddleware = expressWrap(addRequestUser.bind(null, this._dbManager, this._internalPermitStore));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
       // middleware to authorize doc access to the app. Note that this requires the userId
       // to be set on the request by _userIdMiddleware.
@@ -460,11 +458,11 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithExceptionsMiddleware = redirectToLogin(true,
                                                                       this._getLoginRedirectUrl,
                                                                       this._getSignUpRedirectUrl,
-                                                                      this.dbManager);
+                                                                      this._dbManager);
       this._redirectToLoginWithoutExceptionsMiddleware = redirectToLogin(false,
                                                                          this._getLoginRedirectUrl,
                                                                          this._getSignUpRedirectUrl,
-                                                                         this.dbManager);
+                                                                         this._dbManager);
       this._redirectToLoginUnconditionally = redirectToLoginUnconditionally(this._getLoginRedirectUrl,
                                                                             this._getSignUpRedirectUrl);
       this._redirectToOrgMiddleware = tbind(this._redirectToOrg, this);
@@ -519,7 +517,7 @@ export class FlexServer implements GristServer {
 
     // ApiServer's constructor adds endpoints to the app.
     // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this.app, this.dbManager);
+    new ApiServer(this.app, this._dbManager);
   }
 
   public addBillingApi() {
@@ -553,9 +551,9 @@ export class FlexServer implements GristServer {
   public async close() {
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
-    if (this.dbManager) {
-      this.dbManager.removeAllListeners();
-      this.dbManager.flushDocAuthCache();
+    if (this._dbManager) {
+      this._dbManager.removeAllListeners();
+      this._dbManager.flushDocAuthCache();
     }
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
@@ -568,7 +566,7 @@ export class FlexServer implements GristServer {
 
   public addDocApiForwarder() {
     if (this._check('doc_api_forwarder', '!json', 'homedb', 'api-mw', 'map')) { return; }
-    const docApiForwarder = new DocApiForwarder(this._docWorkerMap, this.dbManager);
+    const docApiForwarder = new DocApiForwarder(this._docWorkerMap, this._dbManager);
     docApiForwarder.addEndpoints(this.app);
   }
 
@@ -605,9 +603,9 @@ export class FlexServer implements GristServer {
         this._disabled = true;
       } else {
         this._disabled = true;
-        if (this.comm) {
-          this.comm.setServerActivation(false);
-          this.comm.destroyAllClients();
+        if (this._comm) {
+          this._comm.setServerActivation(false);
+          this._comm.destroyAllClients();
         }
       }
       this.server.close();
@@ -649,7 +647,7 @@ export class FlexServer implements GristServer {
       if (this._storageManager) {
         this._storageManager.testReopenStorage();
       }
-      this.comm.setServerActivation(true);
+      this._comm.setServerActivation(true);
       if (this.worker) {
         await this._startServers(this.server, this.httpsServer, this.name, this.port, false);
         await this._addSelfAsWorker(this._docWorkerMap);
@@ -694,7 +692,7 @@ export class FlexServer implements GristServer {
           // If "welcomeNewUser" is ever added to billing pages, we'd need
           // to avoid a redirect loop.
 
-          const orgInfo = this.dbManager.unwrapQueryResult(await this.dbManager.getOrg({userId: user.id}, mreq.org));
+          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({userId: user.id}, mreq.org));
           if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.product.features.vanityDomain) {
           const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
           return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
@@ -722,7 +720,7 @@ export class FlexServer implements GristServer {
       forceLogin: this._redirectToLoginUnconditionally,
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
-      dbManager: this.dbManager,
+      dbManager: this._dbManager,
       plugins : (await this._addPluginManager()).getPlugins()
     });
   }
@@ -755,7 +753,7 @@ export class FlexServer implements GristServer {
 
   public addComm() {
     if (this._check('comm', 'start')) { return; }
-    this.comm = new Comm(this.server, {
+    this._comm = new Comm(this.server, {
       settings: this.settings,
       sessions: this._sessions,
       hosts: this._hosts,
@@ -784,8 +782,8 @@ export class FlexServer implements GristServer {
     }));
   }
 
-  public addLoginRoutes() {
-    if (this._check('login', 'org', 'sessions')) { return; }
+  public async addLoginRoutes() {
+    if (this._check('login', 'org', 'sessions', 'homedb')) { return; }
     // TODO: We do NOT want Comm here at all, it's only being used for handling sessions, which
     // should be factored out of it.
     this.addComm();
@@ -869,13 +867,13 @@ export class FlexServer implements GristServer {
     this.app.get('/verified', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'verified'}})));
 
-    const comment = this._loginMiddleware.addEndpoints(this.app, this.comm, this._sessions, this._hosts);
+    const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
   }
 
   public async addTestingHooks(workerServers?: FlexServer[]) {
     if (process.env.GRIST_TESTING_SOCKET) {
-      await startTestingHooks(process.env.GRIST_TESTING_SOCKET, this.port, this.comm, this,
+      await startTestingHooks(process.env.GRIST_TESTING_SOCKET, this.port, this._comm, this,
                               workerServers || []);
       this._hasTestingHooks = true;
     }
@@ -914,30 +912,30 @@ export class FlexServer implements GristServer {
       const docWorkerId = await this._addSelfAsWorker(workers);
 
       const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableS3, '', workers,
-                                                      this.dbManager, this.create);
+                                                      this._dbManager, this.create);
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
-      const storageManager = new DocStorageManager(this.docsRoot, samples, this.comm, this);
+      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this);
       this._storageManager = storageManager;
     }
 
     const pluginManager = await this._addPluginManager();
     this._docManager = this._docManager || new DocManager(this._storageManager, pluginManager,
-                                                          this.dbManager, this);
+                                                          this._dbManager, this);
     const docManager = this._docManager;
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
 
     if (!isSingleUserMode()) {
-      this.comm.registerMethods({
+      this._comm.registerMethods({
         openDoc:                  docManager.openDoc.bind(docManager),
       });
       this._serveDocPage();
     }
 
     // Attach docWorker endpoints and Comm methods.
-    const docWorker = new DocWorker(this.dbManager, {comm: this.comm});
+    const docWorker = new DocWorker(this._dbManager, {comm: this._comm});
     this._docWorker = docWorker;
 
     // Register the websocket comm functions associated with the docworker.
@@ -954,7 +952,7 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this.dbManager, this);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
     }
   }
 
@@ -979,9 +977,9 @@ export class FlexServer implements GristServer {
         return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
       }
       // Allow the support user access to billing pages.
-      const scope = addPermit(getScope(mreq), this.dbManager.getSupportUserId(), {org: orgDomain});
-      const query = await this.dbManager.getOrg(scope, orgDomain);
-      const org = this.dbManager.unwrapQueryResult(query);
+      const scope = addPermit(getScope(mreq), this._dbManager.getSupportUserId(), {org: orgDomain});
+      const query = await this._dbManager.getOrg(scope, orgDomain);
+      const org = this._dbManager.unwrapQueryResult(query);
       // This page isn't availabe for personal site.
       if (org.owner) {
         return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
@@ -1044,7 +1042,7 @@ export class FlexServer implements GristServer {
 
       if (req.params.page === 'user') {
         const name: string|undefined = req.body && req.body.username || undefined;
-        await this.dbManager.updateUser(userId, {name, isFirstTimeUser: false});
+        await this._dbManager.updateUser(userId, {name, isFirstTimeUser: false});
         redirectPath = '/welcome/info';
 
       } else if (req.params.page === 'info') {
@@ -1062,8 +1060,8 @@ export class FlexServer implements GristServer {
           //
           // TODO With proper forms support, we could give an origin-based permission to submit a
           // form to this doc, and do it from the client directly.
-          const previewerUserId = this.dbManager.getPreviewerUserId();
-          const docAuth = await this.dbManager.getDocAuthCached({urlId, userId: previewerUserId});
+          const previewerUserId = this._dbManager.getPreviewerUserId();
+          const docAuth = await this._dbManager.getDocAuthCached({urlId, userId: previewerUserId});
           const docId = docAuth.docId;
           if (!docId) {
             throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
@@ -1089,14 +1087,14 @@ export class FlexServer implements GristServer {
 
         // redirect to teams page if users has access to more than one org. Otherwise redirect to
         // personal org.
-        const result = await this.dbManager.getMergedOrgs(userId, userId, domain || null);
+        const result = await this._dbManager.getMergedOrgs(userId, userId, domain || null);
         const orgs = (result.status === 200) ? result.data : null;
         if (orgs && orgs.length > 1) {
           redirectPath = '/welcome/teams';
         }
       }
 
-      const mergedOrgDomain = this.dbManager.mergedOrgDomain();
+      const mergedOrgDomain = this._dbManager.mergedOrgDomain();
       const redirectUrl = this._getOrgRedirectUrl(mreq, mergedOrgDomain, redirectPath);
       resp.json({redirectUrl});
     }),
@@ -1160,7 +1158,7 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    this.notifier = this.create.Notifier(this.dbManager, this);
+    this.notifier = this.create.Notifier(this._dbManager, this);
   }
 
   public getGristConfig(): GristLoadConfig {
@@ -1172,9 +1170,9 @@ export class FlexServer implements GristServer {
    * the db for document details without including organization disambiguation.
    */
   public async getDocUrl(docId: string): Promise<string> {
-    if (!this.dbManager) { throw new Error('database missing'); }
-    const doc = await this.dbManager.getDoc({
-      userId: this.dbManager.getPreviewerUserId(),
+    if (!this._dbManager) { throw new Error('database missing'); }
+    const doc = await this._dbManager.getDoc({
+      userId: this._dbManager.getPreviewerUserId(),
       urlId: docId,
       showAll: true
     });
@@ -1185,19 +1183,19 @@ export class FlexServer implements GristServer {
    * Get a url for a team site.
    */
   public async getOrgUrl(orgKey: string|number): Promise<string> {
-    if (!this.dbManager) { throw new Error('database missing'); }
-    const org = await this.dbManager.getOrg({
-      userId: this.dbManager.getPreviewerUserId(),
+    if (!this._dbManager) { throw new Error('database missing'); }
+    const org = await this._dbManager.getOrg({
+      userId: this._dbManager.getPreviewerUserId(),
       showAll: true
     }, orgKey);
-    return this.getResourceUrl(this.dbManager.unwrapQueryResult(org));
+    return this.getResourceUrl(this._dbManager.unwrapQueryResult(org));
   }
 
   /**
    * Get a url for an organization, workspace, or document.
    */
   public async getResourceUrl(resource: Organization|Workspace|Document): Promise<string> {
-    if (!this.dbManager) { throw new Error('database missing'); }
+    if (!this._dbManager) { throw new Error('database missing'); }
     const gristConfig = this.getGristConfig();
     const state: IGristUrlState = {};
     let org: Organization;
@@ -1211,20 +1209,20 @@ export class FlexServer implements GristServer {
       state.doc = resource.urlId || resource.id;
       state.slug = getSlugIfNeeded(resource);
     }
-    state.org = this.dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
+    state.org = this._dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
     if (!gristConfig.homeUrl) { throw new Error('Computing a resource URL requires a home URL'); }
     return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl));
   }
 
   public addUsage() {
     if (this._check('usage', 'start', 'homedb')) { return; }
-    this.usage = new Usage(this.dbManager);
+    this.usage = new Usage(this._dbManager);
   }
 
   public async addHousekeeper() {
     if (this._check('housekeeper', 'start', 'homedb', 'map', 'json', 'api-mw')) { return; }
     const store = this._docWorkerMap;
-    this.housekeeper = new Housekeeper(this.dbManager, this, this._internalPermitStore, store);
+    this.housekeeper = new Housekeeper(this._dbManager, this, this._internalPermitStore, store);
     this.housekeeper.addEndpoints(this.app);
     await this.housekeeper.start();
   }
@@ -1427,8 +1425,8 @@ export class FlexServer implements GristServer {
     } catch (err) {
       log.error("FlexServer shutdown problem", err);
     }
-    if (this.comm) {
-      this.comm.destroyAllClients();
+    if (this._comm) {
+      this._comm.destroyAllClients();
     }
     log.info("FlexServer shutdown is complete");
   }
@@ -1439,12 +1437,19 @@ export class FlexServer implements GristServer {
    */
   private async _redirectToOrg(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const mreq = req as RequestWithLogin;
-    if (mreq.org || !mreq.userId || !mreq.userIsAuthorized) { return next(); }
+    if (mreq.org || !mreq.userId) { return next(); }
+
+    // Redirect anonymous users to the merged org.
+    if (!mreq.userIsAuthorized) {
+      const redirectUrl = this._getOrgRedirectUrl(mreq, this._dbManager.mergedOrgDomain());
+      log.debug(`Redirecting anonymous user to: ${redirectUrl}`);
+      return resp.redirect(redirectUrl);
+    }
 
     // We have a userId, but the request is for an unknown org. Redirect to an org that's
     // available to the user. This matters in dev, and in prod when visiting a generic URL, which
     // will here redirect to e.g. the user's personal org.
-    const result = await this.dbManager.getMergedOrgs(mreq.userId, mreq.userId, null);
+    const result = await this._dbManager.getMergedOrgs(mreq.userId, mreq.userId, null);
     const orgs = (result.status === 200) ? result.data : null;
     const subdomain = orgs && orgs.length > 0 ? orgs[0].domain : null;
     const redirectUrl = subdomain && this._getOrgRedirectUrl(mreq, subdomain);
@@ -1512,8 +1517,8 @@ export class FlexServer implements GristServer {
 
   private _getBilling(): IBilling {
     if (!this._billing) {
-      if (!this.dbManager) { throw new Error("need dbManager"); }
-      this._billing = this.create.Billing(this.dbManager, this);
+      if (!this._dbManager) { throw new Error("need dbManager"); }
+      this._billing = this.create.Billing(this._dbManager, this);
     }
     return this._billing;
   }

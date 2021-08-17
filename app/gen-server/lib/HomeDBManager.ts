@@ -774,7 +774,10 @@ export class HomeDBManager extends EventEmitter {
   public async getOrgWorkspaces(scope: Scope, orgKey: string|number,
                                 options: QueryOptions = {}): Promise<QueryResult<Workspace[]>> {
     const query = this._orgWorkspaces(scope, orgKey, options);
-    const result = await this._verifyAclPermissions(query, { scope });
+    // Allow an empty result for the merged org for the anonymous user.  The anonymous user
+    // has no home org or workspace.  For all other sitations, expect at least one workspace.
+    const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this.getAnonymousUserId();
+    const result = await this._verifyAclPermissions(query, { scope, emptyAllowed });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.

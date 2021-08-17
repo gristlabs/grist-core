@@ -81,7 +81,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.setServerVersion called with", version);
     this._comm.setServerVersion(version);
     for (const server of this._workerServers) {
-      server.comm.setServerVersion(version);
+      server.getComm().setServerVersion(version);
     }
   }
 
@@ -89,7 +89,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.disconnectClients called");
     this._comm.destroyAllClients();
     for (const server of this._workerServers) {
-      server.comm.destroyAllClients();
+      server.getComm().destroyAllClients();
     }
   }
 
@@ -97,7 +97,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.commShutdown called");
     await this._comm.testServerShutdown();
     for (const server of this._workerServers) {
-      await server.comm.testServerShutdown();
+      await server.getComm().testServerShutdown();
     }
   }
 
@@ -105,7 +105,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.commRestart called");
     await this._comm.testServerRestart();
     for (const server of this._workerServers) {
-      await server.comm.testServerRestart();
+      await server.getComm().testServerRestart();
     }
   }
 
@@ -115,7 +115,7 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.setClientPersistence called with", ttlMs);
     this._comm.testSetClientPersistence(ttlMs);
     for (const server of this._workerServers) {
-      server.comm.testSetClientPersistence(ttlMs);
+      server.getComm().testSetClientPersistence(ttlMs);
     }
   }
 
@@ -153,9 +153,9 @@ export class TestingHooks implements ITestingHooks {
 
   public async flushAuthorizerCache(): Promise<void> {
     log.info("TestingHooks.flushAuthorizerCache called");
-    this._server.dbManager.flushDocAuthCache();
+    this._server.getHomeDBManager().flushDocAuthCache();
     for (const server of this._workerServers) {
-      server.dbManager.flushDocAuthCache();
+      server.getHomeDBManager().flushDocAuthCache();
     }
   }
 

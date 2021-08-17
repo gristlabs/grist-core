@@ -132,6 +132,8 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
     requestDomain: getCookieDomain,
     genid: generateId,
     cookie: {
+      sameSite: 'lax',
+
       // We do not initially set max-age, leaving the cookie as a
       // session cookie until there's a successful login.  On the
       // redis back-end, the session associated with the cookie will
@@ -144,7 +146,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
     store: sessionStore
   });
 
-  const sessions = new Sessions(sessionSecret, sessionStore, server);
+  const sessions = new Sessions(sessionSecret, sessionStore);
 
   return {sessions, sessionSecret, sessionStore, sessionMiddleware, sessionStoreCreator};
 }

@@ -57,9 +57,7 @@ import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as saml2 from 'saml2-js';
 
-import * as Comm from 'app/server/lib/Comm';
 import {expressWrap} from 'app/server/lib/expressWrap';
-import {Hosts} from 'app/server/lib/extractOrg';
 import {GristLoginMiddleware, GristServer} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -254,8 +252,8 @@ export async function getSamlLoginMiddleware(gristServer: GristServer): Promise<
     // TODO: is there a better link to give here?
     getSignUpRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
     getLogoutRedirectUrl: samlConfig.getLogoutRedirectUrl.bind(samlConfig),
-    addEndpoints(app: express.Express, comm: Comm, sessions: Sessions, hosts: Hosts) {
-      samlConfig.addSamlEndpoints(app, sessions);
+    async addEndpoints(app: express.Express) {
+      samlConfig.addSamlEndpoints(app, gristServer.getSessions());
       return 'saml';
     }
   };

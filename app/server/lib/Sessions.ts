@@ -1,5 +1,4 @@
 import {ScopedSession} from 'app/server/lib/BrowserSession';
-import {GristServer} from 'app/server/lib/GristServer';
 import {cookieName, SessionStore} from 'app/server/lib/gristSessions';
 import * as cookie from 'cookie';
 import * as cookieParser from 'cookie-parser';
@@ -26,7 +25,7 @@ import {Request} from 'express';
 export class Sessions {
   private _sessions = new Map<string, ScopedSession>();
 
-  constructor(private _sessionSecret: string, private _sessionStore: SessionStore, private _server: GristServer) {
+  constructor(private _sessionSecret: string, private _sessionStore: SessionStore) {
   }
 
   /**
@@ -47,7 +46,6 @@ export class Sessions {
     const key = this._getSessionOrgKey(sid, domain, userSelector);
     if (!this._sessions.has(key)) {
       const scopedSession = new ScopedSession(sid, this._sessionStore, domain, userSelector);
-      this._server.create.adjustSession(scopedSession);
       this._sessions.set(key, scopedSession);
     }
     return this._sessions.get(key)!;

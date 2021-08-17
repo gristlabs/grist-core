@@ -1,17 +1,11 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ICreate} from 'app/server/lib/ICreate';
-import {ScopedSession} from 'app/server/lib/BrowserSession';
 import {NSandboxCreator} from 'app/server/lib/NSandbox';
 
 // Use raw python - update when pynbox or other solution is set up for core.
 const sandboxCreator = new NSandboxCreator({defaultFlavor: 'unsandboxed'});
 
 export const create: ICreate = {
-  adjustSession(scopedSession: ScopedSession): void {
-    const email = process.env.GRIST_DEFAULT_EMAIL || 'anon@getgrist.com';
-    const profile = {email, name: email};
-    scopedSession.getSessionProfile = async () => profile;
-  },
   Billing() {
     return {
       addEndpoints() { /* do nothing */ },

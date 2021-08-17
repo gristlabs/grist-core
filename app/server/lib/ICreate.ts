@@ -1,6 +1,5 @@
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ScopedSession} from 'app/server/lib/BrowserSession';
 import {DocManager} from 'app/server/lib/DocManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {GristServer} from 'app/server/lib/GristServer';
@@ -10,9 +9,6 @@ import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 
 export interface ICreate {
-  // A ScopedSession knows which user is logged in to an org. This method may be used to replace
-  // its behavior with stubs when logins aren't available.
-  adjustSession(scopedSession: ScopedSession): void;
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;

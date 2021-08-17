@@ -15,8 +15,8 @@ if (!debugging) {
   setDefaultEnv('GRIST_LOG_SKIP_HTTP', 'true');
 }
 
-// Use a distinct cookie.
-setDefaultEnv('GRIST_SESSION_COOKIE', 'grist_core');
+// Use a distinct cookie.  Bump version to 2.
+setDefaultEnv('GRIST_SESSION_COOKIE', 'grist_core2');
 
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
@@ -41,7 +41,7 @@ export async function main() {
     console.log('For full logs, re-run with DEBUG=1');
   }
 
-  // If SAML is not configured, there's no login system, so force a default email address.
+  // If SAML is not configured, there's no login system, so provide a default email address.
   if (!process.env.GRIST_SAML_SP_HOST) {
     setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
   }
