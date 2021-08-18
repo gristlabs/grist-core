@@ -13,6 +13,11 @@ here, combined with business-specific software designed to scale it to many user
 etc.
 
 If you are looking to use Grist in the cloud, head on over to [getgrist.com](https://www.getgrist.com).
+If you are curious about where Grist is going heading,
+see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
+question in [our forum](https://community.getgrist.com),
+or browse [our extensive documentation](https://support.getgrist.com).
+
 
 ## Opening and editing a Grist document locally
 
@@ -44,14 +49,19 @@ yarn install
 yarn run build:prod
 yarn run install:python
 yarn start
-# unauthenticated grist client available at http://localhost:8484
-# unauthenticated grist api available at http://localhost:8484/api/
+# grist client available at http://localhost:8484
+# grist api available at http://localhost:8484/api/
 ```
 
-Then you can use the Grist client, or the API. You cannot (yet) edit Grist documents
-in place on your file system. All imported/created documents will appear in the `docs`
-subdirectory.
+Then you can use the Grist client, or the API. You can view and edit Grist documents
+throught the client and the API.  All imported/created documents will appear in the `docs`
+subdirectory.  You cannot (yet) edit Grist documents in place on your file system.
 
+Grist does not have a login system built in.  To activate one, you can configure Grist
+to talk to an identity provider such as Auth0 using
+[SAML](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/SamlConfig.ts).
+For running on your own computer, this isn't necessary, but it is important if you are
+self-hosting Grist for use by a team.
 
 ## Why Open Source?
 

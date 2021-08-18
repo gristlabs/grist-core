@@ -15,7 +15,7 @@
  * Note that the code is based on the example at https://github.com/Clever/saml2
  *
  * Expected environment variables:
- *    env GRIST_SAML_SP_HOST=https://grist.tigerglobal.com
+ *    env GRIST_SAML_SP_HOST=https://<your-domain>
  *        Host at which our /saml/assert endpoint will live; identifies our application.
  *    env GRIST_SAML_SP_KEY
  *        Path to file with our private key, PEM format.
