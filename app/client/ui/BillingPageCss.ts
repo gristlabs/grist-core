@@ -242,6 +242,11 @@ export const paymentFieldInfo = styled('div', `
   margin: 10px 0;
 `);
 
+export const paymentFieldDanger = styled('div', `
+  color: #ffa500;
+  margin: 10px 0;
+`);
+
 export const paymentSpacer = styled('div', `
   width: 38px;
 `);

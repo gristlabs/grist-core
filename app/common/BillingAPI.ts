@@ -10,7 +10,8 @@ export type BillingSubPage = typeof BillingSubPage.type;
 export const BillingPage = StringUnion(...BillingSubPage.values, 'billing');
 export type BillingPage = typeof BillingPage.type;
 
-export const BillingTask = StringUnion('signUp', 'signUpLite', 'updatePlan', 'addCard', 'updateCard', 'updateAddress');
+export const BillingTask = StringUnion('signUp', 'signUpLite', 'updatePlan', 'addCard',
+                                       'updateCard', 'updateAddress', 'updateDomain');
 export type BillingTask = typeof BillingTask.type;
 
 // Note that IBillingPlan includes selected fields from the Stripe plan object along with

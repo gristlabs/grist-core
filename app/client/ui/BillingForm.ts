@@ -389,11 +389,11 @@ class BillingSettingsForm extends BillingSubForm {
 
   public buildDom() {
     const noEditAccess = Boolean(this._org && !roles.canEdit(this._org.access));
+    const hasDomain = Boolean(this._options.autofill?.domain);
     return css.paymentBlock(
       this._options.showHeader ? css.paymentSubHeader('Team Site') : null,
       css.paymentRow(
         css.paymentField(
-          css.paymentLabel('Company Name'),
           this.billingInput(this._name,
             dom.boolAttr('disabled', () => noEditAccess),
             testId('settings-name')
@@ -410,11 +410,10 @@ class BillingSettingsForm extends BillingSubForm {
             dom.boolAttr('disabled', () => noEditAccess),
             testId('settings-domain')
           ),
-          // Note that we already do not allow editing the domain after it is initially set
-          // anyway, this is just here for consistency.
           noEditAccess ? css.paymentFieldInfo('Organization edit access is required',
             testId('settings-domain-info')
-          ) : null
+          ) : null,
+          hasDomain ? css.paymentFieldDanger('Any saved links will need updating if the URL changes') : null,
         ),
         css.paymentField({style: 'flex: 0 1 0;'},
           css.inputHintLabel('.getgrist.com')
@@ -442,6 +441,8 @@ class BillingSettingsForm extends BillingSubForm {
 
   // Throws if the entered domain contains any invalid characters or is already taken.
   private async _verifyDomain(domain: string): Promise<void> {
+    // OK to retain current domain.
+    if (domain === this._options.autofill?.domain) { return; }
     checkSubdomainValidity(domain);
     const isAvailable = await this._isDomainAvailable(domain);
     if (!isAvailable) { throw new Error('Domain is already taken.'); }

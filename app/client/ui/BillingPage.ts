@@ -26,7 +26,8 @@ const taskActions = {
   addCard:       'Add Payment Method',
   updateCard:    'Update Payment Method',
   updateAddress: 'Update Address',
-  signUpLite:    'Complete Sign Up'
+  signUpLite:    'Complete Sign Up',
+  updateDomain:  'Update Name',
 };
 
 /**
@@ -357,7 +358,10 @@ export class BillingPage extends Disposable {
 
   private _buildBillingForm(org: Organization|null, address: IBillingAddress|null, task: BillingTask) {
     const isSharedOrg = org && org.billingAccount && !org.billingAccount.individual;
-    const currentSettings = isSharedOrg ? { name: org!.name } : this._formData.settings;
+    const currentSettings = isSharedOrg ? {
+      name: org!.name,
+      domain: org?.domain?.startsWith('o-') ? undefined : org?.domain || undefined,
+    } : this._formData.settings;
     const currentAddress = address || this._formData.address;
     const pageText = taskActions[task];
     // If there is an immediate charge required, require re-entering the card info.
@@ -365,8 +369,8 @@ export class BillingPage extends Disposable {
     this._form = new BillingForm(org, (...args) => this._model.isDomainAvailable(...args), {
       payment: ['signUp', 'updatePlan', 'addCard', 'updateCard'].includes(task),
       address: ['signUp', 'updateAddress'].includes(task),
-      settings: ['signUp', 'signUpLite', 'updateAddress'].includes(task),
-      domain: ['signUp', 'signUpLite'].includes(task)
+      settings: ['signUp', 'signUpLite', 'updateAddress', 'updateDomain'].includes(task),
+      domain: ['signUp', 'signUpLite', 'updateDomain'].includes(task)
     }, { address: currentAddress, settings: currentSettings, card: this._formData.card });
     return dom('div',
       dom.onDispose(() => {
@@ -384,7 +388,7 @@ export class BillingPage extends Disposable {
   private _buildPaymentConfirmation(formData: IFormData) {
     const settings = formData.settings || null;
     return [
-      this._buildDomainSummary(settings && settings.domain),
+      this._buildDomainSummary(settings && settings.domain, false),
       this._buildCompanySummary(settings && settings.name, formData.address || null, false),
       this._buildCardSummary(formData.card || null)
     ];
@@ -499,9 +503,9 @@ export class BillingPage extends Disposable {
     );
   }
 
-  private _buildDomainSummary(domain: string|null) {
+  private _buildDomainSummary(domain: string|null, showEdit: boolean = true) {
     const task = this._model.currentTask.get();
-    if (task === 'signUpLite') { return null; }
+    if (task === 'signUpLite' || task === 'updateDomain') { return null; }
     return css.summaryItem(
       css.summaryHeader(
         css.billingBoldText('Billing Info'),
@@ -512,7 +516,14 @@ export class BillingPage extends Disposable {
             dom('span', {style: 'font-weight: bold'}, domain),
             `.getgrist.com`,
             testId('org-domain')
-          )
+          ),
+          showEdit ? css.billingTextBtn(css.billingIcon('Settings'), 'Change',
+            urlState().setLinkUrl({
+              billing: 'payment',
+              params: { billingTask: 'updateDomain' }
+            }),
+            testId('update-domain')
+          ) : null
         )
       ] : null
     );
@@ -619,6 +630,8 @@ export class BillingPage extends Disposable {
       return makeSummaryFeature('You are updating the default payment method');
     } else if (task === 'updateAddress') {
       return makeSummaryFeature('You are updating the company name and address');
+    } else if (task === 'updateDomain') {
+      return makeSummaryFeature('You are updating the company name and domain');
     } else {
       return null;
     }
