@@ -2,7 +2,7 @@ import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {BillingModel, BillingModelImpl, ISubscriptionModel} from 'app/client/models/BillingModel';
 import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {appHeader} from 'app/client/ui/AppHeader';
+import {AppHeader} from 'app/client/ui/AppHeader';
 import {BillingForm, IFormData} from 'app/client/ui/BillingForm';
 import * as css from 'app/client/ui/BillingPageCss';
 import {BillingPlanManagers} from 'app/client/ui/BillingPlanManagers';
@@ -64,7 +64,7 @@ export class BillingPage extends Disposable {
             panelWidth: Observable.create(this, 240),
             panelOpen,
             hideOpener: true,
-            header: appHeader(this._appModel.currentOrgName, this._appModel.topAppModel.productFlavor),
+            header: dom.create(AppHeader, this._appModel.currentOrgName, this._appModel),
             content: leftPanelBasic(this._appModel, panelOpen),
           },
           headerMain: this._createTopBarBilling(),

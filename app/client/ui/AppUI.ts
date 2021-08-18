@@ -5,7 +5,7 @@ import {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import {DocPageModelImpl} from 'app/client/models/DocPageModel';
 import {HomeModelImpl} from 'app/client/models/HomeModel';
 import {App} from 'app/client/ui/App';
-import {appHeader} from 'app/client/ui/AppHeader';
+import {AppHeader} from 'app/client/ui/AppHeader';
 import {createBottomBarDoc} from 'app/client/ui/BottomBar';
 import {createDocMenu} from 'app/client/ui/DocMenu';
 import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
@@ -96,7 +96,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
       panelWidth: Observable.create(owner, 240),
       panelOpen: leftPanelOpen,
       hideOpener: true,
-      header: appHeader(appModel.currentOrgName, appModel.topAppModel.productFlavor),
+      header: dom.create(AppHeader, appModel.currentOrgName, appModel),
       content: createHomeLeftPane(leftPanelOpen, pageModel),
     },
     headerMain: createTopBarHome(appModel),
@@ -136,7 +136,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     leftPanel: {
       panelWidth: leftPanelWidth,
       panelOpen: leftPanelOpen,
-      header: appHeader(appModel.currentOrgName || pageModel.currentOrgName, appModel.topAppModel.productFlavor),
+      header: dom.create(AppHeader, appModel.currentOrgName || pageModel.currentOrgName, appModel),
       content: pageModel.createLeftPane(leftPanelOpen),
     },
     rightPanel: {

@@ -11,7 +11,7 @@ import {IHomePage} from 'app/common/gristUrls';
 import {isLongerThan} from 'app/common/gutil';
 import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {Document, Workspace} from 'app/common/UserAPI';
+import {Document, Organization, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 import * as moment from 'moment';
 import flatten = require('lodash/flatten');
@@ -62,6 +62,10 @@ export interface HomeModel {
 
   // List of featured templates from templateWorkspaces.
   featuredTemplates: Observable<Document[]>;
+
+  // List of other sites (orgs) user can access. Only populated on All Documents, and only when
+  // the current org is a personal org, or the current org is view access only.
+  otherSites: Observable<Organization[]>;
 
   currentSort: Observable<SortPref>;
   currentView: Observable<ViewPref>;
@@ -117,6 +121,21 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     const featuredTemplates = flatten((templates).map(t => t.docs)).filter(t => t.isPinned);
     return sortBy(featuredTemplates, (t) => t.name.toLowerCase());
   });
+
+  public readonly otherSites = Computed.create(this, this.currentPage, this.app.topAppModel.orgs,
+    (_use, page, orgs) => {
+      if (page !== 'all') { return []; }
+
+      const currentOrg = this._app.currentOrg;
+      if (!currentOrg) { return []; }
+
+      const isPersonalOrg = currentOrg.owner;
+      if (!isPersonalOrg && (currentOrg.access !== 'viewers' || !currentOrg.public)) {
+        return [];
+      }
+
+      return orgs.filter(org => org.id !== currentOrg.id);
+    });
 
   public readonly currentSort: Observable<SortPref>;
   public readonly currentView: Observable<ViewPref>;
@@ -255,16 +274,10 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     this.loading.set(true);
     const currentPage = this.currentPage.get();
     const promises = [
-      this._fetchWorkspaces(org.id, false).catch(reportError),                                 // workspaces
-      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null, // trash
-      null                                                                                     // templates
-    ];
-
-    const shouldFetchTemplates = ['all', 'templates'].includes(currentPage);
-    if (shouldFetchTemplates) {
-      const onlyFeatured = currentPage === 'all';
-      promises[2] = this._fetchTemplates(onlyFeatured);
-    }
+      this._fetchWorkspaces(org.id, false).catch(reportError),
+      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
+      this._maybeFetchTemplates(),
+    ] as const;
 
     const promise = Promise.all(promises);
     if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
@@ -327,9 +340,19 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
                                 ws.name.toLowerCase()]);
   }
 
-  private async _fetchTemplates(onlyFeatured: boolean) {
+  /**
+   * Fetches templates if on the Templates or All Documents page.
+   *
+   * Only fetches featured (pinned) templates on the All Documents page.
+   */
+  private async _maybeFetchTemplates(): Promise<Workspace[] | null> {
+    const currentPage = this.currentPage.get();
+    const shouldFetchTemplates = ['all', 'templates'].includes(currentPage);
+    if (!shouldFetchTemplates) { return null; }
+
     let templateWss: Workspace[] = [];
     try {
+      const onlyFeatured = currentPage === 'all';
       templateWss = await this._app.api.getTemplates(onlyFeatured);
     } catch {
       // If the org doesn't exist (404), return nothing and don't report error to user.

@@ -8,7 +8,7 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {Computed, Disposable, Observable, subscribe} from 'grainjs';
+import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 export {reportError} from 'app/client/models/errors';
 
@@ -28,6 +28,9 @@ export interface TopAppModel {
   // Everything else gets fully rebuilt when the org/user changes. This is to ensure that
   // different parts of the code aren't using different users/orgs while the switch is pending.
   appObs: Observable<AppModel|null>;
+
+  orgs: Observable<Organization[]>;
+  users: Observable<FullUser[]>;
 
   // Reinitialize the app. This is called when org or user changes.
   initialize(): void;
@@ -68,6 +71,8 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly currentSubdomain = Computed.create(this, urlState().state, (use, s) => s.org);
   public readonly notifier = Notifier.create(this);
   public readonly appObs = Observable.create<AppModel|null>(this, null);
+  public readonly orgs = Observable.create<Organization[]>(this, []);
+  public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
   private readonly _gristConfig?: GristLoadConfig;
 
@@ -85,6 +90,8 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     // and the FullUser to use for it (the user may change when switching orgs).
     this.autoDispose(subscribe(this.currentSubdomain, (use) => this.initialize()));
     this.plugins = this._gristConfig?.plugins || [];
+
+    this._fetchUsersAndOrgs().catch(reportError);
   }
 
   public initialize(): void {
@@ -145,6 +152,15 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       if (this.isDisposed()) { return; }
       AppModelImpl.create(this.appObs, this, null, null, {error: err.message, status: err.status || 500});
     }
+  }
+
+  private async _fetchUsersAndOrgs() {
+    const data = await this.api.getSessionAll();
+    if (this.isDisposed()) { return; }
+    bundleChanges(() => {
+      this.users.set(data.users);
+      this.orgs.set(data.orgs);
+    });
   }
 }
 

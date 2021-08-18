@@ -1,5 +1,5 @@
 import {loadGristDoc, loadUserManager} from 'app/client/lib/imports';
-import {AppModel, reportError} from 'app/client/models/AppModel';
+import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
 import {showProfileModal} from 'app/client/ui/ProfileDialog';
@@ -13,22 +13,17 @@ import {commonUrls} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {getOrgName, Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
-import {bundleChanges, Disposable, dom, DomElementArg, Observable, styled} from 'grainjs';
+import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
+import {cssOrgCheckmark, cssOrgSelected} from 'app/client/ui/AppHeader';
 
 /**
  * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
  * button instead.
  */
 export class AccountWidget extends Disposable {
-  private _users = Observable.create<FullUser[]>(this, []);
-  private _orgs = Observable.create<Organization[]>(this, []);
-
   constructor(private _appModel: AppModel, private _docPageModel?: DocPageModel) {
     super();
-    // We initialize users and orgs asynchronously when we create the menu, so it will *probably* be
-    // available by the time the user opens it. Even if not, we do not delay the opening of the menu.
-    this._fetchUsersAndOrgs().catch(reportError);
   }
 
   public buildDom() {
@@ -47,16 +42,6 @@ export class AccountWidget extends Disposable {
     );
   }
 
-  private async _fetchUsersAndOrgs() {
-    if (!this._appModel.topAppModel.isSingleOrg) {
-      const data = await this._appModel.api.getSessionAll();
-      if (this.isDisposed()) { return; }
-      bundleChanges(() => {
-        this._users.set(data.users);
-        this._orgs.set(data.orgs);
-      });
-    }
-  }
 
   /**
    * Renders the content of the account menu, with a list of available orgs, settings, and sign-out.
@@ -104,6 +89,9 @@ export class AccountWidget extends Disposable {
       ];
     }
 
+    const users = this._appModel.topAppModel.users;
+    const orgs = this._appModel.topAppModel.orgs;
+
     return [
       cssUserInfo(
         createUserImage(user, 'large'),
@@ -141,8 +129,8 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text((use) => use(this._users).length > 1 ? 'Switch Accounts' : 'Accounts')),
-        dom.forEach(this._users, (_user) => {
+        menuSubHeader(dom.text((use) => use(users).length > 1 ? 'Switch Accounts' : 'Accounts')),
+        dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),
             cssSmallIconWrap(createUserImage(_user, 'small')),
@@ -154,11 +142,11 @@ export class AccountWidget extends Disposable {
 
       menuItemLink({href: getLogoutUrl()}, "Sign Out", testId('dm-log-out')),
 
-      dom.maybe((use) => use(this._orgs).length > 0, () => [
+      dom.maybe((use) => use(orgs).length > 0, () => [
         menuDivider(),
         menuSubHeader('Switch Sites'),
       ]),
-      dom.forEach(this._orgs, (org) =>
+      dom.forEach(orgs, (org) =>
         menuItemLink(urlState().setLinkUrl({org: org.domain || undefined}),
           cssOrgSelected.cls('', this._appModel.currentOrg ? org.id === this._appModel.currentOrg.id : false),
           getOrgName(org),
@@ -228,21 +216,6 @@ const cssOtherEmail = styled('div', `
   color: ${colors.slate};
   .${cssMenuItem.className}-sel & {
     color: ${colors.light};
-  }
-`);
-
-const cssOrgSelected = styled('div', `
-  background-color: ${colors.dark};
-  color: ${colors.light};
-`);
-
-const cssOrgCheckmark = styled(icon, `
-  flex: none;
-  margin-left: 16px;
-  --icon-color: ${colors.light};
-  display: none;
-  .${cssOrgSelected.className} > & {
-    display: block;
   }
 `);
 

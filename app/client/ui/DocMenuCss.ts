@@ -2,6 +2,7 @@ import {transientInput} from 'app/client/ui/transientInput';
 import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
+import {bigBasicButton} from 'app/client/ui2018/buttons';
 
 // The "&:after" clause forces some padding below all docs.
 export const docList = styled('div', `
@@ -40,6 +41,8 @@ export const featuredTemplatesHeader = styled(docListHeader, `
   align-items: center;
 `);
 
+export const otherSitesHeader = templatesHeader;
+
 export const docBlock = styled('div', `
   max-width: 550px;
   min-width: 300px;
@@ -52,6 +55,23 @@ export const docBlock = styled('div', `
 
 export const templatesDocBlock = styled(docBlock, `
   margin-top: 32px;
+`);
+
+export const otherSitesBlock = styled('div', `
+  margin-bottom: 32px;
+`);
+
+export const otherSitesButtons = styled('div', `
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  margin-top: 16px;
+  margin-bottom: 28px;
+  gap: 16px;
+`);
+
+export const siteButton = styled(bigBasicButton, `
+  flex: 0 0 auto;
 `);
 
 export const docHeaderIconDark = styled(icon, `
@@ -73,6 +93,8 @@ export const templatesHeaderIcon = styled(docHeaderIcon, `
   width: 24px;
   height: 24px;
 `);
+
+export const otherSitesHeaderIcon = templatesHeaderIcon;
 
 const docBlockHeader = `
   display: flex;

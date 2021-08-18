@@ -4,7 +4,7 @@ import { submitForm } from "app/client/lib/uploads";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
-import { appHeader } from 'app/client/ui/AppHeader';
+import { AppHeader } from 'app/client/ui/AppHeader';
 import * as BillingPageCss from "app/client/ui/BillingPageCss";
 import * as forms from "app/client/ui/forms";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -73,7 +73,7 @@ export class WelcomePage extends Disposable {
         panelWidth: Observable.create(this, 240),
         panelOpen: Observable.create(this, false),
         hideOpener: true,
-        header: appHeader('', this._appModel.topAppModel.productFlavor),
+        header: dom.create(AppHeader, '', this._appModel),
         content: null,
       },
       headerMain: [cssFlexSpace(), dom.create(AccountWidget, this._appModel)],

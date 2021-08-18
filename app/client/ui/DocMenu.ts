@@ -84,6 +84,7 @@ function createLoadedDocMenu(home: HomeModel) {
           ]),
 
           dom.maybe(home.available, () => [
+            buildOtherSites(home),
             (showIntro && page === 'all' ?
               null :
               css.docListHeader(
@@ -228,6 +229,48 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
       buildTemplateDocs(home, workspace.docs, viewSettings),
       css.docBlock.cls((use) => '-' + use(viewSettings.currentView)),
       testId('templates'),
+    );
+  });
+}
+
+/**
+ * Builds the Other Sites section if there are any to show. Otherwise, builds nothing.
+ */
+function buildOtherSites(home: HomeModel) {
+  return dom.domComputed(home.otherSites, sites => {
+    if (sites.length === 0) { return null; }
+
+    const hideOtherSitesObs = Observable.create(null, false);
+    return css.otherSitesBlock(
+      dom.autoDispose(hideOtherSitesObs),
+      css.otherSitesHeader(
+        'Other Sites',
+        dom.domComputed(hideOtherSitesObs, (collapsed) =>
+          collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
+        ),
+        dom.on('click', () => hideOtherSitesObs.set(!hideOtherSitesObs.get())),
+        testId('other-sites-header'),
+      ),
+      dom.maybe((use) => !use(hideOtherSitesObs), () => {
+        const onPersonalSite = Boolean(home.app.currentOrg?.owner);
+        const siteName = onPersonalSite ? 'your personal site' : `the ${home.app.currentOrgName} site`;
+        return [
+          dom('div',
+            `You are on ${siteName}. You also have access to the following sites:`,
+            testId('other-sites-message')
+          ),
+          css.otherSitesButtons(
+            dom.forEach(sites, s =>
+              css.siteButton(
+                s.name,
+                urlState().setLinkUrl({org: s.domain ?? undefined}),
+                testId('other-sites-button')
+              )
+            ),
+            testId('other-sites-buttons')
+          )
+        ];
+      })
     );
   });
 }

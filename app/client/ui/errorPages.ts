@@ -1,6 +1,6 @@
 import {AppModel} from 'app/client/models/AppModel';
 import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {appHeader} from 'app/client/ui/AppHeader';
+import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
@@ -105,7 +105,7 @@ function pagePanelsError(appModel: AppModel, header: string, content: DomElement
       panelWidth: observable(240),
       panelOpen,
       hideOpener: true,
-      header: appHeader(appModel.currentOrgName, appModel.topAppModel.productFlavor),
+      header: dom.create(AppHeader, appModel.currentOrgName, appModel),
       content: leftPanelBasic(appModel, panelOpen),
     },
     headerMain: createTopBarHome(appModel),
