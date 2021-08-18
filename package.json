@@ -87,7 +87,7 @@
     "csv": "4.0.0",
     "diff-match-patch": "1.0.5",
     "double-ended-queue": "2.1.0-0",
-    "electron": "3.0.7",
+    "electron": "9.4.0",
     "exceljs": "4.2.1",
     "express": "4.16.4",
     "file-type": "14.1.4",
