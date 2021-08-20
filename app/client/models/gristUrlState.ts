@@ -27,6 +27,7 @@ import {UrlState} from 'app/client/lib/UrlState';
 import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, useNewUI} from 'app/common/gristUrls';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
+import isEqual = require('lodash/isEqual');
 import {CellValue} from "app/plugin/GristData";
 
 /**
@@ -166,7 +167,10 @@ export class UrlStateImpl {
     const newuiReload = useNewUI(prevState.newui) !== useNewUI(newState.newui);
     // Reload when moving to/from a welcome page.
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
-    return Boolean(orgReload || billingReload || gristConfig.errPage || docReload || newuiReload || welcomeReload);
+    // Reload when link keys change, which changes what the user can access
+    const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
+    return Boolean(orgReload || billingReload || gristConfig.errPage
+      || docReload || newuiReload || welcomeReload || linkKeysReload);
   }
 
   /**
