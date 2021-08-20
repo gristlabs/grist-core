@@ -328,6 +328,14 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "n3", "Text", ["c1", "c2", "c3"])
     self._check_col(parsed_file, 3, "", "Text", [ "d1", "", ""])
 
+  def test_csv_with_very_long_cell(self):
+    parsed_file = import_csv.parse_file(_get_fixture('test_long_cell.csv'), parse_options='')
+    sheet = parsed_file[1][0]
+    long_cell = sheet["table_data"][1][0]
+    self.assertEqual(len(long_cell), 8058)
+    self._check_col(sheet, 0, "ID", "Int", [17])
+    self._check_col(sheet, 1, "LongText", "Text", [long_cell])
+
 
 if __name__ == '__main__':
   unittest.main()

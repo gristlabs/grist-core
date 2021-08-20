@@ -420,6 +420,12 @@ def guess(date):
     >>> guess('12/12/12')
     set(['%y/%m/%d', '%d/%m/%y', '%m/%d/%y', '%y/%d/%m'])
   """
+  # Don't attempt to parse strings that are so long as to be certainly non-dates. Somewhat long
+  # strings could be dates (like "Wednesday, September 16, 2020 A.D. 08:47:02.2667911 AM -06:00",
+  # and who knows what other languages do). A limit is important also because the current approach
+  # can run into "maximum recursion depth exceeded" on a very long string.
+  if len(date) > 150:
+    return set()
   tokens = _tokenize_by_character_class(date)
   _analyze_tokens(tokens)
   return _generate_all_permutations(tuple(tokens))
