@@ -369,9 +369,9 @@ BaseView.prototype._parsePasteForView = function(data, cols) {
     _.isObject(data[0][0]) && data[0][0].hasOwnProperty('displayValue')) {
     richData = data.map((col, idx) => {
       if (col[0].colType === updateColTypes[idx]) {
-        return col.map(v => v.hasOwnProperty('rawValue') ? v.rawValue : v.displayValue);
+        return col.map(v => v && v.hasOwnProperty('rawValue') ? v.rawValue : v.displayValue);
       } else {
-        return col.map(v => v.displayValue);
+        return col.map(v => v && v.displayValue);
       }
     });
   }
