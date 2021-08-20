@@ -7,7 +7,7 @@ const dispose = require('../lib/dispose');
 const dom = require('../lib/dom');
 const kd = require('../lib/koDom');
 const TextEditor = require('./TextEditor');
-const { parseDate } = require('app/common/parseDate');
+const { parseDate, TWO_DIGIT_YEAR_THRESHOLD } = require('app/common/parseDate');
 
 // DatePicker unfortunately requires an <input> (not <textarea>). But textarea is better for us,
 // because sometimes it's taller than a line, and an <input> looks worse. The following
@@ -67,17 +67,18 @@ function DateEditor(options) {
       forceParse: false,
       todayHighlight: true,
       todayBtn: 'linked',
+      assumeNearbyYear: TWO_DIGIT_YEAR_THRESHOLD,
       // Convert the stripped format string to one suitable for the datepicker.
       format: DateEditor.parseSafeToCalendar(this.safeFormat)
     });
-    this.autoDisposeCallback(() => this._datePickerWidget.datepicker('remove'));
+    this.autoDisposeCallback(() => this._datePickerWidget.datepicker('destroy'));
 
     // NOTE: Datepicker interferes with normal enter and escape functionality. Add an event handler
     // to the DatePicker to prevent interference with normal behavior.
     this._datePickerWidget.on('keydown', e => {
       // If enter or escape is pressed, destroy the datepicker and re-dispatch the event.
       if (e.keyCode === 13 || e.keyCode === 27) {
-        this._datePickerWidget.datepicker('remove');
+        this._datePickerWidget.datepicker('destroy');
         // The current target of the event will be the textarea.
         setTimeout(() => e.currentTarget.dispatchEvent(e.originalEvent), 0);
       }

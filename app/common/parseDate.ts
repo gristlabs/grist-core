@@ -1,5 +1,19 @@
 import * as moment from 'moment-timezone';
 
+// When using YY format, use a consistent interpretation in datepicker and in moment parsing: add
+// 2000 if the result is at most 10 years greater than the current year; otherwise add 1900. See
+// https://bootstrap-datepicker.readthedocs.io/en/latest/options.html#assumenearbyyear and
+// "Parsing two digit years" in https://momentjs.com/docs/#/parsing/string-format/.
+export const TWO_DIGIT_YEAR_THRESHOLD = 10;
+const MAX_TWO_DIGIT_YEAR = new Date().getFullYear() + TWO_DIGIT_YEAR_THRESHOLD - 2000;
+
+// Moment suggests that overriding this is fine, but we need to force TypeScript to allow it.
+(moment as any).parseTwoDigitYear = function(yearString: string): number {
+  const year = parseInt(yearString, 10);
+  return year + (year > MAX_TWO_DIGIT_YEAR ? 1900 : 2000);
+};
+
+
 // Order of formats to try if the date cannot be parsed as the currently set format.
 // Formats are parsed in momentjs strict mode, but separator matching and the MM/DD
 // two digit requirement are ignored. Also, partial completion is permitted, so formats
@@ -56,16 +70,19 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
     return null;
   }
   // Not picky about separators, so replace them in the date and format strings to be spaces.
-  const separators = /\W+/g;
+  const separators = /[\W_]+/g;
   const dateFormats = PARSER_FORMATS.slice();
   // If a preferred parse format is given, set that to be the first parser used.
   if (options.dateFormat) {
     // Momentjs has an undesirable feature in strict mode where MM and DD
     // matches require two digit numbers. Change MM, DD to M, D.
-    const format = options.dateFormat.replace(/\bMM\b/g, 'M')
-      .replace(/\bDD\b/g, 'D')
+    let format = options.dateFormat.replace(/MM+/g, m => (m === 'MM' ? 'M' : m))
+      .replace(/DD+/g, m => (m === 'DD' ? 'D' : m))
       .replace(separators, ' ');
-    dateFormats.unshift(_getPartialFormat(date, format));
+    format = _getPartialFormat(date, format);
+    // Consider some alternatives to the preferred format.
+    const variations = _buildVariations(format);
+    dateFormats.unshift(...variations);
   }
   const cleanDate = date.replace(separators, ' ');
   const datetime = (options.time ? `${cleanDate} ${options.time}` : cleanDate).trim();
@@ -89,19 +106,38 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
 // parser. We remove any parts of the parser not given in the input to take advantage of this
 // feature.
 function _getPartialFormat(input: string, format: string): string {
-  // Define a regular expression to match contiguous separators.
-  const re = /\W+/g;
-  // Clean off any whitespace from the ends, and count the number of separators.
-  const inputMatch = input.trim().match(re);
-  const numInputSeps = inputMatch ? inputMatch.length : 0;
-  // Find the separator matches in the format string.
-  let formatMatch;
-  for (let i = 0; i < numInputSeps + 1; i++) {
-    formatMatch = re.exec(format);
-    if (!formatMatch) {
-      break;
+  // Define a regular expression to match contiguous non-separators.
+  const re = /Y+|M+|D+|[a-zA-Z0-9]+/g;
+  // Count the number of meaningful parts in the input.
+  const numInputParts = input.match(re)?.length || 0;
+
+  // Count the number of parts in the format string.
+  let numFormatParts = format.match(re)?.length || 0;
+
+  if (numFormatParts > numInputParts) {
+    // Remove year from format first, to default to current year.
+    if (/Y+/.test(format)) {
+      format = format.replace(/Y+/, ' ').trim();
+      numFormatParts -= 1;
+    }
+    if (numFormatParts > numInputParts) {
+      // Remove month from format next.
+      format = format.replace(/M+/, ' ').trim();
     }
   }
-  // Get the format string up until the corresponding input ends.
-  return formatMatch ? format.slice(0, formatMatch.index) : format;
+  return format;
+}
+
+// Moment non-strict mode is considered bad, as it's far too lax. But moment's strict mode is too
+// strict. We want to allow YY|YYYY for either year specifier, as well as M for MMM or MMMM month
+// specifiers. It's silly that we need to create multiple format variations to support this.
+function _buildVariations(format: string) {
+  const variations = new Set<string>([format]);
+  const otherYear = format.replace(/Y{2,4}/, (m) => (m === 'YY' ? 'YYYY' : (m === 'YYYY' ? 'YY' : m)));
+  variations.add(otherYear);
+  variations.add(format.replace(/MMM+/, 'M'));
+  if (otherYear !== format) {
+    variations.add(otherYear.replace(/MMM+/, 'M'));
+  }
+  return variations;
 }
