@@ -2,6 +2,7 @@ const _ = require('underscore');
 const ko = require('knockout');
 const dispose = require('../lib/dispose');
 const gutil = require('app/common/gutil');
+const {isRefListType} = require("app/common/gristTypes");
 
 /**
  * Returns if the first table is a summary of the second. If both are summary tables, returns true
@@ -65,7 +66,10 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
   // A computed that evaluates to a filter function to use, or null if not filtering. If
   // filtering, depends on srcSection.activeRowId().
   if (tgtColId) {
+    const tgtCol = tgtSection.table().columns().all().find(c => c.colId() === tgtColId);
+    const operations = {[tgtColId]: isRefListType(tgtCol.type()) ? 'intersects' : 'in'};
     if (byAllShown) {
+      // (This is legacy code that isn't currently reachable)
       // Include all values present in srcSection.
       this.filterColValues = this.autoDispose(ko.computed(() => {
         const srcValues = new Set();
@@ -88,13 +92,13 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
         this.filterColValues = this.autoDispose(ko.computed(() => {
           const srcRowId = srcSection.activeRowId();
           srcRowModel.assign(srcRowId);
-          return {filters: {[tgtColId]: [srcCell()]}};
+          return {filters: {[tgtColId]: [srcCell()]}, operations};
         }));
       }
     } else {
       this.filterColValues = this.autoDispose(ko.computed(() => {
         const srcRowId = srcSection.activeRowId();
-        return {filters: {[tgtColId]: [srcRowId]}};
+        return {filters: {[tgtColId]: [srcRowId]}, operations};
       }));
     }
   } else if (isSummaryOf(srcSection.table(), tgtSection.table())) {

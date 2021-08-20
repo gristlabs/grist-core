@@ -1,6 +1,6 @@
-import { ColumnRec, DocModel, ViewSectionRec } from 'app/client/models/DocModel';
+import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
-import { removePrefix } from 'app/common/gutil';
+import { getReferencedTableId } from 'app/common/gristTypes';
 import { IOptionFull } from 'grainjs';
 
 // some unicode characters
@@ -150,7 +150,6 @@ function createNodes(docModel: DocModel, sections: MaybeSection[]) {
 // Creates an array of LinkNode from a view section record.
 function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
   const table = section.table.peek();
-  const columns = table.columns.peek().peek();
   const ancestors = new Set<number>();
 
   for (let sec = section; sec.getRowId(); sec = sec.linkSrcSection.peek()) {
@@ -170,16 +169,7 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
     section,
   };
 
-  const nodes: LinkNode[] = [mainNode];
-
-  // add the column nodes
-  for (const column of columns) {
-    const tableId = removePrefix(column.type.peek(), 'Ref:');
-    if (tableId) {
-      nodes.push({...mainNode, tableId, column});
-    }
-  }
-  return nodes;
+  return fromColumns(table, mainNode);
 }
 
 // Creates an array of LinkNode from a page widget.
@@ -188,7 +178,6 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
   if (typeof pageWidget.table !== 'number') { return []; }
 
   const table = docModel.tables.getRowModel(pageWidget.table);
-  const columns = table.columns.peek().peek();
 
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
@@ -198,16 +187,18 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
     section: docModel.viewSections.getRowModel(pageWidget.section),
   };
 
-  const nodes: LinkNode[] = [mainNode];
+  return fromColumns(table, mainNode);
+}
 
-  // adds the column nodes
+function fromColumns(table: TableRec, mainNode: LinkNode): LinkNode[] {
+  const nodes = [mainNode];
+  const columns = table.columns.peek().peek();
   for (const column of columns) {
-    const tableId = removePrefix(column.type.peek(), 'Ref:');
+    const tableId = getReferencedTableId(column.type.peek());
     if (tableId) {
       nodes.push({...mainNode, tableId, column});
     }
   }
-
   return nodes;
 }
 
