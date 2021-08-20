@@ -15,7 +15,7 @@ import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessCl
 import { UserInfo } from 'app/common/GranularAccessClause';
 import { isCensored } from 'app/common/gristTypes';
 import { getSetMapValue, isObject, pruneArray } from 'app/common/gutil';
-import { canView, Role } from 'app/common/roles';
+import { canEdit, canView, Role } from 'app/common/roles';
 import { FullUser } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
@@ -231,6 +231,16 @@ export class GranularAccess implements GranularAccessForBundle {
     const {docActions, docSession, isDirect} = this._activeBundle;
     if (this._activeBundle.hasDeliberateRuleChange && !await this.isOwner(docSession)) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners can modify access rules');
+    }
+    // Normally, viewer requests would never reach this point, but they can happen
+    // using the "view as" functionality where user is an owner wanting to preview the
+    // access level of another.  And again, the default access rules would normally
+    // forbid edit access to a viewer - but that can be overridden.
+    // An alternative to this check would be to sandwich user-defined access rules
+    // between some defaults.  Currently the defaults have lower priority than
+    // user-defined access rules.
+    if (!canEdit(await this._getNominalAccess(docSession))) {
+      throw new ErrorWithCode('ACL_DENY', 'Only owners or editors can modify documents');
     }
     if (this._ruler.haveRules()) {
       await Promise.all(
