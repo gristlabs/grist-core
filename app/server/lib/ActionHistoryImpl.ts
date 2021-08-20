@@ -5,6 +5,7 @@ import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup} from 'app/common/ActionGroup';
 import * as marshaller from 'app/common/marshal';
 import {DocState} from 'app/common/UserAPI';
+import {reportTimeTaken} from 'app/server/lib/reportTimeTaken';
 import * as crypto from 'crypto';
 import keyBy = require('lodash/keyBy');
 import mapValues = require('lodash/mapValues');
@@ -372,12 +373,13 @@ export class ActionHistoryImpl implements ActionHistory {
 
   public async getRecentActions(maxActions?: number): Promise<LocalActionBundle[]> {
     const actions = await this._getRecentActionRows(maxActions);
-    return actions.map(decodeActionFromRow);
+    return reportTimeTaken("getRecentActions", () => actions.map(decodeActionFromRow));
   }
 
   public async getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]> {
     const actions = await this._getRecentActionRows(maxActions);
-    return actions.map(row => asActionGroup(this, decodeActionFromRow(row), options));
+    return reportTimeTaken("getRecentActionGroups",
+      () => actions.map(row => asActionGroup(this, decodeActionFromRow(row), options)));
   }
 
   public async getRecentStates(maxStates?: number): Promise<DocState[]> {
@@ -394,10 +396,12 @@ export class ActionHistoryImpl implements ActionHistory {
     const actions = await this._db.all(`SELECT actionHash, actionNum, body FROM _gristsys_ActionHistory
                                          where actionNum in (${actionNums.map(x => '?').join(',')})`,
                                        actionNums);
-    const actionsByActionNum = keyBy(actions, 'actionNum');
-    return actionNums
-      .map(n => actionsByActionNum[n])
-      .map((row) => row ? decodeActionFromRow(row) : undefined);
+    return reportTimeTaken("getActions", () => {
+      const actionsByActionNum = keyBy(actions, 'actionNum');
+      return actionNums
+        .map(n => actionsByActionNum[n])
+        .map((row) => row ? decodeActionFromRow(row) : undefined);
+    });
   }
 
   /**
@@ -591,7 +595,7 @@ export class ActionHistoryImpl implements ActionHistory {
   private async _fetchActions(start: ActionIdentifiers|null,
                               end: ActionIdentifiers|null): Promise<LocalActionBundle[]> {
     const rows = await this._fetchParts(start, end, "body, actionNum, actionHash");
-    return rows.map(decodeActionFromRow);
+    return reportTimeTaken("_fetchActions", () => rows.map(decodeActionFromRow));
   }
 
   /**
