@@ -185,6 +185,9 @@ class RecordSet(object):
       return self._get_col(name)
     return self._table._attribute_error(name, self._source_relation)
 
+  def __repr__(self):
+    return "%s[%s]" % (self._table.table_id, self._row_ids)
+
   def _clone_with_relation(self, src_relation):
     return self._table.RecordSet(self._row_ids,
                                  relation=src_relation.compose(self._source_relation),

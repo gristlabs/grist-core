@@ -43,7 +43,7 @@ export function addColTypeSuffix(type: string, column: ColumnRec, docModel: DocM
 
 /**
  * Looks through the data of the given column to find the first value of the form
- * [R, <tableId>, <rowId>] (a Reference value returned from a formula), and returns the tableId
+ * [R|r, <tableId>, <rowId>] (a Reference(List) value returned from a formula), and returns the tableId
  * from that.
  */
 function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|null {
@@ -51,12 +51,21 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
   const columnData = tableData && tableData.getColValues(column.colId());
   if (columnData) {
     for (const value of columnData) {
-      if (gristTypes.isObject(value) && value[0] === 'R') {
+      if (gristTypes.isReferencing(value)) {
         return value[1];
+      } else if (gristTypes.isList(value)) {
+        const item = value[1];
+        if (gristTypes.isReference(item)) {
+          return item[1];
+        }
       } else if (typeof value === 'string') {
-        // If it looks like a formatted Ref value (e.g. "Table1[123]"), and the tableId is valid,
+        // If it looks like a formatted Ref(List) value, e.g:
+        //   - Table1[123]
+        //   - [Table1[1], Table1[2], Table1[3]]
+        //   - Table1[[1, 2, 3]]
+        // and the tableId is valid,
         // use it. (This helps if a Ref-returning formula column got converted to Text first.)
-        const match = value.match(/^(\w+)\[\d+\]/);
+        const match = value.match(/^\[?(\w+)\[/);
         if (match && docModel.docData.getTable(match[1])) {
           return match[1];
         }

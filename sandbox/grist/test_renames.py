@@ -299,6 +299,12 @@ class TestRenames(test_engine.EngineTestCase):
         "type": ["Ref:Persons", "Any"],
         "formula": ["Persons.lookupOne(addr=$id)", "Persons.lookupRecords(addr=$id)"]
       }],
+      ["BulkUpdateRecord", "Address", [11, 12, 13, 14], {
+        "people": [["r", "Persons", [4]],
+                   ["r", "Persons", [1, 3]],
+                   ["r", "Persons", [2]],
+                   ["r", "Persons", []]]
+      }],
     ]})
 
   def test_rename_table_autocomplete(self):

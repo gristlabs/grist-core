@@ -24,6 +24,7 @@ export const enum GristObjCode {
   Skip            = 'S',
   Censored        = 'C',
   Reference       = 'R',
+  ReferenceList   = 'r',
   Exception       = 'E',
   Pending         = 'P',
   Unmarshallable  = 'U',
@@ -142,8 +143,32 @@ export function isCensored(value: CellValue): value is [GristObjCode.Censored] {
 /**
  * Returns whether a value (as received in a DocAction) represents a list.
  */
- export function isList(value: CellValue): value is [GristObjCode.List, ...unknown[]] {
+export function isList(value: CellValue): value is [GristObjCode.List, ...CellValue[]] {
   return Array.isArray(value) && value[0] === GristObjCode.List;
+}
+
+/**
+ * Returns whether a value (as received in a DocAction) represents a reference to a record.
+ */
+export function isReference(value: CellValue): value is [GristObjCode.Reference, string, number] {
+  return Array.isArray(value) && value[0] === GristObjCode.Reference;
+}
+
+/**
+ * Returns whether a value (as received in a DocAction) represents a reference list (RecordSet).
+ */
+export function isReferenceList(value: CellValue): value is [GristObjCode.ReferenceList, string, number[]] {
+  return Array.isArray(value) && value[0] === GristObjCode.ReferenceList;
+}
+
+/**
+ * Returns whether a value (as received in a DocAction) represents a reference or reference list.
+ */
+export function isReferencing(value: CellValue):
+  value is [GristObjCode.ReferenceList|GristObjCode.Reference, string, number[]|number]
+{
+  return Array.isArray(value) &&
+    (value[0] === GristObjCode.ReferenceList || value[0] === GristObjCode.Reference);
 }
 
 /**

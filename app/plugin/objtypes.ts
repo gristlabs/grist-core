@@ -51,6 +51,18 @@ export class Reference {
 }
 
 /**
+ * A ReferenceList represents a reference to a number of rows in a table. It is simply a pair of a string tableId
+ * and a numeric array rowIds.
+ */
+export class ReferenceList {
+  constructor(public tableId: string, public rowIds: number[]) {}
+
+  public toString(): string {
+    return `${this.tableId}[[${this.rowIds}]]`;
+  }
+}
+
+/**
  * A RaisedException represents a formula error. It includes the exception name, message, and
  * optional details.
  */
@@ -140,6 +152,8 @@ export function encodeObject(value: unknown): CellValue {
       return null;
     } else if (value instanceof Reference) {
       return ['R', value.tableId, value.rowId];
+    } else if (value instanceof ReferenceList) {
+      return ['r', value.tableId, value.rowIds];
     } else if (value instanceof Date) {
       const timestamp = value.valueOf() / 1000;
       if ('timezone' in value) {
@@ -185,6 +199,7 @@ export function decodeObject(value: CellValue): unknown {
       case 'L': return (args as CellValue[]).map(decodeObject);
       case 'O': return mapValues(args[0] as {[key: string]: CellValue}, decodeObject, {sort: true});
       case 'P': return new PendingValue();
+      case 'r': return new ReferenceList(String(args[0]), args[1]);
       case 'R': return new Reference(String(args[0]), args[1]);
       case 'S': return new SkipValue();
       case 'C': return new CensoredValue();

@@ -183,11 +183,12 @@ def encode_object(value):
       return ['d', moment.date_to_ts(value)]
     elif isinstance(value, RaisedException):
       return ['E'] + value.encode_args()
-    elif isinstance(value, (list, tuple, RecordList)):
+    elif isinstance(value, (list, tuple)):
       return ['L'] + [encode_object(item) for item in value]
     elif isinstance(value, records.RecordSet):
-      # Represent RecordSet (e.g. result of lookupRecords) in the same way as a RecordList.
-      return ['L'] + [encode_object(int(item)) for item in value]
+      return ['r', value._table.table_id, value._row_ids]
+    elif isinstance(value, RecordSetStub):
+      return ['r', value.table_id, value.row_ids]
     elif isinstance(value, dict):
       if not all(isinstance(key, six.string_types) for key in value):
         raise UnmarshallableError("Dict with non-string keys")
@@ -217,6 +218,8 @@ def decode_object(value):
     args = value[1:]
     if code == 'R':
       return RecordStub(args[0], args[1])
+    elif code == 'r':
+      return RecordSetStub(args[0], args[1])
     elif code == 'D':
       return moment.ts_to_dt(args[0], moment.Zone(args[1]))
     elif code == 'd':
@@ -323,3 +326,9 @@ class RecordStub(object):
   def __init__(self, table_id, row_id):
     self.table_id = table_id
     self.row_id = row_id
+
+
+class RecordSetStub(object):
+  def __init__(self, table_id, row_ids):
+    self.table_id = table_id
+    self.row_ids = row_ids

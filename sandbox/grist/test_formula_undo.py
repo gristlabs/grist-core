@@ -1,6 +1,8 @@
 # pylint: disable=line-too-long
 import testsamples
 import test_engine
+from objtypes import RecordSetStub
+
 
 class TestFormulaUndo(test_engine.EngineTestCase):
   def setUp(self):
@@ -26,13 +28,13 @@ return '#%s %s' % (table.my_counter, $schoolName)
     }])
 
     self.assertTableData("Students", cols="subset", data=[
-      ["id", "schoolName", "schoolCities", "counter" ],
-      [1,    "Columbia",   [1, 2],         "#1 Columbia",],
-      [2,    "Yale",       [3, 4],         "#2 Yale",    ],
-      [3,    "Columbia",   [1, 2],         "#3 Columbia",],
-      [4,    "Yale",       [3, 4],         "#4 Yale",    ],
-      [5,    "Eureka",     [],             "#5 Eureka",  ],
-      [6,    "Yale",       [3, 4],         "#6 Yale",    ],
+      ["id", "schoolName", "schoolCities",                   "counter"     ],
+      [1,    "Columbia",   RecordSetStub("Schools", [1, 2]), "#1 Columbia",],
+      [2,    "Yale",       RecordSetStub("Schools", [3, 4]), "#2 Yale",    ],
+      [3,    "Columbia",   RecordSetStub("Schools", [1, 2]), "#3 Columbia",],
+      [4,    "Yale",       RecordSetStub("Schools", [3, 4]), "#4 Yale",    ],
+      [5,    "Eureka",     RecordSetStub("Schools", []),     "#5 Eureka",  ],
+      [6,    "Yale",       RecordSetStub("Schools", [3, 4]), "#6 Yale",    ],
     ])
 
     # Applying an action produces expected changes to all formula columns, and corresponding undos.
@@ -41,14 +43,14 @@ return '#%s %s' % (table.my_counter, $schoolName)
       "stored": [
         ["UpdateRecord", "Students", 6, {"schoolName": "Columbia"}],
         ["UpdateRecord", "Students", 6, {"counter": "#7 Columbia"}],
-        ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 1, 2]}],
+        ["UpdateRecord", "Students", 6, {"schoolCities": ["r", "Schools", [1, 2]]}],
         ["UpdateRecord", "Students", 6, {"schoolIds": "1:2"}],
       ],
       "direct": [True, False, False, False],
       "undo": [
         ["UpdateRecord", "Students", 6, {"schoolName": "Yale"}],
         ["UpdateRecord", "Students", 6, {"counter": "#6 Yale"}],
-        ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 3, 4]}],
+        ["UpdateRecord", "Students", 6, {"schoolCities": ["r", "Schools", [3, 4]]}],
         ["UpdateRecord", "Students", 6, {"schoolIds": "3:4"}],
       ],
     })
@@ -63,7 +65,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
     self.assertOutActions(out_actions, {
       "stored": [
         ["UpdateRecord", "Students", 6, {"schoolIds": "3:4"}],
-        ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 3, 4]}],
+        ["UpdateRecord", "Students", 6, {"schoolCities": ["r", "Schools", [3, 4]]}],
         ["UpdateRecord", "Students", 6, {"counter": "#6 Yale"}],
         ["UpdateRecord", "Students", 6, {"schoolName": "Yale"}],
         ["UpdateRecord", "Students", 6, {"counter": "#8 Yale"}],
@@ -71,7 +73,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
       "direct": [True, True, True, True, False],  # undos currently fully direct; formula update is indirect.
       "undo": [
         ["UpdateRecord", "Students", 6, {"schoolIds": "1:2"}],
-        ["UpdateRecord", "Students", 6, {"schoolCities": ["L", 1, 2]}],
+        ["UpdateRecord", "Students", 6, {"schoolCities": ["r", "Schools", [1, 2]]}],
         ["UpdateRecord", "Students", 6, {"counter": "#7 Columbia"}],
         ["UpdateRecord", "Students", 6, {"schoolName": "Columbia"}],
         ["UpdateRecord", "Students", 6, {"counter": "#6 Yale"}],
@@ -79,13 +81,15 @@ return '#%s %s' % (table.my_counter, $schoolName)
     })
 
     self.assertTableData("Students", cols="subset", data=[
-      ["id", "schoolName", "schoolCities", "counter" ],
-      [1,    "Columbia",   [1, 2],         "#1 Columbia",],
-      [2,    "Yale",       [3, 4],         "#2 Yale",    ],
-      [3,    "Columbia",   [1, 2],         "#3 Columbia",],
-      [4,    "Yale",       [3, 4],         "#4 Yale",    ],
-      [5,    "Eureka",     [],             "#5 Eureka",  ],
-      [6,    "Yale",       [3, 4],         "#8 Yale",    ],   # This counter got updated
+      ["id", "schoolName", "schoolCities",                    "counter" ],
+      [1,    "Columbia",   RecordSetStub("Schools", [1, 2]),  "#1 Columbia"],
+      [2,    "Yale",       RecordSetStub("Schools", [3, 4]),  "#2 Yale",   ],
+      [3,    "Columbia",   RecordSetStub("Schools", [1, 2]),  "#3 Columbia"],
+      [4,    "Yale",       RecordSetStub("Schools", [3, 4]),  "#4 Yale",   ],
+      [5,    "Eureka",     RecordSetStub("Schools", []),      "#5 Eureka", ],
+
+      # This counter got updated
+      [6,    "Yale",       RecordSetStub("Schools", [3, 4]),  "#8 Yale",   ],
     ])
 
   def test_save_to_empty_column(self):
