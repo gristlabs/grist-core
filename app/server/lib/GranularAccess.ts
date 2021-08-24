@@ -739,10 +739,9 @@ export class GranularAccess implements GranularAccessForBundle {
    * Asserts that user has schema access.
    */
   private async _assertSchemaAccess(docSession: OptDocSession) {
+    if (this._hasExceptionalFullAccess(docSession)) { return; }
     const permInfo = await this._getAccess(docSession);
-    if (permInfo.getFullAccess().perms.schemaEdit !== 'allow') {
-      throw new ErrorWithCode('ACL_DENY', `Schema access required`);
-    }
+    accessChecks.fatal.schemaEdit.throwIfDenied(permInfo.getFullAccess());
   }
 
   // The AccessCheck for the "read" permission is used enough to merit a shortcut.
@@ -1865,7 +1864,10 @@ class AccessCheck implements IAccessCheck {
     const result = ps.perms[this.access];
     if (result !== 'deny') { return; }
     const memos = ps.getMemos()[this.access];
-    throw new ErrorWithCode('ACL_DENY', `Blocked by ${ps.ruleType} access rules`, {
+    const label =
+      this.access === 'schemaEdit' ? 'structure' :
+      this.access;
+    throw new ErrorWithCode('ACL_DENY', `Blocked by ${ps.ruleType} ${label} access rules`, {
       memos,
       status: 403
     });
