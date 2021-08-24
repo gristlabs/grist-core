@@ -764,8 +764,13 @@ export async function addNewTable() {
   await waitForServer();
 }
 
+export interface PageWidgetPickerOptions {
+  summarize?: RegExp[];   // Optional list of patterns to match Group By columns.
+  selectBy?: RegExp;      // Optional pattern of SELECT BY option to pick.
+}
+
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
-export async function addNewPage(typeRe: RegExp, tableRe: RegExp, summarize?: RegExp[]) {
+export async function addNewPage(typeRe: RegExp, tableRe: RegExp, options?: PageWidgetPickerOptions) {
   const url = await driver.getCurrentUrl();
 
   // Click the 'Page' entry in the 'Add New' menu
@@ -773,27 +778,25 @@ export async function addNewPage(typeRe: RegExp, tableRe: RegExp, summarize?: Re
   await driver.find('.test-dp-add-new-page').doClick();
 
   // add widget
-  await selectWidget(typeRe, tableRe, summarize);
+  await selectWidget(typeRe, tableRe, options);
 
   // wait new page to be selected
   await driver.wait(async () => (await driver.getCurrentUrl()) !== url, 2000);
 }
 
 // Add a new widget to the current page using the 'Add New' menu.
-export async function addNewSection(typeRe: RegExp, tableRe: RegExp, summarize?: RegExp[]) {
-
+export async function addNewSection(typeRe: RegExp, tableRe: RegExp, options?: PageWidgetPickerOptions) {
   // Click the 'Add widget to page' entry in the 'Add New' menu
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 500).doClick();
 
   // add widget
-  await selectWidget(typeRe, tableRe, summarize);
+  await selectWidget(typeRe, tableRe, options);
 }
-
 
 // Select type and table that matches respectivelly typeRe and tableRe and save. The widget picker
 // must be already opened when calling this function.
-export async function selectWidget(typeRe: RegExp, tableRe: RegExp, summarize?: RegExp[]) {
+export async function selectWidget(typeRe: RegExp, tableRe: RegExp, options: PageWidgetPickerOptions = {}) {
 
   const tableEl = driver.findContent('.test-wselect-table', tableRe);
 
@@ -806,14 +809,20 @@ export async function selectWidget(typeRe: RegExp, tableRe: RegExp, summarize?: 
   await tableEl.click();
 
 
-  if (summarize) {
+  if (options.summarize) {
     // if summarize is requested, let's select the corresponding pivot icon
     await tableEl.find('.test-wselect-pivot').click();
 
     // and all the columns
-    for (const colRef of summarize) {
+    for (const colRef of options.summarize) {
       await driver.findContent('.test-wselect-column', colRef).click();
     }
+  }
+
+  if (options.selectBy) {
+    // select link
+    await driver.find('.test-wselect-selectby').doClick();
+    await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
   }
 
   // let's select right type and save

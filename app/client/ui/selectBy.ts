@@ -2,6 +2,7 @@ import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models
 import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
 import { getReferencedTableId } from 'app/common/gristTypes';
 import { IOptionFull } from 'grainjs';
+import * as assert from 'assert';
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
@@ -212,4 +213,49 @@ export function linkId(link: IPageWidgetLink) {
 export function linkFromId(linkid: string) {
   const [srcSectionRef, srcColRef, targetColRef] = JSON.parse(linkid);
   return {srcSectionRef, srcColRef, targetColRef};
+}
+
+export class LinkConfig {
+  public readonly srcSection: ViewSectionRec;
+  public readonly tgtSection: ViewSectionRec;
+  // Note that srcCol and tgtCol may be the empty column records if that column is not used.
+  public readonly srcCol: ColumnRec;
+  public readonly tgtCol: ColumnRec;
+  public readonly srcColId: string|undefined;
+  public readonly tgtColId: string|undefined;
+
+  // The constructor throws an exception if settings are invalid. When used from inside a knockout
+  // computed, the constructor subscribes to all parts relevant for linking.
+  constructor(tgtSection: ViewSectionRec) {
+    this.tgtCol = tgtSection.linkTargetCol();
+    this.srcCol = tgtSection.linkSrcCol();
+    this.srcSection = tgtSection.linkSrcSection();
+    this.tgtSection = tgtSection;
+    this.srcColId = this.srcCol.colId();
+    this.tgtColId = this.tgtCol.colId();
+    this._assertValid();
+  }
+
+  // Check if section-linking configuration is valid, and throw exception if not.
+  private _assertValid(): void {
+    // Use null for unset cols (rather than an empty ColumnRec) for easier comparisons below.
+    const srcCol = this.srcCol?.getRowId() ? this.srcCol : null;
+    const tgtCol = this.tgtCol?.getRowId() ? this.tgtCol : null;
+    const srcTableId = (srcCol ? getReferencedTableId(srcCol.type.peek()) :
+      this.srcSection.table.peek().primaryTableId.peek());
+    const tgtTableId = (tgtCol ? getReferencedTableId(tgtCol.type.peek()) :
+      this.tgtSection.table.peek().primaryTableId.peek());
+    try {
+      assert(!tgtCol || tgtCol.parentId.peek() === this.tgtSection.tableRef.peek(), "tgtCol belongs to wrong table");
+      assert(!srcCol || srcCol.parentId.peek() === this.srcSection.tableRef.peek(), "srcCol belongs to wrong table");
+      assert(this.srcSection.getRowId() !== this.tgtSection.getRowId(), "srcSection links to itself");
+      assert(tgtTableId, "tgtCol not a valid reference");
+      assert(srcTableId, "srcCol not a valid reference");
+      assert(srcTableId === tgtTableId, "mismatched tableIds");
+    } catch (e) {
+      throw new Error(`LinkConfig invalid: ` +
+        `${this.srcSection.getRowId()}:${this.srcCol?.getRowId()}[${srcTableId}] -> ` +
+        `${this.tgtSection.getRowId()}:${this.tgtCol?.getRowId()}[${tgtTableId}]: ${e}`);
+    }
+  }
 }

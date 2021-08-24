@@ -371,6 +371,9 @@ export class PageWidgetSelect extends Disposable {
   }
 
   private _selectTable(tid: TableId) {
+    if (tid !== this._value.table.get()) {
+      this._value.link.set(NoLink);
+    }
     this._value.table.set(tid);
     this._closeSummarizePanel();
   }
@@ -386,6 +389,7 @@ export class PageWidgetSelect extends Disposable {
       if (tid !== this._value.table.get()) {
         this._value.columns.set([]);
         this._value.table.set(tid);
+        this._value.link.set(NoLink);
       }
       this._openSummarizePanel();
     }

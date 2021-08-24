@@ -46,7 +46,8 @@ function isSummaryOf(summary, detail) {
  *    value at the cursor. The user can use column filters on srcSection to control what's shown
  *    in the linked tgtSection.
  */
-function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAllShown) {
+function LinkingState(gristDoc, linkConfig, byAllShown) {
+  const {srcSection, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
   this._srcSection = srcSection;
 
   let srcTableModel = gristDoc.getTableModel(srcSection.table().tableId());
@@ -66,7 +67,6 @@ function LinkingState(gristDoc, srcSection, srcColId, tgtSection, tgtColId, byAl
   // A computed that evaluates to a filter function to use, or null if not filtering. If
   // filtering, depends on srcSection.activeRowId().
   if (tgtColId) {
-    const tgtCol = tgtSection.table().columns().all().find(c => c.colId() === tgtColId);
     const operations = {[tgtColId]: isRefListType(tgtCol.type()) ? 'intersects' : 'in'};
     if (byAllShown) {
       // (This is legacy code that isn't currently reachable)

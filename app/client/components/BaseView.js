@@ -1,5 +1,3 @@
-/* global window */
-
 var _ = require('underscore');
 var ko = require('knockout');
 var moment = require('moment-timezone');
@@ -26,6 +24,7 @@ const {copyToClipboard} = require('app/client/lib/copyToClipboard');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
+const {LinkConfig} = require('app/client/ui/selectBy');
 const {encodeObject} = require("app/plugin/objtypes");
 
 /**
@@ -133,10 +132,16 @@ function BaseView(gristDoc, viewSectionModel, options) {
     let v = this.viewSection;
     let src = v.linkSrcSection();
     const filterByAllShown = v.optionsObj.prop('filterByAllShown');
-    return src.getRowId() ?
-      LinkingState.create.bind(LinkingState, this.gristDoc,
-        src, v.linkSrcCol().colId(), v, v.linkTargetCol().colId(), filterByAllShown()) :
-      null;
+    if (!src.getRowId()) {
+      return null;
+    }
+    try {
+      const config = new LinkConfig(v);
+      return LinkingState.create.bind(LinkingState, this.gristDoc, config, filterByAllShown());
+    } catch (err) {
+      console.warn(`Can't create LinkingState: ${err.message}`);
+      return null;
+    }
   }));
 
   this._linkingFilter = this.autoDispose(ko.computed(() => {
@@ -213,7 +218,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
     const linkingFilter = this._linkingFilter();
     this._queryRowSource.makeQuery(linkingFilter.filters, linkingFilter.operations, (err) => {
       if (this.isDisposed()) { return; }
-      if (err) { window.gristNotify(`Query error: ${err.message}`); }
+      if (err) { reportError(err); }
       this.onTableLoaded();
     });
   }));
