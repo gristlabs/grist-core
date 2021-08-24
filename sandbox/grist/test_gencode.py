@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import unittest
 import difflib
 import re
@@ -6,7 +8,6 @@ from six.moves import xrange
 
 import gencode
 import identifiers
-import records
 import schema
 import table
 import testutil
@@ -82,6 +83,48 @@ class TestGenCode(unittest.TestCase):
     gcode.make_module(self.schema)
     module = gcode.usercode
     self.assertTrue(isinstance(module.Students, table.UserTable))
+
+  def test_ident_combining_chars(self):
+    def check(label, ident):
+      self.assertEqual(ident, identifiers.pick_table_ident(label))
+      self.assertEqual(ident, identifiers.pick_col_ident(label))
+      self.assertEqual(ident.lower(), identifiers.pick_col_ident(label.lower()))
+
+    # Actual example table name from a user
+    # unicodedata.normalize can separate accents but doesn't help with Đ
+    check(
+      u"Bảng_Đặc_Thù",
+      u"Bang__ac_Thu",
+    )
+
+    check(
+      u"Noëlle",
+      u"Noelle",
+    )
+    check(
+      u"Séamus",
+      u"Seamus",
+    )
+    check(
+      u"Hélène",
+      u"Helene",
+    )
+    check(
+      u"Dilâçar",
+      u"Dilacar",
+    )
+    check(
+      u"Erdoğan",
+      u"Erdogan",
+    )
+    check(
+      u"Ñwalme",
+      u"Nwalme",
+    )
+    check(
+      u"Árvíztűrő tükörfúrógép",
+      u"Arvizturo_tukorfurogep",
+    )
 
   def test_pick_col_ident(self):
     self.assertEqual(identifiers.pick_col_ident("asdf"), "asdf")

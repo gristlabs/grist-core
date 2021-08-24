@@ -1,11 +1,17 @@
+# coding=utf-8
 """
 A module for creating and sanitizing identifiers
 """
-import re
-from string import ascii_uppercase
 import itertools
+import re
+import unicodedata
 from keyword import iskeyword
+from string import ascii_uppercase
+
+import six
+
 import logger
+
 log = logger.Logger(__name__, logger.INFO)
 
 _invalid_ident_char_re = re.compile(r'[^a-zA-Z0-9_]+')
@@ -20,7 +26,16 @@ def _sanitize_ident(ident, prefix="c", capitalize=False):
   Returns empty string if there are no valid identifier characters, so consider using as
   (_sanitize_ident(...) or "your_default").
   """
-  ident = "" if ident is None else str(ident)
+  ident = u"" if ident is None else six.text_type(ident)
+
+  # https://stackoverflow.com/a/517974/2482744
+  # Separate out combining characters (e.g. accents)
+  ident = unicodedata.normalize('NFKD', ident)
+  # then remove them completely
+  # This means that 'é' becomes 'e' instead of '_' or 'e_'
+  ident = "".join(c for c in ident if not unicodedata.combining(c))
+
+  # TODO allow non-ascii characters in identifiers when using Python 3
   ident = _invalid_ident_char_re.sub('_', ident).lstrip('_')
   ident = _invalid_ident_start_re.sub(prefix, ident)
   if not ident:
