@@ -14,8 +14,8 @@ var Base = require('./Base');
 var {Cursor} = require('./Cursor');
 var FieldBuilder = require('../widgets/FieldBuilder');
 var commands = require('./commands');
-var LinkingState = require('./LinkingState');
 var BackboneEvents = require('backbone').Events;
+const {LinkingState} = require('./LinkingState');
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
 const {reportError, UserError} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
@@ -131,13 +131,12 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this._linkingState = this.autoDispose(koUtil.computedBuilder(() => {
     let v = this.viewSection;
     let src = v.linkSrcSection();
-    const filterByAllShown = v.optionsObj.prop('filterByAllShown');
     if (!src.getRowId()) {
       return null;
     }
     try {
       const config = new LinkConfig(v);
-      return LinkingState.create.bind(LinkingState, this.gristDoc, config, filterByAllShown());
+      return LinkingState.create.bind(LinkingState, null, this.gristDoc, config);
     } catch (err) {
       console.warn(`Can't create LinkingState: ${err.message}`);
       return null;

@@ -120,7 +120,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     return this._wrappedModel.createLazyRowsModel(sortedRowSet, optRowModelClass);
   }
 
-  public createFloatingRowModel(optRowModelClass: any): BaseRowModel {
+  public createFloatingRowModel(optRowModelClass?: any): BaseRowModel {
     return this._wrappedModel.createFloatingRowModel(optRowModelClass);
   }
 

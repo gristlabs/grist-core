@@ -308,7 +308,7 @@ declare module "app/client/models/DataTableModel" {
     constructor(docModel: DocModel, tableData: TableData, tableMetaRow: TableRec);
     public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass: any):
       DataTableModel.LazyArrayModel<BaseRowModel>;
-    public createFloatingRowModel(optRowModelClass: any): BaseRowModel;
+    public createFloatingRowModel(optRowModelClass?: any): BaseRowModel;
   }
   export = DataTableModel;
 }
