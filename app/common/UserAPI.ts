@@ -167,6 +167,7 @@ export interface UserAccessData {
   // access to the resource. Lack of access to the parent resource is represented by a null value.
   // If parent has non-inheritable access, this should be null.
   parentAccess?: roles.BasicRole|null;
+  anonymous?: boolean;    // If set to true, the user is the anonymous user.
 }
 
 /**

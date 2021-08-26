@@ -375,16 +375,19 @@ export class HomeDBManager extends EventEmitter {
    * Convert a user record into the format specified in api.
    */
   public makeFullUser(user: User): FullUser {
-    if (!(user.logins && user.logins[0].displayEmail)) {
+    if (!user.logins?.[0]?.displayEmail) {
       throw new ApiError("unable to find mandatory user email", 400);
     }
-    return {
+    const result: FullUser = {
       id: user.id,
       email: user.logins[0].displayEmail,
       name: user.name,
       picture: user.picture,
-      anonymous: this.getAnonymousUserId() === user.id
     };
+    if (this.getAnonymousUserId() === user.id) {
+      result.anonymous = true;
+    }
+    return result;
   }
 
   public async updateUser(userId: number, props: UserProfileChange): Promise<void> {
@@ -1915,10 +1918,7 @@ export class HomeDBManager extends EventEmitter {
     const org: Organization = queryResult.data;
     const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
     const users = getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.logins.map((login: Login) => login.displayEmail)[0],
-      picture: u.picture,
+      ...this.makeFullUser(u),
       access: userRoleMap[u.id]
     }));
     return {
@@ -1960,10 +1960,7 @@ export class HomeDBManager extends EventEmitter {
     // Iterate through the org since all users will be in the org.
     const users: UserAccessData[] = getResourceUsers([workspace, workspace.org]).map(u => {
       return {
-        id: u.id,
-        name: u.name,
-        email: u.logins.map((login: Login) => login.email)[0],
-        picture: u.picture,
+        ...this.makeFullUser(u),
         access: wsMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(orgMap[u.id] || null)
       };
@@ -1998,10 +1995,7 @@ export class HomeDBManager extends EventEmitter {
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
       return {
-        id: u.id,
-        name: u.name,
-        email: u.logins.map((login: Login) => login.email)[0],
-        picture: u.picture,
+        ...this.makeFullUser(u),
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
