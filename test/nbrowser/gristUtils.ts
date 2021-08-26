@@ -1621,15 +1621,25 @@ export function addSamplesForSuite() {
   });
 }
 
-export async function openUserProfile() {
+async function openAccountMenu() {
   await driver.findWait('.test-dm-account', 1000).click();
   // Since the AccountWidget loads orgs and the user data asynchronously, the menu
   // can expand itself causing the click to land on a wrong button.
   await waitForServer();
   await driver.findWait('.test-usermenu-org', 1000);
   await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
+}
+
+export async function openUserProfile() {
+  await openAccountMenu();
   await driver.findContent('.grist-floating-menu li', 'Profile Settings').click();
   await driver.findWait('.test-login-method', 5000);
+}
+
+export async function openDocumentSettings() {
+  await openAccountMenu();
+  await driver.findContent('.grist-floating-menu li', 'Document Settings').click();
+  await driver.findWait('.test-modal-title', 5000);
 }
 
 } // end of namespace gristUtils

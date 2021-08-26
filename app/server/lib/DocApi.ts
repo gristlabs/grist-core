@@ -32,6 +32,7 @@ import { exportToDrive } from "app/server/lib/GoogleExport";
 import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 import * as _ from "lodash";
 import {isRaisedException} from "app/common/gristTypes";
+import {localeFromRequest} from "app/server/lib/ServerLocale";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -590,6 +591,7 @@ export class DocWorkerApi {
       if (parameters.workspaceId) { throw new Error('workspaceId not supported'); }
       const browserSettings: BrowserSettings = {};
       if (parameters.timezone) { browserSettings.timezone = parameters.timezone; }
+      browserSettings.locale = localeFromRequest(req);
       if (uploadId !== undefined) {
         const result = await this._docManager.importDocToWorkspace(userId, uploadId, null,
                                                                    browserSettings);

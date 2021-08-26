@@ -9,6 +9,7 @@ export const schema = {
     basketId            : "Text",
     schemaVersion       : "Int",
     timezone            : "Text",
+    documentSettings    : "Text",
   },
 
   "_grist_Tables": {
@@ -182,6 +183,7 @@ export interface SchemaTypes {
     basketId: string;
     schemaVersion: number;
     timezone: string;
+    documentSettings: string;
   };
 
   "_grist_Tables": {

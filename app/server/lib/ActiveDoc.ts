@@ -85,6 +85,7 @@ bluebird.promisifyAll(tmp);
 const MAX_RECENT_ACTIONS = 100;
 
 const DEFAULT_TIMEZONE = (process.versions as any).electron ? moment.tz.guess() : "UTC";
+const DEFAULT_LOCALE = "en-US";
 
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
@@ -338,10 +339,11 @@ export class ActiveDoc extends EventEmitter {
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     await this._rawPyCall('load_empty');
-    const timezone = docSession.browserSettings ? docSession.browserSettings.timezone : DEFAULT_TIMEZONE;
+    const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
+    const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     // This init action is special. It creates schema tables, and is used to init the DB, but does
     // not go through other steps of a regular action (no ActionHistory or broadcasting).
-    const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc", timezone]]);
+    const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc", timezone, locale]]);
     await this.docStorage.execTransaction(() =>
       this.docStorage.applyStoredActions(getEnvContent(initBundle.stored)));
 

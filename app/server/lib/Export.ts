@@ -7,6 +7,7 @@ import {buildRowFilter} from 'app/common/RowFilterFunc';
 import {SchemaTypes} from 'app/common/schema';
 import {SortFunc} from 'app/common/SortFunc';
 import {TableData} from 'app/common/TableData';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
@@ -60,6 +61,10 @@ export interface ExportData {
    * Columns information (primary used for formatting).
    */
   columns: ExportColumn[];
+  /**
+   * Document settings
+   */
+  docSettings: DocumentSettings;
 }
 
 /**
@@ -194,12 +199,15 @@ export async function exportTable(
     tableName = view.name;
   }
 
+  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1) as DocInfo;
+  const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
   return {
     tableName,
     docName: activeDoc.docName,
     rowIds,
     access,
-    columns
+    columns,
+    docSettings
   };
 }
 
@@ -277,11 +285,15 @@ export async function exportSection(
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
 
+  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1) as DocInfo;
+  const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
+
   return {
     tableName: table.tableId,
     docName: activeDoc.docName,
     rowIds,
     access,
+    docSettings,
     columns: viewColumns
   };
 }
@@ -295,6 +307,7 @@ type GristTables = RowModel<'_grist_Tables'>
 type GristViewsSectionField = RowModel<'_grist_Views_section_field'>
 type GristTablesColumn = RowModel<'_grist_Tables_column'>
 type GristView = RowModel<'_grist_Views'>
+type DocInfo = RowModel<'_grist_DocInfo'>
 
 // Type for filters passed from the client
 export interface Filter { colRef: number, filter: string }

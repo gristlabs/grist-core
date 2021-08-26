@@ -193,13 +193,14 @@ class UserActions(object):
   #----------------------------------------
 
   @useraction
-  def InitNewDoc(self, timezone):
+  def InitNewDoc(self, timezone, locale):
     creation_actions = schema.schema_create_actions()
     self._engine.out_actions.stored.extend(creation_actions)
     self._engine.out_actions.direct += [True] * len(creation_actions)
     self._do_doc_action(actions.AddRecord("_grist_DocInfo", 1,
                                           {'schemaVersion': schema.SCHEMA_VERSION,
-                                           'timezone': timezone}))
+                                           'timezone': timezone,
+                                           'documentSettings': json.dumps({'locale': locale})}))
 
     # Set up initial ACL data.
     # NOTE The special records below are not actually used. They were intended for obsolete ACL

@@ -30,7 +30,9 @@ Object.defineProperty(Datepicker.prototype, 'isInput', {
 function DateEditor(options) {
   // A string that is always `UTC` in the DateEditor, eases DateTimeEditor inheritance.
   this.timezone = options.timezone || 'UTC';
+
   this.dateFormat = options.field.widgetOptionsJson.peek().dateFormat;
+  this.locale = options.field.documentSettings.peek().locale;
 
   // Strip moment format string to remove markers unsupported by the datepicker.
   this.safeFormat = DateEditor.parseMomentToSafe(this.dateFormat);
@@ -68,6 +70,10 @@ function DateEditor(options) {
       todayHighlight: true,
       todayBtn: 'linked',
       assumeNearbyYear: TWO_DIGIT_YEAR_THRESHOLD,
+      // Datepicker supports most of the languages. They just need to be included in the bundle
+      // or by script tag, i.e.
+      // <script src="bootstrap-datepicker/dist/locales/bootstrap-datepicker.pl.min.js"></script>
+      language : this.getLanguage(),
       // Convert the stripped format string to one suitable for the datepicker.
       format: DateEditor.parseSafeToCalendar(this.safeFormat)
     });
@@ -167,6 +173,14 @@ DateEditor.parseSafeToCalendar = function(sFormat) {
   sFormat = sFormat.replace(/\bddd\b/g, 'D'); // ddd -> D
   return sFormat.replace(/\bdddd\b/g, 'DD'); // dddd -> DD
 };
+
+// Gets the language based on the current locale.
+DateEditor.prototype.getLanguage = function() {
+  // this requires a polyfill, i.e. https://www.npmjs.com/package/@formatjs/intl-locale
+  // more info about ts: https://github.com/microsoft/TypeScript/issues/37326
+  // return new Intl.Locale(locale).language;
+  return this.locale.substr(0, this.locale.indexOf("-"));
+}
 
 
 module.exports = DateEditor;

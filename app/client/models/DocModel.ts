@@ -111,6 +111,8 @@ export class DocModel {
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
 
+  public docInfoRow: DocInfoRec;
+
   public allTables: KoArray<TableRec>;
   public allTableIds: KoArray<string>;
 
@@ -134,6 +136,8 @@ export class DocModel {
     for (const model of this._metaTables) {
       model.loadData();
     }
+
+    this.docInfoRow = this.docInfo.getRowModel(1);
 
     // An observable array of user-visible tables, sorted by tableId, excluding summary tables.
     // This is a publicly exposed member.

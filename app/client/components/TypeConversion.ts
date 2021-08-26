@@ -35,7 +35,7 @@ export function addColTypeSuffix(type: string, column: ColumnRec, docModel: DocM
       return `${type}:${refTableId}`;
     }
     case "DateTime":
-      return 'DateTime:' + docModel.docInfo.getRowModel(1).timezone();
+      return 'DateTime:' + docModel.docInfoRow.timezone();
     default:
       return type;
   }

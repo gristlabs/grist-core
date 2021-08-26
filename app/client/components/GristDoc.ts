@@ -158,7 +158,7 @@ export class GristDoc extends DisposableWithEvents {
       app.topAppModel.getUntrustedContentOrigin(), this.docComm, app.clientScope);
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
-    this.docInfo = this.docModel.docInfo.getRowModel(1);
+    this.docInfo = this.docModel.docInfoRow;
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 

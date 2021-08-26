@@ -17,9 +17,8 @@ function AbstractWidget(field, opts = {}) {
   this.options = field.widgetOptionsJson;
   const {defaultTextColor = '#000000'} = opts;
 
-  this.valueFormatter = this.autoDispose(ko.computed(() => {
-    return ValueFormatter.createFormatter(field.displayColModel().type(), this.options());
-  }));
+  this.valueFormatter = this.autoDispose(ko.computed(() =>
+    ValueFormatter.createFormatter(field.displayColModel().type(), this.options(), field.documentSettings())));
 
   this.textColor = Computed.create(this, (use) => use(this.field.textColor) || defaultTextColor)
     .onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));

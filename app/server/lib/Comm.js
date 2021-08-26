@@ -49,6 +49,7 @@ var gutil = require('app/common/gutil');
 const {parseFirstUrlPart} = require('app/common/gristUrls');
 const version = require('app/common/version');
 const {Client} = require('./Client');
+const {localeFromRequest} = require('app/server/lib/ServerLocale');
 
 // Bluebird promisification, to be able to use e.g. websocket.sendAsync method.
 Promise.promisifyAll(ws.prototype);
@@ -216,7 +217,7 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
     }
     client.setConnection(websocket, req.headers.host, browserSettings);
   } else {
-    client = new Client(this, this.methods, req.headers.host);
+    client = new Client(this, this.methods, req.headers.host, localeFromRequest(req));
     client.setCounter(counter);
     client.setConnection(websocket, req.headers.host, browserSettings);
     this._clients[client.clientId] = client;

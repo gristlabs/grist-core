@@ -84,7 +84,8 @@ export class Client {
   constructor(
     private _comm: any,
     private _methods: any,
-    private _host: string
+    private _host: string,
+    private _locale?: string,
   ) {
     this.clientId = generateClientId();
   }
@@ -100,6 +101,10 @@ export class Client {
 
   public get host(): string {
     return this._host;
+  }
+
+  public get locale(): string|undefined {
+    return this._locale;
   }
 
   public setConnection(websocket: any, reqHost: string, browserSettings: BrowserSettings) {

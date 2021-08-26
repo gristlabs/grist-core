@@ -19,26 +19,25 @@
  */
 
 import {clamp} from 'app/common/gutil';
+import * as LocaleCurrency from "locale-currency";
+import {FormatOptions} from 'app/common/ValueFormatter';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 
 // Options for number formatting.
 export type NumMode = 'currency' | 'decimal' | 'percent' | 'scientific';
 export type NumSign = 'parens';
 
-// TODO: In the future, locale should be a value associated with the document or the user.
-const defaultLocale = 'en-US';
-
-// TODO: The currency to use for currency formatting could be made configurable.
-const defaultCurrency = 'USD';
-
-export interface NumberFormatOptions {
+export interface NumberFormatOptions extends FormatOptions {
   numMode?: NumMode;
   numSign?: NumSign;
   decimals?: number;      // aka minimum fraction digits
   maxDecimals?: number;
+  currency?: string;
 }
 
-export function buildNumberFormat(options: NumberFormatOptions): Intl.NumberFormat {
-  const nfOptions: Intl.NumberFormatOptions = parseNumMode(options.numMode);
+export function buildNumberFormat(options: NumberFormatOptions, docSettings: DocumentSettings): Intl.NumberFormat {
+  const currency = options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale);
+  const nfOptions: Intl.NumberFormatOptions = parseNumMode(options.numMode, currency);
 
   // numSign is implemented outside of Intl.NumberFormat since the latter's similar 'currencySign'
   // option is not well-supported, and doesn't apply to non-currency formats.
@@ -50,7 +49,7 @@ export function buildNumberFormat(options: NumberFormatOptions): Intl.NumberForm
 
   // maximumFractionDigits must not be less than the minimum, so we need to know the minimum
   // implied by numMode.
-  const tmp = new Intl.NumberFormat(defaultLocale, nfOptions).resolvedOptions();
+  const tmp = new Intl.NumberFormat(docSettings.locale, nfOptions).resolvedOptions();
 
   if (options.maxDecimals !== undefined) {
     // Should be at least 0 and at least minimumFractionDigits.
@@ -60,12 +59,12 @@ export function buildNumberFormat(options: NumberFormatOptions): Intl.NumberForm
     nfOptions.maximumFractionDigits = clamp(10, tmp.minimumFractionDigits || 0, 20);
   }
 
-  return new Intl.NumberFormat(defaultLocale, nfOptions);
+  return new Intl.NumberFormat(docSettings.locale, nfOptions);
 }
 
-function parseNumMode(numMode?: NumMode): Intl.NumberFormatOptions {
+function parseNumMode(numMode?: NumMode, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
-    case 'currency': return {style: 'currency', currency: defaultCurrency};
+    case 'currency': return {style: 'currency', currency, currencyDisplay: 'narrowSymbol' };
     case 'decimal': return {useGrouping: true};
     case 'percent': return {style: 'percent'};
     // TODO 'notation' option (and therefore numMode 'scientific') works on recent Firefox and

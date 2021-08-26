@@ -3,7 +3,7 @@ import {GristType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import * as gristTypes from 'app/common/gristTypes';
 import {NumberFormatOptions} from 'app/common/NumberFormat';
-import {formatUnknown, IsRightTypeFunc} from 'app/common/ValueFormatter';
+import {FormatOptions, formatUnknown, IsRightTypeFunc} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Style} from 'exceljs';
 import * as moment from 'moment-timezone';
@@ -17,9 +17,9 @@ interface WidgetOptions extends NumberFormatOptions {
 }
 class BaseFormatter {
   protected isRightType: IsRightTypeFunc;
-  protected widgetOptions: WidgetOptions = {};
+  protected widgetOptions: WidgetOptions;
 
-  constructor(public type: string, public opts: object) {
+  constructor(public type: string, public opts: FormatOptions) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
       gristTypes.isRightType('Any')!;
     this.widgetOptions = opts;
@@ -164,11 +164,11 @@ const formatters: Partial<Record<GristType, typeof BaseFormatter>> = {
 };
 
 /**
- * Takes column type and widget options and returns a constructor with a format function that can
+ * Takes column type and format options and returns a constructor with a format function that can
  * properly convert a value passed to it into the right javascript object for that column.
  * Exceljs library is using javascript primitives to specify correct excel type.
  */
-export function createExcelFormatter(type: string, opts: object): BaseFormatter {
+export function createExcelFormatter(type: string, opts: FormatOptions): BaseFormatter {
   const ctor = formatters[gristTypes.extractTypeFromColType(type) as GristType] || AnyFormatter;
   return new ctor(type, opts);
 }

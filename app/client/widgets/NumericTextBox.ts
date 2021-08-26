@@ -11,13 +11,15 @@ import {NTextBox} from 'app/client/widgets/NTextBox';
 import {clamp} from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions, NumMode, NumSign} from 'app/common/NumberFormat';
 import {Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
+import {buildCurrencyPicker} from "app/client/widgets/CurrencyPicker";
+import * as LocaleCurrency from "locale-currency";
 
 
 const modeOptions: Array<ISelectorOption<NumMode>> = [
   {value: 'currency', label: '$'},
   {value: 'decimal', label: ','},
-  {value: 'percent',  label: '%'},
-  {value: 'scientific',  label: 'Exp'}
+  {value: 'percent', label: '%'},
+  {value: 'scientific', label: 'Exp'}
 ];
 
 const signOptions: Array<ISelectorOption<NumSign>> = [
@@ -37,17 +39,25 @@ export class NumericTextBox extends NTextBox {
     const holder = new MultiHolder();
 
     // Resolved options, to show default min/max decimals, which change depending on numMode.
-    const resolved = Computed.create<Intl.ResolvedNumberFormatOptions>(holder, (use) =>
-      buildNumberFormat({numMode: use(this.options).numMode}).resolvedOptions());
+    const resolved = Computed.create<Intl.ResolvedNumberFormatOptions>(holder, (use) => {
+      const {numMode} = use(this.options);
+      const docSettings = use(this.field.documentSettings);
+      return buildNumberFormat({numMode}, docSettings).resolvedOptions();
+    });
 
     // Prepare various observables that reflect the options in the UI.
     const options = fromKo(this.options);
-    const numMode = Computed.create(holder, options, (use, opts) => opts.numMode || null);
+    const docSettings = fromKo(this.field.documentSettings);
+    const numMode = Computed.create(holder, options, (use, opts) => (opts.numMode as NumMode) || null);
     const numSign = Computed.create(holder, options, (use, opts) => opts.numSign || null);
+    const currency = Computed.create(holder, options, (use, opts) => opts.currency);
     const minDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.decimals, ''));
     const maxDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.maxDecimals, ''));
     const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits);
     const defaultMax = Computed.create(holder, resolved, (use, res) => res.maximumFractionDigits);
+    const docCurrency = Computed.create(holder, docSettings, (use, settings) =>
+      settings.currency ?? LocaleCurrency.getCurrency(settings.locale)
+    );
 
     // Save a value as the given property in this.options() observable. Set it, save, and revert
     // on save error. This is similar to what modelUtil.setSaveValue() does.
@@ -66,6 +76,7 @@ export class NumericTextBox extends NTextBox {
     // Mode and Sign behave as toggles: clicking a selected on deselects it.
     const setMode = (val: NumMode) => setSave('numMode', val !== numMode.get() ? val : undefined);
     const setSign = (val: NumSign) => setSave('numSign', val !== numSign.get() ? val : undefined);
+    const setCurrency = (val: string|undefined) => setSave('currency', val);
 
     return [
       super.buildConfigDom(),
@@ -75,6 +86,16 @@ export class NumericTextBox extends NTextBox {
         makeButtonSelect(numMode, modeOptions, setMode, {}, cssModeSelect.cls(''), testId('numeric-mode')),
         makeButtonSelect(numSign, signOptions, setSign, {}, cssSignSelect.cls(''), testId('numeric-sign')),
       ),
+      dom.maybe((use) => use(numMode) === 'currency', () => [
+        cssLabel('Currency'),
+        cssRow(
+          dom.domComputed(docCurrency, (defaultCurrency) =>
+            buildCurrencyPicker(holder, currency, setCurrency,
+              {defaultCurrencyLabel: `Default currency (${defaultCurrency})`})
+          ),
+          testId("numeric-currency")
+        )
+      ]),
       cssLabel('Decimals'),
       cssRow(
         decimals('min', minDecimals, defaultMin, setMinDecimals, testId('numeric-min-decimals')),
@@ -84,12 +105,13 @@ export class NumericTextBox extends NTextBox {
   }
 }
 
-function numberOrDefault<T>(value: unknown, def: T): number|T {
+
+function numberOrDefault<T>(value: unknown, def: T): number | T {
   return typeof value !== 'undefined' ? Number(value) : def;
 }
 
 // Helper used by setSave() above to reset some properties when switching modes.
-function updateOptions(prop: keyof NumberFormatOptions, value: unknown): NumberFormatOptions {
+function updateOptions(prop: keyof NumberFormatOptions, value: unknown): Partial<NumberFormatOptions> {
   // Reset the numSign to default when toggling mode to percent or scientific.
   if (prop === 'numMode' && (!value || value === 'scientific' || value === 'percent')) {
     return {numSign: undefined};
@@ -99,7 +121,7 @@ function updateOptions(prop: keyof NumberFormatOptions, value: unknown): NumberF
 
 function decimals(
   label: string,
-  value: Observable<number|''>,
+  value: Observable<number | ''>,
   defaultValue: Observable<number>,
   setFunc: (val?: number) => void, ...args: DomElementArg[]
 ) {

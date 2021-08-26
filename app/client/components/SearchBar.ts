@@ -267,7 +267,7 @@ class Searcher {
 
     this._fieldStepper.array = section.viewFields().peek();
     this._fieldFormatters = this._fieldStepper.array.map(
-      f => createFormatter(f.displayColModel().type(), f.widgetOptionsJson()));
+      f => createFormatter(f.displayColModel().type(), f.widgetOptionsJson(), f.documentSettings()));
     return tableModel;
   }
 

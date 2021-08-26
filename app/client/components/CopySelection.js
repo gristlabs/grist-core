@@ -19,7 +19,10 @@ function CopySelection(tableData, rowIds, fields, options) {
   this.colStyle = options.colStyle;
   this.columns = fields.map((f, i) => {
     let formatter = ValueFormatter.createFormatter(
-      f.displayColModel().type(), f.widgetOptionsJson());
+      f.displayColModel().type(),
+      f.widgetOptionsJson(),
+      f.documentSettings()
+    );
     let _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i]);
     let _rawGetter = tableData.getRowPropFunc(this.colIds[i]);
 

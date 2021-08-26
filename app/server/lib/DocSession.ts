@@ -24,6 +24,7 @@ export interface OptDocSession {
 
 export function makeOptDocSession(client: Client|null, browserSettings?: BrowserSettings): OptDocSession {
   if (client && !browserSettings) { browserSettings = client.browserSettings; }
+  if (client && browserSettings && !browserSettings.locale) { browserSettings.locale = client.locale; }
   return {client, browserSettings};
 }
 

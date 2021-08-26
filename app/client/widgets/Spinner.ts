@@ -14,8 +14,11 @@ export class Spinner extends NumericTextBox {
 
   constructor(field: ViewFieldRec) {
     super(field);
-    const resolved = this.autoDispose(ko.computed(() =>
-      buildNumberFormat({numMode: this.options().numMode}).resolvedOptions()));
+    const resolved = this.autoDispose(ko.computed(() => {
+      const {numMode} = this.options();
+      const docSettings = this.field.documentSettings();
+      return buildNumberFormat({numMode}, docSettings).resolvedOptions();
+    }));
     this._stepSize = this.autoDispose(ko.computed(() => {
       const extraScaling = (this.options().numMode === 'percent') ? 2 : 0;
       return Math.pow(10, -(this.options().decimals || resolved().minimumFractionDigits) - extraScaling);

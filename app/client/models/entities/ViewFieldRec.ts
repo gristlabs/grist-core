@@ -1,6 +1,7 @@
 import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import {Computed, fromKo} from 'grainjs';
 import * as ko from 'knockout';
@@ -55,7 +56,6 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   // Observable for the object with the current options, either for the field or for the column,
   // which takes into account the default options for column's type.
-
   widgetOptionsJson: modelUtil.SaveableObjObservable<any>;
 
   // Whether lines should wrap in a cell.
@@ -72,6 +72,8 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   textColor: modelUtil.KoSaveableObservable<string|undefined>;
   fillColor: modelUtil.KoSaveableObservable<string>;
+
+  documentSettings: ko.PureComputed<DocumentSettings>;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -167,8 +169,8 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.createVisibleColFormatter = function() {
     const vcol = this.visibleColModel();
     return (vcol.getRowId() !== 0) ?
-      createFormatter(vcol.type(), vcol.widgetOptionsJson()) :
-      createFormatter(this.column().type(), this.widgetOptionsJson());
+      createFormatter(vcol.type(), vcol.widgetOptionsJson(), this.documentSettings()) :
+      createFormatter(this.column().type(), this.widgetOptionsJson(), this.documentSettings());
   };
 
   // The widgetOptions to read and write: either the column's or the field's own.
@@ -179,7 +181,6 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   // Observable for the object with the current options, either for the field or for the column,
   // which takes into account the default options for this column's type.
-
   this.widgetOptionsJson = modelUtil.jsonObservable(this._widgetOptionsStr,
     (opts: any) => UserType.mergeOptions(opts || {}, this.column().pureType()));
 
@@ -211,4 +212,6 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     read: () => fillColorProp(),
     write: (setter, val) => setter(fillColorProp, val.toUpperCase() === '#FFFFFF' ? '' : val),
   });
+
+  this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
 }

@@ -47,7 +47,7 @@ export abstract class NewAbstractWidget extends Disposable {
     // Note that its easier to create a knockout computed from the several knockout observables,
     // but then we turn it into a grainjs observable.
     const formatter = this.autoDispose(ko.computed(() =>
-      createFormatter(field.displayColModel().type(), this.options())));
+      createFormatter(field.displayColModel().type(), this.options(), field.documentSettings())));
     this.valueFormatter = fromKo(formatter);
   }
 

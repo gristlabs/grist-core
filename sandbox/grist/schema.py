@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 22
+SCHEMA_VERSION = 23
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -40,6 +40,9 @@ def schema_create_actions():
 
       # Document timezone.
       make_column("timezone", "Text"),
+
+      # Document settings (excluding timezone).
+      make_column("documentSettings", "Text"), # JSON string describing document settings
     ]),
 
     # The names of the user tables. This does NOT include built-in tables.

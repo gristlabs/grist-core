@@ -788,3 +788,10 @@ def migration22(tdset):
     add_column('_grist_Tables_column', 'recalcWhen', 'Int'),
     add_column('_grist_Tables_column', 'recalcDeps', 'RefList:_grist_Tables_column'),
   ])
+
+@migration(schema_version=23)
+def migration23(tdset):
+  return tdset.apply_doc_actions([
+    add_column('_grist_DocInfo', 'documentSettings', 'Text'),
+    actions.UpdateRecord('_grist_DocInfo', 1, {'documentSettings': '{"locale":"en-US"}'})
+  ])

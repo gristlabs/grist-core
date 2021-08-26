@@ -7,8 +7,13 @@ import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
 import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
 import isPlainObject = require('lodash/isPlainObject');
 import * as moment from 'moment-timezone';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 
 export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';
+
+export interface FormatOptions {
+  [option: string]: any;
+}
 
 /**
  * Formats a value of any type generically (with no type-specific options).
@@ -46,7 +51,7 @@ export type IsRightTypeFunc = (value: CellValue) => boolean;
 export class BaseFormatter {
   public readonly isRightType: IsRightTypeFunc;
 
-  constructor(public type: string, public opts: object) {
+  constructor(public type: string, public widgetOpts: object, public docSettings: DocumentSettings) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
       gristTypes.isRightType('Any')!;
   }
@@ -78,9 +83,9 @@ export class NumericFormatter extends BaseFormatter {
   private _numFormat: Intl.NumberFormat;
   private _formatter: (val: number) => string;
 
-  constructor(type: string, options: NumberFormatOptions) {
-    super(type, options);
-    this._numFormat = buildNumberFormat(options);
+  constructor(type: string, options: NumberFormatOptions, docSettings: DocumentSettings) {
+    super(type, options, docSettings);
+    this._numFormat = buildNumberFormat(options, docSettings);
     this._formatter = (options.numSign === 'parens') ? this._formatParens : this._formatPlain;
   }
 
@@ -101,18 +106,22 @@ export class NumericFormatter extends BaseFormatter {
 }
 
 class IntFormatter extends NumericFormatter {
-  constructor(type: string, opts: object) {
-    super(type, {decimals: 0, ...opts});
+  constructor(type: string, opts: FormatOptions, docSettings: DocumentSettings) {
+    super(type, {decimals: 0, ...opts}, docSettings);
   }
+}
+
+interface DateFormatOptions {
+  dateFormat?: string;
 }
 
 class DateFormatter extends BaseFormatter {
   private _dateTimeFormat: string;
   private _timezone: string;
 
-  constructor(type: string, opts: {dateFormat?: string}, timezone: string = 'UTC') {
-    super(type, opts);
-    this._dateTimeFormat = opts.dateFormat || 'YYYY-MM-DD';
+  constructor(type: string, widgetOpts: DateFormatOptions, docSettings: DocumentSettings, timezone: string = 'UTC') {
+    super(type, widgetOpts, docSettings);
+    this._dateTimeFormat = widgetOpts.dateFormat || 'YYYY-MM-DD';
     this._timezone = timezone;
   }
 
@@ -123,12 +132,16 @@ class DateFormatter extends BaseFormatter {
   }
 }
 
+interface DateTimeFormatOptions extends DateFormatOptions {
+  timeFormat?: string;
+}
+
 class DateTimeFormatter extends DateFormatter {
-  constructor(type: string, opts: {dateFormat?: string; timeFormat?: string}) {
+  constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
     const timezone = gutil.removePrefix(type, "DateTime:") || '';
-    const timeFormat = opts.timeFormat === undefined ? 'h:mma' : opts.timeFormat;
-    const dateFormat = (opts.dateFormat || 'YYYY-MM-DD') + " " + timeFormat;
-    super(type, {dateFormat}, timezone);
+    const timeFormat = widgetOpts.timeFormat === undefined ? 'h:mma' : widgetOpts.timeFormat;
+    const dateFormat = (widgetOpts.dateFormat || 'YYYY-MM-DD') + " " + timeFormat;
+    super(type, {dateFormat}, docSettings, timezone);
   }
 }
 
@@ -142,10 +155,11 @@ const formatters: {[name: string]: typeof BaseFormatter} = {
 };
 
 /**
- * Takes column type and widget options and returns a constructor with a format function that can
- * properly convert a value passed to it into the right format for that column.
+ * Takes column type, widget options and document settings, and returns a constructor
+ * with a format function that can properly convert a value passed to it into the
+ * right format for that column.
  */
-export function createFormatter(type: string, opts: object): BaseFormatter {
+export function createFormatter(type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings): BaseFormatter {
   const ctor = formatters[gristTypes.extractTypeFromColType(type)] || AnyFormatter;
-  return new ctor(type, opts);
+  return new ctor(type, widgetOpts, docSettings);
 }
