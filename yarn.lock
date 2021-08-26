@@ -99,6 +99,11 @@
   resolved "https://registry.yarnpkg.com/@tokenizer/token/-/token-0.1.1.tgz#f0d92c12f87079ddfd1b29f614758b9696bc29e3"
   integrity sha512-XO6INPbZCxdprl+9qa/AAbFFOMzzwqYxpjPgLICrMD6C2FCw6qfJOPcBk6JqqPLSaZ/Qx87qn4rpPmPMwaAK6w==
 
+"@types/accept-language-parser@1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@types/accept-language-parser/-/accept-language-parser-1.5.2.tgz#ea48ed07a3dc9d2ba6666d45c018ad1b5e59d665"
+  integrity sha512-G8NhvYQ4JVT0GhvgPSVDVskFwWhjFvjbTNou3rRkkDgB8dTBZtxZ1xcU9jqJSth5qTGCzbrKwRf+vKleKdrb7w==
+
 "@types/backbone@1.3.43":
   version "1.3.43"
   resolved "https://registry.yarnpkg.com/@types/backbone/-/backbone-1.3.43.tgz#3155bab6e200413d787d1eb75392cc9bd62a0c6a"
@@ -546,6 +551,11 @@ abort-controller@^3.0.0:
   integrity sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==
   dependencies:
     event-target-shim "^5.0.0"
+
+accept-language-parser@1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/accept-language-parser/-/accept-language-parser-1.5.0.tgz#8877c54040a8dcb59e0a07d9c1fde42298334791"
+  integrity sha1-iHfFQECo3LWeCgfZwf3kIpgzR5E=
 
 accepts@~1.3.5:
   version "1.3.7"
@@ -4230,6 +4240,11 @@ loader-utils@^1.1.0, loader-utils@^1.2.3:
     big.js "^5.2.2"
     emojis-list "^3.0.0"
     json5 "^1.0.1"
+
+locale-currency@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/locale-currency/-/locale-currency-0.0.2.tgz#e2c90607563ce47a59f9559e45a70e24e4db4b6d"
+  integrity sha1-4skGB1Y85HpZ+VWeRacOJOTbS20=
 
 locate-path@^3.0.0:
   version "3.0.0"
