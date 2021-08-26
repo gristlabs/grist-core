@@ -17,6 +17,8 @@ export interface ISandboxCreationOptions {
   importMount?: string;  // if defined, make this path available read-only as "/importdir"
 
   docUrl?: string;      // to support SELF_HYPERLINK.
+
+  preferredPythonVersion?: '2' | '3';
 }
 
 export interface ISandbox {

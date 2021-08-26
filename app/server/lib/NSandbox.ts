@@ -37,6 +37,8 @@ interface ISandboxOptions {
   command?: string;       // External program or container to call to run the sandbox.
   args: string[];         // The arguments to pass to the python process.
 
+  preferredPythonVersion?: string;  // Mandatory for gvisor; ignored by other methods.
+
   // TODO: update
   // ISandboxCreationOptions to talk about directories instead of
   // mounts, since it may not be possible to remap directories as
@@ -357,14 +359,24 @@ const spawners = {
 export class NSandboxCreator implements ISandboxCreator {
   private _flavor: keyof typeof spawners;
   private _command?: string;
+  private _preferredPythonVersion?: string;
 
-  public constructor(options: {defaultFlavor: keyof typeof spawners}) {
-    const flavor = process.env.GRIST_SANDBOX_FLAVOR || options.defaultFlavor;
+  public constructor(options: {
+    defaultFlavor: keyof typeof spawners,
+    ignoreEnvironment?: boolean,
+    command?: string,
+    preferredPythonVersion?: string,
+  }) {
+    const flavor = (!options.ignoreEnvironment && process.env.GRIST_SANDBOX_FLAVOR) ||
+      options.defaultFlavor;
     if (!Object.keys(spawners).includes(flavor)) {
       throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
     }
     this._flavor = flavor as keyof typeof spawners;
-    this._command = process.env.GRIST_SANDBOX;
+    this._command = (!options.ignoreEnvironment && process.env.GRIST_SANDBOX) ||
+      options.command;
+    this._preferredPythonVersion = (!options.ignoreEnvironment && process.env.PYTHON_VERSION) ||
+      options.preferredPythonVersion;
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
@@ -386,6 +398,7 @@ export class NSandboxCreator implements ISandboxCreator {
                 ...options.logMeta},
       logTimes: options.logTimes,
       command: this._command,
+      preferredPythonVersion: this._preferredPythonVersion,
       useGristEntrypoint: true,
       importDir: options.importMount,
     };
@@ -521,7 +534,7 @@ function gvisor(options: ISandboxOptions): ChildProcess {
   if (options.deterministicMode) {
     wrapperArgs.push('--faketime', FAKETIME);
   }
-  const pythonVersion = process.env.PYTHON_VERSION;
+  const pythonVersion = options.preferredPythonVersion;
   if (pythonVersion !== '2' && pythonVersion !== '3') {
     throw new Error("PYTHON_VERSION must be set to 2 or 3");
   }

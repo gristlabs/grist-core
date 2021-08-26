@@ -163,12 +163,22 @@ export class ActiveDoc extends EventEmitter {
     // Our DataEngine is a separate sandboxed process (one per open document). The data engine runs
     // user-defined python code including formula calculations. It maintains all document data and
     // metadata, and applies translates higher-level UserActions into lower-level DocActions.
+
+    // HACK: If doc title as a slug contains "activate-python3-magic", and we are
+    // in an environment with GRIST_EXPERIMENTAL_PLUGINS=1 (dev or staging but not
+    // prod), use Python3.  This is just for experimentation at this point.
+    // TODO: use a less hacky way to say we want to use py3 in a document.
+    const preferredPythonVersion =
+      (options?.docUrl?.match(/activate-python3-magic/) && process.env.GRIST_EXPERIMENTAL_PLUGINS === '1')
+      ? '3' : undefined;
+
     this._dataEngine = this._docManager.gristServer.create.NSandbox({
       comment: docName,
       logCalls: false,
       logTimes: true,
       logMeta: {docId: docName},
       docUrl: options?.docUrl,
+      preferredPythonVersion,
     });
 
     this._activeDocImport = new ActiveDocImport(this);
