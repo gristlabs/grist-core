@@ -1,8 +1,10 @@
 // tslint:disable:no-console
 // TODO: Add documentation and clean up log statements.
 
+import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {reportError} from 'app/client/models/errors';
 import {delay} from 'app/common/delay';
 import {waitObs} from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
@@ -293,29 +295,25 @@ class FinderImpl implements IFinder {
   // Highlights the cell at the current position.
   private async _highlight() {
     if (this._aborted) { return; }
-    const view = this._pageStepper.value.view.peek();
-    await this._openDocPage(view.getRowId());
 
-    if (this._aborted) { return; }
     const section = this._sectionStepper.value;
-    view.activeSectionId(section.getRowId());
-
-    // We may need to wait for the BaseView instance to load.
-    const viewInstance = await waitObs<any>(section.viewInstance);
-    await viewInstance.getLoadingDonePromise();
-
-    if (this._aborted) { return; }
-    viewInstance.setCursorPos({
-      rowIndex: this._rowStepper.index,
+    const sectionId = section.getRowId();
+    const cursorPos: CursorPos = {
+      sectionId,
+      rowId: this._rowStepper.value,
       fieldIndex: this._fieldStepper.index,
-    });
+    };
+    await this._gristDoc.recursiveMoveToCursorPos(cursorPos, true).catch(reportError);
+    if (this._aborted) { return; }
 
     // Highlight the selected cursor, after giving it a chance to update. We find the cursor in
     // this ad-hoc way rather than use observables, to avoid the overhead of *every* cell
     // depending on an additional observable.
     await delay(0);
-
+    const viewInstance = await waitObs<any>(section.viewInstance);
+    await viewInstance.getLoadingDonePromise();
     if (this._aborted) { return; }
+
     const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
     if (cursor) {
       cursor.classList.add('search-match');

@@ -10,7 +10,6 @@ exports.loadBillingPage = () => import('app/client/ui/BillingPage' /* webpackChu
 exports.loadGristDoc = () => import('app/client/components/GristDoc' /* webpackChunkName: "GristDoc" */);
 exports.loadMomentTimezone = () => import('moment-timezone');
 exports.loadPlotly = () => import('plotly.js-basic-dist' /* webpackChunkName: "plotly" */);
-exports.loadSearchBar = () => import('app/client/components/SearchBar' /* webpackChunkName: "searchbar" */);
 exports.loadSearch = () => import('app/client/ui2018/search' /* webpackChunkName: "search" */);
 exports.loadUserManager = () => import('app/client/ui/UserManager' /* webpackChunkName: "usermanager" */);
 exports.loadViewPane = () => import('app/client/components/ViewPane' /* webpackChunkName: "viewpane" */);

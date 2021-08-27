@@ -177,6 +177,14 @@ export function getSection(sectionOrTitle: string|WebElement): WebElement|WebEle
     .findClosest('.viewsection_content');
 }
 
+/**
+ * Click into a section without disrupting cursor positions.
+ */
+export async function selectSectionByTitle(title: string) {
+  await driver.find(`.test-viewsection-title[value="${title}" i]`)
+    .findClosest('.viewsection_titletext_container').click();
+}
+
 
 /**
  * Returns visible cells of the GridView from a single column and one or more rows. Options may be
