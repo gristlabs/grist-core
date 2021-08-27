@@ -18,7 +18,7 @@ export function createDocInfoRec(this: DocInfoRec, docModel: DocModel): void {
     return tab ? tab.viewRef() : 0;
   }));
   this.newDefaultViewId = this.autoDispose(ko.pureComputed(() => {
-    const page = docModel.allDocPages.at(0);
+    const page = docModel.visibleDocPages()[0];
     return page ? page.viewRef() : 0;
   }));
 }

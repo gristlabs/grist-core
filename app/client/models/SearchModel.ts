@@ -125,7 +125,7 @@ class FinderImpl implements IFinder {
 
   // Initialize the steppers. Returns false if anything goes wrong.
   public init(): boolean {
-    const pages: any[] = this._gristDoc.docModel.allDocPages.peek();
+    const pages: any[] = this._gristDoc.docModel.visibleDocPages.peek();
     this._pageStepper.array = pages;
     this._pageStepper.index = pages.findIndex(t => t.viewRef() === this._gristDoc.activeViewId.get());
     if (this._pageStepper.index < 0) { return false; }

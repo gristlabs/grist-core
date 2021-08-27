@@ -61,7 +61,6 @@ import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonito
 import { EditorMonitor } from "app/client/components/EditorMonitor";
 import { FieldEditor } from "app/client/widgets/FieldEditor";
 import { Drafts } from "app/client/components/Drafts";
-import {findIndex} from "lodash";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -97,7 +96,6 @@ export class GristDoc extends DisposableWithEvents {
   public viewModel: ViewRec;
   public activeViewId: Computed<IDocPage>;
   public currentPageName: Observable<string>;
-  public showDocTourTable: boolean = false;
   public docData: DocData;
   public docInfo: DocInfoRec;
   public docPluginManager: DocPluginManager;
@@ -168,11 +166,7 @@ export class GristDoc extends DisposableWithEvents {
       if (result === 'GristDocTour') {
         // GristDocTour is a special table that is usually hidden from users, but putting /p/GristDocTour
         // in the URL navigates to it and makes it visible in the list of pages in the sidebar
-        this.showDocTourTable = true;
-        result = findIndex(this.docModel.views.rowModels, view => view?.name.peek() === result);
-        if (result === -1) {
-          result = undefined;  // not found, back to the default
-        }
+        result = this.docModel.views.tableData.findRow('name', result);
       }
       return result || use(defaultViewId);
     });

@@ -18,6 +18,7 @@ import * as koArray from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
 import * as DataTableModel from 'app/client/models/DataTableModel';
 import {DocData} from 'app/client/models/DocData';
+import {urlState} from 'app/client/models/gristUrlState';
 import * as MetaRowModel from 'app/client/models/MetaRowModel';
 import * as MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
@@ -123,10 +124,16 @@ export class DocModel {
   public dataTablesByRef = new Map<number, DataTableModel>();
 
   public allTabs: KoArray<TabBarRec> = this.tabBar.createAllRowsModel('tabPos');
-  public allDocPages: KoArray<PageRec> = this.pages.createAllRowsModel('pagePos');
+
+  // Excludes pages hidden by ACL rules or other reasons (e.g. doc-tour)
+  public visibleDocPages: ko.Computed<PageRec[]>;
 
   // Flag for tracking whether document is in formula-editing mode
   public editingFormula: ko.Observable<boolean> = ko.observable(false);
+
+  // TODO This is a temporary solution until we expose creation of doc-tours to users. This flag
+  // is initialized once on page load. If set, then the tour page (if any) will be visible.
+  public showDocTourTable: boolean = (urlState().state.get().docPage === 'GristDocTour');
 
   // List of all the metadata tables.
   private _metaTables: Array<MetaTableModel<any>>;
@@ -158,6 +165,10 @@ export class DocModel {
       add: r => this._onAddTable(r),
       remove: r => this._onRemoveTable(r),
     });
+
+    // Get a list of only the visible pages.
+    const allPages = this.pages.createAllRowsModel('pagePos');
+    this.visibleDocPages = ko.computed(() => allPages.all().filter(p => !p.isHidden()));
   }
 
   private _metaTableModel<TName extends keyof SchemaTypes, TRow extends IRowModel<TName>>(

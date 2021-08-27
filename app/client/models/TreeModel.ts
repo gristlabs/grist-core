@@ -13,13 +13,12 @@
  */
 
 import { insertPositions } from "app/client/lib/tableUtil";
-import { BulkColValues } from "app/common/DocActions";
+import { BulkColValues, UserAction } from "app/common/DocActions";
 import { nativeCompare } from "app/common/gutil";
 import { obsArray, ObsArray } from "grainjs";
 import forEach = require("lodash/forEach");
 import forEachRight = require("lodash/forEachRight");
 import reverse = require("lodash/reverse");
-import { TableData } from "./TableData";
 
 /**
  * A generic definition of a tree to use with the `TreeViewComponent`. The tree implements
@@ -56,6 +55,12 @@ export interface TreeRecord {
   [key: string]: any;
 }
 
+// This is compatible with TableData from app/client/models/TableData.
+export interface TreeTableData {
+  getRecords(): TreeRecord[];
+  sendTableActions(actions: UserAction[]): Promise<unknown>;
+}
+
 // describes a function that builds dom for a particular record
 type DomBuilder = (id: number) => HTMLElement;
 
@@ -63,8 +68,8 @@ type DomBuilder = (id: number) => HTMLElement;
 // Returns a list of the records from table that is suitable to build the tree model, ie: records
 // are sorted by .posKey, and .indentation starts at 0 for the first records and can only increase
 // one step at a time (but can decrease as much as you want).
-function getRecords(table: TableData) {
-  const records = (table.getRecords() as TreeRecord[])
+function getRecords(table: TreeTableData) {
+  const records = table.getRecords()
     .sort((a, b) => nativeCompare(a.pagePos, b.pagePos));
   return fixIndents(records);
 }
@@ -83,7 +88,7 @@ export function fixIndents(records: TreeRecord[]) {
 
 
 // build a tree model from a grist table storing tree view data
-export function fromTableData(table: TableData, buildDom: DomBuilder, oldModel?: TreeModelRecord) {
+export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldModel?: TreeModelRecord) {
 
   const records = getRecords(table);
   const storage = {table, records};
@@ -113,7 +118,7 @@ export function fromTableData(table: TableData, buildDom: DomBuilder, oldModel?:
 
 // a table data with all of its records as returned by getRecords(tableData)
 interface Storage {
-  table: TableData;
+  table: TreeTableData;
   records: TreeRecord[];
 }
 

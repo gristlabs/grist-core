@@ -4,22 +4,36 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { PageRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
 import * as MetaTableModel from "app/client/models/MetaTableModel";
-import { find as findInTree, fromTableData, TreeItemRecord } from "app/client/models/TreeModel";
+import { find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
+         TreeTableData} from "app/client/models/TreeModel";
 import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
 import { confirmModal } from 'app/client/ui2018/modals';
 import { buildPageDom, PageActions } from "app/client/ui2018/pages";
 import { mod } from 'app/common/gutil';
-import { Computed, Disposable, dom, observable, Observable } from "grainjs";
+import { Computed, Disposable, dom, fromKo, observable, Observable } from "grainjs";
 
 // build dom for the tree view of pages
 export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Observable<boolean>) {
   const pagesTable = activeDoc.docModel.pages;
   const buildDom = buildDomFromTable.bind(null, pagesTable, activeDoc);
 
+  const records = Computed.create<TreeRecord[]>(owner, (use) =>
+    use(activeDoc.docModel.visibleDocPages).map(page => ({
+      id: page.getRowId(),
+      indentation: use(page.indentation),
+      pagePos: use(page.pagePos),
+      viewRef: use(page.viewRef),
+    }))
+  );
+  const getTreeTableData = (): TreeTableData => ({
+    getRecords: () => records.get(),
+    sendTableActions: (...args) => pagesTable.tableData.sendTableActions(...args),
+  });
+
   // create the model and keep in sync with the table
-  const model = observable(fromTableData(pagesTable.tableData, buildDom));
-  owner.autoDispose(pagesTable.tableData.tableActionEmitter.addListener(() => {
-    model.set(fromTableData(pagesTable.tableData, buildDom, model.get()));
+  const model = observable(fromTableData(getTreeTableData(), buildDom));
+  owner.autoDispose(records.addListener(() => {
+    model.set(fromTableData(getTreeTableData(), buildDom, model.get()));
   }));
 
   // create a computed that reads the selected page from the url and return the corresponding item
@@ -69,15 +83,7 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     actions.isRemoveDisabled = () => (docModel.allTables.all().length <= 1);
   }
 
-  const maybeHiddenPageName = Computed.create(activeDoc, (use) => {
-    const name = use(pageName);
-    if (name === 'GristDocTour' && !activeDoc.showDocTourTable) {
-      return '';
-    }
-    return name;
-  });
-
-  return buildPageDom(maybeHiddenPageName, actions, urlState().setLinkUrl({docPage: viewId}));
+  return buildPageDom(fromKo(pageName), actions, urlState().setLinkUrl({docPage: viewId}));
 }
 
 // Select another page in cyclic ordering of pages. Order is downard if given a positive `delta`,
