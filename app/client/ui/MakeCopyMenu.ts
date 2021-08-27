@@ -163,7 +163,7 @@ class SaveCopyModal extends Disposable {
     return [
       cssField(
         cssLabel("Name"),
-        input(this._destName, {onInput: true}, dom.cls(cssInput.className),
+        input(this._destName, {onInput: true}, {placeholder: 'Enter document name'},  dom.cls(cssInput.className),
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
@@ -204,10 +204,11 @@ class SaveCopyModal extends Disposable {
             ),
             testId('copy-dest-workspace'),
           ),
-          wss ? dom.maybe(this._saveDisabled, () =>
-            cssWarningText("You do not have write access to the selected workspace",
-              testId('copy-warning')
-            )
+          wss ? dom.domComputed(this._destWS, (destWs) =>
+            destWs && !roles.canEdit(destWs.access) ?
+              cssWarningText("You do not have write access to the selected workspace",
+                testId('copy-warning')
+              ) : null
           ) : null
         ]
       ),
