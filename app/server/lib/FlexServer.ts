@@ -1266,14 +1266,6 @@ export class FlexServer implements GristServer {
     // This doesn't check for doc access permissions because the request isn't tied to a document.
     addUploadRoute(this, this.app, this._trustOriginsMiddleware, ...basicMiddleware);
 
-    this.app.get('/gen_csv', ...docAccessMiddleware, expressWrap(async (req, res) => {
-      return this._docWorker.getCSV(req, res);
-    }));
-
-    this.app.get('/gen_xlsx', ...docAccessMiddleware, expressWrap(async (req, res) => {
-      return this._docWorker.getXLSX(req, res);
-    }));
-
     this.app.get('/attachment', ...docAccessMiddleware,
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
   }

@@ -13,7 +13,6 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import * as log from 'app/server/lib/log';
 import {integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import {generateCSV, generateXLSX} from 'app/server/serverMethods';
 import * as contentDisposition from 'content-disposition';
 import * as express from 'express';
 import * as fse from 'fs-extra';
@@ -28,14 +27,6 @@ export class DocWorker {
   private _comm: Comm;
   constructor(private _dbManager: HomeDBManager, {comm}: AttachOptions) {
     this._comm = comm;
-  }
-
-  public async getCSV(req: express.Request, res: express.Response): Promise<void> {
-    await generateCSV(req, res, this._comm);
-  }
-
-  public async getXLSX(req: express.Request, res: express.Response): Promise<void> {
-    await generateXLSX(req, res, this._comm);
   }
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {

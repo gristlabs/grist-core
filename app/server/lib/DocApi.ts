@@ -33,6 +33,7 @@ import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 import * as _ from "lodash";
 import {isRaisedException} from "app/common/gristTypes";
 import {localeFromRequest} from "app/server/lib/ServerLocale";
+import { generateCSV, generateXLSX } from "app/server/serverMethods";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -564,6 +565,10 @@ export class DocWorkerApi {
       const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
       res.json(result);
     }));
+
+    this._app.get('/api/docs/:docId/gen-csv', canView, withDoc(generateCSV));
+
+    this._app.get('/api/docs/:docId/gen-xlsx', canView, withDoc(generateXLSX));
 
     this._app.get('/api/docs/:docId/send-to-drive', canView, decodeGoogleToken, withDoc(exportToDrive));
 

@@ -347,6 +347,8 @@ export interface DocAPI {
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
   getDownloadUrl(template?: boolean): string;
+  getGenerateXlsxUrl(): string;
+  getGenerateCsvUrl(): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -788,6 +790,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public getDownloadUrl(template: boolean = false) {
     return this._url + `/download?template=${Number(template)}`;
+  }
+
+  public getGenerateXlsxUrl() {
+    return this._url + '/gen-xlsx';
+  }
+
+  public getGenerateCsvUrl() {
+    return this._url + '/gen-csv';
   }
 
   public async sendToDrive(code: string, title: string): Promise<{url: string}> {

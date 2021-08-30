@@ -626,11 +626,11 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getXlsxLink() {
+    const baseUrl = this.docPageModel.appModel.api.getDocAPI(this.docId()).getGenerateXlsxUrl();
     const params = {
-      ...this.docComm.getUrlParams(),
       title: this.docPageModel.currentDocTitle.get(),
     };
-    return this.docComm.docUrl(`gen_xlsx`) + '?' + encodeQueryParams(params);
+    return baseUrl + '?' + encodeQueryParams(params);
   }
 
   public getCsvLink() {
@@ -638,15 +638,16 @@ export class GristDoc extends DisposableWithEvents {
       colRef : field.colRef.peek(),
       filter : field.activeFilter.peek()
     }));
+
+    const baseUrl = this.docPageModel.appModel.api.getDocAPI(this.docId()).getGenerateCsvUrl();
     const params = {
-      ...this.docComm.getUrlParams(),
       title: this.docPageModel.currentDocTitle.get(),
       viewSection: this.viewModel.activeSectionId(),
       tableId: this.viewModel.activeSection().table().tableId(),
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
       filters : JSON.stringify(filters),
     };
-    return this.docComm.docUrl(`gen_csv`) + '?' + encodeQueryParams(params);
+    return baseUrl + '?' + encodeQueryParams(params);
   }
 
   public hasGranularAccessRules(): boolean {

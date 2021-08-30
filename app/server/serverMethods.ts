@@ -1,25 +1,18 @@
-import * as Comm from 'app/server/lib/Comm';
 import {parseExportFileName, parseExportParameters} from 'app/server/lib/Export';
 import {makeCSV} from 'app/server/lib/ExportCSV';
 import {makeXLSX} from 'app/server/lib/ExportXLSX';
 import * as log from 'app/server/lib/log';
-import {integerParam, stringParam} from 'app/server/lib/requestUtils';
 import * as contentDisposition from 'content-disposition';
 import * as express from 'express';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 
-export async function generateCSV(req: express.Request, res: express.Response, comm: Comm) {
+export async function generateCSV(activeDoc: ActiveDoc, req: express.Request, res: express.Response) {
   log.info('Generating .csv file...');
   const {
     viewSectionId,
     filters,
     sortOrder
   } = parseExportParameters(req);
-
-  const clientId = stringParam(req.query.clientId);
-  const docFD = integerParam(req.query.docFD);
-  const client = comm.getClient(clientId);
-  const docSession = client.getDocSession(docFD);
-  const activeDoc = docSession.activeDoc;
 
   // Generate a decent name for the exported file.
   const name = parseExportFileName(activeDoc, req);
@@ -40,13 +33,8 @@ export async function generateCSV(req: express.Request, res: express.Response, c
   }
 }
 
-export async function generateXLSX(req: express.Request, res: express.Response, comm: Comm) {
+export async function generateXLSX(activeDoc: ActiveDoc, req: express.Request, res: express.Response) {
   log.debug(`Generating .xlsx file`);
-  const clientId = stringParam(req.query.clientId);
-  const docFD = integerParam(req.query.docFD);
-  const client = comm.getClient(clientId);
-  const docSession = client.getDocSession(docFD);
-  const activeDoc = docSession.activeDoc;
   try {
     const data = await makeXLSX(activeDoc, req);
     res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
