@@ -386,7 +386,7 @@ BaseView.prototype._parsePasteForView = function(data, cols) {
 BaseView.prototype._getDefaultColValues = function() {
   const {filters, operations} = this._linkingFilter.peek();
   return _.mapObject(
-      _.pick(filters, v => (v.length > 0)),
+      _.pick(filters, (value, key) => value.length > 0 && key !== "id"),
       (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0]
   );
 };

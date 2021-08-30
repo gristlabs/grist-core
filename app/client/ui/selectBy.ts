@@ -210,7 +210,7 @@ export function linkId(link: IPageWidgetLink) {
 }
 
 // Returns link's properties from its identifier.
-export function linkFromId(linkid: string) {
+export function linkFromId(linkid: string): IPageWidgetLink {
   const [srcSectionRef, srcColRef, targetColRef] = JSON.parse(linkid);
   return {srcSectionRef, srcColRef, targetColRef};
 }

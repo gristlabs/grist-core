@@ -1,10 +1,13 @@
 import {GristDoc} from "app/client/components/GristDoc";
 import {DataRowModel} from "app/client/models/DataRowModel";
+import * as DataTableModel from "app/client/models/DataTableModel";
+import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
+import {RowId} from "app/client/models/rowset";
 import {LinkConfig} from "app/client/ui/selectBy";
 import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
-import {isRefListType} from "app/common/gristTypes";
+import {isList, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {Disposable} from "grainjs";
 import * as  ko from "knockout";
@@ -55,51 +58,36 @@ type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
  *    in the linked tgtSection.
  */
 export class LinkingState extends Disposable {
-  public readonly cursorPos: ko.Computed<number> | null;
-  public readonly filterColValues: ko.Computed<FilterColValues> | null;
+  // If linking affects target section's cursor, this will be a computed for the cursor rowId.
+  public readonly cursorPos?: ko.Computed<number>;
+
+  // If linking affects filtering, this is a computed for the current filtering state, as a
+  // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId()
+  public readonly filterColValues?: ko.Computed<FilterColValues>;
+
   private _srcSection: ViewSectionRec;
+  private _srcTableModel: DataTableModel;
+  private _srcCol: ColumnRec;
+  private _srcColId: string | undefined;
 
   constructor(gristDoc: GristDoc, linkConfig: LinkConfig) {
     super();
-    const {srcSection, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
+    const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._srcSection = srcSection;
+    this._srcCol = srcCol;
+    this._srcColId = srcColId;
+    this._srcTableModel = gristDoc.getTableModel(srcSection.table().tableId());
+    const srcTableData = this._srcTableModel.tableData;
 
-    const srcTableModel = gristDoc.getTableModel(srcSection.table().tableId());
-    const srcTableData = srcTableModel.tableData;
-
-    // Function from srcRowId (i.e. srcSection.activeRowId()) to the source value. It is used for
-    // filtering or for cursor positioning, depending on the setting of tgtCol.
-    const srcValueFunc = srcColId ? srcTableData.getRowPropFunc(srcColId)! : _.identity;
-
-    // If linking affects target section's cursor, this will be a computed for the cursor rowId.
-    this.cursorPos = null;
-
-    // If linking affects filtering, this is a computed for the current filtering state, as a
-    // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId(). Otherwise, null.
-    this.filterColValues = null;
-
-    // A computed that evaluates to a filter function to use, or null if not filtering. If
-    // filtering, depends on srcSection.activeRowId().
     if (tgtColId) {
-      const operations = {[tgtColId]: isRefListType(tgtCol.type()) ? 'intersects' : 'in' as QueryOperation};
+      const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
       if (srcColId) {
-        const srcRowModel = this.autoDispose(srcTableModel.createFloatingRowModel()) as DataRowModel;
-        const srcCell = srcRowModel.cells[srcColId];
-        // If no srcCell, linking is broken; do nothing. This shouldn't happen, but may happen
-        // transiently while the separate linking-related observables get updated.
-        if (srcCell) {
-          this.filterColValues = this.autoDispose(ko.computed(() => {
-            const srcRowId = srcSection.activeRowId();
-            srcRowModel.assign(srcRowId);
-            return {filters: {[tgtColId]: [srcCell()]}, operations} as FilterColValues;
-          }));
-        }
+        this.filterColValues = this._srcCellFilter(tgtColId, operation);
       } else {
-        this.filterColValues = this.autoDispose(ko.computed(() => {
-          const srcRowId = srcSection.activeRowId();
-          return {filters: {[tgtColId]: [srcRowId]}, operations} as FilterColValues;
-        }));
+        this.filterColValues = this._simpleFilter(tgtColId, operation, (rowId => [rowId]));
       }
+    } else if (srcColId && isRefListType(srcCol.type())) {
+      this.filterColValues = this._srcCellFilter('id', 'in');
     } else if (isSummaryOf(srcSection.table(), tgtSection.table())) {
       // We filter summary tables when a summary section is linked to a more detailed one without
       // specifying src or target column. The filtering is on the shared group-by column (i.e. all
@@ -128,11 +116,12 @@ export class LinkingState extends Disposable {
       // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a
       // column or map representing the inverse of summary table's "group" column.
     } else {
-      this.cursorPos = this.autoDispose(ko.computed(() =>
-        srcValueFunc(
-          srcSection.activeRowId() as number
-        ) as number
-      ));
+      const srcValueFunc = srcColId ? this._makeSrcCellGetter() : _.identity;
+      if (srcValueFunc) {
+        this.cursorPos = this.autoDispose(ko.computed(() =>
+          srcValueFunc(srcSection.activeRowId()) as number
+        ));
+      }
     }
   }
 
@@ -141,5 +130,55 @@ export class LinkingState extends Disposable {
    */
   public disableEditing(): boolean {
     return Boolean(this.filterColValues) && this._srcSection.activeRowId() === 'new';
+  }
+
+  // Value for this.filterColValues filtering based on a single column
+  private _simpleFilter(
+    colId: string, operation: QueryOperation, valuesFunc: (rowId: RowId|null) => any[]
+  ): ko.Computed<FilterColValues> {
+    return this.autoDispose(ko.computed(() => {
+      const srcRowId = this._srcSection.activeRowId();
+      const values = valuesFunc(srcRowId);
+      return {filters: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
+    }));
+  }
+
+  // Value for this.filterColValues based on the value in srcCol at the selected row
+  private _srcCellFilter(colId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+    const srcCellGetter = this._makeSrcCellGetter();
+    if (srcCellGetter) {
+      const isSrcRefList = isRefListType(this._srcCol.type());
+      return this._simpleFilter(colId, operation, rowId => {
+        const value = srcCellGetter(rowId);
+        if (isSrcRefList) {
+          if (isList(value)) {
+            return value.slice(1);
+          } else {
+            // The cell value is invalid, so the filter should be empty
+            return [];
+          }
+        } else {
+          return [value];
+        }
+      });
+    }
+  }
+
+  // Returns a function which returns the value of the cell
+  // in srcCol in the selected record of srcSection.
+  // Uses a row model to create a dependency on the cell's value,
+  // so changes to the cell value will notify observers
+  private _makeSrcCellGetter() {
+    const srcRowModel = this.autoDispose(this._srcTableModel.createFloatingRowModel()) as DataRowModel;
+    const srcCellObs = srcRowModel.cells[this._srcColId!];
+    // If no srcCellObs, linking is broken; do nothing. This shouldn't happen, but may happen
+    // transiently while the separate linking-related observables get updated.
+    if (!srcCellObs) {
+      return null;
+    }
+    return (rowId: RowId | null) => {
+      srcRowModel.assign(rowId);
+      return srcCellObs();
+    };
   }
 }

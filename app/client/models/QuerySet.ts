@@ -59,7 +59,8 @@ export interface QueryRefs {
   filterTuples: Array<FilterTuple>;
 }
 
-type FilterTuple = [number, QueryOperation, any[]];
+type ColRef = number | 'id';
+type FilterTuple = [ColRef, QueryOperation, any[]];
 
 /**
  * QuerySetManager keeps track of all queries for a GristDoc instance. It is also responsible for
@@ -332,7 +333,7 @@ export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFu
 function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
   const tableRec: any = docModel.dataTables[query.tableId].tableMetaRow;
 
-  const colRefsByColId: {[colId: string]: number} = {};
+  const colRefsByColId: {[colId: string]: ColRef} = {id: 'id'};
   for (const col of tableRec.columns.peek().peek()) {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
@@ -358,7 +359,7 @@ function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): ClientQ
   const filters: {[colId: string]: any[]} = {};
   const operations: {[colId: string]: QueryOperation} = {};
   for (const [colRef, operation, values] of queryRefs.filterTuples) {
-    const colId = docModel.columns.getRowModel(colRef).colId.peek();
+    const colId = colRef === 'id' ? 'id' : docModel.columns.getRowModel(colRef).colId.peek();
     filters[colId] = values;
     operations[colId] = operation;
   }
@@ -388,7 +389,7 @@ function decodeQuery(queryKey: string): QueryRefs {
  */
 function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.Computed<boolean> {
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
-  const colFlags: Array<ko.Observable<boolean>> = queryRefs.filterTuples.map(
-    ([colRef, , ]) => docModel.columns.getRowModel(colRef)._isDeleted);
-  return ko.computed(() => Boolean(tableFlag() || colFlags.some((c) => c())));
+  const colFlags: Array<ko.Observable<boolean> | null> = queryRefs.filterTuples.map(
+    ([colRef, , ]) => colRef === 'id' ? null : docModel.columns.getRowModel(colRef)._isDeleted);
+  return ko.computed(() => Boolean(tableFlag() || colFlags.some((c) => c?.())));
 }
