@@ -707,7 +707,13 @@ class Engine(object):
 
     exempt = self._prevent_recompute_map.get(node, None)
     if exempt:
-      dirty_rows.difference_update(exempt)
+      # If allow_evaluation=False we're not supposed to actually compute dirty_rows.
+      # But we may need to compute them later,
+      # so ensure self.recompute_map[node] isn't mutated by separating it from dirty_rows.
+      # Therefore dirty_rows is assigned a new value. Note that -= would be a mutation.
+      dirty_rows = dirty_rows - exempt
+      if allow_evaluation:
+        self.recompute_map[node] = dirty_rows
 
     require_rows = sorted(require_rows or [])
 
@@ -797,9 +803,12 @@ class Engine(object):
 
       finally:
         for row_id in cleaned:
-          # this modifies self.recompute_map[node], to which dirty_rows is a reference
+          # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
           dirty_rows.discard(row_id)
-        if not dirty_rows:
+        # However it's possible for them to be different
+        # (see above where `exempt` is nonempty and allow_evaluation=True)
+        # so here we check self.recompute_map[node] directly
+        if not self.recompute_map[node]:
           self.recompute_map.pop(node)
 
   def _recompute_one_cell(self, frame, table, col, row_id, cycle=False, node=None):

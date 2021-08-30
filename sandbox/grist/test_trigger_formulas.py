@@ -457,29 +457,44 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
   def test_self_trigger(self):
     # A trigger formula may be triggered by changes to the column itself.
     # Check that it gets recalculated.
-    self.load_sample(self.sample)
+    sample_desc = copy.deepcopy(self.sample_desc)
+    creatures_table = sample_desc["SCHEMA"][0]
+    creatures_columns = creatures_table[-1]
+
     # Set BossUpd column to depend on Ocean and itself.
     # Append something to ensure we are testing a case without a fixed point, to ensure
     # that doesn't cause an infinite update loop.
-    self.update_record('_grist_Tables_column', 6, recalcDeps=['L', 2, 6],
-        formula="UPPER(value or $Ocean.Head) + '+'")
-    self.assertTableData("Creatures", data=[
+    self.assertEqual(creatures_columns[5][1], "BossUpd")
+    creatures_columns[5] = testutil.col_schema_row(
+      6, "BossUpd", "Text", False, "UPPER(value or $Ocean.Head) + '+'", recalcDeps=[2, 6]
+    )
+
+    # Previously there was a bug that meant that columns involved in lookups
+    # did not recalculate their trigger formulas after changes to themselves
+    creatures_columns.append(testutil.col_schema_row(
+      21, "Lookup", "Any", True, "Creatures.lookupRecords(BossUpd='')"
+    ))
+
+    sample = testutil.parse_test_sample(sample_desc)
+    self.load_sample(sample)
+
+    self.assertTableData("Creatures", cols="subset", data=[
       ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
       [1,   "Dolphin", 2,       "Arthur",    "Arthur",  "Arthur",   "Arthur",  "Atlantic"  ],
     ])
 
     self.update_record('Creatures', 1, Ocean=3)
-    self.assertTableData("Creatures", data=[
+    self.assertTableData("Creatures", cols="subset", data=[
       ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
       [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "ARTHUR+",   "Neptune", "Indian"  ],
     ])
     self.update_record('Creatures', 1, BossUpd="None")
-    self.assertTableData("Creatures", data=[
+    self.assertTableData("Creatures", cols="subset", data=[
       ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
       [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "NONE+",     "Neptune", "Indian"  ],
     ])
     self.update_record('Creatures', 1, BossUpd="")
-    self.assertTableData("Creatures", data=[
+    self.assertTableData("Creatures", cols="subset", data=[
       ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
       [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "NEPTUNE+",  "Neptune", "Indian"  ],
     ])
