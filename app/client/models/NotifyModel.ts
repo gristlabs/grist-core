@@ -8,6 +8,7 @@ import {bundleChanges, Disposable, Holder, IDisposable, IDisposableOwner } from 
 import {Computed, dom, DomElementArg, MutableObsArray, obsArray, Observable} from 'grainjs';
 import clamp = require('lodash/clamp');
 import defaults = require('lodash/defaults');
+import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
 
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;
@@ -341,11 +342,24 @@ export class Notifier extends Disposable implements INotifier {
   private _createAppErrorItem(where: 'toast' | 'dropdown') {
     return this.createNotification({
       // Building DOM here in NotifyModel seems wrong, but I haven't come up with a better way.
-      message: () => dom.forEach(this._appErrorList, (appErr: IAppError) =>
-        (where === 'toast' && appErr.seen ? null :
-          dom('div', timeFormat('T', new Date(appErr.timestamp)), ' ', appErr.error.message)
-        )
-      ),
+      message: () => dom.domComputed((use) => {
+        let appErrors = use(this._appErrorList);
+
+        // On narrow screens, only show the most recent error in toasts to conserve space.
+        if (where === 'toast' && use(isNarrowScreenObs())) {
+          appErrors = appErrors.length > 0 ? [appErrors[appErrors.length - 1]] : [];
+        }
+
+        return dom('div',
+          dom.forEach(appErrors, (appErr: IAppError) =>
+            (where === 'toast' && appErr.seen ? null :
+              dom('div', timeFormat('T', new Date(appErr.timestamp)), ' ',
+                  appErr.error.message, testId('notification-app-error'))
+            )
+          ),
+          testId('notification-app-errors')
+        );
+      }),
       title: 'Unexpected error',
       canUserClose: true,
       inToast: where === 'toast',

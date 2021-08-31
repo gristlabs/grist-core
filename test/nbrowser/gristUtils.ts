@@ -7,7 +7,7 @@ import * as fse from 'fs-extra';
 import escapeRegExp = require('lodash/escapeRegExp');
 import noop = require('lodash/noop');
 import startCase = require('lodash/startCase');
-import { assert, driver, error, IRectangle, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
+import { assert, driver, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods } from 'mocha-webdriver';
 import * as path from 'path';
 
@@ -920,7 +920,7 @@ export async function toggleSidePanel(which: 'right'|'left', goal: 'open'|'close
   const delta = 0.1;
 
   // Adds '-ns' when narrow screen
-  const suffix = (await driver.manage().window().getRect()).width < 768 ? '-ns' : '';
+  const suffix = (await getWindowDimensions()).width < 768 ? '-ns' : '';
 
   // click the opener and wait for the duration of the transition
   await driver.find(`.test-${which}-opener${suffix}`).doClick();
@@ -1524,18 +1524,53 @@ export async function selectColumnRange(col1: string, col2: string) {
   await driver.mouseUp();
 }
 
+export interface WindowDimensions {
+  width: number;
+  height: number;
+}
+
 /**
- * Changes browser window dimension to FullHd for a test suit.
+ * Gets browser window dimensions.
  */
-export function bigScreen() {
-  let oldRect!: IRectangle;
+ export async function getWindowDimensions(): Promise<WindowDimensions> {
+  const {width, height} = await driver.manage().window().getRect();
+  return {width, height};
+}
+
+/**
+ * Sets browser window dimensions.
+ */
+export function setWindowDimensions(width: number, height: number) {
+  return driver.manage().window().setRect({width, height});
+}
+
+/**
+ * Changes browser window dimensions for the duration of a test suite.
+ */
+export function resizeWindowForSuite(width: number, height: number) {
+  let oldDimensions: WindowDimensions;
   before(async function () {
-    oldRect = await driver.manage().window().getRect();
-    await driver.manage().window().setRect({ width: 1920, height: 1080 });
+    oldDimensions = await getWindowDimensions();
+    await setWindowDimensions(width, height);
   });
   after(async function () {
-    await driver.manage().window().setRect(oldRect);
+    await setWindowDimensions(oldDimensions.width, oldDimensions.height);
   });
+}
+
+/**
+ * Changes browser window dimensions to FullHd for a test suite.
+ */
+export function bigScreen() {
+  resizeWindowForSuite(1920, 1080);
+}
+
+/**
+ * Shrinks browser window dimensions to trigger mobile mode for a test suite.
+ */
+ export function narrowScreen() {
+  resizeWindowForSuite(400, 750);
+
 }
 
 /**
