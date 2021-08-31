@@ -15,7 +15,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
   'w', 'ww', 'wwww', 'wwwww',
   'docs', 'api', 'static',
   'ftp', 'imap', 'pop', 'smtp', 'mail', 'git', 'blog', 'wiki', 'support', 'kb', 'help',
-  'admin', 'store', 'dev', 'beta', 'dev',
+  'admin', 'store', 'dev', 'beta',
   'community', 'try', 'wpx',
 
   // a few random tech brands
@@ -23,6 +23,9 @@ const BLACKLISTED_SUBDOMAINS = new Set([
 
   // updates for new special domains
   'current', 'staging', 'prod', 'login', 'login-dev',
+
+  // some domains that look suspicious
+  '1ogin', '1ogin-dev'
 ]);
 
 /**
@@ -37,7 +40,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
  */
 export function checkSubdomainValidity(subdomain: string): void {
   // stick with limited alphanumeric subdomains.
-  if (!(/^[a-z][-a-z0-9]*$/.test(subdomain))) {
+  if (!(/^[a-z0-9][-a-z0-9]*$/.test(subdomain))) {
     throw new Error('Domain must include letters, numbers, and dashes only.');
   }
   // 'docs-*' is reserved for personal orgs.
