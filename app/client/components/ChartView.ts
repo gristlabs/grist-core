@@ -1,6 +1,6 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {sortByXValues} from 'app/client/lib/chartUtil';
+import {sortByXValues, uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
 import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
@@ -352,6 +352,15 @@ function cssCheckboxRow(label: string, value: KoSaveableObservable<unknown>, ...
 function basicPlot(series: Series[], options: ChartOptions, dataOptions: Partial<Data>): PlotData {
   trimNonNumericData(series);
   const errorBars = extractErrorBars(series, options);
+
+  if (dataOptions.type === 'bar') {
+    // Plotly has weirdness when redundant values shows up on the x-axis: the values that shows
+    // up on hover is different than the value on the y-axis. It seems that one is the sum of all
+    // values with same x-axis value, while the other is the last of them. To fix this, we force
+    // unique values for the x-axis.
+    series = uniqXValues(series);
+  }
+
   return {
     data: series.slice(1).map((line: Series): Data => ({
       name: getSeriesName(line, series.length > 2),

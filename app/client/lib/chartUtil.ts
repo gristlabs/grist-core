@@ -1,5 +1,7 @@
 import {typedCompare} from 'app/common/SortFunc';
 import {Datum} from 'plotly.js';
+import range = require('lodash/range');
+import uniqBy = require('lodash/uniqBy');
 
 /**
  * Sort all values in a list of series according to the values in the first one.
@@ -17,4 +19,15 @@ export function sortByXValues(series: Array<{values: Datum[]}>): void {
     const values = s.values;
     s.values = indices.map((i) => values[i]);
   }
+}
+
+// creates new version of series that has a duplicate free version of the values in the first one.
+export function uniqXValues<T extends {values: Datum[]}>(series: Array<T>): Array<T> {
+  if (!series[0]) { return []; }
+  const n = series[0].values.length;
+  const indexToKeep = new Set(uniqBy(range(n), (i) => series[0].values[i]));
+  return series.map((line: T) => ({
+    ...line,
+    values: line.values.filter((_val, i) => indexToKeep.has(i))
+  }));
 }
