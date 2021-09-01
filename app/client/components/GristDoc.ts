@@ -46,7 +46,7 @@ import {isSchemaAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
 import {RecalcWhen} from 'app/common/gristTypes';
-import {encodeQueryParams, undef, waitObs} from 'app/common/gutil';
+import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
@@ -625,29 +625,20 @@ export class GristDoc extends DisposableWithEvents {
     );
   }
 
-  public getXlsxLink() {
-    const baseUrl = this.docPageModel.appModel.api.getDocAPI(this.docId()).getGenerateXlsxUrl();
-    const params = {
-      title: this.docPageModel.currentDocTitle.get(),
-    };
-    return baseUrl + '?' + encodeQueryParams(params);
-  }
-
   public getCsvLink() {
     const filters = this.viewModel.activeSection.peek().filteredFields.get().map(field=> ({
       colRef : field.colRef.peek(),
       filter : field.activeFilter.peek()
     }));
 
-    const baseUrl = this.docPageModel.appModel.api.getDocAPI(this.docId()).getGenerateCsvUrl();
     const params = {
-      title: this.docPageModel.currentDocTitle.get(),
       viewSection: this.viewModel.activeSectionId(),
       tableId: this.viewModel.activeSection().table().tableId(),
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
       filters : JSON.stringify(filters),
     };
-    return baseUrl + '?' + encodeQueryParams(params);
+
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
   }
 
   public hasGranularAccessRules(): boolean {

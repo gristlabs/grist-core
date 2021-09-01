@@ -223,8 +223,10 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     ),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       menuIcon('Download'), 'Export CSV', testId('tb-share-option')),
-    menuItemLink({ href: gristDoc.getXlsxLink(), target: '_blank', download: ''},
-      menuIcon('Download'), 'Export XLSX', testId('tb-share-option')),
+    menuItemLink({
+      href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
+      target: '_blank', download: ''
+    }, menuIcon('Download'), 'Export XLSX', testId('tb-share-option')),
     menuItem(() => sendToDrive(doc, pageModel),
       menuIcon('Download'), 'Send to Google Drive', testId('tb-share-option')),
   ];

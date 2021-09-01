@@ -3,6 +3,37 @@ import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
 import {ExportData, exportDoc} from 'app/server/lib/Export';
 import {Alignment, Border, Fill, Workbook} from 'exceljs';
 import * as express from 'express';
+import * as log from 'app/server/lib/log';
+import * as contentDisposition from 'content-disposition';
+
+export interface DownloadXLSXOptions {
+  filename: string;
+}
+
+/**
+ * Converts `activeDoc` to CSV and sends the converted data through `res`.
+ */
+export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
+                                   res: express.Response, {filename}: DownloadXLSXOptions) {
+  log.debug(`Generating .xlsx file`);
+  try {
+    const data = await makeXLSX(activeDoc, req);
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
+    res.send(data);
+    log.debug('XLSX file generated');
+  } catch (err) {
+    log.error("Exporting to XLSX has failed. Request url: %s", req.url, err);
+    // send a generic information to client
+    const errHtml =
+      `<!doctype html>
+<html>
+  <body>There was an unexpected error while generating a xlsx file.</body>
+</html>
+`;
+    res.status(400).send(errHtml);
+  }
+}
 
 /**
  * Creates excel document with all tables from an active Grist document.

@@ -1,16 +1,54 @@
 import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ExportData, exportSection, Filter} from 'app/server/lib/Export';
+import {ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import * as bluebird from 'bluebird';
 import * as csv from 'csv';
 import * as express from 'express';
+import * as log from 'app/server/lib/log';
+import * as contentDisposition from 'content-disposition';
+
+export interface DownloadCSVOptions {
+  filename: string;
+  tableId: string;
+  viewSectionId: number | undefined;
+  filters: Filter[];
+  sortOrder: number[];
+}
 
 // promisify csv
 bluebird.promisifyAll(csv);
 
 /**
- * Returns a csv stream that can be transformed or parsed.  See https://github.com/wdavidw/node-csv
- * for API details.
+ * Converts `activeDoc` to a CSV and sends the converted data through `res`.
+ */
+export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
+                                  res: express.Response, options: DownloadCSVOptions) {
+  log.info('Generating .csv file...');
+  const {filename, tableId, viewSectionId, filters, sortOrder} = options;
+
+  try {
+    const data = viewSectionId ?
+      await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req) :
+      await makeCSVFromTable(activeDoc, tableId, req);
+    res.set('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
+    res.send(data);
+  } catch (err) {
+    log.error("Exporting to CSV has failed. Request url: %s", req.url, err);
+    const errHtml =
+      `<!doctype html>
+<html>
+  <body>There was an unexpected error while generating a csv file.</body>
+</html>
+`;
+    res.status(400).send(errHtml);
+  }
+}
+
+/**
+ * Returns a csv stream of a view section that can be transformed or parsed.
+ *
+ * See https://github.com/wdavidw/node-csv for API details.
  *
  * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
  * @param {Integer} viewSectionId - id of the viewsection to export.
@@ -18,7 +56,7 @@ bluebird.promisifyAll(csv);
  * @param {Filter[]} filters (optional) - filters defined from ui.
  * @return {Promise<string>} Promise for the resulting CSV.
  */
-export async function makeCSV(
+export async function makeCSVFromViewSection(
   activeDoc: ActiveDoc,
   viewSectionId: number,
   sortOrder: number[],
@@ -26,6 +64,31 @@ export async function makeCSV(
   req: express.Request) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, req);
+  const file = convertToCsv(data);
+  return file;
+}
+
+/**
+ * Returns a csv stream of a table that can be transformed or parsed.
+ *
+ * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Integer} tableId - id of the table to export.
+ * @return {Promise<string>} Promise for the resulting CSV.
+ */
+export async function makeCSVFromTable(
+  activeDoc: ActiveDoc,
+  tableId: string,
+  req: express.Request) {
+
+  if (!activeDoc.docData) {
+    throw new Error('No docData in active document');
+  }
+
+  // Look up the table to make a CSV from.
+  const tables = activeDoc.docData.getTable('_grist_Tables')!;
+  const tableRef = tables.findRow('tableId', tableId);
+
+  const data = await exportTable(activeDoc, tableRef, req);
   const file = convertToCsv(data);
   return file;
 }

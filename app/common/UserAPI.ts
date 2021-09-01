@@ -11,6 +11,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
+import {encodeQueryParams} from 'app/common/gutil';
 
 export {FullUser} from 'app/common/LoginSessionAPI';
 
@@ -321,6 +322,16 @@ export interface UserAPI {
 }
 
 /**
+ * Parameters for the download CSV endpoint (/download/csv).
+ */
+ export interface DownloadCsvParams {
+  tableId: string;
+  viewSection?: number;
+  activeSortSpec?: string;
+  filters?: string;
+}
+
+/**
  * Collect endpoints related to the content of a single document that we've been thinking
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
  * reasons, such as downloads.
@@ -347,8 +358,8 @@ export interface DocAPI {
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
   getDownloadUrl(template?: boolean): string;
-  getGenerateXlsxUrl(): string;
-  getGenerateCsvUrl(): string;
+  getDownloadXlsxUrl(): string;
+  getDownloadCsvUrl(params: DownloadCsvParams): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -792,12 +803,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + `/download?template=${Number(template)}`;
   }
 
-  public getGenerateXlsxUrl() {
-    return this._url + '/gen-xlsx';
+  public getDownloadXlsxUrl() {
+    return this._url + '/download/xlsx';
   }
 
-  public getGenerateCsvUrl() {
-    return this._url + '/gen-csv';
+  public getDownloadCsvUrl(params: DownloadCsvParams) {
+    // We spread `params` to work around TypeScript being overly cautious.
+    return this._url + '/download/csv?' + encodeQueryParams({...params});
   }
 
   public async sendToDrive(code: string, title: string): Promise<{url: string}> {

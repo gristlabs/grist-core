@@ -11,7 +11,7 @@ import {DocumentSettings} from 'app/common/DocumentSettings';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
-import { integerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
+import {optIntegerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
@@ -72,7 +72,7 @@ export interface ExportData {
  */
 export interface ExportParameters {
   tableId: string;
-  viewSectionId: number;
+  viewSectionId: number | undefined;
   sortOrder: number[];
   filters: Filter[];
 }
@@ -82,7 +82,7 @@ export interface ExportParameters {
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
   const tableId = stringParam(req.query.tableId);
-  const viewSectionId = integerParam(req.query.viewSection);
+  const viewSectionId = optIntegerParam(req.query.viewSection);
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
 
@@ -92,20 +92,6 @@ export function parseExportParameters(req: express.Request): ExportParameters {
     sortOrder,
     filters
   };
-}
-
-/**
- * Calculates the file name (without an extension) for exported table.
- * @param activeDoc ActiveDoc
- * @param req Request (with export params)
- */
-export function parseExportFileName(activeDoc: ActiveDoc, req: express.Request) {
-  const title = req.query.title;
-  const tableId = req.query.tableId;
-  const docName = title || activeDoc.docName;
-  const name = docName +
-    (tableId === docName ? '' : '-' + tableId);
-  return name;
 }
 
 // Makes assertion that value does exists or throws an error

@@ -33,7 +33,9 @@ import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 import * as _ from "lodash";
 import {isRaisedException} from "app/common/gristTypes";
 import {localeFromRequest} from "app/server/lib/ServerLocale";
-import { generateCSV, generateXLSX } from "app/server/serverMethods";
+import { downloadCSV, DownloadCSVOptions } from "app/server/lib/ExportCSV";
+import { downloadXLSX, DownloadXLSXOptions } from "app/server/lib/ExportXLSX";
+import { parseExportParameters } from "app/server/lib/Export";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -566,9 +568,31 @@ export class DocWorkerApi {
       res.json(result);
     }));
 
-    this._app.get('/api/docs/:docId/gen-csv', canView, withDoc(generateCSV));
+    this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
+      // Query DB for doc metadata to get the doc title.
+      const {name: docTitle} =
+        await this._dbManager.getDoc({userId: getUserId(req), org: req.org, urlId: getDocId(req)});
 
-    this._app.get('/api/docs/:docId/gen-xlsx', canView, withDoc(generateXLSX));
+      const params = parseExportParameters(req);
+      const filename = docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId);
+
+      const options: DownloadCSVOptions = {
+        ...params,
+        filename,
+      };
+
+      await downloadCSV(activeDoc, req, res, options);
+    }));
+
+    this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
+      // Query DB for doc metadata to get the doc title (to use as the filename).
+      const {name: filename} =
+        await this._dbManager.getDoc({userId: getUserId(req), org: req.org, urlId: getDocId(req)});
+
+      const options: DownloadXLSXOptions = {filename};
+
+      await downloadXLSX(activeDoc, req, res, options);
+    }));
 
     this._app.get('/api/docs/:docId/send-to-drive', canView, decodeGoogleToken, withDoc(exportToDrive));
 
