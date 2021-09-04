@@ -1,5 +1,13 @@
 /* global $, window */
 
+// This is the entry point into loading the whole of Grist frontend application. Some extensions
+// attempt to load it more than once (e.g. "Lingvanex"). This leads to duplicated work and errors.
+// At least some of such interference can be neutralized by simply ignoring repeated loads.
+if (window._gristAppLoaded) {
+  return;
+}
+window._gristAppLoaded = true;
+
 const {App} = require('./ui/App');
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
