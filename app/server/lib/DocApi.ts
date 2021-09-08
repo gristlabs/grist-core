@@ -758,9 +758,13 @@ export class DocWorkerApi {
     const scope = getDocScope(req);
     const docId = getDocId(req);
     if (permanent) {
-      const query = await this._dbManager.deleteDocument(scope);
-      this._dbManager.checkQueryResult(query);  // fail immediately if deletion denied.
+      // Soft delete the doc first, to de-list the document.
+      await this._dbManager.softDeleteDocument(scope);
+      // Delete document content from storage.
       await this._docManager.deleteDoc(null, docId, true);
+      // Permanently delete from database.
+      const query = await this._dbManager.deleteDocument(scope);
+      this._dbManager.checkQueryResult(query);
       await sendReply(req, res, query);
     } else {
       await this._dbManager.softDeleteDocument(scope);

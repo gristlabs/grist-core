@@ -1299,7 +1299,8 @@ export class HomeDBManager extends EventEmitter {
     return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
-        markPermissions: Permissions.REMOVE
+        markPermissions: Permissions.REMOVE,
+        allowSpecialPermit: true
       })
       // Join the org's workspaces (with ACLs and groups), docs (with ACLs and groups)
       // and ACLs and groups so we can remove them.
@@ -3837,7 +3838,8 @@ export class HomeDBManager extends EventEmitter {
     return this._connection.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
-        markPermissions: Permissions.REMOVE
+        markPermissions: Permissions.REMOVE,
+        allowSpecialPermit: true
       });
       if (!removedAt) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
