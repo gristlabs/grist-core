@@ -22,13 +22,12 @@ export async function duplicatePage(gristDoc: GristDoc, pageId: number) {
 
   confirmModal('Duplicate page', 'Save', () => makeDuplicate(gristDoc, pageId, inputEl.value), (
     dom('div', [
-      "Enter name for the new page. ",
-      "Note that this does not copy data, ",
-      "but creates another view of the same data. ",
       cssField(
         cssLabel("Name"),
         inputEl = cssInput({value: pageName + ' (copy)'}),
-      )
+      ),
+      "Note that this does not copy data, ",
+      "but creates another view of the same data.",
     ])
   ));
 }

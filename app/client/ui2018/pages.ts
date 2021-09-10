@@ -30,7 +30,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
             dom.cls('disabled', actions.isReadonly)),
     menuItem(actions.onRemove, 'Remove', testId('remove'),
              dom.cls('disabled', (use) => use(actions.isReadonly) || actions.isRemoveDisabled())),
-    menuItem(actions.onDuplicate, 'Duplicate', testId('duplicate'),
+    menuItem(actions.onDuplicate, 'Duplicate Page', testId('duplicate'),
              dom.cls('disabled', actions.isReadonly)),
     dom.maybe(actions.isReadonly, () => menuText('You do not have edit access to this document')),
   ];
