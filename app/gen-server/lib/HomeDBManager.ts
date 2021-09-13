@@ -1331,7 +1331,7 @@ export class HomeDBManager extends EventEmitter {
         ...wsAcls, ...wsGroups, ...docs, ...docAcls, ...docGroups]);
 
       // Delete billing account if this was the last org using it.
-      const billingAccount = await manager.findOne(BillingAccount, org.billingAccount,
+      const billingAccount = await manager.findOne(BillingAccount, org.billingAccountId,
                                                    {relations: ['orgs']});
       if (billingAccount && billingAccount.orgs.length === 0) {
         await manager.remove([billingAccount]);

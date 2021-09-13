@@ -121,7 +121,11 @@ export interface BillingAPI {
          settings: IBillingOrgSettings): Promise<OrganizationWithoutAccessInfo>;
   setCard(tokenId: string): Promise<void>;
   removeCard(): Promise<void>;
-  setSubscription(planId: string, tokenId?: string): Promise<void>;
+  setSubscription(planId: string, options: {
+    tokenId?: string,
+    address?: IBillingAddress,
+    settings?: IBillingOrgSettings,
+  }): Promise<void>;
   updateAddress(address?: IBillingAddress, settings?: IBillingOrgSettings): Promise<void>;
   updateBillingManagers(delta: ManagerDelta): Promise<void>;
 }
@@ -178,10 +182,13 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     return parsed.data;
   }
 
-  public async setSubscription(planId: string, tokenId?: string): Promise<void> {
+  public async setSubscription(planId: string, options: {
+    tokenId?: string,
+    address?: IBillingAddress,
+  }): Promise<void> {
     await this.request(`${this._url}/api/billing/subscription`, {
       method: 'POST',
-      body: JSON.stringify({ tokenId, planId })
+      body: JSON.stringify({ ...options, planId })
     });
   }
 

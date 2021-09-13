@@ -6,6 +6,7 @@ import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import * as Comm from 'app/server/lib/Comm';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
+import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { Sessions } from 'app/server/lib/Sessions';
 import * as express from 'express';
@@ -29,6 +30,7 @@ export interface GristServer {
   getComm(): Comm;
   getHosts(): Hosts;
   getHomeDBManager(): HomeDBManager;
+  getStorageManager(): IDocStorageManager;
 }
 
 export interface GristLoginMiddleware {

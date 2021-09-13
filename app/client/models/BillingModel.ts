@@ -157,7 +157,7 @@ export class BillingModelImpl extends Disposable implements BillingModel {
         if (task === 'updatePlan') {
           // Change plan from a paid plan to another paid plan or to the free plan.
           if (!planId) { throw new Error('BillingPage _submit error: no plan selected'); }
-          await this._billingAPI.setSubscription(planId, formData.token);
+          await this._billingAPI.setSubscription(planId, {tokenId: formData.token});
         } else if (task === 'addCard' || task === 'updateCard') {
           // Add or update payment card.
           if (!formData.token) { throw new Error('BillingPage _submit error: missing card info token'); }

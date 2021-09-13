@@ -264,6 +264,11 @@ export class FlexServer implements GristServer {
     return this._dbManager;
   }
 
+  public getStorageManager(): IDocStorageManager {
+    if (!this._storageManager) { throw new Error('no storage manager available'); }
+    return this._storageManager;
+  }
+
   public addLogging() {
     if (this._check('logging')) { return; }
     if (process.env.GRIST_LOG_SKIP_HTTP) { return; }

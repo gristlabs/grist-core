@@ -16,7 +16,7 @@ export class Doom {
 
   /**
    * Deletes a team site.
-   *   - Remove billing (fails if no outstanding balance).
+   *   - Remove billing (fails if there is an outstanding balance).
    *   - Delete workspaces.
    *   - Delete org.
    */
