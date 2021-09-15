@@ -294,7 +294,12 @@ class Table(object):
     if summary_table._summary_simple:
       @usertypes.formulaType(usertypes.Reference(summary_table.table_id))
       def _updateSummary(rec, table):  # pylint: disable=unused-argument
-        return summary_table.lookupOrAddDerived(**{c: getattr(rec, c) for c in groupby_cols})
+        try:
+          # summary table output should be treated as we treat formula columns, for acl purposes
+          self._engine.user_actions.enter_indirection()
+          return summary_table.lookupOrAddDerived(**{c: getattr(rec, c) for c in groupby_cols})
+        finally:
+          self._engine.user_actions.leave_indirection()
     else:
       @usertypes.formulaType(usertypes.ReferenceList(summary_table.table_id))
       def _updateSummary(rec, table):  # pylint: disable=unused-argument
@@ -333,9 +338,14 @@ class Table(object):
             new_row_ids.append(None)
 
         if new_row_ids and not self._engine.is_triggered_by_table_action(summary_table.table_id):
-          result += self._engine.user_actions.BulkAddRecord(
-            summary_table.table_id, new_row_ids, values_to_add
-          )
+          try:
+            # summary table output should be treated as we treat formula columns, for acl purposes
+            self._engine.user_actions.enter_indirection()
+            result += self._engine.user_actions.BulkAddRecord(
+              summary_table.table_id, new_row_ids, values_to_add
+            )
+          finally:
+            self._engine.user_actions.leave_indirection()
 
         return result
 

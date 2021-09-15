@@ -1,5 +1,5 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
+import {ApplyUAResult, QueryFilters} from 'app/common/ActiveDocAPI';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -337,7 +337,7 @@ export interface UserAPI {
  * reasons, such as downloads.
  */
 export interface DocAPI {
-  getRows(tableId: string): Promise<TableColValues>;
+  getRows(tableId: string, options?: { filters?: QueryFilters }): Promise<TableColValues>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
@@ -728,8 +728,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     this._url = `${url}/api/docs/${docId}`;
   }
 
-  public async getRows(tableId: string): Promise<TableColValues> {
-    return this.requestJson(`${this._url}/tables/${tableId}/data`);
+  public async getRows(tableId: string, options?: { filters?: QueryFilters }): Promise<TableColValues> {
+    const query = options?.filters ? ("?filter=" + encodeURIComponent(JSON.stringify(options.filters))) : '';
+    return this.requestJson(`${this._url}/tables/${tableId}/data${query}`);
   }
 
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {

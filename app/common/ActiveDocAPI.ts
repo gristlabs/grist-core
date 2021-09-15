@@ -78,9 +78,7 @@ export interface ImportOptions {
  */
 interface BaseQuery {
   tableId: string;
-  filters: {
-    [colId: string]: any[];
-  };
+  filters: QueryFilters;
 }
 
 /**
@@ -99,6 +97,14 @@ export interface ClientQuery extends BaseQuery {
 export interface ServerQuery extends BaseQuery {
   // Queries to server for onDemand tables will set a limit to avoid bringing down the browser.
   limit?: number;
+}
+
+/**
+ * Type of the filters option to queries.
+ */
+export interface QueryFilters {
+  // TODO: check if "any" can be replaced with "CellValue".
+  [colId: string]: any[];
 }
 
 export type QueryOperation = "in" | "intersects";

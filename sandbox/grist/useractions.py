@@ -30,6 +30,11 @@ log = logger.Logger(__name__, logger.INFO)
 _current_module = sys.modules[__name__]
 _action_types = {}
 
+# When distinguishing actions directly requested by the user from actions that
+# are indirect consequences of those actions (specifically, adding rows to summary tables)
+# we count levels of indirection. Zero indirection levels implies an action is directly
+# requested.
+DIRECT_ACTION = 0
 
 # Fields of _grist_Tables_column table that may be modified using ModifyColumns useraction.
 _modifiable_col_fields = {'type', 'widgetOptions', 'formula', 'isFormula', 'label',
@@ -147,11 +152,26 @@ class UserActions(object):
     self._summary = summary.SummaryActions(self, self._docmodel)
     self._import_actions = import_actions.ImportActions(self, self._docmodel, eng)
     self._allow_changes = False
+    self._indirection_level = DIRECT_ACTION
 
     # Map of methods implementing particular (action_name, table_id) combinations. It mirrors
     # global _action_method_overrides, but with methods *bound* to this UserActions instance.
     self._overrides = {key: method.__get__(self, UserActions)
                        for key, method in six.iteritems(_action_method_overrides)}
+
+  def enter_indirection(self):
+    """
+    Mark any actions following this call as being indirect, until leave_indirection is
+    called. Nesting is supported (but not used).
+    """
+    self._indirection_level += 1
+
+  def leave_indirection(self):
+    """
+    Undo an enter_indirection.
+    """
+    self._indirection_level -= 1
+    assert self._indirection_level >= 0
 
   def _do_doc_action(self, action):
     if hasattr(action, 'simplify'):
@@ -159,7 +179,7 @@ class UserActions(object):
       action = action.simplify()
     if action:
       self._engine.out_actions.stored.append(action)
-      self._engine.out_actions.direct.append(True)
+      self._engine.out_actions.direct.append(self._indirection_level == DIRECT_ACTION)
       self._engine.apply_doc_action(action)
 
   def _bulk_action_iter(self, table_id, row_ids, col_values=None):
