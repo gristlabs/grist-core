@@ -526,7 +526,7 @@ export class GristDoc extends DisposableWithEvents {
                                             multiple: true});
     if (uploadResult) {
       const dataSource = {uploadId: uploadResult.uploadId, transforms: []};
-      const importResult = await this.docComm.finishImportFiles(dataSource, {}, []);
+      const importResult = await this.docComm.finishImportFiles(dataSource, [], {});
       const tableId = importResult.tables[0].hiddenTableId;
       const tableRowModel = this.docModel.dataTables[tableId].tableMetaRow;
       await this.openDocPage(tableRowModel.primaryViewId());

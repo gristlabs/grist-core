@@ -21,6 +21,7 @@ import {
   ApplyUAResult,
   DataSourceTransformed,
   ForkResult,
+  ImportOptions,
   ImportResult,
   QueryResult,
   ServerQuery
@@ -467,8 +468,8 @@ export class ActiveDoc extends EventEmitter {
    * call, or empty if there was no previous call.
    */
   public finishImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
-                           parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult> {
-    return this._activeDocImport.finishImportFiles(docSession, dataSource, parseOptions, prevTableIds);
+                           prevTableIds: string[], importOptions: ImportOptions): Promise<ImportResult> {
+    return this._activeDocImport.finishImportFiles(docSession, dataSource, prevTableIds, importOptions);
   }
 
   /**

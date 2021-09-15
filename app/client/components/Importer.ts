@@ -15,14 +15,16 @@ import {openFilePicker} from "app/client/ui/FileDialog";
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, linkSelect} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
-import {DataSourceTransformed, ImportResult, ImportTableResult} from "app/common/ActiveDocAPI";
-import {TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
+import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
+        MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
 import {byteString} from "app/common/gutil";
 import {UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
-import {Computed, Disposable, dom, DomContents, IDisposable, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, IDisposable, MutableObsArray, obsArray, Observable,
+        styled} from 'grainjs';
+import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
 
 // Special values for import destinations; null means "new table".
 // TODO We should also support "skip table" (needs server support), so that one can open, say,
@@ -44,6 +46,15 @@ export interface SourceInfo {
   sourceSection: ViewSectionRec;
   transformSection: Observable<ViewSectionRec>;
   destTableId: Observable<DestId>;
+}
+ // UI state of selected merge options for each source table (from SourceInfo).
+interface MergeOptionsState {
+  [srcTableId: string]: {
+    updateExistingRecords: Observable<boolean>;
+    mergeCols: MutableObsArray<string>;
+    mergeStrategy: Observable<MergeStrategy>;
+    hasInvalidMergeCols: Observable<boolean>;
+  } | undefined;
 }
 
 /**
@@ -119,6 +130,7 @@ export class Importer extends Disposable {
   private _uploadResult?: UploadResult;
 
   private _screen: PluginScreen;
+  private _mergeOptions: MergeOptionsState = {};
   private _parseOptions = Observable.create<ParseOptions>(this, {});
   private _sourceInfoArray = Observable.create<SourceInfo[]>(this, []);
   private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
@@ -223,6 +235,22 @@ export class Importer extends Disposable {
     return {uploadId: upload.uploadId, transforms};
   }
 
+  private _getMergeOptions(upload: UploadResult): Array<MergeOptions|null> {
+    return upload.files.map((_file, i) => {
+      const sourceInfo = this._sourceInfoArray.get().find(info => info.uploadFileIndex === i);
+      if (!sourceInfo) { return null; }
+
+      const mergeOptions = this._mergeOptions[sourceInfo.hiddenTableId];
+      if (!mergeOptions) { return null; }
+
+      const {updateExistingRecords, mergeCols, mergeStrategy} = mergeOptions;
+      return {
+        mergeCols: updateExistingRecords.get() ? mergeCols.get() : [],
+        mergeStrategy: mergeStrategy.get()
+      };
+    });
+  }
+
   private _createTransformRuleMap(uploadFileIndex: number): TransformRuleMap {
     const result: TransformRuleMap = {};
     for (const sourceInfo of this._sourceInfoArray.get()) {
@@ -276,6 +304,16 @@ export class Importer extends Disposable {
         throw new Error("No data was imported");
       }
 
+      this._mergeOptions = {};
+      this._getHiddenTableIds().forEach(tableId => {
+        this._mergeOptions[tableId] = {
+          updateExistingRecords: Observable.create(null, false),
+          mergeCols: obsArray(),
+          mergeStrategy: Observable.create(null, {type: 'replace-with-nonblank-source'}),
+          hasInvalidMergeCols: Observable.create(null, false)
+        };
+      });
+
       // Select the first sourceInfo to show in preview.
       this._sourceInfoSelected.set(this._sourceInfoArray.get()[0] || null);
 
@@ -287,11 +325,16 @@ export class Importer extends Disposable {
     }
   }
 
-  private async _finishImport(upload: UploadResult) {
+  private async _maybeFinishImport(upload: UploadResult) {
+    const isConfigValid = this._validateImportConfiguration();
+    if (!isConfigValid) { return; }
+
     this._screen.renderSpinner();
     const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
+    const mergeOptions = this._getMergeOptions(upload);
+
     const importResult: ImportResult = await this._docComm.finishImportFiles(
-      this._getTransformedDataSource(upload), parseOptions, this._getHiddenTableIds());
+      this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptions, parseOptions});
 
     if (importResult.tables[0].hiddenTableId) {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
@@ -308,6 +351,28 @@ export class Importer extends Disposable {
     }
     this._screen.close();
     this.dispose();
+  }
+
+  private _resetTableMergeOptions(tableId: string) {
+    this._mergeOptions[tableId]?.mergeCols.set([]);
+  }
+
+  private _validateImportConfiguration(): boolean {
+    let isValid = true;
+
+    const selectedSourceInfo = this._sourceInfoSelected.get();
+    if (!selectedSourceInfo) { return isValid; } // No configuration to validate.
+
+    const mergeOptions = this._mergeOptions[selectedSourceInfo.hiddenTableId];
+    if (!mergeOptions) { return isValid; } // No configuration to validate.
+
+    const {updateExistingRecords, mergeCols, hasInvalidMergeCols} = mergeOptions;
+    if (updateExistingRecords.get() && mergeCols.get().length === 0) {
+      hasInvalidMergeCols.set(true);
+      isValid = false;
+    }
+
+    return isValid;
   }
 
   private _buildModalTitle(rightElement?: DomContents) {
@@ -329,17 +394,63 @@ export class Importer extends Disposable {
         cssTableList(
           dom.forEach(this._sourceInfoArray, (info) => {
             const destTableId = Computed.create(null, (use) => use(info.destTableId))
-              .onWrite((destId) => this._updateTransformSection(info, destId));
+              .onWrite((destId) => {
+                this._resetTableMergeOptions(info.hiddenTableId);
+                void this._updateTransformSection(info, destId);
+              });
             return cssTableInfo(
               dom.autoDispose(destTableId),
               cssTableLine(cssToFrom('From'),
                 cssTableSource(getSourceDescription(info, upload), testId('importer-from'))),
               cssTableLine(cssToFrom('To'), linkSelect<DestId>(destTableId, this._destTables)),
               cssTableInfo.cls('-selected', (use) => use(this._sourceInfoSelected) === info),
-              dom.on('click', () => this._sourceInfoSelected.set(info)),
+              dom.on('click', () => {
+                if (info === this._sourceInfoSelected.get() || !this._validateImportConfiguration()) {
+                  return;
+                }
+                this._sourceInfoSelected.set(info);
+              }),
               testId('importer-source'),
             );
           }),
+        ),
+        dom.maybe(this._sourceInfoSelected, (info) =>
+          dom.maybe(info.destTableId, () => {
+            const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
+            return cssMergeOptions(
+              cssMergeOptionsToggle(labeledSquareCheckbox(
+                updateExistingRecords,
+                'Update existing records',
+                testId('importer-update-existing-records')
+              )),
+              dom.maybe(updateExistingRecords, () => [
+                cssMergeOptionsMessage(
+                  'Imported rows will be merged with records that have the same values for all of these fields:',
+                  testId('importer-merge-fields-message')
+                ),
+                dom.domComputed(info.transformSection, section => {
+                  // When changes are made to selected fields, reset the multiSelect error observable.
+                  const invalidColsListener = mergeCols.addListener((val, _prev) => {
+                    if (val.length !== 0 && hasInvalidMergeCols.get()) {
+                      hasInvalidMergeCols.set(false);
+                    }
+                  });
+                  return [
+                    dom.autoDispose(invalidColsListener),
+                    multiSelect(
+                      mergeCols,
+                      section.viewFields().peek().map(field => field.label()),
+                      {
+                        placeholder: 'Select fields to match on',
+                        error: hasInvalidMergeCols
+                      },
+                      testId('importer-merge-fields-select')
+                    ),
+                  ];
+                })
+              ])
+            );
+          })
         ),
         dom.maybe(this._previewViewSection, () => cssSectionHeader('Preview')),
         dom.maybe(this._previewViewSection, (viewSection) => {
@@ -353,7 +464,7 @@ export class Importer extends Disposable {
       ),
       cssModalButtons(
         bigPrimaryButton('Import',
-          dom.on('click', () => this._finishImport(upload)),
+          dom.on('click', () => this._maybeFinishImport(upload)),
           testId('modal-confirm'),
         ),
         bigBasicButton('Cancel',
@@ -479,4 +590,17 @@ const cssPreviewGrid = styled('div', `
   display: flex;
   height: 300px;
   border: 1px solid ${colors.darkGrey};
+`);
+
+const cssMergeOptions = styled('div', `
+  margin-bottom: 16px;
+`);
+
+const cssMergeOptionsToggle = styled('div', `
+  margin-bottom: 8px;
+`);
+
+const cssMergeOptionsMessage = styled('div', `
+  color: ${colors.slate};
+  margin-bottom: 8px;
 `);

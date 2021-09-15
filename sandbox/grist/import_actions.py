@@ -1,4 +1,7 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+
+import six
+from six.moves import zip, xrange
 
 import column
 import identifiers
@@ -35,6 +38,68 @@ def _strip_prefixes(transform_rule):
     colId = dest_col["colId"]
     if colId and colId.startswith(_import_transform_col_prefix):
       dest_col["colId"] = colId[len(_import_transform_col_prefix):]
+
+
+def _is_blank(value):
+  "If value is blank (e.g. None, blank string), returns true."
+  if value is None:
+    return True
+  elif isinstance(value, six.string_types) and value.strip() == '':
+    return True
+  else:
+    return False
+
+
+def _build_merge_col_map(column_data, merge_cols):
+  """
+  Returns a dictionary with keys that are comprised of
+  the values from column_data for the columns in
+  merge_cols. The values are the row ids (index) in
+  column_data for that particular key; multiple row ids
+  imply that duplicates exist that contain the same values
+  for all columns in merge_cols.
+
+  Used for merging into tables where fast, constant-time lookups
+  are needed. For example, a source table can pass in its
+  column_data into this function to build the map, and the
+  destination table can then query the map using its own
+  values for the columns in merge_cols to check for any
+  matching rows that are candidates for updating.
+  """
+
+  merge_col_map = defaultdict(list)
+
+  for row_id, key in enumerate(zip(*[column_data[col] for col in merge_cols])):
+    # If any part of the key is blank, don't include it in the map.
+    if any(_is_blank(val) for val in key):
+      continue
+
+    try:
+      merge_col_map[key].append(row_id + 1)
+    except TypeError:
+      pass # If key isn't hashable, don't include it in the map.
+
+  return merge_col_map
+
+# Dictionary mapping merge strategy types from ActiveDocAPI.ts to functions
+# that merge source and destination column values.
+#
+# NOTE: This dictionary should be kept in sync with the types in that file.
+#
+# All functions have the same signature: (src, dest) => output,
+# where src and dest are column values from a source and destination
+# table respectively, and output is either src or destination.
+#
+# For example, a key of replace-with-nonblank-source will return a merge function
+# that returns the src argument if it's not blank. Otherwise it returns the
+# dest argument. In the context of incremental imports, this is a function
+# that update destination fields when the source field isn't blank, preserving
+# existing values in the destination field that aren't replaced.
+_merge_funcs = {
+  'replace-with-nonblank-source': lambda src, dest: dest if _is_blank(src) else src,
+  'replace-all-fields': lambda src, _: src,
+  'replace-blank-fields-only': lambda src, dest: src if _is_blank(dest) else dest
+}
 
 
 class ImportActions(object):
@@ -157,6 +222,68 @@ class ImportActions(object):
     return new_cols
 
 
+  def _MergeColumnData(self, dest_table_id, column_data, merge_options):
+    """
+    Merges column_data into table dest_table_id, replacing rows that
+    match all merge_cols with values from column_data, and adding
+    unmatched rows to the end of table dest_table_id.
+
+    dest_table_id: id of destination table
+    column_data: column data from source table to merge into destination table
+    merge_cols: list of column ids to use as keys for merging
+    """
+
+    dest_table = self._engine.tables[dest_table_id]
+    merge_cols = merge_options['mergeCols']
+    merge_col_map = _build_merge_col_map(column_data, merge_cols)
+
+    updated_row_ids = []
+    updated_rows = {}
+    new_rows = {}
+    matched_src_table_rows = set()
+
+    # Initialize column data for new and updated rows.
+    for col_id in six.iterkeys(column_data):
+      updated_rows[col_id] = []
+      new_rows[col_id] = []
+
+    strategy_type = merge_options['mergeStrategy']['type']
+    merge = _merge_funcs[strategy_type]
+
+    # Compute which source table rows should update existing records in destination table.
+    dest_cols = [dest_table.get_column(col) for col in merge_cols]
+    for dest_row_id in dest_table.row_ids:
+      lookup_key = tuple(col.raw_get(dest_row_id) for col in dest_cols)
+      try:
+        src_row_ids = merge_col_map.get(lookup_key)
+      except TypeError:
+        # We can arrive here if lookup_key isn't hashable. If that's the case, skip
+        # this row since we can't efficiently search for a match in the source table.
+        continue
+
+      if src_row_ids:
+        matched_src_table_rows.update(src_row_ids)
+        updated_row_ids.append(dest_row_id)
+        for col_id, col_vals in six.iteritems(column_data):
+          src_val = col_vals[src_row_ids[-1] - 1]
+          dest_val = dest_table.get_column(col_id).raw_get(dest_row_id)
+          updated_rows[col_id].append(merge(src_val, dest_val))
+
+    num_src_rows = len(column_data[merge_cols[0]])
+
+    # Compute which source table rows should be added to destination table as new records.
+    for row_id in xrange(1, num_src_rows + 1):
+      # If we've matched against the row before, we shouldn't add it.
+      if row_id in matched_src_table_rows:
+        continue
+
+      for col_id, col_val in six.iteritems(column_data):
+        new_rows[col_id].append(col_val[row_id - 1])
+
+    self._useractions.BulkUpdateRecord(dest_table_id, updated_row_ids, updated_rows)
+    self._useractions.BulkAddRecord(dest_table_id,
+      [None] * (num_src_rows - len(matched_src_table_rows)), new_rows)
+
 
   def DoGenImporterView(self, source_table_id, dest_table_id, transform_rule = None):
     """
@@ -224,7 +351,8 @@ class ImportActions(object):
 
 
   def DoTransformAndFinishImport(self, hidden_table_id, dest_table_id,
-                                       into_new_table, transform_rule):
+                                       into_new_table, transform_rule,
+                                       merge_options):
     """
     Finishes import into new or existing table depending on flag 'into_new_table'
     Returns destination table id. (new or existing)
@@ -303,7 +431,10 @@ class ImportActions(object):
       new_table = self._useractions.AddTable(dest_table_id, col_specs)
       dest_table_id = new_table['table_id']
 
-    self._useractions.BulkAddRecord(dest_table_id, [None] * len(row_ids), column_data)
+    if not merge_options.get('mergeCols'):
+      self._useractions.BulkAddRecord(dest_table_id, [None] * len(row_ids), column_data)
+    else:
+      self._MergeColumnData(dest_table_id, column_data, merge_options)
 
     log.debug("Finishing TransformAndFinishImport")
 

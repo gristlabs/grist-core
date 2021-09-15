@@ -56,6 +56,20 @@ export interface ImportTableResult {
   destTableId: string|null;
 }
 
+export interface MergeStrategy {
+  type: 'replace-with-nonblank-source' | 'replace-all-fields' | 'replace-blank-fields-only';
+}
+
+export interface MergeOptions {
+  mergeCols: string[];          // Columns to use as merge keys for incremental imports.
+  mergeStrategy: MergeStrategy; // Determines how matched records should be merged between 2 tables.
+}
+
+export interface ImportOptions {
+  parseOptions?: ParseOptions;             // Options for parsing the source file.
+  mergeOptions?: Array<MergeOptions|null>; // Options for merging fields, indexed by uploadFileIndex.
+}
+
 /**
  * Represents a query for Grist data. The tableId is required. An empty set of filters indicates
  * the full table. Examples:
@@ -159,8 +173,8 @@ export interface ActiveDocAPI {
   /**
    * Finishes import files, creates the new tables, and cleans up temporary hidden tables and uploads.
    */
-  finishImportFiles(dataSource: DataSourceTransformed,
-                    parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult>;
+  finishImportFiles(dataSource: DataSourceTransformed, prevTableIds: string[],
+                    options: ImportOptions): Promise<ImportResult>;
 
   /**
    * Cancels import files, cleans up temporary hidden tables and uploads.

@@ -1511,7 +1511,8 @@ class UserActions(object):
     return self._import_actions.DoGenImporterView(source_table_id, dest_table_id, transform_rule)
 
   @useraction
-  def TransformAndFinishImport(self, hidden_table_id, dest_table_id,
-                                     into_new_table, transform_rule):
-    return self._import_actions.DoTransformAndFinishImport(
-                         hidden_table_id, dest_table_id, into_new_table, transform_rule)
+  def TransformAndFinishImport(self, hidden_table_id, dest_table_id, into_new_table,
+                               transform_rule, merge_options = None):
+    return self._import_actions.DoTransformAndFinishImport(hidden_table_id, dest_table_id,
+                                                           into_new_table, transform_rule,
+                                                           merge_options or {})

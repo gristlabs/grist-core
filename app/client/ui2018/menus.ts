@@ -5,10 +5,10 @@ import {cssSelectBtn} from 'app/client/ui2018/select';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {commonUrls} from 'app/common/gristUrls';
-import {dom, DomElementArg, DomElementMethod} from 'grainjs';
-import {MaybeObsArray, Observable, styled} from 'grainjs';
+import {Computed, dom, DomElementArg, DomElementMethod, MaybeObsArray, MutableObsArray, Observable,
+        styled} from 'grainjs';
 import * as weasel from 'popweasel';
-import {IAutocompleteOptions} from 'popweasel';
+import {cssCheckboxSquare, cssLabel, cssLabelText} from 'app/client/ui2018/checkbox';
 
 export interface IOptionFull<T> {
   value: T;
@@ -132,6 +132,95 @@ export function linkSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOp
   return elem;
 }
 
+export interface IMultiSelectUserOptions {
+  placeholder?: string;
+  error?: Observable<boolean>;
+}
+
+/**
+ * Creates a select dropdown widget that supports selecting multiple options.
+ *
+ * The observable array `selectedOptions` reflects the selected options, and
+ * `availableOptions` is an array (normal or observable) of selectable options.
+ * These may either be strings, or {label, value} objects.
+ */
+export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
+                               availableOptions: MaybeObsArray<IOption<T>>,
+                               options: IMultiSelectUserOptions = {},
+                               ...domArgs: DomElementArg[]) {
+  const selectedOptionsSet = Computed.create(null, selectedOptions, (_use, opts) => new Set(opts));
+
+  const selectedOptionsText = Computed.create(null, selectedOptionsSet, (use, selectedOpts) => {
+    if (selectedOpts.size === 0) {
+      return options.placeholder ?? 'Select fields';
+    }
+
+    const optionArray = Array.isArray(availableOptions) ? availableOptions : use(availableOptions);
+    return optionArray
+      .filter(opt => selectedOpts.has(weasel.getOptionFull(opt).value))
+      .map(opt => weasel.getOptionFull(opt).label)
+      .join(', ');
+  });
+
+  function buildMultiSelectMenu(ctl: weasel.IOpenController) {
+    return cssMultiSelectMenu(
+      { tabindex: '-1' }, // Allow menu to be focused.
+      dom.cls(menuCssClass),
+      dom.onKeyDown({
+        Enter: () => ctl.close(),
+        Escape: () => ctl.close()
+      }),
+      elem => {
+        // Set focus on open, so that keyboard events work.
+        setTimeout(() => elem.focus(), 0);
+
+        // Sets menu width to match parent container (button) width.
+        const style = elem.style;
+        style.minWidth = ctl.getTriggerElem().getBoundingClientRect().width + 'px';
+        style.marginLeft = style.marginRight = '0';
+      },
+      dom.domComputed(selectedOptionsSet, selectedOpts => {
+        return dom.forEach(availableOptions, option => {
+          const fullOption = weasel.getOptionFull(option);
+          return cssCheckboxLabel(
+            cssCheckboxSquare(
+              {type: 'checkbox'},
+              dom.prop('checked', selectedOpts.has(fullOption.value)),
+              dom.on('change', (_ev, elem) => {
+                if (elem.checked) {
+                  selectedOptions.push(fullOption.value);
+                } else {
+                  selectedOpts.delete(fullOption.value);
+                  selectedOptions.set([...selectedOpts]);
+                }
+              }),
+              dom.style('position', 'relative'),
+              testId('multi-select-menu-option-checkbox')
+            ),
+            cssCheckboxText(fullOption.label, testId('multi-select-menu-option-text')),
+            testId('multi-select-menu-option')
+          );
+        });
+      }),
+      testId('multi-select-menu')
+    );
+  }
+
+  return cssSelectBtn(
+    dom.autoDispose(selectedOptionsSet),
+    dom.autoDispose(selectedOptionsText),
+    cssMultiSelectSummary(dom.text(selectedOptionsText)),
+    icon('Dropdown'),
+    elem => {
+      weasel.setPopupToCreateDom(elem, ctl => buildMultiSelectMenu(ctl), weasel.defaultMenuOptions);
+    },
+    dom.style('border', use => {
+      return options.error && use(options.error) ? '1px solid red' : `1px solid ${colors.darkGrey}`;
+    }),
+    ...domArgs
+  );
+}
+
 /**
  * Creates a select dropdown widget that is more ideal for forms. Implemented using the <select>
  * element to work with browser form autofill and typing in the desired value to quickly set it.
@@ -207,7 +296,7 @@ export function upgradeText(needUpgrade: boolean) {
 export function autocomplete(
   inputElem: HTMLInputElement,
   choices: MaybeObsArray<string>,
-  options: IAutocompleteOptions = {}
+  options: weasel.IAutocompleteOptions = {}
 ) {
   return weasel.autocomplete(inputElem, choices, {
     ...defaults, ...options,
@@ -375,4 +464,28 @@ const cssAnnotateMenuItem = styled('span', `
   .${weasel.cssMenuItem.className}-sel > & {
     color: white;
   }
+`);
+
+const cssMultiSelectSummary = styled('div', `
+  flex: 1 1 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`);
+
+const cssMultiSelectMenu = styled(weasel.cssMenu, `
+  display: flex;
+  flex-direction: column;
+  max-height: calc(max(300px, 95vh - 300px));
+  max-width: 400px;
+  padding-bottom: 0px;
+`);
+
+const cssCheckboxLabel = styled(cssLabel, `
+  padding: 8px 16px;
+`);
+
+const cssCheckboxText = styled(cssLabelText, `
+  margin-right: 12px;
+  color: ${colors.dark};
+  white-space: pre;
 `);

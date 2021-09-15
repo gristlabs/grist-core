@@ -3,7 +3,8 @@
 import * as path from 'path';
 import * as _ from 'underscore';
 
-import {DataSourceTransformed, ImportResult, ImportTableResult, TransformRuleMap} from 'app/common/ActiveDocAPI';
+import {DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult, MergeOptions,
+        TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import * as gutil from 'app/common/gutil';
@@ -34,6 +35,21 @@ interface ReferenceDescription {
   refTableId: string;
 }
 
+interface FileImportOptions {
+  // Suggested name of the import file. It is sometimes used as a suggested table name, e.g. for csv imports.
+  originalFilename: string;
+  // Containing parseOptions as serialized JSON to pass to the import plugin.
+  parseOptions: ParseOptions;
+  // Options for determining how matched fields between source and destination tables should be merged.
+  mergeOptions: MergeOptions|null;
+  // Flag to indicate whether table is temporary and hidden or regular.
+  isHidden: boolean;
+  // Index of original dataSource corresponding to current imported file.
+  uploadFileIndex: number;
+  // Map of table names to their transform rules.
+  transformRuleMap: TransformRuleMap;
+}
+
 export class ActiveDocImport {
   constructor(private _activeDoc: ActiveDoc) {}
   /**
@@ -46,7 +62,7 @@ export class ActiveDocImport {
     const userId = docSession.authorizer.getUserId();
     const accessId = this._activeDoc.makeAccessId(userId);
     const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
-    return this._importFiles(docSession, uploadInfo, dataSource.transforms, parseOptions, true);
+    return this._importFiles(docSession, uploadInfo, dataSource.transforms, {parseOptions}, true);
   }
 
   /**
@@ -54,7 +70,7 @@ export class ActiveDocImport {
    * the new tables
    */
   public async finishImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
-                                 parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult> {
+                                 prevTableIds: string[], importOptions: ImportOptions): Promise<ImportResult> {
     this._activeDoc.startBundleUserActions(docSession);
     try {
       await this._removeHiddenTables(docSession, prevTableIds);
@@ -62,7 +78,7 @@ export class ActiveDocImport {
       const accessId = this._activeDoc.makeAccessId(userId);
       const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
       const importResult = await this._importFiles(docSession, uploadInfo, dataSource.transforms,
-                                                  parseOptions, false);
+                                                   importOptions, false);
       await globalUploadSet.cleanup(dataSource.uploadId);
       return importResult;
     } finally {
@@ -101,11 +117,12 @@ export class ActiveDocImport {
   }
 
   /**
-   * Imports all files as new tables, using the given transform rules and parse options.
+   * Imports all files as new tables, using the given transform rules and import options.
    * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
    */
   private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
-                             parseOptions: ParseOptions, isHidden: boolean): Promise<ImportResult> {
+                             {parseOptions = {}, mergeOptions = []}: ImportOptions,
+                             isHidden: boolean): Promise<ImportResult> {
 
     // Check that upload size is within the configured limits.
     const limit = (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || Infinity;
@@ -126,8 +143,14 @@ export class ActiveDocImport {
       if (file.ext) {
         origName = path.basename(origName, path.extname(origName)) + file.ext;
       }
-      const res = await this._importFileAsNewTable(docSession, index, file.absPath, origName,
-                                                   parseOptions, isHidden, transforms[index] || {});
+      const res = await this._importFileAsNewTable(docSession, file.absPath, {
+        parseOptions,
+        mergeOptions: mergeOptions[index] || null,
+        isHidden,
+        originalFilename: origName,
+        uploadFileIndex: index,
+        transformRuleMap: transforms[index] || {}
+      });
       if (index === 0) {
         // Returned parse options from the first file should be used for all files in one upload.
         importResult.options = parseOptions = res.options;
@@ -143,27 +166,21 @@ export class ActiveDocImport {
    * Currently it starts a python parser (that relies on the messytables library) as a child process
    * outside the sandbox, and supports xls(x), csv, txt, and perhaps some other formats. It may
    * result in the import of multiple tables, in case of e.g. Excel formats.
-   * @param {ActiveDoc} activeDoc: Instance of ActiveDoc.
-   * @param {Number} dataSourceIdx: Index of original dataSourse corresponding to current imported file.
+   * @param {OptDocSession} docSession: Session instance to use for importing.
    * @param {String} tmpPath: The path from of the original file.
-   * @param {String} originalFilename: Suggested name of the import file. It is sometimes used as a
-   *    suggested table name, e.g. for csv imports.
-   * @param {String} options: Containing parseOptions as serialized JSON to pass to the import plugin.
-   * @param {Boolean} isHidden: Flag to indicate whether table is temporary and hidden or regular.
-   * @param {TransformRuleMap} transformRuleMap: Containing transform rules for each table in file such as
-   * `destTableId`, `destCols`, `sourceCols`.
+   * @param {FileImportOptions} importOptions: File import options.
    * @returns {Promise<ImportResult>} with `options` property containing parseOptions as serialized JSON as adjusted
    * or guessed by the plugin, and `tables`, which is which is a list of objects with information about
-   * tables, such as `hiddenTableId`, `dataSourceIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
+   * tables, such as `hiddenTableId`, `uploadFileIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
    */
-  private async _importFileAsNewTable(docSession: OptDocSession, uploadFileIndex: number, tmpPath: string,
-                                      originalFilename: string,
-                                      options: ParseOptions, isHidden: boolean,
-                                      transformRuleMap: TransformRuleMap|undefined): Promise<ImportResult> {
+  private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
+                                      importOptions: FileImportOptions): Promise<ImportResult> {
+    const {originalFilename, parseOptions, mergeOptions, isHidden, uploadFileIndex,
+           transformRuleMap} = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
-    const optionsAndData: ParseFileResult = await this._activeDoc.docPluginManager.parseFile(tmpPath,
-                                                                                             originalFilename, options);
-    options = optionsAndData.parseOptions;
+    const optionsAndData: ParseFileResult =
+      await this._activeDoc.docPluginManager.parseFile(tmpPath, originalFilename, parseOptions);
+    const options = optionsAndData.parseOptions;
 
     const parsedTables = optionsAndData.tables;
     const references = this._encodeReferenceAsInt(parsedTables);
@@ -220,7 +237,7 @@ export class ActiveDocImport {
         const tableId = await this._activeDoc.applyUserActions(docSession,
           [['TransformAndFinishImport',
           hiddenTableId, destTable, intoNewTable,
-          ruleCanBeApplied ? transformRule : null]]);
+          ruleCanBeApplied ? transformRule : null, mergeOptions]]);
 
         createdTableId = tableId.retValues[0]; // this is garbage for now I think?
 
