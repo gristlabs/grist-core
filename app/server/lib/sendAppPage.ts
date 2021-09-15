@@ -2,6 +2,7 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {isAnonymousUser} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
+import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as path from 'path';
@@ -35,6 +36,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     singleOrg: process.env.GRIST_SINGLE_ORG,
     pathOnly,
     supportAnon: shouldSupportAnon(),
+    supportEngines: getSupportedEngineChoices(),
     pluginUrl,
     stripeAPIKey: process.env.STRIPE_PUBLIC_API_KEY,
     googleClientId: process.env.GOOGLE_CLIENT_ID,

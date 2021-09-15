@@ -12,11 +12,14 @@ import {loadMomentTimezone} from 'app/client/lib/imports';
 import {DocInfoRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {testId, vars} from 'app/client/ui2018/cssVars';
+import {select} from 'app/client/ui2018/menus';
 import {saveModal} from 'app/client/ui2018/modals';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
+import {EngineCode} from 'app/common/DocumentSettings';
+import {GristLoadConfig} from 'app/common/gristUrls';
 import {locales} from "app/common/Locales";
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
-import * as LocaleCurrency from "locale-currency";
+import * as LocaleCurrency from 'locale-currency';
 
 /**
  * Builds a simple saveModal for saving settings.
@@ -26,9 +29,14 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
   return saveModal((ctl, owner) => {
     const timezoneObs = Observable.create(owner, docInfo.timezone.peek());
 
-    const {locale, currency} = docInfo.documentSettingsJson.peek();
+    const docSettings = docInfo.documentSettingsJson.peek();
+    const {locale, currency, engine} = docSettings;
     const localeObs = Observable.create(owner, locale);
     const currencyObs = Observable.create(owner, currency);
+    const engineObs = Observable.create(owner, engine);
+
+    // Check if server supports engine choices - if so, we will allow user to pick.
+    const canChangeEngine = getSupportedEngineChoices().length > 0;
 
     return {
       title: 'Document Settings',
@@ -44,23 +52,37 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
           dom.create(buildCurrencyPicker, currencyObs, (val) => currencyObs.set(val),
             {defaultCurrencyLabel: `Local currency (${LocaleCurrency.getCurrency(l)})`})
         )),
+        canChangeEngine ? [
+          cssDataRow('Engine:'),
+          select(engineObs, getSupportedEngineChoices()),
+        ] : null,
       ],
-      saveFunc: () => docInfo.updateColValues({
-        timezone: timezoneObs.get(),
-        documentSettings: JSON.stringify({
-          ...docInfo.documentSettingsJson.peek(),
-          locale: localeObs.get(),
-          currency: currencyObs.get()
-        })
-      }),
+      // Modal label is "Save", unless engine is changed. If engine is changed, the document will
+      // need a reload to switch engines, so we replace the label with "Save and Reload".
+      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? 'Save' : 'Save and Reload'),
+      saveFunc: async () => {
+        await docInfo.updateColValues({
+          timezone: timezoneObs.get(),
+          documentSettings: JSON.stringify({
+            ...docInfo.documentSettingsJson.peek(),
+            locale: localeObs.get(),
+            currency: currencyObs.get(),
+            engine: engineObs.get()
+          })
+        });
+        // Reload the document if the engine is changed.
+        if (engineObs.get() !== docSettings.engine) {
+          await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+        }
+      },
       // If timezone, locale, or currency hasn't changed, disable the Save button.
       saveDisabled: Computed.create(owner,
         (use) => {
-          const docSettings = docInfo.documentSettingsJson.peek();
           return (
             use(timezoneObs) === docInfo.timezone.peek() &&
             use(localeObs) === docSettings.locale &&
-            use(currencyObs) === docSettings.currency
+            use(currencyObs) === docSettings.currency &&
+            use(engineObs) === docSettings.engine
           );
         })
     };
@@ -105,3 +127,9 @@ const cssDataRow = styled('div', `
   margin: 16px 0px;
   font-size: ${vars.largeFontSize};
 `);
+
+// Check which engines can be selected in the UI, if any.
+export function getSupportedEngineChoices(): EngineCode[] {
+  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  return gristConfig.supportEngines || [];
+}

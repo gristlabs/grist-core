@@ -26,7 +26,7 @@ import {
   ServerQuery
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
-import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import {AsyncCreate, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {
   BulkColValues,
   CellValue,
@@ -38,8 +38,9 @@ import {
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
-import {byteString, countIf} from 'app/common/gutil';
+import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
 import {UploadResult} from 'app/common/uploads';
@@ -73,7 +74,7 @@ import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession} from './serverUtils';
+import { getLogMetaFromDocSession, supportsEngineChoices} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -129,7 +130,7 @@ export class ActiveDoc extends EventEmitter {
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
-  private readonly _dataEngine: ISandbox;
+  private _dataEngine: AsyncCreate<ISandbox>|undefined;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
@@ -146,13 +147,14 @@ export class ActiveDoc extends EventEmitter {
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
+  private _shuttingDown: boolean = false;
 
-  constructor(docManager: DocManager, docName: string, options?: {
+  constructor(docManager: DocManager, docName: string, private _options?: {
     safeMode?: boolean,
     docUrl?: string
   }) {
     super();
-    if (options?.safeMode) { this._recoveryMode = true; }
+    if (_options?.safeMode) { this._recoveryMode = true; }
     this._docManager = docManager;
     this._docName = docName;
     this.docStorage = new DocStorage(docManager.storageManager, docName);
@@ -165,22 +167,15 @@ export class ActiveDoc extends EventEmitter {
     // user-defined python code including formula calculations. It maintains all document data and
     // metadata, and applies translates higher-level UserActions into lower-level DocActions.
 
-    // HACK: If doc title as a slug contains "activate-python3-magic", and we are
-    // in an environment with GRIST_EXPERIMENTAL_PLUGINS=1 (dev or staging but not
-    // prod), use Python3.  This is just for experimentation at this point.
-    // TODO: use a less hacky way to say we want to use py3 in a document.
-    const preferredPythonVersion =
-      (options?.docUrl?.match(/activate-python3-magic/) && process.env.GRIST_EXPERIMENTAL_PLUGINS === '1')
-      ? '3' : undefined;
-
-    this._dataEngine = this._docManager.gristServer.create.NSandbox({
-      comment: docName,
-      logCalls: false,
-      logTimes: true,
-      logMeta: {docId: docName},
-      docUrl: options?.docUrl,
-      preferredPythonVersion,
-    });
+    // Creation of the data engine currently needs to be deferred if we support a choice of
+    // engines, since we need to look at the document to see what kind of engine it needs.
+    // If we don't offer a choice, go ahead and start creating the data engine now, so it
+    // is created in parallel to fetching the document from external storage (if needed).
+    // TODO: cache engine requirement for doc in home db so we can retain this parallelism
+    // when offering a choice of data engines.
+    if (!supportsEngineChoices()) {
+      this._getEngine().catch(e => this.logError({client: null}, `engine for ${docName} failed to launch: ${e}`));
+    }
 
     this._activeDocImport = new ActiveDocImport(this);
 
@@ -193,6 +188,8 @@ export class ActiveDoc extends EventEmitter {
   public get docName(): string { return this._docName; }
 
   public get recoveryMode(): boolean { return this._recoveryMode; }
+
+  public get isShuttingDown(): boolean { return this._shuttingDown; }
 
   public async getUserOverride(docSession: OptDocSession) {
     return this._granularAccess.getUserOverride(docSession);
@@ -312,10 +309,12 @@ export class ActiveDoc extends EventEmitter {
     }
 
     try {
+      const dataEngine = this._dataEngine ? await this._getEngine() : null;
+      this._shuttingDown = true;  // Block creation of engine if not yet in existence.
       await Promise.all([
         this.docStorage.shutdown(),
         this.docPluginManager.shutdown(),
-        this._dataEngine.shutdown()
+        dataEngine?.shutdown()
       ]);
       // The this.waitForInitialization promise may not yet have resolved, but
       // should do so quickly now we've killed everything it depends on.
@@ -1362,7 +1361,9 @@ export class ActiveDoc extends EventEmitter {
       this.logDebug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
       return true;
     } catch (err) {
-      this.logWarn(docSession, "_finishInitialization stopped with %s", err);
+      if (!this._shuttingDown) {
+        this.logWarn(docSession, "_finishInitialization stopped with %s", err);
+      }
       this._fullyLoaded = true;
       return false;
     }
@@ -1392,7 +1393,10 @@ export class ActiveDoc extends EventEmitter {
     const now = Date.now();
     if (now >= this._lastMemoryMeasurement + MEMORY_MEASUREMENT_INTERVAL_MS) {
       this._lastMemoryMeasurement = now;
-      await this._dataEngine.reportMemoryUsage();
+      if (this._dataEngine && !this._shuttingDown) {
+        const dataEngine = await this._getEngine();
+        await dataEngine.reportMemoryUsage();
+      }
     }
   }
 
@@ -1427,8 +1431,9 @@ export class ActiveDoc extends EventEmitter {
    * Call a method in the sandbox, without checking the _modificationLock.  Calls to
    * the sandbox are naturally serialized.
    */
-  private _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
-    return this._dataEngine.pyCall(funcName, ...varArgs);
+  private async _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
+    const dataEngine = await this._getEngine();
+    return dataEngine.pyCall(funcName, ...varArgs);
   }
 
   /**
@@ -1438,6 +1443,45 @@ export class ActiveDoc extends EventEmitter {
    */
   private _pyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
     return this._modificationLock.runExclusive(() => this._rawPyCall(funcName, ...varArgs));
+  }
+
+  private async _getEngine(): Promise<ISandbox> {
+    if (this._shuttingDown) { throw new Error('shutting down, data engine unavailable'); }
+    this._dataEngine = this._dataEngine || new AsyncCreate<ISandbox>(async () => {
+
+      // Figure out what kind of engine we need for this document.
+      let preferredPythonVersion: '2' | '3' = '2';
+
+      // Currently only respect engine preference on experimental deployments (staging/dev).
+      if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {
+        // Careful, migrations may not have run on this document and it may not have a
+        // documentSettings column.  Failures are treated as lack of an engine preference.
+        const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
+        const docSettingsString = docInfo?.documentSettings;
+        if (docSettingsString) {
+          const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
+          const engine = docSettings?.engine;
+          if (engine) {
+            if (engine === 'python2') {
+              preferredPythonVersion = '2';
+            } else if (engine === 'python3') {
+              preferredPythonVersion = '3';
+            } else {
+              throw new Error(`engine type not recognized: ${engine}`);
+            }
+          }
+        }
+      }
+      return this._docManager.gristServer.create.NSandbox({
+        comment: this._docName,
+        logCalls: false,
+        logTimes: true,
+        logMeta: {docId: this._docName},
+        docUrl: this._options?.docUrl,
+        preferredPythonVersion,
+      });
+    });
+    return this._dataEngine.get();
   }
 }
 

@@ -246,6 +246,16 @@ export class Sharing {
       // when we come to it. For now we only log skipped envelopes as "alien" in _logActionBundle().
       const ownActionBundle: LocalActionBundle = this._filterOwnActions(localActionBundle);
 
+      // If the document has shut down in the meantime, and this was just a "Calculate" action,
+      // return a trivial result.  This is just to reduce noisy warnings in migration tests.
+      if (this._activeDoc.isShuttingDown && isCalculate) {
+        return {
+          actionNum: localActionBundle.actionNum,
+          retValues: [],
+          isModification: false
+        };
+      }
+
       // Apply the action to the database, and record in the action log.
       if (!trivial) {
         await this._activeDoc.docStorage.execTransaction(async () => {

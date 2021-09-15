@@ -5,6 +5,7 @@ import * as path from 'path';
 import { ConnectionOptions } from 'typeorm';
 import * as uuidv4 from 'uuid/v4';
 
+import {EngineCode} from 'app/common/DocumentSettings';
 import * as log from 'app/server/lib/log';
 import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from './DocSession';
@@ -148,4 +149,21 @@ export function getLogMetaFromDocSession(docSession: OptDocSession) {
     ...(user ? {userId: user.id, email: user.email} : {}),
     ...(client ? client.getLogMeta() : {}),   // Client if present will repeat and add to user info.
   };
+}
+
+/**
+ * Only offer choices of engine on experimental deployments (staging/dev).
+ */
+export function getSupportedEngineChoices(): EngineCode[]|undefined {
+  if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {
+    return ['python2', 'python3'];
+  }
+  return undefined;
+}
+
+/**
+ * Check whether a choice of engine is supported.
+ */
+export function supportsEngineChoices(): boolean {
+  return getSupportedEngineChoices() !== undefined;
 }

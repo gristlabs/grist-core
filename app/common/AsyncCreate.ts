@@ -4,7 +4,7 @@
  * On failure, the result is cleared, so that subsequent calls attempt the creation again.
  *
  * Usage:
- *  this._obj = AsyncCreate<MyObject>(asyncCreateFunc);
+ *  this._obj = new AsyncCreate<MyObject>(asyncCreateFunc);
  *  obj = await this._obj.get();    // calls asyncCreateFunc
  *  obj = await this._obj.get();    // uses cached object if asyncCreateFunc succeeded, else calls it again.
  *

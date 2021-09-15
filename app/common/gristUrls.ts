@@ -1,5 +1,6 @@
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
+import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
 import {LocalPlugin} from 'app/common/plugin';
@@ -425,6 +426,10 @@ export interface GristLoadConfig {
 
   // If set, enable anonymous sharing UI elements.
   supportAnon?: boolean;
+
+  // If set, allow selection of the specified engines.
+  // TODO: move this list to a separate endpoint.
+  supportEngines?: EngineCode[];
 
   // Max upload allowed for imports (except .grist files), in bytes; 0 or omitted for unlimited.
   maxUploadSizeImport?: number;
