@@ -334,8 +334,10 @@ export class RightPanel extends Disposable {
         }
       ]),
 
-      cssSeparator(),
-      dom.create(VisibleFieldsConfig, this._gristDoc, activeSection, true)
+      dom.maybe((use) => use(this._pageWidgetType) !== 'chart', () => [
+        cssSeparator(),
+        dom.create(VisibleFieldsConfig, this._gristDoc, activeSection, true),
+      ]),
     ]);
   }
 
@@ -650,7 +652,7 @@ const cssTabContents = styled('div', `
   overflow: auto;
 `);
 
-const cssSeparator = styled('div', `
+export const cssSeparator = styled('div', `
   border-bottom: 1px solid ${colors.mediumGrey};
   margin-top: 16px;
 `);

@@ -19,8 +19,8 @@ const G = require('../lib/browserGlobals').get('document', 'DOMParser');
  *                        If an upperPos is not given, return consecutive values greater than lowerPos
  *                        If a lowerPos is not given, return consecutive values lower than upperPos
  *                        Else return the avg position of to-be neighboring elements.
- *  Ex: insertPositions(null, 0, 4) = [1, 2, 3, 4]
- *      insertPositions(0, null, 4) = [-4, -3, -2, -1]
+ *  Ex: insertPositions(null, 0, 4) = [-4, -3, -2, -1]
+ *      insertPositions(0, null, 4) = [1, 2, 3, 4]
  *      insertPositions(0, 1, 4) = [0.2, 0.4, 0.6, 0.8]
  */
 function insertPositions(lowerPos, upperPos, numInserts) {

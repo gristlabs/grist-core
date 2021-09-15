@@ -11,17 +11,21 @@ import { colors, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
 import * as gutil from 'app/common/gutil';
-import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
 import difference = require("lodash/difference");
 
 const testId = makeTestId('test-vfc-');
 
-type IField = ViewFieldRec|ColumnRec;
+export type IField = ViewFieldRec|ColumnRec;
 
 interface DraggableFieldsOption {
   // an object holding options for the draggable list, see koForm.js for more detail on the accepted
   // options.
   draggableOptions: any;
+
+  // Allows to skip first n items. This feature is useful to separate the series from the x-axis and
+  // the group-by-column in the chart type widget.
+  skipFirst?: Observable<number>;
 
   // the itemCreateFunc callback passed to kf.draggableList for the visible fields.
   itemCreateFunc(field: IField): Element|undefined;
@@ -82,6 +86,38 @@ export class VisibleFieldsConfig extends Disposable {
   }
 
   /**
+   * Build the draggable list components to show the visible fields of a section.
+   */
+  public buildVisibleFieldsConfigHelper(options: DraggableFieldsOption) {
+    const itemClass = this._useNewUI ? cssDragRow.className : 'view_config_draggable_field';
+    let fields = this._section.viewFields.peek();
+
+    if (options.skipFirst) {
+      const allFields = this._section.viewFields.peek();
+      const newArray = new KoArray<ViewFieldRec>();
+      function update() {
+        newArray.assign(allFields.peek().filter((_v, i) => i + 1 > options.skipFirst!.get()));
+      }
+      update();
+      this.autoDispose(allFields.subscribe(update));
+      this.autoDispose(subscribe(options.skipFirst, update));
+      fields = newArray;
+    }
+
+    return kf.draggableList(
+      fields,
+      options.itemCreateFunc,
+      {
+        itemClass,
+        reorder: this.changeFieldPosition.bind(this),
+        remove: this.removeField.bind(this),
+        receive: this.addField.bind(this),
+        ...options.draggableOptions,
+      }
+    );
+  }
+
+  /**
    * Build the two draggable list components to show both the visible and the hidden fields of a
    * section. Each draggable list can be parametrized using both `options.visibleFields` and
    * `options.hiddenFields` options.
@@ -99,19 +135,7 @@ export class VisibleFieldsConfig extends Disposable {
     }): [HTMLElement, HTMLElement] {
 
     const itemClass = this._useNewUI ? cssDragRow.className : 'view_config_draggable_field';
-    const fieldsDraggable = dom.update(
-      kf.draggableList(
-        this._section.viewFields.peek(),
-        options.visibleFields.itemCreateFunc,
-        {
-          itemClass,
-          reorder: this._changeFieldPosition.bind(this),
-          remove: this._removeField.bind(this),
-          receive: this._addField.bind(this),
-          ...options.visibleFields.draggableOptions,
-        }
-      ),
-    );
+    const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
     const hiddenFieldsDraggable = kf.draggableList(
       this._hiddenFields,
       options.hiddenFields.itemCreateFunc,
@@ -225,6 +249,29 @@ export class VisibleFieldsConfig extends Disposable {
     ];
   }
 
+  public async removeField(field: IField) {
+    const id = field.id.peek();
+    const action = ['RemoveRecord', id];
+    await this._gristDoc.docModel.viewFields.sendTableAction(action);
+  }
+
+  public async addField(column: IField, nextField: ViewFieldRec|null = null) {
+    const parentPos = getFieldNewPosition(this._section.viewFields.peek(), column, nextField);
+    const colInfo = {
+      parentId: this._section.id.peek(),
+      colRef: column.id.peek(),
+      parentPos,
+    };
+    const action = ['AddRecord', null, colInfo];
+    await this._gristDoc.docModel.viewFields.sendTableAction(action);
+  }
+
+  public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
+    const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
+    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos} ];
+    return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
+  }
+
   // Set all checkboxes for the visible fields.
   private _setVisibleCheckboxes(visibleFieldsDraggable: Element, checked: boolean) {
     this._setCheckboxesHelper(
@@ -270,7 +317,7 @@ export class VisibleFieldsConfig extends Disposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(column.label)),
       cssHideIcon('EyeShow',
-        dom.on('click', () => this._addField(column)),
+        dom.on('click', () => this.addField(column)),
         testId('hide')
       ),
       buildCheckbox(
@@ -291,7 +338,7 @@ export class VisibleFieldsConfig extends Disposable {
       cssFieldLabel(dom.text(field.label)),
       // TODO: we need a "cross-out eye" icon here.
       cssHideIcon('EyeHide',
-        dom.on('click', () => this._removeField(field)),
+        dom.on('click', () => this.removeField(field)),
         testId('hide')
       ),
       buildCheckbox(
@@ -304,32 +351,9 @@ export class VisibleFieldsConfig extends Disposable {
     );
   }
 
-  private _changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
-    const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
-    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos} ];
-    return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
-  }
-
-  private async _removeField(field: IField) {
-    const id = field.id.peek();
-    const action = ['RemoveRecord', id];
-    await this._gristDoc.docModel.viewFields.sendTableAction(action);
-  }
-
   private async _removeSelectedFields() {
     const toRemove = Array.from(this._visibleFieldsSelection).sort(gutil.nativeCompare);
     const action = ['BulkRemoveRecord', toRemove];
-    await this._gristDoc.docModel.viewFields.sendTableAction(action);
-  }
-
-  private async _addField(column: IField, nextField: ViewFieldRec|null = null) {
-    const parentPos = getFieldNewPosition(this._section.viewFields.peek(), column, nextField);
-    const colInfo = {
-      parentId: this._section.id.peek(),
-      colRef: column.id.peek(),
-      parentPos,
-    };
-    const action = ['AddRecord', null, colInfo];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
 

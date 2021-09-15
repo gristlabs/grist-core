@@ -10,13 +10,17 @@ import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
-import {cssRow} from 'app/client/ui/RightPanel';
+import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanel';
+import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
-import {linkSelect, select} from 'app/client/ui2018/menus';
+import {cssDragger} from 'app/client/ui2018/draggableList';
+import {icon} from 'app/client/ui2018/icons';
+import {linkSelect, menu, menuItem, select} from 'app/client/ui2018/menus';
 import {nativeCompare} from 'app/common/gutil';
 import {Events as BackboneEvents} from 'backbone';
-import {dom, DomElementArg, makeTestId, styled} from 'grainjs';
+import {Computed, dom, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
+        makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
 import defaults = require('lodash/defaults');
@@ -297,55 +301,260 @@ function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
 }
 
 /**
- * Build the DOM for side-pane configuration options for a Chart section.
+ * The grainjs component for side-pane configuration options for a Chart section.
  */
-export function buildChartConfigDom(section: ViewSectionRec) {
-  if (section.parentKey() !== 'chart') { return null; }
-  const optionsObj = section.optionsObj;
-  return [
-    cssRow(
-      select(fromKoSave(section.chartTypeDef), [
-        {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
-        {value: 'pie',          label: 'Pie Chart',         icon: 'ChartPie'   },
-        {value: 'area',         label: 'Area Chart',        icon: 'ChartArea'  },
-        {value: 'line',         label: 'Line Chart',        icon: 'ChartLine'  },
-        {value: 'scatter',      label: 'Scatter Plot',      icon: 'ChartLine'  },
-        {value: 'kaplan_meier', label: 'Kaplan-Meier Plot', icon: 'ChartKaplan'},
+export class ChartConfig extends GrainJSDisposable {
+
+  // helper to build the draggable field list
+  private _configFieldsHelper = VisibleFieldsConfig.create(this, this._gristDoc, this._section, true);
+
+  // The index for the x-axis in the list visible fields. Could be eigther 0 or 1 depending on
+  // whether multiseries is set.
+  private _xAxisFieldIndex = Computed.create(
+    this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) => (
+      multiseries ? 1 : 0
+    )
+  );
+
+  // The column id of the grouping column, or -1 if multiseries is disabled.
+  private _groupDataColId: Computed<number> = Computed.create(this, (use) => {
+    const multiseries = use(this._optionsObj.prop('multiseries'));
+    const viewFields = use(use(this._section.viewFields).getObservable());
+    if (!multiseries) { return -1; }
+    return use(viewFields[0].column).getRowId();
+  })
+    .onWrite((colId) => this._setGroupDataColumn(colId));
+
+  // Updating the group data column involves several changes of the list of view fields which could
+  // leave the x-axis field index momentarily point to the wrong column. The freeze x axis
+  // observable is part of a hack to fix this issue.
+  private _freezeXAxis = Observable.create(this, false);
+
+  // The column is of the x-axis.
+  private _xAxis: Computed<number> = Computed.create(
+    this, this._xAxisFieldIndex, this._freezeXAxis, (use, i, freeze) => {
+      if (freeze) { return this._xAxis.get(); }
+      const viewFields = use(use(this._section.viewFields).getObservable());
+      if (i < viewFields.length) {
+        return use(viewFields[i].column).getRowId();
+      }
+      return -1;
+    })
+    .onWrite((colId) => this._setXAxis(colId));
+
+  // The list of available columns for the group data picker. Picking the actual x-axis is not
+  // permitted.
+  private _groupDataOptions = Computed.create<Array<IOption<number>>>(this, (use) => [
+    {value: -1, label: 'Pick a column'},
+    ...this._section.table().columns().peek()
+    // filter out hidden column (ie: manualsort ...) and the one selected for x axis
+      .filter((col) => !col.isHiddenCol.peek() && (col.getRowId() !== use(this._xAxis)))
+      .map((col) => ({
+        value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
+      }))
+  ]);
+
+  // Force checking/unchecking of the group data checkbox option.
+  private _groupDataForce = Observable.create(null, false);
+
+  // State for the group data option checkbox. True, if a group data column is set or if the user
+  // forced it. False otherwise.
+  private _groupData = Computed.create(
+    this, this._groupDataColId, this._groupDataForce, (_use, col, force) => {
+      if (col > -1) { return true; }
+      return force;
+    }).onWrite((val) => {
+      if (val === false) {
+        this._groupDataColId.set(-1);
+      }
+      this._groupDataForce.set(val);
+    });
+
+
+  constructor(private _gristDoc: GristDoc, private _section: ViewSectionRec) {
+    super();
+  }
+
+  private get _optionsObj() { return this._section.optionsObj; }
+
+  public buildDom() {
+
+    if (this._section.parentKey() !== 'chart') { return null; }
+
+    // The y-axis are all visible fields that comes after the x-axis and maybe the group data
+    // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
+    const skipFirst = Computed.create(this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) =>  (
+      multiseries ? 2 : 1
+    ));
+
+    // The draggable list of y-axis
+    const fieldsDraggable = this._configFieldsHelper.buildVisibleFieldsConfigHelper({
+      itemCreateFunc: (field) => this._buildField(field),
+      draggableOptions: {
+        removeButton: false,
+        drag_indicator: cssDragger,
+      }, skipFirst
+    });
+
+    return [
+      cssRow(
+        select(fromKoSave(this._section.chartTypeDef), [
+          {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
+          {value: 'pie',          label: 'Pie Chart',         icon: 'ChartPie'   },
+          {value: 'area',         label: 'Area Chart',        icon: 'ChartArea'  },
+          {value: 'line',         label: 'Line Chart',        icon: 'ChartLine'  },
+          {value: 'scatter',      label: 'Scatter Plot',      icon: 'ChartLine'  },
+          {value: 'kaplan_meier', label: 'Kaplan-Meier Plot', icon: 'ChartKaplan'},
+        ]),
+        testId("type"),
+      ),
+      dom.maybe((use) => use(this._section.chartTypeDef) !== 'pie', () => [
+        // These options don't make much sense for a pie chart.
+        cssCheckboxRowObs('Group data', this._groupData),
+        cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
+        cssCheckboxRow('Log scale Y-axis', this._optionsObj.prop('logYAxis')),
       ]),
-      testId("type"),
-    ),
-    dom.maybe((use) => use(section.chartTypeDef) !== 'pie', () => [
-      // These options don't make much sense for a pie chart.
-      cssCheckboxRow('Group by first column', optionsObj.prop('multiseries'), testId('multiseries')),
-      cssCheckboxRow('Invert Y-axis', optionsObj.prop('invertYAxis')),
-      cssCheckboxRow('Log scale Y-axis', optionsObj.prop('logYAxis')),
-    ]),
-    dom.maybe((use) => use(section.chartTypeDef) === 'line', () => [
-      cssCheckboxRow('Connect gaps', optionsObj.prop('lineConnectGaps')),
-      cssCheckboxRow('Show markers', optionsObj.prop('lineMarkers')),
-    ]),
-    dom.maybe((use) => ['line', 'bar'].includes(use(section.chartTypeDef)), () => [
-      cssRow(cssLabel('Error bars'),
-        dom('div', linkSelect(fromKoSave(optionsObj.prop('errorBars')), [
-          {value: '', label: 'None'},
-          {value: 'symmetric', label: 'Symmetric'},
-          {value: 'separate', label: 'Above+Below'},
-        ], {defaultLabel: 'None'})),
-        testId('error-bars'),
+      dom.maybe((use) => use(this._section.chartTypeDef) === 'line', () => [
+        cssCheckboxRow('Connect gaps', this._optionsObj.prop('lineConnectGaps')),
+        cssCheckboxRow('Show markers', this._optionsObj.prop('lineMarkers')),
+      ]),
+      dom.maybe((use) => ['line', 'bar'].includes(use(this._section.chartTypeDef)), () => [
+        cssRow(
+          cssRowLabel('Error bars'),
+          dom('div', linkSelect(fromKoSave(this._optionsObj.prop('errorBars')), [
+            {value: '', label: 'None'},
+            {value: 'symmetric', label: 'Symmetric'},
+            {value: 'separate', label: 'Above+Below'},
+          ], {defaultLabel: 'None'})),
+          testId('error-bars'),
+        ),
+        dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
+          value === 'symmetric' ? cssRowHelp('Each Y series is followed by a series for the length of error bars.') :
+          value === 'separate' ? cssRowHelp('Each Y series is followed by two series, for top and bottom error bars.') :
+          null
+        ),
+      ]),
+
+      cssSeparator(),
+
+      dom.maybe(this._groupData, () => [
+        cssLabel('Group data'),
+        cssRow(
+          select(this._groupDataColId, this._groupDataOptions),
+          testId('group-by-column'),
+        ),
+        cssHintRow('Create separate series for each value of the selected column.'),
+      ]),
+
+      // TODO: user should select x axis before widget reach page
+      cssLabel('X-AXIS'),
+      cssRow(
+        select(
+          this._xAxis, this._section.table().columns().peek()
+            .filter((col) => !col.isHiddenCol.peek())
+            .map((col) => ({
+              value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
+            }))
+        ),
+        testId('x-axis'),
       ),
-      dom.domComputed(optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
-        value === 'symmetric' ? cssRowHelp('Each Y series is followed by a series for the length of error bars.') :
-        value === 'separate' ? cssRowHelp('Each Y series is followed by two series, for top and bottom error bars.') :
-        null
+
+      cssLabel('SERIES'),
+      fieldsDraggable,
+      cssRow(
+        cssAddYAxis(
+          cssAddIcon('Plus'), 'Add Series',
+          menu(() => this._section.hiddenColumns.peek().map((col) => (
+            menuItem(() => this._configFieldsHelper.addField(col), col.label.peek())
+          ))),
+          testId('add-y-axis'),
+        )
       ),
-    ]),
-  ];
+
+    ];
+  }
+
+  private async _setXAxis(colId: number) {
+    const optionsObj = this._section.optionsObj;
+    const col = this._gristDoc.docModel.columns.getRowModel(colId);
+    const viewFields = this._section.viewFields.peek();
+
+    await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
+      // first remove the current field
+      if (this._xAxisFieldIndex.get() < viewFields.peek().length) {
+        await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
+      }
+
+      // if  new field was used to group by column series, disable multiseries
+      const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().getRowId() === colId);
+      if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
+        await optionsObj.prop('multiseries').setAndSave(false);
+        return;
+      }
+
+      // if new field is already visible, moves the fields to the first place else add the field to the first
+      // place
+      const xAxisField = viewFields.peek()[this._xAxisFieldIndex.get()];
+      if (fieldIndex > -1) {
+        await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
+      } else {
+        await this._configFieldsHelper.addField(col, xAxisField);
+      }
+    });
+  }
+
+  private async _setGroupDataColumn(colId: number) {
+    const viewFields = this._section.viewFields.peek().peek();
+
+    await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
+      this._freezeXAxis.set(true);
+      try {
+        // if grouping was already set, first remove the current field
+        if (this._groupDataColId.get() > -1) {
+          await this._configFieldsHelper.removeField(viewFields[0]);
+        }
+
+        if (colId > -1) {
+          const col = this._gristDoc.docModel.columns.getRowModel(colId);
+          const field = viewFields.find((f) => f.column.peek().getRowId() === colId);
+
+          // if new field is already visible, moves the fields to the first place else add the field to the first
+          // place
+          if (field) {
+            await this._configFieldsHelper.changeFieldPosition(field, viewFields[0]);
+          } else {
+            await this._configFieldsHelper.addField(col, viewFields[0]);
+          }
+        }
+
+        await this._optionsObj.prop('multiseries').setAndSave(colId > -1);
+      } finally {
+        this._freezeXAxis.set(false);
+      }
+    });
+  }
+
+  private _buildField(col: IField) {
+    return cssFieldEntry(
+      cssFieldLabel(dom.text(col.label)),
+      cssRemoveIcon(
+        'Remove',
+        dom.on('click', () => this._configFieldsHelper.removeField(col)),
+        testId('ref-select-remove'),
+      ),
+      testId('y-axis'),
+    );
+  }
 }
 
 function cssCheckboxRow(label: string, value: KoSaveableObservable<unknown>, ...args: DomElementArg[]) {
+  return cssCheckboxRowObs(label, fromKoSave(value), ...args);
+}
+
+function cssCheckboxRowObs(label: string, value: Observable<boolean>, ...args: DomElementArg[]) {
   return dom('label', cssRow.cls(''),
-    cssLabel(label),
-    squareCheckbox(fromKoSave(value), ...args),
+    cssRowLabel(label),
+    squareCheckbox(value, ...args),
   );
 }
 
@@ -503,7 +712,8 @@ function kaplanMeierPlot(survivalValues: number[]): Array<{x: number, y: number}
   return points;
 }
 
-const cssLabel = styled('div', `
+
+const cssRowLabel = styled('div', `
   flex: 1 0 0px;
   margin-right: 8px;
 
@@ -511,9 +721,44 @@ const cssLabel = styled('div', `
   color: ${colors.dark};
   overflow: hidden;
   text-overflow: ellipsis;
+  user-select: none;
 `);
 
 const cssRowHelp = styled(cssRow, `
   font-size: ${vars.smallFontSize};
+  color: ${colors.slate};
+`);
+
+const cssAddIcon = styled(icon, `
+  margin-right: 4px;
+`);
+
+const cssAddYAxis = styled('div', `
+  display: flex;
+  cursor: pointer;
+  color: ${colors.lightGreen};
+  --icon-color: ${colors.lightGreen};
+
+  &:not(:first-child) {
+    margin-top: 8px;
+  }
+  &:hover, &:focus, &:active {
+    color: ${colors.darkGreen};
+    --icon-color: ${colors.darkGreen};
+  }
+`);
+
+const cssRemoveIcon = styled(icon, `
+  display: none;
+  cursor: pointer;
+  flex: none;
+  margin-left: 8px;
+  .${cssFieldEntry.className}:hover & {
+    display: block;
+  }
+`);
+
+const cssHintRow = styled('div', `
+  margin: -4px 16px 8px 16px;
   color: ${colors.slate};
 `);

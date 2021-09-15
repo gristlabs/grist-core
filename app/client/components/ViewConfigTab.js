@@ -8,7 +8,7 @@ var koArray = require('../lib/koArray');
 var SummaryConfig = require('./SummaryConfig');
 var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
-const {buildChartConfigDom} = require('./ChartView');
+const {ChartConfig} = require('./ChartView');
 const {Computed, dom: grainjsDom, makeTestId, Observable, styled} = require('grainjs');
 
 const {addToSort, flipColDirection, parseSortColRefs} = require('app/client/lib/sortUtil');
@@ -608,7 +608,7 @@ ViewConfigTab.prototype._buildGridStyleDom = function() {
 };
 
 ViewConfigTab.prototype._buildChartConfigDom = function() {
-  return grainjsDom.maybe(this.viewModel.activeSection, buildChartConfigDom);
+  return grainjsDom.maybe(this.viewModel.activeSection, (section) => grainjsDom.create(ChartConfig, this.gristDoc, section));
 };
 
 ViewConfigTab.prototype._buildLayoutDom = function() {
