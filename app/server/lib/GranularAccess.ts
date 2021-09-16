@@ -1664,13 +1664,16 @@ export class GranularAccess implements GranularAccessForBundle {
       return dummyAccessCheck;
     }
     const tableId = getTableId(a);
-    if (STRUCTURAL_TABLES.has(tableId)) {
-      // Special case: ensure owners always have full access to ACL tables, so they
+    if (tableId.startsWith('_grist') && tableId !== '_grist_Attachments') {
+      // Actions on any metadata table currently require the schemaEdit flag.
+      // Exception: the attachments table, which needs to be reworked to be compatible
+      // with granular access.
+
+      // Another exception: ensure owners always have full access to ACL tables, so they
       // can change rules and don't get stuck.
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
         return dummyAccessCheck;
       }
-      // Otherwise, access to structural tables currently follows the schemaEdit flag.
       return accessChecks[severity].schemaEdit;
     } else if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
       return accessChecks[severity].update;
