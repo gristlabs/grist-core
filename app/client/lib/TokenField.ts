@@ -126,7 +126,12 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         cssToken(this._options.renderToken(t.token),
           dom.cls('selected', (use) => use(this._selection).has(t)),
           _options.readonly ? null : [
-            cssDeleteButton(cssDeleteIcon('CrossSmall'), testId('tokenfield-delete')),
+            cssDeleteButton(
+              // Ignore mousedown events, so that tokens aren't draggable by the delete button.
+              dom.on('mousedown', (ev) => ev.stopPropagation()),
+              cssDeleteIcon('CrossSmall'),
+              testId('tokenfield-delete')
+            ),
             dom.on('click', (ev) =>  this._onTokenClick(ev, t)),
             dom.on('mousedown', (ev) => this._onMouseDown(ev, t))
           ],
