@@ -13,6 +13,7 @@ import { icon } from "app/client/ui2018/icons";
 import * as gutil from 'app/common/gutil';
 import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
 import difference = require("lodash/difference");
+import isEqual = require("lodash/isEqual");
 
 const testId = makeTestId('test-vfc-');
 
@@ -26,6 +27,11 @@ interface DraggableFieldsOption {
   // Allows to skip first n items. This feature is useful to separate the series from the x-axis and
   // the group-by-column in the chart type widget.
   skipFirst?: Observable<number>;
+
+  // Allows to prevent updates of the list. This option is to be used when skipFirst option is used
+  // and it is useful to prevent the list to update during changes that only affect the skipped
+  // fields.
+  freeze?: Observable<boolean>;
 
   // the itemCreateFunc callback passed to kf.draggableList for the visible fields.
   itemCreateFunc(field: IField): Element|undefined;
@@ -93,14 +99,21 @@ export class VisibleFieldsConfig extends Disposable {
     let fields = this._section.viewFields.peek();
 
     if (options.skipFirst) {
+      const freeze = options.freeze;
       const allFields = this._section.viewFields.peek();
       const newArray = new KoArray<ViewFieldRec>();
       function update() {
-        newArray.assign(allFields.peek().filter((_v, i) => i + 1 > options.skipFirst!.get()));
+        if (freeze && freeze.get()) { return; }
+        const newValues = allFields.peek().filter((_v, i) => i + 1 > options.skipFirst!.get());
+        if (isEqual(newArray.all(), newValues)) { return; }
+        newArray.assign(newValues);
       }
       update();
       this.autoDispose(allFields.subscribe(update));
       this.autoDispose(subscribe(options.skipFirst, update));
+      if (options.freeze) {
+        this.autoDispose(subscribe(options.freeze, update));
+      }
       fields = newArray;
     }
 

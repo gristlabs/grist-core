@@ -330,6 +330,8 @@ export class ChartConfig extends GrainJSDisposable {
   // observable is part of a hack to fix this issue.
   private _freezeXAxis = Observable.create(this, false);
 
+  private _freezeYAxis = Observable.create(this, false);
+
   // The column is of the x-axis.
   private _xAxis: Computed<number> = Computed.create(
     this, this._xAxisFieldIndex, this._freezeXAxis, (use, i, freeze) => {
@@ -380,21 +382,6 @@ export class ChartConfig extends GrainJSDisposable {
   public buildDom() {
 
     if (this._section.parentKey() !== 'chart') { return null; }
-
-    // The y-axis are all visible fields that comes after the x-axis and maybe the group data
-    // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
-    const skipFirst = Computed.create(this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) =>  (
-      multiseries ? 2 : 1
-    ));
-
-    // The draggable list of y-axis
-    const fieldsDraggable = this._configFieldsHelper.buildVisibleFieldsConfigHelper({
-      itemCreateFunc: (field) => this._buildField(field),
-      draggableOptions: {
-        removeButton: false,
-        drag_indicator: cssDragger,
-      }, skipFirst
-    });
 
     return [
       cssRow(
@@ -460,7 +447,7 @@ export class ChartConfig extends GrainJSDisposable {
       ),
 
       cssLabel('SERIES'),
-      fieldsDraggable,
+      this._buildYAxis(),
       cssRow(
         cssAddYAxis(
           cssAddIcon('Plus'), 'Add Series',
@@ -480,25 +467,30 @@ export class ChartConfig extends GrainJSDisposable {
     const viewFields = this._section.viewFields.peek();
 
     await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
-      // first remove the current field
-      if (this._xAxisFieldIndex.get() < viewFields.peek().length) {
-        await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
-      }
+      this._freezeYAxis.set(true);
+      try {
+        // first remove the current field
+        if (this._xAxisFieldIndex.get() < viewFields.peek().length) {
+          await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
+        }
 
-      // if  new field was used to group by column series, disable multiseries
-      const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().getRowId() === colId);
-      if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
-        await optionsObj.prop('multiseries').setAndSave(false);
-        return;
-      }
+        // if  new field was used to group by column series, disable multiseries
+        const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().getRowId() === colId);
+        if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
+          await optionsObj.prop('multiseries').setAndSave(false);
+          return;
+        }
 
-      // if new field is already visible, moves the fields to the first place else add the field to the first
-      // place
-      const xAxisField = viewFields.peek()[this._xAxisFieldIndex.get()];
-      if (fieldIndex > -1) {
-        await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
-      } else {
-        await this._configFieldsHelper.addField(col, xAxisField);
+        // if new field is already visible, moves the fields to the first place else add the field to the first
+        // place
+        const xAxisField = viewFields.peek()[this._xAxisFieldIndex.get()];
+        if (fieldIndex > -1) {
+          await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
+        } else {
+          await this._configFieldsHelper.addField(col, xAxisField);
+        }
+      } finally {
+        this._freezeYAxis.set(false);
       }
     });
   }
@@ -508,6 +500,7 @@ export class ChartConfig extends GrainJSDisposable {
 
     await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
       this._freezeXAxis.set(true);
+      this._freezeYAxis.set(true);
       try {
         // if grouping was already set, first remove the current field
         if (this._groupDataColId.get() > -1) {
@@ -530,6 +523,7 @@ export class ChartConfig extends GrainJSDisposable {
         await this._optionsObj.prop('multiseries').setAndSave(colId > -1);
       } finally {
         this._freezeXAxis.set(false);
+        this._freezeYAxis.set(false);
       }
     });
   }
@@ -544,6 +538,23 @@ export class ChartConfig extends GrainJSDisposable {
       ),
       testId('y-axis'),
     );
+  }
+
+  private _buildYAxis() {
+
+    // The y-axis are all visible fields that comes after the x-axis and maybe the group data
+    // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
+    const skipFirst = Computed.create(this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) =>  (
+      multiseries ? 2 : 1
+    ));
+
+    return this._configFieldsHelper.buildVisibleFieldsConfigHelper({
+      itemCreateFunc: (field) => this._buildField(field),
+      draggableOptions: {
+        removeButton: false,
+        drag_indicator: cssDragger,
+      }, skipFirst, freeze: this._freezeYAxis
+    });
   }
 }
 
