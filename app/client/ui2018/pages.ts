@@ -52,7 +52,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
       domComputed(isRenaming, (isrenaming) => (
         isrenaming ?
           cssPageItem(
-            cssPageInitial(dom.text((use) => use(name)[0])),
+            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
             cssEditorInput(
               {
                 initialValue: name.get() || '',
@@ -68,7 +68,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageInitial(dom.text((use) => use(name)[0])),
+            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
             cssPageName(dom.text(name), testId('label')),
             cssPageMenuTrigger(
               cssPageIcon('Dots'),
