@@ -20,7 +20,7 @@ import {linkSelect, menu, menuItem, select} from 'app/client/ui2018/menus';
 import {nativeCompare} from 'app/common/gutil';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
-        makeTestId, Observable, styled} from 'grainjs';
+  makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
 import defaults = require('lodash/defaults');
@@ -372,6 +372,25 @@ export class ChartConfig extends GrainJSDisposable {
       this._groupDataForce.set(val);
     });
 
+  // The label to show for the first field in the axis configurator.
+  private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
+    (_use, chartType) => chartType === 'pie' ? 'LABEL' : 'X-AXIS'
+  ));
+
+  // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
+  // data option when type is switched to 'pie'.
+  private _chartType = Computed.create(this, (use) => use(this._section.chartTypeDef))
+    .onWrite((val) => {
+      return this._gristDoc.docData.bundleActions('switched chart type', async () => {
+        await this._section.chartTypeDef.saveOnly(val);
+        // When switching chart type to 'pie' makes sure to remove the group data option.
+        if (val === 'pie') {
+          await this._setGroupDataColumn(-1);
+          this._groupDataForce.set(false);
+        }
+      });
+    });
+
 
   constructor(private _gristDoc: GristDoc, private _section: ViewSectionRec) {
     super();
@@ -385,7 +404,7 @@ export class ChartConfig extends GrainJSDisposable {
 
     return [
       cssRow(
-        select(fromKoSave(this._section.chartTypeDef), [
+        select(this._chartType, [
           {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
           {value: 'pie',          label: 'Pie Chart',         icon: 'ChartPie'   },
           {value: 'area',         label: 'Area Chart',        icon: 'ChartArea'  },
@@ -434,7 +453,7 @@ export class ChartConfig extends GrainJSDisposable {
       ]),
 
       // TODO: user should select x axis before widget reach page
-      cssLabel('X-AXIS'),
+      cssLabel(dom.text(this._firstFieldLabel), testId('first-field-label')),
       cssRow(
         select(
           this._xAxis, this._section.table().columns().peek()
@@ -525,7 +544,7 @@ export class ChartConfig extends GrainJSDisposable {
         this._freezeXAxis.set(false);
         this._freezeYAxis.set(false);
       }
-    });
+    }, {nestInActiveBundle: true});
   }
 
   private _buildField(col: IField) {
