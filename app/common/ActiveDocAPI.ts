@@ -88,7 +88,7 @@ interface BaseQuery {
 export interface ClientQuery extends BaseQuery {
   operations?: {
     [colId: string]: QueryOperation;
-  }
+  };
 }
 
 /**

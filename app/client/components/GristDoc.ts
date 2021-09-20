@@ -5,11 +5,15 @@
 
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
+import * as BaseView from 'app/client/components/BaseView';
 import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
+import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
 import {DocComm, DocUserAction} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
+import {Drafts} from "app/client/components/Drafts";
+import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
@@ -28,39 +32,35 @@ import {DocInfoRec, DocModel, ViewRec, ViewSectionRec} from 'app/client/models/D
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
-import {QuerySetManager} from 'app/client/models/QuerySet';
+import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs} from "app/client/models/UserPrefs";
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
+import {startDocTour} from "app/client/ui/DocTour";
 import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
-import {startDocTour} from "app/client/ui/DocTour";
 import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
+import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {ActionGroup} from 'app/common/ActionGroup';
+import {ClientQuery} from "app/common/ActiveDocAPI";
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
+import {isList, isRefListType, RecalcWhen} from 'app/common/gristTypes';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
-import {RecalcWhen} from 'app/common/gristTypes';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
-import {Computed, dom, Emitter, Holder, IDomComponent, subscribe, toKo} from 'grainjs';
-import {IDisposable, Observable, styled} from 'grainjs';
+import {Computed, dom, Emitter, Holder, IDisposable, IDomComponent, Observable, styled, subscribe, toKo} from 'grainjs';
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
-import * as BaseView from 'app/client/components/BaseView';
-import { CursorMonitor, ViewCursorPos } from "app/client/components/CursorMonitor";
-import { EditorMonitor } from "app/client/components/EditorMonitor";
-import { FieldEditor } from "app/client/widgets/FieldEditor";
-import { Drafts } from "app/client/components/Drafts";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -678,25 +678,28 @@ export class GristDoc extends DisposableWithEvents {
         const isSrcSummary = srcSection.table.peek().summarySource.peek().id.peek();
         if (!colId && !isSrcSummary) {
           // Simple case - source linked by rowId, not a summary.
+          if (isList(controller)) {
+            // Should be a reference list. Pick the first reference.
+            controller = controller[1];  // [0] is the L type code, [1] is the first value
+          }
           srcRowId = controller;
         } else {
           const srcTable = await this._getTableData(srcSection);
-          if (!colId) {
+          const query: ClientQuery = {tableId: srcTable.tableId, filters: {}, operations: {}};
+          if (colId) {
+            query.operations![colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? 'intersects' : 'in';
+            query.filters[colId] = isList(controller) ? controller.slice(1) : [controller];
+          } else {
             // must be a summary -- otherwise dealt with earlier.
             const destTable = await this._getTableData(section);
-            const filter: { [key: string]: any } = {};
-            for (const c of srcSection.table.peek().columns.peek().peek()) {
-              if (c.summarySourceCol.peek()) {
-                const filterColId = c.summarySource.peek().colId.peek();
-                const destValue = destTable.getValue(cursorPos.rowId, filterColId);
-                filter[filterColId] = destValue;
-              }
+            for (const srcCol of srcSection.table.peek().groupByColumns.peek()) {
+              const filterColId = srcCol.summarySource.peek().colId.peek();
+              controller = destTable.getValue(cursorPos.rowId, filterColId);
+              query.operations![filterColId] = 'in';
+              query.filters[filterColId] = isList(controller) ? controller.slice(1) : [controller];
             }
-            const result = srcTable.filterRecords(filter); // Should just have one record, or 0.
-            srcRowId = result[0] && result[0].id;
-          } else {
-            srcRowId = srcTable.findRow(colId, controller);
           }
+          srcRowId = srcTable.getRowIds().find(getFilterFunc(this.docData, query));
         }
         if (!srcRowId || typeof srcRowId !== 'number') { throw new Error('cannot trace rowId'); }
         await this.recursiveMoveToCursorPos({
