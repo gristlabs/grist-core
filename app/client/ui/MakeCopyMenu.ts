@@ -222,8 +222,14 @@ class SaveCopyModal extends Disposable {
    */
   private async _updateWorkspaces(org: Organization|null) {
     this._workspaces.set(null);     // Show that workspaces are loading.
+    this._destWS.set(null);         // Disable saving while waiting to set a new destination workspace.
     try {
       let wss = org ? await this._app.api.getOrgWorkspaces(org.id) : [];
+      if (this._destOrg.get() !== org) {
+        // We must have switched the org. Don't update anything; in particularr, keep _workspaces
+        // and _destWS as null, to show loading/save-disabled status. Let the new fetch update things.
+        return;
+      }
       // Sort the same way that HomeModel sorts workspaces.
       wss = sortBy(wss,
         (ws) => [ws.isSupportWorkspace, ownerName(this._app, ws).toLowerCase(), ws.name.toLowerCase()]);
