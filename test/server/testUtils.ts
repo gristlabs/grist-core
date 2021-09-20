@@ -16,6 +16,7 @@ import { assert } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fse from 'fs-extra';
+import clone = require('lodash/clone');
 import * as tmp from 'tmp-promise';
 import * as winston from 'winston';
 import { serialize } from 'winston/lib/winston/common';
@@ -285,6 +286,25 @@ export async function copyFixtureDoc(docName: string, destPath: string) {
 export async function readFixtureDoc(docName: string) {
   const srcPath = path.resolve(fixturesRoot, 'docs', docName);
   return fse.readFile(srcPath);
+}
+
+// a class to store a snapshot of environment variables, can be reverted to by
+// calling .restore()
+export class EnvironmentSnapshot {
+  private _oldEnv: NodeJS.ProcessEnv;
+  public constructor() {
+    this._oldEnv = clone(process.env);
+  }
+
+  // Reset environment variables.
+  public restore() {
+    Object.assign(process.env, this._oldEnv);
+    for (const key of Object.keys(process.env)) {
+      if (this._oldEnv[key] === undefined) {
+        delete process.env[key];
+      }
+    }
+  }
 }
 
 export { assert };
