@@ -336,6 +336,14 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(sheet, 0, "ID", "Int", [17])
     self._check_col(sheet, 1, "LongText", "Text", [long_cell])
 
+  def test_csv_with_surprising_isdigit(self):
+    parsed_file = import_csv.parse_file(_get_fixture('test_isdigit.csv'), parse_options='')
+    sheet = parsed_file[1][0]
+    self._check_num_cols(sheet, 3)
+    self._check_col(sheet, 0, "PHONE", "Text", [u'201-¾᠓𑄺꤈꤈꧐꤆'])
+    self._check_col(sheet, 1, "VALUE", "Text", [u'¹5'])
+    self._check_col(sheet, 2, "DATE", "Text", [u'2018-0²-27 16:08:39 +0000'])
+
 
 if __name__ == '__main__':
   unittest.main()

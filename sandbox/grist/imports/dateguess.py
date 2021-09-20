@@ -63,39 +63,44 @@ TZ_VALID_NAMES = {z[0] for z in moment.get_tz_data().items()}
 AM_PM = {'am', 'pm'}
 DAYS_OF_WEEK_NAME = calendar.day_name
 DAYS_OF_WEEK_ABBR = calendar.day_abbr
+ASCII_DIGITS_RE = re.compile(r'^[0-9]+$')
+
+# Using x.isdigit() matches strings like u'\xb2' (superscripts) which we don't want.
+# Use isdigit(x) instead, to only match ASCII digits 0-9.
+isdigit = ASCII_DIGITS_RE.match
 
 DATE_ELEMENTS = [
   # Name   Pattern  Predicate               Group (mutual exclusive)  Consumes N prev elements
-  ("Year", "%Y", lambda x, p, v: x.isdigit() and len(x) == 4, "Y", 0),
-  ("Year short", "%y", lambda x, p, v: x.isdigit() and len(x) == 2, "Y", 0),
-  ("Month", "%m", lambda x, p, v: x.isdigit() and len(x) <= 2 and 0 < int(x) <= 12, "m", 0),
+  ("Year", "%Y", lambda x, p, v: isdigit(x) and len(x) == 4, "Y", 0),
+  ("Year short", "%y", lambda x, p, v: isdigit(x) and len(x) == 2, "Y", 0),
+  ("Month", "%m", lambda x, p, v: isdigit(x) and len(x) <= 2 and 0 < int(x) <= 12, "m", 0),
   ("Month name full", "%B", lambda x, p, v: x.isalpha() and x.capitalize() in MONTH_NAME, "m", 0),
   ("Month name abbr", "%b", lambda x, p, v: x.isalpha() and x.capitalize() in MONTH_ABBR, "m", 0),
-  ("Day", "%d", lambda x, p, v: x.isdigit() and len(x) <= 2 and 0 < int(x) <= 31, "d", 0),
+  ("Day", "%d", lambda x, p, v: isdigit(x) and len(x) <= 2 and 0 < int(x) <= 31, "d", 0),
   ("Day of week", "%A", lambda x, p, v: x.isalpha()
                                         and x.capitalize() in DAYS_OF_WEEK_NAME, "a", 0),
   ("Day of week abbr", "%a", lambda x, p, v: x.isalpha()
                                              and x.capitalize() in DAYS_OF_WEEK_ABBR, "a", 0),
 
-  ("Compound HHMMSS", "%H%M%S", lambda x, p, v: x.isdigit() and len(x) == 6
+  ("Compound HHMMSS", "%H%M%S", lambda x, p, v: isdigit(x) and len(x) == 6
                                                 and 0 <= int(x[0:2]) < 24
                                                 and 0 <= int(x[2:4]) < 60
                                                 and 0 <= int(x[4:6]) < 60, "HMS", 0),
 
-  ("Hour", "%H", lambda x, p, v: x.isdigit() and len(x) <= 2 and 0 <= int(x) <= 23, "H", 0),
-  ("Hour in 12hr mode", "%I", lambda x, p, v: x.isdigit() and len(x) <= 2
+  ("Hour", "%H", lambda x, p, v: isdigit(x) and len(x) <= 2 and 0 <= int(x) <= 23, "H", 0),
+  ("Hour in 12hr mode", "%I", lambda x, p, v: isdigit(x) and len(x) <= 2
                                               and 0 <= int(x) <= 11, "H", 0),
   ("AM/PM", "%p", lambda x, p, v: x.isalpha() and len(x) == 2 and x.lower() in AM_PM, "p", 0),
-  ("Minutes", "%M", lambda x, p, v: x.isdigit() and len(x) <= 2 and 0 <= int(x) <= 59, "M", 0),
-  ("Seconds", "%S", lambda x, p, v: x.isdigit() and len(x) <= 2 and 0 <= int(x) <= 59, "S", 0),
-  ("Fraction of second", "%f", lambda x, p, v: x.isdigit() and p is not None
+  ("Minutes", "%M", lambda x, p, v: isdigit(x) and len(x) <= 2 and 0 <= int(x) <= 59, "M", 0),
+  ("Seconds", "%S", lambda x, p, v: isdigit(x) and len(x) <= 2 and 0 <= int(x) <= 59, "S", 0),
+  ("Fraction of second", "%f", lambda x, p, v: isdigit(x) and p is not None
                                                and p.val == '.', "f", 0),
   ("Timezone name", "%Z", lambda x, p, v: x.isalpha() and len(x) > 2
                                           and x in TZ_VALID_NAMES, "Z", 0),
-  ("Timezone +HHMM", "%z", lambda x, p, v: x.isdigit() and len(x) == 4 and 0 <= int(x[0:2]) < 15
+  ("Timezone +HHMM", "%z", lambda x, p, v: isdigit(x) and len(x) == 4 and 0 <= int(x[0:2]) < 15
                                            and 0 <= int(x[2:4]) < 60 and p is not None
                                            and p.val == '+', "Z", 1),
-  ("Timezone -HHMM", "%z", lambda x, p, v: x.isdigit() and len(x) == 4 and 0 <= int(x[0:2]) < 15
+  ("Timezone -HHMM", "%z", lambda x, p, v: isdigit(x) and len(x) == 4 and 0 <= int(x[0:2]) < 15
                                            and 0 <= int(x[2:4]) < 60 and p is not None
                                            and p.val == '-', "Z", 1),
 ]
