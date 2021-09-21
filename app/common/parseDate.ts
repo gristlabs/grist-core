@@ -45,6 +45,11 @@ const PARSER_FORMATS: string[] = [
   'D'
 ];
 
+// The TZ portion is based on moment's RFC2822 regex, supporting US time zones, and UT. See
+// https://momentjs.com/docs/#/parsing/string/
+const TIME_REGEX = /^(?:(\d\d?)(?::(\d\d?)(?::(\d\d?))?)?|(\d\d?)(\d\d))\s*([ap]m?)?$/i;
+const TZ_REGEX = /\s*(UTC?|GMT|[ECMP][SD]T|Z)|(?:([+-]\d\d?)(?::?(\d\d))?)$/i;
+
 interface ParseOptions {
   time?: string;
   dateFormat?: string;
@@ -85,14 +90,15 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
     dateFormats.unshift(...variations);
   }
   const cleanDate = date.replace(separators, ' ');
-  const datetime = (options.time ? `${cleanDate} ${options.time}` : cleanDate).trim();
+  let datetime = cleanDate.trim();
+  let timeformat = '';
+  if (options.time) {
+    const {time, tzOffset} = standardizeTime(options.time);
+    datetime += ' ' + time + tzOffset;
+    timeformat = ' HH:mm:ss' + (tzOffset ? 'Z' : '');
+  }
   for (const f of dateFormats) {
-    // Momentjs has an undesirable feature in strict mode where HH, mm, and ss
-    // matches require two digit numbers. Change HH, mm, and ss to H, m, and s.
-    const timeFormat = options.timeFormat ? options.timeFormat.replace(/\bHH\b/g, 'H')
-      .replace(/\bmm\b/g, 'm')
-      .replace(/\bss\b/g, 's') : null;
-    const fullFormat = options.time && timeFormat ? `${f} ${timeFormat}` : f;
+    const fullFormat = f + timeformat;
     const m = moment.tz(datetime, fullFormat, true, options.timezone || 'UTC');
     if (m.isValid()) {
       return m.valueOf() / 1000;
@@ -140,4 +146,57 @@ function _buildVariations(format: string) {
     variations.add(otherYear.replace(/MMM+/, 'M'));
   }
   return variations;
+}
+
+// This is based on private obsOffset in moment source code.
+const tzOffsets: {[name: string]: string} = {
+  EDT: '-04:00',
+  EST: '-05:00',
+  CDT: '-05:00',
+  CST: '-06:00',
+  MDT: '-06:00',
+  MST: '-07:00',
+  PDT: '-07:00',
+  PST: '-08:00',
+};
+
+// Based on private calculateOffset in moment source code.
+function calculateOffset(tzMatch: string[]): string {
+  const [, tzName, hhOffset, mmOffset] = tzMatch;
+  if (tzName) {
+    // Zero offsets like Z, UT[C], GMT are captured by the fallback.
+    return tzOffsets[tzName.toUpperCase()] || '+00:00';
+  } else {
+    const sign = hhOffset.slice(0, 1);
+    return sign + hhOffset.slice(1).padStart(2, '0') + ':' + (mmOffset || '0').padStart(2, '0');
+  }
+}
+
+// Parses time of the form, roughly, HH[:MM[:SS]][am|pm] [TZ]. Returns the time in the
+// standardized HH:mm:ss format, and an offset string that's empty or is of the form [+-]HH:mm.
+// This turns out easier than coaxing moment to parse time sensibly and flexibly.
+function standardizeTime(timeString: string): {time: string, tzOffset: string} {
+  let cleanTime = timeString.trim();
+  const tzMatch = TZ_REGEX.exec(cleanTime);
+  let tzOffset = '';
+  if (tzMatch) {
+    cleanTime = cleanTime.slice(0, tzMatch.index).trim();
+    tzOffset = calculateOffset(tzMatch);
+  }
+  const match = TIME_REGEX.exec(cleanTime);
+  if (match) {
+    let hours = parseInt(match[1] || match[4], 10);
+    const mm = (match[2] || match[5] || '0').padStart(2, '0');
+    const ss = (match[3] || '0').padStart(2, '0');
+    const ampm = (match[6] || '').toLowerCase();
+    if (hours < 12 && hours > 0 && ampm.startsWith('p')) {
+      hours += 12;
+    } else if (hours === 12 && ampm.startsWith('a')) {
+      hours = 0;
+    }
+    const hh = String(hours).padStart(2, '0');
+    return {time: `${hh}:${mm}:${ss}`, tzOffset};
+  } else {
+    return {time: '00:00:00', tzOffset};
+  }
 }
