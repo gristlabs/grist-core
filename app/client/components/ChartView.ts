@@ -206,7 +206,7 @@ export class ChartView extends Disposable {
   }
 
   private _resizeChart() {
-    if (this.isDisposed() || !Plotly) { return; }
+    if (this.isDisposed() || !Plotly || !this._chartDom.parentNode) { return; }
     Plotly.Plots.resize(this._chartDom);
   }
 }
