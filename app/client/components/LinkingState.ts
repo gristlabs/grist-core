@@ -59,7 +59,7 @@ type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
  */
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
-  public readonly cursorPos?: ko.Computed<number>;
+  public readonly cursorPos?: ko.Computed<RowId>;
 
   // If linking affects filtering, this is a computed for the current filtering state, as a
   // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId()
@@ -119,7 +119,7 @@ export class LinkingState extends Disposable {
       const srcValueFunc = srcColId ? this._makeSrcCellGetter() : _.identity;
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
-          srcValueFunc(srcSection.activeRowId()) as number
+          srcValueFunc(srcSection.activeRowId()) as RowId
         ));
       }
     }
@@ -178,6 +178,9 @@ export class LinkingState extends Disposable {
     }
     return (rowId: RowId | null) => {
       srcRowModel.assign(rowId);
+      if (rowId === 'new') {
+        return 'new';
+      }
       return srcCellObs();
     };
   }
