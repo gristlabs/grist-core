@@ -3,13 +3,13 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
-import {schema} from 'app/common/schema';
+import {schema, SchemaTypes} from 'app/common/schema';
 import fromPairs = require('lodash/fromPairs');
 import groupBy = require('lodash/groupBy');
 import {ActionDispatcher} from './ActionDispatcher';
 import {BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
         RowRecord, TableDataAction} from './DocActions';
-import {ColTypeMap, TableData} from './TableData';
+import {ColTypeMap, MetaTableData, TableData} from './TableData';
 
 type FetchTableFunc = (tableId: string) => Promise<TableDataAction>;
 
@@ -46,7 +46,7 @@ export class DocData extends ActionDispatcher {
    * Creates a new TableData object. A derived class may override to return an object derived from TableData.
    */
   public createTableData(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap): TableData {
-    return new TableData(tableId, tableData, colTypes);
+    return new (tableId in schema ? MetaTableData : TableData)(tableId, tableData, colTypes);
   }
 
   /**
@@ -54,6 +54,13 @@ export class DocData extends ActionDispatcher {
    */
   public getTable(tableId: string): TableData|undefined {
     return this._tables.get(tableId);
+  }
+
+  /**
+   * Like getTable, but the result knows about the types of its records
+   */
+  public getMetaTable<TableId extends keyof SchemaTypes>(tableId: TableId): MetaTableData<TableId> {
+    return this.getTable(tableId) as any;
   }
 
   /**

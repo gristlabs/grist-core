@@ -7,6 +7,7 @@ import {ActionDispatcher} from './ActionDispatcher';
 import {BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
         isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from './DocActions';
 import {arrayRemove, arraySplice} from './gutil';
+import {SchemaTypes} from "./schema";
 
 export interface ColTypeMap { [colId: string]: string; }
 
@@ -467,6 +468,34 @@ export class TableData extends ActionDispatcher implements SkippableRows {
       }
     });
     return rowIndices;
+  }
+}
+
+export type MetaRowRecord<TableId extends keyof SchemaTypes> = SchemaTypes[TableId] & RowRecord;
+
+/**
+ * Behaves the same as TableData, but uses SchemaTypes for type safety of its columns.
+ */
+export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData {
+  constructor(tableId: TableId, tableData: TableDataAction | null, colTypes: ColTypeMap) {
+    super(tableId, tableData, colTypes);
+  }
+
+  public getRecords(): Array<MetaRowRecord<TableId>> {
+    return super.getRecords() as any;
+  }
+
+  public getRecord(rowId: number): MetaRowRecord<TableId> | undefined {
+    return super.getRecord(rowId) as any;
+  }
+
+  /**
+   * Same as getRowPropFunc, but I couldn't get a direct override to compile.
+   */
+  public getMetaRowPropFunc<ColId extends keyof SchemaTypes[TableId]>(
+    colId: ColId
+  ): ((rowId: number | "new") => SchemaTypes[TableId][ColId]) {
+    return super.getRowPropFunc(colId as any) as any;
   }
 }
 

@@ -1,7 +1,10 @@
 import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
-import {CellValue, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
+import {
+  CellValue, fromTableDataAction, TableColValues, TableDataAction, TableRecordValue,
+} from 'app/common/DocActions';
+import {isRaisedException} from "app/common/gristTypes";
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -14,8 +17,13 @@ import { DocManager } from "app/server/lib/DocManager";
 import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
 import { DocWorker } from "app/server/lib/DocWorker";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { parseExportParameters } from "app/server/lib/Export";
+import { downloadCSV, DownloadCSVOptions } from "app/server/lib/ExportCSV";
+import { downloadXLSX, DownloadXLSXOptions } from "app/server/lib/ExportXLSX";
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { filterDocumentInPlace } from "app/server/lib/filterUtils";
+import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
+import { exportToDrive } from "app/server/lib/GoogleExport";
 import { GristServer } from 'app/server/lib/GristServer';
 import { HashUtil } from 'app/server/lib/HashUtil';
 import { makeForkIds } from "app/server/lib/idUtils";
@@ -23,19 +31,15 @@ import {
   getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
   sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
 import { SandboxError } from "app/server/lib/sandboxUtil";
+import {localeFromRequest} from "app/server/lib/ServerLocale";
+import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
 import * as contentDisposition from 'content-disposition';
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
+import * as _ from "lodash";
 import fetch from 'node-fetch';
 import * as path from 'path';
-import { exportToDrive } from "app/server/lib/GoogleExport";
-import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
-import * as _ from "lodash";
-import {isRaisedException} from "app/common/gristTypes";
-import {localeFromRequest} from "app/server/lib/ServerLocale";
-import { downloadCSV, DownloadCSVOptions } from "app/server/lib/ExportCSV";
-import { downloadXLSX, DownloadXLSXOptions } from "app/server/lib/ExportXLSX";
-import { parseExportParameters } from "app/server/lib/Export";
+import * as uuidv4 from "uuid/v4";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -159,21 +163,26 @@ export class DocWorkerApi {
       })
     );
 
+    async function getMetaTables(activeDoc: ActiveDoc, req: RequestWithLogin) {
+      return await handleSandboxError("", [],
+        activeDoc.fetchMetaTables(docSessionFromRequest(req)));
+    }
+
+    function tableIdToRef(metaTables: { [p: string]: TableDataAction }, tableId: any) {
+      const [, , tableRefs, tableData] = metaTables._grist_Tables;
+      const tableRowIndex = tableData.tableId.indexOf(tableId);
+      if (tableRowIndex === -1) {
+        throw new ApiError(`Table not found "${tableId}"`, 404);
+      }
+      return tableRefs[tableRowIndex];
+    }
+
     // Get the columns of the specified table in recordish format
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
-        const metaTables = await handleSandboxError("", [],
-          activeDoc.fetchMetaTables(docSessionFromRequest(req)));
-
-        const [, , tableRefs, tableData] = metaTables["_grist_Tables"];
-        const [, , colRefs, columnData] = metaTables["_grist_Tables_column"];
-
-        const tableId = req.params.tableId;
-        const tableRowIndex = tableData.tableId.indexOf(tableId);
-        if (tableRowIndex === -1) {
-          throw new ApiError(`Table not found "${tableId}"`, 404);
-        }
-        const tableRef = tableRefs[tableRowIndex];
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableRef = tableIdToRef(metaTables, req.params.tableId);
+        const [, , colRefs, columnData] = metaTables._grist_Tables_column;
 
         // colId is pulled out of fields and used as the root id
         const fieldNames = _.without(Object.keys(columnData), "colId");
@@ -361,6 +370,96 @@ export class DocWorkerApi {
         const columnValues = recordFieldsToColValues(_.map(records, 'fields'));
         await updateRecords(req, activeDoc, columnValues, rowIds);
         res.json(null);
+      })
+    );
+
+    // Add a new webhook and trigger
+    this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const {isReadyColumn, eventTypes, url} = req.body;
+
+        if (!(Array.isArray(eventTypes) && eventTypes.length)) {
+          throw new ApiError(`eventTypes must be a non-empty array`, 400);
+        }
+        if (!eventTypes.every(allowedEventTypes.guard)) {
+          throw new ApiError(`Allowed values in eventTypes are: ${allowedEventTypes.values}`, 400);
+        }
+        if (!url) {
+          throw new ApiError('Bad request: url required', 400);
+        }
+        if (!isUrlAllowed(url)) {
+          throw new ApiError('Provided url is forbidden', 403);
+        }
+
+        const unsubscribeKey = uuidv4();
+        const webhook: WebHookSecret = {unsubscribeKey, url};
+        const secretValue = JSON.stringify(webhook);
+        const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
+
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableRef = tableIdToRef(metaTables, req.params.tableId);
+
+        let isReadyColRef = 0;
+        if (isReadyColumn) {
+          const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+          const colRowIndex = columnData.colId.indexOf(isReadyColumn);
+          if (colRowIndex === -1) {
+            throw new ApiError(`Column not found "${isReadyColumn}"`, 404);
+          }
+          isReadyColRef = colRefs[colRowIndex];
+        }
+
+        const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
+
+        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+          docSessionFromRequest(req),
+          [['AddRecord', "_grist_Triggers", null, {
+            tableRef,
+            isReadyColRef,
+            eventTypes: ["L", ...eventTypes],
+            actions: JSON.stringify([webhookAction])
+          }]]));
+
+        res.json({
+          unsubscribeKey,
+          triggerId: sandboxRes.retValues[0],
+          webhookId,
+        });
+      })
+    );
+
+    // Remove webhook and trigger created above
+    this._app.post('/api/docs/:docId/tables/:tableId/_unsubscribe', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableRef = tableIdToRef(metaTables, req.params.tableId);
+        const {triggerId, unsubscribeKey, webhookId} = req.body;
+
+        // Validate combination of triggerId, webhookId, and tableRef.
+        // This is overly strict, webhookId should be enough,
+        // but it should be easy to relax that later if we want.
+        const [, , triggerRowIds, triggerColData] = metaTables._grist_Triggers;
+        const triggerRowIndex = triggerRowIds.indexOf(triggerId);
+        if (triggerRowIndex === -1) {
+          throw new ApiError(`Trigger not found "${triggerId}"`, 404);
+        }
+        if (triggerColData.tableRef[triggerRowIndex] !== tableRef) {
+          throw new ApiError(`Wrong table`, 400);
+        }
+        const actions = JSON.parse(triggerColData.actions[triggerRowIndex] as string);
+        if (!_.find(actions, {type: "webhook", id: webhookId})) {
+          throw new ApiError(`Webhook not found "${webhookId}"`, 404);
+        }
+
+        // Validate unsubscribeKey before deleting trigger from document
+        await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey);
+
+        // TODO handle trigger containing other actions when that becomes possible
+        await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+          docSessionFromRequest(req),
+          [['RemoveRecord', "_grist_Triggers", triggerId]]));
+
+        res.json({success: true});
       })
     );
 

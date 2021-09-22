@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 23
+SCHEMA_VERSION = 24
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -235,6 +235,14 @@ def schema_create_actions():
       make_column("timeUploaded", "DateTime")
     ]),
 
+
+    # Triggers subscribing to changes in tables
+    actions.AddTable("_grist_Triggers", [
+      make_column("tableRef", "Ref:_grist_Tables"),
+      make_column("eventTypes", "ChoiceList"),
+      make_column("isReadyColRef", "Ref:_grist_Tables_column"),
+      make_column("actions", "Text"),  # JSON
+    ]),
 
     # All of the ACL rules.
     actions.AddTable('_grist_ACLRules', [

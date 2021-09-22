@@ -6,6 +6,7 @@ import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "t
 import {AclRuleDoc} from "./AclRule";
 import {Alias} from "./Alias";
 import {Resource} from "./Resource";
+import {Secret} from "./Secret";
 import {Workspace} from "./Workspace";
 
 // Acceptable ids for use in document urls.
@@ -57,6 +58,9 @@ export class Document extends Resource {
 
   @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})
   public options: DocumentOptions | null;
+
+  @OneToMany(_type => Secret, secret => secret.doc)
+  public secrets: Secret[];
 
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);

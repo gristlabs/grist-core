@@ -438,9 +438,13 @@ export class ActiveDoc extends EventEmitter {
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, this.docClients, (query) => {
       return this._fetchQueryFromDB(query, false);
-    }, this.recoveryMode, this._docManager.getHomeDbManager(), this.docName);
+    }, this.recoveryMode, this.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
+  }
+
+  public getHomeDbManager() {
+    return this._docManager.getHomeDbManager();
   }
 
   /**

@@ -15,8 +15,10 @@ import * as assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as Deque from 'double-ended-queue';
 import {ActionHistory, asActionGroup} from './ActionHistory';
+import {summarizeAction} from "./ActionSummary";
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
+import {TriggersHandler} from "./Triggers";
 import {WorkCoordinator} from './WorkCoordinator';
 
 // Describes the request to apply a UserActionBundle. It includes a Client (so that broadcast
@@ -279,15 +281,18 @@ export class Sharing {
       }
       await this._activeDoc.processActionBundle(ownActionBundle);
 
+      const actionSummary = summarizeAction(localActionBundle);
+      new TriggersHandler(this._activeDoc).handle(actionSummary);
+
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
         client,
         retValues: sandboxActionBundle.retValues,
-        summarize: true,
         // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
         // date and other changes from external values may count as internal.
         internal: isCalculate,
       });
+      actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
       await accessControl.sendDocUpdateForBundle(actionGroup);
       if (docSession) {

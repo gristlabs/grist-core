@@ -13,6 +13,7 @@ _ts_types = {
   "PositionNumber": "number",
   "Ref":            "number",
   "RefList":        "['L', ...number[]]|null",    # Non-primitive values are encoded
+  "ChoiceList":     "['L', ...string[]]|null",
   "Text":           "string",
 }
 

@@ -143,6 +143,13 @@ export const schema = {
     timeUploaded        : "DateTime",
   },
 
+  "_grist_Triggers": {
+    tableRef            : "Ref:_grist_Tables",
+    eventTypes          : "ChoiceList",
+    isReadyColRef       : "Ref:_grist_Tables_column",
+    actions             : "Text",
+  },
+
   "_grist_ACLRules": {
     resource            : "Ref:_grist_ACLResources",
     permissions         : "Int",
@@ -315,6 +322,13 @@ export interface SchemaTypes {
     imageHeight: number;
     imageWidth: number;
     timeUploaded: number;
+  };
+
+  "_grist_Triggers": {
+    tableRef: number;
+    eventTypes: ['L', ...string[]]|null;
+    isReadyColRef: number;
+    actions: string;
   };
 
   "_grist_ACLRules": {

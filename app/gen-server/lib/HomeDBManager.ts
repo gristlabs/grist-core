@@ -22,6 +22,7 @@ import {Login} from "app/gen-server/entity/Login";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
 import {Pref} from "app/gen-server/entity/Pref";
 import {getDefaultProductNames, Product, starterFeatures} from "app/gen-server/entity/Product";
+import {Secret} from "app/gen-server/entity/Secret";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {Permissions} from 'app/gen-server/lib/Permissions';
@@ -31,11 +32,13 @@ import {bitOr, getRawAndEntities, now, readJson} from 'app/gen-server/sqlUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
+import {WebHookSecret} from "app/server/lib/Triggers";
 import {EventEmitter} from 'events';
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import {Brackets, Connection, createConnection, DatabaseType, EntityManager,
         getConnection, SelectQueryBuilder, WhereExpression} from "typeorm";
+import * as uuidv4 from "uuid/v4";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -1545,6 +1548,47 @@ export class HomeDBManager extends EventEmitter {
         status: 200,
         data: (result[0] as Document).id
       };
+    });
+  }
+
+  public addSecret(value: string, docId: string): Promise<Secret> {
+    return this._connection.transaction(async manager => {
+      const secret = new Secret();
+      secret.id = uuidv4();
+      secret.value = value;
+      secret.doc = {id: docId} as any;
+      await manager.save([secret]);
+      return secret;
+    });
+  }
+
+  public async getSecret(id: string, docId: string, manager?: EntityManager): Promise<string | undefined> {
+    const secret = await (manager || this._connection).createQueryBuilder()
+      .select('secrets')
+      .from(Secret, 'secrets')
+      .where('id = :id AND doc_id = :docId', {id, docId})
+      .getOne();
+    return secret?.value;
+  }
+
+  public async removeWebhook(id: string, docId: string, unsubscribeKey: string): Promise<void> {
+    if (!(id && unsubscribeKey)) {
+      throw new ApiError('Bad request: id and unsubscribeKey both required', 400);
+    }
+    return await this._connection.transaction(async manager => {
+      const secret = await this.getSecret(id, docId, manager);
+      if (!secret) {
+        throw new ApiError('Webhook with given id not found', 404);
+      }
+      const webhook = JSON.parse(secret) as WebHookSecret;
+      if (webhook.unsubscribeKey !== unsubscribeKey) {
+        throw new ApiError('Wrong unsubscribeKey', 401);
+      }
+      await manager.createQueryBuilder()
+        .delete()
+        .from(Secret)
+        .where('id = :id', {id})
+        .execute();
     });
   }
 

@@ -795,3 +795,15 @@ def migration23(tdset):
     add_column('_grist_DocInfo', 'documentSettings', 'Text'),
     actions.UpdateRecord('_grist_DocInfo', 1, {'documentSettings': '{"locale":"en-US"}'})
   ])
+
+
+@migration(schema_version=24)
+def migration24(tdset):
+  return tdset.apply_doc_actions([
+    actions.AddTable('_grist_Triggers', [
+      schema.make_column("tableRef", "Ref:_grist_Tables"),
+      schema.make_column("eventTypes", "ChoiceList"),
+      schema.make_column("isReadyColRef", "Ref:_grist_Tables_column"),
+      schema.make_column("actions", "Text"),  # JSON
+    ]),
+  ])
