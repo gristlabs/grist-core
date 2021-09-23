@@ -65,7 +65,7 @@ export interface WebHookSecret {
 // An instance of this class should have .handle() called on it exactly once.
 export class TriggersHandler {
   // Converts a column ref to colId by looking it up in _grist_Tables_column
-  private _getColId: (rowId: (number | "new")) => string;
+  private _getColId: (rowId: number) => string|undefined;
 
   constructor(private _activeDoc: ActiveDoc) {
   }
@@ -82,7 +82,7 @@ export class TriggersHandler {
 
     const triggersByTableRef = _.groupBy(triggersTable.getRecords(), "tableRef");
     for (const [tableRef, triggers] of _.toPairs(triggersByTableRef)) {
-      const tableId = getTableId(Number(tableRef));  // groupBy makes tableRef a string
+      const tableId = getTableId(Number(tableRef))!;  // groupBy makes tableRef a string
       const tableDelta = summary.tableDeltas[tableId];
       if (!tableDelta) {
         continue;  // this table was not modified by these actions

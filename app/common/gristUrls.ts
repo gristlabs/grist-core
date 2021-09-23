@@ -5,6 +5,7 @@ import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {localhostRegex} from 'app/common/LoginState';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
+import {UIRowId} from 'app/common/UIRowId';
 import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
@@ -300,9 +301,15 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
     if (hashMap.has('#') && hashMap.get('#') === 'a1') {
       const link: HashLink = {};
-      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof Omit<HashLink, 'welcomeTour' | 'docTour'>>) {
+      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
         const ch = key.substr(0, 1);
-        if (hashMap.has(ch)) { link[key] = parseInt(hashMap.get(ch)!, 10); }
+        if (!hashMap.has(ch)) { continue; }
+        const value = hashMap.get(ch);
+        if (key === 'rowId' && value === 'new') {
+          link[key] = 'new';
+        } else {
+          link[key] = parseInt(value!, 10);
+        }
       }
       state.hash = link;
     }
@@ -620,7 +627,7 @@ export function buildUrlId(parts: UrlIdParts): string {
  */
 export interface HashLink {
   sectionId?: number;
-  rowId?: number;
+  rowId?: UIRowId;
   colRef?: number;
 }
 

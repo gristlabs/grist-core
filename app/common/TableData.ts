@@ -1,15 +1,19 @@
 /**
  * TableData maintains a single table's data.
  */
-import {getDefaultForType} from 'app/common/gristTypes';
-import fromPairs = require('lodash/fromPairs');
-import {ActionDispatcher} from './ActionDispatcher';
+import {ActionDispatcher} from 'app/common/ActionDispatcher';
 import {BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
-        isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from './DocActions';
-import {arrayRemove, arraySplice} from './gutil';
-import {SchemaTypes} from "./schema";
+        isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
+import {getDefaultForType} from 'app/common/gristTypes';
+import {arrayRemove, arraySplice} from 'app/common/gutil';
+import {SchemaTypes} from "app/common/schema";
+import {UIRowId} from 'app/common/UIRowId';
+import fromPairs = require('lodash/fromPairs');
 
 export interface ColTypeMap { [colId: string]: string; }
+
+type RowFunc<T> = (rowId: number) => T;
+type UIRowFunc<T> = (rowId: UIRowId) => T;
 
 interface ColData {
   colId: string;
@@ -23,7 +27,7 @@ interface ColData {
  */
 export interface SkippableRows {
   // If there may be skippable rows, return a function to test rowIds for keeping.
-  getKeepFunc(): undefined | ((rowId: number|"new") => boolean);
+  getKeepFunc(): undefined | UIRowFunc<boolean>;
   // Get a special row id which represents a skipped sequence of rows.
   getSkipRowId(): number;
 }
@@ -149,9 +153,9 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   /**
    * Returns the specified value from this table.
    */
-  public getValue(rowId: number, colId: string): CellValue|undefined {
+  public getValue(rowId: UIRowId, colId: string): CellValue|undefined {
     const colData = this._columns.get(colId);
-    const index = this._rowMap.get(rowId);
+    const index = this._rowMap.get(rowId as number);    // rowId of 'new' will not be found.
     return colData && index !== undefined ? colData.values[index] : undefined;
   }
 
@@ -159,16 +163,16 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Given a column name, returns a function that takes a rowId and returns the value for that
    * column of that row. The returned function is faster than getValue() calls.
    */
-  public getRowPropFunc(colId: string): undefined | ((rowId: number|"new") => CellValue|undefined) {
+  public getRowPropFunc(colId: string): undefined | UIRowFunc<CellValue|undefined> {
     const colData = this._columns.get(colId);
     if (!colData) { return undefined; }
     const values = colData.values;
     const rowMap = this._rowMap;
-    return function(rowId: number|"new") { return rowId === "new" ? "new" : values[rowMap.get(rowId)!]; };
+    return function(rowId: UIRowId) { return values[rowMap.get(rowId as number)!]; };
   }
 
   // By default, no rows are skippable, all are kept.
-  public getKeepFunc(): undefined | ((rowId: number|"new") => boolean) {
+  public getKeepFunc(): undefined | UIRowFunc<boolean> {
     return undefined;
   }
 
@@ -494,7 +498,7 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
    */
   public getMetaRowPropFunc<ColId extends keyof SchemaTypes[TableId]>(
     colId: ColId
-  ): ((rowId: number | "new") => SchemaTypes[TableId][ColId]) {
+  ): RowFunc<SchemaTypes[TableId][ColId]|undefined> {
     return super.getRowPropFunc(colId as any) as any;
   }
 }

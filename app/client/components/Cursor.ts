@@ -8,17 +8,18 @@ import * as BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import * as BaseRowModel from 'app/client/models/BaseRowModel';
 import {LazyArrayModel} from 'app/client/models/DataTableModel';
+import type {RowId} from 'app/client/models/rowset';
 import {Disposable} from 'grainjs';
 import * as ko from 'knockout';
 
 export interface CursorPos {
-  rowId?: number;
+  rowId?: RowId;
   rowIndex?: number;
   fieldIndex?: number;
   sectionId?: number;
 }
 
-function nullAsUndefined(value: number|null|undefined): number|undefined {
+function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
   return value == null ? undefined : value;
 }
 
@@ -66,7 +67,7 @@ export class Cursor extends Disposable {
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
 
-  private _rowId: ko.Observable<number|null>;    // May be null when there are no rows.
+  private _rowId: ko.Observable<RowId|null>;     // May be null when there are no rows.
 
   // The cursor's _rowId property is always fixed across data changes. When isLive is true,
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will

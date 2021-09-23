@@ -291,13 +291,14 @@ declare module "app/client/models/DataTableModel" {
   import {SortedRowSet} from "app/client/models/rowset";
   import {TableData} from "app/client/models/TableData";
   import * as TableModel from "app/client/models/TableModel";
+  import {UIRowId} from "app/common/UIRowId";
 
   namespace DataTableModel {
     interface LazyArrayModel<T> extends KoArray<T | null> {
-      getRowId(index: number): number;
-      getRowIndex(index: number): number;
-      getRowIndexWithSub(rowId: number): number;
-      getRowModel(rowId: number): T|undefined;
+      getRowId(index: number): UIRowId;
+      getRowIndex(rowId: UIRowId): number;
+      getRowIndexWithSub(rowId: UIRowId): number;
+      getRowModel(rowId: UIRowId): T|undefined;
     }
   }
 
