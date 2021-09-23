@@ -14,13 +14,12 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {testId, vars} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
 import {saveModal} from 'app/client/ui2018/modals';
+import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {GristLoadConfig} from 'app/common/gristUrls';
-import {locales} from "app/common/Locales";
-import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
-import * as LocaleCurrency from 'locale-currency';
-
+import {propertyCompare} from "app/common/gutil";
+import {getCurrency, locales} from "app/common/Locales";
 /**
  * Builds a simple saveModal for saving settings.
  */
@@ -50,7 +49,7 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
         cssDataRow('Currency:'),
         cssDataRow(dom.domComputed(localeObs, (l) =>
           dom.create(buildCurrencyPicker, currencyObs, (val) => currencyObs.set(val),
-            {defaultCurrencyLabel: `Local currency (${LocaleCurrency.getCurrency(l)})`})
+            {defaultCurrencyLabel: `Local currency (${getCurrency(l)})`})
         )),
         canChangeEngine ? [
           cssDataRow('Engine:'),
@@ -101,7 +100,7 @@ function buildLocaleSelect(
     label: l.name,
     locale: l.code,
     cleanText: l.name.trim().toLowerCase(),
-  }));
+  })).sort(propertyCompare("label"));
   const acIndex = new ACIndexImpl<LocaleItem>(localeList, 200, true);
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but

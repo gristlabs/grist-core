@@ -1,16 +1,9 @@
-import LocaleCurrency = require('locale-currency/map');
+import * as LocaleCurrencyMap from 'locale-currency/map';
+import * as LocaleCurrency from 'locale-currency';
 import {nativeCompare} from 'app/common/gutil';
+import {localeCodes} from "app/common/LocaleCodes";
 
-const localeCodes = [
-  "es-AR", "hy-AM", "en-AU", "az-AZ", "be-BY", "quz-BO", "pt-BR",
-  "bg-BG", "en-CA", "arn-CL", "es-CO", "hr-HR", "cs-CZ", "da-DK",
-  "es-EC", "ar-EG", "fi-FI", "fr-FR", "ka-GE", "de-DE", "el-GR", "en-HK",
-  "hu-HU", "hi-IN", "id-ID", "ga-IE", "ar-IL", "it-IT", "ja-JP", "kk-KZ",
-  "lv-LV", "lt-LT", "es-MX", "mn-MN", "my-MM", "nl-NL", "nb-NO",
-  "es-PY", "ceb-PH", "pl-PL", "pt-PT", "ro-RO", "ru-RU", "sr-RS",
-  "sk-SK", "sl-SI", "ko-KR", "es-ES", "sv-SE", "de-CH", "zh-TW", "th-TH",
-  "tr-TR", "uk-UA", "en-GB", "en-US", "es-UY", "es-VE", "vi-VN"
-];
+const DEFAULT_CURRENCY = "USD";
 
 export interface Locale {
   name: string;
@@ -21,13 +14,27 @@ export let locales: Readonly<Locale[]>;
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
-  const localeDisplay = new Intl.DisplayNames('en', {type: 'region'});
-  locales = localeCodes.map(code => {
-    return { name: localeDisplay.of(new Intl.Locale(code).region), code };
+  const regionDisplay = new Intl.DisplayNames('en', {type: 'region'});
+  const languageDisplay = new Intl.DisplayNames('en', {type: 'language'});
+  const display = (code: string) => {
+    try {
+      const locale = new Intl.Locale(code);
+      const regionName = regionDisplay.of(locale.region);
+      const languageName = languageDisplay.of(locale.language);
+      return `${regionName} (${languageName})`;
+    } catch (ex) {
+      return code;
+    }
+  };
+  // Leave only those that are supported by current system (can be translated to human readable form).
+  // Though, this file is in common, it is safe to filter by current system
+  // as the list should be already filtered by codes that are supported by the backend.
+  locales = Intl.DisplayNames.supportedLocalesOf(localeCodes).map(code => {
+    return {name: display(code), code};
   });
 } catch {
   // Fall back to using the locale code as the display name.
-  locales = localeCodes.map(code => ({ name: code, code }));
+  locales = localeCodes.map(code => ({name: code, code}));
 }
 
 export interface Currency {
@@ -37,16 +44,26 @@ export interface Currency {
 
 export let currencies: Readonly<Currency[]>;
 
+// locale-currency package doesn't have South Sudanese pound currency or a default value for Kosovo
+LocaleCurrencyMap["SS"] = "SSP";
+LocaleCurrencyMap["XK"] = "EUR";
+const currenciesCodes = Object.values(LocaleCurrencyMap);
+export function getCurrency(code: string) {
+  const currency = LocaleCurrency.getCurrency(code);
+  // Fallback to USD
+  return currency ?? DEFAULT_CURRENCY;
+}
+
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
   const currencyDisplay = new Intl.DisplayNames('en', {type: 'currency'});
-  currencies = [...new Set(Object.values(LocaleCurrency))].map(code => {
-    return { name: currencyDisplay.of(code), code };
+  currencies = [...new Set(currenciesCodes)].map(code => {
+    return {name: currencyDisplay.of(code), code};
   });
 } catch {
   // Fall back to using the currency code as the display name.
-  currencies = [...new Set(Object.values(LocaleCurrency))].map(code => {
-    return { name: code, code };
+  currencies = [...new Set(currenciesCodes)].map(code => {
+    return {name: code, code};
   });
 }
 

@@ -12,12 +12,14 @@ declare module "locale-currency/map" {
 
 declare namespace Intl {
   class DisplayNames {
+    public static supportedLocalesOf(locales: string | string[]): string[];
     constructor(locales?: string, options?: object);
     public of(code: string): string;
   }
 
   class Locale {
     public region: string;
+    public language: string;
     constructor(locale: string);
   }
 }

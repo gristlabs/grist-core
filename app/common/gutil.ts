@@ -487,6 +487,15 @@ export function nativeCompare<T>(a: T, b: T): number {
   return (a < b ? -1 : (a > b ? 1 : 0));
 }
 
+/**
+ * Creates a function that compares objects by a property value.
+ */
+export function propertyCompare<T>(property: keyof T) {
+  return function(a: T, b: T) {
+    return nativeCompare(a[property], b[property]);
+  };
+}
+
 // TODO: In the future, locale should be a value associated with the document or the user.
 export const defaultLocale = 'en-US';
 export const defaultCollator = new Intl.Collator(defaultLocale);
