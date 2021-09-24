@@ -63,6 +63,6 @@ class Address:
   def badSyntax(rec, table):
     # for a in b
     # 10
-    raise SyntaxError('invalid syntax on line 1 col 11')
+    raise SyntaxError('invalid syntax', ('usercode', 1, 11, u'for a in b'))
 ======================================================================
 """

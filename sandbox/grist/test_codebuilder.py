@@ -4,6 +4,7 @@ import unittest
 import codebuilder
 import six
 
+unicode_prefix = 'u' if six.PY2 else ''
 
 def make_body(formula, default=None):
   return codebuilder.make_formula_body(formula, default).get_text()
@@ -72,14 +73,20 @@ class TestCodeBuilder(unittest.TestCase):
 
     # Test that we produce valid code when "$foo" occurs in invalid places.
     self.assertEqual(make_body('foo($bar=1)'),
-                     "# foo($bar=1)\nraise SyntaxError('invalid syntax on line 1 col 5')")
+                     "# foo($bar=1)\n"
+                     "raise SyntaxError('invalid syntax', ('usercode', 1, 5, %s'foo($bar=1)'))"
+                     % unicode_prefix)
     self.assertEqual(make_body('def $bar(): pass'),
-                     "# def $bar(): pass\nraise SyntaxError('invalid syntax on line 1 col 5')")
+                     "# def $bar(): pass\n"
+                     "raise SyntaxError('invalid syntax', ('usercode', 1, 5, %s'def $bar(): pass'))"
+                     % unicode_prefix)
 
     # If $ is a syntax error, we don't want to turn it into a different syntax error.
     self.assertEqual(make_body('$foo + ("$%.2f" $ ($17.5))'),
                      '# $foo + ("$%.2f" $ ($17.5))\n'
-                     "raise SyntaxError('invalid syntax on line 1 col 17')")
+                     "raise SyntaxError('invalid syntax', "
+                     "('usercode', 1, 17, {}'$foo + (\"$%.2f\" $ ($17.5))'))"
+                     .format(unicode_prefix))
     self.assertEqual(make_body('if $foo:\n' +
                                '  return $foo\n' +
                                'else:\n' +
@@ -88,17 +95,21 @@ class TestCodeBuilder(unittest.TestCase):
                      '#   return $foo\n' +
                      '# else:\n' +
                      '#   return $ bar\n' +
-                     "raise SyntaxError('invalid syntax on line 4 col 10')")
+                     "raise SyntaxError('invalid syntax', ('usercode', 4, 10, %s'  return $ bar'))"
+                     % unicode_prefix)
 
     # Check for reasonable behaviour with non-empty text and no statements.
     self.assertEqual(make_body('# comment'), '# comment\npass')
 
     self.assertEqual(make_body('rec = 1'), "# rec = 1\n" +
                      "raise SyntaxError('Grist disallows assignment " +
-                     "to the special variable \"rec\" on line 1 col 1')")
+                     "to the special variable \"rec\"', ('usercode', 1, 1, %s'rec = 1'))"
+                     % unicode_prefix)
     self.assertEqual(make_body('for rec in []: pass'), "# for rec in []: pass\n" +
                      "raise SyntaxError('Grist disallows assignment " +
-                     "to the special variable \"rec\" on line 1 col 4')")
+                     "to the special variable \"rec\"', "
+                     "('usercode', 1, 4, %s'for rec in []: pass'))"
+                     % unicode_prefix)
 
     # some legitimates use of rec
     body = ("""
@@ -124,8 +135,10 @@ return rec
 """)
 
     self.assertRegex(make_body(body),
-                             r"raise SyntaxError\('Grist disallows assignment" +
-                             r" to the special variable \"rec\" on line 4 col 7'\)")
+                     r"raise SyntaxError\('Grist disallows assignment" +
+                     r" to the special variable \"rec\"', "
+                     r"\('usercode', 4, 7, %s'\[1 for rec in \[\]\]'\)\)"
+                     % unicode_prefix)
 
 
   def test_make_formula_body_unicode(self):

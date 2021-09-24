@@ -4,6 +4,7 @@ import unittest
 import difflib
 import re
 
+import six
 from six.moves import xrange
 
 import gencode
@@ -69,6 +70,11 @@ class TestGenCode(unittest.TestCase):
     gcode = gencode.GenCode()
     gcode.make_module(self.schema)
     generated = gcode.get_user_text()
+    if six.PY3:
+      generated = generated.replace(
+         ", 'for a in b'))",
+        ", u'for a in b'))",
+      )
     self.assertEqual(generated, saved_sample, "Generated code doesn't match sample:\n" +
                      "".join(difflib.unified_diff(generated.splitlines(True),
                                                   saved_sample.splitlines(True),

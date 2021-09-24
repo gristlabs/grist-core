@@ -76,10 +76,36 @@ else:
                             ))
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'syntax_err', 3),
-                            SyntaxError, "invalid syntax on line 5 col 9")
+                            SyntaxError, "invalid syntax (usercode, line 5)",
+                            textwrap.dedent(
+                              r"""
+                                File "usercode", line 5
+                                  return: 0
+                                        \^
+                              SyntaxError: invalid syntax
+                              """
+                            ))
 
+    if six.PY2:
+      traceback_regex = textwrap.dedent(
+        r"""
+          File "usercode", line 2
+            if sum\(3, 5\) > 6:
+            \^
+        IndentationError: unexpected indent
+        """
+      )
+    else:
+      traceback_regex = textwrap.dedent(
+        r"""
+          File "usercode", line 2
+            if sum\(3, 5\) > 6:
+        IndentationError: unexpected indent
+        """
+      )
     self.assertFormulaError(self.engine.get_formula_error('Math', 'indent_err', 3),
-                            IndentationError, "unexpected indent on line 2 col 2")
+                            IndentationError, 'unexpected indent (usercode, line 2)',
+                            traceback_regex)
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'other_err', 3),
                             TypeError, "'int' object is not iterable",

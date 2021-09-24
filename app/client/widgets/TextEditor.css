@@ -97,14 +97,16 @@
 
 .error_msg {
   color: black;
-  cursor: default;
-  margin: 4px;
+  cursor: pointer;
+  padding: 4px;
 }
 
 .error_details {
   padding: 2px 2px 2px 2px;
   background-color: #F8ECEA;
   margin: 0 0 -2px 0;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
 }
 
 .error_box {
