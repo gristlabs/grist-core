@@ -123,6 +123,10 @@ _max_js_int = 1<<31
 def is_int_short(value):
   return -_max_js_int <= value < _max_js_int
 
+def safe_shift(arg, default=None):
+  value = arg.pop(0) if arg else None
+  return default if value is None else value
+
 def safe_repr(obj):
   """
   Like repr(obj) but falls back to a simpler "<type-name>" string when repr() itself fails.
@@ -252,16 +256,39 @@ class RaisedException(object):
   RaisedException is registered under a special short name ("E") to save bytes since it's such a
   widely-used wrapper. To encode_args, it simply returns the entire encoded stored error, e.g.
   RaisedException(ValueError("foo")) is encoded as ["E", "ValueError", "foo"].
+
+  When user_input is passed, RaisedException(ValueError("foo"), user_input=2) is encoded as:
+  ["E", "ValueError", "foo", {u: 2}].
   """
-  def __init__(self, error, include_details=False, encoded_error=None):
+
+  # Marker object that indicates that there was no user input.
+  NO_INPUT = object()
+
+  def __init__(self, error, include_details=False, user_input=NO_INPUT):
+    self.user_input = user_input
     self.error = error
-    self.details = traceback.format_exc() if include_details else None
-    self._encoded_error = encoded_error or self._encode_error()
+    self.details = None
+    self._encoded_error = None
+    self._name = None
+    self._message = None
+    if error is not None:
+      self._fill_from_error(self.has_user_input(), include_details)
 
   def encode_args(self):
-    return self._encoded_error
+    if self._encoded_error is not None:
+      return self._encoded_error
+    if self.has_user_input():
+      user_input = {"u": encode_object(self.user_input)}
+    else:
+      user_input = None
+    result = [self._name, self._message, self.details, user_input]
+    # Trim last values that are None
+    while len(result) > 1 and result[-1] is None:
+      result.pop()
+    self._encoded_error = result
+    return result
 
-  def _encode_error(self):
+  def _fill_from_error(self, include_message=False, include_details=False):
     # TODO: We should probably return all args, to communicate the error details to the browser
     # and to DB (for when we store formula results). There are two concerns: one is that it's
     # potentially quite verbose; the other is that it's makes the tests more annoying (again b/c
@@ -272,18 +299,40 @@ class RaisedException(object):
       if not location:
         location = "\n(in referenced cell {error.location})".format(error=error)
       error = error.error
-    name = type(error).__name__
-    if self.details:
-      return [name, str(error) + location, self.details]
-    if isinstance(error, InvalidTypedValue):
-      return [name, error.typename, error.value]
-    return [name]
+    self._name = type(error).__name__
+    if include_details:
+      self.details = traceback.format_exc()
+      self._message = str(error) + location
+    elif isinstance(error, InvalidTypedValue):
+      self._message = error.typename
+      self.details = error.value
+    elif include_message:
+      self._message = str(error) + location
+
+  def has_user_input(self):
+    return self.user_input is not RaisedException.NO_INPUT
+
+  def no_traceback(self):
+    exc = RaisedException(None)
+    exc._name = self._name
+    exc.error = self.error
+    exc.user_input = self.user_input
+    exc.details = "This error is left over from before, and " + \
+                  "the formula hasn't been triggered since then."
+    exc._message = self._message
+    return exc
 
   @classmethod
   def decode_args(cls, *args):
-    # Decoding of a RaisedException is only enough to re-encode it.
-    return cls(None, encoded_error=list(args))
-
+    exc = cls(None)
+    args = list(args)
+    assert args
+    exc._name = safe_shift(args)
+    exc._message = safe_shift(args)
+    exc.details = safe_shift(args)
+    exc.user_input = safe_shift(args, {})
+    exc.user_input = decode_object(exc.user_input.get("u", RaisedException.NO_INPUT))
+    return exc
 
 class CellError(Exception):
   def __init__(self, table_id, col_id, row_id, error):

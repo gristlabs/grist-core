@@ -8,7 +8,9 @@ import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorBu
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {undef} from 'app/common/gutil';
-import {dom, Observable, styled} from 'grainjs';
+import {Computed, dom, Observable, styled} from 'grainjs';
+import {isRaisedException} from "app/common/gristTypes";
+import {decodeObject, RaisedException} from "app/plugin/objtypes";
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
@@ -59,8 +61,28 @@ export class FormulaEditor extends NewBaseEditor {
         : options.commands;
     this._commandGroup = this.autoDispose(createGroup(allCommands, this, options.field.editingFormula));
 
-    const hideErrDetails = Observable.create(null, true);
-    const formulaError = options.formulaError;
+    const hideErrDetails = Observable.create(this, true);
+    const raisedException = Computed.create(this, use => {
+      if (!options.formulaError) {
+        return null;
+      }
+      const error = isRaisedException(use(options.formulaError)) ?
+                    decodeObject(use(options.formulaError)) as RaisedException:
+                    new RaisedException(["Unknown error"]);
+      return error;
+    });
+    const errorText = Computed.create(this, raisedException, (_, error) => {
+      if (!error) {
+        return "";
+      }
+      return error.message ? `${error.name} : ${error.message}` : error.name;
+    });
+    const errorDetails = Computed.create(this, raisedException, (_, error) => {
+      if (!error) {
+        return "";
+      }
+      return error.details ?? "";
+    });
 
     this.autoDispose(this._formulaEditor);
     this._dom = dom('div.default_editor',
@@ -103,21 +125,27 @@ export class FormulaEditor extends NewBaseEditor {
           aceObj.once("change", () => options.field.editingFormula(true));
         })
       ),
-      (formulaError ?
+      (options.formulaError ?
         dom('div.error_box',
           dom('div.error_msg', testId('formula-error-msg'),
             dom.on('click', () => {
-              hideErrDetails.set(!hideErrDetails.get());
-              this._formulaEditor.resize();
+              if (errorDetails.get()){
+                hideErrDetails.set(!hideErrDetails.get());
+                this._formulaEditor.resize();
+              }
             }),
-            dom.domComputed(hideErrDetails, (hide) => cssCollapseIcon(hide ? 'Expand' : 'Collapse')),
-            dom.text((use) => { const f = use(formulaError) as string[]; return `${f[1]}: ${f[2]}`; }),
+            dom.maybe(errorDetails, () =>
+              dom.domComputed(hideErrDetails, (hide) => cssCollapseIcon(hide ? 'Expand' : 'Collapse'))
+            ),
+            dom.text(errorText),
           ),
-          dom('div.error_details',
-            dom.hide(hideErrDetails),
-            dom.text((use) => (use(formulaError) as string[])[3]),
-            testId('formula-error-details'),
-          ),
+          dom.maybe(errorDetails, () =>
+            dom('div.error_details',
+              dom.hide(hideErrDetails),
+              dom.text(errorDetails),
+              testId('formula-error-details'),
+            )
+          )
         ) : null
       )
     );

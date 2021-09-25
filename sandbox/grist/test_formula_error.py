@@ -46,13 +46,6 @@ else:
     }
   })
 
-  def assertFormulaError(self, exc, type_, message, tracebackRegexp=None):
-    self.assertIsInstance(exc, objtypes.RaisedException)
-    self.assertIsInstance(exc.error, type_)
-    self.assertEqual(str(exc.error), message)
-    if tracebackRegexp:
-      self.assertRegex(exc.details, tracebackRegexp)
-
   def test_formula_errors(self):
     self.load_sample(self.sample)
 

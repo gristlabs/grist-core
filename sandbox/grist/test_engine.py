@@ -12,6 +12,7 @@ import engine
 import logger
 import useractions
 import testutil
+import objtypes
 
 log = logger.Logger(__name__, logger.DEBUG)
 
@@ -261,6 +262,13 @@ class EngineTestCase(unittest.TestCase):
                                    col.isFormula, col.formula, col.summarySourceCol)
                                   for tbl in list_of_tables
                                   for col in tbl.columns))
+
+  def assertFormulaError(self, exc, type_, message, tracebackRegexp=None):
+    self.assertIsInstance(exc, objtypes.RaisedException)
+    self.assertIsInstance(exc.error, type_)
+    self.assertEqual(str(exc.error), message)
+    if tracebackRegexp:
+      self.assertRegex(exc.details, tracebackRegexp)
 
   def assertViews(self, list_of_views):
     """

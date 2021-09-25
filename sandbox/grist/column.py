@@ -138,7 +138,7 @@ class BaseColumn(object):
     """
     self.set(row_id, self.getdefault())
 
-  def get_cell_value(self, row_id):
+  def get_cell_value(self, row_id, restore=False):
     """
     Returns the "rich" value for the given row_id, i.e. the value that would be seen by formulas.
     E.g. for ReferenceColumns it'll be the referred-to Record object. For cells containing
@@ -146,8 +146,13 @@ class BaseColumn(object):
     error, this will re-raise that error.
     """
     raw = self.raw_get(row_id)
+
     if isinstance(raw, objtypes.RaisedException):
-      if isinstance(raw.error, depend.CircularRefError):
+      # For trigger formulas, we want to restore the previous value to recalculate
+      # the cell one more time.
+      if restore and raw.has_user_input():
+        raw = raw.user_input
+      elif isinstance(raw.error, depend.CircularRefError):
         # Wrapping a CircularRefError in a CellError is often redundant, but
         # TODO a CellError is still useful if the calling cell is not involved in the cycle
         raise raw.error

@@ -18,6 +18,9 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // Is a real formula column (not an empty column; i.e. contains a non-empty formula).
   isRealFormula: ko.Computed<boolean>;
 
+  // Is a trigger formula column (not formula, but contains non-empty formula)
+  hasTriggerFormula: ko.Computed<boolean>;
+
   // Used for transforming a column.
   // Reference to the original column for a transform column, or to itself for a non-transforming column.
   origColRef: ko.Observable<number>;
@@ -56,6 +59,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // Is this a real formula column (not an empty column; i.e. contains a non-empty formula).
   this.isRealFormula = ko.pureComputed(() => this.isFormula() && this.formula() !== '');
+  // If this column has a trigger formula defined
+  this.hasTriggerFormula = ko.pureComputed(() => !this.isFormula() && this.formula() !== '');
 
   // Used for transforming a column.
   // Reference to the original column for a transform column, or to itself for a non-transforming column.

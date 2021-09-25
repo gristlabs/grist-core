@@ -469,13 +469,16 @@ function getFormulaError(
   gristDoc: GristDoc, editRow: DataRowModel, column: ColumnRec
 ): Observable<CellValue>|undefined {
   const colId = column.colId.peek();
-  let formulaError: Observable<CellValue>|undefined;
   const cellCurrentValue = editRow.cells[colId].peek();
-  if (column.isFormula() && isRaisedException(cellCurrentValue)) {
-    const fv = formulaError = Observable.create(null, cellCurrentValue);
+  const isFormula = column.isFormula() || column.hasTriggerFormula();
+  if (isFormula && isRaisedException(cellCurrentValue)) {
+    const formulaError = Observable.create(null, cellCurrentValue);
     gristDoc.docData.getFormulaError(column.table().tableId(), colId, editRow.getRowId())
-      .then(value => { fv.set(value); })
+      .then(value => {
+        formulaError.set(value);
+      })
       .catch(reportError);
+    return formulaError;
   }
-  return formulaError;
+  return undefined;
 }

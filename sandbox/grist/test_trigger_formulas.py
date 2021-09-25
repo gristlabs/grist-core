@@ -10,7 +10,12 @@ from schema import RecalcWhen
 
 log = logger.Logger(__name__, logger.INFO)
 
-attr_error = objtypes.RaisedException(AttributeError())
+def column_error(table, column, user_input):
+  return objtypes.RaisedException(
+    AttributeError("Table '%s' has no column '%s'" % (table, column)),
+    user_input=user_input
+  )
+div_error = lambda value: objtypes.RaisedException(ZeroDivisionError("float division by zero"), user_input=value)
 
 class TestTriggerFormulas(test_engine.EngineTestCase):
   col = testutil.col_schema_row
@@ -396,15 +401,17 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     out_actions = self.update_record("Creatures", 1, Name="Whale")
     self.assertTableData("Creatures", data=[
       ["id","Name",  "BossDef", "BossNvr", "BossUpd", "BossAll" ],
-      [1,   "Whale", "Arthur",  "Arthur",  "Arthur",  attr_error],
+      [1,   "Whale", "Arthur",  "Arthur",  "Arthur", column_error("Creatures", "Ocean", "Arthur")],
     ])
 
     # Add a record. BossUpd's formula still runs, though with an error.
+    no_column = column_error("Creatures", "Ocean", "")
+    no_column_value = column_error("Creatures", "Ocean", "Arthur")
     out_actions = self.add_record("Creatures", None, Name="Manatee")
     self.assertTableData("Creatures", data=[
       ["id","Name",    "BossDef",  "BossNvr", "BossUpd",  "BossAll" ],
-      [1,   "Whale",   "Arthur",   "Arthur",  "Arthur",   attr_error],
-      [2,   "Manatee", attr_error, "",        attr_error, attr_error],
+      [1,   "Whale",   "Arthur",   "Arthur",  "Arthur",   no_column_value],
+      [2,   "Manatee", no_column,   "",       no_column,  no_column],
     ])
 
 
@@ -596,3 +603,67 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       [1,   "Whale",   3,       "Arthur",    "Arthur",  "Neptune",  "Neptune",  "Indian",    "Foo Bar <foo.bar@getgrist.com>"],
       [2,   "Manatee", 2,       "Poseidon",  "",        "Poseidon", "Poseidon", "ATLANTIC",  "Foo Bar <foo.bar@getgrist.com>"],
     ])
+
+  sample_desc_math = {
+    "SCHEMA": [
+      [1, "Math", [
+        col(1, "A", "Numeric", False),
+        col(2, "B", "Numeric", False),
+        col(3, "C", "Numeric", False, "1/$A + 1/$B", recalcDeps=[1]),
+      ]],
+    ],
+    "DATA": {
+    }
+  }
+  sample_math = testutil.parse_test_sample(sample_desc_math)
+
+  def test_triggers_on_error(self):
+    # In case of an error in a trigger formula can be reevaluated when new value is provided
+    self.load_sample(self.sample_math)
+    self.add_record("Math", A=0, B=1)
+    self.assertTableData("Math", data=[
+      ["id",  "A",  "B",  "C"],
+      [1,     0,    1,    div_error(0)],
+    ])
+    self.update_record("Math", 1, A=1)
+    self.assertTableData("Math", data=[
+      ["id", "A",   "B",  "C"],
+      [1,     1,    1,    2],
+    ])
+    # When the error is cased by external column, formula is not reevaluated
+    self.update_record("Math", 1, A=2, B=0)
+    self.update_record("Math", 1, A=1)
+    self.assertTableData("Math", data=[
+      ["id", "A", "B", "C"],
+      [1, 1, 0, div_error(2)],
+    ])
+    self.update_record("Math", 1, B=1)
+    self.assertTableData("Math", data=[
+      ["id", "A", "B", "C"],
+      [1, 1, 1, div_error(2)],
+    ])
+
+
+  def test_traceback_available_for_trigger_formula(self):
+    # In case of an error engine is able to retrieve a traceback.
+    self.load_sample(self.sample_math)
+    self.add_record("Math", A=0, B=0)
+    self.assertTableData("Math", data=[
+      ["id",  "A",  "B",  "C"],
+      [1,     0,    0,    div_error(0)],
+    ])
+    self.assertFormulaError(self.engine.get_formula_error('Math', 'C', 1),
+                            ZeroDivisionError, 'float division by zero',
+                            r"1/rec\.A \+ 1/rec\.B")
+    self.update_record("Math", 1, A=1)
+
+    # Updating B should remove the traceback from an error, but the error should remain.
+    self.update_record("Math", 1, B=1)
+    self.assertTableData("Math", data=[
+      ["id",  "A",  "B",  "C"],
+      [1,     1,    1,    div_error(0)],
+    ])
+    error = self.engine.get_formula_error('Math', 'C', 1)
+    self.assertFormulaError(error, ZeroDivisionError, 'float division by zero')
+    self.assertEqual(error._message, 'float division by zero')
+    self.assertEqual(error.details, objtypes.RaisedException(ZeroDivisionError()).no_traceback().details)

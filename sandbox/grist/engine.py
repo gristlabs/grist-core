@@ -642,7 +642,16 @@ class Engine(object):
     col = table.get_column(col_id)
     checkpoint = self._get_undo_checkpoint()
     try:
-      return self._recompute_one_cell(None, table, col, row_id)
+      result = self._recompute_one_cell(None, table, col, row_id)
+      # If the error is gone for a trigger formula
+      if col.has_formula() and not col.is_formula():
+        if not isinstance(result, objtypes.RaisedException):
+          # Get the error stored in the cell
+          # and change it to show to the user that no traceback is available
+          error_in_cell = objtypes.decode_object(col.raw_get(row_id))
+          assert isinstance(error_in_cell, objtypes.RaisedException)
+          return error_in_cell.no_traceback()
+      return result
     finally:
       # It is possible for formula evaluation to have side-effects that produce DocActions (e.g.
       # lookupOrAddDerived() creates those). In case of get_formula_error(), these aren't fully
@@ -775,7 +784,8 @@ class Engine(object):
             if is_first:
               self._is_node_exception_reported.add(node)
               log.info(value.details)
-              value = objtypes.RaisedException(value.error)  # strip out details after logging
+              # strip out details after logging
+              value = objtypes.RaisedException(value.error, user_input=value.user_input)
 
           # TODO: validation columns should be wrapped to always return True/False (catching
           # exceptions), so that we don't need special handling here.
@@ -831,11 +841,13 @@ class Engine(object):
 
     checkpoint = self._get_undo_checkpoint()
     record = table.Record(row_id, table._identity_relation)
+    value = None
     try:
       if cycle:
         raise depend.CircularRefError("Circular Reference")
       if not col.is_formula():
-        result = col.method(record, table.user_table, col.get_cell_value(int(record)), self._user)
+        value = col.get_cell_value(int(record), restore=True)
+        result = col.method(record, table.user_table, value, self._user)
       else:
         result = col.method(record, table.user_table)
       if self._cell_required_error:
@@ -866,7 +878,10 @@ class Engine(object):
       self.formula_tracer(col, record)
 
       include_details = (node not in self._is_node_exception_reported) if node else True
-      return objtypes.RaisedException(regular_error, include_details)
+      if not col.is_formula():
+        return objtypes.RaisedException(regular_error, include_details, user_input=value)
+      else:
+        return objtypes.RaisedException(regular_error, include_details)
 
   def convert_action_values(self, action):
     """

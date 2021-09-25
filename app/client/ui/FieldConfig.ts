@@ -158,7 +158,8 @@ function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, origColum
   function countErrors() {
     if (owner.isDisposed()) { return; }
     const tableData = gristDoc.docData.getTable(origColumn.table.peek().tableId.peek());
-    if (tableData && origColumn.isRealFormula.peek()) {
+    const isFormula = origColumn.isRealFormula.peek() || origColumn.hasTriggerFormula.peek();
+    if (tableData && isFormula) {
       const colId = origColumn.colId.peek();
       const numCells = tableData.getColValues(colId)?.length || 0;
       const numErrors = tableData.countErrors(colId) || 0;

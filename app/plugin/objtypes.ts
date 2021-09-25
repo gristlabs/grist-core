@@ -67,7 +67,21 @@ export class ReferenceList {
  * optional details.
  */
 export class RaisedException {
-  constructor(public name: string, public message?: string, public details?: string) {}
+  public name: string;
+  public details?: string;
+  public message?: string;
+  public user_input?: CellValue;
+
+  constructor(list: any[]) {
+    if (!list.length) {
+      throw new Error("RaisedException requires a name as first element");
+    }
+    list = [...list];
+    this.name = list.shift();
+    this.message = list.shift();
+    this.details = list.shift();
+    this.user_input = list.shift()?.u;
+  }
 
   /**
    * This is designed to look somewhat similar to Excel, e.g. #VALUE or #DIV/0!"
@@ -195,7 +209,7 @@ export function decodeObject(value: CellValue): unknown {
     switch (code) {
       case 'D': return GristDateTime.fromGristValue(args[0], String(args[1]));
       case 'd': return GristDate.fromGristValue(args[0]);
-      case 'E': return new RaisedException(args[0], args[1], args[2]);
+      case 'E': return new RaisedException(args);
       case 'L': return (args as CellValue[]).map(decodeObject);
       case 'O': return mapValues(args[0] as {[key: string]: CellValue}, decodeObject, {sort: true});
       case 'P': return new PendingValue();
