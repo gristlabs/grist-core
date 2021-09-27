@@ -391,11 +391,6 @@ export class DocWorkerApi {
           throw new ApiError('Provided url is forbidden', 403);
         }
 
-        const unsubscribeKey = uuidv4();
-        const webhook: WebHookSecret = {unsubscribeKey, url};
-        const secretValue = JSON.stringify(webhook);
-        const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
-
         const metaTables = await getMetaTables(activeDoc, req);
         const tableRef = tableIdToRef(metaTables, req.params.tableId);
 
@@ -408,6 +403,11 @@ export class DocWorkerApi {
           }
           isReadyColRef = colRefs[colRowIndex];
         }
+
+        const unsubscribeKey = uuidv4();
+        const webhook: WebHookSecret = {unsubscribeKey, url};
+        const secretValue = JSON.stringify(webhook);
+        const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
 
         const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
 
