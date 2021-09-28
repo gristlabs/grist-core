@@ -582,9 +582,9 @@ function docker(options: ISandboxOptions): ChildProcess {
 /**
  * Collect environment variables that should end up set within the sandbox.
  */
-function getInsertedEnv(options: ISandboxOptions) {
+export function getInsertedEnv(options: ISandboxOptions) {
   const env: NodeJS.ProcessEnv = {
-    DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.]/, ''),
+    DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.~]/g, ''),
 
     // use stdin/stdout/stderr only.
     PIPE_MODE: options.minimalPipeMode ? 'minimal' : 'classic',
