@@ -1,4 +1,5 @@
 import { GristLoadConfig } from 'app/common/gristUrls';
+import { FullUser } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
@@ -31,6 +32,11 @@ export interface GristServer {
   getHosts(): Hosts;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
+}
+
+export interface GristLoginSystem {
+  getMiddleware(gristServer: GristServer): Promise<GristLoginMiddleware>;
+  deleteUser(user: FullUser): Promise<void>;
 }
 
 export interface GristLoginMiddleware {

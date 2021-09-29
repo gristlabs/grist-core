@@ -58,7 +58,7 @@ import * as fse from 'fs-extra';
 import * as saml2 from 'saml2-js';
 
 import {expressWrap} from 'app/server/lib/expressWrap';
-import {GristLoginMiddleware, GristServer} from 'app/server/lib/GristServer';
+import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {fromCallback} from 'app/server/lib/serverUtils';
@@ -238,23 +238,30 @@ export class SamlConfig {
 }
 
 /**
- * Return SAML middleware if environment looks configured for it, else return undefined.
+ * Return SAML login system if environment looks configured for it, else return undefined.
  */
-export async function getSamlLoginMiddleware(gristServer: GristServer): Promise<GristLoginMiddleware|undefined> {
+export async function getSamlLoginSystem(): Promise<GristLoginSystem|undefined> {
   if (!process.env.GRIST_SAML_SP_HOST) {
     return undefined;
   }
-  const samlConfig = new SamlConfig(gristServer);
-  await samlConfig.initSaml();
   return {
-    getLoginRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
-    // For saml, always use regular login page, users are enrolled externally.
-    // TODO: is there a better link to give here?
-    getSignUpRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
-    getLogoutRedirectUrl: samlConfig.getLogoutRedirectUrl.bind(samlConfig),
-    async addEndpoints(app: express.Express) {
-      samlConfig.addSamlEndpoints(app, gristServer.getSessions());
-      return 'saml';
-    }
+    async getMiddleware(gristServer: GristServer) {
+      const samlConfig = new SamlConfig(gristServer);
+      await samlConfig.initSaml();
+      return {
+        getLoginRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
+        // For saml, always use regular login page, users are enrolled externally.
+        // TODO: is there a better link to give here?
+        getSignUpRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
+        getLogoutRedirectUrl: samlConfig.getLogoutRedirectUrl.bind(samlConfig),
+        async addEndpoints(app: express.Express) {
+          samlConfig.addSamlEndpoints(app, gristServer.getSessions());
+          return 'saml';
+        },
+      };
+    },
+    deleteUser() {
+      throw new Error('users cannot be deleted with SAML yet');
+    },
   };
 }

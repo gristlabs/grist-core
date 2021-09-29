@@ -872,7 +872,8 @@ export class HomeDBManager extends EventEmitter {
    * The anonymous user is treated specially, to avoid advertising organizations
    * with anonymous access.
    */
-  public async getOrgs(users: AvailableUsers, domain: string|null): Promise<QueryResult<Organization[]>> {
+  public async getOrgs(users: AvailableUsers, domain: string|null,
+                       options?: {ignoreEveryoneShares?: boolean}): Promise<QueryResult<Organization[]>> {
     let queryBuilder = this._orgs()
       .leftJoinAndSelect('orgs.owner', 'users', 'orgs.owner_id = users.id');
     if (isSingleUser(users)) {
@@ -887,7 +888,7 @@ export class HomeDBManager extends EventEmitter {
       .addOrderBy('orgs.name');
     queryBuilder = this._withAccess(queryBuilder, users, 'orgs');
     // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
-    queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain);
+    queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain, options);
     if (this._isAnonymousUser(users)) {
       // The anonymous user is a special case.  It may have access to potentially
       // many orgs, but listing them all would be kind of a misfeature.  but reporting
@@ -2459,7 +2460,7 @@ export class HomeDBManager extends EventEmitter {
       // Add information about owners of personal orgs.
       query = query.leftJoinAndSelect('org_users.logins', 'org_logins');
       // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
-      query = this._filterByOrgGroups(query, userId);
+      query = this._filterByOrgGroups(query, userId, null);
       // The anonymous user is a special case; include only examples from support user.
       if (userId === this.getAnonymousUserId()) {
         query = query.andWhere('orgs.owner_id = :supportId', { supportId });
@@ -3090,7 +3091,8 @@ export class HomeDBManager extends EventEmitter {
    * whether this wrinkle is needed anymore, or can be safely removed.
    */
   private _filterByOrgGroups(qb: SelectQueryBuilder<Organization>, users: AvailableUsers,
-                             orgKey: string|number|null = null) {
+                             orgKey: string|number|null,
+                             options?: {ignoreEveryoneShares?: boolean}) {
     qb = qb
       .leftJoin('orgs.aclRules', 'acl_rules')
       .leftJoin('acl_rules.group', 'groups')
@@ -3100,13 +3102,16 @@ export class HomeDBManager extends EventEmitter {
       const previewerId = this._specialUserIds[PREVIEWER_EMAIL];
       if (users === previewerId) { return qb; }
       const everyoneId = this._specialUserIds[EVERYONE_EMAIL];
+      if (options?.ignoreEveryoneShares) {
+        return qb.where('members.id = :userId', {userId: users});
+      }
       return qb.andWhere(new Brackets(cond => {
         // Accept direct membership, or via a share with "everyone@".
         return cond
           .where('members.id = :userId', {userId: users})
           .orWhere(new Brackets(everyoneCond => {
             const everyoneQuery = everyoneCond.where('members.id = :everyoneId', {everyoneId});
-            return orgKey ? this._whereOrg(everyoneQuery, orgKey) : everyoneQuery;
+            return (orgKey !== null) ? this._whereOrg(everyoneQuery, orgKey) : everyoneQuery;
           }));
       }));
     }

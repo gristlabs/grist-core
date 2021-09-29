@@ -15,7 +15,8 @@ export const create: ICreate = {
   },
   Notifier() {
     return {
-      get testPending() { return false; }
+      get testPending() { return false; },
+      deleteUser()      { throw new Error('deleteUser unavailable'); },
     };
   },
   Shell() {

@@ -1,6 +1,13 @@
 import { ApiError } from 'app/common/ApiError';
+import { FullUser } from 'app/common/UserAPI';
+import { Organization } from 'app/gen-server/entity/Organization';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
+import { INotifier } from 'app/server/lib/INotifier';
+import { scrubUserFromOrg } from 'app/gen-server/lib/scrubUserFromOrg';
+import { GristLoginSystem } from 'app/server/lib/GristServer';
 import { IPermitStore } from 'app/server/lib/Permit';
+import remove = require('lodash/remove');
+import sortBy = require('lodash/sortBy');
 import fetch from 'node-fetch';
 
 /**
@@ -11,6 +18,7 @@ import fetch from 'node-fetch';
  */
 export class Doom {
   constructor(private _dbManager: HomeDBManager, private _permitStore: IPermitStore,
+              private _notifier: INotifier, private _loginSystem: GristLoginSystem,
               private _homeApiUrl: string) {
   }
 
@@ -76,6 +84,83 @@ export class Doom {
       }
     };
     await this._dbManager.deleteWorkspace(scope, workspaceId);
+  }
+
+  /**
+   * Delete a user.
+   */
+  public async deleteUser(userId: number) {
+    const user = await this._dbManager.getUser(userId);
+    if (!user) { throw new Error(`user not found: ${userId}`); }
+
+    // Don't try scrubbing users from orgs just yet, leave this to be done manually.
+    // Automatic scrubbing could do with a solid test set before being used.
+    /**
+    // Need to scrub the user from any org they are in, except their own personal org.
+    let orgs = await this._getOrgs(userId);
+    for (const org of orgs) {
+      if (org.ownerId !== userId) {
+        await this.deleteUserFromOrg(userId, org);
+      }
+    }
+    */
+    let orgs = await this._getOrgs(userId);
+    if (orgs.length === 1 && orgs[0].ownerId === userId) {
+      await this.deleteOrg(orgs[0].id);
+      orgs = await this._getOrgs(userId);
+    }
+    if (orgs.length > 0) {
+      throw new ApiError('Cannot remove user from a site', 500);
+    }
+
+    // Remove user from sendgrid
+    await this._notifier.deleteUser(userId);
+
+    // Remove user from cognito
+    const fullUser = this._dbManager.makeFullUser(user);
+    await this._loginSystem.deleteUser(fullUser);
+
+    // Remove user from our db
+    await this._dbManager.deleteUser({userId}, userId);
+  }
+
+  /**
+   * Disentangle a user from a specific site. Everything a user has access to will be
+   * passed to another owner user. If there is no owner available, the call will fail -
+   * you'll need to explicitly delete the site. Owners who are billing managers are
+   * preferred. If there are multiple owners who are billing managers, the choice is
+   * made arbitrarily (alphabetically by email).
+   */
+  public async deleteUserFromOrg(userId: number, org: Organization) {
+    const orgId = org.id;
+    const scope = {userId: this._dbManager.getPreviewerUserId()};
+    const members = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgAccess(scope, orgId));
+    const owners: FullUser[] = members.users
+      .filter(u => u.access === 'owners' && u.id !== userId);
+    if (owners.length === 0) {
+      throw new ApiError(`No owner available for ${org.id}/${org.domain}/${org.name}`, 401);
+    }
+    if (owners.length > 1) {
+      const billing = await this._dbManager.getBillingAccount(scope, orgId, true);
+      const billingManagers = billing.managers.map(manager => manager.user)
+        .filter(u => u.id !== userId)
+        .map(u => this._dbManager.makeFullUser(u));
+      const billingManagerSet = new Set(billingManagers.map(bm => bm.id));
+      const nonBillingManagers = remove(owners, owner => !billingManagerSet.has(owner.id));
+      if (owners.length === 0) {
+        // Darn, no owners were billing-managers - so put them all back into consideration.
+        owners.push(...nonBillingManagers);
+      }
+    }
+    const candidate = sortBy(owners, ['email'])[0];
+    await scrubUserFromOrg(orgId, userId, candidate.id, this._dbManager.connection.manager);
+  }
+
+  // List the sites a user has access to.
+  private async _getOrgs(userId: number) {
+    const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs(userId, null,
+                                                                                 {ignoreEveryoneShares: true}));
+    return orgs;
   }
 
   // Get information about a workspace, including the docs in it.
