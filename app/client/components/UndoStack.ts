@@ -1,12 +1,12 @@
 import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as dispose from 'app/client/lib/dispose';
-import {ActionGroup} from 'app/common/ActionGroup';
+import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {PromiseChain} from 'app/common/gutil';
 import {fromKo, Observable} from 'grainjs';
 import * as ko from 'knockout';
 
-export interface ActionGroupWithCursorPos extends ActionGroup {
+export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;
 }
 
@@ -27,13 +27,13 @@ export class UndoStack extends dispose.Disposable {
   private _gristDoc: GristDoc;
   private _stack: ActionGroupWithCursorPos[];
   private _pointer: number;
-  private _linkMap: {[actionNum: number]: ActionGroup};
+  private _linkMap: {[actionNum: number]: MinimalActionGroup};
 
   // Chain of promises which send undo actions to the server. This delays the execution of the
   // next action until the current one has been received and moved the pointer index.
   private _undoChain = new PromiseChain<void>();
 
-  public create(log: ActionGroup[], options: {gristDoc: GristDoc}) {
+  public create(log: MinimalActionGroup[], options: {gristDoc: GristDoc}) {
     this._gristDoc = options.gristDoc;
 
     // TODO: _stack and _linkMap grow without bound within a single session.
@@ -65,7 +65,7 @@ export class UndoStack extends dispose.Disposable {
    * Should only be given own actions. Pays attention to actionNum, otherId, linkId, and
    * uses those to adjust undo index.
    */
-  public pushAction(ag: ActionGroup): void {
+  public pushAction(ag: MinimalActionGroup): void {
     if (!ag.fromSelf) {
       return;
     }
@@ -133,7 +133,7 @@ export class UndoStack extends dispose.Disposable {
   /**
    * Find all actionGroups in the bundle that starts with the given action group.
    */
-  private _findActionBundle(ag: ActionGroup) {
+  private _findActionBundle(ag: MinimalActionGroup) {
     const prevNums = new Set();
     const actionGroups = [];
     // Follow references through the linkMap adding items to the array bundle.

@@ -1,4 +1,4 @@
-import {ActionGroup} from 'app/common/ActionGroup';
+import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {TableDataAction} from 'app/common/DocActions';
 import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
@@ -41,7 +41,7 @@ export interface OpenLocalDocResult {
   docFD: number;
   clientId: string;  // the docFD is meaningful only in the context of this session
   doc: {[tableId: string]: TableDataAction};
-  log: ActionGroup[];
+  log: MinimalActionGroup[];
   recoveryMode?: boolean;
   userOverride?: UserOverride;
 }

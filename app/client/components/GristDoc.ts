@@ -44,7 +44,7 @@ import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
-import {ActionGroup} from 'app/common/ActionGroup';
+import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -376,7 +376,7 @@ export class GristDoc extends DisposableWithEvents {
    * Switch to the view/section and scroll to the record indicated by cursorPos. If cursorPos is
    * null, then moves to a position best suited for optActionGroup (not yet implemented).
    */
-  public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: ActionGroup): Promise<void> {
+  public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void> {
     if (!cursorPos || cursorPos.sectionId == null) {
       // TODO We could come up with a suitable cursorPos here based on the action itself.
       // This should only come up if trying to undo/redo after reloading a page (since the cursorPos

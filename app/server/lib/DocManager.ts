@@ -317,7 +317,7 @@ export class DocManager extends EventEmitter {
 
     const [metaTables, recentActions] = await Promise.all([
       activeDoc.fetchMetaTables(docSession),
-      activeDoc.getRecentActions(docSession, false)
+      activeDoc.getRecentMinimalActions(docSession)
     ]);
 
     this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));

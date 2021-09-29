@@ -14,7 +14,7 @@
  */
 
 import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup} from 'app/common/ActionGroup';
+import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {createEmptyActionSummary} from 'app/common/ActionSummary';
 import {getSelectionDesc, UserAction} from 'app/common/DocActions';
 import {DocState} from 'app/common/UserAPI';
@@ -27,13 +27,27 @@ export interface ActionGroupOptions {
   summarize?: boolean;
 
   // The client for which the action group is being prepared, if known.
-  client?: {clientId: string}|null;
+  clientId?: string;
 
   // Values returned by the action, if known.
   retValues?: any[];
 
   // Set the 'internal' flag on the created actions, as inappropriate to undo.
   internal?: boolean;
+}
+
+/**
+ * Metadata about an action that is needed for undo/redo stack.
+ */
+export interface ActionHistoryUndoInfoWithoutClient {
+  otherId: number;
+  linkId: number;
+  rowIdHint: number;
+  isUndo: boolean;
+}
+
+export interface ActionHistoryUndoInfo extends ActionHistoryUndoInfoWithoutClient {
+  clientId: string;
 }
 
 export abstract class ActionHistory {
@@ -112,6 +126,8 @@ export abstract class ActionHistory {
    */
   public abstract getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]>;
 
+  public abstract getRecentMinimalActionGroups(maxActions: number, clientId?: string): Promise<MinimalActionGroup[]>;
+
   /**
    * Get the most recent states from the history.  States are just
    * actions without any content.  Results are ordered by most recent
@@ -131,10 +147,10 @@ export abstract class ActionHistory {
    * Associates an action with a client. This association is expected to be transient, rather
    * than persistent.  It should survive a client-side reload but not a server-side restart.
    */
-  public abstract setActionClientId(actionHash: string, clientId: string): void;
+  public abstract setActionUndoInfo(actionHash: string, undoInfo: ActionHistoryUndoInfo): void;
 
   /** Check for any client associated with an action, identified by checksum */
-  public abstract getActionClientId(actionHash: string): string | undefined;
+  public abstract getActionUndoInfo(actionHash: string): ActionHistoryUndoInfo | undefined;
 
   /**
    * Remove all stored actions except the last keepN and run the VACUUM command
@@ -232,11 +248,62 @@ export function humanDescription(actions: UserAction[]): string {
 export function asActionGroup(history: ActionHistory,
                               act: LocalActionBundle,
                               options: ActionGroupOptions): ActionGroup {
-  const {summarize, client, retValues} = options;
+  const {summarize, clientId} = options;
   const info = act.info[1];
-  const fromSelf = (client && client.clientId && act.actionHash) ?
-    (history.getActionClientId(act.actionHash) === client.clientId) : false;
 
+  const fromSelf = (act.actionHash && clientId) ?
+    (history.getActionUndoInfo(act.actionHash)?.clientId === clientId) : false;
+
+  const {extra: {primaryAction}, minimal: {rowIdHint, isUndo}} =
+    getActionUndoInfoWithoutClient(act, options.retValues);
+
+  return {
+    actionNum: act.actionNum,
+    actionHash: act.actionHash || "",
+    desc: info.desc || humanDescription(act.userActions),
+    actionSummary: summarize ? summarizeAction(act) : createEmptyActionSummary(),
+    fromSelf,
+    linkId: info.linkId,
+    otherId: info.otherId,
+    time: info.time,
+    user: info.user,
+    rowIdHint,
+    primaryAction,
+    isUndo,
+    internal: options.internal || false,
+  };
+}
+
+export function asMinimalActionGroup(history: ActionHistory,
+                                     act: {actionHash: string, actionNum: number},
+                                     clientId?: string): MinimalActionGroup {
+  const undoInfo = act.actionHash ? history.getActionUndoInfo(act.actionHash) : undefined;
+  const fromSelf = clientId ? (undoInfo?.clientId === clientId) : false;
+  return {
+    actionNum: act.actionNum,
+    actionHash: act.actionHash || "",
+    fromSelf,
+    linkId: undoInfo?.linkId || 0,
+    otherId: undoInfo?.otherId || 0,
+    rowIdHint: undoInfo?.rowIdHint || 0,
+    isUndo: undoInfo?.isUndo || false,
+  };
+}
+
+export function getActionUndoInfo(act: LocalActionBundle, clientId: string,
+                                  retValues: any[]): ActionHistoryUndoInfo {
+  return {
+    ...getActionUndoInfoWithoutClient(act, retValues).minimal,
+    clientId,
+  };
+}
+
+/**
+ * Compute undo information from an action bundle and return values if available.
+ * Results are returned as {minimal, extra} where core has information needed for minimal
+ * action groups, and extra has information only needed for full action groups.
+ */
+function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[]) {
   let rowIdHint = 0;
   if (retValues) {
     // A hint for cursor position.  This logic used to live on the client, but now trying to
@@ -255,22 +322,18 @@ export function asActionGroup(history: ActionHistory,
     }
   }
 
+  const info = act.info[1];
   const primaryAction: string = String((act.userActions[0] || [""])[0]);
   const isUndo = primaryAction === 'ApplyUndoActions';
-
   return {
-    actionNum: act.actionNum,
-    actionHash: act.actionHash || "",
-    desc: info.desc || humanDescription(act.userActions),
-    actionSummary: summarize ? summarizeAction(act) : createEmptyActionSummary(),
-    fromSelf,
-    linkId: info.linkId,
-    otherId: info.otherId,
-    time: info.time,
-    user: info.user,
-    rowIdHint,
-    primaryAction,
-    isUndo,
-    internal: options.internal || false,
+    minimal: {
+      rowIdHint,
+      otherId: info.otherId,
+      linkId: info.linkId,
+      isUndo,
+    },
+    extra: {
+      primaryAction,
+    },
   };
 }

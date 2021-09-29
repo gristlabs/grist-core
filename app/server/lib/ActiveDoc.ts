@@ -15,7 +15,7 @@ import fetch from 'node-fetch';
 import * as tmp from 'tmp';
 
 import {getEnvContent, LocalActionBundle, SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup} from 'app/common/ActionGroup';
+import { ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {
   ApplyUAOptions,
   ApplyUAResult,
@@ -251,7 +251,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
-      {client: docSession.client, summarize});
+      {clientId: docSession.client?.clientId, summarize});
     const permittedGroups: ActionGroup[] = [];
     // Process groups serially since the work is synchronous except for some
     // possible db accesses that will be serialized in any case.
@@ -261,6 +261,11 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     return permittedGroups;
+  }
+
+  public async getRecentMinimalActions(docSession: OptDocSession): Promise<MinimalActionGroup[]> {
+    return this._actionHistory.getRecentMinimalActionGroups(
+      MAX_RECENT_ACTIONS, docSession.client?.clientId);
   }
 
   /** expose action history for tests */

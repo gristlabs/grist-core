@@ -14,7 +14,7 @@ import {shortDesc} from 'app/server/lib/shortDesc';
 import * as assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as Deque from 'double-ended-queue';
-import {ActionHistory, asActionGroup} from './ActionHistory';
+import { ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {summarizeAction} from "./ActionSummary";
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
@@ -275,7 +275,9 @@ export class Sharing {
           // Check isCalculate because that's not an action we should allow undo/redo for (it's not
           // considered as performed by a particular client).
           if (client && client.clientId && !isCalculate) {
-            this._actionHistory.setActionClientId(localActionBundle.actionHash!, client.clientId);
+            this._actionHistory.setActionUndoInfo(
+              localActionBundle.actionHash!,
+              getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
           }
         });
       }
@@ -286,7 +288,7 @@ export class Sharing {
 
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
-        client,
+        clientId: client?.clientId,
         retValues: sandboxActionBundle.retValues,
         // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
         // date and other changes from external values may count as internal.

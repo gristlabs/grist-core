@@ -2,14 +2,15 @@
  * Minimal ActionHistory implementation
  */
 import {LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionGroup} from 'app/common/ActionGroup';
+import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import * as marshaller from 'app/common/marshal';
 import {DocState} from 'app/common/UserAPI';
 import {reportTimeTaken} from 'app/server/lib/reportTimeTaken';
 import * as crypto from 'crypto';
 import keyBy = require('lodash/keyBy');
 import mapValues = require('lodash/mapValues');
-import {ActionGroupOptions, ActionHistory, asActionGroup} from './ActionHistory';
+import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
+        asMinimalActionGroup} from './ActionHistory';
 import {ISQLiteDB, ResultRow} from './SQLiteDB';
 
 // History will from time to time be pruned back to within these limits
@@ -165,7 +166,7 @@ export class ActionHistoryImpl implements ActionHistory {
   private _haveLocalSent: boolean = false;    // cache for this.haveLocalSent()
   private _haveLocalUnsent: boolean = false;  // cache for this.haveLocalUnsent()
   private _initialized: boolean = false;      // true when initialize() has completed
-  private _actionClient = new Map<string, string>();  // transient cache of who created actions
+  private _actionUndoInfo = new Map<string, ActionHistoryUndoInfo>();  // transient cache of undo info
 
   constructor(private _db: ISQLiteDB, private _options: ActionHistoryOptions = defaultOptions) {
   }
@@ -174,7 +175,7 @@ export class ActionHistoryImpl implements ActionHistory {
   public async wipe() {
     await this._db.run("UPDATE _gristsys_ActionHistoryBranch SET actionRef = NULL");
     await this._db.run("DELETE FROM _gristsys_ActionHistory");
-    this._actionClient.clear();
+    this._actionUndoInfo.clear();
   }
 
   public async initialize(): Promise<void> {
@@ -382,6 +383,17 @@ export class ActionHistoryImpl implements ActionHistory {
       () => actions.map(row => asActionGroup(this, decodeActionFromRow(row), options)));
   }
 
+  public async getRecentMinimalActionGroups(maxActions: number, clientId?: string): Promise<MinimalActionGroup[]> {
+    // Don't look at content of actions.
+    const actions = await this._getRecentActionRows(maxActions, false);
+    return reportTimeTaken(
+      "getRecentMinimalActionGroups",
+      () => actions.map(row => asMinimalActionGroup(
+        this,
+        {actionHash: row.actionHash, actionNum: row.actionNum},
+        clientId)));
+  }
+
   public async getRecentStates(maxStates?: number): Promise<DocState[]> {
     const branches = await this._getBranches();
     const states = await this._fetchParts(null,
@@ -432,25 +444,27 @@ export class ActionHistoryImpl implements ActionHistory {
     });
   }
 
-  public setActionClientId(actionHash: string, clientId: string): void {
-    this._actionClient.set(actionHash, clientId);
+  public setActionUndoInfo(actionHash: string, undoInfo: ActionHistoryUndoInfo): void {
+    this._actionUndoInfo.set(actionHash, undoInfo);
   }
 
-  public getActionClientId(actionHash: string): string | undefined {
-    return this._actionClient.get(actionHash);
+  public getActionUndoInfo(actionHash: string): ActionHistoryUndoInfo | undefined {
+    return this._actionUndoInfo.get(actionHash);
   }
 
   /**
    * Fetches the most recent action row from the history, orderd with earlier actions first.
    * If `maxActions` is supplied, at most that number of actions are returned.
    */
-  private async _getRecentActionRows(maxActions?: number): Promise<ResultRow[]> {
+  private async _getRecentActionRows(maxActions: number|undefined,
+                                     withBody: boolean = true): Promise<ResultRow[]> {
     const branches = await this._getBranches();
+    const columns = '_gristsys_ActionHistory.id, actionNum, actionHash' + (withBody ? ', body' : '');
     const result = await this._fetchParts(null,
-                                           branches.local_unsent,
-                                           "_gristsys_ActionHistory.id, actionNum, actionHash, body",
-                                           maxActions,
-                                           true);
+                                          branches.local_unsent,
+                                          columns,
+                                          maxActions,
+                                          true);
     result.reverse();  // Implementation note: this could be optimized away when `maxActions`
                        // is not specified, by simply asking _fetchParts for ascending order.
     return result;
@@ -618,7 +632,7 @@ export class ActionHistoryImpl implements ActionHistory {
     await this._db.run(`DELETE FROM _gristsys_ActionHistory
                           WHERE id ${invert ? 'NOT' : ''} IN (${idList})`);
     for (const row of rows) {
-      this._actionClient.delete(row.actionHash);
+      this._actionUndoInfo.delete(row.actionHash);
     }
     return ids;
   }
