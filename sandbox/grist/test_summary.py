@@ -650,19 +650,19 @@ class Address:
     # Check the values in the summary tables: they should reflect the new formula.
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
       [ "id", "city",     "state", "count", "amount"  ],
-      [ 1,    "New York", "NY"   , 3,       str(100*(1.+6+11))],
-      [ 2,    "Albany",   "NY"   , 1,       "200.0"        ],
-      [ 3,    "Seattle",  "WA"   , 1,       "300.0"        ],
-      [ 4,    "Chicago",  "IL"   , 1,       "400.0"        ],
-      [ 5,    "Bedford",  "MA"   , 1,       "500.0"        ],
-      [ 6,    "Buffalo",  "NY"   , 1,       "700.0"        ],
-      [ 7,    "Bedford",  "NY"   , 1,       "800.0"        ],
-      [ 8,    "Boston",   "MA"   , 1,       "900.0"        ],
-      [ 9,    "Yonkers",  "NY"   , 1,       "1000.0"       ],
+      [ 1,    "New York", "NY"   , 3,       str(100*(1+6+11))],
+      [ 2,    "Albany",   "NY"   , 1,       "200"        ],
+      [ 3,    "Seattle",  "WA"   , 1,       "300"        ],
+      [ 4,    "Chicago",  "IL"   , 1,       "400"        ],
+      [ 5,    "Bedford",  "MA"   , 1,       "500"        ],
+      [ 6,    "Buffalo",  "NY"   , 1,       "700"        ],
+      [ 7,    "Bedford",  "NY"   , 1,       "800"        ],
+      [ 8,    "Boston",   "MA"   , 1,       "900"        ],
+      [ 9,    "Yonkers",  "NY"   , 1,       "1000"       ],
     ])
     self.assertTableData('GristSummary_7_Address2', cols="subset", data=[
       [ "id", "count",  "amount"],
-      [ 1,    11,       "6600.0"],
+      [ 1,    11,       "6600"],
     ])
 
     # Add a new summary table, and check that it gets the new formula.
@@ -698,10 +698,10 @@ class Address:
     # Verify the summarized data.
     self.assertTableData('GristSummary_7_Address3', cols="subset", data=[
       [ "id", "state", "count", "amount"                    ],
-      [ 1,    "NY",     7,      str(100*(1.+2+6+7+8+10+11)) ],
-      [ 2,    "WA",     1,      "300.0"                     ],
-      [ 3,    "IL",     1,      "400.0"                     ],
-      [ 4,    "MA",     2,      str(500.+900)               ],
+      [ 1,    "NY",     7,      str(int(100*(1.+2+6+7+8+10+11))) ],
+      [ 2,    "WA",     1,      "300"                     ],
+      [ 3,    "IL",     1,      "400"                     ],
+      [ 4,    "MA",     2,      str(500+900)               ],
     ])
 
   #----------------------------------------------------------------------
@@ -760,15 +760,15 @@ class Address:
       ])
     ])
     self.assertTableData('Table1', data=[
-      [ "id", "manualSort", "A",    "B",  "C"   ],
-      [ 1,    1.0,          "10.0", 1.0,    None  ],
-      [ 2,    2.0,          "20.0", 2.0,    None  ],
-      [ 3,    3.0,          "10.0", 3.0,    None  ],
+      [ "id", "manualSort", "A",  "B",  "C"   ],
+      [ 1,    1.0,          "10", 1.0,  None  ],
+      [ 2,    2.0,          "20", 2.0,  None  ],
+      [ 3,    3.0,          "10", 3.0,  None  ],
     ])
     self.assertTableData('GristSummary_6_Table1', data=[
-      [ "id", "A",    "group",  "count",  "B" ],
-      [ 1,    "10.0", [1,3],    2,        4   ],
-      [ 2,    "20.0", [2],      1,        2   ],
+      [ "id", "A",  "group",  "count",  "B" ],
+      [ 1,    "10", [1,3],    2,        4   ],
+      [ 2,    "20", [2],      1,        2   ],
     ])
 
   #----------------------------------------------------------------------

@@ -14,6 +14,8 @@ the extra complexity.
 import csv
 import datetime
 import json
+import math
+
 import six
 import objtypes
 from objtypes import AltText
@@ -157,6 +159,20 @@ class Text(BaseColumnType):
       return value.decode('utf8')
     elif value is None:
       return None
+    elif isinstance(value, float) and not (math.isinf(value) or math.isnan(value)):
+      # Format as integer if possible to avoid scientific notation
+      # so that strings of digits that aren't meant to represent numbers convert correctly.
+      # https://stackoverflow.com/questions/1848700/biggest-integer-that-can-be-stored-in-a-double
+      # says that 2^53+1 is the first integer that isn't accurately stored in a float,
+      # and it looks like 2^53 so we can't trust that either ;)
+      if abs(value) < 2 ** 53:
+        as_int = int(value)
+        if value == as_int:
+          return six.text_type(as_int)
+
+      # More than 15 digits of precision can make large numbers (e.g. 2^53+1) look as if
+      # they're represented exactly when they're not
+      return u"%.15g" % value
     else:
       return six.text_type(value)
 
