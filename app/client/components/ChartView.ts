@@ -1,6 +1,6 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {sortByXValues, uniqXValues} from 'app/client/lib/chartUtil';
+import {sortByXValues, splitValuesByIndex, uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
 import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
@@ -18,6 +18,7 @@ import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {linkSelect, menu, menuItem, select} from 'app/client/ui2018/menus';
 import {nativeCompare} from 'app/common/gutil';
+import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
   makeTestId, Observable, styled} from 'grainjs';
@@ -94,6 +95,11 @@ function dateGetter(getter: RowPropGetter): RowPropGetter {
   };
 }
 
+
+// List of column types whose values are encoded has list, ie: ['L', 'foo', ...]. Such values
+// require special treatment to show correctly in charts.
+const LIST_TYPES = ['ChoiceList', 'RefList'];
+
 /**
  * ChartView component displays created charts.
  */
@@ -163,7 +169,7 @@ export class ChartView extends Disposable {
 
     const fields: ViewFieldRec[] = this.viewSection.viewFields().all();
     const rowIds: number[] = this.sortedRows.getKoArray().peek() as number[];
-    const series: Series[] = fields.map((field) => {
+    let series: Series[] = fields.map((field) => {
       // Use the colId of the displayCol, which may be different in case of Reference columns.
       const colId: string = field.displayColModel.peek().colId.peek();
       const getter = this.tableModel.tableData.getRowPropFunc(colId) as RowPropGetter;
@@ -174,6 +180,20 @@ export class ChartView extends Disposable {
         values: rowIds.map(fullGetter),
       };
     });
+
+    const startIndexForYAxis = this._options.prop('multiseries') ? 2 : 1;
+    for (let i = 0; i < series.length; ++i) {
+      if (i < fields.length && LIST_TYPES.includes(fields[i].column.peek().pureType.peek())) {
+        if (i < startIndexForYAxis) {
+          // For x-axis and group column data, split series we should split records.
+          series = splitValuesByIndex(series, i);
+        } else {
+          // For all y-axis, it's not sure what would be a sensible representation for choice list,
+          // simply stringify choice list values seems reasonable.
+          series[i].values = series[i].values.map((v) => String(decodeObject(v as any)));
+        }
+      }
+    }
 
     const options: ChartOptions = this._options.peek() || {};
     let plotData: PlotData = {data: []};

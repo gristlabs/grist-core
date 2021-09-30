@@ -1,7 +1,9 @@
 import {typedCompare} from 'app/common/SortFunc';
+import {decodeObject} from 'app/plugin/objtypes';
 import {Datum} from 'plotly.js';
 import range = require('lodash/range');
 import uniqBy = require('lodash/uniqBy');
+import flatten = require('lodash/flatten');
 
 /**
  * Sort all values in a list of series according to the values in the first one.
@@ -30,4 +32,31 @@ export function uniqXValues<T extends {values: Datum[]}>(series: Array<T>): Arra
     ...line,
     values: line.values.filter((_val, i) => indexToKeep.has(i))
   }));
+}
+
+// Creates new version of series that split any entry whose value in the first series is a list into
+// multiple entries, one entry for each list's item. For all other series, newly created entries have
+// the same value as the original.
+export function splitValues<T extends {values: Datum[]}>(series: Array<T>): Array<T> {
+  return splitValuesByIndex(series, 0);
+}
+
+// This method is like splitValues except it splits according to the values of the series at position index.
+export function splitValuesByIndex<T extends {values: Datum[]}>(series: Array<T>, index: number): Array<T> {
+  const decoded = (series[index].values as any[]).map(decodeObject);
+
+  return series.map((s, si) => {
+    if (si === index) {
+      return {...series[index], values: flatten(decoded)};
+    }
+    let values: Datum[] = [];
+    for (const [i, splitByValue] of decoded.entries()) {
+      if (Array.isArray(splitByValue)) {
+        values = values.concat(Array(splitByValue.length).fill(s.values[i]));
+      } else {
+        values.push(s.values[i]);
+      }
+    }
+    return {...s, values};
+  });
 }
