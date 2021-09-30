@@ -1,6 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {InactivityTimer} from 'app/common/InactivityTimer';
-import {FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
+import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -328,20 +328,23 @@ export async function createTmpDir(options: tmp.Options): Promise<TmpDirResult> 
 /**
  * Register a new upload with resource fetched from a public url. Returns corresponding UploadInfo.
  */
-export async function fetchURL(url: string, accessId: string|null): Promise<UploadResult> {
-  return _fetchURL(url, accessId, path.basename(url));
+export async function fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
+  return _fetchURL(url, accessId, { fileName: path.basename(url), ...options});
 }
 
 /**
  * Register a new upload with resource fetched from a url, optionally including credentials in request.
  * Returns corresponding UploadInfo.
  */
-async function _fetchURL(url: string, accessId: string|null, fileName: string,
-                         headers?: {[key: string]: string}): Promise<UploadResult> {
+async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
   try {
+    const code = options?.googleAuthorizationCode;
+    let fileName = options?.fileName ?? '';
+    const headers = options?.headers;
     let response: FetchResponse;
     if (isDriveUrl(url)) {
-      response = await downloadFromGDrive(url);
+      response = await downloadFromGDrive(url, code);
+      fileName = ''; // Read the file name from headers.
     } else {
       response = await Deps.fetch(url, {
         redirect: 'follow',
@@ -402,7 +405,7 @@ async function fetchDoc(homeUrl: string, docId: string, req: Request, accessId: 
 
   // Download the document, in full or as a template.
   const url = `${docWorkerUrl}download?doc=${docId}&template=${Number(template)}`;
-  return _fetchURL(url, accessId, '', headers);
+  return _fetchURL(url, accessId, {headers});
 }
 
 // Re-issue failures as exceptions.

@@ -1,7 +1,7 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
-import {UploadResult} from 'app/common/uploads';
+import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {IMessage} from 'grain-rpc';
 
@@ -207,7 +207,7 @@ export interface ActiveDocAPI {
   /**
    * Fetch content at a url.
    */
-  fetchURL(url: string): Promise<UploadResult>;
+  fetchURL(url: string, options?: FetchUrlOptions): Promise<UploadResult>;
 
   /**
    * Find and return a list of auto-complete suggestions that start with `txt`, when editing a

@@ -40,6 +40,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     pluginUrl,
     stripeAPIKey: process.env.STRIPE_PUBLIC_API_KEY,
     googleClientId: process.env.GOOGLE_CLIENT_ID,
+    googleDriveScope: process.env.GOOGLE_DRIVE_SCOPE,
     helpScoutBeaconId: process.env.HELP_SCOUT_BEACON_ID,
     maxUploadSizeImport: (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || undefined,
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,

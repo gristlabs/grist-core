@@ -13,7 +13,7 @@ import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
-import {UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
+import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
 import {docUrl} from 'app/common/urlUtils';
 import {OpenDialogOptions} from 'electron';
 import noop = require('lodash/noop');
@@ -152,12 +152,12 @@ export async function uploadFiles(
  * case, it guesses the name of the file based on the response's content-type and the url.
  */
 export async function fetchURL(
-  docComm: DocComm, url: string, onProgress: ProgressCB = noop
+  docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop
   ): Promise<UploadResult> {
 
   if (isDriveUrl(url)) {
     // don't download from google drive, immediately fallback to server side.
-    return docComm.fetchURL(url);
+    return docComm.fetchURL(url, options);
   }
 
   let response: Response;
@@ -167,14 +167,14 @@ export async function fetchURL(
     console.log( // tslint:disable-line:no-console
       `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`
     );
-    return docComm.fetchURL(url);
+    return docComm.fetchURL(url, options);
   }
   // TODO: We should probably parse response.headers.get('content-disposition') when available
   // (see content-disposition npm module).
   const fileName = basename(url);
   const mimeType = response.headers.get('content-type');
-  const options = mimeType ? { type: mimeType } : {};
-  const fileObj = new File([await response.blob()], fileName, options);
+  const fileOptions = mimeType ? { type: mimeType } : {};
+  const fileObj = new File([await response.blob()], fileName, fileOptions);
   const res = await uploadFiles([fileObj], {docWorkerUrl: docComm.docWorkerUrl}, onProgress);
   return res!;
 }

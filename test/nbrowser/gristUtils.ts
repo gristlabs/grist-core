@@ -638,7 +638,7 @@ export async function importFileDialog(filePath: string): Promise<void> {
     await driver.findWait('.test-dp-add-new', 1000).doClick();
     await driver.findContent('.test-dp-import-option', /Import from file/i).doClick();
   });
-  await driver.findWait('.test-importer-dialog', 1000);
+  await driver.findWait('.test-importer-dialog', 5000);
   await waitForServer();
 }
 

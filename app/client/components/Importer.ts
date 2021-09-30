@@ -20,11 +20,12 @@ import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
         MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
 import {byteString} from "app/common/gutil";
-import {UploadResult} from 'app/common/uploads';
+import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
 import {Computed, Disposable, dom, DomContents, IDisposable, MutableObsArray, obsArray, Observable,
         styled} from 'grainjs';
 import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
+import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from "app/client/ui/googleAuth";
 
 // Special values for import destinations; null means "new table".
 // TODO We should also support "skip table" (needs server support), so that one can open, say,
@@ -47,7 +48,7 @@ export interface SourceInfo {
   transformSection: Observable<ViewSectionRec>;
   destTableId: Observable<DestId>;
 }
- // UI state of selected merge options for each source table (from SourceInfo).
+// UI state of selected merge options for each source table (from SourceInfo).
 interface MergeOptionsState {
   [srcTableId: string]: {
     updateExistingRecords: Observable<boolean>;
@@ -182,14 +183,10 @@ export class Importer extends Disposable {
             uploadResult = await uploadFiles(files, {docWorkerUrl: this._docComm.docWorkerUrl,
                                                      sizeLimit: 'import'});
           } else if (item.kind ===  "url") {
-            try {
+            if (isDriveUrl(item.url)) {
+              uploadResult = await this._fetchFromDrive(item.url);
+            } else {
               uploadResult = await fetchURL(this._docComm, item.url);
-            } catch(err) {
-              if (isDriveUrl(item.url)) {
-                throw new GDriveUrlNotSupported(item.url);
-              } else {
-                throw err;
-              }
             }
           } else {
             throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
@@ -197,6 +194,10 @@ export class Importer extends Disposable {
         }
       }
     } catch (err) {
+      if (err instanceof CancelledError) {
+        await this._cancelImport();
+        return;
+      }
       if (err instanceof GDriveUrlNotSupported) {
         await this._cancelImport();
         throw err;
@@ -488,13 +489,53 @@ export class Importer extends Disposable {
       )
     ]);
   }
+
+  private async _fetchFromDrive(itemUrl: string) {
+    // First we will assume that this is public file, so no need to ask for permissions.
+    try {
+      return await fetchURL(this._docComm, itemUrl);
+    } catch(err) {
+      // It is not a public file or the file id in the url is wrong,
+      // but we have no way to check it, so we assume that it is private file
+      // and ask the user for the permission (if we are configured to do so)
+      if (canReadPrivateFiles()) {
+        const options: FetchUrlOptions = {};
+        try {
+          // Request for authorization code from Google.
+          const code = await getGoogleCodeForReading(this);
+          options.googleAuthorizationCode = code;
+        } catch(permError) {
+          if (permError?.message === ACCESS_DENIED) {
+            // User declined to give us full readonly permission, fallback to GoogleDrive plugin
+            // or cancel import if GoogleDrive plugin is not configured.
+            throw new GDriveUrlNotSupported(itemUrl);
+          } else if(permError?.message === AUTH_INTERRUPTED) {
+            // User closed the window - we assume he doesn't want to continue.
+            throw new CancelledError();
+          } else {
+            // Some other error happened during authentication, report to user.
+            throw err;
+          }
+        }
+        // Download file from private drive, if it fails, report the error to user.
+        return await fetchURL(this._docComm, itemUrl, options);
+      } else {
+        // We are not allowed to ask for full readonly permission, fallback to GoogleDrive plugin.
+        throw new GDriveUrlNotSupported(itemUrl);
+      }
+    }
+  }
 }
 
-// Used for switching from URL plugin to Google drive plugin
+// Used for switching from URL plugin to Google drive plugin.
 class GDriveUrlNotSupported extends Error {
   constructor(public url: string) {
     super(`This url ${url} is not supported`);
   }
+}
+
+// Used to cancel import (close the dialog without any error).
+class CancelledError extends Error {
 }
 
 function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {

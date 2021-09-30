@@ -456,6 +456,12 @@ export interface GristLoadConfig {
   // Google Client Id, used in Google integration (ex: Google Drive Plugin)
   googleClientId?: string;
 
+  // Max scope we can request for accessing files from Google Drive.
+  // Default used by Grist is https://www.googleapis.com/auth/drive.file:
+  // View and manage Google Drive files and folders that you have opened or created with this app.
+  // More on scopes: https://developers.google.com/identity/protocols/oauth2/scopes#drive
+  googleDriveScope?: string;
+
   // List of registered plugins (used by HomePluginManager and DocPluginManager)
   plugins?: LocalPlugin[];
 }

@@ -44,7 +44,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import * as marshal from 'app/common/marshal';
-import {UploadResult} from 'app/common/uploads';
+import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
@@ -890,8 +890,8 @@ export class ActiveDoc extends EventEmitter {
     return this._pyCall('autocomplete', txt, tableId, columnId, user.toJSON());
   }
 
-  public fetchURL(docSession: DocSession, url: string): Promise<UploadResult> {
-    return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()));
+  public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
+    return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()), options);
   }
 
   public async forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {

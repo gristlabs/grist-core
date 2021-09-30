@@ -16,6 +16,8 @@ import {URL} from 'url';
  *                          the same client id is used in Google Drive Plugin
  * - GOOGLE_CLIENT_SECRET:  secret key for Google Project, can't be shared - it is used to (d)encrypt
  *                          data that we obtain from Google Auth Service (all done in the api)
+ * - GOOGLE_DRIVE_SCOPE:    scope requested for the Google drive integration (defaults to drive.file which allows
+ *                          to create files and get files via Google Drive Picker)
  *
  * High level description:
  *
@@ -55,12 +57,8 @@ import {URL} from 'url';
  * in a query string.
  */
 
-
 // Path for the auth endpoint.
 const authHandlerPath = "/auth/google";
-
-// "View and manage Google Drive files and folders that you have opened or created with this app.""
-export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 // Redirect host after the Google Auth login form is completed. This reuses the same domain name
 // as for Cognito login.
@@ -97,7 +95,7 @@ export async function googleAuthTokenMiddleware(
     throw new ApiError("Google Auth endpoint requires a code parameter in the query string", 400);
   } else {
     try {
-      const oAuth2Client = _googleAuthClient();
+      const oAuth2Client = getGoogleAuth();
       // Decrypt code that was send back from Google Auth service. Uses GOOGLE_CLIENT_SECRET key.
       const tokenResponse = await oAuth2Client.getToken(stringParam(req.query.code));
       // Get the access token (access token will be present in a default request configuration).
@@ -150,8 +148,8 @@ export function addGoogleAuthEndpoint(
         throw new ApiError("Error authenticating with Google", 500);
       }
     } else {
-      const oAuth2Client = _googleAuthClient();
-      const scope = optStringParam(req.query.scope) || DRIVE_SCOPE;
+      const oAuth2Client = getGoogleAuth();
+      const scope = stringParam(req.query.scope);
       // Create url for origin parameter for a popup window.
       const origin = getOriginUrl(req);
       const authUrl = oAuth2Client.generateAuthUrl({
@@ -172,7 +170,7 @@ export function addGoogleAuthEndpoint(
 /**
  * Builds the OAuth2 Google client.
  */
-function _googleAuthClient() {
+export function getGoogleAuth() {
   const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
   const oAuth2Client = new auth.OAuth2(CLIENT_ID, CLIENT_SECRET, getFullAuthEndpointUrl());
