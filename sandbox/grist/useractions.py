@@ -12,7 +12,7 @@ from acl_formula import parse_acl_formula_json
 import actions
 import column
 import identifiers
-from objtypes import strict_equal
+from objtypes import strict_equal, encode_object
 import schema
 from schema import RecalcWhen
 import summary
@@ -1246,6 +1246,25 @@ class UserActions(object):
     if src_col.displayCol:
       self.SetDisplayFormula(dst_col.parentId.tableId, None, dst_col.id,
         re.sub((r'\$%s\b' % src_col.colId), '$' + dst_col.colId, src_col.displayCol.formula))
+
+  @useraction
+  def RenameChoices(self, table_id, col_id, renames):
+    """
+    Updates the data in a Choice/ChoiceList column to reflect the new choice names.
+    `renames` should be a dict of {old_choice_name: new_choice_name}.
+    This doesn't touch the choices configuration in widgetOptions, that must be done separately.
+    """
+
+    table = self._engine.tables[table_id]
+    col = table.get_column(col_id)
+
+    if col.is_formula():
+      # We don't set the values of formula columns, they should just recalculate themselves
+      return None
+
+    row_ids, values = col.rename_choices(renames)
+    values = [encode_object(v) for v in values]
+    return self.BulkUpdateRecord(table_id, row_ids, {col_id: values})
 
   #----------------------------------------
   # User actions on tables.

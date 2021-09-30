@@ -3,6 +3,7 @@ import functools
 import json
 import unittest
 from collections import namedtuple
+from pprint import pprint
 
 import six
 
@@ -203,7 +204,10 @@ class EngineTestCase(unittest.TestCase):
     """
     Prints out_actions in human-readable format, for help in writing / debugging tets.
     """
-    print("\n".join(self._formatActionGroup(out_actions.__dict__)))
+    pprint({
+      k: [get_comparable_repr(action) for action in getattr(out_actions, k)]
+      for k in self.action_group_action_fields
+    })
 
   def assertTableData(self, table_name, data=[], cols="all", rows="all", sort=None):
     """

@@ -352,3 +352,78 @@ class TestSummaryChoiceList(EngineTestCase):
     starting_table.columns[1] = starting_table.columns[1]._replace(type="ChoiceList")
     self.assertTables([starting_table, summary_table])
     self.assertTableData('GristSummary_6_Source', data=data)
+
+  def test_rename_choices(self):
+    self.load_sample(self.sample)
+
+    # Create a summary section, grouped by both choicelist columns.
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12]])
+
+    summary_table = Table(
+      2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
+      columns=[
+        Column(13, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
+        Column(14, "choices2", "Choice", isFormula=False, formula="", summarySourceCol=12),
+        Column(15, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(16, "count", "Int", isFormula=True, summarySourceCol=0,
+               formula="len($group)"),
+      ],
+    )
+
+    self.assertTables([self.starting_table, summary_table])
+
+    # Rename all the choices
+    out_actions = self.apply_user_action(
+      ["RenameChoices", "Source", "choices1", {"a": "aa", "b": "bb"}])
+    self.apply_user_action(
+      ["RenameChoices", "Source", "choices2", {"c": "cc", "d": "dd"}])
+
+    # Actions from renaming choices1 only
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ['UpdateRecord', 'Source', 21, {'choices1': ['L', u'aa', u'bb']}],
+      ['BulkAddRecord',
+       'GristSummary_6_Source',
+       [5, 6, 7, 8],
+       {'choices1': [u'aa', u'aa', u'bb', u'bb'],
+        'choices2': [u'c', u'd', u'c', u'd']}],
+      ['BulkUpdateRecord',
+       'GristSummary_6_Source',
+       [1, 2, 3, 4, 5, 6, 7, 8],
+       {'count': [0, 0, 0, 0, 1, 1, 1, 1]}],
+      ['BulkUpdateRecord',
+       'GristSummary_6_Source',
+       [1, 2, 3, 4, 5, 6, 7, 8],
+       {'group': [['L'],
+                  ['L'],
+                  ['L'],
+                  ['L'],
+                  ['L', 21],
+                  ['L', 21],
+                  ['L', 21],
+                  ['L', 21]]}]
+    ]})
+
+    # Final Source table is essentially the same as before, just with each letter doubled
+    self.assertTableData('Source', data=[
+      ["id", "choices1", "choices2", "other"],
+      [21, ["aa", "bb"], ["cc", "dd"], "foo"],
+    ])
+
+    # Final summary table is very similar to before, but with two empty chunks of 4 rows
+    # left over from each rename
+    self.assertTableData('GristSummary_6_Source', data=[
+      ["id", "choices1", "choices2", "group", "count"],
+      [1, "a", "c", [], 0],
+      [2, "a", "d", [], 0],
+      [3, "b", "c", [], 0],
+      [4, "b", "d", [], 0],
+      [5, "aa", "c", [], 0],
+      [6, "aa", "d", [], 0],
+      [7, "bb", "c", [], 0],
+      [8, "bb", "d", [], 0],
+      [9, "aa", "cc", [21], 1],
+      [10, "aa", "dd", [21], 1],
+      [11, "bb", "cc", [21], 1],
+      [12, "bb", "dd", [21], 1],
+    ])

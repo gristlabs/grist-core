@@ -225,6 +225,20 @@ class BaseColumn(object):
     # pylint: disable=no-self-use, unused-argument
     return values, []
 
+  def rename_choices(self, renames):
+    row_ids = []
+    values = []
+    for row_id, value in enumerate(self._data):
+      if value is not None and self.type_obj.is_right_type(value):
+        value = self._rename_cell_choice(renames, value)
+        if value is not None:
+          row_ids.append(row_id)
+          values.append(value)
+    return row_ids, values
+
+  def _rename_cell_choice(self, renames, value):
+    return renames.get(value, value)
+
 
 class DataColumn(BaseColumn):
   """
@@ -360,6 +374,9 @@ class ChoiceListColumn(BaseColumn):
 
   def _make_rich_value(self, typed_value):
     return () if typed_value is None else typed_value
+
+  def _rename_cell_choice(self, renames, value):
+    return tuple(renames.get(choice, choice) for choice in value)
 
 
 class BaseReferenceColumn(BaseColumn):

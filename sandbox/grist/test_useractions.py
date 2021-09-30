@@ -770,3 +770,70 @@ class TestUserActions(test_engine.EngineTestCase):
       ['id', 'indentation'],
       [   3,             0],
     ])
+
+  #----------------------------------------------------------------------
+
+  def test_rename_choices(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "ChoiceTable", [
+          [1, "ChoiceColumn", "Choice", False, "", "ChoiceColumn", ""],
+        ]],
+        [2, "ChoiceListTable", [
+          [2, "ChoiceListColumn", "ChoiceList", False, "", "ChoiceListColumn", ""],
+        ]],
+      ],
+      "DATA": {
+        "ChoiceTable": [
+          ["id", "ChoiceColumn"],
+          [1, "a"],
+          [2, "b"],
+          [3, "c"],
+          [4, "d"],
+          [5, None],
+        ],
+        "ChoiceListTable": [
+          ["id", "ChoiceListColumn"],
+          [1, ["a"]],
+          [2, ["b"]],
+          [3, ["c"]],
+          [4, ["d"]],
+          [5, None],
+          [7, ["a", "b"]],
+          [8, ["b", "c"]],
+          [9, ["a", "c"]],
+          [10, ["a", "b", "c"]],
+        ],
+      }
+    })
+    self.load_sample(sample)
+
+    # Renames go in a loop to make sure that works correctly
+    # a -> b -> c -> a -> b -> ...
+    renames = {"a": "b", "b": "c", "c": "a"}
+    self.apply_user_action(
+      ["RenameChoices", "ChoiceTable", "ChoiceColumn", renames])
+    self.apply_user_action(
+      ["RenameChoices", "ChoiceListTable", "ChoiceListColumn", renames])
+
+    self.assertTableData('ChoiceTable', data=[
+      ["id", "ChoiceColumn"],
+      [1, "b"],
+      [2, "c"],
+      [3, "a"],
+      [4, "d"],
+      [5, None],
+    ])
+
+    self.assertTableData('ChoiceListTable', data=[
+      ["id", "ChoiceListColumn"],
+      [1, ["b"]],
+      [2, ["c"]],
+      [3, ["a"]],
+      [4, ["d"]],
+      [5, None],
+      [7, ["b", "c"]],
+      [8, ["c", "a"]],
+      [9, ["b", "a"]],
+      [10, ["b", "c", "a"]],
+    ])
