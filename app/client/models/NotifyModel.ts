@@ -17,6 +17,7 @@ interface INotifier {
   // If you are looking to report errors, please do that via reportError rather
   // than these methods so that we have a chance to send the error to our logs.
   createUserError(message: string, options?: INotifyOptions): INotification;
+  createUserMessage(message: string, options?: INotifyOptions): INotification;
   createAppError(error: Error): void;
 
   createProgressIndicator(name: string, size: string, expireOnComplete: boolean): IProgress;
@@ -46,6 +47,7 @@ export interface INotifyOptions {
   inDropdown?: boolean;
   expireSec?: number;
   badgeCounter?: boolean;
+  level: 'message' | 'info' | 'success' | 'warning' | 'error';
 
   memos?: string[];  // A list of relevant notes.
 
@@ -93,6 +95,7 @@ export class Notification extends Expirable implements INotification {
     actions: [],
     memos: [],
     key: null,
+    level: 'message'
   };
 
   constructor(_opts: INotifyOptions) {
@@ -196,6 +199,7 @@ export class Notifier extends Disposable implements INotifier {
         title: msg.title,
         canUserClose: true,
         inToast: true,
+        level : 'message'
       })) : null);
   }
 
@@ -222,6 +226,21 @@ export class Notifier extends Disposable implements INotifier {
    * that we have a chance to send the error to our logs.
    */
   public createUserError(message: string, options: Partial<INotifyOptions> = {}): INotification {
+    return this.createUserMessage(message, {
+      level: 'error',
+      ...options
+    });
+  }
+
+  /**
+   * Creates a basic toast notification. By default, expires in 10 seconds.
+   * Takes an options objects to configure `expireSec` and `canUserClose`.
+   * Set `expireSec` to 0 to prevent expiration.
+   *
+   * Additional option level, can be used to style the notification to like a success, warning,
+   * info or error message.
+   */
+  public createUserMessage(message: string, options: Partial<INotifyOptions> = {}): INotification {
     const timestamp = Date.now();
     if (options.actions && options.actions.includes('ask-for-help')) {
       // If user should be able to ask for help, add this error to the notifier dropdown too for a
@@ -232,6 +251,7 @@ export class Notifier extends Disposable implements INotifier {
         inToast: false,
         expireSec: 300,
         canUserClose: true,
+        level: 'message',
         inDropdown: true,
         ...options,
         key: options.key && ("dropdown:" + options.key),
@@ -244,6 +264,7 @@ export class Notifier extends Disposable implements INotifier {
       expireSec: 10,
       canUserClose: true,
       inDropdown: false,
+      level: 'message',
       ...options,
     });
   }
@@ -312,6 +333,7 @@ export class Notifier extends Disposable implements INotifier {
           message: "Still working...",
           canUserClose: false,
           inToast: true,
+          level: 'message',
         }));
       }
       await this._slowNotificationInactivityTimer.disableUntilFinish(promise);
@@ -366,6 +388,7 @@ export class Notifier extends Disposable implements INotifier {
       expireSec: where === 'toast' ? 10 : 0,
       inDropdown: where === 'dropdown',
       actions: ['report-problem'],
+      level: 'error',
     });
   }
 }

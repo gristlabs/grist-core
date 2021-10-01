@@ -41,6 +41,9 @@ export const colors = {
   darkerGreen: new CustomProp('color-darker-green', '#007548'),
   lighterGreen: new CustomProp('color-lighter-green', '#b1ffe2'),
 
+  lighterBlue: new CustomProp('color-lighter-blue', '#87b2f9'),
+  lightBlue: new CustomProp('color-light-blue', '#3B82F6'),
+
   cursor: new CustomProp('color-cursor', '#16B378'),   // cursor is lightGreen
   selection: new CustomProp('color-selection', 'rgba(22,179,120,0.15)'),
   selectionOpaque: new CustomProp('color-selection-opaque', '#DCF4EB'),
@@ -49,6 +52,8 @@ export const colors = {
 
   hover: new CustomProp('color-hover', '#bfbfbf'),
   error: new CustomProp('color-error', '#D0021B'),
+  warning: new CustomProp('color-warning', '#F9AE41'),
+  warningBg: new CustomProp('color-warning-bg', '#dd962c'),
   backdrop: new CustomProp('color-backdrop', 'rgba(38,38,51,0.9)')
 
 };

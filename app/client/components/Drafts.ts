@@ -270,7 +270,7 @@ class NotificationAdapter extends Disposable implements Notification {
   }
   public showUndoDiscard() {
     const notifier = this._doc.app.topAppModel.notifier;
-    const notification = notifier.createUserError("Undo discard", {
+    const notification = notifier.createUserMessage("Undo discard", {
       message: () =>
         discardNotification(
           dom.on("click", () => {

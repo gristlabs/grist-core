@@ -17,7 +17,7 @@ var commands = require('./commands');
 var BackboneEvents = require('backbone').Events;
 const {LinkingState} = require('./LinkingState');
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
-const {reportError, UserError} = require('app/client/models/errors');
+const {reportError, reportSuccess} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
 const {copyToClipboard} = require('app/client/lib/copyToClipboard');
@@ -318,7 +318,7 @@ BaseView.prototype.copyLink = async function() {
     const link = urlState().makeUrl({ hash: { sectionId, rowId, colRef } });
     await copyToClipboard(link);
     setTestState({clipboard: link});
-    reportError(new UserError('Link copied to clipboard', {key: 'clipboard'}));
+    reportSuccess('Link copied to clipboard', {key: 'clipboard'});
   } catch (e) {
     throw new Error('cannot copy to clipboard');
   }

@@ -42,6 +42,30 @@ export function getAppErrors(): string[] {
 }
 
 /**
+ * Shows normal notification without any styling or icon.
+ */
+export function reportMessage(msg: string, options?: Partial<INotifyOptions>) {
+  if (_notifier && !_notifier.isDisposed()) {
+    _notifier.createUserMessage(msg, {
+      level : 'message',
+      ...options
+    });
+  }
+}
+
+/**
+ * Shows notification with green border and a tick icon.
+ */
+export function reportSuccess(msg: string, options?: Partial<INotifyOptions>) {
+  if (_notifier && !_notifier.isDisposed()) {
+    _notifier.createUserMessage(msg, {
+      level : 'success',
+      ...options
+    });
+  }
+}
+
+/**
  * Report an error to the user using the global Notifier instance. If the argument is a UserError
  * or an error with a status in the 400 range, it indicates a user error. Otherwise, it's an
  * application error, which the user can report to us as a bug.
@@ -75,7 +99,7 @@ export function reportError(err: Error|string): void {
         options.title = "Add users as team members first";
         options.actions = [];
       }
-      _notifier.createUserError(message, options);
+      _notifier.createUserMessage(message, options);
     } else if (err.name === 'UserError' || (typeof status === 'number' && status >= 400 && status < 500)) {
       // This is explicitly a user error, or one in the "Client Error" range, so treat it as user
       // error rather than a bug. Using message as the key causes same-message notifications to
@@ -86,9 +110,9 @@ export function reportError(err: Error|string): void {
       }
       _notifier.createUserError(message, options);
     } else if (err.name === 'NeedUpgradeError') {
-      _notifier.createUserError(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
+      _notifier.createUserMessage(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
     } else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
-      _notifier.createUserError(err.message, {key: code, memos: details?.memos});
+      _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.

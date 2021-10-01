@@ -55,6 +55,7 @@ export type IconName = "ChartArea" |
   "Home" |
   "Idea" |
   "Import" |
+  "Info" |
   "LeftAlign" |
   "Lock" |
   "Log" |
@@ -83,9 +84,11 @@ export type IconName = "ChartArea" |
   "Share" |
   "Sort" |
   "Tick" |
+  "TickSolid" |
   "Undo" |
   "Validation" |
   "Video" |
+  "Warning" |
   "Widget" |
   "Wrap" |
   "Zoom";
@@ -147,6 +150,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Home",
   "Idea",
   "Import",
+  "Info",
   "LeftAlign",
   "Lock",
   "Log",
@@ -175,9 +179,11 @@ export const IconList: IconName[] = ["ChartArea",
   "Share",
   "Sort",
   "Tick",
+  "TickSolid",
   "Undo",
   "Validation",
   "Video",
+  "Warning",
   "Widget",
   "Wrap",
   "Zoom"];

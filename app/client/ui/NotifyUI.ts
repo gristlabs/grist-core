@@ -6,6 +6,7 @@ import {Expirable, IAppError, Notification, Notifier, NotifyAction, Progress} fr
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {IconName} from "app/client/ui2018/IconList";
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {commonUrls} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
@@ -57,11 +58,27 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
   }
 }
 
+function notificationIcon(item: Notification) {
+ let iconName: IconName|null = null;
+  switch(item.options.level) {
+    case "error":   iconName = "Warning"; break;
+    case "warning": iconName = "Warning"; break;
+    case "success": iconName = "TickSolid"; break;
+    case "info": iconName = "Info"; break;
+  }
+  return iconName ? icon(iconName, dom.cls(cssToastIcon.className)) : null;
+}
+
 function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
+  const iconElement = notificationIcon(item);
+  const hasLeftIcon = Boolean(!item.options.title && iconElement);
   return cssToastWrapper(testId('toast-wrapper'),
     cssToastWrapper.cls(use => `-${use(item.status)}`),
+    cssToastWrapper.cls(`-${item.options.level}`),
+    cssToastWrapper.cls(hasLeftIcon ? '-left-icon' : ''),
+    item.options.title ? null : iconElement,
     cssToastBody(
-      item.options.title ? cssToastTitle(item.options.title) : null,
+      item.options.title ? cssToastTitle(notificationIcon(item), cssToastTitle(item.options.title)) : null,
       cssToastText(testId('toast-message'),
         item.options.message,
       ),
@@ -169,6 +186,7 @@ function buildConnectStateButton(state: ConnectState): Element {
   }
 }
 
+
 const cssDropdownWrapper = styled('div', `
   background-color: white;
   border: 1px solid ${colors.darkGrey};
@@ -238,6 +256,27 @@ const cssSnackbarWrapper = styled('div', `
   pointer-events: none; /* Allow mouse clicks through */
 `);
 
+const cssToastBody = styled('div', `
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 0 12px;
+  overflow-wrap: anywhere;
+`);
+
+const cssToastIcon = styled('div', `
+  flex-shrink: 0;
+  height: 18px;
+  width: 18px;
+`);
+
+const cssToastActions = styled('div', `
+  display: flex;
+  align-items: flex-end;
+  margin-top: 16px;
+  color: ${colors.lightGreen};
+`);
+
 const cssToastWrapper = styled('div', `
   display: flex;
   min-width: 240px;
@@ -256,8 +295,43 @@ const cssToastWrapper = styled('div', `
   opacity: 1;
   transition: opacity ${Expirable.fadeDelay}ms;
 
+  &-error {
+    border-left: 6px solid ${colors.error};
+    padding-left: 6px;
+    --icon-color: ${colors.error};
+  }
+
+  &-success {
+    border-left: 6px solid ${colors.darkGreen};
+    padding-left: 6px;
+    --icon-color: ${colors.darkGreen};
+  }
+  &-warning {
+    border-left: 6px solid ${colors.warningBg};
+    padding-left: 6px;
+    --icon-color: ${colors.warning};
+  }
+  &-info {
+    border-left: 6px solid ${colors.lightBlue};
+    padding-left: 6px;
+    --icon-color: ${colors.lightBlue};
+  }
+  &-info .${cssToastActions.className} {
+    color: ${colors.lighterBlue};
+  }
+
+  &-left-icon {
+    padding-left: 12px;
+  }
+  &-left-icon > .${cssToastBody.className} {
+    padding-left: 10px;
+  }
+
   &-expiring, &-expired {
     opacity: 0;
+  }
+  .${cssDropdownContent.className} > & > .notification-icon {
+    display: none;
   }
   .${cssDropdownContent.className} > & {
     background-color: unset;
@@ -269,18 +343,13 @@ const cssToastWrapper = styled('div', `
   }
 `);
 
-const cssToastBody = styled('div', `
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  padding: 0 12px;
-  overflow-wrap: anywhere;
-`);
 
 const cssToastText = styled('div', `
 `);
 
 const cssToastTitle = styled(cssToastText, `
+  display: flex;
+  gap: 8px;
   font-weight: bold;
   margin-bottom: 8px;
 `);
@@ -293,13 +362,6 @@ const cssToastClose = styled('div', `
   line-height: 16px;
   text-align: center;
   margin: -4px -4px -4px 4px;
-`);
-
-const cssToastActions = styled('div', `
-  display: flex;
-  align-items: flex-end;
-  margin-top: 16px;
-  color: ${colors.lightGreen};
 `);
 
 const cssToastAction = styled('div', `
