@@ -83,6 +83,7 @@ declare module "mime-types";
 declare module "morgan";
 declare module "cookie";
 declare module "cookie-parser";
+declare module "on-headers";
 declare module "@gristlabs/express-session";
 
 // Used for command line path tweaks.

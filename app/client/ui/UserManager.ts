@@ -10,7 +10,7 @@ import * as roles from 'app/common/roles';
 import {tbind} from 'app/common/tbind';
 import {PermissionData, UserAPI} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, observable, Observable} from 'grainjs';
-import {dom, DomElementArg, input, styled} from 'grainjs';
+import {dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
@@ -24,6 +24,8 @@ import {getResourceParent, ResourceType} from 'app/client/models/UserManagerMode
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
+import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMemberImage, cssMemberListItem,
+        cssMemberPrimary, cssMemberSecondary, cssMemberText, cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -451,114 +453,11 @@ const cssOptionBtn = styled('span', `
   cursor: pointer;
 `);
 
-export const cssMemberListItem = styled('div', `
-  display: flex;
-  width: 460px;
-  height: 64px;
-  margin: 0 auto;
-  padding: 12px 0;
-`);
-
-export const cssMemberImage = styled('div', `
-  width: 40px;
-  height: 40px;
-  margin: 0 4px;
-  border-radius: 20px;
-  background-color: ${colors.lightGreen};
-  background-size: cover;
-
-  .${cssMemberListItem.className}-removed & {
-    opacity: 0.4;
-  }
-`);
-
 const cssPublicMemberIcon = styled(icon, `
   width: 32px;
   height: 32px;
   margin: 4px 8px;
   --icon-color: ${colors.lightGreen};
-`);
-
-export const cssMemberText = styled('div', `
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin: 2px 12px;
-  flex: 1 1 0;
-  min-width: 0px;
-  font-size: ${vars.mediumFontSize};
-
-  .${cssMemberListItem.className}-removed & {
-    opacity: 0.4;
-  }
-`);
-
-export const cssMemberPrimary = styled('span', `
-  font-weight: bold;
-  color: ${colors.dark};
-  padding: 2px 0;
-
-  .${cssMenuItem.className}-sel & {
-    color: white;
-  }
-`);
-
-export const cssMemberSecondary = styled('span', `
-  color: ${colors.slate};
-  /* the following just undo annoying bootstrap styles that apply to all labels */
-  margin: 0px;
-  font-weight: normal;
-  padding: 2px 0;
-  white-space: nowrap;
-
-  .${cssMenuItem.className}-sel & {
-    color: white;
-  }
-`);
-
-export const cssEmailInputContainer = styled('div', `
-  position: relative;
-  display: flex;
-  height: 42px;
-  padding: 0 3px;
-  margin: 16px 63px;
-  border: 1px solid ${colors.darkGrey};
-  border-radius: 3px;
-  font-size: ${vars.mediumFontSize};
-  outline: none;
-
-  &-green {
-    border: 1px solid ${colors.lightGreen};
-  }
-`);
-
-export const cssMailIcon = styled(icon, `
-  margin: 12px 8px 12px 13px;
-  background-color: ${colors.slate};
-`);
-
-export const cssEmailInput = styled(input, `
-  flex: 1 1 0;
-  line-height: 42px;
-  font-size: ${vars.mediumFontSize};
-  font-family: ${vars.fontFamily};
-  outline: none;
-  border: none;
-`);
-
-export const cssMemberBtn = styled('div', `
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-
-  &-disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-`);
-
-export const cssRemoveIcon = styled(icon, `
-  margin: 12px 0;
 `);
 
 const cssUndoIcon = styled(icon, `

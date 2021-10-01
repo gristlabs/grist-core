@@ -194,7 +194,7 @@ export class SamlConfig {
         log.info(`SamlConfig: got SAML response for ${profile.email} (${profile.name}) redirecting to ${redirectUrl}`);
 
         const scopedSession = sessions.getOrCreateSessionFromRequest(req, state.sessionId);
-        await scopedSession.operateOnScopedSession(async (user) => Object.assign(user, {
+        await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
           profile,
           samlSessionIndex,
           samlNameId,

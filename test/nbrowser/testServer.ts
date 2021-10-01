@@ -100,6 +100,8 @@ export class TestServerMerged implements IMochaServer {
       // Set low limits for uploads, for testing.
       GRIST_MAX_UPLOAD_IMPORT_MB: '1',
       GRIST_MAX_UPLOAD_ATTACHMENT_MB: '2',
+      // The following line only matters for testing with non-localhost URLs, which some tests do.
+      GRIST_SERVE_SAME_ORIGIN: 'true',
       APP_UNTRUSTED_URL : "http://localhost:18096",
       // Run with HOME_PORT, STATIC_PORT, DOC_PORT, DOC_WORKER_COUNT in the environment to override.
       ...(isCore ? {

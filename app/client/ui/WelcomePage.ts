@@ -8,7 +8,10 @@ import { AppHeader } from 'app/client/ui/AppHeader';
 import * as BillingPageCss from "app/client/ui/BillingPageCss";
 import * as forms from "app/client/ui/forms";
 import { pagePanels } from "app/client/ui/PagePanels";
-import { bigBasicButton, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
+import { createUserImage } from 'app/client/ui/UserImage';
+import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
+         cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
+import { basicButtonLink, bigBasicButton, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
          cssButton } from "app/client/ui2018/buttons";
 import { colors, mediaSmall, testId, vars } from "app/client/ui2018/cssVars";
 import { getOrgName, Organization } from "app/common/UserAPI";
@@ -92,6 +95,7 @@ export class WelcomePage extends Disposable {
         state.welcome === 'user' ? dom.create(this._buildNameForm.bind(this)) :
         state.welcome === 'info' ? dom.create(this._buildInfoForm.bind(this)) :
         state.welcome === 'teams' ? dom.create(this._buildOrgPicker.bind(this)) :
+        state.welcome === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
         null
       )),
     ));
@@ -336,7 +340,49 @@ export class WelcomePage extends Disposable {
       }
     });
   }
+
+  private _buildAccountPicker(): DomContents {
+    function addUserToLink(email: string): string {
+      const next = new URLSearchParams(location.search).get('next') || '';
+      const url = new URL(next, location.href);
+      url.searchParams.set('user', email);
+      return url.toString();
+    }
+
+    return [
+      cssParagraph(
+        "Select an account to continue with.",
+      ),
+      dom.maybe(this._appModel.topAppModel.users, users =>
+        users.map(user => basicButtonLink(
+          cssUserItem.cls(''),
+          cssMemberListItem(
+            cssMemberImage(
+              createUserImage(user, 'large')
+            ),
+            cssMemberText(
+              cssMemberPrimary(user.name || dom('span', user.email, testId('select-email'))),
+              user.name ? cssMemberSecondary(user.email, testId('select-email')) : null
+            ),
+          ),
+          {href: addUserToLink(user.email)},
+          testId('select-user'),
+        )),
+      ),
+    ];
+  }
 }
+
+const cssUserItem = styled('div', `
+  margin: 0 0 8px;
+  align-items: center;
+  &:first-of-type {
+    margin-top: 16px;
+  }
+  &:hover {
+    background-color: ${colors.lightGrey};
+  }
+`);
 
 const cssScrollContainer = styled('div', `
   display: flex;

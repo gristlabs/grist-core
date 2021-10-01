@@ -14,4 +14,5 @@ export interface ITestingHooks {
   flushAuthorizerCache(): Promise<void>;
   getDocClientCounts(): Promise<Array<[string, number]>>;
   setActiveDocTimeout(seconds: number): Promise<number>;
+  setDiscourseConnectVar(varName: string, value: string|null): Promise<string|null>;
 }

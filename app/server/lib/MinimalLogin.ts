@@ -47,7 +47,7 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
  */
 async function setSingleUser(req: Request, gristServer: GristServer) {
   const scopedSession = gristServer.getSessions().getOrCreateSessionFromRequest(req);
-  await scopedSession.operateOnScopedSession(async (user) => Object.assign(user, {
+  await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
     profile: getDefaultProfile()
   }));
 }

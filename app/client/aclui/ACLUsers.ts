@@ -2,7 +2,8 @@ import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {createUserImage} from 'app/client/ui/UserImage';
-import * as um from 'app/client/ui/UserManager';
+import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
+        cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
 import {basicButton, basicButtonLink} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -24,14 +25,14 @@ const roleNames: {[role: string]: string} = {
 function buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOpenController) {
   const isCurrentUser = Boolean(currentUser && user.id === currentUser.id);
   return cssUserItem(
-    um.cssMemberImage(
+    cssMemberImage(
       createUserImage(user, 'large')
     ),
-    um.cssMemberText(
-      um.cssMemberPrimary(user.name || dom('span', user.email),
+    cssMemberText(
+      cssMemberPrimary(user.name || dom('span', user.email),
         cssRole('(', roleNames[user.access!] || user.access, ')', testId('acl-user-access')),
       ),
-      user.name ? um.cssMemberSecondary(user.email) : null
+      user.name ? cssMemberSecondary(user.email) : null
     ),
     basicButton(cssUserButton.cls(''), icon('Copy'), 'Copy Email',
       testId('acl-user-copy'),
@@ -84,7 +85,7 @@ const cssUsers = styled('div', `
   max-width: unset;
 `);
 
-const cssUserItem = styled(um.cssMemberListItem, `
+const cssUserItem = styled(cssMemberListItem, `
   width: auto;
   padding: 8px 16px;
   align-items: center;

@@ -2,6 +2,8 @@ import {normalizeEmail} from 'app/common/emails';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {SessionStore} from 'app/server/lib/gristSessions';
 import * as log from 'app/server/lib/log';
+import {fromCallback} from 'app/server/lib/serverUtils';
+import {Request} from 'express';
 
 // Part of a session related to a single user.
 export interface SessionUserObj {
@@ -45,6 +47,18 @@ export interface SessionObj {
 
   // This gets set to encourage express-session to set a cookie.
   alive?: boolean;
+}
+
+// We expose a sign-in status in a cookie accessible to all subdomains, to assist in auto-signin.
+// The values are:
+// - "S": the user is signed in once; in this case an automatic signin can be unambiguous and seamless.
+// - "M": the user is signed in multiple times.
+// - "": the user is not signed in.
+export type SignInStatus = 'S'|'M'|'';
+
+export function getSignInStatus(sessionObj: SessionObj|null): SignInStatus {
+  const length = sessionObj?.users?.length;
+  return !length ? "" : (length === 1 ? 'S' : 'M');
 }
 
 /**
@@ -146,14 +160,14 @@ export class ScopedSession {
   // email addresses. This will update the one with a matching email address, or add a new one.
   // This is mainly used to know which emails are logged in in this session; fields like name and
   // picture URL come from the database instead.
-  public async updateUserProfile(profile: UserProfile|null): Promise<void> {
+  public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
     if (profile) {
-      await this.operateOnScopedSession(async user => {
+      await this.operateOnScopedSession(req, async user => {
         user.profile = profile;
         return user;
       });
     } else {
-      await this.clearScopedSession();
+      await this.clearScopedSession(req);
     }
   }
 
@@ -169,16 +183,16 @@ export class ScopedSession {
    * @return a pair [prev, current] with the state of the single user entry before and after the operation.
    *
    */
-  public async operateOnScopedSession(op: (user: SessionUserObj) =>
+  public async operateOnScopedSession(req: Request, op: (user: SessionUserObj) =>
                                       Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
     const session = await this._getSession();
     const user = await this.getScopedSession(session);
     const oldUser = JSON.parse(JSON.stringify(user));            // Old version to compare against.
     const newUser = await op(JSON.parse(JSON.stringify(user)));  // Modify a scratch version.
     if (Object.keys(newUser).length === 0) {
-      await this.clearScopedSession(session);
+      await this.clearScopedSession(req, session);
     } else {
-      await this._updateScopedSession(newUser, session);
+      await this._updateScopedSession(req, newUser, session);
     }
     return [oldUser, newUser];
   }
@@ -187,10 +201,10 @@ export class ScopedSession {
    * This clears the current user entry from the session.
    * @param prev: if supplied, this session object is used rather than querying the session again.
    */
-  public async clearScopedSession(prev?: SessionObj): Promise<void> {
+  public async clearScopedSession(req: Request, prev?: SessionObj): Promise<void> {
     const session = prev || await this._getSession();
     this._clearUser(session);
-    await this._setSession(session);
+    await this._setSession(req, session);
   }
 
   /**
@@ -206,10 +220,14 @@ export class ScopedSession {
   /**
    * Set the session to the supplied object.
    */
-  private async _setSession(session: SessionObj): Promise<void> {
+  private async _setSession(req: Request, session: SessionObj): Promise<void> {
     try {
       await this._sessionStore.setAsync(this._sessionId, session);
       if (!this._live) { this._sessionCache = session; }
+      const reqSession = (req as any).session;
+      if (reqSession?.reload) {
+        await fromCallback(cb => reqSession.reload(cb));
+      }
     } catch (e) {
       // (I've copied this from old code, not sure if continuing after a session save error is
       // something existing code depends on?)
@@ -224,7 +242,7 @@ export class ScopedSession {
    * @param prev: if supplied, this session object is used rather than querying the session again.
    *
    */
-  private async _updateScopedSession(user: SessionUserObj, prev?: SessionObj): Promise<void> {
+  private async _updateScopedSession(req: Request, user: SessionUserObj, prev?: SessionObj): Promise<void> {
     const profile = user.profile;
     if (!profile) {
       throw new Error("No profile available");
@@ -242,7 +260,7 @@ export class ScopedSession {
     if (index < 0) { index = session.users.length; }
     session.orgToUser[this._org] = index;
     session.users[index] = user;
-    await this._setSession(session);
+    await this._setSession(req, session);
   }
 
   /**

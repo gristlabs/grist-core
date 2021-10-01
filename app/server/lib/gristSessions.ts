@@ -100,22 +100,6 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
   const sessionStoreCreator = createSessionStoreFactory(sessionsDB);
   const sessionStore = sessionStoreCreator();
 
-  const adaptDomain = process.env.GRIST_ADAPT_DOMAIN === 'true';
-  const fixedDomain = process.env.GRIST_SESSION_DOMAIN || process.env.GRIST_DOMAIN;
-
-  const getCookieDomain = (req: express.Request) => {
-    const mreq = req as RequestWithOrg;
-    if (mreq.isCustomHost) {
-      // For custom hosts, omit the domain to make it a "host-only" cookie, to avoid it being
-      // included into subdomain requests (since we would not control all the subdomains).
-      return undefined;
-    }
-    if (adaptDomain) {
-      const reqDomain = parseSubdomain(req.get('host'));
-      if (reqDomain.base) { return reqDomain.base.split(':')[0]; }
-    }
-    return fixedDomain;
-  };
   // Use a separate session IDs for custom domains than for native ones. Because a custom domain
   // cookie could be stolen (with some effort) by the custom domain's owner, we limit the damage
   // by only honoring custom-domain cookies for requests to that domain.
@@ -148,5 +132,23 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
 
   const sessions = new Sessions(sessionSecret, sessionStore);
 
-  return {sessions, sessionSecret, sessionStore, sessionMiddleware, sessionStoreCreator};
+  return {sessions, sessionSecret, sessionStore, sessionMiddleware};
+}
+
+export function getCookieDomain(req: express.Request) {
+  const mreq = req as RequestWithOrg;
+  if (mreq.isCustomHost) {
+    // For custom hosts, omit the domain to make it a "host-only" cookie, to avoid it being
+    // included into subdomain requests (since we would not control all the subdomains).
+    return undefined;
+  }
+
+  const adaptDomain = process.env.GRIST_ADAPT_DOMAIN === 'true';
+  const fixedDomain = process.env.GRIST_SESSION_DOMAIN || process.env.GRIST_DOMAIN;
+
+  if (adaptDomain) {
+    const reqDomain = parseSubdomain(req.get('host'));
+    if (reqDomain.base) { return reqDomain.base.split(':')[0]; }
+  }
+  return fixedDomain;
 }

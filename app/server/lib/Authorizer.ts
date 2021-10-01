@@ -6,14 +6,17 @@ import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
 import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {getSessionProfiles, getSessionUser, linkOrgWithEmail, SessionObj,
-        SessionUserObj} from 'app/server/lib/BrowserSession';
+import {getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
+        SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {COOKIE_MAX_AGE, getAllowedOrgForSessionID} from 'app/server/lib/gristSessions';
+import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
+        cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
 import * as log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {allowHost} from 'app/server/lib/requestUtils';
+import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
+import * as onHeaders from 'on-headers';
 
 export interface RequestWithLogin extends Request {
   sessionID: string;
@@ -189,7 +192,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
 
     // See if we have a profile linked with the active organization already.
     // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
-    let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, '');
+    let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, mreq.query.user || '');
 
     if (!sessionUser) {
       // No profile linked yet, so let's elect one.
@@ -496,4 +499,39 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
     ...(Origin ? { Origin } : undefined),
   };
+}
+
+export const signInStatusCookieName = sessionCookieName + '_status';
+
+// We expose a sign-in status in a cookie accessible to all subdomains, to assist in auto-signin.
+// Its value is SignInStatus ("S", "M" or unset). This middleware keeps this cookie in sync with
+// the session state.
+//
+// Note that this extra cookie isn't strictly necessary today: since it has similar settings to
+// the session cookie, subdomains can infer status from that one. It is here in anticipation that
+// we make sessions a host-only cookie, to avoid exposing it to externally-hosted subdomains of
+// getgrist.com. In that case, the sign-in status cookie would remain a 2nd-level domain cookie.
+export function signInStatusMiddleware(req: Request, resp: Response, next: NextFunction) {
+  const mreq = req as RequestWithLogin;
+
+  let origSignInStatus: SignInStatus = '';
+  if (req.headers.cookie) {
+    const cookies = cookie.parse(req.headers.cookie);
+    origSignInStatus = cookies[signInStatusCookieName] || '';
+  }
+
+  onHeaders(resp, () => {
+    const newSignInStatus = getSignInStatus(mreq.session);
+    if (newSignInStatus !== origSignInStatus) {
+      // If not signed-in any more, set a past date to delete this cookie.
+      const expires = (newSignInStatus && mreq.session.cookie.expires) || new Date(0);
+      resp.append('Set-Cookie', cookie.serialize(signInStatusCookieName, newSignInStatus, {
+        httpOnly: false,    // make available to client-side scripts
+        expires,
+        domain: getCookieDomain(req),
+        sameSite: 'lax',    // same setting as for grist-sid is fine here.
+      }));
+    }
+  });
+  next();
 }

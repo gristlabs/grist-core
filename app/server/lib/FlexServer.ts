@@ -20,9 +20,10 @@ import {Usage} from 'app/gen-server/lib/Usage';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {addRequestUser, getUser, getUserId, isSingleUserMode,
         redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
-import {redirectToLogin, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import * as Comm from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
+import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
@@ -30,6 +31,7 @@ import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
+import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {GristLoginMiddleware,  GristServer} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
@@ -63,7 +65,6 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -588,6 +589,7 @@ export class FlexServer implements GristServer {
     // Create the sessionStore and related objects.
     const {sessions, sessionMiddleware, sessionStore} = initGristSessions(this.instanceRoot, this);
     this.app.use(sessionMiddleware);
+    this.app.use(signInStatusMiddleware);
 
     // Create an endpoint for making cookies during testing.
     this.app.get('/test/session', async (req, res) => {
@@ -833,7 +835,7 @@ export class FlexServer implements GristServer {
           email: optStringParam(req.query.email) || 'chimpy@getgrist.com',
           name: optStringParam(req.query.name) || 'Chimpy McBanana',
         };
-        await scopedSession.updateUserProfile(profile);
+        await scopedSession.updateUserProfile(req, profile);
         res.send(`<!doctype html>
           <html><body>
           <p>Logged in as ${JSON.stringify(profile)}.<p>
@@ -859,7 +861,7 @@ export class FlexServer implements GristServer {
       // Express-session will save these changes.
       const expressSession = (req as any).session;
       if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
-      await scopedSession.clearScopedSession();
+      await scopedSession.clearScopedSession(req);
       resp.redirect(redirectUrl);
     }));
 
@@ -875,6 +877,11 @@ export class FlexServer implements GristServer {
 
     const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
+
+    addDiscourseConnectEndpoints(this.app, {
+      userIdMiddleware: this._userIdMiddleware,
+      redirectToLogin: this._redirectToLoginWithoutExceptionsMiddleware,
+    });
   }
 
   public async addTestingHooks(workerServers?: FlexServer[]) {

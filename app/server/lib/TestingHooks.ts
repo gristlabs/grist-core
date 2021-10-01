@@ -2,9 +2,11 @@ import * as net from 'net';
 
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
+import {Deps as DiscourseConnectDeps} from 'app/server/lib/DiscourseConnect';
 import * as Comm from 'app/server/lib/Comm';
 import * as log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
+import {Request} from 'express';
 import * as t from 'ts-interface-checker';
 import {FlexServer} from './FlexServer';
 import {ITestingHooks} from './ITestingHooks';
@@ -74,7 +76,8 @@ export class TestingHooks implements ITestingHooks {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
     const sessionId = this._comm.getSessionIdFromCookie(gristSidCookie);
     const scopedSession = this._comm.getOrCreateSession(sessionId, {org});
-    return await scopedSession.updateUserProfile(profile);
+    const req = {} as Request;
+    return await scopedSession.updateUserProfile(req, profile);
   }
 
   public async setServerVersion(version: string|null): Promise<void> {
@@ -180,4 +183,15 @@ export class TestingHooks implements ITestingHooks {
     return prev;
   }
 
+  // Sets env vars for the DiscourseConnect module, and returns the previous value.
+  public async setDiscourseConnectVar(varName: string, value: string|null): Promise<string|null> {
+    const key = varName as keyof typeof DiscourseConnectDeps;
+    const prev = DiscourseConnectDeps[key] || null;
+    if (value == null) {
+      delete DiscourseConnectDeps[key];
+    } else {
+      DiscourseConnectDeps[key] = value;
+    }
+    return prev;
+  }
 }

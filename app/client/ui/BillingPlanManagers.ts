@@ -1,7 +1,8 @@
 import {getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {BillingModel} from 'app/client/models/BillingModel';
 import {createUserImage} from 'app/client/ui/UserImage';
-import * as um from 'app/client/ui/UserManager';
+import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMemberImage, cssMemberListItem,
+        cssMemberPrimary, cssMemberSecondary, cssMemberText, cssRemoveIcon} from 'app/client/ui/UserItem';
 import {bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {normalizeEmail} from 'app/common/emails';
@@ -39,9 +40,9 @@ export class BillingPlanManagers extends Disposable {
         dom.forEach(this._managers, manager => this._buildManagerRow(manager)),
       ),
       cssEmailInputRow(
-        um.cssEmailInputContainer({style: `flex: 1 1 0; margin: 0 7px 0 0;`},
-          um.cssMailIcon('Mail'),
-          this._emailElem = um.cssEmailInput(this._email, {onInput: true, isValid: this._isValid},
+        cssEmailInputContainer({style: `flex: 1 1 0; margin: 0 7px 0 0;`},
+          cssMailIcon('Mail'),
+          this._emailElem = cssEmailInput(this._email, {onInput: true, isValid: this._isValid},
             {type: "email", placeholder: "Enter email address"},
             dom.on('keyup', (e: KeyboardEvent) => {
               switch (e.keyCode) {
@@ -51,8 +52,8 @@ export class BillingPlanManagers extends Disposable {
             }),
             dom.boolAttr('disabled', this._loading)
           ),
-          um.cssEmailInputContainer.cls('-green', enableAdd),
-          um.cssEmailInputContainer.cls('-disabled', this._loading),
+          cssEmailInputContainer.cls('-green', enableAdd),
+          cssEmailInputContainer.cls('-disabled', this._loading),
           testId('bpm-manager-new')
         ),
         bigPrimaryButton('Add Billing Contact',
@@ -66,17 +67,17 @@ export class BillingPlanManagers extends Disposable {
 
   private _buildManagerRow(manager: FullUser) {
     const isCurrentUser = this._currentValidUser && manager.id === this._currentValidUser.id;
-    return um.cssMemberListItem({style: 'width: auto;'},
-      um.cssMemberImage(
+    return cssMemberListItem({style: 'width: auto;'},
+      cssMemberImage(
         createUserImage(manager, 'large')
       ),
-      um.cssMemberText(
-        um.cssMemberPrimary(manager.name || dom('span', manager.email, testId('bpm-email'))),
-        manager.name ? um.cssMemberSecondary(manager.email, testId('bpm-email')) : null
+      cssMemberText(
+        cssMemberPrimary(manager.name || dom('span', manager.email, testId('bpm-email'))),
+        manager.name ? cssMemberSecondary(manager.email, testId('bpm-email')) : null
       ),
-      um.cssMemberBtn(
-        um.cssRemoveIcon('Remove', testId('bpm-manager-delete')),
-        um.cssMemberBtn.cls('-disabled', (use) => Boolean(use(this._loading) || isCurrentUser)),
+      cssMemberBtn(
+        cssRemoveIcon('Remove', testId('bpm-manager-delete')),
+        cssMemberBtn.cls('-disabled', (use) => Boolean(use(this._loading) || isCurrentUser)),
         // Click handler.
         dom.on('click', () => this._loading.get() || isCurrentUser || this._remove(manager))
       ),
