@@ -36,6 +36,7 @@
     "@types/image-size": "0.0.29",
     "@types/js-yaml": "3.11.2",
     "@types/lodash": "4.14.117",
+    "@types/lru-cache": "5.1.1",
     "@types/mime-types": "2.1.0",
     "@types/mocha": "5.2.5",
     "@types/moment-timezone": "0.5.9",

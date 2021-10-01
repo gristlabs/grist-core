@@ -27,9 +27,8 @@ import {
   ServerQuery
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
-import {AsyncCreate, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {
-  BulkColValues,
   CellValue,
   DocAction,
   RowRecord,
@@ -43,7 +42,7 @@ import {DocumentSettings} from 'app/common/DocumentSettings';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
-import * as marshal from 'app/common/marshal';
+import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -54,9 +53,11 @@ import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {makeForkIds} from 'app/server/lib/idUtils';
+import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
 import {shortDesc} from 'app/server/lib/shortDesc';
+import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
 
 import {ActionHistory} from './ActionHistory';
@@ -75,7 +76,7 @@ import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import { getLogMetaFromDocSession, supportsEngineChoices} from './serverUtils';
+import {getLogMetaFromDocSession, supportsEngineChoices, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -102,7 +103,7 @@ export const Deps = {ACTIVEDOC_TIMEOUT};
 
 /**
  * Represents an active document with the given name. The document isn't actually open until
- * either .loadDoc() or .createDoc() is called.
+ * either .loadDoc() or .createEmptyDoc() is called.
  * @param {String} docName - The document's filename, without the '.grist' extension.
  */
 export class ActiveDoc extends EventEmitter {
@@ -131,10 +132,11 @@ export class ActiveDoc extends EventEmitter {
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
-  private _dataEngine: AsyncCreate<ISandbox>|undefined;
+  private _dataEngine: Promise<ISandbox>|undefined;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
+  private _tableMetadataLoader: TableMetadataLoader;
   private _muted: boolean = false;  // If set, changes to this document should not propagate
                                     // to outside world
   private _migrating: number = 0;   // If positive, a migration is in progress
@@ -163,6 +165,12 @@ export class ActiveDoc extends EventEmitter {
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = new DocPluginManager(docManager.pluginManager.getPlugins(),
       docManager.pluginManager.appRoot!, this, this._docManager.gristServer);
+    this._tableMetadataLoader = new TableMetadataLoader({
+      decodeBuffer: this.docStorage.decodeMarshalledData.bind(this.docStorage),
+      fetchTable: this.docStorage.fetchTable.bind(this.docStorage),
+      loadMetaTables: this._rawPyCall.bind(this, 'load_meta_tables'),
+      loadTable: this._rawPyCall.bind(this, 'load_table'),
+    });
 
     // Our DataEngine is a separate sandboxed process (one per open document). The data engine runs
     // user-defined python code including formula calculations. It maintains all document data and
@@ -170,7 +178,8 @@ export class ActiveDoc extends EventEmitter {
 
     // Creation of the data engine currently needs to be deferred if we support a choice of
     // engines, since we need to look at the document to see what kind of engine it needs.
-    // If we don't offer a choice, go ahead and start creating the data engine now, so it
+    // This doesn't delay loading the document, but does delay first calculation and modification.
+    // So if we don't offer a choice, go ahead and start creating the data engine now, so it
     // is created in parallel to fetching the document from external storage (if needed).
     // TODO: cache engine requirement for doc in home db so we can retain this parallelism
     // when offering a choice of data engines.
@@ -317,6 +326,13 @@ export class ActiveDoc extends EventEmitter {
     try {
       const dataEngine = this._dataEngine ? await this._getEngine() : null;
       this._shuttingDown = true;  // Block creation of engine if not yet in existence.
+      if (dataEngine) {
+        // Give a small grace period for finishing initialization if we are being shut
+        // down while initialization is still in progress, and we don't have an easy
+        // way yet to cancel it cleanly. This is mainly for the benefit of automated
+        // tests.
+        await timeoutReached(3000, this.waitForInitialization());
+      }
       await Promise.all([
         this.docStorage.shutdown(),
         this.docPluginManager.shutdown(),
@@ -336,11 +352,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Create a new blank document. Returns a promise for the ActiveDoc itself.
+   * Create a new blank document (no "Table1") using the data engine. This is used only
+   * to generate the SQL saved to initialDocSql.ts
    */
   @ActiveDoc.keepDocOpen
-  public async createDoc(docSession: OptDocSession): Promise<ActiveDoc> {
-    this.logDebug(docSession, "createDoc");
+  public async createEmptyDocWithDataEngine(docSession: OptDocSession): Promise<ActiveDoc> {
+    this.logDebug(docSession, "createEmptyDocWithDataEngine");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     await this._rawPyCall('load_empty');
@@ -353,6 +370,19 @@ export class ActiveDoc extends EventEmitter {
       this.docStorage.applyStoredActions(getEnvContent(initBundle.stored)));
 
     await this._initDoc(docSession);
+    await this._tableMetadataLoader.clean();
+    // Makes sure docPluginManager is ready in case new doc is used to import new data
+    await this.docPluginManager.ready;
+    this._fullyLoaded = true;
+    return this;
+  }
+
+  /**
+   * Create a new blank document (no "Table1"), used as a stub when importing.
+   */
+  @ActiveDoc.keepDocOpen
+  public async createEmptyDoc(docSession: OptDocSession): Promise<ActiveDoc> {
+    await this.loadDoc(docSession, {forceNew: true, skipInitialTable: true});
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager.ready;
     this._fullyLoaded = true;
@@ -366,14 +396,16 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise} Promise for this ActiveDoc itself.
    */
   @ActiveDoc.keepDocOpen
-  public async loadDoc(docSession: OptDocSession): Promise<ActiveDoc> {
+  public async loadDoc(docSession: OptDocSession, options?: {
+    forceNew?: boolean,          // If set, document will be created.
+    skipInitialTable?: boolean,  // If set, and document is new, "Table1" will not be added.
+  }): Promise<ActiveDoc> {
     const startTime = Date.now();
     this.logDebug(docSession, "loadDoc");
     try {
-      const isNew: boolean = await this._docManager.storageManager.prepareLocalDoc(this.docName);
+      const isNew: boolean = options?.forceNew || await this._docManager.storageManager.prepareLocalDoc(this.docName);
       if (isNew) {
-        await this.createDoc(docSession);
-        await this.addInitialTable(docSession);
+        await this._createDocFile(docSession, {skipInitialTable: options?.skipInitialTable});
       } else {
         await this.docStorage.openFile({
           beforeMigration: async (currentVersion, newVersion) => {
@@ -383,13 +415,13 @@ export class ActiveDoc extends EventEmitter {
             return this._afterMigration(docSession, 'storage',  newVersion, success);
           },
         });
-        const tableNames = await this._loadOpenDoc(docSession);
-        const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
-        await this._loadTables(docSession, desiredTableNames);
-        const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
-        await this._initDoc(docSession);
-        this._initializationPromise = this._finishInitialization(docSession, pendingTableNames, startTime);
       }
+      const tableNames = await this._loadOpenDoc(docSession);
+      const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
+      this._startLoadingTables(docSession, desiredTableNames);
+      const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
+      await this._initDoc(docSession);
+      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames, startTime);
     } catch (err) {
       await this.shutdown();
       throw err;
@@ -435,8 +467,8 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Finish initializing ActiveDoc, by initializing ActionHistory, Sharing, and docData.
    */
-  public async _initDoc(docSession: OptDocSession|null): Promise<void> {
-    const metaTableData = await this._rawPyCall('fetch_meta_tables');
+  public async _initDoc(docSession: OptDocSession): Promise<void> {
+    const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
     this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
 
@@ -446,6 +478,25 @@ export class ActiveDoc extends EventEmitter {
     }, this.recoveryMode, this.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
+    // Make sure there is at least one item in action history. The document will be perfectly
+    // functional without it, but comparing documents would need updating if history can
+    // be empty. For example, comparing an empty document immediately forked with the
+    // original would fail. So far, we have treated documents without a common history
+    // as incomparible, and we'd need to weaken that to allow comparisons with a document
+    // with nothing in action history.
+    if (this._actionHistory.getNextLocalActionNum() === 1) {
+      await this._actionHistory.recordNextShared({
+        userActions: [],
+        undo: [],
+        info: [0, this._makeInfo(makeExceptionalDocSession('system'))],
+        actionNum: 1,
+        actionHash: null,       // set by ActionHistory
+        parentActionHash: null,
+        stored: [],
+        calc: [],
+        envelopes: [],
+      });
+    }
   }
 
   public getHomeDbManager() {
@@ -458,7 +509,7 @@ export class ActiveDoc extends EventEmitter {
   public addInitialTable(docSession: OptDocSession) {
     // Use a non-client-specific session, so that this action is not part of anyone's undo history.
     const newDocSession = makeExceptionalDocSession('nascent');
-    return this._applyUserActions(newDocSession, [["AddEmptyTable"]]);
+    return this.applyUserActions(newDocSession, [["AddEmptyTable"]]);
   }
 
   /**
@@ -523,7 +574,7 @@ export class ActiveDoc extends EventEmitter {
     try {
       const userActions: UserAction[] = await Promise.all(
         upload.files.map(file => this._prepAttachment(docSession, file)));
-      const result = await this._applyUserActions(docSession, userActions);
+      const result = await this.applyUserActions(docSession, userActions);
       return result.retValues;
     } finally {
       await globalUploadSet.cleanup(uploadId);
@@ -1128,16 +1179,13 @@ export class ActiveDoc extends EventEmitter {
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
   protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[]> {
-    // Fetch the schema version of document and sandbox, and migrate if the sandbox is newer.
-    const [schemaVersion, docInfoData] = await Promise.all([
-      this._rawPyCall('get_version'),
-      this.docStorage.fetchTable('_grist_DocInfo'),
-    ]);
+    // Check the schema version of document and sandbox, and migrate if the sandbox is newer.
+    const schemaVersion = SCHEMA_VERSION;
 
     // Migrate the document if needed.
-    const values = marshal.loads(docInfoData);
-    const versionCol = values.schemaVersion;
-    const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0);
+    const docInfo = await this._tableMetadataLoader.fetchBulkColValuesWithoutIds('_grist_DocInfo');
+    const versionCol = docInfo.schemaVersion;
+    const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0) as number;
     if (docSchemaVersion < schemaVersion) {
       this.logInfo(docSession, "Doc needs migration from v%s to v%s", docSchemaVersion, schemaVersion);
       await this._beforeMigration(docSession, 'schema', docSchemaVersion, schemaVersion);
@@ -1147,6 +1195,7 @@ export class ActiveDoc extends EventEmitter {
         success = true;
       } finally {
         await this._afterMigration(docSession, 'schema', schemaVersion, success);
+        await this._tableMetadataLoader.clean();  // _grist_DocInfo may have changed.
       }
     } else if (docSchemaVersion > schemaVersion) {
       // We do NOT attempt to down-migrate in this case. Migration code cannot down-migrate
@@ -1158,16 +1207,19 @@ export class ActiveDoc extends EventEmitter {
         "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
-    // Load the initial meta tables which determine the document schema.
-    const [tablesData, columnsData] = await Promise.all([
-      this.docStorage.fetchTable('_grist_Tables'),
-      this.docStorage.fetchTable('_grist_Tables_column'),
-    ]);
+    // Start loading the initial meta tables which determine the document schema.
+    this._tableMetadataLoader.startStreamingToEngine();
+    this._tableMetadataLoader.startFetchingTable('_grist_Tables');
+    this._tableMetadataLoader.startFetchingTable('_grist_Tables_column');
 
-    const tableNames: string[] = await this._rawPyCall('load_meta_tables', tablesData, columnsData);
+    // Get names of remaining tables.
+    const tablesParsed = await this._tableMetadataLoader.fetchBulkColValuesWithoutIds('_grist_Tables');
+    const tableNames = (tablesParsed.tableId as string[])
+      .concat(Object.keys(schema))
+      .filter(tableId => tableId !== '_grist_Tables' && tableId !== '_grist_Tables_column')
+      .sort();
 
     // Figure out which tables are on-demand.
-    const tablesParsed: BulkColValues = marshal.loads(tablesData);
     const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
     const onDemandNames = remove(tableNames, (t) => onDemandMap[t]);
 
@@ -1209,19 +1261,9 @@ export class ActiveDoc extends EventEmitter {
     }
     await this._granularAccess.assertCanMaybeApplyUserActions(docSession, actions);
 
-    const user = docSession.mode === 'system' ? 'grist' :
-      (client?.getProfile()?.email || '');
-
     // Create the UserActionBundle.
     const action: UserActionBundle = {
-      info: {
-        time: Date.now(),
-        user,
-        inst: this._sharing.instanceId || "unset-inst",
-        desc: options.desc,
-        otherId: options.otherId || 0,
-        linkId: options.linkId || 0,
-      },
+      info: this._makeInfo(docSession, options),
       userActions: actions,
     };
 
@@ -1235,6 +1277,38 @@ export class ActiveDoc extends EventEmitter {
       this._docManager.markAsChanged(this, 'edit');
     }
     return result;
+  }
+
+  /**
+   * Create a new document file without using or initializing the data engine.
+   */
+  @ActiveDoc.keepDocOpen
+  private async _createDocFile(docSession: OptDocSession, options?: {
+    skipInitialTable?: boolean,  // If set, "Table1" will not be added.
+  }): Promise<void> {
+    this.logDebug(docSession, "createDoc");
+    await this._docManager.storageManager.prepareToCreateDoc(this.docName);
+    await this.docStorage.createFile();
+    const sql = options?.skipInitialTable ? GRIST_DOC_SQL : GRIST_DOC_WITH_TABLE1_SQL;
+    await this.docStorage.exec(sql);
+    const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
+    const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
+    await this.docStorage.run('UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?',
+                              [timezone, JSON.stringify({locale})]);
+  }
+
+  private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
+    const client = docSession.client;
+    const user = docSession.mode === 'system' ? 'grist' :
+      (client?.getProfile()?.email || '');
+    return {
+      time: Date.now(),
+      user,
+      inst: this._sharing.instanceId || "unset-inst",
+      desc: options.desc,
+      otherId: options.otherId || 0,
+      linkId: options.linkId || 0,
+    };
   }
 
   /**
@@ -1339,6 +1413,18 @@ export class ActiveDoc extends EventEmitter {
     return this;
   }
 
+  /**
+   * Start loading the specified tables from the db, without waiting for completion.
+   * The loader can be directed to stream the tables on to the engine.
+   */
+  private _startLoadingTables(docSession: OptDocSession, tableNames: string[]) {
+    this.logDebug(docSession, "starting to load %s tables: %s", tableNames.length,
+                  tableNames.join(", "));
+    for (const tableId of tableNames) {
+      this._tableMetadataLoader.startFetchingTable(tableId);
+    }
+  }
+
   // Fetches and returns the requested table, or null if it's missing. This allows documents to
   // load with missing metadata tables (should only matter if migrations are also broken).
   private async _fetchTableIfPresent(tableName: string): Promise<Buffer|null> {
@@ -1356,6 +1442,8 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   private async _finishInitialization(docSession: OptDocSession, pendingTableNames: string[], startTime: number) {
     try {
+      await this._tableMetadataLoader.wait();
+      await this._tableMetadataLoader.clean();
       await this._loadTables(docSession, pendingTableNames);
       // Calculations are not associated specifically with the user opening the document.
       // TODO: be careful with which users can create formulas.
@@ -1457,41 +1545,42 @@ export class ActiveDoc extends EventEmitter {
 
   private async _getEngine(): Promise<ISandbox> {
     if (this._shuttingDown) { throw new Error('shutting down, data engine unavailable'); }
-    this._dataEngine = this._dataEngine || new AsyncCreate<ISandbox>(async () => {
+    this._dataEngine = this._dataEngine || this._makeEngine();
+    return this._dataEngine;
+  }
 
-      // Figure out what kind of engine we need for this document.
-      let preferredPythonVersion: '2' | '3' = '2';
+  private async _makeEngine(): Promise<ISandbox> {
+    // Figure out what kind of engine we need for this document.
+    let preferredPythonVersion: '2' | '3' = '2';
 
-      // Currently only respect engine preference on experimental deployments (staging/dev).
-      if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {
-        // Careful, migrations may not have run on this document and it may not have a
-        // documentSettings column.  Failures are treated as lack of an engine preference.
-        const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
-        const docSettingsString = docInfo?.documentSettings;
-        if (docSettingsString) {
-          const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
-          const engine = docSettings?.engine;
-          if (engine) {
-            if (engine === 'python2') {
-              preferredPythonVersion = '2';
-            } else if (engine === 'python3') {
-              preferredPythonVersion = '3';
-            } else {
-              throw new Error(`engine type not recognized: ${engine}`);
-            }
+    // Currently only respect engine preference on experimental deployments (staging/dev).
+    if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {
+      // Careful, migrations may not have run on this document and it may not have a
+      // documentSettings column.  Failures are treated as lack of an engine preference.
+      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
+      const docSettingsString = docInfo?.documentSettings;
+      if (docSettingsString) {
+        const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
+        const engine = docSettings?.engine;
+        if (engine) {
+          if (engine === 'python2') {
+            preferredPythonVersion = '2';
+          } else if (engine === 'python3') {
+            preferredPythonVersion = '3';
+          } else {
+            throw new Error(`engine type not recognized: ${engine}`);
           }
         }
       }
-      return this._docManager.gristServer.create.NSandbox({
-        comment: this._docName,
-        logCalls: false,
-        logTimes: true,
-        logMeta: {docId: this._docName},
-        docUrl: this._options?.docUrl,
-        preferredPythonVersion,
-      });
+    }
+    return this._docManager.gristServer.create.NSandbox({
+      comment: this._docName,
+      logCalls: false,
+      logTimes: true,
+      logMeta: {docId: this._docName},
+      docUrl: this._options?.docUrl,
+      preferredPythonVersion,
     });
-    return this._dataEngine.get();
   }
 }
 

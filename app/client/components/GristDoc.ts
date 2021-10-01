@@ -223,7 +223,7 @@ export class GristDoc extends DisposableWithEvents {
         if (!state.docTour) {
           startWelcomeTour(() => this._showGristTour.set(false));
         } else {
-          await startDocTour(this.docData, () => null);
+          await startDocTour(this.docData, this.docComm, () => null);
         }
       }
     }));

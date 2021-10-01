@@ -267,4 +267,9 @@ export interface ActiveDocAPI {
    * regardless of rules that may block access to them.
    */
   getAclResources(): Promise<{[tableId: string]: string[]}>;
+
+  /**
+   * Wait for document to finish initializing.
+   */
+  waitForInitialization(): Promise<void>;
 }

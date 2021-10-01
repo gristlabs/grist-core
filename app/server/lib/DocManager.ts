@@ -391,7 +391,7 @@ export class DocManager extends EventEmitter {
     const docName = await this._createNewDoc(basenameHint);
     return mapSetOrClear(this._activeDocs, docName,
                          this._createActiveDoc(docSession, docName)
-                         .then(newDoc => newDoc.createDoc(docSession)));
+                         .then(newDoc => newDoc.createEmptyDoc(docSession)));
   }
 
   /**

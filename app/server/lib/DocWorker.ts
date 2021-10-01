@@ -109,6 +109,7 @@ export class DocWorker {
       fork:                     activeDocMethod.bind(null, 'viewers', 'fork'),
       checkAclFormula:          activeDocMethod.bind(null, 'viewers', 'checkAclFormula'),
       getAclResources:          activeDocMethod.bind(null, 'viewers', 'getAclResources'),
+      waitForInitialization:    activeDocMethod.bind(null, 'viewers', 'waitForInitialization'),
     });
   }
 

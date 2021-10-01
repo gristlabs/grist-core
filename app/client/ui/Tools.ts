@@ -95,7 +95,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         automaticHelpTool(
           async ({markAsSeen}) => {
             const gristDocModule = await loadGristDoc();
-            await gristDocModule.startDocTour(gristDoc.docData, markAsSeen);
+            await gristDocModule.startDocTour(gristDoc.docData, gristDoc.docComm, markAsSeen);
           },
           gristDoc,
           "seenDocTours",

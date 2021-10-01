@@ -1,3 +1,4 @@
+import {DocComm} from "app/client/components/DocComm";
 import {IOnBoardingMsg, startOnBoarding} from "app/client/ui/OnBoardingPopups";
 import {DocData} from "../../common/DocData";
 import * as _ from "lodash";
@@ -9,8 +10,8 @@ import {IconList, IconName} from "../ui2018/IconList";
 import {cssButtons, cssLinkBtn, cssLinkIcon} from "./ExampleCard";
 
 
-export async function startDocTour(docData: DocData, onFinishCB: () => void) {
-  const docTour: IOnBoardingMsg[] = await makeDocTour(docData) || invalidDocTour;
+export async function startDocTour(docData: DocData, docComm: DocComm, onFinishCB: () => void) {
+  const docTour: IOnBoardingMsg[] = await makeDocTour(docData, docComm) || invalidDocTour;
   exposeDocTour(docTour);
   startOnBoarding(docTour, onFinishCB);
 }
@@ -23,11 +24,15 @@ const invalidDocTour: IOnBoardingMsg[] = [{
   showHasModal: true,
 }];
 
-async function makeDocTour(docData: DocData): Promise<IOnBoardingMsg[] | null> {
+async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoardingMsg[] | null> {
   const tableId = "GristDocTour";
   if (!docData.getTable(tableId)) {
     return null;
   }
+  // Make sure any formulas in GristDocTour table have had time to evaluate. For example, for a
+  // first time open of a new document copy, any use of SELF_HYPERLINK will be stale since the URL
+  // of the document has changed.
+  await docComm.waitForInitialization();
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
   const result = _.sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
