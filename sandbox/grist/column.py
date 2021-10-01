@@ -225,6 +225,15 @@ class BaseColumn(object):
     # pylint: disable=no-self-use, unused-argument
     return values, []
 
+
+class DataColumn(BaseColumn):
+  """
+  DataColumn describes a column of raw data, and holds it.
+  """
+  pass
+
+
+class ChoiceColumn(DataColumn):
   def rename_choices(self, renames):
     row_ids = []
     values = []
@@ -237,14 +246,8 @@ class BaseColumn(object):
     return row_ids, values
 
   def _rename_cell_choice(self, renames, value):
-    return renames.get(value, value)
+    return renames.get(value)
 
-
-class DataColumn(BaseColumn):
-  """
-  DataColumn describes a column of raw data, and holds it.
-  """
-  pass
 
 class BoolColumn(BaseColumn):
   def set(self, row_id, value):
@@ -356,7 +359,7 @@ class PositionColumn(NumericColumn):
     return new_values, [(self._sorted_rows[i], pos) for (i, pos) in adjustments]
 
 
-class ChoiceListColumn(BaseColumn):
+class ChoiceListColumn(ChoiceColumn):
   """
   ChoiceListColumn's default value is None, but is presented to formulas as the empty list.
   """
@@ -376,7 +379,8 @@ class ChoiceListColumn(BaseColumn):
     return () if typed_value is None else typed_value
 
   def _rename_cell_choice(self, renames, value):
-    return tuple(renames.get(choice, choice) for choice in value)
+    if any((v in renames) for v in value):
+      return tuple(renames.get(choice, choice) for choice in value)
 
 
 class BaseReferenceColumn(BaseColumn):
@@ -502,6 +506,7 @@ class ReferenceListColumn(BaseReferenceColumn):
 usertypes.BaseColumnType.ColType = DataColumn
 usertypes.Reference.ColType = ReferenceColumn
 usertypes.ReferenceList.ColType = ReferenceListColumn
+usertypes.Choice.ColType = ChoiceColumn
 usertypes.ChoiceList.ColType = ChoiceListColumn
 usertypes.DateTime.ColType = DateTimeColumn
 usertypes.Date.ColType = DateColumn

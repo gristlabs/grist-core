@@ -791,6 +791,8 @@ class TestUserActions(test_engine.EngineTestCase):
           [3, "c"],
           [4, "d"],
           [5, None],
+          [6, 5],
+          [7, [[]]],
         ],
         "ChoiceListTable": [
           ["id", "ChoiceListColumn"],
@@ -803,6 +805,8 @@ class TestUserActions(test_engine.EngineTestCase):
           [8, ["b", "c"]],
           [9, ["a", "c"]],
           [10, ["a", "b", "c"]],
+          [11, 5],
+          [12, [[]]],
         ],
       }
     })
@@ -811,10 +815,32 @@ class TestUserActions(test_engine.EngineTestCase):
     # Renames go in a loop to make sure that works correctly
     # a -> b -> c -> a -> b -> ...
     renames = {"a": "b", "b": "c", "c": "a"}
-    self.apply_user_action(
+    out_actions_choice = self.apply_user_action(
       ["RenameChoices", "ChoiceTable", "ChoiceColumn", renames])
-    self.apply_user_action(
+    out_actions_choice_list = self.apply_user_action(
       ["RenameChoices", "ChoiceListTable", "ChoiceListColumn", renames])
+
+    self.assertPartialOutActions(
+      out_actions_choice,
+      {'stored':
+         [['BulkUpdateRecord',
+           'ChoiceTable',
+           [1, 2, 3],
+           {'ChoiceColumn': [u'b', u'c', u'a']}]]})
+
+    self.assertPartialOutActions(
+      out_actions_choice_list,
+      {'stored':
+         [['BulkUpdateRecord',
+           'ChoiceListTable',
+           [1, 2, 3, 7, 8, 9, 10],
+           {'ChoiceListColumn': [['L', u'b'],
+                                 ['L', u'c'],
+                                 ['L', u'a'],
+                                 ['L', u'b', u'c'],
+                                 ['L', u'c', u'a'],
+                                 ['L', u'b', u'a'],
+                                 ['L', u'b', u'c', u'a']]}]]})
 
     self.assertTableData('ChoiceTable', data=[
       ["id", "ChoiceColumn"],
@@ -823,6 +849,8 @@ class TestUserActions(test_engine.EngineTestCase):
       [3, "a"],
       [4, "d"],
       [5, None],
+      [6, 5],
+      [7, [[]]],
     ])
 
     self.assertTableData('ChoiceListTable', data=[
@@ -836,4 +864,6 @@ class TestUserActions(test_engine.EngineTestCase):
       [8, ["c", "a"]],
       [9, ["b", "a"]],
       [10, ["b", "c", "a"]],
+      [11, 5],
+      [12, [[]]],
     ])
