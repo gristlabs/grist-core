@@ -529,6 +529,7 @@ export function signInStatusMiddleware(req: Request, resp: Response, next: NextF
         httpOnly: false,    // make available to client-side scripts
         expires,
         domain: getCookieDomain(req),
+        path: '/',
         sameSite: 'lax',    // same setting as for grist-sid is fine here.
       }));
     }
