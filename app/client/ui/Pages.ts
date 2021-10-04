@@ -3,6 +3,7 @@ import { duplicatePage } from "app/client/components/duplicatePage";
 import { GristDoc } from "app/client/components/GristDoc";
 import { PageRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { isHiddenTable } from 'app/client/models/isHiddenTable';
 import * as MetaTableModel from "app/client/models/MetaTableModel";
 import { find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
          TreeTableData} from "app/client/models/TreeModel";
@@ -80,7 +81,11 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     actions.onRemove = () => confirmModal(
       `Delete ${pageName()} data, and remove it from all pages?`, 'Delete', doRemove);
 
-    actions.isRemoveDisabled = () => (docModel.allTables.all().length <= 1);
+    // Disable removing the last page. Sometimes hidden pages end up showing in the side panel
+    // (e.g. GristHidden_import* for aborted imports); those aren't listed in allTables, and we
+    // should allow removing them.
+    actions.isRemoveDisabled = () => (docModel.allTables.all().length <= 1) &&
+      !isHiddenTable(docModel.tables.tableData, tableRef);
   }
 
   return buildPageDom(fromKo(pageName), actions, urlState().setLinkUrl({docPage: viewId}));

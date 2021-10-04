@@ -22,7 +22,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import * as MetaRowModel from 'app/client/models/MetaRowModel';
 import * as MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
-import {RowId} from 'app/client/models/rowset';
+import {isHiddenTable} from 'app/client/models/isHiddenTable';
 import {schema, SchemaTypes} from 'app/common/schema';
 
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
@@ -207,16 +207,11 @@ export class DocModel {
 
 
 /**
- * Helper to create an observable array of tables, sorted by tableId, and excluding summary
+ * Helper to create an observable array of tables, sorted by tableId, and excluding hidden
  * tables.
  */
 function createUserTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  // Create a rowSource that filters out table records with non-zero summarySourceTable
-  // and GristHidden tables for import.
-  const tableIdGetter = tablesModel.tableData.getRowPropFunc('tableId') as (r: RowId) => string;
-  const sumTableGetter = tablesModel.tableData.getRowPropFunc('summarySourceTable') as (r: RowId) => number;
-  const rowSource = new rowset.FilteredRowSource(r => (sumTableGetter(r) === 0 &&
-                                                     !tableIdGetter(r).startsWith('GristHidden')));
+  const rowSource = new rowset.FilteredRowSource(r => !isHiddenTable(tablesModel.tableData, r));
   rowSource.subscribeTo(tablesModel);
   // Create an observable RowModel array based on this rowSource, sorted by tableId.
   return tablesModel._createRowSetModel(rowSource, 'tableId');
