@@ -163,7 +163,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
    */
   private _findOverlaps(searchWord: string, searchWordPos: number): Map<number, number> {
     const insertIndex = sortedIndex<{word: string}>(this._words, {word: searchWord},
-      (a, b) => nativeCompare(a.word, b.word));
+      (a, b) => localeCompare(a.word, b.word));
 
     // Maps index of item to its score.
     const scored = new Map<number, number>();
