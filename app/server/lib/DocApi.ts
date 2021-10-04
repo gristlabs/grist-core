@@ -2,7 +2,7 @@ import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
 import {
-  CellValue, fromTableDataAction, TableColValues, TableDataAction, TableRecordValue,
+  CellValue, fromTableDataAction, TableColValues, TableRecordValue,
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
@@ -10,7 +10,7 @@ import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import { HomeDBManager, makeDocAuthResult } from 'app/gen-server/lib/HomeDBManager';
 import { concatenateSummaries, summarizeAction } from "app/server/lib/ActionSummary";
-import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { ActiveDoc, tableIdToRef } from "app/server/lib/ActiveDoc";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
          RequestWithLogin } from 'app/server/lib/Authorizer';
 import { DocManager } from "app/server/lib/DocManager";
@@ -168,42 +168,12 @@ export class DocWorkerApi {
         activeDoc.fetchMetaTables(docSessionFromRequest(req)));
     }
 
-    function tableIdToRef(metaTables: { [p: string]: TableDataAction }, tableId: any) {
-      const [, , tableRefs, tableData] = metaTables._grist_Tables;
-      const tableRowIndex = tableData.tableId.indexOf(tableId);
-      if (tableRowIndex === -1) {
-        throw new ApiError(`Table not found "${tableId}"`, 404);
-      }
-      return tableRefs[tableRowIndex];
-    }
-
     // Get the columns of the specified table in recordish format
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
-        const metaTables = await getMetaTables(activeDoc, req);
-        const tableRef = tableIdToRef(metaTables, req.params.tableId);
-        const [, , colRefs, columnData] = metaTables._grist_Tables_column;
-
-        // colId is pulled out of fields and used as the root id
-        const fieldNames = _.without(Object.keys(columnData), "colId");
-
-        const columns: TableRecordValue[] = [];
-        (columnData.colId as string[]).forEach((id, index) => {
-          if (
-            // TODO param to include hidden columns
-            // By default we want the list of returned colums to match the fields in /records
-            id === "manualSort" || id.startsWith("gristHelper_") || !id ||
-            // Filter columns from the requested table
-            columnData.parentId[index] !== tableRef
-          ) {
-            return;
-          }
-          const column: TableRecordValue = {id, fields: {colRef: colRefs[index]}};
-          for (const key of fieldNames) {
-            column.fields[key] = columnData[key][index];
-          }
-          columns.push(column);
-        });
+        const tableId = req.params.tableId;
+        const columns = await handleSandboxError('', [],
+          activeDoc.getTableCols(docSessionFromRequest(req), tableId));
         res.json({columns});
       })
     );

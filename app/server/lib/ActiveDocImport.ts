@@ -3,10 +3,11 @@
 import * as path from 'path';
 import * as _ from 'underscore';
 
-import {DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult, MergeOptions,
+import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
+        MergeOptions, MergeOptionsMap, MergeStrategy, TransformColumn, TransformRule,
         TransformRuleMap} from 'app/common/ActiveDocAPI';
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
+import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristTable} from 'app/plugin/GristTable';
@@ -14,7 +15,9 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
 import {globalUploadSet, moveUpload, UploadInfo} from 'app/server/lib/uploads';
+import {buildComparisonQuery} from 'app/server/lib/ExpandedQuery';
 
+const IMPORT_TRANSFORM_COLUMN_PREFIX = 'gristHelper_Import_';
 
 /*
  * AddTableRetValue contains return value of user actions 'AddTable'
@@ -40,8 +43,8 @@ interface FileImportOptions {
   originalFilename: string;
   // Containing parseOptions as serialized JSON to pass to the import plugin.
   parseOptions: ParseOptions;
-  // Options for determining how matched fields between source and destination tables should be merged.
-  mergeOptions: MergeOptions|null;
+  // Map of table names to their merge options.
+  mergeOptionsMap: MergeOptionsMap;
   // Flag to indicate whether table is temporary and hidden or regular.
   isHidden: boolean;
   // Index of original dataSource corresponding to current imported file.
@@ -121,7 +124,7 @@ export class ActiveDocImport {
    * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
    */
   private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
-                             {parseOptions = {}, mergeOptions = []}: ImportOptions,
+                             {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
                              isHidden: boolean): Promise<ImportResult> {
 
     // Check that upload size is within the configured limits.
@@ -145,7 +148,7 @@ export class ActiveDocImport {
       }
       const res = await this._importFileAsNewTable(docSession, file.absPath, {
         parseOptions,
-        mergeOptions: mergeOptions[index] || null,
+        mergeOptionsMap: mergeOptionMaps[index] || {},
         isHidden,
         originalFilename: origName,
         uploadFileIndex: index,
@@ -175,7 +178,7 @@ export class ActiveDocImport {
    */
   private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
                                       importOptions: FileImportOptions): Promise<ImportResult> {
-    const {originalFilename, parseOptions, mergeOptions, isHidden, uploadFileIndex,
+    const {originalFilename, parseOptions, mergeOptionsMap, isHidden, uploadFileIndex,
            transformRuleMap} = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
     const optionsAndData: ParseFileResult =
@@ -217,7 +220,7 @@ export class ActiveDocImport {
 
       // data parsed and put into hiddenTableId
       // For preview_table (isHidden) do GenImporterView to make views and formulas and cols
-      // For final import, call TransformAndFinishImport, which imports file using a transform rule (or blank)
+      // For final import, call _transformAndFinishImport, which imports file using a transform rule (or blank)
 
       let createdTableId: string;
       let transformSectionRef: number = -1; // TODO: we only have this if we genImporterView, is it necessary?
@@ -232,19 +235,14 @@ export class ActiveDocImport {
 
       } else {
         // Do final import
+        const mergeOptions = mergeOptionsMap[origTableName] ?? null;
         const intoNewTable: boolean = destTableId ? false : true;
         const destTable = destTableId || table.table_name || basename;
-        const tableId = await this._activeDoc.applyUserActions(docSession,
-          [['TransformAndFinishImport',
-          hiddenTableId, destTable, intoNewTable,
-          ruleCanBeApplied ? transformRule : null, mergeOptions]]);
-
-        createdTableId = tableId.retValues[0]; // this is garbage for now I think?
-
+        createdTableId = await this._transformAndFinishImport(docSession, hiddenTableId, destTable,
+          intoNewTable, ruleCanBeApplied ? transformRule : null, mergeOptions);
       }
 
       fixedColumnIdsByTable[createdTableId] = hiddenTableColIds;
-
 
       tables.push({
         hiddenTableId: createdTableId, // TODO: rename thing?
@@ -258,6 +256,121 @@ export class ActiveDocImport {
     await this._fixReferences(docSession, parsedTables, tables, fixedColumnIdsByTable, references, isHidden);
 
     return ({options, tables});
+  }
+
+  /**
+   * Imports records from `hiddenTableId` into `destTableId`, transforming the column
+   * values from `hiddenTableId` according to the `transformRule`. Finalizes import when done.
+   *
+   * If `mergeOptions` is present, records from `hiddenTableId` will be "merged" into `destTableId`
+   * according to a set of merge columns. Records from both tables that have equal values for all
+   * merge columns are treated as the same record, and will be updated in `destTableId` according
+   * to the strategy specified in `mergeOptions`.
+   *
+   * @param {string} hiddenTableId Source table containing records to be imported.
+   * @param {string} destTableId Destination table that will be updated.
+   * @param {boolean} intoNewTable True if import destination is a new table.
+   * @param {TransformRule|null} transformRule Rules for transforming source columns using formulas
+   * before merging/importing takes place.
+   * @param {MergeOptions|null} mergeOptions Options for how to merge matching records between
+   * the source and destination table.
+   * @returns {string} The table id of the new or updated destination table.
+   */
+  private async _transformAndFinishImport(docSession: OptDocSession,
+                                          hiddenTableId: string, destTableId: string,
+                                          intoNewTable: boolean, transformRule: TransformRule|null,
+                                          mergeOptions: MergeOptions|null): Promise<string> {
+    log.info("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
+      hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);
+    const srcCols = await this._activeDoc.getTableCols(docSession, hiddenTableId);
+
+    // Use a default transform rule if one was not provided by the client.
+    if (!transformRule) {
+      const transformDest = intoNewTable ? null : destTableId;
+      transformRule = await this._makeDefaultTransformRule(docSession, srcCols, transformDest);
+    }
+
+    // Transform rules from client may have prefixed column ids, so we need to strip them.
+    stripPrefixes(transformRule);
+
+    if (intoNewTable) {
+      // Transform rules for new tables don't have filled in destination column ids.
+      const result = await this._activeDoc.applyUserActions(docSession, [['FillTransformRuleColIds', transformRule]]);
+      transformRule = result.retValues[0] as TransformRule;
+    } else if (transformRule.destCols.some(c => c.colId === null)) {
+      throw new Error('Column ids in transform rule must be filled when importing into an existing table');
+    }
+
+    await this._activeDoc.applyUserActions(docSession,
+      [['MakeImportTransformColumns', hiddenTableId, transformRule, false]]);
+
+    if (!intoNewTable && mergeOptions && mergeOptions.mergeCols.length > 0) {
+      await this._mergeAndFinishImport(docSession, hiddenTableId, destTableId, transformRule, mergeOptions);
+      return destTableId;
+    }
+
+    const hiddenTableData = fromTableDataAction(await this._activeDoc.fetchTable(docSession, hiddenTableId, true));
+    const columnData: BulkColValues = {};
+
+    const srcColIds = srcCols.map(c => c.id as string);
+    const destCols = transformRule.destCols;
+    for (const destCol of destCols) {
+      const formula = destCol.formula.trim();
+      if (!formula) { continue; }
+
+      const srcColId = formula.startsWith('$') && srcColIds.includes(formula.slice(1)) ?
+        formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
+
+      columnData[destCol.colId!] = hiddenTableData[srcColId];
+    }
+
+    // We no longer need the temporary import table, so remove it.
+    await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
+
+    // If destination is a new table, we need to create it.
+    if (intoNewTable) {
+      const colSpecs = destCols.map(({type, colId: id, label}) => ({type, id, label}));
+      const newTable = await this._activeDoc.applyUserActions(docSession, [['AddTable', destTableId, colSpecs]]);
+      destTableId = newTable.retValues[0].table_id;
+    }
+
+    await this._activeDoc.applyUserActions(docSession,
+        [['BulkAddRecord', destTableId, gutil.arrayRepeat(hiddenTableData.id.length, null), columnData]]);
+
+    return destTableId;
+  }
+
+  /**
+   * Returns a default TransformRule using column definitions from `destTableId`. If `destTableId`
+   * is null (in the case when the import destination is a new table), the `srcCols` are used instead.
+   *
+   * @param {TableRecordValue[]} srcCols Source column definitions.
+   * @param {string|null} destTableId The destination table id. If null, the destination is assumed
+   * to be a new table, and `srcCols` are used to build the transform rule.
+   * @returns {Promise<TransformRule>} The constructed transform rule.
+   */
+  private async _makeDefaultTransformRule(docSession: OptDocSession, srcCols: TableRecordValue[],
+                                          destTableId: string|null): Promise<TransformRule> {
+    const targetCols = destTableId ? await this._activeDoc.getTableCols(docSession, destTableId) : srcCols;
+    const destCols: TransformColumn[] = [];
+    const srcColIds = srcCols.map(c => c.id as string);
+
+    for (const {id, fields} of targetCols) {
+      if (fields.isFormula === true || fields.formula !== '') { continue; }
+
+      destCols.push({
+        colId: destTableId ? id as string : null,
+        label: fields.label as string,
+        type: fields.type as string,
+        formula: srcColIds.includes(id as string) ? `$${id}` :  ''
+      });
+    }
+
+    return {
+      destTableId,
+      destCols,
+      sourceCols: srcColIds
+    };
   }
 
   /**
@@ -316,7 +429,7 @@ export class ActiveDocImport {
 
     if (isHidden) {
       userActions = userActions.concat(userActions.map(([, tableId, columnId, colInfo]) => [
-        'ModifyColumn', tableId, 'gristHelper_Import_' + columnId, colInfo ]));
+        'ModifyColumn', tableId, IMPORT_TRANSFORM_COLUMN_PREFIX + columnId, colInfo ]));
     }
 
     // apply user actions
@@ -324,5 +437,132 @@ export class ActiveDocImport {
       await this._activeDoc.applyUserActions(docSession, userActions);
     }
 
+  }
+
+  /**
+   * Merges matching records from `hiddenTableId` into `destTableId`, and finalizes import.
+   *
+   * @param {string} hiddenTableId Source table containing records to be imported.
+   * @param {string} destTableId Destination table that will be updated.
+   * @param {TransformRule} transformRule Rules for transforming source columns using formulas
+   * before merging/importing takes place.
+   * @param {MergeOptions} mergeOptions Options for how to merge matching records between
+   * the source and destination table.
+   */
+  private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
+                                      transformRule: TransformRule, mergeOptions: MergeOptions): Promise<void> {
+    // Prepare a set of column pairs (source and destination) for selecting and joining.
+    const selectColumns: [string, string][] = [];
+    const joinColumns: [string, string][] = [];
+
+    for (const destCol of transformRule.destCols) {
+      const destColId = destCol.colId as string;
+
+      const formula = destCol.formula.trim();
+      const srcColId = formula.startsWith('$') && transformRule.sourceCols.includes(formula.slice(1)) ?
+        formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
+
+      selectColumns.push([srcColId, destColId]);
+
+      if (mergeOptions.mergeCols.includes(destColId)) {
+        joinColumns.push([srcColId, destColId]);
+      }
+    }
+
+    const selectColumnsMap = new Map(selectColumns);
+    const joinColumnsMap = new Map(joinColumns);
+
+    // Construct and execute a SQL query that will tell us the differences between source and destination.
+    const query = buildComparisonQuery(hiddenTableId, destTableId, selectColumnsMap, joinColumnsMap);
+    const result = await this._activeDoc.docStorage.fetchQuery(query);
+    const decodedResult = this._activeDoc.docStorage.decodeMarshalledDataFromTables(result);
+
+    // Initialize containers for new and updated records in the expected formats.
+    const newRecords: BulkColValues = {};
+    let numNewRecords = 0;
+    const updatedRecords: BulkColValues = {};
+    const updatedRecordIds: number[] = [];
+
+    const destColIds = [...selectColumnsMap.values()];
+    for (const id of destColIds) {
+      newRecords[id] = [];
+      updatedRecords[id] = [];
+    }
+
+    // Retrieve the function used to reconcile differences between source and destination.
+    const merge = getMergeFunction(mergeOptions.mergeStrategy);
+
+    const srcColIds = [...selectColumnsMap.keys()];
+    const numResultRows = decodedResult[hiddenTableId + '.id'].length;
+    for (let i = 0; i < numResultRows; i++) {
+      if (decodedResult[destTableId + '.id'][i] === null) {
+        // No match in destination table found for source row, so it must be a new record.
+        for (const srcColId of srcColIds) {
+          const matchingDestColId = selectColumnsMap.get(srcColId);
+          newRecords[matchingDestColId!].push(decodedResult[`${hiddenTableId}.${srcColId}`][i]);
+        }
+        numNewRecords++;
+      } else {
+        // Otherwise, a match was found between source and destination tables, so we merge their columns.
+        for (const srcColId of srcColIds) {
+          const matchingDestColId = selectColumnsMap.get(srcColId);
+          const srcVal = decodedResult[`${hiddenTableId}.${srcColId}`][i];
+          const destVal = decodedResult[`${destTableId}.${matchingDestColId}`][i];
+          updatedRecords[matchingDestColId!].push(merge(srcVal, destVal));
+        }
+        updatedRecordIds.push(decodedResult[destTableId + '.id'][i] as number);
+      }
+    }
+
+    // We no longer need the temporary import table, so remove it.
+    await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
+
+    if (updatedRecordIds.length > 0) {
+      await this._activeDoc.applyUserActions(docSession,
+        [['BulkUpdateRecord', destTableId, updatedRecordIds, updatedRecords]]);
+    }
+
+    if (numNewRecords > 0) {
+      await this._activeDoc.applyUserActions(docSession,
+        [['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]]);
+    }
+  }
+}
+
+// Helper function that returns true if a given cell is blank (i.e. null or empty).
+function isBlank(value: CellValue): boolean {
+  return value === null || (typeof value === 'string' && value.trim().length === 0);
+}
+
+// Helper function that strips import prefixes from columns in transform rules (if ids are present).
+function stripPrefixes({destCols}: TransformRule): void {
+  for (const col of destCols) {
+    const colId = col.colId;
+    if (colId && colId.startsWith(IMPORT_TRANSFORM_COLUMN_PREFIX)) {
+      col.colId = colId.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length);
+    }
+  }
+}
+
+type MergeFunction = (srcVal: CellValue, destVal: CellValue) => CellValue;
+
+/**
+ * Returns a function that maps source and destination column values to a single output value.
+ *
+ * @param {MergeStrategy} mergeStrategy Determines how matching source and destination column values
+ * should be reconciled when merging.
+ * @returns {MergeFunction} Function that maps column value pairs to a single output value.
+ */
+function getMergeFunction({type}: MergeStrategy): MergeFunction {
+  switch (type) {
+    case 'replace-with-nonblank-source':
+      return (srcVal, destVal) => isBlank(srcVal) ? destVal : srcVal;
+    case 'replace-all-fields':
+      return (srcVal, _destVal) => srcVal;
+    case 'replace-blank-fields-only':
+      return (srcVal, destVal) => isBlank(destVal) ? srcVal : destVal;
+    default:
+      // Normally, we should never arrive here. If we somehow do, we throw an error.
+      throw new Error(`Unknown merge strategy: ${type}`);
   }
 }

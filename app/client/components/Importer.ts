@@ -18,6 +18,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
+        MergeOptionsMap,
         MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
 import {byteString} from "app/common/gutil";
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
@@ -236,20 +237,8 @@ export class Importer extends Disposable {
     return {uploadId: upload.uploadId, transforms};
   }
 
-  private _getMergeOptions(upload: UploadResult): Array<MergeOptions|null> {
-    return upload.files.map((_file, i) => {
-      const sourceInfo = this._sourceInfoArray.get().find(info => info.uploadFileIndex === i);
-      if (!sourceInfo) { return null; }
-
-      const mergeOptions = this._mergeOptions[sourceInfo.hiddenTableId];
-      if (!mergeOptions) { return null; }
-
-      const {updateExistingRecords, mergeCols, mergeStrategy} = mergeOptions;
-      return {
-        mergeCols: updateExistingRecords.get() ? mergeCols.get() : [],
-        mergeStrategy: mergeStrategy.get()
-      };
-    });
+  private _getMergeOptionMaps(upload: UploadResult): MergeOptionsMap[] {
+    return upload.files.map((_file, i) => this._createMergeOptionsMap(i));
   }
 
   private _createTransformRuleMap(uploadFileIndex: number): TransformRuleMap {
@@ -257,6 +246,16 @@ export class Importer extends Disposable {
     for (const sourceInfo of this._sourceInfoArray.get()) {
       if (sourceInfo.uploadFileIndex === uploadFileIndex) {
         result[sourceInfo.origTableName] = this._createTransformRule(sourceInfo);
+      }
+    }
+    return result;
+  }
+
+  private _createMergeOptionsMap(uploadFileIndex: number): MergeOptionsMap {
+    const result: MergeOptionsMap = {};
+    for (const sourceInfo of this._sourceInfoArray.get()) {
+      if (sourceInfo.uploadFileIndex === uploadFileIndex) {
+        result[sourceInfo.origTableName] = this._getMergeOptionsForSource(sourceInfo);
       }
     }
     return result;
@@ -276,6 +275,17 @@ export class Importer extends Disposable {
         formula: field.column().formula()
       })),
       sourceCols: sourceFields.map((field) => field.colId())
+    };
+  }
+
+  private _getMergeOptionsForSource(sourceInfo: SourceInfo): MergeOptions|undefined {
+    const mergeOptions = this._mergeOptions[sourceInfo.hiddenTableId];
+    if (!mergeOptions) { return undefined; }
+
+    const {updateExistingRecords, mergeCols, mergeStrategy} = mergeOptions;
+    return {
+      mergeCols: updateExistingRecords.get() ? mergeCols.get() : [],
+      mergeStrategy: mergeStrategy.get()
     };
   }
 
@@ -332,10 +342,10 @@ export class Importer extends Disposable {
 
     this._screen.renderSpinner();
     const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
-    const mergeOptions = this._getMergeOptions(upload);
+    const mergeOptionMaps = this._getMergeOptionMaps(upload);
 
     const importResult: ImportResult = await this._docComm.finishImportFiles(
-      this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptions, parseOptions});
+      this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptionMaps, parseOptions});
 
     if (importResult.tables[0].hiddenTableId) {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;

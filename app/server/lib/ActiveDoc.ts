@@ -33,6 +33,7 @@ import {
   DocAction,
   RowRecord,
   TableDataAction,
+  TableRecordValue,
   toTableDataAction,
   UserAction
 } from 'app/common/DocActions';
@@ -82,6 +83,7 @@ import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import remove = require('lodash/remove');
 import zipObject = require('lodash/zipObject');
+import without = require('lodash/without');
 
 bluebird.promisifyAll(tmp);
 
@@ -803,6 +805,40 @@ export class ActiveDoc extends EventEmitter {
     this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._pyCall('find_col_from_values', values, n, optTableId);
+  }
+
+  /**
+   * Returns column metadata for all visible columns from `tableId`.
+   *
+   * @param {string} tableId Table to retrieve column metadata for.
+   * @returns {Promise<TableRecordValue[]>} Records containing metadata about the visible columns
+   * from `tableId`.
+   */
+  public async getTableCols(docSession: OptDocSession, tableId: string): Promise<TableRecordValue[]> {
+    const metaTables = await this.fetchMetaTables(docSession);
+    const tableRef = tableIdToRef(metaTables, tableId);
+    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+
+    // colId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(columnData), "colId");
+
+    const columns: TableRecordValue[] = [];
+    (columnData.colId as string[]).forEach((id, index) => {
+      if (
+        // TODO param to include hidden columns
+        id === "manualSort" || id.startsWith("gristHelper_") || !id ||
+        // Filter columns from the requested table
+        columnData.parentId[index] !== tableRef
+      ) {
+        return;
+      }
+      const column: TableRecordValue = { id, fields: { colRef: colRefs[index] } };
+      for (const key of fieldNames) {
+        column.fields[key] = columnData[key][index];
+      }
+      columns.push(column);
+    });
+    return columns;
   }
 
   /**
@@ -1594,4 +1630,14 @@ function createEmptySandboxActionBundle(): SandboxActionBundle {
     undo: [],
     retValues: []
   };
+}
+
+// Helper that converts a Grist table id to a ref.
+export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, tableId: string) {
+  const [, , tableRefs, tableData] = metaTables._grist_Tables;
+  const tableRowIndex = tableData.tableId.indexOf(tableId);
+  if (tableRowIndex === -1) {
+    throw new ApiError(`Table not found "${tableId}"`, 404);
+  }
+  return tableRefs[tableRowIndex];
 }

@@ -56,8 +56,14 @@ export interface ImportTableResult {
   destTableId: string|null;
 }
 
-export interface MergeStrategy {
-  type: 'replace-with-nonblank-source' | 'replace-all-fields' | 'replace-blank-fields-only';
+export interface ImportOptions {
+  parseOptions?: ParseOptions;         // Options for parsing the source file.
+  mergeOptionMaps?: MergeOptionsMap[]; // Options for merging fields, indexed by uploadFileIndex.
+}
+
+export interface MergeOptionsMap {
+  // Map of original GristTable name of imported table to its merge options, if any.
+  [origTableName: string]: MergeOptions|undefined;
 }
 
 export interface MergeOptions {
@@ -65,9 +71,8 @@ export interface MergeOptions {
   mergeStrategy: MergeStrategy; // Determines how matched records should be merged between 2 tables.
 }
 
-export interface ImportOptions {
-  parseOptions?: ParseOptions;             // Options for parsing the source file.
-  mergeOptions?: Array<MergeOptions|null>; // Options for merging fields, indexed by uploadFileIndex.
+export interface MergeStrategy {
+  type: 'replace-with-nonblank-source' | 'replace-all-fields' | 'replace-blank-fields-only';
 }
 
 /**

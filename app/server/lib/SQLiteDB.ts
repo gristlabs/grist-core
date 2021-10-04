@@ -544,6 +544,6 @@ async function createBackupFile(filePath: string, versionNum: number): Promise<s
  * Validate and quote SQL identifiers such as table and column names.
  */
 export function quoteIdent(ident: string): string {
-  assert(/^\w+$/.test(ident), `SQL identifier is not valid: ${ident}`);
+  assert(/^[\w.]+$/.test(ident), `SQL identifier is not valid: ${ident}`);
   return `"${ident}"`;
 }

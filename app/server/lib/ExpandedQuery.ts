@@ -27,6 +27,9 @@ export interface ExpandedQuery extends ServerQuery {
 
   // A list of selections for regular data and data computed via formulas.
   selects?: string[];
+
+  // A list of conditions for filtering query results.
+  wheres?: string[];
 }
 
 /**
@@ -126,5 +129,80 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
   // Copy decisions to the query object, and return.
   query.joins = [...joins];
   query.selects = [...selects];
+  return query;
+}
+
+/**
+ * Build a query that relates two homogenous tables sharing a common set of columns,
+ * returning rows that exist in both tables (if they have differences), and rows from
+ * `leftTableId` that don't exist in `rightTableId`.
+ *
+ * In practice, this is currently only used for generating diffs and add/update actions
+ * for incremental imports into existing tables. Specifically, `leftTableId` is the
+ * source table, and `rightTableId` is the destination table.
+ *
+ * Columns from the query result are prefixed with the table id and a '.' separator.
+ *
+ * NOTE: Intended for internal use from trusted parts of Grist only.
+ *
+ * @param {string} leftTableId Name of the left table in the comparison.
+ * @param {string} rightTableId Name of the right table in the comparison.
+ * @param {Map<string, string>} selectColumns Map of left table column ids to their matching equivalent
+ * from the right table. All of these columns will be included in the result, aliased by table id.
+ * @param {Map<string, string>} joinColumns Map of left table column ids to their matching equivalent
+ * from the right table. These columns are used to join `leftTableID` to `rightTableId`.
+ * @returns {ExpandedQuery} The constructed query.
+ */
+export function buildComparisonQuery(leftTableId: string, rightTableId: string, selectColumns: Map<string, string>,
+                                     joinColumns: Map<string, string>): ExpandedQuery {
+  const query: ExpandedQuery = { tableId: leftTableId, filters: {} };
+
+  // Start accumulating the JOINS, SELECTS and WHERES needed for the query.
+  const joins: string[] = [];
+  const selects: string[] = [];
+  const wheres: string[] = [];
+
+  // Include the 'id' column from both tables.
+  selects.push(
+    `${quoteIdent(leftTableId)}.id AS ${quoteIdent(leftTableId + '.id')}`,
+    `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + '.id')}`
+  );
+
+  // Select columns from both tables using the table id as a prefix for each column name.
+  selectColumns.forEach((rightTableColumn, leftTableColumn) => {
+    const leftColumnAlias = `${leftTableId}.${leftTableColumn}`;
+    const rightColumnAlias = `${rightTableId}.${rightTableColumn}`;
+    selects.push(
+      `${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)} AS ${quoteIdent(leftColumnAlias)}`,
+      `${quoteIdent(rightTableId)}.${quoteIdent(rightTableColumn)} AS ${quoteIdent(rightColumnAlias)}`
+    );
+  });
+
+  // Join both tables on `joinColumns`, including unmatched rows from `leftTableId`.
+  const joinConditions: string[] = [];
+  joinColumns.forEach((rightTableColumn, leftTableColumn) => {
+    const leftExpression = `${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)}`;
+    const rightExpression = `${quoteIdent(rightTableId)}.${quoteIdent(rightTableColumn)}`;
+    joinConditions.push(`${leftExpression} = ${rightExpression}`);
+  });
+  joins.push(`LEFT JOIN ${quoteIdent(rightTableId)} ON ${joinConditions.join(' AND ')}`);
+
+  // Filter out matching rows where all non-join columns from both tables are identical.
+  const whereConditions: string[] = [];
+  for (const [leftTableColumn, rightTableColumn] of selectColumns.entries()) {
+    if (joinColumns.has(leftTableColumn)) { continue; }
+
+    const leftColumnAlias = quoteIdent(`${leftTableId}.${leftTableColumn}`);
+    const rightColumnAlias = quoteIdent(`${rightTableId}.${rightTableColumn}`);
+
+    // Only include rows that have differences in column values.
+    whereConditions.push(`${leftColumnAlias} IS NOT ${rightColumnAlias}`);
+  }
+  wheres.push(`(${whereConditions.join(' OR ')})`);
+
+  // Copy decisions to the query object, and return.
+  query.joins = joins;
+  query.selects = selects;
+  query.wheres = wheres;
   return query;
 }

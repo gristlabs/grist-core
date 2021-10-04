@@ -9,7 +9,7 @@
 
 import * as sqlite3 from '@gristlabs/sqlite3';
 import {LocalActionBundle} from 'app/common/ActionBundle';
-import {DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
+import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
@@ -843,13 +843,14 @@ export class DocStorage implements ISQLiteDB {
 
     // Convert query to SQL.
     const params: any[] = [];
-    const whereParts: string[] = [];
+    let whereParts: string[] = [];
     for (const colId of Object.keys(query.filters)) {
       const values = query.filters[colId];
       // If values is empty, "IN ()" works in SQLite (always false), but wouldn't work in Postgres.
       whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (${values.map(() => '?').join(', ')})`);
       params.push(...values);
     }
+    whereParts = whereParts.concat(query.wheres ?? []);
     const sql = this._getSqlForQuery(query, whereParts);
     return this._getDB().allMarshal(sql, params);
   }
@@ -875,6 +876,27 @@ export class DocStorage implements ISQLiteDB {
     // Decode in-place to avoid unnecessary array creation.
     for (const col of Object.keys(columnValues)) {
       const type = this._getGristType(tableId, col);
+      const column = columnValues[col];
+      for (let i = 0; i < column.length; i++) {
+        column[i] = DocStorage._decodeValue(column[i], type, DocStorage._getSqlType(type));
+      }
+    }
+    return columnValues;
+  }
+
+  /**
+   * Variant of `decodeMarshalledData` that supports decoding data containing columns from
+   * multiple tables.
+   *
+   * Expects all column names in `marshalledData` to be prefixed with the table id and a
+   * trailing period (separator).
+   */
+  public decodeMarshalledDataFromTables(marshalledData: Buffer | Uint8Array): BulkColValues {
+    const columnValues: BulkColValues = marshal.loads(marshalledData);
+    // Decode in-place to avoid unnecessary array creation.
+    for (const col of Object.keys(columnValues)) {
+      const [tableId, colId] = col.split('.');
+      const type = this._getGristType(tableId, colId);
       const column = columnValues[col];
       for (let i = 0; i < column.length; i++) {
         column[i] = DocStorage._decodeValue(column[i], type, DocStorage._getSqlType(type));
