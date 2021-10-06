@@ -4,7 +4,7 @@ import {HomePluginManager} from 'app/client/lib/HomePluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {AppModel, reportError} from 'app/client/models/AppModel';
-import {UserError} from 'app/client/models/errors';
+import {reportMessage, UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {ownerName} from 'app/client/models/WorkspaceInfo';
 import {IHomePage} from 'app/common/gristUrls';
@@ -215,7 +215,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public async restoreWorkspace(ws: Workspace) {
     await  this._app.api.undeleteWorkspace(ws.id);
     await this._updateWorkspaces();
-    reportError(new UserError(`Workspace "${ws.name}" restored`));
+    reportMessage(`Workspace "${ws.name}" restored`);
   }
 
   // Creates a new doc by calling the API, and returns its docId.
@@ -242,7 +242,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public async restoreDoc(doc: Document): Promise<void> {
     await this._app.api.undeleteDoc(doc.id);
     await this._updateWorkspaces();
-    reportError(new UserError(`Document "${doc.name}" restored`));
+    reportMessage(`Document "${doc.name}" restored`);
   }
 
   public async pinUnpinDoc(docId: string, pin: boolean): Promise<void> {

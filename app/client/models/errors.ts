@@ -47,28 +47,32 @@ export function getAppErrors(): string[] {
 export function reportMessage(msg: string, options?: Partial<INotifyOptions>) {
   if (_notifier && !_notifier.isDisposed()) {
     _notifier.createUserMessage(msg, {
-      level : 'message',
       ...options
     });
   }
 }
 
 /**
- * Shows notification with green border and a tick icon.
+ * Shows warning toast notification (with yellow styling).
+ */
+export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
+  reportMessage(msg, {level: 'warning', ...options});
+}
+
+/**
+ * Shows success toast notification (with green styling).
  */
 export function reportSuccess(msg: string, options?: Partial<INotifyOptions>) {
-  if (_notifier && !_notifier.isDisposed()) {
-    _notifier.createUserMessage(msg, {
-      level : 'success',
-      ...options
-    });
-  }
+  reportMessage(msg, {level: 'success', ...options});
 }
 
 /**
  * Report an error to the user using the global Notifier instance. If the argument is a UserError
  * or an error with a status in the 400 range, it indicates a user error. Otherwise, it's an
  * application error, which the user can report to us as a bug.
+ *
+ * Not all errors will be shown as an error toast, depending on the content of the error
+ * this function might show a simple toast message.
  */
 export function reportError(err: Error|string): void {
   log.error(`ERROR:`, err);
@@ -99,6 +103,7 @@ export function reportError(err: Error|string): void {
         options.title = "Add users as team members first";
         options.actions = [];
       }
+      // Show the error as a message
       _notifier.createUserMessage(message, options);
     } else if (err.name === 'UserError' || (typeof status === 'number' && status >= 400 && status < 500)) {
       // This is explicitly a user error, or one in the "Client Error" range, so treat it as user
@@ -108,10 +113,12 @@ export function reportError(err: Error|string): void {
       if (details && details.tips && details.tips.some(tip => tip.action === 'ask-for-help')) {
         options.actions = ['ask-for-help'];
       }
-      _notifier.createUserError(message, options);
+      _notifier.createUserMessage(message, options);
     } else if (err.name === 'NeedUpgradeError') {
+      // Show the error as a message
       _notifier.createUserMessage(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
     } else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
+      // Show the error as a message
       _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be

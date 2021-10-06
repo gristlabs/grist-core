@@ -1,5 +1,5 @@
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportError, UserError} from 'app/client/models/errors';
+import {reportWarning} from 'app/client/models/errors';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
@@ -207,9 +207,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       if (m === this.publicMember && access === roles.EDITOR &&
           this._docPageModel?.gristDoc.get()?.hasGranularAccessRules()) {
         access = roles.VIEWER;
-        reportError(new UserError(
-          'Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".'
-        ));
+        reportWarning('Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".');
       }
       if (!roles.isValidRole(access)) {
         throw new Error(`Cannot update user to invalid role ${access}`);

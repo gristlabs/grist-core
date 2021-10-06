@@ -1,5 +1,5 @@
 import {Comm, CommMessage} from 'app/client/components/Comm';
-import {reportError, UserError} from 'app/client/models/errors';
+import {reportError, reportMessage} from 'app/client/models/errors';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
@@ -198,7 +198,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   }
 
   private async _doForkDoc(): Promise<void> {
-    reportError(new UserError('Preparing your copy...', {key: 'forking'}));
+    reportMessage('Preparing your copy...', {key: 'forking'});
     const {urlId, docId} = await this.fork();
     // TODO: may want to preserve linkParameters in call to openDoc.
     const openResponse = await this._comm.openDoc(docId);
@@ -209,7 +209,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this._docId = docId;
     this._setOpenResponse(openResponse);
     this.changeUrlIdEmitter.emit(urlId);
-    reportError(new UserError('You are now editing your own copy', {key: 'forking'}));
+    reportMessage('You are now editing your own copy', {key: 'forking'});
   }
 }
 

@@ -14,10 +14,9 @@ import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
 const maxAppErrors = 5;
 
 interface INotifier {
+  createUserMessage(message: string, options?: INotifyOptions): INotification;
   // If you are looking to report errors, please do that via reportError rather
   // than these methods so that we have a chance to send the error to our logs.
-  createUserError(message: string, options?: INotifyOptions): INotification;
-  createUserMessage(message: string, options?: INotifyOptions): INotification;
   createAppError(error: Error): void;
 
   createProgressIndicator(name: string, size: string, expireOnComplete: boolean): IProgress;
@@ -215,21 +214,6 @@ export class Notifier extends Disposable implements INotifier {
       connectState: this._connectState,
       disconnectMsg: this._disconnectMsg,
     };
-  }
-
-  /**
-   * Creates a basic toast user error. By default, expires in 10 seconds.
-   * Takes an options objects to configure `expireSec` and `canUserClose`.
-   * Set `expireSec` to 0 to prevent expiration.
-   *
-   * If you are looking to report errors, please do that via reportError so
-   * that we have a chance to send the error to our logs.
-   */
-  public createUserError(message: string, options: Partial<INotifyOptions> = {}): INotification {
-    return this.createUserMessage(message, {
-      level: 'error',
-      ...options
-    });
   }
 
   /**
