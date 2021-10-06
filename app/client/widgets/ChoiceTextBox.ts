@@ -73,13 +73,7 @@ export class ChoiceTextBox extends NTextBox {
           ChoiceListEntry,
           this._choiceValues,
           this._choiceOptionsByName,
-          (choices, choiceOptions) => {
-            return this.options.setAndSave({
-              ...this.options.peek(),
-              choices,
-              choiceOptions: toObject(choiceOptions)
-            });
-          }
+          this.save.bind(this)
         )
       )
     ];
@@ -95,6 +89,15 @@ export class ChoiceTextBox extends NTextBox {
 
   protected getChoiceOptions(): Computed<ChoiceOptionsByName> {
     return this._choiceOptionsByName;
+  }
+
+  protected save(choices: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) {
+    const options = {
+      ...this.options.peek(),
+      choices,
+      choiceOptions: toObject(choiceOptions)
+    };
+    return this.field.updateChoices(renames, options);
   }
 }
 

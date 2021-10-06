@@ -81,6 +81,10 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   // Helper for Reference/ReferenceList columns, which returns a formatter according
   // to the visibleCol associated with field. Subscribes to observables if used within a computed.
   createVisibleColFormatter(): BaseFormatter;
+
+  // Helper for Choice/ChoiceList columns, that saves widget options and renames values in a document
+  // in one bundle
+  updateChoices(renameMap: Record<string, string>, options: any): Promise<void>;
 }
 
 export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void {
@@ -214,4 +218,20 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   });
 
   this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
+
+  this.updateChoices = async (renames, widgetOptions) => {
+    // In case this column is being transformed - using Apply Formula to Data, bundle the action
+    // together with the transformation.
+    const actionOptions = {nestInActiveBundle: this.column.peek().isTransforming.peek()};
+    const hasRenames = !!Object.entries(renames).length;
+    const callback = async () => {
+      await Promise.all([
+        this.widgetOptionsJson.setAndSave(widgetOptions),
+        hasRenames ?
+          docModel.docData.sendAction(["RenameChoices", this.column().table().tableId(), this.colId(), renames]) :
+          null
+      ]);
+    };
+    return docModel.docData.bundleActions("Update choices configuration", callback, actionOptions);
+  };
 }

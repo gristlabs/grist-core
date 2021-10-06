@@ -1,20 +1,48 @@
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId} from 'app/client/ui2018/cssVars';
-import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, Observable, styled} from 'grainjs';
-import {icon} from 'app/client/ui2018/icons';
-import isEqual = require('lodash/isEqual');
-import uniqBy = require('lodash/uniqBy');
 import {IToken, TokenField} from 'app/client/lib/TokenField';
+import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
+import {colorButton} from 'app/client/ui2018/ColorSelect';
+import {colors, testId} from 'app/client/ui2018/cssVars';
+import {editableLabel} from 'app/client/ui2018/editableLabel';
+import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 import {DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
-import {colorButton} from 'app/client/ui2018/ColorSelect';
+import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, Observable, styled} from 'grainjs';
 import {createCheckers, iface, ITypeSuite, opt} from 'ts-interface-checker';
+import isEqual = require('lodash/isEqual');
+import uniqBy = require('lodash/uniqBy');
+
+class RenameMap implements Record<string, string> {
+  constructor(tokens: ChoiceItem[]) {
+    for(const {label, previousLabel: id} of tokens.filter(x=> x.previousLabel)) {
+      if (label === id) {
+        continue;
+      }
+      this[id!] = label;
+    }
+  }
+  [key: string]: string;
+}
+
 
 class ChoiceItem implements IToken {
+  public static from(item: ChoiceItem) {
+    return new ChoiceItem(item.label, item.previousLabel, item.options);
+  }
   constructor(
     public label: string,
-    public options?: IChoiceOptions,
+    // We will keep the previous label value for a token, to tell us which token
+    // was renamed. For new tokens this should be null.
+    public readonly previousLabel: string | null,
+    public options?: IChoiceOptions
   ) {}
+
+  public rename(label: string) {
+    return new ChoiceItem(label, this.previousLabel, this.options);
+  }
+
+  public changeColors(options: IChoiceOptions) {
+    return new ChoiceItem(this.label, this.previousLabel, {...this.options, ...options});
+  }
 }
 
 const ChoiceItemType = iface([], {
@@ -63,7 +91,7 @@ export class ChoiceListEntry extends Disposable {
   constructor(
     private _values: Observable<string[]>,
     private _choiceOptionsByName: Observable<ChoiceOptionsByName>,
-    private _onSave: (values: string[], choiceOptions: ChoiceOptionsByName) => void
+    private _onSave: (values: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) => void
   ) {
     super();
 
@@ -80,10 +108,10 @@ export class ChoiceListEntry extends Disposable {
       if (editMode) {
         const tokenField = TokenField.ctor<ChoiceItem>().create(this._tokenFieldHolder, {
           initialValue: this._values.get().map(label => {
-            return new ChoiceItem(label, this._choiceOptionsByName.get().get(label));
+            return new ChoiceItem(label, label, this._choiceOptionsByName.get().get(label));
           }),
           renderToken: token => this._renderToken(token),
-          createToken: label => new ChoiceItem(label),
+          createToken: label => new ChoiceItem(label, null),
           clipboardToTokens: clipboardToChoices,
           tokensToClipboard: (tokens, clipboard) => {
             // Save tokens as JSON for parts of the UI that support deserializing it properly (e.g. ChoiceListEntry).
@@ -173,7 +201,7 @@ export class ChoiceListEntry extends Disposable {
     const tokens = tokenField.tokensObs.get();
     const tokenInputVal = tokenField.getTextInputValue();
     if (tokenInputVal !== '') {
-      tokens.push(new ChoiceItem(tokenInputVal));
+      tokens.push(new ChoiceItem(tokenInputVal, null));
     }
 
     const newTokens = uniqBy(tokens, t => t.label);
@@ -192,7 +220,7 @@ export class ChoiceListEntry extends Disposable {
     if (!isEqual(this._values.get(), newValues)
       || !isEqual(this._choiceOptionsByName.get(), newOptions)) {
       // Because of the listener on this._values, editing will stop if values are updated.
-      this._onSave(newValues, newOptions);
+      this._onSave(newValues, newOptions, new RenameMap(newTokens));
     } else {
       this._cancel();
     }
@@ -209,10 +237,34 @@ export class ChoiceListEntry extends Disposable {
   private _renderToken(token: ChoiceItem) {
     const fillColorObs = Observable.create(null, getFillColor(token.options));
     const textColorObs = Observable.create(null, getTextColor(token.options));
+    const choiceText = Observable.create(null, token.label);
+
+    const rename = async (to: string) => {
+      const tokenField = this._tokenFieldHolder.get();
+      if (!tokenField) { return; }
+      // If user removed the label, revert back to original one.
+      if (!to) {
+        choiceText.set(token.label);
+      } else {
+        tokenField.replaceToken(token.label, ChoiceItem.from(token).rename(to));
+        // We don't need to update choiceText, since it will be replaced (rerendered).
+      }
+    };
+
+    function stopPropagation(ev: Event) {
+      ev.stopPropagation();
+    }
+
+    const focusOnNew = () => {
+      const tokenField = this._tokenFieldHolder.get();
+      if (!tokenField) { return; }
+      focus(tokenField.getTextInput());
+    };
 
     return cssColorAndLabel(
       dom.autoDispose(fillColorObs),
       dom.autoDispose(textColorObs),
+      dom.autoDispose(choiceText),
       colorButton(textColorObs,
         fillColorObs,
         async () => {
@@ -221,13 +273,26 @@ export class ChoiceListEntry extends Disposable {
 
           const fillColor = fillColorObs.get();
           const textColor = textColorObs.get();
-          tokenField.replaceToken(token.label, new ChoiceItem(token.label, {fillColor, textColor}));
+          tokenField.replaceToken(token.label, ChoiceItem.from(token).changeColors({fillColor, textColor}));
         }
       ),
-      cssTokenLabel(token.label)
+      editableLabel(choiceText,
+        rename,
+        testId('token-label'),
+        // Don't bubble up keyboard events, use them for editing the text.
+        // Without this keys like Backspace, or Mod+a will propagate and modify all tokens.
+        dom.on('keydown', stopPropagation),
+        // On enter, focus on the input element.
+        dom.onKeyDown({
+          Enter : focusOnNew
+        }),
+        // Don't bubble up click, as it would change focus.
+        dom.on('click', stopPropagation),
+        dom.cls(cssTokenLabel.className)),
     );
   }
 }
+
 
 // Helper to focus on the token input and select/scroll to the bottom
 function focus(elem: HTMLInputElement) {
@@ -269,7 +334,7 @@ function clipboardToChoices(clipboard: DataTransfer): ChoiceItem[] {
 
   const maybeText = clipboard.getData('text/plain');
   if (maybeText) {
-    return maybeText.split('\n').map(label => new ChoiceItem(label));
+    return maybeText.split('\n').map(label => new ChoiceItem(label, null));
   }
 
   return [];
