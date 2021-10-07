@@ -1587,7 +1587,7 @@ export class ActiveDoc extends EventEmitter {
 
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
-    let preferredPythonVersion: '2' | '3' = '2';
+    let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 
     // Currently only respect engine preference on experimental deployments (staging/dev).
     if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {

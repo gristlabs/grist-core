@@ -335,6 +335,7 @@ const spawners = {
                       // This offers no protection to the host.
   docker,             // Run sandboxes in distinct docker containers.
   gvisor,             // Gvisor's runsc sandbox.
+  macSandboxExec,     // Use "sandbox-exec" on Mac.
 };
 
 /**
@@ -344,7 +345,7 @@ const spawners = {
  *
  * The flavor of sandbox to use can be overridden by some environment variables:
  *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (pynbox, unsandboxed, docker,
- *     gvisor)
+ *     gvisor, macSandboxExec)
  *   - GRIST_SANDBOX: a program or image name to run as the sandbox.  Not needed for
  *     pynbox (it is either built in or not avaiable).  For unsandboxed, should be an
  *     absolute path to python within a virtualenv with all requirements installed.
@@ -485,23 +486,7 @@ function unsandboxed(options: ISandboxOptions): ChildProcess {
   if (!options.minimalPipeMode) {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
-  let command = options.command;
-  if (!command) {
-    // No command specified.  In this case, grist-core looks for a "venv"
-    // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
-    // TODO: rationalize this, it is a product of haphazard growth.
-    for (const venv of ['sandbox_venv3', 'venv']) {
-      const pythonPath = path.join(process.cwd(), venv, 'bin', 'python');
-      if (fs.existsSync(pythonPath)) {
-        command = pythonPath;
-        break;
-      }
-    }
-    // Fall back on system python.
-    if (!command) {
-      command = which.sync('python');
-    }
-  }
+  const command = findPython(options.command);
   return spawn(command, pythonArgs,
                {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
 }
@@ -577,6 +562,93 @@ function docker(options: ISandboxOptions): ChildProcess {
     ...commandParts,
     ...pythonArgs,
   ]);
+}
+
+/**
+ * Helper function to run python using the sandbox-exec command
+ * available on MacOS.  This command is a bit shady - not much public
+ * documentation for it, and what there is has been marked deprecated
+ * for a few releases.  But mac sandboxing seems to rely heavily on
+ * the infrastructure this command is a thin wrapper around, and there's
+ * no obvious native sandboxing alternative.
+ */
+function macSandboxExec(options: ISandboxOptions): ChildProcess {
+  const {args: pythonArgs} = options;
+  if (!options.minimalPipeMode) {
+    throw new Error("macSandboxExec flavor only supports 3-pipe operation");
+  }
+  const paths = getAbsolutePaths(options);
+  if (options.useGristEntrypoint) {
+    pythonArgs.unshift(paths.main);
+  }
+  const env = {
+    PYTHONPATH: paths.engine,
+    IMPORTDIR: paths.importDir,
+    ...getInsertedEnv(options),
+    ...getWrappingEnv(options),
+  };
+  const command = findPython(options.command);
+  const realPath = fs.realpathSync(command);
+
+  // Prepare sandbox profile
+  const profile: string[] = [];
+
+  // Deny everything by default, including network
+  profile.push('(version 1)', '(deny default)');
+
+  // Allow execution of the command, either by name provided or ultimate symlink if different
+  profile.push(`(allow process-exec (literal ${JSON.stringify(command)}))`);
+  profile.push(`(allow process-exec (literal ${JSON.stringify(realPath)}))`);
+
+  // There are now a series of extra read and execute permissions added, to deal with the
+  // twisted maze of symlinks around python on a mac.
+
+  // For python symlinks to work, we need to allow reading all the intermediate directories
+  // (this is determined experimentally, perhaps it can be more precise).
+  const intermediatePaths = new Set<string>();
+  for (const target of [command, realPath]) {
+    const parts = path.dirname(target).split(path.sep);
+    for (let i = 1; i < parts.length; i++) {
+      const p = path.join('/', ...parts.slice(0, i));
+      intermediatePaths.add(p);
+    }
+  }
+  for (const p of intermediatePaths) {
+    profile.push(`(allow file-read* (literal ${JSON.stringify(p)}))`);
+  }
+
+  // Grant read access to everything within an enclosing bin directory of original command.
+  if (path.dirname(command).split(path.sep).pop() === 'bin') {
+    const p = path.join(path.dirname(command), '..');
+    profile.push(`(allow file-read* (subpath ${JSON.stringify(p)}))`);
+  }
+
+  // Grant read+execute access to everything within an enclosing bin directory of final target.
+  if (path.dirname(realPath).split(path.sep).pop() === 'bin') {
+    const p = path.join(path.dirname(realPath), '..');
+    profile.push(`(allow file-read* (subpath ${JSON.stringify(p)}))`);
+    profile.push(`(allow process-exec (subpath ${JSON.stringify(p)}))`);
+  }
+
+  // Sundry extra permissions that proved necessary. These work at the time of writing for
+  // python versions installed by brew. Other arrangements could need tweaking.
+  profile.push(`(allow file-read* (subpath "/usr/local/"))`);
+  profile.push('(allow sysctl-read)');  // needed for os.uname()
+  // From another python installation variant.
+  profile.push(`(allow file-read* (subpath "/usr/lib/"))`);
+  profile.push(`(allow file-read* (subpath "/System/Library/Frameworks/"))`);
+
+  // Give access to Grist material.
+  const cwd = path.join(process.cwd(), 'sandbox');
+  profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.sandboxDir)}))`);
+  profile.push(`(allow file-read* (subpath ${JSON.stringify(cwd)}))`);
+  if (options.importDir) {
+    profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.importDir)}))`);
+  }
+
+  const profileString = profile.join('\n');
+  return spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
+               {cwd, env});
 }
 
 /**
@@ -686,3 +758,25 @@ class FlagBag {
 
 // Standard time to default to if faking time.
 const FAKETIME = '2020-01-01 00:00:00';
+
+/**
+ * Find a plausible version of python to run, if none provided.
+ */
+function findPython(command?: string) {
+  if (command) { return command; }
+  // No command specified.  In this case, grist-core looks for a "venv"
+  // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
+  // TODO: rationalize this, it is a product of haphazard growth.
+  for (const venv of ['sandbox_venv3', 'venv']) {
+    const pythonPath = path.join(process.cwd(), venv, 'bin', 'python');
+    if (fs.existsSync(pythonPath)) {
+      command = pythonPath;
+      break;
+    }
+  }
+  // Fall back on system python.
+  if (!command) {
+    command = which.sync('python');
+  }
+  return command;
+}
