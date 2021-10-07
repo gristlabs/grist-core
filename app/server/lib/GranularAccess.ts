@@ -676,7 +676,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const tableId = getTableId(data);
     if (this.getReadPermission(permInfo.getTableAccess(tableId)) === 'mixed') {
       const readAccessCheck = this._readAccessCheck(docSession);
-      await this._filterRowsAndCells(cursor, data, data, readAccessCheck, true);
+      await this._filterRowsAndCells(cursor, data, data, readAccessCheck, {allowRowRemoval: true});
     }
 
     // Filter columns, omitting any to which the user has no access, regardless of rows.
@@ -932,10 +932,14 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // Return the results, also applying any cell-level access control.
     const readAccessCheck = this._readAccessCheck(cursor.docSession);
+    const filteredDocActions: DocAction[] = [];
     for (const a of revisedDocActions) {
-      await this._filterRowsAndCells({...cursor, action: a}, rowsAfter, rowsAfter, readAccessCheck, false);
+      const {filteredAction} =
+        await this._filterRowsAndCells({...cursor, action: a}, rowsAfter, rowsAfter, readAccessCheck,
+                                       {allowRowRemoval: false, copyOnModify: true});
+      if (filteredAction) { filteredDocActions.push(filteredAction); }
     }
-    return revisedDocActions;
+    return filteredDocActions;
   }
 
   /**
@@ -947,7 +951,10 @@ export class GranularAccess implements GranularAccessForBundle {
     // This check applies to data changes only.
     if (!isDataAction(action)) { return; }
     const {rowsBefore, rowsAfter} = await this._getRowsForRecAndNewRec(cursor);
-    await this._filterRowsAndCells(cursor, rowsBefore, rowsAfter, accessCheck, false);
+    // If any change is needed, this call will fail immediately because we are using
+    // access checks that throw.
+    await this._filterRowsAndCells(cursor, rowsBefore, rowsAfter, accessCheck,
+                                   {allowRowRemoval: false});
   }
 
   private async _getRowsBeforeAndAfter(cursor: ActionCursor) {
@@ -988,10 +995,15 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Modify action in place, scrubbing any rows and cells to which access is not granted.
-   * Returns filteredAction, which is the provided action or null - it is null if the
-   * action was entirely eliminated (and was not a bulk action).  Also returns
-   * censoredRows, a set of indexes of rows that have a censored value in them.
+   * Scrub any rows and cells to which access is not granted from an
+   * action. Returns filteredAction, which is the provided action, a
+   * modified copy of the provided action, or null. It is null if the
+   * action was entirely eliminated (and was not a bulk action). It is
+   * a modified copy if any scrubbing was needed and copyOnModify is
+   * set, otherwise the original is modified in place.
+   *
+   * Also returns censoredRows, a set of indexes of rows that have a
+   * censored value in them.
    *
    * If allowRowRemoval is false, then rows will not be removed, and if the user
    * does not have access to a row and the action itself is not a remove action, then
@@ -1001,17 +1013,20 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   private async _filterRowsAndCells(cursor: ActionCursor, rowsBefore: TableDataAction, rowsAfter: TableDataAction,
                                     accessCheck: IAccessCheck,
-                                    allowRowRemoval: boolean): Promise<{
+                                    options: {
+                                      allowRowRemoval?: boolean,
+                                      copyOnModify?: boolean,
+                                    }): Promise<{
                                       filteredAction: DocAction | null,
                                       censoredRows: Set<number>
                                     }> {
     const censoredRows = new Set<number>();
     const ruler = await this._getRuler(cursor);
     const {docSession, action} = cursor;
-    let filteredAction: DocAction | null = action;
     if (action && isSchemaAction(action)) {
-      return {filteredAction, censoredRows};
+      return {filteredAction: action, censoredRows};
     }
+    let filteredAction: DocAction | null = action;
 
     // For user convenience, for creations and deletions we equate rec and newRec.
     // This makes writing rules that control multiple permissions easier to write in
@@ -1029,16 +1044,25 @@ export class GranularAccess implements GranularAccessForBundle {
     const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec};
 
     const [, tableId, , colValues] = action;
+    let filteredColValues: ColValues | BulkColValues | undefined | null = null;
     const rowIds = getRowIdsFromDocAction(action);
     const toRemove: number[] = [];
 
+    // Call this to make sure we are modifying a copy, not the original, if copyOnModify is set.
+    const copyOnNeed = () => {
+      if (filteredColValues === null) {
+        filteredAction = options?.copyOnModify ? cloneDeep(action) : action;
+        filteredColValues = filteredAction[3];
+      }
+      return filteredColValues;
+    };
     let censorAt: (colId: string, idx: number) => void;
     if (colValues === undefined) {
       censorAt = () => 1;
     } else if (Array.isArray(action[2])) {
-      censorAt = (colId, idx) => (colValues as BulkColValues)[colId][idx] = ['C'];  // censored
+      censorAt = (colId, idx) => (copyOnNeed() as BulkColValues)[colId][idx] = ['C'];  // censored
     } else {
-      censorAt = (colId) => (colValues as ColValues)[colId] = ['C'];  // censored
+      censorAt = (colId) => (copyOnNeed() as ColValues)[colId] = ['C'];  // censored
     }
 
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.
@@ -1076,15 +1100,16 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     if (toRemove.length > 0) {
-      if (allowRowRemoval) {
-        if (Array.isArray(action[2])) {
-          this._removeRowsAt(toRemove, action[2], action[3]);
+      if (options.allowRowRemoval) {
+        copyOnNeed();
+        if (Array.isArray(filteredAction[2])) {
+          this._removeRowsAt(toRemove, filteredAction[2], filteredAction[3]);
         } else {
           filteredAction = null;
         }
       } else {
         // Artificially introduced removals are ok, otherwise this is suspect.
-        if (action[0] !== 'RemoveRecord' && action[0] !== 'BulkRemoveRecord') {
+        if (filteredAction[0] !== 'RemoveRecord' && filteredAction[0] !== 'BulkRemoveRecord') {
           throw new Error('Unexpected row removal');
         }
       }
@@ -1499,7 +1524,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const {rowsBefore, rowsAfter} = await this._getRowsForRecAndNewRec(cursor);
     const {censoredRows, filteredAction} = await this._filterRowsAndCells({...cursor, action: cloneDeep(action)},
                                                                           rowsBefore, rowsAfter, accessCheck,
-                                                                          true);
+                                                                          {allowRowRemoval: true});
     if (filteredAction === null) {
       return [];
     }
