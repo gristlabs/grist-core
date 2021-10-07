@@ -8,7 +8,7 @@ import { TableData } from 'app/client/models/TableData';
 import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from 'app/common/ActionSummary';
 import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
 import { CellVersions, UserAction } from 'app/common/DocActions';
-import { GristObjCode } from "app/common/gristTypes";
+import { GristObjCode } from 'app/plugin/GristData';
 import { CellDelta } from 'app/common/TabularDiff';
 import { DocStateComparisonDetails } from 'app/common/UserAPI';
 import { CellValue } from 'app/plugin/GristData';

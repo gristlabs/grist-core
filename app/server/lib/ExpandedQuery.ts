@@ -1,9 +1,10 @@
-import {ServerQuery} from 'app/common/ActiveDocAPI';
-import {ApiError} from 'app/common/ApiError';
-import {DocData} from 'app/common/DocData';
-import {parseFormula} from 'app/common/Formula';
-import {removePrefix} from 'app/common/gutil';
-import {quoteIdent} from 'app/server/lib/SQLiteDB';
+import { ServerQuery } from 'app/common/ActiveDocAPI';
+import { ApiError } from 'app/common/ApiError';
+import { DocData } from 'app/common/DocData';
+import { parseFormula } from 'app/common/Formula';
+import { removePrefix } from 'app/common/gutil';
+import { GristObjCode } from 'app/plugin/GristData';
+import { quoteIdent } from 'app/server/lib/SQLiteDB';
 
 /**
  * Represents a query for Grist data with support for SQL-based
@@ -19,7 +20,7 @@ export interface ExpandedQuery extends ServerQuery {
   // step.  That means we need to pass the error message along
   // explicitly.
   constants?: {
-    [colId: string]: ['E', string] | ['P'];
+    [colId: string]: [GristObjCode.Exception, string] | [GristObjCode.Pending];
   };
 
   // A list of join clauses to bring in data from other tables.
@@ -115,7 +116,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
         // We add a trivial selection, and store errors in the query for substitution later.
         sqlFormula = '0';
         if (!query.constants) { query.constants = {}; }
-        query.constants[colId] = ['E', error];
+        query.constants[colId] = [GristObjCode.Exception, error];
       }
       if (sqlFormula) {
         selects.add(`${sqlFormula} as ${quoteIdent(colId)}`);

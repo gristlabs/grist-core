@@ -4,7 +4,7 @@
  */
 // tslint:disable:max-classes-per-file
 
-import {CellValue} from 'app/plugin/GristData';
+import { CellValue, GristObjCode } from 'app/plugin/GristData';
 import isPlainObject = require('lodash/isPlainObject');
 
 // The text to show on cells whose values are pending.
@@ -165,32 +165,32 @@ export function encodeObject(value: unknown): CellValue {
     if (value == null) {
       return null;
     } else if (value instanceof Reference) {
-      return ['R', value.tableId, value.rowId];
+      return [GristObjCode.Reference, value.tableId, value.rowId];
     } else if (value instanceof ReferenceList) {
-      return ['r', value.tableId, value.rowIds];
+      return [GristObjCode.ReferenceList, value.tableId, value.rowIds];
     } else if (value instanceof Date) {
       const timestamp = value.valueOf() / 1000;
       if ('timezone' in value) {
-        return ['D', timestamp, (value as GristDateTime).timezone];
+        return [GristObjCode.DateTime, timestamp, (value as GristDateTime).timezone];
       } else {
         // TODO Depending on how it's used, may want to return ['d', timestamp] for UTC midnight.
-        return ['D', timestamp, 'UTC'];
+        return [GristObjCode.DateTime, timestamp, 'UTC'];
       }
     } else if (value instanceof CensoredValue) {
-      return ['C'];
+      return [GristObjCode.Censored];
     } else if (value instanceof RaisedException) {
-      return ['E', value.name, value.message, value.details];
+      return [GristObjCode.Exception, value.name, value.message, value.details];
     } else if (Array.isArray(value)) {
-      return ['L', ...value.map(encodeObject)];
+      return [GristObjCode.List, ...value.map(encodeObject)];
     } else if (isPlainObject(value)) {
-      return ['O', mapValues(value as any, encodeObject, {sort: true})];
+      return [GristObjCode.Dict, mapValues(value as any, encodeObject, {sort: true})];
     }
   } catch (e) {
     // Fall through to return a best-effort representation.
   }
   // We either don't know how to convert the value, or failed during the conversion. Instead we
   // return an "UnmarshallableValue" object, with repr() of the value to show to the user.
-  return ['U', UnknownValue.safeRepr(value)];
+  return [GristObjCode.Unmarshallable, UnknownValue.safeRepr(value)];
 }
 
 

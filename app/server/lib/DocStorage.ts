@@ -13,6 +13,7 @@ import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAc
 import * as gristTypes from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
+import {GristObjCode} from "app/plugin/GristData";
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ExpandedQuery} from 'app/server/lib/ExpandedQuery';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -35,7 +36,7 @@ const debuglog = util.debuglog('db');
 
 const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing it safe.
 
-const PENDING_VALUE = [gristTypes.GristObjCode.Pending];
+const PENDING_VALUE = [GristObjCode.Pending];
 
 export class DocStorage implements ISQLiteDB {
 

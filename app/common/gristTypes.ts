@@ -1,6 +1,7 @@
 import { CellValue, CellVersions } from 'app/common/DocActions';
+import { GristObjCode } from 'app/plugin/GristData';
 import isString = require('lodash/isString');
-import {removePrefix} from "./gutil";
+import { removePrefix } from "./gutil";
 
 // tslint:disable:object-literal-key-quotes
 
@@ -13,23 +14,6 @@ export type GristTypeInfo =
   {type: 'Ref', tableId: string} |
   {type: 'RefList', tableId: string} |
   {type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'>};
-
-
-// Letter codes for CellValue types encoded as [code, args...] tuples.
-export const enum GristObjCode {
-  List            = 'L',
-  Dict            = 'O',
-  DateTime        = 'D',
-  Date            = 'd',
-  Skip            = 'S',
-  Censored        = 'C',
-  Reference       = 'R',
-  ReferenceList   = 'r',
-  Exception       = 'E',
-  Pending         = 'P',
-  Unmarshallable  = 'U',
-  Versions        = 'V',
-}
 
 export const MANUALSORT = 'manualSort';
 
@@ -93,9 +77,9 @@ export function extractInfoFromColType(colType: string): GristTypeInfo {
 export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
   if (typeof value === 'number') {
     switch (typeInfo.type) {
-      case 'Date': return ['d', value];
-      case 'DateTime': return ['D', value, typeInfo.timezone];
-      case 'Ref': return ['R', typeInfo.tableId, value];
+      case 'Date': return [GristObjCode.Date, value];
+      case 'DateTime': return [GristObjCode.DateTime, value, typeInfo.timezone];
+      case 'Ref': return [GristObjCode.Reference, typeInfo.tableId, value];
     }
   }
   return value;
@@ -105,7 +89,7 @@ export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellVa
 /**
  * Returns whether a value (as received in a DocAction) represents a custom object.
  */
-export function isObject(value: CellValue): value is [string, any?] {
+export function isObject(value: CellValue): value is [GristObjCode, any?] {
   return Array.isArray(value);
 }
 

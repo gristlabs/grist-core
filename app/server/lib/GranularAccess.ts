@@ -19,6 +19,7 @@ import { getSetMapValue, isObject, pruneArray } from 'app/common/gutil';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { GristObjCode } from 'app/plugin/GristData';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
@@ -1104,9 +1105,9 @@ export class GranularAccess implements GranularAccessForBundle {
     if (colValues === undefined) {
       censorAt = () => 1;
     } else if (Array.isArray(action[2])) {
-      censorAt = (colId, idx) => (copyOnNeed() as BulkColValues)[colId][idx] = ['C'];  // censored
+      censorAt = (colId, idx) => (copyOnNeed() as BulkColValues)[colId][idx] = [GristObjCode.Censored];
     } else {
-      censorAt = (colId) => (copyOnNeed() as ColValues)[colId] = ['C'];  // censored
+      censorAt = (colId) => (copyOnNeed() as ColValues)[colId] = [GristObjCode.Censored];
     }
 
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.
