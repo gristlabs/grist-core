@@ -98,6 +98,7 @@ export class DocWorker {
       importFiles:              activeDocMethod.bind(null, 'editors', 'importFiles'),
       finishImportFiles:        activeDocMethod.bind(null, 'editors', 'finishImportFiles'),
       cancelImportFiles:        activeDocMethod.bind(null, 'editors', 'cancelImportFiles'),
+      generateImportDiff:       activeDocMethod.bind(null, 'editors', 'generateImportDiff'),
       addAttachments:           activeDocMethod.bind(null, 'editors', 'addAttachments'),
       removeInstanceFromDoc:    activeDocMethod.bind(null, 'editors', 'removeInstanceFromDoc'),
       startBundleUserActions:   activeDocMethod.bind(null, 'editors', 'startBundleUserActions'),

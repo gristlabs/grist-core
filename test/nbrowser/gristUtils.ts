@@ -692,10 +692,20 @@ export async function userActionsVerify(expectedUserActions: unknown[]): Promise
  * Helper to get the cells of the importer Preview section. The cell text is returned from the
  * requested rows and columns in row-wise order.
  */
-export async function getPreviewContents(cols: number[], rowNums: number[]): Promise<string[]> {
+export async function getPreviewContents<T = string>(cols: number[], rowNums: number[],
+                                                     mapper?: (e: WebElement) => Promise<T>): Promise<T[]> {
   await driver.findWait('.test-importer-preview .gridview_row', 1000);
   const section = await driver.find('.test-importer-preview');
-  return getVisibleGridCells({cols, rowNums, section});
+  return getVisibleGridCells({cols, rowNums, section, mapper});
+}
+
+/**
+ * Helper to get a cell from the importer Preview section.
+ */
+ export async function getPreviewCell(col: string|number, rowNum: number): Promise<WebElementPromise> {
+  await driver.findWait('.test-importer-preview .gridview_row', 1000);
+  const section = await driver.find('.test-importer-preview');
+  return getCell({col, rowNum, section});
 }
 
 /**

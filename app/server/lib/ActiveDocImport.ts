@@ -3,12 +3,14 @@
 import * as path from 'path';
 import * as _ from 'underscore';
 
+import {ColumnDelta, createEmptyActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
         MergeOptions, MergeOptionsMap, MergeStrategy, TransformColumn, TransformRule,
         TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
+import {DocStateComparison} from 'app/common/UserAPI';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristTable} from 'app/plugin/GristTable';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -104,6 +106,95 @@ export class ActiveDocImport {
     await this._removeHiddenTables(docSession, prevTableIds);
     this._activeDoc.stopBundleUserActions(docSession);
     await globalUploadSet.cleanup(dataSource.uploadId);
+  }
+
+  /**
+   * Returns a diff of changes that will be applied to the destination table from `transformRule`
+   * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
+   *
+   * The diff is returned as a `DocStateComparison` of the same doc, with the `rightChanges`
+   * containing the updated cell values. Old values are pulled from the destination record (if
+   * a match was found), and new values are the result of merging in the new cell values with
+   * the merge strategy from `mergeOptions`.
+   *
+   * No distinction is currently made for added records vs. updated existing records; instead,
+   * we treat added records as an updated record in `hiddenTableId` where all the column
+   * values changed from blank to the original column values from `hiddenTableId`.
+   *
+   * @param {string} hiddenTableId Source table.
+   * @param {TransformRule} transformRule Transform rule for the original source columns.
+   * The destination table id is populated in the rule.
+   * @param {MergeOptions} mergeOptions Merge options for how to match source rows
+   * with destination records, and how to merge their column values.
+   * @returns {Promise<DocStateComparison>} Comparison data for the changes that will occur if
+   * `hiddenTableId` is merged into the destination table from `transformRule`.
+   */
+  public async generateImportDiff(hiddenTableId: string, {destCols, destTableId}: TransformRule,
+                                  {mergeCols, mergeStrategy}: MergeOptions): Promise<DocStateComparison> {
+    // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
+    const selectColumns: [string, string][] =
+      destCols.map(c => [c.colId!, c.colId!.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length)]);
+    const selectColumnsMap = new Map(selectColumns);
+    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, selectColumnsMap, mergeCols);
+
+    // Initialize container for updated column values in the expected format (ColumnDelta).
+    const updatedRecords: {[colId: string]: ColumnDelta} = {};
+    const updatedRecordIds: number[] = [];
+    const srcColIds = selectColumns.map(([srcColId, _destColId]) => srcColId);
+    for (const id of srcColIds) {
+      updatedRecords[id] = {};
+    }
+
+    // Retrieve the function used to reconcile differences between source and destination.
+    const merge = getMergeFunction(mergeStrategy);
+
+    const numResultRows = comparisonResult[hiddenTableId + '.id'].length;
+    for (let i = 0; i < numResultRows; i++) {
+      const srcRowId = comparisonResult[hiddenTableId + '.id'][i] as number;
+
+      if (comparisonResult[destTableId + '.id'][i] === null) {
+        // No match in destination table found for source row, so it must be a new record.
+        for (const srcColId of srcColIds) {
+          updatedRecords[srcColId][srcRowId] = [[''], [(comparisonResult[`${hiddenTableId}.${srcColId}`][i])]];
+        }
+      } else {
+        // Otherwise, a match was found between source and destination tables.
+        for (const srcColId of srcColIds) {
+          const matchingDestColId = selectColumnsMap.get(srcColId);
+          const srcVal = comparisonResult[`${hiddenTableId}.${srcColId}`][i];
+          const destVal = comparisonResult[`${destTableId}.${matchingDestColId}`][i];
+
+          // Exclude unchanged cell values from the comparison.
+          if (srcVal === destVal) { continue; }
+
+          updatedRecords[srcColId][srcRowId] = [[destVal], [merge(srcVal, destVal)]];
+        }
+      }
+
+      updatedRecordIds.push(srcRowId);
+    }
+
+    return {
+      left: {n: 0, h: ''},  // NOTE: left, right, parent, and summary are not used by Importer.
+      right: {n: 0, h: ''},
+      parent: null,
+      summary: 'right',
+      details: {
+        leftChanges: createEmptyActionSummary(),
+        rightChanges: {
+          tableRenames: [],
+          tableDeltas: {
+            [hiddenTableId]: {
+              removeRows: [],
+              updateRows: updatedRecordIds,
+              addRows: [],  // Since deltas are relative to the source table, we can't (yet) use this.
+              columnRenames: [],
+              columnDeltas: updatedRecords,
+            }
+          }
+        }
+      }
+    };
   }
 
   /**
@@ -341,6 +432,105 @@ export class ActiveDocImport {
   }
 
   /**
+   * Merges matching records from `hiddenTableId` into `destTableId`, and finalizes import.
+   *
+   * @param {string} hiddenTableId Source table containing records to be imported.
+   * @param {string} destTableId Destination table that will be updated.
+   * @param {TransformRule} transformRule Rules for transforming source columns using formulas
+   * before merging/importing takes place.
+   * @param {MergeOptions} mergeOptions Options for how to merge matching records between
+   * the source and destination table.
+   */
+  private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
+                                      {destCols, sourceCols}: TransformRule,
+                                      {mergeCols, mergeStrategy}: MergeOptions): Promise<void> {
+    // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
+    const selectColumns: [string, string][] = destCols.map(destCol => {
+      const formula = destCol.formula.trim();
+      const srcColId = formula.startsWith('$') && sourceCols.includes(formula.slice(1)) ?
+        formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
+      return [srcColId, destCol.colId!];
+    });
+    const selectColumnsMap = new Map(selectColumns);
+    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId, selectColumnsMap, mergeCols);
+
+    // Initialize containers for new and updated records in the expected formats.
+    const newRecords: BulkColValues = {};
+    let numNewRecords = 0;
+    const updatedRecords: BulkColValues = {};
+    const updatedRecordIds: number[] = [];
+
+    const destColIds = [...selectColumnsMap.values()];
+    for (const id of destColIds) {
+      newRecords[id] = [];
+      updatedRecords[id] = [];
+    }
+
+    // Retrieve the function used to reconcile differences between source and destination.
+    const merge = getMergeFunction(mergeStrategy);
+
+    const srcColIds = [...selectColumnsMap.keys()];
+    const numResultRows = comparisonResult[hiddenTableId + '.id'].length;
+    for (let i = 0; i < numResultRows; i++) {
+      if (comparisonResult[destTableId + '.id'][i] === null) {
+        // No match in destination table found for source row, so it must be a new record.
+        for (const srcColId of srcColIds) {
+          const matchingDestColId = selectColumnsMap.get(srcColId);
+          newRecords[matchingDestColId!].push(comparisonResult[`${hiddenTableId}.${srcColId}`][i]);
+        }
+        numNewRecords++;
+      } else {
+        // Otherwise, a match was found between source and destination tables, so we merge their columns.
+        for (const srcColId of srcColIds) {
+          const matchingDestColId = selectColumnsMap.get(srcColId);
+          const srcVal = comparisonResult[`${hiddenTableId}.${srcColId}`][i];
+          const destVal = comparisonResult[`${destTableId}.${matchingDestColId}`][i];
+          updatedRecords[matchingDestColId!].push(merge(srcVal, destVal));
+        }
+        updatedRecordIds.push(comparisonResult[destTableId + '.id'][i] as number);
+      }
+    }
+
+    // We no longer need the temporary import table, so remove it.
+    await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
+
+    if (updatedRecordIds.length > 0) {
+      await this._activeDoc.applyUserActions(docSession,
+        [['BulkUpdateRecord', destTableId, updatedRecordIds, updatedRecords]]);
+    }
+
+    if (numNewRecords > 0) {
+      await this._activeDoc.applyUserActions(docSession,
+        [['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]]);
+    }
+  }
+
+  /**
+   * Builds and executes a SQL query that compares common columns from `hiddenTableId`
+   * and `destTableId`, returning matched rows that contain differences between both tables.
+   *
+   * The `mergeCols` parameter defines how rows from both tables are matched; we consider
+   * rows whose columns values for all columns in `mergeCols` to be the same record in both
+   * tables.
+   *
+   * @param {string} hiddenTableId Source table.
+   * @param {string} destTableId Destination table.
+   * @param {string} selectColumnsMap Map of source to destination column ids to include in the comparison results.
+   * @param {string[]} mergeCols List of (destination) column ids to use for matching.
+   * @returns {Promise<BulkColValues} Decoded column values from both tables that were matched, and had differences.
+   */
+  private async _getTableComparison(hiddenTableId: string, destTableId: string, selectColumnsMap: Map<string, string>,
+                                    mergeCols: string[]): Promise<BulkColValues> {
+    const joinColumns: [string, string][] =
+      [...selectColumnsMap.entries()].filter(([_srcColId, destColId]) => mergeCols.includes(destColId));
+    const joinColumnsMap = new Map(joinColumns);
+
+    const query = buildComparisonQuery(hiddenTableId, destTableId, selectColumnsMap, joinColumnsMap);
+    const result = await this._activeDoc.docStorage.fetchQuery(query);
+    return this._activeDoc.docStorage.decodeMarshalledDataFromTables(result);
+  }
+
+  /**
    * Returns a default TransformRule using column definitions from `destTableId`. If `destTableId`
    * is null (in the case when the import destination is a new table), the `srcCols` are used instead.
    *
@@ -438,95 +628,6 @@ export class ActiveDocImport {
     }
 
   }
-
-  /**
-   * Merges matching records from `hiddenTableId` into `destTableId`, and finalizes import.
-   *
-   * @param {string} hiddenTableId Source table containing records to be imported.
-   * @param {string} destTableId Destination table that will be updated.
-   * @param {TransformRule} transformRule Rules for transforming source columns using formulas
-   * before merging/importing takes place.
-   * @param {MergeOptions} mergeOptions Options for how to merge matching records between
-   * the source and destination table.
-   */
-  private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
-                                      transformRule: TransformRule, mergeOptions: MergeOptions): Promise<void> {
-    // Prepare a set of column pairs (source and destination) for selecting and joining.
-    const selectColumns: [string, string][] = [];
-    const joinColumns: [string, string][] = [];
-
-    for (const destCol of transformRule.destCols) {
-      const destColId = destCol.colId as string;
-
-      const formula = destCol.formula.trim();
-      const srcColId = formula.startsWith('$') && transformRule.sourceCols.includes(formula.slice(1)) ?
-        formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
-
-      selectColumns.push([srcColId, destColId]);
-
-      if (mergeOptions.mergeCols.includes(destColId)) {
-        joinColumns.push([srcColId, destColId]);
-      }
-    }
-
-    const selectColumnsMap = new Map(selectColumns);
-    const joinColumnsMap = new Map(joinColumns);
-
-    // Construct and execute a SQL query that will tell us the differences between source and destination.
-    const query = buildComparisonQuery(hiddenTableId, destTableId, selectColumnsMap, joinColumnsMap);
-    const result = await this._activeDoc.docStorage.fetchQuery(query);
-    const decodedResult = this._activeDoc.docStorage.decodeMarshalledDataFromTables(result);
-
-    // Initialize containers for new and updated records in the expected formats.
-    const newRecords: BulkColValues = {};
-    let numNewRecords = 0;
-    const updatedRecords: BulkColValues = {};
-    const updatedRecordIds: number[] = [];
-
-    const destColIds = [...selectColumnsMap.values()];
-    for (const id of destColIds) {
-      newRecords[id] = [];
-      updatedRecords[id] = [];
-    }
-
-    // Retrieve the function used to reconcile differences between source and destination.
-    const merge = getMergeFunction(mergeOptions.mergeStrategy);
-
-    const srcColIds = [...selectColumnsMap.keys()];
-    const numResultRows = decodedResult[hiddenTableId + '.id'].length;
-    for (let i = 0; i < numResultRows; i++) {
-      if (decodedResult[destTableId + '.id'][i] === null) {
-        // No match in destination table found for source row, so it must be a new record.
-        for (const srcColId of srcColIds) {
-          const matchingDestColId = selectColumnsMap.get(srcColId);
-          newRecords[matchingDestColId!].push(decodedResult[`${hiddenTableId}.${srcColId}`][i]);
-        }
-        numNewRecords++;
-      } else {
-        // Otherwise, a match was found between source and destination tables, so we merge their columns.
-        for (const srcColId of srcColIds) {
-          const matchingDestColId = selectColumnsMap.get(srcColId);
-          const srcVal = decodedResult[`${hiddenTableId}.${srcColId}`][i];
-          const destVal = decodedResult[`${destTableId}.${matchingDestColId}`][i];
-          updatedRecords[matchingDestColId!].push(merge(srcVal, destVal));
-        }
-        updatedRecordIds.push(decodedResult[destTableId + '.id'][i] as number);
-      }
-    }
-
-    // We no longer need the temporary import table, so remove it.
-    await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
-
-    if (updatedRecordIds.length > 0) {
-      await this._activeDoc.applyUserActions(docSession,
-        [['BulkUpdateRecord', destTableId, updatedRecordIds, updatedRecords]]);
-    }
-
-    if (numNewRecords > 0) {
-      await this._activeDoc.applyUserActions(docSession,
-        [['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]]);
-    }
-  }
 }
 
 // Helper function that returns true if a given cell is blank (i.e. null or empty).
@@ -555,14 +656,19 @@ type MergeFunction = (srcVal: CellValue, destVal: CellValue) => CellValue;
  */
 function getMergeFunction({type}: MergeStrategy): MergeFunction {
   switch (type) {
-    case 'replace-with-nonblank-source':
+    case 'replace-with-nonblank-source': {
       return (srcVal, destVal) => isBlank(srcVal) ? destVal : srcVal;
-    case 'replace-all-fields':
+    }
+    case 'replace-all-fields': {
       return (srcVal, _destVal) => srcVal;
-    case 'replace-blank-fields-only':
+    }
+    case 'replace-blank-fields-only': {
       return (srcVal, destVal) => isBlank(destVal) ? srcVal : destVal;
-    default:
-      // Normally, we should never arrive here. If we somehow do, we throw an error.
-      throw new Error(`Unknown merge strategy: ${type}`);
+    }
+    default: {
+      // Normally, we should never arrive here. If we somehow do, throw an error.
+      const unknownStrategyType: never = type;
+      throw new Error(`Unknown merge strategy: ${unknownStrategyType}`);
+    }
   }
 }

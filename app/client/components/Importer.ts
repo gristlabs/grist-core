@@ -11,12 +11,14 @@ import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {SortedRowSet} from "app/client/models/rowset";
 import {openFilePicker} from "app/client/ui/FileDialog";
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
+import {loadingSpinner} from "app/client/ui2018/loaders";
 import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
         MergeOptionsMap,
         MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
@@ -27,6 +29,7 @@ import {Computed, Disposable, dom, DomContents, IDisposable, MutableObsArray, ob
         styled} from 'grainjs';
 import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from "app/client/ui/googleAuth";
+import debounce = require('lodash/debounce');
 
 // Special values for import destinations; null means "new table".
 // TODO We should also support "skip table" (needs server support), so that one can open, say,
@@ -36,27 +39,34 @@ type DestId = string | null;
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
 type CreatePreviewFunc = (vs: ViewSectionRec) => GridView;
-type GridView = IDisposable & {viewPane: HTMLElement};
+type GridView = IDisposable & {viewPane: HTMLElement, sortedRows: SortedRowSet, listenTo: (...args: any[]) => void};
 
-// SourceInfo conteains information about source table and corresponding destination table id,
-// transform sectionRef (can be used to show previous transform section with users changes)
-// and also originalFilename and path.
 export interface SourceInfo {
+  // The source table id.
   hiddenTableId: string;
   uploadFileIndex: number;
   origTableName: string;
   sourceSection: ViewSectionRec;
-  transformSection: Observable<ViewSectionRec>;
+  // A viewsection containing transform (formula) columns pointing to the original source columns.
+  transformSection: Observable<ViewSectionRec|null>;
+  // The destination table id.
   destTableId: Observable<DestId>;
+  // True if there is at least one request in progress to create a new transform section.
+  isLoadingSection: Observable<boolean>;
+  // Reference to last promise for the GenImporterView action (which creates `transformSection`).
+  lastGenImporterViewPromise: Promise<any>|null;
 }
-// UI state of selected merge options for each source table (from SourceInfo).
+
+interface MergeOptionsStateMap {
+  [hiddenTableId: string]: MergeOptionsState|undefined;
+}
+
+// UI state of merge options for a SourceInfo.
 interface MergeOptionsState {
-  [srcTableId: string]: {
-    updateExistingRecords: Observable<boolean>;
-    mergeCols: MutableObsArray<string>;
-    mergeStrategy: Observable<MergeStrategy>;
-    hasInvalidMergeCols: Observable<boolean>;
-  } | undefined;
+  updateExistingRecords: Observable<boolean>;
+  mergeCols: MutableObsArray<string>;
+  mergeStrategy: Observable<MergeStrategy>;
+  hasInvalidMergeCols: Observable<boolean>;
 }
 
 /**
@@ -132,7 +142,7 @@ export class Importer extends Disposable {
   private _uploadResult?: UploadResult;
 
   private _screen: PluginScreen;
-  private _mergeOptions: MergeOptionsState = {};
+  private _mergeOptions: MergeOptionsStateMap = {};
   private _parseOptions = Observable.create<ParseOptions>(this, {});
   private _sourceInfoArray = Observable.create<SourceInfo[]>(this, []);
   private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
@@ -140,9 +150,20 @@ export class Importer extends Disposable {
   private _previewViewSection: Observable<ViewSectionRec|null> =
     Computed.create(this, this._sourceInfoSelected, (use, info) => {
       if (!info) { return null; }
+
+      const isLoading = use(info.isLoadingSection);
+      if (isLoading) { return null; }
+
       const viewSection = use(info.transformSection);
       return viewSection && !use(viewSection._isDeleted) ? viewSection : null;
     });
+
+  // True if there is at least one request in progress to generate an import diff.
+  private _isLoadingDiff = Observable.create(this, false);
+  // Promise for the most recent generateImportDiff action.
+  private _lastGenImportDiffPromise: Promise<any>|null = null;
+
+  private _updateImportDiff = debounce(this._updateDiff, 1000, {leading: true, trailing: true});
 
   // destTables is a list of options for import destinations, and includes all tables in the
   // document, plus two values: to import as a new table, and to skip an import table entirely.
@@ -156,6 +177,10 @@ export class Importer extends Disposable {
               private _createPreview: CreatePreviewFunc) {
     super();
     this._screen = PluginScreen.create(this, _importSourceElem?.importSource.label || "Import from file");
+
+    this.onDispose(() => {
+      this._resetImportDiffState();
+    });
   }
 
   /*
@@ -225,11 +250,25 @@ export class Importer extends Disposable {
     return this._gristDoc.docModel.viewSections.getRowModel(sectionRef);
   }
 
-  private async _updateTransformSection(sourceInfo: SourceInfo, destTableId: string|null) {
-    const transformSectionRef = await this._gristDoc.docData.sendAction(
-      ['GenImporterView', sourceInfo.hiddenTableId, destTableId, null]);
+  private async _updateTransformSection(sourceInfo: SourceInfo) {
+    this._resetImportDiffState();
+
+    sourceInfo.isLoadingSection.set(true);
+    sourceInfo.transformSection.set(null);
+
+    const genImporterViewPromise = this._gristDoc.docData.sendAction(
+      ['GenImporterView', sourceInfo.hiddenTableId, sourceInfo.destTableId.get(), null]);
+    sourceInfo.lastGenImporterViewPromise = genImporterViewPromise;
+    const transformSectionRef = await genImporterViewPromise;
+
+    // If the request is superseded by a newer request, or the Importer is disposed, do nothing.
+    if (this.isDisposed() || sourceInfo.lastGenImporterViewPromise !== genImporterViewPromise) {
+      return;
+    }
+
+    // Otherwise, update the transform section for `sourceInfo`.
     sourceInfo.transformSection.set(this._gristDoc.docModel.viewSections.getRowModel(transformSectionRef));
-    sourceInfo.destTableId.set(destTableId);
+    sourceInfo.isLoadingSection.set(false);
   }
 
   private _getTransformedDataSource(upload: UploadResult): DataSourceTransformed {
@@ -262,7 +301,12 @@ export class Importer extends Disposable {
   }
 
   private _createTransformRule(sourceInfo: SourceInfo): TransformRule {
-    const transformFields = sourceInfo.transformSection.get().viewFields().peek();
+    const transformSection = sourceInfo.transformSection.get();
+    if (!transformSection) {
+      throw new Error(`Table ${sourceInfo.hiddenTableId} is missing transform section`);
+    }
+
+    const transformFields = transformSection.viewFields().peek();
     const sourceFields = sourceInfo.sourceSection.viewFields().peek();
 
     const destTableId: DestId = sourceInfo.destTableId.get();
@@ -295,8 +339,9 @@ export class Importer extends Disposable {
 
   private async _reImport(upload: UploadResult) {
     this._screen.renderSpinner();
+    this._resetImportDiffState();
     try {
-      const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 100};
+      const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
       const importResult: ImportResult = await this._docComm.importFiles(
         this._getTransformedDataSource(upload), parseOptions, this._getHiddenTableIds());
 
@@ -308,7 +353,9 @@ export class Importer extends Disposable {
         origTableName: info.origTableName,
         sourceSection: this._getPrimaryViewSection(info.hiddenTableId)!,
         transformSection: Observable.create(null, this._getSectionByRef(info.transformSectionRef)),
-        destTableId: Observable.create<DestId>(null, info.destTableId)
+        destTableId: Observable.create<DestId>(null, info.destTableId),
+        isLoadingSection: Observable.create(null, false),
+        lastGenImporterViewPromise: null
       })));
 
       if (this._sourceInfoArray.get().length === 0) {
@@ -321,7 +368,7 @@ export class Importer extends Disposable {
           updateExistingRecords: Observable.create(null, false),
           mergeCols: obsArray(),
           mergeStrategy: Observable.create(null, {type: 'replace-with-nonblank-source'}),
-          hasInvalidMergeCols: Observable.create(null, false)
+          hasInvalidMergeCols: Observable.create(null, false),
         };
       });
 
@@ -341,6 +388,8 @@ export class Importer extends Disposable {
     if (!isConfigValid) { return; }
 
     this._screen.renderSpinner();
+    this._resetImportDiffState();
+
     const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
     const mergeOptionMaps = this._getMergeOptionMaps(upload);
 
@@ -356,6 +405,8 @@ export class Importer extends Disposable {
   }
 
   private async _cancelImport() {
+    this._resetImportDiffState();
+
     if (this._uploadResult) {
       await this._docComm.cancelImportFiles(
         this._getTransformedDataSource(this._uploadResult), this._getHiddenTableIds());
@@ -391,6 +442,59 @@ export class Importer extends Disposable {
     return cssModalHeader(cssModalTitle(title), rightElement);
   }
 
+  /**
+   * Triggers an update of the import diff in the preview table. When called in quick succession,
+   * only the most recent call will result in an update being made to the preview table.
+   *
+   * NOTE: This method should not be called directly. Instead, use _updateImportDiff, which
+   * wraps this method and debounces it.
+   *
+   * @param {SourceInfo} info The source to update the diff for.
+   */
+  private async _updateDiff(info: SourceInfo) {
+    const mergeOptions = this._mergeOptions[info.hiddenTableId]!;
+
+    this._isLoadingDiff.set(true);
+
+    if (!mergeOptions.updateExistingRecords.get() || mergeOptions.mergeCols.get().length === 0) {
+      // We can simply disable document comparison mode when merging isn't configured.
+      this._gristDoc.comparison = null;
+    } else {
+      // Request a diff of the current source and wait for a response.
+      const genImportDiffPromise = this._docComm.generateImportDiff(info.hiddenTableId,
+        this._createTransformRule(info), this._getMergeOptionsForSource(info)!);
+      this._lastGenImportDiffPromise = genImportDiffPromise;
+      const diff = await genImportDiffPromise;
+
+      // If the request is superseded by a newer request, or the Importer is disposed, do nothing.
+      if (this.isDisposed() || genImportDiffPromise !== this._lastGenImportDiffPromise) { return; }
+
+      // Otherwise, put the document in comparison mode with the diff data.
+      this._gristDoc.comparison = diff;
+    }
+
+    this._isLoadingDiff.set(false);
+  }
+
+  /**
+   * Resets all state variables related to diffs to their default values.
+   */
+  private _resetImportDiffState() {
+    this._cancelPendingDiffRequests();
+    this._gristDoc.comparison = null;
+  }
+
+  /**
+   * Effectively cancels all pending diff requests by causing their fulfilled promises to
+   * be ignored by their attached handlers. Since we can't natively cancel the promises, this
+   * is functionally equivalent to canceling the outstanding requests.
+   */
+  private _cancelPendingDiffRequests() {
+    this._updateImportDiff.cancel();
+    this._lastGenImportDiffPromise = null;
+    this._isLoadingDiff.set(false);
+  }
+
   // The importer state showing import in progress, with a list of tables, and a preview.
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
@@ -405,9 +509,10 @@ export class Importer extends Disposable {
         cssTableList(
           dom.forEach(this._sourceInfoArray, (info) => {
             const destTableId = Computed.create(null, (use) => use(info.destTableId))
-              .onWrite((destId) => {
+              .onWrite(async (destId) => {
+                info.destTableId.set(destId);
                 this._resetTableMergeOptions(info.hiddenTableId);
-                void this._updateTransformSection(info, destId);
+                await this._updateTransformSection(info);
               });
             return cssTableInfo(
               dom.autoDispose(destTableId),
@@ -415,67 +520,90 @@ export class Importer extends Disposable {
                 cssTableSource(getSourceDescription(info, upload), testId('importer-from'))),
               cssTableLine(cssToFrom('To'), linkSelect<DestId>(destTableId, this._destTables)),
               cssTableInfo.cls('-selected', (use) => use(this._sourceInfoSelected) === info),
-              dom.on('click', () => {
+              dom.on('click', async () => {
                 if (info === this._sourceInfoSelected.get() || !this._validateImportConfiguration()) {
                   return;
                 }
+
+                this._cancelPendingDiffRequests();
                 this._sourceInfoSelected.set(info);
+                await this._updateDiff(info);
               }),
               testId('importer-source'),
             );
           }),
         ),
-        dom.maybe(this._sourceInfoSelected, (info) =>
-          dom.maybe(info.destTableId, () => {
-            const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
-            return cssMergeOptions(
-              cssMergeOptionsToggle(labeledSquareCheckbox(
-                updateExistingRecords,
-                'Update existing records',
-                testId('importer-update-existing-records')
-              )),
-              dom.maybe(updateExistingRecords, () => [
-                cssMergeOptionsMessage(
-                  'Imported rows will be merged with records that have the same values for all of these fields:',
-                  testId('importer-merge-fields-message')
-                ),
-                dom.domComputed(info.transformSection, section => {
-                  // When changes are made to selected fields, reset the multiSelect error observable.
-                  const invalidColsListener = mergeCols.addListener((val, _prev) => {
-                    if (val.length !== 0 && hasInvalidMergeCols.get()) {
-                      hasInvalidMergeCols.set(false);
-                    }
-                  });
-                  return [
-                    dom.autoDispose(invalidColsListener),
-                    multiSelect(
+        dom.maybe(this._sourceInfoSelected, (info) => {
+          const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
+
+          return [
+            dom.maybe(info.destTableId, (_dest) => {
+              const updateRecordsListener = updateExistingRecords.addListener(async () => {
+                await this._updateImportDiff(info);
+              });
+
+              return cssMergeOptions(
+                cssMergeOptionsToggle(labeledSquareCheckbox(
+                  updateExistingRecords,
+                  'Update existing records',
+                  dom.autoDispose(updateRecordsListener),
+                  testId('importer-update-existing-records')
+                )),
+                dom.maybe(updateExistingRecords, () => [
+                  cssMergeOptionsMessage(
+                    'Imported rows will be merged with records that have the same values for all of these fields:',
+                    testId('importer-merge-fields-message')
+                  ),
+                  dom.domComputed(info.transformSection, section => {
+                    const mergeColsListener = mergeCols.addListener(async val => {
+                      // Reset the error state of the multiSelect on change.
+                      if (val.length !== 0 && hasInvalidMergeCols.get()) {
+                        hasInvalidMergeCols.set(false);
+                      }
+
+                      await this._updateImportDiff(info);
+                    });
+                    return multiSelect(
                       mergeCols,
-                      section.viewFields().peek().map(field => field.label()),
+                      section?.viewFields().peek().map(field => field.label()) ?? [],
                       {
                         placeholder: 'Select fields to match on',
                         error: hasInvalidMergeCols
                       },
+                      dom.autoDispose(mergeColsListener),
                       testId('importer-merge-fields-select')
-                    ),
-                  ];
-                })
-              ])
-            );
-          })
-        ),
-        dom.maybe(this._previewViewSection, () => cssSectionHeader('Preview')),
-        dom.maybe(this._previewViewSection, (viewSection) => {
-          const gridView = this._createPreview(viewSection);
-          return cssPreviewGrid(
-            dom.autoDispose(gridView),
-            gridView.viewPane,
-            testId('importer-preview'),
-          );
+                    );
+                  })
+                ])
+              );
+            }),
+            cssSectionHeader('Preview'),
+            dom.domComputed(use => {
+              const previewSection = use(this._previewViewSection);
+              if (use(this._isLoadingDiff) || !previewSection) {
+                return cssPreviewSpinner(loadingSpinner());
+              }
+
+              const gridView = this._createPreview(previewSection);
+
+              // When changes are made to the preview table, update the import diff.
+              gridView.listenTo(gridView.sortedRows, 'rowNotify', async () => {
+                await this._updateImportDiff(info);
+              });
+
+              return cssPreviewGrid(
+                dom.autoDispose(gridView),
+                gridView.viewPane,
+                testId('importer-preview'),
+              );
+            })
+          ];
         }),
       ),
       cssModalButtons(
         bigPrimaryButton('Import',
           dom.on('click', () => this._maybeFinishImport(upload)),
+          dom.boolAttr('disabled', use => use(this._previewViewSection) === null),
           testId('modal-confirm'),
         ),
         bigBasicButton('Cancel',
@@ -637,9 +765,17 @@ const cssTableSource = styled('div', `
   overflow-wrap: anywhere;
 `);
 
-const cssPreviewGrid = styled('div', `
+const cssPreview = styled('div', `
   display: flex;
   height: 300px;
+`);
+
+const cssPreviewSpinner = styled(cssPreview, `
+  align-items: center;
+  justify-content: center;
+`);
+
+const cssPreviewGrid = styled(cssPreview, `
   border: 1px solid ${colors.darkGrey};
 `);
 

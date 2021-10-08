@@ -23,9 +23,11 @@ import {
   ForkResult,
   ImportOptions,
   ImportResult,
+  MergeOptions,
   PermissionDataWithExtraUsers,
   QueryResult,
-  ServerQuery
+  ServerQuery,
+  TransformRule
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -47,7 +49,7 @@ import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {DocReplacementOptions, DocState} from 'app/common/UserAPI';
+import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -544,6 +546,24 @@ export class ActiveDoc extends EventEmitter {
   public cancelImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
                            prevTableIds: string[]): Promise<void> {
     return this._activeDocImport.cancelImportFiles(docSession, dataSource, prevTableIds);
+  }
+
+  /**
+   * Returns a diff of changes that will be applied to the destination table from `transformRule`
+   * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
+   *
+   * The diff is returned as a `DocStateComparison` of the same doc, with the `rightChanges`
+   * containing the updated cell values. Old values are pulled from the destination record (if
+   * a match was found), and new values are the result of merging in the new cell values with
+   * the merge strategy from `mergeOptions`.
+   *
+   * No distinction is currently made for added records vs. updated existing records; instead,
+   * we treat added records as an updated record in `hiddenTableId` where all the column
+   * values changed from blank to the original column values from `hiddenTableId`.
+   */
+  public generateImportDiff(_docSession: DocSession, hiddenTableId: string, transformRule: TransformRule,
+                            mergeOptions: MergeOptions): Promise<DocStateComparison> {
+    return this._activeDocImport.generateImportDiff(hiddenTableId, transformRule, mergeOptions);
   }
 
   /**

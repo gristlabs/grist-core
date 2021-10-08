@@ -178,14 +178,36 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
     );
   });
 
-  // Join both tables on `joinColumns`, including unmatched rows from `leftTableId`.
+  /**
+   * Performance can suffer when large (right) tables have many duplicates for their join columns.
+   * Specifically, the number of rows returned by the query can be unreasonably large if each
+   * row from the left table is joined against up to N rows from the right table.
+   *
+   * To work around this, we de-duplicate the right table before joining, returning the first row id
+   * we find for a given group of join column values. In practice, this means that each row from
+   * the left table can only be matched with at most 1 equivalent row from the right table.
+   */
+  const dedupedRightTableQuery =
+    `SELECT MIN(id) AS id, ${[...joinColumns.values()].map(v => quoteIdent(v)).join(', ')} ` +
+    `FROM ${quoteIdent(rightTableId)} ` +
+    `GROUP BY ${[...joinColumns.values()].map(v => quoteIdent(v)).join(', ')}`;
+  const dedupedRightTableAlias = quoteIdent('deduped_' + rightTableId);
+
+  // Join the left table to the (de-duplicated) right table, and include unmatched left rows.
   const joinConditions: string[] = [];
   joinColumns.forEach((rightTableColumn, leftTableColumn) => {
     const leftExpression = `${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)}`;
-    const rightExpression = `${quoteIdent(rightTableId)}.${quoteIdent(rightTableColumn)}`;
+    const rightExpression = `${dedupedRightTableAlias}.${quoteIdent(rightTableColumn)}`;
     joinConditions.push(`${leftExpression} = ${rightExpression}`);
   });
-  joins.push(`LEFT JOIN ${quoteIdent(rightTableId)} ON ${joinConditions.join(' AND ')}`);
+  joins.push(
+    `LEFT JOIN (${dedupedRightTableQuery}) AS ${dedupedRightTableAlias} ` +
+    `ON ${joinConditions.join(' AND ')}`);
+
+  // Finally, join the de-duplicated right table to the original right table to get all its columns.
+  joins.push(
+    `LEFT JOIN ${quoteIdent(rightTableId)} ` +
+    `ON ${dedupedRightTableAlias}.id = ${quoteIdent(rightTableId)}.id`);
 
   // Filter out matching rows where all non-join columns from both tables are identical.
   const whereConditions: string[] = [];

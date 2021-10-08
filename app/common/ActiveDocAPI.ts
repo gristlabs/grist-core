@@ -2,7 +2,7 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {PermissionData, UserAccessData} from 'app/common/UserAPI';
+import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {IMessage} from 'grain-rpc';
 
@@ -202,6 +202,13 @@ export interface ActiveDocAPI {
    * Cancels import files, cleans up temporary hidden tables and uploads.
    */
   cancelImportFiles(dataSource: DataSourceTransformed, prevTableIds: string[]): Promise<void>;
+
+  /**
+   * Returns a diff of changes that will be applied to the destination table from `transformRule`
+   * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
+   */
+   generateImportDiff(hiddenTableId: string, transformRule: TransformRule,
+                      mergeOptions: MergeOptions): Promise<DocStateComparison>;
 
   /**
    * Saves attachments from a given upload and creates an entry for them in the database. It
