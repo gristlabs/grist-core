@@ -23,6 +23,7 @@ import {
   ForkResult,
   ImportOptions,
   ImportResult,
+  PermissionDataWithExtraUsers,
   QueryResult,
   ServerQuery
 } from 'app/common/ActiveDocAPI';
@@ -40,6 +41,7 @@ import {
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {normalizeEmail} from 'app/common/emails';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
@@ -1102,6 +1104,65 @@ export class ActiveDoc extends EventEmitter {
       const tableId = tables.getValue(col.parentId as number, 'tableId');
       result[tableId as string].push(col.colId as string);
     }
+    return result;
+  }
+
+  /**
+   * Get users that are worth proposing to "View As" for access control purposes.
+   * User are drawn from the following sources:
+   *   - Users document is shared with.
+   *   - Users mentioned in user attribute tables keyed by email address.
+   *   - Some predefined example users.
+   *
+   * The users the document is shared with are only available if the
+   * user is an owner of the document (or, in a fork, an owner of the
+   * trunk document). For viewers or editors, only the user calling
+   * the method will be included as users the document is shared with.
+   *
+   * Users mentioned in user attribute tables will be available to any user with
+   * the right to view access rules.
+   *
+   * Example users are always included.
+   */
+  public async getUsersForViewAs(docSession: DocSession): Promise<PermissionDataWithExtraUsers> {
+    // Make sure we have rights to view access rules.
+    const db = this.getHomeDbManager();
+    if (!db || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
+      throw new Error('Cannot list ACL users');
+    }
+
+    // Prepare a stub for the collected results.
+    const result: PermissionDataWithExtraUsers = {
+      users: [],
+      attributeTableUsers: [],
+      exampleUsers: [],
+    };
+    const isShared = new Set<string>();
+
+    // Collect users the document is shared with.
+    const userId = getDocSessionUserId(docSession);
+    if (!userId) { throw new Error('Cannot determine user'); }
+    const access = db.unwrapQueryResult(
+      await db.getDocAccess({userId, urlId: this.docName}, {
+        flatten: true, excludeUsersWithoutAccess: true,
+      }));
+    result.users = access.users;
+    result.users.forEach(user => isShared.add(normalizeEmail(user.email)));
+
+    // Collect users from user attribute tables. Omit duplicates with users the document is
+    // shared with.
+    const usersFromUserAttributes = await this._granularAccess.collectViewAsUsersFromUserAttributeTables();
+    for (const user of usersFromUserAttributes) {
+      if (!user.email) { continue; }
+      const email = normalizeEmail(user.email);
+      if (!isShared.has(email)) {
+        result.attributeTableUsers.push({email: user.email, name: user.name || '',
+                                         id: 0, access: user.access === undefined ? 'editors' : user.access});
+      }
+    }
+
+    // Add some example users.
+    result.exampleUsers = this._granularAccess.getExampleViewAsUsers();
     return result;
   }
 

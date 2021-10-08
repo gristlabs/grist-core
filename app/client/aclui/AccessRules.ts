@@ -163,8 +163,8 @@ export class AccessRules extends Disposable {
     for (const tableId of ['_grist_ACLResources', '_grist_ACLRules']) {
       const tableData = this._gristDoc.docData.getTable(tableId)!;
       this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
-      this.autoDispose(this._gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
     }
+    this.autoDispose(this._gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
 
     this.update().catch((e) => this._errorMessage.set(e.message));
   }
@@ -336,12 +336,8 @@ export class AccessRules extends Disposable {
           ),
         ),
         bigBasicButton('Add User Attributes', dom.on('click', () => this._addUserAttributes())),
-        // Disabling "View as user" for forks for the moment. TODO Modify getDocAccess endpoint
-        // to accept forks, through the kind of manipulation that getDoc does; then can enable.
-        !this._gristDoc.docPageModel.isFork.get() ?
-          bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
-            dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden'),
-          ) : null,
+        bigBasicButton('Users', cssDropdownIcon('Dropdown'), elem => this._aclUsersPopup.attachPopup(elem),
+          dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
       cssConditionError({style: 'margin-left: 16px'},
         dom.maybe(this._publicEditAccess, () => dom('div',
@@ -468,8 +464,7 @@ export class AccessRules extends Disposable {
     const pageModel = this._gristDoc.docPageModel;
     const doc = pageModel.currentDoc.get();
 
-    // Note that the getDocAccess endpoint does not succeed for forks currently.
-    const permissionData = doc && !doc.isFork ? await pageModel.appModel.api.getDocAccess(doc.id) : null;
+    const permissionData = doc && await this._gristDoc.docComm.getUsersForViewAs();
     if (this.isDisposed()) { return; }
 
     this._aclUsersPopup.init(pageModel, permissionData);

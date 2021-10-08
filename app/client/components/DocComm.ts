@@ -56,6 +56,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   public checkAclFormula = this._wrapMethod("checkAclFormula");
   public getAclResources = this._wrapMethod("getAclResources");
   public waitForInitialization = this._wrapMethod("waitForInitialization");
+  public getUsersForViewAs = this._wrapMethod("getUsersForViewAs");
 
   public changeUrlIdEmitter = this.autoDispose(new Emitter());
 

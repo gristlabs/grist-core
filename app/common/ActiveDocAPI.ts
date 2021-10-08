@@ -2,6 +2,7 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
+import {PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {IMessage} from 'grain-rpc';
 
@@ -132,6 +133,16 @@ export interface QueryResult {
 export interface ForkResult {
   docId: string;
   urlId: string;
+}
+
+/**
+ * An extension of PermissionData to cover not just users with whom a document is shared,
+ * but also users mentioned in the document (in user attribute tables), and suggested
+ * example users. This is for use in the "View As" feature of the access rules page.
+ */
+export interface PermissionDataWithExtraUsers extends PermissionData {
+  attributeTableUsers: UserAccessData[];
+  exampleUsers: UserAccessData[];
 }
 
 export interface ActiveDocAPI {
@@ -277,4 +288,9 @@ export interface ActiveDocAPI {
    * Wait for document to finish initializing.
    */
   waitForInitialization(): Promise<void>;
+
+  /**
+   * Get users that are worth proposing to "View As" for access control purposes.
+   */
+  getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 }

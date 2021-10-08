@@ -8,7 +8,7 @@ import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {UserOrgPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 // TODO: API should implement UserAPI
-import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL,
+import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL, getRealAccess,
         ManagerDelta, NEW_DOCUMENT_CODE, OrganizationProperties,
         Organization as OrgInfo, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
         WorkspaceProperties} from "app/common/UserAPI";
@@ -557,6 +557,22 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * Find a user by email. Don't create the user if it doesn't already exist.
+   */
+  public async getExistingUserByLogin(
+    email: string,
+    manager?: EntityManager
+  ): Promise<User|undefined> {
+    const normalizedEmail = normalizeEmail(email);
+    return (manager || this._connection).createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .where('email = :email', {email: normalizedEmail})
+      .getOne();
+  }
+
+  /**
    * Returns true if the given domain string is available, and false if it is not available.
    * NOTE that the endpoint only checks if the domain string is taken in the database, it does
    * not check whether the string contains invalid characters.
@@ -982,22 +998,8 @@ export class HomeDBManager extends EventEmitter {
       // Set trunkAccess field.
       doc.trunkAccess = doc.access;
 
-      // Forks without a user id are editable by anyone with view access to the trunk.
-      if (forkUserId === undefined && roles.canView(doc.access)) { doc.access = 'owners'; }
-      if (forkUserId !== undefined) {
-        // A fork user id is known, so only that user should get to edit the fork.
-        if (userId === forkUserId) {
-          if (roles.canView(doc.access)) { doc.access = 'owners'; }
-        } else {
-          // reduce to viewer if not already viewer
-          doc.access = roles.getWeakestRole('viewers', doc.access);
-        }
-      }
-
-      // Finally, if we are viewing a snapshot, we can't edit it.
-      if (snapshotId) {
-        doc.access = roles.getWeakestRole('viewers', doc.access);
-      }
+      // Update access for fork.
+      this._setForkAccess({userId, forkUserId, snapshotId}, doc);
     }
     return doc;
   }
@@ -2027,8 +2029,26 @@ export class HomeDBManager extends EventEmitter {
   // a more straightforward way of determining inheritance. The difficulty here is that all users
   // in the org and their logins are needed for inclusion in the result, which would require an
   // extra lookup step when traversing from the doc.
-  public async getDocAccess(scope: DocScope): Promise<QueryResult<PermissionData>> {
-    const doc = await this._loadDocAccess(scope, Permissions.VIEW);
+  //
+  // If the user is not an owner of the document, only that user (at most) will be mentioned
+  // in the result.
+  //
+  // Optionally, the results can be flattened, removing all information about inheritance and
+  // parents, and just giving the effective access level of each user (frankly, the default
+  // output of this method is quite confusing).
+  //
+  // Optionally, users without access to the document can be removed from the results
+  // (I believe they are included in order to one day facilitate auto-completion in the client?).
+  public async getDocAccess(scope: DocScope, options?: {
+    flatten?: boolean,
+    excludeUsersWithoutAccess?: boolean,
+  }): Promise<QueryResult<PermissionData>> {
+    // Doc permissions of forks are based on the "trunk" document, so make sure
+    // we look up permissions of trunk if we are on a fork (we'll fix the permissions
+    // up for the fork immediately afterwards).
+    const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
+
+    const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
     const docMap = getMemberUserRoles(doc, this.defaultCommonGroupNames);
     // The wsMap gives the ws access inherited by each user.
     const wsMap = getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
@@ -2036,7 +2056,7 @@ export class HomeDBManager extends EventEmitter {
     const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
-    const users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
+    let users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
@@ -2048,10 +2068,42 @@ export class HomeDBManager extends EventEmitter {
         )
       };
     });
+    let maxInheritedRole = this._getMaxInheritedRole(doc);
+
+    if (options?.excludeUsersWithoutAccess) {
+      users = users.filter(user => {
+        const access = getRealAccess(user, { maxInheritedRole, users });
+        return roles.canView(access);
+      });
+    }
+
+    if (forkId || snapshotId || options?.flatten) {
+      for (const user of users) {
+        const access = getRealAccess(user, { maxInheritedRole, users });
+        user.access = access;
+        user.parentAccess = undefined;
+      }
+      maxInheritedRole = null;
+    }
+
+    const thisUser = users.find(user => user.id === scope.userId);
+    if (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners') {
+      // If not an owner, don't return information about other users.
+      users = thisUser ? [thisUser] : [];
+    }
+
+    // If we are on a fork, make any access changes needed. Assumes results
+    // have been flattened.
+    if (forkId || snapshotId) {
+      for (const user of users) {
+        this._setForkAccess({userId: user.id, forkUserId, snapshotId}, user);
+      }
+    }
+
     return {
       status: 200,
       data: {
-        maxInheritedRole: this._getMaxInheritedRole(doc),
+        maxInheritedRole,
         users
       }
     };
@@ -2730,6 +2782,33 @@ export class HomeDBManager extends EventEmitter {
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
     return id;
+  }
+
+  /**
+   * Modify an access level when the document is a fork. Here are the rules, as they
+   * have evolved (the main constraint is that currently forks have no access info of
+   * their own in the db).
+   *   - If fork is a snapshot, all users are at most viewers. Else:
+   *     - If there is no ~USERID in fork id, then all viewers of trunk are owners of the fork.
+   *     - If there is a ~USERID in fork id, that user is owner, all others are at most viewers.
+   */
+  private _setForkAccess(ids: {userId: number, forkUserId?: number, snapshotId?: string},
+                         res: {access: roles.Role|null}) {
+    // Forks without a user id are editable by anyone with view access to the trunk.
+    if (ids.forkUserId === undefined && roles.canView(res.access)) { res.access = 'owners'; }
+    if (ids.forkUserId !== undefined) {
+      // A fork user id is known, so only that user should get to edit the fork.
+      if (ids.userId === ids.forkUserId) {
+        if (roles.canView(res.access)) { res.access = 'owners'; }
+      } else {
+        // reduce to viewer if not already viewer
+       res.access = roles.getWeakestRole('viewers', res.access);
+      }
+    }
+    // Finally, if we are viewing a snapshot, we can't edit it.
+    if (ids.snapshotId) {
+      res.access = roles.getWeakestRole('viewers', res.access);
+    }
   }
 
   // This deals with the problem posed by receiving a PermissionDelta specifying a

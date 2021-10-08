@@ -10,13 +10,14 @@ import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
+import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
 import { isCensored } from 'app/common/gristTypes';
 import { getSetMapValue, isObject, pruneArray } from 'app/common/gutil';
-import { canEdit, canView, Role } from 'app/common/roles';
-import { FullUser } from 'app/common/UserAPI';
+import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
+import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
@@ -718,6 +719,49 @@ export class GranularAccess implements GranularAccessForBundle {
     this._prevUserAttributesMap?.delete(docSession);
   }
 
+  // Get a set of example users for playing with access control.
+  // We use the example.com domain, which is reserved for uses like this.
+  public getExampleViewAsUsers(): UserAccessData[] {
+    return [
+      {id: 0, email: 'owner@example.com', name: 'Owner', access: 'owners'},
+      {id: 0, email: 'editor1@example.com', name: 'Editor 1', access: 'editors'},
+      {id: 0, email: 'editor2@example.com', name: 'Editor 2', access: 'editors'},
+      {id: 0, email: 'viewer@example.com', name: 'Viewer', access: 'viewers'},
+      {id: 0, email: 'unknown@example.com', name: 'Unknown User', access: null},
+    ];
+  }
+
+  // Compile a list of users mentioned in user attribute tables keyed by email.
+  // If there is a Name column or an Access column, in the table, we use them.
+  public async collectViewAsUsersFromUserAttributeTables(): Promise<Array<Partial<UserAccessData>>> {
+    const result: Array<Partial<UserAccessData>> = [];
+    for (const clause of this._ruler.ruleCollection.getUserAttributeRules().values()) {
+      if (clause.charId !== 'Email') { continue; }
+      try {
+        const users = await this._fetchQueryFromDB({
+          tableId: clause.tableId,
+          filters: {},
+        });
+        const user = new RecordView(users, undefined);
+        const count = users[2].length;
+        for (let i = 0; i < count; i++) {
+          user.index = i;
+          const email = user.get(clause.lookupColId);
+          const name = user.get('Name') || String(email).split('@')[0];
+          const access = user.has('Access') ? String(user.get('Access')) : 'editors';
+          result.push({
+            email: email ? String(email) : undefined,
+            name: name ? String(name) : undefined,
+            access: isValidRole(access) ? access : null,  // 'null' -> null a bit circuitously
+          });
+        }
+      } catch (e) {
+        log.warn(`User attribute ${clause.name} failed`, e);
+      }
+    }
+    return result;
+  }
+
   /**
    * Get the role the session user has for this document.  User may be overridden,
    * in which case the role of the override is returned.
@@ -1243,18 +1287,8 @@ export class GranularAccess implements GranularAccessForBundle {
         access = attrs.override.access;
         fullUser = attrs.override.user;
       } else {
-        // Look up user information in database.
-        if (!this._homeDbManager) { throw new Error('database required'); }
-        const dbUser = linkParameters.aclAsUserId ?
-          (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId))) :
-          (await this._homeDbManager.getUserByLogin(linkParameters.aclAsUser));
-        const docAuth = dbUser && await this._homeDbManager.getDocAuthCached({
-          urlId: this._docId,
-          userId: dbUser.id
-        });
-        access = docAuth?.access || null;
-        fullUser = dbUser && this._homeDbManager.makeFullUser(dbUser) || null;
-        attrs.override = { access, user: fullUser };
+        attrs.override = await this._getViewAsUser(linkParameters);
+        fullUser = attrs.override.user;
       }
     } else {
       fullUser = getDocSessionUser(docSession);
@@ -1303,6 +1337,45 @@ export class GranularAccess implements GranularAccessForBundle {
       attrs.rows[clause.name] = rec;
     }
     return user;
+  }
+
+  /**
+   * Get the "View As" user specified in link parameters.
+   * If aclAsUserId is set, we get the user with the specified id.
+   * If aclAsUser is set, we get the user with the specified email,
+   * from the database if possible, otherwise from user attribute
+   * tables or examples.
+   */
+  private async _getViewAsUser(linkParameters: Record<string, string>): Promise<UserOverride> {
+    // Look up user information in database.
+    if (!this._homeDbManager) { throw new Error('database required'); }
+    const dbUser = linkParameters.aclAsUserId ?
+      (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId))) :
+      (await this._homeDbManager.getExistingUserByLogin(linkParameters.aclAsUser));
+    if (!dbUser && linkParameters.aclAsUser) {
+      // Look further for the user, in user attribute tables or examples.
+      const otherUsers = (await this.collectViewAsUsersFromUserAttributeTables())
+        .concat(this.getExampleViewAsUsers());
+      const email = normalizeEmail(linkParameters.aclAsUser);
+      const dummyUser = otherUsers.find(user => normalizeEmail(user?.email || '') === email);
+      if (dummyUser) {
+        return {
+          access: dummyUser.access || null,
+          user: {
+            id: -1,
+            email: dummyUser.email!,
+            name: dummyUser.name || dummyUser.email!,
+          }
+        };
+      }
+    }
+    const docAuth = dbUser && await this._homeDbManager.getDocAuthCached({
+      urlId: this._docId,
+      userId: dbUser.id
+    });
+    const access = docAuth?.access || null;
+    const user = dbUser && this._homeDbManager.makeFullUser(dbUser) || null;
+    return { access, user };
   }
 
   /**
@@ -1799,6 +1872,10 @@ export class RecordView implements InfoView {
       return this.data[2][this.index];
     }
     return this.data[3][colId]?.[this.index];
+  }
+
+  public has(colId: string) {
+    return colId === 'id' || colId in this.data[3];
   }
 
   public toJSON() {
