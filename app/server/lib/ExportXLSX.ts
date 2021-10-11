@@ -88,7 +88,7 @@ async function convertToExcel(tables: ExportData[], testDates: boolean) {
   };
   for (const table of tables) {
     const { columns, rowIds, access, tableName } = table;
-    const ws = wb.addWorksheet(tableName);
+    const ws = wb.addWorksheet(sanitizeWorksheetName(tableName));
     // Build excel formatters.
     const formatters = columns.map(col => createExcelFormatter(col.type, col.widgetOptions));
     // Generate headers for all columns with correct styles for whole column.
@@ -119,4 +119,20 @@ async function convertToExcel(tables: ExportData[], testDates: boolean) {
   }
 
   return await wb.xlsx.writeBuffer();
+}
+
+/**
+ * Removes invalid characters, see https://github.com/exceljs/exceljs/pull/1484
+ */
+export function sanitizeWorksheetName(tableName: string): string {
+  return tableName
+    // Convert invalid characters to spaces
+    .replace(/[*?:/\\[\]]/g, ' ')
+
+    // Collapse multiple spaces into one
+    .replace(/\s+/g, ' ')
+
+    // Trim spaces and single quotes from the ends
+    .replace(/^['\s]+/, '')
+    .replace(/['\s]+$/, '');
 }
