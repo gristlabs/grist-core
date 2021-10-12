@@ -4,16 +4,120 @@ import {reportError} from 'app/client/models/errors';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {Computed, dom, DomContents, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
+import {waitGrainObs} from 'app/common/gutil';
+import {Computed, Disposable, dom, DomContents, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
 
+// IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
-  close(): void;
+  // Observable for whether there is work in progress that's delaying the closing of the modal. It
+  // is useful for disabling a Save or Close button.
+  workInProgress: Computed<boolean>;
+
+  // Focus the modal dialog.
   focus(): void;
+
+  // Request to close, without waiting. It's possible for closing to get prevented.
+  close(): void;
+
+  // Returns true if closed, false if closing was prevented.
+  closeAndWait(): Promise<boolean>;
+
+  // Prevents closing, if close has been called ans is pending. No-op otherwise.
+  preventClose(): void;
+
+  // Wraps the passed-in function, so that closing is delayed while the function is running. If
+  // {close: true} is passed in, then requests closing of the modal when the function is done.
+  //
+  // With catchErrors set, errors are caught and reported, and prevent the dialog from closing.
+  // Otherwise, only StayOpen exception prevents closing; other errors will be propagated.
+  doWork<Args extends any[]>(
+    func: (...args: Args) => Promise<unknown>,
+    options?: {close?: boolean, catchErrors?: boolean},
+  ): (...args: Args) => Promise<void>;
+}
+
+class ModalControl extends Disposable implements IModalControl {
+  private _inProgress = Observable.create<number>(this, 0);
+  private _workInProgress = Computed.create(this, this._inProgress, (use, n) => (n > 0));
+  private _closePromise: Promise<boolean>|undefined;
+  private _shouldClose = false;
+
+  constructor(
+    private _doClose: () => void,
+    private _doFocus: () => void,
+  ) {
+    super();
+  }
+
+  public focus() {
+    this._doFocus();
+  }
+
+  public close(): void {
+    this.closeAndWait().catch(() => {});
+  }
+
+  public async closeAndWait(): Promise<boolean> {
+    return this._closePromise || (this._closePromise = this._doCloseAndWait());
+  }
+
+  public preventClose(): void {
+    this._shouldClose = false;
+  }
+
+  public get workInProgress() {
+    return this._workInProgress;
+  }
+
+  public doWork<Args extends any[]>(
+    func: (...args: Args) => Promise<unknown>,
+    options: {close?: boolean, catchErrors?: boolean} = {},
+  ): (...args: Args) => Promise<void> {
+    return async (...args) => {
+      this._inProgress.set(this._inProgress.get() + 1);
+      const closePromise = options.close ? this.closeAndWait() : null;
+      try {
+        await func(...args);
+      } catch (err) {
+        if (err instanceof StayOpen) {
+          this.preventClose();
+        } else if (options.catchErrors) {
+          reportError(err);
+          this.preventClose();
+        } else {
+          throw err;
+        }
+      } finally {
+        this._inProgress.set(this._inProgress.get() - 1);
+        if (closePromise) {
+          await closePromise;
+        }
+      }
+    };
+  }
+
+  private async _doCloseAndWait(): Promise<boolean> {
+    this._shouldClose = true;
+    try {
+      // Since some modals expect an immediate close; avoid an await when no work is pending.
+      if (this.workInProgress.get()) {
+        await waitGrainObs(this.workInProgress, wip => !wip);
+      }
+      if (this._shouldClose) { this._doClose(); }
+      return this._shouldClose;
+    } finally {
+      this._closePromise = undefined;
+    }
+  }
 }
 
 export interface IModalOptions {
   noEscapeKey?: boolean;      // If set, escape key does not close the dialog
   noClickAway?: boolean;      // If set, clicking into background does not close dialog.
+
+  // If given, call and wait for this before closing the dialog. If it returns false, don't close.
+  // Error also prevents closing, and is reported as an unexpected error.
+  beforeClose?: () => Promise<boolean>;
 }
 
 // A custom error type to signal to the modal that it should stay open, but not report any error
@@ -44,15 +148,18 @@ export type ModalWidth =
  *    )
  *  ])
  */
-export function modal(createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
-                      options: IModalOptions = {}): void {
-  function close() {
-    if (modalDom.isConnected) {
-      document.body.removeChild(modalDom);
-      // Ensure we run the disposers for the DOM contained in the modal.
-      dom.domDispose(modalDom);
-    }
+export function modal(
+  createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
+  options: IModalOptions = {}
+): void {
+
+  function doClose() {
+    if (!modalDom.isConnected) { return; }
+    document.body.removeChild(modalDom);
+    // Ensure we run the disposers for the DOM contained in the modal.
+    dom.domDispose(modalDom);
   }
+  let close = doClose;
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
@@ -62,8 +169,11 @@ export function modal(createFn: (ctl: IModalControl, owner: MultiHolder) => DomE
       owner.onDispose(() => Mousetrap.setPaused(false));
 
       const focus = () => dialog.focus();
+      const ctl = ModalControl.create(owner, doClose, focus);
+      close = () => ctl.close();
+
       const dialog = cssModalDialog(
-        createFn({ close, focus }, owner),
+        createFn(ctl, owner),
         dom.on('click', (ev) => ev.stopPropagation()),
         options.noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId('modal-dialog')
@@ -74,7 +184,7 @@ export function modal(createFn: (ctl: IModalControl, owner: MultiHolder) => DomE
       });
       return dialog;
     }),
-    options.noClickAway ? null : dom.on('click', close),
+    options.noClickAway ? null : dom.on('click', () => close()),
   );
 
 
@@ -130,27 +240,10 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
   return modal((ctl, owner) => {
     const options = createFunc(ctl, owner);
 
-    const isSaving = Observable.create(owner, false);
     const isSaveDisabled = Computed.create(owner, (use) =>
-      use(isSaving) || (options.saveDisabled ? use(options.saveDisabled) : false));
+      use(ctl.workInProgress) || (options.saveDisabled ? use(options.saveDisabled) : false));
 
-    // We mark isSaving() observable to disable the save button while saveFunc() is pending.
-    // (I decided against a waitWithObsSet() helper for this, since it's too specific to this case
-    // when saveFunc() is prevented from being called multiple times in parallel.)
-    async function save() {
-      isSaving.set(true);
-      try {
-        await options.saveFunc();
-        ctl.close();      // Close on success.
-      } catch (err) {
-        // Report errors. If saveFunc() reports its own error and wants the dialog to stay open,
-        // it should throw StayOpen().
-        if (!(err instanceof StayOpen)) {
-          reportError(err);
-        }
-        isSaving.set(false);
-      }
-    }
+    const save = ctl.doWork(options.saveFunc, {close: true, catchErrors: true});
 
     return [
       cssModalTitle(options.title, testId('modal-title')),

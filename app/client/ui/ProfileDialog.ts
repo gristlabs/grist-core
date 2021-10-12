@@ -27,7 +27,6 @@ function showProfileContent(ctl: IModalControl, owner: MultiHolder, appModel: Ap
   const isNameValid = Computed.create(owner, nameEdit, (use, val) => checkName(val));
 
   let needsReload = false;
-  let closeBtn: Element;
 
   async function fetchApiKey() { apiKey.set(await appModel.api.fetchApiKey()); }
   async function createApiKey() { apiKey.set(await appModel.api.createApiKey()); }
@@ -46,16 +45,17 @@ function showProfileContent(ctl: IModalControl, owner: MultiHolder, appModel: Ap
   async function updateUserName(val: string) {
     const user = userObs.get();
     if (user && val && val !== user.name) {
-      closeBtn.toggleAttribute('disabled', true);
-      try {
-        await appModel.api.updateUserName(val);
-        await fetchAll();
-        needsReload = true;
-      } finally {
-        closeBtn.toggleAttribute('disabled', false);
-      }
+      await appModel.api.updateUserName(val);
+      await fetchAll();
+      needsReload = true;
     }
   }
+
+  owner.onDispose(() => {
+    if (needsReload) {
+      appModel.topAppModel.initialize();
+    }
+  });
 
   return [
     cssModalTitle('User Profile'),
@@ -70,7 +70,7 @@ function showProfileContent(ctl: IModalControl, owner: MultiHolder, appModel: Ap
               transientInput(
                 {
                   initialValue: user.name,
-                  save: (val) => isNameValid.get() && updateUserName(val),
+                  save: ctl.doWork(async (val) => isNameValid.get() && updateUserName(val)),
                   close: () => { isEditingName.set(false); nameEdit.set(''); },
                 },
                 dom.on('input', (ev, el) => nameEdit.set(el.value)),
@@ -105,21 +105,17 @@ function showProfileContent(ctl: IModalControl, owner: MultiHolder, appModel: Ap
         cssDataRow(cssSubHeader('API Key'), cssContent(
           dom.create(ApiKey, {
             apiKey,
-            onCreate: createApiKey,
-            onDelete: deleteApiKey,
+            onCreate: ctl.doWork(createApiKey),
+            onDelete: ctl.doWork(deleteApiKey),
             anonymous: false,
           })
         )),
       )
     )),
     cssModalButtons(
-      closeBtn = bigPrimaryButton('Close',
-        dom.on('click', () => {
-          if (needsReload) {
-            appModel.topAppModel.initialize();
-          }
-          ctl.close();
-        }),
+      bigPrimaryButton('Close',
+        dom.boolAttr('disabled', ctl.workInProgress),
+        dom.on('click', () => ctl.close()),
         testId('modal-confirm')
       ),
     ),

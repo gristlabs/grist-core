@@ -899,7 +899,8 @@ GridView.prototype.buildDom = function() {
                 dom.on('contextmenu', ev => {
                   // This is a little hack to position the menu the same way as with a click
                   ev.preventDefault();
-                  ev.currentTarget.querySelector('.g-column-menu-btn').click();
+                  const btn = ev.currentTarget.querySelector('.g-column-menu-btn');
+                  if (btn) { btn.click(); }
                 }),
                 dom('div.g-column-label',
                   kf.editableLabel(field.displayLabel, isEditingLabel, renameCommands),
