@@ -68,6 +68,15 @@ const iconDiv = styled('div', `
   background-color: var(--icon-color, black);
 `);
 
+export const cssIconBackground = styled(iconDiv, `
+  background-color: var(--icon-background, inherit);
+  -webkit-mask: none;
+  & .${iconDiv.className} {
+    transition: inherit;
+    display: block;
+  }
+`);
+
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return iconDiv(
     dom.style('-webkit-mask-image', `var(--icon-${name})`),
