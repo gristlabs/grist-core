@@ -318,11 +318,11 @@ DetailView.prototype.buildTitleControls = function() {
   // Hide controls if this is a card list section, or if the section has a scroll cursor link, since
   // the controls can be confusing in this case.
   // Note that the controls should still be visible with a filter link.
-  const showControls = ko.computed(() =>
-    this._isSingle &&
-      (!this.viewSection.activeLinkSrcSectionRef() || this.viewSection.activeLinkTargetColRef()) &&
-      !this.recordLayout.layoutEditor()
-  );
+  const showControls = ko.computed(() => {
+    if (!this._isSingle || this.recordLayout.layoutEditor()) { return false; }
+    const linkingState = this._linkingState();
+    return !(linkingState && Boolean(linkingState.cursorPos));
+  });
   return dom('div',
     dom.autoDispose(showControls),
 
