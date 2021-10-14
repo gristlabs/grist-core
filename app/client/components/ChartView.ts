@@ -78,8 +78,16 @@ interface PlotData {
   config?: Partial<Config>;
 }
 
+// Data options to pass to chart functions.
+interface DataOptions {
+
+  // Allows to set the pie sort option (see: https://plotly.com/javascript/reference/pie/#pie-sort).
+  // Supports pie charts only.
+  sort?: boolean;
+}
+
 // Convert a list of Series into a set of Plotly traces.
-type ChartFunc = (series: Series[], options: ChartOptions) => PlotData;
+type ChartFunc = (series: Series[], options: ChartOptions, dataOptions?: DataOptions) => PlotData;
 
 
 // Helper for converting numeric Date/DateTime values (seconds since Epoch) to JS Date objects for
@@ -195,18 +203,24 @@ export class ChartView extends Disposable {
       }
     }
 
+    const dataOptions: DataOptions = {};
     const options: ChartOptions = this._options.peek() || {};
     let plotData: PlotData = {data: []};
 
+    const sortSpec = this.viewSection.activeSortSpec.peek();
+    if (this._chartType.peek() === 'pie' && sortSpec?.length) {
+      dataOptions.sort = false;
+    }
+
     if (!options.multiseries) {
-      plotData = chartFunc(series, options);
+      plotData = chartFunc(series, options, dataOptions);
     } else if (series.length > 1) {
       // We need to group all series by the first column.
       const nseries = groupSeries(series[0].values, series.slice(1));
 
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
       for (const gSeries of nseries.values()) {
-        const part = chartFunc(gSeries, options);
+        const part = chartFunc(gSeries, options, dataOptions);
         part.data = plotData.data.concat(part.data);
         plotData = part;
       }
@@ -672,7 +686,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     });
   },
 
-  pie(series: Series[]): PlotData {
+  pie(series: Series[], _options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
     let line: Series;
     if (series.length === 0) {
       return {data: []};
@@ -692,6 +706,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         // (a falsy value would cause plotly to show its index, like "2" which is more confusing).
         labels: series[0].values.map(v => (v == null || v === "") ? "-" : v),
         values: line.values,
+        ...dataOptions,
       }]
     };
   },
