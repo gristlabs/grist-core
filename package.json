@@ -95,7 +95,7 @@
     "express": "4.16.4",
     "file-type": "14.1.4",
     "fs-extra": "7.0.0",
-    "grain-rpc": "0.1.6",
+    "grain-rpc": "0.1.7",
     "grainjs": "1.0.1",
     "highlight.js": "9.13.1",
     "i18n-iso-countries": "6.1.0",
@@ -121,7 +121,7 @@
     "saml2-js": "2.0.3",
     "short-uuid": "3.1.1",
     "tmp": "0.0.33",
-    "ts-interface-checker": "0.1.6",
+    "ts-interface-checker": "1.0.2",
     "typeorm": "0.2.18",
     "uuid": "3.3.2",
     "winston": "2.4.5",
@@ -129,6 +129,6 @@
   },
   "resolutions": {
     "jquery": "2.2.1",
-    "ts-interface-checker": "0.1.6"
+    "ts-interface-checker": "1.0.2"
   }
 }

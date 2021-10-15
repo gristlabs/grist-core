@@ -2,12 +2,13 @@ import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
 import {
-  CellValue, fromTableDataAction, TableColValues, TableRecordValue,
+  BulkColValues, CellValue, fromTableDataAction, TableColValues, TableRecordValue,
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import GristDataTI from 'app/plugin/GristData-ti';
 import { HomeDBManager, makeDocAuthResult } from 'app/gen-server/lib/HomeDBManager';
 import { concatenateSummaries, summarizeAction } from "app/server/lib/ActionSummary";
 import { ActiveDoc, tableIdToRef } from "app/server/lib/ActiveDoc";
@@ -34,12 +35,16 @@ import { SandboxError } from "app/server/lib/sandboxUtil";
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
+import DocApiTypesTI from "app/server/lib/DocApiTypes-ti";
+import * as Types from "app/server/lib/DocApiTypes";
 import * as contentDisposition from 'content-disposition';
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import * as _ from "lodash";
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as uuidv4 from "uuid/v4";
+import * as t from "ts-interface-checker";
+import { Checker } from "ts-interface-checker";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -47,6 +52,29 @@ import * as uuidv4 from "uuid/v4";
 const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
 
 type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
+
+// Schema validators for api endpoints that creates or updates records.
+const {RecordsPatch, RecordsPost} = t.createCheckers(DocApiTypesTI, GristDataTI);
+RecordsPatch.setReportedPath("body");
+RecordsPost.setReportedPath("body");
+
+/**
+ * Middleware for validating request's body with a Checker instance.
+ */
+function validate(checker: Checker): RequestHandler {
+  return (req, res, next) => {
+    try {
+      checker.check(req.body);
+    } catch(err) {
+      res.status(400).json({
+        error : "Invalid payload",
+        details: String(err)
+      }).end();
+      return;
+    }
+    next();
+  };
+}
 
 /**
  * Middleware to track the number of requests outstanding on each document, and to
@@ -209,15 +237,17 @@ export class DocWorkerApi {
         .send(fileData);
     }));
 
+    /**
+     * Adds records to a table. If columnValues is an empty object (or not provided) it will create empty records.
+     * @param columnValues Optional values for fields (can be an empty object to add empty records)
+     * @param count Number of records to add
+     */
     async function addRecords(
-      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: {[colId: string]: CellValue[]}
+      req: RequestWithLogin, activeDoc: ActiveDoc, count: number, columnValues: BulkColValues
     ): Promise<number[]> {
       const tableId = req.params.tableId;
       const colNames = Object.keys(columnValues);
-      // user actions expect [null, ...] as row ids, first let's figure the number of items to add by
-      // looking at the length of a column
-      const count = columnValues[colNames[0]].length;
-      // then, let's create [null, ...]
+      // user actions expect [null, ...] as row ids
       const rowIds = arrayRepeat(count, null);
       const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
         docSessionFromRequest(req),
@@ -225,24 +255,44 @@ export class DocWorkerApi {
       return sandboxRes.retValues[0];
     }
 
-    function recordFieldsToColValues(fields: {[colId: string]: CellValue}[]): {[colId: string]: CellValue[]} {
-      return _.mapValues(fields[0], (_value, key) => _.map(fields, key));
+    function areSameFields(records: Array<Types.Record | Types.NewRecord>) {
+      const recordsFields = records.map(r => new Set(Object.keys(r.fields || {})));
+      const firstFields = recordsFields[0];
+      const allSame = recordsFields.every(s => _.isEqual(firstFields, s));
+      return allSame;
+    }
+
+    function convertToBulkColValues(records: Array<Types.Record | Types.NewRecord>): BulkColValues {
+      // User might want to create empty records, without providing a field name, for example for requests:
+      // { records: [{}] }; { records: [{fields:{}}] }
+      // Retrieve all field names from fields property.
+      const fieldNames = new Set<string>(_.flatMap(records, r => Object.keys(r.fields ?? {})));
+      const result: BulkColValues = {};
+      for (const fieldName of fieldNames) {
+        result[fieldName] = records.map(record => record.fields?.[fieldName] || null);
+      }
+      return result;
     }
 
     // Adds records given in a column oriented format,
     // returns an array of row IDs
     this._app.post('/api/docs/:docId/tables/:tableId/data', canEdit,
       withDoc(async (activeDoc, req, res) => {
-        const ids = await addRecords(req, activeDoc, req.body);
+        const colValues = req.body as BulkColValues;
+        const count = colValues[Object.keys(colValues)[0]].length;
+        const ids = await addRecords(req, activeDoc, count, colValues);
         res.json(ids);
       })
     );
 
     // Adds records given in a record oriented format,
     // returns in the same format as GET /records but without the fields object for now
-    this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit,
+    this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPost),
       withDoc(async (activeDoc, req, res) => {
-        const ids = await addRecords(req, activeDoc, recordFieldsToColValues(_.map(req.body.records, 'fields')));
+        const body = req.body as Types.RecordsPost;
+        const postRecords = convertToBulkColValues(body.records);
+        // postRecords can be an empty object, in that case we will create empty records.
+        const ids = await addRecords(req, activeDoc, body.records.length, postRecords);
         const records = ids.map(id => ({id}));
         res.json({records});
       })
@@ -333,11 +383,18 @@ export class DocWorkerApi {
     );
 
     // Update records given in records format
-    this._app.patch('/api/docs/:docId/tables/:tableId/records', canEdit,
+    this._app.patch('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPatch),
       withDoc(async (activeDoc, req, res) => {
-        const records = req.body.records;
-        const rowIds = _.map(records, 'id');
-        const columnValues = recordFieldsToColValues(_.map(records, 'fields'));
+        const body = req.body as Types.RecordsPatch;
+        const rowIds = _.map(body.records, r => r.id);
+        if (!areSameFields(body.records)) {
+          throw new ApiError("PATCH requires all records to have same fields", 400);
+        }
+        const columnValues = convertToBulkColValues(body.records);
+        if (!rowIds.length || !columnValues) {
+          // For patch method, we require at least one valid record.
+          throw new ApiError("PATCH requires a valid record object", 400);
+        }
         await updateRecords(req, activeDoc, columnValues, rowIds);
         res.json(null);
       })
@@ -479,7 +536,7 @@ export class DocWorkerApi {
       }
       if (req.body.select === 'unlisted') {
         // Remove any snapshots not listed in inventory.  Ideally, there should be no
-        // snapshots, and this undocument feature is just for fixing up problems.
+        // snapshots, and this undocumented feature is just for fixing up problems.
         const full = (await activeDoc.getSnapshots(true)).snapshots.map(s => s.snapshotId);
         const listed = new Set((await activeDoc.getSnapshots()).snapshots.map(s => s.snapshotId));
         const unlisted = full.filter(snapshotId => !listed.has(snapshotId));
@@ -525,7 +582,7 @@ export class DocWorkerApi {
       const activeDoc = await this._getActiveDoc(req);
       await activeDoc.flushDoc();
       // flushDoc terminates once there's no pending operation on the document.
-      // There could still be async operations in progess.  We mute their effect,
+      // There could still be async operations in progress.  We mute their effect,
       // as if they never happened.
       activeDoc.docClients.interruptAllClients();
       activeDoc.setMuted();
