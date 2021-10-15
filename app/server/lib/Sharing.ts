@@ -18,7 +18,6 @@ import { ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory'
 import {summarizeAction} from "./ActionSummary";
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
-import {TriggersHandler} from "./Triggers";
 import {WorkCoordinator} from './WorkCoordinator';
 
 // Describes the request to apply a UserActionBundle. It includes a Client (so that broadcast
@@ -284,7 +283,7 @@ export class Sharing {
       await this._activeDoc.processActionBundle(ownActionBundle);
 
       const actionSummary = summarizeAction(localActionBundle);
-      new TriggersHandler(this._activeDoc).handle(actionSummary);
+      await this._activeDoc.handleTriggers(actionSummary);
 
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {

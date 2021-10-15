@@ -4,6 +4,8 @@
  * change events.
  */
 
+import { ActionSummary } from "app/common/ActionSummary";
+import { DocTriggers } from "app/server/lib/Triggers";
 import * as assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
@@ -138,6 +140,7 @@ export class ActiveDoc extends EventEmitter {
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
+  private _triggers: DocTriggers;
   private _dataEngine: Promise<ISandbox>|undefined;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
@@ -168,6 +171,7 @@ export class ActiveDoc extends EventEmitter {
     this._docName = docName;
     this.docStorage = new DocStorage(docManager.storageManager, docName);
     this.docClients = new DocClients(this);
+    this._triggers = new DocTriggers(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = new DocPluginManager(docManager.pluginManager.getPlugins(),
       docManager.pluginManager.appRoot!, this, this._docManager.gristServer);
@@ -288,6 +292,10 @@ export class ActiveDoc extends EventEmitter {
     return this._actionHistory;
   }
 
+  public handleTriggers(summary: ActionSummary): Promise<void> {
+    return this._triggers.handle(summary);
+  }
+
   /**
    * Adds a client of this doc to the list of connected clients.
    * @param client: The client object maintaining the websocket connection.
@@ -318,6 +326,8 @@ export class ActiveDoc extends EventEmitter {
       await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
       this.docClients.removeAllClients();
     }
+
+    this._triggers.shutdown();
 
     // Clear the MapWithTTL to remove all timers from the event loop.
     this._fetchCache.clear();
