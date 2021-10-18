@@ -2,6 +2,7 @@
 This module defines what sandbox functions are made available to the Node controller,
 and starts the grist sandbox. See engine.py for the API documentation.
 """
+import os
 import sys
 sys.path.append('thirdparty')
 # pylint: disable=wrong-import-position
@@ -101,6 +102,10 @@ def run(sandbox):
     return schema.SCHEMA_VERSION
 
   @export
+  def set_doc_url(doc_url):
+    os.environ['DOC_URL'] = doc_url
+
+  @export
   def get_formula_error(table_id, col_id, row_id):
     return objtypes.encode_object(eng.get_formula_error(table_id, col_id, row_id))
 
@@ -110,6 +115,7 @@ def run(sandbox):
 
   register_import_parsers(sandbox)
 
+  log.info("Ready")  # This log message is significant for checkpointing.
   sandbox.run()
 
 def main():

@@ -45,7 +45,6 @@ interface ISandboxOptions {
   // mounts (e.g. for unsandboxed operation).
   importDir?: string;  // a directory containing data file(s) to import by plugins
 
-  docUrl?: string;               // URL to the document, for SELF_HYPERLINK
   minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
   deterministicMode?: boolean;   // Whether to override time + randomness
 
@@ -391,7 +390,6 @@ export class NSandboxCreator implements ISandboxCreator {
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
-      docUrl: options.docUrl,
       args,
       logCalls: options.logCalls,
       logMeta: {flavor: this._flavor, command: this._command,
@@ -523,6 +521,21 @@ function gvisor(options: ISandboxOptions): ChildProcess {
   if (pythonVersion !== '2' && pythonVersion !== '3') {
     throw new Error("PYTHON_VERSION must be set to 2 or 3");
   }
+  // For a regular sandbox not being used for importing, if GRIST_CHECKPOINT is set
+  // try to restore from it. If GRIST_CHECKPOINT_MAKE is set, try to recreate the
+  // checkpoint (this is an awkward place to do it, but avoids mismatches
+  // between the checkpoint and how it gets used later).
+  // If a sandbox is being used for import, it will have a special mount we can't
+  // deal with easily right now. Should be possible to do in future if desired.
+  if (options.useGristEntrypoint && pythonVersion === '3' && !paths.importDir &&
+      process.env.GRIST_CHECKPOINT) {
+    if (process.env.GRIST_CHECKPOINT_MAKE) {
+      return spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
+                             `python${pythonVersion}`, '--', ...pythonArgs]);
+    }
+    wrapperArgs.push('--restore');
+    wrapperArgs.push(process.env.GRIST_CHECKPOINT);
+  }
   return spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
 }
 
@@ -589,6 +602,7 @@ function macSandboxExec(options: ISandboxOptions): ChildProcess {
   };
   const command = findPython(options.command);
   const realPath = fs.realpathSync(command);
+  log.rawDebug("macSandboxExec found a python", {...options.logMeta, command: realPath});
 
   // Prepare sandbox profile
   const profile: string[] = [];
@@ -656,8 +670,6 @@ function macSandboxExec(options: ISandboxOptions): ChildProcess {
  */
 export function getInsertedEnv(options: ISandboxOptions) {
   const env: NodeJS.ProcessEnv = {
-    DOC_URL: (options.docUrl || '').replace(/[^-a-zA-Z0-9_:/?&.~]/g, ''),
-
     // use stdin/stdout/stderr only.
     PIPE_MODE: options.minimalPipeMode ? 'minimal' : 'classic',
   };

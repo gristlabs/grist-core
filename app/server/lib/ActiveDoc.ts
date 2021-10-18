@@ -1572,6 +1572,10 @@ export class ActiveDoc extends EventEmitter {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
       await this._loadTables(docSession, pendingTableNames);
+      if (this._options?.docUrl) {
+        await this._pyCall('set_doc_url', this._options.docUrl);
+      }
+
       // Calculations are not associated specifically with the user opening the document.
       // TODO: be careful with which users can create formulas.
       await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
@@ -1705,7 +1709,6 @@ export class ActiveDoc extends EventEmitter {
       logCalls: false,
       logTimes: true,
       logMeta: {docId: this._docName},
-      docUrl: this._options?.docUrl,
       preferredPythonVersion,
     });
   }

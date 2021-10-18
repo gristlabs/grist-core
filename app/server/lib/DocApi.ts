@@ -147,12 +147,14 @@ export class DocWorkerApi {
 
     async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin) {
       const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
+      // Option to skip waiting for document initialization.
+      const immediate = isAffirmative(req.query.immediate);
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
       const tableId = req.params.tableId;
       const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
-        docSessionFromRequest(req), {tableId, filters}, true));
+        docSessionFromRequest(req), {tableId, filters}, !immediate));
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
       const params = getQueryParameters(req);

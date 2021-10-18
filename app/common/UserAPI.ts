@@ -337,7 +337,11 @@ export interface UserAPI {
  * reasons, such as downloads.
  */
 export interface DocAPI {
-  getRows(tableId: string, options?: { filters?: QueryFilters }): Promise<TableColValues>;
+  // Immediate flag is a currently not-advertised feature, allowing a query to proceed without
+  // waiting for a document to be initialized. This is useful if the calculations done when
+  // opening a document are irrelevant.
+  getRows(tableId: string, options?: { filters?: QueryFilters,
+                                       immediate?: boolean }): Promise<TableColValues>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
@@ -728,9 +732,16 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     this._url = `${url}/api/docs/${docId}`;
   }
 
-  public async getRows(tableId: string, options?: { filters?: QueryFilters }): Promise<TableColValues> {
-    const query = options?.filters ? ("?filter=" + encodeURIComponent(JSON.stringify(options.filters))) : '';
-    return this.requestJson(`${this._url}/tables/${tableId}/data${query}`);
+  public async getRows(tableId: string, options?: { filters?: QueryFilters,
+                                                    immediate?: boolean }): Promise<TableColValues> {
+    const url = new URL(`${this._url}/tables/${tableId}/data`);
+    if (options?.filters) {
+      url.searchParams.append('filter', JSON.stringify(options.filters));
+    }
+    if (options?.immediate) {
+      url.searchParams.append('immediate', 'true');
+    }
+    return this.requestJson(url.href);
   }
 
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {
