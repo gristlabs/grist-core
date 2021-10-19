@@ -467,11 +467,11 @@ def SECOND(time):
   return _make_datetime(time).second
 
 
-def TODAY():
+def TODAY(tz=None):
   """
   Returns the `date` object for the current date.
   """
-  return datetime.date.today()
+  return NOW(tz=tz).date()
 
 
 _weekday_type_map = {
