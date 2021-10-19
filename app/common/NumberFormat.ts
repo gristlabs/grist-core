@@ -35,8 +35,12 @@ export interface NumberFormatOptions extends FormatOptions {
   currency?: string;
 }
 
+export function getCurrency(options: NumberFormatOptions, docSettings: DocumentSettings): string {
+  return options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale);
+}
+
 export function buildNumberFormat(options: NumberFormatOptions, docSettings: DocumentSettings): Intl.NumberFormat {
-  const currency = options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale);
+  const currency = getCurrency(options, docSettings);
   const nfOptions: Intl.NumberFormatOptions = parseNumMode(options.numMode, currency);
 
   // numSign is implemented outside of Intl.NumberFormat since the latter's similar 'currencySign'
@@ -62,7 +66,7 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
   return new Intl.NumberFormat(docSettings.locale, nfOptions);
 }
 
-function parseNumMode(numMode?: NumMode, currency?: string): Intl.NumberFormatOptions {
+export function parseNumMode(numMode?: NumMode, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
     case 'currency': return {style: 'currency', currency, currencyDisplay: 'narrowSymbol' };
     case 'decimal': return {useGrouping: true};
