@@ -1,7 +1,7 @@
 astroid==2.5.7  # this is a difference between python 2 and 3, everything else is same
 asttokens==2.0.5
 backports.functools-lru-cache==1.6.4
-chardet==2.3.0
+chardet==4.0.0
 enum34==1.1.10
 html5lib==0.999999999
 iso8601==0.1.12
