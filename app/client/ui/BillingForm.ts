@@ -1,9 +1,11 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {reportError} from 'app/client/models/AppModel';
+import {BillingModel} from 'app/client/models/BillingModel';
 import * as css from 'app/client/ui/BillingPageCss';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {IOption, select} from 'app/client/ui2018/menus';
-import {IBillingAddress, IBillingCard, IBillingOrgSettings} from 'app/common/BillingAPI';
+import {IBillingAddress, IBillingCard, IBillingCoupon, IBillingOrgSettings,
+        IFilledBillingAddress} from 'app/common/BillingAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import * as roles from 'app/common/roles';
 import {Organization} from 'app/common/UserAPI';
@@ -20,10 +22,11 @@ const states = [
 ];
 
 export interface IFormData {
-  address?: IBillingAddress;
+  address?: IFilledBillingAddress;
   card?: IBillingCard;
   token?: string;
   settings?: IBillingOrgSettings;
+  coupon?: IBillingCoupon;
 }
 
 
@@ -34,6 +37,7 @@ interface IAutofill {
   // Note that the card name is the only value that may be initialized, since the other card
   // information is sensitive.
   card?: Partial<IBillingCard>;
+  coupon?: Partial<IBillingCoupon>;
 }
 
 // An object containing a function to check the validity of its observable value.
@@ -47,13 +51,14 @@ interface IValidated<T> {
 
 export class BillingForm extends Disposable {
   private readonly _address: BillingAddressForm|null;
+  private readonly _discount: BillingDiscountForm|null;
   private readonly _payment: BillingPaymentForm|null;
   private readonly _settings: BillingSettingsForm|null;
 
   constructor(
     org: Organization|null,
-    isDomainAvailable: (domain: string) => Promise<boolean>,
-    options: {payment: boolean, address: boolean, settings: boolean, domain: boolean},
+    billingModel: BillingModel,
+    options: {payment: boolean, address: boolean, settings: boolean, domain: boolean, discount: boolean},
     autofill: IAutofill = {}
   ) {
     super();
@@ -63,10 +68,15 @@ export class BillingForm extends Disposable {
       .reduce((acc, x) => acc + (x ? 1 : 0), 0);
 
     // Org settings form.
-    this._settings = options.settings ? new BillingSettingsForm(org, isDomainAvailable, {
+    this._settings = options.settings ? new BillingSettingsForm(billingModel, org, {
       showHeader: count > 1,
       showDomain: options.domain,
       autofill: autofill.settings
+    }) : null;
+
+    // Discount form.
+    this._discount = options.discount ? new BillingDiscountForm(billingModel, {
+      autofill: autofill.coupon
     }) : null;
 
     // Address form.
@@ -85,6 +95,7 @@ export class BillingForm extends Disposable {
   public buildDom() {
     return [
       this._settings ? this._settings.buildDom() : null,
+      this._discount ? this._discount.buildDom() : null,
       this._address ? this._address.buildDom() : null,
       this._payment ? this._payment.buildDom() : null
     ];
@@ -95,9 +106,11 @@ export class BillingForm extends Disposable {
     const settings = this._settings ? await this._settings.getSettings() : undefined;
     const address = this._address ? await this._address.getAddress() : undefined;
     const cardInfo = this._payment ? await this._payment.getCardAndToken() : undefined;
+    const coupon = this._discount ? await this._discount.getCoupon() : undefined;
     return {
       settings,
       address,
+      coupon,
       token: cardInfo ? cardInfo.token : undefined,
       card: cardInfo ? cardInfo.card : undefined
     };
@@ -344,7 +357,7 @@ class BillingAddressForm extends BillingSubForm {
   // Throws if any value is invalid. Returns a customer address as accepted by the customer
   // object in stripe.
   // For reference: https://stripe.com/docs/api/customers/object#customer_object-address
-  public async getAddress(): Promise<IBillingAddress|undefined> {
+  public async getAddress(): Promise<IFilledBillingAddress|undefined> {
     try {
       return {
         line1: await this._address1.get(),
@@ -371,8 +384,8 @@ class BillingSettingsForm extends BillingSubForm {
     this._options.showDomain ? d => this._verifyDomain(d) : () => undefined);
 
   constructor(
+    private readonly _billingModel: BillingModel,
     private readonly _org: Organization|null,
-    private readonly _isDomainAvailable: (domain: string) => Promise<boolean>,
     private readonly _options: {
       showHeader: boolean;
       showDomain: boolean;
@@ -444,8 +457,69 @@ class BillingSettingsForm extends BillingSubForm {
     // OK to retain current domain.
     if (domain === this._options.autofill?.domain) { return; }
     checkSubdomainValidity(domain);
-    const isAvailable = await this._isDomainAvailable(domain);
+    const isAvailable = await this._billingModel.isDomainAvailable(domain);
     if (!isAvailable) { throw new Error('Domain is already taken.'); }
+  }
+}
+
+/**
+ * Creates the billing discount form.
+ */
+class BillingDiscountForm extends BillingSubForm {
+  private _isExpanded = Observable.create(this, false);
+  private readonly _discountCode: IValidated<string> = createValidated(this, () => undefined);
+
+  constructor(
+    private readonly _billingModel: BillingModel,
+    private readonly _options: { autofill?: Partial<IBillingCoupon>; }
+  ) {
+    super();
+    if (this._options.autofill) {
+      const { promotion_code } = this._options.autofill;
+      this._discountCode.value.set(promotion_code ?? '');
+      this._isExpanded.set(Boolean(promotion_code));
+    }
+  }
+
+  public buildDom() {
+    return dom.domComputed(this._isExpanded, isExpanded => [
+      !isExpanded ?
+        css.paymentBlock(
+          css.paymentRow(
+            css.billingText('Have a discount code?', testId('discount-code-question')),
+            css.billingTextBtn(
+              css.billingIcon('Settings'),
+              'Apply',
+              dom.on('click', () => this._isExpanded.set(true)),
+              testId('apply-discount-code')
+            )
+          )
+        ) :
+        css.paymentBlock(
+          css.paymentRow(
+            css.paymentField(
+              css.paymentLabel('Discount Code'),
+              this.billingInput(this._discountCode, testId('discount-code')),
+            )
+          ),
+          css.inputError(
+            dom.text(this.formError),
+            testId('discount-form-error')
+          )
+        )
+    ]);
+  }
+
+  public async getCoupon() {
+    const discountCode = await this._discountCode.get();
+    if (discountCode.trim() === '') { return undefined; }
+
+    try {
+      return await this._billingModel.fetchSignupCoupon(discountCode);
+    } catch (e) {
+      this.formError.set('Invalid or expired discount code.');
+      throw e;
+    }
   }
 }
 

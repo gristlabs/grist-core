@@ -1,7 +1,7 @@
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {IFormData} from 'app/client/ui/BillingForm';
-import {BillingAPI, BillingAPIImpl, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
+import {BillingAPI, BillingAPIImpl, BillingSubPage, BillingTask, IBillingCoupon} from 'app/common/BillingAPI';
 import {IBillingCard, IBillingPlan, IBillingSubscription} from 'app/common/BillingAPI';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {bundleChanges, Computed, Disposable, Observable} from 'grainjs';
@@ -47,6 +47,8 @@ export interface BillingModel {
   // Triggered when submit is clicked on the payment page. Performs the API billing account
   // management call based on currentTask, signupPlan and whether an address/tokenId was submitted.
   submitPaymentPage(formData?: IFormData): Promise<void>;
+  // Fetches coupon information for a valid `discountCode`.
+  fetchSignupCoupon(discountCode: string): Promise<IBillingCoupon>;
   // Fetches the effective tax rate for the address in the given form.
   fetchSignupTaxRate(formData: IFormData): Promise<void>;
   // Fetches subscription data associated with the given org, if the pages are associated with an
@@ -133,6 +135,10 @@ export class BillingModelImpl extends Disposable implements BillingModel {
     return this._billingAPI.isDomainAvailable(domain);
   }
 
+  public async fetchSignupCoupon(discountCode: string): Promise<IBillingCoupon> {
+    return await this._billingAPI.getCoupon(discountCode);
+  }
+
   public async submitPaymentPage(formData: IFormData = {}): Promise<void> {
     const task = this.currentTask.get();
     const planId = this.signupPlanId.get();
@@ -145,7 +151,8 @@ export class BillingModelImpl extends Disposable implements BillingModel {
         if (!formData.token) { throw new Error('BillingPage _submit error: no card submitted'); }
         if (!formData.address) { throw new Error('BillingPage _submit error: no address submitted'); }
         if (!formData.settings) { throw new Error('BillingPage _submit error: no settings submitted'); }
-        const o = await this._billingAPI.signUp(planId, formData.token, formData.address, formData.settings);
+        const {token, address, settings, coupon} = formData;
+        const o = await this._billingAPI.signUp(planId, token, address, settings, coupon?.promotion_code);
         if (o && o.domain) {
           await urlState().pushUrl({ org: o.domain, billing: 'billing', params: undefined });
         } else {

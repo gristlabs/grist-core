@@ -41,19 +41,44 @@ export interface IBillingPlan {
 // Stripe customer address information. Used to maintain the company address.
 // For reference: https://stripe.com/docs/api/customers/object#customer_object-address
 export interface IBillingAddress {
-  line1: string;
-  line2?: string;
-  city?: string;
-  state?: string;
-  postal_code?: string;
-  country?: string;
+  line1: string|null;
+  line2: string|null;
+  city: string|null;
+  state: string|null;
+  postal_code: string|null;
+  country: string|null;
+}
+
+// Utility type that requires all properties to be non-nullish.
+type NonNullableProperties<T> = { [P in keyof T]: Required<NonNullable<T[P]>>; };
+
+// Filled address info from the client. Fields can be blank strings.
+export type IFilledBillingAddress = NonNullableProperties<IBillingAddress>;
+
+// Stripe promotion code and coupon information. Used by client to apply signup discounts.
+// For reference: https://stripe.com/docs/api/promotion_codes/object#promotion_code_object-coupon
+export interface IBillingCoupon {
+  id: string;
+  promotion_code: string;
+  name: string|null;
+  percent_off: number|null;
+  amount_off: number|null;
+}
+
+// Stripe subscription discount information.
+// For reference: https://stripe.com/docs/api/discounts/object
+export interface IBillingDiscount {
+  name: string|null;
+  percent_off: number|null;
+  amount_off: number|null;
+  end_timestamp_ms: number|null;
 }
 
 export interface IBillingCard {
-  funding?: 'credit'|'debit'|'prepaid'|'unknown';
-  brand?: string;
-  country?: string;         // uppercase two-letter ISO country code
-  last4?: string;           // last 4 digits of the card number
+  funding?: string|null;
+  brand?: string|null;
+  country?: string|null;         // uppercase two-letter ISO country code
+  last4?: string|null;           // last 4 digits of the card number
   name?: string|null;
 }
 
@@ -83,8 +108,8 @@ export interface IBillingSubscription {
   userCount: number;
   // The next total in cents that Stripe is going to charge (includes tax and discount).
   nextTotal: number;
-  // Name of the discount if any.
-  discountName: string|null;
+  // Discount information, if any.
+  discount: IBillingDiscount|null;
   // Last plan we had a subscription for, if any.
   lastPlanId: string|null;
   // Whether there is a valid plan in effect
@@ -111,6 +136,7 @@ export interface FullBillingAccount extends BillingAccount {
 
 export interface BillingAPI {
   isDomainAvailable(domain: string): Promise<boolean>;
+  getCoupon(promotionCode: string): Promise<IBillingCoupon>;
   getTaxRate(address: IBillingAddress): Promise<number>;
   getPlans(): Promise<IBillingPlan[]>;
   getSubscription(): Promise<IBillingSubscription>;
@@ -118,7 +144,7 @@ export interface BillingAPI {
   // The signUp function takes the tokenId generated when card data is submitted to Stripe.
   // See: https://stripe.com/docs/stripe-js/reference#stripe-create-token
   signUp(planId: string, tokenId: string, address: IBillingAddress,
-         settings: IBillingOrgSettings): Promise<OrganizationWithoutAccessInfo>;
+         settings: IBillingOrgSettings, promotionCode?: string): Promise<OrganizationWithoutAccessInfo>;
   setCard(tokenId: string): Promise<void>;
   removeCard(): Promise<void>;
   setSubscription(planId: string, options: {
@@ -139,6 +165,13 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     const resp = await this.request(`${this._url}/api/billing/domain`, {
       method: 'POST',
       body: JSON.stringify({ domain })
+    });
+    return resp.json();
+  }
+
+  public async getCoupon(promotionCode: string): Promise<IBillingCoupon> {
+    const resp = await this.request(`${this._url}/api/billing/coupon/${promotionCode}`, {
+      method: 'GET',
     });
     return resp.json();
   }
@@ -172,11 +205,12 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     planId: string,
     tokenId: string,
     address: IBillingAddress,
-    settings: IBillingOrgSettings
+    settings: IBillingOrgSettings,
+    promotionCode?: string,
   ): Promise<OrganizationWithoutAccessInfo> {
     const resp = await this.request(`${this._url}/api/billing/signup`, {
       method: 'POST',
-      body: JSON.stringify({ tokenId, planId, address, settings })
+      body: JSON.stringify({ tokenId, planId, address, settings, promotionCode }),
     });
     const parsed = await resp.json();
     return parsed.data;

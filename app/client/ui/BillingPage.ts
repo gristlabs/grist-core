@@ -14,7 +14,8 @@ import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/b
 import {bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {BillingSubPage, BillingTask, IBillingAddress, IBillingCard, IBillingPlan} from 'app/common/BillingAPI';
+import {BillingSubPage, BillingTask, IBillingAddress, IBillingCard, IBillingCoupon,
+        IBillingPlan} from 'app/common/BillingAPI';
 import {capitalize} from 'app/common/gutil';
 import {Organization} from 'app/common/UserAPI';
 import {Disposable, dom, IAttrObj, IDomArgs, makeTestId, Observable} from 'grainjs';
@@ -145,8 +146,10 @@ export class BillingPage extends Disposable {
       const planId = validPlan ? sub.activePlan.id : sub.lastPlanId;
       // If on a "Tier" coupon, present information differently, emphasizing the coupon
       // name and minimizing the plan.
-      const tier = sub.discountName && sub.discountName.includes(' Tier ');
-      const planName = tier ? sub.discountName! : sub.activePlan.nickname;
+      const discountName = sub.discount && sub.discount.name;
+      const discountEnd = sub.discount && sub.discount.end_timestamp_ms;
+      const tier = discountName && discountName.includes(' Tier ');
+      const planName = tier ? discountName! : sub.activePlan.nickname;
       const invoiceId = this._appModel.currentOrg?.billingAccount?.externalOptions?.invoiceId;
       return [
         css.summaryFeatures(
@@ -172,12 +175,18 @@ export class BillingPage extends Disposable {
           moneyPlan.amount ? [
             makeSummaryFeature([`Your team site has `, `${sub.userCount}`,
                                 ` member${sub.userCount > 1 ? 's' : ''}`]),
-            tier ? this.buildAppSumoPlanNotes(sub.discountName!) : null,
+            tier ? this.buildAppSumoPlanNotes(discountName!) : null,
             // Currently the subtotal is misleading and scary when tiers are in effect.
             // In this case, for now, just report what will be invoiced.
             !tier ? makeSummaryFeature([`Your ${moneyPlan.interval}ly subtotal is `,
                                         getPriceString(moneyPlan.amount * sub.userCount)]) : null,
-            (sub.discountName && !tier) ? makeSummaryFeature([`You receive the `, sub.discountName]) : null,
+            (discountName && !tier) ?
+              makeSummaryFeature([
+                `You receive the `,
+                discountName,
+                ...(discountEnd !== null ? [' (until ', dateFmtFull(discountEnd), ')'] : []),
+              ]) :
+              null,
             // When on a free trial, Stripe reports trialEnd time, but it seems to always
             // match periodEnd for a trialing subscription, so we just use that.
             sub.isInTrial ? makeSummaryFeature(['Your free trial ends on ', dateFmtFull(sub.periodEnd)]) : null,
@@ -366,12 +375,23 @@ export class BillingPage extends Disposable {
     const pageText = taskActions[task];
     // If there is an immediate charge required, require re-entering the card info.
     // Show all forms on sign up.
-    this._form = new BillingForm(org, (...args) => this._model.isDomainAvailable(...args), {
-      payment: ['signUp', 'updatePlan', 'addCard', 'updateCard'].includes(task),
-      address: ['signUp', 'updateAddress'].includes(task),
-      settings: ['signUp', 'signUpLite', 'updateAddress', 'updateDomain'].includes(task),
-      domain: ['signUp', 'signUpLite', 'updateDomain'].includes(task)
-    }, { address: currentAddress, settings: currentSettings, card: this._formData.card });
+    this._form = new BillingForm(
+      org,
+      this._model,
+      {
+        payment: ['signUp', 'updatePlan', 'addCard', 'updateCard'].includes(task),
+        discount: ['signUp'].includes(task),
+        address: ['signUp', 'updateAddress'].includes(task),
+        settings: ['signUp', 'signUpLite', 'updateAddress', 'updateDomain'].includes(task),
+        domain: ['signUp', 'signUpLite', 'updateDomain'].includes(task)
+      },
+      {
+        address: currentAddress,
+        settings: currentSettings,
+        card: this._formData.card,
+        coupon: this._formData.coupon
+      }
+    );
     return dom('div',
       dom.onDispose(() => {
         if (this._form) {
@@ -665,8 +685,6 @@ export class BillingPage extends Disposable {
       } else if (!sub) {
         const planPriceStr = getPriceString(plan.amount);
         const subtotal = plan.amount * (stubSub?.userCount || 1);
-        const subTotalPriceStr = getPriceString(subtotal);
-        const totalPriceStr = getPriceString(subtotal, stubSub?.taxRate || 0);
         // This is a new subscription, either a fresh sign ups, or renewal after cancellation.
         // The server will allow the trial period only for fresh sign ups.
         const trialSummary = (plan.trial_period_days && task === 'signUp') ?
@@ -674,8 +692,16 @@ export class BillingPage extends Disposable {
         return [
           makeSummaryFeature(['You are changing to the ', plan.nickname, ' plan']),
           dom.domComputed(this._showConfirmPage, confirmPage => {
+            const subTotalOptions = {coupon: confirmPage ? this._formData.coupon : undefined};
+            const subTotalPriceStr = getPriceString(subtotal, subTotalOptions);
+            const totalPriceStr = getPriceString(subtotal, {...subTotalOptions, taxRate: stubSub?.taxRate ?? 0});
             if (confirmPage) {
               return [
+                this._formData.coupon ?
+                  makeSummaryFeature([
+                    'You applied the ',
+                    this._formData.coupon.name + ` (${getDiscountAmountString(this._formData.coupon)}) `,
+                  ]) : null,
                 makeSummaryFeature([`Your ${plan.interval}ly subtotal is `, subTotalPriceStr]),
                 // Note that on sign up, the number of users in the new org is always one.
                 trialSummary || makeSummaryFeature(['You will be charged ', totalPriceStr, ' to start'])
@@ -692,14 +718,28 @@ export class BillingPage extends Disposable {
         ];
       } else if (plan.amount > sub.activePlan.amount) {
         const refund = sub.valueRemaining || 0;
+        const subtotal = plan.amount * sub.userCount;
+        const taxRate = sub.taxRate;
+
         // User is upgrading their plan.
         return [
           makeSummaryFeature(['You are changing to the ', plan.nickname, ' plan']),
-          makeSummaryFeature([`Your ${plan.interval}ly subtotal is `,
-            getPriceString(plan.amount * sub.userCount)]),
-          makeSummaryFeature(['You will be charged ',
-            getPriceString((plan.amount * sub.userCount) - refund, sub.taxRate), ' to start']),
-          refund > 0 ? makeSummaryFeature(['Your charge is prorated based on the remaining plan time']) : null,
+          dom.domComputed(this._showConfirmPage, confirmPage => {
+            const subTotalOptions = {coupon: confirmPage ? this._formData.coupon : undefined};
+            const subTotalPriceStr = getPriceString(subtotal, subTotalOptions);
+            const startPriceStr = getPriceString(subtotal, {...subTotalOptions, taxRate, refund});
+
+            return [
+              confirmPage && this._formData.coupon ?
+                makeSummaryFeature([
+                  'You applied the ',
+                  this._formData.coupon.name + ` (${getDiscountAmountString(this._formData.coupon)}) `,
+                ]) : null,
+              makeSummaryFeature([`Your ${plan.interval}ly subtotal is `, subTotalPriceStr]),
+              makeSummaryFeature(['You will be charged ', startPriceStr, ' to start']),
+              refund > 0 ? makeSummaryFeature(['Your charge is prorated based on the remaining plan time']) : null,
+            ];
+          }),
         ];
       } else {
         // User is cancelling their decision to downgrade their plan.
@@ -799,13 +839,49 @@ function getSubscriptionProblem(sub: ISubscriptionModel) {
   return result.map(msg => makeSummaryFeature(msg, {isBad: true}));
 }
 
-function getPriceString(priceCents: number, taxRate: number = 0): string {
+interface PriceOptions {
+  taxRate?: number;
+  coupon?: IBillingCoupon;
+  refund?: number;
+}
+
+const defaultPriceOptions: PriceOptions = {
+  taxRate: 0,
+  coupon: undefined,
+  refund: 0,
+};
+
+function getPriceString(priceCents: number, options = defaultPriceOptions): string {
+  const {taxRate = 0, coupon, refund} = options;
+  if (coupon) {
+    if (coupon.amount_off) {
+      priceCents -= coupon.amount_off;
+    } else if (coupon.percent_off) {
+      priceCents -= (priceCents * (coupon.percent_off / 100));
+    }
+  }
+
+  if (refund) {
+    priceCents -= refund;
+  }
+
+  // Make sure we never display negative prices.
+  priceCents = Math.max(0, priceCents);
+
   // TODO: Add functionality for other currencies.
   return ((priceCents / 100) * (taxRate + 1)).toLocaleString('en-US', {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2
   });
+}
+
+function getDiscountAmountString(coupon: IBillingCoupon): string {
+  if (coupon.amount_off !== null) {
+    return `${getPriceString(coupon.amount_off)} off`;
+  } else {
+    return `${coupon.percent_off!}% off`;
+  }
 }
 
 /**
