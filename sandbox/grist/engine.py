@@ -10,7 +10,7 @@ import rlcompleter
 import sys
 import time
 import traceback
-from collections import namedtuple, OrderedDict, Hashable
+from collections import namedtuple, OrderedDict, Hashable, defaultdict
 
 import six
 from six.moves import zip
@@ -233,6 +233,37 @@ class Engine(object):
 
     # Initial empty context for autocompletions; we update it when we generate the usercode module.
     self._autocomplete_context = AutocompleteContext({})
+
+    self._table_stats = {"meta": [], "user": []}
+
+  def record_table_stats(self, table_data, table_data_repr):
+    table_id = table_data.table_id
+    category = "meta" if table_id.startswith("_grist") else "user"
+    result = dict(
+      rows=len(table_data.row_ids),
+      columns=len(table_data.columns),
+      bytes=len(table_data_repr or ""),
+      table_id=table_id,
+    )
+    result["cells"] = result["rows"] * result["columns"]
+    self._table_stats[category].append(result)
+
+  def get_table_stats(self):
+    result = defaultdict(int, num_user_tables=len(self._table_stats["user"]))
+
+    for table in self._table_stats["meta"]:
+      for field in ["rows", "bytes"]:
+        key = "%s_%s" % (table["table_id"], field)
+        result[key] = table[field]
+
+    for table in self._table_stats["user"]:
+      for field in table:
+        if field == "table_id":
+          continue
+        key = "user_%s" % field
+        result[key] += table[field]
+
+    return dict(result)
 
   def load_empty(self):
     """

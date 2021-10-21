@@ -56,6 +56,11 @@ def run(sandbox):
 
     sandbox.register(method.__name__, wrapper)
 
+  def load_and_record_table_data(table_name, table_data_repr):
+    result = table_data_from_db(table_name, table_data_repr)
+    eng.record_table_stats(result, table_data_repr)
+    return result
+
   @export
   def apply_user_actions(action_reprs, user=None):
     action_group = eng.apply_user_actions([useractions.from_repr(u) for u in action_reprs], user)
@@ -84,12 +89,16 @@ def run(sandbox):
 
   @export
   def load_meta_tables(meta_tables, meta_columns):
-    return eng.load_meta_tables(table_data_from_db("_grist_Tables", meta_tables),
-                                table_data_from_db("_grist_Tables_column", meta_columns))
+    return eng.load_meta_tables(load_and_record_table_data("_grist_Tables", meta_tables),
+                                load_and_record_table_data("_grist_Tables_column", meta_columns))
 
   @export
   def load_table(table_name, table_data):
-    return eng.load_table(table_data_from_db(table_name, table_data))
+    return eng.load_table(load_and_record_table_data(table_name, table_data))
+
+  @export
+  def get_table_stats():
+    return eng.get_table_stats()
 
   @export
   def create_migrations(all_tables, metadata_only=False):

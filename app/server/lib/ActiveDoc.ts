@@ -432,12 +432,12 @@ export class ActiveDoc extends EventEmitter {
           },
         });
       }
-      const tableNames = await this._loadOpenDoc(docSession);
+      const [tableNames, onDemandNames] = await this._loadOpenDoc(docSession);
       const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
       this._startLoadingTables(docSession, desiredTableNames);
       const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
       await this._initDoc(docSession);
-      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames, startTime);
+      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames, onDemandNames, startTime);
     } catch (err) {
       await this.shutdown();
       throw err;
@@ -1305,7 +1305,7 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
-  protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[]> {
+  protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[][]> {
     // Check the schema version of document and sandbox, and migrate if the sandbox is newer.
     const schemaVersion = SCHEMA_VERSION;
 
@@ -1350,12 +1350,12 @@ export class ActiveDoc extends EventEmitter {
     const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
     const onDemandNames = remove(tableNames, (t) => onDemandMap[t]);
 
-    this.logDebug(docSession, "found %s tables: %s", tableNames.length,
-      tableNames.join(", "));
-    this.logDebug(docSession, "skipping %s on-demand tables: %s", onDemandNames.length,
-      onDemandNames.join(", "));
+    this.logInfo(docSession, "Loading %s normal tables, skipping %s on-demand tables",
+      tableNames.length, onDemandNames.length);
+    this.logDebug(docSession, "Normal tables: %s", tableNames.join(", "));
+    this.logDebug(docSession, "On-demand tables: %s",  onDemandNames.join(", "));
 
-    return tableNames;
+    return [tableNames, onDemandNames];
   }
 
   /**
@@ -1567,11 +1567,21 @@ export class ActiveDoc extends EventEmitter {
   // inactivityTimer, since a user formulas with an infinite loop can disable it forever.
   // TODO find a solution to this issue.
   @ActiveDoc.keepDocOpen
-  private async _finishInitialization(docSession: OptDocSession, pendingTableNames: string[], startTime: number) {
+  private async _finishInitialization(
+    docSession: OptDocSession, pendingTableNames: string[], onDemandNames: string[], startTime: number
+  ) {
     try {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
       await this._loadTables(docSession, pendingTableNames);
+
+      const tableStats = await this._pyCall('get_table_stats');
+      log.rawInfo("Loading complete, table statistics retrieved...", {
+        ...this.getLogMeta(docSession),
+        ...tableStats,
+        num_on_demand_tables: onDemandNames.length,
+      });
+
       if (this._options?.docUrl) {
         await this._pyCall('set_doc_url', this._options.docUrl);
       }
