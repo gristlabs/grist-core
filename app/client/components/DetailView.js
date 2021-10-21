@@ -167,10 +167,10 @@ DetailView.prototype.deleteRow = function(index) {
  */
 DetailView.prototype.paste = function(data, cutCallback) {
   let pasteData = data[0][0];
-  let col = this.currentColumn();
+  let field = this.viewSection.viewFields().at(this.cursor.fieldIndex());
   let isCompletePaste = (data.length === 1 && data[0].length === 1);
 
-  let richData = this._parsePasteForView([[pasteData]], [col]);
+  let richData = this._parsePasteForView([[pasteData]], [field]);
   if (_.isEmpty(richData)) {
     return;
   }

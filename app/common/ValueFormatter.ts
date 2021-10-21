@@ -111,7 +111,7 @@ class IntFormatter extends NumericFormatter {
   }
 }
 
-interface DateFormatOptions {
+export interface DateFormatOptions {
   dateFormat?: string;
 }
 
@@ -132,7 +132,7 @@ class DateFormatter extends BaseFormatter {
   }
 }
 
-interface DateTimeFormatOptions extends DateFormatOptions {
+export interface DateTimeFormatOptions extends DateFormatOptions {
   timeFormat?: string;
 }
 

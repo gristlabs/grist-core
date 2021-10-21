@@ -355,9 +355,9 @@ GridView.prototype.paste = function(data, cutCallback) {
   pasteData = gutil.growMatrix(pasteData, updateColIndices.length, updateRowIds.length);
 
   let fields = this.viewSection.viewFields().peek();
-  let pasteCols = updateColIndices.map(i => fields[i] && fields[i].column() || null);
+  let pasteFields = updateColIndices.map(i => fields[i] || null);
 
-  let richData = this._parsePasteForView(pasteData, pasteCols);
+  let richData = this._parsePasteForView(pasteData, pasteFields);
   let actions = this._createBulkActionsFromPaste(updateRowIds, richData);
 
   if (actions.length > 0) {

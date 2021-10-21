@@ -356,29 +356,40 @@ BaseView.prototype.insertRow = function(index) {
  * @returns {Object} - Object mapping colId to array of column values, suitable for use in Bulk
  *                     actions.
  */
-BaseView.prototype._parsePasteForView = function(data, cols) {
-  let updateCols = cols.map(col => {
+BaseView.prototype._parsePasteForView = function(data, fields) {
+  const updateCols = fields.map(field => {
+    const col = field && field.column();
     if (col && !col.isRealFormula() && !col.disableEditData()) {
       return col;
     } else {
       return null; // Don't include formulas and missing columns
     }
   });
-  let updateColIds = updateCols.map(c => c && c.colId());
-  let updateColTypes = updateCols.map(c => c && c.type());
+  const updateColIds = updateCols.map(c => c && c.colId());
+  const updateColTypes = updateCols.map(c => c && c.type());
+  const parsers = fields.map(field => field && field.valueParser() || (x => x));
 
-  let richData = data;
-
-  if (data.length > 0 && data[0].length > 0 &&
-    _.isObject(data[0][0]) && data[0][0].hasOwnProperty('displayValue')) {
-    richData = data.map((col, idx) => {
-      if (col[0].colType === updateColTypes[idx]) {
-        return col.map(v => v && v.hasOwnProperty('rawValue') ? v.rawValue : v.displayValue);
-      } else {
-        return col.map(v => v && v.displayValue);
+  const richData = data.map((col, idx) => {
+    if (!col.length) {
+      return col;
+    }
+    const typeMatches = col[0].colType === updateColTypes[idx];
+    const parser = parsers[idx];
+    return col.map(v => {
+      if (v) {
+        if (typeMatches && v.hasOwnProperty('rawValue')) {
+          return v.rawValue;
+        }
+        if (v.hasOwnProperty('displayValue')) {
+          return parser(v.displayValue);
+        }
+        if (typeof v === "string") {
+          return parser(v);
+        }
       }
+      return v;
     });
-  }
+  });
 
   return _.omit(_.object(updateColIds, richData), null);
 };
