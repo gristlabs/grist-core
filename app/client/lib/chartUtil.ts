@@ -60,3 +60,28 @@ export function splitValuesByIndex<T extends {values: Datum[]}>(series: Array<T>
     return {...s, values};
   });
 }
+
+/**
+ * Makes sure series[0].values includes all of the values in xvalues and that they appears in the
+ * same order. 0 is used to fill missing values in series[i].values for i > 1 (making function
+ * suited only for numeric series AND only to use with for bar charts). Function does mutate series.
+ *
+ * Note it would make more sense to pad missing values with `null`, but plotly handles null the same
+ * as missing values. Hence we're padding with 0.
+ */
+export function consolidateValues(series: Array<{values: Datum[]}>, xvalues: Datum[]) {
+  let i = 0;
+  for (const xval of xvalues) {
+    if (i < series[0].values.length && xval !== series[0].values[i]
+        || i > series[0].values.length - 1) {
+      series[0].values.splice(i, 0, xval);
+      for (let j = 1; j < series.length; ++j) {
+        series[j].values.splice(i, 0, 0);
+      }
+    }
+    while (xval === series[0].values[i] && i < series[0].values.length) {
+      i++;
+    }
+  }
+  return series;
+}

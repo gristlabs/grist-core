@@ -1,6 +1,6 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {sortByXValues, splitValuesByIndex, uniqXValues} from 'app/client/lib/chartUtil';
+import {consolidateValues, sortByXValues, splitValuesByIndex, uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
 import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
@@ -219,7 +219,18 @@ export class ChartView extends Disposable {
       const nseries = groupSeries(series[0].values, series.slice(1));
 
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
+      const xvalues = Array.from(new Set(series[1].values));
       for (const gSeries of nseries.values()) {
+
+        // All series have partial list of values, ie: if some may have Q1, Q2, Q3, Q4 as x values
+        // some others might only have Q1. This causes inconsistent result in regard of the order
+        // bars will be displayed by plotly (for bar charts). This eventually result in bars not
+        // following the sorting order. This line fixes that issue by consolidating all series to
+        // have at least on entry of each x values.
+        if (this._chartType.peek() === 'bar') {
+          if (sortSpec?.length) { consolidateValues(gSeries, xvalues); }
+        }
+
         const part = chartFunc(gSeries, options, dataOptions);
         part.data = plotData.data.concat(part.data);
         plotData = part;
