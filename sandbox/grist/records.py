@@ -142,7 +142,7 @@ class RecordSet(object):
     self._table = table
     self._row_ids = row_ids
     self._source_relation = relation or table._identity_relation
-    # If row_ids is itself a RecordSet, default to its _group_by and _sort_by properties.
+    # If row_ids is itself a RecordList, default to its _group_by and _sort_by properties.
     self._group_by = group_by or getattr(row_ids, '_group_by', None)
     self._sort_by = sort_by or getattr(row_ids, '_sort_by', None)
 
@@ -193,6 +193,17 @@ class RecordSet(object):
                                  relation=src_relation.compose(self._source_relation),
                                  group_by=self._group_by,
                                  sort_by=self._sort_by)
+
+  def get_encodable_row_ids(self):
+    """
+    Returns stored rowIds as a simple list or tuple type, even if actually stored as RecordList.
+    """
+    # pylint: disable=unidiomatic-typecheck
+    if type(self._row_ids) in (list, tuple):
+      return self._row_ids
+    else:
+      return list(self._row_ids)
+
 
 
 def adjust_record(relation, value):
