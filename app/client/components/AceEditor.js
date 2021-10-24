@@ -245,8 +245,14 @@ AceEditor.prototype.resize = function() {
     size = this.calcSize(this._fullDom, desiredSize);
   }
 
-  this.editorDom.style.width = size.width ? size.width + 'px' : 'auto';
-  this.editorDom.style.height = size.height + 'px';
+  // Setting height or width to number like 100.00000005 won't work (it will be truncated).
+  // Unfortunately ace editor will do the same math we do, and will expect the height or width
+  // of the container to be 100.0000005, and when it finds out that it is only 100px will show
+  // scrollbars. To fix this issue we will make the container a little bit bigger.
+  // This won't help for zooming (where the same problem occurs but in many more places), but will
+  // help for Windows users who have different pixel ratio.
+  this.editorDom.style.width = size.width ? Math.ceil(size.width) + 'px' : 'auto';
+  this.editorDom.style.height = Math.ceil(size.height) + 'px';
   this.editor.resize();
 };
 

@@ -33,10 +33,13 @@
 }
 
 
+/* Make overflow hidden, since editor might be 1 pixel bigger due to fix for devices
+ * with different pixel ratio */
 .formula_editor {
   background-color: white;
   padding: 4px 0 2px 21px;
   z-index: 10;
+  overflow: hidden;
 }
 
 /* styles specific to the formula editor in the side panel */
