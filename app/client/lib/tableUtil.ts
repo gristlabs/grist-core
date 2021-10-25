@@ -1,10 +1,16 @@
-var _         = require('underscore');
+import type {CopySelection} from 'app/client/components/CopySelection';
+import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import type {KoArray} from 'app/client/lib/koArray';
+import type {ViewFieldRec} from 'app/client/models/DocModel';
+import type {BulkUpdateRecord} from 'app/common/DocActions';
+import {safeJsonParse} from 'app/common/gutil';
+import type {TableData} from 'app/common/TableData';
+import {tsvEncode} from 'app/common/tsvFormat';
+import {dom} from 'grainjs';
+import map = require('lodash/map');
+import zipObject = require('lodash/zipObject');
 
-var dom             = require('./dom');
-var gutil           = require('app/common/gutil');
-var {tsvEncode}     = require('app/common/tsvFormat');
-
-const G = require('../lib/browserGlobals').get('document', 'DOMParser');
+const G = getBrowserGlobals('document', 'DOMParser');
 
 /**
  *  Returns unique positions given upper and lower position. This function returns a suitable
@@ -23,16 +29,16 @@ const G = require('../lib/browserGlobals').get('document', 'DOMParser');
  *      insertPositions(0, null, 4) = [1, 2, 3, 4]
  *      insertPositions(0, 1, 4) = [0.2, 0.4, 0.6, 0.8]
  */
-function insertPositions(lowerPos, upperPos, numInserts) {
+export function insertPositions(lowerPos: number|null, upperPos: number|null, numInserts: number): number[] {
   numInserts = (typeof numInserts === 'undefined') ? 1 : numInserts;
-  var start;
-  var step = 1;
-  var positions = [];
+  let start = 0;
+  let step = 1;
+  const positions = [];
 
   if (typeof lowerPos !== 'number' && typeof upperPos !== 'number') {
     start = 0;
   } else if (typeof lowerPos !== 'number') {
-    start = upperPos - numInserts;
+    start = upperPos! - numInserts;
   } else if (typeof upperPos !== 'number') {
     start = lowerPos + 1;
   } else {
@@ -40,12 +46,11 @@ function insertPositions(lowerPos, upperPos, numInserts) {
     start = lowerPos + step;
   }
 
-  for(var i = 0; i < numInserts; i++ ){
+  for(let i = 0; i < numInserts; i++ ){
     positions.push(start + step*i);
   }
   return positions;
 }
-exports.insertPositions = insertPositions;
 
 /**
  * Returns a sorted array of parentPos values between the parentPos of the viewField at index-1 and index.
@@ -53,12 +58,11 @@ exports.insertPositions = insertPositions;
  * @{param} {number} index - index to insert the viewFields into
  * @{param} {number} numInserts - number of new fields to insert
  */
-function fieldInsertPositions(viewFields, index, numInserts) {
-  var leftPos = (index > 0) ? viewFields.at(index-1).parentPos() : null;
-  var rightPos = (index < viewFields.peekLength) ? viewFields.at(index).parentPos() : null;
+export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number): number[] {
+  const leftPos = (index > 0) ? viewFields.at(index - 1)!.parentPos() : null;
+  const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
   return insertPositions(leftPos, rightPos, numInserts);
 }
-exports.fieldInsertPositions = fieldInsertPositions;
 
 /**
  * Returns tsv formatted values from TableData at the given rowIDs and columnIds.
@@ -66,14 +70,13 @@ exports.fieldInsertPositions = fieldInsertPositions;
  * @param {CopySelection} selection - a CopySelection instance
  * @return {String}
  **/
-function makePasteText(tableData, selection) {
+export function makePasteText(tableData: TableData, selection: CopySelection) {
   // tsvEncode expects data as a 2-d array with each a array representing a row
   // i.e. [["1-1", "1-2", "1-3"],["2-1", "2-2", "2-3"]]
   const values = selection.rowIds.map(rowId =>
     selection.columns.map(col => col.fmtGetter(rowId)));
   return tsvEncode(values);
 }
-exports.makePasteText = makePasteText;
 
 /**
  * Returns an html table of containing the cells denoted by the cross product of
@@ -83,11 +86,11 @@ exports.makePasteText = makePasteText;
  * @param {Boolean} showColHeader - whether to include a column header row
  * @return {String} The html for a table containing the given data.
  **/
-function makePasteHtml(tableData, selection, includeColHeaders) {
-  let rowStyle = selection.rowStyle || {};    // Maps rowId to style object.
-  let colStyle = selection.colStyle || {};    // Maps colId to style object.
+export function makePasteHtml(tableData: TableData, selection: CopySelection, includeColHeaders: boolean) {
+  const rowStyle = selection.rowStyle || {};    // Maps rowId to style object.
+  const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
-  let elem = dom('table', {border: '1', cellspacing: '0', style: 'white-space: pre'},
+  const elem = dom('table', {border: '1', cellspacing: '0', style: 'white-space: pre'},
     dom('colgroup', selection.colIds.map(colId =>
       dom('col', {
         style: _styleAttr(colStyle[colId]),
@@ -102,14 +105,12 @@ function makePasteHtml(tableData, selection, includeColHeaders) {
     // Fill with table cells.
     selection.rowIds.map(rowId =>
       dom('tr',
-        {style: _styleAttr(rowStyle[rowId])},
+        {style: _styleAttr(rowStyle[rowId as number])},
         selection.columns.map(col => {
-          let rawValue = col.rawGetter(rowId);
-          let fmtValue = col.fmtGetter(rowId);
-          let dataOptions = {};
-          if (rawValue !== fmtValue) {
-            dataOptions['data-grist-raw-value'] = JSON.stringify(rawValue);
-          }
+          const rawValue = col.rawGetter(rowId);
+          const fmtValue = col.fmtGetter(rowId);
+          const dataOptions = (rawValue === fmtValue) ? {} :
+            {'data-grist-raw-value': JSON.stringify(rawValue)};
           return dom('td', dataOptions, fmtValue);
         })
       )
@@ -117,33 +118,29 @@ function makePasteHtml(tableData, selection, includeColHeaders) {
   );
   return elem.outerHTML;
 }
-exports.makePasteHtml = makePasteHtml;
 
-/**
- * @typedef RichPasteObject
- * @type {object}
- * @property {string} displayValue
- * @property {string} [rawValue] - Optional rawValue that should be used if colType matches
- *    destination.
- * @property {string} [colType] - Column type of the source column.
- */
+export interface RichPasteObject {
+  displayValue: string;
+  colType?: string|null;  // Column type of the source column.
+  rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
+}
 
 /**
  * Parses a 2-d array of objects from a text string containing an HTML table.
  * @param {string} data - String of an HTML table.
  * @return {Array<Array<RichPasteObj>>} - 2-d array of objects containing details of copied cells.
  */
-function parsePasteHtml(data) {
-  let parser = new G.DOMParser();
-  let doc = parser.parseFromString(data, 'text/html');
-  let table = doc.querySelector('table');
+export function parsePasteHtml(data: string): RichPasteObject[][] {
+  const parser = new G.DOMParser() as DOMParser;
+  const doc = parser.parseFromString(data, 'text/html');
+  const table = doc.querySelector('table');
 
-  let colTypes = Array.from(table.querySelectorAll('col'), col =>
+  const colTypes = Array.from(table!.querySelectorAll('col'), col =>
     col.getAttribute('data-grist-col-type'));
 
-  let result = Array.from(table.querySelectorAll('tr'), (row, rowIdx) =>
+  const result = Array.from(table!.querySelectorAll('tr'), (row, rowIdx) =>
     Array.from(row.querySelectorAll('td, th'), (cell, colIdx) => {
-      let o = { displayValue: cell.textContent };
+      const o: RichPasteObject = { displayValue: cell.textContent! };
 
       // If there's a column type, add it to the object
       if (colTypes[colIdx]) {
@@ -151,7 +148,7 @@ function parsePasteHtml(data) {
       }
 
       if (cell.hasAttribute('data-grist-raw-value')) {
-        o.rawValue = gutil.safeJsonParse(cell.getAttribute('data-grist-raw-value'),
+        o.rawValue = safeJsonParse(cell.getAttribute('data-grist-raw-value')!,
           o.displayValue);
       }
 
@@ -163,34 +160,11 @@ function parsePasteHtml(data) {
   }
   return result;
 }
-exports.parsePasteHtml = parsePasteHtml;
 
 // Helper function to add css style properties to an html tag
-function _styleAttr(style) {
-  return _.map(style, (value, prop) => `${prop}: ${value};`).join(' ');
+function _styleAttr(style: object) {
+  return map(style, (value, prop) => `${prop}: ${value};`).join(' ');
 }
-
-/**
- * groupBy takes in tableData and colId and returns an array of objects of unique values and counts.
- *
- * @param tableData
- * @param colId
- * @param {number} =optSort - Optional sort flag to return array sorted by count; 1 for asc, -1 for desc.
- */
-function groupBy(tableData, colId, optSort) {
-  var groups = _.map(
-    _.countBy(tableData.getColValues(colId)),
-    function(value, key) {
-      return {
-        key: key,
-        count: value,
-      };
-    }
-  );
-  groups = _.sortBy(groups, 'key'); // first sort by key, then by count
-  return optSort ? _.sortBy(groups, function(el) { return optSort * el.count; }) : groups;
-}
-exports.groupBy = groupBy;
 
 /**
 * Given a selection object, creates a action to set all references in the object to the empty string.
@@ -199,19 +173,24 @@ exports.groupBy = groupBy;
 * See GridView.js getSelection and DetailView.js getSelection.
 * @returns {Object} BulkUpdateRecord action
 */
+export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|null {
+  // If the selection includes the "new" row, ignore that one.
+  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === 'number'));
+  if (rowIds.length === 0) {
+    return null;
+  }
+  const blankRow = rowIds.map(() => '');
 
-function makeDeleteAction(selection) {
-  let blankRow = selection.rowIds.map(() => '');
-
-  let colIds = selection.fields
+  const colIds = selection.fields
     .filter(field => !field.column().isRealFormula() && !field.disableEditData())
     .map(field => field.colId());
 
   // Get the tableId from the first selected column.
-  let tableId = selection.fields[0].column().table().tableId();
+  const tableId = selection.fields[0].column().table().tableId();
 
-  return colIds.length === 0 ? null :
-    ['BulkUpdateRecord', tableId, selection.rowIds, _.object(colIds, colIds.map(() => blankRow))];
+  if (colIds.length === 0) {
+    return null;
+  }
+  return ['BulkUpdateRecord', tableId, rowIds,
+    zipObject(colIds, colIds.map(() => blankRow))];
 }
-
-exports.makeDeleteAction = makeDeleteAction;

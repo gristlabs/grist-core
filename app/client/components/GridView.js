@@ -19,7 +19,7 @@ var viewCommon    = require('./viewCommon');
 var Base          = require('./Base');
 var BaseView      = require('./BaseView');
 var selector      = require('./Selector');
-var CopySelection = require('./CopySelection');
+var {CopySelection} = require('./CopySelection');
 
 const {renderAllRows} = require('app/client/components/Printing');
 const {reportError} = require('app/client/models/AppModel');
@@ -502,11 +502,6 @@ GridView.prototype.clearSelection = function() {
  * @param {CopySelection} selection
  */
 GridView.prototype.clearValues = function(selection) {
-  console.debug('GridView.clearValues', selection);
-  selection.rowIds = _.without(selection.rowIds, 'new');
-  // If only the addRow was selected, don't send an action.
-  if (selection.rowIds.length === 0) { return; }
-
   const options = this._getColumnMenuOptions(selection);
   if (options.isFormula === true) {
     this.activateEditorAtCursor({ init: ''});

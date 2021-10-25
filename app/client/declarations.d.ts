@@ -145,15 +145,6 @@ declare module "app/client/components/commands" {
   export const createGroup: any;
 }
 
-declare module "app/client/lib/tableUtil" {
-
-  import {KoArray} from 'app/client/lib/koArray';
-  import {ViewFieldRec} from 'app/client/models/DocModel';
-
-  function insertPositions(lowerPos: number|null, upperPos: number|null, numInserts: number): number[];
-  function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number): number[];
-}
-
 declare module "app/client/models/BaseRowModel" {
   import {Disposable} from 'app/client/lib/dispose';
   import * as TableModel from 'app/client/models/TableModel';

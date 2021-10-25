@@ -10,7 +10,7 @@ require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
 var Base          = require('./Base');
 var BaseView      = require('./BaseView');
-var CopySelection = require('./CopySelection');
+var {CopySelection} = require('./CopySelection');
 var RecordLayout  = require('./RecordLayout');
 var commands      = require('./commands');
 const {RowContextMenu} = require('../ui/RowContextMenu');
