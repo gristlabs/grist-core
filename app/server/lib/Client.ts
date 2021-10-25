@@ -11,6 +11,7 @@ import {Authorizer} from 'app/server/lib/Authorizer';
 import {ScopedSession} from 'app/server/lib/BrowserSession';
 import {DocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
+import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
@@ -64,6 +65,8 @@ export class Client {
   public browserSettings: BrowserSettings = {};
 
   private _session: ScopedSession|null = null;
+
+  private _log = new LogMethods('Client ', (s: null) => this.getLogMeta());
 
   // Maps docFDs to DocSession objects.
   private _docFDs: Array<DocSession|null> = [];
@@ -163,12 +166,12 @@ export class Client {
       if (docSession && docSession.activeDoc) {
         // Note that this indirectly calls to removeDocSession(docSession.fd)
         docSession.activeDoc.closeDoc(docSession)
-          .catch((e) => { log.warn("%s: error closing docFD %d", this, fd); });
+          .catch((e) => { this._log.warn(null, "error closing docFD %d", fd); });
         count++;
       }
       this._docFDs[fd] = null;
     }
-    log.debug("%s: closeAllDocs() closed %d doc(s)", this, count);
+    this._log.debug(null, "closeAllDocs() closed %d doc(s)", count);
   }
 
   public interruptConnection() {
@@ -190,12 +193,8 @@ export class Client {
     const message: string = JSON.stringify(messageObj);
 
     // Log something useful about the message being sent.
-    if (messageObj.type) {
-      log.info("%s: sending %s: %d bytes", this, messageObj.type, message.length);
-    } else if (messageObj.error) {
-      log.warn("%s: responding to #%d ERROR %s", this, messageObj.reqId, messageObj.error);
-    } else {
-      log.info("%s: responding to #%d OK: %d bytes", this, messageObj.reqId, message.length);
+    if (messageObj.error) {
+      this._log.warn(null, "responding to #%d ERROR %s", messageObj.reqId, messageObj.error);
     }
 
     if (this._websocket) {
@@ -207,9 +206,9 @@ export class Client {
         // NOTE: if this handler is run after onClose, we could have messages end up out of order.
         // Let's check to make sure. If this can happen, we need to refactor for correct ordering.
         if (!this._websocket) {
-          log.error("%s sendMessage: UNEXPECTED ORDER OF CALLBACKS", this);
+          this._log.error(null, "sendMessage: UNEXPECTED ORDER OF CALLBACKS");
         }
-        log.warn("%s sendMessage: queuing after send error: %s", this, err.toString());
+        this._log.warn(null, "sendMessage: queuing after send error: %s", err.toString());
         this._missedMessages.push(message);
       }
     } else if (this._missedMessages.length < clientMaxMissedMessages) {
@@ -217,7 +216,7 @@ export class Client {
       this._missedMessages.push(message);
     } else {
       // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
-      log.error("%s sendMessage: too many messages queued; booting client", this);
+      this._log.error(null, "sendMessage: too many messages queued; booting client");
       if (this._destroyTimer) {
         clearTimeout(this._destroyTimer);
         this._destroyTimer = null;
@@ -244,17 +243,17 @@ export class Client {
    * indicate success or failure.
    */
   public async onMessage(message: string): Promise<void> {
-    const clientId = this.clientId;
     const request = JSON.parse(message);
     if (request.beat) {
-      const profile = this.getProfile();
       // this is a heart beat, to keep the websocket alive.  No need to reply.
-      log.rawInfo('heartbeat', {clientId, counter: this._counter, url: request.url,
-                                docId: request.docId,  // caution: trusting client for docId for this purpose.
-                                email: profile?.email, userId: this.getCachedUserId()});
+      log.rawInfo('heartbeat', {
+        ...this.getLogMeta(),
+        url: request.url,
+        docId: request.docId,  // caution: trusting client for docId for this purpose.
+      });
       return;
     } else {
-      log.info("%s: onMessage", this, shortDesc(message));
+      this._log.info(null, "onMessage", shortDesc(message));
     }
     const response: any = {reqId: request.reqId};
     const method = this._methods[request.method];
@@ -274,7 +273,7 @@ export class Client {
           (typeof code === 'string' && code.startsWith('AUTH_NO'))
         );
 
-        log.warn("%s: Error %s %s", this, skipStack ? err : err.stack, code || '');
+        this._log.warn(null, "Error %s %s", skipStack ? err : err.stack, code || '');
         response.error = err.message;
         if (err.code) {
           response.errorCode = err.code;

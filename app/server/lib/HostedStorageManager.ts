@@ -14,7 +14,7 @@ import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage} from 'app/se
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
 import {ICreate} from 'app/server/lib/ICreate';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import * as log from 'app/server/lib/log';
+import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
@@ -113,6 +113,8 @@ export class HostedStorageManager implements IDocStorageManager {
   // Latest version ids of documents.
   private _latestVersions = new Map<string, string>();
 
+  private _log = new LogMethods('HostedStorageManager ', (docId: string|null) => ({docId}));
+
   /**
    * Initialize with the given root directory, which should be a fully-resolved path.
    * If s3Bucket is blank, S3 storage will be disabled.
@@ -140,7 +142,7 @@ export class HostedStorageManager implements IDocStorageManager {
       delayBeforeOperationMs: secondsBeforePush * 1000,
       retry: true,
       logError: (key, failureCount, err) => {
-        log.error("HostedStorageManager: error pushing %s (%d): %s", key, failureCount, err);
+        this._log.error(null, "error pushing %s (%d): %s", key, failureCount, err);
       }
     });
 
@@ -309,7 +311,7 @@ export class HostedStorageManager implements IDocStorageManager {
       await fse.remove(this._getHashFile(this.getPath(docId)));
       this.markAsChanged(docId, 'edit');
     } catch (err) {
-      log.error("HostedStorageManager: problem replacing %s: %s", docId, err);
+      this._log.error(docId, "problem replacing doc: %s", err);
       await fse.move(tmpPath, docPath, {overwrite: true});
       throw err;
     } finally {
@@ -373,7 +375,7 @@ export class HostedStorageManager implements IDocStorageManager {
    * Close the storage manager.  Make sure any pending changes reach S3 first.
    */
   public async closeStorage(): Promise<void> {
-    await this._uploads.wait(() =>  log.info('HostedStorageManager: waiting for closeStorage to finish'));
+    await this._uploads.wait(() =>  this._log.info(null, 'waiting for closeStorage to finish'));
 
     // Close metadata manager.
     if (this._metadataManager) { await this._metadataManager.close(); }
@@ -415,7 +417,7 @@ export class HostedStorageManager implements IDocStorageManager {
   // pick up the pace of pushing to s3, from leisurely to urgent.
   public prepareToCloseStorage() {
     if (this._pruner) {
-      this._pruner.close().catch(e => log.error("HostedStorageManager: pruning error %s", e));
+      this._pruner.close().catch(e => this._log.error(null, "pruning error %s", e));
     }
     this._uploads.expediteOperations();
   }
@@ -436,7 +438,7 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   public async flushDoc(docName: string): Promise<void> {
     while (!this.isAllSaved(docName)) {
-      log.info('HostedStorageManager: waiting for document to finish: %s', docName);
+      this._log.info(docName, 'waiting for document to finish');
       await this._uploads.expediteOperationAndWait(docName);
       await this._inventory?.flush(docName);
       if (!this.isAllSaved(docName)) {
@@ -576,7 +578,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // Fine, accept the doc as existing on our file system.
             return true;
           } else {
-            log.info("Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
+            this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
             // The file that exists locally does not match S3.  But S3 is the canonical version.
             // On the assumption that the local file is outdated, delete it.
             // TODO: may want to be more careful in case the local file has modifications that
@@ -647,7 +649,7 @@ export class HostedStorageManager implements IDocStorageManager {
   private async _prepareBackup(docId: string, postfix: string = 'backup'): Promise<string> {
     const docPath = this.getPath(docId);
     const tmpPath = `${docPath}-${postfix}`;
-    return backupSqliteDatabase(docPath, tmpPath, undefined, postfix);
+    return backupSqliteDatabase(docPath, tmpPath, undefined, postfix, {docId});
   }
 
   /**
@@ -775,10 +777,14 @@ export class HostedStorageManager implements IDocStorageManager {
  */
 export async function backupSqliteDatabase(src: string, dest: string,
                                            testProgress?: (e: BackupEvent) => void,
-                                           label?: string): Promise<string> {
-  log.debug(`backupSqliteDatabase: starting copy of ${src} (${label})`);
+                                           label?: string,
+                                           logMeta: object = {}): Promise<string> {
+  const _log = new LogMethods<null>('backupSqliteDatabase: ', () => logMeta);
+  _log.debug(null, `starting copy of ${src} (${label})`);
   let db: sqlite3.DatabaseWithBackup|null = null;
   let success: boolean = false;
+  let maxStepTimeMs: number = 0;
+  let numSteps: number = 0;
   try {
     // NOTE: fse.remove succeeds also when the file does not exist.
     await fse.remove(dest);  // Just in case some previous process terminated very badly.
@@ -808,9 +814,11 @@ export async function backupSqliteDatabase(src: string, dest: string,
       // this message at most once a second.
       // See https://www.sqlite.org/c3ref/backup_finish.html and
       // https://github.com/mapbox/node-sqlite3/pull/1116 for api details.
-      if (remaining >= 0 && backup.remaining > remaining && Date.now() - restartMsgTime > 1000) {
-        log.info(`backupSqliteDatabase: copy of ${src} (${label}) restarted`);
-        restartMsgTime = Date.now();
+      numSteps++;
+      const stepStart = Date.now();
+      if (remaining >= 0 && backup.remaining > remaining && stepStart - restartMsgTime > 1000) {
+        _log.info(null, `copy of ${src} (${label}) restarted`);
+        restartMsgTime = stepStart;
       }
       remaining = backup.remaining;
       if (testProgress) { testProgress({action: 'step', phase: 'before'}); }
@@ -819,15 +827,18 @@ export async function backupSqliteDatabase(src: string, dest: string,
         isCompleted = Boolean(await fromCallback(cb => backup.step(PAGES_TO_BACKUP_PER_STEP, cb)));
       } catch (err) {
         if (String(err) !== String(prevError) || Date.now() - errorMsgTime > 1000) {
-          log.info(`backupSqliteDatabase (${src} ${label}): ${err}`);
+          _log.info(null, `error (${src} ${label}): ${err}`);
           errorMsgTime = Date.now();
         }
         prevError = err;
         if (backup.failed) { throw new Error(`backupSqliteDatabase (${src} ${label}): internal copy failed`); }
+      } finally {
+        const stepTimeMs = Date.now() - stepStart;
+        if (stepTimeMs > maxStepTimeMs) { maxStepTimeMs = stepTimeMs; }
       }
       if (testProgress) { testProgress({action: 'step', phase: 'after'}); }
       if (isCompleted) {
-        log.info(`backupSqliteDatabase: copy of ${src} (${label}) completed successfully`);
+        _log.info(null, `copy of ${src} (${label}) completed successfully`);
         success = true;
         break;
       }
@@ -838,7 +849,7 @@ export async function backupSqliteDatabase(src: string, dest: string,
     try {
       if (db) { await fromCallback(cb => db!.close(cb)); }
     } catch (err) {
-      log.debug(`backupSqliteDatabase: problem stopping copy of ${src} (${label}): ${err}`);
+      _log.debug(null, `problem stopping copy of ${src} (${label}): ${err}`);
     }
     if (!success) {
       // Something went wrong, remove backup if it was started.
@@ -846,11 +857,11 @@ export async function backupSqliteDatabase(src: string, dest: string,
         // NOTE: fse.remove succeeds also when the file does not exist.
         await fse.remove(dest);
       } catch (err) {
-        log.debug(`backupSqliteDatabase: problem removing copy of ${src} (${label}): ${err}`);
+        _log.debug(null, `problem removing copy of ${src} (${label}): ${err}`);
       }
     }
     if (testProgress) { testProgress({action: 'close', phase: 'after'}); }
-    log.debug(`backupSqliteDatabase: stopped copy of ${src} (${label})`);
+    _log.rawLog('debug', null, `stopped copy of ${src} (${label})`, {maxStepTimeMs, numSteps});
   }
   return dest;
 }

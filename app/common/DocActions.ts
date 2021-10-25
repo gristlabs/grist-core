@@ -79,12 +79,23 @@ export function isRenameTable(act: DocAction): act is RenameTable { return act[0
 const SCHEMA_ACTIONS = new Set(['AddTable', 'RemoveTable', 'RenameTable', 'AddColumn',
   'RemoveColumn', 'RenameColumn', 'ModifyColumn']);
 
+// Maps each data action to whether it's a bulk action.
+const DATA_ACTIONS = new Set(['AddRecord', 'RemoveRecord', 'UpdateRecord', 'BulkAddRecord',
+  'BulkRemoveRecord', 'BulkUpdateRecord', 'ReplaceTableData', 'TableData']);
+
 /**
  * Determines whether a given action is a schema action or not.
  */
 export function isSchemaAction(action: DocAction):
     action is AddTable | RemoveTable | RenameTable | AddColumn | RemoveColumn | RenameColumn | ModifyColumn {
   return SCHEMA_ACTIONS.has(action[0]);
+}
+
+export function isDataAction(action: DocAction):
+    action is AddRecord | RemoveRecord | UpdateRecord |
+              BulkAddRecord | BulkRemoveRecord | BulkUpdateRecord |
+              ReplaceTableData | TableDataAction {
+  return DATA_ACTIONS.has(action[0]);
 }
 
 /**
@@ -147,6 +158,12 @@ export function getSelectionDesc(action: UserAction, optExcludeVals: boolean): s
   const columns = map(colValues, (values, col) => optExcludeVals ? col : `${col}: ${values}`);
   const s = typeof rows === 'object' ? 's' : '';
   return `table ${table}, row${s} ${rows}; ${columns.join(", ")}`;
+}
+
+export function getNumRows(action: DocAction): number {
+  return !isDataAction(action) ? 0
+    : Array.isArray(action[2]) ? action[2].length
+    : 1;
 }
 
 // Convert from TableColValues (used by DocStorage and external APIs) to TableDataAction (used

@@ -154,6 +154,14 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
   throw new Error('getDocSessionAccess could not find access information in DocSession');
 }
 
+export function getDocSessionAccessOrNull(docSession: OptDocSession): Role|null {
+  try {
+    return getDocSessionAccess(docSession);
+  } catch (err) {
+    return null;
+  }
+}
+
 /**
  * Get cached information about the document, if available.  May be stale.
  */

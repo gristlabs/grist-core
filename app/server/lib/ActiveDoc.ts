@@ -63,6 +63,7 @@ import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
+import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
@@ -140,6 +141,7 @@ export class ActiveDoc extends EventEmitter {
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
+  private _log = new LogMethods('ActiveDoc ', (s: OptDocSession) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _dataEngine: Promise<ISandbox>|undefined;
   private _activeDocImport: ActiveDocImport;
@@ -194,7 +196,7 @@ export class ActiveDoc extends EventEmitter {
     // TODO: cache engine requirement for doc in home db so we can retain this parallelism
     // when offering a choice of data engines.
     if (!supportsEngineChoices()) {
-      this._getEngine().catch(e => this.logError({client: null}, `engine for ${docName} failed to launch: ${e}`));
+      this._getEngine().catch(e => this._log.error({client: null}, `engine for ${docName} failed to launch: ${e}`));
     }
 
     this._activeDocImport = new ActiveDocImport(this);
@@ -215,16 +217,10 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.getUserOverride(docSession);
   }
 
-  // Helpers to log a message along with metadata about the request.
-  public logDebug(s: OptDocSession, msg: string, ...args: any[]) { this._log('debug', s, msg, ...args); }
-  public logInfo(s: OptDocSession, msg: string, ...args: any[]) { this._log('info', s, msg, ...args); }
-  public logWarn(s: OptDocSession, msg: string, ...args: any[]) { this._log('warn', s, msg, ...args); }
-  public logError(s: OptDocSession, msg: string, ...args: any[]) { this._log('error', s, msg, ...args); }
-
   // Constructs metadata for logging, given a Client or an OptDocSession.
-  public getLogMeta(docSession: OptDocSession, docMethod?: string): log.ILogMeta {
+  public getLogMeta(docSession: OptDocSession|null, docMethod?: string): log.ILogMeta {
     return {
-      ...getLogMetaFromDocSession(docSession),
+      ...(docSession ? getLogMetaFromDocSession(docSession) : {}),
       docId: this._docName,
       ...(docMethod ? {docMethod} : {}),
     };
@@ -307,7 +303,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
-      this.logInfo(docSession, "will stay open");
+      this._log.info(docSession, "will stay open");
       this._inactivityTimer.disable();
     }
     return docSession;
@@ -319,10 +315,10 @@ export class ActiveDoc extends EventEmitter {
    */
   public async shutdown(removeThisActiveDoc: boolean = true): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
-    this.logDebug(docSession, "shutdown starting");
+    this._log.debug(docSession, "shutdown starting");
     this._inactivityTimer.disable();
     if (this.docClients.clientCount() > 0) {
-      this.logWarn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
+      this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
       await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
       this.docClients.removeAllClients();
     }
@@ -361,9 +357,9 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         // Initialization errors do not matter at this point.
       }
-      this.logDebug(docSession, "shutdown complete");
+      this._log.debug(docSession, "shutdown complete");
     } catch (err) {
-      this.logError(docSession, "failed to shutdown some resources", err);
+      this._log.error(docSession, "failed to shutdown some resources", err);
     }
   }
 
@@ -373,7 +369,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   public async createEmptyDocWithDataEngine(docSession: OptDocSession): Promise<ActiveDoc> {
-    this.logDebug(docSession, "createEmptyDocWithDataEngine");
+    this._log.debug(docSession, "createEmptyDocWithDataEngine");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     await this._rawPyCall('load_empty');
@@ -417,7 +413,7 @@ export class ActiveDoc extends EventEmitter {
     skipInitialTable?: boolean,  // If set, and document is new, "Table1" will not be added.
   }): Promise<ActiveDoc> {
     const startTime = Date.now();
-    this.logDebug(docSession, "loadDoc");
+    this._log.debug(docSession, "loadDoc");
     try {
       const isNew: boolean = options?.forceNew || await this._docManager.storageManager.prepareLocalDoc(this.docName);
       if (isNew) {
@@ -585,7 +581,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If no more clients, schedule a shutdown.
     if (this.docClients.clientCount() === 0) {
-      this.logInfo(docSession, "will self-close in %d ms", this._inactivityTimer.getDelay());
+      this._log.info(docSession, "will self-close in %d ms", this._inactivityTimer.getDelay());
       this._inactivityTimer.enable();
     }
   }
@@ -646,7 +642,7 @@ export class ActiveDoc extends EventEmitter {
     // and serve the attachment.
     const data = await this.docStorage.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
-    this.logInfo(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
+    this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
   }
 
@@ -654,7 +650,7 @@ export class ActiveDoc extends EventEmitter {
    * Fetches the meta tables to return to the client when first opening a document.
    */
   public async fetchMetaTables(docSession: OptDocSession) {
-    this.logInfo(docSession, "fetchMetaTables");
+    this._log.info(docSession, "fetchMetaTables");
     if (!this.docData) { throw new Error("No doc data"); }
     // Get metadata from local cache rather than data engine, so that we can
     // still get it even if data engine is busy calculating.
@@ -749,7 +745,7 @@ export class ActiveDoc extends EventEmitter {
     const wantFull = waitForFormulas || query.tableId.startsWith('_grist_') ||
       this._granularAccess.getReadPermission(tableAccess) === 'mixed';
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
-    this.logInfo(docSession, "fetchQuery %s %s", JSON.stringify(query),
+    this._log.info(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
     let data: TableDataAction;
     if (onDemand) {
@@ -773,7 +769,7 @@ export class ActiveDoc extends EventEmitter {
       data = cloneDeep(data!);  // Clone since underlying fetch may be cached and shared.
       await this._granularAccess.filterData(docSession, data);
     }
-    this.logInfo(docSession, "fetchQuery -> %d rows, cols: %s",
+    this._log.info(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
     return data!;
   }
@@ -784,7 +780,7 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise} Promise for a string representing the generated table schema.
    */
   public async fetchTableSchema(docSession: DocSession): Promise<string> {
-    this.logInfo(docSession, "fetchTableSchema(%s)", docSession);
+    this._log.info(docSession, "fetchTableSchema(%s)", docSession);
     // Permit code view if user can read everything, or can download/copy (perhaps
     // via an exceptional permission for sample documents)
     if (!(await this._granularAccess.canReadEverything(docSession) ||
@@ -800,7 +796,7 @@ export class ActiveDoc extends EventEmitter {
    * docActions that affect this query's results.
    */
   public async useQuerySet(docSession: OptDocSession, query: ServerQuery): Promise<QueryResult> {
-    this.logInfo(docSession, "useQuerySet(%s, %s)", docSession, query);
+    this._log.info(docSession, "useQuerySet(%s, %s)", docSession, query);
     // TODO implement subscribing to the query.
     // - Convert tableId+colIds to TableData/ColData references
     // - Return a unique identifier for unsubscribing
@@ -817,7 +813,7 @@ export class ActiveDoc extends EventEmitter {
    * docActions relevant only to this query.
    */
   public async disposeQuerySet(docSession: DocSession, querySubId: number): Promise<void> {
-    this.logInfo(docSession, "disposeQuerySet(%s, %s)", docSession, querySubId);
+    this._log.info(docSession, "disposeQuerySet(%s, %s)", docSession, querySubId);
     // TODO To-be-implemented
   }
 
@@ -834,7 +830,7 @@ export class ActiveDoc extends EventEmitter {
                                  optTableId?: string): Promise<number[]> {
     // This could leak information about private tables, so check for permission.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
-    this.logInfo(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
+    this._log.info(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
     await this.waitForInitialization();
     return this._pyCall('find_col_from_values', values, n, optTableId);
   }
@@ -883,7 +879,7 @@ export class ActiveDoc extends EventEmitter {
   public async getFormulaError(docSession: DocSession, tableId: string, colId: string,
                                rowId: number): Promise<CellValue> {
     if (!await this._granularAccess.hasTableAccess(docSession, tableId)) { return null; }
-    this.logInfo(docSession, "getFormulaError(%s, %s, %s, %s)",
+    this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
     return this._pyCall('get_formula_error', tableId, colId, rowId);
@@ -978,7 +974,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async renameDocTo(docSession: OptDocSession, newName: string): Promise<void> {
-    this.logDebug(docSession, 'renameDoc', newName);
+    this._log.debug(docSession, 'renameDoc', newName);
     await this.docStorage.renameDocTo(newName);
     this._docName = newName;
   }
@@ -1314,7 +1310,7 @@ export class ActiveDoc extends EventEmitter {
     const versionCol = docInfo.schemaVersion;
     const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0) as number;
     if (docSchemaVersion < schemaVersion) {
-      this.logInfo(docSession, "Doc needs migration from v%s to v%s", docSchemaVersion, schemaVersion);
+      this._log.info(docSession, "Doc needs migration from v%s to v%s", docSchemaVersion, schemaVersion);
       await this._beforeMigration(docSession, 'schema', docSchemaVersion, schemaVersion);
       let success: boolean = false;
       try {
@@ -1330,7 +1326,7 @@ export class ActiveDoc extends EventEmitter {
       // migration action, but that requires merging and still may not be safe. For now, doing
       // nothing seems best, as long as we follow the recommendations in migrations.py (never
       // remove/modify/rename metadata tables or columns, or change their meaning).
-      this.logWarn(docSession, "Doc is newer (v%s) than this version of Grist (v%s); " +
+      this._log.warn(docSession, "Doc is newer (v%s) than this version of Grist (v%s); " +
         "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
@@ -1350,10 +1346,10 @@ export class ActiveDoc extends EventEmitter {
     const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
     const onDemandNames = remove(tableNames, (t) => onDemandMap[t]);
 
-    this.logInfo(docSession, "Loading %s normal tables, skipping %s on-demand tables",
+    this._log.debug(docSession, "Loading %s normal tables, skipping %s on-demand tables",
       tableNames.length, onDemandNames.length);
-    this.logDebug(docSession, "Normal tables: %s", tableNames.join(", "));
-    this.logDebug(docSession, "On-demand tables: %s",  onDemandNames.join(", "));
+    this._log.debug(docSession, "Normal tables: %s", tableNames.join(", "));
+    this._log.debug(docSession, "On-demand tables: %s",  onDemandNames.join(", "));
 
     return [tableNames, onDemandNames];
   }
@@ -1380,7 +1376,7 @@ export class ActiveDoc extends EventEmitter {
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
     const client = docSession.client;
-    this.logDebug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
+    this._log.debug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     if (options?.bestEffort) {
@@ -1397,7 +1393,7 @@ export class ActiveDoc extends EventEmitter {
     const result: ApplyUAResult = await new Promise<ApplyUAResult>(
       (resolve, reject) =>
         this._sharing.addUserAction({action, docSession, resolve, reject}));
-    this.logDebug(docSession, "_applyUserActions returning %s", shortDesc(result));
+    this._log.debug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
@@ -1413,7 +1409,7 @@ export class ActiveDoc extends EventEmitter {
   private async _createDocFile(docSession: OptDocSession, options?: {
     skipInitialTable?: boolean,  // If set, "Table1" will not be added.
   }): Promise<void> {
-    this.logDebug(docSession, "createDoc");
+    this._log.debug(docSession, "createDoc");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     const sql = options?.skipInitialTable ? GRIST_DOC_SQL : GRIST_DOC_WITH_TABLE1_SQL;
@@ -1461,7 +1457,7 @@ export class ActiveDoc extends EventEmitter {
     const checksum = await checksumFile(fileData.absPath);
     const fileIdent = checksum + fileData.ext;
     const ret: boolean = await this.docStorage.findOrAttachFile(fileData.absPath, fileIdent);
-    this.logInfo(docSession, "addAttachment: file %s (image %sx%s) %s", fileIdent,
+    this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", fileIdent,
       dimensions.width, dimensions.height, ret ? "attached" : "already exists");
     return ['AddRecord', '_grist_Attachments', null, {
       fileIdent,
@@ -1506,7 +1502,7 @@ export class ActiveDoc extends EventEmitter {
       // If a new migration needs this flag, more work is needed. The current approach creates
       // more memory pressure than usual since full data is present in memory at once both in node
       // and in Python; and it doesn't skip onDemand tables. This is liable to cause crashes.
-      this.logWarn(docSession, "_migrate: retrying with all tables");
+      this._log.warn(docSession, "_migrate: retrying with all tables");
       for (const tableName of tableNames) {
         if (!tableData[tableName] && !tableName.startsWith('_gristsys_')) {
           tableData[tableName] = await this.docStorage.fetchTable(tableName);
@@ -1518,10 +1514,10 @@ export class ActiveDoc extends EventEmitter {
     const processedTables = Object.keys(tableData);
     const numSchema = countIf(processedTables, t => t.startsWith("_grist_"));
     const numUser = countIf(processedTables, t => !t.startsWith("_grist_"));
-    this.logInfo(docSession, "_migrate: applying %d migration actions (processed %s schema, %s user tables)",
+    this._log.info(docSession, "_migrate: applying %d migration actions (processed %s schema, %s user tables)",
       docActions.length, numSchema, numUser);
 
-    docActions.forEach((action, i) => this.logInfo(docSession, "_migrate: docAction %s: %s", i, shortDesc(action)));
+    docActions.forEach((action, i) => this._log.info(docSession, "_migrate: docAction %s: %s", i, shortDesc(action)));
     await this.docStorage.execTransaction(() => this.docStorage.applyStoredActions(docActions));
   }
 
@@ -1529,7 +1525,7 @@ export class ActiveDoc extends EventEmitter {
    * Load the specified tables into the data engine.
    */
   private async _loadTables(docSession: OptDocSession, tableNames: string[]) {
-    this.logDebug(docSession, "loading %s tables: %s", tableNames.length,
+    this._log.debug(docSession, "loading %s tables: %s", tableNames.length,
       tableNames.join(", "));
     // Pass the resulting array to `map`, which allows parallel processing of the tables. Database
     // and DataEngine may still do things serially, but it allows them to be busy simultaneously.
@@ -1545,7 +1541,7 @@ export class ActiveDoc extends EventEmitter {
    * The loader can be directed to stream the tables on to the engine.
    */
   private _startLoadingTables(docSession: OptDocSession, tableNames: string[]) {
-    this.logDebug(docSession, "starting to load %s tables: %s", tableNames.length,
+    this._log.debug(docSession, "starting to load %s tables: %s", tableNames.length,
                   tableNames.join(", "));
     for (const tableId of tableNames) {
       this._tableMetadataLoader.startFetchingTable(tableId);
@@ -1597,11 +1593,11 @@ export class ActiveDoc extends EventEmitter {
       // took longer, scale it up proportionately.
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
-      this.logDebug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
       return true;
     } catch (err) {
       if (!this._shuttingDown) {
-        this.logWarn(docSession, "_finishInitialization stopped with %s", err);
+        this._log.warn(docSession, "_finishInitialization stopped with %s", err);
       }
       this._fullyLoaded = true;
       return false;
@@ -1639,10 +1635,6 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
-  private _log(level: string, docSession: OptDocSession, msg: string, ...args: any[]) {
-    log.origLog(level, `ActiveDoc ` + msg, ...args, this.getLogMeta(docSession));
-  }
-
   /**
    * Called before a migration.  Makes sure a back-up is made.
    */
@@ -1652,7 +1644,7 @@ export class ActiveDoc extends EventEmitter {
     const label = `migrate-${versionType}-last-v${currentVersion}-before-v${newVersion}`;
     this._docManager.markAsChanged(this);  // Give backup current time.
     const location = await this._docManager.makeBackup(this, label);
-    this.logInfo(docSession, "_beforeMigration: backup made with label %s at %s", label, location);
+    this._log.info(docSession, "_beforeMigration: backup made with label %s at %s", label, location);
     this.emit("backupMade", location);
   }
 

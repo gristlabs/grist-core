@@ -6,10 +6,10 @@ import {
   LocalActionBundle,
   UserActionBundle
 } from 'app/common/ActionBundle';
-import {DocAction, UserAction} from 'app/common/DocActions';
+import {DocAction, getNumRows, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
-import {timeFormat} from 'app/common/timeFormat';
 import * as log from 'app/server/lib/log';
+import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import * as assert from 'assert';
 import {Mutex} from 'async-mutex';
@@ -42,12 +42,17 @@ interface UserResult {
 // Internally-used enum to distinguish if applied actions should be logged as local or shared.
 enum Branch { Local, Shared }
 
+// Don't log details of action bundles in production.
+const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== 'production');
+
 export class Sharing {
   protected _activeDoc: ActiveDoc;
   protected _actionHistory: ActionHistory;
   protected _hubQueue: Deque<ActionBundle> = new Deque();
   protected _pendingQueue: Deque<UserRequest> = new Deque();
   protected _workCoordinator: WorkCoordinator;
+
+  private _log = new LogMethods('Sharing ', (s: OptDocSession|null) => this._activeDoc.getLogMeta(s));
 
   constructor(activeDoc: ActiveDoc, actionHistory: ActionHistory, private _modificationLock: Mutex) {
     // TODO actionHistory is currently unused (we use activeDoc.actionLog).
@@ -114,7 +119,7 @@ export class Sharing {
       const ret = await this._doApplyUserActionBundle(userRequest.action, userRequest.docSession);
       userRequest.resolve(ret);
     } catch (e) {
-      log.warn("Unable to apply action...", e);
+      this._log.warn(userRequest.docSession, "Unable to apply action...", e);
       userRequest.reject(e);
     }
   }
@@ -125,7 +130,7 @@ export class Sharing {
     try {
       await this._doApplySharedActionBundle(action);
     } catch (e) {
-      log.error("Unable to apply hub action... skipping");
+      this._log.error(null, "Unable to apply hub action... skipping");
     }
   }
 
@@ -141,7 +146,7 @@ export class Sharing {
         await this._rebaseLocalActions();
       }
     } catch (e) {
-      log.error("Unable to apply hub action... skipping");
+      this._log.error(null, "Unable to apply hub action... skipping");
     }
   }
 
@@ -155,7 +160,7 @@ export class Sharing {
       rebaseQueue.push(...actions.map((a) => getUserActionBundle(a)));
       await this._actionHistory.clearLocalActions();
     } catch (e) {
-      log.error("Can't undo local actions; sharing is off");
+      this._log.error(null, "Can't undo local actions; sharing is off");
       this._rollbackToCheckpoint();
       // TODO this.disconnect();
       // TODO errorState = true;
@@ -173,14 +178,14 @@ export class Sharing {
       try {
         await this._doApplyUserActionBundle(adjusted, null);
       } catch (e) {
-        log.warn("Unable to apply rebased action...");
+        this._log.warn(null, "Unable to apply rebased action...");
         rebaseFailures.push([action, adjusted]);
       }
     }
     if (rebaseFailures.length > 0) {
       this._createBackupAtCheckpoint();
       // TODO we should notify the user too.
-      log.error('Rebase failed to reapply some of your actions, backup of local at...');
+      this._log.error(null, 'Rebase failed to reapply some of your actions, backup of local at...');
     }
     this._releaseCheckpoint();
   }
@@ -238,7 +243,19 @@ export class Sharing {
         actionHash: null,        // Gets set below by _actionHistory.recordNext...
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
-      this._logActionBundle(`_doApplyUserActions (${Branch[branch]})`, localActionBundle);
+
+      const logMeta = {
+        actionNum,
+        linkId: info.linkId,
+        otherId: info.otherId,
+        numDocActions: localActionBundle.stored.length,
+        numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
+        author: info.user,
+      };
+      this._log.rawLog('debug', docSession, '_doApplyUserActions', logMeta);
+      if (LOG_ACTION_BUNDLE) {
+        this._logActionBundle(`_doApplyUserActions (${Branch[branch]})`, localActionBundle);
+      }
 
       // TODO Note that the sandbox may produce actions which are not addressed to us (e.g. when we
       // have EDIT permission without VIEW). These are not sent to the browser or the database. But
@@ -361,11 +378,6 @@ export class Sharing {
   /** Log an action bundle to the debug log. */
   private _logActionBundle(prefix: string, actionBundle: ActionBundle) {
     const includeEnv = actionBundle.envelopes.map((e) => this.isOwnEnvelope(e.recipients));
-    log.debug("%s: ActionBundle #%s with #%s envelopes: %s",
-      prefix, actionBundle.actionNum, actionBundle.envelopes.length,
-      infoDesc(actionBundle.info[1]));
-    actionBundle.envelopes.forEach((env, i) =>
-      log.debug("%s: env #%s: %s", prefix, i, env.recipients.join(' ')));
     actionBundle.stored.forEach((envAction, i) =>
       log.debug("%s: stored #%s [%s%s]: %s", prefix, i, envAction[0],
         (includeEnv[envAction[0]] ? "" : " alien"),
@@ -412,17 +424,6 @@ export function findOrAddAllEnvelope(envelopes: Envelope[]): number {
   if (i >= 0) { return i; }
   envelopes.push({recipients: [allToken]});
   return envelopes.length - 1;
-}
-
-/**
- * Convert actionInfo to a concise human-readable description, for debugging.
- */
-function infoDesc(info: ActionInfo): string {
-  const timestamp = timeFormat('A', new Date(info.time));
-  const desc = info.desc ? ` desc=[${info.desc}]` : '';
-  const otherId = info.otherId ? ` [otherId=${info.otherId}]` : '';
-  const linkId = info.linkId ? ` [linkId=${info.linkId}]` : '';
-  return `${timestamp} on ${info.inst} by ${info.user}${desc}${otherId}${linkId}`;
 }
 
 /**

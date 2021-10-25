@@ -8,7 +8,7 @@ import * as uuidv4 from 'uuid/v4';
 import {EngineCode} from 'app/common/DocumentSettings';
 import * as log from 'app/server/lib/log';
 import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import { getDocSessionAccess, getDocSessionUser, OptDocSession } from './DocSession';
+import { getDocSessionAccessOrNull, getDocSessionUser, OptDocSession } from './DocSession';
 
 /**
  * Promisify a node-style callback function. E.g.
@@ -142,7 +142,7 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
  */
 export function getLogMetaFromDocSession(docSession: OptDocSession) {
   const client = docSession.client;
-  const access = getDocSessionAccess(docSession);
+  const access = getDocSessionAccessOrNull(docSession);
   const user = getDocSessionUser(docSession);
   return {
     access,

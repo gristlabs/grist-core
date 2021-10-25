@@ -9,7 +9,7 @@ import {Authorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {sendDocMessage} from 'app/server/lib/Comm';
 import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
-import * as log from 'app/server/lib/log';
+import {LogMethods} from "app/server/lib/LogMethods";
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -18,6 +18,7 @@ export const Deps = {
 
 export class DocClients {
   private _docSessions: DocSession[] = [];
+  private _log = new LogMethods('DocClients ', (s: DocSession|null) => this.activeDoc.getLogMeta(s));
 
   constructor(
     public readonly activeDoc: ActiveDoc
@@ -36,7 +37,7 @@ export class DocClients {
   public addClient(client: Client, authorizer: Authorizer): DocSession {
     const docSession = client.addDocSession(this.activeDoc, authorizer);
     this._docSessions.push(docSession);
-    log.debug("DocClients (%s) now has %d clients; new client is %s (fd %s)", this.activeDoc.docName,
+    this._log.debug(docSession, "now %d clients; new client is %s (fd %s)",
       this._docSessions.length, client.clientId, docSession.fd);
     return docSession;
   }
@@ -46,11 +47,11 @@ export class DocClients {
    * this DocSession.
    */
   public removeClient(docSession: DocSession): void {
-    log.debug("DocClients.removeClient", docSession.client.clientId);
+    this._log.debug(docSession, "removeClient", docSession.client.clientId);
     docSession.client.removeDocSession(docSession.fd);
 
     if (arrayRemove(this._docSessions, docSession)) {
-      log.debug("DocClients (%s) now has %d clients", this.activeDoc.docName, this._docSessions.length);
+      this._log.debug(docSession, "now %d clients", this._docSessions.length);
     }
   }
 
@@ -58,7 +59,7 @@ export class DocClients {
    * Removes all active clients from this document, i.e. closes all DocSessions.
    */
   public removeAllClients(): void {
-    log.debug("DocClients.removeAllClients() removing %s docSessions", this._docSessions.length);
+    this._log.debug(null, "removeAllClients() removing %s docSessions", this._docSessions.length);
     const docSessions = this._docSessions.splice(0);
     for (const docSession of docSessions) {
       docSession.client.removeDocSession(docSession.fd);
@@ -66,7 +67,7 @@ export class DocClients {
   }
 
   public interruptAllClients() {
-    log.debug("DocClients.interruptAllClients() interrupting %s docSessions", this._docSessions.length);
+    this._log.debug(null, "interruptAllClients() interrupting %s docSessions", this._docSessions.length);
     for (const docSession of this._docSessions) {
       docSession.client.interruptConnection();
     }
@@ -116,7 +117,7 @@ export class DocClients {
           if (filteredMessageData) {
             sendDocMessage(target.client, target.fd, type, filteredMessageData, fromSelf);
           } else {
-            this.activeDoc.logDebug(target, 'skip broadcastDocMessage because it is not allowed for this client');
+            this._log.debug(target, 'skip broadcastDocMessage because it is not allowed for this client');
           }
         } catch (e) {
           if (e.code && e.code === 'NEED_RELOAD') {
@@ -129,10 +130,7 @@ export class DocClients {
     } catch (e) {
       if (e.code === 'AUTH_NO_VIEW') {
         // Skip sending data to this user, they have no view access.
-        log.rawDebug('skip broadcastDocMessage because AUTH_NO_VIEW', {
-          docId: target.authorizer.getDocId(),
-          ...target.client.getLogMeta()
-        });
+        this._log.debug(target, 'skip broadcastDocMessage because AUTH_NO_VIEW');
         // Go further and trigger a shutdown for this user, in case they are granted
         // access again later.
         sendDocMessage(target.client, target.fd, 'docShutdown', null, fromSelf);
