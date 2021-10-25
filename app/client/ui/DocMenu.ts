@@ -431,6 +431,8 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       resourceType: 'document',
       resourceId: doc.id,
       linkToCopy: urlState().makeUrl(docUrl(doc)),
+      reload: () => api.getDocAccess(doc.id),
+      appModel: home.app,
     });
   }
 

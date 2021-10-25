@@ -5,16 +5,18 @@
  *
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
+import {commonUrls} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {tbind} from 'app/common/tbind';
 import {PermissionData, UserAPI} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, observable, Observable} from 'grainjs';
 import {dom, DomElementArg, styled} from 'grainjs';
+import pick = require('lodash/pick');
 import {cssMenuItem} from 'popweasel';
 
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
+import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
@@ -25,7 +27,8 @@ import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMemberImage, cssMemberListItem,
-        cssMemberPrimary, cssMemberSecondary, cssMemberText, cssRemoveIcon} from 'app/client/ui/UserItem';
+        cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
+        cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -39,16 +42,21 @@ export interface IUserManagerOptions {
   resourceType: ResourceType;
   resourceId: string|number;
   docPageModel?: DocPageModel;
+  appModel?: AppModel;  // If present, we offer access to a nested team-level dialog.
   linkToCopy?: string;
+  reload?: () => Promise<PermissionData>;
   onSave?: () => Promise<unknown>;
+  prompt?: {  // If set, user manager should open with this email filled in and ready to go.
+    email: string;
+  };
 }
 
 // Returns an instance of UserManagerModel given IUserManagerOptions. Makes the async call for the
 // required properties of the options.
 async function getModel(options: IUserManagerOptions): Promise<UserManagerModelImpl> {
   const permissionData = await options.permissionData;
-  return new UserManagerModelImpl(permissionData, options.resourceType, options.activeEmail,
-    options.docPageModel);
+  return new UserManagerModelImpl(permissionData, options.resourceType,
+                                  pick(options, ['activeEmail', 'reload', 'appModel', 'docPageModel']));
 }
 
 /**
@@ -94,7 +102,9 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
     cssModalBody(
       cssUserManagerBody(
         // TODO: Show a loading indicator before the model is loaded.
-        dom.maybe(modelObs, model => new UserManager(model, options.linkToCopy).buildDom()),
+        dom.maybe(modelObs, model => new UserManager(
+          model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt')
+        ).buildDom()),
       ),
     ),
     cssModalButtons(
@@ -129,21 +139,36 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
  *    um.buildDom();
  */
 export class UserManager extends Disposable {
-  constructor(private _model: UserManagerModel, private _linkToCopy: string|undefined) {
+  private _dom: HTMLDivElement;
+  constructor(private _model: UserManagerModel, private _options: {
+    linkToCopy?: string,
+    docPageModel?: DocPageModel,
+    appModel?: AppModel,
+    prompt?: {email: string}
+  }) {
     super();
   }
 
   public buildDom() {
-    const memberEmail = this.autoDispose(new MemberEmail(tbind(this._model.add, this._model)));
+    const memberEmail = this.autoDispose(new MemberEmail(this._onAdd.bind(this),
+                                                        this._options.prompt));
     return [
       memberEmail.buildDom(),
       this._buildOptionsDom(),
-      shadowScroll(
+      this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
         dom.forEach(this._model.membersEdited, (member) => this._buildMemberDom(member)),
       ),
     ];
+  }
+
+  private _onAdd(email: string, role: roles.NonGuestRole) {
+    this._model.add(email, role);
+    // Make sure the entry we have just added is actually visible - confusing if not.
+    Array.from(this._dom.querySelectorAll('.member-email'))
+      .find(el => el.textContent === email)
+      ?.scrollIntoView();
   }
 
   private _buildOptionsDom(): Element {
@@ -186,13 +211,14 @@ export class UserManager extends Disposable {
       dom.autoDispose(disableRemove),
       dom.maybe((use) => use(member.effectiveAccess) && use(member.effectiveAccess) !== roles.GUEST, () =>
         cssMemberListItem(
-          cssMemberListItem.cls('-removed', (use) => member.isRemoved),
+          cssMemberListItem.cls('-removed', member.isRemoved),
           cssMemberImage(
             createUserImage(getFullUser(member), 'large')
           ),
           cssMemberText(
-            cssMemberPrimary(member.name || dom('span', member.email, testId('um-email'))),
-            member.name ? cssMemberSecondary(member.email, testId('um-email')) : null
+            cssMemberPrimary(member.name || dom('span', member.email, dom.cls('member-email'), testId('um-email'))),
+            member.name ? cssMemberSecondary(member.email, dom.cls('member-email'), testId('um-email')) : null,
+            this._buildAnnotationDom(member),
           ),
           member.isRemoved ? null : this._memberRoleSelector(member.effectiveAccess,
             member.inheritedAccess, this._model.isActiveUser(member)),
@@ -218,6 +244,49 @@ export class UserManager extends Disposable {
     );
   }
 
+  // Build an annotation for a single member.
+  private _buildAnnotationDom(member: IEditableMember) {
+    return dom.domComputed(this._model.annotations, (annotations) => {
+      const annotation = annotations.users.get(member.email);
+      if (!annotation) { return null; }
+      if (annotation.isSupport) {
+        return cssMemberType('Grist support');
+      }
+      if (annotation.isMember && annotations.hasTeam) {
+        return cssMemberType('Team member');
+      }
+      const collaborator = annotations.hasTeam ? 'outside collaborator' : 'collaborator';
+      const limit = annotation.collaboratorLimit;
+      if (!limit || !limit.top) { return null; }
+      const elements: HTMLSpanElement[] = [];
+      if (limit.at <= limit.top) {
+        elements.push(cssMemberType(`${limit.at} of ${limit.top} free ${collaborator}s`));
+      } else {
+        elements.push(cssMemberTypeProblem(`Free ${collaborator} limit exceeded`));
+      }
+      if (annotations.hasTeam) {
+        // Add a link for adding a member. For a doc, streamline this so user can make
+        // the change and continue seamlessly.
+        // TODO: streamline for workspaces.
+        elements.push(cssLink(
+          {href: urlState().makeUrl({manageUsers: true})},
+          dom.on('click', (e) => {
+            if (this._options.appModel) {
+              e.preventDefault();
+              manageTeam(this._options.appModel,
+                         () => this._model.reloadAnnotations(),
+                         { email: member.email }).catch(reportError);
+            }
+          }),
+          `Add ${member.name || 'member'} to your team`));
+      } else if (limit.at >= limit.top) {
+        elements.push(cssLink({href: commonUrls.plans, target: '_blank'},
+                              'Create a team to share with more people'));
+      }
+      return elements;
+    });
+  }
+
   private _buildPublicAccessMember() {
     const publicMember = this._model.publicMember;
     if (!publicMember) { return null; }
@@ -227,7 +296,7 @@ export class UserManager extends Disposable {
           cssPublicMemberIcon('PublicFilled'),
           cssMemberText(
             cssMemberPrimary('Public Access'),
-            cssMemberSecondary('Anyone with link ', makeCopyBtn(this._linkToCopy)),
+            cssMemberSecondary('Anyone with link ', makeCopyBtn(this._options.linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
             // Only show the Editor and Viewer options for the role of the "Public Access" member.
@@ -325,16 +394,20 @@ export class MemberEmail extends Disposable {
   private _emailElem: HTMLInputElement;
 
   constructor(
-    private _onAdd: (email: string, role: roles.NonGuestRole) => void
+    private _onAdd: (email: string, role: roles.NonGuestRole) => void,
+    private _prompt?: {email: string},
   ) {
     super();
+    if (_prompt) {
+      this.email.set(_prompt.email);
+    }
     // Reset custom validity that we sometimes set.
     this.email.addListener(() => this._emailElem.setCustomValidity(""));
   }
 
   public buildDom(): Element {
     const enableAdd: Computed<boolean> = computed((use) => Boolean(use(this.email) && use(this._isValid)));
-    return cssEmailInputContainer(
+    const result = cssEmailInputContainer(
       dom.autoDispose(enableAdd),
       cssMailIcon('Mail'),
       this._emailElem = cssEmailInput(this.email, {onInput: true, isValid: this._isValid},
@@ -366,6 +439,10 @@ export class MemberEmail extends Disposable {
       cssEmailInputContainer.cls('-green', enableAdd),
       testId('um-member-new')
     );
+    if (this._prompt) {
+      this._emailElem.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    return result;
   }
 
   // Add the currently entered email if valid, or trigger a validation message if not.
@@ -415,6 +492,25 @@ async function copyLink(elem: HTMLElement, link: string) {
   await copyToClipboard(link);
   setTestState({clipboard: link});
   showTransientTooltip(elem, 'Link copied to clipboard', {key: 'copy-doc-link'});
+}
+
+async function manageTeam(appModel: AppModel,
+                          onSave?: () => Promise<void>,
+                          prompt?: { email: string }) {
+  await urlState().pushUrl({manageUsers: false});
+  const user = appModel.currentValidUser;
+  const currentOrg = appModel.currentOrg;
+  if (currentOrg) {
+    const api = appModel.api;
+    showUserManagerModal(api, {
+      permissionData: api.getOrgAccess(currentOrg.id),
+      activeEmail: user ? user.email : null,
+      resourceType: 'organization',
+      resourceId: currentOrg.id,
+      onSave,
+      prompt,
+    });
+  }
 }
 
 const cssUserManagerBody = styled('div', `

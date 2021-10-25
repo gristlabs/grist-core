@@ -65,6 +65,7 @@ export interface IGristUrlState {
   welcome?: WelcomePage;
   welcomeTour?: boolean;
   docTour?: boolean;
+  manageUsers?: boolean;
   params?: {
     billingPlan?: string;
     billingTask?: BillingTask;
@@ -214,6 +215,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     url.hash = 'repeat-welcome-tour';
   } else if (state.docTour) {
     url.hash = 'repeat-doc-tour';
+  } else if (state.manageUsers) {
+    url.hash = 'manage-users';
   } else {
     url.hash = '';
   }
@@ -315,6 +318,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
     state.welcomeTour = hashMap.get('#') === 'repeat-welcome-tour';
     state.docTour = hashMap.get('#') === 'repeat-doc-tour';
+    state.manageUsers = hashMap.get('#') === 'manage-users';
   }
   return state;
 }

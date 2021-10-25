@@ -13,13 +13,14 @@ import {cssMenuItem} from 'popweasel';
 //     cssMemberText(
 //       cssMemberPrimary(NAME),
 //       cssMemberSecondary(EMAIL),
+//       cssMemberType(DESCRIPTION),
 //     )
 //   )
 
 export const cssMemberListItem = styled('div', `
   display: flex;
   width: 460px;
-  height: 64px;
+  min-height: 64px;
   margin: 0 auto;
   padding: 12px 0;
 `);
@@ -63,6 +64,32 @@ export const cssMemberPrimary = styled('span', `
 
 export const cssMemberSecondary = styled('span', `
   color: ${colors.slate};
+  /* the following just undo annoying bootstrap styles that apply to all labels */
+  margin: 0px;
+  font-weight: normal;
+  padding: 2px 0;
+  white-space: nowrap;
+
+  .${cssMenuItem.className}-sel & {
+    color: white;
+  }
+`);
+
+export const cssMemberType = styled('span', `
+  color: ${colors.slate};
+  /* the following just undo annoying bootstrap styles that apply to all labels */
+  margin: 0px;
+  font-weight: normal;
+  padding: 2px 0;
+  white-space: nowrap;
+
+  .${cssMenuItem.className}-sel & {
+    color: white;
+  }
+`);
+
+export const cssMemberTypeProblem = styled('span', `
+  color: ${colors.error};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
   font-weight: normal;

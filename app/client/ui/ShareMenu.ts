@@ -245,9 +245,11 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
     resourceType: 'document',
     resourceId: doc.id,
     docPageModel,
+    appModel: docPageModel.appModel,
     linkToCopy: urlState().makeUrl(docUrl(doc)),
     // On save, re-fetch the document info, to toggle the "Public Access" icon if it changed.
     onSave: () => docPageModel.refreshCurrentDoc(doc),
+    reload: () => api.getDocAccess(doc.id),
   });
 }
 

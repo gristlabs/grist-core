@@ -1,5 +1,7 @@
+import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportWarning} from 'app/client/models/errors';
+import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
@@ -20,9 +22,12 @@ export interface UserManagerModel {
                                                // anon@ or everyone@ (depending on the settings and resource).
   isAnythingChanged: Computed<boolean>;        // Indicates whether there are unsaved changes
   isOrg: boolean;                              // Indicates if the UserManager is for an org
+  annotations: Observable<ShareAnnotations>;   // More information about shares, keyed by email.
 
   // Resets all unsaved changes
   reset(): void;
+  // Recreate annotations, factoring in any changes on the back-end.
+  reloadAnnotations(): Promise<void>;
   // Writes all unsaved changes to the server.
   save(userApi: UserAPI, resourceId: number|string): Promise<void>;
   // Adds a member to membersEdited
@@ -107,7 +112,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public membersEdited = this.autoDispose(obsArray<IEditableMember>(this._buildAllMembers()));
 
+  public annotations = this.autoDispose(observable({users: new Map()}));
+
   public isOrg: boolean = this.resourceType === 'organization';
+
+  private _shareAnnotator?: ShareAnnotator;
 
   // Checks if any members were added/removed/changed, if the max inherited role changed or if the
   // anonymous access setting changed to enable the confirm button to write changes to the server.
@@ -122,14 +131,37 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   constructor(
     public initData: PermissionData,
     public resourceType: ResourceType,
-    private _activeUserEmail: string|null,
-    private _docPageModel?: DocPageModel,
+    private _options: {
+      activeEmail?: string|null,
+      reload?: () => Promise<PermissionData>,
+      docPageModel?: DocPageModel,
+      appModel?: AppModel,
+    }
   ) {
     super();
+    if (this._options.appModel) {
+      const features = this._options.appModel.currentFeatures;
+      this._shareAnnotator = new ShareAnnotator(features, initData);
+    }
+    this.annotate();
   }
 
   public reset(): void {
     this.membersEdited.set(this._buildAllMembers());
+    this.annotate();
+  }
+
+  public async reloadAnnotations(): Promise<void> {
+    if (!this._options.reload || !this._shareAnnotator) { return; }
+    const data = await this._options.reload();
+    // Update the permission data backing the annotations. We don't update the full model
+    // itself - that would be nice, but tricky since the user may have made changes to it.
+    // But at least we can easily update annotations. This is good for the potentially
+    // common flow of opening a doc, starting to add a user, following the suggestion of
+    // adding that user as a member of the site, then returning to finish off adding
+    // them to the doc.
+    this._shareAnnotator.updateState(data);
+    this.annotate();
   }
 
   public async save(userApi: UserAPI, resourceId: number|string): Promise<void> {
@@ -172,6 +204,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       newMember.isNew = true;
       this.membersEdited.push(newMember);
     }
+    this.annotate();
   }
 
   public remove(member: IEditableMember): void {
@@ -182,14 +215,24 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // Keep it in the array with a flag, to simplify comparing "before" and "after" arrays.
       this.membersEdited.splice(index, 1, {...member, isRemoved: true});
     }
+    this.annotate();
   }
 
   public isActiveUser(member: IEditableMember): boolean {
-    return member.email === this._activeUserEmail;
+    return member.email === this._options.activeEmail;
   }
 
-  public getDelta(): PermissionDelta {
-    // Construct the permission delta from the changed users/maxInheritedRole.
+  // Analyze the relation that users have to the resource or site.
+  public annotate() {
+    // Only attempt for documents for now.
+    // TODO: extend to workspaces.
+    if (!this._shareAnnotator) { return; }
+    this.annotations.set(this._shareAnnotator.annotateChanges(this.getDelta({silent: true})));
+  }
+
+  // Construct the permission delta from the changed users/maxInheritedRole.
+  // Give warnings or errors as appropriate (these are suppressed if silent is set).
+  public getDelta(options?: {silent: boolean}): PermissionDelta {
     const delta: PermissionDelta = { users: {} };
     if (this.resourceType !== 'organization') {
       const maxInheritedRole = this.maxInheritedRole.get();
@@ -205,12 +248,17 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     for (const m of members) {
       let access = m.access.get();
       if (m === this.publicMember && access === roles.EDITOR &&
-          this._docPageModel?.gristDoc.get()?.hasGranularAccessRules()) {
+          this._options.docPageModel?.gristDoc.get()?.hasGranularAccessRules()) {
         access = roles.VIEWER;
-        reportWarning('Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".');
+        if (!options?.silent) {
+          reportWarning('Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".');
+        }
       }
       if (!roles.isValidRole(access)) {
-        throw new Error(`Cannot update user to invalid role ${access}`);
+        if (!options?.silent) {
+          throw new Error(`Cannot update user to invalid role ${access}`);
+        }
+        continue;
       }
       if (m.isNew || m.isRemoved || m.origAccess !== access) {
         // Add users whose access changed.
@@ -264,7 +312,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     const access = Observable.create(this, member.access);
     let inheritedAccess: Computed<roles.BasicRole|null>;
 
-    if (member.email === this._activeUserEmail) {
+    if (member.email === this._options.activeEmail) {
       // Note that we currently prevent the active user's role from changing to prevent users from
       // locking themselves out of resources. We ensure that by setting inheritedAccess to the
       // active user's initial access level, which is OWNER normally. (It's sometimes possible to

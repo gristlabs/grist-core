@@ -2054,18 +2054,24 @@ export class HomeDBManager extends EventEmitter {
     const wsMap = getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
     // The orgMap gives the org access inherited by each user.
     const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
+    // The orgMapWithMembership gives the full access to the org for each user, including
+    // the "members" level, which grants no default inheritable access but allows the user
+    // to be added freely to workspaces and documents.
+    const orgMapWithMembership = getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
     let users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
+      const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
-        )
+        ),
+        isMember: orgAccess !== 'guests' && orgAccess !== null,
       };
     });
     let maxInheritedRole = this._getMaxInheritedRole(doc);
