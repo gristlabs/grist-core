@@ -1695,6 +1695,22 @@ export async function openDocumentSettings() {
   await driver.findWait('.test-modal-title', 5000);
 }
 
+/**
+ * Returns date format for date and datetime editor
+ */
+export async function getDateFormat(): Promise<string> {
+  return driver.find('[data-test-id=Widget_dateFormat] .test-select-row').getText();
+}
+
+/**
+ * Changes date format for date and datetime editor
+ */
+export async function setDateFormat(format: string) {
+  await driver.find('[data-test-id=Widget_dateFormat]').click();
+  await driver.findContent('.test-select-menu .test-select-row', format).click();
+  await waitForServer();
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

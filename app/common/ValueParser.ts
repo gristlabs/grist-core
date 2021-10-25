@@ -3,8 +3,8 @@ import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import { getCurrency, NumberFormatOptions } from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
-import { parseDate } from 'app/common/parseDate';
-import { DateTimeFormatOptions, FormatOptions } from 'app/common/ValueFormatter';
+import { parseDateStrict } from 'app/common/parseDate';
+import { DateFormatOptions, DateTimeFormatOptions, FormatOptions } from 'app/common/ValueFormatter';
 
 
 export class ValueParser {
@@ -40,7 +40,7 @@ export class NumericParser extends ValueParser {
 
 class DateParser extends ValueParser {
   public parse(value: string): any {
-    return parseDate(value, this.widgetOpts);
+    return parseDateStrict(value, (this.widgetOpts as DateFormatOptions).dateFormat!);
   }
 }
 
@@ -60,7 +60,6 @@ const parsers: { [type: string]: typeof ValueParser } = {
 };
 
 // TODO these are not ready yet
-delete parsers.Date;
 delete parsers.DateTime;
 
 export function createParser(
