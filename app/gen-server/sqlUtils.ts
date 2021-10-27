@@ -42,6 +42,39 @@ export function bitOr(dbType: DatabaseType, column: string, bits: number): strin
   }
 }
 
+
+/**
+ * Checks if a set of columns contains only the given ids (or null).
+ * Uses array containment operator on postgres (with array_remove to deal with nulls),
+ * and a clunkier syntax for sqlite.
+ */
+export function hasOnlyTheseIdsOrNull(dbType: DatabaseType, ids: number[], columns: string[]): string {
+  switch (dbType) {
+    case 'postgres':
+      return `array[${ids.join(',')}] @> array_remove(array[${columns.join(',')}],null)`;
+    case 'sqlite':
+      return columns.map(col => `coalesce(${col} in (${ids.join(',')}), true)`).join(' AND ');
+    default:
+      throw new Error(`hasOnlyTheseIdsOrNull not implemented for ${dbType}`);
+  }
+}
+
+/**
+ * Checks if at least one of a set of ids is present in a set of columns.
+ * There must be at least one id and one column.
+ * Uses the intersection operator on postgres, and a clunkier syntax for sqlite.
+ */
+export function hasAtLeastOneOfTheseIds(dbType: DatabaseType, ids: number[], columns: string[]): string {
+  switch (dbType) {
+    case 'postgres':
+      return `array[${ids.join(',')}] && array[${columns.join(',')}]`;
+    case 'sqlite':
+      return ids.map(id => `${id} in (${columns.join(',')})`).join(' OR ');
+    default:
+      throw new Error(`hasAtLeastOneOfTheseIds not implemented for ${dbType}`);
+  }
+}
+
 /**
  * Convert a json value returned by the database into a javascript
  * object.  For postgres, the value is already unpacked, but for sqlite

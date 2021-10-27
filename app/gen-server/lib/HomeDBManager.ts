@@ -28,7 +28,8 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
-import {bitOr, getRawAndEntities, now, readJson} from 'app/gen-server/sqlUtils';
+import {bitOr, getRawAndEntities, hasAtLeastOneOfTheseIds, hasOnlyTheseIdsOrNull,
+        now, readJson} from 'app/gen-server/sqlUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -3562,15 +3563,37 @@ export class HomeDBManager extends EventEmitter {
           // only to the public flag.  So resources available to the user only because
           // they are publically available will not be listed.  Shares with anon@,
           // on the other hand, *are* listed.
-          const everyoneContribution = accessStyle === 'list' ? Permissions.PUBLIC :
-            `${Permissions.PUBLIC} | acl_rules.permissions`;
+
+          // At this point, we have user ids available for a group associated with the acl
+          // rule, or a subgroup of that group, of a subgroup of that group, or a subgroup
+          // of that group (this is enough nesting to support docs in workspaces in orgs,
+          // with one level of nesting held for future use).
+          const userIdCols = ['gu0.user_id', 'gu1.user_id', 'gu2.user_id', 'gu3.user_id'];
+
+          // If any of the user ids is public (everyone@, anon@), we set the PUBLIC flag.
+          // This is only advisory, for display in the client - it plays no role in access
+          // control.
+          const publicFlagSql = `case when ` +
+            hasAtLeastOneOfTheseIds(this._dbType, [everyoneId, anonId], userIdCols) +
+            ` then ${Permissions.PUBLIC} else 0 end`;
+
+          // The contribution made by the acl rule to overall user permission is contained
+          // in acl_rules.permissions. BUT if we are listing resources, we discount the
+          // permission contribution if it is only made with everyone@, and not anon@
+          // or any of the ids associated with the user. The resource may end up being
+          // accessible but unlisted for this user.
+          const contributionSql = accessStyle !== 'list' ? 'acl_rules.permissions' :
+            `case when ` +
+            hasOnlyTheseIdsOrNull(this._dbType, [everyoneId], userIdCols) +
+            ` then 0 else acl_rules.permissions end`;
+
+          // Finally, if all users are null, the resource is being viewed by the special
+          // previewer user.
+          const previewerSql = `case when coalesce(${userIdCols.join(',')}) is null` +
+            ` then acl_rules.permissions else 0 end`;
+
           q = q.select(
-            bitOr(this._dbType, `(case when ` +
-                  `${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
-                  `then ${everyoneContribution} else (case when ` +
-                  `${anonId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id) ` +
-                  `then ${Permissions.PUBLIC} | acl_rules.permissions else acl_rules.permissions end) end)`, 8
-            ),
+            bitOr(this._dbType, `(${publicFlagSql} | ${contributionSql} | ${previewerSql})`, 8),
             'permissions'
           );
         }
