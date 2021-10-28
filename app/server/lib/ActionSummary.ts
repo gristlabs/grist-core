@@ -12,131 +12,152 @@ import toPairs = require('lodash/toPairs');
 import values = require('lodash/values');
 
 /**
- * The maximum number of rows in a single bulk change that will be recorded
+ * The default maximum number of rows in a single bulk change that will be recorded
  * individually.  Bulk changes that touch more than this number of rows
  * will be summarized only by the number of rows touched.
  */
 const MAXIMUM_INLINE_ROWS = 10;
 
-/** helper function to access summary changes for a specific table by name */
-function _forTable(summary: ActionSummary, tableId: string): TableDelta {
-  return summary.tableDeltas[tableId] || (summary.tableDeltas[tableId] = createEmptyTableDelta());
-}
-
-/** helper function to access summary changes for a specific cell by rowId and colId */
-function _forCell(td: TableDelta, rowId: number, colId: string): CellDelta {
-  const cd = td.columnDeltas[colId] || (td.columnDeltas[colId] = {});
-  return cd[rowId] || (cd[rowId] = [null, null]);
-}
-
 /**
- * helper function to store detailed cell changes for a single row.
- * Direction parameter is 0 if values are prior values of cells, 1 if values are new values.
+ * Options when producing an action sumary.
  */
-function _addRow(td: TableDelta, rowId: number, colValues: Action.ColValues,
-                 direction: 0|1) {
-  for (const [colId, colChanges] of toPairs(colValues)) {
-    const cell = _forCell(td, rowId, colId);
-    cell[direction] = [colChanges];
-  }
+export interface ActionSummaryOptions {
+  maximumInlineRows?: number;       // Overrides the maximum number of rows in a
+                                    // single bulk change that will be recorded individually.
+  alwaysPreserveColIds?: string[];  // If set, all cells in these columns are preserved
+                                    // regardless of maximumInlineRows setting.
 }
 
-/** helper function to store detailed cell changes for a set of rows */
-function _addRows(tableId: string, td: TableDelta, rowIds: number[],
-                  colValues: Action.BulkColValues, direction: 0|1) {
-  let rows: Array<[number, number]>;
-  if (rowIds.length <= MAXIMUM_INLINE_ROWS || tableId.startsWith("_grist_")) {
-    rows = [...rowIds.entries()];
-  } else {
-    // if many rows, just take some from start and one from end as examples
-    rows = [...rowIds.slice(0, MAXIMUM_INLINE_ROWS - 1).entries()];
-    rows.push([rowIds.length - 1, rowIds[rowIds.length - 1]]);
-  }
+class ActionSummarizer {
 
-  for (const [colId, colChanges] of toPairs(colValues)) {
-    rows.forEach(([idx, rowId]) => {
-      const cell = _forCell(td, rowId, colId);
-      cell[direction] = [colChanges[idx]];
-    });
-  }
-}
+  constructor(private _options?: ActionSummaryOptions) {}
 
-/** add a rename to a list, avoiding duplicates */
-function _addRename(renames: LabelDelta[], rename: LabelDelta) {
-  if (renames.find(r => r[0] === rename[0] && r[1] === rename[1])) { return; }
-  renames.push(rename);
-}
-
-/** add information about an action based on the forward direction */
-function _addForwardAction(summary: ActionSummary, act: DocAction) {
-  const tableId = act[1];
-  if (Action.isAddTable(act)) {
-    summary.tableRenames.push([null, tableId]);
-    for (const info of act[2]) {
-      _forTable(summary, tableId).columnRenames.push([null, info.id]);
+  /** add information about an action based on the forward direction */
+  public addForwardAction(summary: ActionSummary, act: DocAction) {
+    const tableId = act[1];
+    if (Action.isAddTable(act)) {
+      summary.tableRenames.push([null, tableId]);
+      for (const info of act[2]) {
+        this._forTable(summary, tableId).columnRenames.push([null, info.id]);
+      }
+    } else if (Action.isRenameTable(act)) {
+      this._addRename(summary.tableRenames, [tableId, act[2]]);
+    } else if (Action.isRenameColumn(act)) {
+      this._addRename(this._forTable(summary, tableId).columnRenames, [act[2], act[3]]);
+    } else if (Action.isAddColumn(act)) {
+      this._forTable(summary, tableId).columnRenames.push([null, act[2]]);
+    } else if (Action.isRemoveColumn(act)) {
+      this._forTable(summary, tableId).columnRenames.push([act[2], null]);
+    } else if (Action.isAddRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      td.addRows.push(act[2]);
+      this._addRow(td, act[2], act[3], 1);
+    } else if (Action.isUpdateRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      td.updateRows.push(act[2]);
+      this._addRow(td, act[2], act[3], 1);
+    } else if (Action.isBulkAddRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.addRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 1);
+    } else if (Action.isBulkUpdateRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.updateRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 1);
+    } else if (Action.isReplaceTableData(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.addRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 1);
     }
-  } else if (Action.isRenameTable(act)) {
-    _addRename(summary.tableRenames, [tableId, act[2]]);
-  } else if (Action.isRenameColumn(act)) {
-    _addRename(_forTable(summary, tableId).columnRenames, [act[2], act[3]]);
-  } else if (Action.isAddColumn(act)) {
-    _forTable(summary, tableId).columnRenames.push([null, act[2]]);
-  } else if (Action.isRemoveColumn(act)) {
-    _forTable(summary, tableId).columnRenames.push([act[2], null]);
-  } else if (Action.isAddRecord(act)) {
-    const td = _forTable(summary, tableId);
-    td.addRows.push(act[2]);
-    _addRow(td, act[2], act[3], 1);
-  } else if (Action.isUpdateRecord(act)) {
-    const td = _forTable(summary, tableId);
-    td.updateRows.push(act[2]);
-    _addRow(td, act[2], act[3], 1);
-  } else if (Action.isBulkAddRecord(act)) {
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.addRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 1);
-  } else if (Action.isBulkUpdateRecord(act)) {
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.updateRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 1);
-  } else if (Action.isReplaceTableData(act)) {
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.addRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 1);
   }
-}
 
-/** add information about an action based on undo information */
-function _addReverseAction(summary: ActionSummary, act: DocAction) {
-  const tableId = act[1];
-  if (Action.isAddTable(act)) { // undoing, so this is a table removal
-    summary.tableRenames.push([tableId, null]);
-    for (const info of act[2]) {
-      _forTable(summary, tableId).columnRenames.push([info.id, null]);
+  /** add information about an action based on undo information */
+  public addReverseAction(summary: ActionSummary, act: DocAction) {
+    const tableId = act[1];
+    if (Action.isAddTable(act)) { // undoing, so this is a table removal
+      summary.tableRenames.push([tableId, null]);
+      for (const info of act[2]) {
+        this._forTable(summary, tableId).columnRenames.push([info.id, null]);
+      }
+    } else if (Action.isAddRecord(act)) { // undoing, so this is a record removal
+      const td = this._forTable(summary, tableId);
+      td.removeRows.push(act[2]);
+      this._addRow(td, act[2], act[3], 0);
+    } else if (Action.isUpdateRecord(act)) { // undoing, so this is reversal of a record update
+      const td = this._forTable(summary, tableId);
+      this._addRow(td, act[2], act[3], 0);
+    } else if (Action.isBulkAddRecord(act)) { // undoing, this may be reversing a table delete
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.removeRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 0);
+    } else if (Action.isBulkUpdateRecord(act)) { // undoing, so this is reversal of a bulk record update
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.updateRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 0);
+    } else if (Action.isRenameTable(act)) { // undoing - sometimes renames only in undo info
+      this._addRename(summary.tableRenames, [act[2], tableId]);
+    } else if (Action.isRenameColumn(act)) { // undoing - sometimes renames only in undo info
+      this._addRename(this._forTable(summary, tableId).columnRenames, [act[3], act[2]]);
+    } else if (Action.isReplaceTableData(act)) { // undoing
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.removeRows, act[2]);
+      this._addRows(tableId, td, act[2], act[3], 0);
     }
-  } else if (Action.isAddRecord(act)) { // undoing, so this is a record removal
-    const td = _forTable(summary, tableId);
-    td.removeRows.push(act[2]);
-    _addRow(td, act[2], act[3], 0);
-  } else if (Action.isUpdateRecord(act)) { // undoing, so this is reversal of a record update
-    const td = _forTable(summary, tableId);
-    _addRow(td, act[2], act[3], 0);
-  } else if (Action.isBulkAddRecord(act)) { // undoing, this may be reversing a table delete
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.removeRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 0);
-  } else if (Action.isBulkUpdateRecord(act)) { // undoing, so this is reversal of a bulk record update
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.updateRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 0);
-  } else if (Action.isRenameTable(act)) { // undoing - sometimes renames only in undo info
-    _addRename(summary.tableRenames, [act[2], tableId]);
-  } else if (Action.isRenameColumn(act)) { // undoing - sometimes renames only in undo info
-    _addRename(_forTable(summary, tableId).columnRenames, [act[3], act[2]]);
-  } else if (Action.isReplaceTableData(act)) { // undoing
-    const td = _forTable(summary, tableId);
-    arrayExtend(td.removeRows, act[2]);
-    _addRows(tableId, td, act[2], act[3], 0);
+  }
+
+  /** helper function to access summary changes for a specific table by name */
+  private _forTable(summary: ActionSummary, tableId: string): TableDelta {
+    return summary.tableDeltas[tableId] || (summary.tableDeltas[tableId] = createEmptyTableDelta());
+  }
+
+  /** helper function to access summary changes for a specific cell by rowId and colId */
+  private _forCell(td: TableDelta, rowId: number, colId: string): CellDelta {
+    const cd = td.columnDeltas[colId] || (td.columnDeltas[colId] = {});
+    return cd[rowId] || (cd[rowId] = [null, null]);
+  }
+
+  /**
+   * helper function to store detailed cell changes for a single row.
+   * Direction parameter is 0 if values are prior values of cells, 1 if values are new values.
+   */
+  private _addRow(td: TableDelta, rowId: number, colValues: Action.ColValues,
+                direction: 0|1) {
+    for (const [colId, colChanges] of toPairs(colValues)) {
+      const cell = this._forCell(td, rowId, colId);
+      cell[direction] = [colChanges];
+    }
+  }
+
+  /** helper function to store detailed cell changes for a set of rows */
+  private _addRows(tableId: string, td: TableDelta, rowIds: number[],
+                 colValues: Action.BulkColValues, direction: 0|1) {
+    const maximumInlineRows = this._options?.maximumInlineRows || MAXIMUM_INLINE_ROWS;
+    const limitRows: boolean = rowIds.length > maximumInlineRows && !tableId.startsWith("_grist_");
+    let selectedRows: Array<[number, number]> = [];
+    if (limitRows) {
+      // if many rows, just take some from start and one from end as examples
+      selectedRows = [...rowIds.slice(0, maximumInlineRows - 1).entries()];
+      selectedRows.push([rowIds.length - 1, rowIds[rowIds.length - 1]]);
+    }
+
+    const alwaysPreserveColIds = new Set(this._options?.alwaysPreserveColIds || []);
+    for (const [colId, colChanges] of toPairs(colValues)) {
+      const addCellToSummary = (rowId: number, idx: number) => {
+        const cell = this._forCell(td, rowId, colId);
+        cell[direction] = [colChanges[idx]];
+      };
+      if (!limitRows || alwaysPreserveColIds.has(colId)) {
+        rowIds.forEach(addCellToSummary);
+      } else {
+        selectedRows.forEach(([idx, rowId]) => addCellToSummary(rowId, idx));
+      }
+    }
+  }
+
+  /** add a rename to a list, avoiding duplicates */
+  private _addRename(renames: LabelDelta[], rename: LabelDelta) {
+    if (renames.find(r => r[0] === rename[0] && r[1] === rename[1])) { return; }
+    renames.push(rename);
   }
 }
 
@@ -144,13 +165,14 @@ function _addReverseAction(summary: ActionSummary, act: DocAction) {
  * Summarize the tabular changes that a LocalActionBundle results in, in a form
  * that will be suitable for composition.
  */
-export function summarizeAction(body: LocalActionBundle): ActionSummary {
+export function summarizeAction(body: LocalActionBundle, options?: ActionSummaryOptions): ActionSummary {
+  const summarizer = new ActionSummarizer(options);
   const summary = createEmptyActionSummary();
   for (const act of getEnvContent(body.stored)) {
-    _addForwardAction(summary, act);
+    summarizer.addForwardAction(summary, act);
   }
   for (const act of Array.from(body.undo).reverse()) {
-    _addReverseAction(summary, act);
+    summarizer.addReverseAction(summary, act);
   }
   // Name tables consistently, by their ultimate name, now we know it.
   for (const renames of summary.tableRenames) {
