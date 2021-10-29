@@ -124,8 +124,10 @@ const searchArrowBtnTooltipOptions: IHoverTipOptions = {
 export function searchBar(model: SearchModel, testId: TestId = noTestId) {
   let keepExpanded = false;
 
+  const focusAndSelect = () => { inputElem.focus(); inputElem.select(); };
+
   const commandGroup = createGroup({
-    find: () => { inputElem.focus(); inputElem.select(); },
+    find: focusAndSelect,
     // On Mac, Firefox has a default behaviour witch causes to close the search bar on Cmd+g and
     // Cmd+shirt+G. Returning false is a Mousetrap convenience which prevents that.
     findNext: () => { model.findNext().catch(reportError); return false; },
@@ -164,7 +166,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     cssHoverCircle(
       cssTopBarBtn('Search',
         testId('icon'),
-        dom.on('click', () => inputElem.focus())
+        dom.on('click', focusAndSelect),
       )
     ),
     expandedSearch(
