@@ -1059,44 +1059,13 @@ export class FlexServer implements GristServer {
         redirectPath = '/welcome/info';
 
       } else if (req.params.page === 'info') {
-        const urlId = DOC_ID_NEW_USER_INFO;
-        let body: string|undefined;
-        let permitKey: string|undefined;
-        try {
-          const user = getUser(req);
-          const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
-          body = JSON.stringify(mapValues(row, value => [value]));
-
-          // Take an extra step to translate the special urlId to a docId. This is helpful to
-          // allow the same urlId to be used in production and in test. We need the docId for the
-          // specialPermit below, which we need to be able to write to this doc.
-          //
-          // TODO With proper forms support, we could give an origin-based permission to submit a
-          // form to this doc, and do it from the client directly.
-          const previewerUserId = this._dbManager.getPreviewerUserId();
-          const docAuth = await this._dbManager.getDocAuthCached({urlId, userId: previewerUserId});
-          const docId = docAuth.docId;
-          if (!docId) {
-            throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
-          }
-
-          permitKey = await this._internalPermitStore.setPermit({docId});
-          const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
-            method: 'POST',
-            headers: {'Permit': permitKey, 'Content-Type': 'application/json'},
-            body,
-          });
-          if (res.status !== 200) {
-            throw new Error(`API call failed with ${res.status}`);
-          }
-        } catch (e) {
+        const user = getUser(req);
+        const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
+        this._recordNewUserInfo(row)
+        .catch(e => {
           // If we failed to record, at least log the data, so we could potentially recover it.
-          log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: body});
-        } finally {
-          if (permitKey) {
-            await this._internalPermitStore.removePermit(permitKey);
-          }
-        }
+          log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
+        });
 
         // redirect to teams page if users has access to more than one org. Otherwise redirect to
         // personal org.
@@ -1571,6 +1540,43 @@ export class FlexServer implements GristServer {
       if (verbose) { log.info(`${name} available at https://${this.host}:${httpsPort}`); }
     }
   }
+
+  private async _recordNewUserInfo(row: object) {
+    const urlId = DOC_ID_NEW_USER_INFO;
+    let body: string|undefined;
+    let permitKey: string|undefined;
+    try {
+      body = JSON.stringify(mapValues(row, value => [value]));
+
+      // Take an extra step to translate the special urlId to a docId. This is helpful to
+      // allow the same urlId to be used in production and in test. We need the docId for the
+      // specialPermit below, which we need to be able to write to this doc.
+      //
+      // TODO With proper forms support, we could give an origin-based permission to submit a
+      // form to this doc, and do it from the client directly.
+      const previewerUserId = this._dbManager.getPreviewerUserId();
+      const docAuth = await this._dbManager.getDocAuthCached({urlId, userId: previewerUserId});
+      const docId = docAuth.docId;
+      if (!docId) {
+        throw new Error(`Can't resolve ${urlId}: ${docAuth.error}`);
+      }
+
+      permitKey = await this._internalPermitStore.setPermit({docId});
+      const res = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}/tables/Responses/data`), {
+        method: 'POST',
+        headers: {'Permit': permitKey, 'Content-Type': 'application/json'},
+        body,
+      });
+      if (res.status !== 200) {
+        throw new Error(`API call failed with ${res.status}`);
+      }
+    } finally {
+      if (permitKey) {
+        await this._internalPermitStore.removePermit(permitKey);
+      }
+    }
+  }
+
 }
 
 /**
