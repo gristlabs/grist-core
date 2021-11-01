@@ -76,7 +76,8 @@ export class NTextEditor extends NewBaseEditor {
   }
 
   public getCellValue(): CellValue {
-    return this.textInput.value;
+    const valueParser = this.options.field.valueParser.peek();
+    return valueParser(this.getTextValue());
   }
 
   public getTextValue() {

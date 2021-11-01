@@ -159,6 +159,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     return colData && index !== undefined ? colData.values[index] : undefined;
   }
 
+  public hasRowId(rowId: number): boolean {
+    return this._rowMap.has(rowId);
+  }
+
   /**
    * Given a column name, returns a function that takes a rowId and returns the value for that
    * column of that row. The returned function is faster than getValue() calls.

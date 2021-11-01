@@ -1,22 +1,20 @@
-import {createGroup} from 'app/client/components/commands';
-import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
-import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId} from 'app/client/ui2018/cssVars';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
-import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
-import {csvEncodeRow} from 'app/common/csvFormat';
-import {CellValue} from "app/common/DocActions";
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {dom, styled} from 'grainjs';
-import {cssRefList, renderACItem} from 'app/client/widgets/ReferenceEditor';
-import {TableData} from 'app/client/models/TableData';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {reportError} from 'app/client/models/errors';
-import {getReferencedTableId} from 'app/common/gristTypes';
-import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
+import { createGroup } from 'app/client/components/commands';
+import { ACItem, ACResults, HighlightFunc } from 'app/client/lib/ACIndex';
+import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
+import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
+import { reportError } from 'app/client/models/errors';
+import { colors, testId } from 'app/client/ui2018/cssVars';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { cssInvalidToken } from 'app/client/widgets/ChoiceListCell';
+import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
+import { EditorPlacement } from 'app/client/widgets/EditorPlacement';
+import { NewBaseEditor, Options } from 'app/client/widgets/NewBaseEditor';
+import { cssRefList, renderACItem } from 'app/client/widgets/ReferenceEditor';
+import { ReferenceUtils } from 'app/client/lib/ReferenceUtils';
+import { csvEncodeRow } from 'app/common/csvFormat';
+import { CellValue } from "app/common/DocActions";
+import { decodeObject, encodeObject } from 'app/plugin/objtypes';
+import { dom, styled } from 'grainjs';
 
 class ReferenceItem implements IToken, ACItem {
   /**
@@ -43,11 +41,8 @@ export class ReferenceListEditor extends NewBaseEditor {
   protected cellEditorDiv: HTMLElement;
   protected commandGroup: any;
 
-  private _tableData: TableData;
-  private _formatter: BaseFormatter;
   private _enableAddNew: boolean;
   private _showAddNew: boolean = false;
-  private _visibleCol: string;
   private _tokenField: TokenField<ReferenceItem>;
   private _textInput: HTMLInputElement;
   private _dom: HTMLElement;
@@ -55,33 +50,16 @@ export class ReferenceListEditor extends NewBaseEditor {
   private _contentSizer: HTMLElement;   // Invisible element to size the editor with all the tokens
   private _inputSizer: HTMLElement;     // Part of _contentSizer to size the text input
   private _alignment: string;
+  private _utils: ReferenceUtils;
 
   constructor(options: Options) {
     super(options);
 
-    const field = options.field;
-
-    // Get the table ID to which the reference list points.
-    const refTableId = getReferencedTableId(field.column().type());
-    if (!refTableId) {
-      throw new Error("ReferenceListEditor used for non-ReferenceList column");
-    }
-
     const docData = options.gristDoc.docData;
-    const tableData = docData.getTable(refTableId);
-    if (!tableData) {
-      throw new Error("ReferenceListEditor: invalid referenced table");
-    }
-    this._tableData = tableData;
+    this._utils = new ReferenceUtils(options.field, docData);
 
-    // Construct the formatter for the displayed values using the options from the target column.
-    this._formatter = field.createVisibleColFormatter();
-
-    const vcol = field.visibleColModel();
-    // Whether we should enable the "Add New" entry to allow adding new items to the target table.
+    const vcol = this._utils.visibleColModel;
     this._enableAddNew = vcol && !vcol.isRealFormula() && !!vcol.colId();
-
-    this._visibleCol = vcol.colId() || 'id';
 
     const acOptions: IAutocompleteOptions<ReferenceItem> = {
       menuCssClass: `${menuCssClass} ${cssRefList.className}`,
@@ -98,9 +76,9 @@ export class ReferenceListEditor extends NewBaseEditor {
     const startRowIds: unknown[] = options.editValue || !Array.isArray(cellValue) ? [] : cellValue;
 
     // If referenced table hasn't loaded yet, hold off on initializing tokens.
-    const needReload = (options.editValue === undefined && !tableData.isLoaded);
+    const needReload = (options.editValue === undefined && !this._utils.tableData.isLoaded);
     const startTokens = needReload ?
-      [] : startRowIds.map(id => new ReferenceItem(this._idToText(id), typeof id === 'number' ? id : 'invalid'));
+      [] : startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid'));
 
     this._tokenField = TokenField.ctor<ReferenceItem>().create(this, {
       initialValue: startTokens,
@@ -146,11 +124,11 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     // The referenced table has probably already been fetched (because there must already be a
     // Reference widget instantiated), but it's better to avoid this assumption.
-    docData.fetchTable(refTableId).then(() => {
+    docData.fetchTable(this._utils.refTableId).then(() => {
       if (this.isDisposed()) { return; }
       if (needReload) {
         this._tokenField.setTokens(
-          startRowIds.map(id => new ReferenceItem(this._idToText(id), typeof id === 'number' ? id : 'invalid'))
+          startRowIds.map(id => new ReferenceItem(this._utils.idToText(id), typeof id === 'number' ? id : 'invalid'))
         );
         this.resizeInput();
       }
@@ -210,8 +188,8 @@ export class ReferenceListEditor extends NewBaseEditor {
     if (newValues.length === 0) { return; }
 
     // Add the new items to the referenced table.
-    const colInfo = {[this._visibleCol]: newValues.map(t => t.text)};
-    const rowIds = await this._tableData.sendTableAction(
+    const colInfo = {[this._utils.visibleColId]: newValues.map(t => t.text)};
+    const rowIds = await this._utils.tableData.sendTableAction(
       ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo]
     );
 
@@ -276,8 +254,7 @@ export class ReferenceListEditor extends NewBaseEditor {
    * Also see: prepForSave.
    */
    private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
-    const acIndex = this._tableData.columnACIndexes.getColACIndex(this._visibleCol, this._formatter);
-    const {items, selectIndex, highlightFunc} = acIndex.search(text);
+    const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text);
     const result: ACResults<ReferenceItem> = {
       selectIndex,
       highlightFunc,
@@ -296,13 +273,6 @@ export class ReferenceListEditor extends NewBaseEditor {
     this._showAddNew = true;
 
     return result;
-  }
-
-  private _idToText(value: unknown) {
-    if (typeof value === 'number') {
-      return this._formatter.formatAny(this._tableData.getValue(value, this._visibleCol));
-    }
-    return String(value || '');
   }
 
   private _renderItem(item: ReferenceItem, highlightFunc: HighlightFunc) {

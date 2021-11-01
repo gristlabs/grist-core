@@ -1711,6 +1711,38 @@ export async function setDateFormat(format: string) {
   await waitForServer();
 }
 
+/**
+ * Returns "Show column" setting value of a reference column.
+ */
+export async function getRefShowColumn(): Promise<string> {
+  return driver.find('.test-fbuilder-ref-col-select').getText();
+}
+
+/**
+ * Changes "Show column" setting value of a reference column.
+ */
+export async function setRefShowColumn(col: string) {
+  await driver.find('.test-fbuilder-ref-col-select').click();
+  await driver.findContent('.test-select-menu .test-select-row', col).click();
+  await waitForServer();
+}
+
+/**
+ * Returns "Data from table" setting value of a reference column.
+ */
+export async function getRefTable(): Promise<string> {
+  return driver.find('.test-fbuilder-ref-table-select').getText();
+}
+
+/**
+ * Changes "Data from table" setting value of a reference column.
+ */
+export async function setRefTable(table: string) {
+  await driver.find('.test-fbuilder-ref-table-select').click();
+  await driver.findContent('.test-select-menu .test-select-row', table).click();
+  await waitForServer();
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

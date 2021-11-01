@@ -1,17 +1,16 @@
 /**
  * TableData maintains a single table's data.
  */
-import {ColumnACIndexes} from 'app/client/models/ColumnACIndexes';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {DocData} from 'app/client/models/DocData';
-import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
-import {isRaisedException} from 'app/common/gristTypes';
-import {countIf} from 'app/common/gutil';
-import {TableData as BaseTableData, ColTypeMap} from 'app/common/TableData';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {Emitter} from 'grainjs';
+import { ColumnACIndexes } from 'app/client/models/ColumnACIndexes';
+import { ColumnCache } from 'app/client/models/ColumnCache';
+import { DocData } from 'app/client/models/DocData';
+import { DocAction, ReplaceTableData, TableDataAction, UserAction } from 'app/common/DocActions';
+import { isRaisedException } from 'app/common/gristTypes';
+import { countIf } from 'app/common/gutil';
+import { TableData as BaseTableData, ColTypeMap } from 'app/common/TableData';
+import { Emitter } from 'grainjs';
 
-export type SearchFunc = (value: string) => boolean;
+export type SearchFunc = (value: any) => boolean;
 
 /**
  * TableData class to maintain a single table's data.
@@ -62,21 +61,13 @@ export class TableData extends BaseTableData {
   }
 
   /**
-   * Given a colId and a search string, returns a list of matches, optionally limiting their number.
-   * The matches are returned as { label, value } pairs, for use with auto-complete. In these, value
-   * is the rowId, and label is the actual value matching the query.
+   * Given a colId and a search function, returns a list of matching row IDs, optionally limiting their number.
    * @param {String} colId: identifies the column to search.
-   * @param {String|Function} searchTextOrFunc: If a string, then the text to search. It splits the
-   *    text into words, and returns values which contain each of the words. May be a function
-   *    which, given a formatted column value, returns whether to include it.
+   * @param {Function} searchFunc: A function which, given a column value, returns whether to include it.
    * @param [Number] optMaxResults: if given, limit the number of returned results to this.
-   * @returns Array[{label, value}] array of objects, suitable for use with JQueryUI's autocomplete.
+   * @returns Array[Number] array of row IDs.
    */
-  public columnSearch(colId: string, formatter: BaseFormatter,
-                      searchTextOrFunc: string|SearchFunc, optMaxResults?: number) {
-    // Search for each of the words in query, case-insensitively.
-    const searchFunc = (typeof searchTextOrFunc === 'function' ? searchTextOrFunc :
-      makeSearchFunc(searchTextOrFunc));
+  public columnSearch(colId: string, searchFunc: SearchFunc, optMaxResults?: number) {
     const maxResults = optMaxResults || Number.POSITIVE_INFINITY;
 
     const rowIds = this.getRowIds();
@@ -87,10 +78,9 @@ export class TableData extends BaseTableData {
       console.warn(`TableData.columnSearch called on invalid column ${this.tableId}.${colId}`);
     } else {
       for (let i = 0; i < rowIds.length && ret.length < maxResults; i++) {
-        const rowId = rowIds[i];
-        const value = String(formatter.formatAny(valColumn[i]));
+        const value = valColumn[i];
         if (value && searchFunc(value)) {
-          ret.push({ label: value, value: rowId });
+          ret.push(rowIds[i]);
         }
       }
     }
@@ -146,12 +136,4 @@ export class TableData extends BaseTableData {
     }
     return applied;
   }
-}
-
-function makeSearchFunc(searchText: string): SearchFunc {
-  const searchWords = searchText.toLowerCase().split(/\s+/);
-  return value => {
-    const lower = value.toLowerCase();
-    return searchWords.every(w => lower.includes(w));
-  };
 }

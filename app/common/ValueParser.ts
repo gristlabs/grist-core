@@ -64,10 +64,11 @@ delete parsers.DateTime;
 
 export function createParser(
   type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings
-): ((value: string) => any) | undefined {
+): (value: string) => any {
   const cls = parsers[gristTypes.extractTypeFromColType(type)];
   if (cls) {
     const parser = new cls(type, widgetOpts, docSettings);
     return parser.cleanParse.bind(parser);
   }
+  return value => value;
 }

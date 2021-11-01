@@ -1,57 +1,34 @@
-import {ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
-import {Autocomplete} from 'app/client/lib/autocomplete';
-import {ICellItem} from 'app/client/models/ColumnACIndexes';
-import {reportError} from 'app/client/models/errors';
-import {TableData} from 'app/client/models/TableData';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {Options} from 'app/client/widgets/NewBaseEditor';
-import {NTextEditor} from 'app/client/widgets/NTextEditor';
-import {CellValue} from 'app/common/DocActions';
-import {getReferencedTableId} from 'app/common/gristTypes';
-import {undef} from 'app/common/gutil';
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import {styled} from 'grainjs';
+import { ACResults, buildHighlightedDom, HighlightFunc } from 'app/client/lib/ACIndex';
+import { Autocomplete } from 'app/client/lib/autocomplete';
+import { ICellItem } from 'app/client/models/ColumnACIndexes';
+import { reportError } from 'app/client/models/errors';
+import { colors, testId, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menuCssClass } from 'app/client/ui2018/menus';
+import { Options } from 'app/client/widgets/NewBaseEditor';
+import { NTextEditor } from 'app/client/widgets/NTextEditor';
+import { nocaseEqual, ReferenceUtils } from 'app/client/lib/ReferenceUtils';
+import { undef } from 'app/common/gutil';
+import { styled } from 'grainjs';
 
 
 /**
  * A ReferenceEditor offers an autocomplete of choices from the referenced table.
  */
 export class ReferenceEditor extends NTextEditor {
-  private _tableData: TableData;
-  private _formatter: BaseFormatter;
   private _enableAddNew: boolean;
   private _showAddNew: boolean = false;
-  private _visibleCol: string;
   private _autocomplete?: Autocomplete<ICellItem>;
+  private _utils: ReferenceUtils;
 
   constructor(options: Options) {
     super(options);
 
-    const field = options.field;
-
-    // Get the table ID to which the reference points.
-    const refTableId = getReferencedTableId(field.column().type());
-    if (!refTableId) {
-      throw new Error("ReferenceEditor used for non-Reference column");
-    }
-
     const docData = options.gristDoc.docData;
-    const tableData = docData.getTable(refTableId);
-    if (!tableData) {
-      throw new Error("ReferenceEditor: invalid referenced table");
-    }
-    this._tableData = tableData;
+    this._utils = new ReferenceUtils(options.field, docData);
 
-    // Construct the formatter for the displayed values using the options from the target column.
-    this._formatter = field.createVisibleColFormatter();
-
-    // Whether we should enable the "Add New" entry to allow adding new items to the target table.
-    const vcol = field.visibleColModel();
+    const vcol = this._utils.visibleColModel;
     this._enableAddNew = vcol && !vcol.isRealFormula() && !!vcol.colId();
-
-    this._visibleCol = vcol.colId() || 'id';
 
     // Decorate the editor to look like a reference column value (with a "link" icon).
     // But not on readonly mode - here we will reuse default decoration
@@ -60,16 +37,16 @@ export class ReferenceEditor extends NTextEditor {
       this.cellEditorDiv.appendChild(cssRefEditIcon('FieldReference'));
     }
 
-    this.textInput.value = undef(options.state, options.editValue, this._idToText(options.cellValue));
+    this.textInput.value = undef(options.state, options.editValue, this._idToText());
 
-    const needReload = (options.editValue === undefined && !tableData.isLoaded);
+    const needReload = (options.editValue === undefined && !this._utils.tableData.isLoaded);
 
     // The referenced table has probably already been fetched (because there must already be a
     // Reference widget instantiated), but it's better to avoid this assumption.
-    docData.fetchTable(refTableId).then(() => {
+    docData.fetchTable(this._utils.refTableId).then(() => {
       if (this.isDisposed()) { return; }
       if (needReload && this.textInput.value === '') {
-        this.textInput.value = undef(options.state, options.editValue, this._idToText(options.cellValue));
+        this.textInput.value = undef(options.state, options.editValue, this._idToText());
         this.resizeInput();
       }
       if (this._autocomplete) {
@@ -104,8 +81,8 @@ export class ReferenceEditor extends NTextEditor {
     if (selectedItem &&
         selectedItem.rowId === 'new' &&
         selectedItem.text === this.textInput.value) {
-      const colInfo = {[this._visibleCol]: this.textInput.value};
-      selectedItem.rowId = await this._tableData.sendTableAction(["AddRecord", null, colInfo]);
+      const colInfo = {[this._utils.visibleColId]: this.textInput.value};
+      selectedItem.rowId = await this._utils.tableData.sendTableAction(["AddRecord", null, colInfo]);
     }
   }
 
@@ -115,34 +92,16 @@ export class ReferenceEditor extends NTextEditor {
     if (selectedItem) {
       // Selected from the autocomplete dropdown; so we know the *value* (i.e. rowId).
       return selectedItem.rowId;
-    } else if (nocaseEqual(this.textInput.value, this._idToText(this.options.cellValue))) {
+    } else if (nocaseEqual(this.textInput.value, this._idToText())) {
       // Unchanged from what's already in the cell.
       return this.options.cellValue;
     }
 
-    // Search for textInput's value, or else use the typed value itself (as alttext).
-    if (this.textInput.value === '') {
-      return 0;   // This is the default value for a reference column.
-    }
-    const searchFunc = (value: any) => nocaseEqual(value, this.textInput.value);
-    const matches = this._tableData.columnSearch(this._visibleCol, this._formatter, searchFunc, 1);
-    if (matches.length > 0) {
-      return matches[0].value;
-    } else {
-      const value = this.textInput.value;
-      if (this._visibleCol === 'id') {
-        // If the value is a valid number (non-NaN), save as a numeric rowId; else as text.
-        return +value || value;
-      }
-      return value;
-    }
+    return super.getCellValue();
   }
 
-  private _idToText(value: CellValue) {
-    if (typeof value === 'number') {
-      return this._formatter.formatAny(this._tableData.getValue(value, this._visibleCol));
-    }
-    return String(value || '');
+  private _idToText() {
+    return this._utils.idToText(this.options.cellValue);
   }
 
   /**
@@ -151,8 +110,7 @@ export class ReferenceEditor extends NTextEditor {
    * Also see: prepForSave.
    */
   private async _doSearch(text: string): Promise<ACResults<ICellItem>> {
-    const acIndex = this._tableData.columnACIndexes.getColACIndex(this._visibleCol, this._formatter);
-    const result = acIndex.search(text);
+    const result = this._utils.autocompleteSearch(text);
 
     this._showAddNew = false;
     if (!this._enableAddNew || !text) { return result; }
@@ -186,9 +144,6 @@ export function renderACItem(text: string, highlightFunc: HighlightFunc, isAddNe
   );
 }
 
-function nocaseEqual(a: string, b: string) {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
-}
 
 const cssRefEditor = styled('div', `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
