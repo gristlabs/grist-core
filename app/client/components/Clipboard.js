@@ -154,7 +154,7 @@ Clipboard.prototype._onPaste = function(elem, event) {
     if (plainText === '' || plainText.charCodeAt(0) === 0xFEFF) {
       data = [['']];
     } else {
-      data = tsvDecode(plainText.replace(/\r\n?/g, "\n"));
+      data = tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
     }
   }
 
