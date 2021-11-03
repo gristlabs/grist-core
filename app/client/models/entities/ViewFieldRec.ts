@@ -1,9 +1,9 @@
+import { ReferenceUtils } from 'app/client/lib/ReferenceUtils';
 import { ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import { ReferenceUtils } from 'app/client/lib/ReferenceUtils';
 import * as UserType from 'app/client/widgets/UserType';
 import { DocumentSettings } from 'app/common/DocumentSettings';
-import { extractTypeFromColType } from 'app/common/gristTypes';
+import { isFullReferencingType, isRefListType } from 'app/common/gristTypes';
 import { BaseFormatter, createFormatter } from 'app/common/ValueFormatter';
 import { createParser } from 'app/common/ValueParser';
 import { Computed, fromKo } from 'grainjs';
@@ -186,13 +186,30 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     const docSettings = this.documentSettings();
     const type = this.column().type();
 
-    if (extractTypeFromColType(type) === "Ref") {  // TODO reflists
+    if (!isFullReferencingType(type)) {
+      return createParser(type, this.widgetOptionsJson(), docSettings);
+    } else {
       const vcol = this.visibleColModel();
       const vcolParser = createParser(vcol.type(), vcol.widgetOptionsJson(), docSettings);
       const refUtils = new ReferenceUtils(this, docModel.docData);  // uses several more observables immediately
-      return (s: string) => refUtils.parseValue(vcolParser(s));
-    } else {
-      return createParser(type, this.widgetOptionsJson(), docSettings);
+      return (s: string) => {
+        const result = refUtils.parseValue(vcolParser(s));
+        // If `result` is a number that means it successfully parsed a reference (row ID).
+        // For a reflist we need to wrap that row ID in a list.
+        // Otherwise `result` is a string meaning it couldn't be parsed
+        // and it will be saved as AltText (i.e. invalid for the column type).
+        // We don't try to parse multiple references from a single string.
+        if (isRefListType(type) && typeof result === "number") {
+          if (result > 0) {
+            return ['L', result];
+          } else {
+            // parseValue returns 0 sometimes because that's the default for reference columns.
+            // The default for a reflist column is null.
+            return null;
+          }
+        }
+        return result;
+      };
     }
   });
 
