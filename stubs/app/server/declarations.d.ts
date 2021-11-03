@@ -52,6 +52,8 @@ declare module "redis" {
     public ttlAsync(key: string): Promise<number|null>;
     public unwatchAsync(): Promise<'OK'>;
     public watchAsync(key: string): Promise<void>;
+    public lrangeAsync(key: string, start: number, end: number): Promise<string[]>;
+    public rpushAsync(key: string, ...vals: string[]): Promise<number>;
   }
 
   class Multi {
@@ -67,5 +69,7 @@ declare module "redis" {
     public smembers(key: string): Multi;
     public srandmember(key: string): Multi;
     public srem(key: string, val: string): Multi;
+    public rpush(key: string, ...vals: string[]): Multi;
+    public ltrim(key: string, start: number, end: number): Multi;
   }
 }
