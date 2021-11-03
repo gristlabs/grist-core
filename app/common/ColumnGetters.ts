@@ -1,3 +1,5 @@
+import { Sort } from 'app/common/SortSpec';
+
 /**
  *
  * An interface for accessing the columns of a table by their
@@ -7,7 +9,6 @@
  *
  */
 export interface ColumnGetters {
-
   /**
    *
    * Takes a _grist_Tables_column ID and returns a function that maps
@@ -15,12 +16,14 @@ export interface ColumnGetters {
    * values if available, drawn from a corresponding display column.
    *
    */
-  getColGetter(colRef: number): ((rowId: number) => any) | null;
+  getColGetter(spec: Sort.ColSpec): ColumnGetter | null;
 
   /**
    *
    * Returns a getter for the manual sort column if it is available.
    *
    */
-  getManualSortGetter(): ((rowId: number) => any) | null;
+  getManualSortGetter(): ColumnGetter | null;
 }
+
+export type ColumnGetter = (rowId: number) => any;

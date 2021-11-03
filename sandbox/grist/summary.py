@@ -5,6 +5,8 @@ import re
 import six
 
 from column import is_visible_column
+import sort_specs
+
 import logger
 log = logger.Logger(__name__, logger.INFO)
 
@@ -78,13 +80,14 @@ def _update_sort_spec(sort_spec, old_table, new_table):
   # When adjusting, we take a possibly negated old colRef, and produce a new colRef.
   # If anything is gone, we return 0, which will be excluded from the new sort spec.
   def adjust(col_spec):
-    sign = 1 if col_spec >= 0 else -1
-    return sign * new_cols_map.get(old_cols_map.get(abs(col_spec)), 0)
+    old_colref = sort_specs.col_ref(col_spec)
+    new_colref = new_cols_map.get(old_cols_map.get(old_colref), 0)
+    return sort_specs.swap_col_ref(col_spec, new_colref)
 
   try:
     old_sort_spec = json.loads(sort_spec)
     new_sort_spec = [adjust(col_spec) for col_spec in old_sort_spec]
-    new_sort_spec = [col_spec for col_spec in new_sort_spec if col_spec]
+    new_sort_spec = [col_spec for col_spec in new_sort_spec if sort_specs.col_ref(col_spec)]
     return json.dumps(new_sort_spec, separators=(',', ':'))
   except Exception:
     log.warn("update_summary_section: can't parse sortColRefs JSON; clearing sortColRefs")

@@ -9,19 +9,21 @@ var SummaryConfig = require('./SummaryConfig');
 var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
 const {ChartConfig} = require('./ChartView');
-const {Computed, dom: grainjsDom, makeTestId, Observable, styled} = require('grainjs');
+const {Computed, dom: grainjsDom, makeTestId, Observable, styled, MultiHolder} = require('grainjs');
 
-const {addToSort, flipColDirection, parseSortColRefs} = require('app/client/lib/sortUtil');
-const {reorderSortRefs, updatePositions} = require('app/client/lib/sortUtil');
+const {addToSort} = require('app/client/lib/sortUtil');
+const {updatePositions} = require('app/client/lib/sortUtil');
 const {attachColumnFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {addFilterMenu} = require('app/client/ui/FilterBar');
 const {cssIcon, cssRow} = require('app/client/ui/RightPanel');
 const {VisibleFieldsConfig} = require('app/client/ui/VisibleFieldsConfig');
 const {basicButton, primaryButton} = require('app/client/ui2018/buttons');
+const {labeledLeftSquareCheckbox} = require("app/client/ui2018/checkbox");
 const {colors} = require('app/client/ui2018/cssVars');
 const {cssDragger} = require('app/client/ui2018/draggableList');
 const {menu, menuItem, select} = require('app/client/ui2018/menus');
 const {confirmModal} = require('app/client/ui2018/modals');
+const {Sort} = require('app/common/SortSpec');
 const isEqual = require('lodash/isEqual');
 const {cssMenuItem} = require('popweasel');
 
@@ -207,7 +209,7 @@ ViewConfigTab.prototype.buildSortDom = function() {
 
     // Computed to indicate if sort has changed from saved.
     const hasChanged = Computed.create(null, (use) =>
-      !isEqual(use(section.activeSortSpec), parseSortColRefs(use(section.sortColRefs))));
+      !isEqual(use(section.activeSortSpec), Sort.parseSortColRefs(use(section.sortColRefs))));
 
     // Computed array of sortable columns.
     const columns = Computed.create(null, (use) => {
@@ -217,26 +219,36 @@ ViewConfigTab.prototype.buildSortDom = function() {
                  .map(col => ({
                    label: use(col.colId),
                    value: col.getRowId(),
-                   icon: 'FieldColumn'
+                   icon: 'FieldColumn',
+                   type: col.type()
                  }));
     });
 
-    // KoArray of sortRows used to create the draggableList.
-    const sortRows = koArray.syncedKoArray(section.activeSortSpec);
+    // We only want to recreate rows, when the actual columns change.
+    const colRefs = Computed.create(null, (use) => {
+      return use(section.activeSortSpec).map(col => Sort.getColRef(col));
+    });
+    const sortRows = koArray(colRefs.get());
+    colRefs.addListener((curr, prev) => {
+      if (!isEqual(curr, prev)){
+        sortRows.assign(curr);
+      }
+    })
 
     // Sort row create function for each sort row in the draggableList.
-    const rowCreateFn = sortRef =>
-      this._buildSortRow(sortRef, section.activeSortSpec.peek(), columns);
+    const rowCreateFn = colRef =>
+      this._buildSortRow(colRef, section.activeSortSpec, columns);
 
     // Reorder function called when sort rows are reordered via dragging.
     const reorder = (...args) => {
-      const spec = reorderSortRefs(section.activeSortSpec.peek(), ...args);
+      const spec = Sort.reorderSortRefs(section.activeSortSpec.peek(), ...args);
       this._saveSort(spec);
     };
 
     return grainjsDom('div',
       grainjsDom.autoDispose(hasChanged),
       grainjsDom.autoDispose(columns),
+      grainjsDom.autoDispose(colRefs),
       grainjsDom.autoDispose(sortRows),
       // Sort rows.
       kf.draggableList(sortRows, rowCreateFn, {
@@ -280,45 +292,100 @@ ViewConfigTab.prototype.buildSortDom = function() {
 };
 
 // Builds a single row of the sort dom
-// Takes the sortRef (signed colRef), current sortSpec and array of column select options to show
+// Takes the colRef, current sortSpec and array of column select options to show
 // in the column select dropdown.
-ViewConfigTab.prototype._buildSortRow = function(sortRef, sortSpec, columns) {
-  // sortRef is a rowId of a column or its negative value (indicating descending order).
-  const colRef = Math.abs(sortRef);
-  // Computed to show the selected column at the sortSpec index and to update the
-  // sortSpec on write.
-  const col = Computed.create(null, () => colRef);
+ViewConfigTab.prototype._buildSortRow = function(colRef, sortSpec, columns) {
+  const holder = new MultiHolder();
+
+  const col           = Computed.create(holder, () => colRef);
+  const details       = Computed.create(holder, (use) => Sort.specToDetails(Sort.findCol(use(sortSpec), colRef)));
+  const hasSpecs      = Computed.create(holder, details, (_, details) => Sort.hasOptions(details));
+  const isAscending   = Computed.create(holder, details, (_, details) => details.direction === Sort.ASC);
+
   col.onWrite((newRef) => {
-    const idx = sortSpec.findIndex(_sortRef => _sortRef === sortRef);
-    const swapIdx = sortSpec.findIndex(_sortRef => Math.abs(_sortRef) === newRef);
-    // If the selected ref is already present, swap it with the old ref.
-    // Maintain sort order in each case for simplicity.
-    if (swapIdx > -1) { sortSpec.splice(swapIdx, 1, sortSpec[swapIdx] > 0 ? colRef : -colRef); }
-    if (colRef !== newRef) { sortSpec.splice(idx, 1, sortRef > 0 ? newRef : -newRef); }
-    this._saveSort(sortSpec);
+    let specs = sortSpec.peek();
+    const colSpec = Sort.findCol(specs, colRef);
+    const newSpec = Sort.findCol(specs, newRef);
+    if (newSpec) {
+      // this column is already there so only swap order
+      specs = Sort.swap(specs, colRef, newRef);
+      // but keep the directions
+      specs = Sort.setSortDirection(specs, colRef, Sort.direction(newSpec))
+      specs = Sort.setSortDirection(specs, newRef, Sort.direction(colSpec))
+    } else {
+      specs = Sort.replace(specs, colRef, Sort.createColSpec(newRef, Sort.direction(colSpec)));
+    }
+    this._saveSort(specs);
   });
+
+  const computedFlag = (flag, allowedTypes, label) => {
+    const computed = Computed.create(holder, details, (_, details) => details[flag] || false);
+    computed.onWrite(value => {
+      const specs = sortSpec.peek();
+      // Get existing details
+      const details = Sort.specToDetails(Sort.findCol(specs, colRef));
+      // Update flags
+      details[flag] = value;
+      // Replace the colSpec at the index
+      this._saveSort(Sort.replace(specs, Sort.getColRef(colRef), details));
+    });
+    return {computed, allowedTypes, flag, label};
+  }
+  const orderByChoice = computedFlag('orderByChoice', ['Choice'], 'Use choice position');
+  const naturalSort   = computedFlag('naturalSort', ['Text'], 'Natural sort');
+  const emptyLast     = computedFlag('emptyLast', null, 'Empty values last');
+  const flags = [orderByChoice, emptyLast, naturalSort];
+
+  const column = columns.get().find(col => col.value === Sort.getColRef(colRef));
+
   return cssSortRow(
-    grainjsDom.autoDispose(col),
+    grainjsDom.autoDispose(holder),
     cssSortSelect(
       select(col, columns)
     ),
-    cssSortIconPrimaryBtn('Sort',
-      grainjsDom.style('transform', sortRef < 0 ? 'none' : 'scaleY(-1)'),
-      grainjsDom.on('click', () => {
-        this._saveSort(flipColDirection(sortSpec, sortRef));
-      }),
-      testId('sort-order'),
-      testId(sortRef < 0 ? 'sort-order-desc' : 'sort-order-asc')
+    // Use domComputed method for this icon, for dynamic testId, otherwise
+    // we are not able add it dynamically.
+    grainjsDom.domComputed(isAscending, isAscending =>
+      cssSortIconPrimaryBtn(
+        "Sort",
+        grainjsDom.style("transform", isAscending ? "scaleY(-1)" : "none"),
+        grainjsDom.on("click", () => {
+          this._saveSort(Sort.flipSort(sortSpec.peek(), colRef));
+        }),
+        testId("sort-order"),
+        testId(isAscending ? "sort-order-asc" : "sort-order-desc")
+      )
     ),
     cssSortIconBtn('Remove',
       grainjsDom.on('click', () => {
-        const _idx = sortSpec.findIndex(c => c === sortRef);
-        if (_idx !== -1) {
-          sortSpec.splice(_idx, 1);
-          this._saveSort(sortSpec);
+        const specs = sortSpec.peek();
+        if (Sort.findCol(specs, colRef)) {
+          this._saveSort(Sort.removeCol(specs, colRef));
         }
       }),
       testId('sort-remove')
+    ),
+    cssMenu(
+      cssBigIconWrapper(
+        cssIcon('Dots', grainjsDom.cls(cssBgLightGreen.className, hasSpecs)),
+        testId('sort-options-icon'),
+      ),
+      menu(_ctl => flags.map(({computed, allowedTypes, flag, label}) => {
+        // when allowedTypes is null, flag can be used for every column
+        const enabled = !allowedTypes || allowedTypes.includes(column.type);
+        return cssMenuItem(
+            labeledLeftSquareCheckbox(
+              computed,
+              label,
+              grainjsDom.prop('disabled', !enabled),
+            ),
+            grainjsDom.cls(cssOptionMenuItem.className),
+            grainjsDom.cls('disabled', !enabled),
+            testId('sort-option'),
+            testId(`sort-option-${flag}`),
+          );
+        },
+      ))
     ),
     testId('sort-row')
   );
@@ -329,38 +396,42 @@ ViewConfigTab.prototype._buildSortRow = function(sortRef, sortSpec, columns) {
 ViewConfigTab.prototype._buildAddToSortBtn = function(columns) {
   // Observable indicating whether the add new column row is visible.
   const showAddNew = Observable.create(null, false);
+  const available = Computed.create(null, (use) => {
+    const currentSection = use(this.activeSectionData).section;
+    const currentSortSpec = use(currentSection.activeSortSpec);
+    const specRowIds = new Set(currentSortSpec.map(_sortRef => Sort.getColRef(_sortRef)));
+    return use(columns)
+      .filter(_col => !specRowIds.has(_col.value))
+  });
   return [
     // Add column button.
     cssRow(
       grainjsDom.autoDispose(showAddNew),
+      grainjsDom.autoDispose(available),
       cssTextBtn(
         cssPlusIcon('Plus'), 'Add Column',
         testId('sort-add')
       ),
-      grainjsDom.hide(showAddNew),
+      grainjsDom.hide((use) => use(showAddNew) || !use(available).length),
       grainjsDom.on('click', () => { showAddNew.set(true); }),
     ),
     // Fake add column row that appears only when the menu is open to select a new column
     // to add to the sort. Immediately destroyed when menu is closed.
-    grainjsDom.maybe((use) => use(showAddNew) && use(columns), _columns => {
+    grainjsDom.maybe((use) => use(showAddNew) && use(available), _columns => {
       const col = Observable.create(null, 0);
       const currentSection = this.activeSectionData().section;
-      const currentSortSpec = currentSection.activeSortSpec();
-      const specRowIds = new Set(currentSortSpec.map(_sortRef => Math.abs(_sortRef)));
       // Function called when a column select value is clicked.
       const onClick = (_col) => {
         showAddNew.set(false); // Remove add row ASAP to prevent flickering
-        addToSort(currentSection.activeSortSpec, _col.value);
+        addToSort(currentSection.activeSortSpec, _col.value, 1);
       };
-      const menuCols = _columns
-        .filter(_col => !specRowIds.has(_col.value))
-        .map(_col =>
-          menuItem(() => onClick(_col),
-            cssMenuIcon(_col.icon),
-            _col.label,
-            testId('sort-add-menu-row')
-          )
-        );
+      const menuCols = _columns.map(_col =>
+        menuItem(() => onClick(_col),
+          cssMenuIcon(_col.icon),
+          _col.label,
+          testId('sort-add-menu-row')
+        )
+      );
       return cssRow(cssSortRow(
         dom.autoDispose(col),
         cssSortSelect(
@@ -380,7 +451,8 @@ ViewConfigTab.prototype._buildAddToSortBtn = function(columns) {
         cssSortIconPrimaryBtn('Sort',
           grainjsDom.style('transform', 'scaleY(-1)')
         ),
-        cssSortIconBtn('Remove')
+        cssSortIconBtn('Remove'),
+        cssBigIconWrapper(cssIcon('Dots')),
       ));
     })
   ];
@@ -819,5 +891,40 @@ const cssNoMarginLeft = styled('div', `
 `);
 
 const cssIconWrapper = styled('div', ``);
+
+const cssBigIconWrapper = styled('div', `
+  padding: 3px;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+`);
+
+const cssMenu = styled('div', `
+  display: inline-flex;
+  cursor: pointer;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  &:hover, &.weasel-popup-open {
+    background-color: ${colors.mediumGrey};
+  }
+`);
+
+const cssBgLightGreen = styled(`div`, `
+  background: ${colors.lightGreen}
+`)
+
+const cssOptionMenuItem = styled('div', `
+  &:hover {
+    background-color: ${colors.mediumGrey};
+  }
+  & label {
+    flex: 1;
+    cursor: pointer;
+  }
+  &.disabled * {
+    color: ${colors.darkGrey} important;
+    cursor: not-allowed;
+  }
+`)
 
 module.exports = ViewConfigTab;

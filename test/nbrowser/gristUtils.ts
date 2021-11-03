@@ -922,18 +922,21 @@ export async function toggleSidePanel(which: 'right'|'left', goal: 'open'|'close
     return;
   }
 
+  // Adds '-ns' when narrow screen
+  const suffix = (await getWindowDimensions()).width < 768 ? '-ns' : '';
+
+  // click the opener and wait for the duration of the transition
+  await driver.find(`.test-${which}-opener${suffix}`).doClick();
+  await waitForSidePanel();
+}
+
+export async function waitForSidePanel() {
   // 0.4 is the duration of the transition setup in app/client/ui/PagePanels.ts for opening the
   // side panes
   const transitionDuration = 0.4;
 
   // let's add an extra delay of 0.1 for even more robustness
   const delta = 0.1;
-
-  // Adds '-ns' when narrow screen
-  const suffix = (await getWindowDimensions()).width < 768 ? '-ns' : '';
-
-  // click the opener and wait for the duration of the transition
-  await driver.find(`.test-${which}-opener${suffix}`).doClick();
   await driver.sleep((transitionDuration + delta) * 1000);
 }
 
@@ -1741,6 +1744,98 @@ export async function setRefTable(table: string) {
   await driver.find('.test-fbuilder-ref-table-select').click();
   await driver.findContent('.test-select-menu .test-select-row', table).click();
   await waitForServer();
+}
+
+// Add column to sort.
+export async function addColumnToSort(colName: RegExp|string) {
+  await driver.find(".test-vconfigtab-sort-add").click();
+  await driver.findContent(".test-vconfigtab-sort-add-menu-row", colName).click();
+  await driver.findContentWait(".test-vconfigtab-sort-row", colName, 100);
+}
+
+// Remove column from sort.
+export async function removeColumnFromSort(colName: RegExp|string) {
+  await findSortRow(colName).find(".test-vconfigtab-sort-remove").click();
+}
+
+// Toggle column sort order from ascending to descending, or vice-versa.
+export async function toggleSortOrder(colName: RegExp|string) {
+  await findSortRow(colName).find(".test-vconfigtab-sort-order").click();
+}
+
+// Change the column at the given sort position.
+export async function changeSortDropdown(colName: RegExp|string, newColName: RegExp|string) {
+  await findSortRow(colName).find(".test-select-row").click();
+  await driver.findContent("li .test-select-row", newColName).click();
+}
+
+// Reset the sort to the last saved sort.
+export async function revertSortConfig() {
+  await driver.find(".test-vconfigtab-sort-reset").click();
+}
+
+// Save the sort.
+export async function saveSortConfig() {
+  await driver.find(".test-vconfigtab-sort-save").click();
+  await waitForServer();
+}
+
+// Update the data positions to the given sort.
+export async function updateRowsBySort() {
+  await driver.find(".test-vconfigtab-sort-update").click();
+  await waitForServer(10000);
+}
+
+// Returns a WebElementPromise for the sort row of the given col name.
+export function findSortRow(colName: RegExp|string) {
+  return driver.findContent(".test-vconfigtab-sort-row", colName);
+}
+
+// Opens more sort options menu
+export async function openMoreSortOptions(colName: RegExp|string) {
+  const row = await findSortRow(colName);
+  return row.find(".test-vconfigtab-sort-options-icon").click();
+}
+
+// Selects one of the options in the more options menu.
+export async function toggleSortOption(option: SortOption) {
+  const label = await driver.find(`.test-vconfigtab-sort-option-${option} label`);
+  await label.click();
+  await waitForServer();
+}
+
+// Closes more sort options menu.
+export async function closeMoreSortOptionsMenu() {
+  await driver.sendKeys(Key.ESCAPE);
+}
+
+export type SortOption = "naturalSort" | "emptyLast" | "orderByChoice";
+export const SortOptions: ReadonlyArray<SortOption> = ["orderByChoice", "emptyLast", "naturalSort"];
+
+// Returns checked sort options for current column. Assumes the menu is opened.
+export async function getSortOptions(): Promise<SortOption[]> {
+  const options: SortOption[] = [];
+  for(const option of SortOptions) {
+    const list = await driver.findAll(`.test-vconfigtab-sort-option-${option} input:checked`);
+    if (list.length) {
+      options.push(option);
+    }
+  }
+  options.sort();
+  return options;
+}
+
+// Returns enabled entries in sort menu. Assumes the menu is opened.
+export async function getEnabledOptions(): Promise<SortOption[]> {
+  const options: SortOption[] = [];
+  for(const option of SortOptions) {
+    const list = await driver.findAll(`.test-vconfigtab-sort-option-${option}:not(.disabled)`);
+    if (list.length) {
+      options.push(option);
+    }
+  }
+  options.sort();
+  return options;
 }
 
 } // end of namespace gristUtils

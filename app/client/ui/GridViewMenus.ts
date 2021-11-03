@@ -1,9 +1,10 @@
-import {allCommands} from 'app/client/components/commands';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {testId, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menuDivider, menuItem, menuItemCmd} from 'app/client/ui2018/menus';
-import {dom, DomElementArg, styled} from 'grainjs';
+import { allCommands } from 'app/client/components/commands';
+import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
+import { testId, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menuDivider, menuItem, menuItemCmd } from 'app/client/ui2018/menus';
+import { Sort } from 'app/common/SortSpec';
+import { dom, DomElementArg, styled } from 'grainjs';
 import isEqual = require('lodash/isEqual');
 
 interface IView {
@@ -47,7 +48,7 @@ interface IMultiColumnContextMenu {
 
 interface IColumnContextMenu extends IMultiColumnContextMenu {
   filterOpenFunc: () => void;
-  sortSpec: number[];
+  sortSpec: Sort.SortSpec;
   colId: number;
 }
 
@@ -75,19 +76,18 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
         dom.style('flex', ''),
-        cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [colId])),
+        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colId, Sort.ASC)),
         testId('sort-asc'),
       ),
       customMenuItem(
         allCommands.sortDesc.run,
         icon('Sort'),
         'Z-A',
-        cssCustomMenuItem.cls('-selected', isEqual(sortSpec, [-colId])),
+        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colId, Sort.DESC)),
         testId('sort-dsc'),
       ),
       testId('sort'),
     ),
-    menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
     addToSortLabel ? [
       cssRowMenuItem(
         customMenuItem(
@@ -95,20 +95,22 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
           cssRowMenuLabel(addToSortLabel, testId('add-to-sort-label')),
           icon('Sort', dom.style('transform', 'scaley(-1)')),
           'A-Z',
-          cssCustomMenuItem.cls('-selected', sortSpec.includes(colId)),
+          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colId, Sort.ASC)),
           testId('add-to-sort-asc'),
         ),
         customMenuItem(
           allCommands.addSortDesc.run,
           icon('Sort'),
           'Z-A',
-          cssCustomMenuItem.cls('-selected', sortSpec.includes(-colId)),
+          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colId, Sort.DESC)),
           testId('add-to-sort-dsc'),
         ),
         testId('add-to-sort'),
       ),
-      menuDivider({style: 'margin-top: 0;'}),
     ] : null,
+    menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
+    menuItem(allCommands.sortFilterTabOpen.run, 'More sort options ...', testId('more-sort-options')),
+    menuDivider({style: 'margin-top: 0;'}),
     menuItemCmd(allCommands.renameField, 'Rename column', disableForReadonlyColumn),
     menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
     freezeMenuItemCmd(options),
@@ -269,8 +271,8 @@ function freezeMenuItemCmd(options: IMultiColumnContextMenu) {
 // Returns 'Add to sort' is there are columns in the sort spec but colId is not part of it. Returns
 // undefined if colId is the only column in the spec. Otherwise returns `Sorted (#N)` where #N is
 // the position (1 based) of colId in the spec.
-function getAddToSortLabel(sortSpec: number[], colId: number): string|undefined {
-  const columnsInSpec = sortSpec.map((n) => Math.abs(n));
+function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undefined {
+  const columnsInSpec = sortSpec.map((n) =>Sort.getColRef(n));
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {

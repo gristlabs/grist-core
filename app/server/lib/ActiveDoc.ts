@@ -842,7 +842,10 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise<TableRecordValue[]>} Records containing metadata about the visible columns
    * from `tableId`.
    */
-  public async getTableCols(docSession: OptDocSession, tableId: string): Promise<TableRecordValue[]> {
+  public async getTableCols(
+    docSession: OptDocSession,
+    tableId: string,
+    includeHidden = false): Promise<TableRecordValue[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -852,12 +855,11 @@ export class ActiveDoc extends EventEmitter {
 
     const columns: TableRecordValue[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
-      if (
-        // TODO param to include hidden columns
-        id === "manualSort" || id.startsWith("gristHelper_") || !id ||
-        // Filter columns from the requested table
-        columnData.parentId[index] !== tableRef
-      ) {
+      const hasNoId = !id;
+      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
+      const fromDifferentTable = columnData.parentId[index] !== tableRef;
+      const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
+      if (skip) {
         return;
       }
       const column: TableRecordValue = { id, fields: { colRef: colRefs[index] } };

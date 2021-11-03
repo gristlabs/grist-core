@@ -1,13 +1,14 @@
 import * as BaseView from 'app/client/components/BaseView';
-import {CursorPos} from 'app/client/components/Cursor';
-import {KoArray} from 'app/client/lib/koArray';
-import {ColumnRec, TableRec, ViewFieldRec, ViewRec} from 'app/client/models/DocModel';
-import {DocModel, IRowModel, recordSet, refRecord} from 'app/client/models/DocModel';
+import { ColumnRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {RowId} from 'app/client/models/rowset';
-import {getWidgetTypes} from 'app/client/ui/widgetTypes';
-import {Computed} from 'grainjs';
 import * as ko from 'knockout';
+import { CursorPos, } from 'app/client/components/Cursor';
+import { KoArray, } from 'app/client/lib/koArray';
+import { DocModel, IRowModel, recordSet, refRecord, } from 'app/client/models/DocModel';
+import { RowId, } from 'app/client/models/rowset';
+import { getWidgetTypes, } from 'app/client/ui/widgetTypes';
+import { Sort, } from 'app/common/SortSpec';
+import { Computed, } from 'grainjs';
 import defaults = require('lodash/defaults');
 
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
@@ -44,10 +45,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
 
   // is an array (parsed from JSON) of colRefs (i.e. rowIds into the columns table), with a
   // twist: a rowId may be positive or negative, for ascending or descending respectively.
-  activeSortSpec: modelUtil.ObjObservable<number[]>;
+  activeSortSpec: modelUtil.ObjObservable<Sort.SortSpec>;
 
   // Modified sort spec to take into account any active display columns.
-  activeDisplaySortSpec: ko.Computed<number[]>;
+  activeDisplaySortSpec: ko.Computed<Sort.SortSpec>;
 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   hiddenColumns: ko.Computed<ColumnRec[]>;
@@ -209,9 +210,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // twist: a rowId may be positive or negative, for ascending or descending respectively.
   // TODO: This method of ignoring columns which are deleted is inefficient and may cause conflicts
   //  with sharing.
-  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: any) => {
-    return (obj || []).filter((sortRef: number) => {
-      const colModel = docModel.columns.getRowModel(Math.abs(sortRef));
+  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec|null) => {
+    return (obj || []).filter((sortRef: Sort.ColSpec) => {
+      const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef));
       return !colModel._isDeleted() && colModel.getRowId();
     });
   });
@@ -219,10 +220,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Modified sort spec to take into account any active display columns.
   this.activeDisplaySortSpec = this.autoDispose(ko.computed(() => {
     return this.activeSortSpec().map(directionalColRef => {
-      const colRef = Math.abs(directionalColRef);
+      const colRef = Sort.getColRef(directionalColRef);
       const field = this.viewFields().all().find(f => f.column().origColRef() === colRef);
       const effectiveColRef = field ? field.displayColRef() : colRef;
-      return directionalColRef > 0 ? effectiveColRef : -effectiveColRef;
+      return Sort.swapColRef(directionalColRef, effectiveColRef);
     });
   }));
 

@@ -2,7 +2,7 @@ import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
 import {
-  BulkColValues, CellValue, fromTableDataAction, TableColValues, TableRecordValue,
+  BulkColValues, CellValue, ColValues, fromTableDataAction, TableColValues, TableRecordValue,
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
@@ -45,6 +45,8 @@ import * as path from 'path';
 import * as uuidv4 from "uuid/v4";
 import * as t from "ts-interface-checker";
 import { Checker } from "ts-interface-checker";
+import { ServerColumnGetters } from 'app/server/lib/ServerColumnGetters';
+import { Sort } from 'app/common/SortSpec';
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -153,12 +155,17 @@ export class DocWorkerApi {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
       const tableId = req.params.tableId;
+      const session = docSessionFromRequest(req);
       const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
-        docSessionFromRequest(req), {tableId, filters}, !immediate));
+        session, {tableId, filters}, !immediate));
+      // For metaTables we don't need to specify columns, search will infer it from the sort expression.
+      const isMetaTable = tableId.startsWith('_grist');
+      const columns = isMetaTable ? null :
+        await handleSandboxError('', [], activeDoc.getTableCols(session, tableId, true));
+      const params = getQueryParameters(req);
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
-      const params = getQueryParameters(req);
-      return applyQueryParameters(fromTableDataAction(tableData), params);
+      return applyQueryParameters(fromTableDataAction(tableData), params, columns);
     }
 
     // Get the specified table in column-oriented format
@@ -945,8 +952,9 @@ async function handleSandboxError<T>(tableId: string, colNames: string[], p: Pro
  * results returned to the user.
  */
 export interface QueryParameters {
-  sort?: string[];  // Columns to sort by (ascending order by default,
-                    // prepend "-" for descending order).
+  sort?: string[];  // Columns names to sort by (ascending order by default,
+                    // prepend "-" for descending order, can contain flags,
+                    // see more in Sort.SortSpec).
   limit?: number;   // Limit on number of rows to return.
 }
 
@@ -992,29 +1000,51 @@ function getQueryParameters(req: Request): QueryParameters {
 /**
  * Sort table contents being returned.  Sort keys with a '-' prefix
  * are sorted in descending order, otherwise ascending.  Contents are
- * modified in place.
+ * modified in place. Sort keys can contain sort options.
+ * Columns can be either expressed as a colId (name string) or as colRef (rowId number).
  */
-function applySort(values: TableColValues, sort: string[]) {
+function applySort(
+  values: TableColValues,
+  sort: string[],
+  _columns: TableRecordValue[]|null = null) {
   if (!sort) { return values; }
-  const sortKeys = sort.map(key => key.replace(/^-/, ''));
-  const iteratees = sortKeys.map(key => {
-    if (!(key in values)) {
-      throw new Error(`unknown key ${key}`);
-    }
-    const col = values[key];
-    return (i: number) => col[i];
-  });
-  const sortSpec = sort.map((key, i) => (key.startsWith('-') ? -i - 1 : i + 1));
-  const index = values.id.map((_, i) => i);
-  const sortFunc = new SortFunc({
-    getColGetter(i) { return iteratees[i - 1]; },
-    getManualSortGetter() { return null; }
-  });
-  sortFunc.updateSpec(sortSpec);
-  index.sort(sortFunc.compare.bind(sortFunc));
+
+  // First we need to prepare column description in ColValue format (plain objects).
+  // This format is used by ServerColumnGetters.
+  let properColumns: ColValues[] = [];
+
+  // We will receive columns information only for user tables, not for metatables. So
+  // if this is the case, we will infer them from the result.
+  if (!_columns) {
+    _columns = Object.keys(values).map((col, index) => ({ id: col, fields: { colRef: index }}));
+  }
+  // For user tables, we will not get id column (as this column is not in the schema), so we need to
+  // make sure the column is there.
+  else {
+    // This is enough information for ServerGetters
+    _columns = [..._columns, { id : 'id', fields: {colRef: 0 }}];
+  }
+
+  // Once we have proper columns, we can convert them to format that ServerColumnGetters
+  // understand.
+  properColumns = _columns.map(c => ({
+    ...c.fields,
+    id : c.fields.colRef,
+    colId: c.id
+  }));
+
+  // We will sort row indices in the values object, not rows ids.
+  const rowIndices = values.id.map((__, i) => i);
+  const getters = new ServerColumnGetters(rowIndices, values, properColumns);
+  const sortFunc = new SortFunc(getters);
+  const colIdToRef = new Map(properColumns.map(({id, colId}) => [colId as string, id as number]));
+  sortFunc.updateSpec(Sort.parseNames(sort, colIdToRef));
+  rowIndices.sort(sortFunc.compare.bind(sortFunc));
+
+  // Sort resulting values according to the sorted index.
   for (const key of Object.keys(values)) {
     const col = values[key];
-    values[key] = index.map(i => col[i]);
+    values[key] = rowIndices.map(i => col[i]);
   }
   return values;
 }
@@ -1034,8 +1064,11 @@ function applyLimit(values: TableColValues, limit: number) {
 /**
  * Apply query parameters to table contents.  Contents are modified in place.
  */
-export function applyQueryParameters(values: TableColValues, params: QueryParameters): TableColValues {
-  if (params.sort) { applySort(values, params.sort); }
+export function applyQueryParameters(
+  values: TableColValues,
+  params: QueryParameters,
+  columns: TableRecordValue[]|null = null): TableColValues {
+  if (params.sort) { applySort(values, params.sort, columns); }
   if (params.limit) { applyLimit(values, params.limit); }
   return values;
 }

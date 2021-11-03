@@ -1,18 +1,18 @@
-import {flipColDirection, parseSortColRefs} from 'app/client/lib/sortUtil';
-import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {CustomComputed} from 'app/client/models/modelUtil';
-import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
-import {addFilterMenu} from 'app/client/ui/FilterBar';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
-import {Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
+import { reportError } from 'app/client/models/AppModel';
+import { ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { CustomComputed } from 'app/client/models/modelUtil';
+import { attachColumnFilterMenu } from 'app/client/ui/ColumnFilterMenu';
+import { addFilterMenu } from 'app/client/ui/FilterBar';
+import { hoverTooltip } from 'app/client/ui/tooltips';
+import { makeViewLayoutMenu } from 'app/client/ui/ViewLayoutMenu';
+import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
+import { colors, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { menu } from 'app/client/ui2018/menus';
+import { Sort } from 'app/common/SortSpec';
+import { Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled } from 'grainjs';
+import { PopupControl } from 'popweasel';
 import difference = require('lodash/difference');
-import {PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-section-menu-');
 
@@ -105,29 +105,27 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
   ];
 }
 
-function makeSortPanel(section: ViewSectionRec, sortSpec: number[], getColumn: (row: number) => ColumnRec) {
-  const changedColumns = difference(sortSpec, parseSortColRefs(section.sortColRefs.peek()));
-  const sortColumns = sortSpec.map(colRef => {
+function makeSortPanel(section: ViewSectionRec, sortSpec: Sort.SortSpec, getColumn: (row: number) => ColumnRec) {
+  const changedColumns = difference(sortSpec, Sort.parseSortColRefs(section.sortColRefs.peek()));
+  const sortColumns = sortSpec.map(colSpec => {
     // colRef is a rowId of a column or its negative value (indicating descending order).
-    const col = getColumn(Math.abs(colRef));
+    const col = getColumn(Sort.getColRef(colSpec));
     return cssMenuText(
       cssMenuIconWrapper(
-        cssMenuIconWrapper.cls('-changed', changedColumns.includes(colRef)),
-        cssMenuIconWrapper.cls(colRef < 0 ? '-desc' : '-asc'),
+        cssMenuIconWrapper.cls('-changed', changedColumns.includes(colSpec)),
+        cssMenuIconWrapper.cls(Sort.isAscending(colSpec) ? '-asc' : '-desc'),
         cssIcon('Sort',
-          dom.style('transform', colRef < 0 ? 'none' : 'scaleY(-1)'),
+          dom.style('transform', Sort.isAscending(colSpec) ? 'scaleY(-1)' : 'none'),
           dom.on('click', () => {
-            section.activeSortSpec(flipColDirection(sortSpec, colRef));
+            section.activeSortSpec(Sort.flipSort(sortSpec, colSpec));
           })
         )
       ),
       cssMenuTextLabel(col.colId()),
       cssMenuIconWrapper(
         cssIcon('Remove', testId('btn-remove-sort'), dom.on('click', () => {
-          const idx = sortSpec.findIndex(c => c === colRef);
-          if (idx !== -1) {
-            sortSpec.splice(idx, 1);
-            section.activeSortSpec(sortSpec);
+          if (Sort.findCol(sortSpec, colSpec)) {
+            section.activeSortSpec(Sort.removeCol(sortSpec, colSpec));
           }
         }))
       ),

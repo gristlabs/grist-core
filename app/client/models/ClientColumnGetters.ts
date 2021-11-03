@@ -1,6 +1,8 @@
 import * as DataTableModel from 'app/client/models/DataTableModel';
-import {ColumnGetters} from 'app/common/ColumnGetters';
+import { ColumnGetter, ColumnGetters } from 'app/common/ColumnGetters';
 import * as gristTypes from 'app/common/gristTypes';
+import { choiceGetter } from 'app/common/SortFunc';
+import { Sort } from 'app/common/SortSpec';
 
 /**
  *
@@ -18,13 +20,15 @@ export class ClientColumnGetters implements ColumnGetters {
     unversioned?: boolean} = {}) {
   }
 
-  public getColGetter(colRef: number): ((rowId: number) => any) | null {
-    const colId = this._tableModel.docModel.columns.getRowModel(Math.abs(colRef)).colId();
-    const getter = this._tableModel.tableData.getRowPropFunc(colId);
-    if (!getter) { return getter || null; }
+  public getColGetter(colSpec: Sort.ColSpec): ColumnGetter | null {
+    const rowModel = this._tableModel.docModel.columns.getRowModel(Sort.getColRef(colSpec));
+    const colId = rowModel.colId();
+    let getter: ColumnGetter|undefined = this._tableModel.tableData.getRowPropFunc(colId);
+    if (!getter) { return null; }
     if (this._options.unversioned && this._tableModel.tableData.mayHaveVersions()) {
-      return (rowId) => {
-        const value = getter(rowId);
+      const valueGetter = getter;
+      getter = (rowId) => {
+        const value = valueGetter(rowId);
         if (value && gristTypes.isVersions(value)) {
           const versions = value[1];
           return ('parent' in versions) ? versions.parent :
@@ -32,6 +36,13 @@ export class ClientColumnGetters implements ColumnGetters {
         }
         return value;
       };
+    }
+    const details = Sort.specToDetails(colSpec);
+    if (details.orderByChoice) {
+      if (rowModel.pureType() === 'Choice') {
+        const choices: string[] = rowModel.widgetOptionsJson.peek()?.choices || [];
+        getter = choiceGetter(getter, choices);
+      }
     }
     return getter;
   }

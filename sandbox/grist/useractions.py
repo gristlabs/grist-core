@@ -11,6 +11,7 @@ import acl
 from acl_formula import parse_acl_formula_json
 import actions
 import column
+import sort_specs
 import identifiers
 from objtypes import strict_equal, encode_object
 import schema
@@ -877,7 +878,8 @@ class UserActions(object):
     for section in parent_sections:
       # Only iterates once for each section. Updated sort removes all columns being deleted.
       sort = json.loads(section.sortColRefs) if section.sortColRefs else []
-      updated_sort = [sort_ref for sort_ref in sort if abs(sort_ref) not in removed_col_refs]
+      updated_sort = [col_spec for col_spec in sort
+                      if sort_specs.col_ref(col_spec) not in removed_col_refs]
       if sort != updated_sort:
         re_sort_sections.append(section)
         re_sort_specs.append(json.dumps(updated_sort))

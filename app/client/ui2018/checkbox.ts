@@ -120,33 +120,40 @@ export const cssLabelText = styled('span', `
 type CheckboxArg = DomArg<HTMLInputElement>;
 
 function checkbox(
-  obs: Observable<boolean>, cssCheckbox: typeof cssCheckboxSquare, label: DomArg = '',  ...domArgs: CheckboxArg[]
+  obs: Observable<boolean>, cssCheckbox: typeof cssCheckboxSquare,
+  label: DomArg, right: boolean,  ...domArgs: CheckboxArg[]
 ) {
-  return cssLabel(
-    cssCheckbox(
+  const field = cssCheckbox(
       { type: 'checkbox' },
       dom.prop('checked', obs),
       dom.on('change', (ev, el) => obs.set(el.checked)),
       ...domArgs
-    ),
-    label ? cssLabelText(label) : null
-  );
+    );
+  const text = label ? cssLabelText(label) : null;
+  if (right) {
+    return cssReversedLabel([text, cssInlineRelative(field)]);
+  }
+  return cssLabel(field, text);
 }
 
 export function squareCheckbox(obs: Observable<boolean>, ...domArgs: CheckboxArg[]) {
-  return checkbox(obs, cssCheckboxSquare, '', ...domArgs);
+  return checkbox(obs, cssCheckboxSquare, '', false, ...domArgs);
 }
 
 export function circleCheckbox(obs: Observable<boolean>, ...domArgs: CheckboxArg[]) {
-  return checkbox(obs, cssCheckboxCircle, '', ...domArgs);
+  return checkbox(obs, cssCheckboxCircle, '', false, ...domArgs);
 }
 
 export function labeledSquareCheckbox(obs: Observable<boolean>, label: DomArg, ...domArgs: CheckboxArg[]) {
-  return checkbox(obs, cssCheckboxSquare, label, ...domArgs);
+  return checkbox(obs, cssCheckboxSquare, label, false, ...domArgs);
+}
+
+export function labeledLeftSquareCheckbox(obs: Observable<boolean>, label: DomArg, ...domArgs: CheckboxArg[]) {
+  return checkbox(obs, cssCheckboxSquare, label, true, ...domArgs);
 }
 
 export function labeledCircleCheckbox(obs: Observable<boolean>, label: DomArg, ...domArgs: CheckboxArg[]) {
-  return checkbox(obs, cssCheckboxCircle, label, ...domArgs);
+  return checkbox(obs, cssCheckboxCircle, label, false, ...domArgs);
 }
 
 export const Indeterminate = 'indeterminate';
@@ -158,7 +165,7 @@ function triStateCheckbox(
   const checkboxObs = Computed.create(null, obs, (_use, state) => state === true)
     .onWrite((checked) => obs.set(checked));
   return checkbox(
-    checkboxObs, cssCheckbox, label,
+    checkboxObs, cssCheckbox, label, false,
     dom.prop('indeterminate', (use) => use(obs) === 'indeterminate'),
     dom.autoDispose(checkboxObs),
     ...domArgs
@@ -172,3 +179,17 @@ export function triStateSquareCheckbox(obs: Observable<TriState>, ...domArgs: Ch
 export function labeledTriStateSquareCheckbox(obs: Observable<TriState>, label: string, ...domArgs: CheckboxArg[]) {
   return triStateCheckbox(obs, cssCheckboxSquare, label, ...domArgs);
 }
+
+const cssInlineRelative = styled('div', `
+  display: inline-block;
+  position: relative;
+  height: 16px;
+`);
+
+const cssReversedLabel = styled(cssLabel, `
+  justify-content: space-between;
+  gap: 8px;
+  & .${cssLabelText.className} {
+    margin: 0px;
+  }
+`);

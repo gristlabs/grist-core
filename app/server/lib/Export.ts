@@ -1,18 +1,19 @@
-import {buildColFilter} from 'app/common/ColumnFilterFunc';
-import {RowRecord} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
+import { buildColFilter } from 'app/common/ColumnFilterFunc';
+import { RowRecord } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { DocumentSettings } from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {buildRowFilter} from 'app/common/RowFilterFunc';
-import {SchemaTypes} from 'app/common/schema';
-import {SortFunc} from 'app/common/SortFunc';
-import {TableData} from 'app/common/TableData';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {docSessionFromRequest} from 'app/server/lib/DocSession';
-import {optIntegerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
-import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
+import { buildRowFilter } from 'app/common/RowFilterFunc';
+import { SchemaTypes } from 'app/common/schema';
+import { SortFunc } from 'app/common/SortFunc';
+import { Sort } from 'app/common/SortSpec';
+import { TableData } from 'app/common/TableData';
+import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { docSessionFromRequest } from 'app/server/lib/DocSession';
+import { optIntegerParam, optJsonParam, stringParam } from 'app/server/lib/requestUtils';
+import { ServerColumnGetters } from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
 
@@ -203,7 +204,7 @@ export async function exportTable(
 export async function exportSection(
   activeDoc: ActiveDoc,
   viewSectionId: number,
-  sortOrder: number[] | null,
+  sortSpec: Sort.SortSpec | null,
   filters: Filter[] | null,
   req: express.Request): Promise<ExportData> {
 
@@ -241,16 +242,16 @@ export async function exportSection(
     (field) => viewify(tableColsById[field.colRef], field));
 
   // The columns named in sort order need to now become display columns
-  sortOrder = sortOrder || gutil.safeJsonParse(viewSection.sortColRefs, []);
+  sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
   const fieldsByColRef = _.indexBy(fields, 'colRef');
-  sortOrder = sortOrder!.map((directionalColRef) => {
-    const colRef = Math.abs(directionalColRef);
+  sortSpec = sortSpec!.map((colSpec) => {
+    const colRef = Sort.getColRef(colSpec);
     const col = tableColsById[colRef];
     if (!col) {
       return 0;
     }
     const effectiveColRef = viewify(col, fieldsByColRef[colRef]).id;
-    return directionalColRef > 0 ? effectiveColRef : -effectiveColRef;
+    return Sort.swapColRef(colSpec, effectiveColRef);
   });
 
   // fetch actual data
@@ -260,7 +261,7 @@ export async function exportSection(
   // sort rows
   const getters = new ServerColumnGetters(rowIds, dataByColId, columns);
   const sorter = new SortFunc(getters);
-  sorter.updateSpec(sortOrder);
+  sorter.updateSpec(sortSpec);
   rowIds.sort((a, b) => sorter.compare(a, b));
   // create cell accessors
   const access = viewColumns.map(col => getters.getColGetter(col.id)!);

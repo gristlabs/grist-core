@@ -6,13 +6,14 @@ var ko        = require('knockout');
 var gutil             = require('app/common/gutil');
 var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
 var MANUALSORT        = require('app/common/gristTypes').MANUALSORT;
+const {Sort} = require('app/common/SortSpec');
 
 var dom           = require('../lib/dom');
 var kd            = require('../lib/koDom');
 var kf            = require('../lib/koForm');
 var koDomScrolly  = require('../lib/koDomScrolly');
 var tableUtil     = require('../lib/tableUtil');
-var {addToSort}   = require('../lib/sortUtil');
+var {addToSort, sortBy}   = require('../lib/sortUtil');
 
 var commands      = require('./commands');
 var viewCommon    = require('./viewCommon');
@@ -260,16 +261,16 @@ GridView.gridCommands = {
   paste: function(pasteObj, cutCallback) { return this.paste(pasteObj, cutCallback); },
   cancel: function() { this.clearSelection(); },
   sortAsc: function() {
-    this.viewSection.activeSortSpec.assign([this.currentColumn().getRowId()]);
+    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
   },
   sortDesc: function() {
-    this.viewSection.activeSortSpec.assign([-this.currentColumn().getRowId()]);
+    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
   },
   addSortAsc: function() {
-    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId());
+    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
   },
   addSortDesc: function() {
-    addToSort(this.viewSection.activeSortSpec, -this.currentColumn().getRowId());
+    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
   },
   toggleFreeze: function() {
     // get column selection
