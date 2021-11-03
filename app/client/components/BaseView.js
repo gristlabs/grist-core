@@ -373,7 +373,7 @@ BaseView.prototype._parsePasteForView = function(data, fields) {
     if (!col.length) {
       return col;
     }
-    const typeMatches = col[0].colType === updateColTypes[idx];
+    const typeMatches = col[0] && col[0].colType === updateColTypes[idx];
     const parser = parsers[idx];
     return col.map(v => {
       if (v) {
