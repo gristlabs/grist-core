@@ -4,6 +4,7 @@ import {BillingModel} from 'app/client/models/BillingModel';
 import * as css from 'app/client/ui/BillingPageCss';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {IOption, select} from 'app/client/ui2018/menus';
+import type {ApiError} from 'app/common/ApiError';
 import {IBillingAddress, IBillingCard, IBillingCoupon, IBillingOrgSettings,
         IFilledBillingAddress} from 'app/common/BillingAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -115,11 +116,29 @@ export class BillingForm extends Disposable {
       card: cardInfo ? cardInfo.card : undefined
     };
   }
+
+  // Make a best-effort attempt to focus the element with the error.
+  public focusOnError() {
+    // We don't have a good way to do it, we just try to do better than nothing. Also we don't
+    // have access to the form container, so look at css.inputError element in the full document.
+    const elem = document.querySelector(`.${css.paymentBlock.className} .${css.inputError.className}:not(:empty)`);
+    const parent = elem?.closest(`.${css.paymentBlock.className}`);
+    if (parent) {
+      const input: HTMLInputElement|null =
+        parent.querySelector(`.${css.billingInput.className}-invalid`) ||
+        parent.querySelector('input');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
 }
 
 // Abstract class which includes helper functions for creating a form whose values are verified.
 abstract class BillingSubForm extends Disposable {
   protected readonly formError: Observable<string> = Observable.create(this, '');
+  protected shouldAutoFocus = false;
 
   constructor() {
     super();
@@ -143,6 +162,13 @@ abstract class BillingSubForm extends Disposable {
       this.formError.set('');
     } catch (e) {
       this.formError.set(e.message);
+    }
+  }
+
+  protected maybeAutoFocus() {
+    if (this.shouldAutoFocus) {
+      this.shouldAutoFocus = false;
+      return (elem: HTMLElement) => { setTimeout(() => elem.focus(), 0); };
     }
   }
 }
@@ -402,7 +428,7 @@ class BillingSettingsForm extends BillingSubForm {
 
   public buildDom() {
     const noEditAccess = Boolean(this._org && !roles.canEdit(this._org.access));
-    const hasDomain = Boolean(this._options.autofill?.domain);
+    const initDomain = this._options.autofill?.domain;
     return css.paymentBlock(
       this._options.showHeader ? css.paymentSubHeader('Team Site') : null,
       css.paymentRow(
@@ -426,7 +452,9 @@ class BillingSettingsForm extends BillingSubForm {
           noEditAccess ? css.paymentFieldInfo('Organization edit access is required',
             testId('settings-domain-info')
           ) : null,
-          hasDomain ? css.paymentFieldDanger('Any saved links will need updating if the URL changes') : null,
+          dom.maybe((use) => initDomain && use(this._domain.value) !== initDomain, () =>
+            css.paymentFieldDanger('Any saved links will need updating if the URL changes')
+          ),
         ),
         css.paymentField({style: 'flex: 0 1 0;'},
           css.inputHintLabel('.getgrist.com')
@@ -490,7 +518,7 @@ class BillingDiscountForm extends BillingSubForm {
             css.billingTextBtn(
               css.billingIcon('Settings'),
               'Apply',
-              dom.on('click', () => this._isExpanded.set(true)),
+              dom.on('click', () => { this.shouldAutoFocus = true; this._isExpanded.set(true); }),
               testId('apply-discount-code')
             )
           )
@@ -499,7 +527,7 @@ class BillingDiscountForm extends BillingSubForm {
           css.paymentRow(
             css.paymentField(
               css.paymentLabel('Discount Code'),
-              this.billingInput(this._discountCode, testId('discount-code')),
+              this.billingInput(this._discountCode, testId('discount-code'), this.maybeAutoFocus()),
             )
           ),
           css.inputError(
@@ -517,7 +545,8 @@ class BillingDiscountForm extends BillingSubForm {
     try {
       return await this._billingModel.fetchSignupCoupon(discountCode);
     } catch (e) {
-      this.formError.set('Invalid or expired discount code.');
+      const message = (e as ApiError).details?.userError;
+      this.formError.set(message || 'Invalid or expired discount code.');
       throw e;
     }
   }

@@ -162,42 +162,36 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   }
 
   public async isDomainAvailable(domain: string): Promise<boolean> {
-    const resp = await this.request(`${this._url}/api/billing/domain`, {
+    return this.requestJson(`${this._url}/api/billing/domain`, {
       method: 'POST',
       body: JSON.stringify({ domain })
     });
-    return resp.json();
   }
 
   public async getCoupon(promotionCode: string): Promise<IBillingCoupon> {
-    const resp = await this.request(`${this._url}/api/billing/coupon/${promotionCode}`, {
+    return this.requestJson(`${this._url}/api/billing/coupon/${promotionCode}`, {
       method: 'GET',
     });
-    return resp.json();
   }
 
   public async getTaxRate(address: IBillingAddress): Promise<number> {
-    const resp = await this.request(`${this._url}/api/billing/tax`, {
+    return this.requestJson(`${this._url}/api/billing/tax`, {
       method: 'POST',
       body: JSON.stringify({ address })
     });
-    return resp.json();
   }
 
   public async getPlans(): Promise<IBillingPlan[]> {
-    const resp = await this.request(`${this._url}/api/billing/plans`, {method: 'GET'});
-    return resp.json();
+    return this.requestJson(`${this._url}/api/billing/plans`, {method: 'GET'});
   }
 
   // Returns an IBillingSubscription
   public async getSubscription(): Promise<IBillingSubscription> {
-    const resp = await this.request(`${this._url}/api/billing/subscription`, {method: 'GET'});
-    return resp.json();
+    return this.requestJson(`${this._url}/api/billing/subscription`, {method: 'GET'});
   }
 
   public async getBillingAccount(): Promise<FullBillingAccount> {
-    const resp = await this.request(`${this._url}/api/billing`, {method: 'GET'});
-    return resp.json();
+    return this.requestJson(`${this._url}/api/billing`, {method: 'GET'});
   }
 
   // Returns the new Stripe customerId.
@@ -208,11 +202,10 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     settings: IBillingOrgSettings,
     promotionCode?: string,
   ): Promise<OrganizationWithoutAccessInfo> {
-    const resp = await this.request(`${this._url}/api/billing/signup`, {
+    const parsed = await this.requestJson(`${this._url}/api/billing/signup`, {
       method: 'POST',
       body: JSON.stringify({ tokenId, planId, address, settings, promotionCode }),
     });
-    const parsed = await resp.json();
     return parsed.data;
   }
 

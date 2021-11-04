@@ -770,7 +770,7 @@ export class BillingPage extends Disposable {
         testId('edit')
       ),
       bigPrimaryButton({style: 'margin-left: 10px;'},
-        dom.text((use) => (task !== 'signUp' || use(this._showConfirmPage)) ? submitText : 'Continue'),
+        dom.text((use) => (task !== 'signUp' || use(this._showConfirmPage)) ? submitText : 'Review'),
         dom.boolAttr('disabled', this._isSubmitting),
         dom.on('click', () => this._doSubmit(task)),
         testId('submit')
@@ -807,6 +807,8 @@ export class BillingPage extends Disposable {
       if (!this.isDisposed()) {
         this._isSubmitting.set(false);
         this._showConfirmPage.set(false);
+        // Focus the first element with an error.
+        this._form?.focusOnError();
       }
     }
   }
