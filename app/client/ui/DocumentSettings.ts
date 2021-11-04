@@ -52,7 +52,7 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
             {defaultCurrencyLabel: `Local currency (${getCurrency(l)})`})
         )),
         canChangeEngine ? [
-          cssDataRow('Engine:'),
+          cssDataRow('Engine (experimental ☠ change at own risk):'),
           select(engineObs, getSupportedEngineChoices()),
         ] : null,
       ],
