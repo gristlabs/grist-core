@@ -66,9 +66,21 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
   return new Intl.NumberFormat(docSettings.locale, nfOptions);
 }
 
+// Safari 13 and some other browsers don't support narrowSymbol option:
+// https://github.com/mdn/browser-compat-data/issues/8985
+// https://caniuse.com/?search=currencyDisplay
+const currencyDisplay = (function(){
+  try {
+    new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol'});
+    return 'narrowSymbol';
+  } catch(err) {
+    return 'symbol';
+  }
+})();
+
 export function parseNumMode(numMode?: NumMode, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
-    case 'currency': return {style: 'currency', currency, currencyDisplay: 'narrowSymbol' };
+    case 'currency': return {style: 'currency', currency, currencyDisplay};
     case 'decimal': return {useGrouping: true};
     case 'percent': return {style: 'percent'};
     // TODO 'notation' option (and therefore numMode 'scientific') works on recent Firefox and
