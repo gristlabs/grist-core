@@ -161,6 +161,16 @@ export class Housekeeper {
         headers,
       });
     }));
+
+    // Move a document to its assigned worker.  Can be useful during administrative
+    // actions.
+    app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (docId, headers) => {
+      const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`);
+      return fetch(url, {
+        method: 'POST',
+        headers,
+      });
+    }));
   }
 
   /**

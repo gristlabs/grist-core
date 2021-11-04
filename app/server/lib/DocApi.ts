@@ -132,8 +132,6 @@ export class DocWorkerApi {
     const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
     // check user can edit document, with soft-deleted documents being acceptable
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
-    // check document exists, don't check user access
-    const docExists = expressWrap(this._assertAccess.bind(this, null, false));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
@@ -581,7 +579,7 @@ export class DocWorkerApi {
     // and frees it for reassignment if not.  Has no effect if document is in the
     // expected group.  Does not require specific rights.  Returns true if the document
     // is freed up for reassignment, otherwise false.
-    this._app.post('/api/docs/:docId/assign', docExists, throttled(async (req, res) => {
+    this._app.post('/api/docs/:docId/assign', canEdit, throttled(async (req, res) => {
       const docId = getDocId(req);
       const status = await this._docWorkerMap.getDocWorker(docId);
       if (!status) { res.json(false); return; }
