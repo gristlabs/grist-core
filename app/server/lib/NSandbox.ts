@@ -1,13 +1,13 @@
 /**
  * JS controller for the pypy sandbox.
  */
-import * as pidusage from '@gristlabs/pidusage';
 import * as marshal from 'app/common/marshal';
 import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
+import {DirectProcessControl, ISandboxControl, NoProcessControl, ProcessInfo,
+        SubprocessControl} from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {Throttle} from 'app/server/lib/Throttle';
 import {ChildProcess, spawn} from 'child_process';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
@@ -58,6 +58,16 @@ interface ISandboxOptions {
                                  // may want to pass arguments to python directly.
 }
 
+/**
+ * We interact with sandboxes as a separate child process. Data engine work is done
+ * across standard input and output streams from and to this process. We also monitor
+ * and control resource utilization via a distinct control interface.
+ */
+interface SandboxProcess {
+  child: ChildProcess;
+  control: ISandboxControl;
+}
+
 type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
 
 // Type for basic message identifiers, available as constants in sandboxUtil.
@@ -70,6 +80,7 @@ const recordBuffersRoot = process.env.RECORD_SANDBOX_BUFFERS_DIR;
 export class NSandbox implements ISandbox {
 
   public readonly childProc: ChildProcess;
+  private _control: ISandboxControl;
   private _logTimes: boolean;
   private _exportedFunctions: {[name: string]: SandboxMethod};
   private _marshaller = new marshal.Marshaller({stringToBuffer: false, version: 2});
@@ -83,8 +94,6 @@ export class NSandbox implements ISandbox {
   private _logMeta: log.ILogMeta;
   private _streamToSandbox: Writable;
   private _streamFromSandbox: Stream;
-
-  private _throttle: Throttle | undefined;
 
   // Create a unique subdirectory for each sandbox process so they can be replayed separately
   private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
@@ -106,7 +115,9 @@ export class NSandbox implements ISandbox {
     this._logTimes = Boolean(options.logTimes || options.logCalls);
     this._exportedFunctions = options.exports || {};
 
-    this.childProc = spawner(options);
+    const sandboxProcess = spawner(options);
+    this._control = sandboxProcess.control;
+    this.childProc = sandboxProcess.child;
 
     this._logMeta = {sandboxPid: this.childProc.pid, ...options.logMeta};
 
@@ -141,13 +152,6 @@ export class NSandbox implements ISandbox {
     // On shutdown, shutdown the child process cleanly, and wait for it to exit.
     shutdown.addCleanupHandler(this, this.shutdown);
 
-    if (process.env.GRIST_THROTTLE_CPU) {
-      this._throttle = new Throttle({
-        pid: this.childProc.pid,
-        logMeta: this._logMeta,
-      });
-    }
-
     if (this._recordBuffersDir) {
       log.rawDebug(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
       fs.mkdirSync(this._recordBuffersDir, {recursive: true});
@@ -165,9 +169,9 @@ export class NSandbox implements ISandbox {
     // The signal ensures the sandbox process exits even if it's hanging in an infinite loop or
     // long computation. It doesn't get a chance to clean up, but since it is sandboxed, there is
     // nothing it needs to clean up anyway.
-    const timeoutID = setTimeout(() => {
+    const timeoutID = setTimeout(async () => {
       log.rawWarn("Sandbox sending SIGKILL", this._logMeta);
-      this.childProc.kill('SIGKILL');
+      await this._control.kill();
     }, 1000);
 
     const result = await new Promise((resolve, reject) => {
@@ -176,7 +180,7 @@ export class NSandbox implements ISandbox {
       this.childProc.on('close', resolve);
       this.childProc.on('exit', resolve);
       this._close();
-    });
+    }).finally(() => this._control.close());
 
     // In the normal case, the kill timer is pending when the process exits, and we can clear it. If
     // the process got killed, the timer is invalid, and clearTimeout() does nothing.
@@ -200,7 +204,7 @@ export class NSandbox implements ISandbox {
    * Returns the RSS (resident set size) of the sandbox process, in bytes.
    */
   public async reportMemoryUsage() {
-    const memory = (await pidusage(this.childProc.pid)).memory;
+    const {memory} = await this._control.getUsage();
     log.rawDebug('Sandbox memory', {memory, ...this._logMeta});
   }
 
@@ -218,7 +222,7 @@ export class NSandbox implements ISandbox {
 
 
   private _close() {
-    if (this._throttle) { this._throttle.stop(); }
+    this._control.prepareToClose();
     if (!this._isWriteClosed) {
       // Close the pipe to the sandbox, which should cause the sandbox to exit cleanly.
       this._streamToSandbox.end();
@@ -273,7 +277,7 @@ export class NSandbox implements ISandbox {
    * Process the closing of the pipe by the sandboxed process.
    */
   private _onSandboxClose() {
-    if (this._throttle) { this._throttle.stop(); }
+    this._control.prepareToClose();
     this._isReadClosed = true;
     // Clear out all reads pending on PipeFromSandbox, rejecting them with the given error.
     const err = new sandboxUtil.SandboxError("PipeFromSandbox is closed");
@@ -406,7 +410,7 @@ export class NSandboxCreator implements ISandboxCreator {
 }
 
 // A function that takes sandbox options and starts a sandbox process.
-type SpawnFn = (options: ISandboxOptions) => ChildProcess;
+type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 
 /**
  * Helper function to run a nacl sandbox. It takes care of most arguments, similarly to
@@ -417,7 +421,7 @@ type SpawnFn = (options: ISandboxOptions) => ChildProcess;
  * This is quite old code, with attention to Windows support that is no longer tested.
  * I've done my best to avoid changing behavior by not touching it too much.
  */
-function pynbox(options: ISandboxOptions): ChildProcess {
+function pynbox(options: ISandboxOptions): SandboxProcess {
   const {command, args: pythonArgs, unsilenceLog, importDir} = options;
   if (command) {
     throw new Error("NaCl can only run the specific python2.7 package built for it");
@@ -449,7 +453,7 @@ function pynbox(options: ISandboxOptions): ChildProcess {
 
   const noLog = unsilenceLog ? [] :
     (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
-  return spawn('sandbox/nacl/bin/sel_ldr', [
+  const child = spawn('sandbox/nacl/bin/sel_ldr', [
     '-B', './sandbox/nacl/lib/irt_core.nexe', '-m', './sandbox/nacl/root:/:ro',
     ...noLog,
     ...wrapperArgs.get(),
@@ -457,6 +461,7 @@ function pynbox(options: ISandboxOptions): ChildProcess {
     '--library-path', '/slib', '/python/bin/python2.7.nexe',
     ...pythonArgs
   ], spawnOptions);
+  return {child, control: new DirectProcessControl(child, options.logMeta)};
 }
 
 /**
@@ -466,7 +471,7 @@ function pynbox(options: ISandboxOptions): ChildProcess {
  * by `./build python3`.  Using system python works too, if all dependencies have
  * been installed globally.
  */
-function unsandboxed(options: ISandboxOptions): ChildProcess {
+function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
   if (options.useGristEntrypoint) {
@@ -485,8 +490,9 @@ function unsandboxed(options: ISandboxOptions): ChildProcess {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
   const command = findPython(options.command);
-  return spawn(command, pythonArgs,
-               {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+  const child = spawn(command, pythonArgs,
+                      {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+  return {child, control: new DirectProcessControl(child, options.logMeta)};
 }
 
 /**
@@ -496,7 +502,7 @@ function unsandboxed(options: ISandboxOptions): ChildProcess {
  * directly) or `wrap_in_docker.sh` (to use runsc within a container).
  * Be sure to read setup instructions in that directory.
  */
-function gvisor(options: ISandboxOptions): ChildProcess {
+function gvisor(options: ISandboxOptions): SandboxProcess {
   const {command, args: pythonArgs} = options;
   if (!command) { throw new Error("gvisor operation requires GRIST_SANDBOX"); }
   if (!options.minimalPipeMode) {
@@ -530,13 +536,36 @@ function gvisor(options: ISandboxOptions): ChildProcess {
   if (options.useGristEntrypoint && pythonVersion === '3' && !paths.importDir &&
       process.env.GRIST_CHECKPOINT) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
-      return spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
-                             `python${pythonVersion}`, '--', ...pythonArgs]);
+      const child =
+        spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
+                        `python${pythonVersion}`, '--', ...pythonArgs]);
+      // We don't want process control for this.
+      return {child, control: new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT);
   }
-  return spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
+  const child = spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
+  // For gvisor under ptrace, main work is done by a traced process identifiable as
+  // being labeled "exe" and having a parent also labeled "exe".
+  const recognizeTracedProcess = (p: ProcessInfo) => {
+    return p.label.includes('exe') && p.parentLabel.includes('exe');
+  };
+  // The traced process is managed by a regular process called "runsc-sandbox"
+  const recognizeSandboxProcess = (p: ProcessInfo) => {
+    return p.label.includes('runsc-sandbox');
+  };
+  // If docker is in use, this process control will log a warning message and do nothing.
+  return {child, control: new SubprocessControl({
+    pid: child.pid,
+    recognizers: {
+      sandbox: recognizeSandboxProcess,   // this process we start and stop
+      memory: recognizeTracedProcess,     // measure memory for the ptraced process
+      cpu: recognizeTracedProcess,        // measure cpu for the ptraced process
+      traced: recognizeTracedProcess,     // the ptraced process
+    },
+    logMeta: options.logMeta
+  })};
 }
 
 /**
@@ -545,7 +574,7 @@ function gvisor(options: ISandboxOptions): ChildProcess {
  * `python` can be run and all Grist dependencies are installed.  See
  * `sandbox/docker` for more.
  */
-function docker(options: ISandboxOptions): ChildProcess {
+function docker(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs, command} = options;
   if (options.useGristEntrypoint) {
     pythonArgs.unshift('grist/main.py');
@@ -568,13 +597,15 @@ function docker(options: ISandboxOptions): ChildProcess {
     commandParts.unshift('faketime', '-f', FAKETIME);
   }
   const dockerPath = which.sync('docker');
-  return spawn(dockerPath, [
+  const child = spawn(dockerPath, [
     'run', '--rm', '-i', '--network', 'none',
     ...wrapperArgs.get(),
     command || 'grist-docker-sandbox',  // this is the docker image to use
     ...commandParts,
     ...pythonArgs,
   ]);
+  log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
+  return {child, control: new NoProcessControl(child)};
 }
 
 /**
@@ -585,7 +616,7 @@ function docker(options: ISandboxOptions): ChildProcess {
  * the infrastructure this command is a thin wrapper around, and there's
  * no obvious native sandboxing alternative.
  */
-function macSandboxExec(options: ISandboxOptions): ChildProcess {
+function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs} = options;
   if (!options.minimalPipeMode) {
     throw new Error("macSandboxExec flavor only supports 3-pipe operation");
@@ -661,8 +692,9 @@ function macSandboxExec(options: ISandboxOptions): ChildProcess {
   }
 
   const profileString = profile.join('\n');
-  return spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
-               {cwd, env});
+  const child = spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
+                      {cwd, env});
+  return {child, control: new DirectProcessControl(child, options.logMeta)};
 }
 
 /**

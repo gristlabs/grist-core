@@ -39,6 +39,8 @@ export interface ThrottleTiming {
                                       // per unit time.
   maxThrottle: number;                // maximum ratio of negative duty cycle phases to
                                       // positive.
+  traceNudgeOffset: number;           // milliseconds to wait before sending a second signal
+                                      // to a traced process.
 }
 
 /**
@@ -52,6 +54,7 @@ const defaultThrottleTiming: ThrottleTiming = {
   minimumLogPeriodMs: 10000,
   targetRate: 0.25,
   maxThrottle: 10,
+  traceNudgeOffset: 5,  // unlikely to be honored very precisely, but doesn't need to be.
 };
 
 /**
@@ -71,6 +74,7 @@ export class Throttle {
   private _timing: ThrottleTiming;                         // overall timing parameters
   private _meteringInterval: NodeJS.Timeout | undefined;   // timer for cpu measurements
   private _dutyCycleTimeout: NodeJS.Timeout | undefined;   // driver for throttle duty cycle
+  private _traceNudgeTimeout: NodeJS.Timeout | undefined;  // schedule a nudge to a traced process
   private _throttleFactor: number = 0;                     // relative length of paused phase
   private _sample: MeterSample | undefined;                // latest measurement.
   private _anchor: MeterSample | undefined;                // sample from past for averaging
@@ -78,12 +82,48 @@ export class Throttle {
   private _lastLogTime: number | undefined;                // time of last throttle log message
   private _offDuration: number = 0;                        // cumulative time spent paused
   private _stopped: boolean = false;                       // set when stop has been called
+  private _active: boolean = true;                         // set when we are not trying to pause process
 
   /**
    * Start monitoring the given process and throttle as needed.
+   * If readPid is set, CPU usage will be read for that process.
+   * If tracedPid is set, then that process will be sent a STOP signal
+   * whenever the main process is sent a STOP, and then another STOP
+   * signal will be sent again shortly after.
+   *
+   * The tracedPid wrinkle is to deal with gvisor on a ptrace platform.
+   * From `man ptrace`:
+   *
+   * "While being traced, the tracee will stop each time a signal is
+   * delivered, even if the signal is being ignored.  (An exception is
+   * SIGKILL, which has its usual effect.)  The tracer will be
+   * notified at its next call to waitpid(2) (or one of the related
+   * "wait" system calls); that call will return a status value
+   * containing information that indicates the cause of the stop in
+   * the tracee.  While the tracee is stopped, the tracer can use
+   * various ptrace requests to inspect and modify the tracee.  The
+   * tracer then causes the tracee to continue, optionally ignoring
+   * the delivered signal (or even delivering a different signal
+   * instead)."
+   *
+   * So what sending a STOP to a process being traced by gvisor will
+   * do is not obvious. In practice it appears to have no effect
+   * (other than presumably giving gvisor a change to examine it).
+   * So for gvisor, we send a STOP to the tracing process, and a STOP
+   * to the tracee, and then a little later a STOP to the tracee again
+   * (since there's no particular guarantee about order of signal
+   * delivery). This isn't particularly elegant, but in tests, this
+   * seems to do the job, while sending STOP to any one process does
+   * not.
+   *
+   * Alternatively, gvisor runsc does have "pause" and "resume"
+   * commands that could be looked into more.
+   *
    */
   constructor(private readonly _options: {
-    pid: number,
+    pid: number,          // main pid to stop/continue
+    readPid?: number,     // pid to read cpu usage of, if different to main
+    tracedPid?: number,   // pid of a traced process to signal
     logMeta: log.ILogMeta,
     timing?: ThrottleTiming
   }) {
@@ -97,6 +137,7 @@ export class Throttle {
   public stop() {
     this._stopped = true;
     this._stopMetering();
+    this._stopTraceNudge();
     this._stopThrottling();
   }
 
@@ -114,10 +155,10 @@ export class Throttle {
     // Measure cpu usage to date.
     let cpuDuration: number;
     try {
-      cpuDuration = (await pidusage(this._options.pid)).ctime;
+      cpuDuration = (await pidusage(this._options.readPid || this._options.pid)).ctime;
     } catch (e) {
       // process may have disappeared.
-      log.rawDebug(`Throttle measurement error: ${e}`, this._options.logMeta);
+      this._log(`Throttle measurement error: ${e}`, this._options.logMeta);
       return;
     }
     const now = Date.now();
@@ -184,10 +225,10 @@ export class Throttle {
 
     if (!this._lastLogTime || now - this._lastLogTime > this._timing.minimumLogPeriodMs) {
       this._lastLogTime = now;
-      log.rawDebug('throttle', {...this._options.logMeta,
-                                throttle: Math.round(this._throttleFactor),
-                                throttledRate: Math.round(rate * 100),
-                                rate: Math.round(rateWithoutThrottling * 100)});
+      this._log('throttle', {...this._options.logMeta,
+                             throttle: Math.round(this._throttleFactor),
+                             throttledRate: Math.round(rate * 100),
+                             rate: Math.round(rateWithoutThrottling * 100)});
     }
   }
 
@@ -210,11 +251,22 @@ export class Throttle {
    * Send CONTinue or STOP signal to process.
    */
   private _letProcessRun(on: boolean) {
+    this._active = on;
     try {
       process.kill(this._options.pid, on ? 'SIGCONT' : 'SIGSTOP');
+      const tracedPid = this._options.tracedPid;
+      if (tracedPid && !on) {
+        process.kill(tracedPid, 'SIGSTOP');
+        if (this._timing.traceNudgeOffset > 0) {
+          this._stopTraceNudge();
+          this._traceNudgeTimeout = setTimeout(() => {
+            if (!this._active) { process.kill(tracedPid, 'SIGSTOP'); }
+          }, this._timing.traceNudgeOffset);
+        }
+      }
     } catch (e) {
       // process may have disappeared
-      log.rawDebug(`Throttle error: ${e}`, this._options.logMeta);
+      this._log(`Throttle error: ${e}`, this._options.logMeta);
     }
   }
 
@@ -239,6 +291,13 @@ export class Throttle {
     }
   }
 
+  private _stopTraceNudge() {
+    if (this._traceNudgeTimeout) {
+      clearTimeout(this._traceNudgeTimeout);
+      this._traceNudgeTimeout = undefined;
+    }
+  }
+
   /**
    * Make sure duty cycle is stopped and process is left in running state.
    */
@@ -248,5 +307,9 @@ export class Throttle {
       this._dutyCycleTimeout = undefined;
       this._letProcessRun(true);
     }
+  }
+
+  private _log(msg: string, meta: log.ILogMeta) {
+    log.rawDebug(msg, meta);
   }
 }
