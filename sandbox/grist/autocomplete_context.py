@@ -4,10 +4,9 @@ Helper class for handling formula autocomplete.
 It's intended to use with rlcompleter.Completer. It allows finding global names using
 lowercase searches, and adds function usage information to some results.
 """
-from six.moves import builtins
 import inspect
 from collections import namedtuple
-
+from six.moves import builtins
 import six
 
 # funcname is the function name, e.g. "MAX"
@@ -31,6 +30,13 @@ class AutocompleteContext(object):
       if not (value and callable(value) and getattr(value, 'unimplemented', None))
     }
 
+    # Add some common non-lowercase builtins, so that we include them into the case-handling below.
+    self._context.update({
+      'True': True,
+      'False': False,
+      'None': None,
+    })
+
     # Prepare detailed Completion objects for functions where we can supply more info.
     # TODO It would be nice to include builtin functions too, but getargspec doesn't work there.
     self._functions = {}
@@ -51,7 +57,7 @@ class AutocompleteContext(object):
       lower = key.lower()
       if lower == key:
         continue
-      if lower not in self._context and lower not in builtins.__dict__:
+      if not any((lower in d) for d in (self._context, self._lowercase, builtins.__dict__)):
         self._lowercase[lower] = key
       else:
         # This is still good enough to find a match for, and translate back to the original.
