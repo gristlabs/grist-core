@@ -161,10 +161,3 @@ export function getSupportedEngineChoices(): EngineCode[]|undefined {
   }
   return undefined;
 }
-
-/**
- * Check whether a choice of engine is supported.
- */
-export function supportsEngineChoices(): boolean {
-  return getSupportedEngineChoices() !== undefined;
-}

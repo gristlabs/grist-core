@@ -84,7 +84,7 @@ import {DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, supportsEngineChoices, timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -184,20 +184,17 @@ export class ActiveDoc extends EventEmitter {
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
 
-    // Our DataEngine is a separate sandboxed process (one per open document). The data engine runs
-    // user-defined python code including formula calculations. It maintains all document data and
-    // metadata, and applies translates higher-level UserActions into lower-level DocActions.
+    // Our DataEngine is a separate sandboxed process (one sandbox per open document,
+    // corresponding to one process for pynbox, more for gvisor).
+    // The data engine runs user-defined python code including formula calculations.
+    // It maintains all document data and metadata, and applies translates higher-level UserActions
+    // into lower-level DocActions.
 
-    // Creation of the data engine currently needs to be deferred if we support a choice of
-    // engines, since we need to look at the document to see what kind of engine it needs.
-    // This doesn't delay loading the document, but does delay first calculation and modification.
-    // So if we don't offer a choice, go ahead and start creating the data engine now, so it
-    // is created in parallel to fetching the document from external storage (if needed).
-    // TODO: cache engine requirement for doc in home db so we can retain this parallelism
-    // when offering a choice of data engines.
-    if (!supportsEngineChoices()) {
-      this._getEngine().catch(e => this._log.error({client: null}, `engine for ${docName} failed to launch: ${e}`));
-    }
+    // Creation of the data engine needs to be deferred since we need to look at the document to
+    // see what kind of engine it needs. This doesn't delay loading the document, but could delay
+    // first calculation and modification.
+    // TODO: consider caching engine requirement for doc in home db - or running python2
+    // in gvisor (but would still need to look at doc to know what process to start in sandbox)
 
     this._activeDocImport = new ActiveDocImport(this);
 
@@ -366,6 +363,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Create a new blank document (no "Table1") using the data engine. This is used only
    * to generate the SQL saved to initialDocSql.ts
+   *
+   * It does not set documentSettings.engine.  When a document is created during normal
+   * operation, documentSettings.engine gets set after the SQL is used to seed it, in
+   * _createDocFile()
+   *
    */
   @ActiveDoc.keepDocOpen
   public async createEmptyDocWithDataEngine(docSession: OptDocSession): Promise<ActiveDoc> {
@@ -1418,8 +1420,16 @@ export class ActiveDoc extends EventEmitter {
     await this.docStorage.exec(sql);
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
     const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
+    const documentSettings: DocumentSettings = { locale };
+    const pythonVersion = process.env.PYTHON_VERSION_ON_CREATION;
+    if (pythonVersion) {
+      if (pythonVersion !== '2' && pythonVersion !== '3') {
+        throw new Error(`PYTHON_VERSION_ON_CREATION must be 2 or 3, not: ${pythonVersion}`);
+      }
+      documentSettings.engine = (pythonVersion === '2') ? 'python2' : 'python3';
+    }
     await this.docStorage.run('UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?',
-                              [timezone, JSON.stringify({locale})]);
+                              [timezone, JSON.stringify(documentSettings)]);
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
@@ -1688,23 +1698,20 @@ export class ActiveDoc extends EventEmitter {
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 
-    // Currently only respect engine preference on experimental deployments (staging/dev).
-    if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1') {
-      // Careful, migrations may not have run on this document and it may not have a
-      // documentSettings column.  Failures are treated as lack of an engine preference.
-      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
-      const docSettingsString = docInfo?.documentSettings;
-      if (docSettingsString) {
-        const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
-        const engine = docSettings?.engine;
-        if (engine) {
-          if (engine === 'python2') {
-            preferredPythonVersion = '2';
-          } else if (engine === 'python3') {
-            preferredPythonVersion = '3';
-          } else {
-            throw new Error(`engine type not recognized: ${engine}`);
-          }
+    // Careful, migrations may not have run on this document and it may not have a
+    // documentSettings column.  Failures are treated as lack of an engine preference.
+    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
+    const docSettingsString = docInfo?.documentSettings;
+    if (docSettingsString) {
+      const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
+      const engine = docSettings?.engine;
+      if (engine) {
+        if (engine === 'python2') {
+          preferredPythonVersion = '2';
+        } else if (engine === 'python3') {
+          preferredPythonVersion = '3';
+        } else {
+          throw new Error(`engine type not recognized: ${engine}`);
         }
       }
     }
