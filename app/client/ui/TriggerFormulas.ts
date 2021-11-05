@@ -20,7 +20,7 @@ import isEqual = require('lodash/isEqual');
 /**
  * Build UI to select triggers for formulas in data columns (such for default values).
  */
-export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec) {
+export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, disable: Observable<boolean>|null = null) {
   // Set up observables to translate between the UI representation of triggers, and what we
   // actually store.
   // - We store the pair (recalcWhen, recalcDeps). When recalcWhen is DEFAULT, recalcDeps lists
@@ -79,7 +79,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec) {
       labeledSquareCheckbox(
         applyToNew,
         'Apply to new records',
-        dom.boolAttr('disabled', applyOnChanges),
+        dom.boolAttr('disabled', (use) => (disable && use(disable)) || use(applyOnChanges)),
         testId('field-formula-apply-to-new'),
       ),
     ),
@@ -90,6 +90,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec) {
           'Apply on changes to:' :
           'Apply on record changes'
         ),
+        dom.boolAttr('disabled', (use) => disable ? use(disable) : false),
         testId('field-formula-apply-on-changes'),
       ),
     ),

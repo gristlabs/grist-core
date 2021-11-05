@@ -517,13 +517,22 @@ export class FieldBuilder extends Disposable {
   /**
    * Open the formula editor in the side pane. It will be positioned over refElem.
    */
-  public openSideFormulaEditor(editRow: DataRowModel, refElem: Element) {
+  public openSideFormulaEditor(
+    editRow: DataRowModel,
+    refElem: Element,
+    editValue?: string,
+    onSave?: (formula: string) => Promise<void>,
+    onCancel?: () => void) {
     const editorHolder = openSideFormulaEditor({
       gristDoc: this.gristDoc,
       field: this.field,
       editRow,
       refElem,
+      editValue,
+      onSave,
+      onCancel
     });
+    // Add editor to document holder - this will prevent multiple formula editor instances.
     this.gristDoc.fieldEditorHolder.autoDispose(editorHolder);
   }
 }

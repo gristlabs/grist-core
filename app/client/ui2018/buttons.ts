@@ -100,6 +100,16 @@ export const bigBasicButtonLink = tbind(button, null, {link: true, large: true})
 export const primaryButtonLink = tbind(button, null, {link: true, primary: true});
 export const bigPrimaryButtonLink = tbind(button, null, {link: true, large: true, primary: true});
 
+// Button that looks like a link (have no background and no border).
+export const textButton = styled(cssButton, `
+  border: none;
+  padding: 0px;
+  background-color: inherit !important;
+  &:disabled {
+    color: ${colors.inactiveCursor};
+  }
+`);
+
 const cssButtonLink = styled('a', `
   display: inline-block;
   &, &:hover, &:focus {

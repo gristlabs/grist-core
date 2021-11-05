@@ -38,6 +38,7 @@ export type IconName = "ChartArea" |
   "Copy" |
   "CrossBig" |
   "CrossSmall" |
+  "Database" |
   "Dots" |
   "Download" |
   "DragDrop" |
@@ -79,6 +80,7 @@ export type IconName = "ChartArea" |
   "Repl" |
   "ResizePanel" |
   "RightAlign" |
+  "Script" |
   "Search" |
   "Settings" |
   "Share" |
@@ -133,6 +135,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Copy",
   "CrossBig",
   "CrossSmall",
+  "Database",
   "Dots",
   "Download",
   "DragDrop",
@@ -174,6 +177,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Repl",
   "ResizePanel",
   "RightAlign",
+  "Script",
   "Search",
   "Settings",
   "Share",

@@ -625,6 +625,30 @@ export class GristDoc extends DisposableWithEvents {
     );
   }
 
+  // Convert column to pure formula column.
+  public async convertToFormula(colRefs: number, formula: string): Promise<void> {
+    return this.docModel.columns.sendTableAction(
+      ['UpdateRecord', colRefs, {
+        isFormula: true,
+        formula,
+        recalcWhen: RecalcWhen.DEFAULT,
+        recalcDeps: null,
+      }]
+    );
+  }
+
+  // Convert column to data column with a trigger formula
+  public async convertToTrigger(colRefs: number, formula: string): Promise<void> {
+    return this.docModel.columns.sendTableAction(
+      ['UpdateRecord', colRefs, {
+        isFormula: false,
+        formula,
+        recalcWhen: RecalcWhen.DEFAULT,
+        recalcDeps: null,
+      }]
+    );
+  }
+
   public getCsvLink() {
     const filters = this.viewModel.activeSection.peek().filteredFields.get().map(field=> ({
       colRef : field.colRef.peek(),

@@ -1,14 +1,14 @@
-import {Command} from 'app/client/components/commands';
-import {NeedUpgradeError, reportError} from 'app/client/models/errors';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
-import {cssSelectBtn} from 'app/client/ui2018/select';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {commonUrls} from 'app/common/gristUrls';
-import {Computed, dom, DomElementArg, DomElementMethod, MaybeObsArray, MutableObsArray, Observable,
-        styled} from 'grainjs';
+import { Command } from 'app/client/components/commands';
+import { NeedUpgradeError, reportError } from 'app/client/models/errors';
+import { cssCheckboxSquare, cssLabel, cssLabelText } from 'app/client/ui2018/checkbox';
+import { colors, testId, vars } from 'app/client/ui2018/cssVars';
+import { IconName } from 'app/client/ui2018/IconList';
+import { icon } from 'app/client/ui2018/icons';
+import { cssSelectBtn } from 'app/client/ui2018/select';
+import { commonUrls } from 'app/common/gristUrls';
+import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
+         MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
 import * as weasel from 'popweasel';
-import {cssCheckboxSquare, cssLabel, cssLabelText} from 'app/client/ui2018/checkbox';
 
 export interface IOptionFull<T> {
   value: T;
@@ -304,6 +304,71 @@ export function autocomplete(
   });
 }
 
+/**
+ * Creates simple (not reactive) static menu that looks like a select-box.
+ * Primary usage is for menus, where you want to control how the options and a default
+ * label will look. Label is not updated or changed when one of the option is clicked, for those
+ * use cases use a select component.
+ * Icons are optional, can use custom elements instead of labels and options.
+ *
+ * Usage:
+ *
+ *  selectMenu(selectTitle("Title", "Script"), () => [
+ *    selectOption(() => ..., "Option1", "Database"),
+ *    selectOption(() => ..., "Option2", "Script"),
+ *  ]);
+ *
+ *  // Control disabled state (if the menu will be opened or not)
+ *
+ *  const disabled = observable(false);
+ *  selectMenu(selectTitle("Title", "Script"), () => [
+ *    selectOption(() => ..., "Option1", "Database"),
+ *    selectOption(() => ..., "Option2", "Script"),
+ *  ], disabled);
+ *
+ */
+export function selectMenu(
+  label: DomElementArg,
+  items: () => DomElementArg[],
+  ...args: IDomArgs<HTMLDivElement>
+) {
+  return cssSelectBtn(
+    label,
+    icon('Dropdown'),
+    menu(
+      items,
+      {
+        ...weasel.defaultMenuOptions,
+        menuCssClass: cssSelectMenuElem.className + ' grist-floating-menu',
+        stretchToSelector : `.${cssSelectBtn.className}`,
+        trigger : [(triggerElem, ctl) => {
+          const isDisabled = () => triggerElem.classList.contains('disabled');
+          dom.onElem(triggerElem, 'click', () => isDisabled() || ctl.toggle());
+          dom.onKeyElem(triggerElem as HTMLElement, 'keydown', {
+            ArrowDown: () => isDisabled() || ctl.open(),
+            ArrowUp: () => isDisabled() || ctl.open()
+          });
+        }]
+      },
+    ),
+    ...args,
+  );
+}
+
+export function selectTitle(label: BindableValue<string>, iconName?: BindableValue<IconName>) {
+  return cssOptionRow(
+    iconName ? dom.domComputed(iconName, (name) => cssOptionRowIcon(name)) : null,
+    dom.text(label)
+  );
+}
+
+export function selectOption(
+  action: (item: HTMLElement) => void,
+  label: BindableValue<string>,
+  iconName?: BindableValue<IconName>) {
+  return menuItem(action, selectTitle(label, iconName));
+}
+
 export const menuSubHeader = styled('div', `
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
@@ -404,13 +469,13 @@ const cssOptionIcon = styled(icon, `
   margin: -3px 8px 0 2px;
 `);
 
-const cssOptionRow = styled('span', `
+export const cssOptionRow = styled('span', `
   display: flex;
   align-items: center;
   width: 100%;
 `);
 
-const cssOptionRowIcon = styled(cssOptionIcon, `
+export const cssOptionRowIcon = styled(cssOptionIcon, `
   margin: 0 8px 0 0;
   flex: none;
 

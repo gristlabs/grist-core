@@ -13,7 +13,7 @@ import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
 import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {Disposable, Emitter, Holder, IDisposable, MultiHolder, Observable} from 'grainjs';
+import {Disposable, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 import { CellPosition } from "app/client/components/CellPosition";
 
@@ -380,7 +380,10 @@ export function openSideFormulaEditor(options: {
   field: ViewFieldRec,
   editRow: DataRowModel,      // Needed to get exception value, if any.
   refElem: Element,           // Element in the side pane over which to position the editor.
-}): IDisposable {
+  editValue?: string,
+  onSave?: (formula: string) => Promise<void>,
+  onCancel?: () => void,
+}): Disposable {
   const {gristDoc, field, editRow, refElem} = options;
   const holder = MultiHolder.create(null);
   const column = field.column();
@@ -388,17 +391,19 @@ export function openSideFormulaEditor(options: {
   // AsyncOnce ensures it's called once even if triggered multiple times.
   const saveEdit = asyncOnce(async () => {
     const formula = editor.getCellValue();
-    if (formula !== column.formula.peek()) {
+    if (options.onSave) {
+      await options.onSave(formula as string);
+    } else if (formula !== column.formula.peek()) {
       await column.updateColValues({formula});
     }
-    holder.dispose();     // Deactivate the editor.
+    holder.dispose();
   });
 
   // These are the commands for while the editor is active.
   const editCommands = {
     fieldEditSave: () => { saveEdit().catch(reportError); },
     fieldEditSaveHere: () => { saveEdit().catch(reportError); },
-    fieldEditCancel: () => { holder.dispose(); },
+    fieldEditCancel: () => { holder.dispose(); options.onCancel?.(); },
   };
 
   // Replace the item in the Holder with a new one, disposing the previous one.
@@ -407,7 +412,7 @@ export function openSideFormulaEditor(options: {
     field,
     cellValue: column.formula(),
     formulaError: getFormulaError(gristDoc, editRow, column),
-    editValue: undefined,
+    editValue: options.editValue,
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
     cssClass: 'formula_editor_sidepane',

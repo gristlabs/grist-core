@@ -230,11 +230,19 @@ export class RightPanel extends Disposable {
   }
 
   // Helper to activate the side-pane formula editor over the given HTML element.
-  private _activateFormulaEditor(refElem: Element) {
+  private _activateFormulaEditor(
+    // Element to attach to.
+    refElem: Element,
+    // Simulate user typing on the cell - open editor with an initial value.
+    editValue?: string,
+    // Custom save handler.
+    onSave?: (formula: string) => Promise<void>,
+    // Custom cancel handler.
+    onCancel?: () => void,) {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
     if (!vsi) { return; }
     const editRowModel = vsi.moveEditRowToCursor();
-    vsi.activeFieldBuilder.peek().openSideFormulaEditor(editRowModel, refElem);
+    return vsi.activeFieldBuilder.peek().openSideFormulaEditor(editRowModel, refElem, editValue, onSave, onCancel);
   }
 
   private _buildPageWidgetContent(_owner: MultiHolder) {
@@ -654,6 +662,10 @@ const cssTabContents = styled('div', `
 
 export const cssSeparator = styled('div', `
   border-bottom: 1px solid ${colors.mediumGrey};
+  margin-top: 16px;
+`);
+
+export const cssEmptySeparator = styled('div', `
   margin-top: 16px;
 `);
 
