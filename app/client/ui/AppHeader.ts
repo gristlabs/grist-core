@@ -4,19 +4,43 @@ import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
-import {menu, menuDivider, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {getOrgName} from 'app/common/UserAPI';
+import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
+import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
+import {DocPageModel} from 'app/client/models/DocPageModel';
+import * as roles from 'app/common/roles';
+import {loadUserManager} from 'app/client/lib/imports';
+import {buildSiteSwitcher} from 'app/client/ui/SiteSwitcher';
 
 
 export class AppHeader extends Disposable {
-  constructor(private _orgName: BindableValue<string>, private _appModel: AppModel) {
+  constructor(private _orgName: BindableValue<string>, private _appModel: AppModel,
+              private _docPageModel?: DocPageModel) {
     super();
   }
 
   public buildDom() {
     const theme = getTheme(this._appModel.topAppModel.productFlavor);
+
+    const user = this._appModel.currentValidUser;
+    const orgs = this._appModel.topAppModel.orgs;
+    const currentOrg = this._appModel.currentOrg;
+    const isTeamSite = Boolean(currentOrg && !currentOrg.owner);
+    const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
+      (currentOrg.billingAccount.isManager || user?.email === SUPPORT_EMAIL));
+
+    // Opens the user-manager for the org.
+    const manageUsers = async (org: Organization) => {
+      const api = this._appModel.api;
+      (await loadUserManager()).showUserManagerModal(api, {
+        permissionData: api.getOrgAccess(org.id),
+        activeEmail: user ? user.email : null,
+        resourceType: 'organization',
+        resourceId: org.id,
+        resource: org,
+      });
+    };
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', theme.wideLogo || false),
@@ -29,45 +53,37 @@ export class AppHeader extends Disposable {
       cssOrg(
         cssOrgName(dom.text(this._orgName)),
         this._orgName && cssDropdownIcon('Dropdown'),
-        menu(() => this._makeOrgMenu(), {placement: 'bottom-start'}),
+        menu(() => [
+          menuSubHeader(`${isTeamSite ? 'Team' : 'Personal'} Site`, testId('orgmenu-title')),
+          menuItemLink(urlState().setLinkUrl({}), 'Home Page', testId('orgmenu-home-page')),
+
+          // Show 'Organization Settings' when on a home page of a valid org.
+          (!this._docPageModel && currentOrg && !currentOrg.owner ?
+            menuItem(() => manageUsers(currentOrg), 'Manage Team', testId('orgmenu-manage-team'),
+              dom.cls('disabled', !roles.canEditAccess(currentOrg.access))) :
+            // Don't show on doc pages, or for personal orgs.
+            null),
+
+          // Show link to billing pages.
+          currentOrg && !currentOrg.owner ?
+            // For links, disabling with just a class is hard; easier to just not make it a link.
+            // TODO weasel menus should support disabling menuItemLink.
+            (isBillingManager ?
+              menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
+              menuItem(() => null, 'Billing Account', dom.cls('disabled', true), testId('orgmenu-billing'))
+            ) :
+            null,
+
+          dom.maybe((use) => use(orgs).length > 0, () => [
+            menuDivider(),
+            buildSiteSwitcher(this._appModel),
+          ]),
+        ], { placement: 'bottom-start' }),
         testId('dm-org'),
       ),
     );
   }
-
-  private _makeOrgMenu() {
-    const orgs = this._appModel.topAppModel.orgs;
-
-    return [
-      menuItemLink(urlState().setLinkUrl({}), 'Go to Home Page', testId('orgmenu-home-page')),
-      menuDivider(),
-      menuSubHeader('Switch Sites'),
-      dom.forEach(orgs, (org) =>
-        menuItemLink(urlState().setLinkUrl({org: org.domain || undefined}),
-          cssOrgSelected.cls('', this._appModel.currentOrg ? org.id === this._appModel.currentOrg.id : false),
-          getOrgName(org),
-          cssOrgCheckmark('Tick', testId('orgmenu-org-tick')),
-          testId('orgmenu-org'),
-        )
-      ),
-    ];
-  }
 }
-
-export const cssOrgSelected = styled('div', `
-  background-color: ${colors.dark};
-  color: ${colors.light};
-`);
-
-export const cssOrgCheckmark = styled(icon, `
-  flex: none;
-  margin-left: 16px;
-  --icon-color: ${colors.light};
-  display: none;
-  .${cssOrgSelected.className} > & {
-    display: block;
-  }
-`);
 
 const cssAppHeader = styled('div', `
   display: flex;

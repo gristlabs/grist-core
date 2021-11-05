@@ -5,7 +5,8 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
+import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, Organization, PermissionData, PermissionDelta,
+        UserAPI, Workspace} from 'app/common/UserAPI';
 import {getRealAccess} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some = require('lodash/some');
@@ -41,6 +42,8 @@ export interface UserManagerModel {
 }
 
 export type ResourceType = 'organization'|'workspace'|'document';
+
+export type Resource = Organization|Workspace|Document;
 
 export interface IEditableMember {
   id: number;    // Newly invited members do not have ids and are represented by -1
@@ -116,8 +119,6 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public isOrg: boolean = this.resourceType === 'organization';
 
-  private _shareAnnotator?: ShareAnnotator;
-
   // Checks if any members were added/removed/changed, if the max inherited role changed or if the
   // anonymous access setting changed to enable the confirm button to write changes to the server.
   public readonly isAnythingChanged: Computed<boolean> = this.autoDispose(computed<boolean>((use) => {
@@ -127,6 +128,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     return some(use(this.membersEdited), isMemberChangedFn) || isInheritanceChanged ||
       (this.publicMember ? isMemberChangedFn(this.publicMember) : false);
   }));
+
+  private _shareAnnotator?: ShareAnnotator;
 
   constructor(
     public initData: PermissionData,

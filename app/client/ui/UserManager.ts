@@ -8,8 +8,8 @@
 import {commonUrls} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {PermissionData, UserAPI} from 'app/common/UserAPI';
-import {computed, Computed, Disposable, observable, Observable} from 'grainjs';
+import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
+import {computed, Computed, Disposable, keyframes, observable, Observable} from 'grainjs';
 import {dom, DomElementArg, styled} from 'grainjs';
 import pick = require('lodash/pick');
 import {cssMenuItem} from 'popweasel';
@@ -20,7 +20,8 @@ import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
-import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption} from 'app/client/models/UserManagerModel';
+import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
+        Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
@@ -41,6 +42,7 @@ export interface IUserManagerOptions {
   activeEmail: string|null;
   resourceType: ResourceType;
   resourceId: string|number;
+  resource?: Resource;
   docPageModel?: DocPageModel;
   appModel?: AppModel;  // If present, we offer access to a nested team-level dialog.
   linkToCopy?: string;
@@ -49,6 +51,7 @@ export interface IUserManagerOptions {
   prompt?: {  // If set, user manager should open with this email filled in and ready to go.
     email: string;
   };
+  showAnimation?: boolean; // If true, animates opening of the modal. Defaults to false.
 }
 
 // Returns an instance of UserManagerModel given IUserManagerOptions. Makes the async call for the
@@ -91,10 +94,10 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
   modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
-
+    options.showAnimation ? dom.cls(cssAnimatedModal.className) : null,
     cssModalTitle(
       { style: 'margin: 40px 64px 0 64px;' },
-      `Invite people to ${renderType(options.resourceType)}`,
+      renderTitle(options.resourceType, options.resource),
       (options.resourceType === 'document' ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
       testId('um-header')
     ),
@@ -433,7 +436,9 @@ export class MemberEmail extends Disposable {
           modifiers: {
             offset: { enabled: true, offset: -40 }
           },
-          stretchToSelector: `.${cssEmailInputContainer.className}`
+          stretchToSelector: `.${cssEmailInputContainer.className}`,
+          attach: null,
+          boundaries: 'document' as any, // TODO: Update weasel.js types to allow 'document'.
         })
       ),
       cssEmailInputContainer.cls('-green', enableAdd),
@@ -507,8 +512,10 @@ async function manageTeam(appModel: AppModel,
       activeEmail: user ? user.email : null,
       resourceType: 'organization',
       resourceId: currentOrg.id,
+      resource: currentOrg,
       onSave,
       prompt,
+      showAnimation: true,
     });
   }
 }
@@ -602,7 +609,40 @@ const cssAccessLink = styled(cssLink, `
   margin-left: auto;
 `);
 
-// Render the name "organization" as "team site" in UI
-function renderType(resourceType: ResourceType): string {
-  return resourceType === 'organization' ? 'team site' : resourceType;
+const cssOrgName = styled('div', `
+  font-size: ${vars.largeFontSize};
+`);
+
+const cssOrgDomain = styled('span', `
+  color: ${colors.lightGreen};
+`);
+
+const cssFadeInFromTop = keyframes(`
+  from {top: -250px; opacity: 0}
+  to {top: 0; opacity: 1}
+`);
+
+const cssAnimatedModal = styled('div', `
+  animation-name: ${cssFadeInFromTop};
+  animation-duration: 0.4s;
+  position: relative;
+`);
+
+// Render the UserManager title for `resourceType` (e.g. org as "team site").
+function renderTitle(resourceType: ResourceType, resource?: Resource) {
+  switch (resourceType) {
+    case 'organization': {
+      return [
+        'Manage members of team site',
+        !resource ? null : cssOrgName(
+          `${(resource as Organization).name} (`,
+          cssOrgDomain(`${(resource as Organization).domain}.getgrist.com`),
+          ')',
+        )
+      ];
+    }
+    default: {
+      return `Invite people to ${resourceType}`;
+    }
+  }
 }

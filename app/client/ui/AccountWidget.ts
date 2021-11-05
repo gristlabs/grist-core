@@ -12,10 +12,10 @@ import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/clie
 import {commonUrls} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {getOrgName, Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
+import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
-import {cssOrgCheckmark, cssOrgSelected} from 'app/client/ui/AppHeader';
+import {buildSiteSwitcher} from 'app/client/ui/SiteSwitcher';
 
 /**
  * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
@@ -49,13 +49,15 @@ export class AccountWidget extends Disposable {
    */
   private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
     // Opens the user-manager for the org.
+    // TODO: Factor out manageUsers, and related UI code, since AppHeader also uses it.
     const manageUsers = async (org: Organization) => {
       const api = this._appModel.api;
       (await loadUserManager()).showUserManagerModal(api, {
         permissionData: api.getOrgAccess(org.id),
         activeEmail: user ? user.email : null,
         resourceType: 'organization',
-        resourceId: org.id
+        resourceId: org.id,
+        resource: org,
       });
     };
 
@@ -105,7 +107,7 @@ export class AccountWidget extends Disposable {
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && !currentOrg.owner ?
-        menuItem(() => manageUsers(currentOrg), 'Manage Users', testId('dm-org-access'),
+        menuItem(() => manageUsers(currentOrg), 'Manage Team', testId('dm-org-access'),
           dom.cls('disabled', !roles.canEditAccess(currentOrg.access))) :
         // Don't show on doc pages, or for personal orgs.
         null),
@@ -144,16 +146,8 @@ export class AccountWidget extends Disposable {
 
       dom.maybe((use) => use(orgs).length > 0, () => [
         menuDivider(),
-        menuSubHeader('Switch Sites'),
+        buildSiteSwitcher(this._appModel),
       ]),
-      dom.forEach(orgs, (org) =>
-        menuItemLink(urlState().setLinkUrl({org: org.domain || undefined}),
-          cssOrgSelected.cls('', this._appModel.currentOrg ? org.id === this._appModel.currentOrg.id : false),
-          getOrgName(org),
-          cssOrgCheckmark('Tick', testId('usermenu-org-tick')),
-          testId('usermenu-org'),
-        )
-      ),
     ];
   }
 

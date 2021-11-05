@@ -42,6 +42,7 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 export const commonUrls = {
   help: "https://support.getgrist.com",
   plans: "https://www.getgrist.com/pricing",
+  createTeamSite: "https://www.getgrist.com/create-team-site",
 
   efcrConnect: 'https://efc-r.com/connect',
   efcrHelp: 'https://www.nioxus.info/eFCR-Help',

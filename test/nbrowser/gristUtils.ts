@@ -1682,7 +1682,7 @@ async function openAccountMenu() {
   // Since the AccountWidget loads orgs and the user data asynchronously, the menu
   // can expand itself causing the click to land on a wrong button.
   await waitForServer();
-  await driver.findWait('.test-usermenu-org', 1000);
+  await driver.findWait('.test-site-switcher-org', 1000);
   await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
 }
 

@@ -136,7 +136,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     leftPanel: {
       panelWidth: leftPanelWidth,
       panelOpen: leftPanelOpen,
-      header: dom.create(AppHeader, appModel.currentOrgName || pageModel.currentOrgName, appModel),
+      header: dom.create(AppHeader, appModel.currentOrgName || pageModel.currentOrgName, appModel, pageModel),
       content: pageModel.createLeftPane(leftPanelOpen),
     },
     rightPanel: {
