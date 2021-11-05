@@ -4,7 +4,7 @@
 import {createGroup} from 'app/client/components/commands';
 import {testId} from 'app/client/ui2018/cssVars';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
+import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from "app/common/DocActions";
 import {undef} from 'app/common/gutil';
@@ -129,5 +129,23 @@ export class NTextEditor extends NewBaseEditor {
     const size = this._editorPlacement.calcSizeWithPadding(textInput, rect);
     textInput.style.width = size.width + 'px';
     textInput.style.height = size.height + 'px';
+
+    // Scrollbars are first visible (as the content get larger), but resizing should hide them (if there is enough
+    // space), but this doesn't work in Chrome on Windows or Ubuntu (but works on Mac). Here if scrollbars are visible,
+    // but we got same enough spaces, we will force browser to check the available space once more time.
+    if (enoughSpace(rect, size) && hasScroll(textInput)) {
+      textInput.style.overflow = "hidden";
+      textInput.clientHeight; // just access metrics is enough to repaint
+      textInput.style.overflow = "auto";
+    }
   }
+}
+
+function enoughSpace(requested: ISize, received: ISize) {
+  return requested.width <= received.width && requested.height <= received.height;
+}
+
+function hasScroll(el: HTMLTextAreaElement) {
+  // This is simple check for dimensions, scrollbar will appear when scrollHeight > clientHeight
+  return el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
 }
