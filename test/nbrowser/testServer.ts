@@ -232,6 +232,14 @@ export class TestServerMerged implements IMochaServer {
       if (origTypeormDB) {
         process.env.TYPEORM_DATABASE = origTypeormDB;
       }
+      // If this is Sqlite, we are making a separate connection to the database,
+      // so could get busy errors. We bump up our timeout. The rest of Grist could
+      // get busy errors if we do slow writes though.
+      const connection = this._dbManager.connection;
+      const sqlite = connection.driver.options.type === 'sqlite';
+      if (sqlite) {
+        await this._dbManager.connection.query('PRAGMA busy_timeout = 3000');
+      }
     }
     return this._dbManager;
   }
