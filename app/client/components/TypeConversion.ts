@@ -124,9 +124,9 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         for (let value of tableData.getColValues(colId) || []) {
           if (value === null) { continue; }
           value = String(decodeObject(value)).trim();
-          const tags: string[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
+          const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
           for (const tag of tags) {
-            choices.add(tag.trim());
+            choices.add(String(tag).trim());
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
           }
         }
