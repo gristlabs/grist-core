@@ -1,6 +1,7 @@
 import json
 import types
 from collections import namedtuple
+from numbers import Number
 
 import six
 
@@ -303,12 +304,13 @@ class DateTimeColumn(NumericColumn):
     return _sample_datetime
 
 
-class MixedTypesKey(object):
+class SafeSortKey(object):
   """
-  Sort key that can contain different types.
-  This mimics Python 2 where values of different types can be compared,
-  falling back on some comparison of the types when the values
-  can't be compared normally.
+  Sort key that deals with errors raised by normal comparison,
+  in particular for values of different types or values that can't
+  be compared at all (e.g. None).
+  This somewhat mimics the way that Python 2 compares values.
+  This is only needed in Python 3.
   """
 
   __slots__ = ("value",)
@@ -326,19 +328,36 @@ class MixedTypesKey(object):
     try:
       return self.value < other.value
     except TypeError:
-      return type(self.value).__name__ < type(other.value).__name__
+      if type(self.value) is type(other.value):
+        return id(self.value) < id(other.value)
+      else:
+        return self.type_position() < other.type_position()
+
+  def type_position(self):
+    # Fallback order similar to Python 2:
+    # - None is less than everything else
+    # - Numbers are less than other types
+    # - Other types are ordered by type name
+    # The first two elements use the fact that False < True (because 0 < 1)
+    return (
+      self.value is not None,
+      not isinstance(self.value, Number),
+      type(self.value).__name__,
+    )
 
 
 if six.PY2:
-  def MixedTypesKey(x):
+  _doc = SafeSortKey.__doc__
+  def SafeSortKey(x):
     return x
+  SafeSortKey.__doc__ =_doc
 
 
 class PositionColumn(NumericColumn):
   def __init__(self, table, col_id, col_info):
     super(PositionColumn, self).__init__(table, col_id, col_info)
     # This is a list of row_ids, ordered by the position.
-    self._sorted_rows = SortedListWithKey(key=lambda x: MixedTypesKey(self.raw_get(x)))
+    self._sorted_rows = SortedListWithKey(key=lambda x: SafeSortKey(self.raw_get(x)))
 
   def set(self, row_id, value):
     self._sorted_rows.discard(row_id)
@@ -349,7 +368,7 @@ class PositionColumn(NumericColumn):
   def copy_from_column(self, other_column):
     super(PositionColumn, self).copy_from_column(other_column)
     self._sorted_rows = SortedListWithKey(other_column._sorted_rows[:],
-                                          key=lambda x: MixedTypesKey(self.raw_get(x)))
+                                          key=lambda x: SafeSortKey(self.raw_get(x)))
 
   def prepare_new_values(self, values, ignore_data=False, action_summary=None):
     # This does the work of adjusting positions and relabeling existing rows with new position

@@ -746,3 +746,30 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
           [102,  [102, 103],  [101, 103],  [103],           [102]],
           [103,  [],          [],          [],              []],
     ])
+
+  def test_sort_by(self):
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          [1, "num", "Numeric", False, "", "", ""],
+          [2, "lookup", "Any", True, "Table1.lookupRecords(sort_by='num').num", "", ""],
+        ]]
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "num"],
+          [1, 2],
+          [2, 1],
+          [3, 'foo'],
+          [4, 3],
+          [5, None],
+          [6, 0],
+        ]
+      }
+    }))
+
+    self.assertTableData(
+      "Table1", cols="subset", rows="subset", data=[
+        ["id", "lookup"],
+        [1, [None, 0, 1, 2, 3, 'foo']],
+      ])
