@@ -4,31 +4,35 @@
  */
 // tslint:disable:no-console
 
-import {GristDoc} from "app/client/components/GristDoc";
+import {GristDoc} from 'app/client/components/GristDoc';
 import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
-import {PluginScreen} from "app/client/components/PluginScreen";
+import {PluginScreen} from 'app/client/components/PluginScreen';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
-import {ViewSectionRec} from 'app/client/models/DocModel';
-import {SortedRowSet} from "app/client/models/rowset";
-import {openFilePicker} from "app/client/ui/FileDialog";
+import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {SortedRowSet} from 'app/client/models/rowset';
+import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
+import {openFilePicker} from 'app/client/ui/FileDialog';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, linkSelect, multiSelect} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, menu, menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
-import {loadingSpinner} from "app/client/ui2018/loaders";
+import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {openFormulaEditor} from 'app/client/widgets/FieldEditor';
 import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
         MergeOptionsMap,
-        MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from "app/common/ActiveDocAPI";
-import {byteString} from "app/common/gutil";
+        MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from 'app/common/ActiveDocAPI';
+import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import {byteString} from 'app/common/gutil';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
-import {Computed, Disposable, dom, DomContents, IDisposable, MutableObsArray, obsArray, Observable,
+import {Computed, dom, DomContents, fromKo, Holder, IDisposable, MultiHolder, MutableObsArray, obsArray, Observable,
         styled} from 'grainjs';
-import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
-import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from "app/client/ui/googleAuth";
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
 
 // Special values for import destinations; null means "new table".
@@ -72,7 +76,7 @@ interface MergeOptionsState {
 /**
  * Importer manages an import files to Grist tables and shows Preview
  */
-export class Importer extends Disposable {
+export class Importer extends DisposableWithEvents {
   /**
    * Imports using the given plugin importer, or the built-in file-picker when null is passed in.
    */
@@ -147,6 +151,9 @@ export class Importer extends Disposable {
   private _sourceInfoArray = Observable.create<SourceInfo[]>(this, []);
   private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
 
+  // Holder for the column mapping formula editor.
+  private readonly _formulaEditorHolder = Holder.create(this);
+
   private _previewViewSection: Observable<ViewSectionRec|null> =
     Computed.create(this, this._sourceInfoSelected, (use, info) => {
       if (!info) { return null; }
@@ -171,6 +178,27 @@ export class Importer extends Disposable {
     {value: null, label: 'New Table'},
     ...use(this._gristDoc.docModel.allTableIds.getObservable()).map((t) => ({value: t, label: t})),
   ]);
+
+  // Source column labels for the selected import source, keyed by column id.
+  private _sourceColLabelsById = Computed.create(this, this._sourceInfoSelected, (use, info) => {
+    if (!info || use(info.sourceSection._isDeleted)) { return null; }
+
+    const fields = use(use(info.sourceSection.viewFields).getObservable());
+    return new Map(fields.map(f => [use(use(f.column).colId), use(use(f.column).label)]));
+  });
+
+  // List of destination fields that aren't mapped to a source column.
+  private _unmatchedFields = Computed.create(this, this._sourceInfoSelected, (use, info) => {
+    if (!info) { return null; }
+
+    const transformSection = use(info.transformSection);
+    if (!transformSection || use(transformSection._isDeleted)) { return null; }
+
+    const fields = use(use(transformSection.viewFields).getObservable());
+    return fields
+      .filter(f => use(use(f.column).formula).trim() === '')
+      .map(f => f.column().label());
+  });
 
   // null tells to use the built-in file picker.
   constructor(private _gristDoc: GristDoc, private _importSourceElem: ImportSourceElement|null,
@@ -406,6 +434,8 @@ export class Importer extends Disposable {
 
   private async _cancelImport() {
     this._resetImportDiffState();
+    // Formula editor cleanup needs to happen before the hidden tables are removed.
+    this._formulaEditorHolder.dispose();
 
     if (this._uploadResult) {
       await this._docComm.cancelImportFiles(
@@ -428,8 +458,11 @@ export class Importer extends Disposable {
     const mergeOptions = this._mergeOptions[selectedSourceInfo.hiddenTableId];
     if (!mergeOptions) { return isValid; } // No configuration to validate.
 
+    const destTableId = selectedSourceInfo.destTableId.get();
     const {updateExistingRecords, mergeCols, hasInvalidMergeCols} = mergeOptions;
-    if (updateExistingRecords.get() && mergeCols.get().length === 0) {
+
+    // Check that at least one merge column was selected (if merging into an existing table).
+    if (destTableId !== null && updateExistingRecords.get() && mergeCols.get().length === 0) {
       hasInvalidMergeCols.set(true);
       isValid = false;
     }
@@ -498,7 +531,9 @@ export class Importer extends Disposable {
   // The importer state showing import in progress, with a list of tables, and a preview.
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
-    this._screen.render([
+    const content = cssContainer(
+      dom.autoDispose(this._formulaEditorHolder),
+      {tabIndex: '-1'},
       this._buildModalTitle(
         schema ? cssActionLink(cssLinkIcon('Settings'), 'Import options',
           testId('importer-options-link'),
@@ -510,6 +545,11 @@ export class Importer extends Disposable {
           dom.forEach(this._sourceInfoArray, (info) => {
             const destTableId = Computed.create(null, (use) => use(info.destTableId))
               .onWrite(async (destId) => {
+                // Prevent changing destination of un-selected sources if current configuration is invalid.
+                if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
+                  return;
+                }
+
                 info.destTableId.set(destId);
                 this._resetTableMergeOptions(info.hiddenTableId);
                 await this._updateTransformSection(info);
@@ -521,9 +561,11 @@ export class Importer extends Disposable {
               cssTableLine(cssToFrom('To'), linkSelect<DestId>(destTableId, this._destTables)),
               cssTableInfo.cls('-selected', (use) => use(this._sourceInfoSelected) === info),
               dom.on('click', async () => {
-                if (info === this._sourceInfoSelected.get() || !this._validateImportConfiguration()) {
-                  return;
-                }
+                // Ignore click if source is already selected.
+                if (info === this._sourceInfoSelected.get()) { return; }
+
+                // Prevent changing selected source if current configuration is invalid.
+                if (!this._validateImportConfiguration()) { return; }
 
                 this._cancelPendingDiffRequests();
                 this._sourceInfoSelected.set(info);
@@ -536,68 +578,141 @@ export class Importer extends Disposable {
         dom.maybe(this._sourceInfoSelected, (info) => {
           const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
 
-          return [
-            dom.maybe(info.destTableId, (_dest) => {
-              const updateRecordsListener = updateExistingRecords.addListener(async () => {
-                await this._updateImportDiff(info);
-              });
+          return cssConfigAndPreview(
+            cssConfigColumn(
+              dom.maybe(info.transformSection, section => [
+                dom.maybe(info.destTableId, () => {
+                  const updateRecordsListener = updateExistingRecords.addListener(async () => {
+                    await this._updateImportDiff(info);
+                  });
 
-              return cssMergeOptions(
-                cssMergeOptionsToggle(labeledSquareCheckbox(
-                  updateExistingRecords,
-                  'Update existing records',
-                  dom.autoDispose(updateRecordsListener),
-                  testId('importer-update-existing-records')
-                )),
-                dom.maybe(updateExistingRecords, () => [
-                  cssMergeOptionsMessage(
-                    'Imported rows will be merged with records that have the same values for all of these fields:',
-                    testId('importer-merge-fields-message')
-                  ),
-                  dom.domComputed(info.transformSection, section => {
-                    const mergeColsListener = mergeCols.addListener(async val => {
-                      // Reset the error state of the multiSelect on change.
-                      if (val.length !== 0 && hasInvalidMergeCols.get()) {
-                        hasInvalidMergeCols.set(false);
-                      }
+                  return cssMergeOptions(
+                    cssMergeOptionsToggle(labeledSquareCheckbox(
+                      updateExistingRecords,
+                      'Update existing records',
+                      dom.autoDispose(updateRecordsListener),
+                      testId('importer-update-existing-records')
+                    )),
+                    dom.maybe(updateExistingRecords, () => {
+                      const mergeColsListener = mergeCols.addListener(async val => {
+                        // Reset the error state of the multiSelect on change.
+                        if (val.length !== 0 && hasInvalidMergeCols.get()) {
+                          hasInvalidMergeCols.set(false);
+                        }
+                        await this._updateImportDiff(info);
+                      });
 
-                      await this._updateImportDiff(info);
-                    });
-                    return multiSelect(
-                      mergeCols,
-                      section?.viewFields().peek().map(field => field.label()) ?? [],
-                      {
-                        placeholder: 'Select fields to match on',
-                        error: hasInvalidMergeCols
-                      },
-                      dom.autoDispose(mergeColsListener),
-                      testId('importer-merge-fields-select')
-                    );
-                  })
-                ])
-              );
-            }),
-            cssSectionHeader('Preview'),
-            dom.domComputed(use => {
-              const previewSection = use(this._previewViewSection);
-              if (use(this._isLoadingDiff) || !previewSection) {
-                return cssPreviewSpinner(loadingSpinner());
-              }
+                      return [
+                        cssMergeOptionsMessage(
+                          'Merge rows that match these fields:',
+                          testId('importer-merge-fields-message')
+                        ),
+                        multiSelect(
+                          mergeCols,
+                          section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
+                          {
+                            placeholder: 'Select fields to match on',
+                            error: hasInvalidMergeCols
+                          },
+                          dom.autoDispose(mergeColsListener),
+                          testId('importer-merge-fields-select')
+                        )
+                      ];
+                    })
+                  );
+                }),
+                dom.domComputed(this._unmatchedFields, fields =>
+                  fields && fields.length > 0 ?
+                    cssUnmatchedFields(
+                      dom('div',
+                        cssGreenText(
+                          `${fields.length} unmatched ${fields.length > 1 ? 'fields' : 'field'}`
+                        ),
+                        ' in import:'
+                      ),
+                      cssUnmatchedFieldsList(fields.join(', ')),
+                      testId('importer-unmatched-fields')
+                    ) : null
+                ),
+                cssColumnMatchOptions(
+                  dom.forEach(fromKo(section.viewFields().getObservable()), field => cssColumnMatchRow(
+                    cssColumnMatchIcon('ImportArrow'),
+                    cssSourceAndDestination(
+                      cssDestinationFieldRow(
+                        cssDestinationFieldLabel(
+                          dom.text(field.label),
+                        ),
+                        cssDestinationFieldSettings(
+                          icon('Dots'),
+                          menu(
+                            () => {
+                              const sourceColId = field.origCol().id();
+                              const sourceColIdsAndLabels = [...this._sourceColLabelsById.get()!.entries()];
+                              return [
+                                menuItem(
+                                  () => this._gristDoc.clearColumns([sourceColId]),
+                                  'Skip',
+                                  testId('importer-column-match-menu-item')
+                                ),
+                                menuDivider(),
+                                ...sourceColIdsAndLabels.map(([id, label]) =>
+                                  menuItem(
+                                    () => this._setColumnFormula(sourceColId, '$' + id),
+                                    label,
+                                    testId('importer-column-match-menu-item')
+                                  ),
+                                ),
+                                testId('importer-column-match-menu'),
+                              ];
+                            },
+                            {placement: 'right-start'},
+                          ),
+                          testId('importer-column-match-destination-settings')
+                        ),
+                        testId('importer-column-match-destination')
+                      ),
+                      dom.domComputed(use => dom.create(
+                        this._buildColMappingFormula.bind(this),
+                        use(field.column),
+                        (elem: Element) => this._activateFormulaEditor(elem, field),
+                        'Skip'
+                      )),
+                      testId('importer-column-match-source-destination'),
+                    )
+                  )),
+                  testId('importer-column-match-options'),
+                )
+              ]),
+            ),
+            cssPreviewColumn(
+              cssSectionHeader('Preview'),
+              dom.domComputed(use => {
+                const previewSection = use(this._previewViewSection);
+                if (use(this._isLoadingDiff) || !previewSection) {
+                  return cssPreviewSpinner(loadingSpinner());
+                }
 
-              const gridView = this._createPreview(previewSection);
+                const gridView = this._createPreview(previewSection);
 
-              // When changes are made to the preview table, update the import diff.
-              gridView.listenTo(gridView.sortedRows, 'rowNotify', async () => {
-                await this._updateImportDiff(info);
-              });
+                // When changes are made to the preview table, update the import diff.
+                gridView.listenTo(gridView.sortedRows, 'rowNotify', async () => {
+                  // If we aren't showing a diff, there is no need to do anything.
+                  if (!info.destTableId || !updateExistingRecords.get() || mergeCols.get().length === 0) {
+                    return;
+                  }
 
-              return cssPreviewGrid(
-                dom.autoDispose(gridView),
-                gridView.viewPane,
-                testId('importer-preview'),
-              );
-            })
-          ];
+                  // Otherwise, update the diff and rebuild the preview table.
+                  await this._updateImportDiff(info);
+                });
+
+                return cssPreviewGrid(
+                  dom.autoDispose(gridView),
+                  gridView.viewPane,
+                  testId('importer-preview'),
+                );
+              })
+            )
+          );
         }),
       ),
       cssModalButtons(
@@ -611,7 +726,88 @@ export class Importer extends Disposable {
           testId('modal-cancel'),
         ),
       ),
-    ]);
+    );
+    this._addFocusLayer(content);
+    this._screen.render(content, {fullscreen: true});
+  }
+
+  private _addFocusLayer(container: HTMLElement) {
+    dom.autoDisposeElem(container, new FocusLayer({
+      defaultFocusElem: container,
+      allowFocus: (elem) => (elem !== document.body),
+      onDefaultFocus: () => this.trigger('importer_focus'),
+    }));
+  }
+
+  /**
+   * Updates the formula on column `colRef` to `formula`.
+   */
+  private async _setColumnFormula(colRef: number, formula: string): Promise<void> {
+    return this._gristDoc.docModel.columns.sendTableAction(
+      ['UpdateRecord', colRef, { formula, isFormula: true }]
+    );
+  }
+
+  /**
+   * Opens a formula editor for `field` over `refElem`.
+   */
+  private _activateFormulaEditor(refElem: Element, field: ViewFieldRec) {
+    // TODO: Set active section to hidden table section, so editor autocomplete is accurate.
+    const editorHolder = openFormulaEditor({
+      gristDoc: this._gristDoc,
+      field,
+      refElem,
+      setupCleanup: this._setupFormulaEditorCleanup.bind(this),
+    });
+    this._formulaEditorHolder.autoDispose(editorHolder);
+  }
+
+  /**
+   * Called by _activateFormulaEditor to initialize cleanup
+   * code for when the formula editor is closed. Registers and
+   * unregisters callbacks for saving edits when the editor loses
+   * focus.
+   */
+  private _setupFormulaEditorCleanup(
+    owner: MultiHolder, _doc: GristDoc, field: ViewFieldRec, _saveEdit: () => Promise<unknown>
+  ) {
+    const saveEdit = () => _saveEdit().catch(reportError);
+
+    // Whenever focus returns to the dialog, close the editor by saving the value.
+    this.on('importer_focus', saveEdit);
+
+    owner.onDispose(() => {
+      this.off('importer_focus', saveEdit);
+      field.editingFormula(false);
+    });
+  }
+
+  /**
+   * Builds an editable formula component that is displayed
+   * in the column mapping section of Importer. On click, opens
+   * an editor for the formula for `column`.
+   */
+  private _buildColMappingFormula(_owner: MultiHolder, column: ColumnRec, buildEditor: (e: Element) => void,
+                                  placeholder: string) {
+    const formatFormula = (formula: string) => {
+      const sourceColLabels = this._sourceColLabelsById.get();
+      if (!sourceColLabels) { return formula; }
+
+      formula = formula.trim();
+      if (formula.startsWith('$') && sourceColLabels.has(formula.slice(1))) {
+        // For simple formulas that only reference a source column id, show the source column label.
+        return sourceColLabels.get(formula.slice(1))!;
+      }
+
+      return formula;
+    };
+
+    return cssFieldFormula(use => formatFormula(use(column.formula)), {placeholder, maxLines: 1},
+      dom.cls('disabled'),
+      {tabIndex: '-1'},
+      dom.on('focus', (_ev, elem) => buildEditor(elem)),
+      testId('importer-column-match-formula'),
+    );
   }
 
   // The importer state showing parse options that may be changed.
@@ -681,6 +877,13 @@ function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
   return sourceInfo.origTableName ? origName + ' - ' + sourceInfo.origTableName : origName;
 }
 
+const cssContainer = styled('div', `
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  outline: unset;
+`);
+
 const cssActionLink = styled('div', `
   display: inline-flex;
   align-items: center;
@@ -709,8 +912,9 @@ const cssModalHeader = styled('div', `
 `);
 
 const cssPreviewWrapper = styled('div', `
-  width: 600px;
-  padding: 8px 12px 8px 0;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   overflow-y: auto;
 `);
 
@@ -725,17 +929,19 @@ const cssSectionHeader = styled('div', `
 `);
 
 const cssTableList = styled('div', `
+  max-height: 50%;
+  column-gap: 32px;
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-between;
   margin-bottom: 16px;
   align-items: flex-start;
+  overflow-y: auto;
 `);
 
 const cssTableInfo = styled('div', `
   padding: 4px 8px;
   margin: 4px 0px;
-  width: calc(50% - 16px);
+  width: 300px;
   border-radius: 3px;
   border: 1px solid ${colors.darkGrey};
   &:hover, &-selected {
@@ -762,12 +968,35 @@ const cssToFrom = styled('span', `
 `);
 
 const cssTableSource = styled('div', `
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`);
+
+const cssConfigAndPreview = styled('div', `
+  display: flex;
+  gap: 32px;
+  flex-grow: 1;
+  height: 0px;
+`);
+
+const cssConfigColumn = styled('div', `
+  width: 300px;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+`);
+
+const cssPreviewColumn = styled('div', `
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 `);
 
 const cssPreview = styled('div', `
   display: flex;
-  height: 300px;
+  flex-grow: 1;
 `);
 
 const cssPreviewSpinner = styled(cssPreview, `
@@ -790,4 +1019,82 @@ const cssMergeOptionsToggle = styled('div', `
 const cssMergeOptionsMessage = styled('div', `
   color: ${colors.slate};
   margin-bottom: 8px;
+`);
+
+const cssColumnMatchOptions = styled('div', `
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`);
+
+const cssColumnMatchRow = styled('div', `
+  display: flex;
+  align-items: center;
+`);
+
+const cssFieldFormula = styled(buildHighlightedCode, `
+  flex: auto;
+  cursor: pointer;
+  margin-top: 1px;
+  padding-left: 4px;
+  --icon-color: ${colors.lightGreen};
+`);
+
+const cssColumnMatchIcon = styled(icon, `
+  flex-shrink: 0;
+  width: 20px;
+  height: 32px;
+  background-color: ${colors.darkGrey};
+  margin-right: 4px;
+`);
+
+const cssDestinationFieldRow = styled('div', `
+  align-items: center;
+  display: flex;
+`);
+
+const cssSourceAndDestination = styled('div', `
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+`);
+
+const cssDestinationFieldLabel = styled('div', `
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-left: 4px;
+`);
+
+const cssDestinationFieldSettings = styled('div', `
+  flex: none;
+  margin: 0 4px 0 auto;
+  height: 24px;
+  width: 24px;
+  padding: 4px;
+  line-height: 0px;
+  border-radius: 3px;
+  cursor: pointer;
+  --icon-color: ${colors.slate};
+
+  &:hover, &.weasel-popup-open {
+    background-color: ${colors.mediumGrey};
+  }
+`);
+
+const cssUnmatchedFields = styled('div', `
+  margin-bottom: 16px;
+`);
+
+const cssUnmatchedFieldsList = styled('div', `
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-right: 16px;
+  color: ${colors.slate};
+`);
+
+const cssGreenText = styled('span', `
+  color: ${colors.lightGreen};
 `);

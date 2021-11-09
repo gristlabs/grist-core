@@ -15,7 +15,7 @@ import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {Disposable, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
 import isEqual = require('lodash/isEqual');
-import { CellPosition } from "app/client/components/CellPosition";
+import {CellPosition} from "app/client/components/CellPosition";
 
 type IEditorConstructor = typeof NewBaseEditor;
 
@@ -373,18 +373,27 @@ export class FieldEditor extends Disposable {
 }
 
 /**
- * Open a formula editor in the side pane. Returns a Disposable that owns the editor.
+ * Open a formula editor. Returns a Disposable that owns the editor.
  */
-export function openSideFormulaEditor(options: {
+export function openFormulaEditor(options: {
   gristDoc: GristDoc,
   field: ViewFieldRec,
-  editRow: DataRowModel,      // Needed to get exception value, if any.
-  refElem: Element,           // Element in the side pane over which to position the editor.
+  // Needed to get exception value, if any.
+  editRow?: DataRowModel,
+  // Element over which to position the editor.
+  refElem: Element,
   editValue?: string,
   onSave?: (formula: string) => Promise<void>,
   onCancel?: () => void,
+  // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
+  setupCleanup: (
+    owner: MultiHolder,
+    doc: GristDoc,
+    field: ViewFieldRec,
+    save: () => Promise<void>
+  ) => void,
 }): Disposable {
-  const {gristDoc, field, editRow, refElem} = options;
+  const {gristDoc, field, editRow, refElem, setupCleanup} = options;
   const holder = MultiHolder.create(null);
   const column = field.column();
 
@@ -411,7 +420,7 @@ export function openSideFormulaEditor(options: {
     gristDoc,
     field,
     cellValue: column.formula(),
-    formulaError: getFormulaError(gristDoc, editRow, column),
+    formulaError: editRow ? getFormulaError(gristDoc, editRow, column) : undefined,
     editValue: options.editValue,
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
@@ -422,7 +431,7 @@ export function openSideFormulaEditor(options: {
 
   // Enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
   field.editingFormula(true);
-  setupEditorCleanup(holder, gristDoc, field, saveEdit);
+  setupCleanup(holder, gristDoc, field, saveEdit);
   return holder;
 }
 
@@ -447,7 +456,7 @@ function setupReadonlyEditorCleanup(
  * - unset field.editingFormula mode
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
-function setupEditorCleanup(
+export function setupEditorCleanup(
   owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, _saveEdit: () => Promise<unknown>
 ) {
   const saveEdit = () => _saveEdit().catch(reportError);

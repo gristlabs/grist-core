@@ -148,13 +148,15 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
  *
  * @param {string} leftTableId Name of the left table in the comparison.
  * @param {string} rightTableId Name of the right table in the comparison.
- * @param {Map<string, string>} selectColumns Map of left table column ids to their matching equivalent
- * from the right table. All of these columns will be included in the result, aliased by table id.
- * @param {Map<string, string>} joinColumns Map of left table column ids to their matching equivalent
- * from the right table. These columns are used to join `leftTableID` to `rightTableId`.
+ * @param {Map<string, string[]>} selectColumns Map of left table column ids to their matching equivalent(s)
+ * from the right table. A single left column can be compared against 2 or more right columns, so the
+ * values of `selectColumns` are arrays. All of these columns will be included in the result, aliased by
+ * table id.
+ * @param {Map<string, string>} joinColumns Map of right table column ids to their matching equivalent
+ * from the left table. These columns are used to join `leftTableId` to `rightTableId`.
  * @returns {ExpandedQuery} The constructed query.
  */
-export function buildComparisonQuery(leftTableId: string, rightTableId: string, selectColumns: Map<string, string>,
+export function buildComparisonQuery(leftTableId: string, rightTableId: string, selectColumns: Map<string, string[]>,
                                      joinColumns: Map<string, string>): ExpandedQuery {
   const query: ExpandedQuery = { tableId: leftTableId, filters: {} };
 
@@ -169,14 +171,16 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
     `${quoteIdent(rightTableId)}.id AS ${quoteIdent(rightTableId + '.id')}`
   );
 
-  // Select columns from both tables using the table id as a prefix for each column name.
-  selectColumns.forEach((rightTableColumn, leftTableColumn) => {
+  // Select columns from both tables, using the table id as a prefix for each column name.
+  selectColumns.forEach((rightTableColumns, leftTableColumn) => {
     const leftColumnAlias = `${leftTableId}.${leftTableColumn}`;
-    const rightColumnAlias = `${rightTableId}.${rightTableColumn}`;
-    selects.push(
-      `${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)} AS ${quoteIdent(leftColumnAlias)}`,
-      `${quoteIdent(rightTableId)}.${quoteIdent(rightTableColumn)} AS ${quoteIdent(rightColumnAlias)}`
-    );
+    selects.push(`${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)} AS ${quoteIdent(leftColumnAlias)}`);
+
+    rightTableColumns.forEach(colId => {
+      const rightColumnAlias = `${rightTableId}.${colId}`;
+      selects.push(`${quoteIdent(rightTableId)}.${quoteIdent(colId)} AS ${quoteIdent(rightColumnAlias)}`
+      );
+    });
   });
 
   /**
@@ -189,14 +193,14 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
    * the left table can only be matched with at most 1 equivalent row from the right table.
    */
   const dedupedRightTableQuery =
-    `SELECT MIN(id) AS id, ${[...joinColumns.values()].map(v => quoteIdent(v)).join(', ')} ` +
+    `SELECT MIN(id) AS id, ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(', ')} ` +
     `FROM ${quoteIdent(rightTableId)} ` +
-    `GROUP BY ${[...joinColumns.values()].map(v => quoteIdent(v)).join(', ')}`;
+    `GROUP BY ${[...joinColumns.keys()].map(v => quoteIdent(v)).join(', ')}`;
   const dedupedRightTableAlias = quoteIdent('deduped_' + rightTableId);
 
   // Join the left table to the (de-duplicated) right table, and include unmatched left rows.
   const joinConditions: string[] = [];
-  joinColumns.forEach((rightTableColumn, leftTableColumn) => {
+  joinColumns.forEach((leftTableColumn, rightTableColumn) => {
     const leftExpression = `${quoteIdent(leftTableId)}.${quoteIdent(leftTableColumn)}`;
     const rightExpression = `${dedupedRightTableAlias}.${quoteIdent(rightTableColumn)}`;
     joinConditions.push(`${leftExpression} = ${rightExpression}`);
@@ -212,16 +216,21 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
 
   // Filter out matching rows where all non-join columns from both tables are identical.
   const whereConditions: string[] = [];
-  for (const [leftTableColumn, rightTableColumn] of selectColumns.entries()) {
-    if (joinColumns.has(leftTableColumn)) { continue; }
+  for (const [leftTableColumnId, rightTableColumnIds] of selectColumns.entries()) {
+    const leftColumnAlias = quoteIdent(`${leftTableId}.${leftTableColumnId}`);
 
-    const leftColumnAlias = quoteIdent(`${leftTableId}.${leftTableColumn}`);
-    const rightColumnAlias = quoteIdent(`${rightTableId}.${rightTableColumn}`);
+    for (const rightTableColId of rightTableColumnIds) {
+      // If this left/right column id pair was already used for joining, skip it.
+      if (joinColumns.get(rightTableColId) === leftTableColumnId) { continue; }
 
-    // Only include rows that have differences in column values.
-    whereConditions.push(`${leftColumnAlias} IS NOT ${rightColumnAlias}`);
+      // Only include rows that have differences in column values.
+      const rightColumnAlias = quoteIdent(`${rightTableId}.${rightTableColId}`);
+      whereConditions.push(`${leftColumnAlias} IS NOT ${rightColumnAlias}`);
+    }
   }
-  wheres.push(`(${whereConditions.join(' OR ')})`);
+  if (whereConditions.length > 0) {
+    wheres.push(`(${whereConditions.join(' OR ')})`);
+  }
 
   // Copy decisions to the query object, and return.
   query.joins = joins;

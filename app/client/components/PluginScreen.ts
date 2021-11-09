@@ -7,11 +7,20 @@ import { RenderTarget } from 'app/plugin/RenderOptions';
 import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
 
 /**
+ * Rendering options for the PluginScreen modal.
+ */
+export interface RenderOptions {
+  // Maximizes modal to fill the viewport.
+  fullscreen?: boolean;
+}
+
+/**
  * Helper for showing plugin components during imports.
  */
 export class PluginScreen extends Disposable {
   private _openModalCtl: IModalControl | null = null;
   private _importerContent = Observable.create<DomContents>(this, null);
+  private _fullscreen = Observable.create(this, false);
 
   constructor(private _title: string) {
     super();
@@ -33,9 +42,10 @@ export class PluginScreen extends Disposable {
     return handle;
   }
 
-  public render(content: DomContents) {
+  public render(content: DomContents, options?: RenderOptions) {
     this.showImportDialog();
     this._importerContent.set(content);
+    this._fullscreen.set(Boolean(options?.fullscreen));
   }
 
   // The importer state showing just an error.
@@ -67,6 +77,7 @@ export class PluginScreen extends Disposable {
       this._openModalCtl = ctl;
       return [
         cssModalOverrides.cls(''),
+        cssModalOverrides.cls('-fullscreen', this._fullscreen),
         dom.domComputed(this._importerContent),
         testId('importer-dialog'),
       ];
@@ -88,6 +99,11 @@ const cssModalOverrides = styled('div', `
   flex-direction: column;
   & > .${cssModalButtons.className} {
     margin-top: 16px;
+  }
+
+  &-fullscreen {
+    height: 100%;
+    margin: 32px;
   }
 `);
 

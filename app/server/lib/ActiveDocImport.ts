@@ -18,6 +18,7 @@ import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
 import {globalUploadSet, moveUpload, UploadInfo} from 'app/server/lib/uploads';
 import {buildComparisonQuery} from 'app/server/lib/ExpandedQuery';
+import flatten = require('lodash/flatten');
 
 const IMPORT_TRANSFORM_COLUMN_PREFIX = 'gristHelper_Import_';
 
@@ -131,16 +132,19 @@ export class ActiveDocImport {
    */
   public async generateImportDiff(hiddenTableId: string, {destCols, destTableId}: TransformRule,
                                   {mergeCols, mergeStrategy}: MergeOptions): Promise<DocStateComparison> {
+    // Merge column ids from client have prefixes that need to be stripped.
+    mergeCols = stripPrefixes(mergeCols);
+
     // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
-    const selectColumns: [string, string][] =
-      destCols.map(c => [c.colId!, c.colId!.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length)]);
-    const selectColumnsMap = new Map(selectColumns);
-    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, selectColumnsMap, mergeCols);
+    const srcAndDestColIds: [string, string[]][] =
+      destCols.map(c => [c.colId!, [c.colId!.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length)]]);
+    const srcToDestColIds = new Map(srcAndDestColIds);
+    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, srcToDestColIds, mergeCols);
 
     // Initialize container for updated column values in the expected format (ColumnDelta).
     const updatedRecords: {[colId: string]: ColumnDelta} = {};
     const updatedRecordIds: number[] = [];
-    const srcColIds = selectColumns.map(([srcColId, _destColId]) => srcColId);
+    const srcColIds = srcAndDestColIds.map(([srcColId, _destColId]) => srcColId);
     for (const id of srcColIds) {
       updatedRecords[id] = {};
     }
@@ -160,7 +164,7 @@ export class ActiveDocImport {
       } else {
         // Otherwise, a match was found between source and destination tables.
         for (const srcColId of srcColIds) {
-          const matchingDestColId = selectColumnsMap.get(srcColId);
+          const matchingDestColId = srcToDestColIds.get(srcColId)![0];
           const srcVal = comparisonResult[`${hiddenTableId}.${srcColId}`][i];
           const destVal = comparisonResult[`${destTableId}.${matchingDestColId}`][i];
 
@@ -382,7 +386,7 @@ export class ActiveDocImport {
     }
 
     // Transform rules from client may have prefixed column ids, so we need to strip them.
-    stripPrefixes(transformRule);
+    stripRulePrefixes(transformRule);
 
     if (intoNewTable) {
       // Transform rules for new tables don't have filled in destination column ids.
@@ -444,15 +448,25 @@ export class ActiveDocImport {
   private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
                                       {destCols, sourceCols}: TransformRule,
                                       {mergeCols, mergeStrategy}: MergeOptions): Promise<void> {
+    // Merge column ids from client have prefixes that need to be stripped.
+    mergeCols = stripPrefixes(mergeCols);
+
     // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
-    const selectColumns: [string, string][] = destCols.map(destCol => {
+    const srcAndDestColIds: [string, string][] = destCols.map(destCol => {
       const formula = destCol.formula.trim();
       const srcColId = formula.startsWith('$') && sourceCols.includes(formula.slice(1)) ?
         formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
       return [srcColId, destCol.colId!];
     });
-    const selectColumnsMap = new Map(selectColumns);
-    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId, selectColumnsMap, mergeCols);
+    const srcToDestColIds: Map<string, string[]> = new Map();
+    srcAndDestColIds.forEach(([srcColId, destColId]) => {
+      if (!srcToDestColIds.has(srcColId)) {
+        srcToDestColIds.set(srcColId, [destColId]);
+      } else {
+        srcToDestColIds.get(srcColId)!.push(destColId);
+      }
+    });
+    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId, srcToDestColIds, mergeCols);
 
     // Initialize containers for new and updated records in the expected formats.
     const newRecords: BulkColValues = {};
@@ -460,7 +474,7 @@ export class ActiveDocImport {
     const updatedRecords: BulkColValues = {};
     const updatedRecordIds: number[] = [];
 
-    const destColIds = [...selectColumnsMap.values()];
+    const destColIds = flatten([...srcToDestColIds.values()]);
     for (const id of destColIds) {
       newRecords[id] = [];
       updatedRecords[id] = [];
@@ -469,23 +483,27 @@ export class ActiveDocImport {
     // Retrieve the function used to reconcile differences between source and destination.
     const merge = getMergeFunction(mergeStrategy);
 
-    const srcColIds = [...selectColumnsMap.keys()];
+    const srcColIds = [...srcToDestColIds.keys()];
     const numResultRows = comparisonResult[hiddenTableId + '.id'].length;
     for (let i = 0; i < numResultRows; i++) {
       if (comparisonResult[destTableId + '.id'][i] === null) {
         // No match in destination table found for source row, so it must be a new record.
         for (const srcColId of srcColIds) {
-          const matchingDestColId = selectColumnsMap.get(srcColId);
-          newRecords[matchingDestColId!].push(comparisonResult[`${hiddenTableId}.${srcColId}`][i]);
+          const matchingDestColIds = srcToDestColIds.get(srcColId);
+          matchingDestColIds!.forEach(id => {
+            newRecords[id].push(comparisonResult[`${hiddenTableId}.${srcColId}`][i]);
+          });
         }
         numNewRecords++;
       } else {
         // Otherwise, a match was found between source and destination tables, so we merge their columns.
         for (const srcColId of srcColIds) {
-          const matchingDestColId = selectColumnsMap.get(srcColId);
+          const matchingDestColIds = srcToDestColIds.get(srcColId);
           const srcVal = comparisonResult[`${hiddenTableId}.${srcColId}`][i];
-          const destVal = comparisonResult[`${destTableId}.${matchingDestColId}`][i];
-          updatedRecords[matchingDestColId!].push(merge(srcVal, destVal));
+          matchingDestColIds!.forEach(id => {
+            const destVal = comparisonResult[`${destTableId}.${id}`][i];
+            updatedRecords[id].push(merge(srcVal, destVal));
+          });
         }
         updatedRecordIds.push(comparisonResult[destTableId + '.id'][i] as number);
       }
@@ -515,17 +533,23 @@ export class ActiveDocImport {
    *
    * @param {string} hiddenTableId Source table.
    * @param {string} destTableId Destination table.
-   * @param {string} selectColumnsMap Map of source to destination column ids to include in the comparison results.
+   * @param {Map<string, string[]>} srcToDestColIds Map of source to one or more destination column ids
+   * to include in the comparison results.
    * @param {string[]} mergeCols List of (destination) column ids to use for matching.
    * @returns {Promise<BulkColValues} Decoded column values from both tables that were matched, and had differences.
    */
-  private async _getTableComparison(hiddenTableId: string, destTableId: string, selectColumnsMap: Map<string, string>,
+  private async _getTableComparison(hiddenTableId: string, destTableId: string, srcToDestColIds: Map<string, string[]>,
                                     mergeCols: string[]): Promise<BulkColValues> {
-    const joinColumns: [string, string][] =
-      [...selectColumnsMap.entries()].filter(([_srcColId, destColId]) => mergeCols.includes(destColId));
-    const joinColumnsMap = new Map(joinColumns);
+    const mergeColIds = new Set(mergeCols);
+    const destToSrcMergeColIds = new Map();
+    srcToDestColIds.forEach((destColIds, srcColId) => {
+      const maybeMergeColId = destColIds.find(colId => mergeColIds.has(colId));
+      if (maybeMergeColId !== undefined) {
+        destToSrcMergeColIds.set(maybeMergeColId, srcColId);
+      }
+    });
 
-    const query = buildComparisonQuery(hiddenTableId, destTableId, selectColumnsMap, joinColumnsMap);
+    const query = buildComparisonQuery(hiddenTableId, destTableId, srcToDestColIds, destToSrcMergeColIds);
     const result = await this._activeDoc.docStorage.fetchQuery(query);
     return this._activeDoc.docStorage.decodeMarshalledDataFromTables(result);
   }
@@ -636,13 +660,19 @@ function isBlank(value: CellValue): boolean {
 }
 
 // Helper function that strips import prefixes from columns in transform rules (if ids are present).
-function stripPrefixes({destCols}: TransformRule): void {
+function stripRulePrefixes({destCols}: TransformRule): void {
   for (const col of destCols) {
     const colId = col.colId;
     if (colId && colId.startsWith(IMPORT_TRANSFORM_COLUMN_PREFIX)) {
       col.colId = colId.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length);
     }
   }
+}
+
+// Helper function that returns new `colIds` with import prefixes stripped.
+function stripPrefixes(colIds: string[]): string[] {
+  return colIds.map(id => id.startsWith(IMPORT_TRANSFORM_COLUMN_PREFIX) ?
+    id.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length) : id);
 }
 
 type MergeFunction = (srcVal: CellValue, destVal: CellValue) => CellValue;

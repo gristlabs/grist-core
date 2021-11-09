@@ -132,7 +132,7 @@ class ImportActions(object):
     transform_rule: defines columns to make (colids must be filled in!)
 
     gen_all: If true, all columns will be generated
-      If false, formulas that just copy will be skipped, and blank formulas will be skipped
+      If false, formulas that just copy will be skipped
 
     returns list of newly created colrefs (rowids into _grist_Tables_column)
     """
@@ -151,12 +151,11 @@ class ImportActions(object):
     #take formula from transform_rule
     new_cols = []
     for c in dest_cols:
-      # skip copy and blank columns (unless gen_all)
+      # skip copy columns (unless gen_all)
       formula = c.formula.strip()
       isCopyFormula = (formula.startswith("$") and formula[1:] in src_cols)
-      isBlankFormula = not formula
 
-      if gen_all or (not isCopyFormula and not isBlankFormula):
+      if gen_all or not isCopyFormula:
         #if colId specified, use that. Else label is fine
         new_col_id = _import_transform_col_prefix + (c.colId or c.label)
         new_col_spec = {

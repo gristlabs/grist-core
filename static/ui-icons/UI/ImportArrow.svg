@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="17px" height="31px" viewBox="0 0 17 31" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Group 29</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="15" height="32"></rect>
+    </defs>
+    <g id="Imports" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Import-Dialog-v3b" transform="translate(-89.000000, -384.000000)">
+            <g id="Group-24" transform="translate(88.000000, 216.000000)">
+                <g id="Group-13" transform="translate(0.000000, 163.000000)">
+                    <g id="Group-29" transform="translate(0.000000, 6.000000)">
+                        <g id="Oval">
+                            <mask id="mask-2" fill="white">
+                                <use xlink:href="#path-1"></use>
+                            </mask>
+                            <g id="Mask"></g>
+                            <circle stroke="#D9D9D9" stroke-width="4" mask="url(#mask-2)" cx="15" cy="16" r="12"></circle>
+                        </g>
+                        <polygon id="Triangle" stroke="#D9D9D9" fill="#D9D9D9" transform="translate(15.000000, 4.000000) rotate(90.000000) translate(-15.000000, -4.000000) " points="15 1 19 7 11 7"></polygon>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

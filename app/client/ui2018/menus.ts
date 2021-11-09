@@ -209,7 +209,10 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
   return cssSelectBtn(
     dom.autoDispose(selectedOptionsSet),
     dom.autoDispose(selectedOptionsText),
-    cssMultiSelectSummary(dom.text(selectedOptionsText)),
+    cssMultiSelectSummary(
+      dom.text(selectedOptionsText),
+      cssMultiSelectSummary.cls('-placeholder', use => use(selectedOptionsSet).size === 0)
+    ),
     icon('Dropdown'),
     elem => {
       weasel.setPopupToCreateDom(elem, ctl => buildMultiSelectMenu(ctl), weasel.defaultMenuOptions);
@@ -535,6 +538,10 @@ const cssMultiSelectSummary = styled('div', `
   flex: 1 1 0px;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  &-placeholder {
+    color: ${colors.slate}
+  }
 `);
 
 const cssMultiSelectMenu = styled(weasel.cssMenu, `

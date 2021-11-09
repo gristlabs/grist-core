@@ -19,7 +19,7 @@ import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
-import { FieldEditor, openSideFormulaEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
+import { FieldEditor, openFormulaEditor, saveWithoutEditor, setupEditorCleanup } from 'app/client/widgets/FieldEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import * as UserType from 'app/client/widgets/UserType';
@@ -523,9 +523,10 @@ export class FieldBuilder extends Disposable {
     editValue?: string,
     onSave?: (formula: string) => Promise<void>,
     onCancel?: () => void) {
-    const editorHolder = openSideFormulaEditor({
+    const editorHolder = openFormulaEditor({
       gristDoc: this.gristDoc,
       field: this.field,
+      setupCleanup: setupEditorCleanup,
       editRow,
       refElem,
       editValue,
