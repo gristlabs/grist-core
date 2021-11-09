@@ -154,9 +154,18 @@ class SaveCopyModal extends Disposable {
     const org = this._destOrg.get();
     const docWorker = await api.getWorkerAPI('import');
     const destName = this._destName.get() + '.grist';
-    const uploadId = await docWorker.copyDoc(this._doc.id, this._asTemplate.get(), destName);
-    const {id} = await docWorker.importDocToWorkspace(uploadId, ws.id);
-    await urlState().pushUrl({org: org?.domain || undefined, doc: id, docPage: urlState().state.get().docPage});
+    try {
+      const uploadId = await docWorker.copyDoc(this._doc.id, this._asTemplate.get(), destName);
+      const {id} = await docWorker.importDocToWorkspace(uploadId, ws.id);
+      await urlState().pushUrl({org: org?.domain || undefined, doc: id, docPage: urlState().state.get().docPage});
+    } catch(err) {
+      // Convert access denied errors to normal Error to make it consistent with other endpoints.
+      // TODO: Should not allow to click this button when user doesn't have permissions.
+      if (err.status === 403) {
+        throw new Error(err.details.userError || err.message);
+      }
+      throw err;
+    }
   }
 
   public buildDom() {

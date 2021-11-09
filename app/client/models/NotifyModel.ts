@@ -304,6 +304,7 @@ export class Notifier extends Disposable implements INotifier {
   // This is exposed primarily for tests.
   public clearAppErrors() {
     this._appErrorList.splice(0);
+    this._appErrorToast.clear();
   }
 
   /**

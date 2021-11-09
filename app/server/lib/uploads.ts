@@ -67,12 +67,20 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
     const name = optStringParam(req.query.name);
     if (!docId) { throw new Error('doc must be specified'); }
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
-    const uploadResult: UploadResult = await fetchDoc(server.getHomeUrl(req), docId, req, accessId,
-                                                      req.query.template === '1');
-    if (name) {
-      globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
+    try {
+      const uploadResult: UploadResult = await fetchDoc(server.getHomeUrl(req), docId, req, accessId,
+                                                        req.query.template === '1');
+      if (name) {
+        globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
+      }
+      res.status(200).send(JSON.stringify(uploadResult));
+    } catch(err) {
+      if ((err as ApiError).status === 403) {
+        res.status(403).json({error:'Insufficient access to document to copy it entirely'});
+        return;
+      }
+      throw err;
     }
-    res.status(200).send(JSON.stringify(uploadResult));
   }));
 }
 

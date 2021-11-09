@@ -342,7 +342,7 @@ export class DocWorkerApi {
         // check if the user has download permissions.
         const activeDoc = await this._getActiveDoc(req);
         if (!await activeDoc.canDownload(docSessionFromRequest(req))) {
-          throw new Error('not authorized to download this document');
+          throw new ApiError('not authorized to download this document', 403);
         }
         return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
       }
