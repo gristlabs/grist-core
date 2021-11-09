@@ -158,8 +158,15 @@ class BaseColumn(object):
         raise raw.error
       else:
         raise objtypes.CellError(self.table_id, self.col_id, row_id, raw.error)
+
+    return self._convert_raw_value(raw)
+
+  def _convert_raw_value(self, raw):
     if self.type_obj.is_right_type(raw):
       return self._make_rich_value(raw)
+    return self._alt_text(raw)
+
+  def _alt_text(self, raw):
     return usertypes.AltText(str(raw), self.type_obj.typename())
 
   def _make_rich_value(self, typed_value):
@@ -440,6 +447,16 @@ class BaseReferenceColumn(BaseColumn):
     """
     return self.getdefault()
 
+  def _lookup(self, reference_lookup, value):
+    col_id = (
+        reference_lookup.options.get("column")
+        or self._target_table._engine.docmodel
+            .get_column_rec(self.table_id, self.col_id).visibleCol.colId
+        or "id"
+    )
+    target_value = self._target_table.get_column(col_id)._convert_raw_value(value)
+    return self._target_table.lookup_one_record(**{col_id: target_value})
+
 
 class ReferenceColumn(BaseReferenceColumn):
   """
@@ -464,6 +481,11 @@ class ReferenceColumn(BaseReferenceColumn):
     if action_summary and values:
       values = action_summary.translate_new_row_ids(self._target_table.table_id, values)
     return values, []
+
+  def convert(self, val):
+    if isinstance(val, objtypes.ReferenceLookup):
+      val = self._lookup(val, val.value) or self._alt_text(val.alt_text)
+    return super(ReferenceColumn, self).convert(val)
 
 
 class ReferenceListColumn(BaseReferenceColumn):
@@ -501,6 +523,21 @@ class ReferenceListColumn(BaseReferenceColumn):
     if self.type_obj.is_right_type(raw):
       raw = [r for r in raw if r not in target_row_ids] or None
     return raw
+
+  def convert(self, val):
+    if isinstance(val, objtypes.ReferenceLookup):
+      result = []
+      values = val.value
+      if not isinstance(values, list):
+        values = [values]
+      for value in values:
+        lookup_value = self._lookup(val, value)
+        if not lookup_value:
+          return self._alt_text(val.alt_text)
+        result.append(lookup_value)
+      val = result
+    return super(ReferenceListColumn, self).convert(val)
+
 
 # Set up the relationship between usertypes objects and column objects.
 usertypes.BaseColumnType.ColType = DataColumn

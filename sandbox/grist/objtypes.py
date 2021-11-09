@@ -232,6 +232,8 @@ def decode_object(value):
       return RaisedException.decode_args(*args)
     elif code == 'L':
       return [decode_object(item) for item in args]
+    elif code == 'l':
+      return ReferenceLookup(*args)
     elif code == 'O':
       return {decode_object(key): decode_object(val) for key, val in six.iteritems(args[0])}
     elif code == 'P':
@@ -381,3 +383,19 @@ class RecordSetStub(object):
   def __init__(self, table_id, row_ids):
     self.table_id = table_id
     self.row_ids = row_ids
+
+
+class ReferenceLookup(object):
+  def __init__(self, value, options=None):
+    self.value = value
+    self.options = options or {}
+
+  @property
+  def alt_text(self):
+    result = self.options.get("raw")
+    if result is None:
+      values = self.value
+      if not isinstance(values, list):
+        values = [values]
+      result = ", ".join(map(six.text_type, values))
+    return result

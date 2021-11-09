@@ -6,6 +6,7 @@ import * as t from "ts-interface-checker";
 
 export const GristObjCode = t.enumtype({
   "List": "L",
+  "LookUp": "l",
   "Dict": "O",
   "DateTime": "D",
   "Date": "d",

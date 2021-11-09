@@ -867,3 +867,95 @@ class TestUserActions(test_engine.EngineTestCase):
       [11, 5],
       [12, [[]]],
     ])
+
+  def test_reference_lookup(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          [1, "name",    "Text",           False, "", "name",    ""],
+          [2, "ref",     "Ref:Table1",     False, "", "ref",     ""],
+          [3, "reflist", "RefList:Table1", False, "", "reflist", ""],
+        ]],
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "name"],
+          [1, "a"],
+          [2, "b"],
+        ],
+      }
+    })
+    self.load_sample(sample)
+    self.update_record("_grist_Tables_column", 2, visibleCol=1)
+
+    # Normal case
+    out_actions = self.apply_user_action(
+      ["UpdateRecord", "Table1", 1, {"ref": ["l", "b", {"column": "name"}]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["UpdateRecord", "Table1", 1, {"ref": 2}]]})
+
+    # Use ref.visibleCol (name) as default lookup column
+    out_actions = self.apply_user_action(
+      ["UpdateRecord", "Table1", 2, {"ref": ["l", "a"]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["UpdateRecord", "Table1", 2, {"ref": 1}]]})
+
+    # No match found, generate alttext from value
+    out_actions = self.apply_user_action(
+      ["UpdateRecord", "Table1", 2, {"ref": ["l", "foo", {"column": "name"}]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["UpdateRecord", "Table1", 2, {"ref": "foo"}]]})
+
+    # No match found, use provided alttext
+    out_actions = self.apply_user_action(
+      ["UpdateRecord", "Table1", 2, {"ref": ["l", "foo", {"column": "name", "raw": "alt"}]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["UpdateRecord", "Table1", 2, {"ref": "alt"}]]})
+
+    # Normal case, adding instead of updating
+    out_actions = self.apply_user_action(
+      ["AddRecord", "Table1", 3,
+       {"ref": ["l", "b", {"column": "name"}],
+        "name": "c"}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["AddRecord", "Table1", 3,
+       {"ref": 2,
+        "name": "c"}]]})
+
+    # Testing reflist and bulk action
+    out_actions = self.apply_user_action(
+      ["BulkUpdateRecord", "Table1", [1, 2, 3],
+       {"reflist": [
+         ["l", "c", {"column": "name"}],  # value gets wrapped in list automatically
+         ["l", ["a", "b"], {"column": "name"}],  # normal case
+         # "a" matches but "foo" doesn't so the whole thing fails
+         ["l", ["a", "foo"], {"column": "name", "raw": "alt"}],
+       ]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["BulkUpdateRecord", "Table1", [1, 2, 3],
+       {"reflist": [
+         ["L", 3],
+         ["L", 1, 2],
+         "alt",
+       ]}]]})
+
+    self.assertTableData('Table1', data=[
+      ["id", "name", "ref", "reflist"],
+      [1,    "a",    2,      [3]],
+      [2,    "b",    "alt",  [1, 2]],
+      [3,    "c",    2,      "alt"],
+    ])
+
+    # 'id' is used as the default visibleCol
+    out_actions = self.apply_user_action(
+      ["BulkUpdateRecord", "Table1", [1, 2],
+       {"reflist": [
+         ["l", 2],
+         ["l", 999],  # this row ID doesn't exist
+       ]}])
+    self.assertPartialOutActions(out_actions, {'stored': [
+      ["BulkUpdateRecord", "Table1", [1, 2],
+       {"reflist": [
+         ["L", 2],
+         "999",
+       ]}]]})
