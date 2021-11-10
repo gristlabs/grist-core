@@ -104,6 +104,7 @@ export class SubprocessControl implements ISandboxControl {
   private _throttle?: Throttle;
   private _monitoredProcess: Promise<ProcessInfo|null>;
   private _active: boolean;
+  private _foundDocker: boolean = false;
 
   constructor(private _options: {
     pid: number,   // pid of process opened by Grist
@@ -134,6 +135,10 @@ export class SubprocessControl implements ISandboxControl {
   }
 
   public async kill() {
+    if (this._foundDocker) {
+      process.kill(this._options.pid, 'SIGKILL');
+      return;
+    }
     for (const proc of await this._getAllProcesses()) {
       try {
         process.kill(proc.pid, 'SIGKILL');
@@ -179,7 +184,10 @@ export class SubprocessControl implements ISandboxControl {
         const recognizer = this._options.recognizers[key];
         if (!recognizer) { continue; }
         for (const proc of processes) {
-          if (proc.label.includes('docker')) { throw new Error('docker barrier found'); }
+          if (proc.label.includes('docker')) {
+            this._foundDocker = true;
+            throw new Error('docker barrier found');
+          }
           if (recognizer(proc)) {
             recognizedProcesses[key] = proc;
             continue;
