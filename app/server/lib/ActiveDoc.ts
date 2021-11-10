@@ -285,8 +285,8 @@ export class ActiveDoc extends EventEmitter {
     return this._actionHistory;
   }
 
-  public handleTriggers(summary: ActionSummary): Promise<void> {
-    return this._triggers.handle(summary);
+  public handleTriggers(localActionBundle: LocalActionBundle): Promise<ActionSummary> {
+    return this._triggers.handle(localActionBundle);
   }
 
   /**

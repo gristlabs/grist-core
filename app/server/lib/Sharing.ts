@@ -14,8 +14,7 @@ import {shortDesc} from 'app/server/lib/shortDesc';
 import * as assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as Deque from 'double-ended-queue';
-import { ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
-import {summarizeAction} from "./ActionSummary";
+import {ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {WorkCoordinator} from './WorkCoordinator';
@@ -299,8 +298,7 @@ export class Sharing {
       }
       await this._activeDoc.processActionBundle(ownActionBundle);
 
-      const actionSummary = summarizeAction(localActionBundle);
-      await this._activeDoc.handleTriggers(actionSummary);
+      const actionSummary = await this._activeDoc.handleTriggers(localActionBundle);
 
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
