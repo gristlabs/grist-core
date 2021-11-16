@@ -307,57 +307,68 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Shut down the ActiveDoc, and (by default) remove it from the docManager.
-   * @returns {Promise} Promise for when database and data engine are done shutting down.
+   * Shut down the ActiveDoc, and remove it from the DocManager. An optional
+   * afterShutdown operation can be provided, which will be run once the ActiveDoc
+   * is completely shut down but before it is removed from the DocManager, ensuring
+   * that the operation will not overlap with a new ActiveDoc starting up for the
+   * same document.
    */
-  public async shutdown(removeThisActiveDoc: boolean = true): Promise<void> {
+  public async shutdown(options: {
+    afterShutdown?: () => Promise<void>
+  } = {}): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
-    this._inactivityTimer.disable();
-    if (this.docClients.clientCount() > 0) {
-      this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
-      await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
-      this.docClients.removeAllClients();
-    }
-
-    this._triggers.shutdown();
-
-    // Clear the MapWithTTL to remove all timers from the event loop.
-    this._fetchCache.clear();
-
-    if (removeThisActiveDoc) { await this._docManager.removeActiveDoc(this); }
     try {
-      await this._docManager.storageManager.closeDocument(this.docName);
-    } catch (err) {
-      log.error('Problem shutting down document: %s %s', this.docName, err.message);
-    }
-
-    try {
-      const dataEngine = this._dataEngine ? await this._getEngine() : null;
-      this._shuttingDown = true;  // Block creation of engine if not yet in existence.
-      if (dataEngine) {
-        // Give a small grace period for finishing initialization if we are being shut
-        // down while initialization is still in progress, and we don't have an easy
-        // way yet to cancel it cleanly. This is mainly for the benefit of automated
-        // tests.
-        await timeoutReached(3000, this.waitForInitialization());
+      this.setMuted();
+      this._inactivityTimer.disable();
+      if (this.docClients.clientCount() > 0) {
+        this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
+        await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
+        this.docClients.interruptAllClients();
+        this.docClients.removeAllClients();
       }
-      await Promise.all([
-        this.docStorage.shutdown(),
-        this.docPluginManager.shutdown(),
-        dataEngine?.shutdown()
-      ]);
-      // The this.waitForInitialization promise may not yet have resolved, but
-      // should do so quickly now we've killed everything it depends on.
+
+      this._triggers.shutdown();
+
+      // Clear the MapWithTTL to remove all timers from the event loop.
+      this._fetchCache.clear();
+
       try {
-        await this.waitForInitialization();
+        await this._docManager.storageManager.closeDocument(this.docName);
       } catch (err) {
-        // Initialization errors do not matter at this point.
+        log.error('Problem shutting down document: %s %s', this.docName, err.message);
       }
-      this._log.debug(docSession, "shutdown complete");
-    } catch (err) {
-      this._log.error(docSession, "failed to shutdown some resources", err);
+
+      try {
+        const dataEngine = this._dataEngine ? await this._getEngine() : null;
+        this._shuttingDown = true;  // Block creation of engine if not yet in existence.
+        if (dataEngine) {
+          // Give a small grace period for finishing initialization if we are being shut
+          // down while initialization is still in progress, and we don't have an easy
+          // way yet to cancel it cleanly. This is mainly for the benefit of automated
+          // tests.
+          await timeoutReached(3000, this.waitForInitialization());
+        }
+        await Promise.all([
+          this.docStorage.shutdown(),
+          this.docPluginManager.shutdown(),
+          dataEngine?.shutdown()
+        ]);
+        // The this.waitForInitialization promise may not yet have resolved, but
+        // should do so quickly now we've killed everything it depends on.
+        try {
+          await this.waitForInitialization();
+        } catch (err) {
+          // Initialization errors do not matter at this point.
+        }
+      } catch (err) {
+        this._log.error(docSession, "failed to shutdown some resources", err);
+      }
+      await options.afterShutdown?.();
+    } finally {
+      this._docManager.removeActiveDoc(this);
     }
+    this._log.debug(docSession, "shutdown complete");
   }
 
   /**
@@ -450,32 +461,12 @@ export class ActiveDoc extends EventEmitter {
    * DocManager.
    */
   public async replace(source: DocReplacementOptions) {
-    // During replacement, it is important for all hands to be off the document.  So:
-    //  - We set the "mute" flag.  Setting this means that any operations in progress
-    //    using this ActiveDoc should be ineffective (apart from the replacement).
-    //    In other words, the operations shouldn't ultimately result in any changes in S3,
-    //    and any related requests should result in a failure or be retried.  TODO:
-    //    review how well we do on meeting this goal.
-    //  - We close the ActiveDoc, retaining its listing in DocManager but shutting down
-    //    all its component parts.  We retain it in DocManager to delay another
-    //    ActiveDoc being opened for the same document if someone is trying to operate
-    //    on it.
-    //  - We replace the document.
-    //  - We remove the ActiveDoc from DocManager, opening the way for the document to be
-    //    freshly opened.
-    // The "mute" flag is borrowed from worker shutdown.  Note this scenario is a little
-    // different, since the worker is not withdrawing from service, so fresh work may get
-    // assigned to it at any time.
-    this.setMuted();
-    this.docClients.interruptAllClients();
-    try {
-      await this.shutdown(false);
-      await this._docManager.storageManager.replace(this.docName, source);
-    } finally {
-      // Whatever happened, success or failure, there is nothing further we can do
-      // with this ActiveDoc.  Unlist it.
-      await this._docManager.removeActiveDoc(this);
-    }
+    // During replacement, it is important for all hands to be off the document. So we
+    // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
+    // before a new one could be opened.
+    return this.shutdown({
+      afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
+    });
   }
 
   /**

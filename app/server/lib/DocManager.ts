@@ -280,56 +280,57 @@ export class DocManager extends EventEmitter {
     // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
     const docSessionPrecursor = makeOptDocSession(client);
     docSessionPrecursor.authorizer = auth;
-    const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
 
-    if (activeDoc.muted) {
-      log.debug('DocManager.openDoc interrupting, called for a muted doc', docId);
-      client.interruptConnection();
-      throw new Error(`document ${docId} cannot be opened right now`);
-    }
+    return this._withUnmutedDoc(docSessionPrecursor, docId, async () => {
+      const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
 
-    // Get a fresh DocSession object.
-    const docSession = activeDoc.addClient(client, auth);
+      // Get a fresh DocSession object.
+      const docSession = activeDoc.addClient(client, auth);
 
-    // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
-    // an owner for granular access purposes.
-    if (mode === 'fork') {
-      if (await activeDoc.canForkAsOwner(docSession)) {
-        // Mark the session specially and flush any cached access
-        // information.  It is easier to make this a property of the
-        // session than to try computing it later in the heat of
-        // battle, since it introduces a loop where a user property
-        // (user.Access) depends on evaluating rules, but rules need
-        // the user properties in order to be evaluated.  It is also
-        // somewhat justifiable even if permissions change later on
-        // the theory that the fork is theoretically happening at this
-        // instance).
-        docSession.forkingAsOwner = true;
-        activeDoc.flushAccess(docSession);
-      } else {
-        // TODO: it would be kind to pass on a message to the client
-        // to let them know they won't be able to fork.  They'll get
-        // an error when they make their first change.  But currently
-        // we only have the blunt instrument of throwing an error,
-        // which would prevent access to the document entirely.
+      // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
+      // an owner for granular access purposes.
+      if (mode === 'fork') {
+        if (await activeDoc.canForkAsOwner(docSession)) {
+          // Mark the session specially and flush any cached access
+          // information.  It is easier to make this a property of the
+          // session than to try computing it later in the heat of
+          // battle, since it introduces a loop where a user property
+          // (user.Access) depends on evaluating rules, but rules need
+          // the user properties in order to be evaluated.  It is also
+          // somewhat justifiable even if permissions change later on
+          // the theory that the fork is theoretically happening at this
+          // instance).
+          docSession.forkingAsOwner = true;
+          activeDoc.flushAccess(docSession);
+        } else {
+          // TODO: it would be kind to pass on a message to the client
+          // to let them know they won't be able to fork.  They'll get
+          // an error when they make their first change.  But currently
+          // we only have the blunt instrument of throwing an error,
+          // which would prevent access to the document entirely.
+        }
       }
-    }
 
-    const [metaTables, recentActions] = await Promise.all([
-      activeDoc.fetchMetaTables(docSession),
-      activeDoc.getRecentMinimalActions(docSession)
-    ]);
+      const [metaTables, recentActions] = await Promise.all([
+        activeDoc.fetchMetaTables(docSession),
+        activeDoc.getRecentMinimalActions(docSession)
+      ]);
 
-    this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
+      const result = {
+        docFD: docSession.fd,
+        clientId: docSession.client.clientId,
+        doc: metaTables,
+        log: recentActions,
+        recoveryMode: activeDoc.recoveryMode,
+        userOverride: await activeDoc.getUserOverride(docSession),
+      } as OpenLocalDocResult;
 
-    return {
-      docFD: docSession.fd,
-      clientId: docSession.client.clientId,
-      doc: metaTables,
-      log: recentActions,
-      recoveryMode: activeDoc.recoveryMode,
-      userOverride: await activeDoc.getUserOverride(docSession),
-    };
+      if (!activeDoc.muted) {
+        this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
+      }
+
+      return {activeDoc, result};
+    });
   }
 
   /**
@@ -353,7 +354,7 @@ export class DocManager extends EventEmitter {
     return this._activeDocs.get(docName);
   }
 
-  public async removeActiveDoc(activeDoc: ActiveDoc): Promise<void> {
+  public removeActiveDoc(activeDoc: ActiveDoc): void {
     this._activeDocs.delete(activeDoc.docName);
   }
 
@@ -395,37 +396,16 @@ export class DocManager extends EventEmitter {
   }
 
   /**
-   * Fetches an ActiveDoc object. Used by openDoc.
+   * Fetches an ActiveDoc object. Used by openDoc. If ActiveDoc is muted (for safe closing),
+   * wait for another.
    */
   public async fetchDoc(docSession: OptDocSession, docName: string,
                         wantRecoveryMode?: boolean): Promise<ActiveDoc> {
     log.debug('DocManager.fetchDoc', docName);
-    // Repeat until we acquire an ActiveDoc that is not muted (shutting down).
-    for (;;) {
-      if (this._activeDocs.has(docName) && wantRecoveryMode !== undefined) {
-        const activeDoc = await this._activeDocs.get(docName);
-        if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
-          // shutting doc down to have a chance to re-open in the correct mode.
-          // TODO: there could be a battle with other users opening it in a different mode.
-          await activeDoc.shutdown();
-        }
-      }
-      if (!this._activeDocs.has(docName)) {
-        return mapSetOrClear(this._activeDocs, docName,
-                             this._createActiveDoc(docSession, docName, wantRecoveryMode)
-                             .then(newDoc => {
-                               // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
-                               newDoc.on('backupMade', (bakPath: string) => {
-                                 this.emit('backupMade', bakPath);
-                               });
-                               return newDoc.loadDoc(docSession);
-                             }));
-      }
-      const activeDoc = await this._activeDocs.get(docName)!;
-      if (!activeDoc.muted) { return activeDoc; }
-      log.debug('DocManager.fetchDoc waiting because doc is muted', docName);
-      await bluebird.delay(1000);
-    }
+    return this._withUnmutedDoc(docSession, docName, async () => {
+      const activeDoc = await this._fetchPossiblyMutedDoc(docSession, docName, wantRecoveryMode);
+      return {activeDoc, result: activeDoc};
+    });
   }
 
   public makeAccessId(userId: number|null): string|null {
@@ -435,6 +415,50 @@ export class DocManager extends EventEmitter {
   public isAnonymous(userId: number): boolean {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
     return userId === this._homeDbManager.getAnonymousUserId();
+  }
+
+  /**
+   * Perform the supplied operation and return its result - unless the activeDoc it returns
+   * is found to be muted, in which case we retry.
+   */
+  private async _withUnmutedDoc<T>(docSession: OptDocSession, docName: string,
+                                   op: () => Promise<{ result: T, activeDoc: ActiveDoc }>): Promise<T> {
+    // Repeat until we acquire an ActiveDoc that is not muted (shutting down).
+    for (;;) {
+      const { result, activeDoc } = await op();
+      if (!activeDoc.muted) { return result; }
+      log.debug('DocManager._withUnmutedDoc waiting because doc is muted', docName);
+      await bluebird.delay(1000);
+    }
+  }
+
+  // Like fetchDoc(), but doesn't check if ActiveDoc returned is unmuted.
+  private async _fetchPossiblyMutedDoc(docSession: OptDocSession, docName: string,
+                                       wantRecoveryMode?: boolean): Promise<ActiveDoc> {
+    if (this._activeDocs.has(docName) && wantRecoveryMode !== undefined) {
+      const activeDoc = await this._activeDocs.get(docName);
+      if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
+        // shutting doc down to have a chance to re-open in the correct mode.
+        // TODO: there could be a battle with other users opening it in a different mode.
+        await activeDoc.shutdown();
+      }
+    }
+    let activeDoc: ActiveDoc;
+    if (!this._activeDocs.has(docName)) {
+      activeDoc = await mapSetOrClear(
+        this._activeDocs, docName,
+        this._createActiveDoc(docSession, docName, wantRecoveryMode)
+          .then(newDoc => {
+            // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
+            newDoc.on('backupMade', (bakPath: string) => {
+              this.emit('backupMade', bakPath);
+            });
+            return newDoc.loadDoc(docSession);
+          }));
+    } else {
+      activeDoc = await this._activeDocs.get(docName)!;
+    }
+    return activeDoc;
   }
 
   private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {
