@@ -1,3 +1,4 @@
+import {GristDoc} from 'app/client/components/GristDoc';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportWarning} from 'app/client/models/errors';
@@ -24,6 +25,8 @@ export interface UserManagerModel {
   isAnythingChanged: Computed<boolean>;        // Indicates whether there are unsaved changes
   isOrg: boolean;                              // Indicates if the UserManager is for an org
   annotations: Observable<ShareAnnotations>;   // More information about shares, keyed by email.
+
+  gristDoc: GristDoc|null;                     // Populated if there is an open document.
 
   // Resets all unsaved changes
   reset(): void;
@@ -119,6 +122,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public isOrg: boolean = this.resourceType === 'organization';
 
+  public gristDoc: GristDoc|null;
+
   // Checks if any members were added/removed/changed, if the max inherited role changed or if the
   // anonymous access setting changed to enable the confirm button to write changes to the server.
   public readonly isAnythingChanged: Computed<boolean> = this.autoDispose(computed<boolean>((use) => {
@@ -142,6 +147,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     }
   ) {
     super();
+    this.gristDoc = this._options.docPageModel?.gristDoc.get() ?? null;
     if (this._options.appModel) {
       const features = this._options.appModel.currentFeatures;
       this._shareAnnotator = new ShareAnnotator(features, initData);
@@ -250,8 +256,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     // Loop through the members and update the delta.
     for (const m of members) {
       let access = m.access.get();
-      if (m === this.publicMember && access === roles.EDITOR &&
-          this._options.docPageModel?.gristDoc.get()?.hasGranularAccessRules()) {
+      if (m === this.publicMember && access === roles.EDITOR && this.gristDoc?.hasGranularAccessRules()) {
         access = roles.VIEWER;
         if (!options?.silent) {
           reportWarning('Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".');

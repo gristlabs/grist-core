@@ -121,13 +121,16 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         dom.on('click', () => ctl.close()),
         testId('um-cancel')
       ),
-      cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
-        dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
-        'Open Access Rules',
-        dom.on('click', (ev) => {
-          ev.preventDefault();
-          return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
-        }),
+      dom.maybe(use => use(modelObs)?.resourceType === 'document' && use(modelObs)?.gristDoc, () =>
+        cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
+          dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
+          'Open Access Rules',
+          dom.on('click', (ev) => {
+            ev.preventDefault();
+            return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+          }),
+          testId('um-open-access-rules')
+        )
       ),
       testId('um-buttons'),
     )
