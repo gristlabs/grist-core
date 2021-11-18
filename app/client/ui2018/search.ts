@@ -24,7 +24,7 @@ const searchWrapper = styled('div', `
   align-items: center;
   box-sizing: border-box;
   border: 1px solid transparent;
-  padding: 16px;
+  padding: 0px 16px;
   width: 50px;
   height: 100%;
   max-height: 50px;
@@ -48,6 +48,7 @@ const expandedSearch = styled('div', `
   align-items: center;
   width: 0;
   opacity: 0;
+  align-self: stretch;
   transition: width ${EXPAND_TIME}s, opacity ${EXPAND_TIME / 2}s ${EXPAND_TIME / 2}s;
   .${searchWrapper.className}-expand > & {
     width: auto;
@@ -63,6 +64,7 @@ const searchInput = styled(input, `
   padding: 0;
   padding-left: 4px;
   box-sizing: border-box;
+  align-self: stretch;
   width: 0;
   transition: width ${EXPAND_TIME}s;
   .${searchWrapper.className}-expand & {
