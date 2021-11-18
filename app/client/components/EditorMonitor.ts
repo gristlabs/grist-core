@@ -22,7 +22,10 @@ export class EditorMonitor extends Disposable {
     super();
 
     // create store
-    this._store = new EditMemoryStorage(doc.docId(), store);
+    const userId = doc.app.topAppModel.appObs.get()?.currentUser?.id ?? null;
+    // use document id and user id as a key for storage
+    const key = doc.docId() + userId;
+    this._store = new EditMemoryStorage(key, store);
 
     // listen to document events to handle view load event
     this._listenToReload(doc);
@@ -58,8 +61,8 @@ export class EditorMonitor extends Disposable {
     // will be invoked only once
     let executed = false;
 
-    // don't restore on readonly mode
-    if (doc.isReadonly.get()) { return; }
+    // don't restore on readonly mode or when there is custom nav
+    if (doc.isReadonly.get() || doc.hasCustomNav.get()) { return; }
 
     // on view shown
     this._currentViewListener.autoDispose(doc.currentView.addListener(async view => {
@@ -114,7 +117,7 @@ class EditMemoryStorage {
   private _entry: LastEditData | null = null;
   private _timestamp = 0;
 
-  constructor(private _docId: string, private _storage = getStorage()) {
+  constructor(private _key: string, private _storage = getStorage()) {
   }
 
   public updateValue(pos: CellPosition, value: EditorState): void {
@@ -136,13 +139,13 @@ class EditMemoryStorage {
     return this._timestamp;
   }
 
-  protected _key() {
-    return `grist-last-edit-${this._docId}`;
+  protected _storageKey() {
+    return `grist-last-edit-${this._key}`;
   }
 
   protected load() {
     const storage = this._storage;
-    const data = storage.getItem(this._key());
+    const data = storage.getItem(this._storageKey());
     this._entry = null;
     this._timestamp = 0;
 
@@ -166,14 +169,14 @@ class EditMemoryStorage {
 
     // if entry was removed - clear the storage
     if (!this._entry) {
-      storage.removeItem(this._key());
+      storage.removeItem(this._storageKey());
       return;
     }
 
     try {
       this._timestamp = Date.now();
       const data = { timestamp: this._timestamp, entry: this._entry };
-      storage.setItem(this._key(), JSON.stringify(data));
+      storage.setItem(this._storageKey(), JSON.stringify(data));
     } catch (ex) {
       console.error("Can't save current edited cell state. Error message: " + ex?.message);
     }

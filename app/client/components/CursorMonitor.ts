@@ -18,8 +18,8 @@ export class CursorMonitor extends Disposable {
 
   // abstraction to work with local storage
   private _store: StorageWrapper;
-  // document id that this monitor is attached
-  private _docId: string;
+  // key for storing position in the memory (docId + userId)
+  private _key: string;
   // flag that tells if the position was already restored
   // we track document's view change event, so we only want
   // to react to that event once
@@ -31,7 +31,10 @@ export class CursorMonitor extends Disposable {
     super();
 
     this._store = new StorageWrapper(store);
-    this._docId = doc.docId();
+
+    // Use document id and user id as a key for storage.
+    const userId = doc.app.topAppModel.appObs.get()?.currentUser?.id ?? null;
+    this._key = doc.docId() + userId;
 
     /**
      * When document loads last cursor position should be restored from local storage.
@@ -77,12 +80,12 @@ export class CursorMonitor extends Disposable {
   }
 
   private _storePosition(pos: ViewCursorPos) {
-    this._store.update(this._docId, pos);
+    this._store.update(this._key, pos);
   }
 
   private _restoreLastPosition(view: IDocPage) {
-    const lastPosition = this._store.read(this._docId);
-    this._store.clear(this._docId);
+    const lastPosition = this._store.read(this._key);
+    this._store.clear(this._key);
     if (lastPosition && lastPosition.position.viewId == view) {
       return lastPosition.position;
     }

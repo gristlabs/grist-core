@@ -1838,6 +1838,20 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
   return options;
 }
 
+/**
+ * Runs action in a separate tab, closing the tab after.
+ * In case of an error tab is not closed, consider using cleanupExtraWindows
+ * on whole test suit if needed.
+ */
+export async function onNewTab(action: () => Promise<void>) {
+  await driver.executeScript("return window.open('about:blank', '_blank')");
+  const tabs = await driver.getAllWindowHandles();
+  await driver.switchTo().window(tabs[tabs.length - 1]);
+  await action();
+  await driver.close();
+  await driver.switchTo().window(tabs[tabs.length - 2]);
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);
