@@ -348,7 +348,7 @@ export class ActiveDocImport {
       });
     }
 
-    await this._fixReferences(docSession, parsedTables, tables, fixedColumnIdsByTable, references, isHidden);
+    await this._fixReferences(docSession, tables, fixedColumnIdsByTable, references, isHidden);
 
     return ({options, tables});
   }
@@ -392,6 +392,9 @@ export class ActiveDocImport {
       // Transform rules for new tables don't have filled in destination column ids.
       const result = await this._activeDoc.applyUserActions(docSession, [['FillTransformRuleColIds', transformRule]]);
       transformRule = result.retValues[0] as TransformRule;
+
+      // Encode Refs as Ints, to avoid table dependency issues. We'll convert back to Ref at the end.
+      encodeRuleReferences(transformRule);
     } else if (transformRule.destCols.some(c => c.colId === null)) {
       throw new Error('Column ids in transform rule must be filled when importing into an existing table');
     }
@@ -600,8 +603,8 @@ export class ActiveDocImport {
   }
 
   /**
-   * The methods changes every column of references into a column of integers in `parsedTables`. It
-   * returns `parsedTable` and a list of descriptors of all columns of references.
+   * Changes every column of references into a column of integers in `parsedTables`. It
+   * returns a list of descriptors of all columns of references.
    */
   private _encodeReferenceAsInt(parsedTables: GristTable[]): ReferenceDescription[] {
     const references = [];
@@ -621,7 +624,6 @@ export class ActiveDocImport {
    * This function fix references that are broken by the change of table id.
    */
   private async _fixReferences(docSession: OptDocSession,
-                               parsedTables: GristTable[],
                                tables: ImportTableResult[],
                                fixedColumnIds: { [tableId: string]: string[]; },
                                references: ReferenceDescription[],
@@ -657,6 +659,23 @@ export class ActiveDocImport {
 // Helper function that returns true if a given cell is blank (i.e. null or empty).
 function isBlank(value: CellValue): boolean {
   return value === null || (typeof value === 'string' && value.trim().length === 0);
+}
+
+/**
+ * Changes every Ref column to an Int column in `destCols`.
+ *
+ * Encoding references as ints can be useful when finishing imports to avoid
+ * issues such as importing linked tables in the wrong order. When encoding references,
+ * ActiveDocImport._fixReferences should be called at the end of importing to
+ * decode Ints back to Refs.
+ */
+function encodeRuleReferences({destCols}: TransformRule): void {
+  for (const col of destCols) {
+    const refTableId = gutil.removePrefix(col.type, "Ref:");
+    if (refTableId) {
+      col.type = 'Int';
+    }
+  }
 }
 
 // Helper function that strips import prefixes from columns in transform rules (if ids are present).
