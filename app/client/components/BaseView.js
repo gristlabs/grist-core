@@ -30,6 +30,7 @@ const {encodeObject} = require("app/plugin/objtypes");
 /**
  * BaseView forms the basis for ViewSection classes.
  * @param {Object} viewSectionModel - The model for the viewSection represented.
+ * @param {Boolean} options.isPreview - Whether the view is a read-only preview (e.g. Importer view).
  * @param {Boolean} options.addNewRow - Whether to include an add row in the model.
  */
 function BaseView(gristDoc, viewSectionModel, options) {
@@ -168,6 +169,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
     return linking && linking.disableEditing();
   }));
 
+  this.isPreview = this.options.isPreview;
+
   this.enableAddRow = this.autoDispose(ko.computed(() => this.options.addNewRow &&
     !this.viewSection.disableAddRemoveRows() && !this.disableEditing()));
 
@@ -198,7 +201,9 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // A koArray of FieldBuilder objects, one for each view-section field.
   this.fieldBuilders = this.autoDispose(
-    FieldBuilder.createAllFieldWidgets(this.gristDoc, this.viewSection.viewFields, this.cursor)
+    FieldBuilder.createAllFieldWidgets(this.gristDoc, this.viewSection.viewFields, this.cursor, {
+      isPreview: this.isPreview,
+    })
   );
 
   // An observable evaluating to the FieldBuilder for the field where the cursor is.

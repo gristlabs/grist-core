@@ -36,10 +36,10 @@ const testId = makeTestId('test-fbuilder-');
 
 // Creates a FieldBuilder object for each field in viewFields
 export function createAllFieldWidgets(gristDoc: GristDoc, viewFields: ko.Computed<KoArray<ViewFieldRec>>,
-                                      cursor: Cursor) {
+                                      cursor: Cursor, options: { isPreview?: boolean } = {}) {
   // TODO: Handle disposal from the map when fields are removed.
   return viewFields().map(function(field) {
-    return new FieldBuilder(gristDoc, field, cursor);
+    return new FieldBuilder(gristDoc, field, cursor, options);
   }).setAutoDisposeValues();
 }
 
@@ -80,7 +80,7 @@ export class FieldBuilder extends Disposable {
   private readonly _readonly: Computed<boolean>;
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
-                     private _cursor: Cursor) {
+                     private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
     super();
 
     this._docModel = gristDoc.docModel;
@@ -89,7 +89,8 @@ export class FieldBuilder extends Disposable {
 
     this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
 
-    this._readonly = Computed.create(this, (use) => use(gristDoc.isReadonly) || use(field.disableEditData));
+    this._readonly = Computed.create(this, (use) =>
+      use(gristDoc.isReadonly) || use(field.disableEditData) || Boolean(this._options.isPreview));
 
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
@@ -428,7 +429,7 @@ export class FieldBuilder extends Disposable {
       this._rowMap.set(row, elem);
       dom(elem,
           dom.autoDispose(widgetObs),
-          kd.cssClass(this.field.formulaCssClass),
+          this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
                                          kd.toggleClass('active_cursor', isActive)

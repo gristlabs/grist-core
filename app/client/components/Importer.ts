@@ -170,7 +170,16 @@ export class Importer extends DisposableWithEvents {
   // Promise for the most recent generateImportDiff action.
   private _lastGenImportDiffPromise: Promise<any>|null = null;
 
-  private _updateImportDiff = debounce(this._updateDiff, 1000, {leading: true, trailing: true});
+  private _debouncedUpdateDiff = debounce(this._updateDiff, 1000, {leading: true, trailing: true});
+
+  /**
+   * Flag that is set when _updateImportDiff is called, and unset when _debouncedUpdateDiff begins executing.
+   *
+   * This is a workaround until Lodash's next release, which supports checking if a debounced function is
+   * pending. We need to know if more debounced calls are pending so that we can decide to take down the
+   * loading spinner over the preview table, or leave it up until all scheduled calls settle.
+   */
+  private _hasScheduledDiffUpdate = false;
 
   // destTables is a list of options for import destinations, and includes all tables in the
   // document, plus two values: to import as a new table, and to skip an import table entirely.
@@ -297,6 +306,9 @@ export class Importer extends DisposableWithEvents {
     // Otherwise, update the transform section for `sourceInfo`.
     sourceInfo.transformSection.set(this._gristDoc.docModel.viewSections.getRowModel(transformSectionRef));
     sourceInfo.isLoadingSection.set(false);
+
+    // Change the active section to the transform section, so that formula autocomplete works.
+    this._gristDoc.viewModel.activeSectionId(transformSectionRef);
   }
 
   private _getTransformedDataSource(upload: UploadResult): DataSourceTransformed {
@@ -479,16 +491,28 @@ export class Importer extends DisposableWithEvents {
    * Triggers an update of the import diff in the preview table. When called in quick succession,
    * only the most recent call will result in an update being made to the preview table.
    *
-   * NOTE: This method should not be called directly. Instead, use _updateImportDiff, which
-   * wraps this method and debounces it.
+   * @param {SourceInfo} info The source to update the diff for.
+   */
+  private async _updateImportDiff(info: SourceInfo) {
+    this._hasScheduledDiffUpdate = true;
+    this._isLoadingDiff.set(true);
+    await this._debouncedUpdateDiff(info);
+  }
+
+  /**
+   * NOTE: This method should not be called directly. Instead, use _updateImportDiff above, which
+   * wraps this method and calls a debounced version of it.
+   *
+   * Triggers an update of the import diff in the preview table. When called in quick succession,
+   * only the most recent call will result in an update being made to the preview table.
    *
    * @param {SourceInfo} info The source to update the diff for.
    */
   private async _updateDiff(info: SourceInfo) {
+    // Reset the flag tracking scheduled updates since the debounced update has started.
+    this._hasScheduledDiffUpdate = false;
+
     const mergeOptions = this._mergeOptions[info.hiddenTableId]!;
-
-    this._isLoadingDiff.set(true);
-
     if (!mergeOptions.updateExistingRecords.get() || mergeOptions.mergeCols.get().length === 0) {
       // We can simply disable document comparison mode when merging isn't configured.
       this._gristDoc.comparison = null;
@@ -506,7 +530,10 @@ export class Importer extends DisposableWithEvents {
       this._gristDoc.comparison = diff;
     }
 
-    this._isLoadingDiff.set(false);
+    // If more updates where scheduled since we started the update, leave the loading spinner up.
+    if (!this._hasScheduledDiffUpdate) {
+      this._isLoadingDiff.set(false);
+    }
   }
 
   /**
@@ -523,8 +550,9 @@ export class Importer extends DisposableWithEvents {
    * is functionally equivalent to canceling the outstanding requests.
    */
   private _cancelPendingDiffRequests() {
-    this._updateImportDiff.cancel();
+    this._debouncedUpdateDiff.cancel();
     this._lastGenImportDiffPromise = null;
+    this._hasScheduledDiffUpdate = false;
     this._isLoadingDiff.set(false);
   }
 
@@ -579,14 +607,14 @@ export class Importer extends DisposableWithEvents {
           const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
 
           return cssConfigAndPreview(
-            cssConfigColumn(
-              dom.maybe(info.transformSection, section => [
-                dom.maybe(info.destTableId, () => {
-                  const updateRecordsListener = updateExistingRecords.addListener(async () => {
-                    await this._updateImportDiff(info);
-                  });
+            dom.maybe(info.destTableId, () => cssConfigColumn(
+              dom.maybe(info.transformSection, section => {
+                const updateRecordsListener = updateExistingRecords.addListener(async () => {
+                  await this._updateImportDiff(info);
+                });
 
-                  return cssMergeOptions(
+                return [
+                  cssMergeOptions(
                     cssMergeOptionsToggle(labeledSquareCheckbox(
                       updateExistingRecords,
                       'Update existing records',
@@ -619,77 +647,77 @@ export class Importer extends DisposableWithEvents {
                         )
                       ];
                     })
-                  );
-                }),
-                dom.domComputed(this._unmatchedFields, fields =>
-                  fields && fields.length > 0 ?
-                    cssUnmatchedFields(
-                      dom('div',
-                        cssGreenText(
-                          `${fields.length} unmatched ${fields.length > 1 ? 'fields' : 'field'}`
+                  ),
+                  dom.domComputed(this._unmatchedFields, fields =>
+                    fields && fields.length > 0 ?
+                      cssUnmatchedFields(
+                        dom('div',
+                          cssGreenText(
+                            `${fields.length} unmatched ${fields.length > 1 ? 'fields' : 'field'}`
+                          ),
+                          ' in import:'
                         ),
-                        ' in import:'
-                      ),
-                      cssUnmatchedFieldsList(fields.join(', ')),
-                      testId('importer-unmatched-fields')
-                    ) : null
-                ),
-                cssColumnMatchOptions(
-                  dom.forEach(fromKo(section.viewFields().getObservable()), field => cssColumnMatchRow(
-                    cssColumnMatchIcon('ImportArrow'),
-                    cssSourceAndDestination(
-                      cssDestinationFieldRow(
-                        cssDestinationFieldLabel(
-                          dom.text(field.label),
-                        ),
-                        cssDestinationFieldSettings(
-                          icon('Dots'),
-                          menu(
-                            () => {
-                              const sourceColId = field.origCol().id();
-                              const sourceColIdsAndLabels = [...this._sourceColLabelsById.get()!.entries()];
-                              return [
-                                menuItem(
-                                  () => this._gristDoc.clearColumns([sourceColId]),
-                                  'Skip',
-                                  testId('importer-column-match-menu-item')
-                                ),
-                                menuDivider(),
-                                ...sourceColIdsAndLabels.map(([id, label]) =>
+                        cssUnmatchedFieldsList(fields.join(', ')),
+                        testId('importer-unmatched-fields')
+                      ) : null
+                  ),
+                  cssColumnMatchOptions(
+                    dom.forEach(fromKo(section.viewFields().getObservable()), field => cssColumnMatchRow(
+                      cssColumnMatchIcon('ImportArrow'),
+                      cssSourceAndDestination(
+                        cssDestinationFieldRow(
+                          cssDestinationFieldLabel(
+                            dom.text(field.label),
+                          ),
+                          cssDestinationFieldSettings(
+                            icon('Dots'),
+                            menu(
+                              () => {
+                                const sourceColId = field.origCol().id();
+                                const sourceColIdsAndLabels = [...this._sourceColLabelsById.get()!.entries()];
+                                return [
                                   menuItem(
-                                    () => this._setColumnFormula(sourceColId, '$' + id),
-                                    label,
+                                    () => this._gristDoc.clearColumns([sourceColId]),
+                                    'Skip',
                                     testId('importer-column-match-menu-item')
                                   ),
-                                ),
-                                testId('importer-column-match-menu'),
-                              ];
-                            },
-                            {placement: 'right-start'},
+                                  menuDivider(),
+                                  ...sourceColIdsAndLabels.map(([id, label]) =>
+                                    menuItem(
+                                      () => this._setColumnFormula(sourceColId, '$' + id),
+                                      label,
+                                      testId('importer-column-match-menu-item')
+                                    ),
+                                  ),
+                                  testId('importer-column-match-menu'),
+                                ];
+                              },
+                              { placement: 'right-start' },
+                            ),
+                            testId('importer-column-match-destination-settings')
                           ),
-                          testId('importer-column-match-destination-settings')
+                          testId('importer-column-match-destination')
                         ),
-                        testId('importer-column-match-destination')
-                      ),
-                      dom.domComputed(use => dom.create(
-                        this._buildColMappingFormula.bind(this),
-                        use(field.column),
-                        (elem: Element) => this._activateFormulaEditor(elem, field),
-                        'Skip'
-                      )),
-                      testId('importer-column-match-source-destination'),
-                    )
-                  )),
-                  testId('importer-column-match-options'),
-                )
-              ]),
-            ),
+                        dom.domComputed(use => dom.create(
+                          this._buildColMappingFormula.bind(this),
+                          use(field.column),
+                          (elem: Element) => this._activateFormulaEditor(elem, field),
+                          'Skip'
+                        )),
+                        testId('importer-column-match-source-destination'),
+                      )
+                    )),
+                    testId('importer-column-match-options'),
+                  )
+                ];
+              }),
+            )),
             cssPreviewColumn(
               cssSectionHeader('Preview'),
               dom.domComputed(use => {
                 const previewSection = use(this._previewViewSection);
                 if (use(this._isLoadingDiff) || !previewSection) {
-                  return cssPreviewSpinner(loadingSpinner());
+                  return cssPreviewSpinner(loadingSpinner(), testId('importer-preview-spinner'));
                 }
 
                 const gridView = this._createPreview(previewSection);

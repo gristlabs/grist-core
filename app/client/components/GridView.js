@@ -55,7 +55,7 @@ const ROW_NUMBER_WIDTH = 52;
  * GridView component implements the view of a grid of cells.
  */
 function GridView(gristDoc, viewSectionModel, isPreview = false) {
-  BaseView.call(this, gristDoc, viewSectionModel, { 'addNewRow': true });
+  BaseView.call(this, gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
 
   this.viewSection = viewSectionModel;
 
@@ -878,7 +878,7 @@ GridView.prototype.buildDom = function() {
             kd.style('borderLeftWidth', v.borderWidthPx),
             kd.foreach(v.viewFields(), field => {
               var isEditingLabel = ko.pureComputed({
-                read: () => this.gristDoc.isReadonlyKo() ? false : editIndex() === field._index(),
+                read: () => this.gristDoc.isReadonlyKo() || self.isPreview ? false : editIndex() === field._index(),
                 write: val => editIndex(val ? field._index() : -1)
               }).extend({ rateLimit: 0 });
               let filterTriggerCtl;
@@ -899,10 +899,10 @@ GridView.prototype.buildDom = function() {
                   if (btn) { btn.click(); }
                 }),
                 dom('div.g-column-label',
-                  kf.editableLabel(field.displayLabel, isEditingLabel, renameCommands),
+                  kf.editableLabel(self.isPreview ? field.label : field.displayLabel, isEditingLabel, renameCommands),
                   dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true)
                 ),
-                this.isPreview ? null : menuToggle(null,
+                self.isPreview ? null : menuToggle(null,
                   kd.cssClass('g-column-main-menu'),
                   kd.cssClass('g-column-menu-btn'),
                   // Prevent mousedown on the dropdown triangle from initiating column drag.
@@ -1001,7 +1001,7 @@ GridView.prototype.buildDom = function() {
           ev.preventDefault();
           ev.currentTarget.querySelector('.menu_toggle').click();
         }),
-        menuToggle(null,
+        self.isPreview ? null : menuToggle(null,
           dom.on('click', ev => self.maybeSelectRow(ev.currentTarget.parentNode, row.getRowId())),
           menu(() => RowContextMenu({
             disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
@@ -1378,7 +1378,7 @@ GridView.prototype._getColumnMenuOptions = function(copySelection) {
     numColumns: copySelection.fields.length,
     numFrozen: this.viewSection.numFrozen.peek(),
     disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
-    isReadonly: this.gristDoc.isReadonly.get(),
+    isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
     isFiltered: this.isFiltered(),
     isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
   };
