@@ -242,6 +242,8 @@ export class ChoiceListEntry extends Disposable {
     const rename = async (to: string) => {
       const tokenField = this._tokenFieldHolder.get();
       if (!tokenField) { return; }
+
+      to = to.trim();
       // If user removed the label, revert back to original one.
       if (!to) {
         choiceText.set(token.label);

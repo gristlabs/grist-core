@@ -19,7 +19,7 @@ export interface FormatOptions {
  * Formats a value of any type generically (with no type-specific options).
  */
 export function formatUnknown(value: CellValue): string {
-  return formatHelper(decodeObject(value));
+  return formatDecoded(decodeObject(value));
 }
 
 /**
@@ -27,13 +27,13 @@ export function formatUnknown(value: CellValue): string {
  * like to see them in a cell or in, say, CSV export. For lists and objects, nested values are
  * formatted slighly differently, with quoted strings and ISO format for dates.
  */
-function formatHelper(value: unknown, isTopLevel: boolean = true): string {
+export function formatDecoded(value: unknown, isTopLevel: boolean = true): string {
   if (typeof value === 'object' && value) {
     if (Array.isArray(value)) {
-      return '[' + value.map(v => formatHelper(v, false)).join(', ') + ']';
+      return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
     } else if (isPlainObject(value)) {
       const obj: any = value;
-      const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatHelper(obj[k], false)}`);
+      const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatDecoded(obj[k], false)}`);
       return '{' + items.join(', ') + '}';
     } else if (isTopLevel && value instanceof GristDateTime) {
       return moment(value).tz(value.timezone).format("YYYY-MM-DD HH:mm:ssZ");
