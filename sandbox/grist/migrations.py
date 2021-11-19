@@ -807,3 +807,36 @@ def migration24(tdset):
       schema.make_column("actions", "Text"),  # JSON
     ]),
   ])
+
+@migration(schema_version=25)
+def migration25(tdset):
+  """
+  Add _grist_Filters table and populate based on existing filters stored
+  in _grist_Views_section_field.
+
+  From this version on, filter in _grist_Views_section_field is deprecated.
+  """
+  doc_actions = [
+    actions.AddTable('_grist_Filters', [
+      schema.make_column("viewSectionRef", "Ref:_grist_Views_section"),
+      schema.make_column("colRef", "Ref:_grist_Tables_column"),
+      schema.make_column("filter", "Text"),
+    ])
+  ]
+
+  # Move existing field filters to _grist_Filters.
+  fields = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Views_section_field']))
+  col_info = { 'filter': [], 'colRef': [], 'viewSectionRef': [] }
+  for f in fields:
+    if not f.filter:
+      continue
+
+    col_info['filter'].append(f.filter)
+    col_info['colRef'].append(f.colRef)
+    col_info['viewSectionRef'].append(f.parentId)
+
+  num_filters = len(col_info['filter'])
+  if num_filters > 0:
+    doc_actions.append(actions.BulkAddRecord('_grist_Filters', [None] * num_filters, col_info))
+
+  return tdset.apply_doc_actions(doc_actions)

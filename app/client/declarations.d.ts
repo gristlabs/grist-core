@@ -38,7 +38,8 @@ declare module "app/client/components/BaseView" {
   import {DataRowModel} from 'app/client/models/DataRowModel';
   import {LazyArrayModel} from "app/client/models/DataTableModel";
   import * as DataTableModel from "app/client/models/DataTableModel";
-  import {ViewFieldRec, ViewSectionRec} from "app/client/models/DocModel";
+  import {ViewSectionRec} from "app/client/models/DocModel";
+  import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
   import {SortedRowSet} from 'app/client/models/rowset';
   import {FieldBuilder} from "app/client/widgets/FieldBuilder";
   import {DomArg} from 'grainjs';
@@ -64,7 +65,7 @@ declare module "app/client/components/BaseView" {
 
     constructor(gristDoc: GristDoc, viewSectionModel: any);
     public setCursorPos(cursorPos: CursorPos): void;
-    public createFilterMenu(ctl: IOpenController, field: ViewFieldRec, onClose?: () => void): HTMLElement;
+    public createFilterMenu(ctl: IOpenController, filterInfo: FilterInfo, onClose?: () => void): HTMLElement;
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;

@@ -6,7 +6,8 @@
 
 import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
 import {RowId, RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
@@ -278,21 +279,22 @@ function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
 /**
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
-export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, field: ViewFieldRec,
+export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, filterInfo: FilterInfo,
                                  rowSource: RowSource, tableData: TableData, onClose: () => void = noop) {
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const columnType = field.column().type.peek();
-  const {keyMapFunc, labelMapFunc} = getMapFuncs(columnType, tableData, field);
-  const activeFilterBar = field.viewSection.peek().activeFilterBar;
+  const fieldOrColumn = filterInfo.fieldOrColumn;
+  const columnType = fieldOrColumn.origCol.peek().type.peek();
+  const {keyMapFunc, labelMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
+  const activeFilterBar = sectionFilter.viewSection.activeFilterBar;
 
-  function getFilterFunc(f: ViewFieldRec, colFilter: ColumnFilterFunc|null) {
-    return f.getRowId() === field.getRowId() ? null : colFilter;
+  function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
+    return col.getRowId() === fieldOrColumn.getRowId() ? null : colFilter;
   }
   const filterFunc = Computed.create(null, use => sectionFilter.buildFilterFunc(getFilterFunc, use));
   openCtl.autoDispose(filterFunc);
 
-  const columnFilter = ColumnFilter.create(openCtl, field.activeFilter.peek(), columnType);
-  sectionFilter.setFilterOverride(field.getRowId(), columnFilter); // Will be removed on menu disposal
+  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType);
+  sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
 
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
   const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
@@ -310,12 +312,15 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
     doSave: (reset: boolean = false) => {
       const spec = columnFilter.makeFilterJson();
       // If filter is moot and filter bar is hidden, let's remove the filter.
-      field.activeFilter((spec === allInclusive && !activeFilterBar.peek()) ? '' : spec);
+      sectionFilter.viewSection.setFilter(
+        fieldOrColumn.origCol().origColRef(),
+        spec === allInclusive && !activeFilterBar.peek() ? '' : spec
+      );
       if (reset) {
         sectionFilter.resetTemporaryRows();
       }
     },
-    renderValue: getRenderFunc(columnType, field),
+    renderValue: getRenderFunc(columnType, fieldOrColumn),
   });
 }
 
@@ -330,10 +335,10 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
  * Used by ColumnFilterMenu to compute counts of unique cell
  * values and display them with an appropriate label.
  */
-function getMapFuncs(columnType: string, tableData: TableData, field: ViewFieldRec) {
-  const keyMapFunc = tableData.getRowPropFunc(field.column().colId())!;
-  const labelGetter = tableData.getRowPropFunc(field.displayColModel().colId())!;
-  const formatter = field.createVisibleColFormatter();
+function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec|ColumnRec) {
+  const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId())!;
+  const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId())!;
+  const formatter = fieldOrColumn.createVisibleColFormatter();
 
   let labelMapFunc: (rowId: number) => string | string[];
   if (isRefListType(columnType)) {
@@ -357,9 +362,9 @@ function getMapFuncs(columnType: string, tableData: TableData, field: ViewFieldR
  * column types by rendering their values as colored tokens instead of
  * text.
  */
-function getRenderFunc(columnType: string, field: ViewFieldRec) {
+function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec) {
   if (['Choice', 'ChoiceList'].includes(columnType)) {
-    const options = field.column().widgetOptionsJson.peek();
+    const options = fieldOrColumn.widgetOptionsJson.peek();
     const choiceSet: Set<string> = new Set(options.choices || []);
     const choiceOptions: ChoiceOptions = options.choiceOptions || {};
 
@@ -460,13 +465,14 @@ interface IColumnFilterMenuOptions extends IPopupOptions {
 }
 
 // Helper to attach the column filter menu.
-export function attachColumnFilterMenu(viewSection: ViewSectionRec, field: ViewFieldRec,
+export function attachColumnFilterMenu(viewSection: ViewSectionRec, filterInfo: FilterInfo,
                                        popupOptions: IColumnFilterMenuOptions): DomElementMethod {
   const options = {...defaultPopupOptions, ...popupOptions};
   return (elem) => {
     const instance = viewSection.viewInstance();
     if (instance && instance.createFilterMenu) { // Should be set if using BaseView
-      setPopupToCreateDom(elem, ctl => instance.createFilterMenu(ctl, field, popupOptions.onCloseContent), options);
+      setPopupToCreateDom(elem, ctl =>
+        instance.createFilterMenu(ctl, filterInfo, popupOptions.onCloseContent), options);
     }
   };
 }

@@ -576,29 +576,34 @@ ViewConfigTab.prototype._buildFilterDom = function() {
     }
 
     return [
-      grainjsDom.forEach(section.filteredFields, (field) => {
+      grainjsDom.forEach(section.activeFilters, (filterInfo) => {
         return cssRow(
           cssIconWrapper(
             cssFilterIcon('FilterSimple', cssNoMarginLeft.cls('')),
-            attachColumnFilterMenu(section, field, {
+            attachColumnFilterMenu(section, filterInfo, {
               placement: 'bottom-end', attach: 'body',
-              trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)],
+              trigger: [
+                'click',
+                (_el, popupControl) => popupControls.set(filterInfo.fieldOrColumn.origCol(), popupControl)
+              ],
             }),
           ),
-          cssLabel(grainjsDom.text(field.label)),
+          cssLabel(grainjsDom.text(filterInfo.fieldOrColumn.label)),
           cssIconWrapper(
-            cssFilterIcon('Remove', dom.on('click', () => field.activeFilter('')),
-                          testId('remove-filter')),
+            cssFilterIcon('Remove',
+              dom.on('click', () => section.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), '')),
+              testId('remove-filter')
+            ),
           ),
           testId('filter'),
         );
       }),
       cssRow(
         grainjsDom.domComputed((use) => {
-          const fields = use(use(section.viewFields).getObservable());
+          const filters = use(section.filters);
           return cssTextBtn(
             cssPlusIcon('Plus'), 'Add Filter',
-            addFilterMenu(fields, popupControls, {placement: 'bottom-end'}),
+            addFilterMenu(filters, section, popupControls, {placement: 'bottom-end'}),
             testId('add-filter-btn'),
           );
         }),

@@ -650,9 +650,9 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getCsvLink() {
-    const filters = this.viewModel.activeSection.peek().filteredFields.get().map(field=> ({
-      colRef : field.colRef.peek(),
-      filter : field.activeFilter.peek()
+    const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
+      colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
+      filter : filterInfo.filter()
     }));
 
     const params = {

@@ -1,5 +1,6 @@
 import { allInclusive } from "app/client/models/ColumnFilter";
-import { ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
 import { cssButton, cssButtonGroup } from "app/client/ui2018/buttons";
 import { colors, testId } from "app/client/ui2018/cssVars";
@@ -9,46 +10,46 @@ import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
 import { IMenuOptions, PopupControl } from "popweasel";
 
 export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec) {
-  const popupControls = new WeakMap<ViewFieldRec, PopupControl>();
+  const popupControls = new WeakMap<ColumnRec, PopupControl>();
   return cssFilterBar(
     testId('filter-bar'),
-    dom.forEach(viewSection.filteredFields, (field) => makeFilterField(viewSection, field, popupControls)),
+    dom.forEach(viewSection.activeFilters, (filterInfo) => makeFilterField(viewSection, filterInfo, popupControls)),
     makePlusButton(viewSection, popupControls),
   );
 }
 
-function makeFilterField(viewSection: ViewSectionRec, field: ViewFieldRec,
-                         popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+function makeFilterField(viewSection: ViewSectionRec, filterInfo: FilterInfo,
+                         popupControls: WeakMap<ColumnRec, PopupControl>) {
   return cssFilterBarItem(
     testId('filter-field'),
     primaryButton(
       testId('btn'),
       cssIcon('FilterSimple'),
-      cssMenuTextLabel(dom.text(field.label)),
-      cssBtn.cls('-grayed', field.activeFilter.isSaved),
-      attachColumnFilterMenu(viewSection, field, {
+      cssMenuTextLabel(dom.text(filterInfo.fieldOrColumn.label)),
+      cssBtn.cls('-grayed', filterInfo.filter.isSaved),
+      attachColumnFilterMenu(viewSection, filterInfo, {
         placement: 'bottom-start', attach: 'body',
-        trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)]
+        trigger: ['click', (_el, popupControl) => popupControls.set(filterInfo.fieldOrColumn.origCol(), popupControl)]
       }),
     ),
     deleteButton(
       testId('delete'),
       cssIcon('CrossSmall'),
-      cssBtn.cls('-grayed', field.activeFilter.isSaved),
-      dom.on('click', () => field.activeFilter('')),
+      cssBtn.cls('-grayed', filterInfo.filter.isSaved),
+      dom.on('click', () => viewSection.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), '')),
     )
   );
 }
 
-export function addFilterMenu(fields: ViewFieldRec[], popupControls: WeakMap<ViewFieldRec, PopupControl>,
-                              options?: IMenuOptions) {
+export function addFilterMenu(filters: FilterInfo[], viewSection: ViewSectionRec,
+                              popupControls: WeakMap<ColumnRec, PopupControl>, options?: IMenuOptions) {
   return (
     menu((ctl) => [
-      ...fields.map((f) => (
+      ...filters.map((filterInfo) => (
         menuItemAsync(
-          () => turnOnAndOpenFilter(f, popupControls),
-          f.label.peek(),
-          dom.cls('disabled', f.isFiltered),
+          () => turnOnAndOpenFilter(filterInfo.fieldOrColumn, viewSection, popupControls),
+          filterInfo.fieldOrColumn.label.peek(),
+          dom.cls('disabled', filterInfo.isFiltered),
           testId('add-filter-item'),
         )
       )),
@@ -62,19 +63,20 @@ export function addFilterMenu(fields: ViewFieldRec[], popupControls: WeakMap<Vie
   );
 }
 
-function turnOnAndOpenFilter(f: ViewFieldRec, popupControls: WeakMap<ViewFieldRec, PopupControl>) {
-   f.activeFilter(allInclusive);
-   popupControls.get(f)?.open();
+function turnOnAndOpenFilter(fieldOrColumn: ViewFieldRec|ColumnRec, viewSection: ViewSectionRec,
+                             popupControls: WeakMap<ColumnRec, PopupControl>) {
+  viewSection.setFilter(fieldOrColumn.origCol().origColRef(), allInclusive);
+  popupControls.get(fieldOrColumn.origCol())?.open();
 }
 
-function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<ColumnRec, PopupControl>) {
   return dom.domComputed((use) => {
-    const fields = use(use(viewSectionRec.viewFields).getObservable());
-    const anyFilter = fields.find((f) => use(f.isFiltered));
+    const filters = use(viewSectionRec.filters);
+    const anyFilter = use(viewSectionRec.activeFilters).length > 0;
     return cssPlusButton(
       cssBtn.cls('-grayed'),
       cssIcon('Plus'),
-      addFilterMenu(fields, popupControls),
+      addFilterMenu(filters, viewSectionRec, popupControls),
       anyFilter ? null : cssPlusLabel('Add Filter'),
       testId('add-filter-btn')
     );

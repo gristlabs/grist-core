@@ -3,6 +3,7 @@ import {DocModel, IRowModel, recordSet, refRecord, TableRec, ViewFieldRec} from 
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
+import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import * as ko from 'knockout';
 
 // Represents a column in a user-defined table.
@@ -35,6 +36,13 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // The column's display column
   _displayColModel: ko.Computed<ColumnRec>;
 
+  // Display col ref to use for the column, defaulting to the plain column itself.
+  displayColRef: ko.Computed<number>;
+
+  // The display column to use for the column, or the column itself when no displayCol is set.
+  displayColModel: ko.Computed<ColumnRec>;
+  visibleColModel: ko.Computed<ColumnRec>;
+
   disableModifyBase: ko.Computed<boolean>;    // True if column config can't be modified (name, type, etc.)
   disableModify: ko.Computed<boolean>;        // True if column can't be modified or is being transformed.
   disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
@@ -46,6 +54,10 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
+
+  // Helper for Reference/ReferenceList columns, which returns a formatter according
+  // to the visibleCol associated with column. Subscribes to observables if used within a computed.
+  createVisibleColFormatter(): BaseFormatter;
 }
 
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
@@ -84,6 +96,13 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     }
   };
 
+  // Display col ref to use for the column, defaulting to the plain column itself.
+  this.displayColRef = ko.pureComputed(() => this.displayCol() || this.origColRef());
+
+  // The display column to use for the column, or the column itself when no displayCol is set.
+  this.displayColModel = refRecord(docModel.columns, this.displayColRef);
+  this.visibleColModel = refRecord(docModel.columns, this.visibleCol);
+
   this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol()));
   this.disableModify = ko.pureComputed(() => this.disableModifyBase() || this.isTransforming());
   this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
@@ -95,4 +114,16 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     const refTableId = getReferencedTableId(this.type() || "");
     return refTableId ? docModel.allTables.all().find(t => t.tableId() === refTableId) || null : null;
   });
+
+  // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
+  // associated with this column. If no visible column available, return formatting for the column itself.
+  // Subscribes to observables if used within a computed.
+  // TODO: It would be better to replace this with a pureComputed whose value is a formatter.
+  this.createVisibleColFormatter = function() {
+    const vcol = this.visibleColModel();
+    const documentSettings = docModel.docInfoRow.documentSettingsJson();
+    return (vcol.getRowId() !== 0) ?
+      createFormatter(vcol.type(), vcol.widgetOptionsJson(), documentSettings) :
+      createFormatter(this.type(), this.widgetOptionsJson(), documentSettings);
+  };
 }

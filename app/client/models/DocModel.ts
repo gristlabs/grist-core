@@ -28,6 +28,7 @@ import {schema, SchemaTypes} from 'app/common/schema';
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
+import {createFilterRec, FilterRec} from 'app/client/models/entities/FilterRec';
 import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
 import {createTabBarRec, TabBarRec} from 'app/client/models/entities/TabBarRec';
 import {createTableRec, TableRec} from 'app/client/models/entities/TableRec';
@@ -41,6 +42,7 @@ import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/V
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 export {ColumnRec} from 'app/client/models/entities/ColumnRec';
 export {DocInfoRec} from 'app/client/models/entities/DocInfoRec';
+export {FilterRec} from 'app/client/models/entities/FilterRec';
 export {PageRec} from 'app/client/models/entities/PageRec';
 export {TabBarRec} from 'app/client/models/entities/TabBarRec';
 export {TableRec} from 'app/client/models/entities/TableRec';
@@ -111,6 +113,7 @@ export class DocModel {
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
+  public filters: MTM<FilterRec> = this._metaTableModel("_grist_Filters", createFilterRec);
 
   public docInfoRow: DocInfoRec;
 

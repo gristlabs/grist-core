@@ -1,5 +1,5 @@
 import * as BaseView from 'app/client/components/BaseView';
-import { ColumnRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
+import { ColumnRec, FilterRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as ko from 'knockout';
 import { CursorPos, } from 'app/client/components/Cursor';
@@ -7,6 +7,7 @@ import { KoArray, } from 'app/client/lib/koArray';
 import { DocModel, IRowModel, recordSet, refRecord, } from 'app/client/models/DocModel';
 import { RowId, } from 'app/client/models/rowset';
 import { getWidgetTypes, } from 'app/client/ui/widgetTypes';
+import { arrayRepeat, } from 'app/common/gutil';
 import { Sort, } from 'app/common/SortSpec';
 import { Computed, } from 'grainjs';
 import defaults = require('lodash/defaults');
@@ -15,6 +16,9 @@ import defaults = require('lodash/defaults');
 // a grid section and a chart section).
 export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
+
+  // All table columns associated with this view section, excluding hidden helper columns.
+  columns: ko.Computed<ColumnRec[]>;
 
   optionsObj: modelUtil.SaveableObjObservable<any>;
 
@@ -33,12 +37,35 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
 
   layoutSpecObj: modelUtil.ObjObservable<any>;
 
-  // Helper metadata item which indicates whether any of the section's fields have unsaved
+  _savedFilters: ko.Computed<KoArray<FilterRec>>;
+
+  /**
+   * Unsaved client-side filters, keyed by original col ref. Currently only wiped when unsaved filters
+   * are applied or reverted.
+   *
+   * If saved filters exist for a col ref, unsaved filters take priority and are applied instead. This
+   * prevents disruption when changes are made to saved filters for the same field/column, but there
+   * may be some cases where we'd want to reset _unsavedFilters on some indirect change to the document.
+   *
+   * NOTE: See `filters`, where `_unsavedFilters` is merged with `savedFilters`.
+   */
+  _unsavedFilters: Map<number, string>;
+
+  /**
+   * Filter information for all fields/section in the section.
+   *
+   * Re-computed on changes to `savedFilters`, as well as any changes to `viewFields` or `columns`. Any
+   * unsaved filters saved in `_unsavedFilters` are applied on computation, taking priority over saved
+   * filters for the same field/column, if any exist.
+   */
+  filters: ko.Computed<FilterInfo[]>;
+
+  // Subset of `filters` containing non-blank active filters.
+  activeFilters: Computed<FilterInfo[]>;
+
+  // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
   filterSpecChanged: Computed<boolean>;
-
-  // Array of fields with an active filter
-  filteredFields: Computed<ViewFieldRec[]>;
 
   // Customizable version of the JSON-stringified sort spec. It may diverge from the saved one.
   activeSortJson: modelUtil.CustomComputed<string>;
@@ -96,14 +123,14 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
 
-  // Save all filters of fields in the section.
+  // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
-  // Revert all filters of fields in the section.
+  // Revert all filters of fields/columns in the section.
   revertFilters(): void;
 
-  // Clear and save all filters of fields in the section.
-  clearFilters(): void;
+  // Apply `filter` to the field or column identified by `colRef`.
+  setFilter(colRef: number, filter: string): void;
 }
 
 export interface CustomViewSectionDef {
@@ -129,9 +156,21 @@ export interface CustomViewSectionDef {
   sectionId: ko.Observable<string>;
 }
 
+// Information about filters for a field or hidden column.
+export interface FilterInfo {
+  // The field or column associated with this filter info.
+  fieldOrColumn: ViewFieldRec|ColumnRec;
+  // Filter that applies to this field/column, if any.
+  filter: modelUtil.CustomComputed<string>;
+  // True if `filter` has a non-blank value.
+  isFiltered: ko.PureComputed<boolean>;
+}
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
   this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
+
+  // All table columns associated with this view section, excluding any hidden helper columns.
+  this.columns = this.autoDispose(ko.pureComputed(() => this.table().columns().all().filter(c => !c.isHiddenCol())));
 
   const defaultOptions = {
     verticalGridlines: true,
@@ -180,28 +219,128 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
-  // Helper metadata item which indicates whether any of the section's fields have unsaved
+  this._savedFilters = recordSet(this, docModel.filters, 'viewSectionRef');
+
+  /**
+   * Unsaved client-side filters, keyed by original col ref. Currently only wiped when unsaved filters
+   * are applied or reverted.
+   *
+   * If saved filters exist for a col ref, unsaved filters take priority and are applied instead. This
+   * prevents disruption when changes are made to saved filters for the same field/column, but there
+   * may be some cases where we'd want to reset _unsavedFilters on some indirect change to the document.
+   *
+   * NOTE: See `filters`, where `_unsavedFilters` is merged with `savedFilters`.
+   */
+  this._unsavedFilters = new Map();
+
+  /**
+   * Filter information for all fields/section in the section.
+   *
+   * Re-computed on changes to `savedFilters`, as well as any changes to `viewFields` or `columns`. Any
+   * unsaved filters saved in `_unsavedFilters` are applied on computation, taking priority over saved
+   * filters for the same field/column, if any exist.
+   */
+  this.filters = this.autoDispose(ko.computed(() => {
+    const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
+    const viewFieldsByColRef = new Map(this.viewFields().all().map(f => [f.colRef(), f]));
+
+    return this.columns().map(column => {
+      const savedFilter = savedFiltersByColRef.get(column.origColRef());
+      const filter = modelUtil.customComputed({
+        // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
+        read: () => { return savedFilter ? savedFilter.activeFilter() : ''; },
+      });
+
+      // If an unsaved filter exists, overwrite `filter` with it.
+      const unsavedFilter = this._unsavedFilters.get(column.origColRef());
+      if (unsavedFilter !== undefined) { filter(unsavedFilter); }
+
+      return {
+        filter,
+        fieldOrColumn: viewFieldsByColRef.get(column.origColRef()) ?? column,
+        isFiltered: ko.pureComputed(() => filter() !== '')
+      };
+    });
+  }));
+
+  // List of `filters` that have non-blank active filters.
+  this.activeFilters = Computed.create(this, use => use(this.filters).filter(col => use(col.isFiltered)));
+
+  // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
-  this.filterSpecChanged = Computed.create(this, use =>
-    use(use(this.viewFields).getObservable()).some(field => !use(field.activeFilter.isSaved)));
+  this.filterSpecChanged = Computed.create(this, use => {
+    return use(this.filters).some(col => !use(col.filter.isSaved));
+  });
 
-  this.filteredFields = Computed.create(this, use =>
-    use(use(this.viewFields).getObservable()).filter(field => use(field.isFiltered)));
-
-  // Save all filters of fields in the section.
+  // Save all filters of fields/columns in the section.
   this.saveFilters = () => {
     return docModel.docData.bundleActions(`Save all filters in ${this.titleDef()}`,
-      async () => { await Promise.all(this.viewFields().all().map(field => field.activeFilter.save())); }
+      async () => {
+        const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
+        const updatedFilters: [number, string][] = []; // Pairs of row ids and filters to update.
+        const removedFilterIds: number[] = []; // Row ids of filters to remove.
+        const newFilters: [number, string][] = []; // Pairs of column refs and filters to add.
+
+        for (const c of this.filters()) {
+          // Skip saved filters (i.e. filters whose local values are unchanged from server).
+          if (c.filter.isSaved()) { continue; }
+
+          const savedFilter = savedFiltersByColRef.get(c.fieldOrColumn.origCol().origColRef());
+          if (!savedFilter) {
+            // Since no saved filter exists, we must add a new record to the filters table.
+            newFilters.push([c.fieldOrColumn.origCol().origColRef(), c.filter()]);
+          } else if (c.filter() === '') {
+            // Mark the saved filter for removal from the filters table.
+            removedFilterIds.push(savedFilter.id());
+          } else {
+            // Mark the saved filter for update in the filters table.
+            updatedFilters.push([savedFilter.id(), c.filter()]);
+          }
+        }
+
+        // Remove records of any deleted filters.
+        if (removedFilterIds.length > 0) {
+          await docModel.filters.sendTableAction(['BulkRemoveRecord', removedFilterIds]);
+        }
+
+        // Update existing filter records with new filter values.
+        if (updatedFilters.length > 0) {
+          await docModel.filters.sendTableAction(['BulkUpdateRecord',
+            updatedFilters.map(([id]) => id),
+            {filter: updatedFilters.map(([, filter]) => filter)}
+          ]);
+        }
+
+        // Add new filter records.
+        if (newFilters.length > 0) {
+          await docModel.filters.sendTableAction(['BulkAddRecord',
+            arrayRepeat(newFilters.length, null),
+            {
+              viewSectionRef: arrayRepeat(newFilters.length, this.id()),
+              colRef: newFilters.map(([colRef]) => colRef),
+              filter: newFilters.map(([, filter]) => filter),
+            }
+          ]);
+        }
+
+        // Reset client filter state.
+        this.revertFilters();
+      }
     );
   };
 
-  // Revert all filters of fields in the section.
+  // Revert all filters of fields/columns in the section.
   this.revertFilters = () => {
-    this.viewFields().all().forEach(field => { field.activeFilter.revert(); });
+    this._unsavedFilters = new Map();
+    this.filters().forEach(c => { c.filter.revert(); });
   };
 
-  // Reset all filters of fields in the section to their default (i.e. unset) values.
-  this.clearFilters = () => this.viewFields().all().forEach(field => field.activeFilter(''));
+  // Apply `filter` to the field or column identified by `colRef`.
+  this.setFilter = (colRef: number, filter: string) => {
+    this._unsavedFilters.set(colRef, filter);
+    const filterInfo = this.filters().find(c => c.fieldOrColumn.origCol().origColRef() === colRef);
+    filterInfo?.filter(filter);
+  };
 
   // Customizable version of the JSON-stringified sort spec. It may diverge from the saved one.
   this.activeSortJson = modelUtil.customValue(this.sortColRefs);
@@ -230,9 +369,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   this.hiddenColumns = this.autoDispose(ko.pureComputed(() => {
     const included = new Set(this.viewFields().all().map((f) => f.column().origColRef()));
-    return this.table().columns().all().filter(function(col) {
-      return !included.has(col.getRowId()) && !col.isHiddenCol();
-    });
+    return this.columns().filter(c => !included.has(c.getRowId()));
   }));
 
   this.hasFocus = ko.pureComputed({

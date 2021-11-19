@@ -1386,7 +1386,9 @@ GridView.prototype._getColumnMenuOptions = function(copySelection) {
 
 GridView.prototype._columnFilterMenu = function(ctl, field) {
   this.ctxMenuHolder.autoDispose(ctl);
-  return this.createFilterMenu(ctl, field);
+  const filterInfo = this.viewSection.filters()
+    .find(({fieldOrColumn}) => fieldOrColumn.origCol().origColRef() === field.column().origColRef());
+  return this.createFilterMenu(ctl, filterInfo);
 };
 
 GridView.prototype.maybeSelectColumn = function (elem, field) {

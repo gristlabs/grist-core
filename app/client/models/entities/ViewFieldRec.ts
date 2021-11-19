@@ -7,7 +7,6 @@ import {DocumentSettings} from 'app/common/DocumentSettings';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
-import {Computed, fromKo} from 'grainjs';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
@@ -64,12 +63,6 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   // Whether lines should wrap in a cell.
   wrapping: ko.Computed<boolean>;
-
-  // Observable for the parsed filter object saved to the field.
-  activeFilter: modelUtil.CustomComputed<string>;
-
-  // Computed boolean that's true when there's a saved filter
-  isFiltered: Computed<boolean>;
 
   disableModify: ko.Computed<boolean>;
   disableEditData: ko.Computed<boolean>;
@@ -231,14 +224,6 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     // "??" is the newish "nullish coalescing" operator. How cool is that!
     return this.widgetOptionsJson().wrap ?? (this.viewSection().parentKey() !== 'record');
   });
-
-  // Observable for the active filter that's initialized from the value saved to the server.
-  this.activeFilter = modelUtil.customComputed({
-    read: () => { const f = this.filter(); return f === 'null' ? '' : f; }, // To handle old empty filters
-    save: (val) => this.filter.saveOnly(val),
-  });
-
-  this.isFiltered = Computed.create(this, fromKo(this.activeFilter), (_use, f) => f !== '');
 
   this.disableModify = ko.pureComputed(() => this.column().disableModify());
   this.disableEditData = ko.pureComputed(() => this.column().disableEditData());

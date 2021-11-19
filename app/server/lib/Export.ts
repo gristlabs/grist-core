@@ -217,33 +217,39 @@ export async function exportSection(
     .filterRecords({ parentId: table.id }) as GristTablesColumn[];
   const viewSectionFields = safeTable(docData, '_grist_Views_section_field');
   const fields = viewSectionFields.filterRecords({ parentId: viewSection.id }) as GristViewsSectionField[];
+  const savedFilters = safeTable(docData, '_grist_Filters')
+    .filterRecords({ viewSectionRef: viewSection.id }) as GristFilter[];
 
   const tableColsById = _.indexBy(columns, 'id');
+  const fieldsByColRef = _.indexBy(fields, 'colRef');
+  const savedFiltersByColRef = _.indexBy(savedFilters, 'colRef');
+  const unsavedFiltersByColRef = _.indexBy(filters ?? [], 'colRef');
 
   // Produce a column description matching what user will see / expect to export
-  const viewify = (col: GristTablesColumn, field: GristViewsSectionField) => {
-    field = field || {};
-    const displayCol = tableColsById[field.displayCol || col.displayCol || col.id];
+  const viewify = (col: GristTablesColumn, field?: GristViewsSectionField) => {
+    const displayCol = tableColsById[field?.displayCol || col.displayCol || col.id];
     const colWidgetOptions = gutil.safeJsonParse(col.widgetOptions, {});
-    const fieldWidgetOptions = gutil.safeJsonParse(field.widgetOptions, {});
-    const filterString = (filters || []).find(x => x.colRef === field.colRef)?.filter || field.filter;
+    const fieldWidgetOptions = field ? gutil.safeJsonParse(field.widgetOptions, {}) : {};
+    const filterString = unsavedFiltersByColRef[col.id]?.filter || savedFiltersByColRef[col.id]?.filter;
     const filterFunc = buildColFilter(filterString, col.type);
     return {
+      filterFunc,
       id: displayCol.id,
       colId: displayCol.colId,
       label: col.label,
       type: col.type,
       parentPos: col.parentPos,
-      filterFunc,
-      widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions)
+      widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions),
     };
   };
-  const viewColumns = _.sortBy(fields, 'parentPos').map(
-    (field) => viewify(tableColsById[field.colRef], field));
+  const tableColumns = columns
+    .filter(column => !gristTypes.isHiddenCol(column.colId))
+    .map(column => viewify(column, fieldsByColRef[column.id]));
+  const viewColumns = _.sortBy(fields, 'parentPos')
+    .map((field) => viewify(tableColsById[field.colRef], field));
 
   // The columns named in sort order need to now become display columns
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
-  const fieldsByColRef = _.indexBy(fields, 'colRef');
   sortSpec = sortSpec!.map((colSpec) => {
     const colRef = Sort.getColRef(colSpec);
     const col = tableColsById[colRef];
@@ -264,10 +270,10 @@ export async function exportSection(
   sorter.updateSpec(sortSpec);
   rowIds.sort((a, b) => sorter.compare(a, b));
   // create cell accessors
-  const access = viewColumns.map(col => getters.getColGetter(col.id)!);
+  const tableAccess = tableColumns.map(col => getters.getColGetter(col.id)!);
   // create row filter based on all columns filter
-  const rowFilter = viewColumns
-    .map((col, c) => buildRowFilter(access[c], col.filterFunc))
+  const rowFilter = tableColumns
+    .map((col, c) => buildRowFilter(tableAccess[c], col.filterFunc))
     .reduce((prevFilter, curFilter) => (id) => prevFilter(id) && curFilter(id), () => true);
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
@@ -276,11 +282,11 @@ export async function exportSection(
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
 
   return {
+    rowIds,
+    docSettings,
     tableName: table.tableId,
     docName: activeDoc.docName,
-    rowIds,
-    access,
-    docSettings,
+    access: viewColumns.map(col => getters.getColGetter(col.id)!),
     columns: viewColumns
   };
 }
@@ -294,6 +300,7 @@ type GristTables = RowModel<'_grist_Tables'>
 type GristViewsSectionField = RowModel<'_grist_Views_section_field'>
 type GristTablesColumn = RowModel<'_grist_Tables_column'>
 type GristView = RowModel<'_grist_Views'>
+type GristFilter = RowModel<'_grist_Filters'>
 type DocInfo = RowModel<'_grist_DocInfo'>
 
 // Type for filters passed from the client

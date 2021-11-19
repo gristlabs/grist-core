@@ -1,6 +1,5 @@
-import {KoArray} from 'app/client/lib/koArray';
 import {ColumnFilter} from 'app/client/models/ColumnFilter';
-import {ViewFieldRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {RowId} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {buildColFilter, ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
@@ -10,15 +9,15 @@ import {Computed, Disposable, MutableObsArray, obsArray, Observable, UseCB} from
 export {ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
 
 interface OpenColumnFilter {
-  fieldRef: number;
+  colRef: number;
   colFilter: ColumnFilter;
 }
 
-type ColFilterCB = (field: ViewFieldRec, colFilter: ColumnFilterFunc|null) => ColumnFilterFunc|null;
+type ColFilterCB = (fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) => ColumnFilterFunc|null;
 
 /**
  * SectionFilter represents a collection of column filters in place for a view section. It is created
- * out of `viewFields` and `tableData`, and provides a Computed `sectionFilterFunc` that users can
+ * out of `filters` (in `viewSection`) and `tableData`, and provides a Computed `sectionFilterFunc` that users can
  * subscribe to in order to update their FilteredRowSource.
  *
  * Additionally, `setFilterOverride()` provides a way to override the current filter for a given colRef,
@@ -32,13 +31,13 @@ export class SectionFilter extends Disposable {
   private _openFilterOverride: Observable<OpenColumnFilter|null> = Observable.create(this, null);
   private _tempRows: MutableObsArray<RowId> = obsArray();
 
-  constructor(public viewFields: ko.Computed<KoArray<ViewFieldRec>>, private _tableData: TableData) {
+  constructor(public viewSection: ViewSectionRec, private _tableData: TableData) {
     super();
 
     const columnFilterFunc = Computed.create(this, this._openFilterOverride, (use, openFilter) => {
       const openFilterFilterFunc = openFilter && use(openFilter.colFilter.filterFunc);
-      function getFilterFunc(field: ViewFieldRec, colFilter: ColumnFilterFunc|null) {
-        if (openFilter?.fieldRef === field.getRowId()) {
+      function getFilterFunc(fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
+        if (openFilter?.colRef === fieldOrColumn.getRowId()) {
           return openFilterFilterFunc;
         }
         return colFilter;
@@ -56,11 +55,11 @@ export class SectionFilter extends Disposable {
   }
 
   /**
-   * Allows to override a single filter for a given fieldRef. Multiple calls to `setFilterOverride` will overwrite
+   * Allows to override a single filter for a given colRef. Multiple calls to `setFilterOverride` will overwrite
    * previously set values.
    */
-  public setFilterOverride(fieldRef: number, colFilter: ColumnFilter) {
-    this._openFilterOverride.set(({fieldRef, colFilter}));
+  public setFilterOverride(colRef: number, colFilter: ColumnFilter) {
+    this._openFilterOverride.set(({colRef, colFilter}));
     colFilter.onDispose(() => {
       const override = this._openFilterOverride.get();
       if (override && override.colFilter === colFilter) {
@@ -81,8 +80,8 @@ export class SectionFilter extends Disposable {
   }
 
   /**
-   * Builds a filter function that combines the filter function of all the fields. You can use
-   * `getFilterFunc(field, colFilter)` to customize the filter func for each field. It calls
+   * Builds a filter function that combines the filter function of all the columns. You can use
+   * `getFilterFunc(column, colFilter)` to customize the filter func for each columns. It calls
    * `getFilterFunc` right away. Also, all the rows that were added with `addTemporaryRow()` bypass
    * the filter.
    */
@@ -96,16 +95,16 @@ export class SectionFilter extends Disposable {
 
   /**
    * Internal that helps build a filter function that combines the filter function of all
-   * fields. You can use `getFilterFunc(field, colFilter)` to customize the filter func for each
-   * field. It calls `getFilterFunc` right away
+   * columns. You can use `getFilterFunc(column, colFilter)` to customize the filter func for each
+   * column. It calls `getFilterFunc` right away.
    */
   private _buildPlainFilterFunc(getFilterFunc: ColFilterCB, use: UseCB): RowFilterFunc<RowId> {
-    const fields = use(use(this.viewFields).getObservable());
-    const funcs: Array<RowFilterFunc<RowId> | null> = fields.map(f => {
-      const colFilter = buildColFilter(use(f.activeFilter), use(use(f.column).type));
-      const filterFunc = getFilterFunc(f, colFilter);
+    const filters = use(this.viewSection.filters);
+    const funcs: Array<RowFilterFunc<RowId> | null> = filters.map(({filter, fieldOrColumn}) => {
+      const colFilter = buildColFilter(use(filter), use(use(fieldOrColumn.origCol).type));
+      const filterFunc = getFilterFunc(fieldOrColumn, colFilter);
 
-      const getter = this._tableData.getRowPropFunc(f.colId.peek());
+      const getter = this._tableData.getRowPropFunc(fieldOrColumn.colId.peek());
 
       if (!filterFunc || !getter) { return null; }
 

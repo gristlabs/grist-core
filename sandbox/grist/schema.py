@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 24
+SCHEMA_VERSION = 25
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -202,11 +202,8 @@ def schema_create_actions():
       make_column("displayCol",   "Ref:_grist_Tables_column"),
       # For Ref cols only, may override the column to be displayed fromin the pointed-to table.
       make_column("visibleCol",   "Ref:_grist_Tables_column"),
-      # JSON string describing the default filter as map from either an `included` or an
-      # `excluded` string to an array of column values:
-      # Ex1: { included: ['foo', 'bar'] }
-      # Ex2: { excluded: ['apple', 'orange'] }
-      make_column("filter",       "Text")
+      # DEPRECATED: replaced with _grist_Filters in version 25. Do not remove or reuse.
+      make_column("filter",       "Text"),
     ]),
 
     # The code for all of the validation rules available to a Grist document
@@ -300,6 +297,16 @@ def schema_create_actions():
     actions.AddTable('_grist_ACLMemberships', [
       make_column('parent', 'Ref:_grist_ACLPrincipals'),
       make_column('child',  'Ref:_grist_ACLPrincipals'),
+    ]),
+
+    actions.AddTable('_grist_Filters', [
+      make_column("viewSectionRef", "Ref:_grist_Views_section"),
+      make_column("colRef",         "Ref:_grist_Tables_column"),
+      # JSON string describing the default filter as map from either an `included` or an
+      # `excluded` string to an array of column values:
+      # Ex1: { included: ['foo', 'bar'] }
+      # Ex2: { excluded: ['apple', 'orange'] }
+      make_column("filter",         "Text")
     ]),
   ]
 

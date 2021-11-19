@@ -107,6 +107,11 @@ class MetaTableExtras(object):
   class _grist_Views_section(object):
     fields = _record_set('_grist_Views_section_field', 'parentId', sort_by='parentPos')
 
+  class _grist_Filters(object):
+    def setAutoRemove(rec, table):
+      """Marks the filter for removal if its column no longer exists."""
+      table.docmodel.setAutoRemove(rec, not rec.colRef)
+
 
 def enhance_model(model_class):
   """
@@ -159,6 +164,7 @@ class DocModel(object):
     self.pages                   = self._prep_table("_grist_Pages")
     self.aclResources            = self._prep_table("_grist_ACLResources")
     self.aclRules                = self._prep_table("_grist_ACLRules")
+    self.filters                 = self._prep_table("_grist_Filters")
 
   def _prep_table(self, name):
     """

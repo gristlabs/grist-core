@@ -78,7 +78,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   // Create a section filter and a filtered row source that subscribes to its changes.
   // `sectionFilter` also provides an `addTemporaryRow()` to allow views to display newly inserted rows,
   // and `setFilterOverride()` to allow controlling a filter from a column menu.
-  this._sectionFilter = SectionFilter.create(this, this.viewSection.viewFields, this.tableModel.tableData);
+  this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
   this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
   this._filteredRowSource.subscribeTo(this._mainRowSource);
   this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
@@ -669,10 +669,11 @@ BaseView.prototype.getLastDataRowIndex = function() {
 };
 
 /**
- * Creates and opens ColumnFilterMenu for a given field, and returns its PopupControl.
+ * Creates and opens ColumnFilterMenu for a given field/column, and returns its PopupControl.
  */
-BaseView.prototype.createFilterMenu = function(openCtl, field, onClose) {
-  return createFilterMenu(openCtl, this._sectionFilter, field, this._mainRowSource, this.tableModel.tableData, onClose);
+BaseView.prototype.createFilterMenu = function(openCtl, filterInfo, onClose) {
+  return createFilterMenu(openCtl, this._sectionFilter, filterInfo, this._mainRowSource,
+    this.tableModel.tableData, onClose);
 };
 
 /**

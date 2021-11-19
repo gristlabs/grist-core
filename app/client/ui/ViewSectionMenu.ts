@@ -1,5 +1,6 @@
 import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { ColumnRec, DocModel, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { FilterInfo } from 'app/client/models/entities/ViewSectionRec';
 import { CustomComputed } from 'app/client/models/modelUtil';
 import { attachColumnFilterMenu } from 'app/client/ui/ColumnFilterMenu';
 import { addFilterMenu } from 'app/client/ui/FilterBar';
@@ -35,8 +36,8 @@ function doRevert(viewSection: ViewSectionRec) {
 export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, viewSection: ViewSectionRec,
                                 viewModel: ViewRec, isReadonly: Observable<boolean>) {
 
-  const popupControls = new WeakMap<ViewFieldRec, PopupControl>();
-  const anyFilter = Computed.create(owner, (use) => Boolean(use(viewSection.filteredFields).length));
+  const popupControls = new WeakMap<ColumnRec, PopupControl>();
+  const anyFilter = Computed.create(owner, (use) => Boolean(use(viewSection.activeFilters).length));
 
   const displaySaveObs: Computed<boolean> = Computed.create(owner, (use) => (
     use(viewSection.filterSpecChanged)
@@ -65,8 +66,8 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
             return makeSortPanel(viewSection, use(viewSection.activeSortSpec),
                                  (row: number) => docModel.columns.getRowModel(row));
           }),
-          dom.domComputed(viewSection.filteredFields, fields =>
-                          makeFilterPanel(viewSection, fields, popupControls, () => ctl.close())),
+          dom.domComputed(viewSection.activeFilters, filters =>
+                          makeFilterPanel(viewSection, filters, popupControls, () => ctl.close())),
           makeAddFilterButton(viewSection, popupControls),
           makeFilterBarToggle(viewSection.activeFilterBar),
           dom.domComputed(displaySaveObs, displaySave => [
@@ -139,14 +140,13 @@ function makeSortPanel(section: ViewSectionRec, sortSpec: Sort.SortSpec, getColu
   ];
 }
 
-export function makeAddFilterButton(viewSectionRec: ViewSectionRec,
-                                    popupControls: WeakMap<ViewFieldRec, PopupControl>) {
+export function makeAddFilterButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<ColumnRec, PopupControl>) {
   return dom.domComputed((use) => {
-    const fields = use(use(viewSectionRec.viewFields).getObservable());
+    const filters = use(viewSectionRec.filters);
     return cssMenuText(
       cssMenuIconWrapper(
         cssIcon('Plus'),
-        addFilterMenu(fields, popupControls, {
+        addFilterMenu(filters, viewSectionRec, popupControls, {
           placement: 'bottom-end',
           // Attach content to triggerElem's parent, which is needed to prevent view section menu to
           // close when clicking an item of the add filter menu.
@@ -179,32 +179,37 @@ export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
 }
 
 
-function makeFilterPanel(section: ViewSectionRec, filteredFields: ViewFieldRec[],
-                         popupControls: WeakMap<ViewFieldRec, PopupControl>,
+function makeFilterPanel(section: ViewSectionRec, activeFilters: FilterInfo[],
+                         popupControls: WeakMap<ColumnRec, PopupControl>,
                          onCloseContent: () => void) {
-  const fields = filteredFields.map(field => {
-    const fieldChanged = Computed.create(null, fromKo(field.activeFilter.isSaved), (_use, isSaved) => !isSaved);
+  const filters = activeFilters.map(filterInfo => {
+    const filterChanged = Computed.create(null, fromKo(filterInfo.filter.isSaved), (_use, isSaved) => !isSaved);
     return cssMenuText(
-      dom.autoDispose(fieldChanged),
       cssMenuIconWrapper(
-        cssMenuIconWrapper.cls('-changed', fieldChanged),
+        cssMenuIconWrapper.cls('-changed', filterChanged),
         cssIcon('FilterSimple'),
-        attachColumnFilterMenu(section, field, {
+        attachColumnFilterMenu(section, filterInfo, {
           placement: 'bottom-end',
-          trigger: ['click', (_el, popupControl) => popupControls.set(field, popupControl)],
+          trigger: [
+            'click',
+            (_el, popupControl) => popupControls.set(filterInfo.fieldOrColumn.origCol(), popupControl)
+          ],
           onCloseContent,
         }),
         testId('filter-icon'),
       ),
-      cssMenuTextLabel(field.label()),
-      cssMenuIconWrapper(cssIcon('Remove', testId('btn-remove-filter')), dom.on('click', () => field.activeFilter(''))),
+      cssMenuTextLabel(filterInfo.fieldOrColumn.label()),
+      cssMenuIconWrapper(cssIcon('Remove',
+        dom.on('click', () => section.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), ''))),
+        testId('btn-remove-filter')
+      ),
       testId('filter-col')
     );
   });
 
   return [
     cssMenuInfoHeader('Filtered by', {style: 'margin-top: 4px'}, testId('heading-filtered')),
-    filteredFields.length > 0 ? fields : cssGrayedMenuText('(Not filtered)')
+    activeFilters.length > 0 ? filters : cssGrayedMenuText('(Not filtered)')
   ];
 }
 
