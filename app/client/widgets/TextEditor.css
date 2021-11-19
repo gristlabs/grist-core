@@ -62,6 +62,7 @@
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
   line-height: 18px;
+  min-height: 21px;
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
