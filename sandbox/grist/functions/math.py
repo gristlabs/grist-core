@@ -600,12 +600,20 @@ def ROMAN(number, form_unused=None):
 
 def ROUND(value, places=0):
   """
-  Rounds a number to a certain number of decimal places according to standard rules.
+  Rounds a number to a certain number of decimal places,
+  by default to the nearest whole number if the number of places is not given.
 
-  >>> ROUND(2.15, 1)      # Excel actually gives the more correct 2.2
-  2.1
-  >>> ROUND(2.149, 1)
-  2.1
+  Rounds away from zero ('up' for positive numbers)
+  in the case of a tie, i.e. when the last digit is 5.
+
+  >>> ROUND(1.4)
+  1.0
+  >>> ROUND(1.5)
+  2.0
+  >>> ROUND(2.5)
+  3.0
+  >>> ROUND(2.15, 1)
+  2.2
   >>> ROUND(-1.475, 2)
   -1.48
   >>> ROUND(21.5, -1)
@@ -616,10 +624,15 @@ def ROUND(value, places=0):
   0.0
   >>> ROUND(-50.55,-2)
   -100.0
+  >>> ROUND(0)
+  0.0
   """
-  # TODO: Excel manages to round 2.15 to 2.2, but Python sees 2.149999... and rounds to 2.1
-  # (see Python notes in documentation of `round()`).
-  return round(value, places)
+  p = 10 ** places
+  if value >= 0:
+    return float(_math.floor((value * p) + 0.5)) / p
+  else:
+    return float(_math.ceil((value * p) - 0.5)) / p
+
 
 def ROUNDDOWN(value, places=0):
   """

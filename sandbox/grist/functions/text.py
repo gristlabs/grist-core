@@ -10,6 +10,7 @@ from six import unichr
 from six.moves import xrange
 
 from usertypes import AltText  # pylint: disable=import-error
+from .math import ROUND
 from .unimplemented import unimplemented
 
 
@@ -120,7 +121,7 @@ def DOLLAR(number, decimals=2):
   >>> DOLLAR(10, 0)
   '$10'
   """
-  formatted = "${:,.{}f}".format(round(abs(number), decimals), max(0, decimals))
+  formatted = "${:,.{}f}".format(ROUND(abs(number), decimals), max(0, decimals))
   return formatted if number >= 0 else "(" + formatted + ")"
 
 
@@ -195,7 +196,7 @@ def FIXED(number, decimals=2, no_commas=False):
   '3500'
   """
   comma_flag = '' if no_commas else ','
-  return "{:{}.{}f}".format(round(number, decimals), comma_flag, max(0, decimals))
+  return "{:{}.{}f}".format(ROUND(number, decimals), comma_flag, max(0, decimals))
 
 
 def LEFT(string, num_chars=1):
