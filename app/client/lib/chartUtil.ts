@@ -85,3 +85,7 @@ export function consolidateValues(series: Array<{values: Datum[]}>, xvalues: Dat
   }
   return series;
 }
+
+export function formatPercent(val: number) {
+  return Math.floor(val * 100) + " %";
+}

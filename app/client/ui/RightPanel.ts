@@ -552,6 +552,9 @@ export const cssRow = styled('div', `
   &-top-space {
     margin-top: 24px;
   }
+  &-disabled {
+    color: ${colors.slate};
+  }
 `);
 
 export const cssButtonRow = styled(cssRow, `

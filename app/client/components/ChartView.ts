@@ -1,6 +1,7 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {consolidateValues, sortByXValues, splitValuesByIndex, uniqXValues} from 'app/client/lib/chartUtil';
+import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
+        uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
 import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
@@ -18,22 +19,34 @@ import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {linkSelect, menu, menuItem, select} from 'app/client/ui2018/menus';
 import {nativeCompare} from 'app/common/gutil';
+import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
-  makeTestId, Observable, styled} from 'grainjs';
+  makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
+import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
 import defaults = require('lodash/defaults');
 import defaultsDeep = require('lodash/defaultsDeep');
-import {Config, Data, Datum, ErrorBar, Layout, LayoutAxis, Margin} from 'plotly.js';
+import isNumber = require('lodash/isNumber');
+import sum = require('lodash/sum');
+import {Annotations, Config, Data, Datum, ErrorBar, Layout, LayoutAxis, Margin} from 'plotly.js';
+
 
 let Plotly: PlotlyType;
 
 // When charting multiple series based on user data, limit the number of series given to plotly.
 const MAX_SERIES_IN_CHART = 100;
+const DONUT_DEFAULT_HOLE_SIZE = 0.75;
+const DONUT_DEFAULT_TEXT_SIZE = 24;
 
 const testId = makeTestId('test-chart-');
+
+function isPieLike(chartType: string) {
+  return ['pie', 'donut'].includes(chartType);
+}
+
 
 interface ChartOptions {
   multiseries?: boolean;
@@ -44,6 +57,9 @@ interface ChartOptions {
   // If "symmetric", one series after each Y series gives the length of the error bars around it. If
   // "separate", two series after each Y series give the length of the error bars above and below it.
   errorBars?: 'symmetric' | 'separate';
+  donutHoleSize?: number;
+  showTotal?: boolean;
+  textSize?: number;
 }
 
 // tslint:disable:no-console
@@ -79,11 +95,14 @@ interface PlotData {
 }
 
 // Data options to pass to chart functions.
-interface DataOptions {
+interface DataOptions extends Data {
 
   // Allows to set the pie sort option (see: https://plotly.com/javascript/reference/pie/#pie-sort).
   // Supports pie charts only.
   sort?: boolean;
+
+  // Formatter to be used for the total inside donut charts.
+  totalFormatter?: BaseFormatter;
 }
 
 // Convert a list of Series into a set of Plotly traces.
@@ -118,12 +137,15 @@ export class ChartView extends Disposable {
   protected viewSection: ViewSectionRec;
   protected sortedRows: SortedRowSet;
   protected tableModel: DataTableModel;
+  protected gristDoc: GristDoc;
 
   private _chartType: ko.Observable<string>;
   private _options: ObjObservable<any>;
   private _chartDom: HTMLElement;
   private _update: () => void;
   private _resize: () => void;
+
+  private _formatterComp: ko.Computed<BaseFormatter|undefined>;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel);
@@ -138,6 +160,13 @@ export class ChartView extends Disposable {
     this._chartType = this.viewSection.chartTypeDef;
     this._options = this.viewSection.optionsObj;
 
+    // Computed that returns the formatter of the first series. This is useful to format the total
+    // within a donut chart.
+    this._formatterComp = this.autoDispose(ko.computed(() => {
+      const field = this.viewSection.viewFields().at(1);
+      return field?.createVisibleColFormatter();
+    }));
+
     this._update = debounce(() => this._updateView(), 0);
 
     this.autoDispose(this._chartType.subscribe(this._update));
@@ -145,6 +174,7 @@ export class ChartView extends Disposable {
     this.autoDispose(this.viewSection.viewFields().subscribe(this._update));
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
+    this.autoDispose(this._formatterComp.subscribe(this._update));
   }
 
   public prepareToPrint(onOff: boolean) {
@@ -208,8 +238,12 @@ export class ChartView extends Disposable {
     let plotData: PlotData = {data: []};
 
     const sortSpec = this.viewSection.activeSortSpec.peek();
-    if (this._chartType.peek() === 'pie' && sortSpec?.length) {
+    if (isPieLike(this._chartType.peek()) && sortSpec?.length) {
       dataOptions.sort = false;
+    }
+
+    if (this._chartType.peek() === 'donut') {
+      dataOptions.totalFormatter = this._formatterComp.peek();
     }
 
     if (!options.multiseries) {
@@ -419,7 +453,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
-    (_use, chartType) => chartType === 'pie' ? 'LABEL' : 'X-AXIS'
+    (_use, chartType) => isPieLike(chartType) ? 'LABEL' : 'X-AXIS'
   ));
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
@@ -429,7 +463,7 @@ export class ChartConfig extends GrainJSDisposable {
       return this._gristDoc.docData.bundleActions('switched chart type', async () => {
         await this._section.chartTypeDef.saveOnly(val);
         // When switching chart type to 'pie' makes sure to remove the group data option.
-        if (val === 'pie') {
+        if (isPieLike(val)) {
           await this._setGroupDataColumn(-1);
           this._groupDataForce.set(false);
         }
@@ -447,11 +481,14 @@ export class ChartConfig extends GrainJSDisposable {
 
     if (this._section.parentKey() !== 'chart') { return null; }
 
+    const owner = new MultiHolder();
     return [
+      dom.autoDispose(owner),
       cssRow(
         select(this._chartType, [
           {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
           {value: 'pie',          label: 'Pie Chart',         icon: 'ChartPie'   },
+          {value: 'donut',        label: 'Donut Chart',       icon: 'ChartDonut' },
           {value: 'area',         label: 'Area Chart',        icon: 'ChartArea'  },
           {value: 'line',         label: 'Line Chart',        icon: 'ChartLine'  },
           {value: 'scatter',      label: 'Scatter Plot',      icon: 'ChartLine'  },
@@ -459,11 +496,28 @@ export class ChartConfig extends GrainJSDisposable {
         ]),
         testId("type"),
       ),
-      dom.maybe((use) => use(this._section.chartTypeDef) !== 'pie', () => [
+      dom.maybe((use) => !isPieLike(use(this._section.chartTypeDef)), () => [
         // These options don't make much sense for a pie chart.
         cssCheckboxRowObs('Group data', this._groupData),
         cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
         cssCheckboxRow('Log scale Y-axis', this._optionsObj.prop('logYAxis')),
+      ]),
+      dom.maybe((use) => use(this._section.chartTypeDef) === 'donut', () => [
+        cssSlideRow(
+          'Hole Size',
+          Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
+          (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
+          testId('option')
+        ),
+        cssCheckboxRow('Show Total', this._optionsObj.prop('showTotal')),
+        dom.maybe(this._optionsObj.prop('showTotal'), () => (
+          cssNumberWithSpinnerRow(
+            'Text Size',
+            Computed.create(owner, (use) => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
+            (val: number) => this._optionsObj.prop('textSize').saveOnly(val),
+            testId('option')
+          )
+        ))
       ]),
       dom.maybe((use) => use(this._section.chartTypeDef) === 'line', () => [
         cssCheckboxRow('Connect gaps', this._optionsObj.prop('lineConnectGaps')),
@@ -622,6 +676,105 @@ export class ChartConfig extends GrainJSDisposable {
   }
 }
 
+// Row for a numeric option. User can change value using spinners or directly using keyboard. In
+// case of invalid values, the field reverts to the saved one.
+function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (val: number) => Promise<void>,
+                                 ...args: DomElementArg[]) {
+  const minValue = 1;
+  let input: HTMLInputElement;
+
+  // Set the input's value to the value that's saved on the server.
+  function reset() {
+    input.value = value.get() + "px";
+  }
+
+  async function onChange(val: string, func: (val: number) => number = (v) => v) {
+    let fvalue = parseFloat(val);
+    if (isFinite(fvalue)) {
+      fvalue = clamp(func(fvalue), minValue, Infinity);
+      await save(fvalue);
+    }
+    // Reset is needed if value were not a valid number.
+    reset();
+  }
+
+  return cssRow(
+    cssRowLabel(label),
+    cssNumberWithSpinner(
+      input = cssNumberInput(
+        {type: 'text'},
+        dom.prop('value', (use) => use(value) + "px"),
+        dom.on('change', (_ev, el) => onChange(el.value)),
+        dom.onKeyDown({
+          ArrowDown: (_ev, el) => onChange(el.value, (val) => val - 1),
+          ArrowUp: (_ev, el) => onChange(el.value, (val) => val + 1),
+        }),
+      ),
+
+      // We add spinners as overlay in order to support showing the unit 'px' next to the value.
+      cssSpinners(
+        'input',
+        {type: 'number', step: '1', min: String(minValue)},
+        dom.prop('value', value),
+        dom.on('change', (_ev, el) => onChange(el.value)),
+      ),
+    ),
+    ...args
+  );
+}
+
+// Row for a numeric option that leaves between 0 and 1. User can change value using a slider, or
+// spinners or by directly using keyboard. Value is shown as percent. If user enter an invalid
+// value, field reverts to the saved value.
+function cssSlideRow(label: string, value: Computed<number>, save: (val: number) => Promise<void>,
+                     ...args: DomElementArg[]) {
+  let input: HTMLInputElement;
+
+  // Set the input's value to the value that's saved on the server.
+  function reset() {
+    input.value = formatPercent(value.get());
+  }
+
+  async function onChange(val: string, func: (val: number) => number = (v) => v) {
+    let fvalue = parseFloat(val);
+    if (isFinite(fvalue)) {
+      fvalue = clamp(func(fvalue), 0, 99) / 100;
+      await save(fvalue);
+    }
+    // Reset is needed if value were not a valid number.
+    reset();
+  }
+
+  return cssRow(
+    cssRowLabel(label),
+    cssRangeInput(
+      {type: 'range', min: "0", max: "1", step: "0.01"},
+      dom.prop('value', value),
+      dom.on('change', (_ev, el) => save(Number(el.value)))
+    ),
+    cssNumberWithSpinner(
+      input = cssNumberInput(
+        {type: 'text'},
+        dom.prop('value', (use) => formatPercent(use(value))),
+        dom.on('change', (_ev, el) => onChange(el.value)),
+        dom.onKeyDown({
+          ArrowDown: (_ev, el) => onChange(el.value, (val) => val - 1),
+          ArrowUp: (_ev, el) => onChange(el.value, (val) => val + 1),
+        }),
+      ),
+
+      // We add spinners as overlay in order to support showing the unit '%' next to the value.
+      cssSpinners(
+        'input',
+        {type: 'number', step: '0.01', min: '0', max: '0.99'},
+        dom.prop('value', value),
+        dom.on('change', (_ev, el) => save(Number(el.value))),
+      )
+    ),
+    ...args
+  );
+}
+
 function cssCheckboxRow(label: string, value: KoSaveableObservable<unknown>, ...args: DomElementArg[]) {
   return cssCheckboxRowObs(label, fromKoSave(value), ...args);
 }
@@ -633,7 +786,7 @@ function cssCheckboxRowObs(label: string, value: Observable<boolean>, ...args: D
   );
 }
 
-function basicPlot(series: Series[], options: ChartOptions, dataOptions: Partial<Data>): PlotData {
+function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): PlotData {
   trimNonNumericData(series);
   const errorBars = extractErrorBars(series, options);
 
@@ -720,6 +873,39 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         ...dataOptions,
       }]
     };
+  },
+
+
+  donut(series: Series[], options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
+    const hole = isNumber(options.donutHoleSize) ? options.donutHoleSize : DONUT_DEFAULT_HOLE_SIZE;
+    const annotations: Array<Partial<Annotations>> = [];
+    const plotData: PlotData = chartTypes.pie(series, options, {...dataOptions, hole});
+
+    function format(val: number) {
+      if (dataOptions.totalFormatter) {
+        return dataOptions.totalFormatter.format(val);
+      }
+      return String(val);
+    }
+
+    if (options.showTotal) {
+      annotations.push({
+        text: format(
+          series.length > 1 ?
+            sum(series[1].values.filter(isNumber)) :
+            plotData.data[0].labels!.length,
+        ),
+        showarrow: false,
+        font: {
+          size: options.textSize ?? DONUT_DEFAULT_TEXT_SIZE,
+        }
+      } as any);
+    }
+    return defaultsDeep(
+      plotData,
+      {layout: {annotations}}
+    );
+
   },
 
   kaplan_meier(series: Series[]): PlotData {
@@ -837,4 +1023,42 @@ const cssRemoveIcon = styled(icon, `
 const cssHintRow = styled('div', `
   margin: -4px 16px 8px 16px;
   color: ${colors.slate};
+`);
+
+const cssRangeInput = styled('input', `
+  input& {
+    width: 82px;
+    margin-right: 4px;
+  }
+`);
+
+const cssNumberWithSpinner = styled('div', `
+  position: relative;
+`);
+
+const cssNumberInput = styled('input', `
+  width: 55px;
+`);
+
+
+const cssSpinners = styled('input', `
+  width: 19px;
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  border: none;
+  outline: none;
+  appearance: none;
+  -moz-appearance: none;
+  visibility: hidden;
+
+  .${cssNumberWithSpinner.className}:hover & {
+    visibility: visible;
+  }
+
+  /* needed for chrome to show spinners, indeed the cursor could be outside of spinners' input
+  element */
+  &[type=number]::-webkit-inner-spin-button {
+    opacity: 1;
+  }
 `);

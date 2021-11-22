@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16px"
+   height="16px"
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg874"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs878" />
+  <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+  <title
+     id="title868">Icons / Charts / ChartPie</title>
+  <desc
+     id="desc870">Created with Sketch.</desc>
+  <g
+     id="Icons-/-Charts-/-ChartPie"
+     stroke="none"
+     stroke-width="1"
+     fill="none"
+     fill-rule="evenodd">
+    <circle
+       style="fill:none;stroke:#1c1303;stroke-width:1;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path1001"
+       cx="8"
+       cy="8"
+       r="7.5" />
+    <circle
+       style="fill:none;stroke:#1c1303;stroke-width:1;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="circle1473"
+       cx="8"
+       cy="8"
+       r="5" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 7.8840618,0.59987427 V 3.3421567"
+       id="path1508" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 11.611852,11.526156 1.885319,1.885319"
+       id="path1510" />
+  </g>
+  <metadata
+     id="metadata1113">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Icons / Charts / ChartPie</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>
