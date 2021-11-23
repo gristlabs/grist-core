@@ -20,6 +20,14 @@ const ko = require('knockout');
 setupKoDisposal(ko);
 
 $(function() {
+  // Manually disable the bfcache. We dispose some components in App.ts on unload, and
+  // leaving the cache on causes problems when the browser back/forward buttons are pressed.
+  // Some browsers automatically disable it when the 'beforeunload' or 'unload' events
+  // have listeners, but not all do (Safari).
+  window.onpageshow = function(event) {
+    if (event.persisted) { window.location.reload(); }
+  };
+
   window.gristApp = App.create(null);
   // Set from the login tests to stub and un-stub functions during execution.
   window.loginTestSandbox = null;
