@@ -6,7 +6,7 @@ import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
 import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
+import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
@@ -188,6 +188,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     // If we haven't set a maxAge yet, set it now.
     if (session && session.cookie && !session.cookie.maxAge) {
       session.cookie.maxAge = COOKIE_MAX_AGE;
+      forceSessionChange(session);
     }
 
     // See if we have a profile linked with the active organization already.
@@ -262,7 +263,7 @@ export function redirectToLoginUnconditionally(
   return async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
     // Tell express-session to set our cookie: session handling post-login relies on it.
-    mreq.session.alive = true;
+    forceSessionChange(mreq.session);
 
     // Redirect to sign up if it doesn't look like the user has ever logged in (on
     // this browser)  After logging in, `users` will be set in the session.  Even after
@@ -294,8 +295,9 @@ export function redirectToLogin(
                                                                  getSignUpRedirectUrl);
   return async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
-    mreq.session.alive = true;  // This will ensure that express-session will set our cookie
-                                // if it hasn't already - we'll need it if we redirect.
+    // This will ensure that express-session will set our cookie if it hasn't already -
+    // we'll need it if we redirect.
+    forceSessionChange(mreq.session);
     if (mreq.userIsAuthorized) { return next(); }
 
     try {

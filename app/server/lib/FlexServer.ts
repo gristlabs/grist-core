@@ -21,6 +21,7 @@ import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {addRequestUser, getUser, getUserId, isSingleUserMode,
         redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
+import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import * as Comm from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
@@ -593,7 +594,8 @@ export class FlexServer implements GristServer {
 
     // Create an endpoint for making cookies during testing.
     this.app.get('/test/session', async (req, res) => {
-      (req as any).session.alive = true;
+      const mreq = req as RequestWithLogin;
+      forceSessionChange(mreq.session);
       res.status(200).send(`Grist ${this.name} is alive and is interested in you.`);
     });
 
@@ -800,9 +802,9 @@ export class FlexServer implements GristServer {
       this: FlexServer, signUp: boolean|null, req: express.Request, resp: express.Response,
     ) {
       const mreq = req as RequestWithLogin;
-      mreq.session.alive = true;  // This will ensure that express-session will set our cookie
-                                  // if it hasn't already - we'll need it when we come back
-                                  // from Cognito.
+      // This will ensure that express-session will set our cookie if it hasn't already -
+      // we'll need it when we come back from Cognito.
+      forceSessionChange(mreq.session);
       // Redirect to "/" on our requested hostname (in test env, this will redirect further)
       const next = req.protocol + '://' + req.get('host') + '/';
       if (signUp === null) {

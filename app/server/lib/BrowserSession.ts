@@ -45,8 +45,13 @@ export interface SessionObj {
   // This is optional since the session may already exist.
   orgToUser?: {[org: string]: number};
 
-  // This gets set to encourage express-session to set a cookie.
-  alive?: boolean;
+  // This gets set to encourage express-session to set a cookie. Was a boolean in the past.
+  alive?: number;
+}
+
+// Make an artificial change to a session to encourage express-session to set a cookie.
+export function forceSessionChange(session: SessionObj) {
+  session.alive = Number(session.alive || 0) + 1;
 }
 
 // We expose a sign-in status in a cookie accessible to all subdomains, to assist in auto-signin.
