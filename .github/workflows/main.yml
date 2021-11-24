@@ -43,3 +43,11 @@ jobs:
 
       - name: Run tests
         run: VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test
+
+      - name: Update candidate branch
+        if: ${{ github.event_name == 'push' }}
+        uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: latest_candidate
+          force: true
