@@ -1715,6 +1715,22 @@ export async function setDateFormat(format: string) {
 }
 
 /**
+ * Returns time format for datetime editor
+ */
+export async function getTimeFormat(): Promise<string> {
+  return driver.find('[data-test-id=Widget_timeFormat] .test-select-row').getText();
+}
+
+/**
+ * Changes time format for datetime editor
+ */
+export async function setTimeFormat(format: string) {
+  await driver.find('[data-test-id=Widget_timeFormat]').click();
+  await driver.findContent('.test-select-menu .test-select-row', format).click();
+  await waitForServer();
+}
+
+/**
  * Returns "Show column" setting value of a reference column.
  */
 export async function getRefShowColumn(): Promise<string> {

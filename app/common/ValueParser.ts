@@ -5,7 +5,7 @@ import * as gutil from 'app/common/gutil';
 import {safeJsonParse} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions} from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
-import {parseDateStrict} from 'app/common/parseDate';
+import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
 import flatMap = require('lodash/flatMap');
 
@@ -47,11 +47,15 @@ class DateParser extends ValueParser {
   }
 }
 
-class DateTimeParser extends DateParser {
+class DateTimeParser extends ValueParser {
   constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
     super(type, widgetOpts, docSettings);
     const timezone = gutil.removePrefix(type, "DateTime:") || '';
     this.widgetOpts = {...widgetOpts, timezone};
+  }
+
+  public parse(value: string): any {
+    return parseDateTime(value, this.widgetOpts);
   }
 }
 
@@ -99,8 +103,6 @@ const parsers: { [type: string]: typeof ValueParser } = {
   ChoiceList: ChoiceListParser,
 };
 
-// TODO these are not ready yet
-delete parsers.DateTime;
 
 export function createParser(
   type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings

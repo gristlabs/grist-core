@@ -55,9 +55,12 @@ const PARSER_FORMATS: string[] = [
   'D'
 ];
 
-const UNAMBIGUOUS_FORMATS = PARSER_FORMATS.filter(f => f.includes("MMM"));
+const UNAMBIGUOUS_FORMATS = [
+  'YYYY M D',
+  ...PARSER_FORMATS.filter(f => f.includes("MMM")),
+];
 
-const TIME_REGEX = /^(?:(\d\d?)(?::(\d\d?)(?::(\d\d?))?)?|(\d\d?)(\d\d))\s*([ap]m?)?$/i;
+const TIME_REGEX = /(?:^|\s+|T)(?:(\d\d?)(?::(\d\d?)(?::(\d\d?))?)?|(\d\d?)(\d\d))\s*([ap]m?)?$/i;
 // [^a-zA-Z] because no letters are allowed directly before the abbreviation
 const UTC_REGEX = /[^a-zA-Z](UTC?|GMT|Z)$/i;
 const NUMERIC_TZ_REGEX = /([+-]\d\d?)(?::?(\d\d))?$/i;
@@ -109,12 +112,15 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
   const cleanDate = date.replace(SEPARATORS, ' ');
   let datetime = cleanDate.trim();
   let timeformat = '';
-  if (options.time) {
-    const standardTime = standardizeTime(options.time, options.timezone!);
-    if (!standardTime) {
+  let time = options.time;
+  if (time) {
+    const parsedTimeZone = parseTimeZone(time, options.timezone!);
+    const parsedTime = standardizeTime(parsedTimeZone.remaining);
+    if (!parsedTime || parsedTime.remaining) {
       return null;
     }
-    const {time, tzOffset} = standardTime;
+    time = parsedTime.time;
+    const {tzOffset} = parsedTimeZone;
     datetime += ' ' + time + tzOffset;
     timeformat = ' HH:mm:ss' + (tzOffset ? 'Z' : '');
   }
@@ -136,7 +142,9 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
  * This is safer so it can be used for parsing when pasting a large number of dates
  * and won't silently swap around day and month.
  */
-export function parseDateStrict(date: string, dateFormat: string | null, results?: Set<number>): number | undefined {
+export function parseDateStrict(
+  date: string, dateFormat: string | null, results?: Set<number>, timezone: string = 'UTC'
+): number | undefined {
   if (!date) {
     return;
   }
@@ -147,7 +155,7 @@ export function parseDateStrict(date: string, dateFormat: string | null, results
   dateFormats.push(...UNAMBIGUOUS_FORMATS);
   const cleanDate = date.replace(SEPARATORS, ' ').trim();
   for (const format of dateFormats) {
-    const m = moment.tz(cleanDate, format, true, 'UTC');
+    const m = moment.tz(cleanDate, format, true, timezone);
     if (m.isValid()) {
       const value = m.valueOf() / 1000;
       if (results) {
@@ -157,6 +165,45 @@ export function parseDateStrict(date: string, dateFormat: string | null, results
       }
     }
   }
+}
+
+export function parseDateTime(dateTime: string, options: ParseOptions): number | undefined {
+  dateTime = dateTime.trim();
+  if (!dateTime) {
+    return;
+  }
+
+  const dateFormat = options.dateFormat || null;
+  const timezone = options.timezone || "UTC";
+
+  const dateOnly = parseDateStrict(dateTime, dateFormat, undefined, timezone);
+  if (dateOnly) {
+    return dateOnly;
+  }
+
+  const parsedTimeZone = parseTimeZone(dateTime, timezone);
+  let tzOffset = '';
+  if (parsedTimeZone) {
+    tzOffset = parsedTimeZone.tzOffset;
+    dateTime = parsedTimeZone.remaining;
+  }
+
+  const parsedTime = standardizeTime(dateTime);
+  if (!parsedTime) {
+    return;
+  }
+
+  dateTime = parsedTime.remaining;
+  const date = parseDateStrict(dateTime, dateFormat);
+
+  if (!date) {
+    return;
+  }
+
+  const dateString = moment.unix(date).format("YYYY-MM-DD");
+  dateTime = dateString + ' ' + parsedTime.time + tzOffset;
+  const fullFormat = "YYYY-MM-DD HH:mm:ss" + (tzOffset ? 'Z' : '');
+  return moment.tz(dateTime, fullFormat, true, timezone).valueOf() / 1000;
 }
 
 
@@ -228,26 +275,23 @@ function calculateOffset(tzMatch: string[]): string {
   return sign + hhOffset.slice(1).padStart(2, '0') + ':' + (mmOffset || '0').padStart(2, '0');
 }
 
-// Parses time of the form, roughly, HH[:MM[:SS]][am|pm] [TZ]. Returns the time in the
-// standardized HH:mm:ss format, and an offset string that's empty or is of the form [+-]HH:mm.
-// This turns out easier than coaxing moment to parse time sensibly and flexibly.
-function standardizeTime(timeString: string, timezone: string): { time: string, tzOffset: string } | undefined {
-  let cleanTime = timeString.trim();
+function parseTimeZone(str: string, timezone: string): { remaining: string, tzOffset: string } {
+  str = str.trim();
 
-  let tzMatch = UTC_REGEX.exec(cleanTime);
+  let tzMatch = UTC_REGEX.exec(str);
   let matchStart = 0;
   let tzOffset = '';
   if (tzMatch) {
     tzOffset = '+00:00';
     matchStart = tzMatch.index + 1;  // skip [^a-zA-Z] at regex start
   } else {
-    tzMatch = NUMERIC_TZ_REGEX.exec(cleanTime);
+    tzMatch = NUMERIC_TZ_REGEX.exec(str);
     if (tzMatch) {
       tzOffset = calculateOffset(tzMatch);
       matchStart = tzMatch.index;
     } else if (timezone) {
       // Abbreviations are simply stripped and ignored, so tzOffset is not set in this case
-      tzMatch = tzAbbreviations(timezone).exec(cleanTime);
+      tzMatch = tzAbbreviations(timezone).exec(str);
       if (tzMatch) {
         matchStart = tzMatch.index + 1;  // skip [^a-zA-Z] at regex start
       }
@@ -255,21 +299,29 @@ function standardizeTime(timeString: string, timezone: string): { time: string, 
   }
 
   if (tzMatch) {
-    cleanTime = cleanTime.slice(0, matchStart).trim();
+    str = str.slice(0, matchStart).trim();
   }
 
-  const match = TIME_REGEX.exec(cleanTime);
-  if (match) {
-    let hours = parseInt(match[1] || match[4], 10);
-    const mm = (match[2] || match[5] || '0').padStart(2, '0');
-    const ss = (match[3] || '0').padStart(2, '0');
-    const ampm = (match[6] || '').toLowerCase();
-    if (hours < 12 && hours > 0 && ampm.startsWith('p')) {
-      hours += 12;
-    } else if (hours === 12 && ampm.startsWith('a')) {
-      hours = 0;
-    }
-    const hh = String(hours).padStart(2, '0');
-    return {time: `${hh}:${mm}:${ss}`, tzOffset};
+  return {remaining: str, tzOffset};
+}
+
+// Parses time of the form, roughly, HH[:MM[:SS]][am|pm]. Returns the time in the
+// standardized HH:mm:ss format.
+// This turns out easier than coaxing moment to parse time sensibly and flexibly.
+function standardizeTime(timeString: string): { remaining: string, time: string } | undefined {
+  const match = TIME_REGEX.exec(timeString);
+  if (!match) {
+    return;
   }
+  let hours = parseInt(match[1] || match[4], 10);
+  const mm = (match[2] || match[5] || '0').padStart(2, '0');
+  const ss = (match[3] || '0').padStart(2, '0');
+  const ampm = (match[6] || '').toLowerCase();
+  if (hours < 12 && hours > 0 && ampm.startsWith('p')) {
+    hours += 12;
+  } else if (hours === 12 && ampm.startsWith('a')) {
+    hours = 0;
+  }
+  const hh = String(hours).padStart(2, '0');
+  return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
 }
