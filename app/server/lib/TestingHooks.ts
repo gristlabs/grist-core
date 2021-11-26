@@ -12,6 +12,7 @@ import {FlexServer} from './FlexServer';
 import {ITestingHooks} from './ITestingHooks';
 import ITestingHooksTI from './ITestingHooks-ti';
 import {connect, fromCallback} from './serverUtils';
+import {WidgetRepositoryImpl} from 'app/server/lib/WidgetRepository';
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});
 
@@ -193,5 +194,13 @@ export class TestingHooks implements ITestingHooks {
       DiscourseConnectDeps[key] = value;
     }
     return prev;
+  }
+
+  public async setWidgetRepositoryUrl(url: string): Promise<void> {
+    const repo = this._server.getWidgetRepository() as WidgetRepositoryImpl;
+    if (!(repo instanceof WidgetRepositoryImpl)) {
+      throw new Error("Unsupported widget repository");
+    }
+    repo.testOverrideUrl(url);
   }
 }

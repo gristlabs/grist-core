@@ -40,6 +40,7 @@ import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
         DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
+import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 
 // Represents a top tab of the right side-pane.
 const TopTab = StringUnion("pageWidget", "field");
@@ -337,7 +338,7 @@ export class RightPanel extends Disposable {
             // In the default url mode, allow picking a url and granting/forbidding
             // access to data.
             dom.maybe(use => use(activeSection.customDef.mode) === 'url',
-                      () => dom('div', parts[1].buildDom())),
+                      () => dom.create(CustomSectionConfig, activeSection, this._gristDoc.app.topAppModel.api)),
           ];
         }
       ]),

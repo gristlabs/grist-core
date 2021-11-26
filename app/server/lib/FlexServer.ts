@@ -54,6 +54,7 @@ import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {addUploadRoute} from 'app/server/lib/uploads';
+import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
@@ -121,6 +122,7 @@ export class FlexServer implements GristServer {
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
   private _docWorkerMap: IDocWorkerMap;
+  private _widgetRepository: IWidgetRepository;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
@@ -269,6 +271,11 @@ export class FlexServer implements GristServer {
   public getStorageManager(): IDocStorageManager {
     if (!this._storageManager) { throw new Error('no storage manager available'); }
     return this._storageManager;
+  }
+
+  public getWidgetRepository(): IWidgetRepository {
+    if (!this._widgetRepository) { throw new Error('no widget repository available'); }
+    return this._widgetRepository;
   }
 
   public addLogging() {
@@ -524,7 +531,7 @@ export class FlexServer implements GristServer {
 
     // ApiServer's constructor adds endpoints to the app.
     // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this.app, this._dbManager);
+    new ApiServer(this.app, this._dbManager, this._widgetRepository = buildWidgetRepository());
   }
 
   public addBillingApi() {

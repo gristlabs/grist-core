@@ -123,7 +123,12 @@ export function reportError(err: Error|string): void {
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.
-      _notifier.createAppError(err);
+      if (details?.userError) {
+        // If we have user friendly error, show it instead.
+        _notifier.createAppError(Error(details.userError));
+      } else {
+        _notifier.createAppError(err);
+      }
     }
   }
 }

@@ -771,20 +771,7 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
   }, {
 
     // 2)
-    showObs: () => activeSection().customDef.mode() === "url",
-    buildDom: () => kd.scope(activeSection, ({customDef}) => dom('div',
-      kf.row(18, kf.text(customDef.url, {placeholder: "Full URL of webpage to show"}, dom.testId('ViewConfigTab_url'))),
-      kf.row(5, "Access", 13, dom(kf.select(customDef.access, ['none', 'read table', 'full']), dom.testId('ViewConfigTab_customView_access'))),
-      kf.helpRow('none: widget has no access to document.',
-                 kd.style('text-align', 'left'),
-                 kd.style('margin-top', '1.5rem')),
-      kf.helpRow('read table: widget can read the selected table.',
-                 kd.style('text-align', 'left'),
-                 kd.style('margin-top', '1.5rem')),
-      kf.helpRow('full: widget can read, modify, and copy the document.',
-                 kd.style('text-align', 'left'),
-                 kd.style('margin-top', '1.5rem'))
-    )),
+    // TODO: refactor this part, Custom Widget moved to separate file.
   }, {
 
     // 3)

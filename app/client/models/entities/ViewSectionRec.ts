@@ -1,6 +1,7 @@
 import * as BaseView from 'app/client/components/BaseView';
 import { ColumnRec, FilterRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {ICustomWidget} from 'app/common/CustomWidget';
 import * as ko from 'knockout';
 import { CursorPos, } from 'app/client/components/Cursor';
 import { KoArray, } from 'app/client/lib/koArray';
@@ -131,29 +132,36 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
 
   // Apply `filter` to the field or column identified by `colRef`.
   setFilter(colRef: number, filter: string): void;
+
+  // Saves custom definition (bundles change)
+  saveCustomDef(): Promise<void>;
 }
 
 export interface CustomViewSectionDef {
   /**
    * The mode.
    */
-  mode: ko.Observable<"url"|"plugin">;
+  mode: modelUtil.KoSaveableObservable<"url"|"plugin">;
   /**
    * The url.
    */
-  url: ko.Observable<string>;
+  url: modelUtil.KoSaveableObservable<string|null>;
+   /**
+   * Custom widget information.
+   */
+  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
   /**
    * Access granted to url.
    */
-  access: ko.Observable<string>;
+  access: modelUtil.KoSaveableObservable<string>;
   /**
    * The plugin id.
    */
-  pluginId: ko.Observable<string>;
+  pluginId: modelUtil.KoSaveableObservable<string>;
   /**
    * The section id.
    */
-  sectionId: ko.Observable<string>;
+  sectionId: modelUtil.KoSaveableObservable<string>;
 }
 
 // Information about filters for a field or hidden column.
@@ -185,7 +193,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   const customViewDefaults = {
     mode: 'url',
-    url: '',
+    url: null,
+    widgetDef: null,
     access: '',
     pluginId: '',
     sectionId: ''
@@ -196,9 +205,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.customDef = {
     mode: customDefObj.prop('mode'),
     url: customDefObj.prop('url'),
+    widgetDef: customDefObj.prop('widgetDef'),
     access: customDefObj.prop('access'),
     pluginId: customDefObj.prop('pluginId'),
     sectionId: customDefObj.prop('sectionId')
+  };
+
+  this.saveCustomDef = () => {
+    return customDefObj.save();
   };
 
   this.themeDef = modelUtil.fieldWithDefault(this.theme, 'form');

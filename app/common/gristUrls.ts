@@ -469,6 +469,9 @@ export interface GristLoadConfig {
 
   // List of registered plugins (used by HomePluginManager and DocPluginManager)
   plugins?: LocalPlugin[];
+
+  // If custom widget list is available.
+  enableWidgetRepository?: boolean;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

@@ -52,7 +52,9 @@ export class CursorMonitor extends Disposable {
     this.autoDispose(doc.cursorPosition.addListener(pos => {
       // if current position is not restored yet, don't change it
       if (!this._restored) { return; }
-      if (pos) { this._storePosition(pos); }
+      // store position only when we have valid rowId
+      // for some views (like CustomView) cursor position might not reflect actual row
+      if (pos && pos.rowId !== undefined) { this._storePosition(pos); }
     }));
   }
 

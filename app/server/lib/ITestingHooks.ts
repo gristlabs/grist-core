@@ -15,4 +15,5 @@ export interface ITestingHooks {
   getDocClientCounts(): Promise<Array<[string, number]>>;
   setActiveDocTimeout(seconds: number): Promise<number>;
   setDiscourseConnectVar(varName: string, value: string|null): Promise<string|null>;
+  setWidgetRepositoryUrl(url: string): Promise<void>;
 }

@@ -19,6 +19,7 @@ export const ITestingHooks = t.iface([], {
   "getDocClientCounts": t.func(t.array(t.tuple("string", "number"))),
   "setActiveDocTimeout": t.func("number", t.param("seconds", "number")),
   "setDiscourseConnectVar": t.func(t.union("string", "null"), t.param("varName", "string"), t.param("value", t.union("string", "null"))),
+  "setWidgetRepositoryUrl": t.func("void", t.param("url", "string")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

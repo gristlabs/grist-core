@@ -12,6 +12,7 @@ import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import * as log from 'app/server/lib/log';
 import {addPermit, getDocScope, getScope, integerParam, isParameterOn, sendOkReply,
         sendReply, stringParam} from 'app/server/lib/requestUtils';
+import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {Request} from 'express';
 
 import {User} from './entity/User';
@@ -98,7 +99,8 @@ export class ApiServer {
    */
   constructor(
     private _app: express.Application,
-    private _dbManager: HomeDBManager
+    private _dbManager: HomeDBManager,
+    private _widgetRepository: IWidgetRepository
   ) {
     this._addEndpoints();
   }
@@ -236,6 +238,13 @@ export class ApiServer {
         TEMPLATES_ORG_DOMAIN
       );
       return sendReply(req, res, query);
+    }));
+
+    // GET /api/widgets/
+    // Get all widget definitions from external source.
+    this._app.get('/api/widgets/', expressWrap(async (req, res) => {
+      const widgetList = await this._widgetRepository.getWidgets();
+      return sendOkReply(req, res, widgetList);
     }));
 
     // PATCH /api/docs/:did

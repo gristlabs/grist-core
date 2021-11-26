@@ -6,6 +6,7 @@ import {BrowserSettings} from 'app/common/BrowserSettings';
 import {BulkColValues, TableColValues, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {Features} from 'app/common/Features';
+import {ICustomWidget} from 'app/common/CustomWidget';
 import {isClient} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
@@ -321,6 +322,7 @@ export interface UserAPI {
   deleteUser(userId: number, name: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
+  getWidgets(): Promise<ICustomWidget[]>;
 }
 
 /**
@@ -426,6 +428,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async getTemplates(onlyFeatured: boolean = false): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/templates?onlyFeatured=${onlyFeatured ? 1 : 0}`, { method: 'GET' });
+  }
+
+  public async getWidgets(): Promise<ICustomWidget[]> {
+    return await this.requestJson(`${this._url}/api/widgets`, { method: 'GET' });
   }
 
   public async getDoc(docId: string): Promise<Document> {
