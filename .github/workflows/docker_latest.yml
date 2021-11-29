@@ -25,7 +25,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{ github.repository }}
+          repository: ${{ github.repository_owner }}/grist
           tags: latest
       - name: Update latest branch
         uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
