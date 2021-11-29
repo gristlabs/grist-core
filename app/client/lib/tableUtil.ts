@@ -1,6 +1,7 @@
 import type {CopySelection} from 'app/client/components/CopySelection';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import type {KoArray} from 'app/client/lib/koArray';
+import {simpleStringHash} from 'app/client/lib/textUtils';
 import type {ViewFieldRec} from 'app/client/models/DocModel';
 import type {BulkUpdateRecord} from 'app/common/DocActions';
 import {safeJsonParse} from 'app/common/gutil';
@@ -79,6 +80,15 @@ export function makePasteText(tableData: TableData, selection: CopySelection) {
 }
 
 /**
+ * Hash of the current docId to allow checking if copying and pasting is happening in the same document,
+ * without leaking the actual docId which may allow others to access the document.
+ */
+export function getDocIdHash(): string {
+  const docId = (window as any).gristDocPageModel.currentDocId.get();
+  return simpleStringHash(docId);
+}
+
+/**
  * Returns an html table of containing the cells denoted by the cross product of
  * the given rows and columns, styled by the given table/row/col style dictionaries.
  * @param {TableData} tableData - the table containing the values denoted by the grid selection
@@ -90,7 +100,8 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
   const rowStyle = selection.rowStyle || {};    // Maps rowId to style object.
   const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
-  const elem = dom('table', {border: '1', cellspacing: '0', style: 'white-space: pre'},
+  const elem = dom('table',
+    {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash()},
     dom('colgroup', selection.colIds.map(colId =>
       dom('col', {
         style: _styleAttr(colStyle[colId]),
@@ -121,6 +132,7 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
 
 export interface RichPasteObject {
   displayValue: string;
+  docIdHash?: string|null;
   colType?: string|null;  // Column type of the source column.
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
@@ -134,13 +146,14 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
   const parser = new G.DOMParser() as DOMParser;
   const doc = parser.parseFromString(data, 'text/html');
   const table = doc.querySelector('table');
+  const docIdHash = table?.getAttribute('data-grist-doc-id-hash');
 
   const colTypes = Array.from(table!.querySelectorAll('col'), col =>
     col.getAttribute('data-grist-col-type'));
 
   const result = Array.from(table!.querySelectorAll('tr'), (row, rowIdx) =>
     Array.from(row.querySelectorAll('td, th'), (cell, colIdx) => {
-      const o: RichPasteObject = { displayValue: cell.textContent! };
+      const o: RichPasteObject = {displayValue: cell.textContent!, docIdHash};
 
       // If there's a column type, add it to the object
       if (colTypes[colIdx]) {

@@ -45,3 +45,32 @@ export function findLinks(text: string): Array<{value: string, isLink: boolean}>
   // urls will be at odd-number indices
   return text.split(urlRegex).map((value, i) => ({ value, isLink : (i % 2) === 1}));
 }
+
+/**
+ * Based on https://stackoverflow.com/a/22429679/2482744
+ * -----------------------------------------------------
+ * Calculate a 32 bit FNV-1a hash
+ * Found here: https://gist.github.com/vaiorabbit/5657561
+ * Ref.: http://isthe.com/chongo/tech/comp/fnv/
+ */
+export function hashFnv32a(str: string): string {
+  let hval = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hval ^= str.charCodeAt(i);
+    hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
+  }
+  // Convert to 8 digit hex string
+  return ("0000000" + (hval >>> 0).toString(16)).substr(-8);
+}
+
+/**
+ * A poor man's hash for when proper crypto isn't worth it.
+ */
+export function simpleStringHash(str: string) {
+  let result = '';
+  // Crudely convert 32 bits to 128 bits to reduce collisions
+  for (let i = 0; i < 4; i++) {
+    result += hashFnv32a(result + str);
+  }
+  return result;
+}
