@@ -1351,7 +1351,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Look up user information in database.
     if (!this._homeDbManager) { throw new Error('database required'); }
     const dbUser = linkParameters.aclAsUserId ?
-      (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId))) :
+      (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId, 'aclAsUserId'))) :
       (await this._homeDbManager.getExistingUserByLogin(linkParameters.aclAsUser));
     if (!dbUser && linkParameters.aclAsUser) {
       // Look further for the user, in user attribute tables or examples.

@@ -31,10 +31,10 @@ export class DocWorker {
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const docSession = this._getDocSession(stringParam(req.query.clientId),
-                                             integerParam(req.query.docFD));
+      const docSession = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
+                                             integerParam(req.query.docFD, 'docFD'));
       const activeDoc = docSession.activeDoc;
-      const ext = path.extname(stringParam(req.query.ident));
+      const ext = path.extname(stringParam(req.query.ident, 'ident'));
       const type = mimeTypes.lookup(ext);
 
       let inline = Boolean(req.query.inline);
@@ -43,8 +43,8 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = contentDisposition(stringParam(req.query.name), {type: contentDispType});
-      const data = await activeDoc.getAttachmentData(docSession, stringParam(req.query.ident));
+      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
+      const data = await activeDoc.getAttachmentData(docSession, stringParam(req.query.ident, 'ident'));
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
@@ -138,8 +138,8 @@ export class DocWorker {
     let urlId: string|undefined;
     try {
       if (optStringParam(req.query.clientId)) {
-        const activeDoc = this._getDocSession(stringParam(req.query.clientId),
-                                              integerParam(req.query.docFD)).activeDoc;
+        const activeDoc = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
+                                              integerParam(req.query.docFD, 'docFD')).activeDoc;
         // TODO: The docId should be stored in the ActiveDoc class. Currently docName is
         // used instead, which will coincide with the docId for hosted grist but not for
         // standalone grist.
@@ -147,7 +147,7 @@ export class DocWorker {
       } else {
         // Otherwise, if being used without a client, expect the doc query parameter to
         // be the docId.
-        urlId = stringParam(req.query.doc);
+        urlId = stringParam(req.query.doc, 'doc');
       }
       if (!urlId) { return res.status(403).send({error: 'missing document id'}); }
 

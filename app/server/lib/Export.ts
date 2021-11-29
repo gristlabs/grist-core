@@ -1,19 +1,20 @@
-import { buildColFilter } from 'app/common/ColumnFilterFunc';
-import { RowRecord } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { DocumentSettings } from 'app/common/DocumentSettings';
+import {ApiError} from 'app/common/ApiError';
+import {buildColFilter} from 'app/common/ColumnFilterFunc';
+import {RowRecord} from 'app/common/DocActions';
+import {DocData} from 'app/common/DocData';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import { buildRowFilter } from 'app/common/RowFilterFunc';
-import { SchemaTypes } from 'app/common/schema';
-import { SortFunc } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
-import { TableData } from 'app/common/TableData';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import { docSessionFromRequest } from 'app/server/lib/DocSession';
-import { optIntegerParam, optJsonParam, stringParam } from 'app/server/lib/requestUtils';
-import { ServerColumnGetters } from 'app/server/lib/ServerColumnGetters';
+import {buildRowFilter} from 'app/common/RowFilterFunc';
+import {SchemaTypes} from 'app/common/schema';
+import {SortFunc} from 'app/common/SortFunc';
+import {Sort} from 'app/common/SortSpec';
+import {TableData} from 'app/common/TableData';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {RequestWithLogin} from 'app/server/lib/Authorizer';
+import {docSessionFromRequest} from 'app/server/lib/DocSession';
+import {optIntegerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
+import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
 
@@ -82,7 +83,7 @@ export interface ExportParameters {
  * Gets export parameters from a request.
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
-  const tableId = stringParam(req.query.tableId);
+  const tableId = stringParam(req.query.tableId, 'tableId');
   const viewSectionId = optIntegerParam(req.query.viewSection);
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
@@ -97,7 +98,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
 
 // Makes assertion that value does exists or throws an error
 function safe<T>(value: T, msg: string) {
-  if (!value) { throw new Error(msg); }
+  if (!value) { throw new ApiError(msg, 404); }
   return value as NonNullable<T>;
 }
 

@@ -16,23 +16,11 @@ export interface DownloadXLSXOptions {
 export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
                                    res: express.Response, {filename}: DownloadXLSXOptions) {
   log.debug(`Generating .xlsx file`);
-  try {
-    const data = await makeXLSX(activeDoc, req);
-    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
-    res.send(data);
-    log.debug('XLSX file generated');
-  } catch (err) {
-    log.error("Exporting to XLSX has failed. Request url: %s", req.url, err);
-    // send a generic information to client
-    const errHtml =
-      `<!doctype html>
-<html>
-  <body>There was an unexpected error while generating a xlsx file.</body>
-</html>
-`;
-    res.status(400).send(errHtml);
-  }
+  const data = await makeXLSX(activeDoc, req);
+  res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
+  res.send(data);
+  log.debug('XLSX file generated');
 }
 
 /**

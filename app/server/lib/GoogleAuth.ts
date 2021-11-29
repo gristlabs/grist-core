@@ -97,7 +97,7 @@ export async function googleAuthTokenMiddleware(
     try {
       const oAuth2Client = getGoogleAuth();
       // Decrypt code that was send back from Google Auth service. Uses GOOGLE_CLIENT_SECRET key.
-      const tokenResponse = await oAuth2Client.getToken(stringParam(req.query.code));
+      const tokenResponse = await oAuth2Client.getToken(stringParam(req.query.code, 'code'));
       // Get the access token (access token will be present in a default request configuration).
       const access_token = tokenResponse.tokens.access_token!;
       req.query.access_token = access_token;
@@ -136,20 +136,20 @@ export function addGoogleAuthEndpoint(
 
     if (optStringParam(req.query.code)) {
       log.debug("GoogleAuth - response from Google with valid code");
-      messagePage(req, res, { code: stringParam(req.query.code),
-                              origin: stringParam(req.query.state) });
+      messagePage(req, res, { code: stringParam(req.query.code, 'code'),
+                              origin: stringParam(req.query.state, 'state') });
     } else if (optStringParam(req.query.error)) {
-      log.debug("GoogleAuth - response from Google with error code", stringParam(req.query.error));
-      if (stringParam(req.query.error) === "access_denied") {
-        messagePage(req, res, { error: stringParam(req.query.error),
-                                origin: stringParam(req.query.state) });
+      log.debug("GoogleAuth - response from Google with error code", stringParam(req.query.error, 'error'));
+      if (stringParam(req.query.error, 'error') === "access_denied") {
+        messagePage(req, res, { error: stringParam(req.query.error, 'error'),
+                                origin: stringParam(req.query.state, 'state') });
       } else {
         // This should not happen, either code or error is a mandatory query parameter.
         throw new ApiError("Error authenticating with Google", 500);
       }
     } else {
       const oAuth2Client = getGoogleAuth();
-      const scope = stringParam(req.query.scope);
+      const scope = stringParam(req.query.scope, 'scope');
       // Create url for origin parameter for a popup window.
       const origin = getOriginUrl(req);
       const authUrl = oAuth2Client.generateAuthUrl({

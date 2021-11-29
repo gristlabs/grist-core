@@ -1,11 +1,12 @@
+import {ApiError} from 'app/common/ApiError';
 import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
+import * as log from 'app/server/lib/log';
 import * as bluebird from 'bluebird';
+import * as contentDisposition from 'content-disposition';
 import * as csv from 'csv';
 import * as express from 'express';
-import * as log from 'app/server/lib/log';
-import * as contentDisposition from 'content-disposition';
 
 export interface DownloadCSVOptions {
   filename: string;
@@ -25,24 +26,12 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
                                   res: express.Response, options: DownloadCSVOptions) {
   log.info('Generating .csv file...');
   const {filename, tableId, viewSectionId, filters, sortOrder} = options;
-
-  try {
-    const data = viewSectionId ?
-      await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req) :
-      await makeCSVFromTable(activeDoc, tableId, req);
-    res.set('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
-    res.send(data);
-  } catch (err) {
-    log.error("Exporting to CSV has failed. Request url: %s", req.url, err);
-    const errHtml =
-      `<!doctype html>
-<html>
-  <body>There was an unexpected error while generating a csv file.</body>
-</html>
-`;
-    res.status(400).send(errHtml);
-  }
+  const data = viewSectionId ?
+    await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req) :
+    await makeCSVFromTable(activeDoc, tableId, req);
+  res.set('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
+  res.send(data);
 }
 
 /**
@@ -87,6 +76,10 @@ export async function makeCSVFromTable(
   // Look up the table to make a CSV from.
   const tables = activeDoc.docData.getTable('_grist_Tables')!;
   const tableRef = tables.findRow('tableId', tableId);
+
+  if (tableRef === 0) {
+    throw new ApiError(`Table ${tableId} not found.`, 404);
+  }
 
   const data = await exportTable(activeDoc, tableRef, req);
   const file = convertToCsv(data);

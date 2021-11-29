@@ -319,7 +319,7 @@ export class FlexServer implements GristServer {
     if (this._check('router')) { return; }
     this.app.get('/test/router', (req, res) => {
       const act = optStringParam(req.query.act) || 'none';
-      const port = stringParam(req.query.port);  // port is trusted in mock; in prod it is not.
+      const port = stringParam(req.query.port, 'port');  // port is trusted in mock; in prod it is not.
       if (act === 'add' || act === 'remove') {
         const host = `localhost:${port}`;
         return res.status(200).json({

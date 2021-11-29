@@ -215,16 +215,16 @@ export function optStringParam(p: any): string|undefined {
   return undefined;
 }
 
-export function stringParam(p: any, allowed?: string[]): string {
-  if (typeof p !== 'string') { throw new Error(`parameter should be a string: ${p}`); }
-  if (allowed && !allowed.includes(p)) { throw new Error(`parameter ${p} should be one of ${allowed}`); }
+export function stringParam(p: any, name: string, allowed?: string[]): string {
+  if (typeof p !== 'string') { throw new Error(`${name} parameter should be a string: ${p}`); }
+  if (allowed && !allowed.includes(p)) { throw new Error(`${name} parameter ${p} should be one of ${allowed}`); }
   return p;
 }
 
-export function integerParam(p: any): number {
+export function integerParam(p: any, name: string): number {
   if (typeof p === 'number') { return Math.floor(p); }
   if (typeof p === 'string') { return parseInt(p, 10); }
-  throw new Error(`parameter should be an integer: ${p}`);
+  throw new Error(`${name} parameter should be an integer: ${p}`);
 }
 
 export function optIntegerParam(p: any): number|undefined {

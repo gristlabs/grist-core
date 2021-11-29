@@ -53,7 +53,7 @@ function helpScoutSign(email: string): string|undefined {
  *   - If there is no identifier available, a 400 error is thrown.
  */
 export function getOrgKey(req: Request): string|number {
-  let orgKey: string|null = stringParam(req.params.oid);
+  let orgKey: string|null = stringParam(req.params.oid, 'oid');
   if (orgKey === 'current') {
     orgKey = getOrgFromRequest(req);
   }
@@ -119,7 +119,7 @@ export class ApiServer {
     // GET /api/workspace/:wid
     // Get workspace by id, returning nested documents that user has access to.
     this._app.get('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.getWorkspace(getScope(req), wsId);
       return sendReply(req, res, query);
     }));
@@ -183,7 +183,7 @@ export class ApiServer {
     // Body params: name
     // Update the specified workspace.
     this._app.patch('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.updateWorkspace(getScope(req), wsId, req.body);
       return sendReply(req, res, query);
     }));
@@ -191,7 +191,7 @@ export class ApiServer {
     // // DELETE /api/workspaces/:wid
     // Delete the specified workspace and all included docs.
     this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.deleteWorkspace(getScope(req), wsId);
       return sendReply(req, res, query);
     }));
@@ -200,7 +200,7 @@ export class ApiServer {
     // Soft-delete the specified workspace.  If query parameter "permanent" is set,
     // delete permanently.
     this._app.post('/api/workspaces/:wid/remove', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       if (isParameterOn(req.query.permanent)) {
         const query = await this._dbManager.deleteWorkspace(getScope(req), wsId);
         return sendReply(req, res, query);
@@ -214,7 +214,7 @@ export class ApiServer {
     // Recover the specified workspace if it was previously soft-deleted and is
     // still available.
     this._app.post('/api/workspaces/:wid/unremove', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       await this._dbManager.undeleteWorkspace(getScope(req), wsId);
       return sendOkReply(req, res);
     }));
@@ -222,7 +222,7 @@ export class ApiServer {
     // POST /api/workspaces/:wid/docs
     // Create a new doc owned by the specific workspace.
     this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
-      const wsId = integerParam(req.params.wid);
+      const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
       return sendReply(req, res, query);
     }));
@@ -265,7 +265,7 @@ export class ApiServer {
     // PATCH /api/workspaces/:wid/access
     // Update the specified workspace acl rules.
     this._app.patch('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid);
+      const workspaceId = integerParam(req.params.wid, 'wid');
       const delta = req.body.delta;
       const query = await this._dbManager.updateWorkspacePermissions(getScope(req), workspaceId, delta);
       return sendReply(req, res, query);
@@ -316,7 +316,7 @@ export class ApiServer {
     // GET /api/workspaces/:wid/access
     // Get user access information regarding a workspace
     this._app.get('/api/workspaces/:wid/access', expressWrap(async (req, res) => {
-      const workspaceId = integerParam(req.params.wid);
+      const workspaceId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.getWorkspaceAccess(getScope(req), workspaceId);
       return sendReply(req, res, query);
     }));

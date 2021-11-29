@@ -228,7 +228,7 @@ export class Housekeeper {
       if (userId !== this._dbManager.getSupportUserId()) {
         throw new ApiError('access denied', 403);
       }
-      const docId = stringParam(req.params.docId);
+      const docId = stringParam(req.params.docId, 'docId');
       const permitKey = await this._permitStore.setPermit({docId});
       try {
         const result = await callback(docId, {

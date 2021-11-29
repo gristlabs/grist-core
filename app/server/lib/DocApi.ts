@@ -356,8 +356,8 @@ export class DocWorkerApi {
 
     // Initiate a fork.  Used internally to implement ActiveDoc.fork.  Only usable via a Permit.
     this._app.post('/api/docs/:docId/create-fork', canEdit, throttled(async (req, res) => {
-      const docId = stringParam(req.params.docId);
-      const srcDocId = stringParam(req.body.srcDocId);
+      const docId = stringParam(req.params.docId, 'docId');
+      const srcDocId = stringParam(req.body.srcDocId, 'srcDocId');
       if (srcDocId !== req.specialPermit?.otherDocId) { throw new Error('access denied'); }
       const fname = await this._docManager.storageManager.prepareFork(srcDocId, docId);
       await filterDocumentInPlace(docSessionFromRequest(req), fname);
@@ -629,7 +629,7 @@ export class DocWorkerApi {
 
     this._app.post('/api/docs/:docId/states/remove', isOwner, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
-      const keep = integerParam(req.body.keep);
+      const keep = integerParam(req.body.keep, 'keep');
       res.json(await activeDoc.deleteActions(docSession, keep));
     }));
 
@@ -683,8 +683,8 @@ export class DocWorkerApi {
     // Give details about what changed between two versions of a document.
     this._app.get('/api/docs/:docId/compare', canView, withDoc(async (activeDoc, req, res) => {
       // This could be a relatively slow operation if actions are large.
-      const left = stringParam(req.query.left || 'HEAD');
-      const right = stringParam(req.query.right || 'HEAD');
+      const left = stringParam(req.query.left || 'HEAD', 'left');
+      const right = stringParam(req.query.right || 'HEAD', 'right');
       const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(await this._getChanges(docSession, activeDoc, states, left, right));
@@ -695,8 +695,8 @@ export class DocWorkerApi {
     // actual file uploads, so no worries here about large request bodies.)
     this._app.post('/api/workspaces/:wid/import', expressWrap(async (req, res) => {
       const userId = getUserId(req);
-      const wsId = integerParam(req.params.wid);
-      const uploadId = integerParam(req.body.uploadId);
+      const wsId = integerParam(req.params.wid, 'wid');
+      const uploadId = integerParam(req.body.uploadId, 'uploadId');
       const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
       res.json(result);
     }));
