@@ -1,13 +1,13 @@
-import {DocComm} from "app/client/components/DocComm";
-import {IOnBoardingMsg, startOnBoarding} from "app/client/ui/OnBoardingPopups";
-import {DocData} from "../../common/DocData";
-import * as _ from "lodash";
-import {Placement} from "@popperjs/core";
-import {placements} from "@popperjs/core/lib/enums";
-import {sameDocumentUrlState} from "../models/gristUrlState";
-import {dom} from "grainjs";
-import {IconList, IconName} from "../ui2018/IconList";
-import {cssButtons, cssLinkBtn, cssLinkIcon} from "./ExampleCard";
+import {Placement} from '@popperjs/core';
+import {placements} from '@popperjs/core/lib/enums';
+import {DocComm} from 'app/client/components/DocComm';
+import {sameDocumentUrlState} from 'app/client/models/gristUrlState';
+import {cssButtons, cssLinkBtn, cssLinkIcon} from 'app/client/ui/ExampleCard';
+import {IOnBoardingMsg, startOnBoarding} from 'app/client/ui/OnBoardingPopups';
+import {IconList, IconName} from 'app/client/ui2018/IconList';
+import {DocData} from 'app/common/DocData';
+import {dom} from 'grainjs';
+import sortBy = require('lodash/sortBy');
 
 
 export async function startDocTour(docData: DocData, docComm: DocComm, onFinishCB: () => void) {
@@ -35,7 +35,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docComm.waitForInitialization();
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
-  const result = _.sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
+  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
     }
