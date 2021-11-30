@@ -10,4 +10,5 @@
 !static
 !bower_components
 !sandbox
+!plugins
 !test
