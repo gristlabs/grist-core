@@ -625,10 +625,19 @@ export class GristDoc extends DisposableWithEvents {
     );
   }
 
-  // Convert column to pure formula column.
-  public async convertToFormula(colRefs: number, formula: string): Promise<void> {
+  // Updates formula for a column.
+  public async updateFormula(colRef: number, formula: string): Promise<void> {
     return this.docModel.columns.sendTableAction(
-      ['UpdateRecord', colRefs, {
+      ['UpdateRecord', colRef, {
+        formula,
+      }]
+    );
+  }
+
+  // Convert column to pure formula column.
+  public async convertToFormula(colRef: number, formula: string): Promise<void> {
+    return this.docModel.columns.sendTableAction(
+      ['UpdateRecord', colRef, {
         isFormula: true,
         formula,
         recalcWhen: RecalcWhen.DEFAULT,

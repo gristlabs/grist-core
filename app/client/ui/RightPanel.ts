@@ -22,7 +22,7 @@ import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
-import {ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, linkId, selectBy} from 'app/client/ui/selectBy';
@@ -236,7 +236,7 @@ export class RightPanel extends Disposable {
     // Simulate user typing on the cell - open editor with an initial value.
     editValue?: string,
     // Custom save handler.
-    onSave?: (formula: string) => Promise<void>,
+    onSave?: (column: ColumnRec, formula: string) => Promise<void>,
     // Custom cancel handler.
     onCancel?: () => void,) {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();

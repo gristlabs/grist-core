@@ -383,7 +383,7 @@ export function openFormulaEditor(options: {
   // Element over which to position the editor.
   refElem: Element,
   editValue?: string,
-  onSave?: (formula: string) => Promise<void>,
+  onSave?: (column: ColumnRec, formula: string) => Promise<void>,
   onCancel?: () => void,
   // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
   setupCleanup: (
@@ -401,7 +401,7 @@ export function openFormulaEditor(options: {
   const saveEdit = asyncOnce(async () => {
     const formula = editor.getCellValue();
     if (options.onSave) {
-      await options.onSave(formula as string);
+      await options.onSave(column, formula as string);
     } else if (formula !== column.formula.peek()) {
       await column.updateColValues({formula});
     }

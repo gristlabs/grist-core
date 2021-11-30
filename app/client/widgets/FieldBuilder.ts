@@ -522,7 +522,7 @@ export class FieldBuilder extends Disposable {
     editRow: DataRowModel,
     refElem: Element,
     editValue?: string,
-    onSave?: (formula: string) => Promise<void>,
+    onSave?: (column: ColumnRec, formula: string) => Promise<void>,
     onCancel?: () => void) {
     const editorHolder = openFormulaEditor({
       gristDoc: this.gristDoc,

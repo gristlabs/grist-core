@@ -66,10 +66,11 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
   ];
 }
 
+type SaveHandler = (column: ColumnRec, formula: string) => Promise<void>;
 type BuildEditor = (
   cellElem: Element,
   editValue?: string,
-  onSave?: (formula: string) => Promise<void>,
+  onSave?: SaveHandler,
   onCancel?: () => void) => void;
 
 type BEHAVIOR = "empty"|"formula"|"data";
@@ -111,6 +112,8 @@ export function buildFormulaConfig(
 
   // Clear state when column has changed
   owner.autoDispose(origColumn.id.subscribe(clearState));
+  owner.autoDispose(origColumn.formula.subscribe(clearState));
+  owner.autoDispose(origColumn.isFormula.subscribe(clearState));
 
   // Menu helper that will show normal menu with some default options
   const menu = (label: DomContents, options: DomElementArg[]) =>
@@ -177,31 +180,44 @@ export function buildFormulaConfig(
   const setFormula = () => (maybeFormula.set(true), formulaField?.focus());
   const setTrigger = () => (maybeTrigger.set(true), formulaField?.focus());
 
-  // Actions on save formula
+  // Actions on save formula. Those actions are using column that comes from FormulaEditor.
+  // Formula editor scope is broader then RightPanel, it can be disposed after RightPanel is closed,
+  // and in some cases, when window is in background, it won't be disposed at all when panel is closed.
 
-  // Converts column to formula column or updates formula on a formula column.
-  const onSaveConvertToFormula = async (formula: string) => {
+  // Converts column to formula column.
+  const onSaveConvertToFormula = async (column: ColumnRec, formula: string) => {
+    // For non formula column, we will not convert it to formula column when expression is empty,
+    // as it means we were trying to convert data column to formula column, but changed our mind.
     const notBlank = Boolean(formula);
-    const trueFormula = !maybeFormula.get();
-    if (notBlank || trueFormula) { await gristDoc.convertToFormula(origColumn.id.peek(), formula); }
-    clearState();
+    // But when the column is a formula column, empty formula expression is acceptable (it will
+    // convert column to empty column).
+    const trueFormula = column.formula.peek();
+    if (notBlank || trueFormula) { await gristDoc.convertToFormula(column.id.peek(), formula); }
+    // Clear state only when owner was not disposed
+    if (!owner.isDisposed()) {
+      clearState();
+    }
   };
 
   // Updates formula or convert column to trigger formula column if necessary.
-  const onSaveConvertToTrigger = async (formula: string) => {
-    if (formula && maybeTrigger.get()) {
-      // Convert column to trigger
-      await gristDoc.convertToTrigger(origColumn.id.peek(), formula);
-    } else if (origColumn.hasTriggerFormula.peek()) {
-      // This is true trigger formula, just update the formula (or make it blank)
-      await origColumn.formula.setAndSave(formula);
+  const onSaveConvertToTrigger = async (column: ColumnRec, formula: string) => {
+    // If formula expression is not empty, and column was plain data column (without a formula)
+    if (formula && !column.hasTriggerFormula.peek()) {
+      // then convert column to a trigger formula column
+      await gristDoc.convertToTrigger(column.id.peek(), formula);
+    } else if (column.hasTriggerFormula.peek()) {
+      // else, if it was already a trigger formula column, just update formula.
+      await gristDoc.updateFormula(column.id.peek(), formula);
     }
-    clearState();
+    // Clear state only when owner was not disposed
+    if (!owner.isDisposed()) {
+      clearState();
+    }
   };
 
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
   // Helper that will create different flavors for formula builder.
-  const formulaBuilder = (onSave: (formula: string) => Promise<void>) => [
+  const formulaBuilder = (onSave: SaveHandler) => [
     cssRow(formulaField = buildFormula(
       origColumn,
       buildEditor,
@@ -286,7 +302,7 @@ function buildFormula(
     column: ColumnRec,
     buildEditor: BuildEditor,
     placeholder: string,
-    onSave?: (formula: string) => Promise<void>,
+    onSave?: SaveHandler,
     onCancel?: () => void) {
   return cssFieldFormula(column.formula, {placeholder, maxLines: 2},
     dom.cls('formula_field_sidepane'),

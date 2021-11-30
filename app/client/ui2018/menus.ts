@@ -335,6 +335,7 @@ export function selectMenu(
   items: () => DomElementArg[],
   ...args: IDomArgs<HTMLDivElement>
 ) {
+  const _menu = cssSelectMenuElem(testId('select-menu'));
   return cssSelectBtn(
     label,
     icon('Dropdown'),
@@ -342,7 +343,7 @@ export function selectMenu(
       items,
       {
         ...weasel.defaultMenuOptions,
-        menuCssClass: cssSelectMenuElem.className + ' grist-floating-menu',
+        menuCssClass: _menu.className + ' grist-floating-menu',
         stretchToSelector : `.${cssSelectBtn.className}`,
         trigger : [(triggerElem, ctl) => {
           const isDisabled = () => triggerElem.classList.contains('disabled');
