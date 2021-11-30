@@ -822,11 +822,9 @@ class UserActions(object):
     # application-level relationships; it is not tested by testscript (nor should be, most likely;
     # it should have much simpler tests).
 
-    # Remove any views that no longer have view sections. We scan through TableViews (i.e. left
-    # side-pane entries) for this table, so Views under other tables or under "other views" will
-    # be unaffected to avoid confusing the user by deleteing views they are not interacting with.
-    views_to_remove = [tv.viewRef for t in remove_table_recs for tv in t.tableViews
-                       if not tv.viewRef.viewSections]
+    # Remove any views that no longer have view sections.
+    views_to_remove = [view for view in self._docmodel.views.all
+                       if not view.viewSections]
     # Also delete the primary views for tables being deleted, even if it has remaining sections.
     for t in remove_table_recs:
       if t.primaryViewId and t.primaryViewId not in views_to_remove:
@@ -918,9 +916,8 @@ class UserActions(object):
     """
     view_recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
 
-    # Remove all the tabBar and tableView items, and the view sections.
+    # Remove all the tabBar items, and the view sections.
     self._docmodel.remove(t for v in view_recs for t in v.tabBarItems)
-    self._docmodel.remove(t for v in view_recs for t in v.tableViewItems)
     self._docmodel.remove(vs for v in view_recs for vs in v.viewSections)
 
     # Remove all the pages and fixes indentation
@@ -1425,11 +1422,6 @@ class UserActions(object):
     Creates records for a View
     """
     result = self.doAddView(table_id, view_type, name)
-    table_row_id = self._engine.tables['_grist_Tables'].get(tableId=table_id)
-    self.AddRecord('_grist_TableViews', None, {
-      'tableRef': table_row_id,
-      'viewRef': result["id"]
-    })
     return result
 
   def doAddView(self, table_id, view_type, name):

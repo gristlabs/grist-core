@@ -284,7 +284,7 @@ class TestUserActions(test_engine.EngineTestCase):
   #----------------------------------------------------------------------
 
   def init_views_sample(self):
-    # Add a new table and a view, to get some Views/Sections/Fields, and TableView/TabBar items.
+    # Add a new table and a view, to get some Views/Sections/Fields, and TabBar items.
     self.apply_user_action(['AddTable', 'Schools', [
       {'id': 'city', 'type': 'Text'},
       {'id': 'state', 'type': 'Text'},
@@ -361,11 +361,6 @@ class TestUserActions(test_engine.EngineTestCase):
         ]),
       ]),
     ])
-    self.assertTableData('_grist_TableViews', data=[
-      ["id",  "tableRef", "viewRef"],
-      [1,     1,          2],
-      [2,     1,          3],
-    ])
     self.assertTableData('_grist_TabBar', cols="subset", data=[
       ["id",  "viewRef"],
       [1,     1],
@@ -421,9 +416,6 @@ class TestUserActions(test_engine.EngineTestCase):
           Field(14, colRef=12),
         ]),
       ]),
-    ])
-    self.assertTableData('_grist_TableViews', data=[
-      ["id",  "tableRef", "viewRef"],
     ])
     self.assertTableData('_grist_TabBar', cols="subset", data=[
       ["id",  "viewRef"],

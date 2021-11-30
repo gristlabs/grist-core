@@ -263,12 +263,7 @@ class TestTableActions(test_engine.EngineTestCase):
     self.assertEqual(out_actions.retValues[0]["viewRef"], 5)
     self.apply_user_action(["CreateViewSection", 4, 5, 'detail', None])
 
-    # See what's in TableViews and TabBar tables, to verify after we remove a table.
-    self.assertTableData('_grist_TableViews', data=[
-      ["id",  "tableRef", "viewRef"],
-      [1,     1,          3],
-      [2,     1,          5],
-    ])
+    # See what's in TabBar table, to verify after we remove a table.
     self.assertTableData('_grist_TabBar', cols="subset", data=[
       ["id",  "viewRef"],
       [1,     1],
@@ -281,11 +276,7 @@ class TestTableActions(test_engine.EngineTestCase):
     # Remove two tables, ensure certain views get removed.
     self.apply_user_action(["BulkRemoveRecord", "_grist_Tables", [1, 4]])
 
-    # See that some TableViews/TabBar entries disappear, or tableRef gets unset.
-    self.assertTableData('_grist_TableViews', data=[
-      ["id",  "tableRef", "viewRef"],
-      [1,     0,          3],
-    ])
+    # See that some TabBar entries disappear, or tableRef gets unset.
     self.assertTableData('_grist_TabBar', cols="subset", data=[
       ["id",  "viewRef"],
       [2,     2],

@@ -128,7 +128,7 @@ def schema_create_actions():
       make_column("tableName",    "Text"),
     ]),
 
-    # Document tabs that represent a cross-reference between Tables and Views
+    # DEPRECATED: Document tabs that represent a cross-reference between Tables and Views
     actions.AddTable("_grist_TableViews", [
       make_column("tableRef",     "Ref:_grist_Tables"),
       make_column("viewRef",      "Ref:_grist_Views"),

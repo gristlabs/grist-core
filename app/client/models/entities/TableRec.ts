@@ -1,6 +1,6 @@
 import {KoArray} from 'app/client/lib/koArray';
 import {DocModel, IRowModel, recordSet, refRecord} from 'app/client/models/DocModel';
-import {ColumnRec, TableViewRec, ValidationRec, ViewRec} from 'app/client/models/DocModel';
+import {ColumnRec, ValidationRec, ViewRec} from 'app/client/models/DocModel';
 import {MANUALSORT} from 'app/common/gristTypes';
 import * as ko from 'knockout';
 import toUpper = require('lodash/toUpper');
@@ -12,7 +12,6 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
   validations: ko.Computed<KoArray<ValidationRec>>;
 
   primaryView: ko.Computed<ViewRec>;
-  tableViewItems: ko.Computed<KoArray<TableViewRec>>;
   summarySource: ko.Computed<TableRec>;
 
   // A Set object of colRefs for all summarySourceCols of table.
@@ -38,7 +37,6 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.validations = recordSet(this, docModel.validations, 'tableRef');
 
   this.primaryView = refRecord(docModel.views, this.primaryViewId);
-  this.tableViewItems = recordSet(this, docModel.tableViews, 'tableRef', {sortBy: 'viewRef'});
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
 
   // A Set object of colRefs for all summarySourceCols of this table.

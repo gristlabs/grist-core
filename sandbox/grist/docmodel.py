@@ -52,7 +52,6 @@ class MetaTableExtras(object):
   class _grist_Tables(object):
     columns = _record_set('_grist_Tables_column', 'parentId', sort_by='parentPos')
     viewSections = _record_set('_grist_Views_section', 'tableRef')
-    tableViews = _record_set('_grist_TableViews', 'tableRef')
     summaryTables = _record_set('_grist_Tables', 'summarySourceTable')
 
     def summaryKey(rec, table):
@@ -100,7 +99,6 @@ class MetaTableExtras(object):
   class _grist_Views(object):
     viewSections = _record_set('_grist_Views_section', 'parentId')
     tabBarItems = _record_set('_grist_TabBar', 'viewRef')
-    tableViewItems = _record_set('_grist_TableViews', 'viewRef')
     primaryViewTable = _record_inverse('_grist_Tables', 'primaryViewId')
     pageItems = _record_set('_grist_Pages', 'viewRef')
 
@@ -153,7 +151,6 @@ class DocModel(object):
     self.doc_info                = self._prep_table("_grist_DocInfo")
     self.tables                  = self._prep_table("_grist_Tables")
     self.columns                 = self._prep_table("_grist_Tables_column")
-    self.table_views             = self._prep_table("_grist_TableViews")
     self.tab_bar                 = self._prep_table("_grist_TabBar")
     self.views                   = self._prep_table("_grist_Views")
     self.view_sections           = self._prep_table("_grist_Views_section")
