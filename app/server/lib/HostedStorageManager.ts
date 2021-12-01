@@ -252,6 +252,9 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   public async prepareFork(srcDocName: string, destDocName: string): Promise<string> {
     await this.prepareLocalDoc(destDocName, srcDocName);
+    this.markAsChanged(destDocName);  // Make sure fork is actually stored in S3, even
+                                      // if no changes are made, since we'd refuse to
+                                      // create it later.
     return this.getPath(destDocName);
   }
 

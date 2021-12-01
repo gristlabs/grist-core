@@ -240,9 +240,12 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         // exist in this case, and this should fail if it does.
         await fse.move(tmpPath, fname, {overwrite: false});
         if (fromKey === toKey) {
+          // Save last S3 snapshot id observed for this key.
           await this._options.latestVersion.save(toKey, downloadedSnapshotId);
+          // Save last S3 hash observed for this key (so if we have a version with that hash
+          // locally we can skip pushing it back needlessly later).
+          await this._options.localHash.save(toKey, checksum);
         }
-        await this._options.localHash.save(toKey, checksum);
 
         log.info("ext %s download: %s%s%s with checksum %s and version %s", this.label, fromKey,
                  snapshotId ? ` [VersionId ${snapshotId}]` : '',
