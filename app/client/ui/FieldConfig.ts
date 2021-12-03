@@ -396,6 +396,8 @@ const cssToggleButton = styled(cssIconButton, `
 const cssColLabelBlock = styled('div', `
   display: flex;
   flex-direction: column;
+  flex: auto;
+  min-width: 80px;
 `);
 
 const cssColTieBlock = styled('div', `
