@@ -101,7 +101,7 @@ declare module "app/client/components/ViewConfigTab" {
   import {Disposable} from 'app/client/lib/dispose';
   import {KoArray} from "app/client/lib/koArray";
   import {ColumnRec, ViewRec, ViewSectionRec} from "app/client/models/DocModel";
-  import {DomArg} from 'grainjs';
+  import {DomArg, DomContents} from 'grainjs';
 
   namespace ViewConfigTab {
     interface ViewSectionData {
@@ -113,7 +113,7 @@ declare module "app/client/components/ViewConfigTab" {
   class ViewConfigTab extends Disposable {
     constructor(options: {gristDoc: GristDoc, viewModel: ViewRec, skipDomBuild?: boolean});
     public buildConfigDomObj(): TabContent[];
-    public buildSortDom(): DomArg;
+    public buildSortDom(): DomContents;
     // TODO: these should be made private or renamed.
     public _buildSectionFieldsConfig(): DomArg;
     public _buildNameDom(): DomArg;
@@ -123,7 +123,7 @@ declare module "app/client/components/ViewConfigTab" {
     public _buildFilterDom(): DomArg;
     public _buildThemeDom(): DomArg;
     public _buildGridStyleDom(): DomArg;
-    public _buildChartConfigDom(): DomArg;
+    public _buildChartConfigDom(): DomContents;
     public _buildLayoutDom(): DomArg;
     public _buildLinkDom(): DomArg;
     public _buildCustomTypeItems(): DomArg;

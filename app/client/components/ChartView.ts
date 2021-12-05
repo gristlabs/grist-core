@@ -22,8 +22,8 @@ import {nativeCompare} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
-import {Computed, dom, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
-  makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
+  makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
@@ -477,13 +477,11 @@ export class ChartConfig extends GrainJSDisposable {
 
   private get _optionsObj() { return this._section.optionsObj; }
 
-  public buildDom() {
+  public buildDom(): DomContents {
 
     if (this._section.parentKey() !== 'chart') { return null; }
 
-    const owner = new MultiHolder();
     return [
-      dom.autoDispose(owner),
       cssRow(
         select(this._chartType, [
           {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
@@ -502,7 +500,7 @@ export class ChartConfig extends GrainJSDisposable {
         cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
         cssCheckboxRow('Log scale Y-axis', this._optionsObj.prop('logYAxis')),
       ]),
-      dom.maybe((use) => use(this._section.chartTypeDef) === 'donut', () => [
+      dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
         cssSlideRow(
           'Hole Size',
           Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
@@ -658,7 +656,7 @@ export class ChartConfig extends GrainJSDisposable {
     );
   }
 
-  private _buildYAxis() {
+  private _buildYAxis(): Element {
 
     // The y-axis are all visible fields that comes after the x-axis and maybe the group data
     // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.

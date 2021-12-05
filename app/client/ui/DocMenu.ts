@@ -50,7 +50,7 @@ function createLoadedDocMenu(home: HomeModel) {
   return css.docList(
     dom.maybe(!home.app.currentFeatures.workspaces, () => [
       css.docListHeader('This service is not available right now'),
-      dom.text('(The organization needs a paid plan)')
+      dom('span', '(The organization needs a paid plan)')
     ]),
 
     // currentWS and showIntro observables change together. We capture both in one domComputed call.

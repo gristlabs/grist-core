@@ -323,25 +323,23 @@ export class RightPanel extends Disposable {
         vct._buildChartConfigDom(),
       ]),
 
-      dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => [
-        cssLabel('CUSTOM'),
-        () => {
-          const parts = vct._buildCustomTypeItems() as any[];
-          return [
-            // If 'customViewPlugin' feature is on, show the toggle that allows switching to
-            // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
-            // the only one that will be shown without the feature flag.
-            dom.maybe((use) => use(this._gristDoc.app.features).customViewPlugin,
-              () => dom('div', parts[0].buildDom())),
-            dom.maybe(use => use(activeSection.customDef.mode) === 'plugin',
-                      () => dom('div', parts[2].buildDom())),
-            // In the default url mode, allow picking a url and granting/forbidding
-            // access to data.
-            dom.maybe(use => use(activeSection.customDef.mode) === 'url',
-                      () => dom.create(CustomSectionConfig, activeSection, this._gristDoc.app.topAppModel.api)),
-          ];
-        }
-      ]),
+      dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
+        const parts = vct._buildCustomTypeItems() as any[];
+        return [
+          cssLabel('CUSTOM'),
+          // If 'customViewPlugin' feature is on, show the toggle that allows switching to
+          // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
+          // the only one that will be shown without the feature flag.
+          dom.maybe((use) => use(this._gristDoc.app.features).customViewPlugin,
+            () => dom('div', parts[0].buildDom())),
+          dom.maybe(use => use(activeSection.customDef.mode) === 'plugin',
+            () => dom('div', parts[2].buildDom())),
+          // In the default url mode, allow picking a url and granting/forbidding
+          // access to data.
+          dom.maybe(use => use(activeSection.customDef.mode) === 'url',
+            () => dom.create(CustomSectionConfig, activeSection, this._gristDoc.app.topAppModel.api)),
+        ];
+      }),
 
       dom.maybe((use) => use(this._pageWidgetType) !== 'chart', () => [
         cssSeparator(),
