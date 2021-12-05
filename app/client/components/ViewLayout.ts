@@ -106,7 +106,11 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       this._isResizing.set(false);
       layoutSaveDelay.schedule(1000, () => {
         if (!this._layout) { return; }
-        (this.viewModel.layoutSpecObj as any).setAndSave(this._layout.getLayoutSpec());
+
+        // Only save layout changes when the document isn't read-only.
+        if (!this.gristDoc.isReadonly.get()) {
+          (this.viewModel.layoutSpecObj as any).setAndSave(this._layout.getLayoutSpec());
+        }
         this._onResize();
       });
     });
