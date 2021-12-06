@@ -10,8 +10,6 @@ import { countIf } from 'app/common/gutil';
 import { TableData as BaseTableData, ColTypeMap } from 'app/common/TableData';
 import { Emitter } from 'grainjs';
 
-export type SearchFunc = (value: any) => boolean;
-
 /**
  * TableData class to maintain a single table's data.
  */
@@ -58,33 +56,6 @@ export class TableData extends BaseTableData {
     super.unloadPartial(rowIds);
     // Emit dataLoaded event, to trigger ('rowChange', 'rm') on the TableModel RowSource.
     this.dataLoadedEmitter.emit(rowIds, []);
-  }
-
-  /**
-   * Given a colId and a search function, returns a list of matching row IDs, optionally limiting their number.
-   * @param {String} colId: identifies the column to search.
-   * @param {Function} searchFunc: A function which, given a column value, returns whether to include it.
-   * @param [Number] optMaxResults: if given, limit the number of returned results to this.
-   * @returns Array[Number] array of row IDs.
-   */
-  public columnSearch(colId: string, searchFunc: SearchFunc, optMaxResults?: number) {
-    const maxResults = optMaxResults || Number.POSITIVE_INFINITY;
-
-    const rowIds = this.getRowIds();
-    const valColumn = this.getColValues(colId);
-    const ret = [];
-    if (!valColumn) {
-      // tslint:disable-next-line:no-console
-      console.warn(`TableData.columnSearch called on invalid column ${this.tableId}.${colId}`);
-    } else {
-      for (let i = 0; i < rowIds.length && ret.length < maxResults; i++) {
-        const value = valColumn[i];
-        if (value && searchFunc(value)) {
-          ret.push(rowIds[i]);
-        }
-      }
-    }
-    return ret;
   }
 
   /**

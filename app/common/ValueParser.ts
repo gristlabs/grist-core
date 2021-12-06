@@ -6,12 +6,13 @@ import {safeJsonParse} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions} from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
 import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
+import {TableData} from 'app/common/TableData';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
 import flatMap = require('lodash/flatMap');
 
 
 export class ValueParser {
-  constructor(public type: string, public widgetOpts: object, public docSettings: DocumentSettings) {
+  constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
   }
 
   public cleanParse(value: string): any {
@@ -95,19 +96,132 @@ class ChoiceListParser extends ValueParser {
   }
 }
 
-const parsers: { [type: string]: typeof ValueParser } = {
+/**
+ * This is different from other widget options which are simple JSON
+ * stored on the field. These have to be specially derived
+ * for referencing columns. See ViewFieldRec.valueParser for an example.
+ */
+interface ReferenceParsingOptions {
+  visibleColId: string;
+  visibleColType: string;
+  visibleColWidgetOpts: FormatOptions;
+
+  // If this is provided and loaded, the ValueParser will look up values directly.
+  // Otherwise an encoded lookup will be produced for the data engine to handle.
+  tableData?: TableData;
+}
+
+export class ReferenceParser extends ValueParser {
+  public widgetOpts: ReferenceParsingOptions;
+
+  protected _visibleColId = this.widgetOpts.visibleColId;
+  protected _tableData = this.widgetOpts.tableData;
+  protected _visibleColParser = createParser(
+    this.widgetOpts.visibleColType,
+    this.widgetOpts.visibleColWidgetOpts,
+    this.docSettings,
+  );
+
+  public parse(raw: string): any {
+    let value = this._visibleColParser(raw);
+    if (!value || !raw) {
+      return 0;  // default value for a reference column
+    }
+
+    if (this._visibleColId === 'id') {
+      const n = Number(value);
+      if (Number.isInteger(n)) {
+        value = n;
+        // Don't return yet because we need to check that this row ID exists
+      } else {
+        return raw;
+      }
+    }
+
+    if (!this._tableData?.isLoaded) {
+      const options: { column: string, raw?: string } = {column: this._visibleColId};
+      if (value !== raw) {
+        options.raw = raw;
+      }
+      return ['l', value, options];
+    }
+
+    return this._tableData.findMatchingRowId({[this._visibleColId]: value}) || raw;
+  }
+}
+
+export class ReferenceListParser extends ReferenceParser {
+  public parse(raw: string): any {
+    let values: any[] | null;
+    try {
+      values = JSON.parse(raw);
+    } catch {
+      values = null;
+    }
+    if (!Array.isArray(values)) {
+      // csvDecodeRow should never raise an exception
+      values = csvDecodeRow(raw);
+    }
+    values = values.map(v => typeof v === "string" ? this._visibleColParser(v) : v);
+
+    if (!values.length || !raw) {
+      return null;  // null is the default value for a reference list column
+    }
+
+    if (this._visibleColId === 'id') {
+      const numbers = values.map(Number);
+      if (numbers.every(Number.isInteger)) {
+        values = numbers;
+        // Don't return yet because we need to check that these row IDs exist
+      } else {
+        return raw;
+      }
+    }
+
+    if (!this._tableData?.isLoaded) {
+      const options: { column: string, raw?: string } = {column: this._visibleColId};
+      if (!(values.length === 1 && values[0] === raw)) {
+        options.raw = raw;
+      }
+      return ['l', values, options];
+    }
+
+    const rowIds: number[] = [];
+    for (const value of values) {
+      const rowId = this._tableData.findMatchingRowId({[this._visibleColId]: value});
+      if (rowId) {
+        rowIds.push(rowId);
+      } else {
+        // There's no matching value in the visible column, i.e. this is not a valid reference.
+        // We need to return a string which will become AltText.
+        return raw;
+      }
+    }
+    return ['L', ...rowIds];
+  }
+}
+
+export const valueParserClasses: { [type: string]: typeof ValueParser } = {
   Numeric: NumericParser,
   Int: NumericParser,
   Date: DateParser,
   DateTime: DateTimeParser,
   ChoiceList: ChoiceListParser,
+  Ref: ReferenceParser,
+  RefList: ReferenceListParser,
 };
 
 
+/**
+ * Returns a function which can parse strings into values appropriate for
+ * a specific widget field or table column.
+ * widgetOpts is usually the field/column's widgetOptions JSON
+ * but referencing columns need more than that, see ReferenceParsingOptions above.
+ */
 export function createParser(
   type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings
 ): (value: string) => any {
-  const cls = parsers[gristTypes.extractTypeFromColType(type)];
+  const cls = valueParserClasses[gristTypes.extractTypeFromColType(type)];
   if (cls) {
     const parser = new cls(type, widgetOpts, docSettings);
     return parser.cleanParse.bind(parser);

@@ -1,10 +1,8 @@
-import {ReferenceUtils} from 'app/client/lib/ReferenceUtils';
 import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
-import {csvDecodeRow} from 'app/common/csvFormat';
 import {DocumentSettings} from 'app/common/DocumentSettings';
-import {isFullReferencingType} from 'app/common/gristTypes';
+import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
 import * as ko from 'knockout';
@@ -180,31 +178,15 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     const docSettings = this.documentSettings();
     const type = this.column().type();
 
-    if (!isFullReferencingType(type)) {
-      return createParser(type, this.widgetOptionsJson(), docSettings);
-    } else {
+    const widgetOpts = this.widgetOptionsJson();
+    if (isFullReferencingType(type)) {
       const vcol = this.visibleColModel();
-      const vcolParser = createParser(vcol.type(), vcol.widgetOptionsJson(), docSettings);
-      const refUtils = new ReferenceUtils(this, docModel.docData);  // uses several more observables immediately
-      if (!refUtils.isRefList) {
-        return (s: string) => refUtils.parseReference(s, vcolParser(s));
-      } else {
-        return (s: string) => {
-          let values: any[] | null;
-          try {
-            values = JSON.parse(s);
-          } catch {
-            values = null;
-          }
-          if (!Array.isArray(values)) {
-            // csvDecodeRow should never raise an exception
-            values = csvDecodeRow(s);
-          }
-          values = values.map(v => typeof v === "string" ? vcolParser(v) : v);
-          return refUtils.parseReferenceList(s, values);
-        };
-      }
+      widgetOpts.visibleColId = vcol.colId() || 'id';
+      widgetOpts.visibleColType = vcol.type();
+      widgetOpts.visibleColWidgetOpts = vcol.widgetOptionsJson();
+      widgetOpts.tableData = docModel.docData.getTable(getReferencedTableId(type)!);
     }
+    return createParser(type, widgetOpts, docSettings);
   });
 
   // The widgetOptions to read and write: either the column's or the field's own.

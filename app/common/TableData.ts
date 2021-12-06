@@ -8,6 +8,7 @@ import {getDefaultForType} from 'app/common/gristTypes';
 import {arrayRemove, arraySplice} from 'app/common/gutil';
 import {SchemaTypes} from "app/common/schema";
 import {UIRowId} from 'app/common/UIRowId';
+import isEqual = require('lodash/isEqual');
 import fromPairs = require('lodash/fromPairs');
 
 export interface ColTypeMap { [colId: string]: string; }
@@ -330,7 +331,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
       return 0;
     }
     return this._rowIdCol.find((id, i) =>
-      props.every((p) => (p.col.values[i] === p.value))
+      props.every((p) => isEqual(p.col.values[i], p.value))
     ) || 0;
   }
 
@@ -471,7 +472,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
     this._rowIdCol.forEach((id, i) => {
       // Collect the indices of the matching rows.
-      if (props.every((p) => (p.col.values[i] === p.value))) {
+      if (props.every((p) => isEqual(p.col.values[i], p.value))) {
         rowIndices.push(i);
       }
     });
