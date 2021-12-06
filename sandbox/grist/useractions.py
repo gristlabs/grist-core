@@ -581,10 +581,6 @@ class UserActions(object):
     self._docmodel.update([f for c in type_changed for f in c.viewFields],
                           widgetOptions='', displayCol=0)
 
-    # If the column update changes its trigger-formula conditions, rebuild dependencies.
-    if any(("recalcWhen" in values or "recalcDeps" in values) for c, values in update_pairs):
-      self._engine.trigger_columns_changed()
-
     self.doBulkUpdateFromPairs(table_id, update_pairs)
 
     for table_id in rebuild_summary_tables:

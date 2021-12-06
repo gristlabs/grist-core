@@ -667,3 +667,33 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     self.assertFormulaError(error, ZeroDivisionError, 'float division by zero')
     self.assertEqual(error._message, 'float division by zero')
     self.assertEqual(error.details, objtypes.RaisedException(ZeroDivisionError()).no_traceback().details)
+
+
+  def test_undo_should_restore_dependencies(self):
+    """
+    Test case for a bug. Undo wasn't restoring trigger formula dependencies.
+    """
+    self.load_sample(self.sample_math)
+    self.add_record("Math", A=1, B=1)
+    self.assertTableData("Math", data=[
+      ["id",  "A",  "B",  "C"],
+      [1,     1,    1,    1/1 + 1/1],
+    ])
+
+    # Remove deps from C.
+    out_actions = self.update_record("_grist_Tables_column", 3, recalcDeps=None)
+    # Make sure that trigger is not fired.
+    self.update_record("Math", 1, A=0.5)
+    self.assertTableData("Math", data=[
+      ["id", "A",   "B",  "C"],
+      [1,     0.5,  1,    1/1 + 1/1], # C is not recalculated
+    ])
+
+    # Apply undo action.
+    self.apply_undo_actions(out_actions.undo)
+    # Invoke trigger by updating A, and make sure C is updated.
+    self.update_record("Math", 1, A=0.2)
+    self.assertTableData("Math", data=[
+      ["id",  "A",  "B",  "C"],
+      [1,     0.2,  1,    1/0.2 + 1/1], # C is recalculated
+    ])

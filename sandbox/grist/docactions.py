@@ -94,6 +94,10 @@ class DocActions(object):
     # anything that depends on them).
     self._engine.invalidate_records(table_id, row_ids, col_ids=columns.keys())
 
+    # If the column update changes its trigger-formula conditions, rebuild dependencies.
+    if (table_id == "_grist_Tables_column" and
+       ("recalcWhen" in columns or "recalcDeps" in columns)):
+      self._engine.trigger_columns_changed()
 
   def ReplaceTableData(self, table_id, row_ids, column_values):
     old_data = self._engine.fetch_table(table_id, formulas=False)
