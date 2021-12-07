@@ -17,9 +17,6 @@ export class ReferenceUtils {
   public readonly isRefList: boolean;
 
   constructor(public readonly field: ViewFieldRec, docData: DocData) {
-    // Note that this constructor is called inside ViewFieldRec.valueParser, a ko.pureComputed,
-    // and there are several observables here which get used and become dependencies.
-
     const colType = field.column().type();
     const refTableId = getReferencedTableId(colType);
     if (!refTableId) {

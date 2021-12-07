@@ -1,12 +1,14 @@
 import {csvDecodeRow} from 'app/common/csvFormat';
+import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {safeJsonParse} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions} from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
 import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
-import {TableData} from 'app/common/TableData';
+import {MetaRowRecord, TableData} from 'app/common/TableData';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
 import flatMap = require('lodash/flatMap');
 
@@ -99,7 +101,7 @@ class ChoiceListParser extends ValueParser {
 /**
  * This is different from other widget options which are simple JSON
  * stored on the field. These have to be specially derived
- * for referencing columns. See ViewFieldRec.valueParser for an example.
+ * for referencing columns. See createParser.
  */
 interface ReferenceParsingOptions {
   visibleColId: string;
@@ -116,7 +118,7 @@ export class ReferenceParser extends ValueParser {
 
   protected _visibleColId = this.widgetOpts.visibleColId;
   protected _tableData = this.widgetOpts.tableData;
-  protected _visibleColParser = createParser(
+  protected _visibleColParser = createParserRaw(
     this.widgetOpts.visibleColType,
     this.widgetOpts.visibleColWidgetOpts,
     this.docSettings,
@@ -218,7 +220,7 @@ export const valueParserClasses: { [type: string]: typeof ValueParser } = {
  * widgetOpts is usually the field/column's widgetOptions JSON
  * but referencing columns need more than that, see ReferenceParsingOptions above.
  */
-export function createParser(
+export function createParserRaw(
   type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings
 ): (value: string) => any {
   const cls = valueParserClasses[gristTypes.extractTypeFromColType(type)];
@@ -227,4 +229,44 @@ export function createParser(
     return parser.cleanParse.bind(parser);
   }
   return value => value;
+}
+
+/**
+ * Returns a function which can parse strings into values appropriate for
+ * a specific widget field or table column.
+ *
+ * Pass fieldRef (a row ID of _grist_Views_section_field) to use the settings of that view field
+ * instead of the table column.
+ */
+export function createParser(
+  docData: DocData,
+  colRef: number,
+  fieldRef?: number,
+): (value: string) => any {
+  const columnsTable = docData.getMetaTable('_grist_Tables_column');
+  const fieldsTable = docData.getMetaTable('_grist_Views_section_field');
+  const docInfoTable = docData.getMetaTable('_grist_DocInfo');
+
+  const col = columnsTable.getRecord(colRef)!;
+
+  let fieldOrCol: MetaRowRecord<'_grist_Tables_column' | '_grist_Views_section_field'> = col;
+  if (fieldRef) {
+    fieldOrCol = fieldsTable.getRecord(fieldRef) || col;
+  }
+
+  const widgetOpts = safeJsonParse(fieldOrCol.widgetOptions, {});
+
+  const type = col.type;
+  if (isFullReferencingType(type)) {
+    const vcol = columnsTable.getRecord(fieldOrCol.visibleCol);
+    widgetOpts.visibleColId = vcol?.colId || 'id';
+    widgetOpts.visibleColType = vcol?.type;
+    widgetOpts.visibleColWidgetOpts = safeJsonParse(vcol?.widgetOptions || '', {});
+    widgetOpts.tableData = docData.getTable(getReferencedTableId(type)!);
+  }
+
+  const docInfo = docInfoTable.getRecord(1);
+  const docSettings = safeJsonParse(docInfo!.documentSettings, {}) as DocumentSettings;
+
+  return createParserRaw(type, widgetOpts, docSettings);
 }

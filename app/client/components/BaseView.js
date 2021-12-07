@@ -372,7 +372,7 @@ BaseView.prototype._parsePasteForView = function(data, fields) {
   });
   const updateColIds = updateCols.map(c => c && c.colId());
   const updateColTypes = updateCols.map(c => c && c.type());
-  const parsers = fields.map(field => field && field.valueParser() || (x => x));
+  const parsers = fields.map(field => field && field.createValueParser() || (x => x));
   const docIdHash = tableUtil.getDocIdHash();
 
   const richData = data.map((col, idx) => {

@@ -2,7 +2,6 @@ import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/cli
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
-import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
 import * as ko from 'knockout';
@@ -70,7 +69,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   documentSettings: ko.PureComputed<DocumentSettings>;
 
-  valueParser: ko.Computed<(value: string) => any>;
+  createValueParser(): (value: string) => any;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -174,20 +173,10 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       createFormatter(this.column().type(), this.widgetOptionsJson(), this.documentSettings());
   };
 
-  this.valueParser = ko.pureComputed(() => {
-    const docSettings = this.documentSettings();
-    const type = this.column().type();
-
-    const widgetOpts = this.widgetOptionsJson();
-    if (isFullReferencingType(type)) {
-      const vcol = this.visibleColModel();
-      widgetOpts.visibleColId = vcol.colId() || 'id';
-      widgetOpts.visibleColType = vcol.type();
-      widgetOpts.visibleColWidgetOpts = vcol.widgetOptionsJson();
-      widgetOpts.tableData = docModel.docData.getTable(getReferencedTableId(type)!);
-    }
-    return createParser(type, widgetOpts, docSettings);
-  });
+  this.createValueParser = function() {
+    const fieldRef = this.useColOptions.peek() ? undefined : this.id.peek();
+    return createParser(docModel.docData, this.colRef.peek(), fieldRef);
+  };
 
   // The widgetOptions to read and write: either the column's or the field's own.
   this._widgetOptionsStr = modelUtil.savingComputed({
