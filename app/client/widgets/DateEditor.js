@@ -34,13 +34,11 @@ function DateEditor(options) {
   this.dateFormat = options.field.widgetOptionsJson.peek().dateFormat;
   this.locale = options.field.documentSettings.peek().locale;
 
-  // Strip moment format string to remove markers unsupported by the datepicker.
-  this.safeFormat = DateEditor.parseMomentToSafe(this.dateFormat);
-
-  this._readonly = options.readonly;
+  // Update moment format string to represent a date unambiguously.
+  this.safeFormat = makeFullMomentFormat(this.dateFormat);
 
   // Use the default local timezone to format the placeholder date.
-  let defaultTimezone = moment.tz.guess();
+  const defaultTimezone = moment.tz.guess();
   let placeholder = moment.tz(defaultTimezone).format(this.safeFormat);
   if (options.readonly) {
     // clear placeholder for readonly mode
@@ -48,13 +46,7 @@ function DateEditor(options) {
   }
   TextEditor.call(this, _.defaults(options, { placeholder: placeholder }));
 
-  const isValid = _.isNumber(options.cellValue);
-  const formatted = this.formatValue(options.cellValue, this.safeFormat);
-  // Formatted value will be empty if a cell contains an error,
-  // but for a readonly mode we actually want to show what user typed
-  // into the cell.
-  const readonlyValue = isValid ? formatted : options.cellValue;
-  const cellValue = options.readonly ? readonlyValue : formatted;
+  const cellValue = this.formatValue(options.cellValue, this.safeFormat, true);
 
   // Set the edited value, if not explicitly given, to the formatted version of cellValue.
   this.textInput.value = gutil.undef(options.state, options.editValue, cellValue);
@@ -74,8 +66,17 @@ function DateEditor(options) {
       // or by script tag, i.e.
       // <script src="bootstrap-datepicker/dist/locales/bootstrap-datepicker.pl.min.js"></script>
       language : this.getLanguage(),
-      // Convert the stripped format string to one suitable for the datepicker.
-      format: DateEditor.parseSafeToCalendar(this.safeFormat)
+      // Use the stripped format converted to one suitable for the datepicker.
+      format: {
+        toDisplay: (date, format, language) => moment.utc(date).format(this.safeFormat),
+        toValue: (date, format, language) => {
+          const timestampSec = parseDate(date, {
+            dateFormat: this.safeFormat,
+            timezone: this.timezone,
+          });
+          return (timestampSec === null) ? null : new Date(timestampSec * 1000);
+        },
+      },
     });
     this.autoDisposeCallback(() => this._datePickerWidget.datepicker('destroy'));
 
@@ -137,41 +138,13 @@ DateEditor.prototype._allowKeyboardNav = function(bool) {
 };
 
 // Moment value formatting helper.
-DateEditor.prototype.formatValue = function(value, formatString) {
+DateEditor.prototype.formatValue = function(value, formatString, shouldFallBackToValue) {
   if (_.isNumber(value) && formatString) {
     return moment.tz(value*1000, this.timezone).format(formatString);
   } else {
-    return "";
+    // If value is AltText, return it unchanged. This way we can see it and edit in the editor.
+    return (shouldFallBackToValue && typeof value === 'string') ? value : "";
   }
-};
-
-// Formats Moment string to remove markers unsupported by the datepicker.
-// Moment reference: http://momentjs.com/docs/#/displaying/
-DateEditor.parseMomentToSafe = function(mFormat) {
-  // Remove markers not representing year, month, or date, and also DDD, DDDo, DDDD, d, do,
-  // (and following whitespace/punctuation) since they are unsupported by the datepicker.
-  mFormat = mFormat.replace(/\b(?:[^DMY\W]+|D{3,4}o*)\b\W+/g, '');
-  // Convert other markers unsupported by the datepicker to similar supported markers.
-  mFormat = mFormat.replace(/\b([MD])o\b/g, '$1'); // Mo -> M, Do -> D
-  // Check which information the format contains. Format is only valid for editing if it
-  // contains day, month and year information.
-  var dayRe = /D{1,2}/g;
-  var monthRe = /M{1,4}/g;
-  var yearRe = /Y{2,4}/g;
-  var valid = dayRe.test(mFormat) && monthRe.test(mFormat) && yearRe.test(mFormat);
-  return valid ? mFormat : 'YYYY-MM-DD'; // Use basic format if given is invalid.
-};
-
-// Formats Moment string without datepicker unsupported markers for the datepicker.
-// Datepicker reference: http://bootstrap-datepicker.readthedocs.org/en/latest/options.html#format
-DateEditor.parseSafeToCalendar = function(sFormat) {
-  // M -> m, MM -> mm, D -> d, DD -> dd, YY -> yy, YYYY -> yyyy
-  sFormat = sFormat.replace(/\b(?:[MD]{1,2}|Y{2,4})\b/g, function(x) {
-    return x.toLowerCase();
-  });
-  sFormat = sFormat.replace(/\bM{2}(?=M{1,2}\b)/g, ''); // MMM -> M, MMMM -> MM
-  sFormat = sFormat.replace(/\bddd\b/g, 'D'); // ddd -> D
-  return sFormat.replace(/\bdddd\b/g, 'DD'); // dddd -> DD
 };
 
 // Gets the language based on the current locale.
@@ -182,5 +155,17 @@ DateEditor.prototype.getLanguage = function() {
   return this.locale.substr(0, this.locale.indexOf("-"));
 }
 
+// Updates the given Moment format to specify a complete date, so that the datepicker sees an
+// unambiguous date in the textbox input. If the format is incomplete, fall back to YYYY-MM-DD.
+function makeFullMomentFormat(mFormat) {
+  let safeFormat = mFormat;
+  if (!safeFormat.includes('Y')) {
+    safeFormat += " YYYY";
+  }
+  if (!safeFormat.includes('D') || !safeFormat.includes('M')) {
+    safeFormat = 'YYYY-MM-DD';
+  }
+  return safeFormat;
+}
 
 module.exports = DateEditor;

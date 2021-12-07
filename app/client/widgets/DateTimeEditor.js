@@ -39,7 +39,7 @@ function DateTimeEditor(options) {
   this._dateInput = this.textInput;
 
   const isValid = _.isNumber(options.cellValue);
-  const formatted = this.formatValue(options.cellValue, this._timeFormat);
+  const formatted = this.formatValue(options.cellValue, this._timeFormat, false);
   // Use a placeholder of 12:00am, since that is the autofill time value.
   const placeholder = moment.tz('0', 'H', this.timezone).format(this._timeFormat);
 

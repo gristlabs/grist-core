@@ -1012,7 +1012,7 @@ export async function setType(type: RegExp, options: {skipWait?: boolean} = {}) 
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
-  await driver.findContent('.test-select-menu .test-select-row', type).click();
+  await driver.findContentWait('.test-select-menu .test-select-row', type, 200).click();
   if (!options.skipWait) { await waitForServer(); }
 }
 
@@ -1710,7 +1710,7 @@ export async function getDateFormat(): Promise<string> {
  */
 export async function setDateFormat(format: string) {
   await driver.find('[data-test-id=Widget_dateFormat]').click();
-  await driver.findContent('.test-select-menu .test-select-row', format).click();
+  await driver.findContentWait('.test-select-menu .test-select-row', format, 200).click();
   await waitForServer();
 }
 

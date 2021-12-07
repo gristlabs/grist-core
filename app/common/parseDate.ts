@@ -200,7 +200,9 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
     return;
   }
 
-  const dateString = moment.unix(date).format("YYYY-MM-DD");
+  // date is a timestamp of midnight in UTC, so to get a formatted representation (for parsing
+  // together with time), take care to interpret it in UTC.
+  const dateString = moment.unix(date).utc().format("YYYY-MM-DD");
   dateTime = dateString + ' ' + parsedTime.time + tzOffset;
   const fullFormat = "YYYY-MM-DD HH:mm:ss" + (tzOffset ? 'Z' : '');
   return moment.tz(dateTime, fullFormat, true, timezone).valueOf() / 1000;
@@ -213,7 +215,7 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
 // feature.
 function _getPartialFormat(input: string, format: string): string {
   // Define a regular expression to match contiguous non-separators.
-  const re = /Y+|M+|D+|[a-zA-Z0-9]+/g;
+  const re = /Y+|M+o?|D+o?|[a-zA-Z0-9]+/ig;
   // Count the number of meaningful parts in the input.
   const numInputParts = input.match(re)?.length || 0;
 
