@@ -902,7 +902,7 @@ class CancelledError extends Error {
 
 function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
   const origName = upload.files[sourceInfo.uploadFileIndex].origName;
-  return sourceInfo.origTableName ? origName + ' - ' + sourceInfo.origTableName : origName;
+  return sourceInfo.origTableName ? `${sourceInfo.origTableName} - ${origName}` : origName;
 }
 
 const cssContainer = styled('div', `
