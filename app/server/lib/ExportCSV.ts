@@ -74,7 +74,7 @@ export async function makeCSVFromTable(
   }
 
   // Look up the table to make a CSV from.
-  const tables = activeDoc.docData.getTable('_grist_Tables')!;
+  const tables = activeDoc.docData.getMetaTable('_grist_Tables');
   const tableRef = tables.findRow('tableId', tableId);
 
   if (tableRef === 0) {

@@ -1,6 +1,7 @@
-import { PartialPermissionSet } from 'app/common/ACLPermissions';
-import { CellValue, RowRecord } from 'app/common/DocActions';
-import { Role } from './roles';
+import {PartialPermissionSet} from 'app/common/ACLPermissions';
+import {CellValue, RowRecord} from 'app/common/DocActions';
+import {MetaRowRecord} from 'app/common/TableData';
+import {Role} from './roles';
 
 export interface RuleSet {
   tableId: '*' | string;
@@ -11,7 +12,7 @@ export interface RuleSet {
 }
 
 export interface RulePart {
-  origRecord?: RowRecord;         // Original record used to create this RulePart.
+  origRecord?: MetaRowRecord<'_grist_ACLRules'>;  // Original record used to create this RulePart.
   aclFormula: string;
   permissions: PartialPermissionSet;
   permissionsText: string;        // The text version of PermissionSet, as stored.

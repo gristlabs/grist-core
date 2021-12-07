@@ -7,7 +7,7 @@ import {cssRow} from 'app/client/ui/RightPanel';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';
-import {TableData} from 'app/common/TableData';
+import {MetaTableData} from 'app/client/models/TableData';
 import {UploadResult} from 'app/common/uploads';
 import {extname} from 'path';
 
@@ -66,7 +66,7 @@ export interface SavingObservable<T> extends ko.Observable<T> {
  */
 export class AttachmentsWidget extends NewAbstractWidget {
 
-  private _attachmentsTable: TableData;
+  private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _height: SavingObservable<string>;
 
   constructor(field: any) {
@@ -74,7 +74,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
     // TODO: the Attachments table currently treated as metadata, and loaded on open,
     // but should probably be loaded on demand as it contains user data, which may be large.
-    this._attachmentsTable = this._getDocData().getTable('_grist_Attachments')!;
+    this._attachmentsTable = this._getDocData().getMetaTable('_grist_Attachments');
 
     this._height = this.options.prop('height') as SavingObservable<string>;
 
@@ -122,12 +122,12 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   protected _buildAttachment(value: number, allValues: Computed<number[]>): Element {
-    const filename: string = this._attachmentsTable.getValue(value, 'fileName') as string;
-    const fileIdent: string = this._attachmentsTable.getValue(value, 'fileIdent') as string;
-    const height: number = this._attachmentsTable.getValue(value, 'imageHeight') as number;
-    const width: number = this._attachmentsTable.getValue(value, 'imageWidth') as number;
-    const hasPreview: boolean = Boolean(height);
-    const ratio: number = hasPreview ? (width / height) : 1;
+    const filename = this._attachmentsTable.getValue(value, 'fileName')!;
+    const fileIdent = this._attachmentsTable.getValue(value, 'fileIdent')!;
+    const height = this._attachmentsTable.getValue(value, 'imageHeight')!;
+    const width = this._attachmentsTable.getValue(value, 'imageWidth')!;
+    const hasPreview = Boolean(height);
+    const ratio = hasPreview ? (width / height) : 1;
 
     return attachmentPreview({title: filename}, // Add a filename tooltip to the previews.
       dom.style('height', (use) => `${use(this._height)}px`),
@@ -146,7 +146,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   // Returns the attachment download url.
   private _getUrl(rowId: number): string {
-    const ident = this._attachmentsTable.getValue(rowId, 'fileIdent') as string;
+    const ident = this._attachmentsTable.getValue(rowId, 'fileIdent');
     if (!ident) {
       return '';
     } else {
@@ -154,7 +154,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       return docComm.docUrl('attachment') + '?' + encodeQueryParams({
         ...docComm.getUrlParams(),
         ident,
-        name: this._attachmentsTable.getValue(rowId, 'fileName') as string
+        name: this._attachmentsTable.getValue(rowId, 'fileName')
       });
     }
   }

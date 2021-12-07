@@ -56,8 +56,8 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
   // Iterate through all formulas, adding joins and selects as we go.
   if (onDemandFormulas) {
     // Look up the main table for the query.
-    const tables = docData.getTable('_grist_Tables')!;
-    const columns = docData.getTable('_grist_Tables_column')!;
+    const tables = docData.getMetaTable('_grist_Tables');
+    const columns = docData.getMetaTable('_grist_Tables_column');
     const tableRef = tables.findRow('tableId', query.tableId);
     if (!tableRef) { throw new ApiError('table not found', 404); }
 
@@ -81,7 +81,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
       let error = "";
       if (formula.kind === 'foreignColumn') {
         const altTableId = references.get(formula.refColId);
-        const altTableRef = tables.findRow('tableId', altTableId);
+        const altTableRef = tables.findRow('tableId', altTableId!);
         if (altTableId && altTableRef) {
           const altColumn = columns.filterRecords({parentId: altTableRef, isFormula: false, colId: formula.colId});
           // TODO: deal with a formula column in the other table.

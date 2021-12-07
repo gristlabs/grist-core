@@ -265,10 +265,10 @@ export class GranularAccess implements GranularAccessForBundle {
       // Create a tmpDocData with just the tables we care about, then update docActions to it.
       const tmpDocData: DocData = new DocData(
         (tableId) => { throw new Error("Unexpected DocData fetch"); }, {
-          _grist_Tables: this._docData.getTable('_grist_Tables')!.getTableDataAction(),
-          _grist_Tables_column: this._docData.getTable('_grist_Tables_column')!.getTableDataAction(),
-          _grist_ACLResources: this._docData.getTable('_grist_ACLResources')!.getTableDataAction(),
-          _grist_ACLRules: this._docData.getTable('_grist_ACLRules')!.getTableDataAction(),
+          _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
+          _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction(),
+          _grist_ACLResources: this._docData.getMetaTable('_grist_ACLResources').getTableDataAction(),
+          _grist_ACLRules: this._docData.getMetaTable('_grist_ACLRules').getTableDataAction(),
         });
       for (const da of docActions) {
         tmpDocData.receiveAction(da);

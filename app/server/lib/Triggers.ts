@@ -138,8 +138,8 @@ export class DocTriggers {
     }  // Happens on doc creation while processing InitNewDoc action.
 
     const triggersTable = docData.getMetaTable("_grist_Triggers");
-    const getTableId = docData.getMetaTable("_grist_Tables").getMetaRowPropFunc("tableId");
-    this._getColId = docData.getMetaTable("_grist_Tables_column").getMetaRowPropFunc("colId");
+    const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
+    this._getColId = docData.getMetaTable("_grist_Tables_column").getRowPropFunc("colId");
 
     const triggersByTableRef = _.groupBy(triggersTable.getRecords(), "tableRef");
     const triggersByTableId: Array<[string, Trigger[]]> = [];

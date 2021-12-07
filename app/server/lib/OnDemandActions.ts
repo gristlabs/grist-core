@@ -22,8 +22,8 @@ export interface OnDemandStorage {
  */
 export class OnDemandActions {
 
-  private _tablesMeta: TableData = this._docData.getTable('_grist_Tables')!;
-  private _columnsMeta: TableData = this._docData.getTable('_grist_Tables_column')!;
+  private _tablesMeta: TableData = this._docData.getMetaTable('_grist_Tables');
+  private _columnsMeta: TableData = this._docData.getMetaTable('_grist_Tables_column');
 
   constructor(private _storage: OnDemandStorage, private _docData: DocData) {}
 

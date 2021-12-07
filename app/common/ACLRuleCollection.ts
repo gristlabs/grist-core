@@ -1,9 +1,9 @@
-import { parsePermissions } from 'app/common/ACLPermissions';
-import { ILogger } from 'app/common/BaseAPI';
-import { CellValue, RowRecord } from 'app/common/DocActions';
-import { DocData } from 'app/common/DocData';
-import { AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule } from 'app/common/GranularAccessClause';
-import { getSetMapValue } from 'app/common/gutil';
+import {parsePermissions} from 'app/common/ACLPermissions';
+import {ILogger} from 'app/common/BaseAPI';
+import {DocData} from 'app/common/DocData';
+import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
+import {getSetMapValue} from 'app/common/gutil';
+import {MetaRowRecord} from 'app/common/TableData';
 import sortBy = require('lodash/sortBy');
 
 const defaultMatchFunc: AclMatchFunc = () => true;
@@ -231,8 +231,8 @@ export class ACLRuleCollection {
    * Check that all references to table and column IDs in ACL rules are valid.
    */
   public checkDocEntities(docData: DocData) {
-    const tablesTable = docData.getTable('_grist_Tables')!;
-    const columnsTable = docData.getTable('_grist_Tables_column')!;
+    const tablesTable = docData.getMetaTable('_grist_Tables');
+    const columnsTable = docData.getMetaTable('_grist_Tables_column');
 
     // Collect valid tableIds and check rules against those.
     const validTableIds = new Set(tablesTable.getColValues('tableId'));
@@ -242,9 +242,9 @@ export class ACLRuleCollection {
     }
 
     // Collect valid columns, grouped by tableRef (rowId of table record).
-    const validColumns = new Map<number, Set<CellValue>>();   // Map from tableRef to set of colIds.
-    const colTableRefs = columnsTable.getColValues('parentId')!;
-    for (const [i, colId] of columnsTable.getColValues('colId')!.entries()) {
+    const validColumns = new Map<number, Set<string>>();   // Map from tableRef to set of colIds.
+    const colTableRefs = columnsTable.getColValues('parentId');
+    for (const [i, colId] of columnsTable.getColValues('colId').entries()) {
       getSetMapValue(validColumns, colTableRefs[i], () => new Set()).add(colId);
     }
 
@@ -302,14 +302,14 @@ export interface ReadAclResults {
  * UserAttributeRules. This is used by both client-side code and server-side.
  */
 function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAclResults {
-  const resourcesTable = docData.getTable('_grist_ACLResources')!;
-  const rulesTable = docData.getTable('_grist_ACLRules')!;
+  const resourcesTable = docData.getMetaTable('_grist_ACLResources');
+  const rulesTable = docData.getMetaTable('_grist_ACLRules');
 
   const ruleSets: RuleSet[] = [];
   const userAttributes: UserAttributeRule[] = [];
 
   // Group rules by resource first, ordering by rulePos. Each group will become a RuleSet.
-  const rulesByResource = new Map<number, RowRecord[]>();
+  const rulesByResource = new Map<number, Array<MetaRowRecord<'_grist_ACLRules'>>>();
   for (const ruleRecord of sortBy(rulesTable.getRecords(), 'rulePos')) {
     getSetMapValue(rulesByResource, ruleRecord.resource, () => []).push(ruleRecord);
   }
@@ -325,8 +325,8 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
       // intentionally ignore and skip.
       continue;
     }
-    const tableId = resourceRec.tableId as string;
-    const colIds = resourceRec.colIds === '*' ? '*' : (resourceRec.colIds as string).split(',');
+    const tableId = resourceRec.tableId;
+    const colIds = resourceRec.colIds === '*' ? '*' : resourceRec.colIds.split(',');
 
     const body: RulePart[] = [];
     for (const rule of rules) {

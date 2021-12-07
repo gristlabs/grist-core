@@ -4,20 +4,9 @@
  * change events.
  */
 
-import { ActionSummary } from "app/common/ActionSummary";
-import { DocTriggers } from "app/server/lib/Triggers";
-import * as assert from 'assert';
-import {Mutex} from 'async-mutex';
-import * as bluebird from 'bluebird';
-import {EventEmitter} from 'events';
-import {IMessage, MsgType} from 'grain-rpc';
-import * as imageSize from 'image-size';
-import * as moment from 'moment-timezone';
-import fetch from 'node-fetch';
-import * as tmp from 'tmp';
-
 import {getEnvContent, LocalActionBundle, SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
-import { ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
+import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
+import {ActionSummary} from "app/common/ActionSummary";
 import {
   ApplyUAOptions,
   ApplyUAResult,
@@ -36,7 +25,6 @@ import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {
   CellValue,
   DocAction,
-  RowRecord,
   TableDataAction,
   TableRecordValue,
   toTableDataAction,
@@ -50,6 +38,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
+import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -66,7 +55,17 @@ import * as log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
+import {DocTriggers} from "app/server/lib/Triggers";
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
+import * as assert from 'assert';
+import {Mutex} from 'async-mutex';
+import * as bluebird from 'bluebird';
+import {EventEmitter} from 'events';
+import {IMessage, MsgType} from 'grain-rpc';
+import * as imageSize from 'image-size';
+import * as moment from 'moment-timezone';
+import fetch from 'node-fetch';
+import * as tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
@@ -89,8 +88,8 @@ import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import remove = require('lodash/remove');
-import zipObject = require('lodash/zipObject');
 import without = require('lodash/without');
+import zipObject = require('lodash/zipObject');
 
 bluebird.promisifyAll(tmp);
 
@@ -608,14 +607,14 @@ export class ActiveDoc extends EventEmitter {
    * Returns the record from _grist_Attachments table for the given attachment ID,
    * or throws an error if not found.
    */
-  public getAttachmentMetadata(attId: number|string): RowRecord {
+  public getAttachmentMetadata(attId: number|string): MetaRowRecord<'_grist_Attachments'> {
     // docData should always be available after loadDoc() or createDoc().
     if (!this.docData) {
       throw new Error("No doc data");
     }
     // Parse strings into numbers to make more convenient to call from route handlers.
     const attachmentId: number = (typeof attId === 'string') ? parseInt(attId, 10) : attId;
-    const attRecord = this.docData.getTable('_grist_Attachments')!.getRecord(attachmentId);
+    const attRecord = this.docData.getMetaTable('_grist_Attachments').getRecord(attachmentId);
     if (!attRecord) {
       throw new ApiError(`Attachment not found: ${attId}`, 404);
     }
@@ -1116,14 +1115,14 @@ export class ActiveDoc extends EventEmitter {
       throw new Error('Cannot list ACL resources');
     }
     const result: {[tableId: string]: string[]} = {};
-    const tables = this.docData.getTable('_grist_Tables')!;
-    for (const tableId of tables.getColValues('tableId')!) {
-      result[tableId as string] = ['id'];
+    const tables = this.docData.getMetaTable('_grist_Tables');
+    for (const tableId of tables.getColValues('tableId')) {
+      result[tableId] = ['id'];
     }
-    const columns = this.docData.getTable('_grist_Tables_column')!;
+    const columns = this.docData.getMetaTable('_grist_Tables_column');
     for (const col of columns.getRecords()) {
-      const tableId = tables.getValue(col.parentId as number, 'tableId');
-      result[tableId as string].push(col.colId as string);
+      const tableId = tables.getValue(col.parentId, 'tableId')!;
+      result[tableId].push(col.colId);
     }
     return result;
   }

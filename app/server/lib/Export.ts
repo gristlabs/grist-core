@@ -1,6 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
 import {buildColFilter} from 'app/common/ColumnFilterFunc';
-import {RowRecord} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
@@ -9,7 +8,7 @@ import {buildRowFilter} from 'app/common/RowFilterFunc';
 import {SchemaTypes} from 'app/common/schema';
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
-import {TableData} from 'app/common/TableData';
+import {MetaRowRecord, MetaTableData} from 'app/common/TableData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
@@ -103,12 +102,14 @@ function safe<T>(value: T, msg: string) {
 }
 
 // Helper to for getting table from docData.
-const safeTable = (docData: DocData, name: keyof SchemaTypes) => safe(docData.getTable(name),
-  `No table '${name}' in document with id ${docData}`);
+function safeTable<TableId extends keyof SchemaTypes>(docData: DocData, name: TableId) {
+  return safe(docData.getMetaTable(name), `No table '${name}' in document with id ${docData}`);
+}
 
 // Helper for getting record safe
-const safeRecord = (table: TableData, id: number) => safe(table.getRecord(id),
-  `No record ${id} in table ${table.tableId}`);
+function safeRecord<TableId extends keyof SchemaTypes>(table: MetaTableData<TableId>, id: number) {
+  return safe(table.getRecord(id), `No record ${id} in table ${table.tableId}`);
+}
 
 /**
  * Builds export for all raw tables that are in doc.
@@ -138,9 +139,9 @@ export async function exportTable(
   req: express.Request): Promise<ExportData> {
   const docData = safe(activeDoc.docData, "No docData in active document");
   const tables = safeTable(docData, '_grist_Tables');
-  const table = safeRecord(tables, tableId) as GristTables;
-  const tableColumns = (safeTable(docData, '_grist_Tables_column')
-    .getRecords() as GristTablesColumn[])
+  const table = safeRecord(tables, tableId);
+  const tableColumns = safeTable(docData, '_grist_Tables_column')
+    .getRecords()
     // remove manual sort column
     .filter(col => col.colId !== gristTypes.MANUALSORT);
   // Produce a column description matching what user will see / expect to export
@@ -183,11 +184,11 @@ export async function exportTable(
   if (table.primaryViewId) {
     const viewId = table.primaryViewId;
     const views = safeTable(docData, '_grist_Views');
-    const view = safeRecord(views, viewId) as GristView;
+    const view = safeRecord(views, viewId);
     tableName = view.name;
   }
 
-  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1) as DocInfo;
+  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
   return {
     tableName,
@@ -211,15 +212,15 @@ export async function exportSection(
 
   const docData = safe(activeDoc.docData, "No docData in active document");
   const viewSections = safeTable(docData, '_grist_Views_section');
-  const viewSection = safeRecord(viewSections, viewSectionId) as GristViewsSection;
+  const viewSection = safeRecord(viewSections, viewSectionId);
   const tables = safeTable(docData, '_grist_Tables');
-  const table = safeRecord(tables, viewSection.tableRef) as GristTables;
+  const table = safeRecord(tables, viewSection.tableRef);
   const columns = safeTable(docData, '_grist_Tables_column')
-    .filterRecords({ parentId: table.id }) as GristTablesColumn[];
+    .filterRecords({parentId: table.id});
   const viewSectionFields = safeTable(docData, '_grist_Views_section_field');
-  const fields = viewSectionFields.filterRecords({ parentId: viewSection.id }) as GristViewsSectionField[];
+  const fields = viewSectionFields.filterRecords({parentId: viewSection.id});
   const savedFilters = safeTable(docData, '_grist_Filters')
-    .filterRecords({ viewSectionRef: viewSection.id }) as GristFilter[];
+    .filterRecords({viewSectionRef: viewSection.id});
 
   const tableColsById = _.indexBy(columns, 'id');
   const fieldsByColRef = _.indexBy(fields, 'colRef');
@@ -279,7 +280,7 @@ export async function exportSection(
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
 
-  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1) as DocInfo;
+  const docInfo = safeRecord(safeTable(docData, '_grist_DocInfo'), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
 
   return {
@@ -292,17 +293,8 @@ export async function exportSection(
   };
 }
 
-// Type helpers for types used in this export
-type RowModel<TName extends keyof SchemaTypes> = RowRecord & {
-  [ColId in keyof SchemaTypes[TName]]: SchemaTypes[TName][ColId];
-};
-type GristViewsSection = RowModel<'_grist_Views_section'>
-type GristTables = RowModel<'_grist_Tables'>
-type GristViewsSectionField = RowModel<'_grist_Views_section_field'>
-type GristTablesColumn = RowModel<'_grist_Tables_column'>
-type GristView = RowModel<'_grist_Views'>
-type GristFilter = RowModel<'_grist_Filters'>
-type DocInfo = RowModel<'_grist_DocInfo'>
+type GristViewsSectionField = MetaRowRecord<'_grist_Views_section_field'>
+type GristTablesColumn = MetaRowRecord<'_grist_Tables_column'>
 
 // Type for filters passed from the client
 export interface Filter { colRef: number, filter: string }

@@ -7,7 +7,7 @@ import {dom, LiveIndex, makeLiveIndex, styled} from 'grainjs';
 import {DocComm} from 'app/client/components/DocComm';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {DocData} from 'app/client/models/DocData';
-import {TableData} from 'app/client/models/TableData';
+import {MetaTableData} from 'app/client/models/TableData';
 import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
@@ -47,7 +47,7 @@ interface Attachment {
  * download, add or remove attachments in the edited cell.
  */
 export class AttachmentsEditor extends NewBaseEditor {
-  private _attachmentsTable: TableData;
+  private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _docComm: DocComm;
 
   private _rowIds: MutableObsArray<number>;
@@ -64,15 +64,15 @@ export class AttachmentsEditor extends NewBaseEditor {
     // editValue is abused slightly to indicate a 1-based index of the attachment.
     const initRowIndex: number|undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
 
-    this._attachmentsTable = docData.getTable('_grist_Attachments')!;
+    this._attachmentsTable = docData.getMetaTable('_grist_Attachments');
     this._docComm = docData.docComm;
 
     this._rowIds = obsArray(Array.isArray(cellValue) ? cellValue.slice(1) as number[] : []);
     this._attachments = computedArray(this._rowIds, (val: number): Attachment => {
-      const fileIdent: string = this._attachmentsTable.getValue(val, 'fileIdent') as string;
+      const fileIdent: string = this._attachmentsTable.getValue(val, 'fileIdent')!;
       const fileType = mimeTypes.lookup(fileIdent) || 'application/octet-stream';
       const filename: Observable<string> =
-        observable(this._attachmentsTable.getValue(val, 'fileName') as string);
+        observable(this._attachmentsTable.getValue(val, 'fileName')!);
       return {
         rowId: val,
         fileIdent,
@@ -187,7 +187,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   private async _renameAttachment(att: Attachment, fileName: string): Promise<void> {
     await this._attachmentsTable.sendTableAction(['UpdateRecord', att.rowId, {fileName}]);
     // Update the observable, since it's not on its own observing changes.
-    att.filename.set(this._attachmentsTable.getValue(att.rowId, 'fileName') as string);
+    att.filename.set(this._attachmentsTable.getValue(att.rowId, 'fileName')!);
   }
 
   private _getUrl(fileIdent: string, filename: string, inline?: boolean): string {

@@ -90,7 +90,7 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
   const records: RowRecord[] = [];
   for (const srcViewSection of srcViewSections) {
     const viewSectionLayoutSpec = patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
-    const record = gristDoc.docData.getTable('_grist_Views_section')!.getRecord(srcViewSection.getRowId())!;
+    const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
     records.push({
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
@@ -126,7 +126,7 @@ async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectio
     const srcViewFields: ViewFieldRec[] = srcViewSection!.viewFields.peek().peek();
     const parentId = destViewSection!.getRowId();
     for (const field of srcViewFields) {
-      const record = docData.getTable('_grist_Views_section_field')!.getRecord(field.getRowId())!;
+      const record = docData.getMetaTable('_grist_Views_section_field').getRecord(field.getRowId())!;
       fieldsToAdd.push({...record, parentId});
     }
   }

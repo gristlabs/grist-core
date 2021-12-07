@@ -13,7 +13,6 @@ import fromPairs = require('lodash/fromPairs');
 
 export interface ColTypeMap { [colId: string]: string; }
 
-type RowFunc<T> = (rowId: number) => T;
 type UIRowFunc<T> = (rowId: UIRowId) => T;
 
 interface ColData {
@@ -325,7 +324,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns the first rowId matching the given filters, or 0 if no match. If there are multiple
    * matches, it is unspecified which will be returned.
    */
-  public findMatchingRowId(properties: {[key: string]: CellValue}): number {
+  public findMatchingRowId(properties: {[key: string]: CellValue | undefined}): number {
     const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
     if (!props.every((p) => p.col)) {
       return 0;
@@ -480,7 +479,15 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   }
 }
 
-export type MetaRowRecord<TableId extends keyof SchemaTypes> = SchemaTypes[TableId] & RowRecord;
+// A type safe record of a meta table with types as defined in schema.ts
+// '&' is used because declaring the id field and the index signature in one block gives a syntax error.
+// The second part is basically equivalent to SchemaTypes[TableId]
+// but TS sees that as incompatible with RowRecord and doesn't allow simple overrides in MetaTableData.
+export type MetaRowRecord<TableId extends keyof SchemaTypes> =
+  { id: number } &
+  { [ColId in keyof SchemaTypes[TableId]]: SchemaTypes[TableId][ColId] & CellValue };
+
+type MetaColId<TableId extends keyof SchemaTypes> = keyof MetaRowRecord<TableId> & string;
 
 /**
  * Behaves the same as TableData, but uses SchemaTypes for type safety of its columns.
@@ -488,6 +495,11 @@ export type MetaRowRecord<TableId extends keyof SchemaTypes> = SchemaTypes[Table
 export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData {
   constructor(tableId: TableId, tableData: TableDataAction | null, colTypes: ColTypeMap) {
     super(tableId, tableData, colTypes);
+  }
+
+  public getValue<ColId extends MetaColId<TableId>>(rowId: number, colId: ColId):
+    MetaRowRecord<TableId>[ColId] | undefined {
+    return super.getValue(rowId, colId) as any;
   }
 
   public getRecords(): Array<MetaRowRecord<TableId>> {
@@ -498,13 +510,30 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
     return super.getRecord(rowId) as any;
   }
 
-  /**
-   * Same as getRowPropFunc, but I couldn't get a direct override to compile.
-   */
-  public getMetaRowPropFunc<ColId extends keyof SchemaTypes[TableId]>(
+  public filterRecords(properties: Partial<MetaRowRecord<TableId>>): Array<MetaRowRecord<TableId>> {
+    return super.filterRecords(properties) as any;
+  }
+
+  public findMatchingRowId(properties: Partial<MetaRowRecord<TableId>>): number {
+    return super.findMatchingRowId(properties);
+  }
+
+  public getRowPropFunc<ColId extends MetaColId<TableId>>(
     colId: ColId
-  ): RowFunc<SchemaTypes[TableId][ColId]|undefined> {
+  ): UIRowFunc<MetaRowRecord<TableId>[ColId]> {
     return super.getRowPropFunc(colId as any) as any;
+  }
+
+  public getColValues<ColId extends MetaColId<TableId>>(
+    colId: ColId
+  ): ReadonlyArray<MetaRowRecord<TableId>[ColId]> {
+    return super.getColValues(colId) as any;
+  }
+
+  public findRow<ColId extends MetaColId<TableId>>(
+    colId: ColId, colValue: MetaRowRecord<TableId>[ColId]
+  ): number {
+    return super.findRow(colId, colValue);
   }
 }
 

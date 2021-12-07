@@ -1,19 +1,20 @@
 /**
  * TableData maintains a single table's data.
  */
-import { ColumnACIndexes } from 'app/client/models/ColumnACIndexes';
-import { ColumnCache } from 'app/client/models/ColumnCache';
-import { DocData } from 'app/client/models/DocData';
-import { DocAction, ReplaceTableData, TableDataAction, UserAction } from 'app/common/DocActions';
-import { isRaisedException } from 'app/common/gristTypes';
-import { countIf } from 'app/common/gutil';
-import { TableData as BaseTableData, ColTypeMap } from 'app/common/TableData';
-import { Emitter } from 'grainjs';
+import {ColumnACIndexes} from 'app/client/models/ColumnACIndexes';
+import {ColumnCache} from 'app/client/models/ColumnCache';
+import {DocData} from 'app/client/models/DocData';
+import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
+import {isRaisedException} from 'app/common/gristTypes';
+import {countIf} from 'app/common/gutil';
+import {SchemaTypes} from 'app/common/schema';
+import {ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase} from 'app/common/TableData';
+import {Emitter} from 'grainjs';
 
 /**
  * TableData class to maintain a single table's data.
  */
-export class TableData extends BaseTableData {
+export class TableData extends TableDataBase {
   public readonly tableActionEmitter = new Emitter();
   public readonly dataLoadedEmitter = new Emitter();
 
@@ -108,3 +109,5 @@ export class TableData extends BaseTableData {
     return applied;
   }
 }
+
+export type MetaTableData<TableId extends keyof SchemaTypes> = MetaTableDataBase<TableId> & TableData;

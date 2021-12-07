@@ -38,6 +38,7 @@ import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {SchemaTypes} from 'app/common/schema';
+import {MetaRowRecord} from 'app/common/TableData';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess} from 'app/common/UserAPI';
 import {
   BaseObservable,
@@ -216,11 +217,11 @@ export class AccessRules extends Disposable {
     // ACL tables (they may have changed by other users). So our changes will win.
 
     const docData = this._gristDoc.docData;
-    const resourcesTable = docData.getTable('_grist_ACLResources')!;
-    const rulesTable = docData.getTable('_grist_ACLRules')!;
+    const resourcesTable = docData.getMetaTable('_grist_ACLResources');
+    const rulesTable = docData.getMetaTable('_grist_ACLRules');
 
     // Add/remove resources to have just the ones we need.
-    const newResources: RowRecord[] = flatten(
+    const newResources: MetaRowRecord<'_grist_ACLResources'>[] = flatten(
       [{tableId: '*', colIds: '*'}],
       this._specialRules.get()?.getResources() || [],
       ...this._tableRules.get().map(t => t.getResources()))

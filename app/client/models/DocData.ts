@@ -5,10 +5,11 @@
  */
 
 import {DocComm} from 'app/client/components/DocComm';
-import {TableData} from 'app/client/models/TableData';
+import {MetaTableData, TableData} from 'app/client/models/TableData';
 import {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {DocData as BaseDocData} from 'app/common/DocData';
+import {SchemaTypes} from 'app/common/schema';
 import {ColTypeMap} from 'app/common/TableData';
 import * as bluebird from 'bluebird';
 import {Emitter} from 'grainjs';
@@ -49,6 +50,11 @@ export class DocData extends BaseDocData {
   // Version of inherited getTable() which returns the enhance TableData type.
   public getTable(tableId: string): TableData|undefined {
     return super.getTable(tableId) as TableData;
+  }
+
+  // Version of inherited getMetaTable() which returns the enhanced TableData type.
+  public getMetaTable<TableId extends keyof SchemaTypes>(tableId: TableId): MetaTableData<TableId> {
+    return super.getMetaTable(tableId) as any;
   }
 
   /**
