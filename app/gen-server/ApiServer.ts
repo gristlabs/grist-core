@@ -39,7 +39,7 @@ export function getOrgFromRequest(req: Request): string|null {
  * HelpScout the user identity for identifying customer information and conversation history.
  */
 function helpScoutSign(email: string): string|undefined {
-  const secretKey = process.env.HELP_SCOUT_SECRET_KEY;
+  const secretKey = process.env.HELP_SCOUT_SECRET_KEY_V2;
   if (!secretKey) { return undefined; }
   return crypto.createHmac('sha256', secretKey).update(email).digest('hex');
 }

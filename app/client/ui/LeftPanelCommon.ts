@@ -25,23 +25,22 @@ import {dom, DomContents, Observable, styled} from 'grainjs';
  * HelpCenter in a new tab.
  */
 export function createHelpTools(appModel: AppModel, spacer = true): DomContents {
-  const isEfcr = (appModel.topAppModel.productFlavor === 'efcr');
   return [
     spacer ? cssSpacer() : null,
-    cssPageEntry(
-      cssPageLink(cssPageIcon('Feedback'),
-        cssLinkText('Give Feedback'),
-        dom.on('click', () => beaconOpenMessage({appModel})),
+    cssSplitPageEntry(
+      cssPageEntryMain(
+        cssPageLink(cssPageIcon('Help'),
+          cssLinkText('Help Center'),
+          dom.cls('tour-help-center'),
+          dom.on('click', (ev) => beaconOpenMessage({appModel})),
+          testId('left-feedback'),
+        ),
       ),
-      dom.hide(isEfcr),
-      testId('left-feedback'),
-    ),
-    cssPageEntry(
-      cssPageLink(cssPageIcon('Help'), {href: commonUrls.help, target: '_blank'},
-        cssLinkText('Help Center'),
-        dom.cls('tour-help-center')
-      ),
-      dom.hide(isEfcr),
+      cssPageEntrySmall(
+        cssPageLink(cssPageIcon('FieldLink'),
+          {href: commonUrls.help, target: '_blank'},
+        ),
+      )
     ),
   ];
 }
@@ -155,4 +154,29 @@ export const cssPageIcon = styled(icon, `
 
 export const cssSpacer = styled('div', `
   height: 18px;
+`);
+
+const cssSplitPageEntry = styled('div', `
+  display: flex;
+  align-items: center;
+`);
+
+const cssPageEntryMain = styled(cssPageEntry, `
+  flex: auto;
+  margin: 0;
+`);
+
+const cssPageEntrySmall = styled(cssPageEntry, `
+  flex: none;
+  border-radius: 3px;
+  --icon-color: ${colors.lightGreen};
+  & > .${cssPageLink.className} {
+    padding: 0 8px 0 16px;
+  }
+  &:hover {
+    --icon-color: ${colors.darkGreen};
+  }
+  .${cssTools.className}-collapsed & {
+    display: none;
+  }
 `);

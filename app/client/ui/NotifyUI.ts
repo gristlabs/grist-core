@@ -145,7 +145,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
         cssDropdownFeedbackLink(
           cssDropdownFeedbackIcon('Feedback'),
           'Give feedback',
-          dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close()})),
+          dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
           testId('feedback'),
         )
       ),

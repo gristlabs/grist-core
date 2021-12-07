@@ -29,6 +29,8 @@ export type BeaconCmd = 'init' | 'destroy' | 'open' | 'close' | 'toggle' | 'sear
   'article' | 'navigate' | 'identify' | 'prefill' | 'reset' | 'logout' | 'config' | 'on' | 'off' |
   'once' | 'event' | 'session-data';
 
+export type BeaconRoute = '/ask/message/' | '/answers/';
+
 export interface IUserObj {
   name?: string;
   email?: string;
@@ -70,6 +72,8 @@ export function Beacon(method: BeaconCmd, options?: unknown, data?: unknown) {
   (window as any).Beacon(method, options, data);
 }
 
+// This is essentially what's done by the code snippet that HelpScout suggests to install in every
+// page. In Grist app pages, we only load HelpScout code when the beacon is opened.
 function _beacon(method: BeaconCmd, options?: unknown, data?: unknown) {
   _beacon.readyQueue.push({method, options, data});
 }
@@ -103,7 +107,7 @@ let lastOpenType: 'error' | 'message' = 'message';
  * If errors is given, prepares a form for submitting an error report, and includes stack traces
  * into the session-data.
  */
-function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, errors?: IAppError[]}) {
+function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
   const {onOpen, errors} = options;
 
   // The beacon remembers its content, so reset it when switching between reporting errors and
@@ -119,6 +123,16 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
     if (iframe) { iframe.focus(); }
     if (onOpen) { onOpen(); }
   });
+  Beacon('once', 'article-viewed' as any, () => {
+    // HelpScout creates an iframe with an empty 'src' attribute, then writes to it. In such an
+    // iframe, different browsers interpret relative links differently: Chrome's are relative to
+    // the parent page's URL; Firefox's are relative to the parent page's <base href>.
+    //
+    // Here we set a <base href> explicitly in the iframe to get consistent behavior of links
+    // relative to the top page's URL (HelpScout then seems to handle clicks on them correctly).
+    const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
+    iframe?.contentDocument?.head.appendChild(dom('base', {href: ''}));
+  });
   Beacon('once', 'close', () => {
     const iframe = document.querySelector('#beacon-container iframe') as HTMLIFrameElement;
     if (iframe) { iframe.blur(); }
@@ -128,6 +142,7 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
   }
 
   const attrs: ISessionData = {};
+  let route: BeaconRoute;
   if (errors?.length) {
     // If sending errors, prefill part of the message (the user sees this and can add to it), and
     // include more detailed errors with stack traces into session-data.
@@ -147,8 +162,10 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
         attrs[`error-${i}-stack`] = JSON.stringify(error.stack.trim().split('\n'));
       }
     });
+    route = options.route || '/ask/message/';
   } else {
     Beacon('config', {messaging: {contactForm: {showSubject: true}}});
+    route = options.route || '/answers/';
   }
 
   Beacon('session-data', {
@@ -156,7 +173,7 @@ function _beaconOpen(userObj: IUserObj|null, options: {onOpen?: () => void, erro
     ...attrs,
   });
   Beacon('open');
-  Beacon('navigate', '/ask/message/');
+  Beacon('navigate', route);
 }
 
 export interface IBeaconOpenOptions {
@@ -164,6 +181,7 @@ export interface IBeaconOpenOptions {
   includeAppErrors?: boolean;
   onOpen?: () => void;
   errors?: IAppError[];
+  route?: BeaconRoute;
 }
 
 /**
