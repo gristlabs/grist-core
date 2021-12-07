@@ -890,7 +890,7 @@ GridView.prototype.buildDom = function() {
                 dom.testId("GridView_columnLabel"),
                 kd.style('width', field.widthPx),
                 kd.style('borderRightWidth', v.borderWidthPx),
-                viewCommon.makeResizable(field.width),
+                viewCommon.makeResizable(field.width, {shouldSave: !this.gristDoc.isReadonly.get()}),
                 kd.toggleClass('selected', () => ko.unwrap(this.isColSelected.at(field._index()))),
                 dom.on('contextmenu', ev => {
                   // This is a little hack to position the menu the same way as with a click

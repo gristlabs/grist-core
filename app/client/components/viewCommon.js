@@ -21,7 +21,7 @@ $.ui.resizable.prototype._respectSize = function() {
 /**
  * When used as an argument to dom() function, makes the containing element resizable, with the
  * size written into the given observable. If the observable has a .save() method, it's called
- * when the resize is complete (to save the new size to the server).
+ * by default when the resize is complete (to save the new size to the server).
  * @param {Object} options.enabled: An observable, a constant, or a function for a computed
  *      observable. The value is treated as a boolean, and determined whether resizable
  *      functionality is enabled.
@@ -31,6 +31,8 @@ $.ui.resizable.prototype._respectSize = function() {
  * @param {Boolean} options.isFlex: If true, will avoid changing 'left' when resizing the left edge.
  * @param {Number} options.minWidth: The minimum width the element can be resized to.
  *      Defaults to 10 (JQuery default).
+ * @param {Boolean} options.shouldSave: Whether .save() on `widthObservable` should be called.
+ *      Defaults to true.
  */
 function makeResizable(widthObservable, options) {
   options = options || {};
@@ -40,7 +42,7 @@ function makeResizable(widthObservable, options) {
       if (options.stop) {
         options.stop(e, ui);
       }
-      if (widthObservable.save) {
+      if (widthObservable.save && options.shouldSave !== false) {
         widthObservable.save();
       }
     }
