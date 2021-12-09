@@ -74,6 +74,7 @@ export class ShareAnnotator {
         .map(([k, ]) => normalizeEmail(k)));
     for (const user of this._state.users) {
       if (removed.has(user.email)) { continue; }
+      if (!user.isMember && !user.access) { continue; }
       annotations.users.set(user.email, makeAnnotation(user));
     }
     const tweaks = new Set(
