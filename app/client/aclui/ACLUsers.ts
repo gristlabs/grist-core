@@ -23,31 +23,6 @@ const roleNames: {[role: string]: string} = {
   [roles.VIEWER]: 'Viewer',
 };
 
-function buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOpenController) {
-  const isCurrentUser = Boolean(currentUser && user.id === currentUser.id);
-  return cssUserItem(
-    cssMemberImage(
-      createUserImage(user, 'large')
-    ),
-    cssMemberText(
-      cssMemberPrimary(user.name || dom('span', user.email),
-        cssRole('(', roleNames[user.access!] || user.access || 'no access', ')', testId('acl-user-access')),
-      ),
-      user.name ? cssMemberSecondary(user.email) : null
-    ),
-    basicButton(cssUserButton.cls(''), icon('Copy'), 'Copy Email',
-      testId('acl-user-copy'),
-      dom.on('click', async (ev, elem) => { await copyToClipboard(user.email); ctl.close(); }),
-    ),
-    basicButtonLink(cssUserButton.cls(''), cssUserButton.cls('-disabled', isCurrentUser),
-      testId('acl-user-view-as'),
-      icon('FieldLink'), 'View As',
-        urlState().setHref(userOverrideParams(user.email, {docPage: undefined})),
-      ),
-    testId('acl-user-item'),
-  );
-}
-
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
 }
@@ -58,9 +33,11 @@ export class ACLUsersPopup extends Disposable {
   private _attributeTableUsers: UserAccessData[] = [];  // Users mentioned in attribute tables.
   private _exampleUsers: UserAccessData[] = [];         // Example users.
   private _currentUser: FullUser|null = null;
+  private _pageModel: DocPageModel|null = null;
 
   public init(pageModel: DocPageModel, permissionData: PermissionDataWithExtraUsers|null) {
     this._currentUser = pageModel.userOverride.get()?.user || pageModel.appModel.currentValidUser;
+    this._pageModel = pageModel;
     if (permissionData) {
       this._shareUsers = permissionData.users.map(user => ({
         ...user,
@@ -75,7 +52,7 @@ export class ACLUsersPopup extends Disposable {
 
   public attachPopup(elem: Element) {
     setPopupToCreateDom(elem, (ctl) => {
-      const buildRow = (user: UserAccessData) => buildUserRow(user, this._currentUser, ctl);
+      const buildRow = (user: UserAccessData) => this._buildUserRow(user, this._currentUser, ctl);
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         cssUsers.cls(''),
@@ -94,6 +71,53 @@ export class ACLUsersPopup extends Disposable {
         dom.onKeyDown({Escape: () => ctl.close()}),
       ));
     }, {...defaultMenuOptions, placement: 'bottom-end'});
+  }
+
+  private _buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOpenController) {
+    const isCurrentUser = Boolean(currentUser && user.id === currentUser.id);
+    return cssUserItem(
+      cssMemberImage(
+        createUserImage(user, 'large')
+      ),
+      cssMemberText(
+        cssMemberPrimary(user.name || dom('span', user.email),
+          cssRole('(', roleNames[user.access!] || user.access || 'no access', ')', testId('acl-user-access')),
+        ),
+        user.name ? cssMemberSecondary(user.email) : null
+      ),
+      basicButton(cssUserButton.cls(''), icon('Copy'), 'Copy Email',
+        testId('acl-user-copy'),
+        dom.on('click', async (ev, elem) => { await copyToClipboard(user.email); ctl.close(); }),
+      ),
+      basicButtonLink(cssUserButton.cls(''), cssUserButton.cls('-disabled', isCurrentUser),
+        testId('acl-user-view-as'),
+          icon('FieldLink'), 'View As',
+          this._viewAs(user),
+        ),
+      testId('acl-user-item'),
+    );
+  }
+
+  private _viewAs(user: UserAccessData) {
+    if (this._pageModel?.isPrefork.get() &&
+        this._pageModel?.currentDoc.get()?.access !== 'owners') {
+      // "View As" is restricted to document owners on the back-end. Non-owners can be
+      // permitted to pretend to be owners of a pre-forked document, but if they want
+      // to do "View As", that would be layering pretence over pretense. Better to just
+      // go ahead and create the fork, so the user becomes a genuine owner, so the
+      // back-end doesn't have to become too metaphysical (and maybe hard to review).
+      return dom.on('click', async () => {
+        const forkResult = await this._pageModel?.gristDoc.get()?.docComm.fork();
+        if (!forkResult) { throw new Error('Failed to create fork'); }
+        window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
+                                                                     {doc: forkResult.urlId,
+                                                                      docPage: undefined})));
+      });
+    } else {
+      // When forking isn't needed, we return a direct link to be maximally transparent
+      // about where button will go.
+      return urlState().setHref(userOverrideParams(user.email, {docPage: undefined}));
+    }
   }
 }
 
