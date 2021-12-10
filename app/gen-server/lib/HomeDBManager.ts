@@ -1477,7 +1477,7 @@ export class HomeDBManager extends EventEmitter {
   // This option is used during imports, where it is convenient not to add a row to the
   // document database until the document has actually been imported.
   public async addDocument(scope: Scope, wsId: number, props: Partial<DocumentProperties>,
-                           docId?: string): Promise<QueryResult<number>> {
+                           docId?: string): Promise<QueryResult<string>> {
     const name = props.name;
     if (!name) {
       return {
@@ -2093,8 +2093,11 @@ export class HomeDBManager extends EventEmitter {
       maxInheritedRole = null;
     }
 
+    // Unless we have special access to the document, or are an owner, limit user information
+    // returned to being about the current user.
     const thisUser = users.find(user => user.id === scope.userId);
-    if (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners') {
+    if (scope.specialPermit?.docId !== doc.id &&
+        (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners')) {
       // If not an owner, don't return information about other users.
       users = thisUser ? [thisUser] : [];
     }
