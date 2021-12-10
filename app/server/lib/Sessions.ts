@@ -32,9 +32,12 @@ export class Sessions {
    * Get the session id and organization from the request (or just pass it in if known), and
    * return the identified session.
    */
-  public getOrCreateSessionFromRequest(req: Request, sessionId?: string): ScopedSession {
-    const sid = sessionId || this.getSessionIdFromRequest(req);
-    const org = (req as any).org;
+  public getOrCreateSessionFromRequest(req: Request, options?: {
+    sessionId?: string,
+    org?: string
+  }): ScopedSession {
+    const sid = options?.sessionId ?? this.getSessionIdFromRequest(req);
+    const org = options?.org ?? (req as any).org;
     if (!sid) { throw new Error("session not found"); }
     return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
   }
@@ -49,6 +52,23 @@ export class Sessions {
       this._sessions.set(key, scopedSession);
     }
     return this._sessions.get(key)!;
+  }
+
+  /**
+   * Called when a session is modified, and any caching should be invalidated.
+   * Currently just removes all caching, if there is any. This caching is a bit
+   * of a weird corner of Grist, it is used in development for historic reasons
+   * but not in production.
+   * TODO: make more fine grained, or rethink.
+   */
+  public clearCacheIfNeeded(options?: {
+    email?: string,
+    org?: string|null,
+    sessionID?: string,
+  }) {
+    if (!(process.env.GRIST_HOST || process.env.GRIST_HOSTED)) {
+      this._sessions.clear();
+    }
   }
 
   /**

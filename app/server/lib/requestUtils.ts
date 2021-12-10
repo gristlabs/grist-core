@@ -4,6 +4,7 @@ import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
+import {RequestWithGrist} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
@@ -74,6 +75,7 @@ export function trustOrigin(req: Request, resp: Response): boolean {
   // Note that the request origin is undefined for non-CORS requests.
   const origin = req.get('origin');
   if (!origin) { return true; } // Not a CORS request.
+  if (process.env.GRIST_HOST && req.hostname === process.env.GRIST_HOST) { return true; }
   if (!allowHost(req, new URL(origin))) { return false; }
 
   // For a request to a custom domain, the full hostname must match.
@@ -253,4 +255,17 @@ export function getOriginUrl(req: Request) {
   const host = req.headers.host!;
   const protocol = req.get("X-Forwarded-Proto") || req.protocol;
   return `${protocol}://${host}`;
+}
+
+/**
+ * In some configurations, session information may be cached by the server.
+ * When session information changes, give the server a chance to clear its
+ * cache if needed.
+ */
+export function clearSessionCacheIfNeeded(req: Request, options?: {
+  email?: string,
+  org?: string|null,
+  sessionID?: string,
+}) {
+  (req as RequestWithGrist).gristServer?.getSessions().clearCacheIfNeeded(options);
 }

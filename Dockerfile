@@ -2,7 +2,7 @@
 ## Build stage
 ################################################################################
 
-FROM node:14 as builder
+FROM node:14-buster as builder
 
 # Install all node dependencies.
 ADD package.json package.json

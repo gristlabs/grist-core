@@ -1185,14 +1185,13 @@ export function shareSupportWorkspaceForSuite() {
     // test/gen-server/seed.ts creates a support user with a personal org and an "Examples &
     // Templates" workspace, but doesn't share it (to avoid impacting the many existing tests).
     // Share that workspace with @everyone and @anon, and clean up after this suite.
-    await server.simulateLogin("Support", "support@getgrist.com", "docs");
-    api = createHomeApi('Support', 'docs');
+    await addSupportUserIfPossible();
+    api = createHomeApi('Support', 'docs');  // this uses an api key, so no need to log in.
     wss = await api.getOrgWorkspaces('current');
     await api.updateWorkspacePermissions(wss[0].id, {users: {
       'everyone@getgrist.com': 'viewers',
       'anon@getgrist.com': 'viewers',
     }});
-    await server.removeLogin();
   });
 
   after(async function() {
@@ -1274,6 +1273,11 @@ export class Session {
   // Return a session configured for a default team site and the current session's user.
   public get teamSite() {
     return this.customTeamSite('test-grist', 'Test Grist');
+  }
+
+  // Return a session configured for an alternative team site and the current session's user.
+  public get teamSite2() {
+    return this.customTeamSite('test2-grist', 'Test2 Grist');
   }
 
   // Return a session configured for a particular team site and the current session's user.
@@ -1586,10 +1590,29 @@ export function bigScreen() {
 
 }
 
+export async function addSupportUserIfPossible() {
+  if (!server.isExternalServer() && process.env.TEST_SUPPORT_API_KEY) {
+    // Make sure we have a test support user.
+    const dbManager = await server.getDatabase();
+    const user = await dbManager.getUserByLoginWithRetry('support@getgrist.com', {
+      email: 'support@getgrist.com',
+      name: 'Support',
+    });
+    if (!user) {
+      throw new Error('Failed to create test support user');
+    }
+    if (!user.apiKey) {
+      user.apiKey = process.env.TEST_SUPPORT_API_KEY;
+      await user.save();
+    }
+  }
+}
+
 /**
  * Adds samples to the Examples & Templates page.
  */
 async function addSamples() {
+  await addSupportUserIfPossible();
   const homeApi = createHomeApi('support', 'docs');
 
   // Create the Grist Templates org.

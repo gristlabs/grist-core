@@ -10,8 +10,8 @@ import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import * as log from 'app/server/lib/log';
-import {addPermit, getDocScope, getScope, integerParam, isParameterOn, sendOkReply,
-        sendReply, stringParam} from 'app/server/lib/requestUtils';
+import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
+        isParameterOn, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {Request} from 'express';
 
@@ -427,6 +427,7 @@ export class ApiServer {
         // Modify session copy in request. Will be saved to persistent storage before responding
         // by express-session middleware.
         linkOrgWithEmail(mreq.session, req.body.email, domain || '');
+        clearSessionCacheIfNeeded(req, {sessionID: mreq.sessionID});
         return sendOkReply(req, res, {email});
       } catch (e) {
         throw new ApiError('email not available', 403);

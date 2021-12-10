@@ -18,6 +18,9 @@ if (!debugging) {
 // Use a distinct cookie.  Bump version to 2.
 setDefaultEnv('GRIST_SESSION_COOKIE', 'grist_core2');
 
+setDefaultEnv('GRIST_SERVE_SAME_ORIGIN', 'true');
+setDefaultEnv('GRIST_SINGLE_PORT', 'true');
+
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
@@ -42,7 +45,7 @@ export async function main() {
   }
 
   // If SAML is not configured, there's no login system, so provide a default email address.
-  if (!process.env.GRIST_SAML_SP_HOST) {
+  if (!process.env.GRIST_SAML_SP_HOST && !process.env.GRIST_TEST_LOGIN) {
     setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
   }
   // Set directory for uploaded documents.

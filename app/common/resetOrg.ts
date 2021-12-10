@@ -11,8 +11,9 @@ export async function resetOrg(api: UserAPI, org: string|number) {
     throw new Error('user must be an owner of the org to be reset');
   }
   const billing = api.getBillingAPI();
-  const account = await billing.getBillingAccount();
-  if (!account.managers.some(manager => (manager.id === session.user.id))) {
+  // If billing api is not available, don't bother setting billing manager.
+  const account = await billing.getBillingAccount().catch(e => null);
+  if (account && !account.managers.some(manager => (manager.id === session.user.id))) {
     throw new Error('user must be a billing manager');
   }
   const wss = await api.getOrgWorkspaces(org);
@@ -31,7 +32,7 @@ export async function resetOrg(api: UserAPI, org: string|number) {
   await api.updateOrgPermissions(org, permissions);
   // For non-individual accounts, update billing managers (individual accounts will
   // throw an error if we try to do this).
-  if (!account.individual) {
+  if (account && !account.individual) {
     const managers: ManagerDelta = { users: {} };
     for (const user of account.managers) {
       if (user.id !== session.user.id) {

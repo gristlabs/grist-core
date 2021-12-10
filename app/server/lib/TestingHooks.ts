@@ -78,7 +78,8 @@ export class TestingHooks implements ITestingHooks {
     const sessionId = this._comm.getSessionIdFromCookie(gristSidCookie);
     const scopedSession = this._comm.getOrCreateSession(sessionId, {org});
     const req = {} as Request;
-    return await scopedSession.updateUserProfile(req, profile);
+    await scopedSession.updateUserProfile(req, profile);
+    this._server.getSessions().clearCacheIfNeeded({email: profile?.email, org});
   }
 
   public async setServerVersion(version: string|null): Promise<void> {

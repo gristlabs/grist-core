@@ -3277,10 +3277,10 @@ grain-rpc@0.1.7:
     events "^1.1.1"
     ts-interface-checker "^1.0.0"
 
-grainjs@1.0.1, grainjs@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/grainjs/-/grainjs-1.0.1.tgz#2eb7e1a628e550de1dcbe3f97358d28e4dbefff8"
-  integrity sha512-N5odOGRDsdKYs+M+WAtmlACuRZh60vKzzXhxCcWfRftriRCilWnLIowNNU0siFzex2qauK5i7YV3dZ3lXA1w7A==
+grainjs@1.0.2, grainjs@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/grainjs/-/grainjs-1.0.2.tgz#5ab9b03de21bdff8da0f98408276fcbd31de8f17"
+  integrity sha512-wrj8TqpgxTGOKHpTlMBxMeX2uS3lTvXj4ROLKC+EZNM7J6RHQLGjMzMqWtiryBnMhGIBlbCicMNFppCrK1zv9w==
 
 growl@1.10.5:
   version "1.10.5"

@@ -66,7 +66,9 @@ export class HomeUtil {
       // TestingHooks communicates via JSON, so it's impossible to send an `undefined` value for org
       // through it. Using the empty string happens to work though.
       const testingHooks = await this.server.getTestingHooks();
-      await testingHooks.setLoginSessionProfile(await this.getGristSid(), {name, email, loginMethod}, org);
+      const sid = await this.getGristSid();
+      if (!sid) { throw new Error('no session available'); }
+      await testingHooks.setLoginSessionProfile(sid, {name, email, loginMethod}, org);
     } else {
       if (loginMethod && loginMethod !== 'Email + Password') {
         throw new Error('only Email + Password logins supported for external server tests');
@@ -109,7 +111,8 @@ export class HomeUtil {
   public async removeLogin(org: string = "") {
     if (!this.server.isExternalServer()) {
       const testingHooks = await this.server.getTestingHooks();
-      await testingHooks.setLoginSessionProfile(await this.getGristSid(), null, org);
+      const sid = await this.getGristSid();
+      if (sid) { await testingHooks.setLoginSessionProfile(sid, null, org); }
     } else {
       await this.driver.get(`${this.server.getHost()}/logout`);
     }
@@ -155,12 +158,14 @@ export class HomeUtil {
   }
 
   /**
-   * Returns the current Grist session-id (for the selenium browser accessing this server).
+   * Returns the current Grist session-id (for the selenium browser accessing this server),
+   * or null if there is no session.
    */
-  public async getGristSid(): Promise<string> {
+  public async getGristSid(): Promise<string|null> {
     // Load a cheap page on our server to get the session-id cookie from browser.
     await this.driver.get(`${this.server.getHost()}/test/session`);
-    const cookie = await this.driver.manage().getCookie('grist_sid');
+    const cookie = await this.driver.manage().getCookie(process.env.GRIST_SESSION_COOKIE || 'grist_sid');
+    if (!cookie) { return null; }
     return decodeURIComponent(cookie.value);
   }
 
@@ -247,7 +252,7 @@ export class HomeUtil {
    * Returns whether we are currently on the Cognito login page.
    */
   public async isOnLoginPage() {
-    return /gristlogin\./.test(await this.driver.getCurrentUrl());
+    return /gristlogin/.test(await this.driver.getCurrentUrl());
   }
 
   /**

@@ -25,6 +25,7 @@
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {UrlState} from 'app/client/lib/UrlState';
 import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, useNewUI} from 'app/common/gristUrls';
+import {addOrgToPath} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
 import isEqual = require('lodash/isEqual');
@@ -102,7 +103,7 @@ function _getCurrentUrl(): string {
 // Helper for getLoginUrl()/getLogoutUrl().
 function _getLoginLogoutUrl(method: 'login'|'logout'|'signin'|'signup', nextUrl: string): string {
   const startUrl = new URL(window.location.href);
-  startUrl.pathname = '/' + method;
+  startUrl.pathname = addOrgToPath('', window.location.href) + '/' + method;
   startUrl.searchParams.set('next', nextUrl);
   return startUrl.href;
 }

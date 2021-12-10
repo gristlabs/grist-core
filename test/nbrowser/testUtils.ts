@@ -83,6 +83,8 @@ export function setupTestSuite(options?: TestSuiteOptions) {
 
   // After every suite, clear sessionStorage and localStorage to avoid affecting other tests.
   after(clearCurrentWindowStorage);
+  // Also, log out, to avoid logins interacting.
+  after(() => server.removeLogin());
 
   // If requested, clear user preferences for all test users after this suite.
   if (options?.clearUserPrefs) {
@@ -202,7 +204,7 @@ export function setupCleanup() {
 export function setupRequirement(options: TestSuiteOptions) {
   const cleanup = setupCleanup();
   if (options.samples) {
-    if (!server.isExternalServer()) {
+    if (process.env.TEST_ADD_SAMPLES || !server.isExternalServer()) {
       gu.shareSupportWorkspaceForSuite(); // TODO: Remove after the support workspace is removed from the backend.
       gu.addSamplesForSuite();
     }
@@ -218,31 +220,41 @@ export function setupRequirement(options: TestSuiteOptions) {
 
     // Optionally ensure that a team site is available for tests.
     if (options.team) {
+      await gu.addSupportUserIfPossible();
       const api = gu.createHomeApi('support', 'docs');
-      let orgName = 'test-grist';
-      const deployment = process.env.GRIST_ID_PREFIX;
-      if (deployment) { orgName = `${orgName}-${deployment}`; }
-      let isNew: boolean = false;
-      try {
-        await api.newOrg({name: 'Test Grist', domain: orgName});
-        isNew = true;
-      } catch (e) {
-        // Assume the org already exists.
-      }
-      if (isNew) {
-        await api.updateOrgPermissions(orgName, {
-          users: {
-            'gristoid+chimpy@gmail.com': 'owners',
+      for (const suffix of ['', '2'] as const) {
+        let orgName = `test${suffix}-grist`;
+        const deployment = process.env.GRIST_ID_PREFIX;
+        if (deployment) { orgName = `${orgName}-${deployment}`; }
+        let isNew: boolean = false;
+        try {
+          await api.newOrg({name: `Test${suffix} Grist`, domain: orgName});
+          isNew = true;
+        } catch (e) {
+          // Assume the org already exists.
+        }
+        if (isNew) {
+          await api.updateOrgPermissions(orgName, {
+            users: {
+              'gristoid+chimpy@gmail.com': 'owners',
+            }
+          });
+          // Recreate the api for the correct org, then update billing.
+          const api2 = gu.createHomeApi('support', orgName);
+          const billing = api2.getBillingAPI();
+          try {
+            await billing.updateBillingManagers({
+              users: {
+                'gristoid+chimpy@gmail.com': 'managers',
+              }
+            });
+          } catch (e) {
+            // ignore if no billing endpoint
+            if (!String(e).match('404: Not Found')) {
+              throw e;
+            }
           }
-        });
-        // Recreate the api for the correct org, then update billing.
-        const api2 = gu.createHomeApi('support', orgName);
-        const billing = api2.getBillingAPI();
-        await billing.updateBillingManagers({
-          users: {
-            'gristoid+chimpy@gmail.com': 'managers',
-          }
-        });
+        }
       }
     }
   });

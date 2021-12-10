@@ -33,7 +33,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
-import {GristLoginMiddleware,  GristServer} from 'app/server/lib/GristServer';
+import {GristLoginMiddleware, GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
@@ -45,7 +45,8 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, addOrgToPath, addPermit, getScope, optStringParam, RequestWithGristInfo, stringParam,
+import {adaptServerUrl, addOrgToPath, addOrgToPathIfNeeded, addPermit, getScope,
+        optStringParam, RequestWithGristInfo, stringParam,
         TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
@@ -53,6 +54,7 @@ import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
+import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import axios from 'axios';
@@ -84,10 +86,6 @@ export interface FlexServerOptions {
   baseDomain?: string;
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
-}
-
-export interface RequestWithGrist extends express.Request {
-  gristServer?: GristServer;
 }
 
 export class FlexServer implements GristServer {
@@ -761,7 +759,7 @@ export class FlexServer implements GristServer {
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
-    const loginSystem = await getLoginSystem();
+    const loginSystem = await (process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : getLoginSystem());
     this._loginMiddleware = await loginSystem.getMiddleware(this);
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
@@ -800,7 +798,7 @@ export class FlexServer implements GristServer {
   }
 
   public async addLoginRoutes() {
-    if (this._check('login', 'org', 'sessions', 'homedb')) { return; }
+    if (this._check('login', 'org', 'sessions', 'homedb', 'hosts')) { return; }
     // TODO: We do NOT want Comm here at all, it's only being used for handling sessions, which
     // should be factored out of it.
     this.addComm();
@@ -813,7 +811,7 @@ export class FlexServer implements GristServer {
       // we'll need it when we come back from Cognito.
       forceSessionChange(mreq.session);
       // Redirect to "/" on our requested hostname (in test env, this will redirect further)
-      const next = req.protocol + '://' + req.get('host') + '/';
+      const next = getOrgUrl(req);
       if (signUp === null) {
         // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
         // user has ever logged in on this browser.
@@ -839,20 +837,38 @@ export class FlexServer implements GristServer {
       this.app.get('/test/login', expressWrap(async (req, res) => {
         log.warn("Serving unauthenticated /test/login endpoint, made available because GRIST_TEST_LOGIN is set.");
 
-        const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
-        const profile: UserProfile = {
-          email: optStringParam(req.query.email) || 'chimpy@getgrist.com',
-          name: optStringParam(req.query.name) || 'Chimpy McBanana',
-        };
-        await scopedSession.updateUserProfile(req, profile);
+        // Query parameter is called "username" for compatibility with Cognito.
+        const email = optStringParam(req.query.username);
+        if (email) {
+          const redirect = optStringParam(req.query.next);
+          const profile: UserProfile = {
+            email,
+            name: optStringParam(req.query.name) || email,
+          };
+          const url = new URL(redirect || getOrgUrl(req));
+          // Make sure we update session for org we'll be redirecting to.
+          const {org} = await this._hosts.getOrgInfoFromParts(url.hostname, url.pathname);
+          const scopedSession = this._sessions.getOrCreateSessionFromRequest(req, { org });
+          await scopedSession.updateUserProfile(req, profile);
+          this._sessions.clearCacheIfNeeded({email, org});
+          if (redirect) { return res.redirect(redirect); }
+        }
         res.send(`<!doctype html>
           <html><body>
-          <p>Logged in as ${JSON.stringify(profile)}.<p>
-          <form>
-          <input type=text name=email placeholder=email>
-          <input type=text name=name placeholder=name>
-          <input type=submit value=login>
-          </form>
+          <div class="modal-content-desktop">
+            <h1>A Very Creduluous Login Page</h1>
+            <p>
+              A minimal login screen to facilitate testing.
+              I'll believe anything you tell me.
+            </p>
+            <form>
+              <div>Email <input type=text name=username placeholder=email /></div>
+              <div>Name <input type=text name=name placeholder=name /></div>
+              <div>Dummy password <input type=text name=password placeholder=unused ></div>
+              <input type=hidden name=next value="${req.query.next || ''}">
+              <div><input type=submit name=signInSubmitButton value=login></div>
+            </form>
+          </div>
           </body></html>
        `);
       }));
@@ -862,7 +878,7 @@ export class FlexServer implements GristServer {
       const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
 
       // If 'next' param is missing, redirect to "/" on our requested hostname.
-      const next = optStringParam(req.query.next) || (req.protocol + '://' + req.get('host') + '/');
+      const next = optStringParam(req.query.next) || getOrgUrl(req);
       const redirectUrl = await this._getLogoutRedirectUrl(req, new URL(next));
 
       // Clear session so that user needs to log in again at the next request.
@@ -871,6 +887,8 @@ export class FlexServer implements GristServer {
       const expressSession = (req as any).session;
       if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
       await scopedSession.clearScopedSession(req);
+      // TODO: limit cache clearing to specific user.
+      this._sessions.clearCacheIfNeeded();
       resp.redirect(redirectUrl);
     }));
 
@@ -1637,6 +1655,11 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   } else {
     next();
   }
+}
+
+// Get url to the org associated with the request.
+function getOrgUrl(req: express.Request) {
+  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, '/');
 }
 
 // Set Cache-Control header to "no-cache"

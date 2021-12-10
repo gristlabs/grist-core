@@ -4,9 +4,8 @@ import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from '
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
-import {RequestWithGrist} from 'app/server/lib/FlexServer';
 import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
-import {GristServer} from 'app/server/lib/GristServer';
+import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
 import {guessExt} from 'app/server/lib/guessExt';
 import * as log from 'app/server/lib/log';
 import {optStringParam} from 'app/server/lib/requestUtils';

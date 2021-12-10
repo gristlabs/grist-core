@@ -47,3 +47,7 @@ export interface GristLoginMiddleware {
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;
 }
+
+export interface RequestWithGrist extends express.Request {
+  gristServer?: GristServer;
+}
