@@ -19,12 +19,13 @@ DOCKER_CONTAINER=grist-core-test
 DOCKER_PID=""
 
 cleanup() {
+  return_value=$?
   docker rm -f $DOCKER_CONTAINER
   if [ -n "$DOCKER_PID" ]; then
     wait $DOCKER_PID || echo "docker container gone"
   fi
   echo "Cleaned up docker container, bye."
-  exit 0
+  exit $return_value
 }
 
 docker run --name $DOCKER_CONTAINER --rm \
@@ -33,7 +34,7 @@ docker run --name $DOCKER_CONTAINER --rm \
   --env GRIST_SESSION_COOKIE=grist_test_cookie \
   --env GRIST_TEST_LOGIN=1 \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
-  gristlabs/grist &
+  ${TEST_IMAGE:-gristlabs/grist} &
 
 DOCKER_PID="$!"
 
