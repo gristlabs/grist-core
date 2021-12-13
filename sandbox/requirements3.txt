@@ -7,7 +7,7 @@ html5lib==0.999999999
 iso8601==0.1.12
 json_table_schema==0.2.1
 lazy_object_proxy==1.6.0
-lxml==4.6.3                # used in csv plugin only?
+lxml==4.6.5                # used in csv plugin only?
 messytables==0.15.2
 python_dateutil==2.6.0
 python_magic==0.4.12
