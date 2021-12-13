@@ -31,8 +31,14 @@ export interface TransformRuleMap {
   [origTableName: string]: TransformRule;
 }
 
+// Special values for import destinations; null means "new table", "" means skip table.
+// Both special options exposed as consts.
+export type DestId = string | null;
+export const NEW_TABLE = null;
+export const SKIP_TABLE = "";
+
 export interface TransformRule {
-  destTableId: string|null;
+  destTableId: DestId;
   destCols: TransformColumn[];
   sourceCols: string[];
 }

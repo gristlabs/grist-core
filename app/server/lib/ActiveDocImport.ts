@@ -5,7 +5,8 @@ import * as _ from 'underscore';
 
 import {ColumnDelta, createEmptyActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
-        MergeOptions, MergeOptionsMap, MergeStrategy, TransformColumn, TransformRule,
+        MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE, TransformColumn,
+        TransformRule,
         TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue} from 'app/common/DocActions';
@@ -329,6 +330,10 @@ export class ActiveDocImport {
         createdTableId = hiddenTableId;
 
       } else {
+        if (destTableId === SKIP_TABLE) {
+          await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
+          continue;
+        }
         // Do final import
         const mergeOptions = mergeOptionsMap[origTableName] ?? null;
         const intoNewTable: boolean = destTableId ? false : true;

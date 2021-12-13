@@ -22,9 +22,9 @@ import {IOptionFull, linkSelect, menu, menuDivider, menuItem, multiSelect} from 
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {openFormulaEditor} from 'app/client/widgets/FieldEditor';
-import {DataSourceTransformed, ImportResult, ImportTableResult, MergeOptions,
-        MergeOptionsMap,
-        MergeStrategy, TransformColumn, TransformRule, TransformRuleMap} from 'app/common/ActiveDocAPI';
+import {DataSourceTransformed, DestId, ImportResult, ImportTableResult, MergeOptions,
+        MergeOptionsMap, MergeStrategy, NEW_TABLE, SKIP_TABLE,
+        TransformColumn, TransformRule, TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {byteString} from 'app/common/gutil';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
@@ -35,10 +35,6 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
 
-// Special values for import destinations; null means "new table".
-// TODO We should also support "skip table" (needs server support), so that one can open, say,
-// an Excel file with many tabs, and import only some of them.
-type DestId = string | null;
 
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
@@ -182,9 +178,10 @@ export class Importer extends DisposableWithEvents {
   private _hasScheduledDiffUpdate = false;
 
   // destTables is a list of options for import destinations, and includes all tables in the
-  // document, plus two values: to import as a new table, and to skip an import table entirely.
+  // document, plus two values: to import as a new table, and to skip a table.
   private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, (use) => [
-    {value: null, label: 'New Table'},
+    {value: NEW_TABLE, label: 'New Table'},
+    ...(use(this._sourceInfoArray).length > 1 ? [{value: SKIP_TABLE, label: 'Skip'}] : []),
     ...use(this._gristDoc.docModel.allTableIds.getObservable()).map((t) => ({value: t, label: t})),
   ]);
 
@@ -393,7 +390,7 @@ export class Importer extends DisposableWithEvents {
         origTableName: info.origTableName,
         sourceSection: this._getPrimaryViewSection(info.hiddenTableId)!,
         transformSection: Observable.create(null, this._getSectionByRef(info.transformSectionRef)),
-        destTableId: Observable.create<DestId>(null, info.destTableId),
+        destTableId: Observable.create<DestId>(null, info.destTableId ?? NEW_TABLE),
         isLoadingSection: Observable.create(null, false),
         lastGenImporterViewPromise: null
       })));
@@ -436,7 +433,7 @@ export class Importer extends DisposableWithEvents {
     const importResult: ImportResult = await this._docComm.finishImportFiles(
       this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptionMaps, parseOptions});
 
-    if (importResult.tables[0].hiddenTableId) {
+    if (importResult.tables[0]?.hiddenTableId) {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
       await this._gristDoc.openDocPage(tableRowModel.primaryViewId());
     }
@@ -580,7 +577,9 @@ export class Importer extends DisposableWithEvents {
 
                 info.destTableId.set(destId);
                 this._resetTableMergeOptions(info.hiddenTableId);
-                await this._updateTransformSection(info);
+                if (destId !== SKIP_TABLE) {
+                  await this._updateTransformSection(info);
+                }
               });
             return cssTableInfo(
               dom.autoDispose(destTableId),
@@ -734,6 +733,8 @@ export class Importer extends DisposableWithEvents {
                 });
 
                 return cssPreviewGrid(
+                  dom.maybe(use1 => SKIP_TABLE === use1(info.destTableId),
+                    () => cssOverlay(testId("importer-preview-overlay"))),
                   dom.autoDispose(gridView),
                   gridView.viewPane,
                   testId('importer-preview'),
@@ -746,7 +747,10 @@ export class Importer extends DisposableWithEvents {
       cssModalButtons(
         bigPrimaryButton('Import',
           dom.on('click', () => this._maybeFinishImport(upload)),
-          dom.boolAttr('disabled', use => use(this._previewViewSection) === null),
+          dom.boolAttr('disabled', use => {
+            return use(this._previewViewSection) === null ||
+                   use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
+          }),
           testId('modal-confirm'),
         ),
         bigBasicButton('Cancel',
@@ -1032,8 +1036,19 @@ const cssPreviewSpinner = styled(cssPreview, `
   justify-content: center;
 `);
 
+const cssOverlay = styled('div', `
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+  background: ${colors.mediumGrey};
+`);
+
 const cssPreviewGrid = styled(cssPreview, `
   border: 1px solid ${colors.darkGrey};
+  position: relative;
 `);
 
 const cssMergeOptions = styled('div', `
