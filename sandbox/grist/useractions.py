@@ -557,13 +557,25 @@ class UserActions(object):
     update_pairs = col_updates.items()
 
     # Disallow most changes to summary group-by columns, except to match the underlying column.
+    # TODO: This is poor. E.g. renaming a group-by column could rename the underlying column (or
+    # offer the option to), or could be disabled; either would be better than an error.
     for col, values in update_pairs:
       if col.summarySourceCol:
-        underlying = col_updates.get(col.summarySourceCol, {})
-        if not all(value == getattr(col, key) or has_value(underlying, key, value)
-                   for key, value in six.iteritems(values)
-                   if key not in ('displayCol', 'visibleCol')):
-          raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
+        underlying_updates = col_updates.get(col.summarySourceCol, {})
+        for key, value in six.iteritems(values):
+          if key in ('displayCol', 'visibleCol'):
+            # These can't always match the underlying column, and can now be changed in the
+            # group-by column. (Perhaps the same should be permitted for all widget options.)
+            continue
+          # Properties like colId and type ought to match those of the underlying column (either
+          # the current ones, or the ones that the underlying column is being changed to).
+          expected = underlying_updates.get(key, getattr(col, key))
+          if key == 'type':
+            # Type sometimes must differ (e.g. ChoiceList -> Choice).
+            expected = summary.summary_groupby_col_type(expected)
+
+          if value != expected:
+            raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
 

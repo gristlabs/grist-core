@@ -83,8 +83,11 @@ export function setupTestSuite(options?: TestSuiteOptions) {
 
   // After every suite, clear sessionStorage and localStorage to avoid affecting other tests.
   after(clearCurrentWindowStorage);
-  // Also, log out, to avoid logins interacting.
-  after(() => server.removeLogin());
+  // Also, log out, to avoid logins interacting, unless NO_CLEANUP is requested (useful for
+  // debugging tests).
+  if (!process.env.NO_CLEANUP) {
+    after(() => server.removeLogin());
+  }
 
   // If requested, clear user preferences for all test users after this suite.
   if (options?.clearUserPrefs) {

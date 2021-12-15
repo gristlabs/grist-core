@@ -47,7 +47,7 @@ export class ChoiceTextBox extends NTextBox {
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
         dom.domComputed((use) => {
-          if (use(row._isAddRow)) { return null; }
+          if (this.isDisposed() || use(row._isAddRow)) { return null; }
 
           const formattedValue = use(this.valueFormatter).format(use(value));
           if (formattedValue === '') { return null; }

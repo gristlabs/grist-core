@@ -113,8 +113,8 @@ class TestDerived(test_engine.EngineTestCase):
       ],
       "calls": {
         "GristSummary_6_Orders": {'#lookup#year': 1, "group": 2, "amount": 2, "count": 2},
-        "Orders": {"#lookup##summary#GristSummary_6_Orders": 2,
-                   "#summary#GristSummary_6_Orders": 2}}
+        "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
+                   "#summary#GristSummary_6_Orders": 1}}
     })
 
     self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
@@ -296,6 +296,6 @@ class TestDerived(test_engine.EngineTestCase):
         actions.UpdateRecord("Orders", 1, {"year": 2012}),
       ],
       "calls": {"GristSummary_6_Orders": {"group": 1, "amount": 1, "count": 1},
-                "Orders": {"#lookup##summary#GristSummary_6_Orders": 2,
-                           "#summary#GristSummary_6_Orders": 2}}
+                "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
+                           "#summary#GristSummary_6_Orders": 1}}
     })

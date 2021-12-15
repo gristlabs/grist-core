@@ -507,7 +507,7 @@ class Engine(object):
 
   def _pre_update(self):
     """
-    Called at beginning of _bring_all_up_to_date or _bring_lookups_up_to_date.
+    Called at beginning of _bring_all_up_to_date or _bring_mlookups_up_to_date.
     Makes sure cell change accumulation is reset.
     """
     self._changes_map = OrderedDict()
@@ -519,7 +519,7 @@ class Engine(object):
 
   def _post_update(self):
     """
-    Called at end of _bring_all_up_to_date or _bring_lookups_up_to_date.
+    Called at end of _bring_all_up_to_date or _bring_mlookups_up_to_date.
     Issues actions for any accumulated cell changes.
     """
     for node, changes in six.iteritems(self._changes_map):
@@ -591,16 +591,22 @@ class Engine(object):
           if self._recompute_done_counter < self._expected_done_counter:
             raise Exception('data engine not making progress updating dependencies')
       if ignore_other_changes:
-        # For _bring_lookups_up_to_date, we should only wait for the work items
+        # For _bring_mlookups_up_to_date, we should only wait for the work items
         # explicitly requested.
         break
       # Sanity check that we computed at least one cell.
       if self.recompute_map and self._recompute_done_counter == 0:
         raise Exception('data engine not making progress updating formulas')
       # Figure out remaining work to do, maintaining classic Grist ordering.
-      nodes = sorted(self.recompute_map.keys(), reverse=True)
-      work_items = [WorkItem(node, None, []) for node in nodes]
+      work_items = self._make_sorted_work_items(self.recompute_map.keys())
     self._in_update_loop = False
+
+  def _make_sorted_work_items(self, nodes):     # pylint:disable=no-self-use
+    # Build WorkItems from a list of nodes, maintaining classic Grist ordering (in order by name).
+    # WorkItems are processed from the end (hence reverse=True). Additionally, we sort all
+    # #lookups to be processed first. See note in _bring_mlookups_up_to_date why this is important.
+    nodes = sorted(nodes, reverse=True, key=lambda n: (not n.col_id.startswith('#lookup'), n))
+    return [WorkItem(node, None, []) for node in nodes]
 
   def _bring_all_up_to_date(self):
     # Bring all nodes up to date. We iterate in sorted order of the keys so that the order is
@@ -608,8 +614,7 @@ class Engine(object):
     self._pre_update()
     try:
       # Figure out remaining work to do, maintaining classic Grist ordering.
-      nodes = sorted(self.recompute_map.keys(), reverse=True)
-      work_items = [WorkItem(node, None, []) for node in nodes]
+      work_items = self._make_sorted_work_items(self.recompute_map.keys())
       self._update_loop(work_items)
       # Check if any potentially unused LookupMaps are still unused, and if so, delete them.
       for lookup_map in self._unused_lookups:
@@ -619,16 +624,20 @@ class Engine(object):
       self._unused_lookups.clear()
       self._post_update()
 
-  def _bring_lookups_up_to_date(self, triggering_doc_action):
-    # Just bring the lookup nodes up to date. This is part of a somewhat hacky solution in
-    # apply_doc_action: lookup nodes don't know exactly what depends on them until they are
+  def _bring_mlookups_up_to_date(self, triggering_doc_action):
+    # Just bring the *metadata* lookup nodes up to date.
+    #
+    # In general, lookup nodes don't know exactly what depends on them until they are
     # recomputed. So invalidating lookup nodes doesn't complete all invalidation; further
-    # invalidations may be generated in the course of recomputing the lookup nodes. So we force
+    # invalidations may be generated in the course of recomputing the lookup nodes.
+    #
+    # We use some private formulas on metadata tables internally (e.g. for a list columns of a
+    # table). This method is part of a somewhat hacky solution in apply_doc_action: to force
     # recomputation of lookup nodes to ensure that we see up-to-date results between applying doc
     # actions.
     #
-    # This matters for private formulas used internally; it isn't needed for external use, since
-    # all nodes are brought up to date before responding to a user action anyway.
+    # For regular data, correct values aren't needed until we recompute formulas. So we process
+    # lookups before other formulas, but do not need to update lookups after each doc_action.
     #
     # In addition, we expose the triggering doc_action so that lookupOrAddDerived can avoid adding
     # a record to a derived table when the trigger itself is a change to the derived table. This
@@ -636,9 +645,9 @@ class Engine(object):
     self._pre_update()
     try:
       self._triggering_doc_action = triggering_doc_action
-      nodes = sorted(self.recompute_map.keys(), reverse=True)
-      nodes = [node for node in nodes if node.col_id.startswith('#lookup')]
-      work_items = [WorkItem(node, None, []) for node in nodes]
+      nodes = [node for node in self.recompute_map
+               if node.col_id.startswith('#lookup') and node.table_id.startswith('_grist_')]
+      work_items = self._make_sorted_work_items(nodes)
       self._update_loop(work_items, ignore_other_changes=True)
     finally:
       self._triggering_doc_action = None
@@ -646,7 +655,7 @@ class Engine(object):
 
   def is_triggered_by_table_action(self, table_id):
     # Workaround for lookupOrAddDerived that prevents AddRecord from being created when the
-    # trigger is itself an action for the same table. See comments for _bring_lookups_up_to_date.
+    # trigger is itself an action for the same table. See comments for _bring_mlookups_up_to_date.
     a = self._triggering_doc_action
     return a and getattr(a, 'table_id', None) == table_id
 
@@ -1295,11 +1304,11 @@ class Engine(object):
 
     # We normally recompute formulas before returning to the user; but some formulas are also used
     # internally in-between applying doc actions. We have this workaround to ensure that those are
-    # up-to-date after each doc action. See more in comments for _bring_lookups_up_to_date.
+    # up-to-date after each doc action. See more in comments for _bring_mlookups_up_to_date.
     # We check _compute_stack to avoid a recursive call (happens when a formula produces an
     # action, as for derived/summary tables).
     if not self._compute_stack:
-      self._bring_lookups_up_to_date(doc_action)
+      self._bring_mlookups_up_to_date(doc_action)
 
   def autocomplete(self, txt, table_id, column_id, user):
     """

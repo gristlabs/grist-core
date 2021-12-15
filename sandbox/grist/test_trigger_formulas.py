@@ -476,35 +476,45 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       6, "BossUpd", "Text", False, "UPPER(value or $Ocean.Head) + '+'", recalcDeps=[2, 6]
     )
 
-    # Previously there was a bug that meant that columns involved in lookups
-    # did not recalculate their trigger formulas after changes to themselves
+    # Previously there were various bugs with trigger formulas in columns involved in lookups:
+    # 1. They did not recalculate their trigger formulas after changes to themselves
+    # 2. They calculated the formula twice for new records
+    # 3. The lookups returned incorrect results
     creatures_columns.append(testutil.col_schema_row(
-      21, "Lookup", "Any", True, "Creatures.lookupRecords(BossUpd='')"
+      21, "Lookup", "Any", True, "Creatures.lookupRecords(BossUpd=$BossUpd).id"
     ))
 
     sample = testutil.parse_test_sample(sample_desc)
     self.load_sample(sample)
 
     self.assertTableData("Creatures", cols="subset", data=[
-      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
-      [1,   "Dolphin", 2,       "Arthur",    "Arthur",  "Arthur",   "Arthur",  "Atlantic"  ],
+      ["id","Name",    "Ocean", "BossDef","BossNvr", "BossUpd", "BossAll", "OceanName", "Lookup"],
+      [1,   "Dolphin", 2,       "Arthur", "Arthur",  "Arthur",  "Arthur",  "Atlantic" , [1]],
     ])
 
     self.update_record('Creatures', 1, Ocean=3)
     self.assertTableData("Creatures", cols="subset", data=[
-      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
-      [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "ARTHUR+",   "Neptune", "Indian"  ],
+      ["id","Name",    "Ocean", "BossDef", "BossNvr", "BossUpd", "BossAll", "OceanName", "Lookup"],
+      [1,   "Dolphin", 3,       "Arthur",  "Arthur",  "ARTHUR+",  "Neptune", "Indian"  , [1]],
     ])
     self.update_record('Creatures', 1, BossUpd="None")
     self.assertTableData("Creatures", cols="subset", data=[
-      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
-      [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "NONE+",     "Neptune", "Indian"  ],
+      ["id","Name",    "Ocean", "BossDef", "BossNvr", "BossUpd", "BossAll", "OceanName", "Lookup"],
+      [1,   "Dolphin", 3,       "Arthur",  "Arthur",  "NONE+",    "Neptune", "Indian"  , [1]],
     ])
     self.update_record('Creatures', 1, BossUpd="")
     self.assertTableData("Creatures", cols="subset", data=[
-      ["id","Name",    "Ocean", "BossDef",   "BossNvr", "BossUpd",  "BossAll", "OceanName"],
-      [1,   "Dolphin", 3,       "Arthur",    "Arthur",  "NEPTUNE+",  "Neptune", "Indian"  ],
+      ["id","Name",    "Ocean", "BossDef", "BossNvr", "BossUpd", "BossAll", "OceanName", "Lookup"],
+      [1,   "Dolphin", 3,       "Arthur",  "Arthur",  "NEPTUNE+","Neptune", "Indian"  , [1]],
     ])
+
+    # Ensuring trigger formula isn't called twice for new records
+    self.add_record('Creatures', BossUpd="Zeus")
+    self.assertTableData("Creatures", cols="subset", rows="subset", data=[
+      ["id", "BossUpd", "Lookup"],
+      [2,    "ZEUS+"  , [2]],
+    ])
+
 
   def test_last_update_recipe(self):
     # Use a formula to store time of last-update. Check that it works as expected.

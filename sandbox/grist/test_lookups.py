@@ -399,7 +399,7 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     self.assertPartialOutActions(out_actions, {
       "calls": {
         # No calculations of anything Schools because nothing depends on the incomplete value.
-        "Students": {"#lookup#firstName:lastName": 2, "schoolIds": 1, "schoolCities": 1}
+        "Students": {"#lookup#firstName:lastName": 1, "schoolIds": 1, "schoolCities": 1}
       },
       "retValues": [7],
     })
@@ -408,7 +408,7 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
     out_actions = self.add_record("Students", firstName="Chuck", lastName="Norris")
     self.assertPartialOutActions(out_actions, {
       "calls": {
-        "Students": {"#lookup#firstName:lastName": 2, "schoolIds": 1, "schoolCities": 1},
+        "Students": {"#lookup#firstName:lastName": 1, "schoolIds": 1, "schoolCities": 1},
         "Schools": {"bestStudentId": 1}
       },
       "retValues": [8],
