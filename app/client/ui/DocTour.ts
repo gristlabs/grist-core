@@ -4,6 +4,7 @@ import {DocComm} from 'app/client/components/DocComm';
 import {sameDocumentUrlState} from 'app/client/models/gristUrlState';
 import {cssButtons, cssLinkBtn, cssLinkIcon} from 'app/client/ui/ExampleCard';
 import {IOnBoardingMsg, startOnBoarding} from 'app/client/ui/OnBoardingPopups';
+import {isNarrowScreen} from 'app/client/ui2018/cssVars';
 import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
@@ -35,6 +36,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docComm.waitForInitialization();
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
+
   const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
@@ -52,7 +54,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     }
 
     const urlState = sameDocumentUrlState(locationValue);
-    if (!placements.includes(placement as Placement)) {
+    if (isNarrowScreen() || !placements.includes(placement as Placement)) {
       placement = "auto";
     }
 
