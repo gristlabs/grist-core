@@ -52,12 +52,12 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // Returns the rowModel for the referenced table, or null, if is not a reference column.
   refTable: ko.Computed<TableRec|null>;
 
+  // Helper for Reference/ReferenceList columns, which returns a formatter according
+  // to the visibleCol associated with column.
+  visibleColFormatter: ko.Computed<BaseFormatter>;
+
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
-
-  // Helper for Reference/ReferenceList columns, which returns a formatter according
-  // to the visibleCol associated with column. Subscribes to observables if used within a computed.
-  createVisibleColFormatter(): BaseFormatter;
 }
 
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
@@ -117,13 +117,15 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this column. If no visible column available, return formatting for the column itself.
-  // Subscribes to observables if used within a computed.
-  // TODO: It would be better to replace this with a pureComputed whose value is a formatter.
-  this.createVisibleColFormatter = function() {
-    const vcol = this.visibleColModel();
-    const documentSettings = docModel.docInfoRow.documentSettingsJson();
-    return (vcol.getRowId() !== 0) ?
-      createFormatter(vcol.type(), vcol.widgetOptionsJson(), documentSettings) :
-      createFormatter(this.type(), this.widgetOptionsJson(), documentSettings);
-  };
+  this.visibleColFormatter = ko.pureComputed(() => visibleColFormatterForRec(this, this, docModel));
+}
+
+export function visibleColFormatterForRec(
+  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel
+): BaseFormatter {
+  const vcol = rec.visibleColModel();
+  const documentSettings = docModel.docInfoRow.documentSettingsJson();
+  return (vcol.getRowId() !== 0) ?
+    createFormatter(vcol.type(), vcol.widgetOptionsJson(), documentSettings) :
+    createFormatter(colRec.type(), rec.widgetOptionsJson(), documentSettings);
 }

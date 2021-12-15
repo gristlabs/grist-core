@@ -1,7 +1,5 @@
 var dispose = require('../lib/dispose');
-const ko = require('knockout');
 const {Computed, fromKo} = require('grainjs');
-const ValueFormatter = require('app/common/ValueFormatter');
 
 const {cssLabel, cssRow} = require('app/client/ui/RightPanel');
 const {colorSelect} = require('app/client/ui2018/ColorSelect');
@@ -17,8 +15,7 @@ function AbstractWidget(field, opts = {}) {
   this.options = field.widgetOptionsJson;
   const {defaultTextColor = '#000000'} = opts;
 
-  this.valueFormatter = this.autoDispose(ko.computed(() =>
-    ValueFormatter.createFormatter(field.displayColModel().type(), this.options(), field.documentSettings())));
+  this.valueFormatter = this.field.visibleColFormatter;
 
   this.textColor = Computed.create(this, (use) => use(this.field.textColor) || defaultTextColor)
     .onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));

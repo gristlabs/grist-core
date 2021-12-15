@@ -1,8 +1,9 @@
 import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
+import {visibleColFormatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
-import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
+import {BaseFormatter} from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
 import * as ko from 'knockout';
 
@@ -69,14 +70,14 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
 
   documentSettings: ko.PureComputed<DocumentSettings>;
 
+  // Helper for Reference/ReferenceList columns, which returns a formatter according
+  // to the visibleCol associated with field.
+  visibleColFormatter: ko.Computed<BaseFormatter>;
+
   createValueParser(): (value: string) => any;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
-
-  // Helper for Reference/ReferenceList columns, which returns a formatter according
-  // to the visibleCol associated with field. Subscribes to observables if used within a computed.
-  createVisibleColFormatter(): BaseFormatter;
 
   // Helper for Choice/ChoiceList columns, that saves widget options and renames values in a document
   // in one bundle
@@ -164,14 +165,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
-  // Subscribes to observables if used within a computed.
-  // TODO: It would be better to replace this with a pureComputed whose value is a formatter.
-  this.createVisibleColFormatter = function() {
-    const vcol = this.visibleColModel();
-    return (vcol.getRowId() !== 0) ?
-      createFormatter(vcol.type(), vcol.widgetOptionsJson(), this.documentSettings()) :
-      createFormatter(this.column().type(), this.widgetOptionsJson(), this.documentSettings());
-  };
+  this.visibleColFormatter = ko.pureComputed(() => visibleColFormatterForRec(this, this.column(), docModel));
 
   this.createValueParser = function() {
     const fieldRef = this.useColOptions.peek() ? undefined : this.id.peek();

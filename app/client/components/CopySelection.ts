@@ -1,8 +1,7 @@
+import type {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import type {CellValue} from 'app/common/DocActions';
 import type {TableData} from 'app/common/TableData';
 import type {UIRowId} from 'app/common/UIRowId';
-import {createFormatter} from 'app/common/ValueFormatter';
-import type {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 
 /**
  * The CopySelection class is an abstraction for a subset of currently selected cells.
@@ -34,11 +33,7 @@ export class CopySelection {
     this.rowStyle = options.rowStyle;
     this.colStyle = options.colStyle;
     this.columns = fields.map((f, i) => {
-      const formatter = createFormatter(
-        f.displayColModel().type(),
-        f.widgetOptionsJson(),
-        f.documentSettings()
-      );
+      const formatter = f.visibleColFormatter();
       const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i])!;
       const _rawGetter = tableData.getRowPropFunc(this.colIds[i])!;
 

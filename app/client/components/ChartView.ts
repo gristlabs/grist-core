@@ -164,7 +164,7 @@ export class ChartView extends Disposable {
     // within a donut chart.
     this._formatterComp = this.autoDispose(ko.computed(() => {
       const field = this.viewSection.viewFields().at(1);
-      return field?.createVisibleColFormatter();
+      return field?.visibleColFormatter();
     }));
 
     this._update = debounce(() => this._updateView(), 0);

@@ -30,7 +30,7 @@ export class ReferenceUtils {
     }
     this.tableData = tableData;
 
-    this.formatter = field.createVisibleColFormatter();
+    this.formatter = field.visibleColFormatter();
     this.visibleColModel = field.visibleColModel();
     this.visibleColId = this.visibleColModel.colId() || 'id';
     this.isRefList = isRefListType(colType);

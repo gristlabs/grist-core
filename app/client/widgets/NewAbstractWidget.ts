@@ -8,9 +8,8 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {SaveableObjObservable} from 'app/client/models/modelUtil';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {colorSelect} from 'app/client/ui2018/ColorSelect';
-import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
+import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Computed, Disposable, DomContents, fromKo, Observable} from 'grainjs';
-import * as ko from 'knockout';
 
 
 export interface Options {
@@ -44,11 +43,7 @@ export abstract class NewAbstractWidget extends Disposable {
     )).onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));
     this.fillColor = fromKo(this.field.fillColor);
 
-    // Note that its easier to create a knockout computed from the several knockout observables,
-    // but then we turn it into a grainjs observable.
-    const formatter = this.autoDispose(ko.computed(() =>
-      createFormatter(field.displayColModel().type(), this.options(), field.documentSettings())));
-    this.valueFormatter = fromKo(formatter);
+    this.valueFormatter = fromKo(field.visibleColFormatter);
   }
 
   /**

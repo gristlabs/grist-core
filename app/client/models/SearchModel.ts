@@ -8,7 +8,7 @@ import {reportError} from 'app/client/models/errors';
 import {delay} from 'app/common/delay';
 import {waitObs} from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
-import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
+import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Disposable, Observable} from 'grainjs';
 import debounce = require('lodash/debounce');
 
@@ -218,8 +218,7 @@ class FinderImpl implements IFinder {
     this._sectionTableData = tableModel.tableData;
 
     this._fieldStepper.array = section.viewFields().peek();
-    this._fieldFormatters = this._fieldStepper.array.map(
-      f => createFormatter(f.displayColModel().type(), f.widgetOptionsJson(), f.documentSettings()));
+    this._fieldFormatters = this._fieldStepper.array.map(f => f.visibleColFormatter.peek());
     return tableModel;
   }
 

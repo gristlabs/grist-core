@@ -29,7 +29,7 @@ export class ColumnACIndexes {
 
   /**
    * Returns the column index for the given column, using a cached one if available.
-   * The formatter should be created using field.createVisibleColFormatter(). It's assumed that
+   * The formatter should be created using field.visibleColFormatter(). It's assumed that
    * getColACIndex() is called for the same column with the the same formatter.
    */
   public getColACIndex(colId: string, formatter: BaseFormatter): ACIndex<ICellItem> {

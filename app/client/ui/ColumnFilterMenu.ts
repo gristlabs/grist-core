@@ -338,7 +338,7 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
 function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec|ColumnRec) {
   const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId())!;
   const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId())!;
-  const formatter = fieldOrColumn.createVisibleColFormatter();
+  const formatter = fieldOrColumn.visibleColFormatter();
 
   let labelMapFunc: (rowId: number) => string | string[];
   if (isRefListType(columnType)) {

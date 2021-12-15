@@ -6,9 +6,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
-import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Computed, dom, styled} from 'grainjs';
-import * as ko from 'knockout';
 
 /**
  * Reference - The widget for displaying references to another table's records.
@@ -16,15 +14,11 @@ import * as ko from 'knockout';
 export class Reference extends NTextBox {
   protected _formatValue: Computed<(val: any) => string>;
 
-  private _refValueFormatter: ko.Computed<BaseFormatter>;
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<Array<IOptionFull<number>>>;
 
   constructor(field: ViewFieldRec) {
     super(field);
-
-    this._refValueFormatter = this.autoDispose(ko.computed(() =>
-      field.createVisibleColFormatter()));
 
     this._visibleColRef = Computed.create(this, (use) => use(this.field.visibleColRef));
     // Note that saveOnly is used here to prevent display value flickering on visible col change.
@@ -48,7 +42,7 @@ export class Reference extends NTextBox {
     this._formatValue = Computed.create(this, (use) => {
       // If the field is pulling values from a display column, use a general-purpose formatter.
       if (use(this.field.displayColRef) !== use(this.field.colRef)) {
-        const fmt = use(this._refValueFormatter);
+        const fmt = use(this.field.visibleColFormatter);
         return (val: any) => fmt.formatAny(val);
       } else {
         const refTable = use(use(this.field.column).refTable);
