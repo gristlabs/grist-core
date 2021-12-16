@@ -27,7 +27,7 @@ const {reportError} = require('app/client/models/AppModel');
 const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 
 // Grist UI Components
-const {Holder} = require('grainjs');
+const {Holder, Computed} = require('grainjs');
 const {menu} = require('../ui2018/menus');
 const {calcFieldsCondition} = require('../ui/GridViewMenus');
 const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
@@ -84,6 +84,24 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
     let tree = new BinaryIndexedTree();
     tree.fillFromValues(fields.all().map(field => field.widthDef()));
     return tree;
+  }));
+
+  // Create observable holding current rowIndex that the view should be scrolled to.
+  // We will always notify, because we want to scroll to the row even when only the
+  // column is changed (in situation when the row is not visible).
+  this.visibleRowIndex = ko.observable(this.cursor.rowIndex()).extend({notify: 'always'});
+  // Create grain's Computed with current cursor position (we need it to examine position
+  // before the change and after).
+  this.currentPosition = Computed.create(this, (use) => ({
+    rowIndex : use(this.cursor.rowIndex),
+    fieldIndex : use(this.cursor.fieldIndex)
+  }));
+  // Add listener, and check if the cursor is indeed changed, if so, update the row
+  // and scroll it into view (using kd.scrollChildIntoView in buildDom function).
+  this.autoDispose(this.currentPosition.addListener((cur, prev) => {
+    if (cur.rowIndex !== prev.rowIndex || cur.fieldIndex !== prev.fieldIndex) {
+      this.visibleRowIndex(cur.rowIndex);
+    }
   }));
 
   this.autoDispose(this.cursor.fieldIndex.subscribe(idx => {
@@ -745,7 +763,7 @@ GridView.prototype._getColStyle = function(colIndex) {
 };
 
 
-// TODO: for now lets just assume youre clicking on a .field, .row, or .column
+// TODO: for now lets just assume you are clicking on a .field, .row, or .column
 GridView.prototype.domToRowModel = function(elem, elemType) {
   switch (elemType) {
     case selector.COL:
@@ -859,7 +877,7 @@ GridView.prototype.buildDom = function() {
 
     self.scrollPane =
     dom('div.grid_view_data.gridview_data_scroll.show_scrollbar',
-      kd.scrollChildIntoView(self.cursor.rowIndex),
+      kd.scrollChildIntoView(self.visibleRowIndex),
       dom.onDispose(() => {
         // Save the previous scroll values to the section.
         self.viewSection.lastScrollPos = _.extend({
@@ -1409,6 +1427,10 @@ GridView.prototype.maybeSelectRow = function(elem, rowId) {
     this.assignCursor(elem, selector.ROW);
   }
 };
+
+GridView.prototype.revealActiveRecord = function() {
+  return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex());
+}
 
 // End Context Menus
 

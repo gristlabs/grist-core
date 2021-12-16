@@ -276,34 +276,47 @@ exports.cssClass = cssClass;
  *    whose value is the index of the child element to keep scrolled into view.
  */
 function scrollChildIntoView(valueOrFunc) {
-  return makeBinding(valueOrFunc, function(elem, index) {
-    if (index === null) {
-      return;
-    }
-    var scrolly = ko.utils.domData.get(elem, "scrolly");
-    if (scrolly) {
-      // Delay this in case it's triggered while other changes are processed (e.g. splices).
-      setTimeout(() => scrolly.isDisposed() || scrolly.scrollRowIntoView(index), 0);
-    } else {
-      var child = elem.children[index];
-      if (!child) {
-        return;
-      }
+  return makeBinding(valueOrFunc, doScrollChildIntoView);
+}
+function doScrollChildIntoView(elem, index) {
+  if (index === null) {
+    return Promise.resolve();
+  }
+  const scrolly = ko.utils.domData.get(elem, "scrolly");
+  if (scrolly) {
+    // Delay this in case it's triggered while other changes are processed (e.g. splices).
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          if (!scrolly.isDisposed()) {
+            scrolly.scrollRowIntoView(index);
+          }
+          resolve();
+        } catch(err) {
+          reject(err);
+        }
+      }, 0);
+    });
+  } else {
+    const child = elem.children[index];
+    if (child) {
       if (index === 0) {
         // Scroll the container all the way if showing the first child.
         elem.scrollTop = 0;
       }
-      var childRect = child.getBoundingClientRect();
-      var parentRect = elem.getBoundingClientRect();
+      const childRect = child.getBoundingClientRect();
+      const parentRect = elem.getBoundingClientRect();
       if (childRect.top < parentRect.top) {
         child.scrollIntoView(true);             // Align with top if scrolling up..
       } else if (childRect.bottom > parentRect.bottom) {
         child.scrollIntoView(false);              // ..bottom if scrolling down.
       }
     }
-  });
+    return Promise.resolve();
+  }
 }
 exports.scrollChildIntoView = scrollChildIntoView;
+exports.doScrollChildIntoView = doScrollChildIntoView;
 
 
 /**

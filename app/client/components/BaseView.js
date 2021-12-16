@@ -693,4 +693,12 @@ BaseView.prototype.isFiltered = function() {
   return this._filteredRowSource.getNumRows() < this.tableModel.tableData.numRecords();
 };
 
+/**
+ * Makes sure that active record is in the view.
+ */
+BaseView.prototype.revealActiveRecord = function() {
+  // to override
+  return Promise.resolve();
+};
+
 module.exports = BaseView;

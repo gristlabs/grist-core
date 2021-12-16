@@ -72,6 +72,7 @@ declare module "app/client/components/BaseView" {
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;
+    public revealActiveRecord(): Promise<void>;
   }
   export = BaseView;
 }

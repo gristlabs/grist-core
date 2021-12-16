@@ -309,9 +309,12 @@ class FinderImpl implements IFinder {
     // this ad-hoc way rather than use observables, to avoid the overhead of *every* cell
     // depending on an additional observable.
     await delay(0);
-    const viewInstance = await waitObs<any>(section.viewInstance);
+    const viewInstance = (await waitObs(section.viewInstance))!;
     await viewInstance.getLoadingDonePromise();
     if (this._aborted) { return; }
+    // Make sure we are at good place. This is important when the cursor
+    // was already in a matched record, but the record was scrolled away.
+    await viewInstance.revealActiveRecord();
 
     const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
     if (cursor) {
