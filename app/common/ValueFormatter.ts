@@ -1,13 +1,14 @@
 // tslint:disable:max-classes-per-file
 
 import {CellValue} from 'app/common/DocActions';
+import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
+import {GristObjCode} from 'app/plugin/GristData';
 import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
-import isPlainObject = require('lodash/isPlainObject');
 import * as moment from 'moment-timezone';
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import isPlainObject = require('lodash/isPlainObject');
 
 export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';
 
@@ -49,7 +50,7 @@ export function formatDecoded(value: unknown, isTopLevel: boolean = true): strin
 export type IsRightTypeFunc = (value: CellValue) => boolean;
 
 export class BaseFormatter {
-  public readonly isRightType: IsRightTypeFunc;
+  protected isRightType: IsRightTypeFunc;
 
   constructor(public type: string, public widgetOpts: object, public docSettings: DocumentSettings) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
@@ -121,13 +122,40 @@ class DateFormatter extends BaseFormatter {
 
   constructor(type: string, widgetOpts: DateFormatOptions, docSettings: DocumentSettings, timezone: string = 'UTC') {
     super(type, widgetOpts, docSettings);
+    // Allow encoded dates/datetimes ([d, number] or [D, number, timezone])
+    // which are found in formula columns of type Any,
+    // particularly reference display columns which are formatted here according to the visible column
+    // which will have the correct column type and options.
+    // Since these encoded objects are not expected in a Date/Datetime column and require
+    // being handled differently from just a number,
+    // we don't change `gristTypes.isRightType` which is used elsewhere.
+    this.isRightType = (value: any) => (
+      value === null ||
+      typeof value === "number" ||
+      Array.isArray(value) && (
+        value[0] === GristObjCode.Date ||
+        value[0] === GristObjCode.DateTime
+      )
+    );
     this._dateTimeFormat = widgetOpts.dateFormat || 'YYYY-MM-DD';
     this._timezone = timezone;
   }
 
   public format(value: any): string {
-    if (value === null) { return ''; }
-    const time = moment.tz(value * 1000, this._timezone);
+    if (value === null) {
+      return '';
+    }
+
+    // For a DateTime object in an Any column, use the provided timezone (`value[2]`)
+    // Otherwise use the timezone configured for a DateTime column.
+    let timezone = this._timezone;
+    if (Array.isArray(value)) {
+      timezone = value[2] || timezone;
+      value = value[1];
+    }
+    // Now `value` is a number
+
+    const time = moment.tz(value * 1000, timezone);
     return time.format(this._dateTimeFormat);
   }
 }
