@@ -9,7 +9,7 @@ import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, Impor
         TransformRule,
         TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
-import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue} from 'app/common/DocActions';
+import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue, UserAction} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
@@ -312,7 +312,7 @@ export class ActiveDocImport {
       const ruleCanBeApplied = (transformRule != null) &&
                                _.difference(transformRule.sourceCols, hiddenTableColIds).length === 0;
       await this._activeDoc.applyUserActions(docSession,
-        [["ReplaceTableData", hiddenTableId, rowIdColumn, columnValues]]);
+        [["ReplaceTableData", hiddenTableId, rowIdColumn, columnValues]], {parseStrings: true});
 
       // data parsed and put into hiddenTableId
       // For preview_table (isHidden) do GenImporterView to make views and formulas and cols
@@ -438,7 +438,8 @@ export class ActiveDocImport {
     }
 
     await this._activeDoc.applyUserActions(docSession,
-        [['BulkAddRecord', destTableId, gutil.arrayRepeat(hiddenTableData.id.length, null), columnData]]);
+      [['BulkAddRecord', destTableId, gutil.arrayRepeat(hiddenTableData.id.length, null), columnData]],
+      {parseStrings: true});
 
     return destTableId;
   }
@@ -518,17 +519,17 @@ export class ActiveDocImport {
     }
 
     // We no longer need the temporary import table, so remove it.
-    await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
+    const actions: UserAction[] = [['RemoveTable', hiddenTableId]];
 
     if (updatedRecordIds.length > 0) {
-      await this._activeDoc.applyUserActions(docSession,
-        [['BulkUpdateRecord', destTableId, updatedRecordIds, updatedRecords]]);
+      actions.push(['BulkUpdateRecord', destTableId, updatedRecordIds, updatedRecords]);
     }
 
     if (numNewRecords > 0) {
-      await this._activeDoc.applyUserActions(docSession,
-        [['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]]);
+      actions.push(['BulkAddRecord', destTableId, gutil.arrayRepeat(numNewRecords, null), newRecords]);
     }
+
+    await this._activeDoc.applyUserActions(docSession, actions, {parseStrings: true});
   }
 
   /**

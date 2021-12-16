@@ -2,7 +2,7 @@ import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApiError } from 'app/common/ApiError';
 import { BrowserSettings } from "app/common/BrowserSettings";
 import {
-  BulkColValues, CellValue, ColValues, fromTableDataAction, TableColValues, TableRecordValue,
+  BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue,
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import { arrayRepeat, isAffirmative } from "app/common/gutil";
@@ -142,7 +142,8 @@ export class DocWorkerApi {
 
     // Apply user actions to a document.
     this._app.post('/api/docs/:docId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
-      res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body));
+      const parseStrings = !isAffirmative(req.query.noparse);
+      res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body, {parseStrings}));
     }));
 
     async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin) {
@@ -252,14 +253,9 @@ export class DocWorkerApi {
     async function addRecords(
       req: RequestWithLogin, activeDoc: ActiveDoc, count: number, columnValues: BulkColValues
     ): Promise<number[]> {
-      const tableId = req.params.tableId;
-      const colNames = Object.keys(columnValues);
       // user actions expect [null, ...] as row ids
       const rowIds = arrayRepeat(count, null);
-      const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
-        docSessionFromRequest(req),
-        [['BulkAddRecord', tableId, rowIds, columnValues]]));
-      return sandboxRes.retValues[0];
+      return addOrUpdateRecords(req, activeDoc, columnValues, rowIds, 'BulkAddRecord');
     }
 
     function areSameFields(records: Array<Types.Record | Types.NewRecord>) {
@@ -367,13 +363,24 @@ export class DocWorkerApi {
     // Update records identified by rowIds. Any invalid id fails
     // the request and returns a 400 error code.
     async function updateRecords(
-      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: {[colId: string]: CellValue[]}, rowIds: number[]
+      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: BulkColValues, rowIds: number[]
+    ) {
+      await addOrUpdateRecords(req, activeDoc, columnValues, rowIds, 'BulkUpdateRecord');
+    }
+
+    async function addOrUpdateRecords(
+      req: RequestWithLogin, activeDoc: ActiveDoc,
+      columnValues: BulkColValues, rowIds: (number | null)[],
+      actionType: 'BulkUpdateRecord' | 'BulkAddRecord'
     ) {
       const tableId = req.params.tableId;
       const colNames = Object.keys(columnValues);
-      await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
+      const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
         docSessionFromRequest(req),
-        [['BulkUpdateRecord', tableId, rowIds, columnValues]]));
+        [[actionType, tableId, rowIds, columnValues]],
+        {parseStrings: !isAffirmative(req.query.noparse)},
+      ));
+      return sandboxRes.retValues[0];
     }
 
     // Update records given in column format

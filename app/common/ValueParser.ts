@@ -1,8 +1,9 @@
 import {csvDecodeRow} from 'app/common/csvFormat';
+import {BulkColValues, CellValue, ColValues, UserAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
-import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
+import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {safeJsonParse} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions} from 'app/common/NumberFormat';
@@ -11,6 +12,7 @@ import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
 import {MetaRowRecord, TableData} from 'app/common/TableData';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
 import flatMap = require('lodash/flatMap');
+import mapValues = require('lodash/mapValues');
 
 
 export class ValueParser {
@@ -213,6 +215,7 @@ export const valueParserClasses: { [type: string]: typeof ValueParser } = {
   RefList: ReferenceListParser,
 };
 
+const identity = (value: string) => value;
 
 /**
  * Returns a function which can parse strings into values appropriate for
@@ -228,7 +231,7 @@ export function createParserRaw(
     const parser = new cls(type, widgetOpts, docSettings);
     return parser.cleanParse.bind(parser);
   }
-  return value => value;
+  return identity;
 }
 
 /**
@@ -269,4 +272,69 @@ export function createParser(
   const docSettings = safeJsonParse(docInfo!.documentSettings, {}) as DocumentSettings;
 
   return createParserRaw(type, widgetOpts, docSettings);
+}
+
+/**
+ * Returns a copy of `colValues` with string values parsed according to the type and options of each column.
+ * `bulk` should be `true` if `colValues` is of type `BulkColValues`.
+ */
+function parseColValues<T extends ColValues | BulkColValues>(
+  tableId: string, colValues: T, docData: DocData, bulk: boolean
+): T {
+  const columnsTable = docData.getMetaTable('_grist_Tables_column');
+  const tablesTable = docData.getMetaTable('_grist_Tables');
+  const tableRef = tablesTable.findRow('tableId', tableId);
+  if (!tableRef) {
+    return colValues;
+  }
+
+  return mapValues(colValues, (values, colId) => {
+    const colRef = columnsTable.findMatchingRowId({colId, parentId: tableRef});
+    if (!colRef) {
+      // Column not found - let something else deal with that
+      return values;
+    }
+
+    const parser = createParser(docData, colRef);
+
+    // Optimisation: If there's no special parser for this column type, do nothing
+    if (parser === identity) {
+      return values;
+    }
+
+    function parseIfString(val: any) {
+      return typeof val === "string" ? parser(val) : val;
+    }
+
+    if (bulk) {
+      if (!Array.isArray(values)) {  // in case of bad input
+        return values;
+      }
+      // `colValues` is of type `BulkColValues`
+      return (values as CellValue[]).map(parseIfString);
+    } else {
+      // `colValues` is of type `ColValues`, `values` is just one value
+      return parseIfString(values);
+    }
+  });
+}
+
+export function parseUserAction(ua: UserAction, docData: DocData): UserAction {
+  const actionType = ua[0] as string;
+  let parseBulk: boolean;
+
+  if (['AddRecord', 'UpdateRecord'].includes(actionType)) {
+    parseBulk = false;
+  } else if (['BulkAddRecord', 'BulkUpdateRecord', 'ReplaceTableData'].includes(actionType)) {
+    parseBulk = true;
+  } else {
+    return ua;
+  }
+
+  ua = ua.slice();
+  const tableId = ua[1] as string;
+  const lastIndex = ua.length - 1;
+  const colValues = ua[lastIndex] as ColValues | BulkColValues;
+  ua[lastIndex] = parseColValues(tableId, colValues, docData, parseBulk);
+  return ua;
 }

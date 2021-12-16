@@ -41,6 +41,7 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
+import {parseUserAction} from 'app/common/ValueParser';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -1372,6 +1373,11 @@ export class ActiveDoc extends EventEmitter {
     const client = docSession.client;
     this._log.debug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
+
+    if (options.parseStrings) {
+      actions = actions.map(ua => parseUserAction(ua, this.docData!));
+      this._log.debug(docSession, "_applyUserActions(%s, %s) (after parsing)", client, shortDesc(actions));
+    }
 
     if (options?.bestEffort) {
       actions = await this._granularAccess.prefilterUserActions(docSession, actions);

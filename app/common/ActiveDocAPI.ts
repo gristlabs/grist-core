@@ -11,6 +11,7 @@ export interface ApplyUAOptions {
   otherId?: number;   // For undo/redo; the actionNum of the original action to which it applies.
   linkId?: number;    // For bundled actions, actionNum of the previous action in the bundle.
   bestEffort?: boolean; // If set, action may be applied in part if it cannot be applied completely.
+  parseStrings?: boolean;  // If true, parses string values in some actions based on the column
 }
 
 export interface ApplyUAResult {
