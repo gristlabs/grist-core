@@ -439,6 +439,9 @@ Layout.prototype.buildLayout = function(boxSpec, needDynamic) {
 
 Layout.prototype._getBoxSpec = function(layoutBox) {
   var spec = {};
+  if (layoutBox.isDisposed()) {
+    return spec;
+  }
   if (layoutBox.flexSize() && layoutBox.flexSize() !== 100) {
     spec.size = layoutBox.flexSize();
   }

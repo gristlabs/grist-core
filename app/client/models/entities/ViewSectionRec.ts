@@ -410,7 +410,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkSrcCol = refRecord(docModel.columns, this.activeLinkSrcColRef);
   this.linkTargetCol = refRecord(docModel.columns, this.activeLinkTargetColRef);
 
-  this.activeRowId = ko.observable();
+  this.activeRowId = ko.observable(null);
 
   // If the view instance for this section is instantiated, it will be accessible here.
   this.viewInstance = ko.observable(null);

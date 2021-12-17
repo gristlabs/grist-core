@@ -138,6 +138,10 @@ export class LinkingState extends Disposable {
   ): ko.Computed<FilterColValues> {
     return this.autoDispose(ko.computed(() => {
       const srcRowId = this._srcSection.activeRowId();
+      if (srcRowId === null) {
+        console.warn("_simpleFilter activeRowId is null");
+        return { filters: {}, operations: {}};
+      }
       const values = valuesFunc(srcRowId);
       return {filters: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
     }));
