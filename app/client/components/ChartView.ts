@@ -147,6 +147,9 @@ export class ChartView extends Disposable {
 
   private _formatterComp: ko.Computed<BaseFormatter|undefined>;
 
+  // peek section's sort spec
+  private get _sortSpec() { return this.viewSection.activeSortSpec.peek(); }
+
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel);
 
@@ -237,9 +240,14 @@ export class ChartView extends Disposable {
     const options: ChartOptions = this._options.peek() || {};
     let plotData: PlotData = {data: []};
 
-    const sortSpec = this.viewSection.activeSortSpec.peek();
-    if (isPieLike(this._chartType.peek()) && sortSpec?.length) {
+    if (isPieLike(this._chartType.peek())) {
+
+      // Plotly's pie charts have a sort option that is enabled by default. Let's turn it off.
       dataOptions.sort = false;
+
+      // This line is for labels to stay in order when value changes, which can happen when using
+      // charts with linked list.
+      sortByXValues(series);
     }
 
     if (this._chartType.peek() === 'donut') {
@@ -262,7 +270,7 @@ export class ChartView extends Disposable {
         // following the sorting order. This line fixes that issue by consolidating all series to
         // have at least on entry of each x values.
         if (this._chartType.peek() === 'bar') {
-          if (sortSpec?.length) { consolidateValues(gSeries, xvalues); }
+          if (this._sortSpec?.length) { consolidateValues(gSeries, xvalues); }
         }
 
         const part = chartFunc(gSeries, options, dataOptions);
