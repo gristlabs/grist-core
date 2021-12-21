@@ -266,7 +266,7 @@ class FinderImpl implements IFinder {
     const value = this._sectionTableData.getValue(rowId, displayCol.colId.peek());
 
     // TODO: Note that formatting dates is now the bulk of the performance cost.
-    const text = formatter.format(value);
+    const text = formatter.formatAny(value);
     return this._searchRegexp.test(text);
   }
 

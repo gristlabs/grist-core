@@ -1371,12 +1371,12 @@ export class ActiveDoc extends EventEmitter {
                                     options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
 
     const client = docSession.client;
-    this._log.debug(docSession, "_applyUserActions(%s, %s)", client, shortDesc(actions));
+    this._log.debug(docSession, "_applyUserActions(%s, %s)%s", client, shortDesc(actions),
+      options.parseStrings ? ' (will parse)' : '');
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
-      this._log.debug(docSession, "_applyUserActions(%s, %s) (after parsing)", client, shortDesc(actions));
     }
 
     if (options?.bestEffort) {
