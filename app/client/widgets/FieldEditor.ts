@@ -429,8 +429,13 @@ export function openFormulaEditor(options: {
   });
   editor.attach(refElem);
 
-  // Enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
-  field.editingFormula(true);
+  // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
+  // This function is used for primarily for switching between diffrent column behaviors, so we want to enter full
+  // edit mode right away.
+  // TODO: consider converting it to parameter, when this will be used in diffrent scenarios.
+  if (!column.formula()) {
+    field.editingFormula(true);
+  }
   setupCleanup(holder, gristDoc, field, saveEdit);
   return holder;
 }

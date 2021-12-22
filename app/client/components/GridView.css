@@ -42,7 +42,6 @@
 }
 
 .gridview_data_header {
-  border-bottom: 1px solid lightgray;
   position:relative;
 }
 
@@ -52,8 +51,9 @@
 }
 
 .field.column_name {
+  border-bottom: 1px solid lightgray;
   line-height: var(--gridview-header-height);
-  height: var(--gridview-header-height); /* Also should match height for overlay elements */
+  height: calc(var(--gridview-header-height) + 1px); /* Also should match height for overlay elements */
 }
 
 /* also .field.column_name, style set in viewCommon */
@@ -348,6 +348,24 @@
   .column_names .column_name.frozen {
     background: var(--grist-color-light-grey) !important;
   }
+}
+
+/* Column hover effect */
+
+.gridview_row .field.hover-column, /* normal field in a row */
+.gridview_row .field.frozen.hover-column, /* frozen field in a row */
+.column_name.hover-column, /* column name */
+.column_name.hover-column.selected /* selected column name */ {
+  /* for frozen fields can't use alpha channel */
+  background-color: var(--grist-color-selection-opaque);
+}
+/* For zebra stripes, make the selection little darker */
+.record-zebra.record-even .field.hover-column {
+  background-color: var(--grist-color-selection-darker-opaque);
+}
+/* When column has a hover, remove menu button. */
+.column_name.hover-column .menu_toggle {
+  visibility: hidden;
 }
 
 /* Etc */

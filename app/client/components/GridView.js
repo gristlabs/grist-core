@@ -2,6 +2,7 @@
 
 var _         = require('underscore');
 var ko        = require('knockout');
+const debounce = require('lodash/debounce');
 
 var gutil             = require('app/common/gutil');
 var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
@@ -36,6 +37,7 @@ const {RowContextMenu} = require('../ui/RowContextMenu');
 const {setPopupToCreateDom} = require('popweasel');
 const {testId} = require('app/client/ui2018/cssVars');
 const {menuToggle} = require('app/client/ui/MenuToggle');
+const {showTooltip} = require('app/client/ui/tooltips');
 
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
@@ -186,6 +188,20 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.frozenMap = this.autoDispose(this.viewSection.viewFields().map(function(field){
     return ko.pureComputed(() => field._index() < this.numFrozen());
   }, this));
+
+  // Holds column index that is hovered, works only in full-edit formula mode.
+  this.hoverColumn = this.autoDispose(ko.observable(-1));
+  // Debounced method to change current hover column, this is needed
+  // as mouse when moved from field to field will switch the hover-column
+  // observable from current index to -1 and then immediately back to current index.
+  // With debounced version, call to set -1 that is followed by call to set back to the field index
+  // will be discarded.
+  this.changeHover = debounce((index) => {
+    if (this.isDisposed()) { return; }
+    if (this.gristDoc.docModel.editingFormula()) {
+      this.hoverColumn(index);
+    }
+  }, 0);
 
   //--------------------------------------------------
   // Create and attach the DOM for the view.
@@ -852,7 +868,10 @@ GridView.prototype.buildDom = function() {
     dom('div.gridview_left_border'), //these hide behind the actual headers to keep them from flashing
     // left shadow that will be visible on top of frozen columns
     dom('div.scroll_shadow_frozen', kd.show(this.frozenShadow)),
-
+    // When cursor leaves the GridView, remove hover immediately (without debounce).
+    // This guards mouse leaving gridView from the top, as leaving from bottom or left, right, is
+    // guarded on the row level.
+    dom.on("mouseleave", () => !this.isDisposed() && this.hoverColumn(-1)),
     // Drag indicators
     self.colLine = dom(
       'div.col_indicator_line',
@@ -900,12 +919,30 @@ GridView.prototype.buildDom = function() {
                 write: val => editIndex(val ? field._index() : -1)
               }).extend({ rateLimit: 0 });
               let filterTriggerCtl;
+              const isTooltip = ko.pureComputed(() =>
+                  self.gristDoc.docModel.editingFormula() &&
+                  ko.unwrap(self.hoverColumn) === field._index());
               return dom(
                 'div.column_name.field',
                 kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
                 kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()))),
+                kd.toggleClass("hover-column", isTooltip),
                 dom.autoDispose(isEditingLabel),
+                dom.autoDispose(isTooltip),
                 dom.testId("GridView_columnLabel"),
+                (el) => {
+                  const tooltip = new HoverColumnTooltip(el);
+                  return [
+                     dom.autoDispose(tooltip),
+                     dom.autoDispose(isTooltip.subscribe((show) => {
+                      if (show) {
+                        tooltip.show(`Click to insert $${field.colId.peek()}`);
+                      } else {
+                        tooltip.hide();
+                      }
+                    })),
+                  ]
+                },
                 kd.style('width', field.widthPx),
                 kd.style('borderRightWidth', v.borderWidthPx),
                 viewCommon.makeResizable(field.width, {shouldSave: !this.gristDoc.isReadonly.get()}),
@@ -920,6 +957,8 @@ GridView.prototype.buildDom = function() {
                   kf.editableLabel(self.isPreview ? field.label : field.displayLabel, isEditingLabel, renameCommands),
                   dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true)
                 ),
+                dom.on("mouseenter", () => self.changeHover(field._index())),
+                dom.on("mouseleave", () => self.changeHover(-1)),
                 self.isPreview ? null : menuToggle(null,
                   kd.cssClass('g-column-main-menu'),
                   kd.cssClass('g-column-menu-btn'),
@@ -1043,7 +1082,12 @@ GridView.prototype.buildDom = function() {
         kd.toggleClass('record-zebra', vZebraStripes),
         // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
         kd.toggleClass('record-even', () => (row._index()+1) % 2 === 0 ),
-
+        dom.on("mouseleave", (ev) => {
+          // Leave only when leaving record row.
+          if (!ev.relatedTarget || !ev.relatedTarget.classList.contains("record")){
+            self.changeHover(-1);
+          }
+        }),
         self.comparison ? kd.cssClass(() => {
           const rowType = self.extraRows.getRowType(row.id());
           return rowType && `diff-${rowType}` || '';
@@ -1078,6 +1122,10 @@ GridView.prototype.buildDom = function() {
             dom.autoDispose(isCellSelected),
             dom.autoDispose(isCellActive),
             dom.autoDispose(isSelected),
+            dom.on("mouseenter", () => self.changeHover(field._index())),
+            kd.toggleClass("hover-column", () =>
+              self.gristDoc.docModel.editingFormula() &&
+              ko.unwrap(self.hoverColumn) === (field._index())),
             kd.style('width', field.widthPx),
             //TODO: Ensure that fields in a row resize when
             //a cell in that row becomes larger
@@ -1428,10 +1476,30 @@ GridView.prototype.maybeSelectRow = function(elem, rowId) {
   }
 };
 
+// End Context Menus
+
 GridView.prototype.revealActiveRecord = function() {
   return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex());
 }
 
-// End Context Menus
+// Helper to show tooltip over column selection in the full edit mode.
+class HoverColumnTooltip {
+  constructor(el) {
+    this.el = el;
+  }
+  show(text) {
+    this.hide();
+    this.tooltip = showTooltip(this.el, () => dom("span", text, testId("column-formula-tooltip")))
+  }
+  hide() {
+    if (this.tooltip ) {
+      this.tooltip.close();
+      this.tooltip = null;
+    }
+  }
+  dispose() {
+    this.hide();
+  }
+}
 
 module.exports = GridView;

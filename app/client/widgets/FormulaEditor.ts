@@ -97,12 +97,6 @@ export class FormulaEditor extends NewBaseEditor {
         this._formulaEditor.getEditor().focus();
       }),
       dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
-        // We don't always enter editing mode immediately, e.g. not on double-clicking a cell.
-        // In those cases, we'll switch as soon as the user types or clicks into the editor.
-        dom.on('mousedown', () => {
-          // but don't do it when this is a readonly mode
-          options.field.editingFormula(true);
-        }),
         this._formulaEditor.buildDom((aceObj: any) => {
           aceObj.setFontSize(11);
           aceObj.setHighlightActiveLine(false);

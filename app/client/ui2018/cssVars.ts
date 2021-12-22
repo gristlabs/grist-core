@@ -47,6 +47,7 @@ export const colors = {
   cursor: new CustomProp('color-cursor', '#16B378'),   // cursor is lightGreen
   selection: new CustomProp('color-selection', 'rgba(22,179,120,0.15)'),
   selectionOpaque: new CustomProp('color-selection-opaque', '#DCF4EB'),
+  selectionDarkerOpaque: new CustomProp('color-selection-darker-opaque', '#d6eee5'),
 
   inactiveCursor: new CustomProp('color-inactive-cursor', '#A2E1C9'),
 
