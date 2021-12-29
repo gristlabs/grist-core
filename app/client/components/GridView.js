@@ -190,7 +190,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   }, this));
 
   // Holds column index that is hovered, works only in full-edit formula mode.
-  this.hoverColumn = this.autoDispose(ko.observable(-1));
+  this.hoverColumn = ko.observable(-1);
   // Debounced method to change current hover column, this is needed
   // as mouse when moved from field to field will switch the hover-column
   // observable from current index to -1 and then immediately back to current index.
