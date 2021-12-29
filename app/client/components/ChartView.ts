@@ -403,11 +403,12 @@ export class ChartConfig extends GrainJSDisposable {
     )
   );
 
-  // The column id of the grouping column, or -1 if multiseries is disabled.
+  // The column id of the grouping column, or -1 if multiseries is disabled or there are no viewFields,
+  // for example during section removal.
   private _groupDataColId: Computed<number> = Computed.create(this, (use) => {
     const multiseries = use(this._optionsObj.prop('multiseries'));
     const viewFields = use(use(this._section.viewFields).getObservable());
-    if (!multiseries) { return -1; }
+    if (!multiseries || viewFields.length === 0) { return -1; }
     return use(viewFields[0].column).getRowId();
   })
     .onWrite((colId) => this._setGroupDataColumn(colId));
