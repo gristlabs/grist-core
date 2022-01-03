@@ -23,15 +23,14 @@ export function sortByXValues(series: Array<{values: Datum[]}>): void {
   }
 }
 
-// creates new version of series that has a duplicate free version of the values in the first one.
-export function uniqXValues<T extends {values: Datum[]}>(series: Array<T>): Array<T> {
-  if (!series[0]) { return []; }
+// Makes series so that the values of series[0] are duplicate free.
+export function uniqXValues<T extends {values: Datum[]}>(series: Array<T>) {
+  if (!series[0]) { return; }
   const n = series[0].values.length;
   const indexToKeep = new Set(uniqBy(range(n), (i) => series[0].values[i]));
-  return series.map((line: T) => ({
-    ...line,
-    values: line.values.filter((_val, i) => indexToKeep.has(i))
-  }));
+  series.forEach((line: T) => {
+    line.values = line.values.filter((_val, i) => indexToKeep.has(i));
+  });
 }
 
 // Creates new version of series that split any entry whose value in the first series is a list into

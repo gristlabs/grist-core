@@ -802,7 +802,7 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
     // up on hover is different than the value on the y-axis. It seems that one is the sum of all
     // values with same x-axis value, while the other is the last of them. To fix this, we force
     // unique values for the x-axis.
-    series = uniqXValues(series);
+    uniqXValues(series);
   }
 
   return {
