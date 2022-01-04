@@ -3,7 +3,7 @@ import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { cssField, cssInput, cssLabel} from 'app/client/ui/MakeCopyMenu';
 import { IPageWidget, toPageWidget } from 'app/client/ui/PageWidgetPicker';
 import { confirmModal } from 'app/client/ui2018/modals';
-import { BulkColValues, RowRecord, UserAction } from 'app/common/DocActions';
+import { BulkColValues, getColValues, RowRecord, UserAction } from 'app/common/DocActions';
 import { arrayRepeat } from 'app/common/gutil';
 import { schema } from 'app/common/schema';
 import { dom } from 'grainjs';
@@ -53,12 +53,6 @@ async function makeDuplicate(gristDoc: GristDoc, pageId: number, pageName: strin
         results.map(res => res.sectionRef)
       ) as {[id: number]: number};
 
-      // update layout spec
-      const viewLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
-      await gristDoc.docData.sendAction(
-        ['UpdateRecord', '_grist_Views', viewRef, { layoutSpec: JSON.stringify(viewLayoutSpec)}]
-      );
-
       // update the view fields
       const destViewSections = viewSections.map((vs) => (
         gristDoc.docModel.viewSections.rowModels[viewSectionIdMap[vs.getRowId()]]
@@ -70,12 +64,46 @@ async function makeDuplicate(gristDoc: GristDoc, pageId: number, pageName: strin
         flatten(viewSections.map((vs) => vs.viewFields.peek().peek().map((field) => field.getRowId()))),
         flatten(newViewFieldIds)) as {[id: number]: number};
 
-      // update the view sections
-      await updateViewSections(gristDoc, destViewSections, viewSections, viewFieldsIdMap, viewSectionIdMap);
+      // update layout spec
+      const viewLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
+      await Promise.all([
+        gristDoc.docData.sendAction(
+          ['UpdateRecord', '_grist_Views', viewRef, { layoutSpec: JSON.stringify(viewLayoutSpec)}]
+        ),
+        updateViewSections(gristDoc, destViewSections, viewSections, viewFieldsIdMap, viewSectionIdMap),
+        copyFilters(gristDoc, viewSections, viewSectionIdMap)
+      ]);
     });
 
   // Give copy focus
   await gristDoc.openDocPage(viewRef);
+}
+
+/**
+ * Copies _grist_Filters from source sections.
+ */
+async function copyFilters(
+  gristDoc: GristDoc,
+  srcViewSections: ViewSectionRec[],
+  viewSectionMap: {[id: number]: number}) {
+
+  // Get all filters for selected sections.
+  const filters: RowRecord[] = [];
+  const table = gristDoc.docData.getMetaTable('_grist_Filters');
+  for (const srcViewSection of srcViewSections) {
+    const sectionFilters = table
+      .filterRecords({ viewSectionRef : srcViewSection.id.peek()})
+      .map(filter => ({
+        // Replace section ref with destination ref.
+        ...filter, viewSectionRef : viewSectionMap[srcViewSection.id.peek()]
+      }));
+    filters.push(...sectionFilters);
+  }
+  if (filters.length) {
+    const filterInfo = getColValues(filters);
+    await gristDoc.docData.sendAction(['BulkAddRecord', '_grist_Filters',
+      new Array(filters.length).fill(null), filterInfo]);
+  }
 }
 
 /**
@@ -99,11 +127,9 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
   }
 
   // transpose data
-  const sectionsInfo = {} as BulkColValues;
-  forEach(records[0], (val, key) => sectionsInfo[key] = records.map(rec => rec[key]));
+  const sectionsInfo = getColValues(records);
 
-  // ditch column ids and parentId
-  delete sectionsInfo.id;
+  // ditch column parentId
   delete sectionsInfo.parentId;
 
   // send action

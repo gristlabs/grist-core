@@ -3,7 +3,7 @@
  */
 
 // Some definitions have moved to be part of plugin API.
-import { CellValue } from 'app/plugin/GristData';
+import { CellValue, RowRecord } from 'app/plugin/GristData';
 export { CellValue, RowRecord } from 'app/plugin/GristData';
 
 // Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
@@ -181,4 +181,24 @@ export function fromTableDataAction(tableData: TableDataAction): TableColValues 
   const rowIds: number[] = tableData[2];
   const colValues: BulkColValues = tableData[3];
   return {id: rowIds, ...colValues};
+}
+
+/**
+ * Convert a list of rows into an object with columns of values, used for
+ * BulkAddRecord/BulkUpdateRecord actions.
+ */
+export function getColValues(records: RowRecord[]): BulkColValues {
+  const colIdSet = new Set<string>();
+  for (const r of records) {
+    for (const c of Object.keys(r)) {
+      if (c !== 'id') {
+        colIdSet.add(c);
+      }
+    }
+  }
+  const result: BulkColValues = {};
+  for (const colId of colIdSet) {
+    result[colId] = records.map(r => r[colId]);
+  }
+  return result;
 }

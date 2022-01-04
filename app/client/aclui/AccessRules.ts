@@ -26,7 +26,7 @@ import {
   summarizePermissionSet
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
-import {BulkColValues, RowRecord, UserAction} from 'app/common/DocActions';
+import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
   FormulaProperties,
   getFormulaProperties,
@@ -1369,26 +1369,6 @@ function syncRecords(tableData: TableData, newRecords: RowRecord[],
   // Include generated rowIds for added records into the returned map.
   addedRecords.forEach(r => rowIdMap.set(uniqueId(r), r.id));
   return {userActions, rowIdMap};
-}
-
-/**
- * Convert a list of rows into an object with columns of values, used for
- * BulkAddRecord/BulkUpdateRecord actions.
- */
-function getColValues(records: RowRecord[]): BulkColValues {
-  const colIdSet = new Set<string>();
-  for (const r of records) {
-    for (const c of Object.keys(r)) {
-      if (c !== 'id') {
-        colIdSet.add(c);
-      }
-    }
-  }
-  const result: BulkColValues = {};
-  for (const colId of colIdSet) {
-    result[colId] = records.map(r => r[colId]);
-  }
-  return result;
 }
 
 /**
