@@ -33,7 +33,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
-import {getUserOrgPrefObs} from "app/client/models/UserPrefs";
+import {getUserOrgPrefObs, getUserOrgPrefsObs} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
@@ -128,6 +128,8 @@ export class GristDoc extends DisposableWithEvents {
   // Holds current cursor position with a view id
   public cursorPosition: Computed<ViewCursorPos | undefined>;
 
+  public readonly userOrgPrefs = getUserOrgPrefsObs(this.docPageModel.appModel);
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;
@@ -135,7 +137,7 @@ export class GristDoc extends DisposableWithEvents {
   private _docHistory: DocHistory;
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _viewLayout: ViewLayout|null = null;
-  private _showGristTour = getUserOrgPrefObs(this.docPageModel.appModel, 'showGristTour');
+  private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
 
   constructor(
     public readonly app: App,

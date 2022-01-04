@@ -1,24 +1,28 @@
-import { GristDoc } from "app/client/components/GristDoc";
-import { urlState } from "app/client/models/gristUrlState";
-import { showExampleCard } from 'app/client/ui/ExampleCard';
-import { examples } from 'app/client/ui/ExampleInfo';
-import { createHelpTools, cssSectionHeader, cssSpacer, cssTools } from 'app/client/ui/LeftPanelCommon';
-import { cssLinkText, cssPageEntry, cssPageIcon, cssPageLink } from 'app/client/ui/LeftPanelCommon';
-import { hoverTooltip, tooltipCloseButton } from 'app/client/ui/tooltips';
-import { colors } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { menuAnnotate } from 'app/client/ui2018/menus';
-import { userOverrideParams } from 'app/common/gristUrls';
-import { Disposable, dom, makeTestId, Observable, observable, styled } from "grainjs";
-import {getUserOrgPrefObs} from "app/client/models/UserPrefs";
-import {loadGristDoc} from "app/client/lib/imports";
+import {GristDoc} from 'app/client/components/GristDoc';
+import {loadGristDoc} from 'app/client/lib/imports';
+import {urlState} from 'app/client/models/gristUrlState';
+import {getUserOrgPrefObs} from 'app/client/models/UserPrefs';
+import {showExampleCard} from 'app/client/ui/ExampleCard';
+import {examples} from 'app/client/ui/ExampleInfo';
+import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
+        cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
+        cssTools} from 'app/client/ui/LeftPanelCommon';
+import {hoverTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
+import {colors} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {cssLink} from 'app/client/ui2018/links';
+import {menuAnnotate} from 'app/client/ui2018/menus';
+import {confirmModal} from 'app/client/ui2018/modals';
+import {userOverrideParams} from 'app/common/gristUrls';
+import {Computed, Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
   const isOverridden = Boolean(gristDoc.docPageModel.userOverride.get());
+  const hasDocTour = Computed.create(owner, use =>
+    use(gristDoc.docModel.allTableIds.getObservable()).includes('GristDocTour'));
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
     canViewAccessRules.set((isOwner && !isOverridden) ||
@@ -84,23 +88,32 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         ),
       );
     }),
-    // Shows the 'Tour of this Document' button if a GristDocTour table exists
-    // at the time of running. Currently doesn't observe the set of existing tables
-    gristDoc.docData.getTable('GristDocTour') &&
-    cssPageEntry(
-      cssPageLink(
-        cssPageIcon('Page'),
-        cssLinkText('Tour of this Document'),
-        testId('doctour'),
-        automaticHelpTool(
-          async ({markAsSeen}) => {
-            const gristDocModule = await loadGristDoc();
-            await gristDocModule.startDocTour(gristDoc.docData, gristDoc.docComm, markAsSeen);
-          },
-          gristDoc,
-          "seenDocTours",
-          gristDoc.docId()
+    // Show the 'Tour of this Document' button if a GristDocTour table exists.
+    dom.maybe(hasDocTour, () =>
+      cssSplitPageEntry(
+        cssPageEntryMain(
+          cssPageLink(cssPageIcon('Page'),
+            cssLinkText('Tour of this Document'),
+            automaticHelpTool(
+              async ({markAsSeen}) => {
+                const gristDocModule = await loadGristDoc();
+                await gristDocModule.startDocTour(gristDoc.docData, gristDoc.docComm, markAsSeen);
+              },
+              gristDoc,
+              "seenDocTours",
+              gristDoc.docId()
+            ),
+            testId('doctour'),
+          ),
         ),
+        !isOwner ? null : cssPageEntrySmall(
+          cssPageLink(cssPageIcon('Remove'),
+            dom.on('click', () => confirmModal('Delete document tour?', 'Delete', () =>
+              gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
+            ),
+            testId('remove-doctour')
+          ),
+        )
       ),
     ),
     createHelpTools(gristDoc.docPageModel.appModel, false)
@@ -127,8 +140,7 @@ function automaticHelpTool(
   itemId: number | string
 ) {
   function show(elem: HTMLElement, reopen: boolean) {
-    const appModel = gristDoc.docPageModel.appModel;
-    const prefObs: Observable<typeof itemId[] | undefined> = getUserOrgPrefObs(appModel, prefKey);
+    const prefObs: Observable<typeof itemId[] | undefined> = getUserOrgPrefObs(gristDoc.userOrgPrefs, prefKey);
     const seenIds = prefObs.get() || [];
 
     // If this help was previously dismissed, don't show it again, unless the user is reopening it.

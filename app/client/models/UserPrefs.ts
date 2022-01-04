@@ -29,13 +29,12 @@ export function getUserOrgPrefsObs(appModel: AppModel): Observable<UserOrgPrefs>
 }
 
 /**
- * Creates an observable that returns a particular preference value from UserOrgPrefs, and which
+ * Creates an observable that returns a particular preference value from `prefsObs`, and which
  * stores it when set.
  */
 export function getUserOrgPrefObs<Name extends keyof UserOrgPrefs>(
-  appModel: AppModel, prefName: Name
+  prefsObs: Observable<UserOrgPrefs>, prefName: Name
 ): Observable<UserOrgPrefs[Name]> {
-  const prefsObs = getUserOrgPrefsObs(appModel);
   return Computed.create(null, (use) => use(prefsObs)[prefName])
   .onWrite(value => prefsObs.set({...prefsObs.get(), [prefName]: value}));
 }

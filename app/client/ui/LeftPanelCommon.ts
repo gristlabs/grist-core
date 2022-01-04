@@ -156,17 +156,18 @@ export const cssSpacer = styled('div', `
   height: 18px;
 `);
 
-const cssSplitPageEntry = styled('div', `
+export const cssSplitPageEntry = styled('div', `
   display: flex;
   align-items: center;
 `);
 
-const cssPageEntryMain = styled(cssPageEntry, `
+export const cssPageEntryMain = styled(cssPageEntry, `
   flex: auto;
   margin: 0;
+  min-width: 0px;
 `);
 
-const cssPageEntrySmall = styled(cssPageEntry, `
+export const cssPageEntrySmall = styled(cssPageEntry, `
   flex: none;
   border-radius: 3px;
   --icon-color: ${colors.lightGreen};
