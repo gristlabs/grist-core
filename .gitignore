@@ -3,6 +3,7 @@
 /static/*.bundle.js
 /static/*.bundle.js.map
 /static/bundle.css
+/static/browser-check.js
 
 # Build helper files.
 /.build*
