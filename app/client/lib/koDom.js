@@ -278,25 +278,53 @@ exports.cssClass = cssClass;
 function scrollChildIntoView(valueOrFunc) {
   return makeBinding(valueOrFunc, doScrollChildIntoView);
 }
-function doScrollChildIntoView(elem, index) {
+// Key at which we will store the index to scroll for async scrolling.
+const indexKey = Symbol();
+function doScrollChildIntoView(elem, index, sync) {
   if (index === null) {
     return Promise.resolve();
   }
   const scrolly = ko.utils.domData.get(elem, "scrolly");
   if (scrolly) {
-    // Delay this in case it's triggered while other changes are processed (e.g. splices).
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        try {
-          if (!scrolly.isDisposed()) {
-            scrolly.scrollRowIntoView(index);
+    if (sync) {
+      scrolly.scrollRowIntoView(index);
+      // Clear async index for scrolling.
+      elem[indexKey] = null;
+      return Promise.resolve();
+    } else {
+      // Delay this in case it's triggered while other changes are processed (e.g. splices).
+
+      // Scrolling is asynchronous, so in case there is already
+      // active scroll queued, we will change the target index.
+      // For example:
+      // doScrollChildIntoView(el, 10, false) # sets the index to 10 and queues a Promise1
+      // doScrollChildIntoView(el, 20, false) # updates index to 20 and queues a Promise2
+      // ....
+      // Promise1 moves to 20, and clears the index.
+      // Promise2 checks the index is null and just returns.
+      elem[indexKey] = index;
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          try {
+            // If scroll was cancelled (there was another call after, that finished
+            // and cleared the index) return.
+            if (elem[indexKey] === null) {
+              resolve();
+              return;
+            }
+            if (!scrolly.isDisposed()) {
+              scrolly.scrollRowIntoView(elem[indexKey]);
+            }
+            resolve();
+          } catch(err) {
+            reject(err);
+          } finally {
+            // Clear the index, any subsequent async scrolls will be cancelled (on the if test above).
+            elem[indexKey] = null;
           }
-          resolve();
-        } catch(err) {
-          reject(err);
-        }
-      }, 0);
-    });
+        }, 0);
+      });
+    }
   } else {
     const child = elem.children[index];
     if (child) {
@@ -312,8 +340,8 @@ function doScrollChildIntoView(elem, index) {
         child.scrollIntoView(false);              // ..bottom if scrolling down.
       }
     }
-    return Promise.resolve();
   }
+  return Promise.resolve();
 }
 exports.scrollChildIntoView = scrollChildIntoView;
 exports.doScrollChildIntoView = doScrollChildIntoView;

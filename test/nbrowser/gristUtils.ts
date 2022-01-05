@@ -1891,6 +1891,18 @@ export async function onNewTab(action: () => Promise<void>) {
   await driver.switchTo().window(tabs[tabs.length - 2]);
 }
 
+/**
+ * Scrolls active Grid or Card list view.
+ */
+export async function scrollActiveView(x: number, y: number) {
+  await driver.executeScript(function(x1: number, y1: number) {
+    const view = document.querySelector(".active_section .grid_view_data") ||
+                 document.querySelector(".active_section .detailview_scroll_pane");
+    view!.scrollBy(x1, y1);
+  }, x, y);
+  await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

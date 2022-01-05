@@ -246,8 +246,11 @@ _.extend(Base.prototype, BackboneEvents);
  * These commands are common to GridView and DetailView.
  */
 BaseView.commonCommands = {
-  input: function(input) { this.activateEditorAtCursor({init: input}); },
-  editField: function() { this.activateEditorAtCursor(); },
+  input: function(init) {
+    this.scrollToCursor(true).catch(reportError);
+    this.activateEditorAtCursor({init});
+  },
+  editField: function() { this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
   insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
   insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
@@ -695,8 +698,10 @@ BaseView.prototype.isFiltered = function() {
 
 /**
  * Makes sure that active record is in the view.
+ * @param {Boolean} sync If the scroll should be performed synchronously. For typing we should scroll synchronously,
+ * for other cases asynchronously as there might be some other operations pending (see doScrollChildIntoView in koDom).
  */
-BaseView.prototype.revealActiveRecord = function() {
+BaseView.prototype.scrollToCursor = function() {
   // to override
   return Promise.resolve();
 };

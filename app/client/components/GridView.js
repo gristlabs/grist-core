@@ -267,7 +267,7 @@ GridView.gridCommands = {
 
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
-  editField: function() { this.activateEditorAtCursor(); },
+  editField: function() { this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
   deleteRecords: function() {
     const saved = this.cursor.getCursorPos();
@@ -292,7 +292,10 @@ GridView.gridCommands = {
   convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
-  paste: function(pasteObj, cutCallback) { return this.paste(pasteObj, cutCallback); },
+  paste: async function(pasteObj, cutCallback) {
+    await this.paste(pasteObj, cutCallback);
+    await this.scrollToCursor(false);
+  },
   cancel: function() { this.clearSelection(); },
   sortAsc: function() {
     sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
@@ -1478,8 +1481,8 @@ GridView.prototype.maybeSelectRow = function(elem, rowId) {
 
 // End Context Menus
 
-GridView.prototype.revealActiveRecord = function() {
-  return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex());
+GridView.prototype.scrollToCursor = function(sync = true) {
+  return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
 }
 
 // Helper to show tooltip over column selection in the full edit mode.

@@ -314,7 +314,7 @@ class FinderImpl implements IFinder {
     if (this._aborted) { return; }
     // Make sure we are at good place. This is important when the cursor
     // was already in a matched record, but the record was scrolled away.
-    await viewInstance.revealActiveRecord();
+    viewInstance.scrollToCursor(true).catch(reportError);
 
     const cursor = viewInstance.viewPane.querySelector('.selected_cursor');
     if (cursor) {

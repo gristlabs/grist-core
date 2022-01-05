@@ -68,6 +68,7 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Construct DOM
+  this.scrollPane = null;
   this.viewPane = this.autoDispose(this.buildDom());
 
   //--------------------------------------------------
@@ -286,7 +287,7 @@ DetailView.prototype.buildDom = function() {
     }),
     kd.maybe(() => !this.recordLayout.isEditingLayout(), () => {
       if (!this._isSingle) {
-        return dom('div.detailview_scroll_pane.flexitem',
+        return this.scrollPane = dom('div.detailview_scroll_pane.flexitem',
           kd.scrollChildIntoView(this.cursor.rowIndex),
           dom.onDispose(() => {
             // Save the previous scroll values to the section.
@@ -413,5 +414,10 @@ DetailView.prototype.getRenderedRowModel = function(rowId) {
 DetailView.prototype._isAddRow = function(index = this.cursor.rowIndex()) {
   return this.viewData.getRowId(index) === 'new';
 };
+
+DetailView.prototype.scrollToCursor = function(sync = true) {
+  if (!this.scrollPane) { return Promise.resolve(); }
+  return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
+}
 
 module.exports = DetailView;
