@@ -153,7 +153,7 @@ def VLOOKUP(table, **field_value_pairs):
 
 class _Contains(namedtuple("_Contains", "value")):
   """
-  Use this marker with `Table.lookupRecords` to find records
+  Use this marker with [UserTable.lookupRecords](#lookuprecords) to find records
   where a column contains the given value, e.g:
 
       MoviesTable.lookupRecords(genre=CONTAINS("Drama"))
