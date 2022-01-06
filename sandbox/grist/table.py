@@ -89,6 +89,9 @@ class UserTable(object):
     ```
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
+    
+    See [CONTAINS](#contains) for an example utilizing `UserTable.lookupRecords` to find records where
+   a field of a list type (such as `Choice List` or `Reference List`) contains the given value.
     """
     return self.table.lookup_records(**field_value_pairs)
 
