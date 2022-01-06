@@ -190,7 +190,7 @@ def encode_object(value):
     elif isinstance(value, (list, tuple)):
       return ['L'] + [encode_object(item) for item in value]
     elif isinstance(value, records.RecordSet):
-      return ['r', value._table.table_id, value.get_encodable_row_ids()]
+      return ['r', value._table.table_id, value._get_encodable_row_ids()]
     elif isinstance(value, RecordSetStub):
       return ['r', value.table_id, value.row_ids]
     elif isinstance(value, dict):

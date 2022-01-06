@@ -154,7 +154,9 @@ def VLOOKUP(table, **field_value_pairs):
 class _Contains(namedtuple("_Contains", "value")):
   """
   Use this marker with [UserTable.lookupRecords](#lookuprecords) to find records
-  where a field of a list type (such as `Choice List` or `Reference List`) contains the given value, e.g:
+  where a field of a list type (such as `Choice List` or `Reference List`) contains the given value.
+
+  For example:
 
       MoviesTable.lookupRecords(genre=CONTAINS("Drama"))
 

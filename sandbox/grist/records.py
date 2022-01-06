@@ -133,6 +133,8 @@ class RecordSet(object):
 
   You can get the number of records in a RecordSet using `len`, e.g. `len($group)`.
   """
+  # Methods should be named with a leading underscore to avoid interfering with access to
+  # user-defined fields.
   def __init__(self, table, row_ids, relation=None, group_by=None, sort_by=None):
     """
     group_by may be a dictionary mapping column names to values that are all the same for the given
@@ -194,7 +196,7 @@ class RecordSet(object):
                                  group_by=self._group_by,
                                  sort_by=self._sort_by)
 
-  def get_encodable_row_ids(self):
+  def _get_encodable_row_ids(self):
     """
     Returns stored rowIds as a simple list or tuple type, even if actually stored as RecordList.
     """

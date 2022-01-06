@@ -612,6 +612,8 @@ def ROUND(value, places=0):
   2.0
   >>> ROUND(2.5)
   3.0
+  >>> ROUND(-2.5)
+  -3.0
   >>> ROUND(2.15, 1)
   2.2
   >>> ROUND(-1.475, 2)
