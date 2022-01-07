@@ -401,7 +401,7 @@ export class NSandboxCreator implements ISandboxCreator {
                 ...options.logMeta},
       logTimes: options.logTimes,
       command: this._command,
-      preferredPythonVersion: this._preferredPythonVersion,
+      preferredPythonVersion: this._preferredPythonVersion || options.preferredPythonVersion,
       useGristEntrypoint: true,
       importDir: options.importMount,
     };
@@ -489,7 +489,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   if (!options.minimalPipeMode) {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
-  const command = findPython(options.command);
+  const command = findPython(options.command, options.preferredPythonVersion);
   const child = spawn(command, pythonArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {child, control: new DirectProcessControl(child, options.logMeta)};
@@ -631,7 +631,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
     ...getInsertedEnv(options),
     ...getWrappingEnv(options),
   };
-  const command = findPython(options.command);
+  const command = findPython(options.command, options.preferredPythonVersion);
   const realPath = fs.realpathSync(command);
   log.rawDebug("macSandboxExec found a python", {...options.logMeta, command: realPath});
 
@@ -805,13 +805,15 @@ const FAKETIME = '2020-01-01 00:00:00';
 
 /**
  * Find a plausible version of python to run, if none provided.
+ * The preferred version is only used if command is not specified.
  */
-function findPython(command?: string) {
+function findPython(command: string|undefined, preferredVersion?: string) {
   if (command) { return command; }
   // No command specified.  In this case, grist-core looks for a "venv"
   // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
   // TODO: rationalize this, it is a product of haphazard growth.
-  for (const venv of ['sandbox_venv3', 'venv']) {
+  const prefs = preferredVersion === '2' ? ['venv', 'sandbox_venv3'] : ['sandbox_venv3', 'venv'];
+  for (const venv of prefs) {
     const pythonPath = path.join(process.cwd(), venv, 'bin', 'python');
     if (fs.existsSync(pythonPath)) {
       command = pythonPath;
@@ -820,7 +822,9 @@ function findPython(command?: string) {
   }
   // Fall back on system python.
   if (!command) {
-    command = which.sync('python');
+    command = which.sync(preferredVersion === '2' ? 'python2' : 'python3', {nothrow: true})
+      || which.sync(preferredVersion === '2' ? 'python2.7' : 'python3.9', {nothrow: true})
+      || which.sync('python');
   }
   return command;
 }

@@ -2,10 +2,11 @@
 
 set -e
 
+echo "Making Python3 sandbox"
 if [ ! -e sandbox_venv3 ]; then
-  virtualenv -ppython3 sandbox_venv3
+  python3 -m venv sandbox_venv3
 fi
 
-. sandbox_venv3/bin/activate
-
-pip install --no-deps -r sandbox/requirements3.txt
+echo "Updating Python3 packages"
+sandbox_venv3/bin/pip install --no-deps -r sandbox/requirements3.txt
+echo "Python3 packages ready in sandbox_venv3"
