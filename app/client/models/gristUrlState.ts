@@ -145,14 +145,14 @@ export class UrlStateImpl {
    */
   public updateState(prevState: IGristUrlState, newState: IGristUrlState): IGristUrlState {
     const keepState = (newState.org || newState.ws || newState.homePage || newState.doc || isEmpty(newState) ||
-                       newState.billing || newState.welcome) ?
+                       newState.account || newState.billing  || newState.welcome) ?
       (prevState.org ? {org: prevState.org, newui: prevState.newui} : {}) :
       prevState;
     return {...keepState, ...newState};
   }
 
   /**
-   * Billing pages and doc-specific pages for now require a page load.
+   * The account page, billing pages, and doc-specific pages for now require a page load.
    * TODO: Make it so doc pages do NOT require a page load, since we are actually serving the same
    * single-page app for home and for docs, and should only need a reload triggered if it's
    * a matter of DocWorker requiring a different version (e.g. /v/OTHER/doc/...).
@@ -162,6 +162,8 @@ export class UrlStateImpl {
     const orgReload = prevState.org !== newState.org;
     // Reload when moving to/from a document or between doc and non-doc.
     const docReload = prevState.doc !== newState.doc;
+    // Reload when moving to/from the account page.
+    const accountReload = Boolean(prevState.account) !== Boolean(newState.account);
     // Reload when moving to/from a billing page.
     const billingReload = Boolean(prevState.billing) !== Boolean(newState.billing);
     // Reload when changing 'newui' flag.
@@ -170,7 +172,7 @@ export class UrlStateImpl {
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
-    return Boolean(orgReload || billingReload || gristConfig.errPage
+    return Boolean(orgReload || accountReload || billingReload || gristConfig.errPage
       || docReload || newuiReload || welcomeReload || linkKeysReload);
   }
 

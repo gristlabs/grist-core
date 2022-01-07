@@ -118,6 +118,7 @@ export async function main(port: number, serverTypes: ServerType[],
       await server.addHousekeeper();
     }
     await server.addLoginRoutes();
+    server.addAccountPage();
     server.addBillingPages();
     server.addWelcomePaths();
     server.addLogEndpoint();

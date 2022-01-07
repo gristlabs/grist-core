@@ -266,6 +266,22 @@ export interface DocStateComparisonDetails {
   rightChanges: ActionSummary;
 }
 
+/**
+ * User multi-factor authentication preferences, as fetched from Cognito.
+ */
+export interface UserMFAPreferences {
+  isSmsMfaEnabled: boolean;
+  isSoftwareTokenMfaEnabled: boolean;
+}
+
+/**
+ * Cognito response to initiating software token MFA registration.
+ */
+export interface SoftwareTokenRegistrationInfo {
+  session: string;
+  secretCode: string;
+}
+
 export {UserProfile} from 'app/common/LoginSessionAPI';
 
 export interface UserAPI {
@@ -304,6 +320,7 @@ export interface UserAPI {
   unpinDoc(docId: string): Promise<void>;
   moveDoc(docId: string, workspaceId: number): Promise<void>;
   getUserProfile(): Promise<FullUser>;
+  getUserMfaPreferences(): Promise<UserMFAPreferences>;
   updateUserName(name: string): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
@@ -320,6 +337,8 @@ export interface UserAPI {
     onUploadProgress?: (ev: ProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
+  registerSoftwareToken(): Promise<SoftwareTokenRegistrationInfo>;
+  unregisterSoftwareToken(): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
@@ -582,6 +601,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/profile/user`);
   }
 
+  public async getUserMfaPreferences(): Promise<UserMFAPreferences> {
+    return this.requestJson(`${this._url}/api/profile/mfa_preferences`);
+  }
+
   public async updateUserName(name: string): Promise<void> {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
@@ -666,6 +689,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/users/${userId}`,
                        {method: 'DELETE',
                         body: JSON.stringify({name})});
+  }
+
+  public async registerSoftwareToken(): Promise<SoftwareTokenRegistrationInfo> {
+    return this.requestJson(`${this._url}/api/auth/register_totp`, {method: 'POST'});
+  }
+
+  public async unregisterSoftwareToken(): Promise<void> {
+    await this.request(`${this._url}/api/auth/unregister_totp`, {method: 'POST'});
   }
 
   public getBaseUrl(): string { return this._url; }

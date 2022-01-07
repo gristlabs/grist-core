@@ -32,6 +32,8 @@ export type IconName = "ChartArea" |
   "FieldToggle" |
   "GristLogo" |
   "ThumbPreview" |
+  "BarcodeQR" |
+  "BarcodeQR2" |
   "CenterAlign" |
   "Code" |
   "Collapse" |
@@ -99,9 +101,9 @@ export type IconName = "ChartArea" |
 
 export const IconList: IconName[] = ["ChartArea",
   "ChartBar",
+  "ChartDonut",
   "ChartKaplan",
   "ChartLine",
-  "ChartDonut",
   "ChartPie",
   "TypeCard",
   "TypeCardList",
@@ -131,6 +133,8 @@ export const IconList: IconName[] = ["ChartArea",
   "FieldToggle",
   "GristLogo",
   "ThumbPreview",
+  "BarcodeQR",
+  "BarcodeQR2",
   "CenterAlign",
   "Code",
   "Collapse",

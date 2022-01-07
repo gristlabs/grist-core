@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     main: "app/client/app.js",
     errorPages: "app/client/errorMain.js",
+    account: "app/client/accountMain.js",
   },
   output: {
     filename: "[name].bundle.js",

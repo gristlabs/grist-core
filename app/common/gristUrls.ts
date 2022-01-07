@@ -20,6 +20,9 @@ export type IHomePage = typeof HomePage.type;
 export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify', 'select-account');
 export type WelcomePage = typeof WelcomePage.type;
 
+export const AccountPage = StringUnion('profile');
+export type AccountPage = typeof AccountPage.type;
+
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('light', 'full');
 export type InterfaceStyle = typeof InterfaceStyle.type;
@@ -62,6 +65,7 @@ export interface IGristUrlState {
   fork?: UrlIdParts;
   docPage?: IDocPage;
   newui?: boolean;
+  account?: AccountPage;
   billing?: BillingPage;
   welcome?: WelcomePage;
   welcomeTour?: boolean;
@@ -183,6 +187,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`p/${state.homePage}`);
   }
 
+  if (state.account) { parts.push('account'); }
+
   if (state.billing) {
     parts.push(state.billing === 'billing' ? 'billing' : `billing/${state.billing}`);
   }
@@ -271,6 +277,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
   if (sp.has('newui')) { state.newui = useNewUI(sp.get('newui') ? sp.get('newui') === '1' : undefined); }
+  if (map.has('account')) { state.account = AccountPage.parse('account') || 'profile'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')) || 'user'; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }

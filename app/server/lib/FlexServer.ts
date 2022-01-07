@@ -30,7 +30,7 @@ import {DocManager} from 'app/server/lib/DocManager';
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {expressWrap, jsonErrorHandler} from 'app/server/lib/expressWrap';
+import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {GristLoginMiddleware, GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
@@ -521,6 +521,7 @@ export class FlexServer implements GristServer {
     });
 
     // Add a final error handler for /api endpoints that reports errors as JSON.
+    this.app.use('/api/auth', secureJsonErrorHandler);
     this.app.use('/api', jsonErrorHandler);
   }
 
@@ -1001,6 +1002,18 @@ export class FlexServer implements GristServer {
       throw new Error('disableS3 called too late');
     }
     this._disableS3 = true;
+  }
+
+  public addAccountPage() {
+    const middleware = [
+      this._redirectToHostMiddleware,
+      this._userIdMiddleware,
+      this._redirectToLoginWithoutExceptionsMiddleware
+    ];
+
+    this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
+      return this._sendAppPage(req, resp, {path: 'account.html', status: 200, config: {}});
+    }));
   }
 
   public addBillingPages() {

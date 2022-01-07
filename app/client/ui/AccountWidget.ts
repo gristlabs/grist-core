@@ -2,7 +2,6 @@ import {loadGristDoc, loadUserManager} from 'app/client/lib/imports';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
-import {showProfileModal} from 'app/client/ui/ProfileDialog';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
 import {primaryButton} from 'app/client/ui2018/buttons';
@@ -97,11 +96,11 @@ export class AccountWidget extends Disposable {
     return [
       cssUserInfo(
         createUserImage(user, 'large'),
-        cssUserName(user.name,
+        cssUserName(dom('span', user.name, testId('usermenu-name')),
           cssEmail(user.email, testId('usermenu-email'))
         )
       ),
-      menuItem(() => showProfileModal(this._appModel), 'Profile Settings'),
+      menuItemLink(urlState().setLinkUrl({account: 'profile'}), 'Profile Settings'),
 
       documentSettingsItem,
 

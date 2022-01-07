@@ -1716,10 +1716,10 @@ async function openAccountMenu() {
   await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
 }
 
-export async function openUserProfile() {
+export async function openProfileSettingsPage() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu li', 'Profile Settings').click();
-  await driver.findWait('.test-login-method', 5000);
+  await driver.findContent('.grist-floating-menu a', 'Profile Settings').click();
+  await driver.findWait('.test-account-page-login-method', 5000);
 }
 
 export async function openDocumentSettings() {

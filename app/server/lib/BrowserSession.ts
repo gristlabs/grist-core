@@ -13,16 +13,22 @@ export interface SessionUserObj {
   // The user profile object.
   profile?: UserProfile;
 
+  /**
+   * Unix time in seconds of the last successful login. Includes security
+   * verification prompts, such as those for configuring MFA preferences.
+   */
+  lastLoginTimestamp?: number;
+
   // [UNUSED] Authentication provider string indicating the login method used.
   authProvider?: string;
 
   // [UNUSED] Login ID token used to access AWS services.
   idToken?: string;
 
-  // [UNUSED] Login access token used to access other AWS services.
+  // Login access token used to access other AWS services.
   accessToken?: string;
 
-  // [UNUSED] Login refresh token used to retrieve new ID and access tokens.
+  // Login refresh token used to retrieve new ID and access tokens.
   refreshToken?: string;
 
   // State for SAML-mediated logins.
@@ -166,14 +172,16 @@ export class ScopedSession {
   // This is mainly used to know which emails are logged in in this session; fields like name and
   // picture URL come from the database instead.
   public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
-    if (profile) {
-      await this.operateOnScopedSession(req, async user => {
-        user.profile = profile;
-        return user;
-      });
-    } else {
-      await this.clearScopedSession(req);
-    }
+    profile ? await this.updateUser(req, {profile}) : await this.clearScopedSession(req);
+  }
+
+  /**
+   * Updates the properties of the current session user.
+   *
+   * @param {Partial<SessionUserObj>} newProps New property values to set.
+   */
+   public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
+    await this.operateOnScopedSession(req, async user => ({...user, ...newProps}));
   }
 
   /**
