@@ -1,5 +1,6 @@
 // tslint:disable:max-classes-per-file
 
+import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from 'app/common/DocActions';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
@@ -31,7 +32,11 @@ export function formatUnknown(value: CellValue): string {
 export function formatDecoded(value: unknown, isTopLevel: boolean = true): string {
   if (typeof value === 'object' && value) {
     if (Array.isArray(value)) {
-      return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
+      if (!isTopLevel || value.some(v => typeof v === 'object' && v && (Array.isArray(v) || isPlainObject(v)))) {
+        return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
+      } else {
+        return csvEncodeRow(value.map(v => formatDecoded(v, true)), {prettier: true});
+      }
     } else if (isPlainObject(value)) {
       const obj: any = value;
       const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatDecoded(obj[k], false)}`);
