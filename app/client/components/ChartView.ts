@@ -76,12 +76,19 @@ interface Series {
 }
 
 function getSeriesName(series: Series, haveMultiple: boolean) {
-  if (!series.group) {
+  if (series.group === undefined) {
     return series.label;
-  } else if (haveMultiple) {
-    return `${series.group} \u2022 ${series.label}`;  // the unicode character is "black circle"
+  }
+
+  // Let's show [Blank] instead of leaving the name empty for that series. There is a possibility
+  // to confuse user between a blank cell and a cell holding the `[Blank]` value. But that is rare
+  // enough, and confusion can easily be removed by the chart creator by editing blank cells
+  // directly in the the table to put something more meaningful instead.
+  const groupName = series.group === '' ? '[Blank]' : series.group;
+  if (haveMultiple) {
+    return `${groupName} \u2022 ${series.label}`;  // the unicode character is "black circle"
   } else {
-    return String(series.group);
+    return String(groupName);
   }
 }
 
@@ -222,7 +229,7 @@ export class ChartView extends Disposable {
       };
     });
 
-    const startIndexForYAxis = this._options.prop('multiseries') ? 2 : 1;
+    const startIndexForYAxis = this._options.prop('multiseries').peek() ? 2 : 1;
     for (let i = 0; i < series.length; ++i) {
       if (i < fields.length && LIST_TYPES.includes(fields[i].column.peek().pureType.peek())) {
         if (i < startIndexForYAxis) {
