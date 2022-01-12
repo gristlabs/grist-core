@@ -7,17 +7,18 @@ import ImportSourceAPITI from './ImportSourceAPI-ti';
 import InternalImportSourceAPITI from './InternalImportSourceAPI-ti';
 import RenderOptionsTI from './RenderOptions-ti';
 import StorageAPITI from './StorageAPI-ti';
+import WidgetAPITI from './WidgetAPI-ti';
 
 /**
  * The ts-interface-checker type suites are all exported with the "TI" suffix.
  */
 export {
   CustomSectionAPITI, FileParserAPITI, GristAPITI, GristTableTI, ImportSourceAPITI,
-  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI};
+  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI, WidgetAPITI};
 
 const allTypes = [
   CustomSectionAPITI, FileParserAPITI, GristAPITI, GristTableTI, ImportSourceAPITI,
-  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI];
+  InternalImportSourceAPITI, RenderOptionsTI, StorageAPITI, WidgetAPITI];
 
 function checkDuplicates(types: Array<{[key: string]: object}>) {
   const seen = new Set<string>();
@@ -46,5 +47,5 @@ export const checkers = createCheckers(...allTypes) as (
   'FileSource' | 'ParseFileResult' | 'ComponentKind' | 'GristAPI' | 'GristDocAPI' | 'GristTable' |
   'GristTables' | 'GristColumn' | 'GristView' | 'ImportSourceAPI' | 'ImportProcessorAPI' | 'FileContent' |
   'FileListItem' | 'URL' | 'ImportSource' | 'InternalImportSourceAPI' | 'RenderTarget' |
-  'RenderOptions' | 'Storage'
+  'RenderOptions' | 'Storage' | 'WidgetAPI'
   >);

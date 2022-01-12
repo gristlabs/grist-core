@@ -337,7 +337,7 @@ export class RightPanel extends Disposable {
           // In the default url mode, allow picking a url and granting/forbidding
           // access to data.
           dom.maybe(use => use(activeSection.customDef.mode) === 'url',
-            () => dom.create(CustomSectionConfig, activeSection, this._gristDoc.app.topAppModel.api)),
+            () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
         ];
       }),
 

@@ -1068,6 +1068,13 @@ export async function sendKeys(...keys: string[]) {
 }
 
 /**
+ * Clears active input by sending HOME + SHIFT END + DELETE.
+ */
+export async function clearInput() {
+  return sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);
+}
+
+/**
  * Open ⋮ dropdown menu for named workspace.
  */
 export async function openWsDropdown(wsName: string): Promise<void> {

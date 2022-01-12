@@ -1,7 +1,7 @@
 import * as BaseView from 'app/client/components/BaseView';
 import { ColumnRec, FilterRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {ICustomWidget} from 'app/common/CustomWidget';
+import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import * as ko from 'knockout';
 import { CursorPos, } from 'app/client/components/Cursor';
 import { KoArray, } from 'app/client/lib/koArray';
@@ -123,6 +123,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // Number for frozen columns to display.
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
+  activeCustomOptions: modelUtil.CustomComputed<any>;
+  // Temporary variable holding flag that describes if the widget supports custom options (set by api).
+  hasCustomOptions: ko.Observable<boolean>;
+  // Temporary variable holding widget desired access (changed either from manifest or via api).
+  desiredAccessLevel: ko.Observable<AccessLevel|null>;
 
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
@@ -150,6 +155,10 @@ export interface CustomViewSectionDef {
    * Custom widget information.
    */
   widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+   /**
+   * Custom widget options.
+   */
+  widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
   /**
    * Access granted to url.
    */
@@ -206,13 +215,17 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     mode: customDefObj.prop('mode'),
     url: customDefObj.prop('url'),
     widgetDef: customDefObj.prop('widgetDef'),
+    widgetOptions: customDefObj.prop('widgetOptions'),
     access: customDefObj.prop('access'),
     pluginId: customDefObj.prop('pluginId'),
     sectionId: customDefObj.prop('sectionId')
   };
 
-  this.saveCustomDef = () => {
-    return customDefObj.save();
+  this.activeCustomOptions = modelUtil.customValue(this.customDef.widgetOptions);
+
+  this.saveCustomDef = async () => {
+    await customDefObj.save();
+    this.activeCustomOptions.revert();
   };
 
   this.themeDef = modelUtil.fieldWithDefault(this.theme, 'form');
@@ -447,4 +460,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       )
     )
   );
+
+  this.hasCustomOptions = ko.observable(false);
+  this.desiredAccessLevel = ko.observable(null);
 }

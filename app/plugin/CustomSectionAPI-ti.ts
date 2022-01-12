@@ -4,11 +4,22 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const RequestedInteractionOptions = t.iface([], {
+  "requiredAccess": t.opt("string"),
+  "hasCustomOptions": t.opt("boolean"),
+});
+
+export const InteractionOptions = t.iface([], {
+  "accessLevel": "string",
+});
+
 export const CustomSectionAPI = t.iface([], {
-  "createSection": t.func("void", t.param("inlineTarget", "RenderTarget")),
+  "configure": t.func("void", t.param("customOptions", "RequestedInteractionOptions")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
+  RequestedInteractionOptions,
+  InteractionOptions,
   CustomSectionAPI,
 };
 export default exportedTypeSuite;

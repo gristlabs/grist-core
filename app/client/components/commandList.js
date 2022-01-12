@@ -97,6 +97,11 @@ exports.groups = [{
       name: 'printSection',
       keys: [],
       desc: 'Print currently selected page widget',
+    },
+    {
+      name: 'openWidgetConfiguration',
+      keys: [],
+      desc: 'Open Custom widget configuration screen',
     }
   ]
 }, {

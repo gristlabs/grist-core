@@ -37,3 +37,15 @@ export enum AccessLevel {
    */
   full = "full",
 }
+
+export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
+  function ordered(level: AccessLevel) {
+    switch(level) {
+      case AccessLevel.none: return 0;
+      case AccessLevel.read_table: return 1;
+      case AccessLevel.full: return 2;
+      default: throw new Error(`Unrecognized access level ${level}`);
+    }
+  }
+  return ordered(current) >= ordered(minimum);
+}

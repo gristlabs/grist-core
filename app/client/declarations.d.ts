@@ -61,7 +61,7 @@ declare module "app/client/components/BaseView" {
     public activeFieldBuilder: ko.Computed<FieldBuilder>;
     public disableEditing: ko.Computed<boolean>;
     public isTruncated: ko.Observable<boolean>;
-    protected tableModel: DataTableModel;
+    public tableModel: DataTableModel;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any);
     public setCursorPos(cursorPos: CursorPos): void;

@@ -68,6 +68,10 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
 class CachedWidgetRepository extends WidgetRepositoryImpl {
   private _cache = new LRUCache<1, ICustomWidget[]>({maxAge : 1000 * 60 /* minute */ * 2});
   public async getWidgets() {
+    // Don't cache for localhost
+    if (super._staticUrl && super._staticUrl.startsWith("http://localhost")) {
+      this._cache.reset();
+    }
     if (this._cache.has(1)) {
       log.debug("WidgetRepository: Widget list taken from the cache.");
       return this._cache.get(1)!;

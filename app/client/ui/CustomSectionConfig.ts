@@ -1,23 +1,22 @@
+import {allCommands} from 'app/client/components/commands';
+import {GristDoc} from 'app/client/components/GristDoc';
 import * as kf from 'app/client/lib/koForm';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {cssLabel, cssRow, cssTextInput} from 'app/client/ui/RightPanel';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
+import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {colors} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
-import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
+import {AccessLevel, ICustomWidget, isSatisfied} from 'app/common/CustomWidget';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {nativeCompare} from 'app/common/gutil';
-import {UserAPI} from 'app/common/UserAPI';
-import {bundleChanges, Computed, Disposable, dom,
-        makeTestId, MultiHolder, Observable, styled} from 'grainjs';
-import {icon} from 'app/client/ui2018/icons';
+import {bundleChanges, Computed, Disposable, dom, fromKo, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 
 // Custom URL widget id - used as mock id for selectbox.
-const CUSTOM_ID = "custom";
+const CUSTOM_ID = 'custom';
 const testId = makeTestId('test-config-widget-');
-
 
 /**
  * Custom Widget section.
@@ -34,22 +33,24 @@ const testId = makeTestId('test-config-widget-');
 export class CustomSectionConfig extends Disposable {
   // Holds all available widget definitions.
   private _widgets: Observable<ICustomWidget[]>;
-  // Holds selected option (either custom or a widgetId).
-  private _selected: Computed<string|null>;
+  // Holds selected option (either custom string or a widgetId).
+  private _selectedId: Computed<string | null>;
   // Holds custom widget URL.
   private _url: Computed<string>;
   // Enable or disable widget repository.
   private _canSelect = true;
-  // Selected access level.
-  private _selectedAccess: Computed<AccessLevel>;
   // When widget is changed, it sets its desired access level. We will prompt
   // user to approve or reject it.
-  private _desiredAccess: Observable<AccessLevel>;
+  private _desiredAccess: Observable<AccessLevel|null>;
   // Current access level (stored inside a section).
   private _currentAccess: Computed<AccessLevel>;
+  // Does widget has custom configuration.
+  private _hasConfiguration: Computed<boolean>;
 
-  constructor(section: ViewSectionRec, api: UserAPI) {
+  constructor(_section: ViewSectionRec, _gristDoc: GristDoc) {
     super();
+
+    const api = _gristDoc.app.topAppModel.api;
 
     // Test if we can offer widget list.
     const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
@@ -61,107 +62,116 @@ export class CustomSectionConfig extends Disposable {
     if (this._canSelect) {
       // From the start we will provide single widget definition
       // that was chosen previously.
-      if (section.customDef.widgetDef.peek()) {
-        this._widgets.set([section.customDef.widgetDef.peek()!]);
+      if (_section.customDef.widgetDef.peek()) {
+        this._widgets.set([_section.customDef.widgetDef.peek()!]);
       }
       // Request for rest of the widgets.
-      api.getWidgets().then(widgets => {
-        if (this.isDisposed()) {
-          return;
-        }
-        const existing = section.customDef.widgetDef.peek();
-        // Make sure we have current widget in place.
-        if (existing && !widgets.some(w => w.widgetId === existing.widgetId)) {
-          widgets.push(existing);
-        }
-        this._widgets.set(widgets.sort((a, b) => nativeCompare(a.name.toLowerCase(), b.name.toLowerCase())));
-      }).catch(err => {
-        reportError(err);
-      });
+      api
+        .getWidgets()
+        .then(widgets => {
+          if (this.isDisposed()) {
+            return;
+          }
+          const existing = _section.customDef.widgetDef.peek();
+          // Make sure we have current widget in place.
+          if (existing && !widgets.some(w => w.widgetId === existing.widgetId)) {
+            widgets.push(existing);
+          }
+          this._widgets.set(widgets.sort((a, b) => nativeCompare(a.name.toLowerCase(), b.name.toLowerCase())));
+        })
+        .catch(reportError);
     }
 
     // Create temporary variable that will hold blank Custom Url state. When url is blank and widgetDef is not stored
     // we can either show "Select Custom Widget" or a Custom Url with a blank url.
     // To distinguish those states, we will mark Custom Url state at start (by checking that url is not blank and
     // widgetDef is not set). And then switch it during selectbox manipulation.
-    const wantsToBeCustom = Observable.create(this,
-      Boolean(section.customDef.url.peek() && !section.customDef.widgetDef.peek())
+    const wantsToBeCustom = Observable.create(
+      this,
+      Boolean(_section.customDef.url.peek() && !_section.customDef.widgetDef.peek())
     );
 
     // Selected value from the dropdown (contains widgetId or "custom" string for Custom URL)
-    this._selected = Computed.create(this, use => {
-      if (use(section.customDef.widgetDef)) {
-        return section.customDef.widgetDef.peek()!.widgetId;
+    this._selectedId = Computed.create(this, use => {
+      if (use(_section.customDef.widgetDef)) {
+        return _section.customDef.widgetDef.peek()!.widgetId;
       }
-      if (use(section.customDef.url) || use(wantsToBeCustom)) {
+      if (use(_section.customDef.url) || use(wantsToBeCustom)) {
         return CUSTOM_ID;
       }
       return null;
     });
-    this._selected.onWrite(async (value) => {
+    this._selectedId.onWrite(async value => {
       if (value === CUSTOM_ID) {
         // Select Custom URL
         bundleChanges(() => {
           // Clear url.
-          section.customDef.url(null);
+          _section.customDef.url(null);
           // Clear widget definition.
-          section.customDef.widgetDef(null);
+          _section.customDef.widgetDef(null);
           // Set intermediate state
           wantsToBeCustom.set(true);
           // Reset access level to none.
-          section.customDef.access(AccessLevel.none);
+          _section.customDef.access(AccessLevel.none);
+          // Clear all saved options.
+          _section.customDef.widgetOptions(null);
+          // Reset custom configuration flag.
+          _section.hasCustomOptions(false);
           this._desiredAccess.set(AccessLevel.none);
         });
-        await section.saveCustomDef();
+        await _section.saveCustomDef();
       } else {
         // Select Widget
         const selectedWidget = this._widgets.get().find(w => w.widgetId === value);
         if (!selectedWidget) {
           // should not happen
-          throw new Error("Error accessing widget from the list");
+          throw new Error('Error accessing widget from the list');
         }
         // If user selected the same one, do nothing.
-        if (section.customDef.widgetDef.peek()?.widgetId === value) {
+        if (_section.customDef.widgetDef.peek()?.widgetId === value) {
           return;
         }
         bundleChanges(() => {
           // Clear access level
-          section.customDef.access(AccessLevel.none);
+          _section.customDef.access(AccessLevel.none);
           // When widget wants some access, set desired access level.
           this._desiredAccess.set(selectedWidget.accessLevel || AccessLevel.none);
           // Update widget definition.
-          section.customDef.widgetDef(selectedWidget);
+          _section.customDef.widgetDef(selectedWidget);
           // Update widget URL.
-          section.customDef.url(selectedWidget.url);
+          _section.customDef.url(selectedWidget.url);
+          // Clear options.
+          _section.customDef.widgetOptions(null);
+          // Clear has custom configuration.
+          _section.hasCustomOptions(false);
           // Clear intermediate state.
           wantsToBeCustom.set(false);
         });
-        await section.saveCustomDef();
+        await _section.saveCustomDef();
       }
     });
 
     // Url for the widget, taken either from widget definition, or provided by hand for Custom URL.
     // For custom widget, we will store url also in section definition.
-    this._url = Computed.create(this, use => use(section.customDef.url) || "");
-    this._url.onWrite((newUrl) => section.customDef.url.setAndSave(newUrl));
+    this._url = Computed.create(this, use => use(_section.customDef.url) || '');
+    this._url.onWrite(newUrl => _section.customDef.url.setAndSave(newUrl));
 
     // Compute current access level.
-    this._currentAccess = Computed.create(this,
-      use => use(section.customDef.access) as AccessLevel || AccessLevel.none);
-
-    // From the start desired access level is the same as current one.
-    this._desiredAccess = Observable.create(this, this._currentAccess.get());
-
-    // Selected access level will show desired one, but will updated both (desired and current).
-    this._selectedAccess = Computed.create(this, use => use(this._desiredAccess));
-    this._selectedAccess.onWrite(async newAccess => {
-      this._desiredAccess.set(newAccess);
-      await section.customDef.access.setAndSave(newAccess);
+    this._currentAccess = Computed.create(
+      this,
+      use => (use(_section.customDef.access) as AccessLevel) || AccessLevel.none
+    );
+    this._currentAccess.onWrite(async newAccess => {
+      await _section.customDef.access.setAndSave(newAccess);
     });
+    // From the start desired access level is the same as current one.
+    this._desiredAccess = fromKo(_section.desiredAccessLevel);
 
     // Clear intermediate state when section changes.
-    this.autoDispose(section.id.subscribe(() => wantsToBeCustom.set(false)));
-    this.autoDispose(section.id.subscribe(() => this._reject()));
+    this.autoDispose(_section.id.subscribe(() => wantsToBeCustom.set(false)));
+    this.autoDispose(_section.id.subscribe(() => this._reject()));
+
+    this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
   }
 
   public buildDom() {
@@ -169,16 +179,29 @@ export class CustomSectionConfig extends Disposable {
     const holder = new MultiHolder();
 
     // Show prompt, when desired access level is different from actual one.
-    const prompt = Computed.create(holder, use => use(this._currentAccess) !== use(this._desiredAccess));
+    const prompt = Computed.create(holder, use =>
+      use(this._desiredAccess)
+      && !isSatisfied(use(this._currentAccess), use(this._desiredAccess)!));
     // If this is empty section or not.
-    const isSelected = Computed.create(holder, use => Boolean(use(this._selected)));
+    const isSelected = Computed.create(holder, use => Boolean(use(this._selectedId)));
     // If user is using custom url.
-    const isCustom = Computed.create(holder, use => use(this._selected) === CUSTOM_ID || !this._canSelect);
-    // Options for the selectbox (all widgets definitions and Custom URL)
+    const isCustom = Computed.create(holder, use => use(this._selectedId) === CUSTOM_ID || !this._canSelect);
+    // Options for the select-box (all widgets definitions and Custom URL)
     const options = Computed.create(holder, use => [
       {label: 'Custom URL', value: 'custom'},
       ...use(this._widgets).map(w => ({label: w.name, value: w.widgetId})),
     ]);
+    function buildPrompt(level: AccessLevel|null) {
+      if (!level) {
+        return null;
+      }
+      switch(level) {
+        case AccessLevel.none: return cssConfirmLine("Widget does not require any permissions.");
+        case AccessLevel.read_table: return cssConfirmLine("Widget needs to ", dom("b", "read"), " the current table.");
+        case AccessLevel.full: return cssConfirmLine("Widget needs a ", dom("b", "full access"), " to this document.");
+        default: throw new Error(`Unsupported ${level} access level`);
+      }
+    }
     // Options for access level.
     const levels: IOptionFull<string>[] = [
       {label: 'No document access', value: AccessLevel.none},
@@ -188,14 +211,15 @@ export class CustomSectionConfig extends Disposable {
     return dom(
       'div',
       dom.autoDispose(holder),
-      this._canSelect ?
-      cssRow(
-        select(this._selected, options, {
-          defaultLabel: 'Select Custom Widget',
-          menuCssClass: cssMenu.className
-        }),
-        testId('select')
-      ) : null,
+      this._canSelect
+        ? cssRow(
+            select(this._selectedId, options, {
+              defaultLabel: 'Select Custom Widget',
+              menuCssClass: cssMenu.className,
+            }),
+            testId('select')
+          )
+        : null,
       dom.maybe(isCustom, () => [
         cssRow(
           cssTextInput(
@@ -206,6 +230,48 @@ export class CustomSectionConfig extends Disposable {
           )
         ),
       ]),
+      dom.maybe(prompt, () =>
+        kf.prompt(
+          {tabindex: '-1'},
+          cssColumns(
+            cssWarningWrapper(icon('Lock')),
+            dom(
+              'div',
+              cssConfirmRow(
+                dom.domComputed(this._desiredAccess, (level) => buildPrompt(level))
+              ),
+              cssConfirmRow(
+                primaryButton(
+                  'Accept',
+                  testId('access-accept'),
+                  dom.on('click', () => this._accept())
+                ),
+                basicButton(
+                  'Reject',
+                  testId('access-reject'),
+                  dom.on('click', () => this._reject())
+                )
+              )
+            )
+          )
+        )
+      ),
+      dom.maybe(
+        use => use(isSelected) || !this._canSelect,
+        () => [
+          cssLabel('ACCESS LEVEL'),
+          cssRow(select(this._currentAccess, levels), testId('access')),
+        ]
+      ),
+      dom.maybe(this._hasConfiguration, () =>
+        cssSection(
+          textButton(
+            'Open configuration',
+            dom.on('click', () => this._openConfiguration()),
+            testId('open-configuration')
+          )
+        )
+      ),
       cssSection(
         cssLink(
           dom.attr('href', 'https://support.getgrist.com/widget-custom'),
@@ -213,50 +279,29 @@ export class CustomSectionConfig extends Disposable {
           'Learn more about custom widgets'
         )
       ),
-      dom.maybe((use) => use(isSelected) || !this._canSelect, () => [
-        cssLabel('ACCESS LEVEL'),
-        cssRow(select(this._selectedAccess, levels), testId('access')),
-        dom.maybe(prompt, () =>
-          kf.prompt(
-            {tabindex: '-1'},
-            cssColumns(
-              cssWarningWrapper(
-                icon('Lock'),
-              ),
-              dom('div',
-                cssConfirmRow(
-                  "Approve requested access level?"
-                ),
-                cssConfirmRow(
-                  primaryButton("Accept",
-                    testId('access-accept'),
-                    dom.on('click', () => this._accept())),
-                  basicButton("Reject",
-                    testId('access-reject'),
-                    dom.on('click', () => this._reject()))
-                )
-              )
-            )
-          )
-        )
-      ])
     );
   }
 
+  private _openConfiguration(): void {
+    allCommands.openWidgetConfiguration.run();
+  }
+
   private _accept() {
-    this._selectedAccess.set(this._desiredAccess.get());
+    if (this._desiredAccess.get()) {
+      this._currentAccess.set(this._desiredAccess.get()!);
+    }
     this._reject();
   }
 
   private _reject() {
-    this._desiredAccess.set(this._currentAccess.get());
+    this._desiredAccess.set(null);
   }
 }
 
 const cssWarningWrapper = styled('div', `
   padding-left: 8px;
   padding-top: 6px;
-  --icon-color: ${colors.lightGreen}
+  --icon-color: ${colors.error}
 `);
 
 const cssColumns = styled('div', `
@@ -267,6 +312,10 @@ const cssConfirmRow = styled('div', `
   display: flex;
   padding: 8px;
   gap: 8px;
+`);
+
+const cssConfirmLine = styled('span', `
+  white-space: pre-wrap;
 `);
 
 const cssSection = styled('div', `

@@ -45,6 +45,10 @@ export function makeViewLayoutMenu(viewModel: ViewRec, viewSection: ViewSectionR
     menuItemCmd(allCommands.dataSelectionTabOpen, 'Data selection'),
 
     menuDivider(),
+    dom.maybe((use) => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>
+      menuItemCmd(allCommands.openWidgetConfiguration, 'Open configuration',
+        testId('section-open-configuration')),
+    ),
     menuItemCmd(allCommands.deleteSection, 'Delete widget',
       dom.cls('disabled', viewModel.viewSections().peekLength <= 1 || isReadonly),
       testId('section-delete')),

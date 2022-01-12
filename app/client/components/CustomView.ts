@@ -1,27 +1,25 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {Cursor} from 'app/client/components/Cursor';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import { CustomSectionElement, ViewProcess } from 'app/client/lib/CustomSectionElement';
-import { Disposable } from 'app/client/lib/dispose';
+import * as commands from 'app/client/components/commands';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ConfigNotifier, CustomSectionAPIImpl, GristDocAPIImpl, GristViewImpl,
+        MinimumLevel, RecordNotifier, TableNotifier, WidgetAPIImpl,
+        WidgetFrame} from 'app/client/components/WidgetFrame';
+import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
+import {Disposable} from 'app/client/lib/dispose';
 import * as dom from 'app/client/lib/dom';
 import * as kd from 'app/client/lib/koDom';
 import * as DataTableModel from 'app/client/models/DataTableModel';
-import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { CustomViewSectionDef } from 'app/client/models/entities/ViewSectionRec';
+import {ViewSectionRec} from 'app/client/models/DocModel';
+import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
+import {UserError} from 'app/client/models/errors';
 import {SortedRowSet} from 'app/client/models/rowset';
-import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
-import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import { PluginInstance } from 'app/common/PluginInstance';
-import {GristDocAPI, GristView} from 'app/plugin/GristAPI';
+import {PluginInstance} from 'app/common/PluginInstance';
 import {Events as BackboneEvents} from 'backbone';
-import {MsgType, Rpc} from 'grain-rpc';
+import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
-import debounce = require('lodash/debounce');
 import defaults = require('lodash/defaults');
-import noop = require('lodash/noop');
-
-const G = getBrowserGlobals('window');
+import {AccessLevel} from 'app/common/CustomWidget';
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -33,6 +31,21 @@ const G = getBrowserGlobals('window');
  */
 export class CustomView extends Disposable {
 
+  private static _commands = {
+    async openWidgetConfiguration(this: CustomView) {
+      if (!this.isDisposed() && !this._frame?.isDisposed()) {
+        try {
+          await this._frame.editOptions();
+        } catch(err) {
+          if (err.message === "Unknown interface") {
+            throw new UserError("Custom widget doesn't expose configuration screen.");
+          } else {
+            throw err;
+          }
+        }
+      }
+    },
+  };
   /**
    * The HTMLElement embedding the content.
    */
@@ -54,9 +67,7 @@ export class CustomView extends Disposable {
   private _customSection: ViewProcess|undefined;
   private _pluginInstance: PluginInstance|undefined;
 
-  private _updateData: () => void;   // debounced call to let the view know linked data changed.
-  private _updateCursor: () => void; // debounced call to let the view know linked cursor changed.
-  private _rpc: Rpc;  // rpc connection to view.
+  private _frame: WidgetFrame;  // plugin frame (holding external page)
   private _emptyWidgetPage: string;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
@@ -78,42 +89,20 @@ export class CustomView extends Disposable {
 
     this.autoDispose(this._customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this._customDef.sectionId.subscribe(this._updateCustomSection, this));
+    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
 
     this.viewPane = this.autoDispose(this._buildDom());
     this._updatePluginInstance();
-
-    this._updateData = debounce(() => this._updateView(true), 0);
-    this._updateCursor = debounce(() => this._updateView(false), 0);
-
-    this.autoDispose(this.viewSection.viewFields().subscribe(this._updateData));
-    this.listenTo(this.sortedRows, 'rowNotify', this._updateData);
-    this.autoDispose(this.sortedRows.getKoArray().subscribe(this._updateData));
-
-    this.autoDispose(this.cursor.rowIndex.subscribe(this._updateCursor));
   }
 
   public async triggerPrint() {
-    if (!this.isDisposed() && this._rpc) {
-      return await this._rpc.callRemoteFunc("print");
-    }
-  }
-
-  private _updateView(dataChange: boolean) {
-    if (this.isDisposed()) { return; }
-    if (this._rpc) {
-      const state = {
-        tableId: this.viewSection.table().tableId(),
-        rowId: this.cursor.getCursorPos().rowId || undefined,
-        dataChange
-      };
-      // tslint:disable-next-line:no-console
-      this._rpc.postMessage(state).catch(e => console.error('Failed to send view state', e));
-      // This post message won't get through if doc access has not been granted to the view.
+    if (!this.isDisposed() && this._frame) {
+      return await this._frame.callRemote('print');
     }
   }
 
   /**
-   * Find a plugin instance that matchs the plugin id, update the `found` observables, then tries to
+   * Find a plugin instance that matches the plugin id, update the `found` observables, then tries to
    * find a matching section.
    */
   private _updatePluginInstance() {
@@ -148,42 +137,6 @@ export class CustomView extends Disposable {
     } else {
       this._foundSection(false);
     }
-
-  }
-
-  /**
-   * Access data backing the section as a table.  This code is borrowed
-   * with variations from ChartView.ts.
-   */
-  private _getSelectedTable(): BulkColValues {
-    const fields: ViewFieldRec[] = this.viewSection.viewFields().all();
-    const rowIds: number[] = this.sortedRows.getKoArray().peek() as number[];
-    const data: BulkColValues = {};
-    for (const field of fields) {
-      // Use the colId of the displayCol, which may be different in case of Reference columns.
-      const colId: string = field.displayColModel.peek().colId.peek();
-      const getter = this.tableModel.tableData.getRowPropFunc(colId)!;
-      const typeInfo = extractInfoFromColType(field.column.peek().type.peek());
-      data[field.column().colId()] = rowIds.map((r) => reencodeAsAny(getter(r)!, typeInfo));
-    }
-    data.id = rowIds;
-    return data;
-  }
-
-  private _getSelectedRecord(rowId: number): RowRecord {
-    // Prepare an object containing the fields available to the view
-    // for the specified row.  A RECORD()-generated rendering would be
-    // more useful. but the data engine needs to know what information
-    // the custom view depends on, so we shouldn't volunteer any untracked
-    // information here.
-    const fields: ViewFieldRec[] = this.viewSection.viewFields().all();
-    const data: RowRecord = {id: rowId};
-    for (const field of fields) {
-      const colId: string = field.displayColModel.peek().colId.peek();
-      const typeInfo = extractInfoFromColType(field.column.peek().type.peek());
-      data[field.column().colId()] = reencodeAsAny(this.tableModel.tableData.getValue(rowId, colId)!, typeInfo);
-    }
-    return data;
   }
 
   private _buildDom() {
@@ -204,7 +157,7 @@ export class CustomView extends Disposable {
       dom.autoDispose(showPluginContent),
       // todo: should display content in webview when running electron
       kd.scope(() => [mode(), url(), access()], ([_mode, _url, _access]: string[]) =>
-        _mode === "url" ? this._buildIFrame(_url, _access) : null),
+        _mode === "url" ? this._buildIFrame(_url, (_access || AccessLevel.none) as AccessLevel) : null),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
         dom('strong', kd.text(this._customDef.pluginId)), ' was not found',
         dom.testId('customView_notification_plugin')
@@ -220,119 +173,55 @@ export class CustomView extends Disposable {
     );
   }
 
-  private _buildIFrame(baseUrl: string, access: string) {
-    // This is a url-flavored custom view.
-    // Here we create an iframe, and add hooks for sending
-    // messages to it and receiving messages from it.
-
-    // Compute a url for the view.  We add in a parameter called "access"
-    // so the page can determine what access level has been granted to it
-    // in a simple and unambiguous way.
-    let fullUrl: string;
-    if (!baseUrl) {
-      fullUrl = this._emptyWidgetPage;
-    } else {
-      const url = new URL(baseUrl);
-      url.searchParams.append('access', access);
-      fullUrl = url.href;
+  private _promptAccess(access: AccessLevel) {
+    if (this.gristDoc.isReadonly.get()) {
+      return;
     }
-
-    if (!access) { access = 'none'; }
-    const someAccess = (access !== 'none');
-    const fullAccess = (access === 'full');
-
-    // Create an Rpc object to manage messaging.
-    const rpc = new Rpc({});
-    // Now, we create a listener for message events (if access was granted), making sure
-    // to respond only to messages from our iframe.
-    const listener = someAccess ? (event: MessageEvent) => {
-      if (event.source === iframe.contentWindow) {
-        // Previously, we forwarded messages targeted at "grist" to the back-end.
-        // Now, we process them immediately in the context of the client for access
-        // control purposes.  To do that, any message that comes in with mdest of
-        // "grist" will have that destination wiped, and we provide a local
-        // implementation of the interface.
-        // It feels like it should be possible to deal with the mdest more cleanly,
-        // with a rpc.registerForwarder('grist', { ... }), but it seems somehow hard
-        // to call a locally registered interface of an rpc object?
-        if (event.data.mdest === 'grist') {
-          event.data.mdest = '';
-        }
-        rpc.receiveMessage(event.data);
-        if (event.data.mtype === MsgType.Ready) {
-          // After, the "ready" message, send a notification with cursor
-          // (if available).
-          this._updateView(true);
-        }
-      }
-    } : null;
-    // Add the listener only if some access has been granted.
-    if (listener) { G.window.addEventListener('message', listener); }
-    // Here is the actual iframe.
-    const iframe = dom('iframe.custom_view.clipboard_focus',
-                       {src: fullUrl},
-                       dom.onDispose(() => {
-                         if (listener) { G.window.removeEventListener('message', listener); }
-                       }));
-    if (someAccess) {
-      // When replies come back, forward them to the iframe if access
-      // is granted.
-      rpc.setSendMessage(msg => {
-        iframe.contentWindow!.postMessage(msg, '*');
-      });
-      // Register a way for the view to access the data backing the view.
-      rpc.registerImpl<GristView>('GristView', {
-        fetchSelectedTable: () => this._getSelectedTable(),
-        fetchSelectedRecord: (rowId: number) => this._getSelectedRecord(rowId),
-      });
-      // Add a GristDocAPI implementation.  Apart from getDocName (which I think
-      // is from a time before names and ids diverged, so I'm not actually sure
-      // what it should return), require full access since the methods can view/edit
-      // parts of the document beyond the table the widget is associated with.
-      // Access rights will be that of the user viewing the document.
-      // TODO: add something to calls to identify the origin, so it could be
-      // controlled by access rules if desired.
-      const assertFullAccess = () => {
-        if (!fullAccess) { throw new Error('full access not granted'); }
-      };
-      rpc.registerImpl<GristDocAPI>('GristDocAPI', {
-        getDocName: () => this.gristDoc.docId,
-        listTables: async () => {
-          assertFullAccess();
-          // Could perhaps read tableIds from this.gristDoc.docModel.allTableIds.all()?
-          const tables = await this.gristDoc.docComm.fetchTable('_grist_Tables');
-          // Tables the user doesn't have access to are just blanked out.
-          return tables[3].tableId.filter(tableId => tableId !== '');
-        },
-        fetchTable: async (tableId: string) => {
-          assertFullAccess();
-          return fromTableDataAction(await this.gristDoc.docComm.fetchTable(tableId));
-        },
-        applyUserActions: (actions: any[][]) => {
-          assertFullAccess();
-          return this.gristDoc.docComm.applyUserActions(actions, {desc: undefined});
-        }
-      });
-    } else {
-      // Direct messages to /dev/null otherwise.  Important to setSendMessage
-      // or they will be queued indefinitely.
-      rpc.setSendMessage(noop);
-    }
-    // We send events via the rpc object when the data backing the view changes
-    // or the cursor changes.
-    if (this._rpc) {
-      // There's an existing RPC object we are replacing.
-      // Unregister anything that may have been registered previously.
-      // TODO: add a way to clean up more systematically to grain-rpc.
-      this._rpc.unregisterForwarder('grist');
-      this._rpc.unregisterImpl('GristDocAPI');
-      this._rpc.unregisterImpl('GristView');
-    }
-    this._rpc = rpc;
-    return iframe;
+    this.viewSection.desiredAccessLevel(access);
   }
 
-  private listenTo(...args: any[]): void { /* replaced by Backbone */ }
+  private _buildIFrame(baseUrl: string, access: AccessLevel) {
+    return grains.create(WidgetFrame, {
+      url: baseUrl || this._emptyWidgetPage,
+      access,
+      readonly: this.gristDoc.isReadonly.get(),
+      configure: (frame) => {
+        this._frame = frame;
+        // Need to cast myself to a BaseView
+        const view = this as unknown as BaseView;
+        frame.exposeAPI(
+          "GristDocAPI",
+          new GristDocAPIImpl(this.gristDoc),
+          GristDocAPIImpl.defaultAccess);
+        frame.exposeAPI(
+          "GristView",
+          new GristViewImpl(view), new MinimumLevel(AccessLevel.read_table));
+        frame.exposeAPI(
+          "CustomSectionAPI",
+          new CustomSectionAPIImpl(
+            this.viewSection,
+            access,
+            this._promptAccess.bind(this)),
+          new MinimumLevel(AccessLevel.none));
+        frame.useEvents(RecordNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
+        frame.useEvents(TableNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
+        frame.exposeAPI(
+          "WidgetAPI",
+          new WidgetAPIImpl(this.viewSection),
+          new MinimumLevel(AccessLevel.none)); // none access is enough
+        frame.useEvents(
+          ConfigNotifier.create(frame, this.viewSection, access),
+          new MinimumLevel(AccessLevel.none)); // none access is enough
+      },
+      onElem: (iframe) => onFrameFocus(iframe, () => {
+        if (this.isDisposed()) { return; }
+        if (!this.viewSection.isDisposed() && !this.viewSection.hasFocus()) {
+          this.viewSection.hasFocus(true);
+        }
+      })
+    });
+
+  }
 }
 
 // Getting an ES6 class to work with old-style multiple base classes takes a little hacking. Credits: ./ChartView.ts
@@ -343,4 +232,53 @@ Object.assign(CustomView.prototype, BackboneEvents);
 // helper to build the notification's frame.
 function buildNotification(...args: any[]) {
   return dom('div.custom_view_notification.bg-warning', dom('p', ...args));
+}
+
+/**
+ * There is no way to detect if the frame was clicked. This causes a bug, when
+ * there are 2 custom widgets on a page then user can't switch focus from 1 section
+ * to another. The only solution is too pool and test if the iframe is an active element
+ * in the dom.
+ * (See https://stackoverflow.com/questions/2381336/detect-click-into-iframe-using-javascript).
+ *
+ * For a single iframe, it will gain focus through a hack in ViewLayout.ts.
+ */
+function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
+  let timer: NodeJS.Timeout|null = null;
+  // Flag that will prevent mouseenter event to be fired
+  // after dom is disposed. This shouldn't happen.
+  let disposed = false;
+  // Stops pooling.
+  function stop() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+  return grains.update(frame,
+    grains.on("mouseenter", () => {
+      // Make sure we weren't dispose (should not happen)
+      if (disposed) { return; }
+      // If frame already has focus, do nothing.
+      // NOTE: Frame will always be an active element from our perspective,
+      // even if the focus is somewhere inside the iframe.
+      if (document.activeElement === frame) { return; }
+      // Start pooling for frame focus.
+      timer = setInterval(() => {
+        if (document.activeElement === frame) {
+          try {
+            handler();
+          } finally {
+            // Stop checking, we will start again after next mouseenter.
+            stop();
+          }
+        }
+      }, 70); // 70 is enough to make it look like a click.
+    }),
+    grains.on("mouseleave", stop),
+    grains.onDispose(() => {
+      stop();
+      disposed = true;
+    })
+  );
 }

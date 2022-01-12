@@ -18,12 +18,14 @@
 
 // tslint:disable:no-console
 
+import { CustomSectionAPI, InteractionOptions } from './CustomSectionAPI';
 import { GristAPI, GristDocAPI, GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
 import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
 import { decodeObject, mapValues } from './objtypes';
 import { RenderOptions, RenderTarget } from './RenderOptions';
 import { checkers } from './TypeCheckers';
+import { WidgetAPI } from './WidgetAPI';
 
 export * from './TypeCheckers';
 export * from './FileParserAPI';
@@ -32,6 +34,8 @@ export * from './GristTable';
 export * from './ImportSourceAPI';
 export * from './StorageAPI';
 export * from './RenderOptions';
+export * from './WidgetAPI';
+export * from './CustomSectionAPI';
 
 import {IRpcLogger, Rpc} from 'grain-rpc';
 
@@ -40,6 +44,8 @@ export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
 export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
 export const viewApi = rpc.getStub<GristView>('GristView', checkers.GristView);
+export const widgetApi = rpc.getStub<WidgetAPI>('WidgetAPI', checkers.WidgetAPI);
+export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', checkers.CustomSectionAPI);
 
 export const docApi: GristDocAPI & GristView = {
   ...coreDocApi,
@@ -98,11 +104,24 @@ export function onRecords(callback: (data: RowRecord[]) => unknown) {
   });
 }
 
+
+// For custom widgets, add a handler that will be called whenever the
+// widget options change (and on initial ready message). Handler will be
+// called with an object containing save json options, or null if no options were saved.
+// Second parameter
+export function onOptions(callback: (options: any, settings: InteractionOptions) => unknown) {
+  on('message', async function(msg) {
+    if (msg.settings) {
+      callback(msg.options || null, msg.settings);
+    }
+  });
+}
+
 /**
  * Calling `addImporter(...)` adds a safeBrowser importer. It is a short-hand for forwarding calls
  * to an `ImportSourceAPI` implementation registered in the file at `path`. It takes care of
  * creating the stub, registering an implementation that renders the file, forward the call and
- * dispose the view properly. If `mode` is `'inline'` embeds the view in the import modal, ohterwise
+ * dispose the view properly. If `mode` is `'inline'` embeds the view in the import modal, otherwise
  * renders fullscreen.
  *
  * Notes: it assumes that file at `path` registers an `ImportSourceAPI` implementation under
@@ -111,7 +130,7 @@ export function onRecords(callback: (data: RowRecord[]) => unknown) {
  *
  */
 export async function addImporter(name: string, path: string, mode: 'fullscreen' | 'inline', options?: RenderOptions) {
-  // checker is omitterd for implementation because call was alredy checked by grist.
+  // checker is omitted for implementation because call was alredy checked by grist.
   rpc.registerImpl<InternalImportSourceAPI>(name, {
     async getImportSource(target: RenderTarget): Promise<ImportSource|undefined> {
       const procId = await api.render(path, mode === 'inline' ? target : 'fullscreen', options);
@@ -131,9 +150,23 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
  * Declare that a component is prepared to receive messages from the outside world.
  * Grist will not attempt to communicate with it until this method is called.
  */
-export function ready(): void {
+export function ready(settings?: {
+  requiredAccess?: string,
+  onEditOptions: () => unknown
+}): void {
+  if (settings && settings.onEditOptions) {
+    rpc.registerFunc('editOptions', settings.onEditOptions);
+  }
   rpc.processIncoming();
-  void rpc.sendReadyMessage();
+  void (async function() {
+    await rpc.sendReadyMessage();
+    if (settings) {
+      await sectionApi.configure({
+          requiredAccess : settings.requiredAccess,
+          hasCustomOptions: Boolean(settings.onEditOptions)
+      }).catch((err: unknown) => console.error(err));
+    }
+  })();
 }
 
 function getPluginPath(location: Location) {
