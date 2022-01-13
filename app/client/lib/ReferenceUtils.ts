@@ -11,7 +11,7 @@ import {BaseFormatter} from 'app/common/ValueFormatter';
 export class ReferenceUtils {
   public readonly refTableId: string;
   public readonly tableData: TableData;
-  public readonly formatter: BaseFormatter;
+  public readonly visibleColFormatter: BaseFormatter;
   public readonly visibleColModel: ColumnRec;
   public readonly visibleColId: string;
   public readonly isRefList: boolean;
@@ -30,7 +30,7 @@ export class ReferenceUtils {
     }
     this.tableData = tableData;
 
-    this.formatter = field.visibleColFormatter();
+    this.visibleColFormatter = field.visibleColFormatter();
     this.visibleColModel = field.visibleColModel();
     this.visibleColId = this.visibleColModel.colId() || 'id';
     this.isRefList = isRefListType(colType);
@@ -38,13 +38,13 @@ export class ReferenceUtils {
 
   public idToText(value: unknown) {
     if (typeof value === 'number') {
-      return this.formatter.formatAny(this.tableData.getValue(value, this.visibleColId));
+      return this.visibleColFormatter.formatAny(this.tableData.getValue(value, this.visibleColId));
     }
     return String(value || '');
   }
 
   public autocompleteSearch(text: string) {
-    const acIndex = this.tableData.columnACIndexes.getColACIndex(this.visibleColId, this.formatter);
+    const acIndex = this.tableData.columnACIndexes.getColACIndex(this.visibleColId, this.visibleColFormatter);
     return acIndex.search(text);
   }
 }

@@ -12,8 +12,6 @@ import {Computed, dom, styled} from 'grainjs';
  * Reference - The widget for displaying references to another table's records.
  */
 export class Reference extends NTextBox {
-  protected _formatValue: Computed<(val: any) => string>;
-
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<Array<IOptionFull<number>>>;
 
@@ -36,19 +34,6 @@ export class Reference extends NTextBox {
           disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming)
         }))
         .concat([{label: 'Row ID', value: 0, icon: 'FieldColumn'}]);
-    });
-
-    // Computed returns a function that formats cell values.
-    this._formatValue = Computed.create(this, (use) => {
-      // If the field is pulling values from a display column, use a general-purpose formatter.
-      if (use(this.field.displayColRef) !== use(this.field.colRef)) {
-        const fmt = use(this.field.visibleColFormatter);
-        return (val: any) => fmt.formatAny(val);
-      } else {
-        const refTable = use(use(this.field.column).refTable);
-        const refTableId = refTable ? use(refTable.tableId) : "";
-        return (val: any) => val > 0 ? `${refTableId}[${val}]` : "";
-      }
     });
   }
 
@@ -100,8 +85,8 @@ export class Reference extends NTextBox {
         // but the content of its displayCol has changed.  Postponing doing anything about
         // this until we have three-way information for computed columns.  For now,
         // just showing one version of the cell.  TODO: elaborate.
-        use(this._formatValue)(displayValue[1].local || displayValue[1].parent) :
-        use(this._formatValue)(displayValue);
+        use(this.field.formatter).formatAny(displayValue[1].local || displayValue[1].parent) :
+        use(this.field.formatter).formatAny(displayValue);
 
       hasBlankReference = referenceId.get() !== 0 && value.trim() === '';
 

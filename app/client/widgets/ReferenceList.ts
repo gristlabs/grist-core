@@ -37,7 +37,10 @@ export class ReferenceList extends Reference {
         //   return use(this._formatValue)(content[1].local || content[1].parent);
         // }
         const items = isList(content) ? content.slice(1) : [content];
-        return items.map(use(this._formatValue));
+        // Use field.visibleColFormatter instead of field.formatter
+        // because we're formatting each list element to render tokens, not the whole list.
+        const formatter = use(this.field.visibleColFormatter);
+        return items.map(item => formatter.formatAny(item));
       },
       (input) => {
         if (!input) {

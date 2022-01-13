@@ -897,7 +897,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
 
     function format(val: number) {
       if (dataOptions.totalFormatter) {
-        return dataOptions.totalFormatter.format(val);
+        return dataOptions.totalFormatter.formatAny(val);
       }
       return String(val);
     }

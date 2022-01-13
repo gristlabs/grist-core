@@ -49,7 +49,7 @@ export class ChoiceTextBox extends NTextBox {
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }
 
-          const formattedValue = use(this.valueFormatter).format(use(value));
+          const formattedValue = use(this.valueFormatter).formatAny(use(value));
           if (formattedValue === '') { return null; }
 
           const choiceOptions = use(this._choiceOptionsByName).get(formattedValue);

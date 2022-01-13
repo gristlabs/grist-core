@@ -3,6 +3,7 @@
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from 'app/common/DocActions';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {getReferencedTableId, isList} from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
@@ -25,14 +26,23 @@ export function formatUnknown(value: CellValue): string {
 }
 
 /**
+ * Returns true if the array contains other arrays or structured objects,
+ * indicating that the list should be formatted like JSON rather than CSV.
+ */
+function hasNestedObjects(value: any[]) {
+  return value.some(v => typeof v === 'object' && v && (Array.isArray(v) || isPlainObject(v)));
+}
+
+/**
  * Formats a decoded Grist value for displaying it. For top-level values, formats them the way we
- * like to see them in a cell or in, say, CSV export. For lists and objects, nested values are
- * formatted slighly differently, with quoted strings and ISO format for dates.
+ * like to see them in a cell or in, say, CSV export.
+ * For top-level lists containing only simple values like strings and dates, formats them as a CSV row.
+ * Nested lists and objects are formatted slighly differently, with quoted strings and ISO format for dates.
  */
 export function formatDecoded(value: unknown, isTopLevel: boolean = true): string {
   if (typeof value === 'object' && value) {
     if (Array.isArray(value)) {
-      if (!isTopLevel || value.some(v => typeof v === 'object' && v && (Array.isArray(v) || isPlainObject(v)))) {
+      if (!isTopLevel || hasNestedObjects(value)) {
         return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
       } else {
         return csvEncodeRow(value.map(v => formatDecoded(v, true)), {prettier: true});
@@ -63,19 +73,19 @@ export class BaseFormatter {
   }
 
   /**
-   * Formats a value that matches the type of this formatter. This should be overridden by derived
-   * classes to handle values in formatter-specific ways.
-   */
-  public format(value: any): string {
-    return String(value);
-  }
-
-  /**
    * Formats using this.format() if a value is of the right type for this formatter, or using
    * AnyFormatter otherwise. This method the recommended API. There is no need to override it.
    */
   public formatAny(value: any): string {
     return this.isRightType(value) ? this.format(value) : formatUnknown(value);
+  }
+
+  /**
+   * Formats a value that matches the type of this formatter. This should be overridden by derived
+   * classes to handle values in formatter-specific ways.
+   */
+  protected format(value: any): string {
+    return String(value);
   }
 }
 
@@ -178,12 +188,86 @@ class DateTimeFormatter extends DateFormatter {
   }
 }
 
-const formatters: {[name: string]: typeof BaseFormatter} = {
+class RowIdFormatter extends BaseFormatter {
+  public widgetOpts: { tableId: string };
+
+  public format(value: number): string {
+    return value > 0 ? `${this.widgetOpts.tableId}[${value}]` : "";
+  }
+}
+
+interface ReferenceFormatOptions {
+  visibleColFormatter?: BaseFormatter;
+}
+
+class ReferenceFormatter extends BaseFormatter {
+  public widgetOpts: ReferenceFormatOptions;
+  protected visibleColFormatter: BaseFormatter;
+
+  constructor(type: string, widgetOpts: ReferenceFormatOptions, docSettings: DocumentSettings) {
+    super(type, widgetOpts, docSettings);
+    // widgetOpts.visibleColFormatter shouldn't be undefined, but it can be if a referencing column
+    // is displaying another referencing column, which is partially prohibited in the UI but still possible.
+    this.visibleColFormatter = widgetOpts.visibleColFormatter ||
+      createFormatter('Id', {tableId: getReferencedTableId(type)}, docSettings);
+  }
+
+  public formatAny(value: any): string {
+    /*
+    An invalid value in a referencing column is saved as a string and becomes AltText in the data engine.
+    Then the display column formula (e.g. $person.first_name) raises an InvalidTypedValue trying to access
+    an attribute of that AltText.
+    This would normally lead to the formatter displaying `#Invalid Ref[List]: ` before the string value.
+    That's inconsistent with how the cell is displayed (just the string value in pink)
+    and with how invalid values in other columns are formatted (just the string).
+    It's just a result of the formatter receiving a value from the display column, not the actual column.
+    It's also likely to inconvenience users trying to import/migrate/convert data.
+    So we suppress the error here and just show the text.
+    It's still technically possible for the column to display an actual InvalidTypedValue exception from a formula
+    and this will suppress that too, but this is unlikely and seems worth it.
+    */
+    if (
+      Array.isArray(value)
+      && value[0] === GristObjCode.Exception
+      && value[1] === "InvalidTypedValue"
+      && value[2]?.startsWith?.("Ref")
+    ) {
+      return value[3];
+    }
+    return this.formatNotInvalidRef(value);
+  }
+
+  protected formatNotInvalidRef(value: any) {
+    return this.visibleColFormatter.formatAny(value);
+  }
+}
+
+class ReferenceListFormatter extends ReferenceFormatter {
+  protected formatNotInvalidRef(value: any): string {
+    // Part of this repeats the logic in BaseFormatter.formatAny which is overridden in ReferenceFormatter
+    // It also ensures that complex lists (e.g. if this RefList is displaying a ChoiceList)
+    // are formatted as JSON instead of CSV.
+    if (!isList(value) || hasNestedObjects(value)) {
+      return formatUnknown(value);
+    }
+    // In the most common case, lists of simple objects like strings or dates
+    // are formatted like a CSV.
+    // This is similar to formatUnknown except the inner values are
+    // formatted according to the visible column options.
+    const formattedValues = value.slice(1).map(v => super.formatNotInvalidRef(v));
+    return csvEncodeRow(formattedValues, {prettier: true});
+  }
+}
+
+const formatters: { [name: string]: typeof BaseFormatter } = {
   Numeric: NumericFormatter,
   Int: IntFormatter,
   Bool: BaseFormatter,
   Date: DateFormatter,
   DateTime: DateTimeFormatter,
+  Ref: ReferenceFormatter,
+  RefList: ReferenceListFormatter,
+  Id: RowIdFormatter,
   // We don't list anything that maps to AnyFormatter, since that's the default.
 };
 

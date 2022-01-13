@@ -43,7 +43,7 @@ export abstract class NewAbstractWidget extends Disposable {
     )).onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));
     this.fillColor = fromKo(this.field.fillColor);
 
-    this.valueFormatter = fromKo(field.visibleColFormatter);
+    this.valueFormatter = fromKo(field.formatter);
   }
 
   /**

@@ -11,6 +11,7 @@ import NumberParse from 'app/common/NumberParse';
 import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
 import {MetaRowRecord, TableData} from 'app/common/TableData';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
+import {encodeObject} from 'app/plugin/objtypes';
 import flatMap = require('lodash/flatMap');
 import mapValues = require('lodash/mapValues');
 
@@ -177,7 +178,7 @@ export class ReferenceListParser extends ReferenceParser {
       // csvDecodeRow should never raise an exception
       values = csvDecodeRow(raw);
     }
-    values = values.map(v => typeof v === "string" ? this._visibleColParser(v) : v);
+    values = values.map(v => typeof v === "string" ? this._visibleColParser(v) : encodeObject(v));
 
     if (!values.length || !raw) {
       return null;  // null is the default value for a reference list column

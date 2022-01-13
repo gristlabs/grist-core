@@ -2,7 +2,7 @@ import {KoArray} from 'app/client/lib/koArray';
 import {DocModel, IRowModel, recordSet, refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
-import {getReferencedTableId} from 'app/common/gristTypes';
+import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import {BaseFormatter, createFormatter} from 'app/common/ValueFormatter';
 import * as ko from 'knockout';
 
@@ -55,6 +55,13 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // Helper for Reference/ReferenceList columns, which returns a formatter according
   // to the visibleCol associated with column.
   visibleColFormatter: ko.Computed<BaseFormatter>;
+
+  // A formatter for values of this column.
+  // The difference between visibleColFormatter and formatter is especially important for ReferenceLists:
+  // `visibleColFormatter` is for individual elements of a list, sometimes hypothetical
+  // (i.e. they aren't actually referenced but they exist in the visible column and are relevant to e.g. autocomplete)
+  // `formatter` formats actual cell values, e.g. a whole list from the display column.
+  formatter: ko.Computed<BaseFormatter>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -118,6 +125,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this column. If no visible column available, return formatting for the column itself.
   this.visibleColFormatter = ko.pureComputed(() => visibleColFormatterForRec(this, this, docModel));
+
+  this.formatter = ko.pureComputed(() => formatterForRec(this, this, docModel, this.visibleColFormatter()));
 }
 
 export function visibleColFormatterForRec(
@@ -125,7 +134,28 @@ export function visibleColFormatterForRec(
 ): BaseFormatter {
   const vcol = rec.visibleColModel();
   const documentSettings = docModel.docInfoRow.documentSettingsJson();
-  return (vcol.getRowId() !== 0) ?
-    createFormatter(vcol.type(), vcol.widgetOptionsJson(), documentSettings) :
-    createFormatter(colRec.type(), rec.widgetOptionsJson(), documentSettings);
+  const type = colRec.type();
+  if (isFullReferencingType(type)) {
+    if (vcol.getRowId() === 0) {
+      // This column displays the Row ID, e.g. Table1[2]
+      // referencedTableId may actually be empty if the table is hidden
+      const referencedTableId: string = colRec.refTable()?.tableId() || "";
+      return createFormatter('Id', {tableId: referencedTableId}, documentSettings);
+    } else {
+      return createFormatter(vcol.type(), vcol.widgetOptionsJson(), documentSettings);
+    }
+  } else {
+    // For non-reference columns, there's no 'visible column' and we just return a regular formatter
+    return createFormatter(type, rec.widgetOptionsJson(), documentSettings);
+  }
+}
+
+export function formatterForRec(
+  rec: ColumnRec | ViewFieldRec, colRec: ColumnRec, docModel: DocModel, visibleColFormatter: BaseFormatter
+): BaseFormatter {
+  const type = colRec.type();
+  // Ref/RefList columns delegate most formatting to the visibleColFormatter
+  const widgetOpts = {...rec.widgetOptionsJson(), visibleColFormatter};
+  const documentSettings = docModel.docInfoRow.documentSettingsJson();
+  return createFormatter(type, widgetOpts, documentSettings);
 }

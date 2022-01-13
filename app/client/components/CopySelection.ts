@@ -33,7 +33,7 @@ export class CopySelection {
     this.rowStyle = options.rowStyle;
     this.colStyle = options.colStyle;
     this.columns = fields.map((f, i) => {
-      const formatter = f.visibleColFormatter();
+      const formatter = f.formatter();
       const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i])!;
       const _rawGetter = tableData.getRowPropFunc(this.colIds[i])!;
 

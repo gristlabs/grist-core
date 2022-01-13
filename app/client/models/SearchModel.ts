@@ -218,7 +218,7 @@ class FinderImpl implements IFinder {
     this._sectionTableData = tableModel.tableData;
 
     this._fieldStepper.array = section.viewFields().peek();
-    this._fieldFormatters = this._fieldStepper.array.map(f => f.visibleColFormatter.peek());
+    this._fieldFormatters = this._fieldStepper.array.map(f => f.formatter.peek());
     return tableModel;
   }
 

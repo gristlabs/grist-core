@@ -1,5 +1,5 @@
 import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
-import {visibleColFormatterForRec} from 'app/client/models/entities/ColumnRec';
+import {formatterForRec, visibleColFormatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
@@ -73,6 +73,13 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   // Helper for Reference/ReferenceList columns, which returns a formatter according
   // to the visibleCol associated with field.
   visibleColFormatter: ko.Computed<BaseFormatter>;
+
+  // A formatter for values of this column.
+  // The difference between visibleColFormatter and formatter is especially important for ReferenceLists:
+  // `visibleColFormatter` is for individual elements of a list, sometimes hypothetical
+  // (i.e. they aren't actually referenced but they exist in the visible column and are relevant to e.g. autocomplete)
+  // `formatter` formats actual cell values, e.g. a whole list from the display column.
+  formatter: ko.Computed<BaseFormatter>;
 
   createValueParser(): (value: string) => any;
 
@@ -166,6 +173,8 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
   this.visibleColFormatter = ko.pureComputed(() => visibleColFormatterForRec(this, this.column(), docModel));
+
+  this.formatter = ko.pureComputed(() => formatterForRec(this, this.column(), docModel, this.visibleColFormatter()));
 
   this.createValueParser = function() {
     const fieldRef = this.useColOptions.peek() ? undefined : this.id.peek();
