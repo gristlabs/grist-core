@@ -7,7 +7,9 @@ import {Features} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
+import {UserPrefs} from 'app/common/Prefs';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 export {reportError} from 'app/client/models/errors';
@@ -58,6 +60,7 @@ export interface AppModel {
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
 
   currentFeatures: Features;            // features of the current org's product.
+  userPrefsObs: Observable<UserPrefs>;
 
   pageType: Observable<PageType>;
 
@@ -176,6 +179,8 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly currentFeatures = (this.currentOrg && this.currentOrg.billingAccount) ?
     this.currentOrg.billingAccount.product.features : {};
+
+  public readonly userPrefsObs = getUserPrefsObs(this);
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,

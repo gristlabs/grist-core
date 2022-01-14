@@ -97,7 +97,17 @@ export type IconName = "ChartArea" |
   "Warning" |
   "Widget" |
   "Wrap" |
-  "Zoom";
+  "Zoom" |
+  "UseChart" |
+  "UseEducate" |
+  "UseFinance" |
+  "UseHr" |
+  "UseMedia" |
+  "UseMonitor" |
+  "UseOther" |
+  "UseProduct" |
+  "UseSales" |
+  "UseScience";
 
 export const IconList: IconName[] = ["ChartArea",
   "ChartBar",
@@ -198,4 +208,14 @@ export const IconList: IconName[] = ["ChartArea",
   "Warning",
   "Widget",
   "Wrap",
-  "Zoom"];
+  "Zoom",
+  "UseChart",
+  "UseEducate",
+  "UseFinance",
+  "UseHr",
+  "UseMedia",
+  "UseMonitor",
+  "UseOther",
+  "UseProduct",
+  "UseSales",
+  "UseScience"];

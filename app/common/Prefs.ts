@@ -6,14 +6,18 @@ export type SortPref = typeof SortPref.type;
 export const ViewPref = StringUnion("list", "icons");
 export type ViewPref = typeof ViewPref.type;
 
-
 // A collection of preferences related to a user or org (or combination).
 export interface Prefs {
-  // TODO replace this with real preferences.
+  // A dummy field used only in tests.
   placeholder?: string;
 }
 
-export type UserPrefs = Prefs;
+// A collection of preferences related to a user or org (or combination).
+export interface UserPrefs extends Prefs {
+  // Whether to ask the user to fill out a form about their use-case, on opening the DocMenu page.
+  // Set to true on first login, then reset when the form is closed, so that it only shows once.
+  showNewUserQuestions?: boolean;
+}
 
 export interface UserOrgPrefs extends Prefs {
   docMenuSort?: SortPref;

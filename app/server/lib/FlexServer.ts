@@ -1095,10 +1095,20 @@ export class FlexServer implements GristServer {
 
       if (req.params.page === 'user') {
         const name: string|undefined = req.body && req.body.username || undefined;
+
+        // Reset isFirstTimeUser flag, used to redirect a new user to the /welcome/user page.
         await this._dbManager.updateUser(userId, {name, isFirstTimeUser: false});
-        redirectPath = '/welcome/info';
+
+        // This is a good time to set another flag (showNewUserQuestions), to show a popup with
+        // welcome question(s) to this new user. Both flags are scoped to the user, but
+        // isFirstTimeUser has a dedicated DB field because it predates userPrefs. Note that the
+        // updateOrg() method handles all levels of prefs (for user, user+org, or org).
+        await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {showNewUserQuestions: true}});
 
       } else if (req.params.page === 'info') {
+        // The /welcome/info page is no longer part of any flow, but if visited, will still submit
+        // here and redirect. The new form with new-user questions appears in a modal popup. It
+        // also posts here to save answers, but ignores the response.
         const user = getUser(req);
         const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
         this._recordNewUserInfo(row)
@@ -1106,14 +1116,14 @@ export class FlexServer implements GristServer {
           // If we failed to record, at least log the data, so we could potentially recover it.
           log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
         });
+      }
 
-        // redirect to teams page if users has access to more than one org. Otherwise redirect to
-        // personal org.
-        const result = await this._dbManager.getMergedOrgs(userId, userId, domain || null);
-        const orgs = (result.status === 200) ? result.data : null;
-        if (orgs && orgs.length > 1) {
-          redirectPath = '/welcome/teams';
-        }
+      // redirect to teams page if users has access to more than one org. Otherwise redirect to
+      // personal org.
+      const result = await this._dbManager.getMergedOrgs(userId, userId, domain || null);
+      const orgs = (result.status === 200) ? result.data : null;
+      if (orgs && orgs.length > 1) {
+        redirectPath = '/welcome/teams';
       }
 
       const mergedOrgDomain = this._dbManager.mergedOrgDomain();

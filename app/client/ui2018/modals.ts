@@ -2,7 +2,7 @@ import {FocusLayer} from 'app/client/lib/FocusLayer';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import {reportError} from 'app/client/models/errors';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
 import {Computed, Disposable, dom, DomContents, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
@@ -347,6 +347,13 @@ const cssModalDialog = styled('div', `
   &-fixed-wide {
     width: 600px;
   }
+  @media ${mediaSmall} {
+    & {
+      width: unset;
+      min-width: unset;
+      padding: 24px 16px;
+    }
+  }
 `);
 
 export const cssModalTitle = styled('div', `
@@ -381,6 +388,7 @@ const cssModalBacker = styled('div', `
   height: 100%;
   top: 0;
   left: 0;
+  padding: 16px;
   z-index: 999;
   background-color: ${colors.backdrop};
   overflow-y: auto;

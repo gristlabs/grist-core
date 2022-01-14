@@ -13,6 +13,7 @@ import {buildHomeIntro} from 'app/client/ui/HomeIntro';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
+import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {colors} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -48,6 +49,7 @@ export function createDocMenu(home: HomeModel) {
 function createLoadedDocMenu(home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   return css.docList(
+    showWelcomeQuestions(home.app.userPrefsObs),
     dom.maybe(!home.app.currentFeatures.workspaces, () => [
       css.docListHeader('This service is not available right now'),
       dom('span', '(The organization needs a paid plan)')
