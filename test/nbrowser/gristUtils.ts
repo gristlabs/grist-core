@@ -1364,9 +1364,20 @@ export class Session {
   }
 
   // Load a DocMenu on a site.
-  public async loadDocMenu(relPath: string, wait: boolean = true) {
+  // If loading for a potentially first-time user, you may give 'skipWelcomeQuestions' for second
+  // argument to dismiss the popup with welcome questions, if it gets shown.
+  public async loadDocMenu(relPath: string, wait: boolean|'skipWelcomeQuestions' = true) {
     await this.loadRelPath(relPath);
     if (wait) { await waitForDocMenuToLoad(); }
+
+    if (wait === 'skipWelcomeQuestions') {
+      // When waitForDocMenuToLoad() returns, welcome questions should also render, so that we
+      // don't need to wait extra for them.
+      if (await driver.find('.test-welcome-questions').isPresent()) {
+        await driver.sendKeys(Key.ESCAPE);
+        assert.equal(await driver.find('.test-welcome-questions').isPresent(), false);
+      }
+    }
   }
 
   public async loadRelPath(relPath: string) {

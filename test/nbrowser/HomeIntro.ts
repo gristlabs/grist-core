@@ -66,7 +66,7 @@ describe('HomeIntro', function() {
       });
 
       // Open doc-menu
-      await session.loadDocMenu('/');
+      await session.loadDocMenu('/', 'skipWelcomeQuestions');
 
       // Check message specific to logged-in user
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
@@ -91,7 +91,7 @@ describe('HomeIntro', function() {
       await session.resetSite();
 
       // Open doc-menu
-      await session.loadDocMenu('/');
+      await session.loadDocMenu('/', 'skipWelcomeQuestions');
 
       // Check message specific to logged-in user
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
