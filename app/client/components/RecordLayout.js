@@ -254,7 +254,9 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
   // with items which require new columns first.
   let callbacks = addedCallbacks.concat(hiddenCallbacks);
   let positions = addedPositions.concat(hiddenPositions);
-  let addActions = gutil.arrayRepeat(addColNum, addColAction);
+
+  // Use separate copies of addColAction, since sendTableActions modified each in-place.
+  let addActions = gutil.arrayRepeat(addColNum, 0).map(() => addColAction.slice());
 
   await docData.bundleActions('Updating record layout.', () => {
     return Promise.try(() => {
