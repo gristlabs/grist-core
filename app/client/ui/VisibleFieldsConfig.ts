@@ -28,6 +28,9 @@ interface DraggableFieldsOption {
   // the group-by-column in the chart type widget.
   skipFirst?: Observable<number>;
 
+  // Allows to filter view fields.
+  filterFunc?: (field: ViewFieldRec, index: number) => boolean;
+
   // Allows to prevent updates of the list. This option is to be used when skipFirst option is used
   // and it is useful to prevent the list to update during changes that only affect the skipped
   // fields.
@@ -98,19 +101,26 @@ export class VisibleFieldsConfig extends Disposable {
     const itemClass = this._useNewUI ? cssDragRow.className : 'view_config_draggable_field';
     let fields = this._section.viewFields.peek();
 
-    if (options.skipFirst) {
+    if (options.skipFirst || options.filterFunc) {
+      const skipFirst = options.skipFirst || Observable.create(this, -1);
+      const filterFunc = options.filterFunc || (() => true);
+
       const freeze = options.freeze;
       const allFields = this._section.viewFields.peek();
       const newArray = new KoArray<ViewFieldRec>();
+
       function update() {
         if (freeze && freeze.get()) { return; }
-        const newValues = allFields.peek().filter((_v, i) => i + 1 > options.skipFirst!.get());
+        const newValues = allFields.peek()
+          .filter((_v, i) => i + 1 > skipFirst.get())
+          .filter(filterFunc)
+        ;
         if (isEqual(newArray.all(), newValues)) { return; }
         newArray.assign(newValues);
       }
       update();
       this.autoDispose(allFields.subscribe(update));
-      this.autoDispose(subscribe(options.skipFirst, update));
+      this.autoDispose(subscribe(skipFirst, update));
       if (options.freeze) {
         this.autoDispose(subscribe(options.freeze, update));
       }

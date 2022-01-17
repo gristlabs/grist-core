@@ -6,6 +6,7 @@
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import * as BaseView from 'app/client/components/BaseView';
+import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
@@ -48,7 +49,7 @@ import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {isSchemaAction} from 'app/common/DocActions';
+import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {isList, isRefListType, RecalcWhen} from 'app/common/gristTypes';
 import {HashLink, IDocPage} from 'app/common/gristUrls';
@@ -492,6 +493,9 @@ export class GristDoc extends DisposableWithEvents {
     const result = await this.docData.sendAction(
       ['CreateViewSection', tableRef, viewRef, val.type, val.summarize ? val.columns : null]
     );
+    if (val.type === 'chart') {
+      await this._ensureOneNumericSeries(result.sectionRef);
+    }
     await this.docData.sendAction(
       ['UpdateRecord', '_grist_Views_section', result.sectionRef, {
         linkSrcSectionRef: link.srcSectionRef,
@@ -510,9 +514,15 @@ export class GristDoc extends DisposableWithEvents {
       const result = await this.docData.sendAction(['AddEmptyTable']);
       await this.openDocPage(result.views[0].id);
     } else {
-      const result = await this.docData.sendAction(
-        ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null]
-      );
+      let result: any;
+      await this.docData.bundleActions(`Add new page`, async () => {
+        result = await this.docData.sendAction(
+          ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null]
+        );
+        if (val.type === 'chart') {
+          await this._ensureOneNumericSeries(result.sectionRef);
+        }
+      });
       await this.openDocPage(result.viewRef);
       // The newly-added section should be given focus.
       this.viewModel.activeSectionId(result.sectionRef);
@@ -912,6 +922,36 @@ export class GristDoc extends DisposableWithEvents {
     // Use the showGristTour pref if set; otherwise default to true for anonymous users, and false
     // for real returning users.
     return this._showGristTour.get() ?? (!appModel.currentValidUser);
+  }
+
+  /**
+   * Makes sure sure that the first y-series (ie: the view fields at index 1) is a numeric
+   * series. Does not handle chart with the group by option on: it is only intended to be used to
+   * make sure that newly created chart do have a visible y series.
+   */
+  private async _ensureOneNumericSeries(id: number) {
+    const viewSection = this.docModel.viewSections.getRowModel(id);
+    const field = viewSection.viewFields.peek().peek()[1];
+    if (isNumericOnly(viewSection.chartTypeDef.peek()) &&
+        !isNumericLike(field.column.peek())) {
+      const actions: UserAction[] = [];
+
+      // remove non-numeric field
+      actions.push(['RemoveRecord', field.id.peek()]);
+
+      // add new field
+      const newField = viewSection.hiddenColumns.peek().find((col) => isNumericLike(col));
+      if (newField) {
+        const colInfo = {
+          parentId: viewSection.id.peek(),
+          colRef: newField.id.peek(),
+        };
+        actions.push(['AddRecord', null, colInfo]);
+      }
+
+      // send actions
+      await this.docModel.viewFields.sendTableActions(actions);
+    }
   }
 }
 

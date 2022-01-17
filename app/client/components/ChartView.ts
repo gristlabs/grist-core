@@ -7,7 +7,7 @@ import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
 import * as DataTableModel from 'app/client/models/DataTableModel';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
@@ -17,13 +17,13 @@ import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
-import {linkSelect, menu, menuItem, select} from 'app/client/ui2018/menus';
+import {linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {nativeCompare} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
-import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable, IOption,
-  makeTestId, Observable, styled} from 'grainjs';
+import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
+        IDisposable, IOption, ISubscribable, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
 import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
@@ -45,6 +45,23 @@ const testId = makeTestId('test-chart-');
 
 function isPieLike(chartType: string) {
   return ['pie', 'donut'].includes(chartType);
+}
+
+export function isNumericOnly(chartType: string) {
+  return ['bar', 'pie', 'donut', 'kaplan_meier', 'line', 'area', 'scatter'].includes(chartType);
+}
+
+// Returns the type of the visibleCol if col is of type `Ref`, otherwise returns the type of col.
+function visibleColType(col: ColumnRec, use: UseCB = unwrap) {
+  const colType = use(col.pureType);
+  const isRef = colType === 'Ref';
+  return isRef ? use(use(col.visibleColModel).type) : colType;
+}
+
+// Returns true if col is one of 'Numeric', 'Int', 'Any'.
+export function isNumericLike(col: ColumnRec, use: UseCB = unwrap) {
+  const colType = visibleColType(col, use);
+  return ['Numeric', 'Int', 'Any'].includes(colType);
 }
 
 
@@ -179,9 +196,17 @@ export class ChartView extends Disposable {
 
     this._update = debounce(() => this._updateView(), 0);
 
+    let subs: IDisposable[] = [];
     this.autoDispose(this._chartType.subscribe(this._update));
     this.autoDispose(this._options.subscribe(this._update));
-    this.autoDispose(this.viewSection.viewFields().subscribe(this._update));
+    this.autoDispose(this.viewSection.viewFields().subscribe((viewFields: ViewFieldRec[]) => {
+      this._update();
+      subs.forEach((sub) => sub.dispose());
+      subs = [
+        ...viewFields.map((field) => field.displayColModel.peek().type.subscribe(this._update)),
+        ...viewFields.map((field) => field.visibleColModel.peek().type.subscribe(this._update)),
+      ];
+    }));
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
     this.autoDispose(this._formatterComp.subscribe(this._update));
@@ -217,19 +242,21 @@ export class ChartView extends Disposable {
 
     const fields: ViewFieldRec[] = this.viewSection.viewFields().all();
     const rowIds: number[] = this.sortedRows.getKoArray().peek() as number[];
-    let series: Series[] = fields.map((field) => {
-      // Use the colId of the displayCol, which may be different in case of Reference columns.
-      const colId: string = field.displayColModel.peek().colId.peek();
-      const getter = this.tableModel.tableData.getRowPropFunc(colId) as RowPropGetter;
-      const pureType = field.displayColModel().pureType();
-      const fullGetter = (pureType === 'Date' || pureType === 'DateTime') ? dateGetter(getter) : getter;
-      return {
-        label: field.label(),
-        values: rowIds.map(fullGetter),
-      };
-    });
-
     const startIndexForYAxis = this._options.prop('multiseries').peek() ? 2 : 1;
+    let series: Series[] = fields
+      .filter((field, i) => i < startIndexForYAxis || this._isCompatibleSeries(field.column.peek()))
+      .map((field) => {
+        // Use the colId of the displayCol, which may be different in case of Reference columns.
+        const colId: string = field.displayColModel.peek().colId.peek();
+        const getter = this.tableModel.tableData.getRowPropFunc(colId) as RowPropGetter;
+        const pureType = field.displayColModel().pureType();
+        const fullGetter = (pureType === 'Date' || pureType === 'DateTime') ? dateGetter(getter) : getter;
+        return {
+          label: field.label(),
+          values: rowIds.map(fullGetter),
+        };
+      });
+
     for (let i = 0; i < series.length; ++i) {
       if (i < fields.length && LIST_TYPES.includes(fields[i].column.peek().pureType.peek())) {
         if (i < startIndexForYAxis) {
@@ -302,6 +329,10 @@ export class ChartView extends Disposable {
   private _resizeChart() {
     if (this.isDisposed() || !Plotly || !this._chartDom.parentNode) { return; }
     Plotly.Plots.resize(this._chartDom);
+  }
+
+  private _isCompatibleSeries(col: ColumnRec) {
+    return isNumericOnly(this._chartType.peek()) ? isNumericLike(col) : true;
   }
 }
 
@@ -583,9 +614,27 @@ export class ChartConfig extends GrainJSDisposable {
       cssRow(
         cssAddYAxis(
           cssAddIcon('Plus'), 'Add Series',
-          menu(() => this._section.hiddenColumns.peek().map((col) => (
-            menuItem(() => this._configFieldsHelper.addField(col), col.label.peek())
-          ))),
+          menu(() => {
+            const hiddenColumns = this._section.hiddenColumns.peek();
+            const filterFunc = this._isCompatibleSeries.bind(this);
+            const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
+            return [
+              ...hiddenColumns
+                .filter((col) => filterFunc(col))
+                .map((col) => menuItem(
+                  () => this._configFieldsHelper.addField(col),
+                  col.label.peek(),
+                )),
+              nonNumericCount ? menuText(
+                `${nonNumericCount} ` + (
+                  nonNumericCount > 1 ?
+                    `non-numeric columns are not shown` :
+                    `non-numeric column is not shown`
+                ),
+                testId('yseries-picker-message'),
+              ) : null,
+            ];
+          }),
           testId('add-y-axis'),
         )
       ),
@@ -672,7 +721,7 @@ export class ChartConfig extends GrainJSDisposable {
     );
   }
 
-  private _buildYAxis(): Element {
+  private _buildYAxis(): DomContents {
 
     // The y-axis are all visible fields that comes after the x-axis and maybe the group data
     // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
@@ -680,14 +729,22 @@ export class ChartConfig extends GrainJSDisposable {
       multiseries ? 2 : 1
     ));
 
-    return this._configFieldsHelper.buildVisibleFieldsConfigHelper({
-      itemCreateFunc: (field) => this._buildField(field),
-      draggableOptions: {
-        removeButton: false,
-        drag_indicator: cssDragger,
-      }, skipFirst, freeze: this._freezeYAxis
+    return dom.domComputed((use) => {
+      const filterFunc = (field: ViewFieldRec) => this._isCompatibleSeries(use(field.column), use);
+      return this._configFieldsHelper.buildVisibleFieldsConfigHelper({
+        itemCreateFunc: (field) => this._buildField(field),
+        draggableOptions: {
+          removeButton: false,
+          drag_indicator: cssDragger,
+        }, skipFirst, freeze: this._freezeYAxis, filterFunc
+      });
     });
   }
+
+  private _isCompatibleSeries(col: ColumnRec, use: UseCB = unwrap) {
+    return isNumericOnly(use(this._chartType)) ? isNumericLike(col, use) : true;
+  }
+
 }
 
 // Row for a numeric option. User can change value using spinners or directly using keyboard. In
@@ -1076,3 +1133,11 @@ const cssSpinners = styled('input', `
     opacity: 1;
   }
 `);
+
+// Returns the value of both granjs and knockout observable without creating a dependency.
+const unwrap: UseCB = (obs: ISubscribable) => {
+  if ('_getDepItem' in obs) {
+    return obs.get();
+  }
+  return (obs as ko.Observable).peek();
+};
