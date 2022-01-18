@@ -918,7 +918,12 @@ GridView.prototype.buildDom = function() {
             kd.style('borderLeftWidth', v.borderWidthPx),
             kd.foreach(v.viewFields(), field => {
               var isEditingLabel = ko.pureComputed({
-                read: () => this.gristDoc.isReadonlyKo() || self.isPreview ? false : editIndex() === field._index(),
+                read: () => {
+                  const goodIndex = () => editIndex() === field._index();
+                  const isReadonly = () => this.gristDoc.isReadonlyKo() || self.isPreview;
+                  const isSummary = () => Boolean(field.column().disableEditData());
+                  return goodIndex() && !isReadonly() && !isSummary();
+                },
                 write: val => editIndex(val ? field._index() : -1)
               }).extend({ rateLimit: 0 });
               let filterTriggerCtl;

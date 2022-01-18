@@ -5,7 +5,7 @@ import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {testId} from 'app/client/ui2018/cssVars';
 import {NTextBox} from 'app/client/widgets/NTextBox';
-import {Computed, dom, styled} from 'grainjs';
+import {Computed, dom, fromKo, styled} from 'grainjs';
 import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 
 export interface IChoiceOptions {
@@ -73,7 +73,8 @@ export class ChoiceTextBox extends NTextBox {
           ChoiceListEntry,
           this._choiceValues,
           this._choiceOptionsByName,
-          this.save.bind(this)
+          this.save.bind(this),
+          fromKo(this.field.column().disableEditData)
         )
       )
     ];

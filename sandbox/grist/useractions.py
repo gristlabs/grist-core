@@ -146,6 +146,32 @@ def guess_type(values, convert=False):
   return "Numeric" if total and counter[True] >= total * 0.9 else "Text"
 
 
+def allowed_summary_change(key, updated, original):
+  """
+  Checks if summary group by column can be modified.
+  """
+  if updated == original:
+    return True
+  elif key == 'widgetOptions':
+    try:
+      updated_options = json.loads(updated or '{}')
+      original_options = json.loads(original or '{}')
+    except ValueError:
+      return False
+    # Unfortunately all widgetOptions are allowed to change, except choice items. But it is
+    # better to list those that can be changed.
+    # TODO: move choice items to separate column
+    allowed_to_change = {'widget', 'dateFormat', 'timeFormat', 'isCustomDateFormat', 'alignment',
+                         'fillColor', 'textColor', 'isCustomTimeFormat', 'isCustomDateFormat',
+                         'numMode', 'numSign', 'decimals', 'maxDecimals', 'currency'}
+    # Helper function to remove protected keys from dictionary.
+    def trim(options):
+      return {k: v for k, v in options.items() if k not in allowed_to_change}
+    return trim(updated_options) == trim(original_options)
+  else:
+    return False
+
+
 class UserActions(object):
   def __init__(self, eng):
     self._engine = eng
@@ -574,7 +600,7 @@ class UserActions(object):
             # Type sometimes must differ (e.g. ChoiceList -> Choice).
             expected = summary.summary_groupby_col_type(expected)
 
-          if value != expected:
+          if not allowed_summary_change(key, value, expected):
             raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)

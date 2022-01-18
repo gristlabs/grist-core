@@ -8,6 +8,7 @@ import logger
 import summary
 import testutil
 import test_engine
+from useractions import allowed_summary_change
 
 from test_engine import Table, Column, View, Section, Field
 
@@ -839,3 +840,96 @@ class Address:
       [ 1,    1.0,  [1,2],    2,        9   ],
       [ 2,    2.0,  [3],      1,        6   ],
     ])
+
+  #----------------------------------------------------------------------
+  # pylint: disable=R0915
+  def test_allow_select_by_change(self):
+    def widgetOptions(n, o):
+      return allowed_summary_change('widgetOptions', n, o)
+
+    # Can make no update on widgetOptions.
+    new = None
+    old = None
+    self.assertTrue(widgetOptions(new, old))
+
+    new = ''
+    old = None
+    self.assertTrue(widgetOptions(new, old))
+
+    new = ''
+    old = ''
+    self.assertTrue(widgetOptions(new, old))
+
+    new = None
+    old = ''
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can update when key was not present
+    new = '{"widget":"TextBox","alignment":"center"}'
+    old = ''
+    self.assertTrue(widgetOptions(new, old))
+
+    new = ''
+    old = '{"widget":"TextBox","alignment":"center"}'
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can update when key was present.
+    new = '{"widget":"TextBox","alignment":"center"}'
+    old = '{"widget":"Spinner","alignment":"center"}'
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can update but must leave other options.
+    new = '{"widget":"TextBox","cant":"center"}'
+    old = '{"widget":"Spinner","cant":"center"}'
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can't add protected property when old was empty.
+    new = '{"widget":"TextBox","cant":"new"}'
+    old = None
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can't remove when there was a protected property.
+    new = None
+    old = '{"widget":"TextBox","cant":"old"}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can't update by omitting.
+    new = '{"widget":"TextBox"}'
+    old = '{"widget":"TextBox","cant":"old"}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can't update by changing.
+    new = '{"widget":"TextBox","cant":"new"}'
+    old = '{"widget":"TextBox","cant":"old"}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can't update by adding.
+    new = '{"widget":"TextBox","cant":"new"}'
+    old = '{"widget":"TextBox"}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can update objects
+    new = '{"widget":"TextBox","alignment":{"prop":1},"cant":{"prop":1}}'
+    old = '{"widget":"TextBox","alignment":{"prop":2},"cant":{"prop":1}}'
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can't update objects
+    new = '{"widget":"TextBox","cant":{"prop":1}}'
+    old = '{"widget":"TextBox","cant":{"prop":2}}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can't update lists
+    new = '{"widget":"TextBox","cant":[1, 2]}'
+    old = '{"widget":"TextBox","cant":[2, 1]}'
+    self.assertFalse(widgetOptions(new, old))
+
+    # Can update lists
+    new = '{"widget":"TextBox","alignment":[1, 2]}'
+    old = '{"widget":"TextBox","alignment":[3, 2]}'
+    self.assertTrue(widgetOptions(new, old))
+
+    # Can update without changing list.
+    new = '{"widget":"TextBox","dontChange":[1, 2]}'
+    old = '{"widget":"Spinner","dontChange":[1, 2]}'
+    self.assertTrue(widgetOptions(new, old))
+  # pylint: enable=R0915

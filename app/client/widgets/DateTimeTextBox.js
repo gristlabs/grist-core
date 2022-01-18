@@ -66,7 +66,10 @@ DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
   var self = this;
   return dom('div',
     cssLabel("Timezone"),
-    cssRow(gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone)),
+    cssRow(
+      gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone,
+        { disabled : fromKo(this.field.column().disableEditData)}),
+      ),
     self.buildDateConfigDom(),
     cssLabel("Time Format"),
     cssRow(dom(select(fromKo(self.standardTimeFormat), self.timeFormatOptions), dom.testId("Widget_timeFormat"))),

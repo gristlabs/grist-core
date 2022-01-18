@@ -891,6 +891,38 @@ export async function undo(optCount: number = 1, optTimeout?: number) {
 
 
 /**
+ * Returns a function to undo all user actions from a particular point in time.
+ */
+export async function begin() {
+  const undoStackPointer = () => driver.executeScript<number>(`
+    return window.gristDocPageModel.gristDoc.get()._undoStack._pointer;
+  `);
+  const start = await undoStackPointer();
+  return async () => undo(await undoStackPointer() - start);
+}
+
+/**
+ * Simulates a transaction on the GristDoc. Use with cautions, as there is no guarantee it will undo correctly
+ * in a case of failure.
+ *
+ * Example:
+ *
+ * it('should ...', revertChanges(async function() {
+ * ...
+ * }));
+ */
+export function revertChanges(test: () => Promise<void>) {
+  return async function() {
+    const revert = await begin();
+    try {
+      await test();
+    } finally {
+      await revert();
+    }
+  };
+}
+
+/**
  * Click the Redo button and wait for server. If optCount is given, click Redo that many times.
  */
 export async function redo(optCount: number = 1, optTimeout?: number) {
@@ -1749,7 +1781,7 @@ export async function getDateFormat(): Promise<string> {
 /**
  * Changes date format for date and datetime editor
  */
-export async function setDateFormat(format: string) {
+export async function setDateFormat(format: string|RegExp) {
   await driver.find('[data-test-id=Widget_dateFormat]').click();
   await driver.findContentWait('.test-select-menu .test-select-row', format, 200).click();
   await waitForServer();

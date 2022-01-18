@@ -18,6 +18,7 @@ export interface ACSelectItem extends ACItem {
 export function buildACSelect(
   owner: IDisposableOwner,
   options: {
+    disabled?: Observable<boolean>,
     acIndex: ACIndex<ACSelectItem>,
     valueObs: Observable<string>,
     save: (value: string, item: ACSelectItem|undefined) => Promise<void>|void
@@ -55,6 +56,9 @@ export function buildACSelect(
 
   const onMouseDown = (ev: MouseEvent) => {
     ev.preventDefault();    // Don't let it affect focus, since we focus/blur manually.
+    if (options.disabled?.get()) {
+      return;
+    }
     if (!isOpen()) { textInput.focus(); }
     openOrCommit();
   };
@@ -73,6 +77,7 @@ export function buildACSelect(
       dom.prop('value', valueObs),
       dom.on('focus', (ev, elem) => elem.select()),
       dom.on('blur', commitOrRevert),
+      dom.prop("disabled", (use) => options.disabled ? use(options.disabled) : false),
       dom.onKeyDown({
         Escape: revert,
         Enter: openOrCommit,

@@ -58,7 +58,8 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
         cssColTieConnectors(),
         cssToggleButton(icon('FieldReference'),
           cssToggleButton.cls('-selected', (use) => !use(untieColId)),
-          dom.on('click', () => untieColId.saveOnly(!untieColId.peek())),
+          dom.on('click', () => !origColumn.disableModify.peek() && untieColId.saveOnly(!untieColId.peek())),
+          cssToggleButton.cls("-disabled", origColumn.disableModify),
           testId('field-derive-id')
         ),
       )
@@ -390,6 +391,10 @@ const cssToggleButton = styled(cssIconButton, `
   }
   &-selected:hover {
     --icon-color: ${colors.darkGrey};
+  }
+  &-disabled, &-disabled:hover {
+    --icon-color: ${colors.light};
+    background-color: var(--grist-color-medium-grey-opaque);
   }
 `);
 

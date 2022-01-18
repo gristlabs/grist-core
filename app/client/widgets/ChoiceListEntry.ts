@@ -91,7 +91,8 @@ export class ChoiceListEntry extends Disposable {
   constructor(
     private _values: Observable<string[]>,
     private _choiceOptionsByName: Observable<ChoiceOptionsByName>,
-    private _onSave: (values: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) => void
+    private _onSave: (values: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) => void,
+    private _disabled: Observable<boolean>
   ) {
     super();
 
@@ -177,12 +178,15 @@ export class ChoiceListEntry extends Disposable {
               )
             ),
             dom.on('click', () => this._startEditing()),
+            cssListBoxInactive.cls("-disabled", this._disabled),
             testId('choice-list-entry')
           ),
-          cssButtonRow(
-            primaryButton('Edit',
-              dom.on('click', () => this._startEditing()),
-              testId('choice-list-entry-edit')
+          dom.maybe(use => !use(this._disabled), () =>
+            cssButtonRow(
+              primaryButton('Edit',
+                dom.on('click', () => this._startEditing()),
+                testId('choice-list-entry-edit')
+              )
             )
           )
         );
@@ -191,7 +195,9 @@ export class ChoiceListEntry extends Disposable {
   }
 
   private _startEditing(): void {
-    this._isEditing.set(true);
+    if (!this._disabled.get()) {
+      this._isEditing.set(true);
+    }
   }
 
   private _save(): void {
@@ -368,6 +374,9 @@ const cssListBoxInactive = styled(cssListBox, `
 
   &:hover {
     border: 1px solid ${colors.hover};
+  }
+  &-disabled {
+    cursor: default;
   }
 `);
 

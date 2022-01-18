@@ -47,7 +47,8 @@ export function buildTZAutocomplete(
   owner: IDisposableOwner,
   moment: MomentTimezone,
   valueObs: Observable<string>,
-  save: (value: string) => Promise<void>|void
+  save: (value: string) => Promise<void>|void,
+  options?: { disabled?: Observable<boolean> }
 ) {
   // Set a large maxResults, since it's sometimes nice to see all supported timezones (there are
   // fewer than 1000 in practice).
@@ -69,7 +70,7 @@ export function buildTZAutocomplete(
     }
   };
   return buildACSelect(owner,
-    {acIndex, valueObs, save: saveTZ},
+    {...options, acIndex, valueObs, save: saveTZ},
     testId("tz-autocomplete")
   );
 }
