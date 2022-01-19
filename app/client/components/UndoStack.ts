@@ -2,9 +2,10 @@ import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as dispose from 'app/client/lib/dispose';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {PromiseChain} from 'app/common/gutil';
+import {PromiseChain, setDefault} from 'app/common/gutil';
 import {fromKo, Observable} from 'grainjs';
 import * as ko from 'knockout';
+import sortBy = require('lodash/sortBy');
 
 export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;
@@ -27,7 +28,7 @@ export class UndoStack extends dispose.Disposable {
   private _gristDoc: GristDoc;
   private _stack: ActionGroupWithCursorPos[];
   private _pointer: number;
-  private _linkMap: {[actionNum: number]: MinimalActionGroup};
+  private _linkMap: Map<number, MinimalActionGroup[]>;
 
   // Chain of promises which send undo actions to the server. This delays the execution of the
   // next action until the current one has been received and moved the pointer index.
@@ -43,7 +44,7 @@ export class UndoStack extends dispose.Disposable {
     this._pointer = 0;
 
     // Map leading from actionNums to the action groups which link to them.
-    this._linkMap = {};
+    this._linkMap = new Map();
 
     // Observables for when there is nothing to undo/redo.
     this.undoDisabledObs = ko.observable(true);
@@ -74,7 +75,7 @@ export class UndoStack extends dispose.Disposable {
 
     if (ag.linkId) {
       // Link action. Add the action to the linkMap, but not to any stacks.
-      this._linkMap[ag.linkId] = ag;
+      setDefault(this._linkMap, ag.linkId, []).push(ag);
     } else if (otherIndex > -1) {
       // Undo/redo action from the current session.
       this._pointer = ag.isUndo ? otherIndex : otherIndex + 1;
@@ -136,13 +137,18 @@ export class UndoStack extends dispose.Disposable {
   private _findActionBundle(ag: MinimalActionGroup) {
     const prevNums = new Set();
     const actionGroups = [];
+    const queue = [ag];
     // Follow references through the linkMap adding items to the array bundle.
-    while (ag && !prevNums.has(ag.actionNum)) {
+    while (queue.length) {
+      ag = queue.pop()!;
       // Checking that actions are only accessed once prevents an infinite circular loop.
+      if (prevNums.has(ag.actionNum)) {
+        break;
+      }
       actionGroups.push(ag);
       prevNums.add(ag.actionNum);
-      ag = this._linkMap[ag.actionNum];
+      queue.push(...this._linkMap.get(ag.actionNum) || []);
     }
-    return actionGroups;
+    return sortBy(actionGroups, group => group.actionNum);
   }
 }
