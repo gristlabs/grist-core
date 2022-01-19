@@ -925,12 +925,17 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
-   * Makes sure sure that the first y-series (ie: the view fields at index 1) is a numeric
-   * series. Does not handle chart with the group by option on: it is only intended to be used to
-   * make sure that newly created chart do have a visible y series.
+   * Makes sure that the first y-series (ie: the view fields at index 1) is a numeric series. Does
+   * not handle chart with the group by option on: it is only intended to be used to make sure that
+   * newly created chart do have a visible y series.
    */
   private async _ensureOneNumericSeries(id: number) {
     const viewSection = this.docModel.viewSections.getRowModel(id);
+    const viewFields = viewSection.viewFields.peek().peek();
+
+    // If no y-series, then simply return.
+    if (viewFields.length === 1) { return; }
+
     const field = viewSection.viewFields.peek().peek()[1];
     if (isNumericOnly(viewSection.chartTypeDef.peek()) &&
         !isNumericLike(field.column.peek())) {
