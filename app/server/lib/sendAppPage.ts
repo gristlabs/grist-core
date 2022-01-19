@@ -46,6 +46,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,
     timestampMs: Date.now(),
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
+    survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     ...extra,
   };
 }

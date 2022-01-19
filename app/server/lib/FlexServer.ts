@@ -76,8 +76,9 @@ const HEALTH_CHECK_LOG_SHOW_FIRST_N = 10;
 // And we show every Nth health check:
 const HEALTH_CHECK_LOG_SHOW_EVERY_N = 100;
 
-// DocID of Grist doc to collect the Welcome questionnaire responses.
-const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO || 'GristNewUserInfo';
+// DocID of Grist doc to collect the Welcome questionnaire responses, such
+// as "GristNewUserInfo".
+const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
 
 export interface FlexServerOptions {
   dataDir?: string;
@@ -1593,6 +1594,8 @@ export class FlexServer implements GristServer {
 
   private async _recordNewUserInfo(row: object) {
     const urlId = DOC_ID_NEW_USER_INFO;
+    // If nowhere to record data, return immediately.
+    if (!urlId) { return; }
     let body: string|undefined;
     let permitKey: string|undefined;
     try {

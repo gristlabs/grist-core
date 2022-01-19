@@ -5,10 +5,11 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {UserPrefs} from 'app/common/Prefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import {dom, input, Observable, styled, subscribeElem} from 'grainjs';
 
 export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
-  if (!userPrefsObs.get()?.showNewUserQuestions) {
+  if (!(getGristConfig().survey && userPrefsObs.get()?.showNewUserQuestions)) {
     return null;
   }
 

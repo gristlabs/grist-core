@@ -479,6 +479,9 @@ export interface GristLoadConfig {
 
   // If custom widget list is available.
   enableWidgetRepository?: boolean;
+
+  // Whether there is somewhere for survey data to go.
+  survey?: boolean;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
