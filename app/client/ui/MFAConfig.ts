@@ -1,7 +1,6 @@
-import {submitForm} from 'app/client/lib/uploads';
+import {handleSubmit} from 'app/client/lib/formUtils';
 import {AppModel} from 'app/client/models/AppModel';
 import {reportError, reportSuccess} from 'app/client/models/errors';
-import {getMainOrgUrl} from 'app/client/models/gristUrlState';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -11,14 +10,11 @@ import {cssModalBody, cssModalTitle, IModalControl, modal,
         cssModalButtons as modalButtons} from 'app/client/ui2018/modals';
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import {UserMFAPreferences} from 'app/common/UserAPI';
-import {Disposable, dom, input, makeTestId, Observable, styled} from 'grainjs';
+import {AuthMethod, UserMFAPreferences} from 'app/common/UserAPI';
+import {Disposable, dom, input, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 import {toDataURL} from 'qrcode';
 
 const testId = makeTestId('test-mfa-');
-
-type AuthMethod =
-  | 'SOFTWARE_TOKEN';
 
 /**
  * Step in the dialog flow for enabling a MFA method.
@@ -26,7 +22,8 @@ type AuthMethod =
 type EnableAuthMethodStep =
   | 'verify-password'
   | 'choose-auth-method'
-  | 'configure-auth-app';
+  | 'configure-auth-app'
+  | 'configure-phone-message';
 
 /**
  * Step in the dialog flow for disabling a MFA method.
@@ -38,14 +35,35 @@ type DisableAuthMethodStep =
 
 interface MFAConfigOptions {
   appModel: AppModel;
-  user: FullUser;
+  // Called when the MFA status is changed successfully.
+  onChange: () => void;
 }
+
+interface EnablePhoneMessageOptions {
+  // Called on successful completion of the enable phone message form.
+  onSuccess: (newPhoneNumber: string) => void;
+  // If true, shows a back text button on the first screen of the form.
+  showBackButton?: boolean;
+  // The text to use for the back button if `showBackButton` is true.
+  backButtonText?: string;
+  // Called when the back button is clicked.
+  onBack?: () => void;
+}
+
+// Common HTML input options for 6 digit verification fields (SMS and TOTP).
+const verificationCodeInputOpts = {
+  name: 'verificationCode',
+  type: 'text',
+  inputmode: 'numeric',
+  pattern: '\\d{6}',
+  required: 'true',
+};
 
 /**
  * Shows information about multi-factor authentication preferences for the logged-in user
  * and buttons for enabling/disabling them.
  *
- * Currently supports software tokens only.
+ * Currently supports software tokens (TOTP) and SMS.
  */
 export class MFAConfig extends Disposable {
   private _appModel: AppModel;
@@ -53,11 +71,11 @@ export class MFAConfig extends Disposable {
 
   constructor(
     private _mfaPrefs: Observable<UserMFAPreferences|null>,
-    options: MFAConfigOptions
+    private _options: MFAConfigOptions
   ) {
     super();
-    this._appModel = options.appModel;
-    this._user = options.user;
+    this._appModel = _options.appModel;
+    this._user = this._appModel.currentUser!;
   }
 
   public buildDom() {
@@ -65,45 +83,107 @@ export class MFAConfig extends Disposable {
   }
 
   private _buildButtons() {
-    return dom.maybe(this._mfaPrefs, mfaPrefs => {
-      const {isSmsMfaEnabled, isSoftwareTokenMfaEnabled} = mfaPrefs;
+    return cssButtons(
+      dom.domComputed(this._mfaPrefs, mfaPrefs => {
+        if (!mfaPrefs) { return cssCenteredDiv(cssSmallLoadingSpinner()); }
 
-      return cssContainer(
-        !isSmsMfaEnabled && !isSoftwareTokenMfaEnabled ?
-          cssTextBtn(
-            'Enable two-factor authentication',
-            dom.on('click', () => this._showAddAuthMethodModal()),
-            testId('enable-2fa'),
-          ) :
-          dom.frag(
-            isSoftwareTokenMfaEnabled ?
+        const {isSmsMfaEnabled, isSoftwareTokenMfaEnabled, phoneNumber} = mfaPrefs;
+        return [
+          !isSmsMfaEnabled && !isSoftwareTokenMfaEnabled ?
+            cssTextBtn(
+              'Enable two-factor authentication',
+              dom.on('click', () => this._showAddAuthMethodModal(undefined, {
+                onSuccess: () => {
+                  reportSuccess('Two-factor authentication enabled');
+                  this._options.onChange();
+                }
+              })),
+              testId('enable-2fa'),
+            ) :
+            dom.frag(
               cssDataRow(
                 cssIconAndText(cssIcon('BarcodeQR'), cssText('Authenticator app')),
-                cssTextBtn(
-                  'Disable',
-                  dom.on('click', () => this._showDisableAuthMethodModal('SOFTWARE_TOKEN')),
-                  testId('disable-auth-app'),
-                )
-              ) :
-              cssTextBtn(
-                'Add an authenticator app',
-                dom.on('click', () => this._showAddAuthMethodModal('SOFTWARE_TOKEN')),
-                testId('add-auth-app'),
+                isSoftwareTokenMfaEnabled ?
+                  cssTextBtn(
+                    'Disable',
+                    dom.on('click', () => this._showDisableAuthMethodModal('TOTP', {
+                      onSuccess: () => {
+                        reportSuccess('Authentication app disabled');
+                        this._options.onChange();
+                      }
+                    })),
+                    testId('disable-auth-app'),
+                  ) :
+                  cssTextBtn(
+                    'Enable',
+                    dom.on('click', () => this._showAddAuthMethodModal('TOTP', {
+                      onSuccess: () => {
+                        reportSuccess('Authentication app enabled');
+                        this._options.onChange();
+                      }
+                    })),
+                    testId('enable-auth-app'),
+                  ),
+                testId('auth-app-row')
               ),
-          ),
-        testId('container'),
-      );
-    });
+              cssDataRow(
+                cssIconAndText(
+                  cssIcon('MobileChat'),
+                  cssText('SMS', isSmsMfaEnabled && phoneNumber ? ` to ${phoneNumber}` : null),
+                ),
+                isSmsMfaEnabled ?
+                  [
+                    cssTextBtn(
+                      'Change',
+                      dom.on('click', () => this._showAddAuthMethodModal('SMS', {
+                        onSuccess: () => {
+                          reportSuccess('Phone number changed');
+                          this._options.onChange();
+                        }
+                      })),
+                      testId('change-phone-number'),
+                    ),
+                    cssTextBtn(
+                      'Disable',
+                      dom.on('click', () => this._showDisableAuthMethodModal('SMS', {
+                        onSuccess: () => {
+                          reportSuccess('Phone message disabled');
+                          this._options.onChange();
+                        }
+                      })),
+                      testId('disable-sms'),
+                    ),
+                  ] :
+                  cssTextBtn(
+                    'Enable',
+                    dom.on('click', () => this._showAddAuthMethodModal('SMS', {
+                      onSuccess: () => {
+                        reportSuccess('Phone message enabled');
+                        this._options.onChange();
+                      }
+                    })),
+                    testId('enable-sms'),
+                  ),
+                testId('sms-row')
+              ),
+            ),
+        ];
+      }),
+      testId('buttons')
+    );
   }
 
   /**
    * Displays a modal that allows users to enable a MFA method for their account.
    *
-   * @param {AuthMethod} method If specified, skips the 'choose-auth-method' step.
+   * @param {AuthMethod | undefined} method If specified, skips the 'choose-auth-method' step.
+   * @param {() => void} options.onSuccess Called after successfully adding a auth method.
    */
-  private _showAddAuthMethodModal(method?: AuthMethod): void {
+  private _showAddAuthMethodModal(
+    method: AuthMethod | undefined,
+    options: {onSuccess: () => void}
+  ): void {
     return modal((ctl, owner) => {
-      const selectedAuthMethod = Observable.create(owner, method ?? null);
       const currentStep = Observable.create<EnableAuthMethodStep>(owner, 'verify-password');
 
       return [
@@ -112,23 +192,24 @@ export class MFAConfig extends Disposable {
           switch (step) {
             case 'verify-password': {
               return [
-                this._buildSecurityVerificationForm({onSuccess: async () => {
-                  currentStep.set('choose-auth-method');
+                this._buildSecurityVerificationForm(ctl, {onSuccess: async () => {
+                  if (!method) { return currentStep.set('choose-auth-method'); }
+
+                  currentStep.set(method === 'SMS' ? 'configure-phone-message' : 'configure-auth-app');
                 }}),
-                cssTextBtn('← Back', dom.on('click', () => { ctl.close(); })),
               ];
             }
             case 'choose-auth-method': {
               return [
-                cssModalTitle('Two-factor authentication'),
+                cssModalTitle('Two-factor authentication', testId('title')),
                 cssModalBody(
-                  cssText(
-                    "Once you enable two step verification, you'll need to enter a special code " +
+                  cssMainText(
+                    "Once you enable two step authentication, you'll need to enter a special code " +
                     "when you log in. Please choose a method you'd like to receive codes with."
                   ),
                   cssAuthMethods(
                     cssAuthMethod(
-                      cssAuthMethodTitle(cssGreenIcon('BarcodeQR2'), 'Authenticator App'),
+                      cssAuthMethodTitle(cssGreenIcon('BarcodeQR2'), 'Authenticator app', testId('auth-method-title')),
                       cssAuthMethodDesc(
                         "An authenticator app lets you access your security code without receiving a call " +
                         "or text message. If you don't already have an authenticator app, we'd recommend " +
@@ -140,12 +221,18 @@ export class MFAConfig extends Disposable {
                         }),
                         ".",
                       ),
-                      dom.on('click', () => {
-                        selectedAuthMethod.set('SOFTWARE_TOKEN');
-                        currentStep.set('configure-auth-app');
-                      }),
+                      dom.on('click', () => currentStep.set('configure-auth-app')),
+                      testId('auth-app-method'),
                     ),
-                  )
+                    cssAuthMethod(
+                      cssAuthMethodTitle(cssGreenIcon('MobileChat2'), 'Phone message', testId('auth-method-title')),
+                      cssAuthMethodDesc(
+                        'You need to add a phone number where you can receive authentication codes by text.',
+                      ),
+                      dom.on('click', () => currentStep.set('configure-phone-message')),
+                      testId('sms-method'),
+                    ),
+                  ),
                 ),
               ];
             }
@@ -153,10 +240,25 @@ export class MFAConfig extends Disposable {
               return [
                 this._buildConfigureAuthAppForm(ctl, {onSuccess: async () => {
                   ctl.close();
-                  reportSuccess('Two-factor authentication enabled');
-                  this._mfaPrefs.set({...this._mfaPrefs.get()!, isSoftwareTokenMfaEnabled: true});
+                  options.onSuccess();
                 }}),
-                cssTextBtn('← Back to methods', dom.on('click', () => { currentStep.set('choose-auth-method'); })),
+                method ? null: cssBackBtn('← Back to methods',
+                  dom.on('click', () => { currentStep.set('choose-auth-method'); }),
+                  testId('back-to-methods'),
+                ),
+              ];
+            }
+            case 'configure-phone-message': {
+              return [
+                this._buildConfigurePhoneMessageForm(ctl, {
+                  onSuccess: async () => {
+                    ctl.close();
+                    options.onSuccess();
+                  },
+                  showBackButton: !method,
+                  backButtonText: '← Back to methods',
+                  onBack: () => currentStep.set('choose-auth-method'),
+                }),
               ];
             }
           }
@@ -169,9 +271,9 @@ export class MFAConfig extends Disposable {
   /**
    * Displays a modal that allows users to disable a MFA method for their account.
    *
-   * @param {AuthMethod} method The auth method to disable. Currently unused, until additional methods are added.
+   * @param {AuthMethod} method The auth method to disable.
    */
-  private _showDisableAuthMethodModal(method: AuthMethod): void {
+  private _showDisableAuthMethodModal(method: AuthMethod, options: {onSuccess: () => void}): void {
     return modal((ctl, owner) => {
       const currentStep = Observable.create<DisableAuthMethodStep>(owner, 'confirm-disable');
 
@@ -181,36 +283,43 @@ export class MFAConfig extends Disposable {
           switch (step) {
             case 'confirm-disable': {
               return [
-                cssModalTitle('Disable authenticator app?'),
+                cssModalTitle(
+                  `Disable ${method === 'TOTP' ? 'authentication app' : 'phone message'}?`,
+                  testId('title')
+                ),
                 cssModalBody(
-                  cssText(
+                  cssMainText(
                     "Two-factor authentication is an extra layer of security for your Grist account designed " +
                     "to ensure that you're the only person who can access your account, even if someone " +
                     "knows your password."
                   ),
                   cssModalButtons(
-                    bigPrimaryButton('Confirm', dom.on('click', () => { currentStep.set('verify-password'); })),
-                    bigBasicButton('Cancel', dom.on('click', () => ctl.close())),
+                    bigPrimaryButton('Yes, disable',
+                      dom.on('click', () => currentStep.set('verify-password')),
+                      testId('disable'),
+                    ),
+                    bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
                   ),
                 ),
               ];
             }
             case 'verify-password': {
               return [
-                this._buildSecurityVerificationForm({onSuccess: () => currentStep.set('disable-method')}),
-                cssTextBtn('← Back', dom.on('click', () => { currentStep.set('confirm-disable'); })),
+                this._buildSecurityVerificationForm(ctl, {onSuccess: () => {
+                  currentStep.set('disable-method');
+                }}),
               ];
             }
             case 'disable-method': {
-              this._unregisterSoftwareToken()
-                .then(() => {
-                  reportSuccess('Authenticator app disabled');
-                  this._mfaPrefs.set({...this._mfaPrefs.get()!, isSoftwareTokenMfaEnabled: false});
-                })
-                .catch(reportError)
-                .finally(() => ctl.close());
+              const disableMethod = method === 'SMS' ?
+                this._unregisterSMS() :
+                this._unregisterSoftwareToken();
+              disableMethod
+              .then(() => { options.onSuccess(); })
+              .catch(reportError)
+              .finally(() => ctl.close());
 
-              return cssLoadingSpinner(loadingSpinner());
+              return cssCenteredDivFixedHeight(loadingSpinner());
             }
           }
         }),
@@ -227,102 +336,229 @@ export class MFAConfig extends Disposable {
    *
    * @param {() => void} options.onSuccess Called after successful completion of verification.
    */
-  private _buildSecurityVerificationForm({onSuccess}: {onSuccess: () => void}) {
-    const securityStep = Observable.create<'password' | 'verification-code'>(null, 'password');
-    const pending = Observable.create(null, false);
-    const session = Observable.create(null, '');
+  private _buildSecurityVerificationForm(ctl: IModalControl, {onSuccess}: {onSuccess: () => void}) {
+    const holder = new MultiHolder();
+    const securityStep = Observable.create<'password' | 'sms' | 'totp' | 'loading'>(holder, 'password');
+    const password = Observable.create(holder, '');
+    const maskedPhoneNumber = Observable.create(holder, '');
+    const session = Observable.create(holder, '');
 
     return [
-      dom.autoDispose(securityStep),
-      dom.autoDispose(session),
-      dom.autoDispose(pending),
+      dom.autoDispose(holder),
       dom.domComputed(securityStep, (step) => {
         switch (step) {
+          case 'loading': {
+            return cssCenteredDivFixedHeight(loadingSpinner());
+          }
           case 'password': {
-            const verifyPasswordUrl = getMainOrgUrl() + 'api/auth/verify_pass';
-            const password = Observable.create(null, '');
-            let passwordElement: HTMLInputElement;
-            setTimeout(() => passwordElement.focus(), 10);
-
-            const error: Observable<string|null> = Observable.create(null, null);
-            const errorListener = pending.addListener(isPending => isPending && error.set(null));
+            let formElement: HTMLFormElement;
+            const multiHolder = new MultiHolder();
+            const pending = Observable.create(multiHolder, false);
+            const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
 
             return dom.frag(
-              dom.autoDispose(password),
-              dom.autoDispose(error),
-              dom.autoDispose(errorListener),
-              cssModalTitle('Confirm your password'),
+              dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+              dom.autoDispose(multiHolder),
+              cssModalTitle('Confirm your password', testId('title')),
               cssModalBody(
-                dom('form',
-                  {method: 'post', action: verifyPasswordUrl},
+                formElement = dom('form',
+                  cssMainText('Please confirm your password to continue.'),
+                  cssBoldSubHeading('Password'),
+                  cssInput(password,
+                    {onInput: true},
+                    {
+                      name: 'password',
+                      placeholder: 'password',
+                      type: 'password',
+                      autocomplete: 'current-password',
+                      id: 'current-password',
+                      required: 'true',
+                    },
+                    (el) => { setTimeout(() => el.focus(), 10); },
+                    dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                    testId('password-input'),
+                  ),
+                  cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
                   handleSubmit(pending,
+                    ({password: pass}) => this._verifyPassword(pass),
                     (result) => {
                       if (!result.isChallengeRequired) { return onSuccess(); }
 
                       session.set(result.session);
-                      securityStep.set('verification-code');
-                    },
-                    (err) => {
-                      if (isUserError(err)) {
-                        error.set(err.details?.userError ?? err.message);
+                      if (result.challengeName === 'SMS_MFA') {
+                        maskedPhoneNumber.set(result.deliveryDestination!);
+                        securityStep.set('sms');
                       } else {
-                        reportError(err as Error|string);
+                        securityStep.set('totp');
                       }
                     },
+                    (err) => handleFormError(err, errorObs),
                   ),
-                  cssConfirmText('Please confirm your password to continue.'),
-                  cssBoldSubHeading('Password'),
-                  passwordElement = cssInput(password,
-                    {onInput: true},
-                    {name: 'password', placeholder: 'password', type: 'password'},
-                  ),
-                  cssFormError(dom.text(use => use(error) ?? '')),
                   cssModalButtons(
-                    bigPrimaryButton('Confirm',
-                      dom.boolAttr('disabled', use => use(pending) || use(password).trim().length === 0),
-                    ),
+                    bigPrimaryButton('Confirm', dom.boolAttr('disabled', pending), testId('confirm')),
+                    bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
                   ),
                 ),
               ),
             );
           }
-          case 'verification-code': {
-            const verifyAuthCodeUrl = getMainOrgUrl() + 'api/auth/verify_totp';
-            const authCode = Observable.create(null, '');
-
-            const error: Observable<string|null> = Observable.create(null, null);
-            const errorListener = pending.addListener(isPending => isPending && error.set(null));
+          case 'totp': {
+            let formElement: HTMLFormElement;
+            const multiHolder = new MultiHolder();
+            const pending = Observable.create(multiHolder, false);
+            const verificationCode = Observable.create(multiHolder, '');
+            const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
+            const smsNumber = this._mfaPrefs.get()?.phoneNumber;
 
             return dom.frag(
-              dom.autoDispose(authCode),
-              dom.autoDispose(error),
-              dom.autoDispose(errorListener),
-              cssModalTitle('Almost there!'),
+              dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+              dom.autoDispose(multiHolder),
+              cssModalTitle('Almost there!', testId('title')),
               cssModalBody(
-                dom('form',
-                  {method: 'post', action: verifyAuthCodeUrl},
-                  handleSubmit(pending,
-                    () => onSuccess(),
-                    (err) => {
-                      if (isUserError(err)) {
-                        error.set(err.details?.userError ?? err.message);
-                      } else {
-                        reportError(err as Error|string);
-                      }
-                    },
+                formElement = dom('form',
+                  cssMainText(
+                    'Enter the authentication code generated by your app to confirm your account.',
+                    testId('main-text'),
                   ),
-                  cssConfirmText('Enter the authentication code generated by your app to confirm your account.'),
-                  cssBoldSubHeading('Verification Code '),
-                  cssCodeInput(authCode, {onInput: true}, {name: 'verificationCode', type: 'number'}),
-                  cssFormError(dom.text(use => use(error) ?? '')),
+                  cssBoldSubHeading('Verification Code'),
+                  cssCodeInput(verificationCode,
+                    {onInput: true},
+                    verificationCodeInputOpts,
+                    (el) => { setTimeout(() => el.focus(), 10); },
+                    dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                    testId('verification-code-input'),
+                  ),
                   cssInput(session, {onInput: true}, {name: 'session', type: 'hidden'}),
+                  cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
+                  handleSubmit(pending,
+                    ({verificationCode: code, session: s}) => this._verifySecondStep('TOTP', code, s),
+                    () => onSuccess(),
+                    (err) => handleFormError(err, errorObs),
+                  ),
                   cssModalButtons(
-                    bigPrimaryButton('Submit',
-                      dom.boolAttr('disabled', use => use(pending) || use(authCode).trim().length !== 6),
+                    bigPrimaryButton('Submit', dom.boolAttr('disabled', pending), testId('submit')),
+                    bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
+                  ),
+                  !this._mfaPrefs.get()?.isSmsMfaEnabled || !smsNumber ? null : cssSubText(
+                    'Receive a code by SMS?',
+                    cssLink(
+                      ` Text ${smsNumber}.`,
+                      dom.on('click', async () => {
+                        if (pending.get()) { return; }
+
+                        securityStep.set('loading');
+                        try {
+                          const result = await this._verifyPassword(password.get(), 'SMS');
+                          if (result.isChallengeRequired) {
+                            session.set(result.session);
+                            maskedPhoneNumber.set(result.deliveryDestination!);
+                            securityStep.set('sms');
+                          }
+                        } catch (err) {
+                          reportError(err as Error|string);
+                          securityStep.set('totp');
+                        }
+                      }),
                     ),
+                    testId('use-sms'),
                   ),
                 ),
               ),
+            );
+          }
+          case 'sms': {
+            let formElement: HTMLFormElement;
+            const multiHolder = new MultiHolder();
+            const pending = Observable.create(multiHolder, false);
+            const verificationCode = Observable.create(multiHolder, '');
+            const isResendingCode = Observable.create(multiHolder, false);
+            const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
+            const resendingListener = isResendingCode.addListener(isResending => {
+              if (!isResending) { return; }
+
+              errorObs.set(null);
+              verificationCode.set('');
+            });
+
+            return dom.frag(
+              dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+              dom.autoDispose(resendingListener),
+              dom.autoDispose(multiHolder),
+              dom.domComputed(isResendingCode, isLoading => {
+                if (isLoading) { return cssCenteredDivFixedHeight(loadingSpinner()); }
+
+                return [
+                  cssModalTitle('Almost there!', testId('title')),
+                  cssModalBody(
+                    formElement = dom('form',
+                      cssMainText(
+                        'We have sent an authentication code to ',
+                        cssLightlyBoldedText(maskedPhoneNumber.get()),
+                        '. Enter it below to confirm your account.',
+                        testId('main-text'),
+                      ),
+                      cssBoldSubHeading('Authentication Code'),
+                      cssCodeInput(verificationCode,
+                        {onInput: true},
+                        {...verificationCodeInputOpts, autocomplete: 'one-time-code'},
+                        (el) => { setTimeout(() => el.focus(), 10); },
+                        dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                        testId('verification-code-input'),
+                      ),
+                      cssInput(session, {onInput: true}, {name: 'session', type: 'hidden'}),
+                      cssSubText(
+                        "Didn't receive a code?",
+                        cssLink(
+                          ' Resend it',
+                          dom.on('click', async () => {
+                            if (pending.get()) { return; }
+
+                            try {
+                              isResendingCode.set(true);
+                              const result = await this._verifyPassword(password.get(), 'SMS');
+                              if (result.isChallengeRequired) { session.set(result.session); }
+                            } finally {
+                              isResendingCode.set(false);
+                            }
+                          }),
+                          testId('resend-code'),
+                        ),
+                      ),
+                      cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
+                      handleSubmit(pending,
+                        ({verificationCode: code, session: s}) => this._verifySecondStep('SMS', code, s),
+                        () => onSuccess(),
+                        (err) => handleFormError(err, errorObs),
+                      ),
+                      cssModalButtons(
+                        bigPrimaryButton('Submit', dom.boolAttr('disabled', pending), testId('submit')),
+                        bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
+                      ),
+                      !this._mfaPrefs.get()?.isSoftwareTokenMfaEnabled ? null : cssSubText(
+                        cssLink(
+                          'Use code from authenticator app?',
+                          dom.on('click', async () => {
+                            if (pending.get()) { return; }
+
+                            securityStep.set('loading');
+                            try {
+                              const result = await this._verifyPassword(password.get(), 'TOTP');
+                              if (result.isChallengeRequired) {
+                                session.set(result.session);
+                                securityStep.set('totp');
+                              }
+                            } catch (err) {
+                              reportError(err as Error|string);
+                              securityStep.set('sms');
+                            }
+                          }),
+                          testId('use-auth-app'),
+                        ),
+                      ),
+                    )
+                  )
+                ];
+              }),
             );
           }
         }
@@ -339,67 +575,60 @@ export class MFAConfig extends Disposable {
    * @param {() => void} options.onSuccess Called after successful completion of registration.
    */
   private _buildConfigureAuthAppForm(ctl: IModalControl, {onSuccess}: {onSuccess: () => void}) {
-    const confirmCodeUrl = getMainOrgUrl() + 'api/auth/confirm_totp_registration';
-    const qrCode: Observable<string|null> = Observable.create(null, null);
-    const verificationCode = Observable.create(null, '');
-    const pending = Observable.create(null, false);
-
-    const error: Observable<string|null> = Observable.create(null, null);
-    const errorListener = pending.addListener(isPending => isPending && error.set(null));
+    let formElement: HTMLFormElement;
+    const holder = new MultiHolder();
+    const qrCode: Observable<string|null> = Observable.create(holder, null);
+    const verificationCode = Observable.create(holder, '');
+    const pending = Observable.create(holder, false);
+    const errorObs: Observable<string|null> = Observable.create(holder, null);
 
     this._getSoftwareTokenQRCode()
-      .then(code => qrCode.isDisposed() || qrCode.set(code))
-      .catch(e => { ctl.close(); reportError(e); });
+    .then(code => qrCode.isDisposed() || qrCode.set(code))
+    .catch(e => { ctl.close(); reportError(e); });
 
     return [
-      dom.autoDispose(qrCode),
-      dom.autoDispose(verificationCode),
-      dom.autoDispose(pending),
-      dom.autoDispose(error),
-      dom.autoDispose(errorListener),
+      dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+      dom.autoDispose(holder),
       dom.domComputed(qrCode, code => {
-        if (code === null) { return cssLoadingSpinner(loadingSpinner()); }
+        if (code === null) { return cssCenteredDivFixedHeight(loadingSpinner()); }
 
         return [
-          cssModalTitle('Configure authenticator app'),
+          cssModalTitle('Configure authenticator app', testId('title')),
           cssModalBody(
             cssModalBody(
-              cssConfigureAuthAppDesc(
-                "An authenticator app lets you access your security code without receiving a call " +
-                "or text message. If you don't already have an authenticator app, we'd recommend " +
-                "using ",
-                cssLink('Google Authenticator', {
-                  href: 'https://play.google.com/store/apps/' +
-                    'details?id=com.google.android.apps.authenticator2&hl=en_US&gl=US',
-                  target: '_blank',
-                }),
-                ".",
-              ),
-              cssConfigureAuthAppSubHeading('To configure your authenticator app:'),
-              cssConfigureAuthAppStep('1. Add a new account'),
-              cssConfigureAuthAppStep('2. Scan the following QR code', {style: 'margin-bottom: 0px'}),
-              cssQRCode({src: code}),
-              cssConfigureAuthAppStep('3. Enter the verification code that appears after scanning the QR code'),
-              dom('form',
-                {method: 'post', action: confirmCodeUrl},
-                handleSubmit(pending,
-                  () => onSuccess(),
-                  (err) => {
-                    if (isUserError(err)) {
-                      error.set(err.details?.userError ?? err.message);
-                    } else {
-                      reportError(err as Error|string);
-                    }
-                  },
-                  ),
+              formElement = dom('form',
+                cssMainText(
+                  "An authenticator app lets you access your security code without receiving a call " +
+                  "or text message. If you don't already have an authenticator app, we'd recommend " +
+                  "using ",
+                  cssLink('Google Authenticator', {
+                    href: 'https://play.google.com/store/apps/' +
+                      'details?id=com.google.android.apps.authenticator2&hl=en_US&gl=US',
+                    target: '_blank',
+                  }),
+                  ".",
+                ),
+                cssBoldSubHeading('To configure your authenticator app:'),
+                cssListItem('1. Add a new account'),
+                cssListItem('2. Scan the following barcode', {style: 'margin-bottom: 8px'}),
+                cssQRCode({src: code}, testId('qr-code')),
+                cssListItem('3. Enter the verification code that appears after scanning the barcode'),
                 cssBoldSubHeading('Authentication code'),
-                cssCodeInput(verificationCode, {onInput: true}, {name: 'userCode', type: 'number'}),
-                cssFormError(dom.text(use => use(error) ?? '')),
+                cssCodeInput(verificationCode,
+                  {onInput: true},
+                  verificationCodeInputOpts,
+                  dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                  testId('verification-code-input'),
+                ),
+                cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
+                handleSubmit(pending,
+                  ({verificationCode: c}) => this._confirmRegisterSoftwareToken(c),
+                  () => onSuccess(),
+                  (err) => handleFormError(err, errorObs),
+                ),
                 cssModalButtons(
-                  bigPrimaryButton('Verify',
-                    dom.boolAttr('disabled', use => use(pending) || use(verificationCode).trim().length !== 6),
-                  ),
-                  bigBasicButton('Cancel', dom.on('click', () => ctl.close())),
+                  bigPrimaryButton('Verify', dom.boolAttr('disabled', pending), testId('verify')),
+                  bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
                 ),
               ),
             ),
@@ -409,12 +638,180 @@ export class MFAConfig extends Disposable {
     ];
   }
 
+  /**
+   * Builds a form for registering a SMS MFA method.
+   *
+   * A callback function must be passed, which will be called after successful completion of the
+   * registration form.
+   *
+   * @param {EnablePhoneMessageOptions} options Form options.
+   */
+  private _buildConfigurePhoneMessageForm(
+    ctl: IModalControl,
+    {onSuccess, showBackButton, backButtonText, onBack}: EnablePhoneMessageOptions,
+  ) {
+    const holder = new MultiHolder();
+    const configStep = Observable.create<'enter-phone' | 'verify-phone'>(holder, 'enter-phone');
+    const pending = Observable.create(holder, false);
+    const phoneNumber = Observable.create(holder, '');
+    const maskedPhoneNumber = Observable.create(holder, '');
+
+    return [
+      dom.autoDispose(holder),
+      dom.domComputed(configStep, (step) => {
+        switch (step) {
+          case 'enter-phone': {
+            let formElement: HTMLFormElement;
+            const multiHolder = new MultiHolder();
+            const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
+
+            return dom.frag(
+              dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+              dom.autoDispose(multiHolder),
+              cssModalTitle('Configure phone message', testId('title')),
+              cssModalBody(
+                formElement = dom('form',
+                  cssMainText(
+                    'You need to add a phone number where you can receive authentication codes by text.',
+                  ),
+                  cssBoldSubHeading('Phone number'),
+                  cssInput(phoneNumber,
+                    {onInput: true},
+                    {name: 'phoneNumber', placeholder: '+999 (99) 999 99 99', type: 'text', required: 'true'},
+                    (el) => { setTimeout(() => el.focus(), 10); },
+                    dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                    testId('phone-number-input'),
+                  ),
+                  cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
+                  handleSubmit(pending,
+                    ({phoneNumber: phone}) => this._registerSMS(phone),
+                    ({deliveryDestination}) => {
+                      maskedPhoneNumber.set(deliveryDestination);
+                      configStep.set('verify-phone');
+                    },
+                    (err) => handleFormError(err, errorObs),
+                  ),
+                  cssModalButtons(
+                    bigPrimaryButton('Send code', dom.boolAttr('disabled', pending), testId('send-code')),
+                    bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
+                  ),
+                ),
+              ),
+              showBackButton && backButtonText !== undefined && onBack ?
+                cssBackBtn(backButtonText, dom.on('click', () => onBack()), testId('back')) :
+                null,
+            );
+          }
+          case 'verify-phone': {
+            let formElement: HTMLFormElement;
+            const multiHolder = new MultiHolder();
+            const verificationCode = Observable.create(multiHolder, '');
+            const isResendingCode = Observable.create(multiHolder, false);
+            const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
+            const resendingListener = isResendingCode.addListener(isResending => {
+              if (!isResending) { return; }
+
+              errorObs.set(null);
+              verificationCode.set('');
+            });
+
+            return dom.frag(
+              dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
+              dom.autoDispose(resendingListener),
+              dom.autoDispose(multiHolder),
+              dom.domComputed(isResendingCode, isLoading => {
+                if (isLoading) { return cssCenteredDivFixedHeight(loadingSpinner()); }
+
+                return [
+                  cssModalTitle('Confirm your phone', testId('title')),
+                  cssModalBody(
+                    formElement = dom('form',
+                      cssMainText(
+                        'We have sent the authentication code to ',
+                        cssLightlyBoldedText(maskedPhoneNumber.get()),
+                        '. Enter it below to confirm your account.',
+                        testId('main-text'),
+                      ),
+                      cssBoldSubHeading('Authentication Code'),
+                      cssCodeInput(verificationCode,
+                        {onInput: true},
+                        {...verificationCodeInputOpts, autocomplete: 'one-time-code'},
+                        (el) => { setTimeout(() => el.focus(), 10); },
+                        dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
+                        testId('verification-code-input'),
+                      ),
+                      cssSubText(
+                        "Didn't receive a code?",
+                        cssLink(
+                          ' Resend it',
+                          dom.on('click', async () => {
+                            if (pending.get()) { return; }
+
+                            try {
+                              isResendingCode.set(true);
+                              await this._registerSMS(phoneNumber.get());
+                            } finally {
+                              isResendingCode.set(false);
+                            }
+                          }),
+                          testId('resend-code'),
+                        ),
+                      ),
+                      cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
+                      handleSubmit(pending,
+                        ({verificationCode: code}) => this._confirmRegisterSMS(code),
+                        () => onSuccess(maskedPhoneNumber.get()),
+                        (err) => handleFormError(err, errorObs),
+                      ),
+                      cssModalButtons(
+                        bigPrimaryButton('Confirm', dom.boolAttr('disabled', pending), testId('confirm')),
+                        bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
+                      ),
+                    )
+                  ),
+                  cssBackBtn('← Back to phone number',
+                    dom.on('click', () => configStep.set('enter-phone')),
+                    testId('back-to-phone')
+                  ),
+                ];
+              })
+            );
+          }
+        }
+      }),
+    ];
+  }
+
   private async _registerSoftwareToken() {
     return await this._appModel.api.registerSoftwareToken();
   }
 
+  private async _confirmRegisterSoftwareToken(verificationCode: string) {
+    await this._appModel.api.confirmRegisterSoftwareToken(verificationCode);
+  }
+
   private async _unregisterSoftwareToken() {
-    return await this._appModel.api.unregisterSoftwareToken();
+    await this._appModel.api.unregisterSoftwareToken();
+  }
+
+  private async _registerSMS(phoneNumber: string) {
+    return await this._appModel.api.registerSMS(phoneNumber);
+  }
+
+  private async _confirmRegisterSMS(verificationCode: string) {
+    await this._appModel.api.confirmRegisterSMS(verificationCode);
+  }
+
+  private async _unregisterSMS() {
+    await this._appModel.api.unregisterSMS();
+  }
+
+  private async _verifyPassword(password: string, preferredMfaMethod?: AuthMethod) {
+    return await this._appModel.api.verifyPassword(password, preferredMfaMethod);
+  }
+
+  private async _verifySecondStep(authMethod: AuthMethod, verificationCode: string, session: string) {
+    await this._appModel.api.verifySecondStep(authMethod, verificationCode, session);
   }
 
   /**
@@ -432,50 +829,26 @@ export class MFAConfig extends Disposable {
 }
 
 /**
- * Helper function that handles form submissions. Sets `pending` to true after
- * submitting, and resets it to false after submission completes.
- *
- * Callback functions `onSuccess` and `onError` handle post-submission logic.
+ * Sets the error details on `errObs` if `err` is a 4XX error (except 401). Otherwise, reports the
+ * error via the Notifier instance.
  */
-function handleSubmit(pending: Observable<boolean>,
-  onSuccess: (v: any) => void,
-  onError?: (e: unknown) => void
-): (elem: HTMLFormElement) => void {
-  return dom.on('submit', async (e, form) => {
-    e.preventDefault();
-    await submit(form, pending, onSuccess, onError);
-  });
-}
-
-/**
- * Submits an HTML form, and forwards responses and errors to `onSuccess` and `onError` respectively.
- */
-async function submit(form: HTMLFormElement, pending: Observable<boolean>,
-  onSuccess: (v: any) => void,
-  onError: (e: unknown) => void = (e) => reportError(e as string|Error)
-) {
-  try {
-    if (pending.get()) { return; }
-    pending.set(true);
-    const result = await submitForm(form).finally(() => pending.set(false));
-    onSuccess(result);
-  } catch (err) {
-    onError(err);
+function handleFormError(err: unknown, errObs: Observable<string|null>) {
+  if (
+    err instanceof ApiError &&
+    err.status !== 401 &&
+    err.status >= 400 &&
+    err.status < 500
+  ) {
+    errObs.set(err.details?.userError ?? err.message);
+  } else {
+    reportError(err as Error|string);
   }
 }
 
-/**
- * Returns true if `error` is an API error with a 4XX status code.
- *
- * Used to determine which errors should be shown in-line in forms.
- */
-function isUserError(error: unknown): error is ApiError {
-  if (!(error instanceof ApiError)) { return false; }
+const spinnerSizePixels = '24px';
 
-  return error.status >= 400 && error.status < 500;
-}
-
-const cssContainer = styled('div', `
+const cssButtons = styled('div', `
+  min-height: ${spinnerSizePixels};
   position: relative;
   display: flex;
   flex-direction: column;
@@ -495,18 +868,22 @@ const cssText = styled('div', `
   text-align: left;
 `);
 
-const cssConfirmText = styled(cssText, `
+const cssMainText = styled(cssText, `
   margin-bottom: 32px;
+`);
+
+const cssListItem = styled(cssText, `
+  margin-bottom: 16px;
+`);
+
+const cssSubText = styled(cssText, `
+  margin-top: 16px;
 `);
 
 const cssFormError = styled('div', `
   color: red;
   min-height: 20px;
   margin-top: 16px;
-`);
-
-const cssConfigureAuthAppDesc = styled(cssText, `
-  margin-bottom: 32px;
 `);
 
 const cssIconAndText = styled('div', `
@@ -529,6 +906,10 @@ const cssTextBtn = styled('button', `
   }
 `);
 
+const cssBackBtn = styled(cssTextBtn, `
+  margin-top: 16px;
+`);
+
 const cssAuthMethods = styled('div', `
   display: flex;
   flex-direction: column;
@@ -537,6 +918,7 @@ const cssAuthMethods = styled('div', `
 `);
 
 const cssAuthMethod = styled('div', `
+  height: 120px;
   border: 1px solid ${colors.mediumGreyOpaque};
   cursor: pointer;
 
@@ -559,7 +941,6 @@ const cssAuthMethodDesc = styled('div', `
 `);
 
 const cssInput = styled(input, `
-  margin-top: 16px;
   font-size: ${vars.mediumFontSize};
   height: 42px;
   line-height: 16px;
@@ -587,28 +968,35 @@ const cssModal = styled('div', `
   width: 600px;
 `);
 
-const cssLoadingSpinner = styled('div', `
-  height: 200px;
+const cssSmallLoadingSpinner = styled(loadingSpinner, `
+  width: ${spinnerSizePixels};
+  height: ${spinnerSizePixels};
+  border-radius: ${spinnerSizePixels};
+`);
+
+const cssCenteredDiv = styled('div', `
   display: flex;
   justify-content: center;
   align-items: center;
 `);
 
+const cssCenteredDivFixedHeight = styled(cssCenteredDiv, `
+  height: 200px;
+`);
+
 const cssBoldSubHeading = styled('div', `
   font-weight: bold;
-`);
-
-const cssConfigureAuthAppSubHeading = styled(cssBoldSubHeading, `
   margin-bottom: 16px;
 `);
 
-const cssConfigureAuthAppStep = styled(cssText, `
-  margin-bottom: 16px;
+const cssLightlyBoldedText = styled('span', `
+  font-weight: 500;
 `);
 
 const cssQRCode = styled('img', `
   width: 140px;
   height: 140px;
+  margin-bottom: 16px;
 `);
 
 const cssIcon = styled(icon, `

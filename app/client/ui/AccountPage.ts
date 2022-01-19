@@ -3,7 +3,7 @@ import {getResetPwdUrl, urlState} from 'app/client/models/gristUrlState';
 import {ApiKey} from 'app/client/ui/ApiKey';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
-// import {MFAConfig} from 'app/client/ui/MFAConfig';
+import {MFAConfig} from 'app/client/ui/MFAConfig';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {transientInput} from 'app/client/ui/transientInput';
@@ -13,7 +13,7 @@ import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/b
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalBody, cssModalButtons, cssModalTitle, modal} from 'app/client/ui2018/modals';
 import {colors, vars} from 'app/client/ui2018/cssVars';
-import {FullUser, /*UserMFAPreferences*/} from 'app/common/UserAPI';
+import {FullUser, UserMFAPreferences} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-account-page-');
@@ -24,7 +24,7 @@ const testId = makeTestId('test-account-page-');
 export class AccountPage extends Disposable {
   private _apiKey = Observable.create<string>(this, '');
   private _userObs = Observable.create<FullUser|null>(this, null);
-  // private _userMfaPreferences = Observable.create<UserMFAPreferences|null>(this, null);
+  private _userMfaPreferences = Observable.create<UserMFAPreferences|null>(this, null);
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, '');
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
@@ -86,26 +86,24 @@ export class AccountPage extends Disposable {
         cssDataRow(
           cssSubHeader('Login Method'),
           user.loginMethod,
-          // TODO: should show btn only when logged in with google
           user.loginMethod === 'Email + Password' ? cssTextBtn(
-            // rename to remove mention of Billing in the css
             cssIcon('Settings'), 'Reset',
             dom.on('click', () => confirmPwdResetModal(user.email)),
           ) : null,
           testId('login-method'),
         ),
-        // user.loginMethod !== 'Email + Password' ? null : dom.frag(
-        //   cssSubHeaderFullWidth('Two-factor authentication'),
-        //   cssDescription(
-        //     "Two-factor authentication is an extra layer of security for your Grist account designed " +
-        //     "to ensure that you're the only person who can access your account, even if someone " +
-        //     "knows your password."
-        //   ),
-        //   dom.create(MFAConfig, this._userMfaPreferences, {
-        //     user,
-        //     appModel: this._appModel,
-        //   }),
-        // ),
+        user.loginMethod !== 'Email + Password' ? null : dom.frag(
+          cssSubHeaderFullWidth('Two-factor authentication'),
+          cssDescription(
+            "Two-factor authentication is an extra layer of security for your Grist account designed " +
+            "to ensure that you're the only person who can access your account, even if someone " +
+            "knows your password."
+          ),
+          dom.create(MFAConfig, this._userMfaPreferences, {
+            appModel: this._appModel,
+            onChange: () => this._fetchUserMfaPreferences(),
+          }),
+        ),
         cssHeader('API'),
         cssDataRow(cssSubHeader('API Key'), cssContent(
           dom.create(ApiKey, {
@@ -152,13 +150,14 @@ export class AccountPage extends Disposable {
     this._userObs.set(await this._appModel.api.getUserProfile());
   }
 
-  // private async _fetchUserMfaPreferences() {
-  //   this._userMfaPreferences.set(await this._appModel.api.getUserMfaPreferences());
-  // }
+  private async _fetchUserMfaPreferences() {
+    this._userMfaPreferences.set(null);
+    this._userMfaPreferences.set(await this._appModel.api.getUserMfaPreferences());
+  }
 
   private async _fetchAll() {
     await Promise.all([
-      // this._fetchUserMfaPreferences(),
+      this._fetchUserMfaPreferences(),
       this._fetchApiKey(),
       this._fetchUserProfile(),
     ]);
@@ -263,7 +262,7 @@ const cssWarnings = styled(buildNameWarningsDom, `
   margin: -8px 0 0 110px;
 `);
 
-// const cssDescription = styled('div', `
-//   color: #8a8a8a;
-//   font-size: 13px;
-// `);
+const cssDescription = styled('div', `
+  color: #8a8a8a;
+  font-size: 13px;
+`);

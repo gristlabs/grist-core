@@ -271,6 +271,8 @@ export interface DocStateComparisonDetails {
  */
 export interface UserMFAPreferences {
   isSmsMfaEnabled: boolean;
+  // If SMS MFA is enabled, the destination number for receiving verification codes.
+  phoneNumber?: string;
   isSoftwareTokenMfaEnabled: boolean;
 }
 
@@ -278,9 +280,41 @@ export interface UserMFAPreferences {
  * Cognito response to initiating software token MFA registration.
  */
 export interface SoftwareTokenRegistrationInfo {
-  session: string;
   secretCode: string;
 }
+
+/**
+ * Cognito response to initiating SMS MFA registration.
+ */
+export interface SMSRegistrationInfo {
+  deliveryDestination: string;
+}
+
+/**
+ * Cognito response to verifying a password (e.g. in a security verification form).
+ */
+export type PassVerificationResult = ChallengeRequired | ChallengeNotRequired;
+
+/**
+ * Information about the follow-up authentication challenge.
+ */
+interface ChallengeRequired {
+  isChallengeRequired: true;
+  // Session identifier that must be re-used in response to auth challenge.
+  session: string;
+  challengeName: 'SMS_MFA' | 'SOFTWARE_TOKEN_MFA';
+  // If challenge is 'SMS_MFA', the destination number that the verification code was sent.
+  deliveryDestination?: string;
+}
+
+/**
+ * Successful authentication, with no additional challenge required.
+ */
+interface ChallengeNotRequired {
+  isChallengeRequired: false;
+}
+
+export type AuthMethod = 'TOTP' | 'SMS';
 
 export {UserProfile} from 'app/common/LoginSessionAPI';
 
@@ -338,7 +372,13 @@ export interface UserAPI {
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
   registerSoftwareToken(): Promise<SoftwareTokenRegistrationInfo>;
+  confirmRegisterSoftwareToken(verificationCode: string): Promise<void>;
   unregisterSoftwareToken(): Promise<void>;
+  registerSMS(phoneNumber: string): Promise<SMSRegistrationInfo>;
+  confirmRegisterSMS(verificationCode: string): Promise<void>;
+  unregisterSMS(): Promise<void>;
+  verifyPassword(password: string, preferredMfaMethod?: AuthMethod): Promise<PassVerificationResult>;
+  verifySecondStep(authMethod: AuthMethod, verificationCode: string, session: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
@@ -695,8 +735,51 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/auth/register_totp`, {method: 'POST'});
   }
 
+  public async confirmRegisterSoftwareToken(verificationCode: string): Promise<void> {
+    await this.request(`${this._url}/api/auth/confirm_register_totp`, {
+      method: 'POST',
+      body: JSON.stringify({verificationCode}),
+    });
+  }
+
   public async unregisterSoftwareToken(): Promise<void> {
     await this.request(`${this._url}/api/auth/unregister_totp`, {method: 'POST'});
+  }
+
+  public async registerSMS(phoneNumber: string): Promise<SMSRegistrationInfo> {
+    return this.requestJson(`${this._url}/api/auth/register_sms`, {
+      method: 'POST',
+      body: JSON.stringify({phoneNumber}),
+    });
+  }
+
+  public async confirmRegisterSMS(verificationCode: string): Promise<void> {
+    await this.request(`${this._url}/api/auth/confirm_register_sms`, {
+      method: 'POST',
+      body: JSON.stringify({verificationCode}),
+    });
+  }
+
+  public async unregisterSMS(): Promise<void> {
+    await this.request(`${this._url}/api/auth/unregister_sms`, {method: 'POST'});
+  }
+
+  public async verifyPassword(password: string, preferredMfaMethod?: AuthMethod): Promise<any> {
+    return this.requestJson(`${this._url}/api/auth/verify_pass`, {
+      method: 'POST',
+      body: JSON.stringify({password, preferredMfaMethod}),
+    });
+  }
+
+  public async verifySecondStep(
+    authMethod: AuthMethod,
+    verificationCode: string,
+    session: string
+  ): Promise<void> {
+    await this.request(`${this._url}/api/auth/verify_second_step`, {
+      method: 'POST',
+      body: JSON.stringify({authMethod, verificationCode, session}),
+    });
   }
 
   public getBaseUrl(): string { return this._url; }

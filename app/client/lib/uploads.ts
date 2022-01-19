@@ -10,7 +10,6 @@
 import {DocComm} from 'app/client/components/DocComm';
 import {UserError} from 'app/client/models/errors';
 import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
-import {BaseAPI} from 'app/common/BaseAPI';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
 import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
@@ -183,26 +182,4 @@ export function isDriveUrl(url: string) {
   if (!url) { return null; }
   const match = /^https:\/\/(docs|drive).google.com\/(spreadsheets|file)\/d\/([^/]*)/i.exec(url);
   return !!match;
-}
-
-/**
- * Convert a form to a JSON-stringifiable object, ignoring any File fields.
- */
-export function formDataToObj(formElem: HTMLFormElement): {[key: string]: string} {
-  // Use FormData to collect values (rather than e.g. finding <input> elements) to ensure we get
-  // values from all form items correctly (e.g. checkboxes and textareas).
-  const formData = new FormData(formElem);
-  const data: {[key: string]: string} = {};
-  for (const [name, value] of formData.entries()) {
-    if (typeof value === 'string') {
-      data[name] = value;
-    }
-  }
-  return data;
-}
-
-// Submit a form using BaseAPI.  Send inputs as JSON, and interpret any reply as JSON.
-export async function submitForm(form: HTMLFormElement): Promise<any> {
-  const data = formDataToObj(form);
-  return BaseAPI.requestJson(form.action, {method: 'POST', body: JSON.stringify(data)});
 }

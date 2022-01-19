@@ -66,6 +66,8 @@ export type IconName = "ChartArea" |
   "Log" |
   "Mail" |
   "Minus" |
+  "MobileChat" |
+  "MobileChat2" |
   "NewNotification" |
   "Notification" |
   "Offline" |
@@ -177,6 +179,8 @@ export const IconList: IconName[] = ["ChartArea",
   "Log",
   "Mail",
   "Minus",
+  "MobileChat",
+  "MobileChat2",
   "NewNotification",
   "Notification",
   "Offline",

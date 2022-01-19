@@ -1,6 +1,6 @@
 import { Computed, Disposable, dom, domComputed, DomContents, input, MultiHolder, Observable, styled } from "grainjs";
 
-import { submitForm } from "app/client/lib/uploads";
+import { handleSubmit, submitForm } from "app/client/lib/formUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
@@ -35,29 +35,12 @@ function _redirectOnSuccess(result: any) {
   window.location.assign(redirectUrl);
 }
 
-
-async function _submitForm(form: HTMLFormElement, pending: Observable<boolean>,
-                           onSuccess: (v: any) => void = _redirectOnSuccess,
-                           onError: (e: Error) => void = reportError) {
-  try {
-    if (pending.get()) { return; }
-    pending.set(true);
-    const result = await submitForm(form).finally(() => pending.set(false));
-    onSuccess(result);
-  } catch (err) {
-    onError(err?.details?.userError || err);
-  }
-}
-
-// If a 'pending' observable is given, it will be set to true while waiting for the submission.
-function handleSubmit(pending: Observable<boolean>,
-                      onSuccess?: (v: any) => void,
-                      onError?: (e: Error) => void): (elem: HTMLFormElement) => void {
-  return dom.on('submit', async (e, form) => {
-    e.preventDefault();
-    // TODO: catch isn't needed, so either remove or propagate errors from _submitForm.
-    _submitForm(form, pending, onSuccess, onError).catch(reportError);
-  });
+function handleSubmitForm(
+  pending: Observable<boolean>,
+  onSuccess: (v: any) => void = _redirectOnSuccess,
+  onError?: (e: unknown) => void
+): (elem: HTMLFormElement) => void {
+  return handleSubmit(pending, submitForm, onSuccess, onError);
 }
 
 export class WelcomePage extends Disposable {
@@ -114,13 +97,13 @@ export class WelcomePage extends Disposable {
     return form = dom(
       'form',
       { method: "post", action: location.href },
-      handleSubmit(pending),
+      handleSubmitForm(pending),
       cssLabel('Your full name, as you\'d like it displayed to your collaborators.'),
       inputEl = cssInput(
         value, { onInput: true, },
         { name: "username" },
         // TODO: catch isn't needed, so either remove or propagate errors from _submitForm.
-        dom.onKeyDown({Enter: () => isNameValid.get() && _submitForm(form, pending).catch(reportError)}),
+        dom.onKeyDown({Enter: () => isNameValid.get() && form.requestSubmit()}),
       ),
       dom.maybe((use) => use(value) && !use(isNameValid), buildNameWarningsDom),
       cssButtonGroup(
@@ -153,7 +136,7 @@ export class WelcomePage extends Disposable {
     return dom(
       'form',
       { method: "post", action: action.href },
-      handleSubmit(pending, () => _redirectToSiblingPage('verify')),
+      handleSubmitForm(pending, () => _redirectToSiblingPage('verify')),
       dom('p',
           `Welcome Sumo-ling! ` +  // This flow currently only used with AppSumo.
           `Your Grist site is almost ready. Let's get your account set up and verified. ` +
@@ -212,7 +195,7 @@ export class WelcomePage extends Disposable {
     return dom(
       'form',
       { method: "post", action: action.href },
-      handleSubmit(pending, (result) => {
+      handleSubmitForm(pending, (result) => {
         if (result.act === 'confirmed') {
           const verified = new URL(window.location.href);
           verified.pathname = '/verified';
@@ -259,7 +242,7 @@ export class WelcomePage extends Disposable {
     const pending = Observable.create(owner, false);
 
     return forms.form({method: "post", action: location.href },
-      handleSubmit(pending),
+      handleSubmitForm(pending),
       (elem) => { setTimeout(() => elem.focus(), 0); },
       forms.text('Please help us serve you better by answering a few questions.'),
       forms.question(
