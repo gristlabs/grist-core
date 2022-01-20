@@ -51,11 +51,11 @@ export class ChoiceListCell extends ChoiceTextBox {
 
 export const cssChoiceList = styled('div', `
   display: flex;
+  align-content: start;
   align-items: start;
   padding: 0 3px;
 
   position: relative;
-  height: min-content;
   min-height: 22px;
 
   &-wrap {
