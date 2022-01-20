@@ -227,7 +227,7 @@ export class MFAConfig extends Disposable {
                     cssAuthMethod(
                       cssAuthMethodTitle(cssGreenIcon('MobileChat2'), 'Phone message', testId('auth-method-title')),
                       cssAuthMethodDesc(
-                        'You need to add a phone number where you can receive authentication codes by text.',
+                        'You need to add a U.S. phone number where you can receive authentication codes by text.',
                       ),
                       dom.on('click', () => currentStep.set('configure-phone-message')),
                       testId('sms-method'),
@@ -672,12 +672,12 @@ export class MFAConfig extends Disposable {
               cssModalBody(
                 formElement = dom('form',
                   cssMainText(
-                    'You need to add a phone number where you can receive authentication codes by text.',
+                    'You need to add a U.S. phone number where you can receive authentication codes by text.',
                   ),
                   cssBoldSubHeading('Phone number'),
                   cssInput(phoneNumber,
                     {onInput: true},
-                    {name: 'phoneNumber', placeholder: '+999 (99) 999 99 99', type: 'text', required: 'true'},
+                    {name: 'phoneNumber', placeholder: '+1 (201) 555 0123', type: 'text', required: 'true'},
                     (el) => { setTimeout(() => el.focus(), 10); },
                     dom.onKeyDown({Enter: () => formElement.requestSubmit()}),
                     testId('phone-number-input'),
