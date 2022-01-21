@@ -920,6 +920,7 @@ const cssAuthMethods = styled('div', `
 const cssAuthMethod = styled('div', `
   height: 120px;
   border: 1px solid ${colors.mediumGreyOpaque};
+  border-radius: 3px;
   cursor: pointer;
 
   &:hover {
@@ -931,13 +932,12 @@ const cssAuthMethodTitle = styled(cssIconAndText, `
   font-size: ${vars.mediumFontSize};
   font-weight: bold;
   color: ${colors.lightGreen};
-  margin: 16px;
+  margin: 16px 16px 8px 16px;
 `);
 
 const cssAuthMethodDesc = styled('div', `
   color: #8a8a8a;
-  padding-left: 28px;
-  margin: 16px;
+  padding-left: 40px;
 `);
 
 const cssInput = styled(input, `
