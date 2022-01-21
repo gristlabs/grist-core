@@ -298,12 +298,13 @@ export type PassVerificationResult = ChallengeRequired | ChallengeNotRequired;
 /**
  * Information about the follow-up authentication challenge.
  */
-interface ChallengeRequired {
+export interface ChallengeRequired {
   isChallengeRequired: true;
+  isAlternateChallengeAvailable: boolean;
   // Session identifier that must be re-used in response to auth challenge.
   session: string;
   challengeName: 'SMS_MFA' | 'SOFTWARE_TOKEN_MFA';
-  // If challenge is 'SMS_MFA', the destination number that the verification code was sent.
+  // If SMS MFA is enabled, the destination phone number that codes are sent to.
   deliveryDestination?: string;
 }
 

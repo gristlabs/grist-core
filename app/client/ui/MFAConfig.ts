@@ -10,7 +10,7 @@ import {cssModalBody, cssModalTitle, IModalControl, modal,
         cssModalButtons as modalButtons} from 'app/client/ui2018/modals';
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import {AuthMethod, UserMFAPreferences} from 'app/common/UserAPI';
+import {AuthMethod, ChallengeRequired, UserMFAPreferences} from 'app/common/UserAPI';
 import {Disposable, dom, input, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 import {toDataURL} from 'qrcode';
 
@@ -91,7 +91,7 @@ export class MFAConfig extends Disposable {
         return [
           !isSmsMfaEnabled && !isSoftwareTokenMfaEnabled ?
             cssTextBtn(
-              'Enable two-factor authentication',
+              'Configure two-factor authentication',
               dom.on('click', () => this._showAddAuthMethodModal(undefined, {
                 onSuccess: () => {
                   reportSuccess('Two-factor authentication enabled');
@@ -177,7 +177,7 @@ export class MFAConfig extends Disposable {
    * Displays a modal that allows users to enable a MFA method for their account.
    *
    * @param {AuthMethod | undefined} method If specified, skips the 'choose-auth-method' step.
-   * @param {() => void} options.onSuccess Called after successfully adding a auth method.
+   * @param {() => void} options.onSuccess Called after successfully adding an auth method.
    */
   private _showAddAuthMethodModal(
     method: AuthMethod | undefined,
@@ -192,7 +192,26 @@ export class MFAConfig extends Disposable {
           switch (step) {
             case 'verify-password': {
               return [
-                this._buildSecurityVerificationForm(ctl, {onSuccess: async () => {
+                this._buildSecurityVerificationForm(ctl, {onSuccess: async (hadSecondStep) => {
+                  /**
+                   * If method was unspecified, but second step verification occured, we know that
+                   * the client doesn't have up-to-date 2FA preferences. Close the modal, and force
+                   * a refresh of UserMFAPreferences, which should cause the correct buttons to be
+                   * rendered once preferences are loaded.
+                   *
+                   * This is ultimately caused by older Grist sessions (pre-2FA) not having access
+                   * or refresh tokens, which makes it impossible to get MFA status without first
+                   * requiring that users re-authenticate. Token-less sessions currently return a
+                   * disabled status for all 2FA methods as an interim solution, until all old
+                   * sessions have expired (3 months).
+                   *
+                   * TODO: Revisit this 3 months after this commit has landed in prod; we may no longer
+                   * need much of these changes.
+                   */
+                  if (!method && hadSecondStep) {
+                    ctl.close();
+                    this._options.onChange();
+                  }
                   if (!method) { return currentStep.set('choose-auth-method'); }
 
                   currentStep.set(method === 'SMS' ? 'configure-phone-message' : 'configure-auth-app');
@@ -272,6 +291,7 @@ export class MFAConfig extends Disposable {
    * Displays a modal that allows users to disable a MFA method for their account.
    *
    * @param {AuthMethod} method The auth method to disable.
+   * @param {() => void} options.onSuccess Called after successfully disabling an auth method.
    */
   private _showDisableAuthMethodModal(method: AuthMethod, options: {onSuccess: () => void}): void {
     return modal((ctl, owner) => {
@@ -336,12 +356,15 @@ export class MFAConfig extends Disposable {
    *
    * @param {() => void} options.onSuccess Called after successful completion of verification.
    */
-  private _buildSecurityVerificationForm(ctl: IModalControl, {onSuccess}: {onSuccess: () => void}) {
+  private _buildSecurityVerificationForm(
+    ctl: IModalControl,
+    {onSuccess}: {onSuccess: (hadSecondStep: boolean) => void}
+  ) {
     const holder = new MultiHolder();
     const securityStep = Observable.create<'password' | 'sms' | 'totp' | 'loading'>(holder, 'password');
     const password = Observable.create(holder, '');
-    const maskedPhoneNumber = Observable.create(holder, '');
     const session = Observable.create(holder, '');
+    const challengeDetails = Observable.create<ChallengeRequired | null>(holder, null);
 
     return [
       dom.autoDispose(holder),
@@ -382,11 +405,11 @@ export class MFAConfig extends Disposable {
                   handleSubmit(pending,
                     ({password: pass}) => this._verifyPassword(pass),
                     (result) => {
-                      if (!result.isChallengeRequired) { return onSuccess(); }
+                      if (!result.isChallengeRequired) { return onSuccess(false); }
 
                       session.set(result.session);
+                      challengeDetails.set(result);
                       if (result.challengeName === 'SMS_MFA') {
-                        maskedPhoneNumber.set(result.deliveryDestination!);
                         securityStep.set('sms');
                       } else {
                         securityStep.set('totp');
@@ -408,7 +431,7 @@ export class MFAConfig extends Disposable {
             const pending = Observable.create(multiHolder, false);
             const verificationCode = Observable.create(multiHolder, '');
             const errorObs: Observable<string|null> = Observable.create(multiHolder, null);
-            const smsNumber = this._mfaPrefs.get()?.phoneNumber;
+            const {isAlternateChallengeAvailable, deliveryDestination} = challengeDetails.get()!;
 
             return dom.frag(
               dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
@@ -432,17 +455,18 @@ export class MFAConfig extends Disposable {
                   cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
                   handleSubmit(pending,
                     ({verificationCode: code, session: s}) => this._verifySecondStep('TOTP', code, s),
-                    () => onSuccess(),
+                    () => onSuccess(true),
                     (err) => handleFormError(err, errorObs),
                   ),
                   cssModalButtons(
                     bigPrimaryButton('Submit', dom.boolAttr('disabled', pending), testId('submit')),
                     bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
                   ),
-                  !this._mfaPrefs.get()?.isSmsMfaEnabled || !smsNumber ? null : cssSubText(
-                    'Receive a code by SMS?',
+                  !isAlternateChallengeAvailable ? null : cssSubText(
+                    'Receive a code by SMS? ',
                     cssLink(
-                      ` Text ${smsNumber}.`,
+                      // Use masked phone from prefs or challenge response, if available.
+                      `Text ${deliveryDestination}.`,
                       dom.on('click', async () => {
                         if (pending.get()) { return; }
 
@@ -451,7 +475,7 @@ export class MFAConfig extends Disposable {
                           const result = await this._verifyPassword(password.get(), 'SMS');
                           if (result.isChallengeRequired) {
                             session.set(result.session);
-                            maskedPhoneNumber.set(result.deliveryDestination!);
+                            challengeDetails.set(result);
                             securityStep.set('sms');
                           }
                         } catch (err) {
@@ -479,6 +503,7 @@ export class MFAConfig extends Disposable {
               errorObs.set(null);
               verificationCode.set('');
             });
+            const {isAlternateChallengeAvailable, deliveryDestination} = challengeDetails.get()!;
 
             return dom.frag(
               dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
@@ -493,7 +518,7 @@ export class MFAConfig extends Disposable {
                     formElement = dom('form',
                       cssMainText(
                         'We have sent an authentication code to ',
-                        cssLightlyBoldedText(maskedPhoneNumber.get()),
+                        cssLightlyBoldedText(deliveryDestination),
                         '. Enter it below to confirm your account.',
                         testId('main-text'),
                       ),
@@ -507,16 +532,19 @@ export class MFAConfig extends Disposable {
                       ),
                       cssInput(session, {onInput: true}, {name: 'session', type: 'hidden'}),
                       cssSubText(
-                        "Didn't receive a code?",
+                        "Didn't receive a code? ",
                         cssLink(
-                          ' Resend it',
+                          'Resend it',
                           dom.on('click', async () => {
                             if (pending.get()) { return; }
 
                             try {
                               isResendingCode.set(true);
                               const result = await this._verifyPassword(password.get(), 'SMS');
-                              if (result.isChallengeRequired) { session.set(result.session); }
+                              if (result.isChallengeRequired) {
+                                session.set(result.session);
+                                challengeDetails.set(result);
+                              }
                             } finally {
                               isResendingCode.set(false);
                             }
@@ -527,14 +555,14 @@ export class MFAConfig extends Disposable {
                       cssFormError(dom.text(use => use(errorObs) ?? ''), testId('form-error')),
                       handleSubmit(pending,
                         ({verificationCode: code, session: s}) => this._verifySecondStep('SMS', code, s),
-                        () => onSuccess(),
+                        () => onSuccess(true),
                         (err) => handleFormError(err, errorObs),
                       ),
                       cssModalButtons(
                         bigPrimaryButton('Submit', dom.boolAttr('disabled', pending), testId('submit')),
                         bigBasicButton('Cancel', dom.on('click', () => ctl.close()), testId('cancel')),
                       ),
-                      !this._mfaPrefs.get()?.isSoftwareTokenMfaEnabled ? null : cssSubText(
+                      !isAlternateChallengeAvailable ? null : cssSubText(
                         cssLink(
                           'Use code from authenticator app?',
                           dom.on('click', async () => {
@@ -741,9 +769,9 @@ export class MFAConfig extends Disposable {
                         testId('verification-code-input'),
                       ),
                       cssSubText(
-                        "Didn't receive a code?",
+                        "Didn't receive a code? ",
                         cssLink(
-                          ' Resend it',
+                          'Resend it',
                           dom.on('click', async () => {
                             if (pending.get()) { return; }
 
