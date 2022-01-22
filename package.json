@@ -115,7 +115,7 @@
     "morgan": "1.9.1",
     "mousetrap": "1.6.2",
     "multiparty": "4.2.2",
-    "node-fetch": "2.2.0",
+    "node-fetch": "3.1.1",
     "numeral": "2.0.6",
     "plotly.js-basic-dist": "1.51.1",
     "popper-max-size-modifier": "0.2.0",
