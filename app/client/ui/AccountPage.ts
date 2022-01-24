@@ -53,7 +53,10 @@ export class AccountPage extends Disposable {
     return domComputed(this._userObs, (user) => user && (
       cssContainer(cssAccountPage(
         cssHeader('Account settings'),
-        cssDataRow(cssSubHeader('Email'), user.email),
+        cssDataRow(
+          cssSubHeader('Email'),
+          cssEmail(user.email),
+        ),
         cssDataRow(
           cssSubHeader('Name'),
           domComputed(this._isEditingName, (isEditing) => (
@@ -64,14 +67,16 @@ export class AccountPage extends Disposable {
                   save: (val) => this._isNameValid.get() && this._updateUserName(val),
                   close: () => { this._isEditingName.set(false); this._nameEdit.set(''); },
                 },
+                { size: '5' }, // Lower size so that input can shrink below ~152px.
                 dom.on('input', (_ev, el) => this._nameEdit.set(el.value)),
+                cssFlexGrow.cls(''),
               ),
               cssTextBtn(
                 cssIcon('Settings'), 'Save',
                 // No need to save on 'click'. The transient input already does it on close.
               ),
             ] : [
-              user.name,
+              cssName(user.name),
               cssTextBtn(
                 cssIcon('Settings'), 'Edit',
                 dom.on('click', () => this._isEditingName.set(true)),
@@ -85,7 +90,7 @@ export class AccountPage extends Disposable {
         cssHeader('Password & Security'),
         cssDataRow(
           cssSubHeader('Login Method'),
-          user.loginMethod,
+          cssLoginMethod(user.loginMethod),
           user.loginMethod === 'Email + Password' ? cssTextBtn(
             cssIcon('Settings'), 'Reset',
             dom.on('click', () => confirmPwdResetModal(user.email)),
@@ -111,6 +116,7 @@ export class AccountPage extends Disposable {
             onCreate: () => this._createApiKey(),
             onDelete: () => this._deleteApiKey(),
             anonymous: false,
+            inputArgs: [{ size: '5' }], // Lower size so that input can shrink below ~152px.
           })
         )),
       ),
@@ -209,7 +215,7 @@ const cssHeader = styled('div', `
 
 const cssAccountPage = styled('div', `
   max-width: 600px;
-  padding: 32px 64px 24px 64px;
+  padding: 16px;
 `);
 
 const cssDataRow = styled('div', `
@@ -226,7 +232,7 @@ const cssSubHeaderFullWidth = styled('div', `
 `);
 
 const cssSubHeader = styled(cssSubHeaderFullWidth, `
-  width: 110px;
+  min-width: 110px;
 `);
 
 const cssContent = styled('div', `
@@ -237,12 +243,12 @@ const cssTextBtn = styled('button', `
   font-size: ${vars.mediumFontSize};
   color: ${colors.lightGreen};
   cursor: pointer;
-  margin-left: auto;
+  margin-left: 16px;
   background-color: transparent;
   border: none;
   padding: 0;
   text-align: left;
-  width: 90px;
+  min-width: 90px;
 
   &:hover {
     color: ${colors.darkGreen};
@@ -265,4 +271,20 @@ const cssWarnings = styled(buildNameWarningsDom, `
 const cssDescription = styled('div', `
   color: #8a8a8a;
   font-size: 13px;
+`);
+
+const cssFlexGrow = styled('div', `
+  flex-grow: 1;
+`);
+
+const cssName = styled(cssFlexGrow, `
+  word-break: break-word;
+`);
+
+const cssEmail = styled('div', `
+  word-break: break-word;
+`);
+
+const cssLoginMethod = styled(cssFlexGrow, `
+  word-break: break-word;
 `);

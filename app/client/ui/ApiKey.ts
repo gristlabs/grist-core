@@ -2,7 +2,7 @@ import * as billingPageCss from 'app/client/ui/BillingPageCss';
 import { basicButton } from 'app/client/ui2018/buttons';
 import { confirmModal } from 'app/client/ui2018/modals';
 
-import { Disposable, dom, makeTestId, Observable, observable, styled } from "grainjs";
+import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from "grainjs";
 
 interface IWidgetOptions {
   apiKey: Observable<string>;
@@ -11,6 +11,7 @@ interface IWidgetOptions {
   anonymous?: boolean; // Configure appearance and available options for anonymous use.
                        // When anonymous, no modifications are permitted to profile information.
                        // TODO: add browser test for this option.
+  inputArgs?: IDomArgs<HTMLInputElement>;
 }
 
 const testId = makeTestId('test-apikey-');
@@ -27,6 +28,7 @@ export class ApiKey extends Disposable {
   private _onDeleteCB: () => Promise<void>;
   private _onCreateCB: () => Promise<void>;
   private _anonymous: boolean;
+  private _inputArgs: IDomArgs<HTMLInputElement>;
   private _loading = observable(false);
 
   constructor(options: IWidgetOptions) {
@@ -35,6 +37,7 @@ export class ApiKey extends Disposable {
     this._onDeleteCB = options.onDelete;
     this._onCreateCB = options.onCreate;
     this._anonymous = Boolean(options.anonymous);
+    this._inputArgs = options.inputArgs ?? [];
   }
 
   public buildDom() {
@@ -42,8 +45,13 @@ export class ApiKey extends Disposable {
       dom.maybe(this._apiKey, (apiKey) => dom('div',
         cssRow(
           cssInput(
-            {readonly: true, value: this._apiKey.get()}, testId('key'),
-            dom.on('click', (ev, el) => el.select())
+            {
+              readonly: true,
+              value: this._apiKey.get(),
+            },
+            testId('key'),
+            dom.on('click', (ev, el) => el.select()),
+            this._inputArgs
           ),
           cssTextBtn(
             cssBillingIcon('Remove'), 'Remove',

@@ -6,8 +6,8 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {cssModalBody, cssModalTitle, IModalControl, modal,
-        cssModalButtons as modalButtons} from 'app/client/ui2018/modals';
+import {cssModalBody, cssModalTitle, cssModalWidth, IModalControl,
+        modal, cssModalButtons as modalButtons} from 'app/client/ui2018/modals';
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {AuthMethod, ChallengeRequired, UserMFAPreferences} from 'app/common/UserAPI';
@@ -85,7 +85,7 @@ export class MFAConfig extends Disposable {
   private _buildButtons() {
     return cssButtons(
       dom.domComputed(this._mfaPrefs, mfaPrefs => {
-        if (!mfaPrefs) { return cssCenteredDiv(cssSmallLoadingSpinner()); }
+        if (!mfaPrefs) { return cssSmallSpinner(cssSmallLoadingSpinner()); }
 
         const {isSmsMfaEnabled, isSoftwareTokenMfaEnabled, phoneNumber} = mfaPrefs;
         return [
@@ -282,7 +282,7 @@ export class MFAConfig extends Disposable {
             }
           }
         }),
-        cssModal.cls(''),
+        cssModalWidth('fixed-wide'),
       ];
     });
   }
@@ -339,11 +339,11 @@ export class MFAConfig extends Disposable {
               .catch(reportError)
               .finally(() => ctl.close());
 
-              return cssCenteredDivFixedHeight(loadingSpinner());
+              return cssSpinner(loadingSpinner());
             }
           }
         }),
-        cssModal.cls(''),
+        cssModalWidth('fixed-wide'),
       ];
     });
   }
@@ -371,7 +371,7 @@ export class MFAConfig extends Disposable {
       dom.domComputed(securityStep, (step) => {
         switch (step) {
           case 'loading': {
-            return cssCenteredDivFixedHeight(loadingSpinner());
+            return cssSpinner(loadingSpinner());
           }
           case 'password': {
             let formElement: HTMLFormElement;
@@ -510,7 +510,7 @@ export class MFAConfig extends Disposable {
               dom.autoDispose(resendingListener),
               dom.autoDispose(multiHolder),
               dom.domComputed(isResendingCode, isLoading => {
-                if (isLoading) { return cssCenteredDivFixedHeight(loadingSpinner()); }
+                if (isLoading) { return cssSpinner(loadingSpinner()); }
 
                 return [
                   cssModalTitle('Almost there!', testId('title')),
@@ -618,7 +618,7 @@ export class MFAConfig extends Disposable {
       dom.autoDispose(pending.addListener(isPending => isPending && errorObs.set(null))),
       dom.autoDispose(holder),
       dom.domComputed(qrCode, code => {
-        if (code === null) { return cssCenteredDivFixedHeight(loadingSpinner()); }
+        if (code === null) { return cssSpinner(loadingSpinner()); }
 
         return [
           cssModalTitle('Configure authenticator app', testId('title')),
@@ -748,7 +748,7 @@ export class MFAConfig extends Disposable {
               dom.autoDispose(resendingListener),
               dom.autoDispose(multiHolder),
               dom.domComputed(isResendingCode, isLoading => {
-                if (isLoading) { return cssCenteredDivFixedHeight(loadingSpinner()); }
+                if (isLoading) { return cssSpinner(loadingSpinner()); }
 
                 return [
                   cssModalTitle('Confirm your phone', testId('title')),
@@ -939,14 +939,13 @@ const cssBackBtn = styled(cssTextBtn, `
 `);
 
 const cssAuthMethods = styled('div', `
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-auto-rows: 1fr;
   margin-top: 16px;
   gap: 8px;
 `);
 
 const cssAuthMethod = styled('div', `
-  height: 120px;
   border: 1px solid ${colors.mediumGreyOpaque};
   border-radius: 3px;
   cursor: pointer;
@@ -965,7 +964,7 @@ const cssAuthMethodTitle = styled(cssIconAndText, `
 
 const cssAuthMethodDesc = styled('div', `
   color: #8a8a8a;
-  padding-left: 40px;
+  padding: 0px 16px 16px 40px;
 `);
 
 const cssInput = styled(input, `
@@ -992,10 +991,6 @@ const cssCodeInput = styled(cssInput, `
   width: 200px;
 `);
 
-const cssModal = styled('div', `
-  width: 600px;
-`);
-
 const cssSmallLoadingSpinner = styled(loadingSpinner, `
   width: ${spinnerSizePixels};
   height: ${spinnerSizePixels};
@@ -1008,8 +1003,11 @@ const cssCenteredDiv = styled('div', `
   align-items: center;
 `);
 
-const cssCenteredDivFixedHeight = styled(cssCenteredDiv, `
+const cssSmallSpinner = cssCenteredDiv;
+
+const cssSpinner = styled(cssCenteredDiv, `
   height: 200px;
+  min-width: 200px;
 `);
 
 const cssBoldSubHeading = styled('div', `
