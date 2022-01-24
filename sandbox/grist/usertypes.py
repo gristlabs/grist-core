@@ -287,7 +287,7 @@ class Date(Numeric):
     if value in ("", None):
       return None
     elif isinstance(value, datetime.datetime):
-      return moment.dt_to_ts(value)
+      return moment.date_to_ts(value.date())
     elif isinstance(value, datetime.date):
       return moment.date_to_ts(value)
     elif isinstance(value, (float, six.integer_types)):
