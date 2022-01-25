@@ -1291,13 +1291,35 @@ class UserActions(object):
     table = self._engine.tables[table_id]
     col = table.get_column(col_id)
 
-    if col.is_formula():
-      # We don't set the values of formula columns, they should just recalculate themselves
-      return None
+    # We don't set the values of formula columns, they should just recalculate themselves
+    if not col.is_formula():
+      row_ids, values = col.rename_choices(renames)
+      values = [encode_object(v) for v in values]
+      self.BulkUpdateRecord(table_id, row_ids, {col_id: values})
 
-    row_ids, values = col.rename_choices(renames)
-    values = [encode_object(v) for v in values]
-    return self.BulkUpdateRecord(table_id, row_ids, {col_id: values})
+    # Helper to rename only string values
+    def rename(value):
+      return renames.get(value, value) if isinstance(value, six.string_types) else value
+
+    # Rename filters
+    filters = self._engine.tables['_grist_Filters']
+    colRef = self._docmodel.get_column_rec(table_id, col_id).id
+    col_filters = filters.filter_records(colRef=colRef)
+    row_ids = []
+    values = []
+    for rec in col_filters:
+      if not rec.filter:
+        continue
+      col_filter = json.loads(rec.filter)
+      new_filter = {
+        include_exclude: [rename(value) for value in values]
+        for include_exclude, values in col_filter.items()
+      }
+      if col_filter != new_filter:
+        row_ids.append(rec.id)
+        values.append(json.dumps(new_filter))
+    if row_ids:
+      self.BulkUpdateRecord('_grist_Filters', row_ids, {"filter": values})
 
   #----------------------------------------
   # User actions on tables.

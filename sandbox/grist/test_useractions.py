@@ -1,3 +1,4 @@
+import json
 import types
 import logger
 import useractions
@@ -859,6 +860,38 @@ class TestUserActions(test_engine.EngineTestCase):
       [11, 5],
       [12, [[]]],
     ])
+
+    # Test filters rename
+
+    # Create new view section
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", None])
+
+    # Filter it by first column
+    self.apply_user_action(['BulkAddRecord', '_grist_Filters', [None], {
+      "viewSectionRef": [1],
+      "colRef": [1],
+      "filter": [json.dumps({"included": ["b", "c"]})]
+    }])
+
+    # Add the same filter for second column (to make sure it is not renamed)
+    self.apply_user_action(['BulkAddRecord', '_grist_Filters', [None], {
+      "viewSectionRef": [1],
+      "colRef": [2],
+      "filter": [json.dumps({"included": ["b", "c"]})]
+    }])
+
+    # Rename choices
+    renames = {"b": "z", "c": "b"}
+    self.apply_user_action(
+      ["RenameChoices", "ChoiceTable", "ChoiceColumn", renames])
+
+    # Test filters
+    self.assertTableData('_grist_Filters', data=[
+      ["id", "colRef", "filter", "setAutoRemove", "viewSectionRef"],
+      [1, 1, json.dumps({"included": ["z", "b"]}), None, 1],
+      [2, 2, json.dumps({"included": ["b", "c"]}), None, 1]
+    ])
+
 
   def test_reference_lookup(self):
     sample = testutil.parse_test_sample({

@@ -892,28 +892,33 @@ export async function undo(optCount: number = 1, optTimeout?: number) {
 
 /**
  * Returns a function to undo all user actions from a particular point in time.
+ * Optionally accepts a function which should return the same result before and after the test.
  */
-export async function begin() {
+export async function begin(invariant: () => any = () => true) {
   const undoStackPointer = () => driver.executeScript<number>(`
     return window.gristDocPageModel.gristDoc.get()._undoStack._pointer;
   `);
   const start = await undoStackPointer();
-  return async () => undo(await undoStackPointer() - start);
+  const previous = await invariant();
+  return async () => {
+    await undo(await undoStackPointer() - start);
+    assert.deepEqual(await invariant(), previous);
+  };
 }
 
 /**
  * Simulates a transaction on the GristDoc. Use with cautions, as there is no guarantee it will undo correctly
  * in a case of failure.
- *
+ * Optionally accepts a function which should return the same result before and after the test.
  * Example:
  *
  * it('should ...', revertChanges(async function() {
  * ...
  * }));
  */
-export function revertChanges(test: () => Promise<void>) {
+export function revertChanges(test: () => Promise<void>, invariant: () => any = () => false) {
   return async function() {
-    const revert = await begin();
+    const revert = await begin(invariant);
     try {
       await test();
     } finally {
@@ -1951,6 +1956,24 @@ export async function scrollActiveView(x: number, y: number) {
     view!.scrollBy(x1, y1);
   }, x, y);
   await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
+}
+
+/**
+ * Filters a column in a Grid using the filter menu.
+ */
+export async function filterBy(col: IColHeader|string, save: boolean, values: (string|RegExp)[]) {
+  await openColumnMenu(col, 'Filter');
+  // Select none at start
+  await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
+  for(const value of values) {
+    await driver.findContent('.test-filter-menu-list label', value).click();
+  }
+  // Save filters
+  await driver.find('.test-filter-menu-apply-btn').click();
+  if (save) {
+    await driver.find('.test-section-menu-small-btn-save').click();
+  }
+  await waitForServer();
 }
 
 } // end of namespace gristUtils
