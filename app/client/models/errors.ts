@@ -120,7 +120,11 @@ export function reportError(err: Error|string): void {
     } else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
       // Show the error as a message
       _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
-    } else {
+    } else if (message.match(/\[Sandbox\].*between formula and data/)) {
+      // Show nicer error message for summary tables.
+      _notifier.createUserMessage("Summary tables can only contain formula columns.",
+        {key: 'summary', actions: ['ask-for-help']});
+    }  else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.
       if (details?.userError) {

@@ -14,7 +14,7 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
 import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
-import { cssLabel, cssRow } from 'app/client/ui/RightPanel';
+import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanel';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
@@ -228,6 +228,7 @@ export class FieldBuilder extends Disposable {
         }),
         testId('type-select'),
         grainjsDom.cls('tour-type-selector'),
+        grainjsDom.cls(cssBlockedCursor.className, this.origColumn.disableModifyBase)
       ),
       grainjsDom.maybe((use) => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
       grainjsDom.maybe(this._isTransformingType, () => {

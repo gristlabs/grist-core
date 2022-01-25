@@ -369,8 +369,9 @@ export function selectTitle(label: BindableValue<string>, iconName?: BindableVal
 export function selectOption(
   action: (item: HTMLElement) => void,
   label: BindableValue<string>,
-  iconName?: BindableValue<IconName>) {
-  return menuItem(action, selectTitle(label, iconName));
+  iconName?: BindableValue<IconName>,
+  ...args: IDomArgs<HTMLElement>) {
+  return menuItem(action, selectTitle(label, iconName), ...args);
 }
 
 export const menuSubHeader = styled('div', `

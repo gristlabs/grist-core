@@ -556,6 +556,12 @@ export const cssRow = styled('div', `
   }
 `);
 
+export const cssBlockedCursor = styled('span', `
+  &, & * {
+    cursor: not-allowed !important;
+  }
+`);
+
 export const cssButtonRow = styled(cssRow, `
   margin-left: 0;
   margin-right: 0;

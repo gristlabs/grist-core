@@ -2,7 +2,7 @@ import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {cssEmptySeparator, cssLabel, cssRow} from 'app/client/ui/RightPanel';
+import {cssBlockedCursor, cssEmptySeparator, cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -10,8 +10,8 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {sanitizeIdent} from 'app/common/gutil';
-import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder, Observable,
-        styled, subscribe} from 'grainjs';
+import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
+        Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
 import {IconName} from 'app/client/ui2018/IconList';
@@ -24,6 +24,7 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
     '$' + (edited ? sanitizeIdent(edited) : use(origColumn.colId)));
   const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith('$') ? val.slice(1) : val);
 
+  const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
   // We will listen to cursor position and force a blur event on
   // the text input, which will trigger save before the column observable
   // will change its value.
@@ -39,6 +40,7 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
   return [
     cssLabel('COLUMN LABEL AND ID'),
     cssRow(
+      dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
         editor = textInput(fromKo(origColumn.label),
           async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
@@ -64,6 +66,8 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
         ),
       )
     ),
+    dom.maybe(isSummaryTable,
+      () => cssRow('Column options are limited in summary tables.'))
   ];
 }
 
@@ -85,6 +89,9 @@ export function buildFormulaConfig(
 
   // Intermediate state - user wants to specify formula, but haven't done yet
   const maybeTrigger = Observable.create(owner, false);
+
+  // If this column belongs to a summary table.
+  const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
 
   // Column behaviour. There are 3 types of behaviors:
   // - empty: isFormula and formula == ''
@@ -127,6 +134,7 @@ export function buildFormulaConfig(
         // this element focusable and will steal focus from clipboard. This in turn,
         // will not dispose the formula editor when menu is clicked.
         (el) => el.removeAttribute("tabindex"),
+        dom.cls(cssBlockedCursor.className, origColumn.disableModify),
         dom.cls("disabled", origColumn.disableModify)),
     );
 
@@ -158,7 +166,9 @@ export function buildFormulaConfig(
   const convertToData = () => gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: true});
   const convertToDataOption = () => selectOption(
     convertToData,
-    'Convert column to data', 'Database');
+    'Convert column to data', 'Database',
+    dom.cls('disabled', isSummaryTable)
+    );
 
   // Clears the column
   const clearAndResetOption = () => selectOption(
@@ -232,7 +242,7 @@ export function buildFormulaConfig(
       cssLabel('COLUMN BEHAVIOR'),
       ...(type === "empty" ? [
         menu(behaviourLabel(), [
-          convertToDataOption()
+          convertToDataOption(),
         ]),
         cssEmptySeparator(),
         cssRow(textButton(
@@ -244,13 +254,13 @@ export function buildFormulaConfig(
         cssRow(textButton(
           "Set trigger formula",
           dom.on("click", setTrigger),
-          dom.prop("disabled", origColumn.disableModify),
+          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
           testId("field-set-trigger")
         )),
         cssRow(textButton(
           "Make into data column",
           dom.on("click", convertToData),
-          dom.prop("disabled", origColumn.disableModify),
+          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
           testId("field-set-data")
         ))
       ] : type === "formula" ? [
@@ -264,7 +274,7 @@ export function buildFormulaConfig(
           "Convert to trigger formula",
           dom.on("click", convertFormulaToTrigger),
           dom.hide(maybeFormula),
-          dom.prop("disabled", origColumn.disableModify),
+          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
           testId("field-set-trigger")
         ))
       ] : /* type == 'data' */ [

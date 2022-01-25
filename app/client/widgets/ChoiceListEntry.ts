@@ -1,4 +1,5 @@
 import {IToken, TokenField} from 'app/client/lib/TokenField';
+import {cssBlockedCursor} from 'app/client/ui/RightPanel';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colorButton} from 'app/client/ui2018/ColorSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -156,6 +157,7 @@ export class ChoiceListEntry extends Disposable {
 
         return cssVerticalFlex(
           cssListBoxInactive(
+            dom.cls(cssBlockedCursor.className, this._disabled),
             dom.autoDispose(someValues),
             dom.maybe(use => use(someValues).length === 0, () =>
               row('No choices configured')
@@ -372,11 +374,11 @@ const cssListBoxInactive = styled(cssListBox, `
   cursor: pointer;
   border: 1px solid ${colors.darkGrey};
 
-  &:hover {
+  &:hover:not(&-disabled) {
     border: 1px solid ${colors.hover};
   }
   &-disabled {
-    cursor: default;
+    opacity: 0.6;
   }
 `);
 
