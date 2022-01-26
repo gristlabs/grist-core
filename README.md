@@ -160,6 +160,87 @@ Grist benefits its users:
  * [Grist on AppSumo](https://appsumo.com/products/grist/) (life-time deal is sold out)
  * [Capterra](https://www.capterra.com/p/232821/Grist/#reviews), [G2](https://www.g2.com/products/grist/reviews), [TrustRadius](https://www.trustradius.com/products/grist/reviews)
 
+## Environment variables
+
+Grist can be configured in many ways. Here are the main environment variables it is sensitive to:
+
+Variable | Purpose
+-------- | -------
+ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com)
+APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis)
+APP_HOME_URL | url prefix for home api (home and doc servers need this)
+APP_STATIC_URL | url prefix for static resources
+APP_UNTRUSTED_URL   | URL at which to serve/expect plugin content.
+GRIST_ADAPT_DOMAIN | set to "true" to support multiple base domains (careful, host header should be trustworthy)
+GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).
+GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
+GRIST_DATA_DIR      | directory in which to store document caches.
+GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
+GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
+GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
+GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
+GRIST_HOST          | hostname to use when listening on a port.
+GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
+GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.
+GRIST_LOGIN_REDIRECT_HOST | host of cognito-based login helper, if applicable (usually login.getgrist.com).
+GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone
+GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited).
+GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited).
+GRIST_ORG_IN_PATH | if true, encode org in path rather than domain
+GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer
+GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)
+GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
+GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN
+GRIST_SESSION_SECRET | a key used to encode sessions
+GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
+GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
+GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
+GRIST_USER_ROOT     | an extra path to look for plugins in.
+HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
+PORT                | port number to listen on for Grist server
+REDIS_URL           | optional redis server for browser sessions and db query caching
+
+Sandbox related variables:
+
+Variable | Purpose
+-------- | -------
+GRIST_SANDBOX_FLAVOR | can be pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox.
+GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details.
+PYTHON_VERSION | can be 2 or 3. If set, documents without an engine setting are assumed to use the specified version of python. Not all sandboxes support all versions.
+PYTHON_VERSION_ON_CREATION | can be 2 or 3. If set, newly created documents have an engine setting set to python2 or python3. Not all sandboxes support all versions.
+
+Google Drive integrations:
+
+Variable | Purpose
+-------- | -------
+GOOGLE_CLIENT_ID    | set to the Google Client Id to be used with Google API client
+GOOGLE_CLIENT_SECRET| set to the Google Client Secret to be used with Google API client
+GOOGLE_API_KEY      | set to the Google API Key to be used with Google API client (accessing public files)
+GOOGLE_DRIVE_SCOPE  | set to the scope requested for Google Drive integration (defaults to drive.file)
+
+Database variables:
+
+Variable | Purpose
+-------- | -------
+TYPEORM_DATABASE | database filename for sqlite or database name for other db types
+TYPEORM_HOST     | host for db
+TYPEORM_LOGGING  | set to 'true' to see all sql queries
+TYPEORM_PASSWORD | password to use
+TYPEORM_PORT     | port number for db if not the default for that db type
+TYPEORM_TYPE     | set to 'sqlite' or 'postgres'
+TYPEORM_USERNAME | username to connect as
+
+Testing:
+
+Variable | Purpose
+-------- | -------
+GRIST_TESTING_SOCKET | a socket used for out-of-channel communication during tests only.
+GRIST_TEST_HTTPS_OFFSET | if set, adds https ports at the specified offset.  This is useful in testing.
+GRIST_TEST_SSL_CERT | if set, contains filename of SSL certificate.
+GRIST_TEST_SSL_KEY  | if set, contains filename of SSL private key.
+GRIST_TEST_LOGIN    | allow fake unauthenticated test logins (suitable for dev environment only).
+GRIST_TEST_ROUTER | if set, then the home server will serve a mock version of router api at /test/router
+
 ## License
 
 This repository, `grist-core`, is released under the [Apache License, Version
