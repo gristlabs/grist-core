@@ -550,7 +550,7 @@ def PRODUCT(factor1, *more_factors):
 
 def QUOTIENT(dividend, divisor):
   """
-  Returns one number divided by another.
+  Returns one number divided by another, without the remainder.
 
   >>> QUOTIENT(5, 2)
   2
