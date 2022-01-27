@@ -99,7 +99,7 @@ interface BaseQuery {
  * Allows filtering with more complex operations.
  */
 export interface ClientQuery extends BaseQuery {
-  operations?: {
+  operations: {
     [colId: string]: QueryOperation;
   };
 }

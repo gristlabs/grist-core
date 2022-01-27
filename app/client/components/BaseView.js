@@ -4,7 +4,6 @@ var moment = require('moment-timezone');
 var {getSelectionDesc} = require('app/common/DocActions');
 var {nativeCompare, roundDownToMultiple, waitObs} = require('app/common/gutil');
 var gristTypes = require('app/common/gristTypes');
-var koUtil = require('../lib/koUtil');
 var tableUtil = require('../lib/tableUtil');
 var {DataRowModel} = require('../models/DataRowModel');
 var {DynamicQuerySet} = require('../models/QuerySet');
@@ -15,7 +14,6 @@ var {Cursor} = require('./Cursor');
 var FieldBuilder = require('../widgets/FieldBuilder');
 var commands = require('./commands');
 var BackboneEvents = require('backbone').Events;
-const {LinkingState} = require('./LinkingState');
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
 const {reportError, reportSuccess} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
@@ -24,8 +22,6 @@ const {copyToClipboard} = require('app/client/lib/copyToClipboard');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
-const {LinkConfig} = require('app/client/ui/selectBy');
-const {encodeObject} = require("app/plugin/objtypes");
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -127,36 +123,9 @@ function BaseView(gristDoc, viewSectionModel, options) {
   //--------------------------------------------------
   // Prepare logic for linking with other sections.
 
-  // Linking state maintains .filterFunc and .cursorPos observables which we use for
-  // auto-scrolling and filtering.
-  this._linkingState = this.autoDispose(koUtil.computedBuilder(() => {
-    let v = this.viewSection;
-    let src = v.linkSrcSection();
-    if (!src.getRowId()) {
-      return null;
-    }
-    try {
-      const config = new LinkConfig(v);
-      return LinkingState.create.bind(LinkingState, null, this.gristDoc, config);
-    } catch (err) {
-      console.warn(`Can't create LinkingState: ${err.message}`);
-      return null;
-    }
-  }));
-
-  this._linkingFilter = this.autoDispose(ko.computed(() => {
-    const linking = this._linkingState();
-    const result = linking && linking.filterColValues ? linking.filterColValues() : {filters: {}};
-    result.operations = result.operations || {};
-    for (const key in result.filters) {
-      result.operations[key] = result.operations[key] || 'in';
-    }
-    return result;
-  }));
-
   // A computed for the rowId of the row selected by section linking.
   this.linkedRowId = this.autoDispose(ko.computed(() => {
-    let linking = this._linkingState();
+    let linking = this.viewSection.linkingState();
     return linking && linking.cursorPos ? linking.cursorPos() : null;
   }).extend({deferred: true}));
 
@@ -165,7 +134,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // Indicated whether editing the section should be disabled given the current linking state.
   this.disableEditing = this.autoDispose(ko.computed(() => {
-    const linking = this._linkingState();
+    const linking = this.viewSection.linkingState();
     return linking && linking.disableEditing();
   }));
 
@@ -219,7 +188,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   // dependency changes.
   this.autoDispose(ko.computed(() => {
     this._isLoading(true);
-    const linkingFilter = this._linkingFilter();
+    const linkingFilter = this.viewSection.linkingFilter();
     this._queryRowSource.makeQuery(linkingFilter.filters, linkingFilter.operations, (err) => {
       if (this.isDisposed()) { return; }
       if (err) { reportError(err); }
@@ -228,7 +197,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }));
 
   // Reset cursor to the first row when filtering changes.
-  this.autoDispose(this._linkingFilter.subscribe((x) => this.onLinkFilterChange()));
+  this.autoDispose(this.viewSection.linkingFilter.subscribe((x) => this.onLinkFilterChange()));
 
   // When sorting changes, reset the cursor to the first row. (The alternative of moving the
   // cursor to stay at the same record is sometimes better, but sometimes more annoying.)
@@ -408,11 +377,11 @@ BaseView.prototype._parsePasteForView = function(data, fields) {
 };
 
 BaseView.prototype._getDefaultColValues = function() {
-  const {filters, operations} = this._linkingFilter.peek();
-  return _.mapObject(
-      _.pick(filters, (value, key) => value.length > 0 && key !== "id"),
-      (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0]
-  );
+  const linkingState = this.viewSection.linkingState.peek();
+  if (!linkingState) {
+    return {};
+  }
+  return linkingState.getDefaultColValues();
 };
 
 /**

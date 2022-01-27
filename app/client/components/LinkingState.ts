@@ -1,6 +1,6 @@
-import {GristDoc} from "app/client/components/GristDoc";
 import {DataRowModel} from "app/client/models/DataRowModel";
 import * as DataTableModel from "app/client/models/DataTableModel";
+import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
@@ -9,9 +9,12 @@ import {LinkConfig} from "app/client/ui/selectBy";
 import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable} from "grainjs";
 import * as  ko from "knockout";
-import * as  _ from "underscore";
+import mapValues = require('lodash/mapValues');
+import pickBy = require('lodash/pickBy');
+import identity = require('lodash/identity');
 
 
 /**
@@ -31,7 +34,7 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
     gutil.isSubset(summary.summarySourceColRefs(), detail.summarySourceColRefs()));
 }
 
-type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
+export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
 
 /**
  * Maintains state useful for linking sections, i.e. auto-filtering and auto-scrolling.
@@ -65,18 +68,21 @@ export class LinkingState extends Disposable {
   // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId()
   public readonly filterColValues?: ko.Computed<FilterColValues>;
 
+  // Get default values for a new record so that it continues to satisfy the current linking filters
+  public readonly getDefaultColValues: () => any;
+
   private _srcSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   private _srcCol: ColumnRec;
   private _srcColId: string | undefined;
 
-  constructor(gristDoc: GristDoc, linkConfig: LinkConfig) {
+  constructor(docModel: DocModel, linkConfig: LinkConfig) {
     super();
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._srcSection = srcSection;
     this._srcCol = srcCol;
     this._srcColId = srcColId;
-    this._srcTableModel = gristDoc.getTableModel(srcSection.table().tableId());
+    this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
 
     if (tgtColId) {
@@ -103,10 +109,11 @@ export class LinkingState extends Disposable {
           const colId = col.colId();
           const srcValue = srcTableData.getValue(srcRowId as number, colId);
           result.filters[colId] = [srcValue];
+          result.operations[colId] = 'in';
           if (isDirectSummary) {
             const tgtColType = col.type();
             if (tgtColType === 'ChoiceList' || tgtColType.startsWith('RefList:')) {
-              result.operations![colId] = 'intersects';
+              result.operations[colId] = 'intersects';
             }
           }
         }
@@ -116,12 +123,33 @@ export class LinkingState extends Disposable {
       // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a
       // column or map representing the inverse of summary table's "group" column.
     } else {
-      const srcValueFunc = srcColId ? this._makeSrcCellGetter() : _.identity;
+      const srcValueFunc = srcColId ? this._makeSrcCellGetter() : identity;
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
           srcValueFunc(srcSection.activeRowId()) as RowId
         ));
       }
+
+      if (!srcColId) {
+        // This is a same-record link: copy getDefaultColValues from the source if possible
+        const getDefaultColValues = srcSection.linkingState()?.getDefaultColValues;
+        if (getDefaultColValues) {
+          this.getDefaultColValues = getDefaultColValues;
+        }
+      }
+    }
+
+    if (!this.getDefaultColValues) {
+      this.getDefaultColValues = () => {
+        if (!this.filterColValues) {
+          return {};
+        }
+        const {filters, operations} = this.filterColValues.peek();
+        return mapValues(
+          pickBy(filters, (value: any[], key: string) => value.length > 0 && key !== "id"),
+          (value, key) => operations[key] === "intersects" ? encodeObject(value) : value[0]
+        );
+      };
     }
   }
 

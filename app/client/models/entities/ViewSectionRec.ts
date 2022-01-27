@@ -1,16 +1,27 @@
 import * as BaseView from 'app/client/components/BaseView';
-import { ColumnRec, FilterRec, TableRec, ViewFieldRec, ViewRec } from 'app/client/models/DocModel';
+import {CursorPos} from 'app/client/components/Cursor';
+import {FilterColValues, LinkingState} from 'app/client/components/LinkingState';
+import {KoArray} from 'app/client/lib/koArray';
+import {
+  ColumnRec,
+  DocModel,
+  FilterRec,
+  IRowModel,
+  recordSet,
+  refRecord,
+  TableRec,
+  ViewFieldRec,
+  ViewRec
+} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {RowId} from 'app/client/models/rowset';
+import {LinkConfig} from 'app/client/ui/selectBy';
+import {getWidgetTypes} from 'app/client/ui/widgetTypes';
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
+import {arrayRepeat} from 'app/common/gutil';
+import {Sort} from 'app/common/SortSpec';
+import {Computed} from 'grainjs';
 import * as ko from 'knockout';
-import { CursorPos, } from 'app/client/components/Cursor';
-import { KoArray, } from 'app/client/lib/koArray';
-import { DocModel, IRowModel, recordSet, refRecord, } from 'app/client/models/DocModel';
-import { RowId, } from 'app/client/models/rowset';
-import { getWidgetTypes, } from 'app/client/ui/widgetTypes';
-import { arrayRepeat, } from 'app/common/gutil';
-import { Sort, } from 'app/common/SortSpec';
-import { Computed, } from 'grainjs';
 import defaults = require('lodash/defaults');
 
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
@@ -98,10 +109,16 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   linkSrcCol: ko.Computed<ColumnRec>;
   linkTargetCol: ko.Computed<ColumnRec>;
 
-  activeRowId: ko.Observable<RowId|null>;     // May be null when there are no rows.
+  // Linking state maintains .filterFunc and .cursorPos observables which we use for
+  // auto-scrolling and filtering.
+  linkingState: ko.Computed<LinkingState | null>;
+
+  linkingFilter: ko.Computed<FilterColValues>;
+
+  activeRowId: ko.Observable<RowId | null>;     // May be null when there are no rows.
 
   // If the view instance for section is instantiated, it will be accessible here.
-  viewInstance: ko.Observable<BaseView|null>;
+  viewInstance: ko.Observable<BaseView | null>;
 
   // Describes the most recent cursor position in the section. Only rowId and fieldIndex are used.
   lastCursorPos: CursorPos;
@@ -424,6 +441,23 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkTargetCol = refRecord(docModel.columns, this.activeLinkTargetColRef);
 
   this.activeRowId = ko.observable(null);
+
+  this.linkingState = this.autoDispose(ko.pureComputed(() => {
+    if (!this.linkSrcSection().getRowId()) {
+      return null;
+    }
+    try {
+      const config = new LinkConfig(this);
+      return new LinkingState(docModel, config);
+    } catch (err) {
+      console.warn(`Can't create LinkingState: ${err.message}`);
+      return null;
+    }
+  }));
+
+  this.linkingFilter = this.autoDispose(ko.pureComputed(() => {
+    return this.linkingState()?.filterColValues?.() || {filters: {}, operations: {}};
+  }));
 
   // If the view instance for this section is instantiated, it will be accessible here.
   this.viewInstance = ko.observable(null);

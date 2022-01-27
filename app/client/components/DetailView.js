@@ -321,7 +321,7 @@ DetailView.prototype.buildTitleControls = function() {
   // Note that the controls should still be visible with a filter link.
   const showControls = ko.computed(() => {
     if (!this._isSingle || this.recordLayout.layoutEditor()) { return false; }
-    const linkingState = this._linkingState();
+    const linkingState = this.viewSection.linkingState();
     return !(linkingState && Boolean(linkingState.cursorPos));
   });
   return dom('div',
