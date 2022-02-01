@@ -74,9 +74,22 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  // cannot select from chart or custom
-  if (['chart', 'custom'].includes(source.widgetType)) {
+  // cannot select from chart
+  if (source.widgetType === 'chart') {
     return false;
+  }
+
+  if (source.widgetType === 'custom') {
+
+    // custom widget do not support linking by columns
+    if (source.tableId !== source.section.table.peek().primaryTableId.peek()) {
+      return false;
+    }
+
+    // custom widget must allow select by
+    if (!source.section.allowSelectBy.get()) {
+      return false;
+    }
   }
 
   // The link must not create a cycle

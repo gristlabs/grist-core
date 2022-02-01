@@ -10,7 +10,7 @@ import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {encodeObject} from 'app/plugin/objtypes';
-import {Disposable} from "grainjs";
+import {Disposable, toKo} from "grainjs";
 import * as  ko from "knockout";
 import mapValues = require('lodash/mapValues');
 import pickBy = require('lodash/pickBy');
@@ -87,7 +87,9 @@ export class LinkingState extends Disposable {
 
     if (tgtColId) {
       const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
-      if (srcColId) {
+      if (srcSection.parentKey() === 'custom') {
+        this.filterColValues = this._srcCustomFilter(tgtColId, operation);
+      } else if (srcColId) {
         this.filterColValues = this._srcCellFilter(tgtColId, operation);
       } else {
         this.filterColValues = this._simpleFilter(tgtColId, operation, (rowId => [rowId]));
@@ -122,6 +124,8 @@ export class LinkingState extends Disposable {
     } else if (isSummaryOf(tgtSection.table(), srcSection.table())) {
       // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a
       // column or map representing the inverse of summary table's "group" column.
+    } else if (srcSection.parentKey() === 'custom') {
+      this.filterColValues = this._srcCustomFilter('id', 'in');
     } else {
       const srcValueFunc = srcColId ? this._makeSrcCellGetter() : identity;
       if (srcValueFunc) {
@@ -194,6 +198,14 @@ export class LinkingState extends Disposable {
         }
       });
     }
+  }
+
+  // Value for this.filterColValues based on the values in srcSection.selectedRows
+  private _srcCustomFilter(colId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+    return this.autoDispose(ko.computed(() => {
+      const values = toKo(ko, this._srcSection.selectedRows)();
+      return {filters: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
+    }));
   }
 
   // Returns a function which returns the value of the cell

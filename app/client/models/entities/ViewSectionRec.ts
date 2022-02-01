@@ -22,7 +22,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
-import {Computed} from 'grainjs';
+import {Computed, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
@@ -158,6 +158,12 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
   desiredAccessLevel: ko.Observable<AccessLevel|null>;
+
+  // Show widget as linking source. Used by custom widget.
+  allowSelectBy: Observable<boolean>;
+
+  // List of selected rows
+  selectedRows: Observable<number[]>;
 
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
@@ -562,4 +568,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     }
     return result;
   });
+
+  this.allowSelectBy = Observable.create(this, false);
+  this.selectedRows = Observable.create(this, []);
 }

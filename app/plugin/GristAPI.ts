@@ -99,4 +99,10 @@ export interface GristView {
 
   // Similar TODO to fetchSelectedTable for return type.
   fetchSelectedRecord(rowId: number): Promise<any>;
+
+  // Allow custom widget to be listed as a possible source for linking with SELECT BY.
+  allowSelectBy(): Promise<void>;
+
+  // Set the list of selected rows to be used against any linked widget. Requires `allowSelectBy()`.
+  setSelectedRows(rowIds: number[]): Promise<void>;
 }

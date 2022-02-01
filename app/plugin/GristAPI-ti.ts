@@ -7,8 +7,7 @@ import * as t from "ts-interface-checker";
 export const ComponentKind = t.union(t.lit("safeBrowser"), t.lit("safePython"), t.lit("unsafeNode"));
 
 export const GristAPI = t.iface([], {
-  "render": t.func("number", t.param("path", "string"), t.param("target", "RenderTarget"),
-                   t.param("options", "RenderOptions", true)),
+  "render": t.func("number", t.param("path", "string"), t.param("target", "RenderTarget"), t.param("options", "RenderOptions", true)),
   "dispose": t.func("void", t.param("procId", "number")),
   "subscribe": t.func("void", t.param("tableId", "string")),
   "unsubscribe": t.func("void", t.param("tableId", "string")),
@@ -24,6 +23,8 @@ export const GristDocAPI = t.iface([], {
 export const GristView = t.iface([], {
   "fetchSelectedTable": t.func("any"),
   "fetchSelectedRecord": t.func("any", t.param("rowId", "number")),
+  "allowSelectBy": t.func("void"),
+  "setSelectedRows": t.func("void", t.param("rowIds", t.array("number"))),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

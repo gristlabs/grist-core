@@ -47,6 +47,8 @@ export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers
 export const viewApi = rpc.getStub<GristView>('GristView', checkers.GristView);
 export const widgetApi = rpc.getStub<WidgetAPI>('WidgetAPI', checkers.WidgetAPI);
 export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', checkers.CustomSectionAPI);
+export const allowSelectBy = viewApi.allowSelectBy;
+export const setSelectedRows = viewApi.setSelectedRows;
 
 export const docApi: GristDocAPI & GristView = {
   ...coreDocApi,

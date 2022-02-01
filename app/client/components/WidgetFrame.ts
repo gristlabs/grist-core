@@ -360,6 +360,14 @@ export class GristViewImpl implements GristView {
     return data;
   }
 
+  public async allowSelectBy(): Promise<void> {
+    this._baseView.viewSection.allowSelectBy.set(true);
+  }
+
+  public async setSelectedRows(rowIds: number[]): Promise<void> {
+    this._baseView.viewSection.selectedRows.set(rowIds);
+  }
+
   private _visibleColumns() {
     const columns: ColumnRec[] = this._baseView.viewSection.columns.peek();
     const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
