@@ -280,11 +280,15 @@ class EngineTestCase(unittest.TestCase):
     """
     self.assertPartialData('_grist_Views', ["id"],
                            [[view.id] for view in list_of_views])
-    self.assertPartialData('_grist_Views_section', ["id", "parentId", "parentKey", "tableRef"],
-                           sorted((sec.id, view.id, sec.parentKey, sec.tableRef)
-                                  for view in list_of_views
-                                  for sec in view.sections))
+    self.assertTableData('_grist_Views_section',
+                         rows=lambda r: r.parentId,
+                         cols="subset",
+                         data=[["id", "parentId", "parentKey", "tableRef"]] + sorted(
+                           (sec.id, view.id, sec.parentKey, sec.tableRef)
+                           for view in list_of_views
+                           for sec in view.sections))
     self.assertTableData('_grist_Views_section_field', sort=(lambda r: r.parentPos),
+                         rows=lambda r: r.parentId.parentId,
                          cols="subset",
                          data=[["id", "parentId", "colRef"]] + sorted(
                            ((field.id, sec.id, field.colRef)

@@ -635,11 +635,15 @@ class UserActions(object):
     if 'name' in col_values:
       rename_table_recs = []
       rename_names = []
+      rename_section_recs = []
       for i, rec, values in self._bulk_action_iter(table_id, row_ids, col_values):
-        if rec.primaryViewTable:
-          rename_table_recs.append(rec.primaryViewTable)
+        table = rec.primaryViewTable
+        if table:
+          rename_table_recs.append(table)
+          rename_section_recs.append(table.rawViewSectionRef)
           rename_names.append(values['name'])
       self._docmodel.update(rename_table_recs, tableId=rename_names)
+      self._docmodel.update(rename_section_recs, title=rename_names)
 
     self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
@@ -1343,12 +1347,25 @@ class UserActions(object):
 
     # Add a manualSort column.
     columns.insert(0, column.MANUAL_SORT_COL_INFO.copy())
+
     # First the tables is created without a primary view assigned as no view for it exists.
     result = self.doAddTable(table_id, columns)
     # Then its Primary View is created.
     primary_view = self.doAddView(result["table_id"], 'raw_data', result["table_id"])
-    self.UpdateRecord('_grist_Tables', result["id"], {'primaryViewId': primary_view["id"]})
     result["views"] = [primary_view]
+
+    raw_view_section = self._create_plain_view_section(
+      result["id"],
+      result["table_id"],
+      self._docmodel.view_sections,
+      "record",
+    )
+
+    self.UpdateRecord('_grist_Tables', result["id"], {
+      'primaryViewId': primary_view["id"],
+      'rawViewSectionRef': raw_view_section.id,
+    })
+
     return result
 
   def doAddTable(self, table_id, columns, summarySourceTableRef=0):
@@ -1434,16 +1451,25 @@ class UserActions(object):
     if groupby_colrefs is not None:
       section = self._summary.create_new_summary_section(table, groupby_cols, view, section_type)
     else:
-      section = self._docmodel.add(view.viewSections, tableRef=table.id, parentKey=section_type,
-                                   borderWidth=1, defaultWidth=100)[0]
-      # TODO: We should address the automatic selection of fields for charts in a better way.
-      self._RebuildViewFields(table.tableId, section.id,
-                              limit=(2 if section_type == 'chart' else None))
+      section = self._create_plain_view_section(
+        table.id,
+        table.tableId,
+        view.viewSections,
+        section_type,
+      )
     return {
       'tableRef': table_ref,
       'viewRef': view_ref,
       'sectionRef': section.id
     }
+
+  def _create_plain_view_section(self, tableRef, tableId, view_sections, section_type):
+    section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
+                                 borderWidth=1, defaultWidth=100)[0]
+    # TODO: We should address the automatic selection of fields for charts in a better way.
+    self._RebuildViewFields(tableId, section.id,
+                            limit=(2 if section_type == 'chart' else None))
+    return section
 
   @useraction
   def UpdateSummaryViewSection(self, section_ref, groupby_colrefs):

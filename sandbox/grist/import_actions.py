@@ -193,13 +193,11 @@ class ImportActions(object):
 
     # ======== Cleanup old sections/columns
 
-    # Transform sections are created without a parent View, so we delete all such sections here.
-    old_sections = [s for s in src_table_rec.viewSections if not s.parentId]
-    self._docmodel.remove(old_sections)
-
     # Transform columns are those that start with a special prefix.
     old_cols = [c for c in src_table_rec.columns
                 if c.colId.startswith(_import_transform_col_prefix)]
+    old_sections = {field.parentId for c in old_cols for field in c.viewFields}
+    self._docmodel.remove(old_sections)
     self._docmodel.remove(old_cols)
 
     #======== Prepare/normalize transform_rule, Create new formula columns

@@ -52,6 +52,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,          25,            0],
+      [2,          25,            0],
     ])
     self.assertTableData("Favorites", cols="subset", data=[
       ["id",  "favorite"],
@@ -67,7 +68,8 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,          25,            0],
-      [2,          25,            0]
+      [2,          25,            0],
+      [3,          25,            0],
     ])
 
     # Set display formula for 'favorite' column.
@@ -84,7 +86,7 @@ class TestUserActions(test_engine.EngineTestCase):
     # A single "gristHelper_Display2" column should be added with the requested formula, since both
     # require the same formula. The fields' colRefs should be set to the new column.
     self.apply_user_action(['SetDisplayFormula', 'Favorites', 1, None, '$favorite.network'])
-    self.apply_user_action(['SetDisplayFormula', 'Favorites', 2, None, '$favorite.network'])
+    self.apply_user_action(['SetDisplayFormula', 'Favorites', 3, None, '$favorite.network'])
     self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.id >= 25), data=[
       ["id", "colId", "parentId", "displayCol", "formula"],
       [25, "favorite",       2, 26, ""],
@@ -94,13 +96,14 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,   25,   27],
-      [2,   25,   27]
+      [2,   25,    0],
+      [3,   25,   27],
     ])
 
     # Change display formula for a field.
     # Since the field is changing to use a formula not yet held by a display column,
     # a new display column should be added with the desired formula.
-    self.apply_user_action(['SetDisplayFormula', 'Favorites', 2, None, '$favorite.viewers'])
+    self.apply_user_action(['SetDisplayFormula', 'Favorites', 3, None, '$favorite.viewers'])
     self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.id >= 25), data=[
       ["id", "colId", "parentId", "displayCol", "formula"],
       [25, "favorite",       2, 26, ""],
@@ -111,13 +114,14 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,   25,   27],
-      [2,   25,   28]
+      [2,   25,    0],
+      [3,   25,   28],
     ])
 
     # Remove a field.
     # This should also remove the display column used by that field, since it is not used
     # by any other fields.
-    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 2])
+    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 3])
     self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.id >= 25), data=[
       ["id", "colId", "parentId", "displayCol", "formula"],
       [25, "favorite",       2, 26, ""],
@@ -126,7 +130,8 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
-      [1,   25,   27]
+      [1,   25,   27],
+      [2,   25,    0],
     ])
 
     # Add a new column with a formula.
@@ -140,7 +145,7 @@ class TestUserActions(test_engine.EngineTestCase):
       'parentId': 2,
       'colRef': 25
     }])
-    self.apply_user_action(['SetDisplayFormula', 'Favorites', 4, None, '$favorite.viewers'])
+    self.apply_user_action(['SetDisplayFormula', 'Favorites', 6, None, '$favorite.viewers'])
     self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.id >= 25), data=[
       ["id", "colId", "parentId", "displayCol", "formula"],
       [25, "favorite",       2, 26, ""],
@@ -152,16 +157,18 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,   25,   27],
-      [2,   28,   0], # fav_viewers field
+      [2,   25,    0],
       [3,   28,   0], # fav_viewers field
-      [4,   25,   29] # re-added field w/ display col
+      [4,   28,   0], # fav_viewers field
+      [5,   28,   0], # fav_viewers field
+      [6,   25,   29] # re-added field w/ display col
     ])
 
     # Change the display formula for a field to be the same as the other field, then remove
     # the field.
     # The display column should not be removed since it is still in use.
-    self.apply_user_action(['SetDisplayFormula', 'Favorites', 4, None, '$favorite.network'])
-    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 4])
+    self.apply_user_action(['SetDisplayFormula', 'Favorites', 6, None, '$favorite.network'])
+    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 6])
     self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.id >= 25), data=[
       ["id", "colId", "parentId", "displayCol", "formula"],
       [25, "favorite",      2, 26, ""],
@@ -172,8 +179,10 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,   25,   27],
-      [2,   28,   0],
+      [2,   25,   0],
       [3,   28,   0],
+      [4,   28,   0],
+      [5,   28,   0],
     ])
 
     # Clear field display formula, then set it again.
@@ -189,8 +198,10 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
       [1,   25,   0],
-      [2,   28,   0],
-      [3,   28,   0]
+      [2,   25,   0],
+      [3,   28,   0],
+      [4,   28,   0],
+      [5,   28,   0],
     ])
     # Setting the display formula should add another display column.
     self.apply_user_action(['SetDisplayFormula', 'Favorites', 1, None, '$favorite.viewers'])
@@ -203,9 +214,11 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
-      [1,   25,   29],
-      [2,   28,   0],
-      [3,   28,   0]
+      [1,   25,  29],
+      [2,   25,   0],
+      [3,   28,   0],
+      [4,   28,   0],
+      [5,   28,   0],
     ])
 
     # Change column display formula.
@@ -220,9 +233,11 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
-      [1,   25,   29],
-      [2,   28,   0],
-      [3,   28,   0]
+      [1,   25,  29],
+      [2,   25,   0],
+      [3,   28,   0],
+      [4,   28,   0],
+      [5,   28,   0],
     ])
 
     # Remove column.
@@ -234,8 +249,9 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
     self.assertTableData("_grist_Views_section_field", cols="subset", data=[
       ["id", "colRef", "displayCol"],
-      [2,   28,   0],
-      [3,   28,   0]
+      [3,   28,   0],
+      [4,   28,   0],
+      [5,   28,   0],
     ])
 
 
@@ -337,7 +353,8 @@ class TestUserActions(test_engine.EngineTestCase):
     ]
     self.assertTables(expected_tables1)
     self.assertTableData("People", cols="subset", data=expected_data1)
-    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+    self.assertTableData(
+      "_grist_Views_section_field", cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "parentId", "colRef", "displayCol"],
       [1,    1,          25,       0],
       [2,    1,          26,       28],
@@ -354,7 +371,8 @@ class TestUserActions(test_engine.EngineTestCase):
         Column(25, "name", "Text", False,  "", 0),
       ]),
     ])
-    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+    self.assertTableData(
+      "_grist_Views_section_field", cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "parentId", "colRef", "displayCol"],
       [1,    1,          25,       0],
     ])
@@ -363,7 +381,7 @@ class TestUserActions(test_engine.EngineTestCase):
     # pylint:disable=line-too-long
     self.assertOutActions(out_actions, {
       "stored": [
-        ["RemoveRecord", "_grist_Views_section_field", 2],
+        ["BulkRemoveRecord", "_grist_Views_section_field", [2, 4]],
         ["BulkRemoveRecord", "_grist_Tables_column", [26, 27]],
         ["RemoveColumn", "People", "favorite"],
         ["RemoveColumn", "People", "gristHelper_Display"],
@@ -374,7 +392,7 @@ class TestUserActions(test_engine.EngineTestCase):
       "undo": [
         ["BulkUpdateRecord", "People", [1, 2, 3], {"gristHelper_Display2": ["Netflix", "HBO", "NBC"]}],
         ["BulkUpdateRecord", "People", [1, 2, 3], {"gristHelper_Display": ["Narcos", "Game of Thrones", "Today"]}],
-        ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 26, "displayCol": 28, "parentId": 1, "parentPos": 2.0}],
+        ["BulkAddRecord", "_grist_Views_section_field", [2, 4], {"colRef": [26, 26], "displayCol": [28, 0], "parentId": [1, 2], "parentPos": [2.0, 4.0]}],
         ["BulkAddRecord", "_grist_Tables_column", [26, 27], {"colId": ["favorite", "gristHelper_Display"], "displayCol": [27, 0], "formula": ["", "$favorite.show"], "isFormula": [False, True], "label": ["favorite", "gristHelper_Display"], "parentId": [2, 2], "parentPos": [6.0, 7.0], "type": ["Ref:Television", "Any"], "widgetOptions": ["\"{\"alignment\":\"center\",\"visibleCol\":\"show\"}\"", ""]}],
         ["BulkUpdateRecord", "People", [1, 2, 3], {"favorite": [12, 11, 13]}],
         ["AddColumn", "People", "favorite", {"formula": "", "isFormula": False, "type": "Ref:Television"}],
@@ -390,7 +408,8 @@ class TestUserActions(test_engine.EngineTestCase):
     out_actions = self.apply_user_action(['ApplyUndoActions', undo_actions])
     self.assertTables(expected_tables1)
     self.assertTableData("People", cols="subset", data=expected_data1)
-    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+    self.assertTableData(
+      "_grist_Views_section_field", cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "parentId", "colRef", "displayCol"],
       [1,    1,          25,       0],
       [2,    1,          26,       28],
@@ -528,7 +547,8 @@ class TestUserActions(test_engine.EngineTestCase):
       [28,   "gristHelper_Display",  2,          0,            "$favorite.show"],
       [29,   "gristHelper_Display2", 2,          0,            "$favorite.network"]
     ])
-    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+    self.assertTableData(
+      "_grist_Views_section_field", cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "colRef", "displayCol"],
       [1,    25,       29],
       [2,    26,       0],
@@ -593,7 +613,8 @@ class TestUserActions(test_engine.EngineTestCase):
       [28,   "gristHelper_Display",  2,          0,            "$favorite.show"],
       [29,   "gristHelper_Display2", 2,          0,            "$favorite.network"]
     ])
-    self.assertTableData("_grist_Views_section_field", cols="subset", data=[
+    self.assertTableData(
+      "_grist_Views_section_field", cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "colRef", "displayCol"],
       [1,    25,       29],
       [2,    26,       0],

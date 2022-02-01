@@ -927,13 +927,14 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     # We should now have two sections for table 2 (the one with two group-by fields).
-    self.assertTableData('_grist_Views_section', cols="subset", data=[
+    self.assertTableData('_grist_Views_section', cols="subset", rows=lambda r: r.parentId, data=[
       ["id",  "parentId", "tableRef"],
       [1,     1,          4],
       [2,     2,          3],
       [3,     3,          4],
     ])
-    self.assertTableData('_grist_Views_section_field', cols="subset", data=[
+    self.assertTableData(
+      '_grist_Views_section_field', cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "parentId", "colRef"],
       [1,     1,          24],
       [2,     1,          25],

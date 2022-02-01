@@ -222,15 +222,15 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(2, colRef=12),
           Field(3, colRef=13),
         ]),
-        Section(3, parentKey="record", tableRef=2, fields=[
-          Field(7, colRef=15),
-          Field(8, colRef=16),
-          Field(9, colRef=17),
+        Section(4, parentKey="record", tableRef=2, fields=[
+          Field(10, colRef=15),
+          Field(11, colRef=16),
+          Field(12, colRef=17),
         ]),
-        Section(4, parentKey="record", tableRef=3, fields=[
-          Field(10, colRef=18),
-          Field(11, colRef=20),
-          Field(12, colRef=21),
+        Section(5, parentKey="record", tableRef=3, fields=[
+          Field(13, colRef=18),
+          Field(14, colRef=20),
+          Field(15, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -310,14 +310,14 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(2, colRef=12),
           Field(3, colRef=13),
         ]),
-        Section(3, parentKey="record", tableRef=2, fields=[
-          Field(7, colRef=15),
-          Field(9, colRef=17),
+        Section(4, parentKey="record", tableRef=2, fields=[
+          Field(10, colRef=15),
+          Field(12, colRef=17),
         ]),
-        Section(4, parentKey="record", tableRef=3, fields=[
-          Field(10, colRef=18),
-          Field(11, colRef=20),
-          Field(12, colRef=21),
+        Section(5, parentKey="record", tableRef=3, fields=[
+          Field(13, colRef=18),
+          Field(14, colRef=20),
+          Field(15, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -367,13 +367,13 @@ class TestColumnActions(test_engine.EngineTestCase):
         Section(1, parentKey="record", tableRef=1, fields=[
           Field(3, colRef=13),
         ]),
-        Section(3, parentKey="record", tableRef=2, fields=[
-          Field(7, colRef=15),
-          Field(9, colRef=17),
+        Section(4, parentKey="record", tableRef=2, fields=[
+          Field(10, colRef=15),
+          Field(12, colRef=17),
         ]),
-        Section(4, parentKey="record", tableRef=4, fields=[
-          Field(11, colRef=22),
-          Field(12, colRef=23),
+        Section(5, parentKey="record", tableRef=4, fields=[
+          Field(14, colRef=22),
+          Field(15, colRef=23),
         ]),
       ]),
       View(2, sections=[

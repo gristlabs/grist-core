@@ -140,9 +140,11 @@ class TestDocModel(test_engine.EngineTestCase):
     ])
     self.assertPartialData('_grist_Views_section', ["id", "parentId", "tableRef"], [
       [1, 1, 4],
-      [2, 2, 5],
-      [3, 1, 4],
-      [4, 1, 5],
+      [2, 0, 4],
+      [3, 2, 5],
+      [4, 0, 5],
+      [5, 1, 4],
+      [6, 1, 5],
     ])
     self.assertPartialData('_grist_Views_section_field', ["id", "parentId", "parentPos"], [
       [1, 1, 1.0],
@@ -153,18 +155,22 @@ class TestDocModel(test_engine.EngineTestCase):
       [6, 3, 6.0],
       [7, 4, 7.0],
       [8, 4, 8.0],
+      [9, 5, 9.0],
+      [10, 5, 10.0],
+      [11, 6, 11.0],
+      [12, 6, 12.0],
     ])
 
     table = self.engine.docmodel.tables.lookupOne(tableId='Test2')
-    self.assertRecordSet(table.viewSections, [1,3])
-    self.assertRecordSet(list(table.viewSections)[0].fields, [1,2])
-    self.assertRecordSet(list(table.viewSections)[1].fields, [5,6])
+    self.assertRecordSet(table.viewSections, [1, 2, 5])
+    self.assertRecordSet(list(table.viewSections)[0].fields, [1, 2])
+    self.assertRecordSet(list(table.viewSections)[2].fields, [9, 10])
     view = self.engine.docmodel.views.lookupOne(id=1)
-    self.assertRecordSet(view.viewSections, [1,3,4])
+    self.assertRecordSet(view.viewSections, [1, 5, 6])
 
     self.engine.docmodel.remove(f for vs in table.viewSections for f in vs.fields)
     self.engine.docmodel.remove(table.viewSections)
-    self.assertRecordSet(view.viewSections, [4])
+    self.assertRecordSet(view.viewSections, [6])
 
 
   def test_modifications(self):

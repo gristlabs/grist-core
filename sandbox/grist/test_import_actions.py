@@ -53,8 +53,11 @@ class TestImportActions(test_engine.EngineTestCase):
     # Verify created sections
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],  # section for "Source" table
-      [2, 2, [4, 5]],     # section for "Destination1" table
-      [3, 3, [6]]         # section for "Destination2" table
+      [2, 1, [4, 5, 6]],  # section for "Source" table
+      [3, 2, [7, 8]],     # section for "Destination1" table
+      [4, 2, [9, 10]],    # section for "Destination1" table
+      [5, 3, [11]],       # section for "Destination2" table
+      [6, 3, [12]],       # section for "Destination2" table
     ])
 
   def test_transform(self):
@@ -85,9 +88,12 @@ class TestImportActions(test_engine.EngineTestCase):
 
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],
-      [2, 2, [4, 5]],
-      [3, 3, [6]],
-      [4, 1, [7, 8]]      # new section for transform preview
+      [2, 1, [4, 5, 6]],
+      [3, 2, [7, 8]],
+      [4, 2, [9, 10]],
+      [5, 3, [11]],
+      [6, 3, [12]],
+      [7, 1, [13, 14]],  # new section for transform preview
     ])
 
     # Apply useraction again to verify that old columns and sections are removing
@@ -112,9 +118,12 @@ class TestImportActions(test_engine.EngineTestCase):
     ])
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],
-      [2, 2, [4, 5]],
-      [3, 3, [6]],
-      [4, 1, [7]]         # new section for transform preview
+      [2, 1, [4, 5, 6]],
+      [3, 2, [7, 8]],
+      [4, 2, [9, 10]],
+      [5, 3, [11]],
+      [6, 3, [12]],
+      [7, 1, [13]],  # new section for transform preview
     ])
 
 
@@ -126,8 +135,8 @@ class TestImportActions(test_engine.EngineTestCase):
     out_actions = self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None])
     self.assertPartialOutActions(out_actions, {
       "stored": [
-        ["BulkRemoveRecord", "_grist_Views_section_field", [7, 8, 9]],
-        ["RemoveRecord", "_grist_Views_section", 4],
+        ["BulkRemoveRecord", "_grist_Views_section_field", [13, 14, 15]],
+        ["RemoveRecord", "_grist_Views_section", 7],
         ["BulkRemoveRecord", "_grist_Tables_column", [10, 11, 12]],
         ["RemoveColumn", "Source", "gristHelper_Import_Name"],
         ["RemoveColumn", "Source", "gristHelper_Import_City"],
@@ -136,8 +145,8 @@ class TestImportActions(test_engine.EngineTestCase):
         ["AddRecord", "_grist_Tables_column", 10, {"colId": "gristHelper_Import_Name", "formula": "$Name", "isFormula": True, "label": "Name", "parentId": 1, "parentPos": 10.0, "type": "Text", "widgetOptions": ""}],
         ["AddColumn", "Source", "gristHelper_Import_City", {"formula": "$City", "isFormula": True, "type": "Text"}],
         ["AddRecord", "_grist_Tables_column", 11, {"colId": "gristHelper_Import_City", "formula": "$City", "isFormula": True, "label": "City", "parentId": 1, "parentPos": 11.0, "type": "Text", "widgetOptions": ""}],
-        ["AddRecord", "_grist_Views_section", 4, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "sortColRefs": "[]", "tableRef": 1}],
-        ["BulkAddRecord", "_grist_Views_section_field", [7, 8], {"colRef": [10, 11], "parentId": [4, 4], "parentPos": [7.0, 8.0]}],
+        ["AddRecord", "_grist_Views_section", 7, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "sortColRefs": "[]", "tableRef": 1}],
+        ["BulkAddRecord", "_grist_Views_section_field", [13, 14], {"colRef": [10, 11], "parentId": [7, 7], "parentPos": [13.0, 14.0]}],
         # The actions to populate the removed and re-added columns should be there.
         ["BulkUpdateRecord", "Source", [1, 2], {"gristHelper_Import_City": ["New York", "Boston"]}],
         ["BulkUpdateRecord", "Source", [1, 2], {"gristHelper_Import_Name": ["John", "Alison"]}],
@@ -173,7 +182,10 @@ class TestImportActions(test_engine.EngineTestCase):
     ])
     self.assertPartialData("_grist_Views_section", ["id", "tableRef", 'fields'], [
       [1, 1, [1, 2, 3]],
-      [2, 2, [4, 5]],
-      [3, 3, [6]],
-      [4, 1, [7, 8, 9]],  # new section for transform preview
+      [2, 1, [4, 5, 6]],
+      [3, 2, [7, 8]],
+      [4, 2, [9, 10]],
+      [5, 3, [11]],
+      [6, 3, [12]],
+      [7, 1, [13, 14, 15]],  # new section for transform preview
     ])

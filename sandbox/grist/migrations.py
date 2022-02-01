@@ -10,6 +10,8 @@ import schema
 import summary
 import table_data_set
 import logger
+from column import is_visible_column
+
 log = logger.Logger(__name__, logger.INFO)
 
 # PHILOSOPHY OF MIGRATIONS.
@@ -838,5 +840,61 @@ def migration25(tdset):
   num_filters = len(col_info['filter'])
   if num_filters > 0:
     doc_actions.append(actions.BulkAddRecord('_grist_Filters', [None] * num_filters, col_info))
+
+  return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=26)
+def migration26(tdset):
+  """
+  Add rawViewSectionRef column to _grist_Tables
+  and new raw view sections for each 'normal' table.
+  """
+  doc_actions = [add_column('_grist_Tables', 'rawViewSectionRef', 'Ref:_grist_Views_section')]
+
+  tables = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables"]))
+  columns = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables_column"]))
+  views = {view.id: view
+           for view in actions.transpose_bulk_action(tdset.all_tables["_grist_Views"])}
+
+  new_view_section_id = next_id(tdset, "_grist_Views_section")
+
+  for table in sorted(tables, key=lambda t: t.tableId):
+    old_view = views.get(table.primaryViewId)
+    if not (table.primaryViewId and old_view):
+      continue
+
+    table_columns = [
+      col for col in columns
+      if table.id == col.parentId and is_visible_column(col.colId)
+    ]
+    table_columns.sort(key=lambda c: c.parentPos)
+    fields = {
+      "parentId": [new_view_section_id] * len(table_columns),
+      "colRef": [col.id for col in table_columns],
+      "parentPos": [col.parentPos for col in table_columns],
+    }
+    field_ids = [None] * len(table_columns)
+
+    doc_actions += [
+      actions.AddRecord(
+        "_grist_Views_section", new_view_section_id, {
+          "tableRef": table.id,
+          "parentId": 0,
+          "parentKey": "record",
+          "title": old_view.name,
+          "defaultWidth": 100,
+          "borderWidth": 1,
+        }),
+      actions.UpdateRecord(
+        "_grist_Tables", table.id, {
+          "rawViewSectionRef": new_view_section_id,
+        }),
+      actions.BulkAddRecord(
+        "_grist_Views_section_field", field_ids, fields
+      ),
+    ]
+
+    new_view_section_id += 1
 
   return tdset.apply_doc_actions(doc_actions)

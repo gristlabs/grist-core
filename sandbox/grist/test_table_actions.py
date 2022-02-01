@@ -88,27 +88,27 @@ class TestTableActions(test_engine.EngineTestCase):
         ]),
       ]),
       View(2, sections=[
-        Section(2, parentKey="record", tableRef=2, fields=[
-          Field(4, colRef=6),
-          Field(5, colRef=7),
-          Field(6, colRef=8),
+        Section(3, parentKey="record", tableRef=2, fields=[
+          Field(7, colRef=6),
+          Field(8, colRef=7),
+          Field(9, colRef=8),
         ]),
       ]),
       View(3, sections=[
-        Section(3, parentKey="record", tableRef=1, fields=[
-          Field(7, colRef=2),
-          Field(8, colRef=3),
-          Field(9, colRef=4),
+        Section(5, parentKey="record", tableRef=1, fields=[
+          Field(13, colRef=2),
+          Field(14, colRef=3),
+          Field(15, colRef=4),
         ]),
-        Section(4, parentKey="record", tableRef=3, fields=[
-          Field(10, colRef=9),
-          Field(11, colRef=11),
-          Field(12, colRef=12),
+        Section(6, parentKey="record", tableRef=3, fields=[
+          Field(16, colRef=9),
+          Field(17, colRef=11),
+          Field(18, colRef=12),
         ]),
-        Section(5, parentKey="record", tableRef=2, fields=[
-          Field(13, colRef=6),
-          Field(14, colRef=7),
-          Field(15, colRef=8),
+        Section(7, parentKey="record", tableRef=2, fields=[
+          Field(19, colRef=6),
+          Field(20, colRef=7),
+          Field(21, colRef=8),
         ]),
       ]),
     ])
@@ -294,15 +294,15 @@ class TestTableActions(test_engine.EngineTestCase):
     ])
     self.assertViews([
       View(2, sections=[
-        Section(2, parentKey="record", tableRef=2, fields=[
-          Field(4, colRef=6),
-          Field(6, colRef=8),
+        Section(3, parentKey="record", tableRef=2, fields=[
+          Field(7, colRef=6),
+          Field(9, colRef=8),
         ]),
       ]),
       View(3, sections=[
-        Section(5, parentKey="record", tableRef=2, fields=[
-          Field(13, colRef=6),
-          Field(15, colRef=8),
+        Section(7, parentKey="record", tableRef=2, fields=[
+          Field(19, colRef=6),
+          Field(21, colRef=8),
         ]),
       ]),
     ])

@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 25
+SCHEMA_VERSION = 26
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -55,7 +55,9 @@ def schema_create_actions():
 
       # A table may be marked as "onDemand", which will keep its data out of the data engine, and
       # only available to the frontend when requested.
-      make_column("onDemand",     "Bool")
+      make_column("onDemand",     "Bool"),
+
+      make_column("rawViewSectionRef", "Ref:_grist_Views_section"),
     ]),
 
     # All columns in all user tables.
