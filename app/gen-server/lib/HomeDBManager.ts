@@ -1077,11 +1077,14 @@ export class HomeDBManager extends EventEmitter {
    * @param useNewPlan: by default, the individual billing account associated with the
    *   user's personal org will be used for all other orgs they create.  Set useNewPlan
    *   to force a distinct non-individual billing account to be used for this org.
+   * @param planType: if set, controls the type of plan used for the org. Only
+   *   meaningful for team sites currently.
    *
    */
   public async addOrg(user: User, props: Partial<OrganizationProperties>,
                       options: { setUserAsOwner: boolean,
                                  useNewPlan: boolean,
+                                 planType?: 'free',
                                  externalId?: string,
                                  externalOptions?: ExternalBillingOptions },
                       transaction?: EntityManager): Promise<QueryResult<number>> {
@@ -1110,10 +1113,11 @@ export class HomeDBManager extends EventEmitter {
       let billingAccount;
       if (options.useNewPlan) {
         const productNames = getDefaultProductNames();
-        let productName = options.setUserAsOwner ? productNames.personal : productNames.teamInitial;
+        let productName = options.setUserAsOwner ? productNames.personal :
+          options.planType === 'free' ? productNames.teamFree : productNames.teamInitial;
         // A bit fragile: this is called during creation of support@ user, before
         // getSupportUserId() is available, but with setUserAsOwner of true.
-        if (!options.setUserAsOwner && user.id === this.getSupportUserId()) {
+        if (!options.setUserAsOwner && user.id === this.getSupportUserId() && options.planType !== 'free') {
           // For teams created by support@getgrist.com, set the product to something
           // good so payment not needed.  This is useful for testing.
           productName = productNames.team;

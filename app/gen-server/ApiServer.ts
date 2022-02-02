@@ -72,11 +72,15 @@ export function addOrg(
   dbManager: HomeDBManager,
   userId: number,
   props: Partial<OrganizationProperties>,
+  options?: {
+    planType?: 'free'
+  }
 ): Promise<number> {
   return dbManager.connection.transaction(async manager => {
     const user = await manager.findOne(User, userId);
     if (!user) { return handleDeletedUser(); }
     const query = await dbManager.addOrg(user, props, {
+      ...options,
       setUserAsOwner: false,
       useNewPlan: true
     }, manager);

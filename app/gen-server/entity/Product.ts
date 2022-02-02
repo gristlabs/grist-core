@@ -25,6 +25,21 @@ export const teamFeatures: Features = {
 };
 
 /**
+ * A summary of features available in free team sites.
+ * At time of writing, this is a placeholder, as free sites are fleshed out.
+ */
+export const teamFreeFeatures: Features = {
+  workspaces: true,
+  vanityDomain: true,
+  maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
+  maxSharesPerDoc: 2,
+  maxDocsPerOrg: 20,
+  snapshotWindow: { count: 1, unit: 'month' },
+  baseMaxRowsPerDocument: 5000,
+  baseMaxApiUnitsPerDocumentPerDay: 5000
+};
+
+/**
  * A summary of features used in unrestricted grandfathered accounts, and also
  * in some test settings.
  */
@@ -101,6 +116,10 @@ const PRODUCTS: IProduct[] = [
     name: 'suspended',
     features: suspendedFeatures,
   },
+  {
+    name: 'teamFree',
+    features: teamFreeFeatures,
+  },
 ];
 
 /**
@@ -112,7 +131,8 @@ export function getDefaultProductNames() {
     teamInitial: 'stub',  // Team site starts off on a limited plan, requiring subscription.
     teamCancel: 'suspended',  // Team site that has been 'turned off'.
     team: 'team',         // Functional team site.
- };
+    teamFree: 'teamFree',
+  };
 }
 
 /**

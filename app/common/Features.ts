@@ -34,6 +34,18 @@ export interface Features {
                             // (default: unlimited)
 
   readOnlyDocs?: boolean;   // if set, docs can only be read, not written.
+
+  snapshotWindow?: {        // if set, controls how far back snapshots are kept.
+    count: number;          // TODO: not honored at time of writing.
+    unit: 'month'|'year';
+  };
+
+  baseMaxRowsPerDocument?: number;  // If set, establishes a default maximum on the
+                                 // number of rows (total) in a single document.
+                                 // Actual max for a document may be higher.
+                                 // TODO: not honored at time of writing.
+                                 // TODO: nuances about how rows are counted.
+  baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
 }
 
 // Check whether it is possible to add members at the org level.  There's no flag
