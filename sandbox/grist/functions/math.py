@@ -797,7 +797,7 @@ def SUMIFS(sum_range, criteria_range1, criterion1, *args):
 
 def SUMPRODUCT(array1, *more_arrays):
   """
-  Multiplies corresponding components in the given arrays, and returns the sum of those products.
+  Multiplies corresponding components in two equally-sized arrays, and returns the sum of those products.
 
   >>> SUMPRODUCT([3,8,1,4,6,9], [2,6,5,7,7,3])
   156
@@ -859,7 +859,12 @@ def TRUNC(value, places=0):
   return ROUNDDOWN(value, places)
 
 def UUID():
-  """Generate a random UUID-formatted string identifier."""
+  """
+  Generate a random UUID-formatted string identifier.
+  In most cases, it is best to use UUID() in a [trigger formula]
+  (https://support.getgrist.com/formulas/#trigger-formulas) to freeze the value and prevent the formula 
+  from recalculating, because then the identifier would change.
+  """
   if six.PY2:
     return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))
   else:
