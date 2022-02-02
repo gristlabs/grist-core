@@ -220,7 +220,9 @@ def LEFT(string, num_chars=1):
 
 def LEN(text):
   """
-  Returns the number of characters in a text string. Same as `len(text)`.
+  Returns the number of characters in a text string, same as `len(text)`; or returns the number of 
+  items in a list, same as `len([list])`. See [Record Set](https://support.getgrist.com/functions/#recordset) 
+  for common example.
 
   >>> LEN("Phoenix, AZ")
   11
@@ -339,9 +341,9 @@ def REGEXREPLACE(text, regular_expression, replacement):
   return re.sub(regular_expression, replacement, text)
 
 
-def REPLACE(old_text, start_num, num_chars, new_text):
+def REPLACE(text, position, length, new_text):
   """
-  Replaces part of a text string with a different text string. Start_num is counted from 1.
+  Replaces part of a text string with a different text string. Position is counted from 1.
 
   >>> REPLACE("abcdefghijk", 6, 5, "*")
   'abcde*k'
