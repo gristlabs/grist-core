@@ -418,7 +418,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.hasFocus = ko.pureComputed({
     // Read may occur for recently disposed sections, must check condition first.
-    read: () => !this.isDisposed() && this.view().activeSectionId() === this.id() && !this.view().isLinking(),
+    read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
     write: (val) => { if (val) { this.view().activeSectionId(this.id()); } }
   });
 

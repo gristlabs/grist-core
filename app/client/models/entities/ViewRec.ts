@@ -19,8 +19,6 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
 
   // If the active section is removed, set the next active section to be the default.
   _isActiveSectionGone: ko.Computed<boolean>;
-
-  isLinking: ko.Observable<boolean>;
 }
 
 export function createViewRec(this: ViewRec, docModel: DocModel): void {
@@ -46,6 +44,4 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
       this.activeSectionId(0);
     }
   }));
-
-  this.isLinking = ko.observable(false);
 }

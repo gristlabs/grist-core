@@ -5,7 +5,6 @@ var dom = require('../lib/dom');
 var kd = require('../lib/koDom');
 var kf = require('../lib/koForm');
 var koArray = require('../lib/koArray');
-var SummaryConfig = require('./SummaryConfig');
 var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
 const {ChartConfig} = require('./ChartView');
@@ -16,7 +15,6 @@ const {updatePositions} = require('app/client/lib/sortUtil');
 const {attachColumnFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {addFilterMenu} = require('app/client/ui/FilterBar');
 const {cssIcon, cssRow} = require('app/client/ui/RightPanel');
-const {VisibleFieldsConfig} = require('app/client/ui/VisibleFieldsConfig');
 const {basicButton, primaryButton} = require('app/client/ui2018/buttons');
 const {labeledLeftSquareCheckbox} = require("app/client/ui2018/checkbox");
 const {colors} = require('app/client/ui2018/cssVars');
@@ -70,138 +68,9 @@ function ViewConfigTab(options) {
       return this.viewModel.activeSection().parentKey() === 'record';}, this));
   this.isCustom = this.autoDispose(ko.computed(function() {
       return this.viewModel.activeSection().parentKey() === 'custom';}, this));
-
-  this._summaryConfig = this.autoDispose(SummaryConfig.create({
-    gristDoc: this.gristDoc,
-    section: this.viewModel.activeSection
-  }));
-
-  if (!options.skipDomBuild) {
-    this.gristDoc.addOptionsTab(
-      'View', dom('span.glyphicon.glyphicon-credit-card'),
-      this.buildConfigDomObj(),
-      { 'category': 'options', 'show': this.activeSectionData }
-    );
-  }
 }
 dispose.makeDisposable(ViewConfigTab);
 
-
-function getLabelFunc(field) { return field ? field.label() : null; }
-
-ViewConfigTab.prototype._buildSectionFieldsConfig = function() {
-  var self = this;
-  return kd.maybe(this.activeSectionData, function(sectionData) {
-    const visibleFieldsConfig = VisibleFieldsConfig.create(null, self.gristDoc, sectionData.section, false);
-    const [fieldsDraggable, hiddenFieldsDraggable] = visibleFieldsConfig.buildSectionFieldsConfigHelper({
-      visibleFields: { itemCreateFunc: getLabelFunc },
-      hiddenFields: {itemCreateFunc: getLabelFunc }
-    });
-    return dom('div',
-      dom.autoDispose(visibleFieldsConfig),
-      kf.collapsible(function(isCollapsed) {
-        return [
-          kf.collapserLabel(isCollapsed, 'Visible Fields', kd.toggleClass('view_config_field_group', true)),
-          dom.testId('ViewConfigTab_visibleFields'),
-          fieldsDraggable,
-        ];
-      }, false),
-
-      kf.collapsible(function(isCollapsed) {
-        return [
-          kf.collapserLabel(isCollapsed, 'Hidden Fields', kd.toggleClass('view_config_field_group', true)),
-          dom.testId('ViewConfigTab_hiddenFields'),
-          hiddenFieldsDraggable,
-        ];
-      }, false),
-    );
-  });
-};
-
-// Builds object with ViewConfigTab dom builder and settings for the sidepane.
-ViewConfigTab.prototype.buildConfigDomObj = function() {
-  return [{
-      'buildDom': this._buildNameDom.bind(this),
-      'keywords': ['view', 'name', 'title']
-    }, {
-      'buildDom': this._buildSectionNameDom.bind(this),
-      'keywords': ['section', 'viewsection', 'name', 'title']
-    }, {
-      'buildDom': this._buildAdvancedSettingsDom.bind(this),
-      'keywords': ['table', 'demand', 'ondemand', 'big']
-    }, {
-      'header': true,
-      'label': 'Summarize',
-      'showObs': this._summaryConfig.isSummarySection,
-      'items': [{
-        'buildDom': () => this._summaryConfig.buildSummaryConfigDom(),
-        'keywords': ['section', 'summary', 'summarize', 'group', 'breakdown']
-      }]
-    }, {
-      'header': true,
-      'label': 'Sort',
-      'items': [{
-          'buildDom': this.buildSortDom.bind(this),
-          'keywords': ['section', 'sort', 'order']
-        }]
-    }, {
-      'header': true,
-      'label': 'Filter',
-      'items': [{
-          'buildDom': this._buildFilterDom.bind(this),
-          'keywords': ['section', 'filters']
-        }]
-    }, {
-      'header': true,
-      'label': 'Link Sections',
-      'items': [{
-          'buildDom': this._buildLinkDom.bind(this),
-          'keywords': ['section', 'view', 'linking', 'edit', 'autoscroll', 'autofilter']
-        }]
-    }, {
-      'header': true,
-      'label': 'Customize Detail View',
-      'showObs': this.isDetail,
-      'items': [{
-          'buildDom': this._buildDetailTypeDom.bind(this),
-          'keywords': ['section', 'detail']
-        }, {
-          'buildDom': this._buildThemeDom.bind(this),
-          'keywords': ['section', 'theme', 'appearance', 'detail']
-        }, {
-          'buildDom': this._buildLayoutDom.bind(this),
-          'keywords': ['section', 'layout', 'arrangement', 'rearrange']
-        }]
-    }, {
-      'header': true,
-      'label': 'Customize Grid View',
-      'showObs': this.isGrid,
-      'items': [{
-        'buildDom': this._buildGridStyleDom.bind(this),
-        'keywords': ['section', 'zebra', 'stripe', 'appearance', 'grid', 'gridlines', 'style', 'border']
-        }]
-    }, {
-      'header': true,
-      'label': 'Chart',
-      'showObs': this.isChart,
-      'items': [{
-        'buildDom': () => this._buildChartConfigDom()
-      }]
-    }, {
-      'header': true,
-      'label': 'Custom View',
-      'showObs': this.isCustom,
-      'items': this._buildCustomTypeItems(),
-      'keywords': ['section', 'custom']
-    }, {
-      'header': true,
-      'label': 'Column Display',
-      'items': [{
-          'buildDom': this._buildSectionFieldsConfig.bind(this),
-          'keywords': ['section', 'fields', 'hidden', 'hide', 'show', 'visible']
-        }]
-    }];
-};
 
 ViewConfigTab.prototype.buildSortDom = function() {
   return grainjsDom.maybe(this.activeSectionData, (sectionData) => {
@@ -462,24 +331,6 @@ ViewConfigTab.prototype._saveSort = function(sortSpec) {
   this.activeSectionData().section.activeSortSpec(sortSpec);
 };
 
-ViewConfigTab.prototype._buildNameDom = function() {
-  return kf.row(
-    1, dom('div.glyphicon.glyphicon-tasks.config_icon'),
-    4, kf.label('View'),
-    13, kf.text(this.viewModel.name, {}, dom.testId('ViewManager_viewNameInput'))
-  );
-};
-
-ViewConfigTab.prototype._buildSectionNameDom = function() {
-  return kd.maybe(this.activeSectionData, function(sectionData) {
-    return kf.row(
-      1, dom('div.glyphicon.glyphicon-credit-card.config_icon'),
-      4, kf.label('Section'),
-      13, kf.text(sectionData.section.titleDef, {}, dom.testId('ViewConfigTab_sectionNameInput'))
-    );
-  });
-};
-
 ViewConfigTab.prototype._makeOnDemand = function(table) {
   // After saving the changed setting, force the reload of the document.
   const onConfirm = () => {
@@ -537,21 +388,6 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
         ))
       ),
     ];
-  });
-};
-
-ViewConfigTab.prototype._buildDetailTypeDom = function() {
-  return kd.maybe(this.activeSectionData, (sectionData) => {
-    var section = sectionData.section;
-    if (this.isDetail()) {
-      return kf.row(
-        1, kf.label('Type'),
-        1, kf.buttonSelect(section.parentKey,
-          kf.optionButton('detail', 'List', dom.testId('ViewConfigTab_card')),
-          kf.optionButton('single', 'Single', dom.testId('ViewConfigTab_detail'))
-        )
-      );
-    }
   });
 };
 
@@ -659,31 +495,6 @@ ViewConfigTab.prototype._buildThemeDom = function() {
   });
 };
 
-ViewConfigTab.prototype._buildGridStyleDom = function() {
-
-  return kd.maybe(this.activeSectionData, (sectionData) => {
-    var section = sectionData.section;
-    return dom('div',
-      kf.row(
-        15, kf.label('Horizontal Gridlines'),
-        2, kf.checkbox(section.optionsObj.prop('horizontalGridlines'),
-                       dom.testId('ViewConfigTab_hGridButton'))
-      ),
-      kf.row(
-        15, kf.label('Vertical Gridlines'),
-        2, kf.checkbox(section.optionsObj.prop('verticalGridlines'),
-                       dom.testId('ViewConfigTab_vGridButton'))
-      ),
-      kf.row(
-        15, kf.label('Zebra Stripes'),
-        2, kf.checkbox(section.optionsObj.prop('zebraStripes'),
-                       dom.testId('ViewConfigTab_zebraStripeButton'))
-      ),
-      dom.testId('ViewConfigTab_gridOptions')
-    );
-  });
-};
-
 ViewConfigTab.prototype._buildChartConfigDom = function() {
   return grainjsDom.maybe(this.viewModel.activeSection, (section) => grainjsDom.create(ChartConfig, this.gristDoc, section));
 };
@@ -704,40 +515,6 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
       );
     }
   });
-};
-
-ViewConfigTab.prototype._buildLinkDom = function() {
-  var linkSpecChanged = ko.computed(() =>
-    !this.viewModel.viewSections().all().every(vs => vs.isActiveLinkSaved()));
-
-  return dom('div',
-    dom.autoDispose(linkSpecChanged),
-    kf.buttonGroup(kf.checkButton(this.viewModel.isLinking,
-        dom('span', 'Edit Links', dom.testId('viewConfigTab_link')))),
-    kd.maybe(this.activeSectionData, (sectionData) => {
-      const section = sectionData.section;
-      // This section option affects section linking: it tells a link-target section to show rows
-      // matching any of the rows in link-source section, not only the current cursor row.
-      const filterByAllShown = section.optionsObj.prop('filterByAllShown');
-      return kf.row(
-        15, kf.label('Filter by all shown'),
-        2, kf.checkbox(filterByAllShown, dom.testId('ViewConfigTab_filterByAll'))
-      );
-    }),
-    kd.maybe(linkSpecChanged, () =>
-      kf.prompt(
-        kf.liteButtonGroup(
-          kf.liteButton(() => {
-            commands.allCommands.saveLinks.run();
-            this.viewModel.isLinking(false);
-          }, dom('span.config_icon.left_icon.glyphicon.glyphicon-save'), 'Save'),
-          kf.liteButton(() => commands.allCommands.revertLinks.run(),
-            dom('span.config_icon.left_icon.glyphicon.glyphicon-refresh'), 'Reset'
-          )
-        )
-      )
-    )
-  );
 };
 
 /**

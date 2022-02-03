@@ -282,7 +282,7 @@ export class RightPanel extends Disposable {
       .then(ViewPane => {
         if (owner.isDisposed()) { return; }
         viewConfigTab.set(owner.autoDispose(
-          ViewPane.ViewConfigTab.create({gristDoc, viewModel: gristDoc.viewModel, skipDomBuild: true})));
+          ViewPane.ViewConfigTab.create({gristDoc, viewModel: gristDoc.viewModel})));
       })
       .catch(reportError);
     return viewConfigTab;

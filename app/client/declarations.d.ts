@@ -98,7 +98,7 @@ declare module "app/client/components/RefSelect" {
 }
 
 declare module "app/client/components/ViewConfigTab" {
-  import {GristDoc, TabContent} from 'app/client/components/GristDoc';
+  import {GristDoc} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';
   import {KoArray} from "app/client/lib/koArray";
   import {ColumnRec, ViewRec, ViewSectionRec} from "app/client/models/DocModel";
@@ -112,21 +112,14 @@ declare module "app/client/components/ViewConfigTab" {
   }
 
   class ViewConfigTab extends Disposable {
-    constructor(options: {gristDoc: GristDoc, viewModel: ViewRec, skipDomBuild?: boolean});
-    public buildConfigDomObj(): TabContent[];
+    constructor(options: {gristDoc: GristDoc, viewModel: ViewRec});
     public buildSortDom(): DomContents;
     // TODO: these should be made private or renamed.
-    public _buildSectionFieldsConfig(): DomArg;
-    public _buildNameDom(): DomArg;
-    public _buildSectionNameDom(): DomArg;
     public _buildAdvancedSettingsDom(): DomArg;
-    public _buildDetailTypeDom(): DomArg;
     public _buildFilterDom(): DomArg;
     public _buildThemeDom(): DomArg;
-    public _buildGridStyleDom(): DomArg;
     public _buildChartConfigDom(): DomContents;
     public _buildLayoutDom(): DomArg;
-    public _buildLinkDom(): DomArg;
     public _buildCustomTypeItems(): DomArg;
   }
   export = ViewConfigTab;
