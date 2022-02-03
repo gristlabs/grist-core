@@ -350,7 +350,7 @@ export class GristDoc extends DisposableWithEvents {
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
         viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
-        viewId === 'new' || viewId == 'GristDocTour' ? null :
+        viewId === 'GristDocTour' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),
     );
