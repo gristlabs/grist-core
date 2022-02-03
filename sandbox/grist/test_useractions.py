@@ -896,6 +896,145 @@ class TestUserActions(test_engine.EngineTestCase):
       [2, 2, json.dumps({"included": ["b", "c"]}), None, 1]
     ])
 
+  def test_add_or_update(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          [1, "first_name", "Text", False, "",     "first_name", ""],
+          [2, "last_name",  "Text", False, "",     "last_name",  ""],
+          [3, "pet",        "Text", False, "",     "pet",        ""],
+          [4, "color",      "Text", False, "",     "color",      ""],
+          [5, "formula",    "Text", True,  "''",   "formula",    ""],
+        ]],
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "first_name", "last_name"],
+          [1, "John", "Doe"],
+          [2, "John", "Smith"],
+        ],
+      }
+    })
+    self.load_sample(sample)
+
+    def check(where, values, options, stored):
+      self.assertPartialOutActions(
+        self.apply_user_action(["AddOrUpdateRecord", "Table1", where, values, options]),
+        {"stored": stored},
+      )
+
+    # Exactly one match, so on_many=none has no effect
+    check(
+      {"first_name": "John", "last_name": "Smith"},
+      {"pet": "dog", "color": "red"},
+      {"on_many": "none"},
+      [["UpdateRecord", "Table1", 2, {"color": "red", "pet": "dog"}]],
+    )
+
+    # Look for a record with pet=dog and change it to pet=cat
+    check(
+      {"first_name": "John", "pet": "dog"},
+      {"pet": "cat"},
+      {},
+      [["UpdateRecord", "Table1", 2, {"pet": "cat"}]],
+    )
+
+    # Two records match first_name=John, by default we only update the first
+    check(
+      {"first_name": "John"},
+      {"color": "blue"},
+      {},
+      [["UpdateRecord", "Table1", 1, {"color": "blue"}]],
+    )
+
+    # Update all matching records
+    check(
+      {"first_name": "John"},
+      {"color": "green"},
+      {"on_many": "all"},
+      [
+        ["UpdateRecord", "Table1", 1, {"color": "green"}],
+        ["UpdateRecord", "Table1", 2, {"color": "green"}],
+      ],
+    )
+
+    # Don't update any records when there's several matches
+    check(
+      {"first_name": "John"},
+      {"color": "yellow"},
+      {"on_many": "none"},
+      [],
+    )
+
+    # Invalid value of on_many
+    with self.assertRaises(ValueError):
+      check(
+        {"first_name": "John"},
+        {"color": "yellow"},
+        {"on_many": "other"},
+        [],
+      )
+
+    # Since there's at least one matching record and update=False, do nothing
+    check(
+      {"first_name": "John"},
+      {"color": "yellow"},
+      {"update": False},
+      [],
+    )
+
+    # Since there's no matching records and add=False, do nothing
+    check(
+      {"first_name": "John", "last_name": "Johnson"},
+      {"first_name": "Jack", "color": "yellow"},
+      {"add": False},
+      [],
+    )
+
+    # No matching record, make a new one.
+    # first_name=Jack in `values` overrides first_name=John in `where`
+    check(
+      {"first_name": "John", "last_name": "Johnson"},
+      {"first_name": "Jack", "color": "yellow"},
+      {},
+      [
+        ["AddRecord", "Table1", 3,
+        {"color": "yellow", "first_name": "Jack", "last_name": "Johnson"}]
+      ],
+    )
+
+    # Specifying a row ID in `where` is allowed
+    check(
+      {"first_name": "Bob", "id": 100},
+      {"pet": "fish"},
+      {},
+      [["AddRecord", "Table1", 100, {"first_name": "Bob", "pet": "fish"}]],
+    )
+
+    # Now the row already exists
+    check(
+      {"first_name": "Bob", "id": 100},
+      {"pet": "fish"},
+      {},
+      [],
+    )
+
+    # Nothing matches this `where`, but the row ID already exists
+    with self.assertRaises(AssertionError):
+      check(
+        {"first_name": "Alice", "id": 100},
+        {"pet": "fish"},
+        {},
+        [],
+      )
+
+    # Formula columns in `where` can't be used as values when creating records
+    check(
+      {"formula": "anything"},
+      {"first_name": "Alice"},
+      {},
+      [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
+    )
 
   def test_reference_lookup(self):
     sample = testutil.parse_test_sample({

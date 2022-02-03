@@ -51,7 +51,7 @@ def parse_acl_formula_json(acl_formula):
 
 
 # Entities encountered in ACL formulas, which may get renamed.
-#   type: 'recCol'|'userAttr'|'userAttrCol',
+#   type : 'recCol'|'userAttr'|'userAttrCol',
 #   start_pos: number,        # start position of the token in the code.
 #   name: string,             # the name that may be updated by a rename.
 #   extra: string|None,       # name of userAttr in case of userAttrCol; otherwise None.

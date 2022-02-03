@@ -49,7 +49,7 @@ ReplaceTableData = namedtuple_eq('ReplaceTableData', BulkAddRecord._fields)
 #     table_id: string name of the table.
 #     col_id:   string name of column
 #     col_info: dictionary with particular keys
-#         type:       string type of the column
+#         type :      string type of the column
 #         isFormula:  bool, whether it is a formula column
 #         formula:    string text of the formula, or empty string
 #     Other keys may be set in col_info (e.g. widgetOptions, label) but are not currently used in

@@ -34,7 +34,8 @@ import get = require('lodash/get');
 
 // tslint:disable:no-bitwise
 
-// Actions that add/update/remove/replace rows.
+// Actions that add/update/remove/replace rows (DocActions only - UserActions
+// may also result in row changes but are not in this list).
 const ACTION_WITH_TABLE_ID = new Set(['AddRecord', 'BulkAddRecord', 'UpdateRecord', 'BulkUpdateRecord',
                                       'RemoveRecord', 'BulkRemoveRecord',
                                       'ReplaceTableData', 'TableData',
@@ -379,27 +380,25 @@ export class GranularAccess implements GranularAccessForBundle {
 
   /**
    * Check if user may be able to apply a list of actions.  Throws if
-   * user cannot apply an action.  Returns true if a user can apply an
-   * action, or false if we need to defer making that determination
+   * user cannot apply an action.  Returns true if a user can perhaps apply an
+   * action, or false if we know we need to defer making that determination
    * until the data engine translates the user actions to doc actions.
    */
   public async assertCanMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
-    let canCertainlyApply =  true;
+    if (this._hasExceptionalFullAccess(docSession)) { return true; }
+
+    let canMaybeApply = true;
     for (const action of actions) {
       if (!await this.assertCanMaybeApplyUserAction(docSession, action)) {
-        canCertainlyApply = false;
+        canMaybeApply = false;
         break;
       }
     }
-    // If changes could include Python formulas, then user must have
-    // +S before we even consider passing these to the data engine.
-    // Since we don't track rule or schema changes at this stage, we
-    // approximate with the user's access rights at beginning of
-    // bundle.
-    if (!canCertainlyApply && scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
-      await this._assertSchemaAccess(docSession);
-    }
-    return canCertainlyApply;
+
+    await this._checkPossiblePythonFormulaModification(docSession, actions);
+    await this._checkAddOrUpdateAccess(docSession, actions);
+
+    return canMaybeApply;
   }
 
   /**
@@ -493,6 +492,7 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public async assertCanMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
     const name = a[0] as string;
+    if (this._hasExceptionalFullAccess(docSession)) { return true; }
     if (OK_ACTIONS.has(name)) { return true; }
     if (SPECIAL_ACTIONS.has(name)) {
       if (await this.hasNuancedAccess(docSession)) {
@@ -510,6 +510,10 @@ export class GranularAccess implements GranularAccessForBundle {
       return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
     } else if (name === 'ApplyDocActions') {
       return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
+    } else if (name === 'AddOrUpdateRecord') {
+      // This case is a bit tricky.
+      // Access is checked separately in _checkAddOrUpdateAccess.
+      return true;
     } else if (isDataAction(a)) {
       const tableId = getTableId(a);
       if (tableId.startsWith('_grist_')) {
@@ -761,6 +765,61 @@ export class GranularAccess implements GranularAccessForBundle {
       }
     }
     return result;
+  }
+
+  // AddOrUpdateRecord requires broad read access to a table.
+  // But tables can be renamed, and access can be granted and removed
+  // within a bundle.
+  //
+  // For now, we forbid the combination of AddOrUpdateRecord and
+  // with actions other than other AddOrUpdateRecords, or simple data
+  // changes.
+  //
+  // Access rules and user attributes might change during the bundle.
+  // We deny based on access rights at the beginning of the bundle,
+  // as for _checkPossiblePythonFormulaModification. This is on the
+  // theory that someone who can change access rights can do anything.
+  //
+  // There might be uses for applying AddOrUpdateRecord in a nuanced
+  // way within the scope of what a user can read, but there's no easy
+  // way to do that within the data engine as currently
+  // formulated. Could perhaps be done for on-demand tables though.
+  private async _checkAddOrUpdateAccess(docSession: OptDocSession, actions: UserAction[]) {
+    if (!scanActionsRecursively(actions, (a) => a[0] === 'AddOrUpdateRecord')) {
+      // Don't need to apply this particular check.
+      return;
+    }
+    // Fail if being combined with anything fancy.
+    if (scanActionsRecursively(actions, (a) => {
+      const name = a[0];
+      return !['ApplyUndoActions', 'ApplyDocActions', 'AddOrUpdateRecord'].includes(String(name)) &&
+        !(isDataAction(a) && !getTableId(a).startsWith('_grist_'));
+    })) {
+      throw new Error('Can only combine AddOrUpdate with simple data changes');
+    }
+    // Check for read access, and that we're not touching metadata.
+    await applyToActionsRecursively(actions, async (a) => {
+      if (a[0] !== 'AddOrUpdateRecord') { return; }
+      const tableId = validTableIdString(a[1]);
+      if (tableId.startsWith('_grist_')) {
+        throw new Error(`AddOrUpdate cannot yet be used on metadata tables`);
+      }
+      const tableAccess = await this.getTableAccess(docSession, tableId);
+      accessChecks.fatal.read.throwIfNotFullyAllowed(tableAccess);
+      accessChecks.fatal.update.throwIfDenied(tableAccess);
+      accessChecks.fatal.create.throwIfDenied(tableAccess);
+    });
+  }
+
+  private async _checkPossiblePythonFormulaModification(docSession: OptDocSession, actions: UserAction[]) {
+    // If changes could include Python formulas, then user must have
+    // +S before we even consider passing these to the data engine.
+    // Since we don't track rule or schema changes at this stage, we
+    // approximate with the user's access rights at beginning of
+    // bundle.
+    if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
+      await this._assertSchemaAccess(docSession);
+    }
   }
 
   /**
@@ -1952,6 +2011,7 @@ class UserAttributes {
 interface IAccessCheck {
   get(ps: PermissionSetWithContext): string;
   throwIfDenied(ps: PermissionSetWithContext): void;
+  throwIfNotFullyAllowed(ps: PermissionSetWithContext): void;
 }
 
 class AccessCheck implements IAccessCheck {
@@ -1969,6 +2029,16 @@ class AccessCheck implements IAccessCheck {
   public throwIfDenied(ps: PermissionSetWithContext): void {
     const result = ps.perms[this.access];
     if (result !== 'deny') { return; }
+    this._throwError(ps);
+  }
+
+  public throwIfNotFullyAllowed(ps: PermissionSetWithContext): void {
+    const result = ps.perms[this.access];
+    if (result === 'allow') { return; }
+    this._throwError(ps);
+  }
+
+  private _throwError(ps: PermissionSetWithContext): void {
     const memos = ps.getMemos()[this.access];
     const label =
       this.access === 'schemaEdit' ? 'structure' :
@@ -1989,7 +2059,8 @@ export const accessChecks = {
 // This AccessCheck allows everything.
 const dummyAccessCheck: IAccessCheck = {
   get() { return 'allow'; },
-  throwIfDenied() {}
+  throwIfDenied() {},
+  throwIfNotFullyAllowed() {}
 };
 
 
@@ -2130,14 +2201,22 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
 function scanActionsRecursively(actions: (DocAction|UserAction)[],
                                 check: (action: DocAction|UserAction) => boolean): boolean {
   for (const a of actions) {
-    if (a[0] === 'ApplyUndoActions') {
-      return scanActionsRecursively(a[1] as UserAction[], check);
-    } else if (a[0] === 'ApplyDocActions') {
+    if (a[0] === 'ApplyUndoActions' || a[0] === 'ApplyDocActions') {
       return scanActionsRecursively(a[1] as UserAction[], check);
     }
     if (check(a)) { return true; }
   }
   return false;
+}
+
+async function applyToActionsRecursively(actions: (DocAction|UserAction)[],
+                                         op: (action: DocAction|UserAction) => Promise<void>): Promise<void> {
+  for (const a of actions) {
+    if (a[0] === 'ApplyUndoActions' || a[0] === 'ApplyDocActions') {
+      await applyToActionsRecursively(a[1] as UserAction[], op);
+    }
+    await op(a);
+  }
 }
 
 /**
@@ -2265,4 +2344,9 @@ export class User implements UserInfo {
     }
     return results;
   }
+}
+
+export function validTableIdString(tableId: any): string {
+  if (typeof tableId !== 'string') { throw new Error(`Expected tableId to be a string`); }
+  return tableId;
 }

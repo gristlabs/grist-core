@@ -792,6 +792,33 @@ class UserActions(object):
       # Otherwise, this is an error. We can't save individual values to formula columns.
       raise ValueError("Can't save value to formula column %s" % col_id)
 
+  @useraction
+  def AddOrUpdateRecord(self, table_id, where, col_values, options):
+    table = self._engine.tables[table_id]
+    records = list(table.lookup_records(**where))
+
+    if records and options.get("update", True):
+      if len(records) > 1:
+        on_many = options.get("on_many", "first")
+        if on_many == "first":
+          records = records[:1]
+        elif on_many == "none":
+          return
+        elif on_many != "all":
+          raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
+
+      for record in records:
+        self.UpdateRecord(table_id, record.id, col_values)
+
+    if not records and options.get("add", True):
+      values = {
+        key: value
+        for key, value in six.iteritems(where)
+        if not table.get_column(key).is_formula()
+      }
+      values.update(col_values)
+      self.AddRecord(table_id, values.pop("id", None), values)
+
   #----------------------------------------
   # RemoveRecords & co.
   #----------------------------------------
