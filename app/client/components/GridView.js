@@ -849,7 +849,6 @@ GridView.prototype.buildDom = function() {
 
   return dom(
     'div.gridview_data_pane.flexvbox',
-    this.gristDoc.app.addNewUIClass(),
     // offset for frozen columns - how much move them to the left
     kd.style('--frozen-offset', this.frozenOffset),
     // total width of frozen columns

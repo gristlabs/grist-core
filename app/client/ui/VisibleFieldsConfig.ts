@@ -77,8 +77,7 @@ export class VisibleFieldsConfig extends Disposable {
   private _hiddenFieldsSelection = new Set<number>();
 
   constructor(private _gristDoc: GristDoc,
-              private _section: ViewSectionRec,
-              private _useNewUI: boolean = false) {
+              private _section: ViewSectionRec) {
     super();
 
     // Unselects visible fields that are hidden.
@@ -98,7 +97,6 @@ export class VisibleFieldsConfig extends Disposable {
    * Build the draggable list components to show the visible fields of a section.
    */
   public buildVisibleFieldsConfigHelper(options: DraggableFieldsOption) {
-    const itemClass = this._useNewUI ? cssDragRow.className : 'view_config_draggable_field';
     let fields = this._section.viewFields.peek();
 
     if (options.skipFirst || options.filterFunc) {
@@ -131,7 +129,7 @@ export class VisibleFieldsConfig extends Disposable {
       fields,
       options.itemCreateFunc,
       {
-        itemClass,
+        itemClass: cssDragRow.className,
         reorder: this.changeFieldPosition.bind(this),
         remove: this.removeField.bind(this),
         receive: this.addField.bind(this),
@@ -145,8 +143,8 @@ export class VisibleFieldsConfig extends Disposable {
    * section. Each draggable list can be parametrized using both `options.visibleFields` and
    * `options.hiddenFields` options.
    *
-   * @param {DraggableFieldOption} options.hiddenFields options for the list of hidden fields.
-   * @param {DraggableFieldOption} options.visibleFields options for the list of visible fields.
+   * @param {DraggableFieldsOption} options.hiddenFields options for the list of hidden fields.
+   * @param {DraggableFieldsOption} options.visibleFields options for the list of visible fields.
    * @return {[Element, Element]} the two draggable elements (ie: koForm.draggableList) showing
    *                              respectivelly the list of visible fields and the list of hidden
    *                              fields of section.
@@ -157,13 +155,12 @@ export class VisibleFieldsConfig extends Disposable {
       hiddenFields: DraggableFieldsOption,
     }): [HTMLElement, HTMLElement] {
 
-    const itemClass = this._useNewUI ? cssDragRow.className : 'view_config_draggable_field';
     const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
     const hiddenFieldsDraggable = kf.draggableList(
       this._hiddenFields,
       options.hiddenFields.itemCreateFunc,
       {
-        itemClass,
+        itemClass: cssDragRow.className,
         reorder() { throw new Error('Hidden Fields cannot be reordered'); },
         receive() { throw new Error('Cannot drop items into Hidden Fields'); },
         remove(item: ColumnRec) {

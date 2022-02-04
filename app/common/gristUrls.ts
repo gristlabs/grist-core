@@ -64,7 +64,6 @@ export interface IGristUrlState {
   mode?: OpenDocMode;
   fork?: UrlIdParts;
   docPage?: IDocPage;
-  newui?: boolean;
   account?: AccountPage;
   billing?: BillingPage;
   welcome?: WelcomePage;
@@ -198,9 +197,6 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   }
 
   const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
-  if (state.newui !== undefined) {
-    queryParams.newui = state.newui ? '1' : '0';
-  }
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
     queryParams[`${k}_`] = v;
   }
@@ -276,7 +272,6 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
   }
   if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
-  if (sp.has('newui')) { state.newui = useNewUI(sp.get('newui') ? sp.get('newui') === '1' : undefined); }
   if (map.has('account')) { state.account = AccountPage.parse('account') || 'profile'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')) || 'user'; }
@@ -329,10 +324,6 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.manageUsers = hashMap.get('#') === 'manage-users';
   }
   return state;
-}
-
-export function useNewUI(newui: boolean|undefined) {
-  return newui !== false;
 }
 
 // Returns a function suitable for user with makeUrl/setHref/etc, which updates aclAsUser*

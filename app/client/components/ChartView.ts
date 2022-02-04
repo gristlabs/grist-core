@@ -431,7 +431,7 @@ function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
 export class ChartConfig extends GrainJSDisposable {
 
   // helper to build the draggable field list
-  private _configFieldsHelper = VisibleFieldsConfig.create(this, this._gristDoc, this._section, true);
+  private _configFieldsHelper = VisibleFieldsConfig.create(this, this._gristDoc, this._section);
 
   // The index for the x-axis in the list visible fields. Could be eigther 0 or 1 depending on
   // whether multiseries is set.

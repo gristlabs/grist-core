@@ -24,7 +24,7 @@
  */
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, useNewUI} from 'app/common/gristUrls';
+import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
 import {addOrgToPath} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
@@ -146,7 +146,7 @@ export class UrlStateImpl {
   public updateState(prevState: IGristUrlState, newState: IGristUrlState): IGristUrlState {
     const keepState = (newState.org || newState.ws || newState.homePage || newState.doc || isEmpty(newState) ||
                        newState.account || newState.billing  || newState.welcome) ?
-      (prevState.org ? {org: prevState.org, newui: prevState.newui} : {}) :
+      (prevState.org ? {org: prevState.org} : {}) :
       prevState;
     return {...keepState, ...newState};
   }
@@ -166,14 +166,12 @@ export class UrlStateImpl {
     const accountReload = Boolean(prevState.account) !== Boolean(newState.account);
     // Reload when moving to/from a billing page.
     const billingReload = Boolean(prevState.billing) !== Boolean(newState.billing);
-    // Reload when changing 'newui' flag.
-    const newuiReload = useNewUI(prevState.newui) !== useNewUI(newState.newui);
     // Reload when moving to/from a welcome page.
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
     return Boolean(orgReload || accountReload || billingReload || gristConfig.errPage
-      || docReload || newuiReload || welcomeReload || linkKeysReload);
+      || docReload || welcomeReload || linkKeysReload);
   }
 
   /**

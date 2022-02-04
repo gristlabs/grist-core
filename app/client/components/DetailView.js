@@ -331,7 +331,6 @@ DetailView.prototype.buildTitleControls = function() {
     kd.maybe(this.recordLayout.layoutEditor, (editor) => editor.buildEditorDom()),
 
     kd.maybe(showControls, () => dom('div.grist-single-record__menu.flexhbox.flexnone',
-      this.gristDoc.app.addNewUIClass(),
       dom('div.grist-single-record__menu__count.flexitem',
         // Total should not include the add record row
         kd.text(() => this._isAddRow() ? 'Add record' :

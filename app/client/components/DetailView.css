@@ -114,12 +114,8 @@
 }
 
 .grist-single-record__menu {
-  padding: .2rem .5rem .2rem 0;
   align-items: center;
   flex-shrink: 0;
-}
-
-.grist-single-record__menu.newui {
   padding: 0;
   margin-top: -4px;
 }

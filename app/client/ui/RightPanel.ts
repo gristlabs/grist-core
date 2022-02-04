@@ -343,7 +343,7 @@ export class RightPanel extends Disposable {
 
       dom.maybe((use) => use(this._pageWidgetType) !== 'chart', () => [
         cssSeparator(),
-        dom.create(VisibleFieldsConfig, this._gristDoc, activeSection, true),
+        dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
       ]),
     ]);
   }

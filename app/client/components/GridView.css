@@ -10,10 +10,6 @@
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
-  --gridview-header-height: 2.2rem;
-}
-
-.gridview_data_pane.newui {
   --gridview-header-height: 24px;
 }
 
@@ -28,7 +24,7 @@
   border-top: 1px solid lightgrey;
 }
 
-.gridview_data_pane.newui > .gridview_data_scroll {
+.gridview_data_pane > .gridview_data_scroll {
   border-top: none;
 }
 
@@ -253,12 +249,12 @@
   z-index: 1;
 }
 
-.gridview_data_pane.newui > .scroll_shadow_top {
+.gridview_data_pane > .scroll_shadow_top {
   top: var(--gridview-header-height);
 }
 
-.gridview_data_pane.newui > .gridview_data_corner_overlay,
-.gridview_data_pane.newui > .gridview_header_backdrop_top {
+.gridview_data_pane > .gridview_data_corner_overlay,
+.gridview_data_pane > .gridview_header_backdrop_top {
   top: 0px;
 }
 

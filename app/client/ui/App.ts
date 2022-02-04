@@ -17,7 +17,7 @@ import {BaseAPI} from 'app/common/BaseAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {fetchFromHome} from 'app/common/urlUtils';
 import {ISupportedFeatures} from 'app/common/UserConfig';
-import {dom, DomElementMethod} from 'grainjs';
+import {dom} from 'grainjs';
 import * as ko from 'knockout';
 
 // tslint:disable:no-console
@@ -30,9 +30,6 @@ const G = getBrowserGlobals('document', 'window');
 export class App extends DisposableWithEvents {
   // Used by #newui code to avoid a dependency on commands.js, and by tests to issue commands.
   public allCommands = commands.allCommands;
-
-  // Whether new UI should be produced by code that can do either old or new.
-  public readonly useNewUI: true = true;
 
   public comm = this.autoDispose(Comm.create());
   public clientScope: ClientScope;
@@ -180,14 +177,6 @@ export class App extends DisposableWithEvents {
   public reloadPane() {
     console.log("reloadPane");
     this.topAppModel.reload();
-  }
-
-  // When called as a dom method, adds the "newui" class when ?newui=1 is set. For example
-  //    dom('div.some-old-class', this.app.addNewUIClass(), ...)
-  // Then you may override newui styles in CSS by using selectors like:
-  //    .some-old-class.newui { ... }
-  public addNewUIClass(): DomElementMethod {
-    return (elem) => { if (this.useNewUI) { elem.classList.add('newui'); } };
   }
 
   // Intended to be used by tests to enable specific features.
