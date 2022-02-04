@@ -33,6 +33,9 @@ export class ValueParser {
 
 }
 
+class IdentityParser extends ValueParser {
+}
+
 /**
  * Same as basic Value parser, but will return null if a value is an empty string.
  */
@@ -117,7 +120,7 @@ class ChoiceListParser extends ValueParser {
  * stored on the field. These have to be specially derived
  * for referencing columns. See createParser.
  */
-interface ReferenceParsingOptions {
+export interface ReferenceParsingOptions {
   visibleColId: string;
   visibleColType: string;
   visibleColWidgetOpts: FormatOptions;
@@ -129,18 +132,22 @@ interface ReferenceParsingOptions {
 
 export class ReferenceParser extends ValueParser {
   public widgetOpts: ReferenceParsingOptions;
-
-  protected _visibleColId = this.widgetOpts.visibleColId;
-  protected _tableData = this.widgetOpts.tableData;
-  protected _visibleColParser = createParserRaw(
+  public tableData = this.widgetOpts.tableData;
+  public visibleColParser = createParserRaw(
     this.widgetOpts.visibleColType,
     this.widgetOpts.visibleColWidgetOpts,
     this.docSettings,
   );
 
+  protected _visibleColId = this.widgetOpts.visibleColId;
+
   public parse(raw: string): any {
-    let value = this._visibleColParser(raw);
-    if (!value || !raw) {
+    const value = this.visibleColParser.cleanParse(raw);
+    return this.lookup(value, raw);
+  }
+
+  public lookup(value: any, raw: string): any {
+    if (value == null || value === "" || !raw) {
       return 0;  // default value for a reference column
     }
 
@@ -154,7 +161,7 @@ export class ReferenceParser extends ValueParser {
       }
     }
 
-    if (!this._tableData?.isLoaded) {
+    if (!this.tableData?.isLoaded) {
       const options: { column: string, raw?: string } = {column: this._visibleColId};
       if (value !== raw) {
         options.raw = raw;
@@ -162,7 +169,7 @@ export class ReferenceParser extends ValueParser {
       return ['l', value, options];
     }
 
-    return this._tableData.findMatchingRowId({[this._visibleColId]: value}) || raw;
+    return this.tableData.findMatchingRowId({[this._visibleColId]: value}) || raw;
   }
 }
 
@@ -178,7 +185,7 @@ export class ReferenceListParser extends ReferenceParser {
       // csvDecodeRow should never raise an exception
       values = csvDecodeRow(raw);
     }
-    values = values.map(v => typeof v === "string" ? this._visibleColParser(v) : encodeObject(v));
+    values = values.map(v => typeof v === "string" ? this.visibleColParser.cleanParse(v) : encodeObject(v));
 
     if (!values.length || !raw) {
       return null;  // null is the default value for a reference list column
@@ -194,7 +201,7 @@ export class ReferenceListParser extends ReferenceParser {
       }
     }
 
-    if (!this._tableData?.isLoaded) {
+    if (!this.tableData?.isLoaded) {
       const options: { column: string, raw?: string } = {column: this._visibleColId};
       if (!(values.length === 1 && values[0] === raw)) {
         options.raw = raw;
@@ -204,7 +211,7 @@ export class ReferenceListParser extends ReferenceParser {
 
     const rowIds: number[] = [];
     for (const value of values) {
-      const rowId = this._tableData.findMatchingRowId({[this._visibleColId]: value});
+      const rowId = this.tableData.findMatchingRowId({[this._visibleColId]: value});
       if (rowId) {
         rowIds.push(rowId);
       } else {
@@ -228,27 +235,21 @@ export const valueParserClasses: { [type: string]: typeof ValueParser } = {
   RefList: ReferenceListParser,
 };
 
-const identity = (value: string) => value;
-
 /**
- * Returns a function which can parse strings into values appropriate for
+ * Returns a ValueParser which can parse strings into values appropriate for
  * a specific widget field or table column.
  * widgetOpts is usually the field/column's widgetOptions JSON
  * but referencing columns need more than that, see ReferenceParsingOptions above.
  */
 export function createParserRaw(
   type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings
-): (value: string) => any {
-  const cls = valueParserClasses[gristTypes.extractTypeFromColType(type)];
-  if (cls) {
-    const parser = new cls(type, widgetOpts, docSettings);
-    return parser.cleanParse.bind(parser);
-  }
-  return identity;
+): ValueParser {
+  const cls = valueParserClasses[gristTypes.extractTypeFromColType(type)] || IdentityParser;
+  return new cls(type, widgetOpts, docSettings);
 }
 
 /**
- * Returns a function which can parse strings into values appropriate for
+ * Returns a ValueParser which can parse strings into values appropriate for
  * a specific widget field or table column.
  *
  * Pass fieldRef (a row ID of _grist_Views_section_field) to use the settings of that view field
@@ -258,23 +259,46 @@ export function createParser(
   docData: DocData,
   colRef: number,
   fieldRef?: number,
-): (value: string) => any {
+): ValueParser {
+  return createParserRaw(...createParserOrFormatterArguments(docData, colRef, fieldRef));
+}
+
+/**
+ * Returns arguments suitable for createParserRaw or createFormatter. Only for internal use.
+ *
+ * Pass fieldRef (a row ID of _grist_Views_section_field) to use the settings of that view field
+ * instead of the table column.
+ */
+export function createParserOrFormatterArguments(
+  docData: DocData,
+  colRef: number,
+  fieldRef?: number,
+): [string, object, DocumentSettings] {
   const columnsTable = docData.getMetaTable('_grist_Tables_column');
   const fieldsTable = docData.getMetaTable('_grist_Views_section_field');
-  const docInfoTable = docData.getMetaTable('_grist_DocInfo');
 
   const col = columnsTable.getRecord(colRef)!;
-
   let fieldOrCol: MetaRowRecord<'_grist_Tables_column' | '_grist_Views_section_field'> = col;
   if (fieldRef) {
     fieldOrCol = fieldsTable.getRecord(fieldRef) || col;
   }
 
-  const widgetOpts = safeJsonParse(fieldOrCol.widgetOptions, {});
+  return createParserOrFormatterArgumentsRaw(docData, col.type, fieldOrCol.widgetOptions, fieldOrCol.visibleCol);
+}
 
-  const type = col.type;
+export function createParserOrFormatterArgumentsRaw(
+  docData: DocData,
+  type: string,
+  widgetOptions: string,
+  visibleColRef: number,
+): [string, object, DocumentSettings] {
+  const columnsTable = docData.getMetaTable('_grist_Tables_column');
+  const docInfoTable = docData.getMetaTable('_grist_DocInfo');
+
+  const widgetOpts = safeJsonParse(widgetOptions, {});
+
   if (isFullReferencingType(type)) {
-    const vcol = columnsTable.getRecord(fieldOrCol.visibleCol);
+    const vcol = columnsTable.getRecord(visibleColRef);
     widgetOpts.visibleColId = vcol?.colId || 'id';
     widgetOpts.visibleColType = vcol?.type;
     widgetOpts.visibleColWidgetOpts = safeJsonParse(vcol?.widgetOptions || '', {});
@@ -284,7 +308,7 @@ export function createParser(
   const docInfo = docInfoTable.getRecord(1);
   const docSettings = safeJsonParse(docInfo!.documentSettings, {}) as DocumentSettings;
 
-  return createParserRaw(type, widgetOpts, docSettings);
+  return [type, widgetOpts, docSettings];
 }
 
 /**
@@ -311,12 +335,12 @@ function parseColValues<T extends ColValues | BulkColValues>(
     const parser = createParser(docData, colRef);
 
     // Optimisation: If there's no special parser for this column type, do nothing
-    if (parser === identity) {
+    if (parser instanceof IdentityParser) {
       return values;
     }
 
     function parseIfString(val: any) {
-      return typeof val === "string" ? parser(val) : val;
+      return typeof val === "string" ? parser.cleanParse(val) : val;
     }
 
     if (bulk) {

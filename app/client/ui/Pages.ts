@@ -3,7 +3,7 @@ import { duplicatePage } from "app/client/components/duplicatePage";
 import { GristDoc } from "app/client/components/GristDoc";
 import { PageRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
-import { isHiddenTable } from 'app/client/models/isHiddenTable';
+import { isHiddenTable } from 'app/common/isHiddenTable';
 import * as MetaTableModel from "app/client/models/MetaTableModel";
 import { find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
          TreeTableData} from "app/client/models/TreeModel";

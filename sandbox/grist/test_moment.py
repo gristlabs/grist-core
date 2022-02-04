@@ -1,7 +1,6 @@
 from datetime import datetime, date, timedelta
 import unittest
 import moment
-import moment_parse
 
 # Helpful strftime() format that imcludes all parts of the date including the time zone.
 fmt = "%Y-%m-%d %H:%M:%S %Z"
@@ -60,78 +59,6 @@ class TestMoment(unittest.TestCase):
     [datetime(2037, 11, 1, 1, 0, 0, 0), 2140675200000, "PDT", 420, 1, 0],
   ]
 
-  parse_samples = [
-    # Basic set
-    ['MM-DD-YYYY',          '12-02-1999',                 944092800.000000],
-    ['DD-MM-YYYY',          '12-02-1999',                 918777600.000000],
-    ['DD/MM/YYYY',          '12/02/1999',                 918777600.000000],
-    ['DD_MM_YYYY',          '12_02_1999',                 918777600.000000],
-    ['DD:MM:YYYY',          '12:02:1999',                 918777600.000000],
-    ['D-M-YY',              '2-2-99',                     917913600.000000],
-    ['YY',                  '99',                         922060800.000000],
-    ['DD-MM-YYYY h:m:s',    '12-02-1999 2:45:10',         918787510.000000],
-    ['DD-MM-YYYY h:m:s a',  '12-02-1999 2:45:10 am',      918787510.000000],
-    ['DD-MM-YYYY h:m:s a',  '12-02-1999 2:45:10 pm',      918830710.000000],
-    ['h:mm a',              '12:00 pm',                   1458648000.000000],
-    ['h:mm a',              '12:30 pm',                   1458649800.000000],
-    ['h:mm a',              '12:00 am',                   1458604800.000000],
-    ['h:mm a',              '12:30 am',                   1458606600.000000],
-    ['HH:mm',               '12:00',                      1458648000.000000],
-    ['YYYY-MM-DDTHH:mm:ss', '2011-11-11T11:11:11',        1321009871.000000],
-    ['ddd MMM DD HH:mm:ss YYYY', 'Tue Apr 07 22:52:51 2009',  1239144771.000000],
-    ['ddd MMMM DD HH:mm:ss YYYY', 'Tue April 07 22:52:51 2009', 1239144771.000000],
-    ['HH:mm:ss',            '12:00:00',                   1458648000.000000],
-    ['HH:mm:ss',            '12:30:00',                   1458649800.000000],
-    ['HH:mm:ss',            '00:00:00',                   1458604800.000000],
-    ['HH:mm:ss S',          '00:30:00 1',                 1458606600.100000],
-    ['HH:mm:ss SS',         '00:30:00 12',                1458606600.120000],
-    ['HH:mm:ss SSS',        '00:30:00 123',               1458606600.123000],
-    ['HH:mm:ss S',          '00:30:00 7',                 1458606600.700000],
-    ['HH:mm:ss SS',         '00:30:00 78',                1458606600.780000],
-    ['HH:mm:ss SSS',        '00:30:00 789',               1458606600.789000],
-
-    # Dropped m
-    ['MM/DD/YYYY h:m:s a',  '05/1/2012 12:25:00 p',       1335875100.000000],
-    ['MM/DD/YYYY h:m:s a',  '05/1/2012 12:25:00 a',       1335831900.000000],
-
-    # 2 digit year with YYYY
-    ['D/M/YYYY',              '9/2/99',                   918518400.000000],
-    ['D/M/YYYY',            '9/2/1999',                   918518400.000000],
-    ['D/M/YYYY',              '9/2/66',                   -122860800.000000],
-    ['D/M/YYYY',              '9/2/65',                   3001363200.000000],
-
-    # No separators
-    ['MMDDYYYY',            '12021999',                   944092800.000000],
-    ['DDMMYYYY',            '12021999',                   918777600.000000],
-    ['YYYYMMDD',            '19991202',                   944092800.000000],
-    ['DDMMMYYYY',          '10Sep2001',                   1000080000.000000],
-
-    # Error forgiveness
-    ['MM/DD/YYYY',          '12-02-1999',                 944092800.000000],
-    ['DD/MM/YYYY',          '12/02 /1999',                918777600.000000],
-    ['DD:MM:YYYY',          '12:02 :1999',                918777600.000000],
-    ['D-M-YY',              '2 2 99',                     917913600.000000],
-    ['DD-MM-YYYY h:m:s',    '12-02-1999 2:45:10.00',      918787510.000000],
-    ['h:mm a',              '12:00pm',                    1458648000.000000],
-    ['HH:mm',               '1200',                       1458648000.000000],
-    ['dddd MMMM DD HH:mm:ss YYYY', 'Tue Apr 7 22:52:51 2009',  1239144771.000000],
-    ['ddd MMM DD HH:mm:ss YYYY',   'Tuesday April 7 22:52:51 2009', 1239144771.000000],
-    ['ddd MMM Do HH:mm:ss YYYY',   'Tuesday April 7th 22:52:51 2009', 1239144771.000000]
-  ]
-
-  parse_timezone_samples = [
-    # Timezone corner cases
-    ['MM-DD-YYYY h:ma', '3-13-2016 1:59am', 'America/New_York', 1457852340], # EST
-    ['MM-DD-YYYY h:ma', '3-13-2016 2:00am', 'America/New_York', 1457848800], # Invalid, -1hr
-    ['MM-DD-YYYY h:ma', '3-13-2016 2:59am', 'America/New_York', 1457852340], # Invalid, -1hr
-    ['MM-DD-YYYY h:ma', '3-13-2016 3:00am', 'America/New_York', 1457852400], # EDT
-    ['MM-DD-YYYY h:ma', '3-13-2016 1:59am', 'America/Los_Angeles', 1457863140], # PST
-    ['MM-DD-YYYY h:ma', '3-13-2016 2:00am', 'America/Los_Angeles', 1457859600], # Invalid, -1hr
-    ['MM-DD-YYYY h:ma', '3-13-2016 2:59am', 'America/Los_Angeles', 1457863140], # Invalid, -1hr
-    ['MM-DD-YYYY h:ma', '3-13-2016 3:00am', 'America/Los_Angeles', 1457863200]  # PDT
-  ]
-
-
   def assertMatches(self, data_entry, moment_obj):
     date, timestamp, abbr, offset, hour, minute = data_entry
     dt        = moment_obj.datetime()
@@ -182,12 +109,6 @@ class TestMoment(unittest.TestCase):
       dt = moment.tz(ts, name).datetime()
       self.assertEqual(dt.tzname(), abbr)
       self.assertEqual(dt.utcoffset(), timedelta(minutes=-offset))
-
-  def test_parse(self):
-    for s in self.parse_samples:
-      self.assertEqual(moment_parse.parse(s[1], s[0], 'UTC', date(2016, 3, 22)), s[2])
-    for s in self.parse_timezone_samples:
-      self.assertEqual(moment_parse.parse(s[1], s[0], s[2], date(2016, 3, 22)), s[3])
 
   def test_ts_to_dt(self):
     # Verify that ts_to_dt works as expected.

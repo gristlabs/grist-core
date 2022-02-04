@@ -1037,7 +1037,13 @@ class UserActions(object):
       if not clean_colinfo["isFormula"]:
         raise ValueError("AddColumn: cannot add a non-formula column to a summary table")
 
-    transform = col_id is not None and col_id.startswith('gristHelper_Transform')
+    transform = (
+        col_id is not None and
+        col_id.startswith((
+          'gristHelper_Transform',
+          'gristHelper_Converted',
+        ))
+    )
 
     if transform:
       # Delete any currently existing transform columns with the same id
@@ -1256,6 +1262,29 @@ class UserActions(object):
       finally:
         self._engine.out_actions.undo.append(mod_action)
 
+  @useraction
+  def ConvertFromColumn(self, table_id, src_col_id, dst_col_id, typ, widgetOptions, visibleColRef):
+    from sandbox import call_external
+    table = self._engine.tables[table_id]
+    src_col = self._docmodel.get_column_rec(table_id, src_col_id)
+    src_column = table.get_column(src_col_id)
+    row_ids = list(table.row_ids)
+    src_values = [encode_object(src_column.raw_get(r)) for r in row_ids]
+    display_values = None
+    if src_col.displayCol:
+      display_col = table.get_column(src_col.displayCol.colId)
+      display_values = [encode_object(display_col.raw_get(r)) for r in row_ids]
+    converted_values = call_external(
+      "convertFromColumn",
+      src_col.id,
+      typ,
+      widgetOptions,
+      visibleColRef,
+      src_values,
+      display_values,
+    )
+    self.ModifyColumn(table_id, dst_col_id, {"type": typ})
+    self.BulkUpdateRecord(table_id, row_ids, {dst_col_id: converted_values})
 
   @useraction
   def CopyFromColumn(self, table_id, src_col_id, dst_col_id, widgetOptions):

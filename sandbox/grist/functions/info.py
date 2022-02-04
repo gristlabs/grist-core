@@ -500,6 +500,14 @@ def N(value):
   return 0
 
 
+def CURRENT_CONVERSION(rec):
+  """
+  Special function used only when changing the type of a column.
+  Doesn't work in normal formulas.
+  """
+  return rec.gristHelper_Converted
+
+
 def NA():
   """
   Returns the "value not available" error, `#N/A`.

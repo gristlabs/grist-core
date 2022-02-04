@@ -4,7 +4,6 @@ import marshal
 from time import time
 import bisect
 import os
-import moment_parse
 import iso8601
 import six
 from six.moves import zip
@@ -13,7 +12,6 @@ from six.moves import zip
 ZoneRecord = namedtuple("ZoneRecord", ("name", "abbrs", "offsets", "untils"))
 
 # moment.py mirrors core functionality of moment-timezone.js
-# moment.py includes function parse, located and documented in moment_parse.py
 # Documentation: http://momentjs.com/timezone/docs/
 
 EPOCH = datetime(1970, 1, 1)
@@ -66,10 +64,6 @@ def ts_to_date(timestamp):
 def date_to_ts(date, timezone=None):
   ts = (date - DATE_EPOCH).total_seconds()
   return ts if not timezone else ts - timezone.offset(ts * 1000).total_seconds()
-
-# Calls parse from moment_parse.py
-def parse(date_string, parse_format, zonelabel='UTC'):
-  return moment_parse.parse(date_string, parse_format, zonelabel)
 
 # Parses a datetime in the ISO format, YYYY-MM-DDTHH:MM:SS.mmmmmm+HH:MM. Most parts are optional;
 # see https://pypi.org/project/iso8601/ for details. Returns a timestamp in seconds.

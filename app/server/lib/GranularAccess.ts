@@ -87,6 +87,7 @@ const SPECIAL_ACTIONS = new Set(['InitNewDoc',
                                  'TransformAndFinishImport',
                                  'AddView',
                                  'CopyFromColumn',
+                                 'ConvertFromColumn',
                                  'AddHiddenColumn',
                                 ]);
 

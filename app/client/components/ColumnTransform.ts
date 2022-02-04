@@ -142,6 +142,10 @@ export class ColumnTransform extends Disposable {
     return actions.every(action => (
       // ['AddColumn', USER_TABLE, 'gristHelper_Transform', colInfo]
       (action[2] === 'gristHelper_Transform') ||
+      // ['AddColumn', USER_TABLE, 'gristHelper_Converted', colInfo]
+      (action[2] === 'gristHelper_Converted') ||
+      // ['ConvertFromColumn', USER_TABLE, SOURCE_COLUMN, 'gristHelper_Converted']
+      (action[3] === 'gristHelper_Converted') ||
       // ["SetDisplayFormula", USER_TABLE, ...]
       (action[0] === 'SetDisplayFormula') ||
       // ['UpdateRecord', '_grist_Table_column', transformColId, ...]
@@ -192,7 +196,6 @@ export class ColumnTransform extends Disposable {
     // Define variables used after await, since this will be disposed by then.
     const transformColId = this.transformColumn.colId();
     const field = this.field;
-    const fieldBuilder = this._fieldBuilder;
     const origRef = this.origColumn.getRowId();
     const tableData = this._tableData;
     this.isCallPending(true);
@@ -201,15 +204,34 @@ export class ColumnTransform extends Disposable {
         // TODO: Values flicker during executing since transform column remains a formula as values are copied
         // back to the original column. The CopyFromColumn useraction really ought to be "CopyAndRemove" since
         // that seems the best way to avoid calculating the formula on wrong values.
-        return await tableData.sendTableAction(['CopyFromColumn', transformColId, this.origColumn.colId(),
-          JSON.stringify(fieldBuilder.options())]);
+        await this.gristDoc.docData.sendActions(this.executeActions());
       }
     } finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
       void tableData.sendTableAction(['RemoveColumn', transformColId]);
+      this.cleanup();
       this.dispose();
     }
+  }
+
+  /**
+   * The user actions to send when actually executing the transform.
+   */
+  protected executeActions(): UserAction[] {
+    return [
+      [
+        'CopyFromColumn',
+        this._tableData.tableId,
+        this.transformColumn.colId(),
+        this.origColumn.colId(),
+        JSON.stringify(this._fieldBuilder.options()),
+      ],
+    ];
+  }
+
+  protected cleanup() {
+    // For overriding
   }
 
   protected getIdentityFormula() {

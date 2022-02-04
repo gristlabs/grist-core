@@ -10,13 +10,12 @@ import {ColumnTransform} from 'app/client/components/ColumnTransform';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as TypeConversion from 'app/client/components/TypeConversion';
 import {reportError} from 'app/client/models/errors';
-import * as modelUtil from 'app/client/models/modelUtil';
 import {cssButtonRow} from 'app/client/ui/RightPanel';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {ColValues} from 'app/common/DocActions';
+import {ColValues, UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
 import isEmpty = require('lodash/isEmpty');
 import pickBy = require('lodash/pickBy');
@@ -86,15 +85,6 @@ export class TypeTransform extends ColumnTransform {
     );
   }
 
-  protected async resetToDefaultFormula() {
-    if (!this.isFinalizing()) {
-      const toType = this.transformColumn.type.peek();
-      const formula = TypeConversion.getDefaultFormula(this.gristDoc.docModel, this.origColumn,
-        toType, this.field.visibleColRef(), this.field.widgetOptionsJson());
-      await modelUtil.setSaveValue(this.transformColumn.formula, formula);
-    }
-  }
-
   /**
    * Overrides parent method to initialize the transform column with guesses as to the particular
    * type and column options.
@@ -103,20 +93,55 @@ export class TypeTransform extends ColumnTransform {
   protected async addTransformColumn(toType: string) {
     const docModel = this.gristDoc.docModel;
     const colInfo = await TypeConversion.prepTransformColInfo(docModel, this.origColumn, this.origDisplayCol, toType);
-    const newColInfo = await this._tableData.sendTableAction(['AddColumn', 'gristHelper_Transform', colInfo]);
-    const tcol = docModel.columns.getRowModel(newColInfo.colRef);
-    await TypeConversion.setDisplayFormula(docModel, tcol);
-    return newColInfo.colRef;
+    const newColInfos = await this._tableData.sendTableActions([
+      ['AddColumn', 'gristHelper_Converted', {...colInfo, isFormula: false, formula: ''}],
+      ['AddColumn', 'gristHelper_Transform', colInfo],
+    ]);
+    const transformColRef = newColInfos[1].colRef;
+    this.transformColumn = docModel.columns.getRowModel(transformColRef);
+    await this.convertValues();
+    return transformColRef;
+  }
+
+  protected convertValuesActions(): UserAction[] {
+    const tableId = this._tableData.tableId;
+    const srcColId = this.origColumn.colId.peek();
+    const dstColId = "gristHelper_Converted";
+    const type = this.transformColumn.type.peek();
+    const widgetOptions = this.transformColumn.widgetOptions.peek();
+    const visibleColRef = this.transformColumn.visibleCol.peek();
+    return [['ConvertFromColumn', tableId, srcColId, dstColId, type, widgetOptions, visibleColRef]];
+  }
+
+  protected async convertValues() {
+    await Promise.all([
+      this.gristDoc.docData.sendActions(this.convertValuesActions()),
+      TypeConversion.setDisplayFormula(this.gristDoc.docModel, this.transformColumn),
+    ]);
+  }
+
+  protected executeActions(): UserAction[] {
+    return [...this.convertValuesActions(), ...super.executeActions()];
   }
 
   /**
    * Overrides parent method to subscribe to changes to the transform column.
    */
   protected postAddTransformColumn() {
-    // When a user-initiated change is saved to type or widgetOptions, update the formula.
-    this.autoDispose(this.transformColumn.type.subscribe(this.resetToDefaultFormula, this, "save"));
-    this.autoDispose(this.transformColumn.visibleCol.subscribe(this.resetToDefaultFormula, this, "save"));
-    this.autoDispose(this.field.widgetOptionsJson.subscribe(this.resetToDefaultFormula, this, "save"));
+    // When a user-initiated change is saved to type or widgetOptions, reconvert the values
+    // Need to subscribe to both 'change' and 'save' for type which can come from setting the type itself
+    // or e.g. a change to DateTime timezone.
+    this.autoDispose(this.transformColumn.type.subscribe(this.convertValues, this, "change"));
+    this.autoDispose(this.transformColumn.type.subscribe(this.convertValues, this, "save"));
+    this.autoDispose(this.transformColumn.visibleCol.subscribe(this.convertValues, this, "save"));
+    this.autoDispose(this.field.widgetOptionsJson.subscribe(this.convertValues, this, "save"));
+  }
+
+  /**
+   * Overrides parent method to delete extra column
+   */
+  protected cleanup() {
+    void this._tableData.sendTableAction(['RemoveColumn', 'gristHelper_Converted']);
   }
 
   /**
@@ -129,9 +154,10 @@ export class TypeTransform extends ColumnTransform {
     const tcol = this.transformColumn;
     const changedInfo = pickBy(colInfo, (val, key) =>
       (val !== tcol[key as keyof TypeConversion.ColInfo].peek()));
-    return Promise.all([
-      isEmpty(changedInfo) ? undefined : tcol.updateColValues(changedInfo as ColValues),
-      TypeConversion.setDisplayFormula(docModel, tcol, changedInfo.visibleCol)
-    ]);
+    if (!isEmpty(changedInfo)) {
+      // Update the transform column, particularly the type.
+      // This will trigger the subscription in postAddTransformColumn and lead to calling convertValues.
+      await tcol.updateColValues(changedInfo as ColValues);
+    }
   }
 }

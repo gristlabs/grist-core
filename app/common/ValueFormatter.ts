@@ -2,11 +2,14 @@
 
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from 'app/common/DocActions';
+import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
-import {getReferencedTableId, isList} from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
+import {getReferencedTableId, isList} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
+import {isHiddenTable} from 'app/common/isHiddenTable';
 import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
+import {createParserOrFormatterArguments, ReferenceParsingOptions} from 'app/common/ValueParser';
 import {GristObjCode} from 'app/plugin/GristData';
 import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
 import * as moment from 'moment-timezone';
@@ -279,4 +282,71 @@ const formatters: { [name: string]: typeof BaseFormatter } = {
 export function createFormatter(type: string, widgetOpts: FormatOptions, docSettings: DocumentSettings): BaseFormatter {
   const ctor = formatters[gristTypes.extractTypeFromColType(type)] || AnyFormatter;
   return new ctor(type, widgetOpts, docSettings);
+}
+
+export interface FullFormatterArgs {
+  docData: DocData;
+  type: string;
+  widgetOpts: FormatOptions;
+  visibleColType: string;
+  visibleColWidgetOpts: FormatOptions;
+  docSettings: DocumentSettings;
+}
+
+/**
+ * Returns a constructor
+ * with a format function that can properly convert a value passed to it into the
+ * right format for that column.
+ *
+ * Pass fieldRef (a row ID of _grist_Views_section_field) to use the settings of that view field
+ * instead of the table column.
+ */
+export function createFullFormatterFromDocData(
+  docData: DocData,
+  colRef: number,
+  fieldRef?: number,
+): BaseFormatter {
+  const [type, widgetOpts, docSettings] = createParserOrFormatterArguments(docData, colRef, fieldRef);
+  const {visibleColType, visibleColWidgetOpts} = widgetOpts as ReferenceParsingOptions;
+  return createFullFormatterRaw({
+    docData,
+    type,
+    widgetOpts,
+    visibleColType,
+    visibleColWidgetOpts,
+    docSettings,
+  });
+}
+
+export function createFullFormatterRaw(args: FullFormatterArgs) {
+  const {type, widgetOpts, docSettings} = args;
+  const visibleColFormatter = createVisibleColFormatterRaw(args);
+  return createFormatter(type, {...widgetOpts, visibleColFormatter}, docSettings);
+}
+
+export function createVisibleColFormatterRaw(
+  {
+    docData,
+    docSettings,
+    type,
+    visibleColType,
+    visibleColWidgetOpts,
+    widgetOpts
+  }: FullFormatterArgs
+): BaseFormatter {
+  let referencedTableId = gristTypes.getReferencedTableId(type);
+  if (!referencedTableId) {
+    return createFormatter(type, widgetOpts, docSettings);
+  } else if (visibleColType) {
+    return createFormatter(visibleColType, visibleColWidgetOpts, docSettings);
+  } else {
+    // This column displays the Row ID, e.g. Table1[2]
+    // Make referencedTableId empty if the table is hidden
+    const tablesData = docData.getMetaTable("_grist_Tables");
+    const tableRef = tablesData.findRow("tableId", referencedTableId);
+    if (isHiddenTable(tablesData, tableRef)) {
+      referencedTableId = "";
+    }
+    return createFormatter('Id', {tableId: referencedTableId}, docSettings);
+  }
 }

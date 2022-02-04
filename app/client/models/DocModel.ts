@@ -22,7 +22,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import * as MetaRowModel from 'app/client/models/MetaRowModel';
 import * as MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
-import {isHiddenTable} from 'app/client/models/isHiddenTable';
+import {isHiddenTable} from 'app/common/isHiddenTable';
 import {schema, SchemaTypes} from 'app/common/schema';
 
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';

@@ -64,7 +64,7 @@ class TestRefListRelation(test_engine.EngineTestCase):
     self.apply_user_action(
         ['AddColumn', 'TableC', 'gristHelper_Transform', {
           "type": 'Ref:TableA', "isFormula": True,
-          "formula": "grist.Reference.typeConvert($ColB, TableA, 'ColA')", "visibleCol": 2,
+          "formula": "TableA.lookupOne(ColA=$ColB)", "visibleCol": 2,
         }])
     self.apply_user_action(
         ['SetDisplayFormula', 'TableC', None, 7, '$gristHelper_Transform.ColA'])

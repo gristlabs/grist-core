@@ -41,6 +41,7 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
+import {convertFromColumn} from 'app/common/ValueConverter';
 import {parseUserAction} from 'app/common/ValueParser';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
@@ -1717,6 +1718,12 @@ export class ActiveDoc extends EventEmitter {
       logTimes: true,
       logMeta: {docId: this._docName},
       preferredPythonVersion,
+      sandboxOptions: {
+        exports: {
+          convertFromColumn: (...args: Parameters<ReturnType<typeof convertFromColumn>>) =>
+            convertFromColumn(this.docData!)(...args)
+        }
+      },
     });
   }
 }

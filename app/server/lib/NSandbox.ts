@@ -33,7 +33,7 @@ type SandboxMethod = (...args: any[]) => any;
  * started by setting `useGristEntrypoint` (the only exception is
  * in tests) which runs grist/main.py.
  */
-interface ISandboxOptions {
+export interface ISandboxOptions {
   command?: string;       // External program or container to call to run the sandbox.
   args: string[];         // The arguments to pass to the python process.
 
@@ -404,6 +404,7 @@ export class NSandboxCreator implements ISandboxCreator {
       preferredPythonVersion: this._preferredPythonVersion || options.preferredPythonVersion,
       useGristEntrypoint: true,
       importDir: options.importMount,
+      ...options.sandboxOptions,
     };
     return new NSandbox(translatedOptions, spawners[this._flavor]);
   }

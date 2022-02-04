@@ -6,7 +6,6 @@
 
 import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import * as UserType from 'app/client/widgets/UserType';
 import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
@@ -90,7 +89,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     type: addColTypeSuffix(toTypeMaybeFull, origCol, docModel),
     isFormula: true,
     visibleCol: 0,
-    formula: "",          // Will be filled in at the end.
+    formula: "CURRENT_CONVERSION(rec)",
   };
 
   const prevOptions = origCol.widgetOptionsJson.peek() || {};
@@ -139,23 +138,35 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     case 'RefList':
     {
       // Set suggested destination table and visible column.
-      // Null if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
-      const optTableId = gutil.removePrefix(toTypeMaybeFull, `${toType}:`)!;
+      // Undefined if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
+      const optTableId = gutil.removePrefix(toTypeMaybeFull, `${toType}:`) || undefined;
 
-      // Finds a reference suggestion column and sets it as the current reference value.
-      const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
-      if (!columnData) { break; }
-      columnData.delete(gristTypes.getDefaultForType(origCol.type()));
+      let suggestedColRef: number;
+      let suggestedTableId: string;
+      const origColTypeInfo = gristTypes.extractInfoFromColType(origCol.type.peek());
+      if (!optTableId && origColTypeInfo.type === "Ref" || origColTypeInfo.type === "RefList") {
+        // When converting between Ref and Reflist, initially suggest the same table and visible column.
+        // When converting, if the table is the same, it's a special case.
+        // The visible column will not affect conversion.
+        // It will simply wrap the reference (row ID) in a list or extract the one element of a reference list.
+        suggestedColRef = origCol.visibleCol.peek();
+        suggestedTableId = origColTypeInfo.tableId;
+      } else {
+        // Finds a reference suggestion column and sets it as the current reference value.
+        const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
+        if (!columnData) { break; }
+        columnData.delete(gristTypes.getDefaultForType(origCol.type()));
 
-      // 'findColFromValues' function requires an array since it sends the values to the sandbox.
-      const matches: number[] = await docModel.docData.findColFromValues(Array.from(columnData), 2, optTableId);
-      const suggestedColRef = matches.find(match => match !== origCol.getRowId());
-      if (!suggestedColRef) { break; }
-      const suggestedCol = docModel.columns.getRowModel(suggestedColRef);
-      const suggestedTableId = suggestedCol.table().tableId();
-      if (optTableId && suggestedTableId !== optTableId) {
-        console.warn("Inappropriate column received from findColFromValues");
-        break;
+        // 'findColFromValues' function requires an array since it sends the values to the sandbox.
+        const matches: number[] = await docModel.docData.findColFromValues(Array.from(columnData), 2, optTableId);
+        suggestedColRef = matches.find(match => match !== origCol.getRowId())!;
+        if (!suggestedColRef) { break; }
+        const suggestedCol = docModel.columns.getRowModel(suggestedColRef);
+        suggestedTableId = suggestedCol.table().tableId();
+        if (optTableId && suggestedTableId !== optTableId) {
+          console.warn("Inappropriate column received from findColFromValues");
+          break;
+        }
       }
       colInfo.type = `${toType}:${suggestedTableId}`;
       colInfo.visibleCol = suggestedColRef;
@@ -163,11 +174,9 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     }
   }
 
-  const newOptions = UserType.mergeOptions(widgetOptions || {}, colInfo.type);
   if (widgetOptions) {
     colInfo.widgetOptions = JSON.stringify(widgetOptions);
   }
-  colInfo.formula = getDefaultFormula(docModel, origCol, colInfo.type, colInfo.visibleCol, newOptions);
   return colInfo;
 }
 
@@ -182,62 +191,6 @@ export async function setDisplayFormula(
     const displayFormula = (vcolRef === 0 ? '' : `$${tcol}.${vcol}`);
     return transformCol.saveDisplayFormula(displayFormula);
   }
-}
-
-// Given the original column and info about the new column, returns the formula to use for the
-// transform column to do the transformation.
-export function getDefaultFormula(
-  docModel: DocModel, origCol: ColumnRec, newType: string,
-  newVisibleCol: number, newWidgetOptions: any): string {
-
-  const colId = origCol.colId();
-  const oldVisibleColName = isReferenceCol(origCol) ?
-    getVisibleColName(docModel, origCol.visibleCol()) : undefined;
-
-  let origValFormula = oldVisibleColName ?
-    // The `str()` below converts AltText to plain text.
-    `($${colId}.${oldVisibleColName}
-    if ISREF($${colId}) or ISREFLIST($${colId})
-    else str($${colId}))`
-    : `$${colId}`;
-
-  if (origCol.type.peek() === 'ChoiceList') {
-    origValFormula = `grist.ChoiceList.toString($${colId})`;
-  }
-
-  const toTypePure: string = gristTypes.extractTypeFromColType(newType);
-
-  // The args are used to construct the call to grist.TYPE.typeConvert(value, [params]).
-  // Optional parameters depend on the type; see sandbox/grist/usertypes.py
-  const args: string[] = [origValFormula];
-  switch (toTypePure) {
-    case 'Ref':
-    case 'RefList':
-    {
-      const table = gutil.removePrefix(newType, toTypePure + ":");
-      args.push(table || 'None');
-      const visibleColName = getVisibleColName(docModel, newVisibleCol);
-      if (visibleColName) {
-        args.push(q(visibleColName));
-      }
-      break;
-    }
-    case 'Date': {
-      args.push(q(newWidgetOptions.dateFormat));
-      break;
-    }
-    case 'DateTime': {
-      const timezone = gutil.removePrefix(newType, "DateTime:") || '';
-      const format = newWidgetOptions.dateFormat + ' ' + newWidgetOptions.timeFormat;
-      args.push(q(format), q(timezone));
-      break;
-    }
-  }
-  return `grist.${gristTypes.getGristType(toTypePure)}.typeConvert(${args.join(', ')})`;
-}
-
-function q(value: string): string {
-  return "'" + value.replace(/'/g, "\\'") + "'";
 }
 
 // Returns the name of the visibleCol given its rowId.

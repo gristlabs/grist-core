@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta
 import re
 from .date import DATEADD, NOW, DTIME
-from moment_parse import MONTH_NAMES, DAY_NAMES
 
 # Limit exports to schedule, so that upper-case constants like MONTH_NAMES, DAY_NAMES don't end up
 # exposed as if Excel-style functions (or break docs generation).
 __all__ = ['SCHEDULE']
+
+MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
+  'september', 'october', 'november', 'december']
+# Regex list of lowercase weekdays with characters after the first three made optional
+DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
 def SCHEDULE(schedule, start=None, count=10, end=None):
   """

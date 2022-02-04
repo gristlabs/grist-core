@@ -138,17 +138,6 @@ class BaseColumnType(object):
         return objtypes.safe_repr(value_to_convert)
 
 
-  # This is a user-facing method, hence the camel-case naming, as for `lookupRecords` and such.
-  @classmethod
-  def typeConvert(cls, value):
-    """
-    Convert a value from a different type to something that this type can accept, as when
-    explicitly converting a column type. Note that usual conversion (such as converting numbers to
-    strings or vice versa) will still apply to the returned value.
-    """
-    return value
-
-
 class Text(BaseColumnType):
   """
   Text is the type for a field holding string (text) data.
@@ -179,18 +168,6 @@ class Text(BaseColumnType):
   @classmethod
   def is_right_type(cls, value):
     return isinstance(value, (six.string_types, NoneType))
-
-  @classmethod
-  def typeConvert(cls, value):
-    if value is None:
-      # When converting NULLs (that typically show up as a plain empty cell for Numeric or Date
-      # columns) to Text, it makes more sense to end up with a plain blank text cell.
-      return ''
-    elif isinstance(value, bool):
-      # Normalize True/False to true/false (Toggle columns use true/false).
-      return str(value).lower()
-    else:
-      return value
 
 
 class Blob(BaseColumnType):
@@ -302,13 +279,6 @@ class Date(Numeric):
   def is_right_type(cls, value):
     return isinstance(value, (float, six.integer_types, NoneType))
 
-  @classmethod
-  def typeConvert(cls, value, date_format, timezone='UTC'):   # pylint: disable=arguments-differ
-    # Note: the timezone argument is used in DateTime conversions, allows sharing this method.
-    try:
-      return moment.parse(value, date_format, timezone)
-    except Exception:
-      return value
 
 class DateTime(Date):
   """
@@ -369,21 +339,6 @@ class ChoiceList(BaseColumnType):
   def is_right_type(cls, value):
     return value is None or (isinstance(value, (tuple, list)) and
                              all(isinstance(item, six.string_types) for item in value))
-
-  @classmethod
-  def typeConvert(cls, value):
-    if value is None:
-      return value
-    if isinstance(value, six.string_types) and not value.startswith('['):
-      # Try to parse as CSV. If this doesn't work, we'll still try usual conversions later.
-      try:
-        tags = next(csv.reader([value]))
-        return tuple(t.strip() for t in tags if t.strip())
-      except Exception:
-        pass
-    if not isinstance(value, (tuple, list)):
-      value = [Choice.typeConvert(value)]
-    return value
 
   @classmethod
   def toString(cls, value):
@@ -458,13 +413,6 @@ class Reference(Id):
   def typename(cls):
     return "Ref"
 
-  @classmethod
-  def typeConvert(cls, value, ref_table, visible_col=None):  # pylint: disable=arguments-differ
-    if value and ref_table and visible_col:
-      return ref_table.lookupOne(**{visible_col: value}) or six.text_type(value)
-    else:
-      return value
-
 
 class ReferenceList(BaseColumnType):
   """
@@ -500,15 +448,6 @@ class ReferenceList(BaseColumnType):
     return value is None or (isinstance(value, list) and
                              all(Reference.is_right_type(val) for val in value))
 
-  @classmethod
-  def typeConvert(cls, value, ref_table, visible_col=None):  # noqa # pylint: disable=arguments-differ
-    # TODO this is based on Reference.typeConvert.
-    #  It doesn't make much sense as a conversion but I don't know what would
-    if value and ref_table and visible_col:
-      return ref_table.lookupRecords(**{visible_col: value}) or six.text_type(value)
-    else:
-      return value
-
 
 class Attachments(ReferenceList):
   """
@@ -516,8 +455,3 @@ class Attachments(ReferenceList):
   """
   def __init__(self):
     super(Attachments, self).__init__('_grist_Attachments')
-
-  @classmethod
-  def typeConvert(cls, value):  # noqa # pylint: disable=arguments-differ
-    # Don't use ReferenceList.typeConvert which is called with a different number of arguments
-    return value

@@ -1,4 +1,5 @@
 import * as log from 'app/server/lib/log';
+import {ISandboxOptions} from 'app/server/lib/NSandbox';
 
 /**
  * Starting to whittle down the options used when creating a sandbox, to leave more
@@ -17,6 +18,8 @@ export interface ISandboxCreationOptions {
   importMount?: string;  // if defined, make this path available read-only as "/importdir"
 
   preferredPythonVersion?: '2' | '3';
+
+  sandboxOptions?: Partial<ISandboxOptions>;
 }
 
 export interface ISandbox {

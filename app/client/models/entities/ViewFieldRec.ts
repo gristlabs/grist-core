@@ -1,5 +1,5 @@
 import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
-import {formatterForRec, visibleColFormatterForRec} from 'app/client/models/entities/ColumnRec';
+import {formatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
@@ -172,13 +172,14 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
   // associated with this field. If no visible column available, return formatting for the field itself.
-  this.visibleColFormatter = ko.pureComputed(() => visibleColFormatterForRec(this, this.column(), docModel));
+  this.visibleColFormatter = ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'vcol'));
 
-  this.formatter = ko.pureComputed(() => formatterForRec(this, this.column(), docModel, this.visibleColFormatter()));
+  this.formatter = ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'full'));
 
   this.createValueParser = function() {
     const fieldRef = this.useColOptions.peek() ? undefined : this.id.peek();
-    return createParser(docModel.docData, this.colRef.peek(), fieldRef);
+    const parser = createParser(docModel.docData, this.colRef.peek(), fieldRef);
+    return parser.cleanParse.bind(parser);
   };
 
   // The widgetOptions to read and write: either the column's or the field's own.

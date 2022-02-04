@@ -1053,6 +1053,10 @@ export async function setType(type: RegExp, options: {skipWait?: boolean} = {}) 
   if (!options.skipWait) { await waitForServer(); }
 }
 
+export async function applyTypeTransform() {
+  await driver.findContent('.type_transform_prompt button', /Apply/).click();
+}
+
 export async function isMac(): Promise<boolean> {
   return /Darwin|Mac|iPod|iPhone|iPad/i.test((await driver.getCapabilities()).get('platform'));
 }
