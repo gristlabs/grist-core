@@ -77,15 +77,18 @@ class UserTable(object):
 
   # Note these methods are named camelCase since they are a public interface exposed to formulas,
   # and we decided camelCase was a more user-friendly choice for user-facing functions.
-  def lookupRecords(Field in lookup Table = value):
+  def lookupRecords(self, **field_value_pairs):
     """
+    Name: lookupRecords
+    Usage: UserTable.__lookupRecords__(Field_In_Lookup_Table=value, ...)
     Returns a RecordSet matching the given field=value arguments. The value may be expressed as a 
     string between `“ ”` or a field in the current table (examples below). 
     If `sort_by=field` is given, sort the results by that field.
 
     For example:
     ```
-    People.*lookupRecords*(Last_Name="Johnson", sort_by="First_Name") 
+    People.*lookupRecords*(Last_Name="Johnson", sort_by="First_Name")
+    People.lookupRecords(First_Name="George", Last_Name="Washington")
     People.*lookupRecords*(Email=$Work_Email)
     ```
 
@@ -97,11 +100,14 @@ class UserTable(object):
     """
     return self.table.lookup_records(**field_value_pairs)
 
-  def lookupOne(Field in lookup Table = value):
+  def lookupOne(self, **field_value_pairs):
     """
-    Returns a Record matching the given field=value arguments. The value may be expressed as a string 
-    between `“ ”` or a field in the current table (examples below). If multiple records match, returns 
-    one of them. If none match, returns the special empty record.
+    Name: lookupOne
+    Usage: UserTable.__lookupOne__(Field_In_Lookup_Table=value, ...)
+    Returns a Record matching the given field=value arguments. The value may be any expression, 
+    most commonly a field in the current row (e.g. $SomeField) or a constant (e.g. a quoted string 
+    like "Some Value"). If multiple records match, returns one of them. If none match, returns the 
+    special empty record.
 
     For example:
     ```
