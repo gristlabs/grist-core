@@ -28,14 +28,16 @@ const {reportError} = require('app/client/models/AppModel');
 const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 
 // Grist UI Components
-const {Holder, Computed} = require('grainjs');
+const {dom: grainjsDom, Holder, Computed} = require('grainjs');
 const {menu} = require('../ui2018/menus');
 const {calcFieldsCondition} = require('../ui/GridViewMenus');
 const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
 const {RowContextMenu} = require('../ui/RowContextMenu');
 
 const {setPopupToCreateDom} = require('popweasel');
+const {CellContextMenu} = require('app/client/ui/CellContextMenu');
 const {testId} = require('app/client/ui2018/cssVars');
+const {contextMenu} = require('app/client/ui/contextMenu');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
 
@@ -76,6 +78,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   this.cellSelector = this.autoDispose(selector.CellSelector.create(this, {
     // This is a bit of a hack to prevent dragging when there's an open column menu
+    // TODO: disable dragging when there is an open cell context menu as well
     isDisabled: () => Boolean(!this.ctxMenuHolder.isEmpty())
   }));
   this.colMenuTargets = {}; // Reference from column ref to its menu target dom
@@ -603,6 +606,26 @@ GridView.prototype.assignCursor = function(elem, elemType) {
   this.cellSelector.currentSelectType(elemType);
 };
 
+/**
+ * Schedules cursor assignement to happen at end of tick. Calling `preventAssignCursor()` before
+ * prevents assignment to happen. This was added to prevent cursor assignment on a `context click`
+ * on a cell that is already selected.
+ */
+GridView.prototype.scheduleAssignCursor = function(elem, elemType) {
+  this._assignCursorTimeoutId = setTimeout(() => {
+    this.assignCursor(elem, elemType);
+    this._assignCursorTimeoutId = null;
+  }, 0);
+}
+
+/**
+ * See `scheduleAssignCursor()` for doc.
+ */
+GridView.prototype.preventAssignCursor = function() {
+  clearTimeout(this._assignCursorTimeoutId);
+  this._assignCursorTimeoutId = null;
+}
+
 GridView.prototype.deleteRows = function(selection) {
   if (!this.viewSection.disableAddRemoveRows()) {
     var rowIds = _.without(selection.rowIds, 'new');
@@ -1067,11 +1090,10 @@ GridView.prototype.buildDom = function() {
         }),
         self.isPreview ? null : menuToggle(null,
           dom.on('click', ev => self.maybeSelectRow(ev.currentTarget.parentNode, row.getRowId())),
-          menu(() => RowContextMenu({
-            disableInsert: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.tableModel.tableMetaRow.onDemand()),
-            disableDelete: Boolean(self.gristDoc.isReadonly.get() || self.viewSection.disableAddRemoveRows() || self.getSelection().onlyAddRowSelected()),
-            isViewSorted: self.viewSection.activeSortSpec.peek().length > 0,
-          }), { trigger: ['click'] }),
+          menu((ctx) => {
+            ctx.autoDispose(isRowActive.subscribe(() => ctx.close()));
+            return self.rowContextMenu();
+          }, { trigger: ['click'] }),
           // Prevent mousedown on the dropdown triangle from initiating row drag.
           dom.on('mousedown', () => false),
           testId('row-menu-trigger'),
@@ -1094,6 +1116,13 @@ GridView.prototype.buildDom = function() {
           if (!ev.relatedTarget || !ev.relatedTarget.classList.contains("record")){
             self.changeHover(-1);
           }
+        }),
+        contextMenu((ctx) => {
+          // We need to close the menu when the row is removed, but the dom of the row is not
+          // disposed when the record is removed (this is probably due to how scrolly work). Hence,
+          // we need to subscribe to `isRowActive` to close the menu.
+          ctx.autoDispose(isRowActive.subscribe(() => ctx.close()));
+          return self.cellContextMenu();
         }),
         self.comparison ? kd.cssClass(() => {
           const rowType = self.extraRows.getRowType(row.id());
@@ -1139,7 +1168,21 @@ GridView.prototype.buildDom = function() {
             kd.style('borderRightWidth', v.borderWidthPx),
 
             kd.toggleClass('selected', isSelected),
-            fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)
+            fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
+
+            grainjsDom.on('contextmenu', (ev, elem) => {
+              let row = self.domToRowModel(elem, selector.CELL);
+              let col = self.domToColModel(elem, selector.CELL);
+
+              if (self.cellSelector.containsCell(row._index(), col._index())) {
+                // contextmenu event could be preceded by a mousedown event (ie: when ctrl+click on
+                // mac) which triggers a cursor assignment that we need to prevent.
+                self.preventAssignCursor();
+              } else {
+                self.assignCursor(elem, selector.NONE);
+              }
+            })
+
           );
         })
       )
@@ -1283,7 +1326,7 @@ GridView.prototype.attachSelectorHandlers = function () {
   };
   var cellCallbacks =  {
     'mousedown': { 'select': this.cellMouseDown,
-                   'drag' : function(elem) { this.assignCursor(elem, selector.NONE); },
+                   'drag' : function(elem) { this.scheduleAssignCursor(elem, selector.NONE); },
                    'elemName': '.field:not(.column_name)',
                    'source': this.scrollPane
     },
@@ -1481,6 +1524,26 @@ GridView.prototype.maybeSelectRow = function(elem, rowId) {
   if (!this.getSelection().rowIds.includes(rowId)) {
     this.assignCursor(elem, selector.ROW);
   }
+};
+
+GridView.prototype.rowContextMenu = function() {
+  return RowContextMenu(this._getRowContextMenuOptions());
+};
+
+GridView.prototype._getRowContextMenuOptions = function() {
+  return {
+    disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
+    disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.getSelection().onlyAddRowSelected()),
+    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
+    numRows: this.getSelection().rowIds.length
+  };
+};
+
+GridView.prototype.cellContextMenu = function() {
+  return CellContextMenu(
+    this._getRowContextMenuOptions(),
+    this._getColumnMenuOptions(this.getSelection())
+  );
 };
 
 // End Context Menus

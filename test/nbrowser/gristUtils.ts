@@ -46,7 +46,7 @@ export const checkLoginPage = homeUtil.checkLoginPage.bind(homeUtil);
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
 // it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
-const noCleanup = Boolean(process.env.NO_CLEANUP);
+export const noCleanup = Boolean(process.env.NO_CLEANUP);
 
 // Most test code uses simulateLogin through the server reference. Keep them to reduce unnecessary
 // code changes.
@@ -370,6 +370,10 @@ export async function resizeColumn(colOptions: IColHeader, deltaPx: number) {
  */
 export async function dbClick(cell: WebElement) {
   await driver.withActions(a => a.doubleClick(cell));
+}
+
+export async function rightClick(cell: WebElement) {
+  await driver.withActions((actions) => actions.contextClick(cell));
 }
 
 /**

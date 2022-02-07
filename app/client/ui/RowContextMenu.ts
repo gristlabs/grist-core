@@ -28,6 +28,7 @@ export function RowContextMenu({ disableInsert, disableDelete, isViewSorted }: I
   }
   result.push(
     menuDivider(),
+    // TODO: should show `Delete ${num} rows` when multiple are selected
     menuItemCmd(allCommands.deleteRecords, 'Delete',
       dom.cls('disabled', disableDelete)),
   );

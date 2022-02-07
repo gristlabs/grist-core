@@ -38,6 +38,7 @@ var commands = require('./commands');
 var {menuToggle} = require('app/client/ui/MenuToggle');
 var {menu} = require('../ui2018/menus');
 var {testId} = require('app/client/ui2018/cssVars');
+var {contextMenu} = require('app/client/ui/contextMenu');
 
 /**
  * Construct a RecordLayout.
@@ -334,12 +335,16 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
       this.layoutEditor.peek().dispose();
       this.layoutEditor(null);
     }) : null,
+    // enables row context menu anywhere on the card
+    contextMenu(() => this.buildContextMenu(row)),
     dom('div.detail_row_num',
       kd.text(() => (row._index() + 1)),
       dom.on('contextmenu', ev => {
         // This is a little hack to position the menu the same way as with a click,
         // the same hack as on a column menu.
         ev.preventDefault();
+        // prevent 2nd context menu to show up
+        ev.stopPropagation();
         ev.currentTarget.querySelector('.menu_toggle').click();
       }),
       menuToggle(null,

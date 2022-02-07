@@ -32,7 +32,7 @@ export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
       }, `Show column ${col.label()}`))
   ];
 }
-interface IMultiColumnContextMenu {
+export interface IMultiColumnContextMenu {
   // For multiple selection, true/false means the value applies to all columns, 'mixed' means it's
   // true for some columns, but not all.
   numColumns: number;

@@ -35,7 +35,7 @@ export function menuItemSubmenu(
   return weasel.menuItemSubmenu(submenu, {...defaults, ...options}, ...args);
 }
 
-const cssMenuElem = styled('div', `
+export const cssMenuElem = styled('div', `
   font-family: ${vars.fontFamily};
   font-size: ${vars.mediumFontSize};
   line-height: initial;
