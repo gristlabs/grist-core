@@ -220,9 +220,8 @@ def LEFT(string, num_chars=1):
 
 def LEN(text):
   """
-  Returns the number of characters in a text string, same as `len(text)`; or returns the number of 
-  items in a list, same as `len([list])`. See [Record Set](https://support.getgrist.com/functions/#recordset) 
-  for common example.
+  Returns the number of characters in a text string, or the number of items in a list. Same as `len` in python. 
+  See [Record Set](https://support.getgrist.com/functions/#recordset) for an example of using `len` on a list of records.
 
   >>> LEN("Phoenix, AZ")
   11
