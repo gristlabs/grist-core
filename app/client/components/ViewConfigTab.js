@@ -444,8 +444,8 @@ ViewConfigTab.prototype._buildFilterDom = function() {
           );
         }),
       ),
-      cssRow(
-        cssTextBtn(
+      grainjsDom.maybe((use) => !use(section.isRaw),
+        () => cssRow(cssTextBtn(
           testId('toggle-filter-bar'),
           grainjsDom.domComputed((use) => {
             const filterBar = use(activeFilterBar);
@@ -457,8 +457,7 @@ ViewConfigTab.prototype._buildFilterDom = function() {
           }),
           grainjsDom.on('click', () => activeFilterBar(!activeFilterBar.peek())),
           'Toggle Filter Bar',
-        )
-      ),
+        ))),
       grainjsDom.maybe(hasChangedObs, () => cssRow(
         cssExtraMarginTop.cls(''),
         testId('save-filter-btns'),

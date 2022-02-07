@@ -1,18 +1,18 @@
-import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, DocModel, ViewRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { FilterInfo } from 'app/client/models/entities/ViewSectionRec';
-import { CustomComputed } from 'app/client/models/modelUtil';
-import { attachColumnFilterMenu } from 'app/client/ui/ColumnFilterMenu';
-import { addFilterMenu } from 'app/client/ui/FilterBar';
-import { hoverTooltip } from 'app/client/ui/tooltips';
-import { makeViewLayoutMenu } from 'app/client/ui/ViewLayoutMenu';
-import { basicButton, primaryButton } from 'app/client/ui2018/buttons';
-import { colors, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menu } from 'app/client/ui2018/menus';
-import { Sort } from 'app/common/SortSpec';
-import { Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled } from 'grainjs';
-import { PopupControl } from 'popweasel';
+import {reportError} from 'app/client/models/AppModel';
+import {ColumnRec, DocModel, ViewSectionRec} from 'app/client/models/DocModel';
+import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
+import {CustomComputed} from 'app/client/models/modelUtil';
+import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
+import {addFilterMenu} from 'app/client/ui/FilterBar';
+import {hoverTooltip} from 'app/client/ui/tooltips';
+import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
+import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
+import {colors, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {menu} from 'app/client/ui2018/menus';
+import {Sort} from 'app/common/SortSpec';
+import {Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
+import {PopupControl} from 'popweasel';
 import difference = require('lodash/difference');
 
 const testId = makeTestId('test-section-menu-');
@@ -39,7 +39,7 @@ function doRevert(viewSection: ViewSectionRec) {
 
 // [Filter Icon] (v) (x) - Filter toggle and all the components in the menu.
 export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, viewSection: ViewSectionRec,
-                                viewModel: ViewRec, isReadonly: Observable<boolean>) {
+                                isReadonly: Observable<boolean>) {
 
   const popupControls = new WeakMap<ColumnRec, PopupControl>();
 
@@ -84,7 +84,8 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           // [+] Add filter
           makeAddFilterButton(viewSection, popupControls),
           // [+] Toggle filter bar
-          makeFilterBarToggle(viewSection.activeFilterBar),
+          dom.maybe((use) => !use(viewSection.isRaw),
+            () => makeFilterBarToggle(viewSection.activeFilterBar)),
           // Widget options
           dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
             makeCustomOptions(viewSection)
@@ -125,7 +126,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
       testId('viewLayout'),
       cssFixHeight.cls(''),
       cssDotsIconWrapper(cssIcon('Dots')),
-      menu(_ctl => makeViewLayoutMenu(viewModel, viewSection, isReadonly.get()))
+      menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()))
     )
   ];
 }

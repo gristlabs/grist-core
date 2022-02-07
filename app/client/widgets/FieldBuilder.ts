@@ -348,11 +348,15 @@ export class FieldBuilder extends Disposable {
                              dom('div.fieldbuilder_settings_button',
                                  dom.testId('FieldBuilder_settings'),
                                  kd.text(() => this.field.useColOptions() ? 'Common' : 'Separate'), ' ▾',
-                                 menu(ctl => FieldSettingsMenu(this.field.useColOptions(), {
-                                   useSeparate: () => this.fieldSettingsUseSeparate(),
-                                   saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
-                                   revertToCommon: () => this.fieldSettingsRevertToCommon()
-                                 }))
+                                 menu(() => FieldSettingsMenu(
+                                   this.field.useColOptions(),
+                                   this.field.viewSection().isRaw(),
+                                   {
+                                     useSeparate: () => this.fieldSettingsUseSeparate(),
+                                     saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
+                                     revertToCommon: () => this.fieldSettingsRevertToCommon(),
+                                   },
+                                 )),
                                 ),
                              'Field in ',
                              kd.text(() => this.origColumn.viewFields().all().length),

@@ -1495,6 +1495,7 @@ GridView.prototype._getColumnMenuOptions = function(copySelection) {
     numFrozen: this.viewSection.numFrozen.peek(),
     disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
     isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
+    isRaw: this.viewSection.isRaw(),
     isFiltered: this.isFiltered(),
     isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
   };

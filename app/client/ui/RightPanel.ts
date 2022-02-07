@@ -307,8 +307,14 @@ export class RightPanel extends Disposable {
         testId('right-widget-title')
       )),
 
-      cssRow(primaryButton('Change Widget', this._createPageWidgetPicker()),
-        cssRow.cls('-top-space')),
+      dom.maybe(
+        (use) => !use(activeSection.isRaw),
+        () => cssRow(
+          primaryButton('Change Widget', this._createPageWidgetPicker()),
+          cssRow.cls('-top-space')
+        ),
+      ),
+
       cssSeparator(),
 
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
@@ -346,10 +352,16 @@ export class RightPanel extends Disposable {
         ];
       }),
 
-      dom.maybe((use) => !use(hasCustomMapping) && use(this._pageWidgetType) !== 'chart', () => [
-        cssSeparator(),
-        dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
-      ]),
+      dom.maybe(
+        (use) => !(
+          use(hasCustomMapping) ||
+          use(this._pageWidgetType) === 'chart' ||
+          use(activeSection.isRaw)
+        ),
+        () => [
+          cssSeparator(),
+          dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
+        ]),
     ]);
   }
 
@@ -413,18 +425,19 @@ export class RightPanel extends Disposable {
         dom.hide((use) => !use(use(table).summarySourceTable)),
       ),
 
-      cssButtonRow(primaryButton('Edit Data Selection', this._createPageWidgetPicker(),
-        testId('pwc-editDataSelection')),
-        dom.maybe(
-          use => Boolean(use(use(activeSection.table).summarySourceTable)),
-          () => basicButton(
-            'Detach',
-            dom.on('click', () => this._gristDoc.docData.sendAction(
-              ["DetachSummaryViewSection", activeSection.getRowId()])),
-            testId('detach-button'),
-          )),
-        cssRow.cls('-top-space'),
-      ),
+      dom.maybe((use) => !use(activeSection.isRaw), () =>
+        cssButtonRow(primaryButton('Edit Data Selection', this._createPageWidgetPicker(),
+          testId('pwc-editDataSelection')),
+          dom.maybe(
+            use => Boolean(use(use(activeSection.table).summarySourceTable)),
+            () => basicButton(
+              'Detach',
+              dom.on('click', () => this._gristDoc.docData.sendAction(
+                ["DetachSummaryViewSection", activeSection.getRowId()])),
+              testId('detach-button'),
+            )),
+          cssRow.cls('-top-space'),
+      )),
 
       // TODO: "Advanced settings" is for "on-demand" marking of tables. This should only be shown
       // for raw data tables (once that's supported), should have updated UI, and should possibly
@@ -434,11 +447,13 @@ export class RightPanel extends Disposable {
       )),
       cssSeparator(),
 
-      cssLabel('SELECT BY'),
-      cssRow(
-        select(link, linkOptions, {defaultLabel: 'Select Widget'}),
-        testId('right-select-by')
-      ),
+      dom.maybe((use) => !use(activeSection.isRaw), () => [
+        cssLabel('SELECT BY'),
+        cssRow(
+          select(link, linkOptions, {defaultLabel: 'Select Widget'}),
+          testId('right-select-by')
+        ),
+      ]),
 
       domComputed((use) => {
         const activeSectionRef = activeSection.getRowId();

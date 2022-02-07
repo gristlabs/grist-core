@@ -11,6 +11,7 @@ import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
+import {DataTables} from 'app/client/components/DataTables';
 import {DocComm, DocUserAction} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
@@ -350,6 +351,7 @@ export class GristDoc extends DisposableWithEvents {
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
         viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
+        viewId === 'data' ? dom.create((owner) => owner.autoDispose(DataTables.create(this, this))) :
         viewId === 'GristDocTour' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),
@@ -732,7 +734,7 @@ export class GristDoc extends DisposableWithEvents {
           const srcTable = await this._getTableData(srcSection);
           const query: ClientQuery = {tableId: srcTable.tableId, filters: {}, operations: {}};
           if (colId) {
-            query.operations![colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? 'intersects' : 'in';
+            query.operations[colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? 'intersects' : 'in';
             query.filters[colId] = isList(controller) ? controller.slice(1) : [controller];
           } else {
             // must be a summary -- otherwise dealt with earlier.
@@ -740,7 +742,7 @@ export class GristDoc extends DisposableWithEvents {
             for (const srcCol of srcSection.table.peek().groupByColumns.peek()) {
               const filterColId = srcCol.summarySource.peek().colId.peek();
               controller = destTable.getValue(cursorPos.rowId, filterColId);
-              query.operations![filterColId] = 'in';
+              query.operations[filterColId] = 'in';
               query.filters[filterColId] = isList(controller) ? controller.slice(1) : [controller];
             }
           }

@@ -39,6 +39,7 @@ export interface IMultiColumnContextMenu {
   numFrozen: number;
   disableModify: boolean|'mixed';  // If the columns are read-only.
   isReadonly: boolean;
+  isRaw: boolean;
   isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.
   isFormula: boolean|'mixed';
   columnIndices: number[];
@@ -57,10 +58,9 @@ export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewF
 }
 
 export function ColumnContextMenu(options: IColumnContextMenu) {
-  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly } = options;
+  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly, isRaw } = options;
 
   const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
-  const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colId);
 
@@ -112,7 +112,7 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
     menuItem(allCommands.sortFilterTabOpen.run, 'More sort options ...', testId('more-sort-options')),
     menuDivider({style: 'margin-top: 0;'}),
     menuItemCmd(allCommands.renameField, 'Rename column', disableForReadonlyColumn),
-    menuItemCmd(allCommands.hideField, 'Hide column', disableForReadonlyView),
+    menuItemCmd(allCommands.hideField, 'Hide column', dom.cls('disabled', isReadonly || isRaw)),
     freezeMenuItemCmd(options),
     menuDivider(),
     MultiColumnMenu((options.disableFrozenMenu = true, options)),

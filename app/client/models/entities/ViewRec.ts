@@ -32,7 +32,9 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
     // The default function which is used when the conditional case is true.
     // Read may occur for recently disposed sections, must check condition first.
     return !this.isDisposed() &&
-      this.viewSections().all().length > 0 ? this.viewSections().at(0)!.getRowId() : 0;
+      // `!this.getRowId()` implies that this is an empty (non-existent) view record
+      // which happens when viewing the raw data tables, in which case the default is no active view section.
+      this.getRowId() && this.viewSections().all().length > 0 ? this.viewSections().at(0)!.getRowId() : 0;
   });
 
   this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);
