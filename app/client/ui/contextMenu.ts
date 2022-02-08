@@ -7,7 +7,7 @@
  * context menu) dont forget to prevent it by including below line at the root of the dom:
  *   `dom.on('contextmenu', ev => ev.preventDefault())`
  */
-import { Disposable, dom, DomArg, DomContents } from "grainjs";
+import { Disposable, dom, DomArg, DomContents, Holder } from "grainjs";
 import { cssMenuElem } from 'app/client/ui2018/menus';
 import { IOpenController, Menu } from 'popweasel';
 
@@ -78,21 +78,16 @@ class ContextMenuController extends Disposable implements IOpenController {
 }
 
 /**
- * Show the return value of contentFunc() in a context menu next to the mouse.
- */
-function showContextMenu(ev: MouseEvent, contentFunc: IContextMenuContentFunc) {
-  return ContextMenuController.create(null, ev, contentFunc);
-}
-
-/**
  * Show a context menu on contextmenu.
  */
 export function contextMenu(contentFunc: IContextMenuContentFunc): DomArg {
   return (elem) => {
+    const holder = Holder.create(null);
+    dom.autoDisposeElem(elem, holder);
     dom.onElem(elem, 'contextmenu', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      dom.autoDisposeElem(elem, showContextMenu(ev, contentFunc));
+      ContextMenuController.create(holder, ev, contentFunc);
     });
   };
 }

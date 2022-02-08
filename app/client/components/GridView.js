@@ -224,6 +224,9 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   //--------------------------------------------------
   // Set up DOM event handling.
   onDblClickMatchElem(this.scrollPane, '.field', () => this.activateEditorAtCursor());
+  if (!this.isPreview) {
+    grainjsDom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu', (ev, elem) => this.onCellContextMenu(ev, elem), {useCapture: true});
+  }
   this.onEvent(this.scrollPane, 'scroll', this.onScroll);
 
   //--------------------------------------------------
@@ -1117,7 +1120,7 @@ GridView.prototype.buildDom = function() {
             self.changeHover(-1);
           }
         }),
-        contextMenu((ctx) => {
+        self.isPreview ? null : contextMenu((ctx) => {
           // We need to close the menu when the row is removed, but the dom of the row is not
           // disposed when the record is removed (this is probably due to how scrolly work). Hence,
           // we need to subscribe to `isRowActive` to close the menu.
@@ -1169,20 +1172,6 @@ GridView.prototype.buildDom = function() {
 
             kd.toggleClass('selected', isSelected),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
-
-            grainjsDom.on('contextmenu', (ev, elem) => {
-              let row = self.domToRowModel(elem, selector.CELL);
-              let col = self.domToColModel(elem, selector.CELL);
-
-              if (self.cellSelector.containsCell(row._index(), col._index())) {
-                // contextmenu event could be preceded by a mousedown event (ie: when ctrl+click on
-                // mac) which triggers a cursor assignment that we need to prevent.
-                self.preventAssignCursor();
-              } else {
-                self.assignCursor(elem, selector.NONE);
-              }
-            })
-
           );
         })
       )
@@ -1214,6 +1203,19 @@ GridView.prototype.onLinkFilterChange = function(rowId) {
   BaseView.prototype.onLinkFilterChange.call(this, rowId);
   this.clearSelection();
 };
+
+GridView.prototype.onCellContextMenu = function(ev, elem) {
+  let row = this.domToRowModel(elem, selector.CELL);
+  let col = this.domToColModel(elem, selector.CELL);
+
+  if (this.cellSelector.containsCell(row._index(), col._index())) {
+    // contextmenu event could be preceded by a mousedown event (ie: when ctrl+click on
+    // mac) which triggers a cursor assignment that we need to prevent.
+    this.preventAssignCursor();
+  } else {
+    this.assignCursor(elem, selector.NONE);
+  }
+}
 
 // ======================================================================================
 // SELECTOR STUFF
