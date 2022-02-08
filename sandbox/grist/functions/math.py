@@ -862,8 +862,10 @@ def TRUNC(value, places=0):
 def UUID():
   """
   Generate a random UUID-formatted string identifier. 
-  In most use cases, it is best to use UUID() in a [trigger formula](https://support.getgrist.com/formulas/#trigger-formulas) 
-  to freeze the value and prevent the formula from recalculating. Then the identifier would change.
+  Since UUID() produces a different value each time it's called, it is best to use it in 
+  [trigger formula](https://support.getgrist.com/formulas/#trigger-formulas) for new records. 
+  This would only calculate UUID() once and freeze the calculated value. By contrast, a regular [formula] 
+  may get recalculated any time the document is reloaded, producing a different value for UUID() each time.
   """
   if six.PY2:
     return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))
