@@ -343,7 +343,7 @@ def REGEXREPLACE(text, regular_expression, replacement):
 
 def REPLACE(old_text, start_num, num_chars, new_text):
   """
-  Replaces part of a text string with a different text string. Start_num is counted from 1.
+  Replaces part of a text string with a different text string. Position is counted from 1.
 
   >>> REPLACE("abcdefghijk", 6, 5, "*")
   'abcde*k'
@@ -356,11 +356,11 @@ def REPLACE(old_text, start_num, num_chars, new_text):
   >>> REPLACE('foo', 0, 1, 'bar')
   Traceback (most recent call last):
   ...
-  ValueError: start_num invalid
+  ValueError: position invalid
   """
-  if start_num < 1:
-    raise ValueError("start_num invalid")
-  return old_text[:start_num - 1] + new_text + old_text[start_num - 1 + num_chars:]
+  if position < 1:
+    raise ValueError("position invalid")
+  return text[:position - 1] + new_text + text[position - 1 + length:]
 
 
 def REPT(text, number_times):
