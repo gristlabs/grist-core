@@ -20,6 +20,7 @@ setDefaultEnv('GRIST_SESSION_COOKIE', 'grist_core2');
 
 setDefaultEnv('GRIST_SERVE_SAME_ORIGIN', 'true');
 setDefaultEnv('GRIST_SINGLE_PORT', 'true');
+setDefaultEnv('GRIST_DEFAULT_PRODUCT', 'Free');
 
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';

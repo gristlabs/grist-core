@@ -176,6 +176,7 @@ GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specificall
 GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
 GRIST_DATA_DIR      | directory in which to store document caches.
 GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
+GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources

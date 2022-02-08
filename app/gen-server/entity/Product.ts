@@ -126,12 +126,13 @@ const PRODUCTS: IProduct[] = [
  * Get names of products for different situations.
  */
 export function getDefaultProductNames() {
+  const defaultProduct = process.env.GRIST_DEFAULT_PRODUCT;
   return {
-    personal: 'starter',  // Personal site start off on a functional plan.
-    teamInitial: 'stub',  // Team site starts off on a limited plan, requiring subscription.
+    personal: defaultProduct || 'starter',  // Personal site start off on a functional plan.
+    teamInitial: defaultProduct || 'stub',  // Team site starts off on a limited plan, requiring subscription.
     teamCancel: 'suspended',  // Team site that has been 'turned off'.
-    team: 'team',         // Functional team site.
-    teamFree: 'teamFree',
+    team: defaultProduct || 'team',         // Functional team site.
+    teamFree: defaultProduct || 'teamFree',
   };
 }
 
