@@ -250,7 +250,7 @@ class ReferenceListFormatter extends ReferenceFormatter {
     // Part of this repeats the logic in BaseFormatter.formatAny which is overridden in ReferenceFormatter
     // It also ensures that complex lists (e.g. if this RefList is displaying a ChoiceList)
     // are formatted as JSON instead of CSV.
-    if (!isList(value) || hasNestedObjects(value)) {
+    if (!isList(value) || hasNestedObjects(decodeObject(value) as CellValue[])) {
       return formatUnknown(value);
     }
     // In the most common case, lists of simple objects like strings or dates

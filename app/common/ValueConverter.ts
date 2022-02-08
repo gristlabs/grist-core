@@ -21,6 +21,8 @@ import {CellValue, GristObjCode} from 'app/plugin/GristData';
  * is a list it only converts nicely if the list contains exactly one element.
  */
 export class ValueConverter {
+  private _isTargetText: boolean = ["Text", "Choice"].includes(this.parser.type);
+
   constructor(public formatter: BaseFormatter, public parser: ValueParser) {
   }
 
@@ -29,14 +31,15 @@ export class ValueConverter {
       if (value.length === 1) {
         // Empty list: ['L']
         return null;
-      } else if (value.length === 2) {
+      } else if (value.length > 2 || this._isTargetText) {
+        // List with multiple values, or the target type is text.
+        // Since we're converting to just one value,
+        // format the whole thing as text, which is an error for most types.
+        return this.formatter.formatAny(value);
+      } else {
         // Singleton list: ['L', value]
         // Convert just that one value.
         value = value[1];
-      } else {
-        // List with multiple values. Since we're converting to just one value,
-        // format the whole thing as text, which is an error for most types.
-        return this.formatter.formatAny(value);
       }
     }
     return this.convertInner(value);
