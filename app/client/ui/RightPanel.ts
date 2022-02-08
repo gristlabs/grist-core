@@ -26,6 +26,7 @@ import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, linkId, selectBy} from 'app/client/ui/selectBy';
+import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
@@ -40,7 +41,6 @@ import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
         DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
-import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 
 // Represents a top tab of the right side-pane.
 const TopTab = StringUnion("pageWidget", "field");
@@ -292,6 +292,11 @@ export class RightPanel extends Disposable {
     // TODO: This uses private methods from ViewConfigTab. These methods are likely to get
     // refactored, but if not, should be made public.
     const viewConfigTab = this._createViewConfigTab(owner);
+    const hasCustomMapping = Computed.create(owner, use => {
+      const isCustom = use(this._pageWidgetType) === 'custom';
+      const hasColumnMapping = use(activeSection.columnsToMap);
+      return Boolean(isCustom && hasColumnMapping);
+    });
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
       cssLabel('WIDGET TITLE',
@@ -341,7 +346,7 @@ export class RightPanel extends Disposable {
         ];
       }),
 
-      dom.maybe((use) => use(this._pageWidgetType) !== 'chart', () => [
+      dom.maybe((use) => !use(hasCustomMapping) && use(this._pageWidgetType) !== 'chart', () => [
         cssSeparator(),
         dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
       ]),
@@ -542,6 +547,13 @@ export const cssLabel = styled('div', `
   text-transform: uppercase;
   margin: 16px 16px 12px 16px;
   font-size: ${vars.xsmallFontSize};
+`);
+
+// Additional text in label (greyed out)
+export const cssSubLabel = styled('span', `
+  text-transform: none;
+  font-size: ${vars.xsmallFontSize};
+  color: ${colors.slate};
 `);
 
 export const cssRow = styled('div', `

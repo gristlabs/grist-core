@@ -270,12 +270,22 @@ export class VisibleFieldsConfig extends Disposable {
   }
 
   public async removeField(field: IField) {
-    const id = field.id.peek();
+    const existing = this._section.viewFields.peek().peek()
+      .find((f) => f.column.peek().getRowId() === field.origCol.peek().id.peek());
+    if (!existing) {
+      return;
+    }
+    const id = existing.id.peek();
     const action = ['RemoveRecord', id];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
 
   public async addField(column: IField, nextField: ViewFieldRec|null = null) {
+    const exists = this._section.viewFields.peek().peek()
+      .findIndex((f) => f.column.peek().getRowId() === column.id.peek());
+    if (exists !== -1) {
+      return;
+    }
     const parentPos = getFieldNewPosition(this._section.viewFields.peek(), column, nextField);
     const colInfo = {
       parentId: this._section.id.peek(),
@@ -430,7 +440,7 @@ function unselectDeletedFields(selection: Set<number>, event: {deleted: IField[]
   }
 }
 
-const cssDragRow = styled('div', `
+export const cssDragRow = styled('div', `
   display: flex !important;
   align-items: center;
   margin: 0 16px 0px 0px;

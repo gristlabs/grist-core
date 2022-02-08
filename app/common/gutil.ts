@@ -1,5 +1,5 @@
 import {delay} from 'app/common/delay';
-import {BindableValue, DomElementMethod, Listener, Observable, subscribeElem} from 'grainjs';
+import {BindableValue, DomElementMethod, ISubscribable, Listener, Observable, subscribeElem, UseCB} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
 import constant = require('lodash/constant');
 import identity = require('lodash/identity');
@@ -905,3 +905,13 @@ export function isAffirmative(parameter: any): boolean {
 export function isObject<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
+
+/**
+ * Returns the value of both grainjs and knockout observable without creating a dependency.
+ */
+export const unwrap: UseCB = (obs: ISubscribable) => {
+  if ('_getDepItem' in obs) {
+    return obs.get();
+  }
+  return (obs as ko.Observable).peek();
+};

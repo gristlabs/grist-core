@@ -18,7 +18,8 @@
 
 // tslint:disable:no-console
 
-import { CustomSectionAPI, InteractionOptions } from './CustomSectionAPI';
+import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
+         WidgetColumnMap } from './CustomSectionAPI';
 import { GristAPI, GristDocAPI, GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
 import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
@@ -70,6 +71,97 @@ export const docApi: GristDocAPI & GristView = {
 
 export const on = rpc.on.bind(rpc);
 
+// For custom widgets that support custom columns mappings store current configuration
+// in a memory.
+
+// Actual cached value. Undefined means that widget hasn't asked for configuration yet.
+// Here we are storing serialized configuration instead of actual one, since widget can
+// mutate returned value.
+let _mappingsCache: WidgetColumnMap|null|undefined;
+// Since widget needs to ask for mappings during onRecord and onRecords event, we will reuse
+// current request if available;
+let _activeRefreshReq: Promise<void>|null = null;
+// Remember columns requested during ready call.
+let _columnsToMap: ColumnsToMap|undefined;
+
+async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
+  const uninitialized = _mappingsCache === undefined;
+  if (data.mappingsChange || uninitialized) {
+    // If no active request.
+    if (!_activeRefreshReq) {
+      // Request for new mappings.
+      _activeRefreshReq = sectionApi
+        .mappings()
+        // Store it in global variable.
+        .then(mappings => void (_mappingsCache = mappings))
+        // Clear current request variable.
+        .finally(() => _activeRefreshReq = null);
+    }
+    await _activeRefreshReq;
+  }
+  return _mappingsCache ? JSON.parse(JSON.stringify(_mappingsCache)) : null;
+}
+
+/**
+ * Renames columns in the result using columns mapping configuration passed in ready method.
+ * Returns null if not all required columns were mapped or not widget doesn't support
+ * custom column mapping.
+ */
+export function mapColumnNames(data: any, options = {
+  columns: _columnsToMap,
+  mappings: _mappingsCache
+}) {
+  // If not column configuration was requested or
+  // table has no rows, return original data.
+  if (!options.columns) {
+    return data;
+  }
+  // If we haven't received columns configuration return null.
+  if (!options.mappings) {
+    return null;
+  }
+  // If we are renaming names for whole table, but it is empty, don't do anything.
+  if (Array.isArray(data) && data.length === 0) {
+    return data;
+  }
+
+  // Prepare convert function - a function that will take record returned from Grist
+  // and convert it to a new record with mapped field names;
+  // Convert function will consists of several transformations:
+  const transformations: ((from: any, to: any) => void)[] = [];
+  // First transformation is for copying id field:
+  transformations.push((from, to) => to.id = from.id);
+  // Helper function to test if a column was configured as optional.
+  function isOptional(col: string) {
+    return Boolean(
+      // Columns passed as strings are required.
+      !options.columns?.includes(col)
+      && options.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional)
+    );
+  }
+  // For each widget column in mapping.
+  for(const widgetCol in options.mappings) {
+    // Get column from Grist.
+    const gristCol = options.mappings[widgetCol];
+    // Copy column as series (multiple values)
+    if (Array.isArray(gristCol) && gristCol.length) {
+      transformations.push((from, to) => {
+        to[widgetCol] = gristCol.map(col => from[col]);
+      });
+      // Copy column directly under widget column name.
+    } else if (!Array.isArray(gristCol) && gristCol) {
+      transformations.push((from, to) => to[widgetCol] = from[gristCol]);
+    } else if (!isOptional(widgetCol)) {
+      // Column was not configured but was required.
+      return null;
+    }
+  }
+  // Finally assemble function to convert a single record.
+  const convert = (rec: any) => transformations.reduce((obj, tran) => { tran(rec, obj); return obj; }, {} as any);
+  // Transform all records (or a single one depending on the arguments).
+  return Array.isArray(data) ? data.map(convert) : convert(data);
+}
+
 // For custom widgets, add a handler that will be called whenever the
 // row with the cursor changes - either by switching to a different row, or
 // by some value within the row potentially changing.  Handler may
@@ -77,17 +169,16 @@ export const on = rpc.on.bind(rpc);
 // any row.
 // TODO: currently this will be called even if the content of a different row
 // changes.
-export function onRecord(callback: (data: RowRecord | null) => unknown) {
+export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
     if (!msg.tableId || !msg.rowId) { return; }
     const rec = await docApi.fetchSelectedRecord(msg.rowId);
-    callback(rec);
+    callback(rec, await getMappingsIfChanged(msg));
   });
 }
-
 // For custom widgets, add a handler that will be called whenever the
 // selected records change.  Handler will be called with a list of records.
-export function onRecords(callback: (data: RowRecord[]) => unknown) {
+export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }
     const data = await docApi.fetchSelectedTable();
@@ -100,7 +191,7 @@ export function onRecords(callback: (data: RowRecord[]) => unknown) {
       }
       rows.push(row);
     }
-    callback(rows);
+    callback(rows, await getMappingsIfChanged(msg));
   });
 }
 
@@ -146,14 +237,17 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
   });
 }
 
+interface ReadyPayload extends Omit<InteractionOptionsRequest, "hasCustomOptions"> {
+  /**
+   * Handler that will be called by Grist to open additional configuration panel inside the Custom Widget.
+   */
+  onEditOptions: () => unknown;
+}
 /**
  * Declare that a component is prepared to receive messages from the outside world.
  * Grist will not attempt to communicate with it until this method is called.
  */
-export function ready(settings?: {
-  requiredAccess?: string,
-  onEditOptions: () => unknown
-}): void {
+export function ready(settings?: ReadyPayload): void {
   if (settings && settings.onEditOptions) {
     rpc.registerFunc('editOptions', settings.onEditOptions);
   }
@@ -161,10 +255,13 @@ export function ready(settings?: {
   void (async function() {
     await rpc.sendReadyMessage();
     if (settings) {
-      await sectionApi.configure({
-          requiredAccess : settings.requiredAccess,
-          hasCustomOptions: Boolean(settings.onEditOptions)
-      }).catch((err: unknown) => console.error(err));
+      const options = {
+        ...(settings),
+        hasCustomOptions: Boolean(settings.onEditOptions),
+      };
+      delete options.onEditOptions;
+      _columnsToMap = options.columns;
+      await sectionApi.configure(options).catch((err: unknown) => console.error(err));
     }
   })();
 }

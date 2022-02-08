@@ -21,3 +21,7 @@ export interface RowRecord {
   id: number;
   [colId: string]: CellValue;
 }
+
+export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'ChoiceList' |
+  'Date' | 'DateTime' |
+  'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';

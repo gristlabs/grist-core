@@ -1,18 +1,19 @@
 import * as BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {CustomSectionAPI, GristDocAPI, GristView, InteractionOptionsRequest,
-        WidgetAPI} from 'app/plugin/grist-plugin-api';
+import {CustomSectionAPI, GristDocAPI, GristView,
+        InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
-import {Computed, dom} from 'grainjs';
+import {Computed, Disposable, dom, Observable} from 'grainjs';
 import noop = require('lodash/noop');
 import debounce = require('lodash/debounce');
 import isEqual = require('lodash/isEqual');
+import flatMap = require('lodash/flatMap');
 
 /**
  * This file contains a WidgetFrame and all its components.
@@ -323,15 +324,18 @@ export class GristViewImpl implements GristView {
   constructor(private _baseView: BaseView) {}
 
   public async fetchSelectedTable(): Promise<any> {
-    const fields: ViewFieldRec[] = this._baseView.viewSection.viewFields().all();
+    // If widget has a custom columns mapping, we will ignore hidden columns section.
+    // Hidden/Visible columns will eventually reflect what is available, but this operation
+    // is not instant - and widget can receive rows with fields that are not in the mapping.
+    const columns: ColumnRec[] = this._visibleColumns();
     const rowIds: number[] = this._baseView.sortedRows.getKoArray().peek() as number[];
     const data: BulkColValues = {};
-    for (const field of fields) {
+    for (const column of columns) {
       // Use the colId of the displayCol, which may be different in case of Reference columns.
-      const colId: string = field.displayColModel.peek().colId.peek();
+      const colId: string = column.displayColModel.peek().colId.peek();
       const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId)!;
-      const typeInfo = extractInfoFromColType(field.column.peek().type.peek());
-      data[field.column().colId()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
+      const typeInfo = extractInfoFromColType(column.type.peek());
+      data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
     }
     data.id = rowIds;
     return data;
@@ -343,17 +347,29 @@ export class GristViewImpl implements GristView {
     // more useful. but the data engine needs to know what information
     // the custom view depends on, so we shouldn't volunteer any untracked
     // information here.
-    const fields: ViewFieldRec[] = this._baseView.viewSection.viewFields().all();
+    const columns: ColumnRec[] = this._visibleColumns();
     const data: RowRecord = {id: rowId};
-    for (const field of fields) {
-      const colId: string = field.displayColModel.peek().colId.peek();
-      const typeInfo = extractInfoFromColType(field.column.peek().type.peek());
-      data[field.column().colId()] = reencodeAsAny(
+    for (const column of columns) {
+      const colId: string = column.displayColModel.peek().colId.peek();
+      const typeInfo = extractInfoFromColType(column.type.peek());
+      data[column.colId.peek()] = reencodeAsAny(
         this._baseView.tableModel.tableData.getValue(rowId, colId)!,
         typeInfo
       );
     }
     return data;
+  }
+
+  private _visibleColumns() {
+    const columns: ColumnRec[] = this._baseView.viewSection.columns.peek();
+    const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
+    const mappings = this._baseView.viewSection.mappedColumns.peek();
+    const mappedColumns = new Set(flatMap(Object.values(mappings || {})));
+    const notHidden = (col: ColumnRec) => !hiddenCols.includes(col.id.peek());
+    const mapped = (col: ColumnRec) => mappings && mappedColumns.has(col.colId.peek());
+    // If columns are mapped, return only those that are mapped.
+    // Otherwise return all not hidden columns;
+    return mappings ? columns.filter(mapped) : columns.filter(notHidden);
   }
 }
 
@@ -369,7 +385,6 @@ export class WidgetAPIImpl implements WidgetAPI {
    * between widgets by design.
    */
   public async setOptions(options: object): Promise<void> {
-    console.debug(`set options`, options);
     if (options === null || options === undefined || typeof options !== 'object') {
       throw new Error('options must be a valid JSON object');
     }
@@ -377,24 +392,20 @@ export class WidgetAPIImpl implements WidgetAPI {
   }
 
   public async getOptions(): Promise<Record<string, unknown> | null> {
-    console.debug(`getOptions`);
     return this._section.activeCustomOptions.peek() ?? null;
   }
 
   public async clearOptions(): Promise<void> {
-    console.debug(`clearOptions`);
     this._section.activeCustomOptions(null);
   }
 
   public async setOption(key: string, value: any): Promise<void> {
-    console.debug(`setOption(${key}, ${value})`);
     const options = {...this._section.activeCustomOptions.peek()};
     options[key] = value;
     this._section.activeCustomOptions(options);
   }
 
   public getOption(key: string): Promise<unknown> {
-    console.debug(`getOption(${key})`);
     const options = this._section.activeCustomOptions.peek();
     return options?.[key];
   }
@@ -474,14 +485,17 @@ export class ConfigNotifier extends BaseEventSource {
       return options;
     });
     this._debounced = debounce(() => this._update(), 0);
-    this.autoDispose(
-      this._currentConfig.addListener((cur, prev) => {
-        if (isEqual(prev, cur)) {
-          return;
-        }
-        this._debounced();
-      })
-    );
+    const subscribe = (obs: Observable<any>) => {
+      this.autoDispose(
+        obs.addListener((cur, prev) => {
+          if (isEqual(prev, cur)) {
+            return;
+          }
+          this._debounced();
+        })
+      );
+    };
+    subscribe(this._currentConfig);
   }
 
   protected _ready() {
@@ -495,7 +509,9 @@ export class ConfigNotifier extends BaseEventSource {
     }
     this._notify({
       options: this._currentConfig.get(),
-      settings: {accessLevel: this._accessLevel},
+      settings: {
+        accessLevel: this._accessLevel,
+      },
     });
   }
 }
@@ -506,13 +522,20 @@ export class ConfigNotifier extends BaseEventSource {
  * This Notifier sends an initial event when subscribed
  */
 export class TableNotifier extends BaseEventSource {
-  private _debounced: () => void; // debounced call to let the view know linked data changed.
+  private _debounced: () => void;
+  private _updateMapping = true;
   constructor(private _baseView: BaseView) {
     super();
     this._debounced = debounce(() => this._update(), 0);
-    this.autoDispose(_baseView.viewSection.viewFields().subscribe(this._debounced));
-    this.listenTo(_baseView.sortedRows, 'rowNotify', this._debounced);
-    this.autoDispose(_baseView.sortedRows.getKoArray().subscribe(this._debounced));
+    this.autoDispose(_baseView.viewSection.viewFields().subscribe(this._debounced.bind(this)));
+    this.listenTo(_baseView.sortedRows, 'rowNotify', this._debounced.bind(this));
+    this.autoDispose(_baseView.sortedRows.getKoArray().subscribe(this._debounced.bind(this)));
+    this.autoDispose(_baseView.viewSection.mappedColumns
+      .subscribe(() => {
+        this._updateMapping = true;
+        this._debounced();
+      })
+    );
   }
 
   protected _ready() {
@@ -528,17 +551,26 @@ export class TableNotifier extends BaseEventSource {
       tableId: this._baseView.viewSection.table().tableId(),
       rowId: this._baseView.cursor.getCursorPos().rowId || undefined,
       dataChange: true,
+      mappingsChange: this._updateMapping
     };
+    this._updateMapping = false;
     this._notify(state);
   }
 }
 
-export class CustomSectionAPIImpl implements CustomSectionAPI {
+export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI {
   constructor(
     private _section: ViewSectionRec,
     private _currentAccess: AccessLevel,
     private _promptCallback: (access: AccessLevel) => void
-  ) {}
+  ) {
+    super();
+  }
+
+  public async mappings(): Promise<WidgetColumnMap|null> {
+    return this._section.mappedColumns.peek();
+  }
+
   /**
    * Method called as part of ready message. Allows widget to request for particular features or inform about
    * capabilities.
@@ -549,6 +581,11 @@ export class CustomSectionAPIImpl implements CustomSectionAPI {
     }
     if (settings.requiredAccess && settings.requiredAccess !== this._currentAccess) {
       this._promptCallback(settings.requiredAccess as AccessLevel);
+    }
+    if (settings.columns !== undefined) {
+      this._section.columnsToMap(settings.columns);
+    } else {
+      this._section.columnsToMap(null);
     }
   }
 }

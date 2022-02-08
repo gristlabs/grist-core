@@ -1,9 +1,9 @@
 import {CellValue} from 'app/common/DocActions';
-import {GristType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import * as gristTypes from 'app/common/gristTypes';
 import {NumberFormatOptions} from 'app/common/NumberFormat';
 import {FormatOptions, formatUnknown, IsRightTypeFunc} from 'app/common/ValueFormatter';
+import {GristType} from 'app/plugin/GristData';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Style} from 'exceljs';
 import * as moment from 'moment-timezone';

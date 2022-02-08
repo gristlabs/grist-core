@@ -86,7 +86,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           // [+] Toggle filter bar
           makeFilterBarToggle(viewSection.activeFilterBar),
           // Widget options
-          dom.maybe(use => use(viewSection.customDef.mode) === 'url', () =>
+          dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
             makeCustomOptions(viewSection)
           ),
           // [Save] [Revert] buttons

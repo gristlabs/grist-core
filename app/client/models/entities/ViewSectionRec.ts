@@ -20,6 +20,8 @@ import {getWidgetTypes} from 'app/client/ui/widgetTypes';
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
+import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
+import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {Computed} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
@@ -141,9 +143,16 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
   activeCustomOptions: modelUtil.CustomComputed<any>;
-  // Temporary variable holding flag that describes if the widget supports custom options (set by api).
+
+  // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
+
+  // Temporary variable holding columns mapping requested by the widget (set by API).
+  columnsToMap: ko.Observable<ColumnsToMap|null>;
+  // Temporary variable holding columns mapped by the user;
+  mappedColumns: ko.Computed<WidgetColumnMap|null>;
+  // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
-  // Temporary variable holding widget desired access (changed either from manifest or via api).
+  // Temporary variable holding widget desired access (changed either from manifest or via API).
   desiredAccessLevel: ko.Observable<AccessLevel|null>;
 
   // Save all filters of fields/columns in the section.
@@ -158,6 +167,9 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
 }
+
+export type WidgetMappedColumn = number|number[]|null;
+export type WidgetColumnMapping = Record<string, WidgetMappedColumn>
 
 export interface CustomViewSectionDef {
   /**
@@ -176,6 +188,10 @@ export interface CustomViewSectionDef {
    * Custom widget options.
    */
   widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
+  /**
+   * Custom widget interaction options.
+   */
+  columnsMapping: modelUtil.KoSaveableObservable<WidgetColumnMapping|null>;
   /**
    * Access granted to url.
    */
@@ -233,6 +249,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     url: customDefObj.prop('url'),
     widgetDef: customDefObj.prop('widgetDef'),
     widgetOptions: customDefObj.prop('widgetOptions'),
+    columnsMapping: customDefObj.prop('columnsMapping'),
     access: customDefObj.prop('access'),
     pluginId: customDefObj.prop('pluginId'),
     sectionId: customDefObj.prop('sectionId')
@@ -497,4 +514,51 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.hasCustomOptions = ko.observable(false);
   this.desiredAccessLevel = ko.observable(null);
+  this.columnsToMap = ko.observable(null);
+  // Calculate mapped columns for Custom Widget.
+  this.mappedColumns = ko.pureComputed(() => {
+    // First check if widget has requested a custom column mapping and
+    // if we have a saved configuration.
+    const request = this.columnsToMap();
+    const mapping = this.customDef.columnsMapping();
+    if (!request) {
+      return null;
+    }
+    // Convert simple column expressions (widget can just specify a name of a column) to a rich column definition.
+    const columnsToMap = request.map(r => new ColumnToMapImpl(r));
+    if (!mapping) {
+      // If we don't have mappings, return an empty object.
+      return columnsToMap.reduce((o: WidgetColumnMap, c) => {
+        o[c.name] = c.allowMultiple ? [] : null;
+        return o;
+      }, {});
+    }
+    const result: WidgetColumnMap = {};
+    // Prepare map of existing column, will need this for translating colRefs to colIds.
+    const colMap = new Map(this.columns().map(f => [f.id.peek(), f]));
+    for(const widgetCol of columnsToMap) {
+      // Start with marking this column as not mapped.
+      result[widgetCol.name] = widgetCol.allowMultiple ? [] : null;
+      const mappedCol = mapping[widgetCol.name];
+      if (!mappedCol) {
+        continue;
+      }
+      if (widgetCol.allowMultiple) {
+        // We expect a list of colRefs be mapped;
+        if (!Array.isArray(mappedCol)) { continue; }
+        result[widgetCol.name] = mappedCol
+          // Remove all colRefs saved but deleted
+          .filter(cId => colMap.has(cId))
+          // And those with wrong type.
+          .filter(cId => widgetCol.canByMapped(colMap.get(cId)!.pureType()))
+          .map(cId => colMap.get(cId)!.colId());
+      } else {
+         // Widget expects a single value and existing column
+         if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
+         const selectedColumn = colMap.get(mappedCol)!;
+         result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
+      }
+    }
+    return result;
+  });
 }

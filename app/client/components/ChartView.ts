@@ -18,12 +18,12 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
-import {nativeCompare} from 'app/common/gutil';
+import {nativeCompare, unwrap} from 'app/common/gutil';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
-        IDisposable, IOption, ISubscribable, makeTestId, Observable, styled, UseCB} from 'grainjs';
+        IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
 import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
@@ -1133,11 +1133,3 @@ const cssSpinners = styled('input', `
     opacity: 1;
   }
 `);
-
-// Returns the value of both granjs and knockout observable without creating a dependency.
-const unwrap: UseCB = (obs: ISubscribable) => {
-  if ('_getDepItem' in obs) {
-    return obs.get();
-  }
-  return (obs as ko.Observable).peek();
-};

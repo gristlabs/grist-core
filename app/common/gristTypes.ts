@@ -1,13 +1,9 @@
 import { CellValue, CellVersions } from 'app/common/DocActions';
-import { GristObjCode } from 'app/plugin/GristData';
+import { GristObjCode, GristType } from 'app/plugin/GristData';
 import isString = require('lodash/isString');
 import { removePrefix } from "./gutil";
 
 // tslint:disable:object-literal-key-quotes
-
-export type GristType = 'Any' | 'Attachments' | 'Blob' | 'Bool' | 'Choice' | 'ChoiceList' |
-  'Date' | 'DateTime' |
-  'Id' | 'Int' | 'ManualSortPos' | 'Numeric' | 'PositionNumber' | 'Ref' | 'RefList' | 'Text';
 
 export type GristTypeInfo =
   {type: 'DateTime', timezone: string} |

@@ -1,18 +1,23 @@
 import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as kf from 'app/client/lib/koForm';
-import {ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
+import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
-import {cssLabel, cssRow, cssTextInput} from 'app/client/ui/RightPanel';
+import {cssLabel, cssRow, cssSeparator, cssSubLabel, cssTextInput} from 'app/client/ui/RightPanel';
+import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {colors} from 'app/client/ui2018/cssVars';
+import {cssDragger} from 'app/client/ui2018/draggableList';
+import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {IOptionFull, select} from 'app/client/ui2018/menus';
+import {IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {AccessLevel, ICustomWidget, isSatisfied} from 'app/common/CustomWidget';
 import {GristLoadConfig} from 'app/common/gristUrls';
-import {nativeCompare} from 'app/common/gutil';
-import {bundleChanges, Computed, Disposable, dom, fromKo, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+import {nativeCompare, unwrap} from 'app/common/gutil';
+import {bundleChanges, Computed, Disposable, dom, fromKo, makeTestId,
+        MultiHolder, Observable, styled, UseCBOwner} from 'grainjs';
 
 // Custom URL widget id - used as mock id for selectbox.
 const CUSTOM_ID = 'custom';
@@ -27,8 +32,180 @@ const testId = makeTestId('test-config-widget-');
  * so prompt won't be shown.
  *
  * When gristConfig.enableWidgetRepository is set to false, it will only
- * allow to specify Custom URL.
+ * allow to specify the custom URL.
  */
+
+class ColumnPicker extends Disposable {
+  constructor(
+    private _value: Observable<number|number[]|null>,
+    private _column: ColumnToMapImpl,
+    private _section: ViewSectionRec){
+    super();
+  }
+  public buildDom() {
+    // Rewrite value to ignore old configuration when allowMultiple is switched.
+    const properValue = Computed.create(this, use => {
+      const value = use(this._value);
+      return Array.isArray(value) ? null : value;
+    });
+    properValue.onWrite(value => this._value.set(value));
+    const options = Computed.create(this, use => {
+      return use(this._section.columns)
+        .filter(col => this._column.canByMapped(use(col.pureType)))
+        .map((col) => ({value: col.getRowId(), label: use(col.label), icon: 'FieldColumn' as IconName}));
+    });
+    return [
+      cssLabel(
+        this._column.title,
+        this._column.optional ? cssSubLabel(" (optional)") : null,
+        testId('label-for-' + this._column.name),
+      ),
+      cssRow(
+        select(
+          properValue,
+          options,
+          {
+            defaultLabel: this._column.typeDesc != "any" ? `Pick a ${this._column.typeDesc} column` : 'Pick a column'
+          }
+        ),
+        testId('mapping-for-' + this._column.name),
+      ),
+    ];
+  }
+}
+
+class ColumnListPicker extends Disposable {
+  constructor(
+    private _value: Observable<number|number[]|null>,
+    private _column: ColumnToMapImpl,
+    private _section: ViewSectionRec) {
+    super();
+  }
+  public buildDom() {
+    return dom.domComputed((use) => {
+      return [
+        cssLabel(this._column.title,
+          cssLabel.cls("-required", !this._column.optional),
+          testId('label-for-' + this._column.name),
+        ),
+        this._buildDraggableList(use),
+        this._buildAddColumn()
+      ];
+    });
+  }
+  private _buildAddColumn() {
+    return [
+      cssRow(
+        cssAddMapping(
+          cssAddIcon('Plus'), 'Add ' + this._column.title,
+          menu(() => {
+            const otherColumns = this._getNotMappedColumns();
+            const typedColumns = otherColumns.filter(this._typeFilter());
+            const wrongTypeCount = otherColumns.length - typedColumns.length;
+            return [
+              ...typedColumns
+              .map((col) => menuItem(
+                () => this._addColumn(col),
+                col.label.peek(),
+              )),
+              wrongTypeCount > 0 ? menuText(
+`${wrongTypeCount} non-${this._column.type.toLowerCase()} column${wrongTypeCount > 1 ? 's are' : ' is'} not shown`,
+                testId('map-message-' + this._column.name)
+              ) : null
+            ];
+          }),
+          testId('add-column-for-' + this._column.name),
+        )
+      ),
+    ];
+  }
+
+  // Helper method for filtering columns that can be picked by the widget.
+  private _typeFilter = (use = unwrap) => (col: ColumnRec) => this._column.canByMapped(use(col.pureType));
+
+  private _buildDraggableList(use: UseCBOwner) {
+    return dom.update(kf.draggableList(
+      this._readItems(use),
+      this._renderItem.bind(this, use),
+      {
+        itemClass: cssDragRow.className,
+        reorder: this._reorder.bind(this),
+        receive: this._addColumn.bind(this),
+        drag_indicator: cssDragger,
+      }
+    ), testId('map-list-for-' + this._column.name));
+  }
+  private _getNotMappedColumns(): ColumnRec[] {
+    // Get all columns.
+    const all = this._section.columns.peek();
+    const mapped = this._list();
+    return all.filter(col => !mapped.includes(col.id.peek()));
+  }
+  private _readItems(use: UseCBOwner): ColumnRec[] {
+    let selectedRefs = (use(this._value) || []) as number[];
+    // Ignore if configuration was changed from what it was saved.
+    if (!Array.isArray(selectedRefs)) {
+      selectedRefs = [];
+    }
+    // Filter columns by type - when column type has changed since mapping.
+    const columns = use(this._section.columns).filter(this._typeFilter(use));
+    const columnMap = new Map(columns.map(c => [c.id.peek(), c]));
+    // Remove any columns that are no longer there.
+    const selectedFields = selectedRefs.map(s => columnMap.get(s)!).filter(c => Boolean(c));
+    return selectedFields;
+  }
+  private _renderItem(use: UseCBOwner, field: ColumnRec): any {
+    return cssFieldEntry(
+      cssFieldLabel(
+        dom.text(field.label),
+        testId('ref-select-label'),
+      ),
+      cssRemoveIcon(
+        'Remove',
+        dom.on('click', () => this._remove(field)),
+        testId('ref-select-remove'),
+      ),
+    );
+  }
+
+  // Helper method that for accessing mapped columns. Can be used to set and retrieve the value.
+  private _list(value: number[]): void
+  private _list(): number[]
+  private _list(value?: number[]) {
+    if (value) {
+      this._value.set(value);
+    } else {
+      let current = (this._value.get() || []) as number[];
+      // Ignore if the saved value is not a number.
+      if (!Array.isArray(current)) {
+        current = [];
+      }
+      return current;
+    }
+  }
+
+  private _reorder(column: ColumnRec, nextColumn: ColumnRec|null): any {
+    const id = column.id.peek();
+    const nextId = nextColumn?.id.peek();
+    const currentList = this._list();
+    const indexOfId = currentList.indexOf(id);
+    // Remove element from the list.
+    currentList.splice(indexOfId, 1);
+    const indexOfNext = nextId ? currentList.indexOf(nextId) : currentList.length;
+    // Insert before next element or at the end.
+    currentList.splice(indexOfNext, 0, id);
+    this._list(currentList);
+  }
+  private _remove(column: ColumnRec): any {
+    const current = this._list();
+    this._value.set(current.filter(c => c != column.id.peek()));
+  }
+  private _addColumn(col: ColumnRec): any {
+    const current = this._list();
+    current.push(col.id.peek());
+    this._value.set(current);
+  }
+}
 
 export class CustomSectionConfig extends Disposable {
   // Holds all available widget definitions.
@@ -47,7 +224,7 @@ export class CustomSectionConfig extends Disposable {
   // Does widget has custom configuration.
   private _hasConfiguration: Computed<boolean>;
 
-  constructor(_section: ViewSectionRec, _gristDoc: GristDoc) {
+  constructor(private _section: ViewSectionRec, _gristDoc: GristDoc) {
     super();
 
     const api = _gristDoc.app.topAppModel.api;
@@ -82,24 +259,12 @@ export class CustomSectionConfig extends Disposable {
         .catch(reportError);
     }
 
-    // Create temporary variable that will hold blank Custom Url state. When url is blank and widgetDef is not stored
-    // we can either show "Select Custom Widget" or a Custom Url with a blank url.
-    // To distinguish those states, we will mark Custom Url state at start (by checking that url is not blank and
-    // widgetDef is not set). And then switch it during selectbox manipulation.
-    const wantsToBeCustom = Observable.create(
-      this,
-      Boolean(_section.customDef.url.peek() && !_section.customDef.widgetDef.peek())
-    );
-
     // Selected value from the dropdown (contains widgetId or "custom" string for Custom URL)
     this._selectedId = Computed.create(this, use => {
       if (use(_section.customDef.widgetDef)) {
         return _section.customDef.widgetDef.peek()!.widgetId;
       }
-      if (use(_section.customDef.url) || use(wantsToBeCustom)) {
-        return CUSTOM_ID;
-      }
-      return null;
+      return CUSTOM_ID;
     });
     this._selectedId.onWrite(async value => {
       if (value === CUSTOM_ID) {
@@ -109,14 +274,15 @@ export class CustomSectionConfig extends Disposable {
           _section.customDef.url(null);
           // Clear widget definition.
           _section.customDef.widgetDef(null);
-          // Set intermediate state
-          wantsToBeCustom.set(true);
           // Reset access level to none.
           _section.customDef.access(AccessLevel.none);
           // Clear all saved options.
           _section.customDef.widgetOptions(null);
           // Reset custom configuration flag.
           _section.hasCustomOptions(false);
+          // Clear column mappings.
+          _section.customDef.columnsMapping(null);
+          _section.columnsToMap(null);
           this._desiredAccess.set(AccessLevel.none);
         });
         await _section.saveCustomDef();
@@ -144,8 +310,9 @@ export class CustomSectionConfig extends Disposable {
           _section.customDef.widgetOptions(null);
           // Clear has custom configuration.
           _section.hasCustomOptions(false);
-          // Clear intermediate state.
-          wantsToBeCustom.set(false);
+          // Clear column mappings.
+          _section.customDef.columnsMapping(null);
+          _section.columnsToMap(null);
         });
         await _section.saveCustomDef();
       }
@@ -168,7 +335,6 @@ export class CustomSectionConfig extends Disposable {
     this._desiredAccess = fromKo(_section.desiredAccessLevel);
 
     // Clear intermediate state when section changes.
-    this.autoDispose(_section.id.subscribe(() => wantsToBeCustom.set(false)));
     this.autoDispose(_section.id.subscribe(() => this._reject()));
 
     this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
@@ -198,7 +364,7 @@ export class CustomSectionConfig extends Disposable {
       switch(level) {
         case AccessLevel.none: return cssConfirmLine("Widget does not require any permissions.");
         case AccessLevel.read_table: return cssConfirmLine("Widget needs to ", dom("b", "read"), " the current table.");
-        case AccessLevel.full: return cssConfirmLine("Widget needs a ", dom("b", "full access"), " to this document.");
+        case AccessLevel.full: return cssConfirmLine("Widget needs ", dom("b", "full access"), " to this document.");
         default: throw new Error(`Unsupported ${level} access level`);
       }
     }
@@ -279,6 +445,31 @@ export class CustomSectionConfig extends Disposable {
           'Learn more about custom widgets'
         )
       ),
+      dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {
+        const createObs = (column: ColumnToMapImpl) => {
+          const obs = Computed.create(owner, use => {
+            const savedDefinition = use(this._section.customDef.columnsMapping) || {};
+            return savedDefinition[column.name];
+          });
+          obs.onWrite(async (value) => {
+            const savedDefinition = this._section.customDef.columnsMapping.peek() || {};
+            savedDefinition[column.name] = value;
+            await this._section.customDef.columnsMapping.setAndSave(savedDefinition);
+          });
+          return obs;
+        };
+        // Create observables for all columns to pick.
+        const mappings = columns.map(c => new ColumnToMapImpl(c)).map((column) => ({
+          value: createObs(column),
+          column
+        }));
+        return [
+          cssSeparator(),
+          ...mappings.map(m => m.column.allowMultiple
+            ? dom.create(ColumnListPicker, m.value, m.column, this._section)
+            : dom.create(ColumnPicker, m.value, m.column, this._section))
+        ];
+      })
     );
   }
 
@@ -297,6 +488,7 @@ export class CustomSectionConfig extends Disposable {
     this._desiredAccess.set(null);
   }
 }
+
 
 const cssWarningWrapper = styled('div', `
   padding-left: 8px;
@@ -325,5 +517,34 @@ const cssSection = styled('div', `
 const cssMenu = styled('div', `
   & > li:first-child {
     border-bottom: 1px solid ${colors.mediumGrey};
+  }
+`);
+
+const cssAddIcon = styled(icon, `
+  margin-right: 4px;
+`);
+
+const cssRemoveIcon = styled(icon, `
+  display: none;
+  cursor: pointer;
+  flex: none;
+  margin-left: 8px;
+  .${cssFieldEntry.className}:hover & {
+    display: block;
+  }
+`);
+
+const cssAddMapping = styled('div', `
+  display: flex;
+  cursor: pointer;
+  color: ${colors.lightGreen};
+  --icon-color: ${colors.lightGreen};
+
+  &:not(:first-child) {
+    margin-top: 8px;
+  }
+  &:hover, &:focus, &:active {
+    color: ${colors.darkGreen};
+    --icon-color: ${colors.darkGreen};
   }
 `);
