@@ -53,7 +53,7 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {isList, isRefListType, RecalcWhen} from 'app/common/gristTypes';
-import {HashLink, IDocPage} from 'app/common/gristUrls';
+import {HashLink, IDocPage, SpecialDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
@@ -166,13 +166,20 @@ export class GristDoc extends DisposableWithEvents {
 
     // Grainjs observable for current view id, which may be a string such as 'code'.
     this.activeViewId = Computed.create(this, (use) => {
-      let result = use(urlState().state).docPage;
-      if (result === 'GristDocTour') {
-        // GristDocTour is a special table that is usually hidden from users, but putting /p/GristDocTour
-        // in the URL navigates to it and makes it visible in the list of pages in the sidebar
-        result = this.docModel.views.tableData.findRow('name', result);
+      const {docPage} = use(urlState().state);
+
+      // Return most special pages like 'code' and 'acl' as is
+      if (typeof docPage === 'string' && docPage !== 'GristDocTour' && SpecialDocPage.guard(docPage)) {
+        return docPage;
       }
-      return result || use(defaultViewId);
+
+      // GristDocTour is a special table that is usually hidden from users, but putting /p/GristDocTour
+      // in the URL navigates to it and makes it visible in the list of pages in the sidebar
+      // For GristDocTour, find the view with that name.
+      // Otherwise find the view with the given row ID, because letting a non-existent row ID pass through here is bad.
+      // If no such view exists, return the default view.
+      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
+      return viewId || use(defaultViewId);
     });
 
     // This viewModel reflects the currently active view, relying on the fact that

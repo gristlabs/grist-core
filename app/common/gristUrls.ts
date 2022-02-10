@@ -10,7 +10,7 @@ import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
 
-const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour');
+export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour');
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 
