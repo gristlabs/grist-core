@@ -529,18 +529,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     // if we have a saved configuration.
     const request = this.columnsToMap();
     const mapping = this.customDef.columnsMapping();
-    if (!request) {
+    if (!request || !mapping) {
       return null;
     }
     // Convert simple column expressions (widget can just specify a name of a column) to a rich column definition.
     const columnsToMap = request.map(r => new ColumnToMapImpl(r));
-    if (!mapping) {
-      // If we don't have mappings, return an empty object.
-      return columnsToMap.reduce((o: WidgetColumnMap, c) => {
-        o[c.name] = c.allowMultiple ? [] : null;
-        return o;
-      }, {});
-    }
     const result: WidgetColumnMap = {};
     // Prepare map of existing column, will need this for translating colRefs to colIds.
     const colMap = new Map(this.columns().map(f => [f.id.peek(), f]));
