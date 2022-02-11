@@ -93,7 +93,7 @@ export class DocApiForwarder {
       method: req.method,
       headers,
     };
-    if (['POST', 'PATCH'].includes(req.method)) {
+    if (['POST', 'PATCH', 'PUT'].includes(req.method)) {
       // uses `req` as a stream
       options.body = req;
     }

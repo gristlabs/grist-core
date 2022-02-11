@@ -773,3 +773,31 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
         ["id", "lookup"],
         [1, [None, 0, 1, 2, 3, 'foo']],
       ])
+
+  def test_conversion(self):
+    # Test that values are converted to the type of the column when looking up
+    # i.e. '123' is converted to 123
+    # and 'foo' is converted to AltText('foo')
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          [1, "num", "Numeric", False, "", "", ""],
+          [2, "lookup1", "RefList:Table1", True, "Table1.lookupRecords(num='123')", "", ""],
+          [3, "lookup2", "RefList:Table1", True, "Table1.lookupRecords(num='foo')", "", ""],
+        ]]
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "num"],
+          [1,    123],
+          [2,    'foo'],
+        ]
+      }
+    }))
+
+    self.assertTableData(
+      "Table1", data=[
+        ["id", "num", "lookup1", "lookup2"],
+        [1,    123,   [1],       [2]],
+        [2,    'foo', [1],       [2]],
+      ])

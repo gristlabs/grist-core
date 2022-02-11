@@ -56,9 +56,10 @@ const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
 type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
 
 // Schema validators for api endpoints that creates or updates records.
-const {RecordsPatch, RecordsPost} = t.createCheckers(DocApiTypesTI, GristDataTI);
+const {RecordsPatch, RecordsPost, RecordsPut} = t.createCheckers(DocApiTypesTI, GristDataTI);
 RecordsPatch.setReportedPath("body");
 RecordsPost.setReportedPath("body");
+RecordsPut.setReportedPath("body");
 
 /**
  * Middleware for validating request's body with a Checker instance.
@@ -265,13 +266,16 @@ export class DocWorkerApi {
       return allSame;
     }
 
+    function fieldNames(records: any[]) {
+      return new Set<string>(_.flatMap(records, r => Object.keys({...r.fields, ...r.require})));
+    }
+
     function convertToBulkColValues(records: Array<Types.Record | Types.NewRecord>): BulkColValues {
       // User might want to create empty records, without providing a field name, for example for requests:
       // { records: [{}] }; { records: [{fields:{}}] }
       // Retrieve all field names from fields property.
-      const fieldNames = new Set<string>(_.flatMap(records, r => Object.keys(r.fields ?? {})));
       const result: BulkColValues = {};
-      for (const fieldName of fieldNames) {
+      for (const fieldName of fieldNames(records)) {
         result[fieldName] = records.map(record => record.fields?.[fieldName] ?? null);
       }
       return result;
@@ -410,6 +414,31 @@ export class DocWorkerApi {
           throw new ApiError("PATCH requires a valid record object", 400);
         }
         await updateRecords(req, activeDoc, columnValues, rowIds);
+        res.json(null);
+      })
+    );
+
+    // Add or update records given in records format
+    this._app.put('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPut),
+      withDoc(async (activeDoc, req, res) => {
+        const {records} = req.body as Types.RecordsPut;
+        const {tableId} = req.params;
+        const {noadd, noupdate, noparse, allow_empty_require} = req.query;
+        const onmany = stringParam(req.query.onmany || "first", "onmany", ["first", "none", "all"]);
+        const options = {
+          add: !isAffirmative(noadd),
+          update: !isAffirmative(noupdate),
+          on_many: onmany,
+          allow_empty_require: isAffirmative(allow_empty_require),
+        };
+        const actions = records.map(rec =>
+          ["AddOrUpdateRecord", tableId, rec.require, rec.fields || {}, options]
+        );
+        await handleSandboxError(tableId, [...fieldNames(records)], activeDoc.applyUserActions(
+          docSessionFromRequest(req),
+          actions,
+          {parseStrings: !isAffirmative(noparse)},
+        ));
         res.json(null);
       })
     );
@@ -937,7 +966,7 @@ async function handleSandboxError<T>(tableId: string, colNames: string[], p: Pro
       if (match) {
         throw new ApiError(`Invalid row id ${match[1]}`, 400);
       }
-      match = e.message.match(/\[Sandbox\] KeyError u?'(.*?)'/);
+      match = e.message.match(/\[Sandbox] KeyError u?'(?:Table \w+ has no column )?(\w+)'/);
       if (match) {
         if (match[1] === tableId) {
           throw new ApiError(`Table not found "${tableId}"`, 404);

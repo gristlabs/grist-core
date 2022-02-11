@@ -443,6 +443,10 @@ class Table(object):
         # the marker is moved to col_id so that the LookupMapColumn knows how to
         # update its index correctly for that column.
         col_id = lookup._Contains(col_id)
+      else:
+        col = self.get_column(col_id)
+        # Convert `value` to the correct type of rich value for that column
+        value = col._convert_raw_value(col.convert(value))
       key.append(value)
       col_ids.append(col_id)
     col_ids = tuple(col_ids)

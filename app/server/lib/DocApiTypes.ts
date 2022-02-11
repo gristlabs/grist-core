@@ -16,6 +16,14 @@ export interface Record {
 }
 
 /**
+ * JSON schema for api /record endpoint. Used in PUT method for adding or updating records.
+ */
+export interface AddOrUpdateRecord {
+  require: { [coldId: string]: CellValue } & { id?: number };
+  fields?: { [coldId: string]: CellValue };
+}
+
+/**
  * JSON schema for the body of api /record PATCH endpoint
  */
 export interface RecordsPatch {
@@ -27,4 +35,11 @@ export interface RecordsPatch {
  */
 export interface RecordsPost {
   records: [NewRecord, ...NewRecord[]]; // at least one record is required
+}
+
+/**
+ * JSON schema for the body of api /record PUT endpoint
+ */
+export interface RecordsPut {
+  records: [AddOrUpdateRecord, ...AddOrUpdateRecord[]]; // at least one record is required
 }

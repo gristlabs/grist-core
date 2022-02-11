@@ -13,7 +13,7 @@ import actions
 import column
 import sort_specs
 import identifiers
-from objtypes import strict_equal, encode_object
+from objtypes import strict_equal, encode_object, decode_object
 import schema
 from schema import RecalcWhen
 import summary
@@ -319,6 +319,8 @@ class UserActions(object):
     for i, row_id in enumerate(filled_row_ids):
       if row_id is None or row_id < 0:
         filled_row_ids[i] = row_id = next_row_id
+      elif row_id > 1000000:
+        raise ValueError("Row ID too high")
       next_row_id = max(next_row_id, row_id) + 1
 
     # Whenever we add new rows, remember the mapping from any negative row_ids to their final
@@ -793,9 +795,35 @@ class UserActions(object):
       raise ValueError("Can't save value to formula column %s" % col_id)
 
   @useraction
-  def AddOrUpdateRecord(self, table_id, where, col_values, options):
+  def AddOrUpdateRecord(self, table_id, require, col_values, options):
+    """
+    Add or Update ('upsert') a single record depending on `options`
+    and on whether a record matching `require` already exists.
+
+    `require` and `col_values` are dictionaries mapping column IDs to single cell values.
+
+    By default, if `table.lookupRecords(**require)` returns any records,
+    update the first one with the values in `col_values`.
+    Otherwise create a new record with values `{**require, **col_values}`.
+
+    `options` is a dictionary with optional settings to choose other behaviours:
+    - Set "on_many" to "all" or "none" to change which records are updated when several match.
+    - Set "update" or "add" to False to disable updating or adding records respectively,
+      i.e. if you only want to add records that don't already exist
+        or if you only want to update records that do already exist.
+    - Set "allow_empty_require" to True to allow `require` to be an empty dictionary,
+      which would mean that every record in the table is matched.
+      Otherwise this will raise an error to prevent mistakes like updating an entire column.
+    """
     table = self._engine.tables[table_id]
-    records = list(table.lookup_records(**where))
+
+    if not require and not options.get("allow_empty_require", False):
+      raise ValueError("require is empty but allow_empty_require isn't set")
+
+    # Decode `require` before looking up, but let AddRecord/UpdateRecord decode the final
+    # values when adding/updating
+    decoded_require = {k: decode_object(v) for k, v in six.iteritems(require)}
+    records = list(table.lookup_records(**decoded_require))
 
     if records and options.get("update", True):
       if len(records) > 1:
@@ -813,8 +841,12 @@ class UserActions(object):
     if not records and options.get("add", True):
       values = {
         key: value
-        for key, value in six.iteritems(where)
-        if not table.get_column(key).is_formula()
+        for key, value in six.iteritems(require)
+        if not (
+          table.get_column(key).is_formula() and
+          # Check that there actually is a formula and this isn't just an empty column
+          self._engine.docmodel.get_column_rec(table_id, key).formula
+        )
       }
       values.update(col_values)
       self.AddRecord(table_id, values.pop("id", None), values)

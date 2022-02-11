@@ -473,23 +473,8 @@ class BaseReferenceColumn(BaseColumn):
             .get_column_rec(self.table_id, self.col_id).visibleCol.colId
         or "id"
     )
-    column = self._target_table.get_column(col_id)
-    # `value` is an object encoded for transmission from JS to Python,
-    # which is decoded to `decoded_value`.
-    # `raw_value` is the kind of value that would be stored in `column`.
-    # `rich_value` is the type of value used in formulas, especially with `lookupRecords`.
-    # For example, for a Date column, `raw_value` is a numerical timestamp
-    # and `rich_value` is a `datetime.date` object,
-    # assuming `value` isn't of an invalid type.
-    # However `value` could either be just a number
-    # (in which case `decoded_value` would be a number as well)
-    # or an encoded date (or even datetime) object like ['d', number]
-    # (in which case `decoded_value` would be a `datetime.date` object,
-    #  which would get converted back to a number and then back to a date object again!)
-    decoded_value = objtypes.decode_object(value)
-    raw_value = column.convert(decoded_value)
-    rich_value = column._convert_raw_value(raw_value)
-    return self._target_table.lookup_one_record(**{col_id: rich_value})
+    value = objtypes.decode_object(value)
+    return self._target_table.lookup_one_record(**{col_id: value})
 
 
 class ReferenceColumn(BaseReferenceColumn):

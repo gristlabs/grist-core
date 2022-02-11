@@ -218,8 +218,12 @@ export function optStringParam(p: any): string|undefined {
 }
 
 export function stringParam(p: any, name: string, allowed?: string[]): string {
-  if (typeof p !== 'string') { throw new Error(`${name} parameter should be a string: ${p}`); }
-  if (allowed && !allowed.includes(p)) { throw new Error(`${name} parameter ${p} should be one of ${allowed}`); }
+  if (typeof p !== 'string') {
+    throw new ApiError(`${name} parameter should be a string: ${p}`, 400);
+  }
+  if (allowed && !allowed.includes(p)) {
+    throw new ApiError(`${name} parameter ${p} should be one of ${allowed}`, 400);
+  }
   return p;
 }
 

@@ -905,6 +905,7 @@ class TestUserActions(test_engine.EngineTestCase):
           [3, "pet",        "Text", False, "",     "pet",        ""],
           [4, "color",      "Text", False, "",     "color",      ""],
           [5, "formula",    "Text", True,  "''",   "formula",    ""],
+          [6, "date",       "Date", False, None,   "date",       ""],
         ]],
       ],
       "DATA": {
@@ -917,9 +918,9 @@ class TestUserActions(test_engine.EngineTestCase):
     })
     self.load_sample(sample)
 
-    def check(where, values, options, stored):
+    def check(require, values, options, stored):
       self.assertPartialOutActions(
-        self.apply_user_action(["AddOrUpdateRecord", "Table1", where, values, options]),
+        self.apply_user_action(["AddOrUpdateRecord", "Table1", require, values, options]),
         {"stored": stored},
       )
 
@@ -958,6 +959,26 @@ class TestUserActions(test_engine.EngineTestCase):
       ],
     )
 
+    # Update all records with empty require and allow_empty_require
+    check(
+      {},
+      {"color": "greener"},
+      {"on_many": "all", "allow_empty_require": True},
+      [
+        ["UpdateRecord", "Table1", 1, {"color": "greener"}],
+        ["UpdateRecord", "Table1", 2, {"color": "greener"}],
+      ],
+    )
+
+    # Missing allow_empty_require
+    with self.assertRaises(ValueError):
+      check(
+        {},
+        {"color": "greenest"},
+        {},
+        [],
+      )
+
     # Don't update any records when there's several matches
     check(
       {"first_name": "John"},
@@ -992,7 +1013,7 @@ class TestUserActions(test_engine.EngineTestCase):
     )
 
     # No matching record, make a new one.
-    # first_name=Jack in `values` overrides first_name=John in `where`
+    # first_name=Jack in `values` overrides first_name=John in `require`
     check(
       {"first_name": "John", "last_name": "Johnson"},
       {"first_name": "Jack", "color": "yellow"},
@@ -1003,7 +1024,7 @@ class TestUserActions(test_engine.EngineTestCase):
       ],
     )
 
-    # Specifying a row ID in `where` is allowed
+    # Specifying a row ID in `require` is allowed
     check(
       {"first_name": "Bob", "id": 100},
       {"pet": "fish"},
@@ -1019,7 +1040,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [],
     )
 
-    # Nothing matches this `where`, but the row ID already exists
+    # Nothing matches this `require`, but the row ID already exists
     with self.assertRaises(AssertionError):
       check(
         {"first_name": "Alice", "id": 100},
@@ -1028,12 +1049,35 @@ class TestUserActions(test_engine.EngineTestCase):
         [],
       )
 
-    # Formula columns in `where` can't be used as values when creating records
+    # Formula columns in `require` can't be used as values when creating records
     check(
       {"formula": "anything"},
       {"first_name": "Alice"},
       {},
       [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
+    )
+
+    with self.assertRaises(ValueError):
+      # Row ID too high
+      check(
+        {"first_name": "Alice", "id": 2000000},
+        {"pet": "fish"},
+        {},
+        [],
+      )
+
+    # Check that encoded objects are decoded correctly
+    check(
+      {"date": ['d', 950400]},
+      {},
+      {},
+      [["AddRecord", "Table1", 102, {"date": 950400}]],
+    )
+    check(
+      {"date": ['d', 950400]},
+      {"date": ['d', 1900800]},
+      {},
+      [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
     )
 
   def test_reference_lookup(self):

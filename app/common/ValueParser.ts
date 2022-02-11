@@ -357,21 +357,35 @@ function parseColValues<T extends ColValues | BulkColValues>(
 }
 
 export function parseUserAction(ua: UserAction, docData: DocData): UserAction {
-  const actionType = ua[0] as string;
-  let parseBulk: boolean;
-
-  if (['AddRecord', 'UpdateRecord'].includes(actionType)) {
-    parseBulk = false;
-  } else if (['BulkAddRecord', 'BulkUpdateRecord', 'ReplaceTableData'].includes(actionType)) {
-    parseBulk = true;
-  } else {
-    return ua;
+  switch (ua[0]) {
+    case 'AddRecord':
+    case 'UpdateRecord':
+      return _parseUserActionColValues(ua, docData, false);
+    case 'BulkAddRecord':
+    case 'BulkUpdateRecord':
+    case 'ReplaceTableData':
+      return _parseUserActionColValues(ua, docData, true);
+    case 'AddOrUpdateRecord':
+      // Parse `require` (2) and `col_values` (3). The action looks like:
+      // ['AddOrUpdateRecord', table_id, require, col_values, options]
+      // (`col_values` is called `fields` in the API)
+      ua = _parseUserActionColValues(ua, docData, false, 2);
+      ua = _parseUserActionColValues(ua, docData, false, 3);
+      return ua;
+    default:
+      return ua;
   }
+}
 
+// Returns a copy of the user action with one element parsed, by default the last one
+function _parseUserActionColValues(ua: UserAction, docData: DocData, parseBulk: boolean, index?: number
+): UserAction {
   ua = ua.slice();
   const tableId = ua[1] as string;
-  const lastIndex = ua.length - 1;
-  const colValues = ua[lastIndex] as ColValues | BulkColValues;
-  ua[lastIndex] = parseColValues(tableId, colValues, docData, parseBulk);
+  if (index === undefined) {
+    index = ua.length - 1;
+  }
+  const colValues = ua[index] as ColValues | BulkColValues;
+  ua[index] = parseColValues(tableId, colValues, docData, parseBulk);
   return ua;
 }
