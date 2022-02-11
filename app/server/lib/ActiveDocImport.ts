@@ -13,7 +13,7 @@ import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue, UserAct
 import * as gutil from 'app/common/gutil';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
-import {GristTable} from 'app/plugin/GristTable';
+import {GristColumn, GristTable} from 'app/plugin/GristTable';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
@@ -294,8 +294,9 @@ export class ActiveDocImport {
       const origTableName = table.table_name ? table.table_name : '';
       const transformRule = transformRuleMap && transformRuleMap.hasOwnProperty(origTableName) ?
         transformRuleMap[origTableName] : null;
+      const columnMetadata = addLabelsIfPossible(table.column_metadata);
       const result: ApplyUAResult = await this._activeDoc.applyUserActions(docSession,
-        [["AddTable", hiddenTableName, table.column_metadata]]);
+        [["AddTable", hiddenTableName, columnMetadata]]);
       const retValue: AddTableRetValue = result.retValues[0];
       const hiddenTableId = retValue.table_id;    // The sanitized version of the table name.
       const hiddenTableColIds = retValue.columns;      // The sanitized names of the columns.
@@ -726,4 +727,13 @@ function getMergeFunction({type}: MergeStrategy): MergeFunction {
       throw new Error(`Unknown merge strategy: ${unknownStrategyType}`);
     }
   }
+}
+
+/**
+ * If `columns` is populated with non-blank column ids, adds labels to all
+ * columns using the values set for the column ids. Otherwise, returns
+ * a copy of columns with no modifications made.
+ */
+function addLabelsIfPossible(columns: GristColumn[]) {
+  return columns.map(c => (c.id ? {...c, label: c.id} : c));
 }

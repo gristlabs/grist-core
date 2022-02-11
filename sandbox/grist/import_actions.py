@@ -156,8 +156,9 @@ class ImportActions(object):
       isCopyFormula = (formula.startswith("$") and formula[1:] in src_cols)
 
       if gen_all or not isCopyFormula:
-        #if colId specified, use that. Else label is fine
-        new_col_id = _import_transform_col_prefix + (c.colId or c.label)
+        # If colId specified, use that. Otherwise, use the (sanitized) label.
+        col_id = c.colId or identifiers.pick_col_ident(c.label)
+        new_col_id = _import_transform_col_prefix + col_id
         new_col_spec = {
           "label": c.label,
           "type": c.type,
