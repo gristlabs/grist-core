@@ -1,3 +1,4 @@
+import {ApiError} from 'app/common/ApiError';
 import {BillingTask} from 'app/common/BillingAPI';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
@@ -40,7 +41,7 @@ import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {INotifier} from 'app/server/lib/INotifier';
 import * as log from 'app/server/lib/log';
-import {getLoginSystem} from 'app/server/lib/logins';
+import {getLoginSubdomain, getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -235,6 +236,14 @@ export class FlexServer implements GristServer {
   public getOwnPort(): number {
     // Get the port from the server in case it was started with port 0.
     return this.server ? (this.server.address() as AddressInfo).port : this.port;
+  }
+
+  /**
+   * Get a url to an org that should be accessible by all signed-in users. For now, this
+   * returns the base URL of the personal org (typically docs[-s]).
+   */
+  public getMergedOrgUrl(req: RequestWithLogin, pathname: string = '/'): string {
+    return this._getOrgRedirectUrl(req, this._dbManager.mergedOrgDomain(), pathname);
   }
 
   public getPermitStore(): IPermitStore {
@@ -805,22 +814,50 @@ export class FlexServer implements GristServer {
     // should be factored out of it.
     this.addComm();
 
+    /**
+     * Gets the URL to redirect back to after successful sign-up or login.
+     *
+     * Note that in the test env, this will redirect further.
+     */
+    const getNextUrl = async (mreq: RequestWithLogin): Promise<string> => {
+      // If a "next" query param is present, check if it's safe to use, and return it if so.
+      const next = optStringParam(mreq.query.next);
+      if (next) {
+        if (!(await this._hosts.isSafeRedirectUrl(next))) {
+          throw new ApiError('Invalid redirect URL', 400);
+        }
+
+        return next;
+      }
+
+      // Otherwise, return the "/" path on the request host. If the host is the Grist
+      // login host, return the "/" path on the merged org instead.
+      const loginSubdomain = getLoginSubdomain();
+      return !loginSubdomain || mreq.org !== loginSubdomain ?
+        getOrgUrl(mreq) : this.getMergedOrgUrl(mreq);
+    };
+
     async function redirectToLoginOrSignup(
       this: FlexServer, signUp: boolean|null, req: express.Request, resp: express.Response,
     ) {
       const mreq = req as RequestWithLogin;
+
+      // If sign-up request is to the Grist login host, serve a sign-up page instead of redirecting.
+      const loginSubdomain = getLoginSubdomain();
+      if (signUp && loginSubdomain && mreq.org === loginSubdomain) {
+        return this._sendAppPage(req, resp, {path: 'login.html', status: 200, config: {}});
+      }
+
       // This will ensure that express-session will set our cookie if it hasn't already -
       // we'll need it when we come back from Cognito.
       forceSessionChange(mreq.session);
-      // Redirect to "/" on our requested hostname (in test env, this will redirect further)
-      const next = getOrgUrl(req);
       if (signUp === null) {
         // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
         // user has ever logged in on this browser.
         signUp = (mreq.session.users === undefined);
       }
       const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-      resp.redirect(await getRedirectUrl(req, new URL(next)));
+      resp.redirect(await getRedirectUrl(req, new URL(await getNextUrl(mreq))));
     }
 
     this.app.get('/login', expressWrap(redirectToLoginOrSignup.bind(this, false)));
@@ -899,10 +936,9 @@ export class FlexServer implements GristServer {
     this.app.get('/signed-out', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'signed-out'}})));
 
-    // Add a static "verified" page.  This is where an email verification link will land,
-    // on success.  TODO: rename simple static pages from "error" to something more generic.
+    // Add a static "verified" page.  This is where an email verification link will land, on success.
     this.app.get('/verified', expressWrap((req, resp) =>
-      this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'verified'}})));
+      this._sendAppPage(req, resp, {path: 'login.html', status: 200, config: {}})));
 
     const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
@@ -1127,8 +1163,7 @@ export class FlexServer implements GristServer {
         redirectPath = '/welcome/teams';
       }
 
-      const mergedOrgDomain = this._dbManager.mergedOrgDomain();
-      const redirectUrl = this._getOrgRedirectUrl(mreq, mergedOrgDomain, redirectPath);
+      const redirectUrl = this.getMergedOrgUrl(mreq, redirectPath);
       resp.json({redirectUrl});
     }),
     // Add a final error handler that reports errors as JSON.
@@ -1466,7 +1501,7 @@ export class FlexServer implements GristServer {
 
     // Redirect anonymous users to the merged org.
     if (!mreq.userIsAuthorized) {
-      const redirectUrl = this._getOrgRedirectUrl(mreq, this._dbManager.mergedOrgDomain());
+      const redirectUrl = this.getMergedOrgUrl(mreq);
       log.debug(`Redirecting anonymous user to: ${redirectUrl}`);
       return resp.redirect(redirectUrl);
     }

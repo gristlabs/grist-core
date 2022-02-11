@@ -22,8 +22,11 @@ export type IHomePage = typeof HomePage.type;
 export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify', 'select-account');
 export type WelcomePage = typeof WelcomePage.type;
 
-export const AccountPage = StringUnion('profile');
+export const AccountPage = StringUnion('account');
 export type AccountPage = typeof AccountPage.type;
+
+export const LoginPage = StringUnion('signup', 'verified');
+export type LoginPage = typeof LoginPage.type;
 
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('light', 'full');
@@ -68,6 +71,7 @@ export interface IGristUrlState {
   docPage?: IDocPage;
   account?: AccountPage;
   billing?: BillingPage;
+  login?: LoginPage;
   welcome?: WelcomePage;
   welcomeTour?: boolean;
   docTour?: boolean;
@@ -76,6 +80,7 @@ export interface IGristUrlState {
     billingPlan?: string;
     billingTask?: BillingTask;
     embed?: boolean;
+    next?: string;
     style?: InterfaceStyle;
     compare?: string;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
@@ -188,11 +193,15 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`p/${state.homePage}`);
   }
 
-  if (state.account) { parts.push('account'); }
+  if (state.account) {
+    parts.push(state.account === 'account' ? 'account' : `account/${state.account}`);
+  }
 
   if (state.billing) {
     parts.push(state.billing === 'billing' ? 'billing' : `billing/${state.billing}`);
   }
+
+  if (state.login) { parts.push(state.login); }
 
   if (state.welcome) {
     parts.push(`welcome/${state.welcome}`);
@@ -274,13 +283,22 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
   }
   if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
-  if (map.has('account')) { state.account = AccountPage.parse('account') || 'profile'; }
+  if (map.has('account')) { state.account = AccountPage.parse(map.get('account')) || 'account'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')) || 'user'; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
     state.params!.billingTask = BillingTask.parse(sp.get('billingTask'));
   }
+
+  if (map.has('signup')) {
+    state.login = 'signup';
+  } else if (map.has('verified')) {
+    state.login = 'verified';
+  }
+
+  if (sp.has('next')) { state.params!.next = sp.get('next')!; }
+
   if (sp.has('style')) {
     state.params!.style = InterfaceStyle.parse(sp.get('style'));
   }

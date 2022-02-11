@@ -29,8 +29,8 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
   return (err, req, res, _next) => {
     const mreq = req as RequestWithLogin;
     log.warn(
-      "Error during api call to %s: (%s) user %d%s%s",
-      req.path, err.message, mreq.userId,
+      "Error during api call to %s: (%s)%s%s%s",
+      req.path, err.message, mreq.userId !== undefined ? ` user ${mreq.userId}` : '',
       options.shouldLogParams !== false ? ` params ${JSON.stringify(req.params)}` : '',
       options.shouldLogBody !== false ? ` body ${JSON.stringify(req.body)}` : '',
     );

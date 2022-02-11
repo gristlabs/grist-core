@@ -65,8 +65,8 @@ export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
 
 // Get url for the login page, which will then redirect to nextUrl (current page by default).
-export function getLoginUrl(nextUrl: string = _getCurrentUrl()): string {
-  return _getLoginLogoutUrl('login', nextUrl);
+export function getLoginUrl(nextUrl: string | null = _getCurrentUrl()): string {
+  return _getLoginLogoutUrl('login', nextUrl ?? undefined);
 }
 
 // Get url for the signup page, which will then redirect to nextUrl (current page by default).
@@ -101,10 +101,10 @@ function _getCurrentUrl(): string {
 }
 
 // Helper for getLoginUrl()/getLogoutUrl().
-function _getLoginLogoutUrl(method: 'login'|'logout'|'signin'|'signup', nextUrl: string): string {
+function _getLoginLogoutUrl(method: 'login'|'logout'|'signin'|'signup', nextUrl?: string): string {
   const startUrl = new URL(window.location.href);
   startUrl.pathname = addOrgToPath('', window.location.href) + '/' + method;
-  startUrl.searchParams.set('next', nextUrl);
+  if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
   return startUrl.href;
 }
 

@@ -196,11 +196,11 @@ export class WelcomePage extends Disposable {
       'form',
       { method: "post", action: action.href },
       handleSubmitForm(pending, (result) => {
-        if (result.act === 'confirmed') {
+        if (result.status === 'confirmed') {
           const verified = new URL(window.location.href);
           verified.pathname = '/verified';
           window.location.assign(verified.href);
-        } else if (result.act === 'resent') {
+        } else if (result.status === 'resent') {
           // just to give a sense that something happened...
           window.location.reload();
         }

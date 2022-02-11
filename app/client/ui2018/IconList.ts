@@ -30,6 +30,10 @@ export type IconName = "ChartArea" |
   "FieldText" |
   "FieldTextbox" |
   "FieldToggle" |
+  "LoginStreamline" |
+  "LoginUnify" |
+  "LoginVisualize" |
+  "GoogleLogo" |
   "GristLogo" |
   "ThumbPreview" |
   "BarcodeQR" |
@@ -143,6 +147,10 @@ export const IconList: IconName[] = ["ChartArea",
   "FieldText",
   "FieldTextbox",
   "FieldToggle",
+  "LoginStreamline",
+  "LoginUnify",
+  "LoginVisualize",
+  "GoogleLogo",
   "GristLogo",
   "ThumbPreview",
   "BarcodeQR",

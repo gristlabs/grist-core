@@ -1,5 +1,5 @@
 import {AppModel} from 'app/client/models/AppModel';
-import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
@@ -15,7 +15,6 @@ export function createErrPage(appModel: AppModel) {
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
   const message = gristConfig.errMessage;
   return gristConfig.errPage === 'signed-out' ? createSignedOutPage(appModel) :
-    gristConfig.errPage === 'verified' ? createVerifiedPage(appModel) :
     gristConfig.errPage === 'not-found' ? createNotFoundPage(appModel, message) :
     gristConfig.errPage === 'access-denied' ? createForbiddenPage(appModel, message) :
     createOtherErrorPage(appModel, message);
@@ -52,18 +51,6 @@ export function createSignedOutPage(appModel: AppModel) {
     cssErrorText("You are now signed out."),
     cssButtonWrap(bigPrimaryButtonLink(
       'Sign in again', {href: getLoginUrl()}, testId('error-signin')
-    ))
-  ]);
-}
-
-/**
- * Creates a page that shows the user is verified.
- */
-export function createVerifiedPage(appModel: AppModel) {
-  return pagePanelsError(appModel, 'Verified', [
-    cssErrorText("Your email is now verified."),
-    cssButtonWrap(bigPrimaryButtonLink(
-      'Sign in', {href: getLoginUrl(getMainOrgUrl())}, testId('error-signin')
     ))
   ]);
 }

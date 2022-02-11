@@ -164,10 +164,12 @@ export const testId: TestId = makeTestId('test-');
 
 // Min width for normal screen layout (in px). Note: <768px is bootstrap's definition of small
 // screen (covers phones, including landscape, but not tablets).
+const largeScreenWidth = 992;
 const mediumScreenWidth = 768;
 const smallScreenWidth = 576;   // Anything below this is extra-small (e.g. portrait phones).
 
 // Fractional width for max-query follows https://getbootstrap.com/docs/4.0/layout/overview/#responsive-breakpoints
+export const mediaMedium = `(max-width: ${largeScreenWidth - 0.02}px)`;
 export const mediaSmall = `(max-width: ${mediumScreenWidth - 0.02}px)`;
 export const mediaNotSmall = `(min-width: ${mediumScreenWidth}px)`;
 export const mediaXSmall = `(max-width: ${smallScreenWidth - 0.02}px)`;

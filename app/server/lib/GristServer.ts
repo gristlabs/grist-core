@@ -4,6 +4,7 @@ import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import * as Comm from 'app/server/lib/Comm';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
@@ -23,6 +24,7 @@ export interface GristServer {
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getDocUrl(docId: string): Promise<string>;
   getOrgUrl(orgKey: string|number): Promise<string>;
+  getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
   getResourceUrl(resource: Organization|Workspace|Document): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
