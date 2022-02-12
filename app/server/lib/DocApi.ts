@@ -272,7 +272,7 @@ export class DocWorkerApi {
       const fieldNames = new Set<string>(_.flatMap(records, r => Object.keys(r.fields ?? {})));
       const result: BulkColValues = {};
       for (const fieldName of fieldNames) {
-        result[fieldName] = records.map(record => record.fields?.[fieldName] || null);
+        result[fieldName] = records.map(record => record.fields?.[fieldName] ?? null);
       }
       return result;
     }
