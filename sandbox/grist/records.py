@@ -38,8 +38,8 @@ class Record(object):
     Name: $group, rec.group
     Usage: __$group__
 
-    In a [summary table](https://support.getgrist.com/summary-tables/), `$group` is a special field 
-    containing the list of Records that are summarized by the current summary line.  E.g. the formula 
+    In a [summary table](summary-tables.md), `$group` is a special field
+    containing the list of Records that are summarized by the current summary line.  E.g. the formula
     `len($group)` counts the number of those records being summarized in each row.
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
