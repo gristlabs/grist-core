@@ -79,13 +79,18 @@ class UserTable(object):
   # and we decided camelCase was a more user-friendly choice for user-facing functions.
   def lookupRecords(self, **field_value_pairs):
     """
-    Returns the Records from this table that match the given field=value arguments. If
-    `sort_by=field` is given, sort the results by that field.
+    Name: lookupRecords
+    Usage: UserTable.__lookupRecords__(Field_In_Lookup_Table=value, ...)
+    Returns a [RecordSet](#recordset) matching the given field=value arguments. The value may be any expression,
+    most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
+    like `"Some Value"`) (examples below).
+    If `sort_by=field` is given, sort the results by that field.
 
     For example:
     ```
-    People.lookupRecords(Last_Name="Johnson", sort_by="First_Name")
+    People.lookupRecords(Email=$Work_Email)
     People.lookupRecords(First_Name="George", Last_Name="Washington")
+    People.lookupRecords(Last_Name="Johnson", sort_by="First_Name")
     ```
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
@@ -98,12 +103,17 @@ class UserTable(object):
 
   def lookupOne(self, **field_value_pairs):
     """
-    Returns a Record matching the given field=value arguments. If multiple records match, returns
-    one of them. If none match, returns the special empty record.
+    Name: lookupOne
+    Usage: UserTable.__lookupOne__(Field_In_Lookup_Table=value, ...)
+    Returns a [Record](#record) matching the given field=value arguments. The value may be any expression,
+    most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
+    like `"Some Value"`). If multiple records match, returns one of them. If none match, returns the
+    special empty record.
 
     For example:
     ```
     People.lookupOne(First_Name="Lewis", Last_Name="Carroll")
+    People.lookupOne(Email=$Work_Email)
     ```
     """
     return self.table.lookup_one_record(**field_value_pairs)

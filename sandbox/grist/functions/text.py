@@ -220,7 +220,9 @@ def LEFT(string, num_chars=1):
 
 def LEN(text):
   """
-  Returns the number of characters in a text string. Same as `len(text)`.
+  Returns the number of characters in a text string, or the number of items in a list. Same as
+  [`len`](https://docs.python.org/3/library/functions.html#len) in python.
+  See [Record Set](#recordset) for an example of using `len` on a list of records.
 
   >>> LEN("Phoenix, AZ")
   11
@@ -339,9 +341,9 @@ def REGEXREPLACE(text, regular_expression, replacement):
   return re.sub(regular_expression, replacement, text)
 
 
-def REPLACE(old_text, start_num, num_chars, new_text):
+def REPLACE(text, position, length, new_text):
   """
-  Replaces part of a text string with a different text string. Start_num is counted from 1.
+  Replaces part of a text string with a different text string. Position is counted from 1.
 
   >>> REPLACE("abcdefghijk", 6, 5, "*")
   'abcde*k'
@@ -354,11 +356,11 @@ def REPLACE(old_text, start_num, num_chars, new_text):
   >>> REPLACE('foo', 0, 1, 'bar')
   Traceback (most recent call last):
   ...
-  ValueError: start_num invalid
+  ValueError: position invalid
   """
-  if start_num < 1:
-    raise ValueError("start_num invalid")
-  return old_text[:start_num - 1] + new_text + old_text[start_num - 1 + num_chars:]
+  if position < 1:
+    raise ValueError("position invalid")
+  return text[:position - 1] + new_text + text[position - 1 + length:]
 
 
 def REPT(text, number_times):
