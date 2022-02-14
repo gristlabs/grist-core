@@ -1171,3 +1171,57 @@ class TestUserActions(test_engine.EngineTestCase):
          ["L", 2],
          "999",
        ]}]]})
+
+  def test_raw_view_section_restrictions(self):
+    # load_sample handles loading basic metadata, but doesn't create any view sections
+    self.load_sample(self.sample)
+    # Create a new table which automatically gets a raw view section
+    self.apply_user_action(["AddEmptyTable"])
+
+    # Note the row IDs of the raw view section (2) and fields (4, 5, 6)
+    self.assertTableData('_grist_Views_section', cols="subset", data=[
+      ["id",  "parentId", "tableRef"],
+      [1, 1, 2],
+      [2, 0, 2],  # the raw view section
+    ])
+    self.assertTableData('_grist_Views_section_field', cols="subset", data=[
+      ["id",  "parentId"],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+
+      # the raw view section
+      [4, 2],
+      [5, 2],
+      [6, 2],
+    ])
+
+    # Test that the records cannot be removed by normal user actions
+    with self.assertRaisesRegex(ValueError, "Cannot remove raw view section$"):
+      self.apply_user_action(["RemoveRecord", '_grist_Views_section', 2])
+    with self.assertRaisesRegex(ValueError, "Cannot remove raw view section field$"):
+      self.apply_user_action(["RemoveRecord", '_grist_Views_section_field', 4])
+
+    # and most of their column values can't be changed
+    with self.assertRaisesRegex(ValueError, "Cannot modify raw view section$"):
+      self.apply_user_action(["UpdateRecord", '_grist_Views_section', 2, {"parentId": 1}])
+    with self.assertRaisesRegex(ValueError, "Cannot modify raw view section fields$"):
+      self.apply_user_action(["UpdateRecord", '_grist_Views_section_field', 5, {"parentId": 1}])
+
+    # Confirm that the records are unchanged
+    self.assertTableData('_grist_Views_section', cols="subset", data=[
+      ["id",  "parentId", "tableRef"],
+      [1, 1, 2],
+      [2, 0, 2],  # the raw view section
+    ])
+    self.assertTableData('_grist_Views_section_field', cols="subset", data=[
+      ["id",  "parentId"],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+
+      # the raw view section
+      [4, 2],
+      [5, 2],
+      [6, 2],
+    ])

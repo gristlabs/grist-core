@@ -142,7 +142,7 @@ class TestUserActions(test_engine.EngineTestCase):
     # same formula that the new column has. Make sure that the new column is NOT used as
     # the display column.
     self.apply_user_action(['AddRecord', '_grist_Views_section_field', None, {
-      'parentId': 2,
+      'parentId': 3,
       'colRef': 25
     }])
     self.apply_user_action(['SetDisplayFormula', 'Favorites', 6, None, '$favorite.viewers'])

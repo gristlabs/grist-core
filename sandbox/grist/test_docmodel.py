@@ -168,8 +168,7 @@ class TestDocModel(test_engine.EngineTestCase):
     view = self.engine.docmodel.views.lookupOne(id=1)
     self.assertRecordSet(view.viewSections, [1, 5, 6])
 
-    self.engine.docmodel.remove(f for vs in table.viewSections for f in vs.fields)
-    self.engine.docmodel.remove(table.viewSections)
+    self.engine.docmodel.remove(set(table.viewSections) - {table.rawViewSectionRef})
     self.assertRecordSet(view.viewSections, [6])
 
 

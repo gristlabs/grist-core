@@ -375,14 +375,33 @@ class UserActions(object):
 
   #----------------------------------------
   # UpdateRecords & co.
-  #----------------------------------------
+  # ----------------------------------------
 
   def doBulkUpdateRecord(self, table_id, row_ids, columns):
     # Convert passed-in values to the column's correct types (or alttext, or errors) and trim any
     # unchanged values.
     action, extra_actions = self._engine.convert_action_values(
       actions.BulkUpdateRecord(table_id, row_ids, columns))
-    action = self._engine.trim_update_action(action)
+    action = [_, row_ids, column_values] = self._engine.trim_update_action(action)
+
+    # Prevent modifying raw data widgets and their fields
+    # This is done here so that the trimmed action can be checked,
+    # preventing spurious errors when columns are set to default values
+    if (
+        table_id == "_grist_Views_section"
+        and any(rec.isRaw for i, rec in self._bulk_action_iter(table_id, row_ids))
+        # Only these fields are allowed to be modified
+        and not set(column_values) <= {"title", "options", "sortColRefs"}
+    ):
+      raise ValueError("Cannot modify raw view section")
+
+    if (
+        table_id == "_grist_Views_section_field"
+        and any(rec.parentId.isRaw for i, rec in self._bulk_action_iter(table_id, row_ids))
+        # Only these fields are allowed to be modified
+        and not set(column_values) <= {"parentPos", "width"}
+    ):
+      raise ValueError("Cannot modify raw view section fields")
 
     # If any extra actions were generated (e.g. to adjust positions), apply them.
     for a in extra_actions:
@@ -393,7 +412,6 @@ class UserActions(object):
 
     # Invalidate trigger-formula columns affected by this update.
     table = self._engine.tables[table_id]
-    column_values = action[2]
     if column_values:     # Only if this is a non-trivial update.
       for col_id, col_obj in six.iteritems(table.all_columns):
         if col_obj.is_formula() or not col_obj.has_formula():
@@ -913,7 +931,8 @@ class UserActions(object):
     self._docmodel.remove(self._collect_back_references(remove_table_recs))
 
     # Remove all view sections and fields for all tables being removed.
-    self._docmodel.remove(vs for t in remove_table_recs for vs in t.viewSections)
+    # Bypass the check for raw data view sections.
+    self._doRemoveViewSectionRecords([vs for t in remove_table_recs for vs in t.viewSections])
 
     # TODO: we need sandbox-side tests for this logic and similar logic elsewhere that deals with
     # application-level relationships; it is not tested by testscript (nor should be, most likely;
@@ -981,7 +1000,9 @@ class UserActions(object):
     self._docmodel.update(re_sort_sections, sortColRefs=re_sort_specs)
 
     # Remove all view fields for all removed columns.
-    self._docmodel.remove([f for c in col_recs for f in c.viewFields])
+    # Bypass the check for raw data view sections.
+    field_ids = [f.id for c in col_recs for f in c.viewFields]
+    self.doBulkRemoveRecord("_grist_Views_section_field", field_ids)
 
     # If there is a displayCol, it may get auto-removed, but may first produce calc actions
     # triggered by the removal of this column. To avoid those, remove displayCols immediately.
@@ -1044,11 +1065,34 @@ class UserActions(object):
   def _removeViewSectionRecords(self, table_id, row_ids):
     """
     Remove view sections, including their fields.
+    Raises an error if trying to remove a table's rawViewSectionRef.
+    To bypass that check, call _doRemoveViewSectionRecords.
     """
-    view_section_recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
-    self._docmodel.remove(f for vs in view_section_recs for f in vs.fields)
-    self.doBulkRemoveRecord(table_id, row_ids)
+    recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
+    for rec in recs:
+      if rec.isRaw:
+        raise ValueError("Cannot remove raw view section")
+    self._doRemoveViewSectionRecords(recs)
 
+  def _doRemoveViewSectionRecords(self, recs):
+    """
+    Remove view sections, including their fields, without checking for raw view sections.
+    """
+    self.doBulkRemoveRecord('_grist_Views_section_field', [f.id for vs in recs for f in vs.fields])
+    self.doBulkRemoveRecord('_grist_Views_section', [r.id for r in recs])
+
+  @override_action('BulkRemoveRecord', '_grist_Views_section_field')
+  def _removeViewSectionFieldRecords(self, table_id, row_ids):
+    """
+    Remove view sections, including their fields.
+    Raises an error if trying to remove a field of a table's rawViewSectionRef,
+    i.e. hiding a column in a raw data widget.
+    """
+    recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
+    for rec in recs:
+      if rec.parentId.isRaw:
+        raise ValueError("Cannot remove raw view section field")
+    self.doBulkRemoveRecord(table_id, row_ids)
 
   #----------------------------------------
   # User actions on columns.
@@ -1671,18 +1715,6 @@ class UserActions(object):
   #--------------------------------------------------------------------------------
   # Methods for creating and maintaining default views. This is a work-in-progress.
   #--------------------------------------------------------------------------------
-
-  def _UpdateViews(self, table_id):
-    """
-    Updates records for default Views to include those fields that they should include by default
-    (such as all fields for the Raw View, and first 4 fields for 'list' section of List View).
-    """
-    table_row_id = self._engine.tables['_grist_Tables'].get(tableId=table_id)
-    meta_view_sections = self._engine.tables['_grist_Views_section']
-    for view_section_row_id in meta_view_sections.filter(tableRef=table_row_id):
-      parent_key = meta_view_sections.all_columns['parentKey'].raw_get(view_section_row_id)
-      limit = 4 if parent_key == 'list' else None
-      self._RebuildViewFields(table_id, view_section_row_id, limit=limit)
 
   def _RebuildViewFields(self, table_id, section_row_id, limit=None):
     """

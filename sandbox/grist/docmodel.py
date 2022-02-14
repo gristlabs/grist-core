@@ -105,6 +105,9 @@ class MetaTableExtras(object):
   class _grist_Views_section(object):
     fields = _record_set('_grist_Views_section_field', 'parentId', sort_by='parentPos')
 
+    def isRaw(rec, table):
+      return rec.tableRef.rawViewSectionRef == rec
+
   class _grist_Filters(object):
     def setAutoRemove(rec, table):
       """Marks the filter for removal if its column no longer exists."""
