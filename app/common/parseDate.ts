@@ -104,11 +104,8 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
   if (!date) {
     return null;
   }
-  const dateFormats = PARSER_FORMATS.slice();
-  // If a preferred parse format is given, set that to be the first parser used.
-  if (options.dateFormat) {
-    dateFormats.unshift(..._buildVariations(options.dateFormat, date));
-  }
+  const dateFormat = options.dateFormat || "YYYY-MM-DD";
+  const dateFormats = [..._buildVariations(dateFormat, date), ...PARSER_FORMATS];
   const cleanDate = date.replace(SEPARATORS, ' ');
   let datetime = cleanDate.trim();
   let timeformat = '';
@@ -148,11 +145,8 @@ export function parseDateStrict(
   if (!date) {
     return;
   }
-  const dateFormats = [];
-  if (dateFormat) {
-    dateFormats.push(..._buildVariations(dateFormat, date));
-  }
-  dateFormats.push(...UNAMBIGUOUS_FORMATS);
+  dateFormat = dateFormat || "YYYY-MM-DD";
+  const dateFormats = [..._buildVariations(dateFormat, date), ...UNAMBIGUOUS_FORMATS];
   const cleanDate = date.replace(SEPARATORS, ' ').trim();
   for (const format of dateFormats) {
     const m = moment.tz(cleanDate, format, true, timezone);
@@ -173,7 +167,7 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
     return;
   }
 
-  const dateFormat = options.dateFormat || null;
+  const dateFormat = options.dateFormat || "YYYY-MM-DD";
   const timezone = options.timezone || "UTC";
 
   const dateOnly = parseDateStrict(dateTime, dateFormat, undefined, timezone);
