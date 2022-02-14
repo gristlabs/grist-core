@@ -20,7 +20,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 // Database fields that we permit in entities but don't want to cross the api.
 const INTERNAL_FIELDS = new Set(['apiKey', 'billingAccountId', 'firstLoginAt', 'filteredOut', 'ownerId',
                                  'stripeCustomerId', 'stripeSubscriptionId', 'stripePlanId',
-                                 'stripeProductId', 'userId', 'isFirstTimeUser']);
+                                 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin']);
 
 /**
  * Adapt a home-server or doc-worker URL to match the hostname in the request URL. For custom
@@ -159,11 +159,20 @@ export function addPermit(scope: Scope, userId: number, specialPermit: Permit): 
   return {...scope, ...(scope.userId === userId ? {specialPermit} : {})};
 }
 
+export interface SendReplyOptions {
+  allowedFields?: Set<string>;
+}
+
 // Return a JSON response reflecting the output of a query.
 // Filter out keys we don't want crossing the api.
 // Set req to null to not log any information about request.
-export async function sendReply<T>(req: Request|null, res: Response, result: QueryResult<T>) {
-  const data = pruneAPIResult(result.data || null);
+export async function sendReply<T>(
+  req: Request|null,
+  res: Response,
+  result: QueryResult<T>,
+  options: SendReplyOptions = {},
+) {
+  const data = pruneAPIResult(result.data || null, options.allowedFields);
   if (shouldLogApiDetails && req) {
     const mreq = req as RequestWithLogin;
     log.rawDebug('api call', {
@@ -183,11 +192,16 @@ export async function sendReply<T>(req: Request|null, res: Response, result: Que
   }
 }
 
-export async function sendOkReply<T>(req: Request|null, res: Response, result?: T) {
-  return sendReply(req, res, {status: 200, data: result});
+export async function sendOkReply<T>(
+  req: Request|null,
+  res: Response,
+  result?: T,
+  options: SendReplyOptions = {}
+) {
+  return sendReply(req, res, {status: 200, data: result}, options);
 }
 
-export function pruneAPIResult<T>(data: T): T {
+export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
   // TODO: This can be optimized by pruning data recursively without serializing in between. But
   // it's fairly fast even with serializing (on the order of 15usec/kb).
   const output = JSON.stringify(data,
@@ -197,6 +211,8 @@ export function pruneAPIResult<T>(data: T): T {
       if (key === 'removedAt' && value === null) { return undefined; }
       // Don't bother sending option fields if there are no options set.
       if (key === 'options' && value === null) { return undefined; }
+      // Don't prune anything that is explicitly allowed.
+      if (allowedFields?.has(key)) { return value; }
       return INTERNAL_FIELDS.has(key) ? undefined : value;
     });
   return JSON.parse(output);

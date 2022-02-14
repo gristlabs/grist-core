@@ -131,6 +131,12 @@ export interface Document extends DocumentProperties {
   trunkAccess?: roles.Role|null;
 }
 
+// Non-core options for a user.
+export interface UserOptions {
+  // Whether signing in with Google is allowed. Defaults to true if unset.
+  allowGoogleLogin?: boolean;
+}
+
 export interface PermissionDelta {
   maxInheritedRole?: roles.BasicRole|null;
   users?: {
@@ -357,6 +363,7 @@ export interface UserAPI {
   getUserProfile(): Promise<FullUser>;
   getUserMfaPreferences(): Promise<UserMFAPreferences>;
   updateUserName(name: string): Promise<void>;
+  updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
   getBillingAPI(): BillingAPI;
@@ -650,6 +657,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
       body: JSON.stringify({name})
+    });
+  }
+
+  public async updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void> {
+    await this.request(`${this._url}/api/profile/allowGoogleLogin`, {
+      method: 'POST',
+      body: JSON.stringify({allowGoogleLogin})
     });
   }
 

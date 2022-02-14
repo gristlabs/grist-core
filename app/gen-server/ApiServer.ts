@@ -345,7 +345,7 @@ export class ApiServer {
     // Get user's profile
     this._app.get('/api/profile/user', expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
-      return sendOkReply(req, res, fullUser);
+      return sendOkReply(req, res, fullUser, {allowedFields: new Set(['allowGoogleLogin'])});
     }));
 
     // POST /api/profile/user/name
@@ -358,6 +358,24 @@ export class ApiServer {
       }
       const name = req.body.name;
       await this._dbManager.updateUserName(userId, name);
+      res.sendStatus(200);
+    }));
+
+    // POST /api/profile/allowGoogleLogin
+    // Update user's preference for allowing Google login.
+    this._app.post('/api/profile/allowGoogleLogin', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const fullUser = await this._getFullUser(req);
+      if (fullUser.loginMethod !== 'Email + Password') {
+        throw new ApiError('Only users signed in via email can enable/disable Google login', 401);
+      }
+
+      const allowGoogleLogin: boolean | undefined = req.body.allowGoogleLogin;
+      if (allowGoogleLogin === undefined) {
+        throw new ApiError('Missing body param: allowGoogleLogin', 400);
+      }
+
+      await this._dbManager.updateUserOptions(userId, {allowGoogleLogin});
       res.sendStatus(200);
     }));
 
@@ -471,11 +489,15 @@ export class ApiServer {
   private async _getFullUser(req: Request): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
     const userId = getUserId(mreq);
-    const fullUser = await this._dbManager.getFullUser(userId);
+    const user = await this._dbManager.getUser(userId);
+    if (!user) { throw new ApiError("unable to find user", 400); }
+
+    const fullUser = this._dbManager.makeFullUser(user);
     const domain = getOrgFromRequest(mreq);
     const sessionUser = getSessionUser(mreq.session, domain || '', fullUser.email);
     const loginMethod = sessionUser && sessionUser.profile ? sessionUser.profile.loginMethod : undefined;
-    return {...fullUser, loginMethod};
+    const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
+    return {...fullUser, loginMethod, allowGoogleLogin};
   }
 }
 

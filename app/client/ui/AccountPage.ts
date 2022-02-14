@@ -10,6 +10,7 @@ import {transientInput} from 'app/client/ui/transientInput';
 import {buildNameWarningsDom, checkName} from 'app/client/ui/WelcomePage';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/breadcrumbs';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalBody, cssModalButtons, cssModalTitle, modal} from 'app/client/ui2018/modals';
 import {colors, vars} from 'app/client/ui2018/cssVars';
@@ -28,6 +29,8 @@ export class AccountPage extends Disposable {
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, '');
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
+  private _allowGoogleLogin = Computed.create(this, (use) => use(this._userObs)?.allowGoogleLogin ?? false)
+    .onWrite((val) => this._updateAllowGooglelogin(val));
 
   constructor(private _appModel: AppModel) {
     super();
@@ -98,6 +101,14 @@ export class AccountPage extends Disposable {
           testId('login-method'),
         ),
         user.loginMethod !== 'Email + Password' ? null : dom.frag(
+          cssDataRow(
+            labeledSquareCheckbox(
+              this._allowGoogleLogin,
+              'Allow signing in to this account with Google',
+              testId('allow-google-login-checkbox'),
+            ),
+            testId('allow-google-login'),
+          ),
           cssSubHeaderFullWidth('Two-factor authentication'),
           cssDescription(
             "Two-factor authentication is an extra layer of security for your Grist account designed " +
@@ -163,10 +174,14 @@ export class AccountPage extends Disposable {
 
   private async _fetchAll() {
     await Promise.all([
-      this._fetchUserMfaPreferences(),
       this._fetchApiKey(),
       this._fetchUserProfile(),
     ]);
+
+    const user = this._userObs.get();
+    if (user?.loginMethod === 'Email + Password') {
+      await this._fetchUserMfaPreferences();
+    }
   }
 
   private async _updateUserName(val: string) {
@@ -175,6 +190,11 @@ export class AccountPage extends Disposable {
 
     await this._appModel.api.updateUserName(val);
     await this._fetchAll();
+  }
+
+  private async _updateAllowGooglelogin(allowGoogleLogin: boolean) {
+    await this._appModel.api.updateAllowGoogleLogin(allowGoogleLogin);
+    await this._fetchUserProfile();
   }
 }
 

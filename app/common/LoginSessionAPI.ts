@@ -11,6 +11,7 @@ export interface UserProfile {
 // have been validated against database.
 export interface FullUser extends UserProfile {
   id: number;
+  allowGoogleLogin?: boolean; // when present, specifies whether logging in via Google is possible.
 }
 
 export interface LoginSessionAPI {

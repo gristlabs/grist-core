@@ -11,6 +11,7 @@ import * as roles from 'app/common/roles';
 import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL, getRealAccess,
         ManagerDelta, NEW_DOCUMENT_CODE, OrganizationProperties,
         Organization as OrgInfo, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
+        UserOptions,
         WorkspaceProperties} from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
@@ -429,6 +430,15 @@ export class HomeDBManager extends EventEmitter {
     const user = await User.findOne(userId);
     if (!user) { throw new ApiError("unable to find user", 400); }
     user.name = name;
+    await user.save();
+  }
+
+  public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
+    const user = await User.findOne(userId);
+    if (!user) { throw new ApiError("unable to find user", 400); }
+
+    const newOptions = {...(user.options ?? {}), ...props};
+    user.options = newOptions;
     await user.save();
   }
 

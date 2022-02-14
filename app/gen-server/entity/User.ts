@@ -1,3 +1,5 @@
+import {UserOptions} from 'app/common/UserAPI';
+import {nativeValues} from 'app/gen-server/lib/values';
 import {BaseEntity, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
         PrimaryGeneratedColumn} from "typeorm";
 
@@ -41,6 +43,9 @@ export class User extends BaseEntity {
 
   @Column({name: 'is_first_time_user', default: false})
   public isFirstTimeUser: boolean;
+
+  @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})
+  public options: UserOptions | null;
 
   /**
    * Get user's email.  Returns undefined if logins has not been joined, or no login
