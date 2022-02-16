@@ -502,8 +502,8 @@ def N(value):
 
 def CURRENT_CONVERSION(rec):
   """
-  Special function used only when changing the type of a column.
-  Doesn't work in normal formulas.
+  Internal function used by Grist during column type conversions. Not available for use in
+  formulas.
   """
   return rec.gristHelper_Converted
 
