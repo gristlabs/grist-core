@@ -24,6 +24,9 @@ export function gristLink(href: string|Observable<string>, ...args: IDomArgs<HTM
     dom.attr("href", href),
     dom.attr("target", "_blank"),
     dom.on("click", ev => onClickHyperLink(ev, typeof href === 'string' ? href : href.get())),
+    // stop propagation to prevent the grist custom context menu to show up and let the default one
+    // to show up instead.
+    dom.on("contextmenu", ev => ev.stopPropagation()),
     // As per Google and Mozilla recommendations to prevent opened links
     // from running on the same process as Grist:
     // https://developers.google.com/web/tools/lighthouse/audits/noopener

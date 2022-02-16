@@ -8,7 +8,7 @@
  *   `dom.on('contextmenu', ev => ev.preventDefault())`
  */
 import { Disposable, dom, DomArg, DomContents, Holder } from "grainjs";
-import { cssMenuElem } from 'app/client/ui2018/menus';
+import { cssMenuElem, registerMenuOpen } from 'app/client/ui2018/menus';
 import { IOpenController, Menu } from 'popweasel';
 
 export type IContextMenuContentFunc = (ctx: ContextMenuController) => DomContents;
@@ -50,6 +50,8 @@ class ContextMenuController extends Disposable implements IOpenController {
       dom.domDispose(content);
       content.remove();
     });
+
+    registerMenuOpen(this);
   }
 
   public close() {

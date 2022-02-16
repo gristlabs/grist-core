@@ -17,11 +17,28 @@ export interface IOptionFull<T> {
   icon?: IconName;
 }
 
+let _lastOpenedController: weasel.IOpenController|null = null;
+
+// Close opened menu if any, otherwise do nothing.
+export function closeRegisteredMenu() {
+  if (_lastOpenedController) { _lastOpenedController.close(); }
+}
+
+// Register `ctl` to make sure it is closed when `closeMenu()` is called.
+export function registerMenuOpen(ctl: weasel.IOpenController) {
+  _lastOpenedController = ctl;
+  ctl.onDispose(() => _lastOpenedController = null);
+}
+
 // For string options, we can use a string for label and value without wrapping into an object.
 export type IOption<T> = (T & string) | IOptionFull<T>;
 
 export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOptions): DomElementMethod {
-  return weasel.menu(createFunc, {...defaults, ...options});
+  const wrappedCreateFunc = (ctl: weasel.IOpenController) => {
+    registerMenuOpen(ctl);
+    return createFunc(ctl);
+  };
+  return weasel.menu(wrappedCreateFunc, {...defaults, ...options});
 }
 
 // TODO Weasel doesn't allow other options for submenus, but probably should.

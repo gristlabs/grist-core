@@ -20,6 +20,7 @@ import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 import {AccessLevel} from 'app/common/CustomWidget';
+import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -218,6 +219,8 @@ export class CustomView extends Disposable {
         if (!this.viewSection.isDisposed() && !this.viewSection.hasFocus()) {
           this.viewSection.hasFocus(true);
         }
+        // allow menus to close if any
+        closeRegisteredMenu();
       })
     });
 

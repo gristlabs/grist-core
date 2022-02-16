@@ -29,7 +29,7 @@ const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 
 // Grist UI Components
 const {dom: grainjsDom, Holder, Computed} = require('grainjs');
-const {menu} = require('../ui2018/menus');
+const {closeRegisteredMenu, menu} = require('../ui2018/menus');
 const {calcFieldsCondition} = require('../ui/GridViewMenus');
 const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
 const {RowContextMenu} = require('../ui/RowContextMenu');
@@ -273,7 +273,7 @@ GridView.gridCommands = {
 
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
-  editField: function() { this.scrollToCursor(true); this.activateEditorAtCursor(); },
+  editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
   deleteRecords: function() {
     const saved = this.cursor.getCursorPos();

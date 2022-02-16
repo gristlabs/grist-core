@@ -22,6 +22,7 @@ const {copyToClipboard} = require('app/client/lib/copyToClipboard');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
+const {closeRegisteredMenu} = require('app/client/ui2018/menus');
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -219,7 +220,7 @@ BaseView.commonCommands = {
     this.scrollToCursor(true).catch(reportError);
     this.activateEditorAtCursor({init});
   },
-  editField: function() { this.scrollToCursor(true); this.activateEditorAtCursor(); },
+  editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
   insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
   insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
