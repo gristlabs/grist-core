@@ -1,7 +1,6 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportWarning} from 'app/client/models/errors';
 import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
@@ -255,13 +254,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     }
     // Loop through the members and update the delta.
     for (const m of members) {
-      let access = m.access.get();
-      if (m === this.publicMember && access === roles.EDITOR && this.gristDoc?.hasGranularAccessRules()) {
-        access = roles.VIEWER;
-        if (!options?.silent) {
-          reportWarning('Public "Editor" access is incompatible with Access Rules. Reduced to "Viewer".');
-        }
-      }
+      const access = m.access.get();
       if (!roles.isValidRole(access)) {
         if (!options?.silent) {
           throw new Error(`Cannot update user to invalid role ${access}`);

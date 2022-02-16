@@ -36,10 +36,8 @@ import {
 } from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isObject} from 'app/common/gutil';
-import * as roles from 'app/common/roles';
 import {SchemaTypes} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, getRealAccess} from 'app/common/UserAPI';
 import {
   BaseObservable,
   Computed,
@@ -115,8 +113,6 @@ export class AccessRules extends Disposable {
 
   private _aclUsersPopup = ACLUsersPopup.create(this);
 
-  private _publicEditAccess = Observable.create(this, false);
-
   constructor(private _gristDoc: GristDoc) {
     super();
     this._ruleStatus = Computed.create(this, (use) => {
@@ -137,7 +133,7 @@ export class AccessRules extends Disposable {
     });
 
     this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) =>
-      (s === RuleStatus.ChangedValid) && !use(this._publicEditAccess));
+      (s === RuleStatus.ChangedValid));
 
     this._userAttrChoices = Computed.create(this, this._userAttrRules, (use, rules) => {
       const result: IAttrOption[] = [
@@ -341,10 +337,6 @@ export class AccessRules extends Disposable {
           dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
       cssConditionError({style: 'margin-left: 16px'},
-        dom.maybe(this._publicEditAccess, () => dom('div',
-          'Public "Editor" access is incompatible with Access Rules. ' +
-          'To set rules, remove it or reduce to "Viewer".'
-        )),
         dom.text(this._errorMessage),
         testId('access-rules-error')
       ),
@@ -469,16 +461,6 @@ export class AccessRules extends Disposable {
     if (this.isDisposed()) { return; }
 
     this._aclUsersPopup.init(pageModel, permissionData);
-
-    // We do not allow Public Editor access in combination with Granular ACL rules. When
-    // _publicEditAccess is on, we show a warning and prevent saving rules.
-    if (permissionData) {
-      const publicEditAccess = permissionData.users.some(user => (
-        (user.email === EVERYONE_EMAIL || user.email === ANONYMOUS_USER_EMAIL) &&
-        roles.canEdit(getRealAccess(user, permissionData))
-      ));
-      this._publicEditAccess.set(publicEditAccess);
-    }
   }
 }
 
