@@ -73,6 +73,13 @@ export const docApi: GristDocAPI & GristView = {
 
 export const on = rpc.on.bind(rpc);
 
+// Exposing widgetApi methods in a module scope.
+export const getOption = widgetApi.getOption.bind(widgetApi);
+export const setOption = widgetApi.setOption.bind(widgetApi);
+export const setOptions = widgetApi.setOptions.bind(widgetApi);
+export const getOptions = widgetApi.getOptions.bind(widgetApi);
+export const clearOptions = widgetApi.clearOptions.bind(widgetApi);
+
 // For custom widgets that support custom columns mappings store current configuration
 // in a memory.
 
