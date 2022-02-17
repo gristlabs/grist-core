@@ -60,7 +60,7 @@ or browse [our extensive documentation](https://support.getgrist.com).
 
 There are docker images set up for individual use, or (with some
 configuration) for self-hosting. Grist Labs offers a hosted service
-at [https://docs.getgrist.com](docs.getgrist.com).
+at [https://docs.getgrist.com](https://docs.getgrist.com).
 
 To run Grist running on your computer with [Docker](https://www.docker.com/get-started), do:
 
