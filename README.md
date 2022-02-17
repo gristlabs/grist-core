@@ -60,7 +60,7 @@ or browse [our extensive documentation](https://support.getgrist.com).
 
 There are docker images set up for individual use, or (with some
 configuration) for self-hosting. Grist Labs offers a hosted service
-at [https://docs.getgrist.com](https://docs.getgrist.com).
+at [docs.getgrist.com](https://docs.getgrist.com).
 
 To run Grist running on your computer with [Docker](https://www.docker.com/get-started), do:
 
@@ -76,10 +76,10 @@ and export documents. To preserve your work across docker runs, share a director
 docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
 ```
 
-Get templates at https://templates.getgrist.com/ for payroll,
+Get templates at [templates.getgrist.com](https://templates.getgrist.com) for payroll,
 inventory management, invoicing, D&D encounter tracking, and a lot
 more, or use any document you've created on
-[https://docs.getgrist.com](docs.getgrist.com).
+[docs.getgrist.com](https://docs.getgrist.com).
 
 If you need to change the port Grist runs on, set a `PORT` variable, don't just change the
 port mapping:
