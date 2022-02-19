@@ -349,7 +349,7 @@ export class ActiveDocImport {
         hiddenTableId: createdTableId, // TODO: rename thing?
         uploadFileIndex,
         origTableName,
-        transformSectionRef, // TODO: this shouldnt always be needed, and we only get it if genimporttransform
+        transformSectionRef, // TODO: this shouldn't always be needed, and we only get it if genimporttransform
         destTableId
       });
     }

@@ -20,7 +20,7 @@ const cssWrapper = styled('div', `
 `);
 
 export const cssLabelText = styled(rawTextInput, `
-  /* Reset apperance */
+  /* Reset appearance */
   -webkit-appearance: none;
   -moz-appearance: none;
   padding: 0;

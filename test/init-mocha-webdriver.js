@@ -7,7 +7,7 @@
 
 // This determines when a failed assertion shows a diff with details or
 // "expected [ Array(3) ] to deeply equal [ Array(3) ]".
-// Increase the threshhold since the default (of 40 characters) is often too low.
+// Increase the threshold since the default (of 40 characters) is often too low.
 // You can override it using CHAI_TRUNCATE_THRESHOLD env var; 0 disables it.
 require('chai').config.truncateThreshold = process.env.CHAI_TRUNCATE_THRESHOLD ?
   parseFloat(process.env.CHAI_TRUNCATE_THRESHOLD) : 200;

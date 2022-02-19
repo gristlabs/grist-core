@@ -66,7 +66,7 @@ export class PluginManager {
   }
 
   /**
-   * Re-load plugins (litterally re-run `loadPlugins`).
+   * Re-load plugins (literally re-run `loadPlugins`).
    */
   // TODO: it's not clear right now what we do on reload. Do we deactivate plugins that were removed
   // from the fs? Do we update plugins that have changed on the fs ?

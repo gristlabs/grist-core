@@ -91,7 +91,7 @@ const testId = makeTestId('test-treeview-');
  * item and by highlighting its parent. In order to ensure data consistency, the component prevents
  * dropping an item within its own children. If the cursor leaves the component during a drag, all
  * such visual artifact (handle, target and target's parent) are hidden, but if the cursor re-enter
- * the componet without releasing the mouse, they will show again allowing user to resume dragging.
+ * the component without releasing the mouse, they will show again allowing user to resume dragging.
  */
  // note to self: in the future the model will be updated by the server, which could cause conflicts
  // if the user is dragging at the same time. It could be simpler to freeze the model and to differ
@@ -125,7 +125,7 @@ export class TreeViewComponent extends Disposable {
 
     // While building dom we add listeners to the children of all tree nodes to watch for changes
     // and call this._update. Hence, repeated calls to this._update is likely to add or remove
-    // listeners to the observable that triggered the udpate which is not supported by grainjs and
+    // listeners to the observable that triggered the update which is not supported by grainjs and
     // could fail (possibly infinite loop). Debounce allows for several change to resolve to a
     // single update.
     this._update = debounce(this._update.bind(this), 0, {leading: false});
@@ -230,7 +230,7 @@ export class TreeViewComponent extends Disposable {
 
   // Update this._childrenDom with the content of the new tree. Its rebuilds entirely the tree of
   // items and reuses dom from the old content for each item that were already part of the old
-  // tree. Then takes care of disposing dom for thoses items that were removed from the old tree.
+  // tree. Then takes care of disposing dom for those items that were removed from the old tree.
   private _update() {
     this._childrenDom.set(this._buildChildren(this._model.get().children(), 0));
 

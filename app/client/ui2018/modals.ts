@@ -22,7 +22,7 @@ export interface IModalControl {
   // Returns true if closed, false if closing was prevented.
   closeAndWait(): Promise<boolean>;
 
-  // Prevents closing, if close has been called ans is pending. No-op otherwise.
+  // Prevents closing, if close has been called and is pending. No-op otherwise.
   preventClose(): void;
 
   // Wraps the passed-in function, so that closing is delayed while the function is running. If

@@ -174,7 +174,7 @@ export class SamlConfig {
       if (state.action === 'login') {
         const samlUser = samlResponse.user;
         if (!samlUser || !samlUser.name_id) {
-          log.warn(`SamlConfig: bad SAML reponse: ${JSON.stringify(samlUser)}`);
+          log.warn(`SamlConfig: bad SAML response: ${JSON.stringify(samlUser)}`);
           throw new Error("Invalid user info in SAML response");
         }
 

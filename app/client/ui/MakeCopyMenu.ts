@@ -90,7 +90,7 @@ function allowOtherOrgs(doc: Document, app: AppModel): boolean {
 
 
 /**
- * Ask user for the desination and new name, and make a copy of the doc using those.
+ * Ask user for the destination and new name, and make a copy of the doc using those.
  */
 export async function makeCopy(doc: Document, app: AppModel, modalTitle: string): Promise<void> {
   if (!app.currentValidUser) {

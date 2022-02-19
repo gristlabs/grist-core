@@ -320,7 +320,7 @@ export class Sharing {
         isModification: sandboxActionBundle.stored.length > 0
       };
     } finally {
-      // Make sure the bundle is marked as complete, even if some miscellaneous error occured.
+      // Make sure the bundle is marked as complete, even if some miscellaneous error occurred.
       await accessControl.finishedBundle();
     }
   }

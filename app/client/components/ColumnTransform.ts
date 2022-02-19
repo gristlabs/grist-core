@@ -97,7 +97,7 @@ export class ColumnTransform extends Disposable {
   }
 
   /**
-   * Helper called by contructor to prepare the column transform.
+   * Helper called by constructor to prepare the column transform.
    * @param {String} colType: A pure or complete type for the transformed column.
    */
   public async prepare(optColType?: string) {
@@ -156,7 +156,7 @@ export class ColumnTransform extends Disposable {
   }
 
   /**
-   * Adds the tranform column and returns its colRef. May be overridden by derived classes to create
+   * Adds the transform column and returns its colRef. May be overridden by derived classes to create
    * differently-prepared transform columns.
    * @param {String} colType: A pure or complete type for the transformed column.
    */

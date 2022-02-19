@@ -2,7 +2,7 @@
  * InactivityTimer allows to set a function that executes after a certain time of
  * inactivity. Activities can be of two kinds: synchronous or asynchronous. Asynchronous activities,
  * are handle with the `disableUntiFinish` method that takes in a Promise and makes sure that the
- * timer does not start before the promise resolves. Synchroneous activities are monitored with the
+ * timer does not start before the promise resolves. Synchronous activities are monitored with the
  * `ping` method which resets the timer if called during inactivity.
  *
  * Timer won't start before any activity happens, but you may simply call ping() after construction

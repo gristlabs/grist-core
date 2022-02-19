@@ -207,7 +207,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
  * On user clicks, if checkbox is checked, it does uncheck all the values, and if the
  * `switchFilterType` is true it also converts the filter into an inclusion filter. But if the
  * checkbox is unchecked, or in the Indeterminate state, it does check all the values, and if the
- * `switchFilterType` is true it also converts the filter into an exlusion filter.
+ * `switchFilterType` is true it also converts the filter into an exclusion filter.
  */
 function buildSummary(label: string|Computed<string>, values: Array<[CellValue, IFilterCount]>,
                       switchFilterType: boolean, model: ColumnFilterMenuModel) {

@@ -194,7 +194,7 @@ export class MFAConfig extends Disposable {
               return [
                 this._buildSecurityVerificationForm(ctl, {onSuccess: async (hadSecondStep) => {
                   /**
-                   * If method was unspecified, but second step verification occured, we know that
+                   * If method was unspecified, but second step verification occurred, we know that
                    * the client doesn't have up-to-date 2FA preferences. Close the modal, and force
                    * a refresh of UserMFAPreferences, which should cause the correct buttons to be
                    * rendered once preferences are loaded.

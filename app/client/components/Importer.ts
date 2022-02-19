@@ -351,7 +351,7 @@ export class Importer extends DisposableWithEvents {
       destTableId,
       destCols: transformFields.map<TransformColumn>((field) => ({
         label: field.label(),
-        colId: destTableId ? field.colId() : null, // if inserting into new table, colId isnt defined
+        colId: destTableId ? field.colId() : null, // if inserting into new table, colId isn't defined
         type: field.column().type(),
         formula: field.column().formula()
       })),

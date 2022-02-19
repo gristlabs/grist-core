@@ -3,7 +3,7 @@ import test_engine
 
 class TestFindCol(test_engine.EngineTestCase):
   def test_find_col_from_values(self):
-    # Test basic funtionality.
+    # Test basic functionality.
     self.load_sample(testsamples.sample_students)
     self.assertEqual(self.engine.find_col_from_values(("Columbia", "Yale", "Eureka"), 0),
         [4, 10])

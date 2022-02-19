@@ -610,7 +610,7 @@ GridView.prototype.assignCursor = function(elem, elemType) {
 };
 
 /**
- * Schedules cursor assignement to happen at end of tick. Calling `preventAssignCursor()` before
+ * Schedules cursor assignment to happen at end of tick. Calling `preventAssignCursor()` before
  * prevents assignment to happen. This was added to prevent cursor assignment on a `context click`
  * on a cell that is already selected.
  */

@@ -482,7 +482,7 @@ export function assertAccess(
 }
 
 /**
- * Pull out headers to pass along to a proxied service.  Focussed primarily on
+ * Pull out headers to pass along to a proxied service.  Focused primarily on
  * authentication.
  */
 export function getTransitiveHeaders(req: Request): {[key: string]: string} {

@@ -75,7 +75,7 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     }
 
     // if user removes a primary view, let's confirm first, because this will remove the
-    // corresponsing table and also all pages that are using this table.
+    // corresponding table and also all pages that are using this table.
     // TODO: once we have raw table view, removing page should remove just the view (not the
     // table), but for now this is the only way to remove a table in the newui.
     actions.onRemove = () => confirmModal(
