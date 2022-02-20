@@ -146,7 +146,7 @@ export async function uploadFiles(
 }
 
 /**
- * Fetches ressource from a url and returns an UploadResult. Tries to fetch from the client and
+ * Fetches resource from a url and returns an UploadResult. Tries to fetch from the client and
  * upload the file to the server. If unsuccessful, tries to fetch directly from the server. In both
  * case, it guesses the name of the file based on the response's content-type and the url.
  */

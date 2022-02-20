@@ -91,7 +91,7 @@ export abstract class NewBaseEditor extends Disposable {
   public abstract getCellValue(): CellValue;
 
   /**
-   * Used if an editor needs preform any actions before a save
+   * Used if an editor needs perform any actions before a save
    */
   public prepForSave(): void | Promise<void> {
     // No-op by default.

@@ -28,7 +28,7 @@ import toPairs = require('lodash/toPairs');
  * removal of a table (or column) as the special name pair [finalName, null].
  *
  * An ActionSummary contains two fields:
- *   - tableRenames: a list of table name changes (incuding addition/removal).
+ *   - tableRenames: a list of table name changes (including addition/removal).
  *   - tableDeltas: a dictionary of changes within a table.
  *
  * The key of the tableDeltas dictionary is the name of a table at the end of the
@@ -45,7 +45,7 @@ import toPairs = require('lodash/toPairs');
  *
  * The changes within a table are represented as a TableDelta, which has the following
  * fields:
- *   - columnRenames: a list of column name changes (incuding addition/removal).
+ *   - columnRenames: a list of column name changes (including addition/removal).
  *   - columnDeltas: a dictionary of changes within a column.
  *   - updateRows, removeRows, addRows: lists of affected rows.
  *

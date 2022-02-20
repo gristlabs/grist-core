@@ -68,7 +68,7 @@ class TestRenames2(test_engine.EngineTestCase):
       [ 4,      "CheckersA" , 5,          1         ],
     ])
 
-    # This was just setpu. Now create some crazy formulas that overuse referenes in crazy ways.
+    # This was just setpu. Now create some crazy formulas that overuse references in crazy ways.
     self.partner_names = textwrap.dedent(
       """
       games = Entries.lookupRecords(person=$id).game

@@ -56,7 +56,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
     } else if (err && (err.status === 401 || err.status === 403)) {
       // Generally give access denied error.
       // The exception is for document pages, where we want to allow access to documents
-      // shared publically without being shared specifically with the current user.
+      // shared publicly without being shared specifically with the current user.
       if (appModel.pageType.get() !== 'doc') {
         return createForbiddenPage(appModel);
       }

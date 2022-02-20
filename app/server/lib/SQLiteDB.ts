@@ -114,7 +114,7 @@ export type DBFunc = (db: SQLiteDB) => Promise<void>;
 export enum OpenMode {
   OPEN_CREATE,      // Open DB or create if doesn't exist (the default mode for sqlite3 module)
   OPEN_EXISTING,    // Open DB or fail if doesn't exist
-  OPEN_READONLY,    // Open DB in read-only mode or fail if doens't exist.
+  OPEN_READONLY,    // Open DB in read-only mode or fail if doesn't exist.
   CREATE_EXCL,      // Create new DB or fail if it already exists.
 }
 

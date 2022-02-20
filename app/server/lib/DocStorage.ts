@@ -678,7 +678,7 @@ export class DocStorage implements ISQLiteDB {
    */
   public _initDB(): Promise<void> {
     // Set options for speed across multiple OSes/Filesystems.
-    // WAL is fast and safe (guarantees consistency accross crashes), but has disadvantages
+    // WAL is fast and safe (guarantees consistency across crashes), but has disadvantages
     // including generating unwanted extra files that can be tricky to deal with in renaming, etc
     // the options for WAL are commented out
     // Setting synchronous to OFF is the fastest method, but is not as safe, and could lead to

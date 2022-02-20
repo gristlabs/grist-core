@@ -1,4 +1,4 @@
-// Provide a way to acess grist for iframe, web worker (which runs the main safeBrowser script) and
+// Provide a way to access grist for iframe, web worker (which runs the main safeBrowser script) and
 // unsafeNode. WebView should work the same way as iframe, grist is exposed just the same way and
 // necessary api is exposed using preload script. Here we bootstrap from channel capabilities to key
 // parts of the grist API.
@@ -230,7 +230,7 @@ export function onOptions(callback: (options: any, settings: InteractionOptions)
  *
  */
 export async function addImporter(name: string, path: string, mode: 'fullscreen' | 'inline', options?: RenderOptions) {
-  // checker is omitted for implementation because call was alredy checked by grist.
+  // checker is omitted for implementation because call was already checked by grist.
   rpc.registerImpl<InternalImportSourceAPI>(name, {
     async getImportSource(target: RenderTarget): Promise<ImportSource|undefined> {
       const procId = await api.render(path, mode === 'inline' ? target : 'fullscreen', options);
@@ -308,7 +308,7 @@ if (typeof window !== 'undefined') {
   process.on('disconnect', () => { process.exit(0); });
 } else {
   // Not a recognized environment, perhaps plain nodejs run independently of Grist, or tests
-  // running under mocha. For now, we only provide a disfunctional implementation. It allows
+  // running under mocha. For now, we only provide a dysfunctional implementation. It allows
   // plugins to call methods like registerFunction() without failing, so that plugin code may be
   // imported, but the methods don't do anything useful.
   rpc.setSendMessage((data) => { return; });

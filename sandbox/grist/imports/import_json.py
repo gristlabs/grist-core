@@ -97,12 +97,12 @@ for typ in six.string_types:
 
 SCHEMA = [{
   'name': 'includes',
-  'label': 'Includes (list of tables seperated by semicolon)',
+  'label': 'Includes (list of tables separated by semicolon)',
   'type': 'string',
   'visible': True
 }, {
   'name': 'excludes',
-  'label': 'Excludes (list of tables seperated by semicolon)',
+  'label': 'Excludes (list of tables separated by semicolon)',
   'type': 'string',
   'visible': True
 }]

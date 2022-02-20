@@ -141,7 +141,7 @@ class Engine(object):
 
 
   def __init__(self):
-    # The document data, incuding logic (formulas), and metadata (tables prefixed with "_grist_").
+    # The document data, including logic (formulas), and metadata (tables prefixed with "_grist_").
     self.tables = {}                # Maps table IDs (or names) to Table objects.
 
     # Schema contains information about tables and columns, needed in particular to generate the

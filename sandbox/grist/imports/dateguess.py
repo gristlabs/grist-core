@@ -328,7 +328,7 @@ def _sliding_triplets(tokens):
 
 
 def _analyze_tokens(tokens):
-  """Analize each token and find out compatible types for it."""
+  """Analyze each token and find out compatible types for it."""
   for token, prev, nxt in _sliding_triplets(tokens):
     token.compatible_types = tuple([t for t in DATE_ELEMENTS if t[2](token.val, prev, nxt)])
 

@@ -152,7 +152,7 @@ class GenCode(object):
     return textbuilder.Combiner(parts)
 
   def make_module(self, schema):
-    """Regenerates the code text and usercode module from upated document schema."""
+    """Regenerates the code text and usercode module from updated document schema."""
     # Collect summary tables to group them by source table.
     summary_tables = {}
     for table_info in six.itervalues(schema):

@@ -45,7 +45,7 @@ export interface GristAPI {
   /**
    * Render the file at `path` into the `target` location in Grist. `path` must be relative to the
    * root of the plugin's directory and point to an html that is contained within the plugin's
-   * directory. `target` is a predifined location of the Grist UI, it could be `fullscreen` or
+   * directory. `target` is a predefined location of the Grist UI, it could be `fullscreen` or
    * identifier for an inline target. Grist provides inline target identifiers in certain call
    * plugins. E.g. ImportSourceAPI.getImportSource is given a target identifier to allow rende UI
    * inline in the import dialog. Returns the procId which can be used to dispose the view.

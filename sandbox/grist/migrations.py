@@ -111,7 +111,7 @@ def migration(schema_version, need_all_tables=False):
   is marked with need_all_tables=True, then the migration will be retried with all tables.
 
   NOTE: new migrations should NOT set need_all_tables=True; it would require more work to process
-  very large documents safely (incuding those containing on-demand tables).
+  very large documents safely (including those containing on-demand tables).
   """
   def add_migration(migration_func):
     migration_func.need_all_tables = need_all_tables

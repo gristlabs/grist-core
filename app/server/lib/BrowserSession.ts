@@ -129,7 +129,7 @@ export function linkOrgWithEmail(session: SessionObj, email: string, org: string
  *
  * This is a view of the session object, for a single organization (the "scope").
  *
- * Local caching is disabled in an enviroment where there is a home server (or we are
+ * Local caching is disabled in an environment where there is a home server (or we are
  * the home server).  In hosted Grist, per-instance caching would be a problem.
  *
  * We retain local caching for situations with a single server - especially electron.

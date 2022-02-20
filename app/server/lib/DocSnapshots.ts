@@ -85,7 +85,7 @@ export class DocSnapshotPruner {
  * steady state).
  *
  * The list of versions (with metadata) for a document is itself stored in S3.  This isn't
- * ideal since we cannnot simply append a new version to the list without rewriting it in full.
+ * ideal since we cannot simply append a new version to the list without rewriting it in full.
  * But the alternatives have more serious problems, and this way folds quite well into the
  * existing pruning setup.
  *   - Storing in db would mean we'd need sharding sooner than otherwise

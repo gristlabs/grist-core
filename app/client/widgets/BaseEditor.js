@@ -35,7 +35,7 @@ BaseEditor.prototype.getCellValue = function() {
 };
 
 /**
- * Used if an editor needs preform any actions before a save
+ * Used if an editor needs perform any actions before a save
  */
 BaseEditor.prototype.prepForSave = function() {
   // No-op by default.

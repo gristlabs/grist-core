@@ -77,7 +77,7 @@ export class Drafts extends Disposable {
         editor.setState(draft.state);
       }
       // We don't need the draft any more.
-      // If user presses escape one more time it will be crated
+      // If user presses escape one more time it will be created
       // once again
       storage.clear();
       // Close the notification

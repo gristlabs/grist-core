@@ -34,7 +34,7 @@ export class DocData extends BaseDocData {
 
   /**
    * Constructor for DocData.
-   * @param {Object} docComm: A map of server methods availble on this document.
+   * @param {Object} docComm: A map of server methods available on this document.
    * @param {Object} metaTableData: A map from tableId to table data, presented as an action,
    *      equivalent to BulkAddRecord, i.e. ["TableData", tableId, rowIds, columnValues].
    */

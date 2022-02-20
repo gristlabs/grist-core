@@ -53,7 +53,7 @@ export function openFilePicker(options: FileDialogOptions): Promise<File[]> {
 
 /**
  * Opens the file picker dialog. If files are selected, calls the provided callback.
- * If no files are seleced, will call the callback with an empty list if possible, or more
+ * If no files are selected, will call the callback with an empty list if possible, or more
  * typically not call it at all.
  */
 export function open(options: FileDialogOptions, callback: FilesCB): void {

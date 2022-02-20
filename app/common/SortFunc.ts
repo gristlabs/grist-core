@@ -64,7 +64,7 @@ export function typedCompare(val1: any, val2: any): number {
   if ((result = nativeCompare(type1 = typeof val1, typeof val2)) !== 0) {
     return result;
   }
-  // We need to worry about Array comparisons because formulas returing Any may return null or
+  // We need to worry about Array comparisons because formulas returning Any may return null or
   // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
   // distinguishing types would break the sort. Also, arrays need a special comparator.
   if (type1 === 'object') {

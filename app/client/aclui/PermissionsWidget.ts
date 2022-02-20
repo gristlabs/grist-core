@@ -99,7 +99,7 @@ function makePermissionSet(bits: PermissionKey[], makeValue: (bit: PermissionKey
   return pset;
 }
 
-// Helper for a tick (checkmark) icon, replacing it with an equialent space when not shown.
+// Helper for a tick (checkmark) icon, replacing it with an equivalent space when not shown.
 function tick(show: boolean) {
   return show ? menuIcon('Tick') : cssMenuIconSpace();
 }

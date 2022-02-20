@@ -20,7 +20,7 @@ export class UserError extends Error {
 }
 
 /**
- * This error causes Notifer to show the message with an upgrade link.
+ * This error causes Notifier to show the message with an upgrade link.
  */
 export class NeedUpgradeError extends Error {
   public name: string = 'NeedUpgradeError';

@@ -40,7 +40,7 @@ function hasNestedObjects(value: any[]) {
  * Formats a decoded Grist value for displaying it. For top-level values, formats them the way we
  * like to see them in a cell or in, say, CSV export.
  * For top-level lists containing only simple values like strings and dates, formats them as a CSV row.
- * Nested lists and objects are formatted slighly differently, with quoted strings and ISO format for dates.
+ * Nested lists and objects are formatted slightly differently, with quoted strings and ISO format for dates.
  */
 export function formatDecoded(value: unknown, isTopLevel: boolean = true): string {
   if (typeof value === 'object' && value) {

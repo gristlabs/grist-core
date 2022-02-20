@@ -74,8 +74,8 @@ exports.createNumbered = createNumbered;
 /**
  * An easier-to-use alternative to createNumbered. Pass in a template string containing the
  * special token "{NUM}". It will first call creator() with "{NUM}" removed, then with "{NUM}"
- * replcaced by "-2", "-3", etc, until creator() succeeds, and will return the value for which it
- * suceeded.
+ * replaced by "-2", "-3", etc, until creator() succeeds, and will return the value for which it
+ * succeeded.
  */
 function createNumberedTemplate(template, creator) {
   const [prefix, suffix] = template.split("{NUM}");
