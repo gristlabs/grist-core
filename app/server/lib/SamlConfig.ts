@@ -183,7 +183,7 @@ export class SamlConfig {
         // available. Otherwise we use user.attributes which has the form {Name: [Value]}.
         const fname = samlUser.given_name || samlUser.attributes.FirstName || '';
         const lname = samlUser.surname || samlUser.attributes.LastName || '';
-        const email = samlUser.email || samlUser.nameId;
+        const email = samlUser.email || samlUser.name_id;
         const profile = {
           email,
           name: `${fname} ${lname}`.trim(),
