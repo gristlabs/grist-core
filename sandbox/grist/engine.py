@@ -10,10 +10,11 @@ import rlcompleter
 import sys
 import time
 import traceback
-from collections import namedtuple, OrderedDict, Hashable, defaultdict
+from collections import namedtuple, OrderedDict, defaultdict
 
 import six
 from six.moves import zip
+from six.moves.collections_abc import Hashable
 from sortedcontainers import SortedSet
 
 import acl
