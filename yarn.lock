@@ -41,12 +41,12 @@
   dependencies:
     googleapis-common "^5.0.1"
 
-"@gristlabs/connect-sqlite3@0.9.11-grist.1":
-  version "0.9.11-grist.1"
-  resolved "https://registry.yarnpkg.com/@gristlabs/connect-sqlite3/-/connect-sqlite3-0.9.11-grist.1.tgz#a9da7789786e1e32b94cdfb9749360f9eacd79da"
-  integrity sha512-AJr8y/hRPREM8YdyqV2aMw0yzsORjQyTiG0r0e8JZDJ6uPG/DQiIdTJqARF32dpfbTr6IN8/lXugNDLjqUizPQ==
+"@gristlabs/connect-sqlite3@0.9.11-grist.4":
+  version "0.9.11-grist.4"
+  resolved "https://registry.yarnpkg.com/@gristlabs/connect-sqlite3/-/connect-sqlite3-0.9.11-grist.4.tgz#64dbd13adefa6830e1c2c8df1eb06ace13de8f47"
+  integrity sha512-65Oip7d7osR6wWoOJKi+L4duVFJTJCElpeyoYk3HozDokhk/scqmnoBA5zWFWoirwO84Gp9A41CYnSp+UKlDzw==
   dependencies:
-    "@gristlabs/sqlite3" "^4.1.1-grist.1"
+    "@gristlabs/sqlite3" "^4.1.1-grist.4"
 
 "@gristlabs/express-session@1.17.0":
   version "1.17.0"
@@ -77,10 +77,10 @@
   dependencies:
     safe-buffer "^5.1.2"
 
-"@gristlabs/sqlite3@4.1.1-grist.1", "@gristlabs/sqlite3@^4.1.1-grist.1":
-  version "4.1.1-grist.1"
-  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.1.1-grist.1.tgz#8dfefaec9a1014e73d4ff2f098acdd9676adf5a7"
-  integrity sha512-pRMoxhLCNKs3r5ltACPMO2hwMeufMq6tz5VRwnk1AJg6qkk01HSO8C2blTOlrxxZUvXJjZSttmO3DYvrZH5UsA==
+"@gristlabs/sqlite3@4.1.1-grist.4", "@gristlabs/sqlite3@^4.1.1-grist.4":
+  version "4.1.1-grist.4"
+  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.1.1-grist.4.tgz#b909983a33ac66f4a086a18318389ef34c779720"
+  integrity sha512-/PzqeZJm9bNaqP1hsj3bt0E5q1VFdZHDnqzLYxSJzDl0rxVdGkkOmnlW4cAwjyRCMyvpeXBVAY6U4BS2xehHSg==
   dependencies:
     node-addon-api "2.0.0"
     node-pre-gyp "^0.11.0"

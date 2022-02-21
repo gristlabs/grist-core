@@ -11,6 +11,7 @@ import * as sqlite3 from '@gristlabs/sqlite3';
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
+import {isList} from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
 import {GristObjCode} from "app/plugin/GristData";
@@ -21,13 +22,13 @@ import * as log from 'app/server/lib/log';
 import * as assert from 'assert';
 import * as bluebird from 'bluebird';
 import * as fse from 'fs-extra';
-import chunk = require('lodash/chunk');
-import groupBy = require('lodash/groupBy');
 import * as _ from 'underscore';
 import * as util from 'util';
 import * as uuidv4 from "uuid/v4";
-import { ISQLiteDB, MigrationHooks, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
-import {isList} from "app/common/gristTypes";
+import {OnDemandStorage} from './OnDemandActions';
+import {ISQLiteDB, MigrationHooks, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
+import chunk = require('lodash/chunk');
+import groupBy = require('lodash/groupBy');
 
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
@@ -38,7 +39,7 @@ const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing
 
 const PENDING_VALUE = [GristObjCode.Pending];
 
-export class DocStorage implements ISQLiteDB {
+export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // ======================================================================
   // Static fields
@@ -623,6 +624,9 @@ export class DocStorage implements ISQLiteDB {
   // tables (obtained from auto-generated schema.js).
   private _docSchema: {[tableId: string]: {[colId: string]: string}};
 
+  // The last time _logDataSize ran fully
+  private _lastLoggedDataSize: number = Date.now();
+
   public constructor(public storageManager: IDocStorageManager, public docName: string) {
     this.docPath = this.storageManager.getPath(docName);
     this._db = null;
@@ -650,27 +654,6 @@ export class DocStorage implements ISQLiteDB {
     return bluebird.Promise.resolve(this._openFile(OpenMode.CREATE_EXCL, {}))
       .then(() => this._initDB());
     // Note that we don't call _updateMetadata() as there are no metadata tables yet anyway.
-  }
-
-  /**
-   * Creates a backup and calls cb() within a transaction. Returns the backup path. In case of
-   * failure, adds .backupPath property to the error object (and transaction is rolled back).
-   */
-  public execWithBackup(cb: (db: SQLiteDB) => Promise<void>): Promise<string> {
-    let backupPath: string;
-    return this.storageManager.makeBackup(this.docName, "migrate-db")
-      .then((_backupPath: string) => {
-        backupPath = _backupPath;
-        log.info(`DocStorage[${this.docName}]: backup made at ${backupPath}`);
-        return this.execTransaction(cb);
-      })
-      .then(() => backupPath)
-      .catch((err: any) => {
-        // TODO: deal with typing for this kind of error (although nothing seems to depend
-        // on it yet.
-        err.backupPath = backupPath;
-        throw err;
-      });
   }
 
   /**
@@ -915,7 +898,7 @@ export class DocStorage implements ISQLiteDB {
   public async applyStoredActions(docActions: DocAction[]): Promise<void> {
     debuglog('DocStorage.applyStoredActions');
 
-    return bluebird.Promise.each(docActions, (action: DocAction) => {
+    await bluebird.Promise.each(docActions, (action: DocAction) => {
       const actionType = action[0];
       const f = (this as any)["_process_" + actionType];
       if (!_.isFunction(f)) {
@@ -935,6 +918,7 @@ export class DocStorage implements ISQLiteDB {
           });
       }
     });
+    this._logDataSize().catch(e => log.error(`Error in _logDataSize: ${e}`));
   }
 
   /**
@@ -1561,6 +1545,25 @@ export class DocStorage implements ISQLiteDB {
     const sql = `SELECT ${selects} FROM ${quoteIdent(query.tableId)} ` +
       `${joinClauses} ${whereClause} ${limitClause}`;
     return sql;
+  }
+
+  private async _logDataSize() {
+    // To reduce overhead, don't query and log data size more than once in 5 minutes
+    const now = Date.now();
+    if (now - this._lastLoggedDataSize < 5 * 60 * 1000) {
+      return;
+    }
+    this._lastLoggedDataSize = now;
+
+    const result = await this.get(`
+      SELECT SUM(pgsize) AS totalSize
+      FROM dbstat
+      WHERE NOT (
+        name LIKE 'sqlite_%' OR
+        name LIKE '_gristsys_%'
+      );
+    `);
+    log.rawInfo("Data size from dbstat...", {docId: this.docName, dataSize: result!.totalSize});
   }
 }
 
