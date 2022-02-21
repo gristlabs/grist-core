@@ -30,6 +30,7 @@ export class ApiKey extends Disposable {
   private _anonymous: boolean;
   private _inputArgs: IDomArgs<HTMLInputElement>;
   private _loading = observable(false);
+  private _isHidden: Observable<boolean> = Observable.create(this, true);
 
   constructor(options: IWidgetOptions) {
     super();
@@ -49,8 +50,17 @@ export class ApiKey extends Disposable {
               readonly: true,
               value: this._apiKey.get(),
             },
+            dom.attr('type', (use) => use(this._isHidden) ? 'password' : 'text'),
             testId('key'),
-            dom.on('click', (ev, el) => el.select()),
+            {title: 'Click to show'},
+            dom.on('click', (_ev, el) => {
+              this._isHidden.set(false);
+              setTimeout(() => el.select(), 0);
+            }),
+            dom.on('blur', (ev) => {
+              // Hide the key when it is no longer selected.
+              if (ev.target !== document.activeElement) { this._isHidden.set(true); }
+            }),
             this._inputArgs
           ),
           cssTextBtn(
