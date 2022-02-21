@@ -1,4 +1,4 @@
-// TODO: add remaining Disposable methode
+// TODO: add remaining Disposable method
 export abstract class Disposable {
   public static create<T extends new (...args: any[]) => any>(
     this: T, ...args: ConstructorParameters<T>): InstanceType<T>;

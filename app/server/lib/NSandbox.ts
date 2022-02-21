@@ -350,7 +350,7 @@ const spawners = {
  *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (pynbox, unsandboxed, docker,
  *     gvisor, macSandboxExec)
  *   - GRIST_SANDBOX: a program or image name to run as the sandbox.  Not needed for
- *     pynbox (it is either built in or not avaiable).  For unsandboxed, should be an
+ *     pynbox (it is either built in or not available).  For unsandboxed, should be an
  *     absolute path to python within a virtualenv with all requirements installed.
  *     For docker, it should be `grist-docker-sandbox` (an image built via makefile
  *     in `sandbox/docker`) or a derived image.  For gvisor, it should be the full path
@@ -743,7 +743,7 @@ function getWrappingEnv(options: ISandboxOptions) {
  * structure on the host rather than remapping, we can simplify nesting
  * wrappers, or cases where remapping isn't possible.  It does leak the names
  * of the host directories though, and there could be silly complications if the
- * directories have spaces or other idiosyncracies.  When committing to a sandbox
+ * directories have spaces or other idiosyncrasies.  When committing to a sandbox
  * technology, for stand-alone Grist, it would be worth rethinking this.
  */
 function getAbsolutePaths(options: ISandboxOptions) {

@@ -1047,7 +1047,7 @@ class UserActions(object):
   @override_action('BulkRemoveRecord', '_grist_Pages')
   def _removePageRecords(self, table_id, row_ids):
     """
-    Remove page records and for the those that have children, udpate the first child's indentation
+    Remove page records and for the those that have children, update the first child's indentation
     so that it becomes the new parent. Note that this run a O(n) routine for each page to remove but
     it's ok considering that the list of _grist_Pages is not meant to grow that big.
     """
@@ -1686,7 +1686,7 @@ class UserActions(object):
   # User actions on viewSections.
   #----------------------------------------
 
-  # TODO: Deprecated; This should no longer be an exposed action; it is superceded by
+  # TODO: Deprecated; This should no longer be an exposed action; it is superseded by
   # CreateViewSection.
   @useraction
   def AddViewSection(self, title, view_section_type, view_row_id, table_id):

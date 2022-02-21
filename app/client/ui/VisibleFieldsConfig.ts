@@ -423,7 +423,7 @@ function buildCheckbox(...args: IDomArgs<HTMLInputElement>) {
   );
 }
 
-// helper to find checkboxes withing a draggable list. This assumes that checkboxes are the only
+// helper to find checkboxes within a draggable list. This assumes that checkboxes are the only
 // <input> element in draggableElement.
 function findCheckboxes(draggableElement: Element): NodeListOf<HTMLInputElement> {
   return draggableElement.querySelectorAll<HTMLInputElement>('input');

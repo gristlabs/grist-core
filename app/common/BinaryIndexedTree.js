@@ -132,7 +132,7 @@ BinaryIndexedTree.prototype.fillFromCumulative = function(cumulValues) {
 
 
 /**
- * Creates a tree from an array of invididual values.
+ * Creates a tree from an array of individual values.
  * Takes time linear in the size of the array.
  * @param {Array<number>} - array with each element containing the value to insert.
  */

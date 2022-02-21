@@ -19,7 +19,7 @@ export class HostedMetadataManager {
   // Callback for next opportunity to push changes.
   private _timeout: any = null;
 
-  // Mantains the update Promise to wait on it if the class is closing.
+  // Maintains the update Promise to wait on it if the class is closing.
   private _push: Promise<any>|null;
 
   /**
@@ -65,7 +65,7 @@ export class HostedMetadataManager {
   }
 
   /**
-   * Push all metadata updates to the databse.
+   * Push all metadata updates to the database.
    */
   private _update(): void {
     if (this._push) { return; }

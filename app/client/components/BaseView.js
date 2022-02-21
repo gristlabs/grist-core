@@ -158,7 +158,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this._isLoading = ko.observable(true);
   this._pendingCursorPos = this.viewSection.lastCursorPos;
 
-  // Initialize the cursor with the previous cursor position indicies, if they exist.
+  // Initialize the cursor with the previous cursor position indices, if they exist.
   console.log("%s BaseView viewSection %s (%s) lastCursorPos %s", this._debugName, this.viewSection.getRowId(),
     this.viewSection.table().tableId(), JSON.stringify(this.viewSection.lastCursorPos));
   this.cursor = this.autoDispose(Cursor.create(null, this, this.viewSection.lastCursorPos));

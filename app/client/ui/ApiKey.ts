@@ -20,7 +20,7 @@ const testId = makeTestId('test-apikey-');
  * ApiKey component shows an api key with controls to change it. Expects `options.apiKey` the api
  * key and shows it if value is truthy along with a 'Delete' button that triggers the
  * `options.onDelete` callback. When `options.apiKey` is falsy, hides it and show a 'Create' button
- * that triggers the `options.onCreate` callback. It is the responsability of the caller to update
+ * that triggers the `options.onCreate` callback. It is the responsibility of the caller to update
  * the `options.apiKey` to its new value.
  */
 export class ApiKey extends Disposable {

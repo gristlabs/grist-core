@@ -58,7 +58,7 @@ export interface ImportResult {
 
 export interface ImportTableResult {
   hiddenTableId: string;
-  uploadFileIndex: number;      // Index into upload.files array, for the file reponsible for this table.
+  uploadFileIndex: number;      // Index into upload.files array, for the file responsible for this table.
   origTableName: string;
   transformSectionRef: number;
   destTableId: string|null;

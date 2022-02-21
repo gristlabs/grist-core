@@ -373,7 +373,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   /**
    * Check whether an ActionGroup can be sent to the client.  TODO: in future, we'll want
-   * to filter acceptible parts of ActionGroup, rather than denying entirely.
+   * to filter acceptable parts of ActionGroup, rather than denying entirely.
    */
   public async allowActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<boolean> {
     return this.canReadEverything(docSession);

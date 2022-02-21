@@ -64,7 +64,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); })
             ),
             // Note that we don't pass extra args when renaming is on, because they usually includes
-            // mouse event handlers interferring with input editor and yields wrong behavior on
+            // mouse event handlers interfering with input editor and yields wrong behavior on
             // firefox.
           ) :
           cssPageItem(

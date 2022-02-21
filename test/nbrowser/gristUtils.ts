@@ -665,7 +665,7 @@ export async function importUrlDialog(url: string): Promise<void> {
 /**
  * Starts or resets the collections of UserActions. This should be followed some time later by
  * a call to userActionsVerify() to check which UserActions were sent to the server. If the
- * argumet is false, then stops the collection.
+ * argument is false, then stops the collection.
  */
 export function userActionsCollect(yesNo: boolean = true) {
   return driver.executeScript("window.gristApp.comm.userActionsCollect(arguments[0])", yesNo);

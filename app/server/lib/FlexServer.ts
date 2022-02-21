@@ -1070,7 +1070,7 @@ export class FlexServer implements GristServer {
       const scope = addPermit(getScope(mreq), this._dbManager.getSupportUserId(), {org: orgDomain});
       const query = await this._dbManager.getOrg(scope, orgDomain);
       const org = this._dbManager.unwrapQueryResult(query);
-      // This page isn't availabe for personal site.
+      // This page isn't available for personal site.
       if (org.owner) {
         return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
       }

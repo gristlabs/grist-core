@@ -208,7 +208,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
 
   /**
    * We may want to download material from one key and henceforth treat it as another
-   * key (specifically for forking a document).  Since this class crossreferences the
+   * key (specifically for forking a document).  Since this class cross-references the
    * key in the external store with other consistent stores, it needs to know we are
    * doing that.  So we add a downloadTo variant that takes before and after keys.
    */

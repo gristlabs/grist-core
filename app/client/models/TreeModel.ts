@@ -74,7 +74,7 @@ function getRecords(table: TreeTableData) {
   return fixIndents(records);
 }
 
-// The fixIndents function returns a copy of records with the garantee the .indentation starts at 0
+// The fixIndents function returns a copy of records with the guarantee the .indentation starts at 0
 // and can only increase one step at a time (note that it is however permitted to decrease several
 // level at a time). This is useful to build a model for the tree view.
 export function fixIndents(records: TreeRecord[]) {

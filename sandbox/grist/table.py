@@ -559,7 +559,7 @@ class Table(object):
     """
     # We don't set up any dependencies, so it would be incorrect to use this from formulas.
     # We no longer assert, however, since such calls may still happen e.g. while applying
-    # user-actions caused by formula side-effects (e.g. as trigged by lookupOrAddDerived())
+    # user-actions caused by formula side-effects (e.g. as triggered by lookupOrAddDerived())
     if row_id not in self.row_ids:
       raise KeyError("'get_record' found no matching record")
     return self.Record(row_id, None)

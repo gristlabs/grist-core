@@ -51,7 +51,7 @@ class GristDocAPIImpl implements GristDocAPI {
 /**
  * DocPluginManager manages plugins for a document.
  *
- * DocPluginManager instanciates asynchronously. Wait for the `ready` to resolve before using any
+ * DocPluginManager instantiates asynchronously. Wait for the `ready` to resolve before using any
  * plugin.
  *
  */

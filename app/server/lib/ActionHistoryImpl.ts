@@ -453,7 +453,7 @@ export class ActionHistoryImpl implements ActionHistory {
   }
 
   /**
-   * Fetches the most recent action row from the history, orderd with earlier actions first.
+   * Fetches the most recent action row from the history, ordered with earlier actions first.
    * If `maxActions` is supplied, at most that number of actions are returned.
    */
   private async _getRecentActionRows(maxActions: number|undefined,

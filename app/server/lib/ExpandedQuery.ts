@@ -134,7 +134,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
 }
 
 /**
- * Build a query that relates two homogenous tables sharing a common set of columns,
+ * Build a query that relates two homogeneous tables sharing a common set of columns,
  * returning rows that exist in both tables (if they have differences), and rows from
  * `leftTableId` that don't exist in `rightTableId`.
  *

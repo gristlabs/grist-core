@@ -12,7 +12,7 @@ import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
 // Describes a function that appends some html content to `containerElement` given some
-// options. Usefull for provided by a plugin.
+// options. Useful for provided by a plugin.
 export type TargetRenderFunc = (containerElement: HTMLElement, options?: RenderOptions) => void;
 
 /**
@@ -93,7 +93,7 @@ export abstract class BaseComponent implements IForwarderDest {
  * Node Implementation for the PluginElement interface. A PluginInstance take care of activation of
  * the the plugins's components (activating, timing and deactivating), and create the api's for each contributions.
  *
- * Do not try to instanciate yourself, PluginManager does it for you. Instead use the
+ * Do not try to instantiate yourself, PluginManager does it for you. Instead use the
  * PluginManager.getPlugin(id) method that get instances for you.
  *
  */

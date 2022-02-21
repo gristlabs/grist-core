@@ -3,7 +3,7 @@
  * of a plugin.
  *
  * A plugin's safeBrowser component is made of one main entry point (the javascript files declares
- * in the manifest), html files and any ressources included by the html files (css, scripts, images
+ * in the manifest), html files and any resources included by the html files (css, scripts, images
  * ...). The main script is the main entry point which uses the Grist API to render the views,
  * communicate with them en dispose them.
  *
@@ -18,13 +18,13 @@
  *
  * The grist API available to safeBrowser components is implemented in `app/plugin/PluginImpl.ts`.
  *
- * All the safeBrowser's component ressources, including the main script, the html files and any
- * other ressources needed by the views, should be placed within one plugins' subfolder, and Grist
+ * All the safeBrowser's component resources, including the main script, the html files and any
+ * other resources needed by the views, should be placed within one plugins' subfolder, and Grist
  * should serve only this folder. However, this is not yet implemented and is left as a TODO, as of
  * now the whole plugin's folder is served.
  *
  */
- // Todo: plugin ressources should not be made available on the server by default, but only after
+ // Todo: plugin resources should not be made available on the server by default, but only after
  // activation.
 
 // tslint:disable:max-classes-per-file
@@ -131,7 +131,7 @@ export class SafeBrowser extends BaseComponent {
     // it's ok to leave it for now: (1) fixing this would require (yet) another refactoring of
     // SafeBrowser and (2) at this point it is not sure wether we want to keep `render()` in the
     // future (we could as well directly register contribution using files directly in the
-    // manifest), and (3) plugins are only developped by us, we only have to remember that using
+    // manifest), and (3) plugins are only developed by us, we only have to remember that using
     // `render()` is only supported from within the main process (which cover all our use cases so
     // far).
   }

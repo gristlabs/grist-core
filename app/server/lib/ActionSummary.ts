@@ -19,7 +19,7 @@ import values = require('lodash/values');
 const MAXIMUM_INLINE_ROWS = 10;
 
 /**
- * Options when producing an action sumary.
+ * Options when producing an action summary.
  */
 export interface ActionSummaryOptions {
   maximumInlineRows?: number;       // Overrides the maximum number of rows in a
@@ -309,7 +309,7 @@ function renameAndDelete<T>(entries: {[name: string]: T}, dead: Set<string>,
 }
 
 /**
- * Apply planned name changes to a pair of entries, and return a merged entry encorporating
+ * Apply planned name changes to a pair of entries, and return a merged entry incorporating
  * their composition.
  *
  * @param names: the planned name changes as calculated by planNameMerge()

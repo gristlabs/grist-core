@@ -1,5 +1,5 @@
 /**
- * CSS Variables. To use in your web appication, add `cssRootVars` to the class list for your app's
+ * CSS Variables. To use in your web application, add `cssRootVars` to the class list for your app's
  * root node, typically `<body>`.
  *
  * The fonts used attempt to default to system fonts as described here:

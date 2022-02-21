@@ -215,7 +215,7 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
   var addedPositions = [];
 
   // Recursively process all layoutBoxes in the spec. Sets up bookkeeping arrays for
-  // exisiting fields and added fields for new/hidden cols from which the action bundle will
+  // existing fields and added fields for new/hidden cols from which the action bundle will
   // be created.
   function processBox(spec) {
     // "empty" is a temporary placeholder used by LayoutEditor, and not a valid leaf.
