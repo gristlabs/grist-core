@@ -14,7 +14,7 @@ from collections import namedtuple, OrderedDict, defaultdict
 
 import six
 from six.moves import zip
-from six.moves.collections_abc import Hashable
+from six.moves.collections_abc import Hashable  # pylint:disable-all
 from sortedcontainers import SortedSet
 
 import acl

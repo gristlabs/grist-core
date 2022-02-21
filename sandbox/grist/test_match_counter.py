@@ -5,7 +5,7 @@ import unittest
 
 import six
 from six.moves import xrange
-from six.moves.collections_abc import Hashable
+from six.moves.collections_abc import Hashable  # pylint:disable-all
 
 import match_counter
 from testutil import repeat_until_passes
