@@ -1172,6 +1172,23 @@ class TestUserActions(test_engine.EngineTestCase):
          "999",
        ]}]]})
 
+  def test_num_rows(self):
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Address", [
+          [21, "city", "Text", False, "", "", ""],
+        ]],
+      ],
+      "DATA": {
+      }
+    }))
+
+    table = self.engine.tables["Address"]
+    for i in range(20):
+      self.add_record("Address", None)
+      self.assertEqual(i + 1, table._num_rows())
+      self.assertEqual(i + 1, self.engine.count_rows())
+
   def test_raw_view_section_restrictions(self):
     # load_sample handles loading basic metadata, but doesn't create any view sections
     self.load_sample(self.sample)

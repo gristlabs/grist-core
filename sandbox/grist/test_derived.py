@@ -112,7 +112,9 @@ class TestDerived(test_engine.EngineTestCase):
         actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"group": [[1], [10]]}),
       ],
       "calls": {
-        "GristSummary_6_Orders": {'#lookup#year': 1, "group": 2, "amount": 2, "count": 2},
+        "GristSummary_6_Orders": {
+          '#lookup#year': 1, "group": 2, "amount": 2, "count": 2, "#lookup#": 1
+        },
         "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
                    "#summary#GristSummary_6_Orders": 1}}
     })

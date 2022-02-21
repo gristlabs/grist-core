@@ -61,6 +61,7 @@ export interface SandboxActionBundle {
   calc: Array<EnvContent<DocAction>>;
   undo: Array<EnvContent<DocAction>>;   // Inverse actions for all 'stored' actions.
   retValues: any[];                     // Contains retValue for each of userActions.
+  rowCount: number;
 }
 
 // Local action that's been applied. It now has an actionNum, and includes doc actions packaged

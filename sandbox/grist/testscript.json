@@ -105,7 +105,7 @@
         "retValue": [ 11 ]
       },
      "CHECK_CALL_COUNTS": {
-       "Address" : {"region" : 1}
+       "Address" : {"region" : 1, "#lookup#": 1}
      }
     }],
     ["APPLY", {
@@ -200,7 +200,7 @@
           ]
       },
       "CHECK_CALL_COUNTS": {
-        "Schools": { "name": 1 },
+        "Schools": { "name": 1, "#lookup#": 2 },
         "Students" : { "schoolShort" : 7 }
       }
     }],
@@ -239,7 +239,7 @@
         ]
       },
       "CHECK_CALL_COUNTS" : {
-        "Schools": { "name": 1 },
+        "Schools": { "name": 1, "#lookup#": 1 },
         "Students" : { "schoolShort" : 7 }
       }
     }],
@@ -357,7 +357,7 @@
         "retValue": [ [11, 12] ]
       },
       "CHECK_CALL_COUNTS" : {
-        "Address" : { "country": 2, "region" : 2 }
+        "Address" : { "country": 2, "region" : 2, "#lookup#": 2 }
       }
     }],
     ["CHECK_OUTPUT", {
@@ -1690,7 +1690,7 @@
         ]
       },
       "CHECK_CALL_COUNTS" : {
-        "Address" : { "city": 1, "region" : 1 },
+        "Address" : { "city": 1, "region" : 1, "#lookup#": 1 },
         "Students": { "fullName" : 1, "fullNameLen" : 1 }
       }
     }],
@@ -2563,7 +2563,8 @@
         ]
       },
       "CHECK_CALL_COUNTS" : {
-        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7 }
+        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7, "#lookup#": 7 },
+        "School": {"#lookup#": 6}
       }
     }],
 
@@ -2677,7 +2678,8 @@
         ]
       },
       "CHECK_CALL_COUNTS" : {
-        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7 }
+        "People" : { "fullName" : 7, "schoolRegion" : 7, "schoolShort" : 7, "fullNameLen" : 7, "#lookup#": 7 },
+        "School": {"#lookup#": 6}
       }
     }],
 

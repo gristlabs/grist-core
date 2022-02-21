@@ -225,6 +225,11 @@ class Table(object):
     # which are 'flattened' so source records may appear in multiple groups
     self._summary_simple = None
 
+    # For use in _num_rows. The attribute isn't strictly needed,
+    # but it makes _num_rows slightly faster, and only creating the lookup map when _num_rows
+    # is called seems to be too late, at least for unit tests.
+    self._empty_lookup_column = self._get_lookup_map(())
+
     # Add Record and RecordSet subclasses which fill in this table as the first argument
     class Record(records.Record):
       def __init__(inner_self, *args, **kwargs):  # pylint: disable=no-self-argument
@@ -236,6 +241,12 @@ class Table(object):
 
     self.Record = Record
     self.RecordSet = RecordSet
+
+  def _num_rows(self):
+    """
+    Similar to `len(self.lookup_records())` but faster and doesn't create dependencies.
+    """
+    return len(self._empty_lookup_column._do_fast_empty_lookup())
 
   def _rebuild_model(self, user_table):
     """

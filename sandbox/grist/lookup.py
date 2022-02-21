@@ -111,6 +111,13 @@ class BaseLookupMapColumn(column.BaseColumn):
     if not self._lookup_relations:
       self._engine.mark_lookupmap_for_cleanup(self)
 
+  def _do_fast_empty_lookup(self):
+    """
+    Simplified version of do_lookup for a lookup column with no key columns
+    to make Table._num_rows as fast as possible.
+    """
+    return self._row_key_map.lookup_right((), default=())
+
   def do_lookup(self, key):
     """
     Looks up key in the lookup map and returns a tuple with two elements: the set of matching

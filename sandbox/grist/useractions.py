@@ -8,6 +8,7 @@ import six
 from six.moves import xrange
 
 import acl
+import gencode
 from acl_formula import parse_acl_formula_json
 import actions
 import column
@@ -81,6 +82,10 @@ def make_bulk_values_dict(record_values_pairs):
 
 def is_hidden_table(table_id):
   return table_id.startswith('GristHidden_')
+
+
+def is_user_table(table_id):
+  return not (is_hidden_table(table_id) or gencode._is_special_table(table_id))
 
 
 def useraction(method):

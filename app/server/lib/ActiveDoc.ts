@@ -1216,6 +1216,10 @@ export class ActiveDoc extends EventEmitter {
       }
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
+      log.rawInfo('Sandbox row count', {
+        ...this.getLogMeta(docSession),
+        rowCount: sandboxActionBundle.rowCount
+      });
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
@@ -1736,7 +1740,8 @@ function createEmptySandboxActionBundle(): SandboxActionBundle {
     direct: [],
     calc: [],
     undo: [],
-    retValues: []
+    retValues: [],
+    rowCount: 0,
   };
 }
 

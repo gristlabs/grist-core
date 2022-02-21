@@ -64,7 +64,10 @@ def run(sandbox):
   @export
   def apply_user_actions(action_reprs, user=None):
     action_group = eng.apply_user_actions([useractions.from_repr(u) for u in action_reprs], user)
-    return eng.acl_split(action_group).to_json_obj()
+    return dict(
+      rowCount=eng.count_rows(),
+      **eng.acl_split(action_group).to_json_obj()
+    )
 
   @export
   def fetch_table(table_id, formulas=True, query=None):

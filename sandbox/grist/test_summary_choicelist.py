@@ -155,6 +155,8 @@ class TestSummaryChoiceList(EngineTestCase):
         '#summary#GristSummary_6_Source4': column.ReferenceListColumn,
         "#lookup#_Contains(value='#summary#GristSummary_6_Source4')":
           lookup.ContainsLookupMapColumn,
+
+        "#lookup#": lookup.SimpleLookupMapColumn,
       }
     )
 

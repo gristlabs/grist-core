@@ -1175,6 +1175,13 @@ class Engine(object):
     """
     self._unused_lookups.add(lookup_map_column)
 
+  def count_rows(self):
+    return sum(
+      table._num_rows()
+      for table_id, table in six.iteritems(self.tables)
+      if useractions.is_user_table(table_id)
+    )
+
   def apply_user_actions(self, user_actions, user=None):
     """
     Applies the list of user_actions. Returns an ActionGroup.

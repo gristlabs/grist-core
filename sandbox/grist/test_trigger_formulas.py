@@ -145,7 +145,10 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
 
     self.assertEqual(self.call_counts, {})
     self.load_sample(sample)
-    self.assertEqual(self.call_counts, {'Creatures': {'OceanName': 3}})
+    self.assertEqual(self.call_counts, {
+      'Creatures': {'#lookup#': 3, 'OceanName': 3},
+      'Oceans': {'#lookup#': 4},
+    })
 
 
   def test_recalc_undo(self):
@@ -247,7 +250,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       [2,   "Manatee",  2,       "Poseidon", "",       "Poseidon", "Poseidon", "Atlantic" ],
     ])
     self.assertEqual(out_actions.calls,
-        {"Creatures": {"BossDef": 1, "BossUpd": 1, "BossAll": 1, "OceanName": 1}})
+        {"Creatures": {"BossDef": 1, "BossUpd": 1, "BossAll": 1, "OceanName": 1, "#lookup#": 1}})
 
 
   def test_recalc_trigger_off(self):
@@ -272,7 +275,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       [2,   "Manatee",  2,       "Poseidon", "",       "",        "Poseidon", "Atlantic" ],
     ])
     self.assertEqual(out_actions.calls,
-        {"Creatures": {"BossDef": 1, "BossAll": 1, "OceanName": 1}})
+        {"Creatures": {"BossDef": 1, "BossAll": 1, "OceanName": 1, "#lookup#": 1}})
 
 
   def test_renames(self):
