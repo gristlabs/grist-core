@@ -1789,7 +1789,11 @@ export async function openDocumentSettings() {
  * Returns date format for date and datetime editor
  */
 export async function getDateFormat(): Promise<string> {
-  return driver.find('[data-test-id=Widget_dateFormat] .test-select-row').getText();
+  const result = await driver.find('[data-test-id=Widget_dateFormat] .test-select-row').getText();
+  if (result === "Custom") {
+    return driver.find('[data-test-id=Widget_dateCustomFormat] input').value();
+  }
+  return result;
 }
 
 /**

@@ -915,3 +915,15 @@ export const unwrap: UseCB = (obs: ISubscribable) => {
   }
   return (obs as ko.Observable).peek();
 };
+
+/**
+ * Get a set of up to `count` distinct values of `values`.
+ */
+export function getDistinctValues<T>(values: readonly T[], count: number = Infinity): Set<T> {
+  const distinct = new Set<T>();
+  // Add values to the set until it reaches the desired size, or until there are no more values.
+  for (let i = 0; i < values.length && distinct.size < count; i++) {
+    distinct.add(values[i]);
+  }
+  return distinct;
+}

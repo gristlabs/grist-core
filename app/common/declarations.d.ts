@@ -23,3 +23,5 @@ declare namespace Intl {
     constructor(locale: string);
   }
 }
+
+declare module '@gristlabs/moment-guess/dist/bundle.js';

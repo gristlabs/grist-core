@@ -1,5 +1,8 @@
 import escapeRegExp = require('lodash/escapeRegExp');
 import memoize = require('lodash/memoize');
+import {getDistinctValues} from 'app/common/gutil';
+// Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
+import * as guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
 import * as moment from 'moment-timezone';
 
 // When using YY format, use a consistent interpretation in datepicker and in moment parsing: add
@@ -320,4 +323,71 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
   }
   const hh = String(hours).padStart(2, '0');
   return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
+}
+
+export function guessDateFormat(values: string[], timezone: string = 'UTC'): string | null {
+  const sample = getDistinctValues(values, 100);
+  const formats: Record<string, number> = {};
+  for (const dateString of sample) {
+    let guessed: string | string[];
+    try {
+      guessed = guessFormat(dateString);
+    } catch {
+      continue;
+    }
+    if (typeof guessed === "string") {
+      guessed = [guessed];
+    }
+    for (const guess of guessed) {
+      formats[guess] = 0;
+    }
+  }
+  const formatKeys = Object.keys(formats);
+  if (!formatKeys.length || formatKeys.length > 10) {
+    return null;
+  }
+
+  for (const format of formatKeys) {
+    for (const dateString of values) {
+      const m = moment.tz(dateString, format, true, timezone);
+      if (m.isValid()) {
+        formats[format] += 1;
+      }
+    }
+  }
+
+  const maxCount = Math.max(...Object.values(formats));
+  return formatKeys.find(format => formats[format] === maxCount)!;
+}
+
+export const dateFormatOptions = [
+  'YYYY-MM-DD',
+  'MM-DD-YYYY',
+  'MM/DD/YYYY',
+  'MM-DD-YY',
+  'MM/DD/YY',
+  'DD MMM YYYY',
+  'MMMM Do, YYYY',
+  'DD-MM-YYYY',
+];
+
+export const timeFormatOptions = [
+  'h:mma',
+  'h:mma z',
+  'HH:mm',
+  'HH:mm z',
+  'HH:mm:ss',
+  'HH:mm:ss z',
+];
+
+export function dateTimeWidgetOptions(fullFormat: string) {
+  const index = fullFormat.match(/[hHkaAmsSzZT]|$/)!.index!;
+  const dateFormat = fullFormat.substr(0, index).trim();
+  const timeFormat = fullFormat.substr(index).trim() || timeFormatOptions[0];
+  return {
+    dateFormat,
+    timeFormat,
+    isCustomDateFormat: !dateFormatOptions.includes(dateFormat),
+    isCustomTimeFormat: !timeFormatOptions.includes(timeFormat),
+  };
 }

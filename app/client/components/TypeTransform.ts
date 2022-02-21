@@ -15,10 +15,8 @@ import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {ColValues, UserAction} from 'app/common/DocActions';
+import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
-import isEmpty = require('lodash/isEmpty');
-import pickBy = require('lodash/pickBy');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -150,14 +148,7 @@ export class TypeTransform extends ColumnTransform {
   public async setType(toType: string) {
     const docModel = this.gristDoc.docModel;
     const colInfo = await TypeConversion.prepTransformColInfo(docModel, this.origColumn, this.origDisplayCol, toType);
-    // Only update those values which changed, and only if needed.
     const tcol = this.transformColumn;
-    const changedInfo = pickBy(colInfo, (val, key) =>
-      (val !== tcol[key as keyof TypeConversion.ColInfo].peek()));
-    if (!isEmpty(changedInfo)) {
-      // Update the transform column, particularly the type.
-      // This will trigger the subscription in postAddTransformColumn and lead to calling convertValues.
-      await tcol.updateColValues(changedInfo as ColValues);
-    }
+    await tcol.updateColValues(colInfo as any);
   }
 }

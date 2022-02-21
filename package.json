@@ -78,6 +78,7 @@
     "@googleapis/oauth2": "0.2.0",
     "@gristlabs/connect-sqlite3": "0.9.11-grist.1",
     "@gristlabs/express-session": "1.17.0",
+    "@gristlabs/moment-guess": "1.2.4-grist.1",
     "@gristlabs/pidusage": "2.0.17",
     "@gristlabs/sqlite3": "4.1.1-grist.1",
     "@popperjs/core": "2.3.3",

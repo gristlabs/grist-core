@@ -5,7 +5,7 @@ import {ActionDispatcher} from 'app/common/ActionDispatcher';
 import {BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
         isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
 import {getDefaultForType} from 'app/common/gristTypes';
-import {arrayRemove, arraySplice} from 'app/common/gutil';
+import {arrayRemove, arraySplice, getDistinctValues} from 'app/common/gutil';
 import {SchemaTypes} from "app/common/schema";
 import {UIRowId} from 'app/common/UIRowId';
 import isEqual = require('lodash/isEqual');
@@ -231,12 +231,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   public getDistinctValues(colId: string, count: number = Infinity): Set<CellValue>|undefined {
     const valColumn = this.getColValues(colId);
     if (!valColumn) { return undefined; }
-    const distinct: Set<CellValue> = new Set();
-    // Add values to the set until it reaches the desired size, or until there are no more values.
-    for (let i = 0; i < valColumn.length && distinct.size < count; i++) {
-      distinct.add(valColumn[i]);
-    }
-    return distinct;
+    return getDistinctValues(valColumn, count);
   }
 
   /**

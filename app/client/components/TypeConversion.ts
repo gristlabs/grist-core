@@ -9,6 +9,7 @@ import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
+import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
 import {TableData} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 
@@ -92,8 +93,21 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     formula: "CURRENT_CONVERSION(rec)",
   };
 
-  const prevOptions = origCol.widgetOptionsJson.peek() || {};
+  const visibleCol = origCol.visibleColModel();
+  // Column used to derive previous widget options and sample values for guessing
+  const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
+  const prevOptions = sourceCol.widgetOptionsJson.peek() || {};
   switch (toType) {
+    case 'Date':
+    case 'DateTime': {
+      let {dateFormat} = prevOptions;
+      if (!dateFormat) {
+        const colValues = tableData.getColValues(sourceCol.colId()) || [];
+        dateFormat = guessDateFormat(colValues.map(String)) || "YYYY-MM-DD";
+      }
+      widgetOptions = dateTimeWidgetOptions(dateFormat);
+      break;
+    }
     case 'Choice': {
       if (Array.isArray(prevOptions.choices)) {
         // Use previous choices if they are set, e.g. if converting from ChoiceList
@@ -101,8 +115,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       } else {
         // Set suggested choices. Limit to 100, since too many choices is more likely to cause
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
-        const colId = isReferenceCol(origCol) ? origDisplayCol.colId() : origCol.colId();
-        const columnData = tableData.getDistinctValues(colId, 100);
+        const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
           columnData.delete("");
           columnData.delete(null);
@@ -119,8 +132,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
         // light guessing for likely choices to suggest.
         const choices = new Set<string>();
-        const colId = isReferenceCol(origCol) ? origDisplayCol.colId() : origCol.colId();
-        for (let value of tableData.getColValues(colId) || []) {
+        for (let value of tableData.getColValues(sourceCol.colId()) || []) {
           if (value === null) { continue; }
           value = String(decodeObject(value)).trim();
           const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");

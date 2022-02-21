@@ -15,6 +15,7 @@ const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {dom: gdom, styled, fromKo} = require('grainjs');
 const {select} = require('app/client/ui2018/menus');
 const {buildTZAutocomplete} = require('app/client/widgets/TZAutocomplete');
+const {timeFormatOptions} = require("app/common/parseDate");
 
 
 /**
@@ -31,16 +32,6 @@ function DateTimeTextBox(field) {
 
   this.timeFormat = this.options.prop('timeFormat');
   this.isCustomTimeFormat = this.options.prop('isCustomTimeFormat');
-
-  this.timeFormatOptions = [
-    'h:mma',
-    'h:mma z',
-    'HH:mm',
-    'HH:mm z',
-    'HH:mm:ss',
-    'HH:mm:ss z',
-    'Custom'
-  ];
 
   // Helper to set 'timeFormat' and 'isCustomTimeFormat' from the set of default time format strings.
   this.standardTimeFormat = this.autoDispose(ko.computed({
@@ -72,7 +63,7 @@ DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
       ),
     self.buildDateConfigDom(),
     cssLabel("Time Format"),
-    cssRow(dom(select(fromKo(self.standardTimeFormat), self.timeFormatOptions), dom.testId("Widget_timeFormat"))),
+    cssRow(dom(select(fromKo(self.standardTimeFormat), [...timeFormatOptions, "Custom"]), dom.testId("Widget_timeFormat"))),
     kd.maybe(self.isCustomTimeFormat, function() {
       return cssRow(dom(textbox(self.timeFormat), dom.testId("Widget_timeCustomFormat")));
     }),

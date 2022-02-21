@@ -12,6 +12,7 @@ const {cssRow, cssLabel} = require('app/client/ui/RightPanel');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {styled, fromKo} = require('grainjs');
 const {select} = require('app/client/ui2018/menus');
+const {dateFormatOptions} = require('app/common/parseDate');
 
 /**
  * DateTextBox - The most basic widget for displaying simple date information.
@@ -22,18 +23,6 @@ function DateTextBox(field) {
   this.alignment = this.options.prop('alignment');
   this.dateFormat = this.options.prop('dateFormat');
   this.isCustomDateFormat = this.options.prop('isCustomDateFormat');
-
-  this.dateFormatOptions = [
-    'YYYY-MM-DD',
-    'MM-DD-YYYY',
-    'MM/DD/YYYY',
-    'MM-DD-YY',
-    'MM/DD/YY',
-    'DD MMM YYYY',
-    'MMMM Do, YYYY',
-    'DD-MM-YYYY',
-    'Custom'
-  ];
 
   // Helper to set 'dateFormat' and 'isCustomDateFormat' from the set of default date format strings.
   this.standardDateFormat = this.autoDispose(ko.computed({
@@ -58,7 +47,7 @@ DateTextBox.prototype.buildDateConfigDom = function() {
   var self = this;
   return dom('div',
     cssLabel("Date Format"),
-    cssRow(dom(select(fromKo(self.standardDateFormat), self.dateFormatOptions), dom.testId("Widget_dateFormat"))),
+    cssRow(dom(select(fromKo(self.standardDateFormat), [...dateFormatOptions, "Custom"]), dom.testId("Widget_dateFormat"))),
     kd.maybe(self.isCustomDateFormat, function() {
       return cssRow(dom(textbox(self.dateFormat), dom.testId("Widget_dateCustomFormat")));
     })
