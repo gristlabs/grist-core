@@ -19,6 +19,7 @@ export type IDocPage = number | SpecialDocPage;
 export const HomePage = StringUnion('all', 'workspace', 'templates', 'trash');
 export type IHomePage = typeof HomePage.type;
 
+// TODO: Remove 'user' and 'info', since those pages are no longer part of any flow.
 export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify', 'select-account');
 export type WelcomePage = typeof WelcomePage.type;
 

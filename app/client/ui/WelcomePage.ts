@@ -84,6 +84,7 @@ export class WelcomePage extends Disposable {
     ));
   }
 
+  // TODO: This can be removed, since the 'user' page is no longer part of any flow.
   private _buildNameForm(owner: MultiHolder) {
     let inputEl: HTMLInputElement;
     let form: HTMLFormElement;
@@ -235,6 +236,8 @@ export class WelcomePage extends Disposable {
 
   /**
    * Builds a form to ask the new user a few questions.
+   *
+   * TODO: This can be removed, since the 'info' page is no longer part of any flow.
    */
   private _buildInfoForm(owner: MultiHolder) {
     const allFilled = Observable.create(owner, false);

@@ -702,8 +702,23 @@ export class FlexServer implements GristServer {
         const user = getUser(req);
         if (user && user.isFirstTimeUser) {
           log.debug(`welcoming user: ${user.name}`);
-          const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
-          return res.redirect(`${prefix}/welcome/user`);
+           // Reset isFirstTimeUser flag.
+          await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
+
+          // This is a good time to set another flag (showNewUserQuestions), to show a popup with
+          // welcome question(s) to this new user. Both flags are scoped to the user, but
+          // isFirstTimeUser has a dedicated DB field because it predates userPrefs. Note that the
+          // updateOrg() method handles all levels of prefs (for user, user+org, or org).
+          await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {showNewUserQuestions: true}});
+
+          // Redirect to teams page if users has access to more than one org. Otherwise, redirect to
+          // personal org.
+          const domain = mreq.org;
+          const result = await this._dbManager.getMergedOrgs(user.id, user.id, domain || null);
+          const orgs = (result.status === 200) ? result.data : null;
+          const redirectPath = orgs && orgs.length > 1 ? '/welcome/teams' : '/';
+          const redirectUrl = this.getMergedOrgUrl(mreq, redirectPath);
+          return res.redirect(redirectUrl);
         }
         if (mreq.org && mreq.org.startsWith('o-')) {
           // We are on a team site without a custom subdomain.
@@ -1120,10 +1135,20 @@ export class FlexServer implements GristServer {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
     }));
 
+    /**
+     * TODO: Add '/welcome/teams' and '/welcome/select-account' to the above route handler,
+     * and remove this one, since those are the only welcome paths that are part of current UI flows.
+     */
     this.app.get('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
     }));
 
+    /**
+     * TODO: We should now be able to remove this route, since the only remaining welcome path
+     * is GET /welcome/teams, and we already redirect there from the welcomeNewUser middleware.
+     *
+     * Leaving this alone for now, just in case, but we should remove this soon.
+     */
     this.app.post('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
       const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
@@ -1131,6 +1156,9 @@ export class FlexServer implements GristServer {
       let redirectPath: string = '/';
 
       if (req.params.page === 'user') {
+        // The /welcome/user page is no longer part of any flow, but if visited, will still submit
+        // here and redirect. The full name is now part of the sign-up page, so we no longer
+        // need to prompt new users for their name here.
         const name: string|undefined = req.body && req.body.username || undefined;
 
         // Reset isFirstTimeUser flag, used to redirect a new user to the /welcome/user page.
