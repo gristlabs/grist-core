@@ -17,6 +17,8 @@ the following fields:
  - Name: string or None
  - Origin: string or None
  - LinkKey: dictionary
+ - SessionID: string or None
+ - IsLoggedIn: boolean
 
 Additional keys may be included, which may have a value that is
 either None or of type tuple with the following shape:
@@ -40,7 +42,8 @@ class User(object):
   typed equivalents, for use by autocompletion.
   """
   def __init__(self, data, tables, is_sample=False):
-    for attr in ('Access', 'UserID', 'Email', 'Name', 'Origin'):
+    for attr in ('Access', 'UserID', 'Email', 'Name', 'Origin', 'SessionID',
+                 'IsLoggedIn'):
       setattr(self, attr, data[attr])
 
     self.LinkKey = LinkKey(data['LinkKey'])

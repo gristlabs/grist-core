@@ -566,7 +566,9 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'LinkKey': {},
       'Origin': None,
       'Email': 'foo.bar@getgrist.com',
-      'Access': 'owners'
+      'Access': 'owners',
+      'SessionID': 'u1',
+      'IsLoggedIn': True
     }
     user2 = {
       'Name': 'Baz Qux',
@@ -575,7 +577,9 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'LinkKey': {},
       'Origin': None,
       'Email': 'baz.qux@getgrist.com',
-      'Access': 'owners'
+      'Access': 'owners',
+      'SessionID': 'u2',
+      'IsLoggedIn': True
     }
     # Use formula to store last modified by data (user name and email). Check that it works as expected.
     self.load_sample(self.sample)

@@ -53,6 +53,13 @@ export interface SessionObj {
 
   // This gets set to encourage express-session to set a cookie. Was a boolean in the past.
   alive?: number;
+
+  altSessionId?: string;  // An ID unique to the session, but which isn't related
+                          // to the session id used to lookup the cookie. This ID
+                          // is suitable for embedding in documents that allows
+                          // anonymous editing (e.g. to allow the user to edit
+                          // something they just added, without allowing the suer
+                          // to edit other people's contributions).
 }
 
 // Make an artificial change to a session to encourage express-session to set a cookie.
@@ -138,6 +145,7 @@ export function linkOrgWithEmail(session: SessionObj, email: string, org: string
 export class ScopedSession {
   private _sessionCache?: SessionObj;
   private _live: boolean;  // if set, never cache session in memory.
+  private _altSessionId?: string;
 
   /**
    * Create an interface to the session identified by _sessionId, in the store identified
@@ -220,6 +228,10 @@ export class ScopedSession {
     await this._setSession(req, session);
   }
 
+  public getAltSessionId(): string | undefined {
+    return this._altSessionId;
+  }
+
   /**
    * Read the state of the session.
    */
@@ -227,6 +239,7 @@ export class ScopedSession {
     if (this._sessionCache) { return this._sessionCache; }
     const session = ((await this._sessionStore.getAsync(this._sessionId)) || {}) as SessionObj;
     if (!this._live) { this._sessionCache = session; }
+    this._altSessionId = session.altSessionId;
     return session;
   }
 

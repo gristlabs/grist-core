@@ -19,7 +19,9 @@ class TestUser(test_engine.EngineTestCase):
         'Param2': 'Param2Value'
       },
       'Origin': 'https://getgrist.com',
-      'StudentInfo': ['Students', 1]
+      'StudentInfo': ['Students', 1],
+      'SessionID': 'u1',
+      'IsLoggedIn': True
     }
     u = User(data, self.engine.tables)
     self.assertEqual(u.Name, 'Foo Bar')
@@ -45,7 +47,9 @@ class TestUser(test_engine.EngineTestCase):
         'Param2': 'Param2Value'
       },
       'Origin': 'https://getgrist.com',
-      'StudentInfo': ['Students', 1]
+      'StudentInfo': ['Students', 1],
+      'SessionID': 'u1',
+      'IsLoggedIn': True
     }
     u = User(data, self.engine.tables, is_sample=True)
     self.assertEqual(u.StudentInfo.id, 0)

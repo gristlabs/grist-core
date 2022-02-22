@@ -314,7 +314,9 @@ class TestRenames(test_engine.EngineTestCase):
       'LinkKey': {},
       'Origin': None,
       'Email': 'foo@example.com',
-      'Access': 'owners'
+      'Access': 'owners',
+      'SessionID': 'u1',
+      'IsLoggedIn': True
     }
 
     # Renaming a table should not leave the old name available for auto-complete.

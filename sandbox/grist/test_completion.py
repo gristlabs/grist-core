@@ -10,7 +10,9 @@ class TestCompletion(test_engine.EngineTestCase):
     'LinkKey': {},
     'Origin': None,
     'Email': 'foo@example.com',
-    'Access': 'owners'
+    'Access': 'owners',
+    'SessionID': 'u1',
+    'IsLoggedIn': True
   }
 
   def setUp(self):
@@ -85,9 +87,11 @@ class TestCompletion(test_engine.EngineTestCase):
       [
         'user.Access',
         'user.Email',
+        'user.IsLoggedIn',
         'user.LinkKey',
         'user.Name',
         'user.Origin',
+        'user.SessionID',
         'user.StudentInfo',
         'user.UserID'
       ]
@@ -114,16 +118,20 @@ class TestCompletion(test_engine.EngineTestCase):
       'Email': 'baro@example.com',
       'LinkKey': {},
       'UserID': 2,
-      'Access': 'owners'
+      'Access': 'owners',
+      'SessionID': 'u2',
+      'IsLoggedIn': True
     }
     self.assertEqual(
       self.engine.autocomplete("user.", "Schools", "lastModified", user2),
       [
         'user.Access',
         'user.Email',
+        'user.IsLoggedIn',
         'user.LinkKey',
         'user.Name',
         'user.Origin',
+        'user.SessionID',
         'user.UserID'
       ]
     )

@@ -22,7 +22,8 @@ import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
-import { getDocSessionAccess, getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
+import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
+         OptDocSession } from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
 import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
@@ -1356,7 +1357,9 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const user = new User();
     user.Access = access;
-    user.UserID = fullUser?.id || null;
+    const isAnonymous = fullUser?.id === this._homeDbManager?.getAnonymousUserId() ||
+      fullUser?.id === null;
+    user.UserID = (!isAnonymous && fullUser?.id) || null;
     user.Email = fullUser?.email || null;
     user.Name = fullUser?.name || null;
     // If viewed from a websocket, collect any link parameters included.
@@ -1365,6 +1368,8 @@ export class GranularAccess implements GranularAccessForBundle {
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
+    user.SessionID = isAnonymous ? `a${getDocSessionAltSessionId(docSession)}` : `u${user.UserID}`;
+    user.IsLoggedIn = !isAnonymous;
 
     if (this._ruler.ruleCollection.ruleError && !this._recoveryMode) {
       // It is important to signal that the doc is in an unexpected state,

@@ -234,6 +234,10 @@ export class Client {
     return this._session;
   }
 
+  public getAltSessionId(): string|undefined {
+    return this._session?.getAltSessionId();
+  }
+
   public destroy() {
     this._destroyed = true;
   }

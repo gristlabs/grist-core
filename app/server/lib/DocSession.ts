@@ -101,6 +101,16 @@ export function getDocSessionUserId(docSession: OptDocSession): number|null {
   return null;
 }
 
+export function getDocSessionAltSessionId(docSession: OptDocSession): string|null {
+  if (docSession.req) {
+    return docSession.req.altSessionId || null;
+  }
+  if (docSession.client) {
+    return docSession.client.getAltSessionId() || null;
+  }
+  return null;
+}
+
 /**
  * Get as much of user profile as we can (id, name, email).
  */

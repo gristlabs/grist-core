@@ -11,6 +11,7 @@ import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus,
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
         cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
+import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {allowHost, optStringParam} from 'app/server/lib/requestUtils';
@@ -30,6 +31,7 @@ export interface RequestWithLogin extends Request {
   userIsAuthorized?: boolean;   // If userId is for "anonymous", this will be false.
   docAuth?: DocAuthResult;      // For doc requests, the docId and the user's access level.
   specialPermit?: Permit;
+  altSessionId?: string;   // a session id for use in trigger formulas and granular access rules
 }
 
 /**
@@ -154,6 +156,12 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   // If we haven't selected a user by other means, and have profiles available in the
   // session, then select a user based on those profiles.
   const session = mreq.session;
+  if (session && !session.altSessionId) {
+    // Create a default alternative session id for use in documents.
+    session.altSessionId = makeId();
+    forceSessionChange(session);
+  }
+  mreq.altSessionId = session?.altSessionId;
   if (!mreq.userId && session && session.users && session.users.length > 0 &&
      mreq.org !== undefined) {
 
