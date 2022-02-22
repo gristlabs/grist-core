@@ -29,7 +29,8 @@ describe('HomeIntro', function() {
 
       // Check that the link takes us to a login page.
       await signUp.click();
-      await gu.checkLoginPage();
+      // External servers redirect to Grist sign-up page if client has no sessions.
+      server.isExternalServer() ? await gu.checkGristLoginPage() : await gu.checkLoginPage();
       await driver.navigate().back();
       await gu.waitForDocMenuToLoad();
     });

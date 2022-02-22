@@ -77,10 +77,7 @@ export class HomeUtil {
       await this.driver.get('about:blank');
       // When running against an external server, we log in through Cognito.
       await this.driver.get(this.server.getUrl(org, ""));
-      // Check if we got redirected to the Grist sign-up page.
-      if (await this.isOnGristLoginPage()) {
-        await this.driver.findWait('a[href*="login?"]', 4000).click();
-      } else if (!(await this.isOnLoginPage())) {
+      if (!(await this.isOnGristLoginPage()) && !(await this.isOnLoginPage())) {
         // Explicitly click sign-in link if necessary.
         await this.driver.findWait('.test-user-signin', 4000).click();
         await this.driver.findContentWait('.grist-floating-menu a', 'Sign in', 500).click();
@@ -259,14 +256,14 @@ export class HomeUtil {
    * Returns whether we are currently on the Cognito login page.
    */
   public async isOnLoginPage() {
-    return /gristlogin/.test(await this.driver.getCurrentUrl());
+    return /^https:\/\/gristlogin/.test(await this.driver.getCurrentUrl());
   }
 
   /**
    * Returns whether we are currently on a Grist login page.
    */
   public async isOnGristLoginPage() {
-    return /login(-s)?\.getgrist\.com/.test(await this.driver.getCurrentUrl());
+    return /^https:\/\/login(-s)?\.getgrist\.com/.test(await this.driver.getCurrentUrl());
   }
 
   /**
