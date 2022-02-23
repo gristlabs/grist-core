@@ -91,9 +91,6 @@ export class HomeUtil {
       if (!(await this.isWelcomePage()) && (options.freshAccount || options.isFirstLogin)) {
         await this._recreateCurrentUser(email, org);
       }
-      if (isFirstLogin === false) {
-        await this._fillWelcomePageIfPresent(name);
-      }
     }
     if (options.freshAccount) {
       this._apiKey.delete(email);
@@ -276,7 +273,7 @@ export class HomeUtil {
   /**
    * Waits for browser to navigate to Grist login page.
    */
-   public async checkGristLoginPage(waitMs: number = 2000) {
+   public async checkGristLoginPage(waitMs: number = 4000) {
     await this.driver.wait(this.isOnGristLoginPage.bind(this), waitMs);
   }
 
@@ -332,20 +329,6 @@ export class HomeUtil {
     if (user && user.personalOrg) {
       const userOrgPrefs = {showGristTour};
       await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userOrgPrefs});
-    }
-  }
-
-  // Get past the user welcome page if it is present.
-  private async _fillWelcomePageIfPresent(name?: string) {
-    // TODO: check treatment of welcome/team page when necessary.
-    if (await this.isWelcomePage()) {
-      if (name) {
-        await this.setValue(await this.driver.findWait('input[name="username"]', 4000), name);
-      }
-      const url = await this.driver.getCurrentUrl();
-      await this.driver.findWait('button.test-continue-button', 4000).click();
-      // Wait for the navigation to take place.
-      await this.driver.wait(async () => (await this.driver.getCurrentUrl()) !== url, 4000);
     }
   }
 
