@@ -288,7 +288,7 @@ export class ChartView extends Disposable {
       dataOptions.totalFormatter = this._formatterComp.peek();
     }
 
-    if (!options.multiseries) {
+    if (!options.multiseries && series.length) {
       plotData = chartFunc(series, options, dataOptions);
     } else if (series.length > 1) {
       // We need to group all series by the first column.
