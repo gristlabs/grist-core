@@ -273,8 +273,18 @@ export class HomeUtil {
   /**
    * Waits for browser to navigate to Grist login page.
    */
-   public async checkGristLoginPage(waitMs: number = 4000) {
+   public async checkGristLoginPage(waitMs: number = 2000) {
     await this.driver.wait(this.isOnGristLoginPage.bind(this), waitMs);
+  }
+
+  /**
+   * Waits for browser to navigate to either the Cognito or Grist login page.
+   */
+  public async checkSigninPage(waitMs: number = 4000) {
+    await this.driver.wait(
+      async () => await this.isOnLoginPage() || await this.isOnGristLoginPage(),
+      waitMs
+    );
   }
 
   /**

@@ -27,10 +27,9 @@ describe('HomeIntro', function() {
       const signUp = await driver.findContent('.test-welcome-text a', 'sign up');
       assert.include(await signUp.getAttribute('href'), '/signin');
 
-      // Check that the link takes us to a login page.
+      // Check that the link takes us to a login page (either Cognito or Grist, depending on session).
       await signUp.click();
-      // External servers redirect to Grist sign-up page if client has no sessions.
-      server.isExternalServer() ? await gu.checkGristLoginPage() : await gu.checkLoginPage();
+      await gu.checkSigninPage();
       await driver.navigate().back();
       await gu.waitForDocMenuToLoad();
     });

@@ -43,6 +43,7 @@ export const setValue = homeUtil.setValue.bind(homeUtil);
 export const isOnLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const checkLoginPage = homeUtil.checkLoginPage.bind(homeUtil);
 export const checkGristLoginPage = homeUtil.checkGristLoginPage.bind(homeUtil);
+export const checkSigninPage = homeUtil.checkSigninPage.bind(homeUtil);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
