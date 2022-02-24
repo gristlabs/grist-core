@@ -14,10 +14,6 @@ async function openMainPage() {
   await driver.get(`${server.getHost()}`);
   while (true) {    // eslint-disable-line no-constant-condition
     try {
-      const url = await driver.getCurrentUrl();
-      if (url.match(/welcome\//)) {
-        await driver.findContent('button', /Continue/).click();
-      }
       if (await driver.findContent('button', /Create Empty Document/).isPresent()) {
         return;
       }

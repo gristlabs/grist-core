@@ -37,10 +37,16 @@ export class BaseAPI {
     };
   }
 
-  // Make a JSON request to the given URL, and read the esponse as JSON. Handles errors, and
+  // Make a JSON request to the given URL, and read the response as JSON. Handles errors, and
   // counts pending requests in the same way as BaseAPI methods do.
   public static requestJson(url: string, init: RequestInit = {}): Promise<unknown> {
     return new BaseAPI().requestJson(url, init);
+  }
+
+  // Make a request to the given URL, and read the response. Handles errors, and
+  // counts pending requests in the same way as BaseAPI methods do.
+  public static request(url: string, init: RequestInit = {}): Promise<Response> {
+    return new BaseAPI().request(url, init);
   }
 
   private static _numPendingRequests: number = 0;

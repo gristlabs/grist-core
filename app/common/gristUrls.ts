@@ -20,7 +20,7 @@ export const HomePage = StringUnion('all', 'workspace', 'templates', 'trash');
 export type IHomePage = typeof HomePage.type;
 
 // TODO: Remove 'user' and 'info', since those pages are no longer part of any flow.
-export const WelcomePage = StringUnion('user', 'info', 'teams', 'signup', 'verify', 'select-account');
+export const WelcomePage = StringUnion('teams', 'signup', 'verify', 'select-account');
 export type WelcomePage = typeof WelcomePage.type;
 
 export const AccountPage = StringUnion('account');
@@ -286,7 +286,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
   if (map.has('account')) { state.account = AccountPage.parse(map.get('account')) || 'account'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
-  if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')) || 'user'; }
+  if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
     state.params!.billingTask = BillingTask.parse(sp.get('billingTask'));

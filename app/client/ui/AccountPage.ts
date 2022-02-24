@@ -7,7 +7,6 @@ import {MFAConfig} from 'app/client/ui/MFAConfig';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {transientInput} from 'app/client/ui/transientInput';
-import {buildNameWarningsDom, checkName} from 'app/client/ui/WelcomePage';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/breadcrumbs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -218,6 +217,31 @@ function confirmPwdResetModal(userEmail: string) {
   });
 }
 
+/**
+ * We allow alphanumeric characters and certain common whitelisted characters (except at the start),
+ * plus everything non-ASCII (for non-English alphabets, which we want to allow but it's hard to be
+ * more precise about what exactly to allow).
+ */
+// eslint-disable-next-line no-control-regex
+const VALID_NAME_REGEXP = /^(\w|[^\u0000-\u007F])(\w|[- ./'"()]|[^\u0000-\u007F])*$/;
+
+/**
+ * Test name against various rules to check if it is a valid username.
+ */
+export function checkName(name: string): boolean {
+  return VALID_NAME_REGEXP.test(name);
+}
+
+/**
+ * Builds dom to show marning messages to the user.
+ */
+function buildNameWarningsDom() {
+  return cssWarning(
+    "Names only allow letters, numbers and certain special characters",
+    testId('username-warning'),
+  );
+}
+
 const cssContainer = styled('div', `
   display: flex;
   justify-content: center;
@@ -307,4 +331,8 @@ const cssEmail = styled('div', `
 
 const cssLoginMethod = styled(cssFlexGrow, `
   word-break: break-word;
+`);
+
+const cssWarning = styled('div', `
+  color: red;
 `);

@@ -1135,69 +1135,22 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
-    // These are some special-purpose pre-sign-up welcome pages, with no middleware.
-    this.app.get(['/welcome/signup', '/welcome/verify'], expressWrap(async (req, resp, next) => {
+    // These are some special-purpose welcome pages, with no middleware.
+    this.app.get(/\/welcome\/(signup|verify|teams|select-account)/, expressWrap(async (req, resp, next) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
     }));
 
-    /**
-     * TODO: Add '/welcome/teams' and '/welcome/select-account' to the above route handler,
-     * and remove this one, since those are the only welcome paths that are part of current UI flows.
-     */
-    this.app.get('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
-      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
-    }));
-
-    /**
-     * TODO: We should now be able to remove this route, since the only remaining welcome path
-     * is GET /welcome/teams, and we already redirect there from the welcomeNewUser middleware.
-     *
-     * Leaving this alone for now, just in case, but we should remove this soon.
-     */
-    this.app.post('/welcome/:page', ...middleware, expressWrap(async (req, resp, next) => {
-      const mreq = req as RequestWithLogin;
+    this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
       const userId = getUserId(req);
-      const domain = mreq.org;
-      let redirectPath: string = '/';
+      const user = getUser(req);
+      const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
+      this._recordNewUserInfo(row)
+      .catch(e => {
+        // If we failed to record, at least log the data, so we could potentially recover it.
+        log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
+      });
 
-      if (req.params.page === 'user') {
-        // The /welcome/user page is no longer part of any flow, but if visited, will still submit
-        // here and redirect. The full name is now part of the sign-up page, so we no longer
-        // need to prompt new users for their name here.
-        const name: string|undefined = req.body && req.body.username || undefined;
-
-        // Reset isFirstTimeUser flag, used to redirect a new user to the /welcome/user page.
-        await this._dbManager.updateUser(userId, {name, isFirstTimeUser: false});
-
-        // This is a good time to set another flag (showNewUserQuestions), to show a popup with
-        // welcome question(s) to this new user. Both flags are scoped to the user, but
-        // isFirstTimeUser has a dedicated DB field because it predates userPrefs. Note that the
-        // updateOrg() method handles all levels of prefs (for user, user+org, or org).
-        await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {showNewUserQuestions: true}});
-
-      } else if (req.params.page === 'info') {
-        // The /welcome/info page is no longer part of any flow, but if visited, will still submit
-        // here and redirect. The new form with new-user questions appears in a modal popup. It
-        // also posts here to save answers, but ignores the response.
-        const user = getUser(req);
-        const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
-        this._recordNewUserInfo(row)
-        .catch(e => {
-          // If we failed to record, at least log the data, so we could potentially recover it.
-          log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
-        });
-      }
-
-      // redirect to teams page if users has access to more than one org. Otherwise redirect to
-      // personal org.
-      const result = await this._dbManager.getMergedOrgs(userId, userId, domain || null);
-      const orgs = (result.status === 200) ? result.data : null;
-      if (orgs && orgs.length > 1) {
-        redirectPath = '/welcome/teams';
-      }
-
-      const redirectUrl = this.getMergedOrgUrl(mreq, redirectPath);
-      resp.json({redirectUrl});
+      resp.status(200).send();
     }),
     // Add a final error handler that reports errors as JSON.
     jsonErrorHandler);

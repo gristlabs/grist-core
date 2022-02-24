@@ -25,7 +25,7 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
 
       const submitUrl = new URL(window.location.href);
       submitUrl.pathname = '/welcome/info';
-      return BaseAPI.requestJson(submitUrl.href,
+      return BaseAPI.request(submitUrl.href,
         {method: 'POST', body: JSON.stringify({use_cases, use_other})});
     }
 

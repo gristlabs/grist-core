@@ -1,4 +1,4 @@
-import { Computed, Disposable, dom, domComputed, DomContents, input, MultiHolder, Observable, styled } from "grainjs";
+import { Disposable, dom, domComputed, DomContents, input, MultiHolder, Observable, styled } from "grainjs";
 
 import { handleSubmit, submitForm } from "app/client/lib/formUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
@@ -6,12 +6,11 @@ import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlS
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { AppHeader } from 'app/client/ui/AppHeader';
 import * as BillingPageCss from "app/client/ui/BillingPageCss";
-import * as forms from "app/client/ui/forms";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createUserImage } from 'app/client/ui/UserImage';
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
          cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
-import { basicButtonLink, bigBasicButton, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
+import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
          cssButton } from "app/client/ui2018/buttons";
 import { colors, mediaSmall, testId, vars } from "app/client/ui2018/cssVars";
 import { getOrgName, Organization } from "app/common/UserAPI";
@@ -26,18 +25,9 @@ function _redirectToSiblingPage(name: string) {
   window.location.assign(url.href);
 }
 
-// Redirect to result.redirectUrl is set, otherwise fail
-function _redirectOnSuccess(result: any) {
-  const redirectUrl = result.redirectUrl;
-  if (!redirectUrl) {
-    throw new Error('form failed to redirect');
-  }
-  window.location.assign(redirectUrl);
-}
-
 function handleSubmitForm(
   pending: Observable<boolean>,
-  onSuccess: (v: any) => void = _redirectOnSuccess,
+  onSuccess: (v: any) => void,
   onError?: (e: unknown) => void
 ): (elem: HTMLFormElement) => void {
   return handleSubmit(pending, submitForm, onSuccess, onError);
@@ -45,7 +35,6 @@ function handleSubmitForm(
 
 export class WelcomePage extends Disposable {
 
-  private _currentUserName = this._appModel.currentUser && this._appModel.currentUser.name || '';
   private _orgs: Organization[];
   private _orgsLoaded = Observable.create(this, false);
 
@@ -75,46 +64,11 @@ export class WelcomePage extends Disposable {
       domComputed(urlState().state, (state) => (
         state.welcome === 'signup' ? dom.create(this._buildSignupForm.bind(this)) :
         state.welcome === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
-        state.welcome === 'user' ? dom.create(this._buildNameForm.bind(this)) :
-        state.welcome === 'info' ? dom.create(this._buildInfoForm.bind(this)) :
         state.welcome === 'teams' ? dom.create(this._buildOrgPicker.bind(this)) :
         state.welcome === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
         null
       )),
     ));
-  }
-
-  // TODO: This can be removed, since the 'user' page is no longer part of any flow.
-  private _buildNameForm(owner: MultiHolder) {
-    let inputEl: HTMLInputElement;
-    let form: HTMLFormElement;
-    const value = Observable.create(owner, checkName(this._currentUserName) ? this._currentUserName : '');
-    const isNameValid = Computed.create(owner, value, (use, val) => checkName(val));
-    const pending = Observable.create(owner, false);
-
-    // delayed focus
-    setTimeout(() => inputEl.focus(), 10);
-
-    return form = dom(
-      'form',
-      { method: "post", action: location.href },
-      handleSubmitForm(pending),
-      cssLabel('Your full name, as you\'d like it displayed to your collaborators.'),
-      inputEl = cssInput(
-        value, { onInput: true, },
-        { name: "username" },
-        // TODO: catch isn't needed, so either remove or propagate errors from _submitForm.
-        dom.onKeyDown({Enter: () => isNameValid.get() && form.requestSubmit()}),
-      ),
-      dom.maybe((use) => use(value) && !use(isNameValid), buildNameWarningsDom),
-      cssButtonGroup(
-        bigPrimaryButton(
-          'Continue',
-          dom.boolAttr('disabled', (use) => Boolean(use(value) && !use(isNameValid)) || use(pending)),
-          testId('continue-button')
-        ),
-      )
-    );
   }
 
   private _buildSignupForm(owner: MultiHolder) {
@@ -231,61 +185,6 @@ export class WelcomePage extends Disposable {
         bigBasicButtonLink('More sign-up options',
                            {href: getSignupUrl()})
       )
-    );
-  }
-
-  /**
-   * Builds a form to ask the new user a few questions.
-   *
-   * TODO: This can be removed, since the 'info' page is no longer part of any flow.
-   */
-  private _buildInfoForm(owner: MultiHolder) {
-    const allFilled = Observable.create(owner, false);
-    const whereObs = Observable.create(owner, '');
-    const pending = Observable.create(owner, false);
-
-    return forms.form({method: "post", action: location.href },
-      handleSubmitForm(pending),
-      (elem) => { setTimeout(() => elem.focus(), 0); },
-      forms.text('Please help us serve you better by answering a few questions.'),
-      forms.question(
-        forms.text('Where do you plan to use Grist?'),
-        forms.checkboxItem([{name: 'use_work'}], 'Work'),
-        forms.checkboxItem([{name: 'use_school'}], 'School'),
-        forms.checkboxItem([{name: 'use_personal'}], 'Personal'),
-        forms.textBox({name: 'company'},
-          dom.hide(use => !use(whereObs)),
-          dom.attr('placeholder', (use) => use(whereObs) === 'school' ? 'Your School' : 'Your Company')
-        ),
-      ),
-      forms.question(
-        forms.text('What brings you to Grist?'),
-        forms.checkboxItem([{name: 'reason_problem'}], 'Solve a particular problem or need'),
-        forms.checkboxItem([{name: 'reason_tool'}], 'Find a better tool than the one I am using'),
-        forms.checkboxItem([{name: 'reason_curious'}], 'Just curious about a new product'),
-        forms.checkboxOther([{name: 'reason_other'}], {name: 'other_reason', placeholder: 'Other...'}),
-      ),
-      forms.question(
-        forms.text('What kind of industry do you work in?'),
-        forms.textBox({name: 'industry', placeholder: 'Your answer'}),
-      ),
-      forms.question(
-        forms.text('What is your role?'),
-        forms.textBox({name: 'role', placeholder: 'Your answer'}),
-      ),
-      dom.on('change', (e, form) => {
-        allFilled.set(forms.isFormFilled(form, ['use_*', 'reason_*', 'industry', 'role']));
-        whereObs.set(form.use_work.checked ? 'work' : form.use_school.checked ? 'school' : '');
-      }),
-      cssButtonGroup(
-        cssButtonGroup.cls('-right'),
-        bigBasicButton('Continue',
-          cssButton.cls('-primary', allFilled),
-          dom.boolAttr('disabled', pending),
-          {tabIndex: '0'},
-          testId('continue-button')),
-      ),
-      testId('info-form'),
     );
   }
 
@@ -412,7 +311,6 @@ const textStyle = `
   color: ${colors.dark};
 `;
 
-const cssLabel = styled('label', textStyle);
 // TODO: there's probably a much better way to style labels with a bit of
 // space between them and things they are not the label for?
 const cssSeparatedLabel = styled('label', textStyle + ' margin-top: 20px;');
@@ -425,10 +323,6 @@ const cssButtonGroup = styled('div', `
   &-right {
     justify-content: flex-end;
   }
-`);
-
-const cssWarning = styled('div', `
-  color: red;
 `);
 
 const cssInput = styled(input, BillingPageCss.inputStyle);
@@ -444,29 +338,3 @@ const cssOrgButton = styled(bigPrimaryButtonLink, `
     margin-top: 16px;
   }
 `);
-
-/**
- * We allow alphanumeric characters and certain common whitelisted characters (except at the start),
- * plus everything non-ASCII (for non-English alphabets, which we want to allow but it's hard to be
- * more precise about what exactly to allow).
- */
-// eslint-disable-next-line no-control-regex
-const VALID_NAME_REGEXP = /^(\w|[^\u0000-\u007F])(\w|[- ./'"()]|[^\u0000-\u007F])*$/;
-
-/**
- * Test name against various rules to check if it is a valid username. Returned obj has `.valid` set
- * to true if all  passes, otherwise it has the `.flag` set the the first failing test.
- */
-export function checkName(name: string): boolean {
-  return VALID_NAME_REGEXP.test(name);
-}
-
-/**
- * Builds dom to show marning messages to the user.
- */
-export function buildNameWarningsDom() {
-  return cssWarning(
-    "Names only allow letters, numbers and certain special characters",
-    testId('username-warning'),
-  );
-}

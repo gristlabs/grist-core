@@ -428,9 +428,7 @@ export class HomeDBManager extends EventEmitter {
         needsSave = true;
         // If we are turning off the isFirstTimeUser flag, then right
         // after this transaction commits is a great time to trigger
-        // any automation for first logins - the user has logged in
-        // and gone through the welcome process (so they've had a
-        // chance to set a name)
+        // any automation for first logins
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
       if (needsSave) {
