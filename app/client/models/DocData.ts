@@ -109,7 +109,9 @@ export class DocData extends BaseDocData {
         prepareResolve(options.prepare());
         this._shouldIncludeInBundle = options.shouldIncludeInBundle;
 
-        await triggerFinalizePromise;
+        // If finalize is triggered, we must wait for preparePromise to fulfill before proceeding.
+        await Promise.all([triggerFinalizePromise, preparePromise]);
+
         // Unset _shouldIncludeInBundle so that actions sent by finalize() are included in the
         // bundle. If they were checked and incorrectly failed the check, we'd have a deadlock.
         // TODO The downside is that when sending multiple unrelated actions quickly, the first
