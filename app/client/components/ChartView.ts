@@ -9,7 +9,7 @@ import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
 import * as DataTableModel from 'app/client/models/DataTableModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
-import {KoSaveableObservable, ObjObservable} from 'app/client/models/modelUtil';
+import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanel';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
@@ -77,6 +77,7 @@ interface ChartOptions {
   donutHoleSize?: number;
   showTotal?: boolean;
   textSize?: number;
+  isXAxisUndefined?: boolean;
 }
 
 // tslint:disable:no-console
@@ -433,11 +434,13 @@ export class ChartConfig extends GrainJSDisposable {
   // helper to build the draggable field list
   private _configFieldsHelper = VisibleFieldsConfig.create(this, this._gristDoc, this._section);
 
-  // The index for the x-axis in the list visible fields. Could be eigther 0 or 1 depending on
-  // whether multiseries is set.
+  // The index for the x-axis in the list visible fields. Could be eigther 0 or 1 or -1 depending on
+  // whether multiseries and isXAxisUndefined are set.
   private _xAxisFieldIndex = Computed.create(
-    this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) => (
-      multiseries ? 1 : 0
+    this,
+    fromKo(this._optionsObj.prop('multiseries')),
+    fromKo(this._optionsObj.prop('isXAxisUndefined')), (_use, multiseries, isUndefined) => (
+      isUndefined ? -1 : (multiseries ? 1 : 0)
     )
   );
 
@@ -458,12 +461,12 @@ export class ChartConfig extends GrainJSDisposable {
 
   private _freezeYAxis = Observable.create(this, false);
 
-  // The column is of the x-axis.
+  // The column id of the x-axis.
   private _xAxis: Computed<number> = Computed.create(
     this, this._xAxisFieldIndex, this._freezeXAxis, (use, i, freeze) => {
       if (freeze) { return this._xAxis.get(); }
       const viewFields = use(use(this._section.viewFields).getObservable());
-      if (i < viewFields.length) {
+      if (-1 < i && i < viewFields.length) {
         return use(viewFields[i].column).getRowId();
       }
       return -1;
@@ -477,8 +480,8 @@ export class ChartConfig extends GrainJSDisposable {
   private _groupDataOptions = Computed.create<Array<IOption<number>>>(this, (use) => [
     {value: -1, label: 'Pick a column'},
     ...use(this._columns)
-    // filter out hidden column (ie: manualsort ...) and the one selected for x axis
-      .filter((col) => !col.isHiddenCol.peek() && (col.getRowId() !== use(this._xAxis)))
+      // filter out hidden column (ie: manualsort ...)
+      .filter((col) => !col.isHiddenCol.peek())
       .map((col) => ({
         value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
       }))
@@ -606,7 +609,8 @@ export class ChartConfig extends GrainJSDisposable {
             .filter((col) => !col.isHiddenCol.peek())
             .map((col) => ({
               value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
-            })))
+            }))),
+          { defaultLabel: 'Pick a column' }
         ),
         testId('x-axis'),
       ),
@@ -652,10 +656,14 @@ export class ChartConfig extends GrainJSDisposable {
     await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
       this._freezeYAxis.set(true);
       try {
+
         // first remove the current field
-        if (this._xAxisFieldIndex.get() < viewFields.peek().length) {
+        if (this._xAxisFieldIndex.get() !== -1 && this._xAxisFieldIndex.get() < viewFields.peek().length) {
           await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
         }
+
+        // if x axis was undefined, set option to false
+        await setSaveValue(this._optionsObj.prop('isXAxisUndefined'), false);
 
         // if  new field was used to group by column series, disable multiseries
         const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().getRowId() === colId);
@@ -664,8 +672,10 @@ export class ChartConfig extends GrainJSDisposable {
           return;
         }
 
-        // if new field is already visible, moves the fields to the first place else add the field to the first
-        // place
+        // if the new column for the x axis is already visible, make it the first visible column,
+        // else add it as the first visible field. The field will be first because it will be
+        // inserted before current xAxis column (which is already first (or second if we have
+        // multi-series option checked))
         const xAxisField = viewFields.peek()[this._xAxisFieldIndex.get()];
         if (fieldIndex > -1) {
           await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
@@ -681,7 +691,7 @@ export class ChartConfig extends GrainJSDisposable {
   private async _setGroupDataColumn(colId: number) {
     const viewFields = this._section.viewFields.peek().peek();
 
-    await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
+    await this._gristDoc.docData.bundleActions('selected new group data columnd', async () => {
       this._freezeXAxis.set(true);
       this._freezeYAxis.set(true);
       try {
@@ -700,6 +710,11 @@ export class ChartConfig extends GrainJSDisposable {
             await this._configFieldsHelper.changeFieldPosition(field, viewFields[0]);
           } else {
             await this._configFieldsHelper.addField(col, viewFields[0]);
+          }
+
+          // if this column is used as xAxis, set the xAxis to undefined (show Pick a column label)
+          if (colId === this._xAxis.get()) {
+            await this._optionsObj.prop('isXAxisUndefined').setAndSave(true);
           }
         }
 
@@ -727,8 +742,11 @@ export class ChartConfig extends GrainJSDisposable {
 
     // The y-axis are all visible fields that comes after the x-axis and maybe the group data
     // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
-    const skipFirst = Computed.create(this, fromKo(this._optionsObj.prop('multiseries')), (_use, multiseries) =>  (
-      multiseries ? 2 : 1
+    const skipFirst = Computed.create(this,
+                                      fromKo(this._optionsObj.prop('multiseries')),
+                                      fromKo(this._optionsObj.prop('isXAxisUndefined')),
+                                      (_use, multiseries, isUndefined) =>  (
+      (isUndefined ? 0 : 1) + (multiseries ? 1 : 0)
     ));
 
     return dom.domComputed((use) => {
