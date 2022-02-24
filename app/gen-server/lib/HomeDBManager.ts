@@ -35,6 +35,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {WebHookSecret} from "app/server/lib/Triggers";
+import {StringUnion} from 'app/common/StringUnion';
 import {EventEmitter} from 'events';
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
@@ -47,6 +48,17 @@ import * as uuidv4 from "uuid/v4";
 // TODO: remove this patch if the issue is ever accepted as a problem in TypeORM and
 // fixed.  See https://github.com/typeorm/typeorm/issues/1884#issuecomment-380767213
 applyPatch();
+
+export const NotifierEvents = StringUnion(
+  'addUser',
+  'userChange',
+  'firstLogin',
+  'addBillingManager',
+  'teamCreator',
+  'trialPeriodEndingSoon',
+);
+
+export type NotifierEvent = typeof NotifierEvents.type;
 
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
@@ -189,6 +201,10 @@ export class HomeDBManager extends EventEmitter {
                                    // deployments on same subdomain.
 
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
+
+  public emit(event: NotifierEvent, ...args: any[]): boolean {
+    return super.emit(event, ...args);
+  }
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',

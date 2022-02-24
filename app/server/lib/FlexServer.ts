@@ -99,7 +99,6 @@ export class FlexServer implements GristServer {
   public host: string;
   public tag: string;
   public info = new Array<[string, any]>();
-  public notifier: INotifier;
   public usage: Usage;
   public housekeeper: Housekeeper;
   public server: http.Server;
@@ -123,6 +122,7 @@ export class FlexServer implements GristServer {
   private _storageManager: IDocStorageManager;
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
+  private _notifier: INotifier;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
@@ -284,6 +284,11 @@ export class FlexServer implements GristServer {
   public getWidgetRepository(): IWidgetRepository {
     if (!this._widgetRepository) { throw new Error('no widget repository available'); }
     return this._widgetRepository;
+  }
+
+  public getNotifier(): INotifier {
+    if (!this._notifier) { throw new Error('no notifier available'); }
+    return this._notifier;
   }
 
   public addLogging() {
@@ -1254,7 +1259,7 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    this.notifier = this.create.Notifier(this._dbManager, this);
+    this._notifier = this.create.Notifier(this._dbManager, this);
   }
 
   public getGristConfig(): GristLoadConfig {
