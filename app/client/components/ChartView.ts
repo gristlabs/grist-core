@@ -470,11 +470,13 @@ export class ChartConfig extends GrainJSDisposable {
     })
     .onWrite((colId) => this._setXAxis(colId));
 
+  private _columns = Computed.create(this, (use) => use(use(use(this._section.table).columns).getObservable()));
+
   // The list of available columns for the group data picker. Picking the actual x-axis is not
   // permitted.
   private _groupDataOptions = Computed.create<Array<IOption<number>>>(this, (use) => [
     {value: -1, label: 'Pick a column'},
-    ...this._section.table().columns().peek()
+    ...use(this._columns)
     // filter out hidden column (ie: manualsort ...) and the one selected for x axis
       .filter((col) => !col.isHiddenCol.peek() && (col.getRowId() !== use(this._xAxis)))
       .map((col) => ({
@@ -600,11 +602,11 @@ export class ChartConfig extends GrainJSDisposable {
       cssLabel(dom.text(this._firstFieldLabel), testId('first-field-label')),
       cssRow(
         select(
-          this._xAxis, this._section.table().columns().peek()
+          this._xAxis, Computed.create(this, (use) => use(this._columns)
             .filter((col) => !col.isHiddenCol.peek())
             .map((col) => ({
               value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
-            }))
+            })))
         ),
         testId('x-axis'),
       ),
