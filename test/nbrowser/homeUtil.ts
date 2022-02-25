@@ -140,12 +140,15 @@ export class HomeUtil {
     if ((await this.driver.getCurrentUrl()).match(/signup\?/)) {
       await this.driver.findWait('a[href*="login?"]', 4000).click();
     }
-    await this.driver.findWait('div.modal-content-desktop input[name="username"]', 4000);
-    await this.setValue(this.driver.findWait('div.modal-content-desktop input[name="username"]', 4000),
-                        email);
-    await this.setValue(this.driver.findWait('div.modal-content-desktop input[name="password"]', 4000),
-                        password);
-    await this.driver.find('div.modal-content-desktop input[name="signInSubmitButton"]').click();
+    // There are two login forms, one hidden, one shown. Pick the one that is shown.
+    const block =
+      (await this.driver.find('div.modal-content-desktop').isDisplayed()) ?
+      (await this.driver.find('div.modal-content-desktop')) :
+      (await this.driver.find('div.modal-content-mobile'));
+    await block.findWait('input[name="username"]', 4000);
+    await this.setValue(block.findWait('input[name="username"]', 4000), email);
+    await this.setValue(block.findWait('input[name="password"]', 4000), password);
+    await block.find('input[name="signInSubmitButton"]').click();
   }
 
   /**
