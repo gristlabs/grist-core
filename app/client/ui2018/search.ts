@@ -147,7 +147,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
         toggleMenu(false)
     )),
     dom.onKeyDown({
-      Enter: () => model.findNext(),
+      Enter: (ev) => ev.shiftKey ? model.findPrev() : model.findNext(),
       Escape: () => { keepExpanded = false; toggleMenu(false); },
       // Catch both Tab and Shift+Tab to prevent focus entering unrelated editable label.
       Tab: () => toggleMenu(false),
