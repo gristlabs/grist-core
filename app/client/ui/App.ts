@@ -118,6 +118,13 @@ export class App extends DisposableWithEvents {
 
     this.autoDispose(commands.createGroup({
       cancel() { isHelpPaneVisible(false); },
+      cursorDown() { helpDiv.scrollBy(0, 30); }, // 30 is height of the row in the help screen
+      cursorUp() { helpDiv.scrollBy(0, -30); },
+      pageUp() { helpDiv.scrollBy(0, -helpDiv.clientHeight); },
+      pageDown() { helpDiv.scrollBy(0, helpDiv.clientHeight); },
+      moveToFirstField() { helpDiv.scrollTo(0, 0); }, // home
+      moveToLastField() { helpDiv.scrollTo(0, helpDiv.scrollHeight); }, // end
+      find() { return true; }, // restore browser search
       help() { isHelpPaneVisible(false); },
     }, this, isHelpPaneVisible));
 
