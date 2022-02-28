@@ -782,7 +782,8 @@ GridView.prototype.currentMouseRow = function(yCoord) {
 /**
  *  Returns the column index of the column whose left position is closest to and
  *  no greater than given x-position.
- *  param{xCoord}: The mouse x-position (including any scroll left amount).
+ *  param{xCoord}: The mouse x-position (absolute position on a page).
+ *  Grid scroll offset and frozen columns are taken into account.
  *  Assumes that this.colRightOffsets is up to date
  *  In the following examples, let * denote the current mouse position.
  *      * |0____|1____|2____|3____|       Returns 0
@@ -791,11 +792,40 @@ GridView.prototype.currentMouseRow = function(yCoord) {
  *        |0____|1____|2__*_|3____|       Returns 2
  *        |0____|1____|2____|3__*_|       Returns 3
  *        |0____|1____|2____|3____| *     Returns 4
+ *
+ * For frozen columns and a scrolled view:
+ *      * |0____|1____|..5|6____|         Returns 0
+ *        |0__*_|1____|..5|6____|         Returns 0
+ *        |0____|1__*_|..5|6____|         Returns 1
+ *        |0____|1____|*.5|6____|         Returns 5
+ *        |0____|1____|..5|6__*_|         Returns 6
+ *        |0____|1____|..5|6____| *       Returns 6
  **/
-GridView.prototype.getMousePosCol = function (xCoord) {
-  //offset to left edge of gridView viewports
-  var headerOffset = this._cornerDom.getBoundingClientRect().right;
-  return this.colRightOffsets.peek().getIndex(xCoord - headerOffset);
+GridView.prototype.getMousePosCol = function (mouseX) {
+  const scrollLeft = this.scrollLeft();
+  // Offset to left edge of gridView viewports
+  const headerOffset = this._cornerDom.getBoundingClientRect().right;
+  // Convert mouse x to grid x (not including scroll yet).
+  // GridX now has x position as if the grid pane is covering
+  // the whole screen, it still can be scrolled, so 0px is not equal to A column yet.
+  const gridX = mouseX - headerOffset;
+  // Total width of frozen columns (if zero, no frozen column set)
+  const frozenWidth = this.frozenWidth.peek();
+  // Frozen columns can be scrolled also, but not more then frozenOffset.
+  const frozenScroll = Math.min(this.frozenOffset.peek(), scrollLeft);
+  // If gridX is in frozen section or outside. Frozen section can be scrolled also
+  // on narrow screens so take this into account.
+  const inFrozen = this.numFrozen.peek() && gridX <= (frozenWidth - frozenScroll);
+  // If grid x (mouse converted to grid pane coordinates) is in frozen area
+  // we need to use frozenScroll value (how much frozen area is scrolled),
+  // but if it is outside we want to take the scroll offset into account.
+  // Here we wil calculate where exactly is mouse (over which column),
+  // to do that, we will pretend that nothing is scrolled - so we need
+  // to move gridX a little to the right, either by grid offset (how much whole grid
+  // is scrolled to the left) or a frozen set offset (how much frozen columns
+  // are scrolled to the left).
+  const scrollX = gridX + (inFrozen ? frozenScroll : scrollLeft);
+  return this.colRightOffsets.peek().getIndex(scrollX);
 };
 
 // Used for styling the paste data the same way the col/row is styled in the GridView.
@@ -1268,7 +1298,7 @@ GridView.prototype.rowMouseMove = function(elem, event) {
 };
 
 GridView.prototype.colMouseMove = function(elem, event) {
-  var currentCol = Math.min(this.getMousePosCol(this.scrollLeft() + event.pageX),
+  var currentCol = Math.min(this.getMousePosCol(event.pageX),
                             this.viewSection.viewFields().peekLength - 1);
   this.cellSelector.col.end(currentCol);
 };
@@ -1411,7 +1441,7 @@ GridView.prototype.dragRows = function(elem, event) {
 };
 
 GridView.prototype.dragCols = function(elem, event) {
-  var dropIndex = Math.min(this.getMousePosCol(event.pageX + this.scrollLeft()),
+  let dropIndex = Math.min(this.getMousePosCol(event.pageX),
                            this.viewSection.viewFields().peekLength - 1);
   if (this.cellSelector.containsCol(dropIndex)) {
     dropIndex = this.cellSelector.colLower();
@@ -1422,8 +1452,19 @@ GridView.prototype.dragCols = function(elem, event) {
     dropIndex = Math.min(dropIndex, this.cellSelector.colLower());
   }
 
-  var viewDataNumsWidth = $('.gridview_corner_spacer').width();
-  var linePos = viewDataNumsWidth + this.colRightOffsets.peek().getSumTo(dropIndex) - this.scrollLeft();
+  const viewDataNumsWidth = $('.gridview_corner_spacer').width();
+  let linePos = viewDataNumsWidth + this.colRightOffsets.peek().getSumTo(dropIndex);
+  // If there are frozen columns and dropIndex (column index) is inside the frozen set.
+  const frozenCount = this.numFrozen();
+  const inFrozen = frozenCount > 0 && dropIndex < frozenCount;
+  const scrollLeft = this.scrollLeft();
+  // Move line left by the number of pixels the frozen set is scrolled.
+  if (inFrozen) {
+    linePos -= Math.min(this.frozenOffset.peek(), scrollLeft);
+  } else {
+    // Else move left by the whole amount.
+    linePos -= scrollLeft;
+  }
   this.cellSelector.col.linePos(linePos + 'px');
   this.cellSelector.col.dropIndex(dropIndex);
   this.dragX(event.pageX);
