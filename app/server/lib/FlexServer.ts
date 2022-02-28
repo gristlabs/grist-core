@@ -915,7 +915,7 @@ export class FlexServer implements GristServer {
         res.send(`<!doctype html>
           <html><body>
           <div class="modal-content-desktop">
-            <h1>A Very Creduluous Login Page</h1>
+            <h1>A Very Credulous Login Page</h1>
             <p>
               A minimal login screen to facilitate testing.
               I'll believe anything you tell me.

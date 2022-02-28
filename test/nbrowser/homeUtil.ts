@@ -267,6 +267,13 @@ export class HomeUtil {
   }
 
   /**
+   * Returns whether we are currently on the test login page.
+   */
+  public async isOnTestLoginPage() {
+    return await this.driver.findContent('h1', 'A Very Credulous Login Page');
+  }
+
+  /**
    * Waits for browser to navigate to Cognito login page.
    */
   public async checkLoginPage(waitMs: number = 2000) {
@@ -281,11 +288,24 @@ export class HomeUtil {
   }
 
   /**
-   * Waits for browser to navigate to either the Cognito or Grist login page.
+   * Waits for browser to navigate to test login page.
+   */
+  public async checkTestLoginPage(waitMs: number = 2000) {
+    await this.driver.wait(this.isOnTestLoginPage.bind(this), waitMs);
+  }
+
+  /**
+   * Waits for browser to navigate to any login page (e.g. Cognito, Grist, test).
    */
   public async checkSigninPage(waitMs: number = 4000) {
     await this.driver.wait(
-      async () => await this.isOnLoginPage() || await this.isOnGristLoginPage(),
+      async () => {
+        return (
+          await this.isOnLoginPage() ||
+          await this.isOnGristLoginPage() ||
+          await this.isOnTestLoginPage()
+        );
+      },
       waitMs
     );
   }
