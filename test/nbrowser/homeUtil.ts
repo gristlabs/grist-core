@@ -253,10 +253,11 @@ export class HomeUtil {
   }
 
   /**
-   * Returns whether we are currently on the Cognito login page.
+   * Returns whether we are currently on the Cognito or test login page.
    */
   public async isOnLoginPage() {
-    return /^https:\/\/gristlogin/.test(await this.driver.getCurrentUrl());
+    const url = await this.driver.getCurrentUrl();
+    return /^https:\/\/gristlogin/.test(url) || await this.isOnTestLoginPage();
   }
 
   /**
