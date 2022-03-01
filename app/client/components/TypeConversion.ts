@@ -105,7 +105,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
         dateFormat = guessDateFormat(colValues.map(String)) || "YYYY-MM-DD";
       }
-      widgetOptions = dateTimeWidgetOptions(dateFormat);
+      widgetOptions = dateTimeWidgetOptions(dateFormat, true);
       break;
     }
     case 'Choice': {

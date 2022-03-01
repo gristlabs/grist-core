@@ -42,6 +42,7 @@ import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
+import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristDocAPI} from 'app/plugin/GristAPI';
@@ -1724,6 +1725,8 @@ export class ActiveDoc extends EventEmitter {
       preferredPythonVersion,
       sandboxOptions: {
         exports: {
+          guessColInfo: (values: Array<string | null>) =>
+            guessColInfoWithDocData(values, this.docData!),
           convertFromColumn: (...args: Parameters<ReturnType<typeof convertFromColumn>>) =>
             convertFromColumn(this.docData!)(...args)
         }

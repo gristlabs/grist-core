@@ -293,8 +293,6 @@ export function createParserOrFormatterArgumentsRaw(
   visibleColRef: number,
 ): [string, object, DocumentSettings] {
   const columnsTable = docData.getMetaTable('_grist_Tables_column');
-  const docInfoTable = docData.getMetaTable('_grist_DocInfo');
-
   const widgetOpts = safeJsonParse(widgetOptions, {});
 
   if (isFullReferencingType(type)) {
@@ -305,10 +303,7 @@ export function createParserOrFormatterArgumentsRaw(
     widgetOpts.tableData = docData.getTable(getReferencedTableId(type)!);
   }
 
-  const docInfo = docInfoTable.getRecord(1);
-  const docSettings = safeJsonParse(docInfo!.documentSettings, {}) as DocumentSettings;
-
-  return [type, widgetOpts, docSettings];
+  return [type, widgetOpts, docData.docSettings()];
 }
 
 /**

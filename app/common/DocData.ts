@@ -3,13 +3,17 @@
  * subscribes to actions which change it, and forwards those actions to individual tables.
  * It also provides the interface to apply actions to data.
  */
+import {DocumentSettings} from 'app/common/DocumentSettings';
+import {safeJsonParse} from 'app/common/gutil';
 import {schema, SchemaTypes} from 'app/common/schema';
 import fromPairs = require('lodash/fromPairs');
 import groupBy = require('lodash/groupBy');
 import {ActionDispatcher} from './ActionDispatcher';
-import {BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
-        RowRecord, TableDataAction} from './DocActions';
-import {ColTypeMap, MetaTableData, TableData} from './TableData';
+import {
+  BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
+  RowRecord, TableDataAction
+} from './DocActions';
+import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from './TableData';
 
 type FetchTableFunc = (tableId: string) => Promise<TableDataAction>;
 
@@ -106,6 +110,15 @@ export class DocData extends ActionDispatcher {
     if (table) {
       table.receiveAction(action);
     }
+  }
+
+  public docInfo(): MetaRowRecord<'_grist_DocInfo'> {
+    const docInfoTable = this.getMetaTable('_grist_DocInfo');
+    return docInfoTable.getRecord(1)!;
+  }
+
+  public docSettings(): DocumentSettings {
+    return safeJsonParse(this.docInfo().documentSettings, {});
   }
 
   // ---- The following methods implement ActionDispatcher interface ----

@@ -205,7 +205,7 @@ class TestColumnActions(test_engine.EngineTestCase):
         Column(14, "manualSort", "ManualSortPos", False, "", 0),
         Column(15, "A", "Text", False, "", 0),
         Column(16, "B", "Text", False, "", 0),
-        Column(17, "C", "Text", False, "", 0),
+        Column(17, "C", "Any", True, "", 0),
       ]),
       Table(3, "GristSummary_7_Address", 0, 1, columns=[
         Column(18, "state", "Text", False, "", summarySourceCol=12),
@@ -244,9 +244,9 @@ class TestColumnActions(test_engine.EngineTestCase):
     self.assertTableData('Address', data=self.address_table_data)
     self.assertTableData('Table1', data=[
       ["id", "A", "B", "C", "manualSort"],
-      [ 1,   "a", "d", "",    1.0],
-      [ 2,   "b", "e", "",    2.0],
-      [ 3,   "c", "f", "",    3.0],
+      [ 1,   "a", "d", None,    1.0],
+      [ 2,   "b", "e", None,    2.0],
+      [ 3,   "c", "f", None,    3.0],
     ])
     self.assertTableData("GristSummary_7_Address", cols="subset", data=[
       [ "id", "state", "count", "amount"          ],
@@ -294,7 +294,7 @@ class TestColumnActions(test_engine.EngineTestCase):
       Table(2, "Table1", 2, 0, columns=[
         Column(14, "manualSort", "ManualSortPos", False, "", 0),
         Column(15, "A", "Text", False, "", 0),
-        Column(17, "C", "Text", False, "", 0),
+        Column(17, "C", "Any", True, "", 0),
       ]),
       Table(3, "GristSummary_7_Address", 0, 1, columns=[
         Column(18, "state", "Text", False, "", summarySourceCol=12),
@@ -352,7 +352,7 @@ class TestColumnActions(test_engine.EngineTestCase):
       Table(2, "Table1", 2, 0, columns=[
         Column(14, "manualSort", "ManualSortPos", False, "", 0),
         Column(15, "A", "Text", False, "", 0),
-        Column(17, "C", "Text", False, "", 0),
+        Column(17, "C", "Any", True, "", 0),
       ]),
       # Note that the summary table here switches to a new one, without the deleted group-by.
       Table(4, "GristSummary_7_Address2", 0, 1, columns=[
@@ -401,9 +401,9 @@ class TestColumnActions(test_engine.EngineTestCase):
     ])
     self.assertTableData('Table1', data=[
       ["id", "A", "C", "manualSort"],
-      [ 1,   "a", "",    1.0],
-      [ 2,   "b", "",    2.0],
-      [ 3,   "c", "",    3.0],
+      [ 1,   "a", None,    1.0],
+      [ 2,   "b", None,    2.0],
+      [ 3,   "c", None,    3.0],
     ])
     self.assertTableData("GristSummary_7_Address2", cols="subset", data=[
       [ "id", "count", "amount"          ],

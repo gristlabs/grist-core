@@ -139,6 +139,34 @@ def _make_clean_col_info(col_info, col_id=None):
   return ret
 
 
+def guess_col_info(values):
+  """
+  Returns a pair col_info, values
+  where col_info is a dict which may contain a type and widgetOptions
+  and `values` is similar to the given argument but maybe converted to the guessed type.
+  """
+  # If the values are all strings/None...
+  if set(map(type, values)) <= {str, six.text_type, type(None)}:
+    # If the values are all blank (None or empty string) leave the column empty
+    if not any(values):
+      return {}, [None] * len(values)
+
+    # Use the exported guessColInfo if we're connected to JS
+    from sandbox import default_sandbox
+    if default_sandbox:
+      guess = default_sandbox.call_external("guessColInfo", values)
+      # When the result doesn't contain `values`, that means the guessed type is Text
+      # so there was nothing to convert.
+      values = guess.get("values", values)
+      col_info = guess["colInfo"]
+      if "widgetOptions" in col_info:
+        col_info["widgetOptions"] = json.dumps(col_info["widgetOptions"])
+      return col_info, values
+
+  # Fallback to the older guessing method, particularly for pure python tests.
+  return {'type': guess_type(values, convert=True)}, values
+
+
 def guess_type(values, convert=False):
   """
   Returns a suitable type for the given iterable of values, optionally attempting conversions.
@@ -305,7 +333,7 @@ class UserActions(object):
   def BulkAddRecord(self, table_id, row_ids, column_values):
     column_values = actions.decode_bulk_values(column_values)
     for col_id, values in six.iteritems(column_values):
-      self._ensure_column_accepts_data(table_id, col_id, values)
+      column_values[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
     method = self._overrides.get(('BulkAddRecord', table_id), self.doBulkAddOrReplace)
     return method(table_id, row_ids, column_values)
 
@@ -456,7 +484,7 @@ class UserActions(object):
 
     # Check that the update is valid.
     for col_id, values in six.iteritems(columns):
-      self._ensure_column_accepts_data(table_id, col_id, values)
+      columns[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
 
       # Additionally check that we are not trying to modify group-by values in a summary column
       # (this check is only for updating records, not for adding). Note that col_rec will not be
@@ -799,23 +827,31 @@ class UserActions(object):
     When we store values (via Add or Update), check that the column is a data column. If it is an
     empty column (formula column with an empty formula), convert to data. If it's a real formula
     column, then fail.
+    Return a list of values which may be the same as the original argument
+    or may have values converted to the newly guessed type of the column.
     """
     schema_col = self._engine.schema[table_id].columns[col_id]
     if not schema_col.isFormula:
       # Plain old data column, OK to enter values.
-      return
+      return values
 
-    if not schema_col.formula:
-      # An empty column (isFormula=True, formula=""), now is the time to convert it to data.
-      if schema_col.type == 'Any':
-        # Guess the type when it starts out as Any. We unfortunately need to a separate
-        # ModifyColumn call for type conversion, to recompute type-specific defaults
-        # before they are used in formula->data conversion.
-        self.ModifyColumn(table_id, col_id, {'type': guess_type(values, convert=True)})
-      self.ModifyColumn(table_id, col_id, {'isFormula': False})
-    else:
-      # Otherwise, this is an error. We can't save individual values to formula columns.
+    if schema_col.formula:
+      # This is an error. We can't save individual values to formula columns.
       raise ValueError("Can't save value to formula column %s" % col_id)
+
+    # An empty column (isFormula=True, formula=""), now is the time to convert it to data.
+    if schema_col.type == 'Any':
+      # Guess the type when it starts out as Any. We unfortunately need to update the column
+      # separately for type conversion, to recompute type-specific defaults
+      # before they are used in formula->data conversion.
+      col_info, values = guess_col_info(values)
+      # If the values are all blank (None or empty string) leave the column empty
+      if not col_info:
+        return values
+      col_rec = self._docmodel.get_column_rec(table_id, col_id)
+      self._docmodel.update([col_rec], **col_info)
+    self.ModifyColumn(table_id, col_id, {'isFormula': False})
+    return values
 
   @useraction
   def AddOrUpdateRecord(self, table_id, require, col_values, options):

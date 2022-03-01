@@ -1,6 +1,6 @@
 import escapeRegExp = require('lodash/escapeRegExp');
 import memoize = require('lodash/memoize');
-import {getDistinctValues} from 'app/common/gutil';
+import {getDistinctValues, isObject} from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
 import * as guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
 import * as moment from 'moment-timezone';
@@ -325,8 +325,9 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
   return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
 }
 
-export function guessDateFormat(values: string[], timezone: string = 'UTC'): string | null {
-  const sample = getDistinctValues(values, 100);
+export function guessDateFormat(values: Array<string | null>, timezone: string = 'UTC'): string | null {
+  const dateStrings: string[] = values.filter(isObject);
+  const sample = getDistinctValues(dateStrings, 100);
   const formats: Record<string, number> = {};
   for (const dateString of sample) {
     let guessed: string | string[];
@@ -348,7 +349,7 @@ export function guessDateFormat(values: string[], timezone: string = 'UTC'): str
   }
 
   for (const format of formatKeys) {
-    for (const dateString of values) {
+    for (const dateString of dateStrings) {
       const m = moment.tz(dateString, format, true, timezone);
       if (m.isValid()) {
         formats[format] += 1;
@@ -380,10 +381,15 @@ export const timeFormatOptions = [
   'HH:mm:ss z',
 ];
 
-export function dateTimeWidgetOptions(fullFormat: string) {
+/**
+ * Construct widget options for a Date or DateTime column based on a single moment string
+ * which may or may not contain both date and time parts.
+ * If defaultTimeFormat is true, fallback to a non-empty default time format when none is found in fullFormat.
+ */
+export function dateTimeWidgetOptions(fullFormat: string, defaultTimeFormat: boolean) {
   const index = fullFormat.match(/[hHkaAmsSzZT]|$/)!.index!;
   const dateFormat = fullFormat.substr(0, index).trim();
-  const timeFormat = fullFormat.substr(index).trim() || timeFormatOptions[0];
+  const timeFormat = fullFormat.substr(index).trim() || (defaultTimeFormat ? timeFormatOptions[0] : "");
   return {
     dateFormat,
     timeFormat,
