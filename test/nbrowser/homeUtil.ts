@@ -271,7 +271,7 @@ export class HomeUtil {
    * Returns whether we are currently on the test login page.
    */
   public async isOnTestLoginPage() {
-    return await this.driver.findContent('h1', 'A Very Credulous Login Page');
+    return this.driver.findContent('h1', 'A Very Credulous Login Page').isPresent();
   }
 
   /**
