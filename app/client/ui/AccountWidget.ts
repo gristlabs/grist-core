@@ -14,7 +14,7 @@ import * as roles from 'app/common/roles';
 import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
-import {buildSiteSwitcher} from 'app/client/ui/SiteSwitcher';
+import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 
 /**
  * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
@@ -91,7 +91,6 @@ export class AccountWidget extends Disposable {
     }
 
     const users = this._appModel.topAppModel.users;
-    const orgs = this._appModel.topAppModel.orgs;
 
     return [
       cssUserInfo(
@@ -143,10 +142,7 @@ export class AccountWidget extends Disposable {
 
       menuItemLink({href: getLogoutUrl()}, "Sign Out", testId('dm-log-out')),
 
-      dom.maybe((use) => use(orgs).length > 0, () => [
-        menuDivider(),
-        buildSiteSwitcher(this._appModel),
-      ]),
+      maybeAddSiteSwitcherSection(this._appModel),
     ];
   }
 

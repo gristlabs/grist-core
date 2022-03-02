@@ -85,9 +85,9 @@ export class Sessions {
     if (req.headers.cookie) {
       const cookies = cookie.parse(req.headers.cookie);
       const sessionId = this.getSessionIdFromCookie(cookies[cookieName]);
-      return sessionId;
+      if (sessionId) { return sessionId; }
     }
-    return null;
+    return (req as any).sessionID || null;  // sessionID set by express-session
   }
 
   /**

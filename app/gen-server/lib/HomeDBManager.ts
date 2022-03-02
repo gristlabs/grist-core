@@ -299,7 +299,9 @@ export class HomeDBManager extends EventEmitter {
   }
 
   // make sure special users and workspaces are available
-  public async initializeSpecialIds(): Promise<void> {
+  public async initializeSpecialIds(options?: {
+    skipWorkspaces?: boolean  // if set, skip setting example workspace.
+  }): Promise<void> {
     await this._getSpecialUserId({
       email: ANONYMOUS_USER_EMAIL,
       name: "Anonymous"
@@ -317,21 +319,26 @@ export class HomeDBManager extends EventEmitter {
       name: "Support"
     });
 
-    // Find the example workspace.  If there isn't one named just right, take the first workspace
-    // belonging to the support user.  This shouldn't happen in deployments but could happen
-    // in tests.
-    const supportWorkspaces = await this._workspaces()
-      .leftJoinAndSelect('workspaces.org', 'orgs')
-      .where('orgs.owner_id = :userId', { userId: this.getSupportUserId() })
-      .orderBy('workspaces.created_at')
-      .getMany();
-    const exampleWorkspace = supportWorkspaces.find(ws => ws.name === EXAMPLE_WORKSPACE_NAME) || supportWorkspaces[0];
-    if (!exampleWorkspace) { throw new Error('No example workspace available'); }
-    if (exampleWorkspace.name !== EXAMPLE_WORKSPACE_NAME) {
-      log.warn('did not find an appropriately named example workspace in deployment');
+    if (!options?.skipWorkspaces) {
+      // Find the example workspace.  If there isn't one named just right, take the first workspace
+      // belonging to the support user.  This shouldn't happen in deployments but could happen
+      // in tests.
+      // TODO: it should now be possible to remove all this; the only remaining
+      // issue is what workspace to associate with documents created by
+      // anonymous users.
+      const supportWorkspaces = await this._workspaces()
+        .leftJoinAndSelect('workspaces.org', 'orgs')
+        .where('orgs.owner_id = :userId', { userId: this.getSupportUserId() })
+        .orderBy('workspaces.created_at')
+        .getMany();
+      const exampleWorkspace = supportWorkspaces.find(ws => ws.name === EXAMPLE_WORKSPACE_NAME) || supportWorkspaces[0];
+      if (!exampleWorkspace) { throw new Error('No example workspace available'); }
+      if (exampleWorkspace.name !== EXAMPLE_WORKSPACE_NAME) {
+        log.warn('did not find an appropriately named example workspace in deployment');
+      }
+      this._exampleWorkspaceId = exampleWorkspace.id;
+      this._exampleOrgId = exampleWorkspace.org.id;
     }
-    this._exampleWorkspaceId = exampleWorkspace.id;
-    this._exampleOrgId = exampleWorkspace.org.id;
   }
 
   public get connection() {

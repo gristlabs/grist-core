@@ -23,6 +23,7 @@ export interface GristServer {
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
+  getOwnUrl(): string;
   getDocUrl(docId: string): Promise<string>;
   getOrgUrl(orgKey: string|number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
@@ -36,6 +37,8 @@ export interface GristServer {
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
   getNotifier(): INotifier;
+  getDocTemplate(): Promise<DocTemplate>;
+  getTag(): string;
 }
 
 export interface GristLoginSystem {
@@ -54,4 +57,9 @@ export interface GristLoginMiddleware {
 
 export interface RequestWithGrist extends express.Request {
   gristServer?: GristServer;
+}
+
+export interface DocTemplate {
+  page: string,
+  tag: string,
 }

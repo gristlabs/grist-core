@@ -4,14 +4,14 @@ import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
-import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
+import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {loadUserManager} from 'app/client/lib/imports';
-import {buildSiteSwitcher} from 'app/client/ui/SiteSwitcher';
+import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 
 
 export class AppHeader extends Disposable {
@@ -24,7 +24,6 @@ export class AppHeader extends Disposable {
     const theme = getTheme(this._appModel.topAppModel.productFlavor);
 
     const user = this._appModel.currentValidUser;
-    const orgs = this._appModel.topAppModel.orgs;
     const currentOrg = this._appModel.currentOrg;
     const isTeamSite = Boolean(currentOrg && !currentOrg.owner);
     const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
@@ -74,10 +73,7 @@ export class AppHeader extends Disposable {
             ) :
             null,
 
-          dom.maybe((use) => use(orgs).length > 0, () => [
-            menuDivider(),
-            buildSiteSwitcher(this._appModel),
-          ]),
+          maybeAddSiteSwitcherSection(this._appModel),
         ], { placement: 'bottom-start' }),
         testId('dm-org'),
       ),

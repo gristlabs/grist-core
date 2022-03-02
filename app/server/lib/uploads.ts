@@ -1,6 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
+import {getDocWorkerUrl} from 'app/common/UserAPI';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -67,7 +68,7 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
     if (!docId) { throw new Error('doc must be specified'); }
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
     try {
-      const uploadResult: UploadResult = await fetchDoc(server.getHomeUrl(req), docId, req, accessId,
+      const uploadResult: UploadResult = await fetchDoc(server, docId, req, accessId,
                                                         req.query.template === '1');
       if (name) {
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
@@ -398,21 +399,22 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
  * Fetches a Grist doc potentially managed by a different doc worker.  Passes on credentials
  * supplied in the current request.
  */
-async function fetchDoc(homeUrl: string, docId: string, req: Request, accessId: string|null,
+async function fetchDoc(server: GristServer, docId: string, req: Request, accessId: string|null,
                         template: boolean): Promise<UploadResult> {
-
   // Prepare headers that preserve credentials of current user.
   const headers = getTransitiveHeaders(req);
 
   // Find the doc worker responsible for the document we wish to copy.
+  // The backend needs to be well configured for this to work.
+  const homeUrl = server.getHomeUrl(req);
   const fetchUrl = new URL(`/api/worker/${docId}`, homeUrl);
   const response: FetchResponse = await Deps.fetch(fetchUrl.href, {headers});
   await _checkForError(response);
-  const {docWorkerUrl} = await response.json();
-
+  const docWorkerUrl = getDocWorkerUrl(server.getOwnUrl(), await response.json());
   // Download the document, in full or as a template.
-  const url = `${docWorkerUrl}download?doc=${docId}&template=${Number(template)}`;
-  return _fetchURL(url, accessId, {headers});
+  const url = new URL(`download?doc=${docId}&template=${Number(template)}`,
+                      docWorkerUrl.replace(/\/*$/, '/'));
+  return _fetchURL(url.href, accessId, {headers});
 }
 
 // Re-issue failures as exceptions.

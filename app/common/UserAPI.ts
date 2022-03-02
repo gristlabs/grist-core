@@ -672,7 +672,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
       method: 'GET',
       credentials: 'include'
     });
-    return json.docWorkerUrl;
+    return getDocWorkerUrl(this._homeUrl, json);
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {
@@ -967,4 +967,29 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     url.searchParams.append('code', code);
     return this.requestJson(url.href);
   }
+}
+
+/**
+ * Get a docWorkerUrl from information returned from backend. When the backend
+ * is fully configured, and there is a pool of workers, this is straightforward,
+ * just return the docWorkerUrl reported by the backend. For single-instance
+ * installs, the backend returns a null docWorkerUrl, and a client can simply
+ * use the homeUrl of the backend, with extra path prefix information
+ * given by selfPrefix. At the time of writing, the selfPrefix contains a
+ * doc-worker id, and a tag for the codebase (used in consistency checks).
+ */
+export function getDocWorkerUrl(homeUrl: string, docWorkerInfo: {
+  docWorkerUrl: string|null,
+  selfPrefix?: string,
+}): string {
+  if (!docWorkerInfo.docWorkerUrl) {
+    if (!docWorkerInfo.selfPrefix) {
+      // This should never happen.
+      throw new Error('missing selfPrefix for docWorkerUrl');
+    }
+    const url = new URL(homeUrl);
+    url.pathname = docWorkerInfo.selfPrefix + url.pathname;
+    return url.href;
+  }
+  return docWorkerInfo.docWorkerUrl;
 }

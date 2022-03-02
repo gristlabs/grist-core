@@ -472,7 +472,7 @@ export interface GristLoadConfig {
   getDoc?: {[id: string]: Document};
 
   // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: {[id: string]: string};
+  getWorker?: {[id: string]: string|null};
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
@@ -523,6 +523,21 @@ export function getKnownOrg(): string|null {
   if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return (gristConfig && gristConfig.org) || null;
+  } else {
+    return process.env.GRIST_SINGLE_ORG || null;
+  }
+}
+
+/**
+ * Like getKnownOrg, but respects singleOrg/GRIST_SINGLE_ORG strictly.
+ * The main difference in behavior would be for orgs with custom domains
+ * served from a shared pool of servers, for which gristConfig.org would
+ * be set, but not gristConfig.singleOrg.
+ */
+export function getSingleOrg(): string|null {
+  if (isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return (gristConfig && gristConfig.singleOrg) || null;
   } else {
     return process.env.GRIST_SINGLE_ORG || null;
   }

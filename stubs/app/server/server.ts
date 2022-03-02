@@ -5,6 +5,7 @@
  */
 
 import {isAffirmative} from 'app/common/gutil';
+import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -21,6 +22,12 @@ setDefaultEnv('GRIST_SESSION_COOKIE', 'grist_core2');
 setDefaultEnv('GRIST_SERVE_SAME_ORIGIN', 'true');
 setDefaultEnv('GRIST_SINGLE_PORT', 'true');
 setDefaultEnv('GRIST_DEFAULT_PRODUCT', 'Free');
+
+if (!process.env.GRIST_SINGLE_ORG) {
+  // org identifiers in domains are fiddly to configure right, so by
+  // default don't do that.
+  setDefaultEnv('GRIST_ORG_IN_PATH', 'true');
+}
 
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
@@ -46,14 +53,49 @@ export async function main() {
   }
 
   // If SAML is not configured, there's no login system, so provide a default email address.
-  if (!process.env.GRIST_SAML_SP_HOST && !process.env.GRIST_TEST_LOGIN) {
-    setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
-  }
+  setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
   // Set directory for uploaded documents.
   setDefaultEnv('GRIST_DATA_DIR', 'docs');
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);
   // Make a blank db if needed.
   await updateDb();
+  // If a team/organization is specified, make sure it exists.
+  const org = process.env.GRIST_SINGLE_ORG;
+  if (org && org !== 'docs') {
+    const db = new HomeDBManager();
+    await db.connect();
+    await db.initializeSpecialIds({skipWorkspaces: true});
+    try {
+      db.unwrapQueryResult(await db.getOrg({
+        userId: db.getPreviewerUserId(),
+        includeSupport: false,
+      }, org));
+    } catch(e) {
+      if (!String(e).match(/organization not found/)) {
+        throw e;
+      }
+      const email = process.env.GRIST_DEFAULT_EMAIL;
+      if (!email) {
+        throw new Error('need GRIST_DEFAULT_EMAIL to create site');
+      }
+      const user = await db.getUserByLogin(email, {
+        email,
+        name: email,
+      });
+      if (!user) {
+        // This should not happen.
+        throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
+      }
+      await db.addOrg(user, {
+        name: org,
+        domain: org,
+      }, {
+        setUserAsOwner: false,
+        useNewPlan: true,
+        planType: 'free'
+      });
+    }
+  }
   // Launch single-port, self-contained version of Grist.
   const server = await mergedServerMain(G.port, ["home", "docs", "static"]);
   if (process.env.GRIST_TESTING_SOCKET) {

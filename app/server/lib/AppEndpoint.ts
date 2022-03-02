@@ -17,6 +17,7 @@ import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
+import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
@@ -31,6 +32,7 @@ export interface AttachOptions {
   sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   dbManager: HomeDBManager;
   plugins: LocalPlugin[];
+  gristServer: GristServer;
 }
 
 /**
@@ -61,7 +63,13 @@ export interface AttachOptions {
  * TODO: doc worker registration could be redesigned to remove the assumption
  * of a fixed base domain.
  */
-function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Request) {
+function customizeDocWorkerUrl(docWorkerUrlSeed: string|undefined, req: express.Request): string|null {
+  if (!docWorkerUrlSeed) {
+    // When no doc worker seed, we're in single server mode.
+    // Return null, to signify that the URL prefix serving the
+    // current endpoint is the only one available.
+    return null;
+  }
   const docWorkerUrl = new URL(docWorkerUrlSeed);
   const workerSubdomain = parseSubdomainStrictly(docWorkerUrl.hostname).org;
   adaptServerUrl(docWorkerUrl, req);
@@ -105,6 +113,14 @@ function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Request) {
  */
 async function getWorker(docWorkerMap: IDocWorkerMap, assignmentId: string,
                          urlPath: string, config: RequestInit = {}) {
+  if (!useWorkerPool()) {
+    // This should never happen. We are careful to not use getWorker
+    // when everything is on a single server, since it is burdensome
+    // for self-hosted users to figure out the correct settings for
+    // the server to be able to contact itself, and there are cases
+    // of the defaults not working.
+    throw new Error("AppEndpoint.getWorker was called unnecessarily");
+  }
   let docStatus: DocStatus|undefined;
   const workersAreManaged = Boolean(process.env.GRIST_MANAGED_WORKERS);
   for (;;) {
@@ -151,13 +167,27 @@ async function getWorker(docWorkerMap: IDocWorkerMap, assignmentId: string,
 }
 
 export function attachAppEndpoint(options: AttachOptions): void {
-  const {app, middleware, docMiddleware, docWorkerMap, forceLogin, sendAppPage, dbManager, plugins} = options;
+  const {app, middleware, docMiddleware, docWorkerMap, forceLogin,
+         sendAppPage, dbManager, plugins, gristServer} = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
     sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins}, googleTagManager: 'anon'})));
 
   app.get('/api/worker/:assignmentId([^/]+)/?*', expressWrap(async (req, res) => {
+    if (!useWorkerPool()) {
+      // Let the client know there is not a separate pool of workers,
+      // so they should continue to use the same base URL for accessing
+      // documents. For consistency, return a prefix to add into that
+      // URL, as there would be for a pool of workers. It would be nice
+      // to go ahead and provide the full URL, but that requires making
+      // more assumptions about how Grist is configured.
+      // Alternatives could be: have the client to send their base URL
+      // in the request; or use headers commonly added by reverse proxies.
+      const selfPrefix =  "/dw/self/v/" + gristServer.getTag();
+      res.json({docWorkerUrl: null, selfPrefix});
+      return;
+    }
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
     res.header("Access-Control-Allow-Credentials", "true");
 
@@ -237,25 +267,31 @@ export function attachAppEndpoint(options: AttachOptions): void {
       throw err;
     }
 
-    // The reason to pass through app.html fetched from docWorker is in case it is a different
-    // version of Grist (could be newer or older).
-    // TODO: More must be done for correct version tagging of URLs: <base href> assumes all
-    // links and static resources come from the same host, but we'll have Home API, DocWorker,
-    // and static resources all at hostnames different from where this page is served.
-    // TODO docWorkerMain needs to serve app.html, perhaps with correct base-href already set.
+    let body: DocTemplate;
+    let docStatus: DocStatus|undefined;
     const docId = doc.id;
-    const headers = {
-      Accept: 'application/json',
-      ...getTransitiveHeaders(req),
-    };
-    const {docStatus, resp} = await getWorker(docWorkerMap, docId,
-                                              `/${docId}/app.html`, {headers});
-    const body = await resp.json();
+    if (!useWorkerPool()) {
+      body = await gristServer.getDocTemplate();
+    } else {
+      // The reason to pass through app.html fetched from docWorker is in case it is a different
+      // version of Grist (could be newer or older).
+      // TODO: More must be done for correct version tagging of URLs: <base href> assumes all
+      // links and static resources come from the same host, but we'll have Home API, DocWorker,
+      // and static resources all at hostnames different from where this page is served.
+      // TODO docWorkerMain needs to serve app.html, perhaps with correct base-href already set.
+      const headers = {
+        Accept: 'application/json',
+        ...getTransitiveHeaders(req),
+      };
+      const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, {headers});
+      docStatus = workerInfo.docStatus;
+      body = await workerInfo.resp.json();
+    }
 
     await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,
                                  googleTagManager: 'anon', config: {
       assignmentId: docId,
-      getWorker: {[docId]: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req)},
+      getWorker: {[docId]: customizeDocWorkerUrl(docStatus?.docWorker?.publicUrl, req)},
       getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
       plugins
     }});
@@ -265,4 +301,9 @@ export function attachAppEndpoint(options: AttachOptions): void {
   app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
   app.get('/:urlId([^/]{12,})/:slug([^/]+):remainder(*)',
           ...docMiddleware, docHandler);
+}
+
+// Return true if document related endpoints are served by separate workers.
+function useWorkerPool() {
+  return process.env.GRIST_SINGLE_PORT !== 'true';
 }

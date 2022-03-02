@@ -1,13 +1,24 @@
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, getSingleOrg} from 'app/common/gristUrls';
 import {getOrgName} from 'app/common/UserAPI';
 import {dom, makeTestId, styled} from 'grainjs';
 import {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
-import {menuIcon, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
+import {menuDivider, menuIcon, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {icon} from 'app/client/ui2018/icons';
 import {colors} from 'app/client/ui2018/cssVars';
 
 const testId = makeTestId('test-site-switcher-');
+
+/**
+ * Adds a menu divider and a site switcher, if there is need for one.
+ */
+export function maybeAddSiteSwitcherSection(appModel: AppModel) {
+  const orgs = appModel.topAppModel.orgs;
+  return dom.maybe((use) => use(orgs).length > 0 && !getSingleOrg(), () => [
+    menuDivider(),
+    buildSiteSwitcher(appModel),
+  ]);
+}
 
 /**
  * Builds a menu sub-section that displays a list of orgs/sites that the current

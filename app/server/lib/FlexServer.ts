@@ -34,7 +34,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
-import {GristLoginMiddleware, GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
+import {DocTemplate, GristLoginMiddleware, GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
@@ -766,7 +766,8 @@ export class FlexServer implements GristServer {
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
       dbManager: this._dbManager,
-      plugins : (await this._addPluginManager()).getPlugins()
+      plugins : (await this._addPluginManager()).getPlugins(),
+      gristServer: this,
     });
   }
 
@@ -1301,6 +1302,20 @@ export class FlexServer implements GristServer {
     addGoogleAuthEndpoint(this.app, messagePage);
   }
 
+  // Get the HTML template sent for document pages.
+  public async getDocTemplate(): Promise<DocTemplate> {
+    const page = await fse.readFile(path.join(getAppPathTo(this.appRoot, 'static'),
+                                              'app.html'), 'utf8');
+    return {
+      page,
+      tag: this.tag
+    };
+  }
+
+  public getTag(): string {
+    return this.tag;
+  }
+
   // Adds endpoints that support imports and exports.
   private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
@@ -1552,12 +1567,7 @@ export class FlexServer implements GristServer {
     // TODO: We should be the ones to fill in the base href here to ensure that the browser fetches
     // the correct version of static files for this app.html.
     this.app.get('/:docId/app.html', this._userIdMiddleware, expressWrap(async (req, res) => {
-      const page = await fse.readFile(path.join(getAppPathTo(this.appRoot, 'static'),
-                                                'app.html'), 'utf8');
-      res.json({
-        page,
-        tag: this.tag
-      });
+      res.json(await this.getDocTemplate());
     }));
   }
 
