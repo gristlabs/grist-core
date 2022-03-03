@@ -19,12 +19,14 @@
  */
 
 import {clamp} from 'app/common/gutil';
+import {StringUnion} from 'app/common/StringUnion';
 import * as LocaleCurrency from "locale-currency";
 import {FormatOptions} from 'app/common/ValueFormatter';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 
 // Options for number formatting.
-export type NumMode = 'currency' | 'decimal' | 'percent' | 'scientific';
+export const NumMode = StringUnion('currency', 'decimal', 'percent', 'scientific');
+export type NumMode = typeof NumMode.type;
 export type NumSign = 'parens';
 
 export interface NumberFormatOptions extends FormatOptions {

@@ -1,7 +1,11 @@
 import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {countIf} from 'app/common/gutil';
+import {NumberFormatOptions} from 'app/common/NumberFormat';
+import NumberParse from 'app/common/NumberParse';
 import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
 import {createFormatter} from 'app/common/ValueFormatter';
+import {createParserRaw, ValueParser} from 'app/common/ValueParser';
 import * as moment from 'moment-timezone';
 
 interface GuessedColInfo {
@@ -9,7 +13,7 @@ interface GuessedColInfo {
   widgetOptions?: object;
 }
 
-interface GuessResult {
+export interface GuessResult {
   values?: any[];
   colInfo: GuessedColInfo;
 }
@@ -39,7 +43,8 @@ abstract class ValueGuesser<T> {
     const {type, widgetOptions} = colInfo;
     const formatter = createFormatter(type, widgetOptions || {}, docSettings);
     const result: any[] = [];
-    const maxUnparsed = values.length * 0.1;  // max number of non-parsed strings to allow before giving up
+    // max number of non-parsed strings to allow before giving up
+    const maxUnparsed = countIf(values, v => Boolean(v)) * 0.1;
     let unparsed = 0;
 
     for (const value of values) {
@@ -94,14 +99,22 @@ class BoolGuesser extends ValueGuesser<boolean> {
 }
 
 class NumericGuesser extends ValueGuesser<number> {
+  private _parser: ValueParser;
+  constructor(docSettings: DocumentSettings, private _options: NumberFormatOptions) {
+    super();
+    this._parser = createParserRaw('Numeric', _options, docSettings);
+  }
+
   public colInfo(): GuessedColInfo {
-    // TODO parse and guess options for formatted numbers, e.g. currency amounts
-    return {type: 'Numeric'};
+    const result: GuessedColInfo = {type: 'Numeric'};
+    if (Object.keys(this._options).length) {
+      result.widgetOptions = this._options;
+    }
+    return result;
   }
 
   public parse(value: string): number | string {
-    const parsed = Number(value);
-    return !isNaN(parsed) ? parsed : value;
+    return this._parser.cleanParse(value);
   }
 }
 
@@ -144,7 +157,10 @@ export function guessColInfo(
   return (
     new BoolGuesser()
       .guess(values, docSettings) ||
-    new NumericGuesser()
+    new NumericGuesser(
+      docSettings,
+      NumberParse.fromSettings(docSettings).guessOptions(values)
+    )
       .guess(values, docSettings) ||
     new DateGuesser(guessDateFormat(values, timezone) || "YYYY-MM-DD", timezone)
       .guess(values, docSettings) ||

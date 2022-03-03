@@ -6,7 +6,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {safeJsonParse} from 'app/common/gutil';
-import {getCurrency, NumberFormatOptions} from 'app/common/NumberFormat';
+import {NumberFormatOptions} from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
 import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
 import {MetaRowRecord, TableData} from 'app/common/TableData';
@@ -53,11 +53,11 @@ export class NumericParser extends ValueParser {
 
   constructor(type: string, options: NumberFormatOptions, docSettings: DocumentSettings) {
     super(type, options, docSettings);
-    this._parse = new NumberParse(docSettings.locale, getCurrency(options, docSettings));
+    this._parse = NumberParse.fromSettings(docSettings, options);
   }
 
   public parse(value: string): number | null {
-    return this._parse.parse(value);
+    return this._parse.parse(value)?.result ?? null;
   }
 }
 

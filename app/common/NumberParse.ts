@@ -4,7 +4,9 @@
  * not tied to documents or anything.
  */
 
-import { NumMode, parseNumMode } from 'app/common/NumberFormat';
+import {DocumentSettings} from 'app/common/DocumentSettings';
+import {getDistinctValues} from 'app/common/gutil';
+import {getCurrency, NumberFormatOptions, NumMode, parseNumMode} from 'app/common/NumberFormat';
 import escapeRegExp = require('lodash/escapeRegExp');
 import last = require('lodash/last');
 
@@ -30,12 +32,24 @@ function getDigitsMap(locale: string) {
   return result;
 }
 
+interface ParsedOptions {
+  isPercent: boolean;
+  isCurrency: boolean;
+  isParenthesised: boolean;
+  hasDigitGroupSeparator: boolean;
+  isScientific: boolean;
+}
+
 export default class NumberParse {
   // Regex for whitespace and some control characters we need to remove
   // 200e = Left-to-right mark
   // 200f = Right-to-left mark
   // 061c = Arabic letter mark
   public static readonly removeCharsRegex = /[\s\u200e\u200f\u061c]/g;
+
+  public static fromSettings(docSettings: DocumentSettings, options: NumberFormatOptions = {}) {
+    return new NumberParse(docSettings.locale, getCurrency(options, docSettings));
+  }
 
   // Many attributes are public for easy testing.
   public readonly currencySymbol: string;
@@ -45,6 +59,7 @@ export default class NumberParse {
   public readonly exponentSeparator: string;
   public readonly decimalSeparator: string;
   public readonly minusSign: string;
+  public readonly defaultNumDecimalsCurrency: number;
 
   public readonly digitsMap: Map<string, string>;
 
@@ -58,9 +73,8 @@ export default class NumberParse {
   private readonly _replaceDigits: (s: string) => string;
 
   constructor(locale: string, currency: string) {
-    const numModes: NumMode[] = ['currency', 'percent', 'scientific', 'decimal'];
     const parts = new Map<NumMode, Intl.NumberFormatPart[]>();
-    for (const numMode of numModes) {
+    for (const numMode of NumMode.values) {
       const formatter = Intl.NumberFormat(locale, parseNumMode(numMode, currency));
       const formatParts = formatter.formatToParts(-1234567.5678);
       parts.set(numMode, formatParts);
@@ -86,6 +100,10 @@ export default class NumberParse {
 
     // A few locales format negative currency amounts ending in '-', e.g. '€ 1,00-'
     this.currencyEndsInMinusSign = last(parts.get('currency'))!.type === 'minusSign';
+
+    // Default number of fractional digits for currency,
+    // e.g. this is 2 for USD because 1 is formatted as $1.00
+    this.defaultNumDecimalsCurrency = getPart("fraction", "currency")?.length || 0;
 
     // Since JS and Python allow both e and E for scientific notation, it seems fair that other
     // locales should be case insensitive for this.
@@ -113,11 +131,16 @@ export default class NumberParse {
   }
 
   /**
-   * Returns a number if the string looks like that number formatted by Grist using this parser's locale and currency
-   * (or at least close).
+   * If the string looks like a number formatted by Grist using this parser's locale and currency (or at least close)
+   * then returns an object where:
+   *   - `result` is that number, the only thing most callers need
+   *   - `cleaned` is a string derived from `value` which can be parsed directly by Number, although `result`
+   *      is still processed a bit further than that, e.g. dividing by 100 for percentages.
+   *   - `options` describes how the number was apparently formatted.
+   *
    * Returns null otherwise.
    */
-  public parse(value: string): number | null {
+  public parse(value: string): { result: number, cleaned: string, options: ParsedOptions } | null {
     // Remove characters before checking for parentheses on the ends of the string.
     const [value2, isCurrency] = removeSymbol(value, this.currencySymbol);
     const [value3, isPercent] = removeSymbol(value2, this.percentageSymbol);
@@ -125,8 +148,8 @@ export default class NumberParse {
     // Remove whitespace and special characters, after currency because some currencies contain spaces.
     value = value3.replace(NumberParse.removeCharsRegex, "");
 
-    const parenthesised = value[0] === "(" && value[value.length - 1] === ")";
-    if (parenthesised) {
+    const isParenthesised = value[0] === "(" && value[value.length - 1] === ")";
+    if (isParenthesised) {
       value = value.substring(1, value.length - 1);
     }
 
@@ -144,13 +167,18 @@ export default class NumberParse {
 
     // Check for exponent separator before replacing digits
     // because it can contain locale-specific digits representing '10' as in 'x10^'.
+    const withExponent = value;
     value = value.replace(this._exponentSeparatorRegex, "e");
+    const isScientific = withExponent !== value;
+
     value = this._replaceDigits(value);
 
     // Must come after replacing digits because the regex uses \d
     // which doesn't work for locale-specific digits.
     // This simply removes the separators, $1 is a captured group of digits which we keep.
+    const withSeparators = value;
     value = value.replace(this._digitGroupSeparatorRegex, "$1");
+    const hasDigitGroupSeparator = withSeparators !== value;
 
     // Must come after the digit separator replacement
     // because the digit separator might be '.'
@@ -174,7 +202,7 @@ export default class NumberParse {
 
     // Parentheses represent a negative number, e.g. (123) -> -123
     // (-123) is treated as an error
-    if (parenthesised) {
+    if (isParenthesised) {
       if (result <= 0) {
         return null;
       }
@@ -183,6 +211,109 @@ export default class NumberParse {
 
     if (isPercent) {
       result *= 0.01;
+    }
+
+    return {
+      result,
+      cleaned: value,
+      options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific}
+    };
+  }
+
+  public guessOptions(values: Array<string | null>): NumberFormatOptions {
+    // null: undecided
+    // true: negative numbers should be parenthesised
+    // false: they should not
+    let parens: boolean | null = null;
+
+    // If any of the numbers have thousands separators, that's enough to guess that option
+    let anyHasDigitGroupSeparator = false;
+
+    // Minimum number of decimal places, guessed by looking for trailing 0s after the decimal point
+    let decimals = 0;
+    const decimalsRegex = /\.\d+/;
+    // Maximum number of decimal places. We never actually guess a value for this option,
+    // but for currencies we need to check if there are fewer decimal places than the default.
+    let maxDecimals = 0;
+
+    // Keep track of the number of modes seen to pick the most common
+    const modes = {} as Record<NumMode, number>;
+    for (const mode of NumMode.values) {
+      modes[mode] = 0;
+    }
+
+    for (const value of getDistinctValues(values)) {
+      if (!value) {
+        continue;
+      }
+      const parsed = this.parse(value);
+      if (!parsed) {
+        continue;
+      }
+      const {
+        result,
+        cleaned,
+        options: {isCurrency, isPercent, isParenthesised, hasDigitGroupSeparator, isScientific}
+      } = parsed;
+
+      if (result < 0 && !isParenthesised) {
+        // If we see a negative number not surrounded by parens, assume that any other parens mean something else
+        parens = false;
+      } else if (parens === null && isParenthesised) {
+        // If we're still unsure about parens (i.e. the above case hasn't been encountered)
+        // then one parenthesised number is enough to guess that the parens option should be used.
+        parens = true;
+      }
+
+      // If any of the numbers have thousands separators, that's enough to guess that option
+      anyHasDigitGroupSeparator = anyHasDigitGroupSeparator || hasDigitGroupSeparator;
+
+      let mode: NumMode = "decimal";
+      if (isCurrency) {
+        mode = "currency";
+      } else if (isPercent) {
+        mode = "percent";
+      } else if (isScientific) {
+        mode = "scientific";
+      }
+      modes[mode] += 1;
+
+      const decimalsMatch = decimalsRegex.exec(cleaned);
+      if (decimalsMatch) {
+        // Number of digits after the '.' (which is part of the match, hence the -1)
+        const numDecimals = decimalsMatch[0].length - 1;
+        maxDecimals = Math.max(maxDecimals, numDecimals);
+        if (decimalsMatch[0].endsWith("0")) {
+          decimals = Math.max(decimals, numDecimals);
+        }
+      }
+    }
+
+    const maxCount = Math.max(...Object.values(modes));
+    if (maxCount === 0) {
+      // No numbers parsed at all, so don't guess any options
+      return {};
+    }
+
+    const result: NumberFormatOptions = {};
+
+    // Find the most common mode.
+    const maxMode: NumMode = NumMode.values.find((k) => modes[k] === maxCount)!;
+
+    // 'decimal' is the default mode above when counting,
+    // but only guess it as an actual option if digit separators were used at least once.
+    if (maxMode !== "decimal" || anyHasDigitGroupSeparator) {
+      result.numMode = maxMode;
+    }
+
+    if (parens) {
+      result.numSign = "parens";
+    }
+
+    // Specify minimum number of decimal places if we saw any trailing 0s after '.'
+    // Otherwise explicitly set it to 0 if needed to suppress the default for that currency.
+    if (decimals > 0 || maxMode === "currency" && maxDecimals < this.defaultNumDecimalsCurrency) {
+      result.decimals = decimals;
     }
 
     return result;

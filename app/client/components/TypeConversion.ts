@@ -4,11 +4,13 @@
  */
 // tslint:disable:no-console
 
+import {isString} from 'app/client/lib/sessionObs';
 import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
+import NumberParse from 'app/common/NumberParse';
 import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
 import {TableData} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
@@ -106,6 +108,17 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         dateFormat = guessDateFormat(colValues.map(String)) || "YYYY-MM-DD";
       }
       widgetOptions = dateTimeWidgetOptions(dateFormat, true);
+      break;
+    }
+    case 'Numeric':
+    case 'Int': {
+      if (["Numeric", "Int"].includes(sourceCol.type())) {
+        widgetOptions = prevOptions;
+      } else {
+        const numberParse = NumberParse.fromSettings(docModel.docData.docSettings());
+        const colValues = tableData.getColValues(sourceCol.colId()) || [];
+        widgetOptions = numberParse.guessOptions(colValues.filter(isString));
+      }
       break;
     }
     case 'Choice': {
