@@ -4,8 +4,6 @@ import textwrap
 import unittest
 from six import BytesIO, text_type
 import csv
-import calendar
-import datetime
 
 from imports import import_csv
 
@@ -22,9 +20,15 @@ def bytes_io_from_str(string):
 
 class TestImportCSV(unittest.TestCase):
 
-  def _check_col(self, sheet, index, name, typename, values):
+  def _check_col(self, sheet, index, name, _typename, values):
     self.assertEqual(sheet["column_metadata"][index]["id"], name)
-    self.assertEqual(sheet["column_metadata"][index]["type"], typename)
+    # Previously, strings were parsed and types were guessed in CSV imports.
+    # Now all data is kept as strings and the column type is left as Any
+    # so that type guessing and parsing can happen elsewhere.
+    # To avoid updating 85 calls to _check_col, the typename argument was kept but can be ignored,
+    # and all values are converted back to strings for comparison.
+    self.assertEqual(sheet["column_metadata"][index]["type"], "Any")
+    values = [text_type(v) for v in values]
     self.assertEqual(sheet["table_data"][index], values)
 
   def _check_num_cols(self, sheet, exp_cols):
@@ -40,18 +44,16 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(sheet, 1, "int2", "Int", [5, '', ''])
     self._check_col(sheet, 2, "textint", "Text", ["12345678902345689", '', ''])
     self._check_col(sheet, 3, "bigint", "Text", ["320150170634561830", '', ''])
-    self._check_col(sheet, 4, "num2", "Numeric", [123456789.123456, '', ''])
-    self._check_col(sheet, 5, "bignum", "Numeric", [7.22597e+86, '', ''])
+    self._check_col(sheet, 4, "num2", "Numeric", ['123456789.1234560000', '', ''])
+    self._check_col(sheet, 5, "bignum", "Numeric", ['7.22597E+86', '', ''])
     self._check_col(sheet, 6, "date1", "DateTime",
-                    [calendar.timegm(datetime.datetime(2015, 12, 22, 11, 59, 00).timetuple()), None, None])
+                    [u'12/22/15 11:59 AM', u'', u''])
     self._check_col(sheet, 7, "date2", "Date",
-                    [calendar.timegm(datetime.datetime(2015, 12, 20, 0, 0, 0).timetuple()), None, None])
+                    [u'December 20, 2015', u'', u''])
     self._check_col(sheet, 8, "datetext", "Date",
-                    [calendar.timegm(datetime.date(2015, 12, 22).timetuple()), None, None])
+                    [u'12/22/2015', u'', u''])
     self._check_col(sheet, 9, "datetimetext", "DateTime",
-                    [calendar.timegm(datetime.datetime(2015, 12, 22, 0, 0, 0).timetuple()),
-                     calendar.timegm(datetime.datetime(2015, 12, 22, 13, 15, 0).timetuple()),
-                     calendar.timegm(datetime.datetime(2018, 2, 27, 16, 8, 39).timetuple())])
+                    [u'12/22/2015 00:00:00', u'12/22/2015 13:15:00', u'02/27/2018 16:08:39'])
 
 
   def test_user_parse_options(self):
@@ -68,7 +70,11 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "PHONE", "Text", ['201-343-3434', '201.343.3434',
                                                       '2013433434', '(201)343-3434'])
     self._check_col(parsed_file, 3, "VALUE", "Int", [45, 4545, 0, 4])
-    self._check_col(parsed_file, 4, "DATE", "DateTime", [1519747719.0, 1519744119.0, 1519751319.0, None])
+    self._check_col(parsed_file, 4, "DATE", "DateTime",
+                    [u'2018-02-27 16:08:39 +0000',
+                     u'2018-02-27 16:08:39 +0100',
+                     u'2018-02-27 16:08:39 -0100',
+                     u''])
 
   def test_wrong_cols1(self):
     file_obj = bytes_io_from_str(textwrap.dedent(

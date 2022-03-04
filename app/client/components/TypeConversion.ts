@@ -105,7 +105,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       let {dateFormat} = prevOptions;
       if (!dateFormat) {
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
-        dateFormat = guessDateFormat(colValues.map(String)) || "YYYY-MM-DD";
+        dateFormat = guessDateFormat(colValues.map(String));
       }
       widgetOptions = dateTimeWidgetOptions(dateFormat, true);
       break;

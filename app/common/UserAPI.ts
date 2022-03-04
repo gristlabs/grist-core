@@ -3,7 +3,7 @@ import {ApplyUAResult, QueryFilters} from 'app/common/ActiveDocAPI';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
-import {BulkColValues, TableColValues, UserAction} from 'app/common/DocActions';
+import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {Features} from 'app/common/Features';
 import {ICustomWidget} from 'app/common/CustomWidget';
@@ -402,6 +402,11 @@ export interface UserAPI {
   filters?: string;
 }
 
+interface GetRowsParams {
+  filters?: QueryFilters;
+  immediate?: boolean;
+}
+
 /**
  * Collect endpoints related to the content of a single document that we've been thinking
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
@@ -411,8 +416,8 @@ export interface DocAPI {
   // Immediate flag is a currently not-advertised feature, allowing a query to proceed without
   // waiting for a document to be initialized. This is useful if the calculations done when
   // opening a document are irrelevant.
-  getRows(tableId: string, options?: { filters?: QueryFilters,
-                                       immediate?: boolean }): Promise<TableColValues>;
+  getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues>;
+  getRecords(tableId: string, options?: GetRowsParams): Promise<TableRecordValue[]>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
@@ -869,16 +874,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     this._url = `${url}/api/docs/${docId}`;
   }
 
-  public async getRows(tableId: string, options?: { filters?: QueryFilters,
-                                                    immediate?: boolean }): Promise<TableColValues> {
-    const url = new URL(`${this._url}/tables/${tableId}/data`);
-    if (options?.filters) {
-      url.searchParams.append('filter', JSON.stringify(options.filters));
-    }
-    if (options?.immediate) {
-      url.searchParams.append('immediate', 'true');
-    }
-    return this.requestJson(url.href);
+  public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
+    return this._getRecords(tableId, 'data', options);
+  }
+
+  public async getRecords(tableId: string, options?: GetRowsParams): Promise<TableRecordValue[]> {
+    const response: TableRecordValues = await this._getRecords(tableId, 'records', options);
+    return response.records;
   }
 
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {
@@ -965,6 +967,17 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const url = new URL(`${this._url}/send-to-drive`);
     url.searchParams.append('title', title);
     url.searchParams.append('code', code);
+    return this.requestJson(url.href);
+  }
+
+  private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
+    const url = new URL(`${this._url}/tables/${tableId}/${endpoint}`);
+    if (options?.filters) {
+      url.searchParams.append('filter', JSON.stringify(options.filters));
+    }
+    if (options?.immediate) {
+      url.searchParams.append('immediate', 'true');
+    }
     return this.requestJson(url.href);
   }
 }

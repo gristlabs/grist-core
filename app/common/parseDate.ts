@@ -1,4 +1,5 @@
 import escapeRegExp = require('lodash/escapeRegExp');
+import last = require('lodash/last');
 import memoize = require('lodash/memoize');
 import {getDistinctValues, isObject} from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
@@ -325,7 +326,26 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
   return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
 }
 
-export function guessDateFormat(values: Array<string | null>, timezone: string = 'UTC'): string | null {
+/**
+ * Guesses a full date[time] format that best matches the given strings.
+ * If several formats match equally well, picks the last one lexicographically to match the old date guessing.
+ * This means formats with an early Y and/or M are favoured.
+ * If no formats match, returns the default YYYY-MM-DD.
+ */
+export function guessDateFormat(values: Array<string | null>, timezone: string = 'UTC'): string {
+  const formats = guessDateFormats(values, timezone);
+  if (!formats) {
+    return "YYYY-MM-DD";
+  }
+  return last(formats)!;
+}
+
+/**
+ * Returns all full date[time] formats that best match the given strings.
+ * If several formats match equally well, returns them all.
+ * May return null if there are no matching formats or choosing one is too expensive.
+ */
+export function guessDateFormats(values: Array<string | null>, timezone: string = 'UTC'): string[] | null {
   const dateStrings: string[] = values.filter(isObject);
   const sample = getDistinctValues(dateStrings, 100);
   const formats: Record<string, number> = {};
@@ -358,7 +378,9 @@ export function guessDateFormat(values: Array<string | null>, timezone: string =
   }
 
   const maxCount = Math.max(...Object.values(formats));
-  return formatKeys.find(format => formats[format] === maxCount)!;
+  // Return all formats that tied for first place.
+  // Sort lexicographically for consistency in tests and with the old dateguess.py.
+  return formatKeys.filter(format => formats[format] === maxCount).sort();
 }
 
 export const dateFormatOptions = [

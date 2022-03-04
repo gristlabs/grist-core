@@ -294,7 +294,7 @@ export class ActiveDocImport {
       const origTableName = table.table_name ? table.table_name : '';
       const transformRule = transformRuleMap && transformRuleMap.hasOwnProperty(origTableName) ?
         transformRuleMap[origTableName] : null;
-      const columnMetadata = addLabelsIfPossible(table.column_metadata);
+      const columnMetadata = cleanColumnMetadata(table.column_metadata);
       const result: ApplyUAResult = await this._activeDoc.applyUserActions(docSession,
         [["AddTable", hiddenTableName, columnMetadata]]);
       const retValue: AddTableRetValue = result.retValues[0];
@@ -313,7 +313,9 @@ export class ActiveDocImport {
       const ruleCanBeApplied = (transformRule != null) &&
                                _.difference(transformRule.sourceCols, hiddenTableColIds).length === 0;
       await this._activeDoc.applyUserActions(docSession,
-        [["ReplaceTableData", hiddenTableId, rowIdColumn, columnValues]], {parseStrings: true});
+        // BulkAddRecord rather than ReplaceTableData so that type guessing is applied to Any columns.
+        // Don't use parseStrings, only use the strict parsing in ValueGuesser to make the import lossless.
+        [["BulkAddRecord", hiddenTableId, rowIdColumn, columnValues]]);
 
       // data parsed and put into hiddenTableId
       // For preview_table (isHidden) do GenImporterView to make views and formulas and cols
@@ -433,14 +435,15 @@ export class ActiveDocImport {
 
     // If destination is a new table, we need to create it.
     if (intoNewTable) {
-      const colSpecs = destCols.map(({type, colId: id, label}) => ({type, id, label}));
+      const colSpecs = destCols.map(({type, colId: id, label, widgetOptions}) => ({type, id, label, widgetOptions}));
       const newTable = await this._activeDoc.applyUserActions(docSession, [['AddTable', destTableId, colSpecs]]);
       destTableId = newTable.retValues[0].table_id;
     }
 
     await this._activeDoc.applyUserActions(docSession,
       [['BulkAddRecord', destTableId, gutil.arrayRepeat(hiddenTableData.id.length, null), columnData]],
-      {parseStrings: true});
+      // Don't use parseStrings for new tables to make the import lossless.
+      {parseStrings: !intoNewTable});
 
     return destTableId;
   }
@@ -586,6 +589,7 @@ export class ActiveDocImport {
         colId: destTableId ? id as string : null,
         label: fields.label as string,
         type: fields.type as string,
+        widgetOptions: fields.widgetOptions as string,
         formula: srcColIds.includes(id as string) ? `$${id}` :  ''
       });
     }
@@ -730,10 +734,21 @@ function getMergeFunction({type}: MergeStrategy): MergeFunction {
 }
 
 /**
+ * Tweak the column metadata used in the AddTable action.
  * If `columns` is populated with non-blank column ids, adds labels to all
- * columns using the values set for the column ids. Otherwise, returns
- * a copy of columns with no modifications made.
+ * columns using the values set for the column ids.
+ * Ensure that columns of type Any start out as formula columns, i.e. empty columns,
+ * so that type guessing is triggered when new data is added.
  */
-function addLabelsIfPossible(columns: GristColumn[]) {
-  return columns.map(c => (c.id ? {...c, label: c.id} : c));
+function cleanColumnMetadata(columns: GristColumn[]) {
+  return columns.map(c => {
+    const newCol: any = {...c};
+    if (c.id) {
+      newCol.label = c.id;
+    }
+    if (c.type === "Any") {
+      newCol.isFormula = true;
+    }
+    return newCol;
+  });
 }

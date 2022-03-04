@@ -49,6 +49,7 @@ export interface TransformColumn {
   colId: string|null;
   type: string;
   formula: string;
+  widgetOptions: string;
 }
 
 export interface ImportResult {

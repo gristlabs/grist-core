@@ -353,6 +353,7 @@ export class Importer extends DisposableWithEvents {
         label: field.label(),
         colId: destTableId ? field.colId() : null, // if inserting into new table, colId isn't defined
         type: field.column().type(),
+        widgetOptions: field.column().widgetOptions(),
         formula: field.column().formula()
       })),
       sourceCols: sourceFields.map((field) => field.colId())

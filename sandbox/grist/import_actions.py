@@ -1,12 +1,11 @@
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
-import six
-from six.moves import zip, xrange
+from six.moves import zip
 
 import column
 import identifiers
-
 import logger
+
 log = logger.Logger(__name__, logger.INFO)
 
 # Prefix for transform columns created during imports.
@@ -103,6 +102,7 @@ class ImportActions(object):
           "label":    c.label,
           "colId":    c.colId if dest_table_id else None, #should be None if into new table
           "type":     c.type,
+          "widgetOptions": getattr(c, "widgetOptions", ""),
           "formula":  ("$" + c.colId) if (c.colId in src_cols) else ''
         })
 
@@ -162,6 +162,7 @@ class ImportActions(object):
         new_col_spec = {
           "label": c.label,
           "type": c.type,
+          "widgetOptions": getattr(c, "widgetOptions", ""),
           "isFormula": True,
           "formula": c.formula}
         result = self._useractions.doAddColumn(hidden_table_id, new_col_id, new_col_spec)

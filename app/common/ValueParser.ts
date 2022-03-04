@@ -36,18 +36,6 @@ export class ValueParser {
 class IdentityParser extends ValueParser {
 }
 
-/**
- * Same as basic Value parser, but will return null if a value is an empty string.
- */
-class NullIfEmptyParser extends ValueParser {
-  public cleanParse(value: string): any {
-    if (value === "") {
-      return null;
-    }
-    return super.cleanParse(value);
-  }
-}
-
 export class NumericParser extends ValueParser {
   private _parse: NumberParse;
 
@@ -225,7 +213,6 @@ export class ReferenceListParser extends ReferenceParser {
 }
 
 export const valueParserClasses: { [type: string]: typeof ValueParser } = {
-  Any: NullIfEmptyParser,
   Numeric: NumericParser,
   Int: NumericParser,
   Date: DateParser,
