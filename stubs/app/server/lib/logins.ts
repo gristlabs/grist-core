@@ -7,7 +7,3 @@ export async function getLoginSystem(): Promise<GristLoginSystem> {
   if (saml) { return saml; }
   return getMinimalLoginSystem();
 }
-
-export function getLoginSubdomain(): string | null {
-  return null;
-}

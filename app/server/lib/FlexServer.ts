@@ -41,14 +41,13 @@ import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {INotifier} from 'app/server/lib/INotifier';
 import * as log from 'app/server/lib/log';
-import {getLoginSubdomain, getLoginSystem} from 'app/server/lib/logins';
+import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, addOrgToPath, addOrgToPathIfNeeded, addPermit, getScope,
-        optStringParam, RequestWithGristInfo, stringParam,
-        TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
+import {adaptServerUrl, addOrgToPath, addPermit, getOrgUrl, getScope, optStringParam,
+        RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
@@ -289,6 +288,11 @@ export class FlexServer implements GristServer {
   public getNotifier(): INotifier {
     if (!this._notifier) { throw new Error('no notifier available'); }
     return this._notifier;
+  }
+
+  public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
+    if (!this._sendAppPage) { throw new Error('no _sendAppPage method available'); }
+    return this._sendAppPage(req, resp, options);
   }
 
   public addLogging() {
@@ -836,38 +840,28 @@ export class FlexServer implements GristServer {
     this.addComm();
 
     /**
-     * Gets the URL to redirect back to after successful sign-up or login.
+     * Gets the URL to redirect back to after successful sign-up, login, or logout.
      *
      * Note that in the test env, this will redirect further.
      */
     const getNextUrl = async (mreq: RequestWithLogin): Promise<string> => {
-      // If a "next" query param is present, check if it's safe to use, and return it if so.
       const next = optStringParam(mreq.query.next);
-      if (next) {
-        if (!(await this._hosts.isSafeRedirectUrl(next))) {
-          throw new ApiError('Invalid redirect URL', 400);
-        }
 
-        return next;
+      // If a "next" query param isn't present, return the URL of the request org.
+      if (next === undefined) { return getOrgUrl(mreq); }
+
+      // Check that the "next" param has a valid host (native or custom) before returning it.
+      if (!(await this._hosts.isSafeRedirectUrl(next))) {
+        throw new ApiError('Invalid redirect URL', 400);
       }
 
-      // Otherwise, return the "/" path on the request host. If the host is the Grist
-      // login host, return the "/" path on the merged org instead.
-      const loginSubdomain = getLoginSubdomain();
-      return !loginSubdomain || mreq.org !== loginSubdomain ?
-        getOrgUrl(mreq) : this.getMergedOrgUrl(mreq);
+      return next;
     };
 
     async function redirectToLoginOrSignup(
       this: FlexServer, signUp: boolean|null, req: express.Request, resp: express.Response,
     ) {
       const mreq = req as RequestWithLogin;
-
-      // If sign-up request is to the Grist login host, serve a sign-up page instead of redirecting.
-      const loginSubdomain = getLoginSubdomain();
-      if (signUp && loginSubdomain && mreq.org === loginSubdomain) {
-        return this._sendAppPage(req, resp, {path: 'login.html', status: 200, config: {}});
-      }
 
       // This will ensure that express-session will set our cookie if it hasn't already -
       // we'll need it when we come back from Cognito.
@@ -881,9 +875,13 @@ export class FlexServer implements GristServer {
       resp.redirect(await getRedirectUrl(req, new URL(await getNextUrl(mreq))));
     }
 
-    this.app.get('/login', expressWrap(redirectToLoginOrSignup.bind(this, false)));
-    this.app.get('/signup', expressWrap(redirectToLoginOrSignup.bind(this, true)));
-    this.app.get('/signin', expressWrap(redirectToLoginOrSignup.bind(this, null)));
+    const middleware = this._loginMiddleware.getLoginOrSignUpMiddleware ?
+      this._loginMiddleware.getLoginOrSignUpMiddleware() :
+      [];
+
+    this.app.get('/login', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, false)));
+    this.app.get('/signup', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, true)));
+    this.app.get('/signin', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, null)));
 
     if (allowTestLogin()) {
       // This is an endpoint for the dev environment that lets you log in as anyone.
@@ -935,16 +933,14 @@ export class FlexServer implements GristServer {
     }
 
     this.app.get('/logout', expressWrap(async (req, resp) => {
-      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
-
-      // If 'next' param is missing, redirect to "/" on our requested hostname.
-      const next = optStringParam(req.query.next) || getOrgUrl(req);
-      const redirectUrl = await this._getLogoutRedirectUrl(req, new URL(next));
+      const mreq = req as RequestWithLogin;
+      const scopedSession = this._sessions.getOrCreateSessionFromRequest(mreq);
+      const redirectUrl = await this._getLogoutRedirectUrl(req, new URL(await getNextUrl(mreq)));
 
       // Clear session so that user needs to log in again at the next request.
       // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
       // Express-session will save these changes.
-      const expressSession = (req as any).session;
+      const expressSession = mreq.session;
       if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
       await scopedSession.clearScopedSession(req);
       // TODO: limit cache clearing to specific user.
@@ -956,10 +952,6 @@ export class FlexServer implements GristServer {
     // through Cognito or SAML).
     this.app.get('/signed-out', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'signed-out'}})));
-
-    // Add a static "verified" page.  This is where an email verification link will land, on success.
-    this.app.get('/verified', expressWrap((req, resp) =>
-      this._sendAppPage(req, resp, {path: 'login.html', status: 200, config: {}})));
 
     const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
@@ -1712,11 +1704,6 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   } else {
     next();
   }
-}
-
-// Get url to the org associated with the request.
-function getOrgUrl(req: express.Request) {
-  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, '/');
 }
 
 // Set Cache-Control header to "no-cache"

@@ -26,7 +26,7 @@ export type WelcomePage = typeof WelcomePage.type;
 export const AccountPage = StringUnion('account');
 export type AccountPage = typeof AccountPage.type;
 
-export const LoginPage = StringUnion('signup', 'verified');
+export const LoginPage = StringUnion('signup', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
@@ -252,7 +252,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   // the minimum length of a urlId prefix is longer than the maximum length
   // of any of the valid keys in the url.
   for (const key of map.keys()) {
-    if (key.length >= MIN_URLID_PREFIX_LENGTH) {
+    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key)) {
       map.set('doc', key);
       map.set('slug', map.get(key)!);
       map.delete(key);
@@ -296,6 +296,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.login = 'signup';
   } else if (map.has('verified')) {
     state.login = 'verified';
+  } else if (map.has('forgot-password')) {
+    state.login = 'forgot-password';
   }
 
   if (sp.has('next')) { state.params!.next = sp.get('next')!; }
@@ -522,7 +524,7 @@ export function isClient() {
 export function getKnownOrg(): string|null {
   if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.org) || null;
+    return (gristConfig && gristConfig.singleOrg) || null;
   } else {
     return process.env.GRIST_SINGLE_ORG || null;
   }
@@ -545,7 +547,7 @@ export function getSingleOrg(): string|null {
 
 /**
  * Returns true if org must be encoded in path, not in domain.  Determined from
- * gristConfig on the client.  On on the server returns true if the host is
+ * gristConfig on the client.  On the server, returns true if the host is
  * supplied and is 'localhost', or if GRIST_ORG_IN_PATH is set to 'true'.
  */
 export function isOrgInPathOnly(host?: string): boolean {

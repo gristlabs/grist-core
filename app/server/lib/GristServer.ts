@@ -11,6 +11,7 @@ import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { INotifier } from 'app/server/lib/INotifier';
 import { IPermitStore } from 'app/server/lib/Permit';
+import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { Sessions } from 'app/server/lib/Sessions';
 import * as express from 'express';
 
@@ -39,6 +40,7 @@ export interface GristServer {
   getNotifier(): INotifier;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
+  sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
 }
 
 export interface GristLoginSystem {
@@ -50,6 +52,9 @@ export interface GristLoginMiddleware {
   getLoginRedirectUrl(req: express.Request, target: URL): Promise<string>;
   getSignUpRedirectUrl(req: express.Request, target: URL): Promise<string>;
   getLogoutRedirectUrl(req: express.Request, nextUrl: URL): Promise<string>;
+
+  // Optional middleware for the GET /login, /signup, and /signin routes.
+  getLoginOrSignUpMiddleware?(): express.RequestHandler[];
 
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;

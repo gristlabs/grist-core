@@ -65,6 +65,13 @@ export function addOrgToPath(req: RequestWithOrg, path: string): string {
 }
 
 /**
+ * Get url to the org associated with the request.
+ */
+export function getOrgUrl(req: Request) {
+  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, '/');
+}
+
+/**
  * Returns true for requests from permitted origins.  For such requests, an
  * "Access-Control-Allow-Origin" header is added to the response.  Vary: Origin
  * is also set to reflect the fact that the headers are a function of the origin,
