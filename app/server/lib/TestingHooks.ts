@@ -137,23 +137,27 @@ export class TestingHooks implements ITestingHooks {
   public async setDocWorkerActivation(workerId: string, active: 'active'|'inactive'|'crash'):
     Promise<void> {
     log.info("TestingHooks.setDocWorkerActivation called with", workerId, active);
-    for (const server of this._workerServers) {
-      if (server.worker.id === workerId || server.worker.publicUrl === workerId) {
-        switch (active) {
-        case 'active':
-          await server.restartListening();
-          break;
-        case 'inactive':
-          await server.stopListening();
-          break;
-        case 'crash':
-          await server.stopListening('crash');
-          break;
-        }
-        return;
-      }
+    const matches = this._workerServers.filter(
+      server => server.worker.id === workerId ||
+        server.worker.publicUrl === workerId ||
+        (server.worker.publicUrl.startsWith('http://localhost:') &&
+          workerId.startsWith('http://localhost:') &&
+          new URL(server.worker.publicUrl).host === new URL(workerId).host));
+    if (matches.length !== 1) {
+      throw new Error(`could not find worker: ${workerId}`);
     }
-    throw new Error(`could not find worker: ${workerId}`);
+    const server = matches[0];
+    switch (active) {
+      case 'active':
+        await server.restartListening();
+        break;
+      case 'inactive':
+        await server.stopListening();
+        break;
+      case 'crash':
+        await server.stopListening('crash');
+        break;
+    }
   }
 
   public async flushAuthorizerCache(): Promise<void> {
@@ -161,6 +165,13 @@ export class TestingHooks implements ITestingHooks {
     this._server.getHomeDBManager().flushDocAuthCache();
     for (const server of this._workerServers) {
       server.getHomeDBManager().flushDocAuthCache();
+    }
+  }
+
+  public async flushDocs(): Promise<void> {
+    log.info("TestingHooks.flushDocs called");
+    for (const server of this._workerServers) {
+      await server.testFlushDocs();
     }
   }
 

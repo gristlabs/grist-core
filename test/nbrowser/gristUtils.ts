@@ -151,6 +151,21 @@ export async function testCurrentUrl(pattern: RegExp|string) {
   return (typeof pattern === 'string') ? url.includes(pattern) : pattern.test(url);
 }
 
+export async function getDocWorkerUrls(): Promise<string[]> {
+  const result = await driver.wait(() => driver.executeScript(`
+    return Array.from(window.gristApp.comm.listConnections().values());
+  `), 1000) as string[];
+  return result;
+}
+
+export async function getDocWorkerUrl(): Promise<string> {
+  const urls = await getDocWorkerUrls();
+  if (urls.length > 1) {
+    throw new Error(`Expected a single docWorker URL, received ${urls}`);
+  }
+  return urls[0] || '';
+}
+
 export async function waitForUrl(pattern: RegExp|string, waitMs: number = 2000) {
   await driver.wait(() => testCurrentUrl(pattern), waitMs);
 }

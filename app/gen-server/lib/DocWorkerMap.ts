@@ -308,26 +308,8 @@ export class DocWorkerMap implements IDocWorkerMap {
    * refused and need to retry.
    */
   public async getDocWorker(docId: string): Promise<DocStatus|null> {
-    // Fetch the various elements that go into making a DocStatus
-    const props = await this._client.multi()
-      .hgetall(`doc-${docId}`)
-      .get(`doc-${docId}-checksum`)
-      .execAsync() as [{[key: string]: any}|null, string|null]|null;
-    if (!props) { return null; }
-
-    // If there is no worker, return null.  An alternative would be to modify
-    // DocStatus so that it is possible for it to not have a worker assignment.
-    if (!props[0]) { return null; }
-
-    // Fields are JSON encoded since redis cannot store them directly.
-    const doc = mapValues(props[0], (val) => JSON.parse(val));
-
-    // Redis cannot store a null value, so we encode it as 'null', which does
-    // not match any possible MD5.
-    doc.docMD5 = props[1] === 'null' ? null : props[1];
-
-    // Ok, we have a valid DocStatus at this point.
-    return doc as DocStatus;
+    const {doc} = await this._getDocAndChecksum(docId);
+    return doc;
   }
 
   /**
@@ -377,7 +359,8 @@ export class DocWorkerMap implements IDocWorkerMap {
     try {
       // Now that we've locked, recheck that the worker hasn't been reassigned
       // in the meantime.  Return immediately if it has.
-      docStatus = await this.getDocWorker(docId);
+      const docAndChecksum = await this._getDocAndChecksum(docId);
+      docStatus = docAndChecksum.doc;
       if (docStatus) { return docStatus; }
 
       if (!workerId) {
@@ -408,8 +391,9 @@ export class DocWorkerMap implements IDocWorkerMap {
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
 
-      // We can now construct a DocStatus.
-      const newDocStatus = {docMD5: null, docWorker, isActive: true};
+      // We can now construct a DocStatus, preserving any existing checksum.
+      const checksum = docAndChecksum.checksum;
+      const newDocStatus = {docMD5: checksum, docWorker, isActive: true};
 
       // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
       const result = await this._client.multi()
@@ -418,7 +402,7 @@ export class DocWorkerMap implements IDocWorkerMap {
           docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
           isActive: JSON.stringify(true)         // redis can't store booleans, strings only
         })
-        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, 'null')
+        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
         .execAsync();
       if (!result) { throw new Error('failed to store new assignment'); }
       return newDocStatus;
@@ -521,6 +505,28 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async getDocGroup(docId: string): Promise<string|null> {
     return this._client.getAsync(`doc-${docId}-group`);
+  }
+
+  /**
+   * Fetch the doc-<docId> hash and doc-<docId>-checksum key from redis.
+   * Return as a decoded DocStatus and a checksum.
+   */
+  private async _getDocAndChecksum(docId: string): Promise<{
+    doc: DocStatus|null,
+    checksum: string|null,
+  }> {
+    // Fetch the various elements that go into making a DocStatus
+    const props = await this._client.multi()
+      .hgetall(`doc-${docId}`)
+      .get(`doc-${docId}-checksum`)
+      .execAsync() as [{[key: string]: any}|null, string|null]|null;
+    // Fields are JSON encoded since redis cannot store them directly.
+    const doc = props?.[0] ? mapValues(props[0], (val) => JSON.parse(val)) as DocStatus : null;
+    // Redis cannot store a null value, so we encode it as 'null', which does
+    // not match any possible MD5.
+    const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;
+    if (doc) { doc.docMD5 = checksum; }  // the checksum goes in the DocStatus too.
+    return {doc, checksum};
   }
 }
 

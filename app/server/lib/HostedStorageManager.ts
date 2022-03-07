@@ -112,6 +112,7 @@ export class HostedStorageManager implements IDocStorageManager {
 
   // Latest version ids of documents.
   private _latestVersions = new Map<string, string>();
+  private _latestMetaVersions = new Map<string, string>();
 
   private _log = new LogMethods('HostedStorageManager ', (docId: string|null) => ({docId}));
 
@@ -158,7 +159,7 @@ export class HostedStorageManager implements IDocStorageManager {
         throw new Error('bug: external storage should be created for "meta" if it is created for "doc"');
       }
       this._extMeta = this._getChecksummedExternalStorage('meta', baseStoreMeta,
-                                                          new Map(),
+                                                          this._latestMetaVersions,
                                                           options);
 
       this._inventory = new DocSnapshotInventory(this._ext, this._extMeta,
@@ -570,9 +571,18 @@ export class HostedStorageManager implements IDocStorageManager {
       const existsLocally = await fse.pathExists(this.getPath(docName));
       if (existsLocally) {
         if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN) {
-          // New doc appears to already exist, but not in S3 (according to redis).
-          // Go ahead and use local version.
-          return true;
+          // New doc appears to already exist, but may not exist in S3.
+          // Let's check.
+          const head = await this._ext.head(docName);
+          const lastLocalVersionSeen = this._latestVersions.get(docName);
+          if (head && lastLocalVersionSeen !== head.snapshotId) {
+            // Exists in S3, with a version not known to be latest seen
+            // by this worker - so wipe local version and defer to S3.
+            await this._wipeCache(docName);
+          } else {
+            // Go ahead and use local version.
+            return true;
+          }
         } else {
           // Doc exists locally and in S3 (according to redis).
           // Make sure the checksum matches.
@@ -586,8 +596,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // On the assumption that the local file is outdated, delete it.
             // TODO: may want to be more careful in case the local file has modifications that
             // simply never made it to S3 due to some kind of breakage.
-            // NOTE: fse.remove succeeds also when the file does not exist.
-            await fse.remove(this.getPath(docName));
+            await this._wipeCache(docName);
           }
         }
       }
@@ -596,6 +605,19 @@ export class HostedStorageManager implements IDocStorageManager {
         trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork
       });
     });
+  }
+
+  /**
+   * Remove local version of a document, and state related to it.
+   */
+  private async _wipeCache(docName: string) {
+    // NOTE: fse.remove succeeds also when the file does not exist.
+    await fse.remove(this.getPath(docName));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'doc'));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'meta'));
+    await this._inventory.clear(docName);
+    this._latestVersions.delete(docName);
+    this._latestMetaVersions.delete(docName);
   }
 
   /**

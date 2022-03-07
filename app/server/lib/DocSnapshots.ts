@@ -164,6 +164,18 @@ export class DocSnapshotInventory implements IInventory {
   }
 
   /**
+   * Wipe local cached state of the inventory.
+   */
+  public async clear(key: string) {
+    await this._mutex.runExclusive(key, async() => {
+      await this._flush(key);
+      const fname = await this._getFilename(key);
+      // NOTE: fse.remove succeeds also when the file does not exist.
+      await fse.remove(fname);
+    });
+  }
+
+  /**
    * Remove a set of snapshots from the inventory, and then flush to S3.
    */
   public async remove(key: string, snapshotIds: string[]) {

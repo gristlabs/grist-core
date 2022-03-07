@@ -530,7 +530,13 @@ export class DocManager extends EventEmitter {
         const srcDocPath = uploadInfo.files[0].absPath;
         await checkAllegedGristDoc(docSession, srcDocPath);
         await docUtils.copyFile(srcDocPath, docPath);
-        await this.storageManager.addToStorage(docName);
+        // Go ahead and claim this document. If we wanted to serve it
+        // from a potentially different worker, we'd call addToStorage(docName)
+        // instead (we used to do this). The upload should already be happening
+        // on a randomly assigned worker due to the special treatment of the
+        // 'import' assignmentId.
+        await this.storageManager.prepareLocalDoc(docName);
+        this.storageManager.markAsChanged(docName, 'edit');
         return {title: basename, id: docName};
       } else {
         const doc = await this.createNewEmptyDoc(docSession, id);

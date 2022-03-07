@@ -16,6 +16,7 @@ export const ITestingHooks = t.iface([], {
   "closeDocs": t.func("void"),
   "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
   "flushAuthorizerCache": t.func("void"),
+  "flushDocs": t.func("void"),
   "getDocClientCounts": t.func(t.array(t.tuple("string", "number"))),
   "setActiveDocTimeout": t.func("number", t.param("seconds", "number")),
   "setDiscourseConnectVar": t.func(t.union("string", "null"), t.param("varName", "string"), t.param("value", t.union("string", "null"))),

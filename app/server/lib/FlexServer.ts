@@ -158,9 +158,14 @@ export class FlexServer implements GristServer {
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(['appRoot', this.appRoot]);
     // This directory hold Grist documents.
-    const docsRoot = path.resolve((this.options && this.options.dataDir) ||
+    let docsRoot = path.resolve((this.options && this.options.dataDir) ||
                                   process.env.GRIST_DATA_DIR ||
                                   getAppPathTo(this.appRoot, 'samples'));
+    // In testing, it can be useful to separate out document roots used
+    // by distinct FlexServers.
+    if (process.env.GRIST_TEST_ADD_PORT_TO_DOCS_ROOT === 'true') {
+      docsRoot = path.resolve(docsRoot, String(port));
+    }
     // Create directory if it doesn't exist.
     // TODO: track down all dependencies on 'samples' existing in tests and
     // in dev environment, and remove them.  Then it would probably be best
@@ -1306,6 +1311,16 @@ export class FlexServer implements GristServer {
 
   public getTag(): string {
     return this.tag;
+  }
+
+  /**
+   * Make sure external storage of all docs is up to date.
+   */
+  public async testFlushDocs() {
+    const assignments = await this._docWorkerMap.getAssignments(this.worker.id);
+    for (const assignment of assignments) {
+      await this._storageManager.flushDoc(assignment);
+    }
   }
 
   // Adds endpoints that support imports and exports.
