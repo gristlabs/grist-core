@@ -134,11 +134,9 @@ class BaseLookupMapColumn(column.BaseColumn):
 
     # The _use_node call both brings LookupMapColumn up-to-date, and creates a dependency on it.
     # Relation of None isn't valid, but it happens to be unused when there is no current_frame.
-    row_ids = self._row_key_map.lookup_right(key, set())
-    engine._use_node(self.node, rel, row_ids)
-    if not row_ids:
-      row_ids = self._row_key_map.lookup_right(key, set())
+    engine._use_node(self.node, rel)
 
+    row_ids = self._row_key_map.lookup_right(key, set())
     return row_ids, rel
 
   # Override various column methods, since LookupMapColumn doesn't care to store any values. To

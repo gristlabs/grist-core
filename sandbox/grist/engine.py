@@ -824,19 +824,11 @@ class Engine(object):
         exclude.add(row_id)
         cleaned.append(row_id)
         self._recompute_done_counter += 1
-      # If no particular rows were requested, and we arrive here,
-      # that means we made it through the whole column!  For long
-      # columns, it is worth deleting dirty_rows in one step rather
-      # than discarding one cell at a time.
-      if require_rows is None:
-        cleaned = []
-        dirty_rows = None
-
     finally:
       self._current_node = previous_current_node
-      for row_id in cleaned:
-        # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
-        dirty_rows.discard(row_id)
+      # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
+      dirty_rows -= cleaned
+
       # However it's possible for them to be different
       # (see above where `exempt` is nonempty and allow_evaluation=True)
       # so here we check self.recompute_map[node] directly
