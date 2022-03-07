@@ -15,12 +15,13 @@ import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
 import {UserError} from 'app/client/models/errors';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {PluginInstance} from 'app/common/PluginInstance';
+import {AccessLevel} from 'app/common/CustomWidget';
+import {closeRegisteredMenu} from 'app/client/ui2018/menus';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
-import {AccessLevel} from 'app/common/CustomWidget';
-import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -76,7 +77,7 @@ export class CustomView extends Disposable {
 
     this._customDef =  this.viewSection.customDef;
 
-    this._emptyWidgetPage = new URL("custom-widget.html", gristDoc.app.topAppModel.getUntrustedContentOrigin()).href;
+    this._emptyWidgetPage = new URL("custom-widget.html", getGristConfig().homeUrl!).href;
 
     this.autoDisposeCallback(() => {
       if (this._customSection) {

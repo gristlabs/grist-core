@@ -450,6 +450,9 @@ export class FlexServer implements GristServer {
     // Plugins get access to static resources without a tag
     this.app.use(limitToPlugins(express.static(getAppPathTo(this.appRoot, 'static'))));
     this.app.use(limitToPlugins(express.static(getAppPathTo(this.appRoot, 'bower_components'))));
+    // Serve custom-widget.html message for anyone.
+    this.app.use(/^\/(custom-widget.html)$/, expressWrap(async (req, res) =>
+      res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
     this.addOrg();
     addPluginEndpoints(this, await this._addPluginManager());
   }
