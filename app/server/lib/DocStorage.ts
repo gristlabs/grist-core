@@ -1556,7 +1556,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     this._lastLoggedDataSize = now;
 
     const result = await this.get(`
-      SELECT SUM(pgsize) AS totalSize
+      SELECT SUM(pgsize - unused) AS totalSize
       FROM dbstat
       WHERE NOT (
         name LIKE 'sqlite_%' OR
