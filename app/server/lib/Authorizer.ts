@@ -192,7 +192,6 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
 
     mreq.users = getSessionProfiles(session);
-    log.info(`mreq.users: ${mreq.users}`);
 
     // If we haven't set a maxAge yet, set it now.
     if (session && session.cookie && !session.cookie.maxAge) {
@@ -233,7 +232,6 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
 
     profile = sessionUser && sessionUser.profile || undefined;
-    log.info(`profile: ${profile}`);
 
     // If we haven't computed a userId yet, check for one using an email address in the profile.
     // A user record will be created automatically for emails we've never seen before.
@@ -247,21 +245,21 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
   }
 
-  // Try to determine user based on x-remote-user header
+  // Try to determine user based on 'x-remote-user' header passed via a webserver rewrite rule.
+  // TODO: The header should probably be set via an environment variable and if it is not set,
+  //       this code path should be disabled altogether.
   if (!mreq.userId) {
-    // mreg.headers["x-remote-user"];
-    // log.info(`mreg.headers: ${JSON.stringify(mreq.headers, null, 4)}`);
     if (mreq.headers && mreq.headers["x-remote-user"]) {
       const remoteUser = mreq.headers["x-remote-user"].toString();
-      log.info("Authorized user found");
+      log.debug("Authorized user based on 'x-remote-user' header found.");
       profile = {
-	      "email": remoteUser,
-	      "name": remoteUser
+        "email": remoteUser,
+        "name": remoteUser
       };
       const user = await dbManager.getUserByLoginWithRetry(remoteUser, profile);
       if(user) {
         mreq.user = user;
-	mreq.users = [profile];
+        mreq.users = [profile];
         mreq.userId = user.id;
         mreq.userIsAuthorized = true;
       }
