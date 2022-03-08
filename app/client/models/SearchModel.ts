@@ -101,7 +101,7 @@ class FinderImpl implements IFinder {
   private _sectionTableData: TableData;
   private _rowStepper = new Stepper<number>();
   private _fieldStepper = new Stepper<ViewFieldRec>();
-  private _fieldFormatters: BaseFormatter[];
+  private _fieldFormatters: [ViewFieldRec, BaseFormatter][];
   private _pagesSwitched: number = 0;
   private _aborted = false;
   private _clearCursorHighlight: (() => void)|undefined;
@@ -218,7 +218,7 @@ class FinderImpl implements IFinder {
     this._sectionTableData = tableModel.tableData;
 
     this._fieldStepper.array = section.viewFields().peek();
-    this._fieldFormatters = this._fieldStepper.array.map(f => f.formatter.peek());
+    this._initFormatters();
     return tableModel;
   }
 
@@ -252,6 +252,10 @@ class FinderImpl implements IFinder {
     this._sectionStepper.array = view.viewSections().peek();
   }
 
+  private _initFormatters() {
+    this._fieldFormatters = this._fieldStepper.array.map(f => [f, f.formatter.peek()]);
+  }
+
   private _matches(): boolean {
     if (this._pageStepper.index < 0 || this._sectionStepper.index < 0 ||
         this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
@@ -259,14 +263,20 @@ class FinderImpl implements IFinder {
       return false;
     }
     const field = this._fieldStepper.value;
-    const formatter = this._fieldFormatters[this._fieldStepper.index];
+    let formatter = this._fieldFormatters[this._fieldStepper.index];
+    // When fields are removed during search (or reordered) we need to update
+    // formatters we retrieved on init.
+    if (!formatter || formatter[0 /* field */] !== field) {
+      this._initFormatters();
+      formatter = this._fieldFormatters[this._fieldStepper.index];
+    }
     const rowId = this._rowStepper.value;
     const displayCol = field.displayColModel.peek();
 
     const value = this._sectionTableData.getValue(rowId, displayCol.colId.peek());
 
     // TODO: Note that formatting dates is now the bulk of the performance cost.
-    const text = formatter.formatAny(value);
+    const text = formatter[1  /* formatter */].formatAny(value);
     return this._searchRegexp.test(text);
   }
 

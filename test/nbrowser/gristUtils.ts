@@ -999,6 +999,46 @@ export async function waitForSidePanel() {
 }
 
 /**
+ * Opens a Creator Panel on Widget/Table settings tab.
+ */
+export async function openWidgetPanel() {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-right-tab-pagewidget').click();
+}
+
+/**
+ * Moves a column from a hidden to visible section.
+ * Needs a visible Creator panel.
+ */
+export async function moveToVisible(col: string) {
+  const row = await driver.findContent(".test-vfc-hidden-fields .kf_draggable_content", exactMatch(col));
+  await row.mouseMove();
+  await row.find('.test-vfc-hide').click();
+  await waitForServer();
+}
+
+/**
+ * Moves a column from a visible to hidden section.
+ * Needs a visible Creator panel.
+ */
+export async function moveToHidden(col: string) {
+  const row = await driver.findContent(".test-vfc-visible-fields .kf_draggable_content", exactMatch(col));
+  await row.mouseMove();
+  await row.find('.test-vfc-hide').click();
+  await waitForServer();
+}
+
+export async function search(what: string) {
+  await driver.find('.test-tb-search-icon').doClick();
+  await driver.sleep(500);
+  await driver.find('.test-tb-search-input').doClick();
+  await selectAll();
+  await driver.sendKeys(what);
+  // Sleep for search debounce time
+  await driver.sleep(120);
+}
+
+/**
  * Toggles (opens or closes) the filter bar for a section.
  */
 export async function toggleFilterBar(goal: 'open'|'close'|'toggle' = 'toggle',
