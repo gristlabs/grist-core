@@ -232,10 +232,21 @@ class Engine(object):
     # User that is currently applying user actions.
     self._user = None
 
-    # Initial empty context for autocompletions; we update it when we generate the usercode module.
-    self._autocomplete_context = AutocompleteContext({})
+    # In general you should access the property autocomplete_context instead,
+    # which initialises this attribute lazily when it's needed by autocomplete.
+    # When the schema changes and usercode is regenerated, this needs to be updated,
+    # but creating a new AutocompleteContext is quite expensive, so we instead
+    # clear this cached context on schema changes and let the property recreate it as needed.
+    self._autocomplete_context = None
 
     self._table_stats = {"meta": [], "user": []}
+
+  @property
+  def autocomplete_context(self):
+    # See the comment on _autocomplete_context in __init__ above.
+    if self._autocomplete_context is None:
+      self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)
+    return self._autocomplete_context
 
   def record_table_stats(self, table_data, table_data_repr):
     table_id = table_data.table_id
@@ -1075,8 +1086,9 @@ class Engine(object):
     # Set flag to rebuild dependencies of trigger columns after any potential renames, etc.
     self.trigger_columns_changed()
 
-    # Update the context used for autocompletions.
-    self._autocomplete_context = AutocompleteContext(self.gencode.usercode.__dict__)
+    # Clear the cached context used for autocompletions.
+    # See the comment on _autocomplete_context in __init__.
+    self._autocomplete_context = None
 
   def trigger_columns_changed(self):
     self._have_trigger_columns_changed = True
@@ -1329,7 +1341,8 @@ class Engine(object):
       tweaked_txt = 'rec.'
     table = self.tables[table_id]
 
-    context = self._autocomplete_context.get_context()
+    autocomplete_context = self.autocomplete_context
+    context = autocomplete_context.get_context()
     context['rec'] = table.sample_record
 
     # Remove values from the context that need to be recomputed.
@@ -1353,7 +1366,7 @@ class Engine(object):
         break
       if skipped_completions.search(result):
         continue
-      results.append(self._autocomplete_context.process_result(result))
+      results.append(autocomplete_context.process_result(result))
 
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
     if tweaked_txt != txt:
