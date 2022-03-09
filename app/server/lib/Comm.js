@@ -150,6 +150,21 @@ Comm.prototype._broadcastMessage = function(type, data, clients) {
   clients.forEach(client => client.sendMessage({type, data}));
 };
 
+
+Comm.prototype._getSessionProfile = function(scopedSession, req) {
+  // apply x-remote-user header as a profile if the header was set
+  if (req.headers && req.headers['x-remote-user']) {
+    const userName = req.headers['x-remote-user'].toString();
+    return Promise.resolve({
+      "email": userName,
+      "name": userName,
+    });
+  }
+  return scopedSession.getSessionProfile();
+}
+
+
+
 /**
  * Sends a per-doc message to the given client.
  * @param {Object} client - The client object, as passed to all per-doc methods.
@@ -236,7 +251,7 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
   // Delegate message handling to the client
   websocket.on('message', client.onMessage.bind(client));
 
-  scopedSession.getSessionProfile()
+  this._getSessionProfile(scopedSession, req)
   .then((profile) => {
     log.debug(`Comm ${client}: sending clientConnect with ` +
       `${client._missedMessages.length} missed messages`);
