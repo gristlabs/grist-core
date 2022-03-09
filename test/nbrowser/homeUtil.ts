@@ -77,7 +77,7 @@ export class HomeUtil {
       await this.driver.get('about:blank');
       // When running against an external server, we log in through Cognito.
       await this.driver.get(this.server.getUrl(org, ""));
-      if (!(await this.isOnGristLoginPage()) && !(await this.isOnLoginPage())) {
+      if (!(await this.isOnSigninPage())) {
         // Explicitly click sign-in link if necessary.
         await this.driver.findWait('.test-user-signin', 4000).click();
         await this.driver.findContentWait('.grist-floating-menu a', 'Sign in', 500).click();
@@ -86,10 +86,16 @@ export class HomeUtil {
       if (await this.isOnGristLoginPage()) {
         await this.driver.findWait('a[href*="login?"]', 4000).click();
       }
-      await this.checkLoginPage();
-      await this.fillLoginForm(email);
+
+      // Fill the login form (either on /test/login or Cognito).
+      if (await this.isOnTestLoginPage()) {
+        await this.fillTestLoginForm(email, name);
+      } else {
+        await this.fillLoginForm(email);
+      }
+
       if (!(await this.isWelcomePage()) && (options.freshAccount || options.isFirstLogin)) {
-        await this._recreateCurrentUser(email, org);
+        await this._recreateCurrentUser(email, org, name);
       }
     }
     if (options.freshAccount) {
@@ -124,6 +130,22 @@ export class HomeUtil {
   public async isWelcomePage() {
     const url = await this.driver.getCurrentUrl();
     return Boolean(url.match(/\/welcome\//));
+  }
+
+  /**
+   * Fill the Grist test login page.
+   *
+   * TEST_ACCOUNT_PASSWORD must be set.
+   */
+  public async fillTestLoginForm(email: string, name?: string) {
+    const password = process.env.TEST_ACCOUNT_PASSWORD;
+    if (!password) { throw new Error('TEST_ACCOUNT_PASSWORD not set'); }
+
+    const form = await this.driver.find('div.modal-content-desktop');
+    await this.setValue(form.find('input[name="username"]'), email);
+    if (name) { await this.setValue(form.find('input[name="name"]'), name); }
+    await this.setValue(form.find('input[name="password"]'), password);
+    await form.find('input[name="signInSubmitButton"]').click();
   }
 
   // Fill up a Cognito login page.  If on a signup page, switch to a login page.
@@ -270,59 +292,55 @@ export class HomeUtil {
   /**
    * Returns whether we are currently on the test login page.
    */
-  public async isOnTestLoginPage() {
+  public isOnTestLoginPage() {
     return this.driver.findContent('h1', 'A Very Credulous Login Page').isPresent();
   }
 
   /**
-   * Waits for browser to navigate to Cognito login page.
+   * Returns whether we are currently on any sign-in page (e.g. Cognito, Grist, test).
+   */
+  public async isOnSigninPage() {
+    return await this.isOnLoginPage() || await this.isOnGristLoginPage();
+  }
+
+  /**
+   * Waits for browser to navigate to the Cognito login page.
    */
   public async checkLoginPage(waitMs: number = 2000) {
     await this.driver.wait(this.isOnLoginPage.bind(this), waitMs);
   }
 
   /**
-   * Waits for browser to navigate to Grist login page.
+   * Waits for browser to navigate to a Grist login page.
    */
    public async checkGristLoginPage(waitMs: number = 2000) {
     await this.driver.wait(this.isOnGristLoginPage.bind(this), waitMs);
   }
 
   /**
-   * Waits for browser to navigate to test login page.
-   */
-  public async checkTestLoginPage(waitMs: number = 2000) {
-    await this.driver.wait(this.isOnTestLoginPage.bind(this), waitMs);
-  }
-
-  /**
-   * Waits for browser to navigate to any login page (e.g. Cognito, Grist, test).
+   * Waits for browser to navigate to any sign-in page (e.g. Cognito, Grist, test).
    */
   public async checkSigninPage(waitMs: number = 4000) {
-    await this.driver.wait(
-      async () => {
-        return (
-          await this.isOnLoginPage() ||
-          await this.isOnGristLoginPage() ||
-          await this.isOnTestLoginPage()
-        );
-      },
-      waitMs
-    );
+    await this.driver.wait(this.isOnSigninPage.bind(this), waitMs);
   }
 
   /**
    * Delete and recreate the user, via the specified org.  The specified user must be
    * currently logged in!
    */
-  private async _recreateCurrentUser(email: string, org: string) {
+  private async _recreateCurrentUser(email: string, org: string, name?: string) {
     await this.deleteCurrentUser();
     await this.removeLogin(org);
     await this.driver.get(this.server.getUrl(org, ""));
     await this.driver.findWait('.test-user-signin', 4000).click();
     await this.driver.findContentWait('.grist-floating-menu a', 'Sign in', 500).click();
     await this.checkLoginPage();
-    await this.fillLoginForm(email);
+    // Fill the login form (either on /test/login or Cognito).
+    if (await this.isOnTestLoginPage()) {
+      await this.fillTestLoginForm(email, name);
+    } else {
+      await this.fillLoginForm(email);
+    }
   }
 
   private async _getApiKey(): Promise<string> {
