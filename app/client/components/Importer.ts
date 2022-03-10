@@ -446,10 +446,8 @@ export class Importer extends DisposableWithEvents {
     this._resetImportDiffState();
     // Formula editor cleanup needs to happen before the hidden tables are removed.
     this._formulaEditorHolder.dispose();
-
     if (this._uploadResult) {
-      await this._docComm.cancelImportFiles(
-        this._getTransformedDataSource(this._uploadResult), this._getHiddenTableIds());
+      await this._docComm.cancelImportFiles(this._uploadResult.uploadId, this._getHiddenTableIds());
     }
     this._screen.close();
     this.dispose();

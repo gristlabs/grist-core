@@ -97,17 +97,17 @@ export class ActiveDocImport {
    * Cancels import files, removes temporary hidden tables and temporary uploaded files
    *
    * @param {ActiveDoc} activeDoc: Instance of ActiveDoc.
-   * @param {DataSourceTransformed} dataSource: an array of DataSource
+   * @param {number} uploadId: Identifier for the temporary uploaded file(s) to clean up.
    * @param {Array<String>} prevTableIds: Array of tableIds as received from previous `importFiles`
    *  call when re-importing with changed `parseOptions`.
    * @returns {Promise} Promise that's resolved when all actions are applied successfully.
    */
   public async cancelImportFiles(docSession: DocSession,
-                                 dataSource: DataSourceTransformed,
+                                 uploadId: number,
                                  prevTableIds: string[]): Promise<void> {
     await this._removeHiddenTables(docSession, prevTableIds);
     this._activeDoc.stopBundleUserActions(docSession);
-    await globalUploadSet.cleanup(dataSource.uploadId);
+    await globalUploadSet.cleanup(uploadId);
   }
 
   /**

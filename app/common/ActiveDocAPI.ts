@@ -209,7 +209,7 @@ export interface ActiveDocAPI {
   /**
    * Cancels import files, cleans up temporary hidden tables and uploads.
    */
-  cancelImportFiles(dataSource: DataSourceTransformed, prevTableIds: string[]): Promise<void>;
+  cancelImportFiles(uploadId: number, prevTableIds: string[]): Promise<void>;
 
   /**
    * Returns a diff of changes that will be applied to the destination table from `transformRule`

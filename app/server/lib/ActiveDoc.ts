@@ -544,9 +544,9 @@ export class ActiveDoc extends EventEmitter {
    * Param `prevTableIds` is an array of hiddenTableIds as received from previous `importFiles`
    * call, or empty if there was no previous call.
    */
-  public cancelImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
+  public cancelImportFiles(docSession: DocSession, uploadId: number,
                            prevTableIds: string[]): Promise<void> {
-    return this._activeDocImport.cancelImportFiles(docSession, dataSource, prevTableIds);
+    return this._activeDocImport.cancelImportFiles(docSession, uploadId, prevTableIds);
   }
 
   /**
