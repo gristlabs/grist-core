@@ -129,18 +129,6 @@ class Engine(object):
         containing several categories of DocActions, including the results of computations.
   """
 
-  class ComputeFrame(object):
-    """
-    Represents the node and ID of the value currently being recomputed. There is a stack of
-    ComputeFrames, because during computation we may access other out-of-date nodes, and need to
-    recompute those first.
-      compute_frame.current_row_id gets set to each record ID as we go through them.
-    """
-    def __init__(self, node):
-      self.node = node
-      self.current_row_id = None
-
-
   def __init__(self):
     # The document data, including logic (formulas), and metadata (tables prefixed with "_grist_").
     self.tables = {}                # Maps table IDs (or names) to Table objects.
@@ -193,8 +181,9 @@ class Engine(object):
     # The lists of actions of different kinds, built up while applying an action.
     self.out_actions = action_obj.ActionGroup()
 
-    # Stack of compute frames.
-    self._compute_stack = []
+    # What's currently being computed
+    self._current_node = None
+    self._current_row_id = None
 
     # Certain recomputations are triggered by a particular doc action. This keep track of it.
     self._triggering_doc_action = None
@@ -478,35 +467,15 @@ class Engine(object):
     for node, dirty_rows in six.iteritems(self.recompute_map):
       log.debug("  Node %s: %s" % (node, dirty_rows))
 
-  @contextlib.contextmanager
-  def open_compute_frame(self, node):
-    """
-    Use as: `with open_compute_frame(node) as frame:`. This automatically maintains the stack of
-    ComputeFrames, pushing and popping reliably.
-    """
-    frame = Engine.ComputeFrame(node)
-    self._compute_stack.append(frame)
-    try:
-      yield frame
-    finally:
-      self._compute_stack.pop()
-
-  def get_current_frame(self):
-    """
-    Returns the compute frame currently being computed, or None if there isn't one.
-    """
-    return self._compute_stack[-1] if self._compute_stack and self._compute_stack[-1].node else None
-
   def _use_node(self, node, relation, row_ids=[]):
     # This is used whenever a formula accesses any part of any record. It's hot code, and
     # it's worth optimizing.
 
-    if self._compute_stack and self._compute_stack[-1].node:
+    if self._current_node:
       # Add an edge to indicate that the node being computed depends on the node passed in.
       # Note that during evaluation, we only *add* dependencies. We *remove* them by clearing them
       # whenever ALL rows for a node are invalidated (on schema changes and reloads).
-      current_node = self._compute_stack[-1].node
-      edge = (current_node, node, relation)
+      edge = (self._current_node, node, relation)
       if edge not in self._recompute_edge_set:
         self.dep_graph.add_edge(*edge)
         self._recompute_edge_set.add(edge)
@@ -694,7 +663,7 @@ class Engine(object):
     col = table.get_column(col_id)
     checkpoint = self._get_undo_checkpoint()
     try:
-      result = self._recompute_one_cell(None, table, col, row_id)
+      result = self._recompute_one_cell(table, col, row_id)
       # If the error is gone for a trigger formula
       if col.has_formula() and not col.is_formula():
         if not isinstance(result, objtypes.RaisedException):
@@ -778,102 +747,103 @@ class Engine(object):
 
     require_rows = sorted(require_rows or [])
 
+    previous_current_node = self._current_node
     # Prevents dependency creation for non-formula nodes. A non-formula column may include a
     # formula to eval for a newly-added record. Those shouldn't create dependencies.
-    formula_node = node if col.is_formula() else None
+    self._current_node = node if col.is_formula() else None
 
     changes = None
     cleaned = []    # this lists row_ids that can be removed from dirty_rows once we are no
                     # longer iterating on it.
-    with self.open_compute_frame(formula_node) as frame:
-      try:
-        require_count = len(require_rows)
-        for i, row_id in enumerate(itertools.chain(require_rows, dirty_rows)):
-          required = i < require_count or require_count == 0
-          if require_count and row_id not in dirty_rows:
-            # Nothing need be done for required rows that are already up to date.
-            continue
-          if row_id not in table.row_ids or row_id in exclude:
-            # We can declare victory for absent or excluded rows.
-            cleaned.append(row_id)
-            continue
-          if not allow_evaluation:
-            # We're not actually in a position to evaluate this cell, we need to just
-            # report that we needed an _update_loop will arrange for us to be called
-            # again in a better order.
-            if required:
-              msg = 'Cell value not available yet'
-              err = OrderError(msg, node, row_id)
-              if not self._cell_required_error:
-                # Cache the exception in case user consumes it or modifies it in their formula.
-                self._cell_required_error = OrderError(msg, node, row_id)
-              raise err
-            # For common-case formulas, all cells in a column are likely to fail in the same way,
-            # so don't bother trying more from this column until we've reordered.
-            return
-          try:
-            # We figure out if we've hit a cycle here.  If so, we just let _recompute_on_cell
-            # know, so it can set the cell value appropriately and do some other bookkeeping.
-            cycle = required and (node, row_id) in self._locked_cells
-            value = self._recompute_one_cell(frame, table, col, row_id, cycle=cycle, node=node)
-          except OrderError as e:
-            if not required:
-              # We're out of order, but for a cell we were evaluating opportunistically.
-              # Don't throw an exception, since it could lead us off on a wild goose
-              # chase - let _update_loop focus on one path at a time.
-              return
-            # Keep track of why this cell was needed.
-            e.requiring_node = node
-            e.requiring_row_id = row_id
-            raise e
-
-          # Successfully evaluated a cell!  Unlock it if it was locked, so other cells can
-          # use it without triggering a cyclic dependency error.
-          self._locked_cells.discard((node, row_id))
-
-          if isinstance(value, objtypes.RaisedException):
-            is_first = node not in self._is_node_exception_reported
-            if is_first:
-              self._is_node_exception_reported.add(node)
-              log.info(value.details)
-              # strip out details after logging
-              value = objtypes.RaisedException(value.error, user_input=value.user_input)
-
-          # TODO: validation columns should be wrapped to always return True/False (catching
-          # exceptions), so that we don't need special handling here.
-          if column.is_validation_column_name(col.col_id):
-            value = (value in (True, None))
-
-          # Convert the value, and if needed, set, and include into the returned action.
-          value = col.convert(value)
-          previous = col.raw_get(row_id)
-          if not strict_equal(value, previous):
-            if not changes:
-              changes = self._changes_map.setdefault(node, [])
-            changes.append((row_id, previous, value))
-            col.set(row_id, value)
-          exclude.add(row_id)
+    try:
+      require_count = len(require_rows)
+      for i, row_id in enumerate(itertools.chain(require_rows, dirty_rows)):
+        required = i < require_count or require_count == 0
+        if require_count and row_id not in dirty_rows:
+          # Nothing need be done for required rows that are already up to date.
+          continue
+        if row_id not in table.row_ids or row_id in exclude:
+          # We can declare victory for absent or excluded rows.
           cleaned.append(row_id)
-          self._recompute_done_counter += 1
-        # If no particular rows were requested, and we arrive here,
-        # that means we made it through the whole column!  For long
-        # columns, it is worth deleting dirty_rows in one step rather
-        # than discarding one cell at a time.
-        if require_rows is None:
-          cleaned = []
-          dirty_rows = None
+          continue
+        if not allow_evaluation:
+          # We're not actually in a position to evaluate this cell, we need to just
+          # report that we needed an _update_loop will arrange for us to be called
+          # again in a better order.
+          if required:
+            msg = 'Cell value not available yet'
+            err = OrderError(msg, node, row_id)
+            if not self._cell_required_error:
+              # Cache the exception in case user consumes it or modifies it in their formula.
+              self._cell_required_error = OrderError(msg, node, row_id)
+            raise err
+          # For common-case formulas, all cells in a column are likely to fail in the same way,
+          # so don't bother trying more from this column until we've reordered.
+          return
+        try:
+          # We figure out if we've hit a cycle here.  If so, we just let _recompute_on_cell
+          # know, so it can set the cell value appropriately and do some other bookkeeping.
+          cycle = required and (node, row_id) in self._locked_cells
+          value = self._recompute_one_cell(table, col, row_id, cycle=cycle, node=node)
+        except OrderError as e:
+          if not required:
+            # We're out of order, but for a cell we were evaluating opportunistically.
+            # Don't throw an exception, since it could lead us off on a wild goose
+            # chase - let _update_loop focus on one path at a time.
+            return
+          # Keep track of why this cell was needed.
+          e.requiring_node = node
+          e.requiring_row_id = row_id
+          raise e
 
-      finally:
-        for row_id in cleaned:
-          # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
-          dirty_rows.discard(row_id)
-        # However it's possible for them to be different
-        # (see above where `exempt` is nonempty and allow_evaluation=True)
-        # so here we check self.recompute_map[node] directly
-        if not self.recompute_map[node]:
-          self.recompute_map.pop(node)
+        # Successfully evaluated a cell!  Unlock it if it was locked, so other cells can
+        # use it without triggering a cyclic dependency error.
+        self._locked_cells.discard((node, row_id))
 
-  def _recompute_one_cell(self, frame, table, col, row_id, cycle=False, node=None):
+        if isinstance(value, objtypes.RaisedException):
+          is_first = node not in self._is_node_exception_reported
+          if is_first:
+            self._is_node_exception_reported.add(node)
+            log.info(value.details)
+            # strip out details after logging
+            value = objtypes.RaisedException(value.error, user_input=value.user_input)
+
+        # TODO: validation columns should be wrapped to always return True/False (catching
+        # exceptions), so that we don't need special handling here.
+        if column.is_validation_column_name(col.col_id):
+          value = (value in (True, None))
+
+        # Convert the value, and if needed, set, and include into the returned action.
+        value = col.convert(value)
+        previous = col.raw_get(row_id)
+        if not strict_equal(value, previous):
+          if not changes:
+            changes = self._changes_map.setdefault(node, [])
+          changes.append((row_id, previous, value))
+          col.set(row_id, value)
+        exclude.add(row_id)
+        cleaned.append(row_id)
+        self._recompute_done_counter += 1
+      # If no particular rows were requested, and we arrive here,
+      # that means we made it through the whole column!  For long
+      # columns, it is worth deleting dirty_rows in one step rather
+      # than discarding one cell at a time.
+      if require_rows is None:
+        cleaned = []
+        dirty_rows = None
+
+    finally:
+      self._current_node = previous_current_node
+      for row_id in cleaned:
+        # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
+        dirty_rows.discard(row_id)
+      # However it's possible for them to be different
+      # (see above where `exempt` is nonempty and allow_evaluation=True)
+      # so here we check self.recompute_map[node] directly
+      if not self.recompute_map[node]:
+        self.recompute_map.pop(node)
+
+  def _recompute_one_cell(self, table, col, row_id, cycle=False, node=None):
     """
     Recomputes an one formula cell and returns a value.
     The value can be:
@@ -881,8 +851,7 @@ class Engine(object):
       - exception
       - exception with details if flag include_details is set
     """
-    if frame:
-      frame.current_row_id = row_id
+    self._current_row_id = row_id
 
     # Baffling, but keeping a reference to current generated "usercode" module protects against a
     # seeming garbage-collection bug: if during formula evaluation the module gets regenerated
@@ -1325,9 +1294,9 @@ class Engine(object):
     # We normally recompute formulas before returning to the user; but some formulas are also used
     # internally in-between applying doc actions. We have this workaround to ensure that those are
     # up-to-date after each doc action. See more in comments for _bring_mlookups_up_to_date.
-    # We check _compute_stack to avoid a recursive call (happens when a formula produces an
+    # We check _in_update_loop to avoid a recursive call (happens when a formula produces an
     # action, as for derived/summary tables).
-    if not self._compute_stack:
+    if not self._in_update_loop:
       self._bring_mlookups_up_to_date(doc_action)
 
   def autocomplete(self, txt, table_id, column_id, user):

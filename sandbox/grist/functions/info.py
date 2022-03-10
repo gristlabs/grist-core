@@ -577,7 +577,7 @@ def _prepare_record_dict(record, dates_as_iso=False, expand_refs=0):
   table_id = record._table.table_id
   docmodel = record._table._engine.docmodel
   columns = docmodel.get_table_rec(table_id).columns
-  frame = record._table._engine.get_current_frame()
+  current_node = record._table._engine._current_node
 
   result = {'id': int(record)}
   errors = {}
@@ -590,7 +590,7 @@ def _prepare_record_dict(record, dates_as_iso=False, expand_refs=0):
     # Avoid trying to access the cell being evaluated, since cycles get detected even if the
     # CircularRef exception is caught. TODO This is hacky, and imperfect. If another column
     # references a column containing the RECORD(rec) call, CircularRefError will still happen.
-    if frame and frame.node == (table_id, col_id):
+    if current_node == (table_id, col_id):
       continue
 
     try:
