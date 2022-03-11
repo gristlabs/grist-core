@@ -331,6 +331,9 @@ export function cssModalWidth(style: ModalWidth) {
 
 /* CSS styled components */
 
+// For centering, we use 'margin: auto' on the flex item instead of 'justify-content: center' on
+// the flex container, to ensure the full item can be scrolled in case of overflow.
+// See https://stackoverflow.com/a/33455342/328565
 const cssModalDialog = styled('div', `
   background-color: white;
   min-width: 428px;
@@ -377,9 +380,6 @@ export const cssModalButtons = styled('div', `
   }
 `);
 
-// For centering, we use 'margin: auto' on the flex item instead of 'justify-content: center' on
-// the flex container, to ensure the full item can be scrolled in case of overflow.
-// See https://stackoverflow.com/a/33455342/328565
 const cssModalBacker = styled('div', `
   position: fixed;
   display: flex;

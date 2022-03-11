@@ -230,8 +230,12 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.onEvent(this.scrollPane, 'scroll', this.onScroll);
 
   //--------------------------------------------------
-  // Command group implementing all grid level commands.
+  // Command group implementing all grid level commands (except cancel)
   this.autoDispose(commands.createGroup(GridView.gridCommands, this, this.viewSection.hasFocus));
+  // Cancel command is registered conditionally, only when there is an active
+  // cell selection. This command is also used by Raw Data Views, to close the Grid popup.
+  const hasSelection = this.autoDispose(ko.pureComputed(() => !this.cellSelector.isCurrentSelectType('')));
+  this.autoDispose(commands.createGroup(GridView.selectionCommands, this, hasSelection));
 
   // Timer to allow short, otherwise non-actionable clicks on column names to trigger renaming.
   this._colClickTime = 0;  // Units: milliseconds.
@@ -243,6 +247,12 @@ _.extend(GridView.prototype, BaseView.prototype);
 
 // ======================================================================================
 // GRID-LEVEL COMMANDS
+
+// Moved out of all commands to support Raw Data Views (which use this command to close
+// the Grid popup).
+GridView.selectionCommands = {
+  cancel: function() { this.clearSelection(); }
+}
 
 GridView.gridCommands = {
   cursorUp: function() {
@@ -302,7 +312,6 @@ GridView.gridCommands = {
     await this.paste(pasteObj, cutCallback);
     await this.scrollToCursor(false);
   },
-  cancel: function() { this.clearSelection(); },
   sortAsc: function() {
     sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
   },

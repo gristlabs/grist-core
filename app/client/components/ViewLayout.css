@@ -124,6 +124,13 @@
 }
 }
 
+/* Used by Raw Data UI */
+.active_section--no-indicator > .view_data_pane_container,
+.active_section--no-indicator > .view_data_pane_container.viewsection_type_detail {
+  box-shadow: none;
+  border-left: 1px solid var(--grist-color-dark-grey);
+}
+
 .disable_viewpane {
   justify-content: center;
   text-align: center;

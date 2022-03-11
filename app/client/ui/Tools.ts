@@ -49,7 +49,16 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       }),
       testId('access-rules'),
     ),
-
+    // Raw data - for now hidden.
+    // cssPageEntry(
+    //   cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
+    //   cssPageLink(
+    //     cssPageIcon('Database'),
+    //     cssLinkText('Raw data'),
+    //     testId('raw'),
+    //     urlState().setLinkUrl({docPage: 'data'})
+    //   )
+    // ),
     cssPageEntry(
       cssPageLink(cssPageIcon('Log'), cssLinkText('Document History'), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))

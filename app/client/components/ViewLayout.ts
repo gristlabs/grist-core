@@ -183,7 +183,12 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   }
 
   private _buildLeafContent(sectionRowId: number) {
-    return buildViewSectionDom(this.gristDoc, sectionRowId, this._isResizing, this.viewModel);
+    return buildViewSectionDom({
+       gristDoc: this.gristDoc,
+       sectionRowId,
+       isResizing: this._isResizing,
+       viewModel: this.viewModel
+    });
   }
 
   /**
@@ -263,6 +268,70 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }
   }
 }
+
+export function buildViewSectionDom(options: {
+  gristDoc: GristDoc,
+  sectionRowId: number,
+  isResizing?: Observable<boolean>
+  viewModel?: ViewRec,
+  // Should show drag anchor.
+  draggable?: boolean /* defaults to true */
+  // Should show green bar on the left (but preserves active-section class).
+  focusable?: boolean /* defaults to true */
+  // Custom handler for renaming the section.
+  onRename?: (name: string) => any
+}) {
+  const isResizing = options.isResizing ?? Observable.create(null, false);
+  const {gristDoc, sectionRowId, viewModel, draggable = true, focusable = true} = options;
+
+  // Creating normal section dom
+  const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
+  return dom('div.view_leaf.viewsection_content.flexvbox.flexauto',
+    testId(`viewlayout-section-${sectionRowId}`),
+    !options.isResizing ? dom.autoDispose(isResizing) : null,
+    cssViewLeaf.cls(''),
+    cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasFocus)),
+    dom.cls('active_section', vs.hasFocus),
+    dom.cls('active_section--no-indicator', !focusable),
+    dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
+      dom('span.viewsection_drag_indicator.glyphicon.glyphicon-option-vertical',
+        // Makes element grabbable only if grist is not readonly.
+        dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo)),
+        !draggable ? dom.style("visibility", "hidden") : null
+      ),
+      dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
+        cssSigmaIcon('Pivot', testId('sigma'))),
+      dom('div.viewsection_titletext_container.flexitem.flexhbox',
+        dom('span.viewsection_titletext', editableLabel(
+          fromKo(vs.titleDef),
+          (val) => options.onRename ? options.onRename(val) : vs.titleDef.saveOnly(val),
+          testId('viewsection-title'),
+        )),
+      ),
+      viewInstance.buildTitleControls(),
+      dom('span.viewsection_buttons',
+        dom.create(viewSectionMenu, gristDoc.docModel, vs, gristDoc.isReadonly)
+      )
+     )),
+    dom.maybe((use) => use(vs.activeFilterBar) || use(vs.isRaw) && use(vs.activeFilters).length,
+      () => dom.create(filterBar, vs)),
+    dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) =>
+      dom('div.view_data_pane_container.flexvbox',
+        cssResizing.cls('', isResizing),
+        dom.maybe(viewInstance.disableEditing, () =>
+          dom('div.disable_viewpane.flexvbox', 'No data')
+        ),
+        dom.maybe(viewInstance.isTruncated, () =>
+          dom('div.viewsection_truncated', 'Not all data is shown')
+        ),
+        dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
+        viewInstance.viewPane
+      )
+    ),
+    dom.on('mousedown', () => { viewModel?.activeSectionId(sectionRowId); }),
+  );
+}
+
 
 const cssSigmaIcon = styled(icon, `
   bottom: 1px;
@@ -354,56 +423,3 @@ const cssLayoutBox = styled('div', `
 const cssResizing = styled('div', `
   pointer-events: none;
 `);
-
-
-export function buildViewSectionDom(
-  gristDoc: GristDoc,
-  sectionRowId: number,
-  isResizing: Observable<boolean> = Observable.create(null, false),
-  viewModel?: ViewRec,
-) {
-  // Creating normal section dom
-  const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
-  return dom('div.view_leaf.viewsection_content.flexvbox.flexauto',
-    testId(`viewlayout-section-${sectionRowId}`),
-
-    cssViewLeaf.cls(''),
-    cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasFocus)),
-    dom.cls('active_section', vs.hasFocus),
-
-    dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
-      dom('span.viewsection_drag_indicator.glyphicon.glyphicon-option-vertical',
-        // Makes element grabbable only if grist is not readonly.
-        dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo))),
-      dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
-        cssSigmaIcon('Pivot', testId('sigma'))),
-      dom('div.viewsection_titletext_container.flexitem.flexhbox',
-        dom('span.viewsection_titletext', editableLabel(
-          fromKo(vs.titleDef),
-          (val) => vs.titleDef.saveOnly(val),
-          testId('viewsection-title'),
-        )),
-      ),
-      viewInstance.buildTitleControls(),
-      dom('span.viewsection_buttons',
-        dom.create(viewSectionMenu, gristDoc.docModel, vs, gristDoc.isReadonly)
-      )
-     )),
-    dom.maybe((use) => use(vs.activeFilterBar) || use(vs.isRaw) && use(vs.activeFilters).length,
-      () => dom.create(filterBar, vs)),
-    dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) =>
-      dom('div.view_data_pane_container.flexvbox',
-        cssResizing.cls('', isResizing),
-        dom.maybe(viewInstance.disableEditing, () =>
-          dom('div.disable_viewpane.flexvbox', 'No data')
-        ),
-        dom.maybe(viewInstance.isTruncated, () =>
-          dom('div.viewsection_truncated', 'Not all data is shown')
-        ),
-        dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
-        viewInstance.viewPane
-      )
-    ),
-    dom.on('mousedown', () => { viewModel?.activeSectionId(sectionRowId); }),
-  );
-}

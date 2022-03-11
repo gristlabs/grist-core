@@ -37,7 +37,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
 
   function prepareToPrint(onOff: boolean) {
     // Hide all layout boxes that do NOT contain the section to be printed.
-    layout.forEachBox((box: any) => {
+    layout?.forEachBox((box: any) => {
       if (!box.dom.contains(sectionElem)) {
         box.dom.classList.toggle('print-hide', onOff);
       }

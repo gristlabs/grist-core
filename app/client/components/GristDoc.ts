@@ -355,6 +355,7 @@ export class GristDoc extends DisposableWithEvents {
    */
   public buildDom() {
     return cssViewContentPane(testId('gristdoc'),
+      cssViewContentPane.cls("-contents", use => use(this.activeViewId) === 'data'),
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
         viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
@@ -884,8 +885,14 @@ export class GristDoc extends DisposableWithEvents {
   private async _switchToSectionId(sectionId: number) {
     const section: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionId);
     const view: ViewRec = section.view.peek();
-    await this.openDocPage(view.getRowId());
-    view.activeSectionId(sectionId);  // this.viewModel will reflect this with a delay.
+    if (!view.id.peek()) {
+      // This is raw data view
+      await urlState().pushUrl({docPage: 'data'});
+      this.viewModel.activeSectionId(sectionId);
+    } else {
+      await this.openDocPage(view.getRowId());
+      view.activeSectionId(sectionId);  // this.viewModel will reflect this with a delay.
+    }
 
     // Returns the value of section.viewInstance() as soon as it is truthy.
     return waitObs(section.viewInstance);
@@ -991,5 +998,8 @@ const cssViewContentPane = styled('div', `
     & {
       margin: 0px;
     }
+  }
+  &-contents {
+    margin: 0px;
   }
 `);

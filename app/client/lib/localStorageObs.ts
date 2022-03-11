@@ -63,9 +63,9 @@ export function localStorageBoolObs(key: string, defValue = false): Observable<b
 /**
  * Helper to create a string observable whose state is stored in localStorage.
  */
-export function localStorageObs(key: string): Observable<string|null> {
+export function localStorageObs(key: string, defaultValue?: string): Observable<string|null> {
   const store = getStorage();
-  const obs = Observable.create<string|null>(null, store.getItem(key));
+  const obs = Observable.create<string|null>(null, store.getItem(key) ?? defaultValue ?? null);
   obs.addListener((val) => (val === null) ? store.removeItem(key) : store.setItem(key, val));
   return obs;
 }

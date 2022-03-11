@@ -21,6 +21,11 @@ export const docList = styled('div', `
       padding: 32px 24px 24px 24px;
     }
   }
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
 
 export const docListHeader = styled('div', `
