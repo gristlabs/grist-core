@@ -193,6 +193,6 @@ async function removeData(filename: string) {
   }
   const history = new ActionHistoryImpl(db);
   await history.deleteActions(1);
-  await db.run('VACUUM');
+  await db.vacuum();
   await db.close();
 }

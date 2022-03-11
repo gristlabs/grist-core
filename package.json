@@ -80,7 +80,7 @@
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/moment-guess": "1.2.4-grist.1",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "4.1.1-grist.4",
+    "@gristlabs/sqlite3": "4.1.1-grist.6",
     "@popperjs/core": "2.3.3",
     "accept-language-parser": "1.5.0",
     "async-mutex": "0.2.4",

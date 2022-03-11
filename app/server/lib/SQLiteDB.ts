@@ -202,7 +202,7 @@ export class SQLiteDB {
 
     let _db: sqlite3.Database;
     await fromCallback(cb => { _db = new sqlite3.Database(dbPath, sqliteMode, cb); });
-
+    limitAttach(_db!, 0);  // Outside of VACUUM, we don't allow ATTACH.
     if (SQLiteDB._addOpens(dbPath, 1) > 1) {
       log.warn("SQLiteDB[%s] avoid opening same DB more than once", dbPath);
     }
@@ -319,10 +319,19 @@ export class SQLiteDB {
       this._needVacuum = true;
       return false;
     }
-    await this.exec("VACUUM");
+    await this.vacuum();
     log.info("SQLiteDB[%s]: DB VACUUMed", this._dbPath);
     this._needVacuum = false;
     return true;
+  }
+
+  public async vacuum(): Promise<void> {
+    limitAttach(this._db, 1);  // VACUUM implementation uses ATTACH.
+    try {
+      await this.exec("VACUUM");
+    } finally {
+      limitAttach(this._db, 0);  // Outside of VACUUM, we don't allow ATTACH.
+    }
   }
 
   /**
@@ -480,7 +489,7 @@ export class SQLiteDB {
         });
         success = true;
         // After a migration, reduce the sqlite file size. This must be run outside a transaction.
-        await this.run("VACUUM");
+        await this.vacuum();
 
         log.info("SQLiteDB[%s]: DB backed up to %s, migrated to %s",
           this._dbPath, backupPath, targetVer);
@@ -546,4 +555,13 @@ async function createBackupFile(filePath: string, versionNum: number): Promise<s
 export function quoteIdent(ident: string): string {
   assert(/^[\w.]+$/.test(ident), `SQL identifier is not valid: ${ident}`);
   return `"${ident}"`;
+}
+
+/**
+ * Limit the number of ATTACHed databases permitted.
+ */
+export function limitAttach(db: sqlite3.Database, maxAttach: number) {
+  // Pardon the casts, types are out of date.
+  const SQLITE_LIMIT_ATTACHED = (sqlite3 as any).LIMIT_ATTACHED;
+  (db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
 }

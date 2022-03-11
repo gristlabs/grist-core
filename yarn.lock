@@ -77,10 +77,10 @@
   dependencies:
     safe-buffer "^5.1.2"
 
-"@gristlabs/sqlite3@4.1.1-grist.4", "@gristlabs/sqlite3@^4.1.1-grist.4":
-  version "4.1.1-grist.4"
-  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.1.1-grist.4.tgz#b909983a33ac66f4a086a18318389ef34c779720"
-  integrity sha512-/PzqeZJm9bNaqP1hsj3bt0E5q1VFdZHDnqzLYxSJzDl0rxVdGkkOmnlW4cAwjyRCMyvpeXBVAY6U4BS2xehHSg==
+"@gristlabs/sqlite3@4.1.1-grist.6", "@gristlabs/sqlite3@^4.1.1-grist.4":
+  version "4.1.1-grist.6"
+  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-4.1.1-grist.6.tgz#2a63021fec708e5165d0eeba19777a8c0ea3170d"
+  integrity sha512-XtkwvnicrgcbncraS+IkZtDS4mUplJG+8nzJp5cX0Q7NFhrigjzmXX59aJMx7dGrCBuR6GCmlszRCiONm5IMrQ==
   dependencies:
     node-addon-api "2.0.0"
     node-pre-gyp "^0.11.0"
