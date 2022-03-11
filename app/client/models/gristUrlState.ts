@@ -170,8 +170,11 @@ export class UrlStateImpl {
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
+    // Reload when moving to/from the Grist sign-up page.
+    const signupReload = [prevState.login, newState.login].includes('signup')
+      && prevState.login !== newState.login;
     return Boolean(orgReload || accountReload || billingReload || gristConfig.errPage
-      || docReload || welcomeReload || linkKeysReload);
+      || docReload || welcomeReload || linkKeysReload || signupReload);
   }
 
   /**

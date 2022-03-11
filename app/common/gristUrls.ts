@@ -496,6 +496,9 @@ export interface GristLoadConfig {
 
   // Whether there is somewhere for survey data to go.
   survey?: boolean;
+
+  // Google Tag Manager id. Currently only used to load tag manager for reporting new sign-ups.
+  tagManagerId?: string;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

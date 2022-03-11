@@ -722,11 +722,14 @@ export class FlexServer implements GristServer {
            // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
 
-          // This is a good time to set another flag (showNewUserQuestions), to show a popup with
-          // welcome question(s) to this new user. Both flags are scoped to the user, but
-          // isFirstTimeUser has a dedicated DB field because it predates userPrefs. Note that the
-          // updateOrg() method handles all levels of prefs (for user, user+org, or org).
-          await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {showNewUserQuestions: true}});
+          // This is a good time to set some other flags, for showing a popup with welcome question(s)
+          // to this new user and recording their sign-up with Google Tag Manager. These flags are also
+          // scoped to the user, but isFirstTimeUser has a dedicated DB field because it predates userPrefs.
+          // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
+          await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {
+            showNewUserQuestions: true,
+            recordSignUpEvent: true,
+          }});
 
           // Redirect to teams page if users has access to more than one org. Otherwise, redirect to
           // personal org.
@@ -1138,7 +1141,7 @@ export class FlexServer implements GristServer {
 
     // These are some special-purpose welcome pages, with no middleware.
     this.app.get(/\/welcome\/(signup|verify|teams|select-account)/, expressWrap(async (req, resp, next) => {
-      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: true});
+      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: 'anon'});
     }));
 
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {

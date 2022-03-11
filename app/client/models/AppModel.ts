@@ -1,4 +1,5 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {error} from 'app/client/lib/log';
 import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
@@ -8,8 +9,10 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
 import {UserPrefs} from 'app/common/Prefs';
+import {getTagManagerScript} from 'app/common/tagManager';
+import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {getUserPrefsObs} from 'app/client/models/UserPrefs';
+import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 export {reportError} from 'app/client/models/errors';
@@ -195,6 +198,35 @@ export class AppModelImpl extends Disposable implements AppModel {
     public readonly orgError?: OrgError,
   ) {
     super();
+    this._recordSignUpIfIsNewUser();
+  }
+
+  /**
+   * If the current user is a new user, record a sign-up event via Google Tag Manager.
+   */
+  private _recordSignUpIfIsNewUser() {
+    const isNewUser = this.userPrefsObs.get().recordSignUpEvent;
+    if (!isNewUser) { return; }
+
+    // If Google Tag Manager isn't configured, don't record anything.
+    const {tagManagerId} = getGristConfig();
+    if (!tagManagerId) { return; }
+
+    let dataLayer = (window as any).dataLayer;
+    if (!dataLayer) {
+      // Load the Google Tag Manager script into the document.
+      const script = document.createElement('script');
+      script.innerHTML = getTagManagerScript(tagManagerId);
+      document.head.appendChild(script);
+      dataLayer = (window as any).dataLayer;
+      if (!dataLayer) {
+        error(`_recordSignUpIfIsNewUser() failed to load Google Tag Manager`);
+      }
+    }
+
+    // Send the sign-up event, and remove the recordSignUpEvent flag from preferences.
+    dataLayer.push({event: 'new-sign-up'});
+    getUserPrefObs(this.userPrefsObs, 'recordSignUpEvent').set(undefined);
   }
 }
 

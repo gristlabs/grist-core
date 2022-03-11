@@ -1,4 +1,5 @@
 import {GristLoadConfig} from 'app/common/gristUrls';
+import {getTagManagerSnippet} from 'app/common/tagManager';
 import {isAnonymousUser} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
@@ -47,6 +48,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     timestampMs: Date.now(),
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
+    tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     ...extra,
   };
 }
@@ -85,7 +87,7 @@ export function makeSendAppPage(opts: {
 
     const needTagManager = (options.googleTagManager === 'anon' && isAnonymousUser(req)) ||
       options.googleTagManager === true;
-    const tagManagerSnippet = needTagManager ? getTagManagerSnippet() : '';
+    const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
     const staticOrigin = process.env.APP_STATIC_URL || "";
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
@@ -100,26 +102,4 @@ export function makeSendAppPage(opts: {
 function shouldSupportAnon() {
   // Enable UI for anonymous access if a flag is explicitly set in the environment
   return process.env.GRIST_SUPPORT_ANON === "true";
-}
-
-/**
- * Returns the Google Tag Manager snippet to insert into <head> of the page, if
- * GOOGLE_TAG_MANAGER_ID env var is set to a non-empty value. Otherwise returns the empty string.
- */
-function getTagManagerSnippet() {
-  // Note also that we only insert the snippet for the <head>. The second recommended part (for
-  // <body>) is for <noscript> scenario, which doesn't apply to the Grist app (such visits, if
-  // any, wouldn't work and shouldn't be counted for any metrics we care about).
-  const tagId = process.env.GOOGLE_TAG_MANAGER_ID;
-  if (!tagId) { return ""; }
-
-  return `
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${tagId}');</script>
-<!-- End Google Tag Manager -->
-`;
 }

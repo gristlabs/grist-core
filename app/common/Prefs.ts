@@ -17,6 +17,9 @@ export interface UserPrefs extends Prefs {
   // Whether to ask the user to fill out a form about their use-case, on opening the DocMenu page.
   // Set to true on first login, then reset when the form is closed, so that it only shows once.
   showNewUserQuestions?: boolean;
+  // Whether to record a new sign-up event via Google Tag Manager. Set to true on first login, then
+  // reset on first page load (after the event is sent), so that it's only recorded once.
+  recordSignUpEvent?: boolean;
 }
 
 export interface UserOrgPrefs extends Prefs {
