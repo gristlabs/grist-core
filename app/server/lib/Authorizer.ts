@@ -92,16 +92,14 @@ export function isSingleUserMode(): boolean {
 
 /**
  * Returns a profile if it can be deduced from the request. This requires a
- * header to specify the users' email address.
+ * header to specify the users' email address. The header to set comes from the
+ * environment variable GRIST_PROXY_AUTH_HEADER.
  */
 export function getRequestProfile(req: Request): UserProfile|undefined {
-  // Try to determine user based on 'x-remote-user' header passed via a webserver rewrite rule.
-  // TODO: The header should probably be set via an environment variable and if it is not set,
-  //       this code path should be disabled altogether.
-  let header:string = "x-remote-user";
+  const header = process.env.GRIST_PROXY_AUTH_HEADER;
   let profile: UserProfile|undefined;
 
-  if (req.headers && req.headers[header]) {
+  if (header && req.headers && req.headers[header]) {
     let headerContent = req.headers[header];
     if (headerContent) {
       const userEmail = headerContent.toString();
