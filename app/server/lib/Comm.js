@@ -50,6 +50,7 @@ const {parseFirstUrlPart} = require('app/common/gristUrls');
 const version = require('app/common/version');
 const {Client} = require('./Client');
 const {localeFromRequest} = require('app/server/lib/ServerLocale');
+const {getRequestProfile} = require('app/server/lib/Authorizer');
 
 // Bluebird promisification, to be able to use e.g. websocket.sendAsync method.
 Promise.promisifyAll(ws.prototype);
@@ -151,18 +152,16 @@ Comm.prototype._broadcastMessage = function(type, data, clients) {
 };
 
 
+/**
+ * Returns a profile based on the request or session.
+ */
 Comm.prototype._getSessionProfile = function(scopedSession, req) {
-  // apply x-remote-user header as a profile if the header was set
-  if (req.headers && req.headers['x-remote-user']) {
-    const userName = req.headers['x-remote-user'].toString();
-    return Promise.resolve({
-      "email": userName,
-      "name": userName,
-    });
-  }
-  return scopedSession.getSessionProfile();
-}
-
+  const profile = getRequestProfile(req);
+  if (profile)
+    return Promise.resolve(profile);
+  else
+    return scopedSession.getSessionProfile();
+};
 
 
 /**
