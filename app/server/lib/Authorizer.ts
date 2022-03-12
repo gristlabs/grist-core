@@ -89,6 +89,36 @@ export function isSingleUserMode(): boolean {
   return process.env.GRIST_SINGLE_USER === '1';
 }
 
+
+/**
+ * Returns a profile if it can be deduced from the request. This requires a
+ * header to specify the users' email address.
+ */
+export function getRequestProfile(req: Request): UserProfile|undefined {
+  // Try to determine user based on 'x-remote-user' header passed via a webserver rewrite rule.
+  // TODO: The header should probably be set via an environment variable and if it is not set,
+  //       this code path should be disabled altogether.
+  let header:string = "x-remote-user";
+  let profile: UserProfile|undefined;
+
+  if (req.headers && req.headers[header]) {
+    let headerContent = req.headers[header];
+    if (headerContent) {
+      const userEmail = headerContent.toString();
+      const [userName] = userEmail.split("@", 1);
+      if (userEmail && userName) {
+        profile = {
+          "email": userEmail,
+          "name": userName
+        };
+      }
+    }
+  }
+
+  return profile;
+}
+
+
 /**
  * Returns the express request object with user information added, if it can be
  * found based on passed in headers or the session.  Specifically, sets:
@@ -245,18 +275,10 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     }
   }
 
-  // Try to determine user based on 'x-remote-user' header passed via a webserver rewrite rule.
-  // TODO: The header should probably be set via an environment variable and if it is not set,
-  //       this code path should be disabled altogether.
   if (!mreq.userId) {
-    if (mreq.headers && mreq.headers["x-remote-user"]) {
-      const remoteUser = mreq.headers["x-remote-user"].toString();
-      log.debug("Authorized user based on 'x-remote-user' header found.");
-      profile = {
-        "email": remoteUser,
-        "name": remoteUser
-      };
-      const user = await dbManager.getUserByLoginWithRetry(remoteUser, profile);
+    profile = getRequestProfile(mreq);
+    if (profile) {
+      const user = await dbManager.getUserByLoginWithRetry(profile.email, profile);
       if(user) {
         mreq.user = user;
         mreq.users = [profile];
