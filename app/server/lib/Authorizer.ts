@@ -100,7 +100,7 @@ export function getRequestProfile(req: Request): UserProfile|undefined {
   let profile: UserProfile|undefined;
 
   if (header && req.headers && req.headers[header]) {
-    let headerContent = req.headers[header];
+    const headerContent = req.headers[header];
     if (headerContent) {
       const userEmail = headerContent.toString();
       const [userName] = userEmail.split("@", 1);

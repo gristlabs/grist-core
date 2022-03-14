@@ -157,10 +157,11 @@ Comm.prototype._broadcastMessage = function(type, data, clients) {
  */
 Comm.prototype._getSessionProfile = function(scopedSession, req) {
   const profile = getRequestProfile(req);
-  if (profile)
+  if (profile) {
     return Promise.resolve(profile);
-  else
+  } else {
     return scopedSession.getSessionProfile();
+  }
 };
 
 
