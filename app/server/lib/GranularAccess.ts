@@ -365,10 +365,10 @@ export class GranularAccess implements GranularAccessForBundle {
   public async filterActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<ActionGroup> {
     if (await this.allowActionGroup(docSession, actionGroup)) { return actionGroup; }
     // For now, if there's any nuance at all, suppress the summary and description.
-    // TODO: create an empty action summary, to be sure not to leak anything important.
     const result: ActionGroup = { ...actionGroup };
     result.actionSummary = createEmptyActionSummary();
     result.desc = '';
+    result.rowCount = undefined;
     return result;
   }
 

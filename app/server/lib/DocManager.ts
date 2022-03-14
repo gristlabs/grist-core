@@ -311,9 +311,11 @@ export class DocManager extends EventEmitter {
         }
       }
 
-      const [metaTables, recentActions] = await Promise.all([
+      const [metaTables, recentActions, userOverride, rowCount] = await Promise.all([
         activeDoc.fetchMetaTables(docSession),
-        activeDoc.getRecentMinimalActions(docSession)
+        activeDoc.getRecentMinimalActions(docSession),
+        activeDoc.getUserOverride(docSession),
+        activeDoc.getRowCount(docSession),
       ]);
 
       const result = {
@@ -322,7 +324,8 @@ export class DocManager extends EventEmitter {
         doc: metaTables,
         log: recentActions,
         recoveryMode: activeDoc.recoveryMode,
-        userOverride: await activeDoc.getUserOverride(docSession),
+        userOverride,
+        rowCount,
       } as OpenLocalDocResult;
 
       if (!activeDoc.muted) {

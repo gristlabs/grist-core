@@ -44,6 +44,7 @@ export interface OpenLocalDocResult {
   log: MinimalActionGroup[];
   recoveryMode?: boolean;
   userOverride?: UserOverride;
+  rowCount?: number;
 }
 
 export interface UserOverride {

@@ -19,8 +19,9 @@ import {Computed, Disposable, dom, makeTestId, Observable, observable, styled} f
 const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
-  const isOwner = gristDoc.docPageModel.currentDoc.get()?.access === 'owners';
-  const isOverridden = Boolean(gristDoc.docPageModel.userOverride.get());
+  const docPageModel = gristDoc.docPageModel;
+  const isOwner = docPageModel.currentDoc.get()?.access === 'owners';
+  const isOverridden = Boolean(docPageModel.userOverride.get());
   const hasDocTour = Computed.create(owner, use =>
     use(gristDoc.docModel.allTableIds.getObservable()).includes('GristDocTour'));
   const canViewAccessRules = observable(false);
@@ -33,6 +34,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
+
+    // TODO proper UI
+    // cssPageEntry(
+    //   dom.domComputed(docPageModel.rowCount, rowCount =>
+    //     `${rowCount} of ${docPageModel.appModel.currentFeatures.baseMaxRowsPerDocument || "infinity"} rows used`
+    //   ),
+    // ),
 
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
@@ -78,7 +86,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       testId('code'),
     ),
     cssSpacer(),
-    dom.maybe(gristDoc.docPageModel.currentDoc, (doc) => {
+    dom.maybe(docPageModel.currentDoc, (doc) => {
       const ex = examples.find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
@@ -125,7 +133,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         )
       ),
     ),
-    createHelpTools(gristDoc.docPageModel.appModel, false)
+    createHelpTools(docPageModel.appModel, false)
   );
 }
 

@@ -309,6 +309,7 @@ export class Sharing {
         internal: isCalculate,
       });
       actionGroup.actionSummary = actionSummary;
+      actionGroup.rowCount = sandboxActionBundle.rowCount;
       await accessControl.appliedBundle();
       await accessControl.sendDocUpdateForBundle(actionGroup);
       if (docSession) {

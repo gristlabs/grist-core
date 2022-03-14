@@ -159,6 +159,7 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
   private _lastMemoryMeasurement: number = 0;   // Timestamp when memory was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
+  private _rowCount?: number;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
@@ -211,6 +212,12 @@ export class ActiveDoc extends EventEmitter {
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
+
+  public async getRowCount(docSession: OptDocSession): Promise<number | undefined> {
+    if (await this._granularAccess.canReadEverything(docSession)) {
+      return this._rowCount;
+    }
+  }
 
   public async getUserOverride(docSession: OptDocSession) {
     return this._granularAccess.getUserOverride(docSession);
@@ -1221,6 +1228,7 @@ export class ActiveDoc extends EventEmitter {
         ...this.getLogMeta(docSession),
         rowCount: sandboxActionBundle.rowCount
       });
+      this._rowCount = sandboxActionBundle.rowCount;
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
