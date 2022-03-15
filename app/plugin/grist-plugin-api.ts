@@ -25,6 +25,8 @@ import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
 import { decodeObject, mapValues } from './objtypes';
 import { RenderOptions, RenderTarget } from './RenderOptions';
+import { TableOperations } from './TableOperations';
+import { TableOperationsImpl } from './TableOperationsImpl';
 import { checkers } from './TypeCheckers';
 import { WidgetAPI } from './WidgetAPI';
 
@@ -68,7 +70,7 @@ export const docApi: GristDocAPI & GristView = {
     const rec = await viewApi.fetchSelectedRecord(rowId);
     return options.keepEncoded ? rec :
       mapValues(rec, decodeObject);
-  }
+  },
 };
 
 export const on = rpc.on.bind(rpc);
@@ -79,6 +81,19 @@ export const setOption = widgetApi.setOption.bind(widgetApi);
 export const setOptions = widgetApi.setOptions.bind(widgetApi);
 export const getOptions = widgetApi.getOptions.bind(widgetApi);
 export const clearOptions = widgetApi.clearOptions.bind(widgetApi);
+
+export const selectedTable: TableOperations = new TableOperationsImpl({
+  async getTableId() {
+    await _initialization;
+    return _tableId!;
+  },
+  throwError(verb, text, status) {
+    throw new Error(text);
+  },
+  applyUserActions(actions, opts) {
+    return docApi.applyUserActions(actions, opts);
+  },
+}, {});
 
 // For custom widgets that support custom columns mappings store current configuration
 // in a memory.
@@ -92,6 +107,10 @@ let _mappingsCache: WidgetColumnMap|null|undefined;
 let _activeRefreshReq: Promise<void>|null = null;
 // Remember columns requested during ready call.
 let _columnsToMap: ColumnsToMap|undefined;
+let _tableId: string|undefined;
+let _setInitialized: () => void;
+const _initialization = new Promise<void>(resolve => _setInitialized = resolve);
+let _readyCalled: boolean = false;
 
 async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
   const uninitialized = _mappingsCache === undefined;
@@ -116,10 +135,12 @@ async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
  * Returns null if not all required columns were mapped or not widget doesn't support
  * custom column mapping.
  */
-export function mapColumnNames(data: any, options = {
-  columns: _columnsToMap,
-  mappings: _mappingsCache
+export function mapColumnNames(data: any, options: {
+  columns?: ColumnsToMap
+  mappings?: WidgetColumnMap|null,
+  reverse?: boolean,
 }) {
+  options = {columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options};
   // If not column configuration was requested or
   // table has no rows, return original data.
   if (!options.columns) {
@@ -149,17 +170,30 @@ export function mapColumnNames(data: any, options = {
     );
   }
   // For each widget column in mapping.
-  for(const widgetCol in options.mappings) {
+  // Keys are ordered for determinism in case of conflicts.
+  for(const widgetCol of Object.keys(options.mappings).sort()) {
     // Get column from Grist.
     const gristCol = options.mappings[widgetCol];
     // Copy column as series (multiple values)
     if (Array.isArray(gristCol) && gristCol.length) {
-      transformations.push((from, to) => {
-        to[widgetCol] = gristCol.map(col => from[col]);
-      });
+      if (!options.reverse) {
+        transformations.push((from, to) => {
+          to[widgetCol] = gristCol.map(col => from[col]);
+        });
+      } else {
+        transformations.push((from, to) => {
+          for (const [idx, col] of gristCol.entries()) {
+            to[col] = from[widgetCol]?.[idx];
+          }
+        });
+      }
       // Copy column directly under widget column name.
     } else if (!Array.isArray(gristCol) && gristCol) {
-      transformations.push((from, to) => to[widgetCol] = from[gristCol]);
+      if (!options.reverse) {
+        transformations.push((from, to) => to[widgetCol] = from[gristCol]);
+      } else {
+        transformations.push((from, to) => to[gristCol] = from[widgetCol]);
+      }
     } else if (!isOptional(widgetCol)) {
       // Column was not configured but was required.
       return null;
@@ -169,6 +203,19 @@ export function mapColumnNames(data: any, options = {
   const convert = (rec: any) => transformations.reduce((obj, tran) => { tran(rec, obj); return obj; }, {} as any);
   // Transform all records (or a single one depending on the arguments).
   return Array.isArray(data) ? data.map(convert) : convert(data);
+}
+
+/**
+ * Offer a convenient way to map data with renamed columns back into the
+ * form used in the original table. This is useful for making edits to the
+ * original table in a widget with column mappings. As for mapColumnNames(),
+ * we don't attempt to do these transformations automatically.
+ */
+export function mapColumnNamesBack(data: any, options: {
+  columns?: ColumnsToMap
+  mappings?: WidgetColumnMap|null,
+}) {
+  return mapColumnNames(data, {...options, reverse: true});
 }
 
 // For custom widgets, add a handler that will be called whenever the
@@ -257,9 +304,19 @@ interface ReadyPayload extends Omit<InteractionOptionsRequest, "hasCustomOptions
  * Grist will not attempt to communicate with it until this method is called.
  */
 export function ready(settings?: ReadyPayload): void {
+  // Make it safe for this method to be called multiple times.
+  if (_readyCalled) { return; }
+  _readyCalled = true;
+
   if (settings && settings.onEditOptions) {
     rpc.registerFunc('editOptions', settings.onEditOptions);
   }
+  on('message', async function(msg) {
+    if (msg.tableId && msg.tableId !== _tableId) {
+      if (!_tableId) { _setInitialized(); }
+      _tableId = msg.tableId;
+    }
+  });
   rpc.processIncoming();
   void (async function() {
     await rpc.sendReadyMessage();

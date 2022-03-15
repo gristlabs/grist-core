@@ -88,7 +88,7 @@ export interface GristDocAPI {
   // Applies an array of user actions.
   // todo: return type should be Promise<ApplyUAResult>, but this requires importing modules from
   // `app/common` which is not currently supported by the build.
-  applyUserActions(actions: any[][]): Promise<any>;
+  applyUserActions(actions: any[][], options?: any): Promise<any>;
 }
 
 export interface GristView {

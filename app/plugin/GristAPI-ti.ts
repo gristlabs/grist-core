@@ -17,7 +17,7 @@ export const GristDocAPI = t.iface([], {
   "getDocName": t.func("string"),
   "listTables": t.func(t.array("string")),
   "fetchTable": t.func("any", t.param("tableId", "string")),
-  "applyUserActions": t.func("any", t.param("actions", t.array(t.array("any")))),
+  "applyUserActions": t.func("any", t.param("actions", t.array(t.array("any"))), t.param("options", "any", true)),
 });
 
 export const GristView = t.iface([], {

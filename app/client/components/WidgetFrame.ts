@@ -312,8 +312,8 @@ export class GristDocAPIImpl implements GristDocAPI {
     return fromTableDataAction(await this._doc.docComm.fetchTable(tableId));
   }
 
-  public async applyUserActions(actions: any[][]) {
-    return this._doc.docComm.applyUserActions(actions, {desc: undefined});
+  public async applyUserActions(actions: any[][], options?: any) {
+    return this._doc.docComm.applyUserActions(actions, {desc: undefined, ...options});
   }
 }
 

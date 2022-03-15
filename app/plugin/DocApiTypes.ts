@@ -43,3 +43,9 @@ export interface RecordsPost {
 export interface RecordsPut {
   records: [AddOrUpdateRecord, ...AddOrUpdateRecord[]]; // at least one record is required
 }
+
+export type RecordId = number;
+
+export interface MinimalRecord {
+  id: number
+}

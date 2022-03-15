@@ -40,6 +40,12 @@ export const RecordsPut = t.iface([], {
   "records": t.tuple("AddOrUpdateRecord", t.rest(t.array("AddOrUpdateRecord"))),
 });
 
+export const RecordId = t.name("number");
+
+export const MinimalRecord = t.iface([], {
+  "id": "number",
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   NewRecord,
   Record,
@@ -47,5 +53,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   RecordsPatch,
   RecordsPost,
   RecordsPut,
+  RecordId,
+  MinimalRecord,
 };
 export default exportedTypeSuite;

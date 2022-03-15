@@ -3,8 +3,8 @@
  */
 
 // Some definitions have moved to be part of plugin API.
-import { CellValue, RowRecord } from 'app/plugin/GristData';
-export { CellValue, RowRecord } from 'app/plugin/GristData';
+import { BulkColValues, CellValue, RowRecord } from 'app/plugin/GristData';
+export { BulkColValues, CellValue, RowRecord } from 'app/plugin/GristData';
 
 // Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
 export interface AllCellVersions {
@@ -108,7 +108,6 @@ export function getTableId(action: DocAction): string {
 // Helper types used in the definitions above.
 
 export interface ColValues { [colId: string]: CellValue; }
-export interface BulkColValues { [colId: string]: CellValue[]; }
 export interface ColInfoMap { [colId: string]: ColInfo; }
 
 export interface ColInfo {

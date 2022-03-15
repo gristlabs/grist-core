@@ -5,11 +5,14 @@ import {
   BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue,
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
-import { arrayRepeat, isAffirmative } from "app/common/gutil";
+import { isAffirmative } from "app/common/gutil";
 import { SortFunc } from 'app/common/SortFunc';
 import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import GristDataTI from 'app/plugin/GristData-ti';
 import { HomeDBManager, makeDocAuthResult } from 'app/gen-server/lib/HomeDBManager';
+import { OpOptions } from "app/plugin/TableOperations";
+import { handleSandboxErrorOnPlatform, TableOperationsImpl,
+         TableOperationsPlatform } from 'app/plugin/TableOperationsImpl';
 import { concatenateSummaries, summarizeAction } from "app/server/lib/ActionSummary";
 import { ActiveDoc, tableIdToRef } from "app/server/lib/ActiveDoc";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
@@ -31,12 +34,11 @@ import { makeForkIds } from "app/server/lib/idUtils";
 import {
   getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
   sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
-import { SandboxError } from "app/server/lib/sandboxUtil";
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
-import DocApiTypesTI from "app/server/lib/DocApiTypes-ti";
-import * as Types from "app/server/lib/DocApiTypes";
+import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
+import * as Types from "app/plugin/DocApiTypes";
 import * as contentDisposition from 'content-disposition';
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import * as _ from "lodash";
@@ -246,48 +248,14 @@ export class DocWorkerApi {
         .send(fileData);
     }));
 
-    /**
-     * Adds records to a table. If columnValues is an empty object (or not provided) it will create empty records.
-     * @param columnValues Optional values for fields (can be an empty object to add empty records)
-     * @param count Number of records to add
-     */
-    async function addRecords(
-      req: RequestWithLogin, activeDoc: ActiveDoc, count: number, columnValues: BulkColValues
-    ): Promise<number[]> {
-      // user actions expect [null, ...] as row ids
-      const rowIds = arrayRepeat(count, null);
-      return addOrUpdateRecords(req, activeDoc, columnValues, rowIds, 'BulkAddRecord');
-    }
-
-    function areSameFields(records: Array<Types.Record | Types.NewRecord>) {
-      const recordsFields = records.map(r => new Set(Object.keys(r.fields || {})));
-      const firstFields = recordsFields[0];
-      const allSame = recordsFields.every(s => _.isEqual(firstFields, s));
-      return allSame;
-    }
-
-    function fieldNames(records: any[]) {
-      return new Set<string>(_.flatMap(records, r => Object.keys({...r.fields, ...r.require})));
-    }
-
-    function convertToBulkColValues(records: Array<Types.Record | Types.NewRecord>): BulkColValues {
-      // User might want to create empty records, without providing a field name, for example for requests:
-      // { records: [{}] }; { records: [{fields:{}}] }
-      // Retrieve all field names from fields property.
-      const result: BulkColValues = {};
-      for (const fieldName of fieldNames(records)) {
-        result[fieldName] = records.map(record => record.fields?.[fieldName] ?? null);
-      }
-      return result;
-    }
-
     // Adds records given in a column oriented format,
     // returns an array of row IDs
     this._app.post('/api/docs/:docId/tables/:tableId/data', canEdit,
       withDoc(async (activeDoc, req, res) => {
         const colValues = req.body as BulkColValues;
         const count = colValues[Object.keys(colValues)[0]].length;
-        const ids = await addRecords(req, activeDoc, count, colValues);
+        const op = getTableOperations(req, activeDoc);
+        const ids = await op.addRecords(count, colValues);
         res.json(ids);
       })
     );
@@ -297,21 +265,16 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPost),
       withDoc(async (activeDoc, req, res) => {
         const body = req.body as Types.RecordsPost;
-        const postRecords = convertToBulkColValues(body.records);
-        // postRecords can be an empty object, in that case we will create empty records.
-        const ids = await addRecords(req, activeDoc, body.records.length, postRecords);
-        const records = ids.map(id => ({id}));
+        const ops = getTableOperations(req, activeDoc);
+        const records = await ops.create(body.records);
         res.json({records});
       })
     );
 
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
-      const tableId = req.params.tableId;
       const rowIds = req.body;
-      const sandboxRes = await handleSandboxError(tableId, [], activeDoc.applyUserActions(
-        docSessionFromRequest(req),
-        [['BulkRemoveRecord', tableId, rowIds]]));
-      res.json(sandboxRes.retValues[0]);
+      const op = getTableOperations(req, activeDoc);
+      res.json(await op.destroy(rowIds));
     }));
 
     // Download full document
@@ -364,29 +327,6 @@ export class DocWorkerApi {
       res.json({srcDocId, docId});
     }));
 
-    // Update records identified by rowIds. Any invalid id fails
-    // the request and returns a 400 error code.
-    async function updateRecords(
-      req: RequestWithLogin, activeDoc: ActiveDoc, columnValues: BulkColValues, rowIds: number[]
-    ) {
-      await addOrUpdateRecords(req, activeDoc, columnValues, rowIds, 'BulkUpdateRecord');
-    }
-
-    async function addOrUpdateRecords(
-      req: RequestWithLogin, activeDoc: ActiveDoc,
-      columnValues: BulkColValues, rowIds: (number | null)[],
-      actionType: 'BulkUpdateRecord' | 'BulkAddRecord'
-    ) {
-      const tableId = req.params.tableId;
-      const colNames = Object.keys(columnValues);
-      const sandboxRes = await handleSandboxError(tableId, colNames, activeDoc.applyUserActions(
-        docSessionFromRequest(req),
-        [[actionType, tableId, rowIds, columnValues]],
-        {parseStrings: !isAffirmative(req.query.noparse)},
-      ));
-      return sandboxRes.retValues[0];
-    }
-
     // Update records given in column format
     // The records to update are identified by their id column.
     this._app.patch('/api/docs/:docId/tables/:tableId/data', canEdit,
@@ -395,7 +335,8 @@ export class DocWorkerApi {
         const rowIds = columnValues.id;
         // sandbox expects no id column
         delete columnValues.id;
-        await updateRecords(req, activeDoc, columnValues, rowIds);
+        const ops = getTableOperations(req, activeDoc);
+        await ops.updateRecords(columnValues, rowIds);
         res.json(null);
       })
     );
@@ -404,16 +345,8 @@ export class DocWorkerApi {
     this._app.patch('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPatch),
       withDoc(async (activeDoc, req, res) => {
         const body = req.body as Types.RecordsPatch;
-        const rowIds = _.map(body.records, r => r.id);
-        if (!areSameFields(body.records)) {
-          throw new ApiError("PATCH requires all records to have same fields", 400);
-        }
-        const columnValues = convertToBulkColValues(body.records);
-        if (!rowIds.length || !columnValues) {
-          // For patch method, we require at least one valid record.
-          throw new ApiError("PATCH requires a valid record object", 400);
-        }
-        await updateRecords(req, activeDoc, columnValues, rowIds);
+        const ops = getTableOperations(req, activeDoc);
+        await ops.update(body.records);
         res.json(null);
       })
     );
@@ -421,24 +354,16 @@ export class DocWorkerApi {
     // Add or update records given in records format
     this._app.put('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPut),
       withDoc(async (activeDoc, req, res) => {
-        const {records} = req.body as Types.RecordsPut;
-        const {tableId} = req.params;
-        const {noadd, noupdate, noparse, allow_empty_require} = req.query;
-        const onmany = stringParam(req.query.onmany || "first", "onmany", ["first", "none", "all"]);
+        const ops = getTableOperations(req, activeDoc);
+        const body = req.body as Types.RecordsPut;
         const options = {
-          add: !isAffirmative(noadd),
-          update: !isAffirmative(noupdate),
-          on_many: onmany,
-          allow_empty_require: isAffirmative(allow_empty_require),
+          add: !isAffirmative(req.query.noadd),
+          update: !isAffirmative(req.query.noupdate),
+          onMany: stringParam(req.query.onmany || "first", "onmany",
+                              ["first", "none", "all"]) as 'first'|'none'|'all'|undefined,
+          allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
         };
-        const actions = records.map(rec =>
-          ["AddOrUpdateRecord", tableId, rec.require, rec.fields || {}, options]
-        );
-        await handleSandboxError(tableId, [...fieldNames(records)], activeDoc.applyUserActions(
-          docSessionFromRequest(req),
-          actions,
-          {parseStrings: !isAffirmative(noparse)},
-        ));
+        await ops.upsert(body.records, options);
         res.json(null);
       })
     );
@@ -953,34 +878,6 @@ export function addDocApiRoutes(
 }
 
 /**
- * Catches the errors thrown by the sandbox, and converts to more descriptive ones (such as for
- * invalid table names, columns, or rowIds) with better status codes. Accepts the table name, a
- * list of column names in that table, and a promise for the result of the sandbox call.
- */
-async function handleSandboxError<T>(tableId: string, colNames: string[], p: Promise<T>): Promise<T> {
-  try {
-    return await p;
-  } catch (e) {
-    if (e instanceof SandboxError) {
-      let match = e.message.match(/non-existent record #([0-9]+)/);
-      if (match) {
-        throw new ApiError(`Invalid row id ${match[1]}`, 400);
-      }
-      match = e.message.match(/\[Sandbox] KeyError u?'(?:Table \w+ has no column )?(\w+)'/);
-      if (match) {
-        if (match[1] === tableId) {
-          throw new ApiError(`Table not found "${tableId}"`, 404);
-        } else if (colNames.includes(match[1])) {
-          throw new ApiError(`Invalid column "${match[1]}"`, 400);
-        }
-      }
-      throw new ApiError(`Error doing API call: ${e.message}`, 400);
-    }
-    throw e;
-  }
-}
-
-/**
  * Options for returning results from a query about document data.
  * Currently these option don't affect the query itself, only the
  * results returned to the user.
@@ -1105,4 +1002,38 @@ export function applyQueryParameters(
   if (params.sort) { applySort(values, params.sort, columns); }
   if (params.limit) { applyLimit(values, params.limit); }
   return values;
+}
+
+function getErrorPlatform(tableId: string): TableOperationsPlatform {
+  return {
+    async getTableId() { return tableId; },
+    throwError(verb, text, status) {
+      throw new ApiError(verb + (verb ? ' ' : '') + text, status);
+    },
+    applyUserActions() {
+      throw new Error('no document');
+    }
+  };
+}
+
+function getTableOperations(req: RequestWithLogin, activeDoc: ActiveDoc): TableOperationsImpl {
+  const options: OpOptions = {
+    parseStrings: !isAffirmative(req.query.noparse)
+  };
+  const platform: TableOperationsPlatform = {
+    ...getErrorPlatform(req.params.tableId),
+    applyUserActions(actions, opts) {
+      if (!activeDoc) { throw new Error('no document'); }
+      return activeDoc.applyUserActions(
+        docSessionFromRequest(req),
+        actions,
+        opts
+      );
+    }
+  };
+  return new TableOperationsImpl(platform, options);
+}
+
+async function handleSandboxError<T>(tableId: string, colNames: string[], p: Promise<T>): Promise<T> {
+  return handleSandboxErrorOnPlatform(tableId, colNames, p, getErrorPlatform(tableId));
 }

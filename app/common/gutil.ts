@@ -1,9 +1,10 @@
 import {delay} from 'app/common/delay';
 import {BindableValue, DomElementMethod, ISubscribable, Listener, Observable, subscribeElem, UseCB} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
-import constant = require('lodash/constant');
 import identity = require('lodash/identity');
-import times = require('lodash/times');
+
+// Some definitions have moved to be used by plugin API.
+export {arrayRepeat} from 'app/plugin/gutil';
 
 export const UP_TRIANGLE = '\u25B2';
 export const DOWN_TRIANGLE = '\u25BC';
@@ -362,13 +363,6 @@ export function arraySplice<T>(target: T[], start: number, arrToInsert: ArrayLik
   return target;
 }
 
-
-/**
- * Returns a new array of length count, filled with the given value.
- */
-export function arrayRepeat<T>(count: number, value: T): T[] {
-  return times(count, constant(value));
-}
 
 // Type for a compare func that returns a positive, negative, or zero value, as used for sorting.
 export type CompareFunc<T> = (a: T, b: T) => number;
