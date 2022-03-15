@@ -1,3 +1,8 @@
+export interface SnapshotWindow {
+  count: number;
+  unit: 'month' | 'year';
+}
+
 // A product is essentially a list of flags and limits that we may enforce/support.
 export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
@@ -35,10 +40,7 @@ export interface Features {
 
   readOnlyDocs?: boolean;   // if set, docs can only be read, not written.
 
-  snapshotWindow?: {        // if set, controls how far back snapshots are kept.
-    count: number;          // TODO: not honored at time of writing.
-    unit: 'month'|'year';
-  };
+  snapshotWindow?: SnapshotWindow;  // if set, controls how far back snapshots are kept.
 
   baseMaxRowsPerDocument?: number;  // If set, establishes a default maximum on the
                                  // number of rows (total) in a single document.

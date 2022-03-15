@@ -162,12 +162,19 @@ export class HostedStorageManager implements IDocStorageManager {
                                                           this._latestMetaVersions,
                                                           options);
 
-      this._inventory = new DocSnapshotInventory(this._ext, this._extMeta,
-                                                 async docId => {
-                                                   const dir = this.getAssetPath(docId);
-                                                   await fse.mkdirp(dir);
-                                                   return path.join(dir, 'meta.json');
-                                                 });
+      this._inventory = new DocSnapshotInventory(
+        this._ext,
+        this._extMeta,
+        async docId => {
+          const dir = this.getAssetPath(docId);
+          await fse.mkdirp(dir);
+          return path.join(dir, 'meta.json');
+        },
+        async docId => {
+          const product = await dbManager.getDocProduct(docId);
+          return product?.features.snapshotWindow;
+        },
+      );
 
       // The pruner could use an inconsistent store without any real loss overall,
       // but tests are easier if it is consistent.

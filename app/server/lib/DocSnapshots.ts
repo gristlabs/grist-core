@@ -1,7 +1,8 @@
-import { ObjSnapshotWithMetadata } from 'app/common/DocSnapshot';
-import { KeyedOps } from 'app/common/KeyedOps';
-import { KeyedMutex } from 'app/common/KeyedMutex';
-import { ExternalStorage } from 'app/server/lib/ExternalStorage';
+import {ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
+import {SnapshotWindow} from 'app/common/Features';
+import {KeyedMutex} from 'app/common/KeyedMutex';
+import {KeyedOps} from 'app/common/KeyedOps';
+import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import * as log from 'app/server/lib/log';
 import * as fse from 'fs-extra';
 import * as moment from 'moment-timezone';
@@ -10,6 +11,7 @@ import * as moment from 'moment-timezone';
  * A subset of the ExternalStorage interface, focusing on maintaining a list of versions.
  */
 export interface IInventory {
+  getSnapshotWindow?: (key: string) => Promise<SnapshotWindow|undefined>;
   versions(key: string): Promise<ObjSnapshotWithMetadata[]>;
   remove(key: string, snapshotIds: string[]): Promise<void>;
 }
@@ -59,8 +61,9 @@ export class DocSnapshotPruner {
 
   // Get all snapshots for a document, and whether they should be kept or pruned.
   public async classify(key: string): Promise<Array<{snapshot: ObjSnapshotWithMetadata, keep: boolean}>> {
+    const snapshotWindow = await this._ext.getSnapshotWindow?.(key);
     const versions = await this._ext.versions(key);
-    return shouldKeepSnapshots(versions).map((keep, index) => ({keep, snapshot: versions[index]}));
+    return shouldKeepSnapshots(versions, snapshotWindow).map((keep, index) => ({keep, snapshot: versions[index]}));
   }
 
   // Prune the specified document immediately.  If no snapshotIds are provided, they
@@ -107,8 +110,12 @@ export class DocSnapshotInventory implements IInventory {
    * Expects to be given the store for documents, a store for metadata, and a method
    * for naming cache files on the local filesystem.  The stores should be consistent.
    */
-  constructor(private _doc: ExternalStorage, private _meta: ExternalStorage,
-              private _getFilename: (key: string) => Promise<string>) {}
+  constructor(
+    private _doc: ExternalStorage,
+    private _meta: ExternalStorage,
+    private _getFilename: (key: string) => Promise<string>,
+    public getSnapshotWindow: (key: string) => Promise<SnapshotWindow|undefined>,
+  ) {}
 
   /**
    * Start keeping inventory for a new document.
@@ -312,7 +319,7 @@ export class DocSnapshotInventory implements IInventory {
  *   - Anything with a label, for up to 32 days before the current version.
  * Calculations done in UTC, Gregorian calendar, ISO weeks (week starts with Monday).
  */
-export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[]): boolean[] {
+export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapshotWindow?: SnapshotWindow): boolean[] {
   // Get current version
   const current = snapshots[0];
   if (!current) { return []; }
@@ -334,15 +341,26 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[]): boole
   // For each snapshot starting with newest, check if it is worth saving by comparing
   // it with the last saved snapshot based on hour, day, week, month, year
   return snapshots.map((snapshot, index) => {
-    let keep = index < 5;   // Keep 5 most recent versions
+    // Just to make extra sure we don't delete everything
+    if (index === 0) {
+      return true;
+    }
+
     const date = moment.tz(snapshot.lastModified, tz);
+
+    // Limit snapshots to the given window corresponding to what the user has paid for
+    if (snapshotWindow && start.diff(date, snapshotWindow.unit, true) > snapshotWindow.count) {
+      return false;
+    }
+
+    let keep = index < 5;   // Keep 5 most recent versions
     for (const bucket of buckets) {
       if (updateAndCheckRange(date, bucket)) { keep = true; }
     }
     // Preserve recent labelled snapshots in a naive and limited way.  No doubt this will
     // be elaborated on if we make this a user-facing feature.
     if (snapshot.metadata?.label &&
-        start.diff(moment.tz(snapshot.lastModified, tz), 'days') < 32) { keep = true; }
+        start.diff(date, 'days') < 32) { keep = true; }
     return keep;
   });
 }

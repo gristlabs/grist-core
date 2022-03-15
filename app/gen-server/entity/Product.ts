@@ -1,7 +1,8 @@
 import {Features} from 'app/common/Features';
 import {nativeValues} from 'app/gen-server/lib/values';
 import * as assert from 'assert';
-import {BaseEntity, Column, Connection, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
+import {BaseEntity, Column, Connection, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
 
 /**
  * A summary of features used in 'starter' plans.
@@ -149,6 +150,9 @@ export class Product extends BaseEntity {
 
   @Column({type: nativeValues.jsonEntityType})
   public features: Features;
+
+  @OneToMany(type => BillingAccount, account => account.product)
+  public accounts: BillingAccount[];
 }
 
 /**

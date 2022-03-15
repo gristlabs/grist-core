@@ -2325,6 +2325,18 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
+  public async getDocProduct(docId: string): Promise<Product | undefined> {
+    return await this._connection.createQueryBuilder()
+      .select('product')
+      .from(Product, 'product')
+      .leftJoinAndSelect('product.accounts', 'account')
+      .leftJoinAndSelect('account.orgs', 'org')
+      .leftJoinAndSelect('org.workspaces', 'workspace')
+      .leftJoinAndSelect('workspace.docs', 'doc')
+      .where('doc.id = :docId', {docId})
+      .getOne();
+  }
+
   /**
    * Get the anonymous user, as a constructed object rather than a database lookup.
    */
