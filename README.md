@@ -188,6 +188,7 @@ GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc
 GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited).
 GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited).
 GRIST_ORG_IN_PATH | if true, encode org in path rather than domain
+GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service.
 GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer
 GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
