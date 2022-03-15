@@ -89,6 +89,34 @@ export function isSingleUserMode(): boolean {
   return process.env.GRIST_SINGLE_USER === '1';
 }
 
+
+/**
+ * Returns a profile if it can be deduced from the request. This requires a
+ * header to specify the users' email address. The header to set comes from the
+ * environment variable GRIST_PROXY_AUTH_HEADER.
+ */
+export function getRequestProfile(req: Request): UserProfile|undefined {
+  const header = process.env.GRIST_PROXY_AUTH_HEADER;
+  let profile: UserProfile|undefined;
+
+  if (header && req.headers && req.headers[header]) {
+    const headerContent = req.headers[header];
+    if (headerContent) {
+      const userEmail = headerContent.toString();
+      const [userName] = userEmail.split("@", 1);
+      if (userEmail && userName) {
+        profile = {
+          "email": userEmail,
+          "name": userName
+        };
+      }
+    }
+  }
+
+  return profile;
+}
+
+
 /**
  * Returns the express request object with user information added, if it can be
  * found based on passed in headers or the session.  Specifically, sets:
@@ -244,6 +272,20 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
       }
     }
   }
+
+  if (!mreq.userId) {
+    profile = getRequestProfile(mreq);
+    if (profile) {
+      const user = await dbManager.getUserByLoginWithRetry(profile.email, profile);
+      if(user) {
+        mreq.user = user;
+        mreq.users = [profile];
+        mreq.userId = user.id;
+        mreq.userIsAuthorized = true;
+      }
+    }
+  }
+
 
   // If no userId has been found yet, fall back on anonymous.
   if (!mreq.userId) {

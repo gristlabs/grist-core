@@ -50,6 +50,7 @@ const {parseFirstUrlPart} = require('app/common/gristUrls');
 const version = require('app/common/version');
 const {Client} = require('./Client');
 const {localeFromRequest} = require('app/server/lib/ServerLocale');
+const {getRequestProfile} = require('app/server/lib/Authorizer');
 
 // Bluebird promisification, to be able to use e.g. websocket.sendAsync method.
 Promise.promisifyAll(ws.prototype);
@@ -150,6 +151,20 @@ Comm.prototype._broadcastMessage = function(type, data, clients) {
   clients.forEach(client => client.sendMessage({type, data}));
 };
 
+
+/**
+ * Returns a profile based on the request or session.
+ */
+Comm.prototype._getSessionProfile = function(scopedSession, req) {
+  const profile = getRequestProfile(req);
+  if (profile) {
+    return Promise.resolve(profile);
+  } else {
+    return scopedSession.getSessionProfile();
+  }
+};
+
+
 /**
  * Sends a per-doc message to the given client.
  * @param {Object} client - The client object, as passed to all per-doc methods.
@@ -236,7 +251,7 @@ Comm.prototype._onWebSocketConnection = async function(websocket, req) {
   // Delegate message handling to the client
   websocket.on('message', client.onMessage.bind(client));
 
-  scopedSession.getSessionProfile()
+  this._getSessionProfile(scopedSession, req)
   .then((profile) => {
     log.debug(`Comm ${client}: sending clientConnect with ` +
       `${client._missedMessages.length} missed messages`);
