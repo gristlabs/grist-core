@@ -16,6 +16,10 @@ export class TableOperationsImpl implements TableOperations {
                      private _defaultOptions: OpOptions) {
   }
 
+  public getTableId() {
+    return this._platform.getTableId();
+  }
+
   public create(records: Types.NewRecord, options?: OpOptions): Promise<Types.MinimalRecord>;
   public create(records: Types.NewRecord[], options?: OpOptions): Promise<Types.MinimalRecord[]>;
   public async create(recordsOrRecord: Types.NewRecord[]|Types.NewRecord,

@@ -19,6 +19,9 @@ export interface TableOperations {
   upsert(records: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
          options?: UpsertOptions): Promise<void>;
 
+  // Determine the tableId of the table.
+  getTableId(): Promise<string>;
+
   // TODO: offer a way to query the table.
   // select(): Records;
 }

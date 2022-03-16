@@ -82,18 +82,40 @@ export const setOptions = widgetApi.setOptions.bind(widgetApi);
 export const getOptions = widgetApi.getOptions.bind(widgetApi);
 export const clearOptions = widgetApi.clearOptions.bind(widgetApi);
 
-export const selectedTable: TableOperations = new TableOperationsImpl({
-  async getTableId() {
-    await _initialization;
-    return _tableId!;
-  },
-  throwError(verb, text, status) {
-    throw new Error(text);
-  },
-  applyUserActions(actions, opts) {
-    return docApi.applyUserActions(actions, opts);
-  },
-}, {});
+// Get access to a table in the document. If no tableId specified, this
+// will use the current selected table (for custom widgets).
+// If a table does not exist, there will be no error until an operation
+// on the table is attempted.
+export function getTable(tableId?: string): TableOperations {
+  return new TableOperationsImpl({
+    async getTableId() {
+      return tableId || await getSelectedTableId();
+    },
+    throwError(verb, text, status) {
+      throw new Error(text);
+    },
+    applyUserActions(actions, opts) {
+      return docApi.applyUserActions(actions, opts);
+    },
+  }, {});
+}
+
+// Get the current selected table (for custom widgets).
+export const selectedTable: TableOperations = getTable();
+
+// Get the ID of the current selected table (for custom widgets).
+// Will wait for the table ID to be set.
+export async function getSelectedTableId(): Promise<string> {
+  await _initialization;
+  return _tableId!;
+}
+
+// Get the ID of the current selected table if set (for custom widgets).
+// The ID may take some time to be set, or may never be set if the widget
+// is not linked to anything.
+export function getSelectedTableIdSync(): string|undefined {
+  return _tableId;
+}
 
 // For custom widgets that support custom columns mappings store current configuration
 // in a memory.
