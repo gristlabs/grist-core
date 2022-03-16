@@ -718,10 +718,12 @@ GridView.prototype.moveColumns = function(oldIndices, newIndex) {
   var vsfAction = ['BulkUpdateRecord', vsfRowIds, colInfo];
   var viewFieldsTable =  this.gristDoc.docModel.viewFields;
   var numCols = oldIndices.length;
-  var self = this;
-  viewFieldsTable.sendTableAction(vsfAction).then(function() {
-    self._selectMovedElements(self.cellSelector.col.start, self.cellSelector.col.end,
-                              newIndex, numCols, selector.COL);
+  const newPos = newIndex < this.cellSelector.colLower() ? newIndex : newIndex - numCols;
+  viewFieldsTable.sendTableAction(vsfAction).then(() => {
+    this.cursor.fieldIndex(newPos);
+    this.cellSelector.currentSelectType(selector.COL);
+    this.cellSelector.col.start(newPos);
+    this.cellSelector.col.end(newPos + numCols - 1);
   });
 };
 
@@ -736,10 +738,12 @@ GridView.prototype.moveRows = function(oldIndices, newIndex) {
   var colInfo = { 'manualSort': newPositions };
   var action = ['BulkUpdateRecord', rowIds, colInfo];
   var numRows = oldIndices.length;
-  var self = this;
-  this.tableModel.sendTableAction(action).then(function() {
-    self._selectMovedElements(self.cellSelector.row.start, self.cellSelector.row.end,
-                              newIndex, numRows, selector.ROW);
+  const newPos = newIndex < this.cellSelector.rowLower() ? newIndex : newIndex - numRows;
+  this.tableModel.sendTableAction(action).then(() => {
+    this.cursor.rowIndex(newPos);
+    this.cellSelector.currentSelectType(selector.ROW);
+    this.cellSelector.row.start(newPos);
+    this.cellSelector.row.end(newPos + numRows - 1);
   });
 };
 
@@ -1495,25 +1499,6 @@ GridView.prototype.dropCols = function() {
     this.currentEditingColumnIndex(idx);
   }
   this._colClickTime = 0;
-};
-
-/**
- * After rows/cols in the range start() to end() inclusive are moved to newIndex,
- * update the start and end observables so that they stay selected after the move.
- * @param {observable} start - observable denoting the start index of the moved/dropped elements
- * @param {observable} end - observable denoting the end index of the moved/dropped elements
- * @param {integer} numEles - number of elements to move
- * @param {integer} newIndex - new index of the start of the selected range
- */
-GridView.prototype._selectMovedElements = function(start, end, newIndex, numEles, elemType) {
-  console.assert(elemType === selector.ROW || elemType === selector.COL);
-  var newPos = newIndex < Math.min(start(), end()) ? newIndex : newIndex - numEles;
-  if (elemType === selector.COL) this.cursor.fieldIndex(newPos);
-  else if (elemType === selector.ROW) this.cursor.rowIndex(newPos);
-
-  this.cellSelector.currentSelectType(elemType);
-  start(newPos);
-  end(newPos + numEles - 1);
 };
 
 // End of Dragging logic
