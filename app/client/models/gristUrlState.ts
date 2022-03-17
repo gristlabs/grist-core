@@ -84,13 +84,6 @@ export function getLoginOrSignupUrl(nextUrl: string = _getCurrentUrl()): string 
   return _getLoginLogoutUrl('signin', nextUrl);
 }
 
-// Get url for the reset password page.
-export function getResetPwdUrl(): string {
-  const startUrl = new URL(window.location.href);
-  startUrl.pathname = '/resetPassword';
-  return startUrl.href;
-}
-
 // Returns the URL for the "you are signed out" page.
 export function getSignedOutUrl(): string { return getMainOrgUrl() + "signed-out"; }
 

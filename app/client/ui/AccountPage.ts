@@ -1,19 +1,18 @@
 import {AppModel, reportError} from 'app/client/models/AppModel';
-import {getResetPwdUrl, urlState} from 'app/client/models/gristUrlState';
+import {urlState} from 'app/client/models/gristUrlState';
 import {ApiKey} from 'app/client/ui/ApiKey';
 import {AppHeader} from 'app/client/ui/AppHeader';
+import {buildChangePasswordDialog} from 'app/client/ui/ChangePasswordDialog';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {MFAConfig} from 'app/client/ui/MFAConfig';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {transientInput} from 'app/client/ui/transientInput';
-import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/breadcrumbs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {icon} from 'app/client/ui2018/icons';
-import {cssModalBody, cssModalButtons, cssModalTitle, modal} from 'app/client/ui2018/modals';
 import {colors, vars} from 'app/client/ui2018/cssVars';
-import {FullUser, UserMFAPreferences} from 'app/common/UserAPI';
+import {FullUser} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-account-page-');
@@ -24,7 +23,6 @@ const testId = makeTestId('test-account-page-');
 export class AccountPage extends Disposable {
   private _apiKey = Observable.create<string>(this, '');
   private _userObs = Observable.create<FullUser|null>(this, null);
-  private _userMfaPreferences = Observable.create<UserMFAPreferences|null>(this, null);
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, '');
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
@@ -93,9 +91,8 @@ export class AccountPage extends Disposable {
         cssDataRow(
           cssSubHeader('Login Method'),
           cssLoginMethod(user.loginMethod),
-          user.loginMethod === 'Email + Password' ? cssTextBtn(
-            cssIcon('Settings'), 'Reset',
-            dom.on('click', () => confirmPwdResetModal(user.email)),
+          user.loginMethod === 'Email + Password' ? cssTextBtn('Change Password',
+            dom.on('click', () => this._showChangePasswordDialog()),
           ) : null,
           testId('login-method'),
         ),
@@ -114,10 +111,7 @@ export class AccountPage extends Disposable {
             "to ensure that you're the only person who can access your account, even if someone " +
             "knows your password."
           ),
-          dom.create(MFAConfig, this._userMfaPreferences, {
-            appModel: this._appModel,
-            onChange: () => this._fetchUserMfaPreferences(),
-          }),
+          dom.create(MFAConfig, user),
         ),
         cssHeader('API'),
         cssDataRow(cssSubHeader('API Key'), cssContent(
@@ -166,21 +160,11 @@ export class AccountPage extends Disposable {
     this._userObs.set(await this._appModel.api.getUserProfile());
   }
 
-  private async _fetchUserMfaPreferences() {
-    this._userMfaPreferences.set(null);
-    this._userMfaPreferences.set(await this._appModel.api.getUserMfaPreferences());
-  }
-
   private async _fetchAll() {
     await Promise.all([
       this._fetchApiKey(),
       this._fetchUserProfile(),
     ]);
-
-    const user = this._userObs.get();
-    if (user?.loginMethod === 'Email + Password') {
-      await this._fetchUserMfaPreferences();
-    }
   }
 
   private async _updateUserName(val: string) {
@@ -195,26 +179,10 @@ export class AccountPage extends Disposable {
     await this._appModel.api.updateAllowGoogleLogin(allowGoogleLogin);
     await this._fetchUserProfile();
   }
-}
 
-function confirmPwdResetModal(userEmail: string) {
-  return modal((ctl, _owner) => {
-    return [
-      cssModalTitle('Reset Password'),
-      cssModalBody(`Click continue to open the password reset form. Submit it for your email address: ${userEmail}`),
-      cssModalButtons(
-        bigPrimaryButtonLink(
-          { href: getResetPwdUrl(), target: '_blank' },
-          'Continue',
-          dom.on('click', () => ctl.close()),
-        ),
-        bigBasicButton(
-          'Cancel',
-          dom.on('click', () => ctl.close()),
-        ),
-      ),
-    ];
-  });
+  private _showChangePasswordDialog() {
+    return buildChangePasswordDialog();
+  }
 }
 
 /**
@@ -292,7 +260,7 @@ const cssTextBtn = styled('button', `
   border: none;
   padding: 0;
   text-align: left;
-  min-width: 90px;
+  min-width: 110px;
 
   &:hover {
     color: ${colors.darkGreen};

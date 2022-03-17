@@ -272,57 +272,6 @@ export interface DocStateComparisonDetails {
   rightChanges: ActionSummary;
 }
 
-/**
- * User multi-factor authentication preferences, as fetched from Cognito.
- */
-export interface UserMFAPreferences {
-  isSmsMfaEnabled: boolean;
-  // If SMS MFA is enabled, the destination number for receiving verification codes.
-  phoneNumber?: string;
-  isSoftwareTokenMfaEnabled: boolean;
-}
-
-/**
- * Cognito response to initiating software token MFA registration.
- */
-export interface SoftwareTokenRegistrationInfo {
-  secretCode: string;
-}
-
-/**
- * Cognito response to initiating SMS MFA registration.
- */
-export interface SMSRegistrationInfo {
-  deliveryDestination: string;
-}
-
-/**
- * Cognito response to verifying a password (e.g. in a security verification form).
- */
-export type PassVerificationResult = ChallengeRequired | ChallengeNotRequired;
-
-/**
- * Information about the follow-up authentication challenge.
- */
-export interface ChallengeRequired {
-  isChallengeRequired: true;
-  isAlternateChallengeAvailable: boolean;
-  // Session identifier that must be re-used in response to auth challenge.
-  session: string;
-  challengeName: 'SMS_MFA' | 'SOFTWARE_TOKEN_MFA';
-  // If SMS MFA is enabled, the destination phone number that codes are sent to.
-  deliveryDestination?: string;
-}
-
-/**
- * Successful authentication, with no additional challenge required.
- */
-interface ChallengeNotRequired {
-  isChallengeRequired: false;
-}
-
-export type AuthMethod = 'TOTP' | 'SMS';
-
 export {UserProfile} from 'app/common/LoginSessionAPI';
 
 export interface UserAPI {
@@ -361,7 +310,6 @@ export interface UserAPI {
   unpinDoc(docId: string): Promise<void>;
   moveDoc(docId: string, workspaceId: number): Promise<void>;
   getUserProfile(): Promise<FullUser>;
-  getUserMfaPreferences(): Promise<UserMFAPreferences>;
   updateUserName(name: string): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
@@ -379,14 +327,6 @@ export interface UserAPI {
     onUploadProgress?: (ev: ProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
-  registerSoftwareToken(): Promise<SoftwareTokenRegistrationInfo>;
-  confirmRegisterSoftwareToken(verificationCode: string): Promise<void>;
-  unregisterSoftwareToken(): Promise<void>;
-  registerSMS(phoneNumber: string): Promise<SMSRegistrationInfo>;
-  confirmRegisterSMS(verificationCode: string): Promise<void>;
-  unregisterSMS(): Promise<void>;
-  verifyPassword(password: string, preferredMfaMethod?: AuthMethod): Promise<PassVerificationResult>;
-  verifySecondStep(authMethod: AuthMethod, verificationCode: string, session: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
@@ -654,10 +594,6 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/profile/user`);
   }
 
-  public async getUserMfaPreferences(): Promise<UserMFAPreferences> {
-    return this.requestJson(`${this._url}/api/profile/mfa_preferences`);
-  }
-
   public async updateUserName(name: string): Promise<void> {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
@@ -749,57 +685,6 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/users/${userId}`,
                        {method: 'DELETE',
                         body: JSON.stringify({name})});
-  }
-
-  public async registerSoftwareToken(): Promise<SoftwareTokenRegistrationInfo> {
-    return this.requestJson(`${this._url}/api/auth/register_totp`, {method: 'POST'});
-  }
-
-  public async confirmRegisterSoftwareToken(verificationCode: string): Promise<void> {
-    await this.request(`${this._url}/api/auth/confirm_register_totp`, {
-      method: 'POST',
-      body: JSON.stringify({verificationCode}),
-    });
-  }
-
-  public async unregisterSoftwareToken(): Promise<void> {
-    await this.request(`${this._url}/api/auth/unregister_totp`, {method: 'POST'});
-  }
-
-  public async registerSMS(phoneNumber: string): Promise<SMSRegistrationInfo> {
-    return this.requestJson(`${this._url}/api/auth/register_sms`, {
-      method: 'POST',
-      body: JSON.stringify({phoneNumber}),
-    });
-  }
-
-  public async confirmRegisterSMS(verificationCode: string): Promise<void> {
-    await this.request(`${this._url}/api/auth/confirm_register_sms`, {
-      method: 'POST',
-      body: JSON.stringify({verificationCode}),
-    });
-  }
-
-  public async unregisterSMS(): Promise<void> {
-    await this.request(`${this._url}/api/auth/unregister_sms`, {method: 'POST'});
-  }
-
-  public async verifyPassword(password: string, preferredMfaMethod?: AuthMethod): Promise<any> {
-    return this.requestJson(`${this._url}/api/auth/verify_pass`, {
-      method: 'POST',
-      body: JSON.stringify({password, preferredMfaMethod}),
-    });
-  }
-
-  public async verifySecondStep(
-    authMethod: AuthMethod,
-    verificationCode: string,
-    session: string
-  ): Promise<void> {
-    await this.request(`${this._url}/api/auth/verify_second_step`, {
-      method: 'POST',
-      body: JSON.stringify({authMethod, verificationCode, session}),
-    });
   }
 
   public getBaseUrl(): string { return this._url; }

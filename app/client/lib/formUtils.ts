@@ -1,4 +1,5 @@
 import {reportError} from 'app/client/models/errors';
+import {ApiError} from 'app/common/ApiError';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {dom, Observable} from 'grainjs';
 
@@ -51,4 +52,21 @@ export function formDataToObj(formElem: HTMLFormElement): { [key: string]: strin
  */
 export async function submitForm(fields: { [key: string]: string }, form: HTMLFormElement): Promise<any> {
   return BaseAPI.requestJson(form.action, {method: 'POST', body: JSON.stringify(fields)});
+}
+
+/**
+ * Sets the error details on `errObs` if `err` is a 4XX error (except 401). Otherwise, reports the
+ * error via the Notifier instance.
+ */
+export function handleFormError(err: unknown, errObs: Observable<string|null>) {
+  if (
+    err instanceof ApiError &&
+    err.status !== 401 &&
+    err.status >= 400 &&
+    err.status < 500
+  ) {
+    errObs.set(err.details?.userError ?? err.message);
+  } else {
+    reportError(err as Error|string);
+  }
 }
