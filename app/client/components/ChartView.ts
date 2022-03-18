@@ -80,6 +80,7 @@ interface ChartOptions {
   showTotal?: boolean;
   textSize?: number;
   isXAxisUndefined?: boolean;
+  orientation?: 'v'|'h';
 }
 
 // tslint:disable:no-console
@@ -561,6 +562,14 @@ export class ChartConfig extends GrainJSDisposable {
         // These options don't make much sense for a pie chart.
         cssCheckboxRowObs('Group data', this._groupData),
         cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
+        cssRow(
+          cssRowLabel('Orientation'),
+          dom('div', linkSelect(fromKoSave(this._optionsObj.prop('orientation')), [
+            {value: 'v', label: 'Vertical'},
+            {value: 'h', label: 'Horizontal'}
+          ], {defaultLabel: 'Vertical'})),
+          testId('orientation'),
+        ),
         cssCheckboxRow('Log scale Y-axis', this._optionsObj.prop('logYAxis')),
       ]),
       dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
@@ -900,12 +909,14 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
     // unique values for the x-axis.
     uniqXValues(series);
   }
+  const [axis1, axis2] = options.orientation === 'h' ? ['y', 'x'] : ['x', 'y'];
 
   const dataSeries = series.slice(1).map((line: Series): Data => ({
     name: getSeriesName(line, series.length > 2),
-    x: series[0].values,
-    y: line.values,
-    error_y: errorBars.get(line),
+    [axis1]: series[0].values,
+    [axis2]: line.values,
+    [`error_${axis2}`]: errorBars.get(line),
+    orientation: options.orientation,
     ...dataOptions,
     stackgroup: makeRelativeStackGroup(dataOptions.stackgroup, line.values),
   }));
@@ -924,12 +935,12 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   return {
     data: dataSeries,
     layout: {
-      xaxis: series.length > 0 ? {title: series[0].label} : {},
+      [`${axis1}axis`]: series.length > 0 ? {title: series[0].label} : {},
       // Include yaxis title for a single y-value series only (2 series total);
       // If there are fewer than 2 total series, there is no y-series to display.
       // If there are multiple y-series, a legend will be included instead, and the yaxis title
       // is less meaningful, so omit it.
-      yaxis: series.length === 2 ? {title: series[1].label} : {},
+      [`${axis2}axis`]: series.length === 2 ? {title: series[1].label} : {},
     },
   };
 }
