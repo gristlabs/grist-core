@@ -213,6 +213,8 @@ export class NSandbox implements ISandbox {
       return await new Promise((resolve, reject) => {
         this._pendingReads.push([resolve, reject]);
       });
+    } catch (e) {
+      throw new sandboxUtil.SandboxError(e.message);
     } finally {
       if (this._logTimes) {
         log.rawDebug(`Sandbox pyCall[${funcName}] took ${Date.now() - startTime} ms`, this._logMeta);
@@ -318,7 +320,7 @@ export class NSandbox implements ISandbox {
       const resolvePair = this._pendingReads.shift();
       if (resolvePair) {
         if (msgCode === sandboxUtil.EXC) {
-          resolvePair[1](new sandboxUtil.SandboxError(data));
+          resolvePair[1](new Error(data));
         } else if (msgCode === sandboxUtil.DATA) {
           resolvePair[0](data);
         } else {
