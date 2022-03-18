@@ -19,6 +19,7 @@ import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {nativeCompare, unwrap} from 'app/common/gutil';
+import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Events as BackboneEvents} from 'backbone';
@@ -69,6 +70,7 @@ interface ChartOptions {
   multiseries?: boolean;
   lineConnectGaps?: boolean;
   lineMarkers?: boolean;
+  stacked?: boolean;
   invertYAxis?: boolean;
   logYAxis?: boolean;
   // If "symmetric", one series after each Y series gives the length of the error bars around it. If
@@ -91,6 +93,7 @@ interface Series {
   label: string;          // Corresponds to the column name.
   group?: Datum;          // The group value, when grouped.
   values: Datum[];
+  isInSortSpec?: boolean; // Whether this series is present in sort spec for this chart.
 }
 
 function getSeriesName(series: Series, haveMultiple: boolean) {
@@ -255,6 +258,7 @@ export class ChartView extends Disposable {
         return {
           label: field.label(),
           values: rowIds.map(fullGetter),
+          isInSortSpec: Boolean(Sort.findCol(this._sortSpec, field.colRef.peek())),
         };
       });
 
@@ -293,7 +297,9 @@ export class ChartView extends Disposable {
       plotData = chartFunc(series, options, dataOptions);
     } else if (series.length > 1) {
       // We need to group all series by the first column.
-      const nseries = groupSeries(series[0].values, series.slice(1));
+      // Sort series alphabetically only if user has not defined a sort on this chart.
+      const shouldSort = !series[0].isInSortSpec;
+      const nseries = groupSeries(series[0].values, series.slice(1), shouldSort);
 
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
       const xvalues = Array.from(new Set(series[1].values));
@@ -345,7 +351,7 @@ export class ChartView extends Disposable {
  * (each an array of values), then returns a map mapping each CompanyID to the array [Date,
  * Employees, Revenue], each value of which is itself an array of values for that CompanyID.
  */
-function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[]): Map<T, Series[]> {
+function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[], sort: boolean): Map<T, Series[]> {
   const nseries = new Map<T, Series[]>();
 
   // Limit the number if group values so as to limit the total number of series we pass into
@@ -353,7 +359,11 @@ function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[]): 
   // TODO: When not all data is shown, we should probably show some indicator, similar to when
   // OnDemand data is truncated.
   const maxGroups = Math.floor(MAX_SERIES_IN_CHART / valueSeries.length);
-  const groupValues: T[] = [...new Set(groupColumn)].sort().slice(0, maxGroups);
+  let groupValues: T[] = [...new Set(groupColumn)];
+  if (sort) {
+    groupValues.sort();
+  }
+  groupValues = groupValues.slice(0, maxGroups);
 
   // Set up empty lists for each group.
   for (const group of groupValues) {
@@ -423,6 +433,7 @@ function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
       bgcolor: "#FFFFFF80",
     },
     yaxis,
+    ...(options.stacked ? {barmode: 'relative'} : {}),
   };
 }
 
@@ -574,6 +585,7 @@ export class ChartConfig extends GrainJSDisposable {
         cssCheckboxRow('Show markers', this._optionsObj.prop('lineMarkers')),
       ]),
       dom.maybe((use) => ['line', 'bar'].includes(use(this._section.chartTypeDef)), () => [
+        cssCheckboxRow('Stack series', this._optionsObj.prop('stacked')),
         cssRow(
           cssRowLabel('Error bars'),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('errorBars')), [
@@ -889,14 +901,28 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
     uniqXValues(series);
   }
 
+  const dataSeries = series.slice(1).map((line: Series): Data => ({
+    name: getSeriesName(line, series.length > 2),
+    x: series[0].values,
+    y: line.values,
+    error_y: errorBars.get(line),
+    ...dataOptions,
+    stackgroup: makeRelativeStackGroup(dataOptions.stackgroup, line.values),
+  }));
+
+  // When stacking, stackgroup will be non-empty (an arbitrary value, set to "A" for line-charts).
+  // We further separate positive series from negative ones, by changing stackgroup to a different
+  // value ("-A") for series which look probably negative. This keeps positive ones above the
+  // x-axis, and negative ones below, as for barmode=relative (which only applies to bar charts).
+  function makeRelativeStackGroup(stackgroup: string|undefined, values: Datum[]) {
+    if (!stackgroup) { return stackgroup; }
+    const firstNonZero = values.find(v => v && (v > 0 || v < 0));
+    const isNegative = firstNonZero && firstNonZero < 0;
+    return isNegative ? "-" + stackgroup : stackgroup;
+  }
+
   return {
-    data: series.slice(1).map((line: Series): Data => ({
-      name: getSeriesName(line, series.length > 2),
-      x: series[0].values,
-      y: line.values,
-      error_y: errorBars.get(line),
-      ...dataOptions,
-    })),
+    data: dataSeries,
     layout: {
       xaxis: series.length > 0 ? {title: series[0].label} : {},
       // Include yaxis title for a single y-value series only (2 series total);
@@ -922,6 +948,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
       type: 'scatter',
       connectgaps: options.lineConnectGaps,
       mode: options.lineMarkers ? 'lines+markers' : 'lines',
+      stackgroup: (options.stacked ? "A" : ""),
     });
   },
   area(series: Series[], options: ChartOptions): PlotData {
