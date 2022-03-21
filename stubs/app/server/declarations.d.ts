@@ -71,5 +71,7 @@ declare module "redis" {
     public srem(key: string, val: string): Multi;
     public rpush(key: string, ...vals: string[]): Multi;
     public ltrim(key: string, start: number, end: number): Multi;
+    public incr(key: string): Multi;
+    public expire(key: string, seconds: number): Multi;
   }
 }

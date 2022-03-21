@@ -66,4 +66,6 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   getWorkerGroup(workerId: string): Promise<string|null>;
   getDocGroup(docId: string): Promise<string|null>;
+
+  incrementDocApiUsage(key: string): Promise<number|null>;
 }

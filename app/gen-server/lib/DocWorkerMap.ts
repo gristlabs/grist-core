@@ -133,6 +133,10 @@ class DummyDocWorkerMap implements IDocWorkerMap {
   public async getDocGroup(docId: string): Promise<string|null> {
     return null;
   }
+
+  public incrementDocApiUsage(key: string): Promise<number> {
+    return Promise.resolve(0);
+  }
 }
 
 /**
@@ -505,6 +509,18 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async getDocGroup(docId: string): Promise<string|null> {
     return this._client.getAsync(`doc-${docId}-group`);
+  }
+
+  /**
+   * Increment the value at the given redis key representing API usage of one document in one day.
+   * Expire the key after a day just so that it cleans itself up.
+   * Returns the value after incrementing.
+   * This is not related to other responsibilities of this class,
+   * but this class conveniently manages the redis client.
+   */
+  public async incrementDocApiUsage(key: string): Promise<number | null> {
+    const result = await this._client.multi().incr(key).expire(key, 24 * 60 * 60).execAsync();
+    return Number(result?.[0]);
   }
 
   /**

@@ -42,6 +42,7 @@ import * as Types from "app/plugin/DocApiTypes";
 import * as contentDisposition from 'content-disposition';
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import * as _ from "lodash";
+import * as LRUCache from 'lru-cache';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as uuidv4 from "uuid/v4";
@@ -81,40 +82,6 @@ function validate(checker: Checker): RequestHandler {
   };
 }
 
-/**
- * Middleware to track the number of requests outstanding on each document, and to
- * throw an exception when the maximum number of requests are already outstanding.
- * Access to a document must already have been authorized.
- */
-function apiThrottle(usage: Map<string, number>,
-                     callback: (req: RequestWithLogin,
-                                resp: Response,
-                                next: NextFunction) => void|Promise<void>): RequestHandler {
-  return async (req, res, next) => {
-    const docId = getDocId(req);
-    try {
-      const count = usage.get(docId) || 0;
-      usage.set(docId, count + 1);
-      if (count + 1 > MAX_PARALLEL_REQUESTS_PER_DOC) {
-        throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
-                           `try again later?`, 429);
-      }
-      await callback(req as RequestWithLogin, res, next);
-    } catch (err) {
-      next(err);
-    } finally {
-      const count = usage.get(docId);
-      if (count) {
-        if (count === 1) {
-          usage.delete(docId);
-        } else {
-          usage.set(docId, count - 1);
-        }
-      }
-    }
-  };
-}
-
 export class DocWorkerApi {
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
@@ -140,7 +107,7 @@ export class DocWorkerApi {
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
-    const throttled = apiThrottle.bind(null, new Map());
+    const throttled = this._apiThrottle.bind(this);
     const withDoc = (callback: WithDocHandler) => throttled(this._requireActiveDoc(callback));
 
     // Apply user actions to a document.
@@ -756,6 +723,103 @@ export class DocWorkerApi {
     return this._docManager.getActiveDoc(getDocId(req));
   }
 
+  /**
+   * Middleware to track the number of requests outstanding on each document, and to
+   * throw an exception when the maximum number of requests are already outstanding.
+   * Also throws an exception if too many requests (based on the user's product plan)
+   * have been made today for this document.
+   * Access to a document must already have been authorized.
+   */
+  private _apiThrottle(callback: (req: RequestWithLogin,
+                                  resp: Response,
+                                  next: NextFunction) => void | Promise<void>): RequestHandler {
+    const usage = new Map<string, number>();
+    const dailyUsage = new LRUCache<string, number>({max: 1024});
+    return async (req, res, next) => {
+      const docId = getDocId(req);
+      try {
+        const count = usage.get(docId) || 0;
+        usage.set(docId, count + 1);
+        if (count + 1 > MAX_PARALLEL_REQUESTS_PER_DOC) {
+          throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
+            `try again later?`, 429);
+        }
+
+        if (await this._checkDailyDocApiUsage(req, docId, dailyUsage)) {
+          throw new ApiError(`Exceeded daily limit for document ${docId}`, 429);
+        }
+
+        await callback(req as RequestWithLogin, res, next);
+      } catch (err) {
+        next(err);
+      } finally {
+        const count = usage.get(docId);
+        if (count) {
+          if (count === 1) {
+            usage.delete(docId);
+          } else {
+            usage.set(docId, count - 1);
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * Usually returns true if too many requests (based on the user's product plan)
+   * have been made today for this document.
+   * Access to a document must already have been authorized.
+   * This is called frequently so it uses caches to check quickly in the common case,
+   * which allows a few ways for users to exceed the limit slightly if the timing works out,
+   * but these should be acceptable.
+   */
+  private async _checkDailyDocApiUsage(req: Request, docId: string, dailyUsage: LRUCache<string, number>) {
+    // Start with the possibly stale cached doc to avoid a database call.
+    // This leaves a small window for the user to bypass this limit after downgrading.
+    let doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
+
+    function getMax() {
+      return doc.workspace.org.billingAccount?.product.features.baseMaxApiUnitsPerDocumentPerDay;
+    }
+
+    let max = getMax();
+    if (!max) {
+      // This doc has no associated product (happens to new unsaved docs)
+      // or the product has no API limit.
+      return;
+    }
+
+    // Get the current count from the dailyUsage cache rather than waiting for redis.
+    // The cache will not have a count if this is the first request for this document served by this worker process
+    // or if so many other documents have been served since then that this key was evicted from the LRU cache.
+    // Both scenarios are temporary and unlikely when usage has been exceeded.
+    const key = docDailyApiUsageKey(docId);
+    const count = dailyUsage.get(key);
+
+    if (count && count >= max) {
+      // The limit has apparently been exceeded.
+      // In case the user just upgraded, get a fresh Document entity from the DB and check again.
+      doc = await this._dbManager.getDoc(getDocScope(req));
+      max = getMax();
+      if (max && count >= max) {
+        return true;
+      }
+    }
+
+    // Note the increased API usage on redis and in our local cache.
+    // Do this in the background so that the rest of the request can continue without waiting for redis.
+    // If the user makes many concurrent requests quickly,
+    // a few extra might slip through before we see the count exceeding the limit, but this is basically unavoidable.
+    this._docWorkerMap.incrementDocApiUsage(key).then(newCount => {
+      if (newCount) {
+        // Theoretically this could be overwritten by a lower count that was requested earlier
+        // but somehow arrived after.
+        // This doesn't really matter, and the count on redis will still increase reliably.
+        dailyUsage.set(key, newCount);
+      }
+    }).catch(e => console.error(`Error tracking API usage for doc ${docId}`, e));
+  }
+
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
@@ -1036,4 +1100,16 @@ function getTableOperations(req: RequestWithLogin, activeDoc: ActiveDoc): TableO
 
 async function handleSandboxError<T>(tableId: string, colNames: string[], p: Promise<T>): Promise<T> {
   return handleSandboxErrorOnPlatform(tableId, colNames, p, getErrorPlatform(tableId));
+}
+
+/**
+ * Returns a key used for redis and a local cache
+ * which store the number of API requests made for the given document today.
+ * Defined here so that it can easily be accessed in tests.
+ * The key contains the current UTC date so that counts from previous days are simply ignored and eventually evicted.
+ * This means that the daily measured usage conceptually 'resets' at UTC midnight.
+ */
+export function docDailyApiUsageKey(docId: string) {
+  const d = new Date();
+  return `doc-${docId}-dailyApiUsage-${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
 }
