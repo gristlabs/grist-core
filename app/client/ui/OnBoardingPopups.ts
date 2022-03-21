@@ -80,6 +80,11 @@ export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => vo
   ctl.start().catch(reportError);
 }
 
+// Returns whether some tour is currently active.
+export function isTourActive(): boolean {
+  return !tourSingleton.isEmpty();
+}
+
 class OnBoardingError extends Error {
   public name = 'OnBoardingError';
   constructor(message: string) {

@@ -63,8 +63,7 @@ export const welcomeTour: IOnBoardingMsg[] = [
     selector: '.tour-help-center',
     title: 'Flying higher',
     body: () => [
-      dom('p', 'Use ', Key(GreyIcon('Help'), 'Help Center'), ' for documentation, videos, and tutorials.'),
-      dom('p', 'Use ', Key(GreyIcon('Feedback'), 'Give Feedback'), ' for issues or questions.'),
+      dom('p', 'Use ', Key(GreyIcon('Help'), 'Help Center'), ' for documentation or questions.'),
     ],
     placement: 'right',
   },

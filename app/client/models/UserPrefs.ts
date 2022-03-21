@@ -58,3 +58,23 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
 
 export const {getPrefsObs: getUserOrgPrefsObs, getPrefObs: getUserOrgPrefObs} = makePrefFunctions('userOrgPrefs');
 export const {getPrefsObs: getUserPrefsObs, getPrefObs: getUserPrefObs} = makePrefFunctions('userPrefs');
+
+
+// For preferences that store a list of items (such as seen docTours), this helper updates the
+// preference to add itemId to it (e.g. to avoid auto-starting the docTour again in the future).
+// prefKey is used only to log a more informative warning on error.
+export function markAsSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T) {
+  const seenIds = seenIdsObs.get() || [];
+  try {
+    if (!seenIds.includes(itemId)) {
+      const seen = new Set(seenIds);
+      seen.add(itemId);
+      seenIdsObs.set([...seen].sort());
+    }
+  } catch (e) {
+    // If we fail to save this preference, it's probably not worth alerting the user about,
+    // so just log to console.
+    // tslint:disable-next-line:no-console
+    console.warn("Failed to save preference in markAsSeen", e);
+  }
+}

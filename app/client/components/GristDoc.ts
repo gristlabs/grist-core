@@ -35,11 +35,12 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
-import {getUserOrgPrefObs, getUserOrgPrefsObs} from 'app/client/models/UserPrefs';
+import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
 import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
+import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
@@ -132,6 +133,9 @@ export class GristDoc extends DisposableWithEvents {
 
   public readonly userOrgPrefs = getUserOrgPrefsObs(this.docPageModel.appModel);
 
+  // If the doc has a docTour. Used also to enable the UI button to restart the tour.
+  public readonly hasDocTour: Computed<boolean>;
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;
@@ -140,6 +144,7 @@ export class GristDoc extends DisposableWithEvents {
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _viewLayout: ViewLayout|null = null;
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
+  private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
 
   constructor(
     public readonly app: App,
@@ -161,6 +166,9 @@ export class GristDoc extends DisposableWithEvents {
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;
+
+    this.hasDocTour = Computed.create(this, use =>
+      use(this.docModel.allTableIds.getObservable()).includes('GristDocTour'));
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 
@@ -217,24 +225,39 @@ export class GristDoc extends DisposableWithEvents {
     }));
 
     // Start welcome tour if flag is present in the url hash.
+    let tourStarting = false;
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      if (state.welcomeTour || state.docTour || this._shouldAutoStartWelcomeTour()) {
-        // On boarding tours were not designed with mobile support in mind. Disable until fixed.
-        if (isNarrowScreen()) {
-          return;
-        }
-        await this._waitForView();
-        await delay(0); // we need to wait an extra bit.
+      // Onboarding tours were not designed with mobile support in mind. Disable until fixed.
+      if (isNarrowScreen()) {
+        return;
+      }
+      // If we have an active tour (or are in the process of starting one), don't start a new one.
+      if (tourStarting || isTourActive()) {
+        return;
+      }
+      const autoStartDocTour = this.hasDocTour.get() && !this._seenDocTours.get()?.includes(this.docId());
+      const docTour = state.docTour || autoStartDocTour;
+      const welcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
 
-        // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
-        // #repeat-doc-tour are used as triggers, but will immediately disappear.
-        await urlState().pushUrl({welcomeTour: false, docTour: false},
-          {replace: true, avoidReload: true});
+      if (welcomeTour || docTour) {
+        tourStarting = true;
+        try {
+          await this._waitForView();
+          await delay(0); // we need to wait an extra bit.
 
-        if (!state.docTour) {
-          startWelcomeTour(() => this._showGristTour.set(false));
-        } else {
-          await startDocTour(this.docData, this.docComm, () => null);
+          // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
+          // #repeat-doc-tour are used as triggers, but will immediately disappear.
+          await urlState().pushUrl({welcomeTour: false, docTour: false},
+            {replace: true, avoidReload: true});
+
+          if (!docTour) {
+            startWelcomeTour(() => this._showGristTour.set(false));
+          } else {
+            const onFinishCB = () => (autoStartDocTour && markAsSeen(this._seenDocTours, this.docId()));
+            await startDocTour(this.docData, this.docComm, onFinishCB);
+          }
+        } finally {
+          tourStarting = false;
         }
       }
     }));
@@ -801,6 +824,10 @@ export class GristDoc extends DisposableWithEvents {
    * Waits for a view to be ready
    */
   private async _waitForView() {
+    // For pages like ACL's, there isn't a view instance to wait for.
+    if (!this.viewModel.activeSection.peek().getRowId()) {
+      return;
+    }
     const view = await waitObs(this.viewModel.activeSection.peek().viewInstance);
     await view?.getLoadingDonePromise();
     return view;
@@ -929,7 +956,11 @@ export class GristDoc extends DisposableWithEvents {
    * For first-time users on personal org, start a welcome tour.
    */
   private _shouldAutoStartWelcomeTour(): boolean {
-    // TODO: decide what to do when both a docTour and grist welcome tour are available.
+    // When both a docTour and grist welcome tour are available, show only the docTour, leaving
+    // the welcome tour for another doc (e.g. a new one).
+    if (this.hasDocTour.get()) {
+      return false;
+    }
 
     // Only show the tour if one is on a personal org and can edit. This excludes templates (on
     // the Templates org, which may have their own tour) and team sites (where user's intended
