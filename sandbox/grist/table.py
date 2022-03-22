@@ -248,6 +248,16 @@ class Table(object):
     """
     return len(self._empty_lookup_column._do_fast_empty_lookup())
 
+  @property
+  def sample_record(self):
+    """
+    Used for auto-completion as a record with correct properties of correct types.
+    """
+    return _make_sample_record(
+      self.table_id,
+      [col for col_id, col in self.all_columns.items() if col_id not in self._special_cols],
+    )
+
   def _rebuild_model(self, user_table):
     """
     Sets class-wide properties from a new Model class for the table (inner class within the table
@@ -266,9 +276,6 @@ class Table(object):
     for col_id, col_model in col_items:
       default_func = self.Model.__dict__.get(get_default_func_name(col_id))
       new_cols[col_id] = self._create_or_update_col(col_id, col_model, default_func)
-
-    # Used for auto-completion as a record with correct properties of correct types.
-    self.sample_record = _make_sample_record(self.table_id, six.itervalues(new_cols))
 
     # Note that we reuse previous special columns like lookup maps, since those not affected by
     # column changes should stay the same. These get removed when unneeded using other means.
