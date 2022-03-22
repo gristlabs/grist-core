@@ -236,6 +236,9 @@ BaseView.commonCommands = {
  * loading.
  */
 BaseView.prototype.setCursorPos = function(cursorPos) {
+  if (this.isDisposed()) {
+    return;
+  }
   if (!this._isLoading.peek()) {
     this.cursor.setCursorPos(cursorPos);
   } else {

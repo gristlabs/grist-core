@@ -14,6 +14,14 @@ export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour')
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 
+export type ViewDocPage = number | 'data';
+/**
+ * ViewDocPage is a page that shows table data (either normal or raw data view).
+ */
+export function isViewDocPage(docPage: IDocPage): docPage is ViewDocPage {
+  return typeof docPage === 'number' || docPage === 'data';
+}
+
 // What page to show in the user's home area. Defaults to 'workspace' if a workspace is set, and
 // to 'all' otherwise.
 export const HomePage = StringUnion('all', 'workspace', 'templates', 'trash');

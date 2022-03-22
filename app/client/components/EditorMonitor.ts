@@ -1,8 +1,11 @@
-import { getStorage } from "app/client/lib/localStorageObs";
-import { Disposable, Emitter, Holder, IDisposableOwner } from "grainjs";
-import { GristDoc } from "app/client/components/GristDoc";
-import { FieldEditor, FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
-import { CellPosition, toCursor } from "app/client/components/CellPosition";
+import {CellPosition, toCursor} from 'app/client/components/CellPosition';
+import {oneTimeListener} from 'app/client/components/CursorMonitor';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {getStorage} from 'app/client/lib/localStorageObs';
+import {UserError} from 'app/client/models/errors';
+import {FieldEditor, FieldEditorStateEvent} from 'app/client/widgets/FieldEditor';
+import {isViewDocPage} from 'app/common/gristUrls';
+import {Disposable, Emitter, IDisposableOwner} from 'grainjs';
 
 /**
  * Feature for GristDoc that allows it to keep track of current editor's state.
@@ -12,9 +15,7 @@ export class EditorMonitor extends Disposable {
 
   // abstraction to work with local storage
   private _store: EditMemoryStorage;
-  // Holds a listener that is attached to the current view.
-  // It will be cleared after first trigger.
-  private _currentViewListener = Holder.create(this);
+  private _restored = false;
 
   constructor(
     doc: GristDoc,
@@ -28,7 +29,14 @@ export class EditorMonitor extends Disposable {
     this._store = new EditMemoryStorage(key, store);
 
     // listen to document events to handle view load event
-    this._listenToReload(doc);
+    this._listenToReload(doc).catch((err) => {
+      if (!(err instanceof UserError)) {
+        throw err;
+      }
+      // Don't report UserErrors for this feature (should not happen as
+      // the only error that is thrown was silenced by recursiveMoveToCursorPos)
+      console.error(`Error while restoring last edit position`, err);
+    });
   }
 
   /**
@@ -56,38 +64,36 @@ export class EditorMonitor extends Disposable {
    * When document gets reloaded, restore last cursor position and a state of the editor.
    * Returns last edited cell position and saved editor state or undefined.
    */
-  private _listenToReload(doc: GristDoc) {
-    // subscribe to the current view event on the GristDoc, but make sure that the handler
-    // will be invoked only once
-    let executed = false;
-
+  private async _listenToReload(doc: GristDoc) {
     // don't restore on readonly mode or when there is custom nav
     if (doc.isReadonly.get() || doc.hasCustomNav.get()) { return; }
-
-    // on view shown
-    this._currentViewListener.autoDispose(doc.currentView.addListener(async view => {
-      if (executed) {
-        // remove the listener - we can't do it while the listener is actively executing
-        setImmediate(() => this._currentViewListener.clear());
-        return;
-      }
-      executed = true;
-      // if view wasn't rendered (page is displaying history or code view) do nothing
-      if (!view) { return; }
-      const lastEdit = this._restorePosition();
-      if (lastEdit) {
-        // set the cursor at right cell
-        await doc.recursiveMoveToCursorPos(toCursor(lastEdit.position, doc.docModel), true);
-        // activate the editor
-        await doc.activateEditorAtCursor({ state: lastEdit.value });
-      }
-    }));
+    // if we are on raw data view, we need to set the position manually
+    // as currentView observable will not be changed.
+    if (doc.activeViewId.get() === 'data') {
+      await this._doRestorePosition(doc);
+    } else {
+      // on view shown
+      this.autoDispose(oneTimeListener(doc.currentView, async () => {
+        await this._doRestorePosition(doc);
+      }));
+    }
   }
 
-  // read the value from the storage
-  private _restorePosition() {
-    const entry = this._store.readValue();
-    return entry;
+  private async _doRestorePosition(doc: GristDoc) {
+    if (this._restored) {
+      return;
+    }
+    this._restored = true;
+    const viewId = doc.activeViewId.get();
+    // if view wasn't rendered (page is displaying history or code view) do nothing
+    if (!isViewDocPage(viewId)) { return; }
+    const lastEdit = this._store.readValue();
+    if (lastEdit) {
+      // set the cursor at right cell
+      await doc.recursiveMoveToCursorPos(toCursor(lastEdit.position, doc.docModel), true, true);
+      // activate the editor
+      await doc.activateEditorAtCursor({ state: lastEdit.value });
+    }
   }
 }
 

@@ -2045,6 +2045,23 @@ export async function filterBy(col: IColHeader|string, save: boolean, values: (s
   await waitForServer();
 }
 
+/**
+ * Refresh browser and dismiss alert that is shown (for refreshing during edits).
+ */
+export async function refreshDismiss() {
+  await driver.navigate().refresh();
+  await (await driver.switchTo().alert()).accept();
+  await waitForDocToLoad();
+}
+
+/**
+ * Confirms that anchor link was used for navigation.
+ */
+export async function waitForAnchor() {
+  await waitForDocToLoad();
+  await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

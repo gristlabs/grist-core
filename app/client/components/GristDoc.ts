@@ -54,7 +54,7 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {isList, isRefListType, RecalcWhen} from 'app/common/gristTypes';
-import {HashLink, IDocPage, SpecialDocPage} from 'app/common/gristUrls';
+import {HashLink, IDocPage, isViewDocPage, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
@@ -243,7 +243,6 @@ export class GristDoc extends DisposableWithEvents {
         tourStarting = true;
         try {
           await this._waitForView();
-          await delay(0); // we need to wait an extra bit.
 
           // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
           // #repeat-doc-tour are used as triggers, but will immediately disappear.
@@ -326,12 +325,13 @@ export class GristDoc extends DisposableWithEvents {
       const section = use(this.viewModel.activeSection);
       const viewId = use(activeViewId);
       const view = use(section.viewInstance);
-      return (typeof viewId === 'number') ? view : null;
+      return isViewDocPage(viewId) ? view : null;
     });
     // then listen if the view is present, because we still need to wait for it load properly
     this.autoDispose(viewInstance.addListener(async (view) => {
-      if (!view) { return; }
-      await view.getLoadingDonePromise();
+      if (view) {
+        await view.getLoadingDonePromise();
+      }
       // finally set the current view as fully loaded
       this.currentView.set(view);
     }));
@@ -343,7 +343,7 @@ export class GristDoc extends DisposableWithEvents {
       if (!view) { return undefined; }
       // get current viewId
       const viewId = use(this.activeViewId);
-      if (typeof viewId != 'number') { return undefined; }
+      if (!isViewDocPage(viewId)) { return undefined; }
       // read latest position
       const currentPosition = use(view.cursor.currentPosition);
       if (currentPosition) { return { ...currentPosition, viewId }; }
@@ -737,7 +737,10 @@ export class GristDoc extends DisposableWithEvents {
    * If setAsActiveSection is true, the section in cursorPos is set as the current
    * active section.
    */
-  public async recursiveMoveToCursorPos(cursorPos: CursorPos, setAsActiveSection: boolean): Promise<void> {
+  public async recursiveMoveToCursorPos(
+    cursorPos: CursorPos,
+    setAsActiveSection: boolean,
+    silent: boolean = false): Promise<void> {
     try {
       if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
       if (!cursorPos.rowId) { throw new Error('rowId required'); }
@@ -785,12 +788,12 @@ export class GristDoc extends DisposableWithEvents {
         if (!srcRowId || typeof srcRowId !== 'number') { throw new Error('cannot trace rowId'); }
         await this.recursiveMoveToCursorPos({
           rowId: srcRowId,
-          sectionId: srcSection.id.peek()
-        }, false);
+          sectionId: srcSection.id.peek(),
+        }, false, silent);
       }
       const view: ViewRec = section.view.peek();
-      const viewId = view.getRowId();
-      if (viewId != this.activeViewId.get()) { await this.openDocPage(view.getRowId()); }
+      const docPage: ViewDocPage = section.isRaw.peek() ? "data" : view.getRowId();
+      if (docPage != this.activeViewId.get()) { await this.openDocPage(docPage); }
       if (setAsActiveSection) { view.activeSectionId(cursorPos.sectionId); }
       const fieldIndex = cursorPos.fieldIndex;
       const viewInstance = await waitObs(section.viewInstance);
@@ -807,7 +810,9 @@ export class GristDoc extends DisposableWithEvents {
       await delay(0);
     } catch (e) {
       console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
-      throw new UserError('There was a problem finding the desired cell.');
+      if (!silent) {
+        throw new UserError('There was a problem finding the desired cell.');
+      }
     }
   }
 
@@ -826,10 +831,15 @@ export class GristDoc extends DisposableWithEvents {
   private async _waitForView() {
     // For pages like ACL's, there isn't a view instance to wait for.
     if (!this.viewModel.activeSection.peek().getRowId()) {
-      return;
+      return null;
     }
     const view = await waitObs(this.viewModel.activeSection.peek().viewInstance);
-    await view?.getLoadingDonePromise();
+    if (!view) {
+      return null;
+    }
+    await view.getLoadingDonePromise();
+    // Wait extra bit for scroll to happen.
+    await delay(0);
     return view;
   }
 

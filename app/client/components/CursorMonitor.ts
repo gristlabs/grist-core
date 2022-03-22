@@ -1,13 +1,14 @@
 import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {getStorage} from 'app/client/lib/localStorageObs';
-import {IDocPage} from 'app/common/gristUrls';
-import {Disposable} from 'grainjs';
+import {IDocPage, isViewDocPage, ViewDocPage} from 'app/common/gristUrls';
+import {Disposable, Listener, Observable} from 'grainjs';
+import {reportError} from 'app/client/models/errors';
 
 /**
  * Enriched cursor position with a view id
  */
-export type ViewCursorPos = CursorPos & { viewId: number }
+export type ViewCursorPos = CursorPos & { viewId: ViewDocPage }
 
 /**
  * Component for GristDoc that allows it to keep track of the latest cursor position.
@@ -65,27 +66,38 @@ export class CursorMonitor extends Disposable {
       return;
     }
 
+    // if we are on raw data view, we need to set the position manually
+    // as currentView observable will not be changed.
+    if (doc.activeViewId.get() === 'data') {
+      this._doRestorePosition(doc).catch((e) => reportError(e));
+      return;
+    }
+
     // on view shown
-    this.autoDispose(doc.currentView.addListener(async view => {
-      // if the position was restored for this document do nothing
-      if (this._restored) { return; }
-      // set that we already restored the position, as some view is shown to the user
-      this._restored = true;
-      // if view wasn't rendered (page is displaying history or code view) do nothing
-      if (!view) { return; }
-      const viewId = doc.activeViewId.get();
-      const position = this._restoreLastPosition(viewId);
-      if (position) {
-        await doc.recursiveMoveToCursorPos(position, true);
-      }
+    this.autoDispose(oneTimeListener(doc.currentView, async () => {
+      await this._doRestorePosition(doc);
     }));
+  }
+
+  private async _doRestorePosition(doc: GristDoc) {
+    // if the position was restored for this document do nothing
+    if (this._restored) { return; }
+    // set that we already restored the position, as some view is shown to the user
+    this._restored = true;
+    const viewId = doc.activeViewId.get();
+    if (!isViewDocPage(viewId)) { return; }
+    const position = this._readPosition(viewId);
+    if (position) {
+      // Ignore error with finding desired cell.
+      await doc.recursiveMoveToCursorPos(position, true, true);
+    }
   }
 
   private _storePosition(pos: ViewCursorPos) {
     this._store.update(this._key, pos);
   }
 
-  private _restoreLastPosition(view: IDocPage) {
+  private _readPosition(view: IDocPage) {
     const lastPosition = this._store.read(this._key);
     this._store.clear(this._key);
     if (lastPosition && lastPosition.position.viewId == view) {
@@ -127,4 +139,18 @@ class StorageWrapper {
   protected _key(docId: string) {
     return `grist-last-position-${docId}`;
   }
+}
+
+export function oneTimeListener<T>(obs: Observable<T>, handler: (value: T) => any) {
+  let listener: Listener|null = obs.addListener((value) => {
+    setImmediate(dispose);
+    handler(value);
+  });
+  function dispose() {
+    if (listener) {
+      listener.dispose();
+      listener = null;
+    }
+  }
+  return { dispose };
 }
