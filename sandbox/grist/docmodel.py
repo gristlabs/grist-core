@@ -12,6 +12,7 @@ import six
 import records
 import usertypes
 import relabeling
+import lookup
 import table
 import moment
 from schema import RecalcWhen
@@ -23,6 +24,14 @@ def _record_set(table_id, group_by, sort_by=None):
   def func(rec, table):
     lookup_table = table.docmodel.get_table(table_id)
     return lookup_table.lookupRecords(sort_by=sort_by, **{group_by: rec.id})
+  return func
+
+
+def _record_ref_list_set(table_id, group_by, sort_by=None):
+  @usertypes.formulaType(usertypes.ReferenceList(table_id))
+  def func(rec, table):
+    lookup_table = table.docmodel.get_table(table_id)
+    return lookup_table.lookupRecords(sort_by=sort_by, **{group_by: lookup._Contains(rec.id)})
   return func
 
 
@@ -73,6 +82,8 @@ class MetaTableExtras(object):
     summaryGroupByColumns = _record_set('_grist_Tables_column', 'summarySourceCol')
     usedByCols = _record_set('_grist_Tables_column', 'displayCol')
     usedByFields = _record_set('_grist_Views_section_field', 'displayCol')
+    ruleUsedByCols = _record_ref_list_set('_grist_Tables_column', 'rules')
+    ruleUsedByFields = _record_ref_list_set('_grist_Views_section_field', 'rules')
 
     def tableId(rec, table):
       return rec.parentId.tableId
@@ -83,6 +94,12 @@ class MetaTableExtras(object):
       """
       return len(rec.usedByCols) + len(rec.usedByFields)
 
+    def numRuleColUsers(rec, table):
+      """
+      Returns the number of cols and fields using this col as a rule col
+      """
+      return len(rec.ruleUsedByCols) + len(rec.ruleUsedByFields)
+
     def recalcOnChangesToSelf(rec, table):
       """
       Whether the column is a trigger-formula column that depends on itself, used for
@@ -91,9 +108,10 @@ class MetaTableExtras(object):
       return rec.recalcWhen == RecalcWhen.DEFAULT and rec.id in rec.recalcDeps
 
     def setAutoRemove(rec, table):
-      """Marks the col for removal if it's a display helper col with no more users."""
-      table.docmodel.setAutoRemove(rec,
-        rec.colId.startswith('gristHelper_Display') and rec.numDisplayColUsers == 0)
+      """Marks the col for removal if it's a display/rule helper col with no more users."""
+      as_display = rec.colId.startswith('gristHelper_Display') and rec.numDisplayColUsers == 0
+      as_rule = rec.colId.startswith('gristHelper_Conditional') and rec.numRuleColUsers == 0
+      table.docmodel.setAutoRemove(rec, as_display or as_rule)
 
 
   class _grist_Views(object):

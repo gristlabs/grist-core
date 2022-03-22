@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 26
+SCHEMA_VERSION = 27
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -83,6 +83,8 @@ def schema_create_actions():
       # E.g. Foo.person may have a visibleCol pointing to People.Name, with the displayCol
       # pointing to Foo._gristHelper_DisplayX column with the formula "$person.Name".
       make_column("visibleCol",       "Ref:_grist_Tables_column"),
+      # Points to formula columns that hold conditional formatting rules.
+      make_column("rules",       "RefList:_grist_Tables_column"),
 
       # Instructions when to recalculate the formula on a column with isFormula=False (previously
       # known as a "default formula"). Values are RecalcWhen constants defined below.
@@ -206,6 +208,8 @@ def schema_create_actions():
       make_column("visibleCol",   "Ref:_grist_Tables_column"),
       # DEPRECATED: replaced with _grist_Filters in version 25. Do not remove or reuse.
       make_column("filter",       "Text"),
+      # Points to formula columns that hold conditional formatting rules for this field.
+      make_column("rules",       "RefList:_grist_Tables_column"),
     ]),
 
     # The code for all of the validation rules available to a Grist document

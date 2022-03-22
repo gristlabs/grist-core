@@ -8,13 +8,13 @@ import {textButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
+import {IconName} from 'app/client/ui2018/IconList';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
+import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
 import {sanitizeIdent} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-        Observable, styled, subscribe} from 'grainjs';
+        Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
-import debounce = require('lodash/debounce');
-import {IconName} from 'app/client/ui2018/IconList';
 
 export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, cursor: ko.Computed<CursorPos>) {
   const untieColId = origColumn.untieColIdFromLabel;
@@ -327,54 +327,7 @@ function buildFormula(
   );
 }
 
-/**
- * Create and return an observable for the count of errors in a column, which gets updated in
- * response to changes in origColumn and in user data.
- */
-function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, origColumn: ColumnRec) {
-  const errorMessage = Observable.create(owner, '');
-
-  // Count errors in origColumn when it's a formula column. Counts get cached by the
-  // tableData.countErrors() method, and invalidated on relevant data changes.
-  function countErrors() {
-    if (owner.isDisposed()) { return; }
-    const tableData = gristDoc.docData.getTable(origColumn.table.peek().tableId.peek());
-    const isFormula = origColumn.isRealFormula.peek() || origColumn.hasTriggerFormula.peek();
-    if (tableData && isFormula) {
-      const colId = origColumn.colId.peek();
-      const numCells = tableData.getColValues(colId)?.length || 0;
-      const numErrors = tableData.countErrors(colId) || 0;
-      errorMessage.set(
-        (numErrors === 0) ? '' :
-        (numCells === 1) ? `Error in the cell` :
-        (numErrors === numCells) ? `Errors in all ${numErrors} cells` :
-        `Errors in ${numErrors} of ${numCells} cells`
-      );
-    } else {
-      errorMessage.set('');
-    }
-  }
-
-  // Debounce the count calculation to defer it to the end of a bundle of actions.
-  const debouncedCountErrors = debounce(countErrors, 0);
-
-  // If there is an update to the data in the table, count errors again. Since the same UI is
-  // reused when different page widgets are selected, we need to re-create this subscription
-  // whenever the selected table changes. We use a Computed to both react to changes and dispose
-  // the previous subscription when it changes.
-  Computed.create(owner, (use) => {
-    const tableData = gristDoc.docData.getTable(use(use(origColumn.table).tableId));
-    return tableData ? use.owner.autoDispose(tableData.tableActionEmitter.addListener(debouncedCountErrors)) : null;
-  });
-
-  // The counts depend on the origColumn and its isRealFormula status, but with the debounced
-  // callback and subscription to data, subscribe to relevant changes manually (rather than using
-  // a Computed).
-  owner.autoDispose(subscribe(use => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
-  return errorMessage;
-}
-
-const cssFieldFormula = styled(buildHighlightedCode, `
+export const cssFieldFormula = styled(buildHighlightedCode, `
   flex: auto;
   cursor: pointer;
   margin-top: 4px;
@@ -428,8 +381,4 @@ const cssColTieConnectors = styled('div', `
   left: 0px;
   border-left: none;
   z-index: -1;
-`);
-
-const cssError = styled('div', `
-  color: ${colors.error};
 `);

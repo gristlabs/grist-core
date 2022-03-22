@@ -898,3 +898,11 @@ def migration26(tdset):
     new_view_section_id += 1
 
   return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=27)
+def migration27(tdset):
+  return tdset.apply_doc_actions([
+    add_column('_grist_Tables_column', 'rules', 'RefList:_grist_Tables_column'),
+    add_column('_grist_Views_section_field', 'rules', 'RefList:_grist_Tables_column'),
+  ])

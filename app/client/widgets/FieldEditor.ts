@@ -3,17 +3,15 @@ import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {DataRowModel} from 'app/client/models/DataRowModel';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
-import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
+import {FormulaEditor, getFormulaError} from 'app/client/widgets/FormulaEditor';
 import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
-import {isRaisedException} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {Disposable, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
+import {Disposable, Emitter, Holder, MultiHolder} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 import {CellPosition} from "app/client/components/CellPosition";
 
@@ -372,73 +370,6 @@ export class FieldEditor extends Disposable {
   }
 }
 
-/**
- * Open a formula editor. Returns a Disposable that owns the editor.
- */
-export function openFormulaEditor(options: {
-  gristDoc: GristDoc,
-  field: ViewFieldRec,
-  // Needed to get exception value, if any.
-  editRow?: DataRowModel,
-  // Element over which to position the editor.
-  refElem: Element,
-  editValue?: string,
-  onSave?: (column: ColumnRec, formula: string) => Promise<void>,
-  onCancel?: () => void,
-  // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
-  setupCleanup: (
-    owner: MultiHolder,
-    doc: GristDoc,
-    field: ViewFieldRec,
-    save: () => Promise<void>
-  ) => void,
-}): Disposable {
-  const {gristDoc, field, editRow, refElem, setupCleanup} = options;
-  const holder = MultiHolder.create(null);
-  const column = field.column();
-
-  // AsyncOnce ensures it's called once even if triggered multiple times.
-  const saveEdit = asyncOnce(async () => {
-    const formula = editor.getCellValue();
-    if (options.onSave) {
-      await options.onSave(column, formula as string);
-    } else if (formula !== column.formula.peek()) {
-      await column.updateColValues({formula});
-    }
-    holder.dispose();
-  });
-
-  // These are the commands for while the editor is active.
-  const editCommands = {
-    fieldEditSave: () => { saveEdit().catch(reportError); },
-    fieldEditSaveHere: () => { saveEdit().catch(reportError); },
-    fieldEditCancel: () => { holder.dispose(); options.onCancel?.(); },
-  };
-
-  // Replace the item in the Holder with a new one, disposing the previous one.
-  const editor = FormulaEditor.create(holder, {
-    gristDoc,
-    field,
-    cellValue: column.formula(),
-    formulaError: editRow ? getFormulaError(gristDoc, editRow, column) : undefined,
-    editValue: options.editValue,
-    cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
-    commands: editCommands,
-    cssClass: 'formula_editor_sidepane',
-    readonly : false
-  });
-  editor.attach(refElem);
-
-  // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
-  // This function is used for primarily for switching between different column behaviors, so we want to enter full
-  // edit mode right away.
-  // TODO: consider converting it to parameter, when this will be used in different scenarios.
-  if (!column.formula()) {
-    field.editingFormula(true);
-  }
-  setupCleanup(holder, gristDoc, field, saveEdit);
-  return holder;
-}
 
 /**
  * For an readonly editor, set up its cleanup:
@@ -478,26 +409,4 @@ export function setupEditorCleanup(
     // Unset field.editingFormula flag when the editor closes.
     field.editingFormula(false);
   });
-}
-
-/**
- * If the cell at the given row and column is a formula value containing an exception, return an
- * observable with this exception, and fetch more details to add to the observable.
- */
-function getFormulaError(
-  gristDoc: GristDoc, editRow: DataRowModel, column: ColumnRec
-): Observable<CellValue>|undefined {
-  const colId = column.colId.peek();
-  const cellCurrentValue = editRow.cells[colId].peek();
-  const isFormula = column.isFormula() || column.hasTriggerFormula();
-  if (isFormula && isRaisedException(cellCurrentValue)) {
-    const formulaError = Observable.create(null, cellCurrentValue);
-    gristDoc.docData.getFormulaError(column.table().tableId(), colId, editRow.getRowId())
-      .then(value => {
-        formulaError.set(value);
-      })
-      .catch(reportError);
-    return formulaError;
-  }
-  return undefined;
 }

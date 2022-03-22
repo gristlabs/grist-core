@@ -13,13 +13,16 @@ import { reportError } from 'app/client/models/AppModel';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
 import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
+import { CombinedStyle, Style } from 'app/client/models/Styles';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanel';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { colors } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
-import { FieldEditor, openFormulaEditor, saveWithoutEditor, setupEditorCleanup } from 'app/client/widgets/FieldEditor';
+import { FieldEditor, saveWithoutEditor, setupEditorCleanup } from 'app/client/widgets/FieldEditor';
+import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import * as UserType from 'app/client/widgets/UserType';
@@ -337,7 +340,8 @@ export class FieldBuilder extends Disposable {
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
         dom('div',
             widget.buildConfigDom(),
-            widget.buildColorConfigDom(),
+            cssSeparator(),
+            widget.buildColorConfigDom(this.gristDoc),
 
             // If there is more than one field for this column (i.e. present in multiple views).
             kd.maybe(() => this.origColumn.viewFields().all().length > 1, () =>
@@ -414,6 +418,35 @@ export class FieldBuilder extends Disposable {
    *  buildEditorDom functions of its widgetImpl.
    */
   public buildDomWithCursor(row: DataRowModel, isActive: boolean, isSelected: boolean) {
+    const computedFlags = koUtil.withKoUtils(ko.pureComputed(() => {
+      return this.field.rulesColsIds().map(colRef => row.cells[colRef]?.() ?? false);
+    }, this).extend({ deferred: true }));
+    // Here we are using computedWithPrevious helper, to return
+    // the previous value of computed rule. When user adds or deletes
+    // rules there is a brief moment that rule is still not evaluated
+    // (rules.length != value.length), in this case return last value
+    // and wait for the update.
+    const computedRule = koUtil.withKoUtils(ko.pureComputed(() => {
+      if (this.isDisposed()) { return null; }
+      const styles: Style[] = this.field.rulesStyles();
+      // Make sure that rules where computed.
+      if (!Array.isArray(styles) || styles.length === 0) { return null; }
+      const flags = computedFlags();
+      // Make extra sure that all rules are up to date.
+      // If not, fallback to the previous value.
+      // We need to make sure that all rules columns are created,
+      // sometimes there are more styles for a brief moment.
+      if (styles.length < flags.length) { return/* undefined */; }
+      // We will combine error information in the same computed value.
+      // If there is an error in rules - return it instead of the style.
+      const error = flags.some(f => !gristTypes.isValidRuleValue(f));
+      if (error) {
+        return { error };
+      }
+      // Combine them into a single style option.
+      return { style : new CombinedStyle(styles, flags) };
+    }, this).extend({ deferred: true })).previousOnUndefined();
+
     const widgetObs = koUtil.withKoUtils(ko.computed(function() {
       // TODO: Accessing row values like this doesn't always work (row and field might not be updated
       // simultaneously).
@@ -429,11 +462,29 @@ export class FieldBuilder extends Disposable {
       }
     }, this).extend({ deferred: true })).onlyNotifyUnequal();
 
+    const textColor = koUtil.withKoUtils(ko.computed(function() {
+      if (this.isDisposed()) { return null; }
+      const fromRules = computedRule()?.style?.textColor;
+      return fromRules || this.field.textColor() || '';
+    }, this)).onlyNotifyUnequal();
+
+    const background = koUtil.withKoUtils(ko.computed(function() {
+      if (this.isDisposed()) { return null; }
+      const fromRules = computedRule()?.style?.fillColor;
+      return fromRules || this.field.fillColor();
+    }, this)).onlyNotifyUnequal();
+
+    const errorInStyle = ko.pureComputed(() => Boolean(computedRule()?.error));
 
     return (elem: Element) => {
       this._rowMap.set(row, elem);
       dom(elem,
           dom.autoDispose(widgetObs),
+          dom.autoDispose(computedFlags),
+          dom.autoDispose(errorInStyle),
+          dom.autoDispose(textColor),
+          dom.autoDispose(computedRule),
+          dom.autoDispose(background),
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
@@ -443,8 +494,9 @@ export class FieldBuilder extends Disposable {
             if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
             const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
             return dom(cellDom, kd.toggleClass('has_cursor', isActive),
-                       kd.style('--grist-cell-color', () => this.field.textColor() || ''),
-                       kd.style('--grist-cell-background-color', this.field.fillColor));
+                       kd.toggleClass('field-error-from-style', errorInStyle),
+                       kd.style('--grist-cell-color', textColor),
+                       kd.style('--grist-cell-background-color', background));
           })
          );
     };
@@ -546,4 +598,9 @@ export class FieldBuilder extends Disposable {
 
 const cssTypeSelectMenu = styled('div', `
   max-height: 500px;
+`);
+
+const cssSeparator = styled('div', `
+  border-bottom: 1px solid ${colors.mediumGrey};
+  margin-top: 16px;
 `);

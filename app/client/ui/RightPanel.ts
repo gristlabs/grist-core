@@ -599,7 +599,7 @@ export const cssButtonRow = styled(cssRow, `
 
 export const cssIcon = styled(icon, `
   flex: 0 0 auto;
-  background-color: ${colors.slate};
+  --icon-color: ${colors.slate};
 `);
 
 const cssTopBarItem = styled('div', `

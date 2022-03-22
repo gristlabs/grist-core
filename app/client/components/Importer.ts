@@ -21,7 +21,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {openFormulaEditor} from 'app/client/widgets/FieldEditor';
+import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {DataSourceTransformed, DestId, ImportResult, ImportTableResult, MergeOptions,
         MergeOptionsMap, MergeStrategy, NEW_TABLE, SKIP_TABLE,
         TransformColumn, TransformRule, TransformRuleMap} from 'app/common/ActiveDocAPI';

@@ -13,14 +13,14 @@ import { defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popwea
  * native color picker. Pressing Escape reverts to the saved value. Caller is expected to handle
  * logging of onSave() callback rejection. In case of rejection, values are reverted to their saved one.
  */
-export function colorSelect(textColor: Observable<string>, fillColor: Observable<string>,
-                            onSave: () => Promise<void>): Element {
+export function colorSelect(textColor: Observable<string|undefined>, fillColor: Observable<string|undefined>,
+                            onSave: () => Promise<void>, allowNone = false): Element {
   const selectBtn = cssSelectBtn(
     cssContent(
       cssButtonIcon(
         'T',
-        dom.style('color', textColor),
-        dom.style('background-color', (use) => use(fillColor).slice(0, 7)),
+        dom.style('color', use => use(textColor) || ''),
+        dom.style('background-color', (use) => use(fillColor)?.slice(0, 7) || ''),
         cssLightBorder.cls(''),
         testId('btn-icon'),
       ),
@@ -30,21 +30,21 @@ export function colorSelect(textColor: Observable<string>, fillColor: Observable
     testId('color-select'),
   );
 
-  const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, textColor, fillColor, onSave);
+  const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, textColor, fillColor, onSave, allowNone);
   setPopupToCreateDom(selectBtn, domCreator, {...defaultMenuOptions, placement: 'bottom-end'});
 
   return selectBtn;
 }
 
-export function colorButton(textColor: Observable<string>, fillColor: Observable<string>,
+export function colorButton(textColor: Observable<string|undefined>, fillColor: Observable<string|undefined>,
   onSave: () => Promise<void>): Element {
   const iconBtn = cssIconBtn(
     icon(
       'Dropdown',
-      dom.style('background-color', textColor),
+      dom.style('background-color', use => use(textColor) || ''),
       testId('color-button-dropdown')
     ),
-    dom.style('background-color', (use) => use(fillColor).slice(0, 7)),
+    dom.style('background-color', (use) => use(fillColor)?.slice(0, 7) || ''),
     dom.on('click', (e) => { e.stopPropagation(); e.preventDefault(); }),
     testId('color-button'),
   );
@@ -55,8 +55,10 @@ export function colorButton(textColor: Observable<string>, fillColor: Observable
   return iconBtn;
 }
 
-function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, fillColor: Observable<string>,
-                          onSave: () => Promise<void>): Element {
+function buildColorPicker(ctl: IOpenController, textColor: Observable<string|undefined>,
+                          fillColor: Observable<string|undefined>,
+                          onSave: () => Promise<void>,
+                          allowNone = false): Element {
   const textColorModel = PickerModel.create(null, textColor);
   const fillColorModel = PickerModel.create(null, fillColor);
 
@@ -83,8 +85,8 @@ function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, f
 
   const colorSquare = (...args: DomArg[]) => cssColorSquare(
     ...args,
-    dom.style('color', textColor),
-    dom.style('background-color', fillColor),
+    dom.style('color', use => use(textColor) || ''),
+    dom.style('background-color', use => use(fillColor) || ''),
     cssLightBorder.cls(''),
   );
 
@@ -92,13 +94,15 @@ function buildColorPicker(ctl: IOpenController, textColor: Observable<string>, f
     dom.create(PickerComponent, fillColorModel, {
       colorSquare: colorSquare(),
       title: 'fill',
-      defaultMode: 'lighter'
+      defaultMode: 'lighter',
+      allowNone
     }),
     cssVSpacer(),
     dom.create(PickerComponent, textColorModel, {
       colorSquare: colorSquare('T'),
       title: 'text',
-      defaultMode: 'darker'
+      defaultMode: 'darker',
+      allowNone
     }),
 
     // gives focus and binds keydown events
@@ -118,6 +122,7 @@ interface PickerComponentOptions {
   colorSquare: Element;
   title: string;
   defaultMode: 'darker'|'lighter';
+  allowNone?: boolean;
 }
 
 // PickerModel is a helper model that helps keep track of the server value for an observable that
@@ -127,7 +132,7 @@ interface PickerComponentOptions {
 class PickerModel extends Disposable {
   private _serverValue = this.obs.get();
   private _localChange: boolean = false;
-  constructor(public obs: Observable<string>) {
+  constructor(public obs: Observable<string|undefined>) {
     super();
     this.autoDispose(this.obs.addListener((val) => {
       if (this._localChange) { return; }
@@ -136,7 +141,7 @@ class PickerModel extends Disposable {
   }
 
   // Set the value picked by the user
-  public setValue(val: string) {
+  public setValue(val: string|undefined) {
     this._localChange = true;
     this.obs.set(val);
     this._localChange = false;
@@ -155,7 +160,7 @@ class PickerModel extends Disposable {
 
 class PickerComponent extends Disposable {
 
-  private _color = Computed.create(this, this._model.obs, (use, val) => val.toUpperCase().slice(0, 7));
+  private _color = Computed.create(this, this._model.obs, (use, val) => (val || '').toUpperCase().slice(0, 7));
   private _mode = Observable.create<'darker'|'lighter'>(this, this._guessMode());
 
   constructor(private _model: PickerModel, private _options: PickerComponentOptions) {
@@ -172,13 +177,17 @@ class PickerComponent extends Disposable {
             cssColorInput(
               {type: 'color'},
               dom.attr('value', this._color),
-              dom.on('input', (ev, elem) => this._setValue(elem.value)),
+              dom.on('input', (ev, elem) => this._setValue(elem.value || undefined)),
               testId(`${title}-input`),
             ),
           ),
           cssHexBox(
             this._color,
-            async (val) => { if (isValidHex(val)) { this._model.setValue(val); } },
+            async (val) => {
+              if ((this._options.allowNone && !val) || isValidHex(val)) {
+                this._model.setValue(val);
+              }
+            },
             testId(`${title}-hex`),
             // select the hex value on click. Doing it using settimeout allows to avoid some
             // sporadically losing the selection just after the click.
@@ -207,7 +216,15 @@ class PickerComponent extends Disposable {
             cssLightBorder.cls('', (use) => use(this._mode) === 'lighter'),
             cssColorSquare.cls('-selected', (use) => use(this._color) === color),
             dom.style('outline-color', (use) => use(this._mode) === 'lighter' ? '' : color),
-            dom.on('click', () => this._setValue(color)),
+            dom.on('click', () => {
+              // Clicking same color twice - removes the selection.
+              if (this._model.obs.get() === color &&
+                  this._options.allowNone) {
+                this._setValue(undefined);
+              } else {
+                this._setValue(color);
+              }
+            }),
             testId(`color-${color}`),
           )
         ))),
@@ -216,7 +233,7 @@ class PickerComponent extends Disposable {
     ];
   }
 
-  private _setValue(val: string) {
+  private _setValue(val: string|undefined) {
     this._model.setValue(val);
   }
 

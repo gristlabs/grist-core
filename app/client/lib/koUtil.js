@@ -63,6 +63,14 @@ ko.subscribable.fn.onlyNotifyUnequal = function() {
   return this;
 };
 
+/**
+ * Notifies only about distinct defined values. If the first value is undefined it will still be
+ * returned.
+ */
+ko.subscribable.fn.previousOnUndefined = function() {
+  this.equalityComparer = function(a, b) { return a === b || b === undefined; };
+  return this;
+};
 
 let _handlerFunc = (err) => {};
 let _origKoComputed = ko.computed;
@@ -73,8 +81,8 @@ let _origKoComputed = ko.computed;
  * evaluates successfully to its previous value (or _handlerFunc may rethrow the error).
  */
 function _wrapComputedRead(readFunc) {
+  let lastValue;
   return function() {
-    let lastValue;
     try {
       return (lastValue = readFunc.call(this));
     } catch (err) {

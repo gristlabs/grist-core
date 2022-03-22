@@ -30,6 +30,17 @@ def _get_colinfo_dict(col_info, with_id=False):
   return col_values
 
 
+def _copy_widget_options(options):
+  """Copies widgetOptions for a summary group-by column (omitting conditional formatting rules)"""
+  if not options:
+    return options
+  try:
+    options = json.loads(options)
+  except ValueError:
+    # widgetOptions are not always a valid json value (especially in tests)
+    return options
+  return json.dumps({k: v for k, v in options.items() if k != "rulesOptions"})
+
 # To generate code, we need to know for each summary table, what its source table is. It would be
 # easy if we had access to metadata records, but (at least for now) we generate all code based on
 # schema only. So we encode the source table name inside of the summary table name.
@@ -130,6 +141,7 @@ class SummaryActions(object):
                                               _get_colinfo_dict(ci, with_id=False))
         yield self.docmodel.columns.table.get_record(result['colRef'])
 
+
   def _get_or_create_summary(self, source_table, source_groupby_columns, formula_colinfo):
     """
     Finds a summary table or creates a new one, based on source_table, grouped by the columns
@@ -144,6 +156,7 @@ class SummaryActions(object):
         col=c,
         isFormula=False,
         formula='',
+        widgetOptions=_copy_widget_options(c.widgetOptions),
         type=summary_groupby_col_type(c.type)
       )
       for c in source_groupby_columns

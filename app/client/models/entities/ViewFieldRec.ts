@@ -1,6 +1,7 @@
-import {ColumnRec, DocModel, IRowModel, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import {formatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {Style} from 'app/client/models/Styles';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {BaseFormatter} from 'app/common/ValueFormatter';
@@ -68,6 +69,9 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   textColor: modelUtil.KoSaveableObservable<string|undefined>;
   fillColor: modelUtil.KoSaveableObservable<string>;
 
+  computedColor: ko.Computed<string|undefined>;
+  computedFill: ko.Computed<string>;
+
   documentSettings: ko.PureComputed<DocumentSettings>;
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according
@@ -80,6 +84,26 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   // (i.e. they aren't actually referenced but they exist in the visible column and are relevant to e.g. autocomplete)
   // `formatter` formats actual cell values, e.g. a whole list from the display column.
   formatter: ko.Computed<BaseFormatter>;
+
+  // Field can have a list of conditional styling rules. Each style is a combination of a formula and options
+  // that must by applied to a field. Style is persisted as a new hidden formula column and the list of such
+  // columns is stored as Reference List property ('rules') in a field or column.
+  // Rule for conditional style is a formula of the hidden column, style options are saved as JSON object in
+  // a styleOptions field (in that hidden formula column).
+
+  // If this field (or column) has a list of conditional styling rules.
+  hasRules: ko.Computed<boolean>;
+  // List of columns that are used as rules for conditional styles.
+  rulesCols: ko.Computed<ColumnRec[]>;
+  // List of columns ids that are used as rules for conditional styles.
+  rulesColsIds: ko.Computed<string[]>;
+  // List of styles used by conditional rules.
+  rulesStyles: modelUtil.KoSaveableObservable<Style[]>;
+
+  // Adds empty conditional style rule. Sets before sending to the server.
+  addEmptyRule(): Promise<void>;
+  // Removes one rule from the collection. Removes before sending update to the server.
+  removeRule(index: number): Promise<void>;
 
   createValueParser(): (value: string) => any;
 
@@ -211,7 +235,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // GridView, to avoid interfering with zebra stripes.
   this.fillColor = modelUtil.savingComputed({
     read: () => fillColorProp(),
-    write: (setter, val) => setter(fillColorProp, val.toUpperCase() === '#FFFFFF' ? '' : val),
+    write: (setter, val) => setter(fillColorProp, val?.toUpperCase() === '#FFFFFF' ? '' : (val ?? '')),
   });
 
   this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
@@ -230,5 +254,48 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       ]);
     };
     return docModel.docData.bundleActions("Update choices configuration", callback, actionOptions);
+  };
+
+  this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()));
+  this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
+  this.rulesStyles = modelUtil.fieldWithDefault(
+    this.widgetOptionsJson.prop("rulesOptions") as modelUtil.KoSaveableObservable<Style[]>,
+    []);
+  this.hasRules = ko.pureComputed(() => this.rulesCols().length > 0);
+
+  // Helper method to add an empty rule (either initial or additional one).
+  // Style options are added to widget options directly and can be briefly out of sync,
+  // which is taken into account during rendering.
+  this.addEmptyRule = async () => {
+    const useCol = this.useColOptions.peek();
+    const action = [
+      'AddEmptyRule',
+      this.column.peek().table.peek().tableId.peek(),
+      useCol ? 0 : this.id.peek(), // field_ref
+      useCol ? this.column.peek().id.peek() : 0, // col_ref
+    ];
+    await docModel.docData.sendAction(action, `Update rules for ${this.colId.peek()}`);
+  };
+
+  // Helper method to remove a rule.
+  this.removeRule = async (index: number) => {
+    const col = this.rulesCols.peek()[index];
+    if (!col) {
+      throw new Error(`There is no rule at index ${index}`);
+    }
+    const tableData = docModel.dataTables[col.table.peek().tableId.peek()].tableData;
+    const newStyles = this.rulesStyles.peek().slice();
+    if (newStyles.length >= index) {
+      newStyles.splice(index, 1);
+    } else {
+      console.debug(`There are not style options at index ${index}`);
+    }
+    const callback = () =>
+      Promise.all([
+        this.rulesStyles.setAndSave(newStyles),
+        tableData.sendTableAction(['RemoveColumn', col.colId.peek()])
+      ]);
+    const actionOptions = {nestInActiveBundle: this.column.peek().isTransforming.peek()};
+    await docModel.docData.bundleActions("Remove conditional rule", callback, actionOptions);
   };
 }

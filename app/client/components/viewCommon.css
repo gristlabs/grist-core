@@ -75,7 +75,7 @@
   color: var(--grist-actual-cell-color, black);
 }
 
-.field_clip.invalid {
+.field_clip.invalid, .field_clip.field-error-from-style {
   background-color: #ffb6c1;
   color: black;
 }

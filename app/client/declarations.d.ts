@@ -303,6 +303,7 @@ declare module "app/client/models/DataTableModel" {
 declare module "app/client/lib/koUtil" {
   export interface ComputedWithKoUtils<T> extends ko.Computed<T> {
     onlyNotifyUnequal(): this;
+    previousOnUndefined(): this;
   }
   export interface ObservableWithKoUtils<T> extends ko.Observable<T> {
     assign(value: unknown): this;

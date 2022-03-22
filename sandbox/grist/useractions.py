@@ -183,7 +183,8 @@ def allowed_summary_change(key, updated, original):
   """
   Checks if summary group by column can be modified.
   """
-  if updated == original:
+  # Conditional styles are allowed
+  if updated == original or key == 'rules':
     return True
   elif key == 'widgetOptions':
     try:
@@ -196,7 +197,8 @@ def allowed_summary_change(key, updated, original):
     # TODO: move choice items to separate column
     allowed_to_change = {'widget', 'dateFormat', 'timeFormat', 'isCustomDateFormat', 'alignment',
                          'fillColor', 'textColor', 'isCustomTimeFormat', 'isCustomDateFormat',
-                         'numMode', 'numSign', 'decimals', 'maxDecimals', 'currency'}
+                         'numMode', 'numSign', 'decimals', 'maxDecimals', 'currency',
+                         'rulesOptions'}
     # Helper function to remove protected keys from dictionary.
     def trim(options):
       return {k: v for k, v in options.items() if k not in allowed_to_change}
@@ -1040,20 +1042,32 @@ class UserActions(object):
         re_sort_specs.append(json.dumps(updated_sort))
     self._docmodel.update(re_sort_sections, sortColRefs=re_sort_specs)
 
+    more_removals = set()
+    # Remove all rules columns genereted for view fields for all removed columns.
+    # Those columns would be auto-removed but we will remove them immediately to
+    # avoid any recalculations.
+    more_removals.update([rule for col in col_recs
+                               for field in col.viewFields
+                               for rule in field.rules])
+
     # Remove all view fields for all removed columns.
     # Bypass the check for raw data view sections.
     field_ids = [f.id for c in col_recs for f in c.viewFields]
+
     self.doBulkRemoveRecord("_grist_Views_section_field", field_ids)
 
     # If there is a displayCol, it may get auto-removed, but may first produce calc actions
     # triggered by the removal of this column. To avoid those, remove displayCols immediately.
     # Also remove displayCol for any columns or fields that use this col as their visibleCol.
-    more_removals = set()
     more_removals.update([c.displayCol for c in col_recs],
                          [vc.displayCol for c in col_recs
                           for vc in self._docmodel.columns.lookupRecords(visibleCol=c.id)],
                          [vf.displayCol for c in col_recs
                           for vf in self._docmodel.view_fields.lookupRecords(visibleCol=c.id)])
+
+    # Remove also all autogenereted formula columns for conditional styles.
+    more_removals.update([rule for col in col_recs
+                          for rule in col.rules])
 
     # Add any extra removals after removing the requested columns in the requested order.
     orig_removals = set(col_recs)
@@ -1497,6 +1511,32 @@ class UserActions(object):
         values.append(json.dumps(new_filter))
     if row_ids:
       self.BulkUpdateRecord('_grist_Filters', row_ids, {"filter": values})
+
+
+  @useraction
+  def AddEmptyRule(self, table_id, field_ref, col_ref):
+    """
+    Adds empty conditional style rule to a field or column.
+    """
+    assert table_id, "table_id is required"
+    assert field_ref or col_ref, "field_ref or col_ref is required"
+    assert not field_ref or not col_ref, "can't set both field_ref and col_ref"
+
+    if field_ref:
+      field_or_col = self._docmodel.view_fields.table.get_record(field_ref)
+    else:
+      field_or_col = self._docmodel.columns.table.get_record(col_ref)
+
+    col_info = self.AddHiddenColumn(table_id, 'gristHelper_ConditionalRule', {
+      "type": "Any",
+      "isFormula": True,
+      "formula": ''
+    })
+    new_rule = col_info['colRef']
+    existing_rules = field_or_col.rules._get_encodable_row_ids() if field_or_col.rules else []
+    updated_rules = existing_rules + [new_rule]
+    self._docmodel.update([field_or_col], rules=[encode_object(updated_rules)])
+
 
   #----------------------------------------
   # User actions on tables.

@@ -36,6 +36,8 @@ import {createValidationRec, ValidationRec} from 'app/client/models/entities/Val
 import {createViewFieldRec, ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {createViewRec, ViewRec} from 'app/client/models/entities/ViewRec';
 import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
+import {GristObjCode} from 'app/plugin/GristData';
+import {decodeObject} from 'app/plugin/objtypes';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -93,6 +95,24 @@ export function refRecord<TRow extends MetaRowModel>(
 ): ko.Computed<TRow> {
   // Pass 'true' to getRowModel() to depend on the row version.
   return ko.pureComputed(() => tableModel.getRowModel(rowIdObs() || 0, true));
+}
+
+type RefListValue = [GristObjCode.List, ...number[]]|null;
+/**
+ * Returns an observable with a list of records from another table, selected using RefList column.
+ * @param {TableModel} tableModel: The model for the table to return a record from.
+ * @param {ko.observable} rowsIdObs: An observable with a RefList value.
+ */
+export function refListRecords<TRow extends MetaRowModel>(
+  tableModel: MetaTableModel<TRow>, rowsIdObs: ko.Observable<RefListValue>|ko.Computed<RefListValue>
+) {
+  return ko.pureComputed(() => {
+    const ids = decodeObject(rowsIdObs()) as number[]|null;
+    if (!Array.isArray(ids)) {
+      return [];
+    }
+    return ids.map(id => tableModel.getRowModel(id, true));
+  });
 }
 
 // Use an alias for brevity.

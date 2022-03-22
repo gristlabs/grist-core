@@ -8,15 +8,22 @@ import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorBu
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {undef} from 'app/common/gutil';
-import {Computed, dom, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import {isRaisedException} from "app/common/gristTypes";
 import {decodeObject, RaisedException} from "app/plugin/objtypes";
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ColumnRec} from 'app/client/models/DocModel';
+import {asyncOnce} from 'app/common/AsyncCreate';
+import {reportError} from 'app/client/models/errors';
+import {CellValue} from 'app/common/DocActions';
+import debounce = require('lodash/debounce');
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
+  editingFormula?: ko.Computed<boolean>,
 }
 
 
@@ -40,6 +47,8 @@ export class FormulaEditor extends NewBaseEditor {
   constructor(options: IFormulaEditorOptions) {
     super(options);
 
+    const editingFormula = options.editingFormula || options.field.editingFormula;
+
     const initialValue = undef(options.state as string | undefined, options.editValue, String(options.cellValue));
     // create editor state observable (used by draft and latest position memory)
     this.editorState = Observable.create(this, initialValue);
@@ -59,7 +68,7 @@ export class FormulaEditor extends NewBaseEditor {
         ? Object.assign({ setCursor: this._onSetCursor }, options.commands)
         // for readonly mode don't grab cursor when clicked away - just move the cursor
         : options.commands;
-    this._commandGroup = this.autoDispose(createGroup(allCommands, this, options.field.editingFormula));
+    this._commandGroup = this.autoDispose(createGroup(allCommands, this, editingFormula));
 
     const hideErrDetails = Observable.create(this, true);
     const raisedException = Computed.create(this, use => {
@@ -109,14 +118,14 @@ export class FormulaEditor extends NewBaseEditor {
 
           // enable formula editing if state was passed
           if (options.state || options.readonly) {
-            options.field.editingFormula(true);
+            editingFormula(true);
           }
           if (options.readonly) {
             this._formulaEditor.enable(false);
             aceObj.gotoLine(0, 0); // By moving, ace editor won't highlight anything
           }
           // This catches any change to the value including e.g. via backspace or paste.
-          aceObj.once("change", () => options.field.editingFormula(true));
+          aceObj.once("change", () => editingFormula(true));
         })
       ),
       (options.formulaError ?
@@ -234,7 +243,150 @@ function _isInIdentifier(line: string, column: number) {
     }
 }
 
+/**
+ * Open a formula editor. Returns a Disposable that owns the editor.
+ */
+export function openFormulaEditor(options: {
+  gristDoc: GristDoc,
+  field: ViewFieldRec,
+  // Associated formula from a diffrent column (for example style rule).
+  column?: ColumnRec,
+  // Needed to get exception value, if any.
+  editRow?: DataRowModel,
+  // Element over which to position the editor.
+  refElem: Element,
+  editValue?: string,
+  onSave?: (column: ColumnRec, formula: string) => Promise<void>,
+  onCancel?: () => void,
+  // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
+  setupCleanup: (
+    owner: MultiHolder,
+    doc: GristDoc,
+    field: ViewFieldRec,
+    save: () => Promise<void>
+  ) => void,
+}): Disposable {
+  const {gristDoc, field, editRow, refElem, setupCleanup} = options;
+  const holder = MultiHolder.create(null);
+  const column = options.column ? options.column : field.origCol();
+
+  // AsyncOnce ensures it's called once even if triggered multiple times.
+  const saveEdit = asyncOnce(async () => {
+    const formula = editor.getCellValue();
+    if (options.onSave) {
+      await options.onSave(column, formula as string);
+    } else if (formula !== column.formula.peek()) {
+      await column.updateColValues({formula});
+    }
+    holder.dispose();
+  });
+
+  // These are the commands for while the editor is active.
+  const editCommands = {
+    fieldEditSave: () => { saveEdit().catch(reportError); },
+    fieldEditSaveHere: () => { saveEdit().catch(reportError); },
+    fieldEditCancel: () => { holder.dispose(); options.onCancel?.(); },
+  };
+
+  // Replace the item in the Holder with a new one, disposing the previous one.
+  const editor = FormulaEditor.create(holder, {
+    gristDoc,
+    field,
+    cellValue: column.formula(),
+    formulaError: editRow ? getFormulaError(gristDoc, editRow, column) : undefined,
+    editValue: options.editValue,
+    cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
+    commands: editCommands,
+    cssClass: 'formula_editor_sidepane',
+    readonly : false
+  });
+  editor.attach(refElem);
+
+  // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
+  // This function is used for primarily for switching between different column behaviors, so we want to enter full
+  // edit mode right away.
+  // TODO: consider converting it to parameter, when this will be used in different scenarios.
+  if (!column.formula()) {
+    field.editingFormula(true);
+  }
+  setupCleanup(holder, gristDoc, field, saveEdit);
+  return holder;
+}
+
+/**
+ * If the cell at the given row and column is a formula value containing an exception, return an
+ * observable with this exception, and fetch more details to add to the observable.
+ */
+export function getFormulaError(
+  gristDoc: GristDoc, editRow: DataRowModel, column: ColumnRec
+): Observable<CellValue>|undefined {
+  const colId = column.colId.peek();
+  const cellCurrentValue = editRow.cells[colId].peek();
+  const isFormula = column.isFormula() || column.hasTriggerFormula();
+  if (isFormula && isRaisedException(cellCurrentValue)) {
+    const formulaError = Observable.create(null, cellCurrentValue);
+    gristDoc.docData.getFormulaError(column.table().tableId(), colId, editRow.getRowId())
+      .then(value => {
+        formulaError.set(value);
+      })
+      .catch(reportError);
+    return formulaError;
+  }
+  return undefined;
+}
+
+/**
+ * Create and return an observable for the count of errors in a column, which gets updated in
+ * response to changes in origColumn and in user data.
+ */
+export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, origColumn: ColumnRec) {
+  const errorMessage = Observable.create(owner, '');
+
+  // Count errors in origColumn when it's a formula column. Counts get cached by the
+  // tableData.countErrors() method, and invalidated on relevant data changes.
+  function countErrors() {
+    if (owner.isDisposed()) { return; }
+    const tableData = gristDoc.docData.getTable(origColumn.table.peek().tableId.peek());
+    const isFormula = origColumn.isRealFormula.peek() || origColumn.hasTriggerFormula.peek();
+    if (tableData && isFormula) {
+      const colId = origColumn.colId.peek();
+      const numCells = tableData.getColValues(colId)?.length || 0;
+      const numErrors = tableData.countErrors(colId) || 0;
+      errorMessage.set(
+        (numErrors === 0) ? '' :
+        (numCells === 1) ? `Error in the cell` :
+        (numErrors === numCells) ? `Errors in all ${numErrors} cells` :
+        `Errors in ${numErrors} of ${numCells} cells`
+      );
+    } else {
+      errorMessage.set('');
+    }
+  }
+
+  // Debounce the count calculation to defer it to the end of a bundle of actions.
+  const debouncedCountErrors = debounce(countErrors, 0);
+
+  // If there is an update to the data in the table, count errors again. Since the same UI is
+  // reused when different page widgets are selected, we need to re-create this subscription
+  // whenever the selected table changes. We use a Computed to both react to changes and dispose
+  // the previous subscription when it changes.
+  Computed.create(owner, (use) => {
+    const tableData = gristDoc.docData.getTable(use(use(origColumn.table).tableId));
+    return tableData ? use.owner.autoDispose(tableData.tableActionEmitter.addListener(debouncedCountErrors)) : null;
+  });
+
+  // The counts depend on the origColumn and its isRealFormula status, but with the debounced
+  // callback and subscription to data, subscribe to relevant changes manually (rather than using
+  // a Computed).
+  owner.autoDispose(subscribe(use => { use(origColumn.id); use(origColumn.isRealFormula); debouncedCountErrors(); }));
+  return errorMessage;
+}
+
 const cssCollapseIcon = styled(icon, `
   margin: -3px 4px 0 4px;
   --icon-color: ${colors.slate};
+`);
+
+export const cssError = styled('div', `
+  color: ${colors.error};
 `);

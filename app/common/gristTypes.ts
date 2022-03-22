@@ -341,3 +341,9 @@ export function isRefListType(type: string) {
 export function isFullReferencingType(type: string) {
   return type.startsWith('Ref:') || isRefListType(type);
 }
+
+export function isValidRuleValue(value: CellValue|undefined) {
+  // We want to strictly test if a value is boolean, when the value is 0 or 1 it might
+  // indicate other number in the future.
+  return value === null || typeof value === 'boolean';
+}
