@@ -69,40 +69,58 @@ export interface GristAPI {
 }
 
 /**
- * GristDocAPI interface is implemented by Grist, and allows getting information from and
- * interacting with the Grist document to which a plugin is attached.
+ * Allows getting information from and nteracting with the Grist document to which a plugin or widget is attached.
  */
 export interface GristDocAPI {
-  // Returns the docName that identifies the document.
+  /**
+   * Returns an identifier for the document.
+   */
   getDocName(): Promise<string>;
 
-  // Returns a sorted list of table IDs.
+  /**
+   * Returns a sorted list of table IDs.
+   */
   listTables(): Promise<string[]>;
 
-  // Returns a complete table of data in the format {colId: [values]}, including the 'id' column.
-  // Do not modify the returned arrays in-place, especially if used directly (not over RPC).
-  // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
-  // ts-interface-builder does not properly support index-signature.
+  /**
+   * Returns a complete table of data in the format {colId: [values]}, including the 'id' column.
+   * Do not modify the returned arrays in-place, especially if used directly (not over RPC).
+   * TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
+   * ts-interface-builder does not properly support index-signature.
+   */
   fetchTable(tableId: string): Promise<any>;
 
-  // Applies an array of user actions.
-  // todo: return type should be Promise<ApplyUAResult>, but this requires importing modules from
-  // `app/common` which is not currently supported by the build.
+  /**
+   * Applies an array of user actions.
+   * TODO: return type should be Promise<ApplyUAResult>, but this requires importing modules from
+   * `app/common` which is not currently supported by the build.
+   */
   applyUserActions(actions: any[][], options?: any): Promise<any>;
 }
 
+/**
+ * Interface for the data backing a single widget.
+ */
 export interface GristView {
-  // Like fetchTable, but gets data for the custom section specifically, if there is any.
-  // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
-  // ts-interface-builder does not properly support index-signature.
+  /**
+   * Like [[GristDocAPI.fetchTable]], but gets data for the custom section specifically, if there is any.
+   * TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
+   * ts-interface-builder does not properly support index-signature.
+   */
   fetchSelectedTable(): Promise<any>;
 
-  // Similar TODO to fetchSelectedTable for return type.
+  /**
+   * Similar TODO to `fetchSelectedTable()` for return type.
+   */
   fetchSelectedRecord(rowId: number): Promise<any>;
 
-  // Allow custom widget to be listed as a possible source for linking with SELECT BY.
+  /**
+   * Allow custom widget to be listed as a possible source for linking with SELECT BY.
+   */
   allowSelectBy(): Promise<void>;
 
-  // Set the list of selected rows to be used against any linked widget. Requires `allowSelectBy()`.
+  /**
+   * Set the list of selected rows to be used against any linked widget. Requires `allowSelectBy()`.
+   */
   setSelectedRows(rowIds: number[]): Promise<void>;
 }

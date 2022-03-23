@@ -90,7 +90,7 @@ export class TestServerMerged implements IMochaServer {
     // logging. Server code uses a global logger, so it's hard to separate out (especially so if
     // we ever run different servers for different tests).
     const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
-    const env = {
+    const env: Record<string, string> = {
       TYPEORM_DATABASE: this._getDatabaseFile(),
       TEST_CLEAN_DATABASE: reset ? 'true' : '',
       GRIST_DATA_DIR: this.testDocDir,

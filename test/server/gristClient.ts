@@ -70,7 +70,7 @@ export class GristClient {
       if (this._pending.length) {
         return this._pending.shift();
       }
-      await new Promise(resolve => this._consumer = resolve);
+      await new Promise<void>(resolve => this._consumer = resolve);
     }
   }
 

@@ -46,46 +46,103 @@ export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
 
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
 export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
+
+/**
+ * Interface for the records backing a custom widget.
+ */
 export const viewApi = rpc.getStub<GristView>('GristView', checkers.GristView);
+
+/**
+ * Interface for the state of a custom widget.
+ */
 export const widgetApi = rpc.getStub<WidgetAPI>('WidgetAPI', checkers.WidgetAPI);
+
+/**
+ * Interface for the mapping of a custom widget.
+ */
 export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', checkers.CustomSectionAPI);
+
+/**
+ * Shortcut for [[GristView.allowSelectBy]].
+ */
 export const allowSelectBy = viewApi.allowSelectBy;
+
+/**
+ * Shortcut for [[GristView.setSelectedRows]].
+ */
 export const setSelectedRows = viewApi.setSelectedRows;
 
+
+/**
+ * Fetches data backing the widget as for [[GristView.fetchSelectedTable]],
+ * but decoding data by default, replacing e.g. ['D', timestamp] with
+ * a moment date. Option `keepEncoded` skips the decoding step.
+ */
+export async function fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
+  const table = await viewApi.fetchSelectedTable();
+  return options.keepEncoded ? table :
+    mapValues<any[], any[]>(table, (col) => col.map(decodeObject));
+}
+
+/**
+ * Fetches current selected record as for [[GristView.fetchSelectedRecord]],
+ * but decoding data by default, replacing e.g. ['D', timestamp] with
+ * a moment date. Option `keepEncoded` skips the decoding step.
+ */
+export async function fetchSelectedRecord(rowId: number, options: {keepEncoded?: boolean} = {}) {
+  const rec = await viewApi.fetchSelectedRecord(rowId);
+  return options.keepEncoded ? rec :
+    mapValues(rec, decodeObject);
+}
+
+
+/**
+ * A collection of methods for fetching document data. The
+ * fetchSelectedTable and fetchSelectedRecord methods are
+ * overridden to decode data by default.
+ */
 export const docApi: GristDocAPI & GristView = {
   ...coreDocApi,
   ...viewApi,
-
-  // Change fetchSelectedTable() to decode data by default, replacing e.g. ['D', timestamp] with
-  // a moment date. New option `keepEncoded` skips the decoding step.
-  async fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
-    const table = await viewApi.fetchSelectedTable();
-    return options.keepEncoded ? table :
-      mapValues<any[], any[]>(table, (col) => col.map(decodeObject));
-  },
-
-  // Change fetchSelectedRecord() to decode data by default, replacing e.g. ['D', timestamp] with
-  // a moment date. New option `keepEncoded` skips the decoding step.
-  async fetchSelectedRecord(rowId: number, options: {keepEncoded?: boolean} = {}) {
-    const rec = await viewApi.fetchSelectedRecord(rowId);
-    return options.keepEncoded ? rec :
-      mapValues(rec, decodeObject);
-  },
+  fetchSelectedTable,
+  fetchSelectedRecord,
 };
 
 export const on = rpc.on.bind(rpc);
 
 // Exposing widgetApi methods in a module scope.
+
+/**
+ * Shortcut for [[WidgetAPI.getOption]]
+ */
 export const getOption = widgetApi.getOption.bind(widgetApi);
+
+/**
+ * Shortcut for [[WidgetAPI.setOption]]
+ */
 export const setOption = widgetApi.setOption.bind(widgetApi);
+
+/**
+ * Shortcut for [[WidgetAPI.setOptions]]
+ */
 export const setOptions = widgetApi.setOptions.bind(widgetApi);
+
+/**
+ * Shortcut for [[WidgetAPI.getOptions]]
+ */
 export const getOptions = widgetApi.getOptions.bind(widgetApi);
+
+/**
+ * Shortcut for [[WidgetAPI.clearOptions]]
+ */
 export const clearOptions = widgetApi.clearOptions.bind(widgetApi);
 
-// Get access to a table in the document. If no tableId specified, this
-// will use the current selected table (for custom widgets).
-// If a table does not exist, there will be no error until an operation
-// on the table is attempted.
+/**
+ * Get access to a table in the document. If no tableId specified, this
+ * will use the current selected table (for custom widgets).
+ * If a table does not exist, there will be no error until an operation
+ * on the table is attempted.
+ */
 export function getTable(tableId?: string): TableOperations {
   return new TableOperationsImpl({
     async getTableId() {
@@ -100,7 +157,9 @@ export function getTable(tableId?: string): TableOperations {
   }, {});
 }
 
-// Get the current selected table (for custom widgets).
+/**
+ * Get the current selected table (for custom widgets).
+ */
 export const selectedTable: TableOperations = getTable();
 
 // Get the ID of the current selected table (for custom widgets).
@@ -240,13 +299,15 @@ export function mapColumnNamesBack(data: any, options: {
   return mapColumnNames(data, {...options, reverse: true});
 }
 
-// For custom widgets, add a handler that will be called whenever the
-// row with the cursor changes - either by switching to a different row, or
-// by some value within the row potentially changing.  Handler may
-// in the future be called with null if the cursor moves away from
-// any row.
-// TODO: currently this will be called even if the content of a different row
-// changes.
+/**
+ * For custom widgets, add a handler that will be called whenever the
+ * row with the cursor changes - either by switching to a different row, or
+ * by some value within the row potentially changing.  Handler may
+ * in the future be called with null if the cursor moves away from
+ * any row.
+ * TODO: currently this will be called even if the content of a different row
+ * changes.
+ */
 export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
     if (!msg.tableId || !msg.rowId) { return; }
@@ -254,8 +315,11 @@ export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColu
     callback(rec, await getMappingsIfChanged(msg));
   });
 }
-// For custom widgets, add a handler that will be called whenever the
-// selected records change.  Handler will be called with a list of records.
+
+/**
+ * For custom widgets, add a handler that will be called whenever the
+ * selected records change.  Handler will be called with a list of records.
+ */
 export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }
@@ -274,10 +338,13 @@ export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMa
 }
 
 
-// For custom widgets, add a handler that will be called whenever the
-// widget options change (and on initial ready message). Handler will be
-// called with an object containing save json options, or null if no options were saved.
-// Second parameter
+/**
+ * For custom widgets, add a handler that will be called whenever the
+ * widget options change (and on initial ready message). Handler will be
+ * called with an object containing saved json options, or null if no options were saved.
+ * The second parameter has information about the widgets relationship with
+ * the document that contains it.
+ */
 export function onOptions(callback: (options: any, settings: InteractionOptions) => unknown) {
   on('message', async function(msg) {
     if (msg.settings) {
@@ -297,6 +364,7 @@ export function onOptions(callback: (options: any, settings: InteractionOptions)
  * `name`. Calling `addImporter(...)` from another component than a `safeBrowser` component is not
  * currently supported.
  *
+ * @internal
  */
 export async function addImporter(name: string, path: string, mode: 'fullscreen' | 'inline', options?: RenderOptions) {
   // checker is omitted for implementation because call was already checked by grist.
@@ -315,7 +383,10 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
   });
 }
 
-interface ReadyPayload extends Omit<InteractionOptionsRequest, "hasCustomOptions"> {
+/**
+ * Options when initializing connection to Grist.
+ */
+export interface ReadyPayload extends Omit<InteractionOptionsRequest, "hasCustomOptions"> {
   /**
    * Handler that will be called by Grist to open additional configuration panel inside the Custom Widget.
    */
@@ -354,6 +425,7 @@ export function ready(settings?: ReadyPayload): void {
   })();
 }
 
+/** @internal */
 function getPluginPath(location: Location) {
   return location.pathname.replace(/^\/plugins\//, '');
 }
@@ -393,6 +465,7 @@ if (typeof window !== 'undefined') {
   rpc.setSendMessage((data) => { return; });
 }
 
+/** @internal */
 function createRpcLogger(): IRpcLogger {
   let prefix: string;
   if (typeof window !== 'undefined') {
