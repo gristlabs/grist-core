@@ -17,6 +17,7 @@ import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {allowHost, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
+import {IncomingMessage} from 'http';
 import * as onHeaders from 'on-headers';
 
 export interface RequestWithLogin extends Request {
@@ -95,12 +96,14 @@ export function isSingleUserMode(): boolean {
  * header to specify the users' email address. The header to set comes from the
  * environment variable GRIST_PROXY_AUTH_HEADER.
  */
-export function getRequestProfile(req: Request): UserProfile|undefined {
+export function getRequestProfile(req: Request|IncomingMessage): UserProfile|undefined {
   const header = process.env.GRIST_PROXY_AUTH_HEADER;
   let profile: UserProfile|undefined;
 
-  if (header && req.headers && req.headers[header]) {
-    const headerContent = req.headers[header];
+  if (header) {
+    // Careful reading headers. If we have an IncomingMessage, there is no
+    // get() function, and header names are lowercased.
+    const headerContent = ('get' in req) ? req.get(header) : req.headers[header.toLowerCase()];
     if (headerContent) {
       const userEmail = headerContent.toString();
       const [userName] = userEmail.split("@", 1);
@@ -543,7 +546,7 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
   const XRequestedWith = req.get('X-Requested-With');
   const Origin = req.get('Origin');  // Pass along the original Origin since it may
                                      // play a role in granular access control.
-  return {
+  const result: Record<string, string> = {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
@@ -551,6 +554,12 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
     ...(Origin ? { Origin } : undefined),
   };
+  const extraHeader = process.env.GRIST_PROXY_AUTH_HEADER;
+  const extraHeaderValue = extraHeader && req.get(extraHeader);
+  if (extraHeader && extraHeaderValue) {
+    result[extraHeader] = extraHeaderValue;
+  }
+  return result;
 }
 
 export const signInStatusCookieName = sessionCookieName + '_status';

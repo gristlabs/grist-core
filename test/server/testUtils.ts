@@ -169,7 +169,7 @@ export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
  * @param {String} errCode - Error code to check against `err.code` from the caller.
  * @param {RegExp} errRegexp - Regular expression to check against `err.message` from the caller.
  */
-export function expectRejection(promise: Promise<any>, errCode: number, errRegexp: RegExp) {
+export function expectRejection(promise: Promise<any>, errCode: number|string, errRegexp: RegExp) {
   return promise
   .then(function() {
     assert(false, "Expected promise to return an error: " + errCode);
@@ -305,6 +305,13 @@ export class EnvironmentSnapshot {
       }
     }
   }
+}
+
+export async function getBuildFile(relativePath: string): Promise<string> {
+  if (await fse.pathExists(path.join('_build', relativePath))) {
+    return path.join('_build', relativePath);
+  }
+  return path.join('_build', 'core', relativePath);
 }
 
 export { assert };

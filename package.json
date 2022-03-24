@@ -12,7 +12,8 @@
     "install:python3": "buildtools/prepare_python3.sh",
     "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production && webpack --config buildtools/webpack.check.js --mode production && cat app/client/*.css app/client/*/*.css > static/bundle.css",
     "start:prod": "NODE_PATH=_build:_build/stubs node _build/stubs/app/server/server.js",
-    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support NODE_PATH=_build:_build/stubs mocha _build/test/nbrowser/*.js",
+    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support NODE_PATH=_build:_build/stubs mocha _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
+    "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:smoke": "NODE_PATH=_build:_build/stubs mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh"
   },
@@ -57,6 +58,7 @@
     "@types/tmp": "0.0.33",
     "@types/uuid": "3.4.4",
     "@types/which": "2.0.1",
+    "app-module-path": "2.2.0",
     "catw": "1.0.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
