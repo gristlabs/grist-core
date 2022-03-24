@@ -313,11 +313,12 @@ export class DocManager extends EventEmitter {
         }
       }
 
-      const [metaTables, recentActions, userOverride, rowCount] = await Promise.all([
+      const [metaTables, recentActions, userOverride, rowCount, dataLimitStatus] = await Promise.all([
         activeDoc.fetchMetaTables(docSession),
         activeDoc.getRecentMinimalActions(docSession),
         activeDoc.getUserOverride(docSession),
         activeDoc.getRowCount(docSession),
+        activeDoc.getDataLimitStatus(),
       ]);
 
       const result = {
@@ -328,6 +329,7 @@ export class DocManager extends EventEmitter {
         recoveryMode: activeDoc.recoveryMode,
         userOverride,
         rowCount,
+        dataLimitStatus,
       } as OpenLocalDocResult;
 
       if (!activeDoc.muted) {
@@ -510,7 +512,7 @@ export class DocManager extends EventEmitter {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrl = doc && await this._getDocUrl(doc);
-    return this.gristServer.create.ActiveDoc(this, docName, {docUrl, safeMode});
+    return this.gristServer.create.ActiveDoc(this, docName, {docUrl, safeMode, doc});
   }
 
   /**

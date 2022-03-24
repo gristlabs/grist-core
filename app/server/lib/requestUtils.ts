@@ -18,9 +18,10 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
   parseInt(process.env.GRIST_TEST_HTTPS_OFFSET, 10) : undefined;
 
 // Database fields that we permit in entities but don't want to cross the api.
-const INTERNAL_FIELDS = new Set(['apiKey', 'billingAccountId', 'firstLoginAt', 'filteredOut', 'ownerId',
-                                 'stripeCustomerId', 'stripeSubscriptionId', 'stripePlanId',
-                                 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin']);
+const INTERNAL_FIELDS = new Set([
+  'apiKey', 'billingAccountId', 'firstLoginAt', 'filteredOut', 'ownerId', 'gracePeriodStart', 'stripeCustomerId',
+  'stripeSubscriptionId', 'stripePlanId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
+]);
 
 /**
  * Adapt a home-server or doc-worker URL to match the hostname in the request URL. For custom

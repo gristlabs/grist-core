@@ -53,6 +53,9 @@ export class Document extends Resource {
   @Column({name: 'removed_at', type: nativeValues.dateTimeType, nullable: true})
   public removedAt: Date|null;
 
+  @Column({name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true})
+  public gracePeriodStart: Date|null;
+
   @OneToMany(type => Alias, alias => alias.doc)
   public aliases: Alias[];
 

@@ -2362,6 +2362,14 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
+  public async setDocGracePeriodStart(docId: string, gracePeriodStart: Date | null) {
+    return await this._connection.createQueryBuilder()
+      .update(Document)
+      .set({gracePeriodStart})
+      .where({id: docId})
+      .execute();
+  }
+
   public async getDocProduct(docId: string): Promise<Product | undefined> {
     return await this._connection.createQueryBuilder()
       .select('product')

@@ -1,4 +1,5 @@
 import {MinimalActionGroup} from 'app/common/ActionGroup';
+import {DataLimitStatus} from 'app/common/ActiveDocAPI';
 import {TableDataAction} from 'app/common/DocActions';
 import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
@@ -45,6 +46,7 @@ export interface OpenLocalDocResult {
   recoveryMode?: boolean;
   userOverride?: UserOverride;
   rowCount?: number;
+  dataLimitStatus?: DataLimitStatus;
 }
 
 export interface UserOverride {

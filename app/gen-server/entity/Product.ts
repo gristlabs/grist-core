@@ -37,7 +37,8 @@ export const teamFreeFeatures: Features = {
   maxDocsPerOrg: 20,
   snapshotWindow: { count: 1, unit: 'month' },
   baseMaxRowsPerDocument: 5000,
-  baseMaxApiUnitsPerDocumentPerDay: 5000
+  baseMaxApiUnitsPerDocumentPerDay: 5000,
+  gracePeriodDays: 14,
 };
 
 /**

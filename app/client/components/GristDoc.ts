@@ -157,7 +157,7 @@ export class GristDoc extends DisposableWithEvents {
     } = {}
   ) {
     super();
-    console.log("RECEIVED DOC RESPONSE", openDocResponse.doc);
+    console.log("RECEIVED DOC RESPONSE", openDocResponse);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = new DocModel(this.docData);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);

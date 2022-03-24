@@ -1,3 +1,4 @@
+import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DocManager} from 'app/server/lib/DocManager';
@@ -32,4 +33,5 @@ export interface ICreate {
 export interface ICreateActiveDocOptions {
   safeMode?: boolean;
   docUrl?: string;
+  doc?: Document;
 }

@@ -45,9 +45,9 @@ export interface Features {
   baseMaxRowsPerDocument?: number;  // If set, establishes a default maximum on the
                                  // number of rows (total) in a single document.
                                  // Actual max for a document may be higher.
-                                 // TODO: not honored at time of writing.
-                                 // TODO: nuances about how rows are counted.
   baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
+
+  gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
 }
 
 // Check whether it is possible to add members at the org level.  There's no flag

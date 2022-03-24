@@ -14,6 +14,7 @@ import {bigBasicButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {DataLimitStatus} from 'app/common/ActiveDocAPI';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
@@ -66,6 +67,7 @@ export interface DocPageModel {
   gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
 
   rowCount: Observable<number|undefined>;
+  dataLimitStatus: Observable<DataLimitStatus|undefined>;
 
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
@@ -108,6 +110,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly gristDoc = Observable.create<GristDoc|null>(this, null);
 
   public readonly rowCount = Observable.create<number|undefined>(this, undefined);
+  public readonly dataLimitStatus = Observable.create<DataLimitStatus|undefined>(this, null);
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -258,6 +261,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       this.currentDoc.set({...doc});
     }
     this.rowCount.set(openDocResponse.rowCount);
+    this.dataLimitStatus.set(openDocResponse.dataLimitStatus);
     const gdModule = await gristDocModulePromise;
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();
