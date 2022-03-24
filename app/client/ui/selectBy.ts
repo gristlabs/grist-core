@@ -163,6 +163,9 @@ function createNodes(docModel: DocModel, sections: MaybeSection[]) {
 
 // Creates an array of LinkNode from a view section record.
 function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
+  if (section.isDisposed()) {
+    return [];
+  }
   const table = section.table.peek();
   const ancestors = new Set<number>();
 

@@ -924,12 +924,12 @@ export class GristDoc extends DisposableWithEvents {
    */
   private async _switchToSectionId(sectionId: number) {
     const section: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionId);
-    const view: ViewRec = section.view.peek();
-    if (!view.id.peek()) {
+    if (section.isRaw.peek()) {
       // This is raw data view
       await urlState().pushUrl({docPage: 'data'});
       this.viewModel.activeSectionId(sectionId);
     } else {
+      const view: ViewRec = section.view.peek();
       await this.openDocPage(view.getRowId());
       view.activeSectionId(sectionId);  // this.viewModel will reflect this with a delay.
     }
