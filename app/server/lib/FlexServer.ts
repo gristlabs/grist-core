@@ -1224,20 +1224,6 @@ export class FlexServer implements GristServer {
   }
 
   /**
-   * Get a url for a document.  The id provided should be a genuine docId, since we query
-   * the db for document details without including organization disambiguation.
-   */
-  public async getDocUrl(docId: string): Promise<string> {
-    if (!this._dbManager) { throw new Error('database missing'); }
-    const doc = await this._dbManager.getDoc({
-      userId: this._dbManager.getPreviewerUserId(),
-      urlId: docId,
-      showAll: true
-    });
-    return this.getResourceUrl(doc);
-  }
-
-  /**
    * Get a url for a team site.
    */
   public async getOrgUrl(orgKey: string|number): Promise<string> {

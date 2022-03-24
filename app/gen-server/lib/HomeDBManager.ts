@@ -7,12 +7,23 @@ import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {UserOrgPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-// TODO: API should implement UserAPI
-import {ANONYMOUS_USER_EMAIL, DocumentProperties, EVERYONE_EMAIL, getRealAccess,
-        ManagerDelta, NEW_DOCUMENT_CODE, OrganizationProperties,
-        Organization as OrgInfo, PermissionData, PermissionDelta, SUPPORT_EMAIL, UserAccessData,
-        UserOptions,
-        WorkspaceProperties} from "app/common/UserAPI";
+import {StringUnion} from 'app/common/StringUnion';
+import {
+  ANONYMOUS_USER_EMAIL,
+  DocumentProperties,
+  EVERYONE_EMAIL,
+  getRealAccess,
+  ManagerDelta,
+  NEW_DOCUMENT_CODE,
+  OrganizationProperties,
+  Organization as OrgInfo,
+  PermissionData,
+  PermissionDelta,
+  SUPPORT_EMAIL,
+  UserAccessData,
+  UserOptions,
+  WorkspaceProperties
+} from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
 import {BillingAccount, ExternalBillingOptions} from "app/gen-server/entity/BillingAccount";
@@ -29,19 +40,34 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
-import {bitOr, getRawAndEntities, hasAtLeastOneOfTheseIds, hasOnlyTheseIdsOrNull,
-        now, readJson} from 'app/gen-server/sqlUtils';
+import {
+  bitOr,
+  getRawAndEntities,
+  hasAtLeastOneOfTheseIds,
+  hasOnlyTheseIdsOrNull,
+  now,
+  readJson
+} from 'app/gen-server/sqlUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
+import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
-import {StringUnion} from 'app/common/StringUnion';
 import {EventEmitter} from 'events';
+import {Request} from "express";
+import {
+  Brackets,
+  Connection,
+  createConnection,
+  DatabaseType,
+  EntityManager,
+  getConnection,
+  SelectQueryBuilder,
+  WhereExpression
+} from "typeorm";
+import * as uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
-import {Brackets, Connection, createConnection, DatabaseType, EntityManager,
-        getConnection, SelectQueryBuilder, WhereExpression} from "typeorm";
-import * as uuidv4 from "uuid/v4";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -1038,7 +1064,8 @@ export class HomeDBManager extends EventEmitter {
 
   // Calls getDocImpl() and returns the Document from that, caching a fresh DocAuthResult along
   // the way. Note that we only cache the access level, not Document itself.
-  public async getDoc(scope: Scope): Promise<Document> {
+  public async getDoc(reqOrScope: Request | Scope): Promise<Document> {
+    const scope = "params" in reqOrScope ? getScope(reqOrScope) : reqOrScope;
     const key = getDocAuthKeyFromScope(scope);
     const promise = this.getDocImpl(key);
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
@@ -1050,6 +1077,10 @@ export class HomeDBManager extends EventEmitter {
       throw new ApiError('document not found', 404);
     }
     return doc;
+  }
+
+  public async getRawDocById(docId: string) {
+    return await this.getDoc({urlId: docId, userId: this.getPreviewerUserId(), showAll: true});
   }
 
   // Returns access info for the given doc and user, caching the results for DOC_AUTH_CACHE_TTL

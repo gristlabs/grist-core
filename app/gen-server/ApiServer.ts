@@ -287,7 +287,7 @@ export class ApiServer {
     // GET /api/docs/:did
     // Get information about a document.
     this._app.get('/api/docs/:did', expressWrap(async (req, res) => {
-      const query = await this._dbManager.getDoc(getDocScope(req));
+      const query = await this._dbManager.getDoc(req);
       return sendOkReply(req, res, query);
     }));
 

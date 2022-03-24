@@ -1,55 +1,70 @@
-import { createEmptyActionSummary } from "app/common/ActionSummary";
-import { ApiError } from 'app/common/ApiError';
-import { BrowserSettings } from "app/common/BrowserSettings";
-import {
-  BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue,
-} from 'app/common/DocActions';
+import {createEmptyActionSummary} from "app/common/ActionSummary";
+import {ApiError} from 'app/common/ApiError';
+import {BrowserSettings} from "app/common/BrowserSettings";
+import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
-import { isAffirmative } from "app/common/gutil";
-import { SortFunc } from 'app/common/SortFunc';
-import { DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {isAffirmative} from "app/common/gutil";
+import {SortFunc} from 'app/common/SortFunc';
+import {Sort} from 'app/common/SortSpec';
+import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
+import * as Types from "app/plugin/DocApiTypes";
+import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import GristDataTI from 'app/plugin/GristData-ti';
-import { HomeDBManager, makeDocAuthResult } from 'app/gen-server/lib/HomeDBManager';
-import { OpOptions } from "app/plugin/TableOperations";
-import { handleSandboxErrorOnPlatform, TableOperationsImpl,
-         TableOperationsPlatform } from 'app/plugin/TableOperationsImpl';
-import { concatenateSummaries, summarizeAction } from "app/server/lib/ActionSummary";
-import { ActiveDoc, tableIdToRef } from "app/server/lib/ActiveDoc";
-import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, getUserId, isAnonymousUser,
-         RequestWithLogin } from 'app/server/lib/Authorizer';
-import { DocManager } from "app/server/lib/DocManager";
-import { docSessionFromRequest, makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
-import { DocWorker } from "app/server/lib/DocWorker";
-import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
-import { parseExportParameters } from "app/server/lib/Export";
-import { downloadCSV, DownloadCSVOptions } from "app/server/lib/ExportCSV";
-import { downloadXLSX, DownloadXLSXOptions } from "app/server/lib/ExportXLSX";
-import { expressWrap } from 'app/server/lib/expressWrap';
-import { filterDocumentInPlace } from "app/server/lib/filterUtils";
-import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
-import { exportToDrive } from "app/server/lib/GoogleExport";
-import { GristServer } from 'app/server/lib/GristServer';
-import { HashUtil } from 'app/server/lib/HashUtil';
-import { makeForkIds } from "app/server/lib/idUtils";
+import {OpOptions} from "app/plugin/TableOperations";
 import {
-  getDocId, getDocScope, integerParam, isParameterOn, optStringParam,
-  sendOkReply, sendReply, stringParam } from 'app/server/lib/requestUtils';
+  handleSandboxErrorOnPlatform,
+  TableOperationsImpl,
+  TableOperationsPlatform
+} from 'app/plugin/TableOperationsImpl';
+import {concatenateSummaries, summarizeAction} from "app/server/lib/ActionSummary";
+import {ActiveDoc, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {
+  assertAccess,
+  getOrSetDocAuth,
+  getTransitiveHeaders,
+  getUserId,
+  isAnonymousUser,
+  RequestWithLogin
+} from 'app/server/lib/Authorizer';
+import {DocManager} from "app/server/lib/DocManager";
+import {docSessionFromRequest, makeExceptionalDocSession, OptDocSession} from "app/server/lib/DocSession";
+import {DocWorker} from "app/server/lib/DocWorker";
+import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
+import {parseExportParameters} from "app/server/lib/Export";
+import {downloadCSV, DownloadCSVOptions} from "app/server/lib/ExportCSV";
+import {downloadXLSX, DownloadXLSXOptions} from "app/server/lib/ExportXLSX";
+import {expressWrap} from 'app/server/lib/expressWrap';
+import {filterDocumentInPlace} from "app/server/lib/filterUtils";
+import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
+import {exportToDrive} from "app/server/lib/GoogleExport";
+import {GristServer} from 'app/server/lib/GristServer';
+import {HashUtil} from 'app/server/lib/HashUtil';
+import {makeForkIds} from "app/server/lib/idUtils";
+import {
+  getDocId,
+  getDocScope,
+  getScope,
+  integerParam,
+  isParameterOn,
+  optStringParam,
+  sendOkReply,
+  sendReply,
+  stringParam
+} from 'app/server/lib/requestUtils';
+import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
-import { handleOptionalUpload, handleUpload } from "app/server/lib/uploads";
-import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
-import * as Types from "app/plugin/DocApiTypes";
+import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
 import * as contentDisposition from 'content-disposition';
-import { Application, NextFunction, Request, RequestHandler, Response } from "express";
+import {Application, NextFunction, Request, RequestHandler, Response} from "express";
 import * as _ from "lodash";
 import * as LRUCache from 'lru-cache';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import * as uuidv4 from "uuid/v4";
 import * as t from "ts-interface-checker";
-import { Checker } from "ts-interface-checker";
-import { ServerColumnGetters } from 'app/server/lib/ServerColumnGetters';
-import { Sort } from 'app/common/SortSpec';
+import {Checker} from "ts-interface-checker";
+import * as uuidv4 from "uuid/v4";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -631,8 +646,7 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title.
-      const {name: docTitle} =
-        await this._dbManager.getDoc({userId: getUserId(req), org: req.org, urlId: getDocId(req)});
+      const {name: docTitle} = await this._dbManager.getDoc(req);
 
       const params = parseExportParameters(req);
       const filename = docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId);
@@ -647,8 +661,7 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title (to use as the filename).
-      const {name: filename} =
-        await this._dbManager.getDoc({userId: getUserId(req), org: req.org, urlId: getDocId(req)});
+      const {name: filename} = await this._dbManager.getDoc(req);
 
       const options: DownloadXLSXOptions = {filename};
 
@@ -707,9 +720,7 @@ export class DocWorkerApi {
    * request.
    */
   private async _confirmDocIdForRead(req: Request, urlId: string): Promise<string> {
-    const userId = getUserId(req);
-    const org = (req as RequestWithLogin).org;
-    const docAuth = await makeDocAuthResult(this._dbManager.getDoc({urlId, userId, org}));
+    const docAuth = await makeDocAuthResult(this._dbManager.getDoc({...getScope(req), urlId}));
     if (docAuth.error) { throw docAuth.error; }
     assertAccess('viewers', docAuth);
     return docAuth.docId!;

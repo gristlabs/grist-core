@@ -4,14 +4,14 @@
  */
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {assertAccess, getOrSetDocAuth, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import * as Comm from 'app/server/lib/Comm';
 import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
 import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import * as log from 'app/server/lib/log';
-import {integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
+import {getDocId, integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import * as contentDisposition from 'content-disposition';
 import * as express from 'express';
@@ -58,11 +58,10 @@ export class DocWorker {
   public async downloadDoc(req: express.Request, res: express.Response,
                            storageManager: IDocStorageManager): Promise<void> {
     const mreq = req as RequestWithLogin;
-    if (!mreq.docAuth || !mreq.docAuth.docId) { throw new Error('Cannot find document'); }
-    const docId = mreq.docAuth.docId;
+    const docId = getDocId(mreq);
 
     // Query DB for doc metadata to get the doc title.
-    const doc = await this._dbManager.getDoc({userId: getUserId(req), org: mreq.org, urlId: docId});
+    const doc = await this._dbManager.getDoc(req);
     const docTitle = doc.name;
 
     // Get a copy of document for downloading.

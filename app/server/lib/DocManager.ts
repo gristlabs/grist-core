@@ -1,4 +1,6 @@
 import * as pidusage from '@gristlabs/pidusage';
+import {Document} from 'app/gen-server/entity/Document';
+import {getScope} from 'app/server/lib/requestUtils';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import * as path from 'path';
@@ -464,23 +466,50 @@ export class DocManager extends EventEmitter {
     return activeDoc;
   }
 
-  private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {
-    // Get URL for document for use with SELF_HYPERLINK().
+  private async _getDoc(docSession: OptDocSession, docName: string) {
     const cachedDoc = getDocSessionCachedDoc(docSession);
-    let docUrl: string|undefined;
+    if (cachedDoc) {
+      return cachedDoc;
+    }
+
+    let db: HomeDBManager;
     try {
-      if (cachedDoc) {
-        docUrl = await this.gristServer.getResourceUrl(cachedDoc);
-      } else {
-        docUrl = await this.gristServer.getDocUrl(docName);
+      // For the sake of existing tests, get the db from gristServer where it may not exist and we should give up,
+      // rather than using this._homeDbManager which may exist and then it turns out the document itself doesn't.
+      db = this.gristServer.getHomeDBManager();
+    } catch (e) {
+      if (e.message === "no db") {
+        return;
       }
+      throw e;
+    }
+
+    if (docSession.req) {
+      const scope = getScope(docSession.req);
+      if (scope.urlId) {
+        return db.getDoc(scope);
+      }
+    }
+
+    return await db.getRawDocById(docName);
+  }
+
+  private async _getDocUrl(doc: Document) {
+    try {
+      return await this.gristServer.getResourceUrl(doc);
     } catch (e) {
       // If there is no home url, we cannot construct links.  Accept this, for the benefit
       // of legacy tests.
-      if (!String(e).match(/need APP_HOME_URL/)) {
+      if (e.message !== "need APP_HOME_URL") {
         throw e;
       }
     }
+  }
+
+  private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {
+    const doc = await this._getDoc(docSession, docName);
+    // Get URL for document for use with SELF_HYPERLINK().
+    const docUrl = doc && await this._getDocUrl(doc);
     return this.gristServer.create.ActiveDoc(this, docName, {docUrl, safeMode});
   }
 

@@ -25,7 +25,6 @@ export interface GristServer {
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getOwnUrl(): string;
-  getDocUrl(docId: string): Promise<string>;
   getOrgUrl(orgKey: string|number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
   getResourceUrl(resource: Organization|Workspace|Document): Promise<string>;
