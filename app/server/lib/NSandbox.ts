@@ -174,7 +174,7 @@ export class NSandbox implements ISandbox {
       await this._control.kill();
     }, 1000);
 
-    const result = await new Promise((resolve, reject) => {
+    const result = await new Promise<void>((resolve, reject) => {
       if (this._isWriteClosed) { resolve(); }
       this.childProc.on('error', reject);
       this.childProc.on('close', resolve);
@@ -283,6 +283,7 @@ export class NSandbox implements ISandbox {
     this._isReadClosed = true;
     // Clear out all reads pending on PipeFromSandbox, rejecting them with the given error.
     const err = new sandboxUtil.SandboxError("PipeFromSandbox is closed");
+
     this._pendingReads.forEach(resolvePair => resolvePair[1](err));
     this._pendingReads = [];
   }
@@ -343,6 +344,10 @@ const spawners = {
   macSandboxExec,     // Use "sandbox-exec" on Mac.
 };
 
+function isFlavor(flavor: string): flavor is keyof typeof spawners {
+  return flavor in spawners;
+}
+
 /**
  * A sandbox factory.  This doesn't do very much beyond remembering a default
  * flavor of sandbox (which at the time of writing differs between hosted grist and
@@ -369,20 +374,16 @@ export class NSandboxCreator implements ISandboxCreator {
 
   public constructor(options: {
     defaultFlavor: keyof typeof spawners,
-    ignoreEnvironment?: boolean,
     command?: string,
     preferredPythonVersion?: string,
   }) {
-    const flavor = (!options.ignoreEnvironment && process.env.GRIST_SANDBOX_FLAVOR) ||
-      options.defaultFlavor;
-    if (!Object.keys(spawners).includes(flavor)) {
+    const flavor = options.defaultFlavor;
+    if (!isFlavor(flavor)) {
       throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
     }
-    this._flavor = flavor as keyof typeof spawners;
-    this._command = (!options.ignoreEnvironment && process.env.GRIST_SANDBOX) ||
-      options.command;
-    this._preferredPythonVersion = (!options.ignoreEnvironment && process.env.PYTHON_VERSION) ||
-      options.preferredPythonVersion;
+    this._flavor = flavor;
+    this._command = options.command;
+    this._preferredPythonVersion = options.preferredPythonVersion;
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
@@ -506,8 +507,20 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
  * Be sure to read setup instructions in that directory.
  */
 function gvisor(options: ISandboxOptions): SandboxProcess {
-  const {command, args: pythonArgs} = options;
-  if (!command) { throw new Error("gvisor operation requires GRIST_SANDBOX"); }
+  const {args: pythonArgs} = options;
+  let command = options.command;
+  if (!command) {
+    try {
+      // If runsc is available directly on the host, use the wrapper
+      // utility in sandbox/gvisor/run.py to run it.
+      which.sync('runsc');
+      command = 'sandbox/gvisor/run.py';
+    } catch(e) {
+      // Otherwise, don't try any heroics, user will need to
+      // explicitly set the command.
+      throw new Error('runsc not found');
+    }
+  }
   if (!options.minimalPipeMode) {
     throw new Error("gvisor only supports 3-pipe operation");
   }
@@ -530,6 +543,22 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   if (pythonVersion !== '2' && pythonVersion !== '3') {
     throw new Error("PYTHON_VERSION must be set to 2 or 3");
   }
+
+  // Check for local virtual environments created with core's
+  // install:python2 or install:python3 targets. They'll need
+  // some extra sharing to make available in the sandbox.
+  // This appears to currently be incompatible with checkpoints?
+  // Shares and checkpoints interact delicately because the file
+  // handle layout/ordering needs to remain exactly the same.
+  // Fixable no doubt, but for now I just disable this convenience
+  // if checkpoints are in use.
+  const venv = path.join(process.cwd(),
+                         pythonVersion === '2' ? 'venv' : 'sandbox_venv3');
+  if (fs.existsSync(venv) && !process.env.GRIST_CHECKPOINT) {
+    wrapperArgs.addMount(venv);
+    wrapperArgs.push('-s', path.join(venv, 'bin', 'python'));
+  }
+
   // For a regular sandbox not being used for importing, if GRIST_CHECKPOINT is set
   // try to restore from it. If GRIST_CHECKPOINT_MAKE is set, try to recreate the
   // checkpoint (this is an awkward place to do it, but avoids mismatches
@@ -830,4 +859,42 @@ function findPython(command: string|undefined, preferredVersion?: string) {
       || which.sync('python');
   }
   return command;
+}
+
+/**
+ * Create a sandbox. The defaultFlavorSpec is a guide to which sandbox
+ * to create, based on the desired python version. Examples:
+ *   unsandboxed               # no sandboxing
+ *   2:pynbox,gvisor           # run python2 in pynbox, anything else in gvisor
+ *   3:macSandboxExec,docker   # run python3 with sandbox-exec, anything else in docker
+ * If no particular python version is desired, the first sandbox listed will be used.
+ * The defaultFlavorSpec can be overridden by GRIST_SANDBOX_FLAVOR.
+ * The commands run can be overridden by GRIST_SANDBOX2 (for python2), GRIST_SANDBOX3 (for python3),
+ * or GRIST_SANDBOX (for either, if more specific variable is not specified).
+ * For documents with no preferred python version specified,
+ * PYTHON_VERSION_ON_CREATION or PYTHON_VERSION is used.
+ */
+export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
+  const flavors = (process.env.GRIST_SANDBOX_FLAVOR || defaultFlavorSpec).split(',');
+  const preferredPythonVersion = options.preferredPythonVersion ||
+    process.env.PYTHON_VERSION_ON_CREATION ||
+    process.env.PYTHON_VERSION;
+  for (const flavorAndVersion of flavors) {
+    const parts = flavorAndVersion.trim().split(':', 2);
+    const flavor = parts[parts.length - 1];
+    const version = parts.length === 2 ? parts[0] : '*';
+    if (preferredPythonVersion === version || version === '*' || !preferredPythonVersion) {
+      if (!isFlavor(flavor)) {
+        throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
+      }
+      const creator = new NSandboxCreator({
+        defaultFlavor: flavor,
+        command: process.env['GRIST_SANDBOX' + (preferredPythonVersion||'')] ||
+          process.env['GRIST_SANDBOX'],
+        preferredPythonVersion,
+      });
+      return creator.create(options);
+    }
+  }
+  throw new Error('Failed to create a sandbox');
 }

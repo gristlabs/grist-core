@@ -35,6 +35,15 @@ RUN \
   pip3 install -r requirements3.txt
 
 ################################################################################
+## Sandbox collection stage
+################################################################################
+
+# Fetch gvisor-based sandbox. Note, to enable it to run within default
+# unprivileged docker, layers of protection that require privilege have
+# been stripped away, see https://github.com/google/gvisor/issues/4371
+FROM gristlabs/gvisor-unprivileged:buster as sandbox
+
+################################################################################
 ## Run-time stage
 ################################################################################
 
@@ -42,9 +51,10 @@ RUN \
 FROM node:14-buster-slim
 
 # Install libexpat1, libsqlite3-0 for python3 library binary dependencies.
+# Install pgrep for managing gvisor processes.
 RUN \
   apt-get update && \
-  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 && \
+  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps && \
   rm -rf /var/lib/apt/lists/*
 
 # Keep all storage user may want to persist in a distinct directory
@@ -63,7 +73,13 @@ COPY --from=collector /usr/local/bin/python3.9 /usr/bin/python3.9
 COPY --from=collector /usr/local/lib/python3.9 /usr/local/lib/python3.9
 COPY --from=collector /usr/local/lib/libpython3.9.* /usr/local/lib/
 # Set default to python3
-RUN ln -s /usr/bin/python3.9 /usr/bin/python && ldconfig
+RUN \
+  ln -s /usr/bin/python3.9 /usr/bin/python && \
+  ln -s /usr/bin/python3.9 /usr/bin/python3 && \
+  ldconfig
+
+# Copy runsc.
+COPY --from=sandbox /runsc /usr/bin/runsc
 
 # Add files needed for running server.
 ADD package.json package.json
@@ -76,14 +92,19 @@ ADD plugins plugins
 # started as:
 #   docker run -p 8484:8484 -it <image>
 # Variables will need to be overridden for other setups.
-ENV PYTHON_VERSION_ON_CREATION=3
-ENV GRIST_ORG_IN_PATH=true
-ENV GRIST_HOST=0.0.0.0
-ENV GRIST_SINGLE_PORT=true
-ENV GRIST_SERVE_SAME_ORIGIN=true
-ENV GRIST_DATA_DIR=/persist/docs
-ENV GRIST_INST_DIR=/persist
-ENV GRIST_SESSION_COOKIE=grist_core
-ENV TYPEORM_DATABASE=/persist/home.sqlite3
+ENV \
+  PYTHON_VERSION_ON_CREATION=3 \
+  GRIST_ORG_IN_PATH=true \
+  GRIST_HOST=0.0.0.0 \
+  GRIST_SINGLE_PORT=true \
+  GRIST_SERVE_SAME_ORIGIN=true \
+  GRIST_DATA_DIR=/persist/docs \
+  GRIST_INST_DIR=/persist \
+  GRIST_SESSION_COOKIE=grist_core \
+  GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
+  GRIST_SANDBOX_FLAVOR=gvisor \
+  TYPEORM_DATABASE=/persist/home.sqlite3
+
 EXPOSE 8484
-CMD yarn run start:prod
+
+CMD ./sandbox/run.sh

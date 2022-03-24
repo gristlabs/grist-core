@@ -153,7 +153,7 @@ export class ActiveDoc extends EventEmitter {
   private _muted: boolean = false;  // If set, changes to this document should not propagate
                                     // to outside world
   private _migrating: number = 0;   // If positive, a migration is in progress
-  private _initializationPromise: Promise<boolean>|null = null;
+  private _initializationPromise: Promise<void>|null = null;
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
@@ -668,12 +668,7 @@ export class ActiveDoc extends EventEmitter {
    * Makes sure document is completely initialized.  May throw if doc is broken.
    */
   public async waitForInitialization() {
-    if (this._initializationPromise) {
-      if (!await this._initializationPromise) {
-        throw new Error('ActiveDoc initialization failed');
-      }
-    }
-    return true;
+    await this._initializationPromise;
   }
 
   // Check if user has rights to download this doc.
@@ -1587,7 +1582,7 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   private async _finishInitialization(
     docSession: OptDocSession, pendingTableNames: string[], onDemandNames: string[], startTime: number
-  ) {
+  ): Promise<void> {
     try {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
@@ -1616,13 +1611,12 @@ export class ActiveDoc extends EventEmitter {
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
-      return true;
     } catch (err) {
+      this._fullyLoaded = true;
       if (!this._shuttingDown) {
         this._log.warn(docSession, "_finishInitialization stopped with %s", err);
+        throw new Error('ActiveDoc initialization failed: ' + String(err));
       }
-      this._fullyLoaded = true;
-      return false;
     }
   }
 

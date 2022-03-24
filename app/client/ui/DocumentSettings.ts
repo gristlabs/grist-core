@@ -52,7 +52,17 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
             {defaultCurrencyLabel: `Local currency (${getCurrency(l)})`})
         )),
         canChangeEngine ? [
-          cssDataRow('Engine (experimental ☠ change at own risk):'),
+          // Small easter egg: you can click on the skull-and-crossbones to
+          // force a reload of the document.
+          cssDataRow('Engine (experimental ',
+                     dom('span',
+                         '☠',
+                         dom.style('cursor', 'pointer'),
+                         dom.on('click', async () => {
+                           await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+                           document.location.reload();
+                         })),
+                     ' change at own risk):'),
           select(engineObs, getSupportedEngineChoices()),
         ] : null,
       ],

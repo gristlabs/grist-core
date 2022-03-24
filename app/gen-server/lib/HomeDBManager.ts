@@ -1574,6 +1574,12 @@ export class HomeDBManager extends EventEmitter {
       doc.id = docId || makeId();
       doc.checkProperties(props);
       doc.updateFromProperties(props);
+      // For some reason, isPinned defaulting to null, not false,
+      // for some typeorm/postgres combination? That causes a
+      // constraint violation.
+      if (!doc.isPinned) {
+        doc.isPinned = false;
+      }
       // By default, assign a urlId that is a prefix of the docId.
       // The urlId should be unique across all existing documents.
       if (!doc.urlId) {

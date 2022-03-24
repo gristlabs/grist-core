@@ -1,9 +1,6 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ICreate} from 'app/server/lib/ICreate';
-import {NSandboxCreator} from 'app/server/lib/NSandbox';
-
-// Use raw python - update when pynbox or other solution is set up for core.
-const sandboxCreator = new NSandboxCreator({defaultFlavor: 'unsandboxed'});
+import {createSandbox} from 'app/server/lib/NSandbox';
 
 export const create: ICreate = {
   Billing() {
@@ -28,7 +25,7 @@ export const create: ICreate = {
   ExternalStorage() { return undefined; },
   ActiveDoc(docManager, docName, options) { return new ActiveDoc(docManager, docName, options); },
   NSandbox(options) {
-    return sandboxCreator.create(options);
+    return createSandbox('unsandboxed', options);
   },
   sessionSecret() {
     return process.env.GRIST_SESSION_SECRET ||
