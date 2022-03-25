@@ -220,6 +220,7 @@ export const valueParserClasses: { [type: string]: typeof ValueParser } = {
   ChoiceList: ChoiceListParser,
   Ref: ReferenceParser,
   RefList: ReferenceListParser,
+  Attachments: ReferenceListParser,
 };
 
 /**

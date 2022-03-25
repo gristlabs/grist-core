@@ -56,6 +56,9 @@ export function getDefaultForType(colType: string, options: {sqlFormatted?: bool
  * object.
  */
 export function extractInfoFromColType(colType: string): GristTypeInfo {
+  if (colType === "Attachments") {
+    return {type: "RefList", tableId: "_grist_Attachments"};
+  }
   const colon = colType.indexOf(':');
   const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
   return (type === 'Ref') ? {type, tableId: String(arg)} :
@@ -224,17 +227,6 @@ export function extractTypeFromColType(type: string): string {
 }
 
 /**
- * Convert pureType to Grist python type name, e.g. 'Ref' to 'Reference'.
- */
-export function getGristType(pureType: string): string {
-  switch (pureType) {
-    case 'Ref': return 'Reference';
-    case 'RefList': return 'ReferenceList';
-    default: return pureType;
-  }
-}
-
-/**
  * Enum for values of columns' recalcWhen property, corresponding to Python definitions in
  * schema.py.
  */
@@ -331,11 +323,14 @@ export function sequelizeToGristType(sqlType: string): GristType {
 }
 
 export function getReferencedTableId(type: string) {
+  if (type === "Attachments") {
+    return "_grist_Attachments";
+  }
   return removePrefix(type, "Ref:") || removePrefix(type, "RefList:");
 }
 
 export function isRefListType(type: string) {
-  return type.startsWith('RefList:');
+  return type === "Attachments" || type.startsWith('RefList:');
 }
 
 export function isFullReferencingType(type: string) {
