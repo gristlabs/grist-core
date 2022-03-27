@@ -7,7 +7,7 @@ example:
 ```
 [{'a': 1, 'b': 'tree'}, {'a': 4, 'b': 'flowers'}, ... ]
 ```
-is turned into a table with two columns 'a' of type 'Int' and 'b' of
+is turned into a table with two columns 'a' of type 'Numeric' and 'b' of
 type 'Text'.
 
 Nested object are stored as references to a distinct table where the
@@ -17,7 +17,7 @@ nested object is stored. For example:
 ```
 is turned into a column 'a' of type 'Ref:my_import_name.a', and into
 another table 'my_import_name.a' with a column 'b' of type
-'Int'. (Nested-nested objects are supported as well and the module
+'Numeric'. (Nested-nested objects are supported as well and the module
 assumes no limit to the number of level of nesting you can do.)
 
 Each value which is not an object will be stored into a column with id
@@ -90,7 +90,7 @@ GRIST_TYPES={
 }
 
 for typ in six.integer_types:
-  GRIST_TYPES[typ] = "Int"
+  GRIST_TYPES[typ] = "Numeric"
 
 for typ in six.string_types:
   GRIST_TYPES[typ] = "Text"

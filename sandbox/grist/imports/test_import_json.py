@@ -9,7 +9,7 @@ class TestImportJSON(TestCase):
     grist_tables = import_json.dumps([{'a': 1, 'b': 'baba'}, {'a': 4, 'b': 'abab'}], '')
     self.assertEqual(grist_tables['tables'], [{
       'column_metadata': [
-        {'id': 'a', 'type': 'Int'}, {'id': 'b', 'type': 'Text'}],
+        {'id': 'a', 'type': 'Numeric'}, {'id': 'b', 'type': 'Text'}],
       'table_data': [[1, 4],  ['baba', 'abab']],
       'table_name': ''
     }])
@@ -18,7 +18,7 @@ class TestImportJSON(TestCase):
     grist_tables = import_json.dumps([{'a': 1}, {'b': 'abab'}, {'a': 4}])
     self.assertEqual(grist_tables['tables'], [{
       'column_metadata': [
-        {'id': 'a', 'type': 'Int'}, {'id': 'b', 'type': 'Text'}],
+        {'id': 'a', 'type': 'Numeric'}, {'id': 'b', 'type': 'Text'}],
       'table_data': [[1, None, 4],  [None, 'abab', None]],
       'table_name': ''
     }])
@@ -56,7 +56,7 @@ class TestImportJSON(TestCase):
           'table_name': 'Hello'
         }, {
           'column_metadata': [
-            {'id': 'b', 'type': 'Int'}
+            {'id': 'b', 'type': 'Numeric'}
           ],
           'table_data': [[2]],
           'table_name': 'Hello_a'
@@ -73,7 +73,7 @@ class TestImportJSON(TestCase):
           'table_name': 'Hello'
         }, {
           'column_metadata': [
-            {'id': 'b', 'type': 'Int'}, {'id': 'd', 'type': 'Ref:Hello_a_d'}
+            {'id': 'b', 'type': 'Numeric'}, {'id': 'd', 'type': 'Ref:Hello_a_d'}
           ],
           'table_data': [[2], [1]],
           'table_name': 'Hello_a'
@@ -103,12 +103,12 @@ class TestImportJSON(TestCase):
     self.assertEqual(
       import_json.dumps([{'a': [{'b': 1}, {'b': 4}]}, {'c': 2}], 'Hello')['tables'],
       [ {
-          'column_metadata': [{'id': 'c', 'type': 'Int'}],
+          'column_metadata': [{'id': 'c', 'type': 'Numeric'}],
           'table_data': [[None, 2]],
           'table_name': 'Hello'
         }, {
           'column_metadata': [
-            {'id': 'b', 'type': 'Int'},
+            {'id': 'b', 'type': 'Numeric'},
             {'id': 'Hello', 'type': 'Ref:Hello'}
           ],
           'table_data': [[1, 4], [1, 1]],
@@ -143,7 +143,7 @@ class TestImportJSON(TestCase):
         }, {
           'table_name': 'Hello_bar',
           'column_metadata': [
-            {'id': 'c', 'type': 'Int'},
+            {'id': 'c', 'type': 'Numeric'},
             {'id': 'd', 'type': 'Text'},
             {'id': 'Hello', 'type': 'Ref:Hello'}
           ],
@@ -151,7 +151,7 @@ class TestImportJSON(TestCase):
         }, {
           'table_name': 'Hello_foo',
           'column_metadata': [
-            {'id': 'a', 'type': 'Int'},
+            {'id': 'a', 'type': 'Numeric'},
             {'id': 'b', 'type': 'Text'},
             {'id': 'Hello', 'type': 'Ref:Hello'}],
           'table_data': [[1, 4], ['santa', 'cats'], [1, 1]]
@@ -171,11 +171,11 @@ class TestImportJSON(TestCase):
       [{
         'table_name': 'Hello',
         'column_metadata': [
-          {'id': 'a', 'type': 'Int'},
+          {'id': 'a', 'type': 'Numeric'},
           {'id': 'b', 'type': 'Numeric'},
           {'id': 'c', 'type': 'Bool'},
           {'id': 'd', 'type': 'Text'},
-          {'id': 'e', 'type': 'Int'},
+          {'id': 'e', 'type': 'Numeric'},
           {'id': 'f', 'type': 'Text'},
           {'id': 'g', 'type': 'Text'}
         ],
