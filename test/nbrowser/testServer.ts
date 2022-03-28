@@ -23,6 +23,7 @@ import {driver, IMochaServer, WebDriver} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
+import {removeConnection} from 'test/gen-server/seed';
 import {HomeUtil} from 'test/nbrowser/homeUtil';
 
 export class TestServerMerged implements IMochaServer {
@@ -38,7 +39,7 @@ export class TestServerMerged implements IMochaServer {
   private _server: ChildProcess;
   private _exitPromise: Promise<number|string>;
   private _starts: number = 0;
-  private _dbManager: HomeDBManager;
+  private _dbManager?: HomeDBManager;
   private _driver: WebDriver;
 
   // The name is used to name the directory for server logs and data.
@@ -242,6 +243,11 @@ export class TestServerMerged implements IMochaServer {
       }
     }
     return this._dbManager;
+  }
+
+  public async closeDatabase() {
+    this._dbManager = undefined;
+    await removeConnection();
   }
 
   public get driver() {

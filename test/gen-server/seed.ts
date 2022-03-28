@@ -604,8 +604,7 @@ export function setUpDB(context?: IHookCallbackContext) {
 async function main() {
   const cmd = process.argv[2];
   if (cmd === 'init') {
-    const connection = await createConnection();
-    await createInitialDb(connection);
+    await createInitialDb();
     return;
   } else if (cmd === 'benchmark') {
     const connection = await createConnection();

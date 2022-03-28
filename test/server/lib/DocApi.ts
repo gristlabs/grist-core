@@ -2163,7 +2163,8 @@ function testDocApi() {
       assert.deepEqual(response.data, {error: `Exceeded daily limit for document ${docId}`});
     });
 
-    after(async () => {
+    after(async function() {
+      if (!process.env.TEST_REDIS_URL) { this.skip(); }
       await redisClient.quitAsync();
     });
   });

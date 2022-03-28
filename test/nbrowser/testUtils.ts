@@ -98,6 +98,10 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   // always call resume.
   afterEach(() => server.resume());
 
+  // Close database until next test explicitly needs it, to avoid conflicts
+  // with tests that don't use the same server.
+  after(async () => server.closeDatabase());
+
   return setupRequirement({team: true, ...options});
 }
 
