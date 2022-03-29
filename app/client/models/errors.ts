@@ -53,10 +53,14 @@ export function reportMessage(msg: string, options?: Partial<INotifyOptions>) {
 }
 
 /**
- * Shows warning toast notification (with yellow styling).
+ * Shows warning toast notification (with yellow styling), and log to server and to console. Pass
+ * {level: 'error'} for same behavior with adjusted styling.
  */
 export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
-  reportMessage(msg, {level: 'warning', ...options});
+  options = {level: 'warning', ...options};
+  log.warn(`${options.level}: `, msg);
+  _logError(msg);
+  reportMessage(msg, options);
 }
 
 /**
