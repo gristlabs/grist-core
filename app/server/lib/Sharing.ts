@@ -300,6 +300,8 @@ export class Sharing {
 
       const actionSummary = await this._activeDoc.handleTriggers(localActionBundle);
 
+      await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
+
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
         clientId: client?.clientId,

@@ -35,9 +35,10 @@ export const teamFreeFeatures: Features = {
   maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
   maxSharesPerDoc: 2,
   maxDocsPerOrg: 20,
-  snapshotWindow: { count: 1, unit: 'month' },
+  snapshotWindow: { count: 30, unit: 'days' },
   baseMaxRowsPerDocument: 5000,
   baseMaxApiUnitsPerDocumentPerDay: 5000,
+  baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   gracePeriodDays: 14,
 };
 

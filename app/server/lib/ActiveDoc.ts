@@ -115,6 +115,9 @@ const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
 
+// Ratio of the row/data size limit where we tell users that they're approaching the limit
+const APPROACHING_LIMIT_RATIO = 0.9;
+
 /**
  * Represents an active document with the given name. The document isn't actually open until
  * either .loadDoc() or .createEmptyDoc() is called.
@@ -160,9 +163,11 @@ export class ActiveDoc extends EventEmitter {
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
-  private _lastMemoryMeasurement: number = 0;   // Timestamp when memory was last measured.
+  private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
+  private _lastDataSizeMeasurement: number = 0;  // Timestamp when dbstat data size was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _rowCount?: number;
+  private _dataSize?: number;
   private _productFeatures?: Features;
   private _gracePeriodStart: Date|null = null;
 
@@ -219,6 +224,34 @@ export class ActiveDoc extends EventEmitter {
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
+  public get rowLimitRatio() {
+    return this._rowLimit && this._rowCount ? this._rowCount / this._rowLimit : 0;
+  }
+
+  public get dataSizeLimitRatio() {
+    return this._dataSizeLimit && this._dataSize ? this._dataSize / this._dataSizeLimit : 0;
+  }
+
+  public get dataLimitRatio() {
+    return Math.max(this.rowLimitRatio, this.dataSizeLimitRatio);
+  }
+
+  public get dataLimitStatus(): DataLimitStatus {
+    const ratio = this.dataLimitRatio;
+    if (ratio > 1) {
+      const start = this._gracePeriodStart;
+      const days = this._productFeatures?.gracePeriodDays;
+      if (start && days && moment().diff(moment(start), 'days') >= days) {
+        return 'deleteOnly';
+      } else {
+        return 'gracePeriod';
+      }
+    } else if (ratio > APPROACHING_LIMIT_RATIO) {
+      return 'approachingLimit';
+    }
+    return null;
+  }
+
   public async getRowCount(docSession: OptDocSession): Promise<number | undefined> {
     if (await this._granularAccess.canReadEverything(docSession)) {
       return this._rowCount;
@@ -226,21 +259,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getDataLimitStatus(): Promise<DataLimitStatus> {
-    if (this._rowLimit && this._rowCount) {
-      const ratio = this._rowCount / this._rowLimit;
-      if (ratio > 1) {
-        const start = this._gracePeriodStart;
-        const days = this._productFeatures?.gracePeriodDays;
-        if (start && days && moment().diff(moment(start), 'days') >= days) {
-          return 'deleteOnly';
-        } else {
-          return 'gracePeriod';
-        }
-      } else if (ratio > 0.9) {
-        return 'approachingLimit';
-      }
-    }
-    return null;
+    // TODO filter based on session permissions
+    return this.dataLimitStatus;
   }
 
   public async getUserOverride(docSession: OptDocSession) {
@@ -926,7 +946,7 @@ export class ActiveDoc extends EventEmitter {
     await this.waitForInitialization();
 
     if (
-      await this.getDataLimitStatus() === "deleteOnly" &&
+      this.dataLimitStatus === "deleteOnly" &&
       !actions.every(action => [
           'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
           'RemoveViewSection', 'RemoveView', 'ApplyUndoActions',
@@ -1254,11 +1274,6 @@ export class ActiveDoc extends EventEmitter {
       }
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
-      log.rawInfo('Sandbox row count', {
-        ...this.getLogMeta(docSession),
-        rowCount: sandboxActionBundle.rowCount
-      });
-      await this._updateRowCount(sandboxActionBundle.rowCount);
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
@@ -1335,6 +1350,39 @@ export class ActiveDoc extends EventEmitter {
                                     userActions: UserAction[], isDirect: boolean[]): GranularAccessForBundle {
     this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions, isDirect);
     return this._granularAccess;
+  }
+
+  public async updateRowCount(rowCount: number, docSession: OptDocSession | null) {
+    this._rowCount = rowCount;
+    log.rawInfo('Sandbox row count', {...this.getLogMeta(docSession), rowCount});
+    await this._checkDataLimitRatio();
+
+    // Calculating data size is potentially expensive, so by default measure it at most once every 5 minutes.
+    // Measure it after every change if the user is currently being warned specifically about
+    // approaching or exceeding the data size limit but not the row count limit,
+    // because we don't need to warn about both limits at the same time.
+    let checkDataSizePeriod = 5 * 60;
+    if (
+      this.dataSizeLimitRatio > APPROACHING_LIMIT_RATIO && this.rowLimitRatio <= APPROACHING_LIMIT_RATIO ||
+      this.dataSizeLimitRatio > 1.0 && this.rowLimitRatio <= 1.0
+    ) {
+      checkDataSizePeriod = 0;
+    }
+
+    const now = Date.now();
+    if (now - this._lastDataSizeMeasurement > checkDataSizePeriod * 1000) {
+      this._lastDataSizeMeasurement = now;
+
+      // When the data size isn't critically high so we're only measuring it infrequently,
+      // do it in the background so we don't delay responding to the client.
+      // When it's being measured after every change, wait for it to finish to avoid race conditions
+      // from multiple measurements and updates happening concurrently.
+      if (checkDataSizePeriod === 0) {
+        await this._checkDataSizeLimitRatio(docSession);
+      } else {
+        this._checkDataSizeLimitRatio(docSession).catch(e => console.error(e));
+      }
+    }
   }
 
   /**
@@ -1490,19 +1538,31 @@ export class ActiveDoc extends EventEmitter {
     return this._productFeatures?.baseMaxRowsPerDocument;
   }
 
+  private get _dataSizeLimit(): number | undefined {
+    return this._productFeatures?.baseMaxDataSizePerDocument;
+  }
+
   private async _updateGracePeriodStart(gracePeriodStart: Date | null) {
     this._gracePeriodStart = gracePeriodStart;
     await this.getHomeDbManager()?.setDocGracePeriodStart(this.docName, gracePeriodStart);
   }
 
-  private async _updateRowCount(rowCount: number) {
-    this._rowCount = rowCount;
-    const exceedingRowLimit = this._rowLimit && rowCount > this._rowLimit;
-    if (exceedingRowLimit && !this._gracePeriodStart) {
+  private async _checkDataLimitRatio() {
+    const exceedingDataLimit = this.dataLimitRatio > 1;
+    if (exceedingDataLimit && !this._gracePeriodStart) {
       await this._updateGracePeriodStart(new Date());
-    } else if (!exceedingRowLimit && this._gracePeriodStart) {
+    } else if (!exceedingDataLimit && this._gracePeriodStart) {
       await this._updateGracePeriodStart(null);
     }
+  }
+
+  private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
+    const start = Date.now();
+    const dataSize = await this.docStorage.getDataSize();
+    const timeToMeasure = Date.now() - start;
+    this._dataSize = dataSize;
+    log.rawInfo('Data size from dbstat...', {...this.getLogMeta(docSession), dataSize, timeToMeasure});
+    await this._checkDataLimitRatio();
   }
 
   /**

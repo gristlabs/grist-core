@@ -1,6 +1,6 @@
 export interface SnapshotWindow {
   count: number;
-  unit: 'month' | 'year';
+  unit: 'days' | 'month' | 'year';
 }
 
 // A product is essentially a list of flags and limits that we may enforce/support.
@@ -46,6 +46,7 @@ export interface Features {
                                  // number of rows (total) in a single document.
                                  // Actual max for a document may be higher.
   baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
+  baseMaxDataSizePerDocument?: number;  // Similar maximum for number of bytes of 'normal' data in a document
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
 }

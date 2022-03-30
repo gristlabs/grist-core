@@ -624,9 +624,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // tables (obtained from auto-generated schema.js).
   private _docSchema: {[tableId: string]: {[colId: string]: string}};
 
-  // The last time _logDataSize ran fully
-  private _lastLoggedDataSize: number = Date.now();
-
   public constructor(public storageManager: IDocStorageManager, public docName: string) {
     this.docPath = this.storageManager.getPath(docName);
     this._db = null;
@@ -918,7 +915,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           });
       }
     });
-    this._logDataSize().catch(e => log.error(`Error in _logDataSize: ${e}`));
   }
 
   /**
@@ -1329,6 +1325,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
   }
 
+  public async getDataSize(): Promise<number> {
+    const result = await this.get(`
+      SELECT SUM(pgsize - unused) AS totalSize
+      FROM dbstat
+      WHERE NOT (
+        name LIKE 'sqlite_%' OR
+        name LIKE '_gristsys_%'
+      );
+    `);
+    return result!.totalSize;
+  }
+
   private async _markAsChanged<T>(promise: Promise<T>): Promise<T> {
     try {
       return await promise;
@@ -1545,25 +1553,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const sql = `SELECT ${selects} FROM ${quoteIdent(query.tableId)} ` +
       `${joinClauses} ${whereClause} ${limitClause}`;
     return sql;
-  }
-
-  private async _logDataSize() {
-    // To reduce overhead, don't query and log data size more than once in 5 minutes
-    const now = Date.now();
-    if (now - this._lastLoggedDataSize < 5 * 60 * 1000) {
-      return;
-    }
-    this._lastLoggedDataSize = now;
-
-    const result = await this.get(`
-      SELECT SUM(pgsize - unused) AS totalSize
-      FROM dbstat
-      WHERE NOT (
-        name LIKE 'sqlite_%' OR
-        name LIKE '_gristsys_%'
-      );
-    `);
-    log.rawInfo("Data size from dbstat...", {docId: this.docName, dataSize: result!.totalSize});
   }
 }
 
