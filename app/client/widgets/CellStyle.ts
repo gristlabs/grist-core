@@ -105,10 +105,10 @@ export class CellStyle extends Disposable {
               const currentValue = Computed.create(owner, use => {
                 const record = use(this.currentRecord);
                 if (!record) {
-                  return false;
+                  return null;
                 }
                 const value = record[use(column.colId)];
-                return value;
+                return value ?? null;
               });
               const hasError = Computed.create(owner, use => {
                 return !isValidRuleValue(use(currentValue));

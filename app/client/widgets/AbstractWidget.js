@@ -1,8 +1,6 @@
 var dispose = require('../lib/dispose');
-const {Computed, fromKo} = require('grainjs');
-
-const {cssLabel, cssRow} = require('app/client/ui/RightPanel');
-const {colorSelect} = require('app/client/ui2018/ColorSelect');
+const {CellStyle} = require('app/client/widgets/CellStyle');
+const {dom} = require('grainjs');
 
 /**
  * AbstractWidget - The base of the inheritance tree for widgets.
@@ -14,11 +12,8 @@ function AbstractWidget(field, opts = {}) {
   this.field = field;
   this.options = field.widgetOptionsJson;
   const {defaultTextColor = '#000000'} = opts;
-
+  this.defaultTextColor = defaultTextColor;
   this.valueFormatter = this.field.visibleColFormatter;
-
-  this.textColor = Computed.create(this, (use) => use(this.field.textColor) || defaultTextColor)
-    .onWrite((val) => this.field.textColor(val === defaultTextColor ? undefined : val));
 }
 dispose.makeDisposable(AbstractWidget);
 
@@ -45,18 +40,8 @@ AbstractWidget.prototype.buildDom = function(row) {
   throw new Error("Not Implemented");
 };
 
-AbstractWidget.prototype.buildColorConfigDom = function() {
-  return [
-    cssLabel('CELL COLOR'),
-    cssRow(
-      colorSelect(
-        this.textColor,
-        fromKo(this.field.fillColor),
-        // Calling `field.widgetOptionsJson.save()` saves both fill and text color settings.
-        () => this.field.widgetOptionsJson.save()
-      )
-    )
-  ];
+AbstractWidget.prototype.buildColorConfigDom = function(gristDoc) {
+  return dom.create(CellStyle, this.field, gristDoc, this.defaultTextColor);
 };
 
 module.exports = AbstractWidget;
