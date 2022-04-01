@@ -14,6 +14,7 @@ import type {UIRowId} from 'app/common/UIRowId';
  */
 export class CopySelection {
   public readonly colIds = this.fields.map(f => f.colId());
+  public readonly colRefs = this.fields.map(f => f.colRef());
   public readonly displayColIds = this.fields.map(f => f.displayColModel().colId());
   public readonly rowStyle: {[r: number]: object}|undefined;
   public readonly colStyle: {[c: string]: object}|undefined;

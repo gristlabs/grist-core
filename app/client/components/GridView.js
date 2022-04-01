@@ -40,6 +40,7 @@ const {testId} = require('app/client/ui2018/cssVars');
 const {contextMenu} = require('app/client/ui/contextMenu');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
+const {parsePasteForView} = require("./BaseView2");
 
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
@@ -309,7 +310,7 @@ GridView.gridCommands = {
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
   paste: async function(pasteObj, cutCallback) {
-    await this.paste(pasteObj, cutCallback);
+    await this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
     await this.scrollToCursor(false);
   },
   sortAsc: function() {
@@ -381,7 +382,7 @@ GridView.prototype._shiftSelect = function(step, selectObs, exemptType, maxVal) 
  * @param {Function} cutCallback - If provided returns the record removal action needed for
  *  a cut.
  */
-GridView.prototype.paste = function(data, cutCallback) {
+GridView.prototype.paste = async function(data, cutCallback) {
   // TODO: If pasting into columns by which this view is sorted, rows may jump. It is still better
   // to allow it, but we should "freeze" the affected rows to prevent them from jumping, until the
   // user re-applies the sort manually. (This is a particularly bad experience when rows get
@@ -410,7 +411,7 @@ GridView.prototype.paste = function(data, cutCallback) {
   let fields = this.viewSection.viewFields().peek();
   let pasteFields = updateColIndices.map(i => fields[i] || null);
 
-  let richData = this._parsePasteForView(pasteData, pasteFields);
+  const richData = await parsePasteForView(pasteData, pasteFields, this.gristDoc);
   let actions = this._createBulkActionsFromPaste(updateRowIds, richData);
 
   if (actions.length > 0) {

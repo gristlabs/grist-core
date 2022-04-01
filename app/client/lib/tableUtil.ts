@@ -102,9 +102,10 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
 
   const elem = dom('table',
     {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash()},
-    dom('colgroup', selection.colIds.map(colId =>
+    dom('colgroup', selection.colIds.map((colId, idx) =>
       dom('col', {
         style: _styleAttr(colStyle[colId]),
+        'data-grist-col-ref': String(selection.colRefs[idx]),
         'data-grist-col-type': tableData.getColType(colId)
       })
     )),
@@ -134,6 +135,7 @@ export interface RichPasteObject {
   displayValue: string;
   docIdHash?: string|null;
   colType?: string|null;  // Column type of the source column.
+  colRef?: number|null;
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
 
@@ -145,20 +147,17 @@ export interface RichPasteObject {
 export function parsePasteHtml(data: string): RichPasteObject[][] {
   const parser = new G.DOMParser() as DOMParser;
   const doc = parser.parseFromString(data, 'text/html');
-  const table = doc.querySelector('table');
-  const docIdHash = table?.getAttribute('data-grist-doc-id-hash');
+  const table = doc.querySelector('table')!;
+  const docIdHash = table.getAttribute('data-grist-doc-id-hash');
 
-  const colTypes = Array.from(table!.querySelectorAll('col'), col =>
-    col.getAttribute('data-grist-col-type'));
-
-  const result = Array.from(table!.querySelectorAll('tr'), (row, rowIdx) =>
+  const cols = [...table.querySelectorAll('col')];
+  const rows = [...table.querySelectorAll('tr')];
+  const result = rows.map(row =>
     Array.from(row.querySelectorAll('td, th'), (cell, colIdx) => {
-      const o: RichPasteObject = {displayValue: cell.textContent!, docIdHash};
-
-      // If there's a column type, add it to the object
-      if (colTypes[colIdx]) {
-        o.colType = colTypes[colIdx];
-      }
+      const col = cols[colIdx];
+      const colType = col?.getAttribute('data-grist-col-type');
+      const colRef = col && Number(col.getAttribute('data-grist-col-ref'));
+      const o: RichPasteObject = {displayValue: cell.textContent!, docIdHash, colType, colRef};
 
       if (cell.hasAttribute('data-grist-raw-value')) {
         o.rawValue = safeJsonParse(cell.getAttribute('data-grist-raw-value')!,

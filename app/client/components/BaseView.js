@@ -327,59 +327,6 @@ BaseView.prototype.insertRow = function(index) {
   });
 };
 
-/**
- * Given a 2-d paste column-oriented paste data and target cols, transform the data to omit
- * fields that shouldn't be pasted over and extract rich paste data if available.
- * @param {Array<Array<(RichPasteObject|string)>>} data - Column-oriented 2-d array of either
- *    plain strings or rich paste data returned by `tableUtil.parsePasteHtml` with `displayValue`
- *    and, optionally, `colType` and `rawValue` attributes.
- * @param {Array<MetaRowModel>} cols - Array of target column objects
- * @returns {Object} - Object mapping colId to array of column values, suitable for use in Bulk
- *                     actions.
- */
-BaseView.prototype._parsePasteForView = function(data, fields) {
-  const updateCols = fields.map(field => {
-    const col = field && field.column();
-    if (col && !col.isRealFormula() && !col.disableEditData()) {
-      return col;
-    } else {
-      return null; // Don't include formulas and missing columns
-    }
-  });
-  const updateColIds = updateCols.map(c => c && c.colId());
-  const updateColTypes = updateCols.map(c => c && c.type());
-  const parsers = fields.map(field => field && field.createValueParser() || (x => x));
-  const docIdHash = tableUtil.getDocIdHash();
-
-  const richData = data.map((col, idx) => {
-    if (!col.length) {
-      return col;
-    }
-    const typeMatches = col[0] && col[0].colType === updateColTypes[idx] && (
-        // When copying references, only use the row ID (raw value) when copying within the same document
-        // to avoid referencing the wrong rows.
-        col[0].docIdHash === docIdHash || !gristTypes.isFullReferencingType(updateColTypes[idx])
-    );
-    const parser = parsers[idx];
-    return col.map(v => {
-      if (v) {
-        if (typeMatches && v.hasOwnProperty('rawValue')) {
-          return v.rawValue;
-        }
-        if (v.hasOwnProperty('displayValue')) {
-          return parser(v.displayValue);
-        }
-        if (typeof v === "string") {
-          return parser(v);
-        }
-      }
-      return v;
-    });
-  });
-
-  return _.omit(_.object(updateColIds, richData), null);
-};
-
 BaseView.prototype._getDefaultColValues = function() {
   const linkingState = this.viewSection.linkingState.peek();
   if (!linkingState) {

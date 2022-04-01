@@ -1461,6 +1461,11 @@ class UserActions(object):
     self._do_doc_action(actions.BulkUpdateRecord(table_id, changed_rows,
                                                  {dst_col_id: changed_values}))
 
+  @useraction
+  def MaybeCopyDisplayFormula(self, src_col_ref, dst_col_ref):
+    src_col = self._docmodel.columns.table.get_record(src_col_ref)
+    dst_col = self._docmodel.columns.table.get_record(dst_col_ref)
+    self.maybe_copy_display_formula(src_col, dst_col)
 
   def maybe_copy_display_formula(self, src_col, dst_col):
     """

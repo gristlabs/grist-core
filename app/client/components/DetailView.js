@@ -14,6 +14,7 @@ var {CopySelection} = require('./CopySelection');
 var RecordLayout  = require('./RecordLayout');
 var commands      = require('./commands');
 const {RowContextMenu} = require('../ui/RowContextMenu');
+const {parsePasteForView} = require("./BaseView2");
 
 /**
  * DetailView component implements a list of record layouts.
@@ -131,7 +132,9 @@ DetailView.generalCommands = {
 
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
-  paste: function(pasteObj, cutCallback) { return this.paste(pasteObj, cutCallback); },
+  paste: function(pasteObj, cutCallback) {
+    return this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
+  },
 
   editLayout: function() {
     if (this.scrolly()) {
@@ -166,12 +169,12 @@ DetailView.prototype.deleteRow = function(index) {
  * @param {Function} cutCallback - If provided returns the record removal action needed
  *  for a cut.
  */
-DetailView.prototype.paste = function(data, cutCallback) {
+DetailView.prototype.paste = async function(data, cutCallback) {
   let pasteData = data[0][0];
   let field = this.viewSection.viewFields().at(this.cursor.fieldIndex());
   let isCompletePaste = (data.length === 1 && data[0].length === 1);
 
-  let richData = this._parsePasteForView([[pasteData]], [field]);
+  const richData = await parsePasteForView([[pasteData]], [field], this.gristDoc);
   if (_.isEmpty(richData)) {
     return;
   }
