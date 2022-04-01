@@ -31,14 +31,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader("TOOLS"),
-
-    // TODO proper UI
-    // cssPageEntry(
-    //   dom.domComputed(docPageModel.rowCount, rowCount =>
-    //     `${rowCount} of ${docPageModel.appModel.currentFeatures.baseMaxRowsPerDocument || "infinity"} rows used`
-    //   ),
-    // ),
-
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),

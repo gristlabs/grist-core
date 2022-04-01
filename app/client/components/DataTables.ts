@@ -1,33 +1,22 @@
-import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {printViewSection} from 'app/client/components/Printing';
-import {buildViewSectionDom, ViewSectionHelper} from 'app/client/components/ViewLayout';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {docList, docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
+import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import * as css from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Computed, Disposable, dom, fromKo, makeTestId, MultiHolder, styled} from 'grainjs';
+import {Disposable, dom, fromKo, makeTestId, MultiHolder, styled} from 'grainjs';
 
 const testId = makeTestId('test-raw-data-');
 
 export class DataTables extends Disposable {
-  private _popupVisible = Computed.create(this, use => Boolean(use(this._gristDoc.viewModel.activeSectionId)));
-
   constructor(private _gristDoc: GristDoc) {
     super();
-    const commandGroup = {
-      cancel: () => { this._close(); },
-      printSection: () => { printViewSection(null, this._gristDoc.viewModel.activeSection()).catch(reportError); },
-    };
-    this.autoDispose(commands.createGroup(commandGroup, this, true));
   }
 
   public buildDom() {
@@ -35,11 +24,9 @@ export class DataTables extends Disposable {
     // Get the user id, to remember selected layout on the next visit.
     const userId = this._gristDoc.app.topAppModel.appObs.get()?.currentUser?.id ?? 0;
     const view = holder.autoDispose(localStorageObs(`u=${userId}:raw:viewType`, "list"));
-    // Handler to close the lightbox.
-    const close = this._close.bind(this);
     return container(
       dom.autoDispose(holder),
-      docList(
+      cssTableList(
         /***************  List section **********/
         testId('list'),
         cssBetween(
@@ -108,37 +95,7 @@ export class DataTables extends Disposable {
           )
         ),
       ),
-      /***************  Lightbox section **********/
-      container.cls("-lightbox", this._popupVisible),
-      dom.domComputedOwned(fromKo(this._gristDoc.viewModel.activeSection), (owner, viewSection) => {
-        if (!viewSection.getRowId()) {
-          return null;
-        }
-        ViewSectionHelper.create(owner, this._gristDoc, viewSection);
-        return cssOverlay(
-          testId('overlay'),
-          cssSectionWrapper(
-            buildViewSectionDom({
-              gristDoc: this._gristDoc,
-              sectionRowId: viewSection.getRowId(),
-              draggable: false,
-              focusable: false,
-              onRename: this._renameSection.bind(this)
-            })
-          ),
-          cssCloseButton('CrossBig',
-            testId('close-button'),
-            dom.on('click', close)
-          ),
-          // Close the lightbox when user clicks exactly on the overlay.
-          dom.on('click', (ev, elem) => void (ev.target === elem ? close() : null))
-        );
-      }),
     );
-  }
-
-  private _close() {
-    this._gristDoc.viewModel.activeSectionId(0);
   }
 
   private _menuItems(t: TableRec) {
@@ -157,12 +114,6 @@ export class DataTables extends Disposable {
     ];
   }
 
-  private async _renameSection(name: string) {
-    // here we will rename primary page for active primary viewSection
-    const primaryViewName = this._gristDoc.viewModel.activeSection.peek().table.peek().primaryView.peek().name;
-    await primaryViewName.saveOnly(name);
-  }
-
   private _removeTable(t: TableRec) {
     const {docModel} = this._gristDoc;
     function doRemove() {
@@ -177,9 +128,8 @@ export class DataTables extends Disposable {
 }
 
 const container = styled('div', `
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
-  height: 100%;
 `);
 
 const cssBetween = styled('div', `
@@ -353,58 +303,8 @@ const cssDots = styled('div', `
   margin-right: 8px;
 `);
 
-const cssOverlay = styled('div', `
-  z-index: 10;
-  background-color: ${css.colors.backdrop};
-  inset: 0px;
-  height: 100%;
-  width: 100%;
-  padding: 32px 56px 0px 56px;
-  position: absolute;
-  @media ${css.mediaSmall} {
-    & {
-      padding: 22px;
-      padding-top: 30px;
-    }
-  }
-`);
-
-const cssSectionWrapper = styled('div', `
-  background: white;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 5px;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-  & .viewsection_content {
-    margin: 0px;
-    margin-top: 12px;
-  }
-  & .viewsection_title {
-    padding: 0px 12px;
-  }
-  & .filter_bar {
-    margin-left: 6px;
-  }
-`);
-
-const cssCloseButton = styled(icon, `
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  height: 24px;
-  width: 24px;
-  cursor: pointer;
-  --icon-color: ${css.vars.primaryBg};
-  &:hover {
-    --icon-color: ${css.colors.lighterGreen};
-  }
-  @media ${css.mediaSmall} {
-    & {
-      top: 6px;
-      right: 6px;
-    }
-  }
+const cssTableList = styled('div', `
+  overflow-y: auto;
+  position: relative;
+  margin-bottom: 56px;
 `);

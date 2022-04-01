@@ -11,13 +11,13 @@ import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DataTables} from 'app/client/components/DataTables';
 import {DocComm, DocUserAction} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
+import {RawData} from 'app/client/components/RawData';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -382,7 +382,7 @@ export class GristDoc extends DisposableWithEvents {
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
         viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
         viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
-        viewId === 'data' ? dom.create((owner) => owner.autoDispose(DataTables.create(this, this))) :
+        viewId === 'data' ? dom.create((owner) => owner.autoDispose(RawData.create(this, this))) :
         viewId === 'GristDocTour' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),
