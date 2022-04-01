@@ -330,7 +330,11 @@ export function getReferencedTableId(type: string) {
 }
 
 export function isRefListType(type: string) {
-  return type === "Attachments" || type.startsWith('RefList:');
+  return type === "Attachments" || type?.startsWith('RefList:');
+}
+
+export function isListType(type: string) {
+  return type === "ChoiceList" || isRefListType(type);
 }
 
 export function isFullReferencingType(type: string) {

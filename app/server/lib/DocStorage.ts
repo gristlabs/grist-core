@@ -11,7 +11,7 @@ import * as sqlite3 from '@gristlabs/sqlite3';
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import {isList} from 'app/common/gristTypes';
+import {isList, isListType, isRefListType} from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
 import {GristObjCode} from "app/plugin/GristData";
@@ -455,7 +455,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       if (isList(val) && val.every(tok => (typeof(tok) === 'string'))) {
         return JSON.stringify(val.slice(1));
       }
-    } else if (gristType?.startsWith('RefList:')) {
+    } else if (isRefListType(gristType)) {
       if (isList(val) && val.slice(1).every((tok: any) => (typeof(tok) === 'number'))) {
         return JSON.stringify(val.slice(1));
       }
@@ -522,7 +522,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         return Boolean(val);
       }
     }
-    if (gristType === 'ChoiceList' || gristType?.startsWith('RefList:')) {
+    if (isListType(gristType)) {
       if (typeof val === 'string' && val.startsWith('[')) {
         try {
           return ['L', ...JSON.parse(val)];
@@ -566,6 +566,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       case 'ChoiceList':
       case 'RefList':
       case 'ReferenceList':
+      case 'Attachments':
         return 'TEXT';      // To be encoded as a JSON array of strings.
       case 'Date':
         return 'DATE';
@@ -1464,7 +1465,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
       // For any marshalled objects, check if we can now unmarshall them if they are the
       // native type.
-      if (result.newGristType !== result.oldGristType) {
+      if (result.newGristType !== result.oldGristType || result.newSqlType !== result.oldSqlType) {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
                                      `WHERE typeof(${q(colId)}) = 'blob'`);
         const marshaller = new marshal.Marshaller({version: 2});

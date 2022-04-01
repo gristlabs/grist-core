@@ -906,3 +906,21 @@ def migration27(tdset):
     add_column('_grist_Tables_column', 'rules', 'RefList:_grist_Tables_column'),
     add_column('_grist_Views_section_field', 'rules', 'RefList:_grist_Tables_column'),
   ])
+
+
+@migration(schema_version=28)
+def migration28(tdset):
+  doc_actions = [add_column('_grist_Attachments', 'timeDeleted', 'DateTime')]
+
+  tables = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables"]))
+  columns = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables_column"]))
+
+  for table in tables:
+    for col in columns:
+      if table.id == col.parentId and col.type == "Attachments":
+        # This looks like it doesn't change anything,
+        # but it makes DocStorage realise that the sqlType has changed
+        # so it converts marshalled blobs to JSON
+        doc_actions.append(actions.ModifyColumn(table.tableId, col.colId, {"type": "Attachments"}))
+
+  return tdset.apply_doc_actions(doc_actions)
