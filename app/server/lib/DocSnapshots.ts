@@ -314,7 +314,7 @@ export class DocSnapshotInventory implements IInventory {
  *   - The most recent version in every hour, for up to 25 distinct hours
  *   - The most recent version in every day, for up to 32 distinct days
  *   - The most recent version in every week, for up to 12 distinct weeks
- *   - The most recent version in every month, for up to 36 distinct months
+ *   - The most recent version in every month, for up to 96 distinct months
  *   - The most recent version in every year, for up to 1000 distinct years
  *   - Anything with a label, for up to 32 days before the current version.
  * Calculations done in UTC, Gregorian calendar, ISO weeks (week starts with Monday).
@@ -335,7 +335,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
     {range: 'hour', prev: start, usage: 0, cap: 25},
     {range: 'day', prev: start, usage: 0, cap: 32},
     {range: 'isoWeek', prev: start, usage: 0, cap: 12},
-    {range: 'month', prev: start, usage: 0, cap: 36},
+    {range: 'month', prev: start, usage: 0, cap: 96},
     {range: 'year', prev: start, usage: 0, cap: 1000}
   ];
   // For each snapshot starting with newest, check if it is worth saving by comparing
