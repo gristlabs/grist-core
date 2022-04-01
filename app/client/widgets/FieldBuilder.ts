@@ -121,7 +121,8 @@ export class FieldBuilder extends Disposable {
 
     // Returns a boolean indicating whether the column is type Reference or ReferenceList.
     this._isRef = this.autoDispose(ko.computed(() => {
-      return isFullReferencingType(this.field.column().type());
+      const type = this.field.column().type();
+      return type !== "Attachments" && isFullReferencingType(type);
     }));
 
     // Gives the table ID to which the reference points.
