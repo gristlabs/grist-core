@@ -921,3 +921,12 @@ export function getDistinctValues<T>(values: readonly T[], count: number = Infin
   }
   return distinct;
 }
+
+/**
+ * Asserts that variable `name` has a non-nullish `value`.
+ */
+export function assertIsDefined<T>(name: string, value: T): asserts value is NonNullable<T> {
+  if (value === undefined || value === null) {
+    throw new Error(`Expected '${name}' to be defined, but received ${value}`);
+  }
+}

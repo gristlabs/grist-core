@@ -131,27 +131,6 @@ export class Hosts {
     return this._redirectHost.bind(this);
   }
 
-  /**
-   * Returns true if `url` either points to a native Grist host (e.g. foo.getgrist.com),
-   * or a custom host for an existing Grist org.
-   */
-  public async isSafeRedirectUrl(url: string): Promise<boolean> {
-    const {host, protocol} = new URL(url);
-    if (!['http:', 'https:'].includes(protocol)) { return false; }
-
-    switch (this._getHostType(host)) {
-      case 'native': { return true; }
-      case 'custom': {
-        const org = await mapGetOrSet(this._host2org, host, async () => {
-          const o = await this._dbManager.connection.manager.findOne(Organization, {host});
-          return o?.domain ?? undefined;
-        });
-        return org !== undefined;
-      }
-      default: { return false; }
-    }
-  }
-
   public close() {
     this._host2org.clear();
     this._org2host.clear();

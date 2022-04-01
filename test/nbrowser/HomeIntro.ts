@@ -27,9 +27,9 @@ describe('HomeIntro', function() {
       const signUp = await driver.findContent('.test-welcome-text a', 'sign up');
       assert.include(await signUp.getAttribute('href'), '/signin');
 
-      // Check that the link takes us to a login page (either Cognito or Grist, depending on session).
+      // Check that the link takes us to a Grist login page.
       await signUp.click();
-      await gu.checkSigninPage();
+      await gu.checkLoginPage();
       await driver.navigate().back();
       await gu.waitForDocMenuToLoad();
     });

@@ -49,6 +49,9 @@ export interface IPermitStore {
 
   // Close down the permit store.
   close(): Promise<void>;
+
+  // Get the permit key prefix.
+  getKeyPrefix(): string;
 }
 
 export interface IPermitStores {

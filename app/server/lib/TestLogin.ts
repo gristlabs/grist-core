@@ -1,5 +1,5 @@
-import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
-import { Request } from 'express';
+import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {Request} from 'express';
 
 /**
  * Return a login system for testing. Just enough to use the test/login endpoint
@@ -9,9 +9,7 @@ export async function getTestLoginSystem(): Promise<GristLoginSystem> {
   return {
     async getMiddleware(gristServer: GristServer) {
       async function getLoginRedirectUrl(req: Request, url: URL)  {
-          // The "gristlogin" query parameter does nothing except make tests
-          // that expect hosted cognito happy (they check for gristlogin in url).
-          const target = new URL(gristServer.getHomeUrl(req, 'test/login?gristlogin=1'));
+          const target = new URL(gristServer.getHomeUrl(req, 'test/login'));
           target.searchParams.append('next', url.href);
           return target.href || url.href;
       }

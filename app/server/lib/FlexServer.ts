@@ -1,4 +1,3 @@
-import {ApiError} from 'app/common/ApiError';
 import {BillingTask} from 'app/common/BillingAPI';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
@@ -305,8 +304,7 @@ export class FlexServer implements GristServer {
     if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
-    // Add an optional gristInfo token that can replace the url, if the url is sensitive
-    // (this is the case for some cognito login urls).
+    // Add an optional gristInfo token that can replace the url, if the url is sensitive.
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
@@ -850,49 +848,32 @@ export class FlexServer implements GristServer {
     // should be factored out of it.
     this.addComm();
 
-    /**
-     * Gets the URL to redirect back to after successful sign-up, login, or logout.
-     *
-     * Note that in the test env, this will redirect further.
-     */
-    const getNextUrl = async (mreq: RequestWithLogin): Promise<string> => {
-      const next = optStringParam(mreq.query.next);
-
-      // If a "next" query param isn't present, return the URL of the request org.
-      if (next === undefined) { return getOrgUrl(mreq); }
-
-      // Check that the "next" param has a valid host (native or custom) before returning it.
-      if (!(await this._hosts.isSafeRedirectUrl(next))) {
-        throw new ApiError('Invalid redirect URL', 400);
-      }
-
-      return next;
-    };
-
     async function redirectToLoginOrSignup(
       this: FlexServer, signUp: boolean|null, req: express.Request, resp: express.Response,
     ) {
       const mreq = req as RequestWithLogin;
 
       // This will ensure that express-session will set our cookie if it hasn't already -
-      // we'll need it when we come back from Cognito.
+      // we'll need it when we redirect back.
       forceSessionChange(mreq.session);
+      // Redirect to the requested URL after successful login.
+      const nextPath = optStringParam(req.query.next);
+      const nextUrl = new URL(getOrgUrl(req, nextPath));
       if (signUp === null) {
         // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
         // user has ever logged in on this browser.
         signUp = (mreq.session.users === undefined);
       }
       const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-      resp.redirect(await getRedirectUrl(req, new URL(await getNextUrl(mreq))));
+      resp.redirect(await getRedirectUrl(req, nextUrl));
     }
 
-    const middleware = this._loginMiddleware.getLoginOrSignUpMiddleware ?
+    const signinMiddleware = this._loginMiddleware.getLoginOrSignUpMiddleware ?
       this._loginMiddleware.getLoginOrSignUpMiddleware() :
       [];
-
-    this.app.get('/login', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, false)));
-    this.app.get('/signup', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, true)));
-    this.app.get('/signin', ...middleware, expressWrap(redirectToLoginOrSignup.bind(this, null)));
+    this.app.get('/login', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, false)));
+    this.app.get('/signup', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, true)));
+    this.app.get('/signin', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, null)));
 
     if (allowTestLogin()) {
       // This is an endpoint for the dev environment that lets you log in as anyone.
@@ -943,15 +924,18 @@ export class FlexServer implements GristServer {
       }));
     }
 
-    this.app.get('/logout', expressWrap(async (req, resp) => {
-      const mreq = req as RequestWithLogin;
-      const scopedSession = this._sessions.getOrCreateSessionFromRequest(mreq);
-      const redirectUrl = await this._getLogoutRedirectUrl(req, new URL(await getNextUrl(mreq)));
+    const logoutMiddleware = this._loginMiddleware.getLogoutMiddleware ?
+      this._loginMiddleware.getLogoutMiddleware() :
+      [];
+    this.app.get('/logout', ...logoutMiddleware, expressWrap(async (req, resp) => {
+      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
+      const signedOutUrl = new URL(getOrgUrl(req) + 'signed-out');
+      const redirectUrl = await this._getLogoutRedirectUrl(req, signedOutUrl);
 
       // Clear session so that user needs to log in again at the next request.
       // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
       // Express-session will save these changes.
-      const expressSession = mreq.session;
+      const expressSession = (req as RequestWithLogin).session;
       if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
       await scopedSession.clearScopedSession(req);
       // TODO: limit cache clearing to specific user.
@@ -959,8 +943,8 @@ export class FlexServer implements GristServer {
       resp.redirect(redirectUrl);
     }));
 
-    // Add a static "signed-out" page. This is where logout typically lands (after redirecting
-    // through Cognito or SAML).
+    // Add a static "signed-out" page. This is where logout typically lands (e.g. after redirecting
+    // through SAML).
     this.app.get('/signed-out', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'signed-out'}})));
 

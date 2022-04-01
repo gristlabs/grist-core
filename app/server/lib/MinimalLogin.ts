@@ -1,7 +1,7 @@
-import { UserProfile } from 'app/common/UserAPI';
-import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
-import { fromCallback } from 'app/server/lib/serverUtils';
-import { Request } from 'express';
+import {UserProfile} from 'app/common/UserAPI';
+import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {fromCallback} from 'app/server/lib/serverUtils';
+import {Request} from 'express';
 
 /**
  * Return a login system that supports a single hard-coded user.

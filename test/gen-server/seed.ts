@@ -210,6 +210,8 @@ const exampleUsers: {[user: string]: {[org: string]: string}} = {
     Fish: 'viewers',
     Abyss: 'owners',
   },
+  // User Ham has two-factor authentication enabled on staging/prod.
+  Ham: {},
   // User support@ owns a workspace "Examples & Templates" in its personal org. It can be shared
   // with everyone@ to let all users see it (this is not done here to avoid impacting all tests).
   Support: { Supportland: 'owners' },

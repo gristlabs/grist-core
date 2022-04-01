@@ -93,6 +93,9 @@ class DummyDocWorkerMap implements IDocWorkerMap {
       },
       async close(): Promise<void> {
         _permits.clear();
+      },
+      getKeyPrefix() {
+        return formatPermitKey('', prefix);
       }
     };
     this._permitStores.set(prefix, store);
@@ -461,6 +464,9 @@ export class DocWorkerMap implements IDocWorkerMap {
       },
       async close() {
         // nothing to do
+      },
+      getKeyPrefix() {
+        return formatPermitKey('', prefix);
       }
     };
   }

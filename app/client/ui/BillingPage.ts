@@ -1,7 +1,7 @@
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {BillingModel, BillingModelImpl, ISubscriptionModel} from 'app/client/models/BillingModel';
-import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {BillingForm, IFormData} from 'app/client/ui/BillingForm';
 import * as css from 'app/client/ui/BillingPageCss';
@@ -499,7 +499,7 @@ export class BillingPage extends Disposable {
                 // If the user is not logged in and selects the free plan, provide a login link that
                 // redirects back to the free org.
                 return css.upgradeBtn('Sign up',
-                  {href: getLoginUrl(getMainOrgUrl())},
+                  {href: getLoginUrl()},
                   testId('plan-btn')
                 );
               } else if ((!selectedPlan && plan.amount === 0) || (selectedPlan && plan.id === selectedPlan.id)) {

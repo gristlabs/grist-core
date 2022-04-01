@@ -24,7 +24,8 @@
  */
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
+import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState,
+        parseFirstUrlPart} from 'app/common/gristUrls';
 import {addOrgToPath} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
@@ -64,39 +65,40 @@ export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
 export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
 
-// Get url for the login page, which will then redirect to nextUrl (current page by default).
+// Get url for the login page, which will then redirect to `nextUrl` (current page by default).
 export function getLoginUrl(nextUrl: string | null = _getCurrentUrl()): string {
-  return _getLoginLogoutUrl('login', nextUrl ?? undefined);
+  return _getLoginLogoutUrl('login', nextUrl);
 }
 
-// Get url for the signup page, which will then redirect to nextUrl (current page by default).
+// Get url for the signup page, which will then redirect to `nextUrl` (current page by default).
 export function getSignupUrl(nextUrl: string = _getCurrentUrl()): string {
   return _getLoginLogoutUrl('signup', nextUrl);
 }
 
-// Get url for the logout page, which will then redirect to nextUrl (signed-out page by default).
-export function getLogoutUrl(nextUrl: string = getSignedOutUrl()): string {
-  return _getLoginLogoutUrl('logout', nextUrl);
+// Get url for the logout page.
+export function getLogoutUrl(): string {
+  return _getLoginLogoutUrl('logout');
 }
 
-// Get url for the login page, which will then redirect to nextUrl (current page by default).
+// Get url for the signin page, which will then redirect to `nextUrl` (current page by default).
 export function getLoginOrSignupUrl(nextUrl: string = _getCurrentUrl()): string {
   return _getLoginLogoutUrl('signin', nextUrl);
 }
 
-// Returns the URL for the "you are signed out" page.
-export function getSignedOutUrl(): string { return getMainOrgUrl() + "signed-out"; }
-
-// Helper which returns the URL of the current page, except when it's the "/signed-out" page, in
-// which case returns the org URL. This is a good URL to use for a post-login redirect.
+// Returns the relative URL (i.e. path) of the current page, except when it's the
+// "/signed-out" page, in which case it returns the home page ("/").
+// This is a good URL to use for a post-login redirect.
 function _getCurrentUrl(): string {
-  return window.location.pathname.endsWith("/signed-out") ? getMainOrgUrl() : window.location.href;
+  if (window.location.pathname.endsWith('/signed-out')) { return '/'; }
+
+  const {pathname, search} = new URL(window.location.href);
+  return parseFirstUrlPart('o', pathname).path + search;
 }
 
-// Helper for getLoginUrl()/getLogoutUrl().
-function _getLoginLogoutUrl(method: 'login'|'logout'|'signin'|'signup', nextUrl?: string): string {
+// Returns the URL for the given login page, with 'next' param optionally set.
+function _getLoginLogoutUrl(page: 'login'|'logout'|'signin'|'signup', nextUrl?: string | null): string {
   const startUrl = new URL(window.location.href);
-  startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + method;
+  startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + page;
   if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
   return startUrl.href;
 }

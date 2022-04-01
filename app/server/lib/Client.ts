@@ -2,7 +2,6 @@ import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {UserProfile} from 'app/common/LoginSessionAPI';
-import {getLoginState, LoginState} from 'app/common/LoginState';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -75,7 +74,6 @@ export class Client {
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
   private _websocket: any;
-  private _loginState: LoginState|null = null;
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
   private _userId: number|null = null;
@@ -95,9 +93,6 @@ export class Client {
 
   public toString() { return `Client ${this.clientId} #${this._counter}`; }
 
-  // Returns the LoginState object that's encoded and passed via login pages to login-connect.
-  public getLoginState(): LoginState|null { return this._loginState; }
-
   public setCounter(counter: string) {
     this._counter = counter;
   }
@@ -112,8 +107,6 @@ export class Client {
 
   public setConnection(websocket: any, reqHost: string, browserSettings: BrowserSettings) {
     this._websocket = websocket;
-    // Set this._loginState, used by CognitoClient to construct login/logout URLs.
-    this._loginState = getLoginState(reqHost);
     this.browserSettings = browserSettings;
   }
 

@@ -68,8 +68,8 @@ export function addOrgToPath(req: RequestWithOrg, path: string): string {
 /**
  * Get url to the org associated with the request.
  */
-export function getOrgUrl(req: Request) {
-  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, '/');
+export function getOrgUrl(req: Request, path: string = '/') {
+  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, path);
 }
 
 /**

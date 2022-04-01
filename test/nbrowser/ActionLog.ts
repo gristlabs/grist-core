@@ -24,7 +24,7 @@ describe('ActionLog', function() {
   }
 
   before(async function() {
-    const session = await gu.session().login();
+    const session = await gu.session().user('user4').login();
     await session.tempDoc(cleanup, 'Hello.grist');
     await gu.dismissWelcomeTourIfNeeded();
   });

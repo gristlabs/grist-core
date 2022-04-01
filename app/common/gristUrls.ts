@@ -2,7 +2,6 @@ import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
-import {localhostRegex} from 'app/common/LoginState';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {UIRowId} from 'app/common/UIRowId';
@@ -34,7 +33,7 @@ export type WelcomePage = typeof WelcomePage.type;
 export const AccountPage = StringUnion('account');
 export type AccountPage = typeof AccountPage.type;
 
-export const LoginPage = StringUnion('signup', 'verified', 'forgot-password');
+export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
@@ -89,7 +88,7 @@ export interface IGristUrlState {
     billingPlan?: string;
     billingTask?: BillingTask;
     embed?: boolean;
-    next?: string;
+    state?: string;
     style?: InterfaceStyle;
     compare?: string;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
@@ -302,13 +301,16 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
 
   if (map.has('signup')) {
     state.login = 'signup';
+  } else if (map.has('login')) {
+    state.login = 'login';
   } else if (map.has('verified')) {
     state.login = 'verified';
   } else if (map.has('forgot-password')) {
     state.login = 'forgot-password';
   }
-
-  if (sp.has('next')) { state.params!.next = sp.get('next')!; }
+  if (sp.has('state')) {
+    state.params!.state = sp.get('state')!;
+  }
 
   if (sp.has('style')) {
     state.params!.style = InterfaceStyle.parse(sp.get('style'));
@@ -406,6 +408,9 @@ export function parseSubdomain(host: string|undefined): {org?: string, base?: st
   // Host has nowhere to put a subdomain.
   return {};
 }
+
+// Allowed localhost addresses.
+const localhostRegex = /^localhost(?::(\d+))?$/i;
 
 /**
  * Like parseSubdomain, but throws an error if neither of these cases apply:
@@ -566,7 +571,7 @@ export function isOrgInPathOnly(host?: string): boolean {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return (gristConfig && gristConfig.pathOnly) || false;
   } else {
-    if (host && host.match(/^localhost(:[0-9]+)?$/)) { return true; }
+    if (host && host.match(localhostRegex)) { return true; }
     return (process.env.GRIST_ORG_IN_PATH === 'true');
   }
 }

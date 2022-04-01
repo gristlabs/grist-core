@@ -98,7 +98,7 @@ export class WelcomePage extends Disposable {
           `If you already have a Grist account as `,
           dom('b', email.get()),
           ` you can just `,
-          dom('a', {href: getLoginUrl(urlState().makeUrl({}))}, 'log in'),
+          dom('a', {href: getLoginUrl()}, 'log in'),
           ` now. Otherwise, please pick a password.`
          ),
       cssSeparatedLabel('The email address you activated Grist with:'),

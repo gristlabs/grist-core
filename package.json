@@ -66,6 +66,7 @@
     "mocha-webdriver": "0.2.9",
     "moment-locales-webpack-plugin": "^1.2.0",
     "nodemon": "^2.0.4",
+    "otplib": "12.0.1",
     "selenium-webdriver": "3.6.0",
     "source-map-loader": "^0.2.4",
     "stats-webpack-plugin": "^0.7.0",

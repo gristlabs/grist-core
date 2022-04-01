@@ -282,7 +282,9 @@ export class ScopedSession {
     const session = prev || await this._getSession();
     if (!session.users) { session.users = []; }
     if (!session.orgToUser) { session.orgToUser = {}; }
-    let index = session.users.findIndex(u => Boolean(u.profile && u.profile.email === profile.email));
+    let index = session.users.findIndex(u => {
+      return Boolean(u.profile && normalizeEmail(u.profile.email) === normalizeEmail(profile.email));
+    });
     if (index < 0) { index = session.users.length; }
     session.orgToUser[this._org] = index;
     session.users[index] = user;
