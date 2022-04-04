@@ -1,5 +1,7 @@
 import testutil
 import test_engine
+from objtypes import RecordSetStub
+
 
 class TestRecordList(test_engine.EngineTestCase):
   col = testutil.col_schema_row
@@ -82,4 +84,19 @@ class TestRecordList(test_engine.EngineTestCase):
       ["id", "Name", "Creatures", "Lookup", "Equal"],
       [1, "Mammals",  [1, 3],     [1, 3],   True],
       [2, "Reptilia", [2, 4],     [2, 4],   True],
+    ])
+
+  def test_attribute_chain(self):
+    self.load_sample(self.sample)
+    self.add_column('Class', 'Names', type='Any', isFormula=True,
+        formula="$Creatures.Class.Name")
+    self.add_column('Class', 'Creatures2', type='Any', isFormula=True,
+        formula="$Creatures.Class.Creatures")
+
+    mammals = RecordSetStub("Creatures", [1, 3])
+    reptiles = RecordSetStub("Creatures", [2, 4])
+    self.assertTableData("Class", data=[
+      ["id", "Name",     "Creatures", "Names",                  "Creatures2"],
+      [1,    "Mammals",  [1, 3],      ["Mammals", "Mammals"],   [mammals, mammals]],
+      [2,    "Reptilia", [2, 4],      ["Reptilia", "Reptilia"], [reptiles, reptiles]],
     ])

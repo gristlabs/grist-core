@@ -598,8 +598,8 @@ class Table(object):
 
   # Called when record.foo is accessed
   def _get_col_value(self, col_id, row_id, relation):
-    [value] = self._get_col_subset(col_id, [row_id], relation)
-    return value
+    [value] = self._get_col_subset_raw(col_id, [row_id], relation)
+    return records.adjust_record(relation, value)
 
   def _attribute_error(self, col_id, relation):
     self._engine._use_node(self._new_columns_node, relation)
@@ -607,8 +607,28 @@ class Table(object):
 
   # Called when record_set.foo is accessed
   def _get_col_subset(self, col_id, row_ids, relation):
+    values = self._get_col_subset_raw(col_id, row_ids, relation)
+
+    # When all the values are the same type of Record (i.e. all references to the same table)
+    # combine them into a single RecordSet for that table instead of a list
+    # so that more attribute accesses can be chained,
+    # e.g. record_set.foo.bar where `foo` is a Reference column.
+    value_types = list(set(map(type, values)))
+    if len(value_types) == 1 and issubclass(value_types[0], records.Record):
+      return records.RecordSet(
+        values[0]._table,
+        # This is different from row_ids: these are the row IDs referenced by these Records,
+        # whereas row_ids are where the values were being stored.
+        [val._row_id for val in values],
+        relation.compose(values[0]._source_relation),
+      )
+    else:
+      return [records.adjust_record(relation, value) for value in values]
+
+  # Internal helper to optimise _get_col_value
+  # so that it doesn't make a singleton RecordSet just to immediately unpack it
+  def _get_col_subset_raw(self, col_id, row_ids, relation):
     col = self.all_columns[col_id]
     # creates a dependency and brings formula columns up-to-date.
     self._engine._use_node(col.node, relation, row_ids)
-    # TODO: when column is a reference, support property access in return value
-    return [records.adjust_record(relation, col.get_cell_value(row_id)) for row_id in row_ids]
+    return [col.get_cell_value(row_id) for row_id in row_ids]
