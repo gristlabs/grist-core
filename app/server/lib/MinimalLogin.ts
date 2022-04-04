@@ -1,7 +1,6 @@
-import {UserProfile} from 'app/common/UserAPI';
-import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Request} from 'express';
+import { UserProfile } from 'app/common/UserAPI';
+import { GristLoginSystem, GristServer, setUserInSession } from 'app/server/lib/GristServer';
+import { Request } from 'express';
 
 /**
  * Return a login system that supports a single hard-coded user.
@@ -11,16 +10,14 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
   // no nuance here.
   return {
     async getMiddleware(gristServer: GristServer) {
+      async function getLoginRedirectUrl(req: Request, url: URL)  {
+        await setUserInSession(req, gristServer, getDefaultProfile());
+        return url.href;
+    }
       return {
-        async getLoginRedirectUrl(req: Request, url: URL)  {
-          await setSingleUser(req, gristServer);
-          return url.href;
-        },
+        getLoginRedirectUrl,
+        getSignUpRedirectUrl: getLoginRedirectUrl,
         async getLogoutRedirectUrl(req: Request, url: URL) {
-          return url.href;
-        },
-        async getSignUpRedirectUrl(req: Request, url: URL) {
-          await setSingleUser(req, gristServer);
           return url.href;
         },
         async addEndpoints() {
@@ -41,22 +38,6 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
       // nothing to do
     },
   };
-}
-
-/**
- * Set the user in the current session to the single hard-coded user.
- */
-async function setSingleUser(req: Request, gristServer: GristServer) {
-  const scopedSession = gristServer.getSessions().getOrCreateSessionFromRequest(req);
-  // Make sure session is up to date before operating on it.
-  // Behavior on a completely fresh session is a little awkward currently.
-  const reqSession = (req as any).session;
-  if (reqSession?.save) {
-    await fromCallback(cb => reqSession.save(cb));
-  }
-  await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
-    profile: getDefaultProfile()
-  }));
 }
 
 function getDefaultProfile(): UserProfile {

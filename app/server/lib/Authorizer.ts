@@ -94,10 +94,11 @@ export function isSingleUserMode(): boolean {
 /**
  * Returns a profile if it can be deduced from the request. This requires a
  * header to specify the users' email address. The header to set comes from the
- * environment variable GRIST_PROXY_AUTH_HEADER.
+ * environment variable GRIST_PROXY_AUTH_HEADER, or may be passed in.
  */
-export function getRequestProfile(req: Request|IncomingMessage): UserProfile|undefined {
-  const header = process.env.GRIST_PROXY_AUTH_HEADER;
+export function getRequestProfile(req: Request|IncomingMessage,
+                                  header?: string): UserProfile|undefined {
+  header = header || process.env.GRIST_PROXY_AUTH_HEADER;
   let profile: UserProfile|undefined;
 
   if (header) {

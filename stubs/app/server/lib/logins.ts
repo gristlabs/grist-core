@@ -1,9 +1,10 @@
+import { getForwardAuthLoginSystem } from 'app/server/lib/ForwardAuthLogin';
 import { GristLoginSystem } from 'app/server/lib/GristServer';
 import { getMinimalLoginSystem } from 'app/server/lib/MinimalLogin';
 import { getSamlLoginSystem } from 'app/server/lib/SamlConfig';
 
 export async function getLoginSystem(): Promise<GristLoginSystem> {
-  const saml = await getSamlLoginSystem();
-  if (saml) { return saml; }
-  return getMinimalLoginSystem();
+  return await getSamlLoginSystem() ||
+    await getForwardAuthLoginSystem() ||
+    await getMinimalLoginSystem();
 }

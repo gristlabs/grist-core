@@ -1,5 +1,5 @@
 import { GristLoadConfig } from 'app/common/gristUrls';
-import { FullUser } from 'app/common/UserAPI';
+import { FullUser, UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
@@ -12,6 +12,7 @@ import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { INotifier } from 'app/server/lib/INotifier';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
+import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import * as express from 'express';
 
@@ -57,6 +58,20 @@ export interface GristLoginMiddleware {
   getLogoutMiddleware?(): express.RequestHandler[];
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;
+}
+
+/**
+ * Set the user in the current session.
+ */
+export async function setUserInSession(req: express.Request, gristServer: GristServer, profile: UserProfile) {
+  const scopedSession = gristServer.getSessions().getOrCreateSessionFromRequest(req);
+  // Make sure session is up to date before operating on it.
+  // Behavior on a completely fresh session is a little awkward currently.
+  const reqSession = (req as any).session;
+  if (reqSession?.save) {
+    await fromCallback(cb => reqSession.save(cb));
+  }
+  await scopedSession.updateUserProfile(req, profile);
 }
 
 export interface RequestWithGrist extends express.Request {

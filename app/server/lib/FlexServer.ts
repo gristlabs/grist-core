@@ -729,6 +729,11 @@ export class FlexServer implements GristServer {
             recordSignUpEvent: true,
           }});
 
+          if (process.env.GRIST_SINGLE_ORG) {
+            // Merged org is not meaningful in this case.
+            return res.redirect(this.getHomeUrl(req));
+          }
+
           // Redirect to teams page if users has access to more than one org. Otherwise, redirect to
           // personal org.
           const domain = mreq.org;
