@@ -20,6 +20,11 @@ def _make_col_info(col=None, **values):
     values.setdefault(key, getattr(col, key) if col else None)
   return ColInfo(**values)
 
+def _make_sum_col_info(col):
+  """Return a ColInfo() for the sum formula column for column col."""
+  return _make_col_info(col=col, isFormula=True,
+                        formula='SUM($group.%s)' % col.colId)
+
 
 def _get_colinfo_dict(col_info, with_id=False):
   """Return a dict suitable to use with AddColumn or AddTable (when with_id=True) actions."""
@@ -195,14 +200,18 @@ class SummaryActions(object):
     prev_fields = list(view_section.fields)
 
     # Go through fields figuring out which ones we'll keep.
-    prev_group_fields, formula_fields, delete_fields = [], [], []
+    prev_group_fields, formula_fields, delete_fields, missing_colinfo = [], [], [], []
     for field in prev_fields:
+      srcCol = field.colRef.summarySourceCol
       # Records implement __hash__, so we can look them up in sets.
-      if field.colRef.summarySourceCol in source_groupby_colset:
+      if srcCol in source_groupby_colset:
         prev_group_fields.append(field)
       elif field.colRef.isFormula and field.colRef.colId not in groupby_colids:
         formula_fields.append(field)
       else:
+        # if user is removing a numeric column from the group by columns we must add it back as a
+        # sum formula column
+        self._append_sister_column_if_any(missing_colinfo, source_table, srcCol)
         delete_fields.append(field)
 
     # Prepare ColInfo for all columns we want to keep.
@@ -232,6 +241,14 @@ class SummaryActions(object):
 
     # Delete fields no longer relevant.
     self.docmodel.remove(delete_fields)
+
+    # Add missing sum column
+    for ci in missing_colinfo:
+      col = self.useractions.AddColumn(summary_table.tableId, ci.colId,
+                                       _get_colinfo_dict(ci, with_id=False))
+      # AddColumn user action did not add the fields as the view section was not yet updated with
+      # new table, hence adds it manually
+      self.docmodel.add(view_section.fields, colRef=[col['colRef']])
 
     # Update fields for all formula fields and reused group-by fields to point to new columns.
     source_col_map = dict(zip(source_groupby_columns, groupby_columns))
@@ -274,6 +291,17 @@ class SummaryActions(object):
         return c
     return None
 
+  def _append_sister_column_if_any(self, all_colinfo, source_table, col):
+    """
+    Appends a col info for one sister column of col (in source_table) if it finds one, else, and if
+    col is of numeric type appends the col info for the sum col, else do nothing.
+    """
+    c = self._find_sister_column(source_table, col.colId)
+    if c:
+      all_colinfo.append(_make_col_info(col=c))
+    elif col.type in ('Int', 'Numeric'):
+      all_colinfo.append(_make_sum_col_info(col))
+
 
   def _create_summary_colinfo(self, source_table, source_groupby_columns):
     """Come up automatically with a list of columns to include into a summary table."""
@@ -287,12 +315,7 @@ class SummaryActions(object):
     for col in source_table.columns:
       if col.colId in groupby_col_ids or col.colId == 'group' or not is_visible_column(col.colId):
         continue
-      c = self._find_sister_column(source_table, col.colId)
-      if c:
-        all_colinfo.append(_make_col_info(col=c))
-      elif col.type in ('Int', 'Numeric'):
-        all_colinfo.append(_make_col_info(col=col, isFormula=True,
-                                          formula='SUM($group.%s)' % col.colId))
+      self._append_sister_column_if_any(all_colinfo, source_table, col)
 
     # Add a default 'count' column for the number of records in the group, unless a different
     # 'count' was already added (which we would then prefer as presumably more useful). We add the

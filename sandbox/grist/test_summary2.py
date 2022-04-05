@@ -664,6 +664,48 @@ class TestSummary2(test_engine.EngineTestCase):
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
 
+    # Change the section to add and then remove the "amount" to the group-by column; check that
+    # column "amount" was correctly restored
+    self.apply_user_action(["UpdateSummaryViewSection", 1, [11, 12, 13]])
+    self.assertTables([
+      self.starting_table,
+      Table(7, "GristSummary_7_Address2", 0, 1, columns=[
+        Column(35, "city",    "Text",     False,  "", 11),
+        Column(36, "state",   "Text",     False,  "", 12),
+        Column(37, "amount",  "Numeric",  False,   "", 13),
+        Column(38, "count",   "Int",      True,   "len($group)", 0),
+        Column(39, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+      ]),
+    ])
+    self.assertViews([View(1, sections=[
+      Section(1, parentKey="record", tableRef=7, fields=[
+        Field(6, colRef=35),
+        Field(5, colRef=36),
+        Field(7, colRef=37),
+        Field(3, colRef=38),
+      ])
+    ])])
+    self.apply_user_action(["UpdateSummaryViewSection", 1, [11,12]])
+    self.assertTables([
+      self.starting_table,
+      Table(8, "GristSummary_7_Address", 0, 1, columns=[
+        Column(40, "city",    "Text",     False,  "", 11),
+        Column(41, "state",   "Text",     False,  "", 12),
+        Column(42, "count",   "Int",      True,   "len($group)", 0),
+        Column(43, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(44, "amount",  "Numeric",  True, "SUM($group.amount)", 0),
+
+      ]),
+    ])
+    self.assertViews([View(1, sections=[
+      Section(1, parentKey="record", tableRef=8, fields=[
+        Field(6, colRef=40),
+        Field(5, colRef=41),
+        Field(3, colRef=42),
+        Field(7, colRef=44),
+      ])
+    ])])
+
     # Delete source table, and ensure its summary table is also gone.
     self.apply_user_action(["RemoveTable", "Address"])
     self.assertTables([])
