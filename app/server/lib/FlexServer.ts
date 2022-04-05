@@ -1515,12 +1515,8 @@ export class FlexServer implements GristServer {
    * path.
    */
   private _getOrgRedirectUrl(req: RequestWithLogin, subdomain: string, pathname: string = req.originalUrl): string {
-    const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, {
-      org: req.org,
-      baseDomain: this._defaultBaseDomain,
-      pluginUrl: this._pluginUrl,
-      singleOrg: process.env.GRIST_SINGLE_ORG,
-    });
+    const config = this.getGristConfig();
+    const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, config);
     const redirectUrl = new URL(pathname, `${req.protocol}://${req.get('host')}`);
     if (hostname) {
       redirectUrl.hostname = hostname;

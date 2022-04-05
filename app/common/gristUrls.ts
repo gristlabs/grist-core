@@ -112,6 +112,9 @@ export interface OrgUrlOptions {
 
   // Base URL used for accessing plugin material.
   pluginUrl?: string;
+
+  // If set, org is expected to be encoded in the path, not domain.
+  pathOnly?: boolean;
 }
 
 // Result of getOrgUrlInfo().
@@ -144,6 +147,9 @@ export function getHostType(host: string, options: {
 export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgUrlOptions): OrgUrlInfo {
   if (newOrg === options.singleOrg) {
     return {};
+  }
+  if (options.pathOnly) {
+    return {orgInPath: newOrg};
   }
   const hostType = getHostType(currentHost, options);
   if (hostType !== 'plugin') {
