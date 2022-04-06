@@ -52,7 +52,7 @@ Here are some specific feature highlights of Grist:
     - Useful for intranet operation and specific compliance requirements.
   * Several sandboxing options for untrusted documents.
     - On Linux or with docker, you can enable
-	  [https://github.com/google/gvisor](gVisor) sandboxing at the individual
+	  [gVisor](https://github.com/google/gvisor) sandboxing at the individual
 	  document level.
     - On OSX, you can use native sandboxing.
 	- On any OS, if running Grist outside of docker, you can use docker
@@ -115,14 +115,14 @@ environment variable.
 
  * On OSX, `export GRIST_SANDBOX_FLAVOR=macSandboxExec`
    uses the native `sandbox-exec` command for sandboxing.
- * On Linux with [https://github.com/google/gvisor](gVisor's runsc)
+ * On Linux with [gVisor's runsc](https://github.com/google/gvisor)
    installed, `export GRIST_SANDBOX_FLAVOR=gvisor` is an option.
  * On any OS, with docker installed, `export GRIST_SANDBOX_FLAVOR=docker`
    may work. The first time you open a document may be slow since Grist will pull
    and modify a docker image.
 
 These sandboxing methods have been written for our own use at Grist Labs and
-may need a little tweaking to work in your own environment - pull requests
+may need tweaking to work in your own environment - pull requests
 very welcome here!
 
 ## Logins
