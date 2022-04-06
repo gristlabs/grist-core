@@ -50,6 +50,13 @@ Here are some specific feature highlights of Grist:
     - Control access based on cell values and user attributes.
   * Can be self-maintained.
     - Useful for intranet operation and specific compliance requirements.
+  * Several sandboxing options for untrusted documents.
+    - On Linux or with docker, you can enable
+	  [https://github.com/google/gvisor](gVisor) sandboxing at the individual
+	  document level.
+    - On OSX, you can use native sandboxing.
+	- On any OS, if running Grist outside of docker, you can use docker
+	  containers as sandboxes for individual documents.
 
 If you are curious about where Grist is going heading,
 see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
@@ -62,7 +69,7 @@ There are docker images set up for individual use, or (with some
 configuration) for self-hosting. Grist Labs offers a hosted service
 at [docs.getgrist.com](https://docs.getgrist.com).
 
-To run Grist running on your computer with [Docker](https://www.docker.com/get-started), do:
+To get Grist running on your computer with [Docker](https://www.docker.com/get-started), do:
 
 ```sh
 docker pull gristlabs/grist
@@ -88,6 +95,10 @@ port mapping:
 docker run --env PORT=9999 -p 9999:9999 -v $PWD/persist:/persist -it gristlabs/grist
 ```
 
+To enable gVisor sandboxing, set `--env GRIST_SANDBOX_FLAVOR=gvisor`.
+This should work with default docker settings, but may not work in all
+environments.
+
 ## Building from source
 
 To build Grist from source, follow these steps:
@@ -97,6 +108,22 @@ To build Grist from source, follow these steps:
     yarn run install:python
     yarn start
     # Grist will be available at http://localhost:8484/
+
+Grist formulas in documents will be run using Python executed directly on your
+machine. You can configure sandboxing using a `GRIST_SANDBOX_FLAVOR`
+environment variable.
+
+ * On OSX, `export GRIST_SANDBOX_FLAVOR=macSandboxExec`
+   uses the native `sandbox-exec` command for sandboxing.
+ * On Linux with [https://github.com/google/gvisor](gVisor's runsc)
+   installed, `export GRIST_SANDBOX_FLAVOR=gvisor` is an option.
+ * On any OS, with docker installed, `export GRIST_SANDBOX_FLAVOR=docker`
+   may work. The first time you open a document may be slow since Grist will pull
+   and modify a docker image.
+
+These sandboxing methods have been written for our own use at Grist Labs and
+may need a little tweaking to work in your own environment - pull requests
+very welcome here!
 
 ## Logins
 

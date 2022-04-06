@@ -94,6 +94,14 @@ ADD plugins plugins
 # started as:
 #   docker run -p 8484:8484 -it <image>
 # Variables will need to be overridden for other setups.
+#
+# GRIST_SANDBOX_FLAVOR is set to unsandboxed by default, because it
+# appears that the services people use to run docker containers have
+# a wide variety of security settings and the functionality needed for
+# sandboxing may not be possible in every case. For default docker
+# settings, you can get sandboxing as follows:
+#   docker run --env GRIST_SANDBOX_FLAVOR=gvisor -p 8484:8484 -it <image>
+#
 ENV \
   PYTHON_VERSION_ON_CREATION=3 \
   GRIST_ORG_IN_PATH=true \
@@ -104,7 +112,7 @@ ENV \
   GRIST_INST_DIR=/persist \
   GRIST_SESSION_COOKIE=grist_core \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
-  GRIST_SANDBOX_FLAVOR=gvisor \
+  GRIST_SANDBOX_FLAVOR=unsandboxed \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
 EXPOSE 8484
