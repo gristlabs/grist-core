@@ -331,8 +331,9 @@ export function getActiveCell(): WebElementPromise {
  * Get the numeric value from the row header of the first selected row. This would correspond to
  * the row with the cursor when a single rows is selected.
  */
-export async function getSelectedRowNum(): Promise<number> {
-  const rowNum = await driver.find('.active_section .gridview_data_row_num.selected').getText();
+export async function getSelectedRowNum(section?: string): Promise<number> {
+  const sectionElem = section ? await getSection(section) : await driver.find('.active_section');
+  const rowNum = await sectionElem.find('.gridview_data_row_num.selected').getText();
   return parseInt(rowNum, 10);
 }
 
@@ -805,7 +806,7 @@ export async function addNewTable() {
 
 export interface PageWidgetPickerOptions {
   summarize?: RegExp[];   // Optional list of patterns to match Group By columns.
-  selectBy?: RegExp;      // Optional pattern of SELECT BY option to pick.
+  selectBy?: RegExp|string;      // Optional pattern of SELECT BY option to pick.
 }
 
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
@@ -847,14 +848,18 @@ export async function selectWidget(typeRe: RegExp, tableRe: RegExp, options: Pag
   // let's select table
   await tableEl.click();
 
+  const pivotEl = tableEl.find('.test-wselect-pivot');
+  if (await pivotEl.isPresent()) {
+    await toggleSelectable(pivotEl, Boolean(options.summarize));
+  }
 
   if (options.summarize) {
-    // if summarize is requested, let's select the corresponding pivot icon
-    await tableEl.find('.test-wselect-pivot').click();
-
-    // and all the columns
-    for (const colRef of options.summarize) {
-      await driver.findContent('.test-wselect-column', colRef).click();
+    for (const columnEl of await driver.findAll('.test-wselect-column')) {
+      const label = await columnEl.getText();
+      // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
+      // rewritten using string matching only.
+      const goal = Boolean(options.summarize.find(r => label.match(r)));
+      await toggleSelectable(columnEl, goal);
     }
   }
 
@@ -868,6 +873,17 @@ export async function selectWidget(typeRe: RegExp, tableRe: RegExp, options: Pag
   await driver.findContent('.test-wselect-type', typeRe).doClick();
   await driver.find('.test-wselect-addBtn').doClick();
   await waitForServer();
+}
+
+/**
+ * Toggle elem if not selected. Expects elem to be clickable and to have a class ending with
+ * -selected when selected.
+ */
+async function toggleSelectable(elem: WebElement, goal: boolean) {
+  const isSelected = await elem.matches('[class*=-selected]');
+  if (goal !== isSelected) {
+    await elem.click();
+  }
 }
 
 /**

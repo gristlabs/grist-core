@@ -22,7 +22,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
-import {Computed, Observable} from 'grainjs';
+import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
@@ -118,6 +118,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // Linking state maintains .filterFunc and .cursorPos observables which we use for
   // auto-scrolling and filtering.
   linkingState: ko.Computed<LinkingState | null>;
+  _linkingState: Holder<LinkingState>; // Holder for the current value of linkingState
 
   linkingFilter: ko.Computed<FilterColValues>;
 
@@ -473,15 +474,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.activeRowId = ko.observable(null);
 
+  this._linkingState = Holder.create(this);
   this.linkingState = this.autoDispose(ko.pureComputed(() => {
-    if (!this.linkSrcSection().getRowId()) {
-      return null;
-    }
     try {
       const config = new LinkConfig(this);
-      return new LinkingState(docModel, config);
+      return LinkingState.create(this._linkingState, docModel, config);
     } catch (err) {
-      console.warn(`Can't create LinkingState: ${err.message}`);
+      // Dispose old LinkingState in case creating the new one failed.
+      this._linkingState.dispose();
       return null;
     }
   }));

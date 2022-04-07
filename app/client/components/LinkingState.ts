@@ -103,7 +103,16 @@ export class LinkingState extends Disposable {
       // TODO: This approach doesn't help cursor-linking (the other direction). If we have the
       // inverse of summary-table's 'group' column, we could implement both, and more efficiently.
       const isDirectSummary = srcSection.table().summarySourceTable() === tgtSection.table().getRowId();
-      this.filterColValues = this.autoDispose(ko.computed(() => {
+      const _filterColValues = ko.observable<FilterColValues>();
+      this.filterColValues = this.autoDispose(ko.computed(() => _filterColValues()));
+
+      // source data table could still be loading (this could happen after changing the group by
+      // columns of a linked summary table for instance), hence the below listeners.
+      this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
+      this.autoDispose(srcTableData.tableActionEmitter.addListener(_update));
+
+      _update();
+      function _update() {
         const result: FilterColValues = {filters: {}, operations: {}};
         const srcRowId = srcSection.activeRowId();
         for (const c of srcSection.table().groupByColumns()) {
@@ -119,8 +128,8 @@ export class LinkingState extends Disposable {
             }
           }
         }
-        return result;
-      }));
+        _filterColValues(result);
+      }
     } else if (isSummaryOf(tgtSection.table(), srcSection.table())) {
       // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a
       // column or map representing the inverse of summary table's "group" column.

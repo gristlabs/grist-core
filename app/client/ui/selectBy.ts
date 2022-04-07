@@ -257,13 +257,14 @@ export class LinkConfig {
     // Use null for unset cols (rather than an empty ColumnRec) for easier comparisons below.
     const srcCol = this.srcCol?.getRowId() ? this.srcCol : null;
     const tgtCol = this.tgtCol?.getRowId() ? this.tgtCol : null;
-    const srcTableId = (srcCol ? getReferencedTableId(srcCol.type.peek()) :
-      this.srcSection.table.peek().primaryTableId.peek());
-    const tgtTableId = (tgtCol ? getReferencedTableId(tgtCol.type.peek()) :
-      this.tgtSection.table.peek().primaryTableId.peek());
+    const srcTableId = (srcCol ? getReferencedTableId(srcCol.type()) :
+      this.srcSection.table().primaryTableId());
+    const tgtTableId = (tgtCol ? getReferencedTableId(tgtCol.type()) :
+      this.tgtSection.table().primaryTableId());
     try {
-      assert(!tgtCol || tgtCol.parentId.peek() === this.tgtSection.tableRef.peek(), "tgtCol belongs to wrong table");
-      assert(!srcCol || srcCol.parentId.peek() === this.srcSection.tableRef.peek(), "srcCol belongs to wrong table");
+      assert(Boolean(this.srcSection.getRowId()), "srcSection was disposed");
+      assert(!tgtCol || tgtCol.parentId() === this.tgtSection.tableRef(), "tgtCol belongs to wrong table");
+      assert(!srcCol || srcCol.parentId() === this.srcSection.tableRef(), "srcCol belongs to wrong table");
       assert(this.srcSection.getRowId() !== this.tgtSection.getRowId(), "srcSection links to itself");
       assert(tgtTableId, "tgtCol not a valid reference");
       assert(srcTableId, "srcCol not a valid reference");
