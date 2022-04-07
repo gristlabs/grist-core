@@ -15,12 +15,13 @@ import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
 import {TableData} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 
-export interface ColInfo {
+interface ColInfo {
   type: string;
   isFormula: boolean;
   formula: string;
   visibleCol: number;
   widgetOptions?: string;
+  rules: gristTypes.RefListValue
 }
 
 /**
@@ -87,18 +88,21 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
   let widgetOptions: any = null;
+  let rules: gristTypes.RefListValue = null;
 
   const colInfo: ColInfo = {
     type: addColTypeSuffix(toTypeMaybeFull, origCol, docModel),
     isFormula: true,
     visibleCol: 0,
     formula: "CURRENT_CONVERSION(rec)",
+    rules,
   };
 
   const visibleCol = origCol.visibleColModel();
   // Column used to derive previous widget options and sample values for guessing
   const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
   const prevOptions = sourceCol.widgetOptionsJson.peek() || {};
+  const prevRules = sourceCol.rules.peek();
   switch (toType) {
     case 'Date':
     case 'DateTime': {
@@ -112,12 +116,13 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     }
     case 'Numeric':
     case 'Int': {
-      if (["Numeric", "Int"].includes(sourceCol.type())) {
-        widgetOptions = prevOptions;
-      } else {
+      if (!["Numeric", "Int"].includes(sourceCol.type())) {
         const numberParse = NumberParse.fromSettings(docModel.docData.docSettings());
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
         widgetOptions = numberParse.guessOptions(colValues.filter(isString));
+      } else {
+        widgetOptions = prevOptions;
+        rules = prevRules;
       }
       break;
     }
@@ -201,6 +206,9 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
 
   if (widgetOptions) {
     colInfo.widgetOptions = JSON.stringify(widgetOptions);
+  }
+  if (rules) {
+    colInfo.rules = rules;
   }
   return colInfo;
 }

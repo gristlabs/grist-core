@@ -1,14 +1,13 @@
 import {IToken, TokenField} from 'app/client/lib/TokenField';
 import {cssBlockedCursor} from 'app/client/ui/RightPanel';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colorButton} from 'app/client/ui2018/ColorSelect';
+import {colorButton, ColorOption} from 'app/client/ui2018/ColorSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, Observable, styled} from 'grainjs';
-import {createCheckers, iface, ITypeSuite, opt} from 'ts-interface-checker';
+import {createCheckers, iface, ITypeSuite, opt, union} from 'ts-interface-checker';
 import isEqual = require('lodash/isEqual');
 import uniqBy = require('lodash/uniqBy');
 
@@ -33,7 +32,7 @@ class ChoiceItem implements IToken {
     public label: string,
     // We will keep the previous label value for a token, to tell us which token
     // was renamed. For new tokens this should be null.
-    public readonly previousLabel: string | null,
+    public previousLabel: string | null,
     public options?: IChoiceOptions
   ) {}
 
@@ -41,19 +40,24 @@ class ChoiceItem implements IToken {
     return new ChoiceItem(label, this.previousLabel, this.options);
   }
 
-  public changeColors(options: IChoiceOptions) {
+  public changeStyle(options: IChoiceOptions) {
     return new ChoiceItem(this.label, this.previousLabel, {...this.options, ...options});
   }
 }
 
 const ChoiceItemType = iface([], {
   label: "string",
+  previousLabel: union("string", "null"),
   options: opt("ChoiceOptionsType"),
 });
 
 const ChoiceOptionsType = iface([], {
-  textColor: "string",
-  fillColor: "string",
+  textColor: opt("string"),
+  fillColor: opt("string"),
+  fontBold: opt("boolean"),
+  fontUnderline: opt("boolean"),
+  fontItalic: opt("boolean"),
+  fontStrikethrough: opt("boolean"),
 });
 
 const choiceTypes: ITypeSuite = {
@@ -62,8 +66,6 @@ const choiceTypes: ITypeSuite = {
 };
 
 const {ChoiceItemType: ChoiceItemChecker} = createCheckers(choiceTypes);
-
-const UNSET_COLOR = '#ffffff';
 
 /**
  * ChoiceListEntry - Editor for choices and choice colors.
@@ -166,17 +168,29 @@ export class ChoiceListEntry extends Disposable {
               dom.forEach(someValues, val => {
                 return row(
                   cssTokenColorInactive(
-                    dom.style('background-color', getFillColor(choiceOptions.get(val))),
+                    dom.style('background-color', getFillColor(choiceOptions.get(val)) || '#FFFFFF'),
+                    dom.style('color', getTextColor(choiceOptions.get(val)) || '#000000'),
+                    dom.cls('font-bold', choiceOptions.get(val)?.fontBold ?? false),
+                    dom.cls('font-underline', choiceOptions.get(val)?.fontUnderline ?? false),
+                    dom.cls('font-italic', choiceOptions.get(val)?.fontItalic ?? false),
+                    dom.cls('font-strikethrough', choiceOptions.get(val)?.fontStrikethrough ?? false),
+                    'T',
                     testId('choice-list-entry-color')
                   ),
-                  cssTokenLabel(val)
+                  cssTokenLabel(
+                    val,
+                    testId('choice-list-entry-label')
+                  )
                 );
               }),
             ),
             // Show description row for any remaining rows
             dom.maybe(use => use(this._values).length > maxRows, () =>
               row(
-                dom.text((use) => `+${use(this._values).length - (maxRows - 1)} more`)
+                dom('span',
+                  testId('choice-list-entry-label'),
+                  dom.text((use) => `+${use(this._values).length - (maxRows - 1)} more`)
+                )
               )
             ),
             dom.on('click', () => this._startEditing()),
@@ -215,12 +229,15 @@ export class ChoiceListEntry extends Disposable {
     const newTokens = uniqBy(tokens, t => t.label);
     const newValues = newTokens.map(t => t.label);
     const newOptions: ChoiceOptionsByName = new Map();
+    const keys: Array<keyof IChoiceOptions> = [
+      'fillColor', 'textColor', 'fontBold', 'fontItalic', 'fontStrikethrough', 'fontUnderline'
+    ];
     for (const t of newTokens) {
       if (t.options) {
-        newOptions.set(t.label, {
-          fillColor: t.options.fillColor,
-          textColor: t.options.textColor
-        });
+        const options: IChoiceOptions = {};
+        keys.filter(k => t.options![k] !== undefined)
+            .forEach(k => options[k] = t.options![k] as any);
+        newOptions.set(t.label, options);
       }
     }
 
@@ -245,6 +262,10 @@ export class ChoiceListEntry extends Disposable {
   private _renderToken(token: ChoiceItem) {
     const fillColorObs = Observable.create(null, getFillColor(token.options));
     const textColorObs = Observable.create(null, getTextColor(token.options));
+    const fontBoldObs = Observable.create(null, token.options?.fontBold);
+    const fontItalicObs = Observable.create(null, token.options?.fontItalic);
+    const fontUnderlineObs = Observable.create(null, token.options?.fontUnderline);
+    const fontStrikethroughObs = Observable.create(null, token.options?.fontStrikethrough);
     const choiceText = Observable.create(null, token.label);
 
     const rename = async (to: string) => {
@@ -275,15 +296,32 @@ export class ChoiceListEntry extends Disposable {
       dom.autoDispose(fillColorObs),
       dom.autoDispose(textColorObs),
       dom.autoDispose(choiceText),
-      colorButton(textColorObs,
-        fillColorObs,
+      colorButton({
+          textColor: new ColorOption(textColorObs, false, '#000000'),
+          fillColor: new ColorOption(fillColorObs, true, '', 'none', '#FFFFFF'),
+          fontBold: fontBoldObs,
+          fontItalic: fontItalicObs,
+          fontUnderline: fontUnderlineObs,
+          fontStrikethrough: fontStrikethroughObs
+        },
         async () => {
           const tokenField = this._tokenFieldHolder.get();
           if (!tokenField) { return; }
 
           const fillColor = fillColorObs.get();
           const textColor = textColorObs.get();
-          tokenField.replaceToken(token.label, ChoiceItem.from(token).changeColors({fillColor, textColor}));
+          const fontBold = fontBoldObs.get();
+          const fontItalic = fontItalicObs.get();
+          const fontUnderline = fontUnderlineObs.get();
+          const fontStrikethrough = fontStrikethroughObs.get();
+          tokenField.replaceToken(token.label, ChoiceItem.from(token).changeStyle({
+            fillColor,
+            textColor,
+            fontBold,
+            fontItalic,
+            fontUnderline,
+            fontStrikethrough,
+          }));
         }
       ),
       editableLabel(choiceText,
@@ -320,11 +358,11 @@ function row(...domArgs: DomElementArg[]): Element {
 }
 
 function getTextColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.textColor ?? DEFAULT_TEXT_COLOR;
+  return choiceOptions?.textColor;
 }
 
 function getFillColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.fillColor ?? UNSET_COLOR;
+  return choiceOptions?.fillColor;
 }
 
 /**
@@ -336,8 +374,9 @@ function getFillColor(choiceOptions?: IChoiceOptions) {
 function clipboardToChoices(clipboard: DataTransfer): ChoiceItem[] {
   const maybeTokens = clipboard.getData('application/json');
   if (maybeTokens && isJSON(maybeTokens)) {
-    const tokens = JSON.parse(maybeTokens);
+    const tokens: ChoiceItem[] = JSON.parse(maybeTokens);
     if (Array.isArray(tokens) && tokens.every((t): t is ChoiceItem => ChoiceItemChecker.test(t))) {
+      tokens.forEach(t => t.previousLabel = null);
       return tokens;
     }
   }
@@ -424,6 +463,8 @@ const cssTokenColorInactive = styled('div', `
   flex-shrink: 0;
   width: 18px;
   height: 18px;
+  display: grid;
+  place-items: center;
 `);
 
 const cssTokenLabel = styled('span', `

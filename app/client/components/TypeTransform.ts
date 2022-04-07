@@ -91,11 +91,19 @@ export class TypeTransform extends ColumnTransform {
   protected async addTransformColumn(toType: string) {
     const docModel = this.gristDoc.docModel;
     const colInfo = await TypeConversion.prepTransformColInfo(docModel, this.origColumn, this.origDisplayCol, toType);
+    // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
+    const rules = colInfo.rules;
+    delete colInfo.rules;
     const newColInfos = await this._tableData.sendTableActions([
       ['AddColumn', 'gristHelper_Converted', {...colInfo, isFormula: false, formula: ''}],
       ['AddColumn', 'gristHelper_Transform', colInfo],
     ]);
     const transformColRef = newColInfos[1].colRef;
+    if (rules) {
+      await this.gristDoc.docData.sendActions([
+        ['UpdateRecord', '_grist_Tables_column', transformColRef, { rules }]
+      ]);
+    }
     this.transformColumn = docModel.columns.getRowModel(transformColRef);
     await this.convertValues();
     return transformColRef;

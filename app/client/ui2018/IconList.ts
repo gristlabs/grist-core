@@ -51,6 +51,7 @@ export type IconName = "ChartArea" |
   "DragDrop" |
   "Dropdown" |
   "DropdownUp" |
+  "Empty" |
   "Expand" |
   "EyeHide" |
   "EyeShow" |
@@ -58,6 +59,10 @@ export type IconName = "ChartArea" |
   "Filter" |
   "FilterSimple" |
   "Folder" |
+  "FontBold" |
+  "FontItalic" |
+  "FontStrikethrough" |
+  "FontUnderline" |
   "FunctionResult" |
   "Help" |
   "Home" |
@@ -168,6 +173,7 @@ export const IconList: IconName[] = ["ChartArea",
   "DragDrop",
   "Dropdown",
   "DropdownUp",
+  "Empty",
   "Expand",
   "EyeHide",
   "EyeShow",
@@ -175,6 +181,10 @@ export const IconList: IconName[] = ["ChartArea",
   "Filter",
   "FilterSimple",
   "Folder",
+  "FontBold",
+  "FontItalic",
+  "FontStrikethrough",
+  "FontUnderline",
   "FunctionResult",
   "Help",
   "Home",

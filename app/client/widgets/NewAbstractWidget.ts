@@ -42,10 +42,9 @@ export abstract class NewAbstractWidget extends Disposable {
 
   constructor(protected field: ViewFieldRec, opts: Options = {}) {
     super();
-    const {defaultTextColor = '#000000'} = opts;
-    this.defaultTextColor = defaultTextColor;
     this.options = field.widgetOptionsJson;
     this.valueFormatter = fromKo(field.formatter);
+    this.defaultTextColor = opts?.defaultTextColor || '#000000';
   }
 
   /**

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="16px"
+   height="16px"
+   viewBox="0 0 16 16"
+   version="1.1">
+  <defs
+     id="defs5379">
+    <clipPath
+       id="clip0_635_11941">
+      <rect
+         style="fill:#ffffff"
+         y="0"
+         x="0"
+         width="12"
+         height="12"
+         id="rect4748" />
+    </clipPath>
+  </defs>
+  <g
+     transform="matrix(1.1429539,0,0,1.1429539,1.1422766,0.72137666)"
+     clip-path="url(#clip0_635_11941)"
+     id="g4746"
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-opacity:1">
+    <path
+       d="m 0.375,11.625 h 11.25"
+       id="path4738"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+    <path
+       d="M 9.375,1.125 V 6 C 9.375,6.89511 9.01942,7.75355 8.38649,8.38649 7.75355,9.01942 6.89511,9.375 6,9.375 v 0 C 5.10489,9.375 4.24645,9.01942 3.61351,8.38649 2.98058,7.75355 2.625,6.89511 2.625,6 V 1.125"
+       id="path4740"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+    <path
+       d="m 1.125,1.125 h 3"
+       id="path4742"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+    <path
+       d="m 7.875,1.125 h 3"
+       id="path4744"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+  </g>
+</svg>

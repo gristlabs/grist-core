@@ -346,3 +346,5 @@ export function isValidRuleValue(value: CellValue|undefined) {
   // indicate other number in the future.
   return value === null || typeof value === 'boolean';
 }
+
+export type RefListValue = [GristObjCode.List, ...number[]]|null;

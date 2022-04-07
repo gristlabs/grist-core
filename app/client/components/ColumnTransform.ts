@@ -223,9 +223,13 @@ export class ColumnTransform extends Disposable {
       [
         'CopyFromColumn',
         this._tableData.tableId,
-        this.transformColumn.colId(),
-        this.origColumn.colId(),
-        JSON.stringify(this._fieldBuilder.options()),
+        this.transformColumn.colId.peek(),
+        this.origColumn.colId.peek(),
+        // Get the options from builder rather the transforming columns.
+        // Those options are supposed to be set by prepTransformColInfo(TypeTransform) and
+        // adjusted by client.
+        // TODO: is this really needed? Aren't those options already in the data-engine?
+        JSON.stringify(this._fieldBuilder.options.peek()),
       ],
     ];
   }

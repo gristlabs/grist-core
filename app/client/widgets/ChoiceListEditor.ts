@@ -12,7 +12,7 @@ import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {dom, styled} from 'grainjs';
-import {ChoiceOptions, getFillColor, getTextColor} from 'app/client/widgets/ChoiceTextBox';
+import {ChoiceOptions, getRenderFillColor, getRenderTextColor} from 'app/client/widgets/ChoiceTextBox';
 import {choiceToken, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
 import {icon} from 'app/client/ui2018/icons';
 
@@ -73,8 +73,12 @@ export class ChoiceListEditor extends NewBaseEditor {
       initialValue: startTokens,
       renderToken: item => [
         item.label,
-        dom.style('background-color', getFillColor(this._choiceOptionsByName[item.label])),
-        dom.style('color', getTextColor(this._choiceOptionsByName[item.label])),
+        dom.style('background-color', getRenderFillColor(this._choiceOptionsByName[item.label])),
+        dom.style('color', getRenderTextColor(this._choiceOptionsByName[item.label])),
+        dom.cls('font-bold', this._choiceOptionsByName[item.label]?.fontBold ?? false),
+        dom.cls('font-underline', this._choiceOptionsByName[item.label]?.fontUnderline ?? false),
+        dom.cls('font-italic', this._choiceOptionsByName[item.label]?.fontItalic ?? false),
+        dom.cls('font-strikethrough', this._choiceOptionsByName[item.label]?.fontStrikethrough ?? false),
         cssInvalidToken.cls('-invalid', item.isInvalid)
       ],
       createToken: label => new ChoiceItem(label, !choiceSet.has(label)),

@@ -1,68 +1,71 @@
 /*
  * The palettes were inspired by comparisons of a handful of popular services.
  */
-export const lighter = [
+export const swatches = [
+  // white-black
   "#FFFFFF",
   "#DCDCDC",
-  "#B4B4B4",
+  "#888888",
+  "#000000",
+
+  // red
   "#FECBCC",
   "#FD8182",
-  "#FC363B",
+  "#E00A17",
+  "#740206",
+
+  // brown
   "#F3E1D2",
   "#D6A77F",
-  "#C37739",
+  "#AA632B",
+  "#653008",
+
+  // orange
   "#FEE7C3",
   "#FECC81",
-  "#FDA630",
+  "#FD9D28",
+  "#B36F19",
+
+  // yellow
   "#FFFACD",
   "#FEF47A",
-  "#FEEB36",
+  "#E8D62F",
+  "#928619",
+
+  // green
   "#E1FEDE",
   "#98FD90",
-  "#35FD31",
+  "#2AE028",
+  "#126E0E",
+
+  // light blue
   "#CCFEFE",
   "#8AFCFE",
-  "#2EF8FE",
+  "#24D6DB",
+  "#0C686A",
+
+  // dark blue
   "#D3E7FE",
   "#75B5FC",
-  "#2486FB",
+  "#157AFB",
+  "#084794",
+
+  // violet
   "#E8D0FE",
   "#BC77FC",
-  "#9633FB",
+  "#8725FB",
+  "#460D81",
+
+  // pink
   "#FED6FB",
   "#FD79F4",
-  "#FC2AED"
-];
-
-export const darker = [
-  "#888888",
-  "#414141",
-  "#000000",
-  "#E00A17",
-  "#B60610",
-  "#740206",
-  "#AA632B",
-  "#824617",
-  "#653008",
-  "#FD9D28",
-  "#E38D22",
-  "#B36F19",
-  "#E8D62F",
-  "#C0B225",
-  "#928619",
-  "#2AE028",
-  "#1FAA1C",
-  "#126E0E",
-  "#24D6DB",
-  "#189DA1",
-  "#0C686A",
-  "#157AFB",
-  "#0F64CF",
-  "#084794",
-  "#8725FB",
-  "#6318B8",
-  "#460D81",
   "#E621D7",
-  "#B818AC",
   "#760C6E"
 ];
+
+/**
+ * Tells if swatch is a light color or dark (2 first are light 2 last are dark)
+ */
+export function isLight(index: number) {
+  return index % 4 <= 1;
+}

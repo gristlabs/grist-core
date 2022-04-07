@@ -67,10 +67,11 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   disableEditData: ko.Computed<boolean>;
 
   textColor: modelUtil.KoSaveableObservable<string|undefined>;
-  fillColor: modelUtil.KoSaveableObservable<string>;
-
-  computedColor: ko.Computed<string|undefined>;
-  computedFill: ko.Computed<string>;
+  fillColor: modelUtil.KoSaveableObservable<string|undefined>;
+  fontBold: modelUtil.KoSaveableObservable<boolean|undefined>;
+  fontUnderline: modelUtil.KoSaveableObservable<boolean|undefined>;
+  fontItalic: modelUtil.KoSaveableObservable<boolean|undefined>;
+  fontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
 
   documentSettings: ko.PureComputed<DocumentSettings>;
 
@@ -227,16 +228,12 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.disableModify = ko.pureComputed(() => this.column().disableModify());
   this.disableEditData = ko.pureComputed(() => this.column().disableEditData());
 
-  this.textColor = this.widgetOptionsJson.prop('textColor') as modelUtil.KoSaveableObservable<string>;
-
-  const fillColorProp = modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop('fillColor') as modelUtil.KoSaveableObservable<string>, "#FFFFFF00");
-  // Store empty string in place of the default white color, so that we can keep it transparent in
-  // GridView, to avoid interfering with zebra stripes.
-  this.fillColor = modelUtil.savingComputed({
-    read: () => fillColorProp(),
-    write: (setter, val) => setter(fillColorProp, val?.toUpperCase() === '#FFFFFF' ? '' : (val ?? '')),
-  });
+  this.textColor = this.widgetOptionsJson.prop('textColor');
+  this.fillColor = this.widgetOptionsJson.prop('fillColor');
+  this.fontBold = this.widgetOptionsJson.prop('fontBold');
+  this.fontUnderline = this.widgetOptionsJson.prop('fontUnderline');
+  this.fontItalic = this.widgetOptionsJson.prop('fontItalic');
+  this.fontStrikethrough = this.widgetOptionsJson.prop('fontStrikethrough');
 
   this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
 

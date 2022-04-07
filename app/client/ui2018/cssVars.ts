@@ -143,8 +143,27 @@ const cssInputFonts = `
   }
 `;
 
+// Font style classes used by style selector.
+const cssFontStyles = `
+  .font-italic {
+    font-style: italic;
+  }
+  .font-bold {
+    font-weight: 800;
+  }
+  .font-underline {
+    text-decoration: underline;
+  }
+  .font-strikethrough {
+    text-decoration: line-through;
+  }
+  .font-strikethrough.font-underline {
+    text-decoration: line-through underline;
+  }
+`;
+
 const cssVarsOnly = styled('div', cssColors + cssVars);
-const cssBodyVars = styled('div', cssFontParams + cssColors + cssVars + cssBorderBox + cssInputFonts);
+const cssBodyVars = styled('div', cssFontParams + cssColors + cssVars + cssBorderBox + cssInputFonts + cssFontStyles);
 
 const cssBody = styled('body', `
   margin: 0;

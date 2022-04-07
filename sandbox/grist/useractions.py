@@ -776,9 +776,10 @@ class UserActions(object):
       # Look at the actual data for that column (first 1000 values) to decide on the type.
       col_values['type'] = guess_type(self._get_column_values(col), convert=False)
 
-    # If changing the type of a column, unset its widgetOptions and displayCol by default.
+    # If changing the type of a column, unset its widgetOptions, displayCol and rules by default.
     if 'type' in col_values:
       col_values.setdefault('widgetOptions', '')
+      col_values.setdefault('rules', None)
       col_values.setdefault('displayCol', 0)
 
     source_table = col.parentId.summarySourceTable
@@ -1066,7 +1067,12 @@ class UserActions(object):
                           for vf in self._docmodel.view_fields.lookupRecords(visibleCol=c.id)])
 
     # Remove also all autogenereted formula columns for conditional styles.
-    more_removals.update([rule for col in col_recs
+    # But not from transform columns, as those columns borrow rules from original columns
+    more_removals.update([rule
+                          for col in col_recs if not col.colId.startswith((
+                            'gristHelper_Transform',
+                            'gristHelper_Converted',
+                          ))
                           for rule in col.rules])
 
     # Add any extra removals after removing the requested columns in the requested order.
@@ -1227,6 +1233,8 @@ class UserActions(object):
       'widgetOptions': col_info.get('widgetOptions', ''),
       'label': col_info.get('label', col_id),
     })
+    if 'rules' in col_info:
+      values['rules'] = col_info['rules']
     if 'recalcWhen' in col_info:
       values['recalcWhen'] = col_info['recalcWhen']
     if 'recalcDeps' in col_info:
@@ -1435,12 +1443,28 @@ class UserActions(object):
     if src_column.is_formula():
       self._engine.bring_col_up_to_date(src_column)
 
-    # Update the destination column to match the source's type and options. Also unset displayCol,
-    # except if src_col has a displayCol, then keep it unchanged until SetDisplayFormula below.
+    # NOTE: This action is invoked only in a single place (during type/colum/data)
+    # transformation - where user has a chance to adjust some widgetOptions (though
+    # the UI is limited). Those widget options were already cleared (in js) and are either
+    # nullish (default ones) or are truly adjusted. As Grist doesn't know if the widgetOptions
+    # were adjusted or not - it will populate it on UI side and pass it here - so the code below
+    # is not used actually (widgetOptions are always set). But there are set with the things
+    # copied from dst_col or were cleared during typeConversion.
     if widgetOptions is None:
       widgetOptions = src_col.widgetOptions
+
+    # Update the destination column to match the source's type and options. Also unset displayCol,
+    # except if src_col has a displayCol, then keep it unchanged until SetDisplayFormula below.
     self._docmodel.update([dst_col], type=src_col.type, widgetOptions=[widgetOptions],
                           visibleCol=[src_col.visibleCol if src_col.visibleCol else 0],
+    # TypeConversion (in js) has decided if rules should be copied or not. If yes, rules were
+    # copied to transforming column (it borrowed rules from us [us as dst_col]), in that case
+    # here is no-op. But it could also decide to clear rules, in that case here we will clear
+    # rules (as transforming column doesn't have it).
+
+    # RulesOptions (fonts, etc) are copied separately in the widgetOptions with the same
+    # logic (where removed or copied to the transforming column).
+                          rules=[src_col.rules if src_col.rules else None],
                           displayCol=[dst_col.displayCol if src_col.displayCol else 0])
 
     # Copy over display column as well, if the source column has one.

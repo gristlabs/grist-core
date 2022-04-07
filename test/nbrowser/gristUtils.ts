@@ -1601,6 +1601,28 @@ export function session(): Session {
   return Session.default;
 }
 
+/**
+ * Sets font style in opened color picker.
+ */
+export async function setFont(type: 'bold'|'underline'|'italic'|'strikethrough', onOff: boolean|number) {
+  const optionToClass = {
+    bold: '.test-font-option-FontBold',
+    italic: '.test-font-option-FontItalic',
+    underline: '.test-font-option-FontUnderline',
+    strikethrough: '.test-font-option-FontStrikethrough',
+  };
+  async function clickFontOption() {
+    await driver.find(optionToClass[type]).click();
+  }
+  async function isFontOption() {
+    return (await driver.findAll(`${optionToClass[type]}[class*=-selected]`)).length === 1;
+  }
+  const current = await isFontOption();
+  if (onOff && !current || !onOff && current) {
+    await clickFontOption();
+  }
+}
+
 //  Set the value of an `<input type="color">` element to `color` and trigger the `change`
 //  event. Accepts `color` to be of following forms `rgb(120, 10, 3)` or '#780a03'.
 export async function setColor(colorInputEl: WebElement, color: string) {

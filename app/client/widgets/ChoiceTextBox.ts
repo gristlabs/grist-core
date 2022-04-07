@@ -1,26 +1,23 @@
-import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
+import {Style} from 'app/client/models/Styles';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {testId} from 'app/client/ui2018/cssVars';
+import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
+import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, fromKo, styled} from 'grainjs';
-import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 
-export interface IChoiceOptions {
-  textColor: string;
-  fillColor: string;
-}
-
+export type IChoiceOptions = Style
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
 
-export function getFillColor(choiceOptions?: IChoiceOptions) {
+export function getRenderFillColor(choiceOptions?: IChoiceOptions) {
   return choiceOptions?.fillColor ?? DEFAULT_FILL_COLOR;
 }
 
-export function getTextColor(choiceOptions?: IChoiceOptions) {
+export function getRenderTextColor(choiceOptions?: IChoiceOptions) {
   return choiceOptions?.textColor ?? DEFAULT_TEXT_COLOR;
 }
 

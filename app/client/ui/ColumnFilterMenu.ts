@@ -378,6 +378,10 @@ function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec
         {
           fillColor: choiceOptions[value.label]?.fillColor,
           textColor: choiceOptions[value.label]?.textColor,
+          fontBold: choiceOptions[value.label]?.fontBold ?? false,
+          fontUnderline: choiceOptions[value.label]?.fontUnderline ?? false,
+          fontItalic: choiceOptions[value.label]?.fontItalic ?? false,
+          fontStrikethrough: choiceOptions[value.label]?.fontStrikethrough ?? false,
         },
         dom.cls(cssToken.className),
         cssInvalidToken.cls('-invalid', !choiceSet.has(value.label)),

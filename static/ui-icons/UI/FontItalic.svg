@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" version="1.1">
+	<defs id="defs5379">
+		<clipPath id="clip0_635_11941">
+			<rect style="fill:#ffffff" y="0" x="0" width="12" height="12" id="rect4748" />
+		</clipPath>
+		<clipPath id="clip0_635_11917">
+			<rect style="fill:#ffffff" y="0" x="0" width="12" height="12" id="rect6069" />
+		</clipPath>
+	</defs>
+	<g transform="matrix(1.1355932,0,0,1.1355932,0.98305088,1.3898305)" clip-path="url(#clip0_635_11917)" id="g6067" style="fill-rule:evenodd;fill:none">
+		<path style="stroke:#000000;stroke-linecap:round;stroke-linejoin:round;fill-rule:evenodd;fill:none;stroke-opacity:1" d="m 4.875,0.375 h 4.5" id="path6061" />
+		<path style="stroke:#060000;stroke-linecap:round;stroke-linejoin:round;fill-rule:evenodd;fill:none;stroke-opacity:1" d="m 2.625,11.625 h 4.5" id="path6063" />
+		<path style="stroke:#000000;stroke-linecap:round;stroke-linejoin:round;fill-rule:evenodd;fill:none;stroke-opacity:0.99024391" d="m 7.125,0.375 -2.25,11.25" id="path6065" />
+	</g>
+</svg>

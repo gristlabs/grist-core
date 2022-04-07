@@ -36,7 +36,7 @@ import {createValidationRec, ValidationRec} from 'app/client/models/entities/Val
 import {createViewFieldRec, ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {createViewRec, ViewRec} from 'app/client/models/entities/ViewRec';
 import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
-import {GristObjCode} from 'app/plugin/GristData';
+import {RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
 
 // Re-export all the entity types available. The recommended usage is like this:
@@ -97,7 +97,7 @@ export function refRecord<TRow extends MetaRowModel>(
   return ko.pureComputed(() => tableModel.getRowModel(rowIdObs() || 0, true));
 }
 
-type RefListValue = [GristObjCode.List, ...number[]]|null;
+
 /**
  * Returns an observable with a list of records from another table, selected using RefList column.
  * @param {TableModel} tableModel: The model for the table to return a record from.

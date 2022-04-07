@@ -1,13 +1,11 @@
 import {dom, DomContents, DomElementArg, styled} from "grainjs";
 import {colors, vars} from "app/client/ui2018/cssVars";
+import {Style} from 'app/client/models/Styles';
 
 export const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value;
 export const DEFAULT_TEXT_COLOR = '#000000';
 
-export interface IChoiceTokenOptions {
-  fillColor?: string;
-  textColor?: string;
-}
+export type IChoiceTokenOptions = Style;
 
 /**
  * Creates a colored token representing a choice (e.g. Choice and Choice List values).
@@ -25,13 +23,17 @@ export interface IChoiceTokenOptions {
  */
 export function choiceToken(
   label: DomElementArg,
-  {fillColor, textColor}: IChoiceTokenOptions,
+  {fillColor, textColor, fontBold, fontItalic, fontUnderline, fontStrikethrough}: IChoiceTokenOptions,
   ...args: DomElementArg[]
 ): DomContents {
   return cssChoiceToken(
     label,
     dom.style('background-color', fillColor ?? DEFAULT_FILL_COLOR),
     dom.style('color', textColor ?? DEFAULT_TEXT_COLOR),
+    dom.cls('font-bold', fontBold ?? false),
+    dom.cls('font-underline', fontUnderline ?? false),
+    dom.cls('font-italic', fontItalic ?? false),
+    dom.cls('font-strikethrough', fontStrikethrough ?? false),
     ...args
   );
 }

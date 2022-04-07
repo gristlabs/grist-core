@@ -54,6 +54,22 @@ function getTypeDefinition(type: string | false) {
   return UserType.typeDefs[type] || UserType.typeDefs.Text;
 }
 
+type ComputedStyle = {style?: Style; error?: true} | null | undefined;
+/**
+ * Builds a font option computed property.
+ */
+function buildFontOptions(
+  builder: FieldBuilder,
+  computedRule: ko.Computed<ComputedStyle>,
+  optionName: keyof Style) {
+  return koUtil.withKoUtils(ko.computed(function() {
+    if (builder.isDisposed()) { return false; }
+    const style = computedRule()?.style;
+    const styleFlag = style?.[optionName] || this.field[optionName]();
+    return styleFlag;
+  }, builder)).onlyNotifyUnequal();
+}
+
 /**
  * Creates an instance of FieldBuilder.  Used to create all column configuration DOMs, cell DOMs,
  * and cell editor DOMs for all Grist Types.
@@ -427,7 +443,7 @@ export class FieldBuilder extends Disposable {
     // rules there is a brief moment that rule is still not evaluated
     // (rules.length != value.length), in this case return last value
     // and wait for the update.
-    const computedRule = koUtil.withKoUtils(ko.pureComputed(() => {
+    const computedRule = koUtil.withKoUtils(ko.pureComputed<ComputedStyle>(() => {
       if (this.isDisposed()) { return null; }
       const styles: Style[] = this.field.rulesStyles();
       // Make sure that rules where computed.
@@ -469,11 +485,20 @@ export class FieldBuilder extends Disposable {
       return fromRules || this.field.textColor() || '';
     }, this)).onlyNotifyUnequal();
 
-    const background = koUtil.withKoUtils(ko.computed(function() {
+    const fillColor = koUtil.withKoUtils(ko.computed(function() {
       if (this.isDisposed()) { return null; }
       const fromRules = computedRule()?.style?.fillColor;
-      return fromRules || this.field.fillColor();
+      let fill = fromRules || this.field.fillColor();
+      // If user set white color - remove it to play nice with zebra strips.
+      // If there is no color we are using fully transparent white color (for tests mainly).
+      fill = fill ? fill.toUpperCase() : fill;
+      return (fill === '#FFFFFF' ? '' : fill) || '#FFFFFF00';
     }, this)).onlyNotifyUnequal();
+
+    const fontBold = buildFontOptions(this, computedRule, 'fontBold');
+    const fontItalic = buildFontOptions(this, computedRule, 'fontItalic');
+    const fontUnderline = buildFontOptions(this, computedRule, 'fontUnderline');
+    const fontStrikethrough = buildFontOptions(this, computedRule, 'fontStrikethrough');
 
     const errorInStyle = ko.pureComputed(() => Boolean(computedRule()?.error));
 
@@ -485,7 +510,11 @@ export class FieldBuilder extends Disposable {
           dom.autoDispose(errorInStyle),
           dom.autoDispose(textColor),
           dom.autoDispose(computedRule),
-          dom.autoDispose(background),
+          dom.autoDispose(fillColor),
+          dom.autoDispose(fontBold),
+          dom.autoDispose(fontItalic),
+          dom.autoDispose(fontUnderline),
+          dom.autoDispose(fontStrikethrough),
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
@@ -496,8 +525,12 @@ export class FieldBuilder extends Disposable {
             const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
             return dom(cellDom, kd.toggleClass('has_cursor', isActive),
                        kd.toggleClass('field-error-from-style', errorInStyle),
+                       kd.toggleClass('font-bold', fontBold),
+                       kd.toggleClass('font-underline', fontUnderline),
+                       kd.toggleClass('font-italic', fontItalic),
+                       kd.toggleClass('font-strikethrough', fontStrikethrough),
                        kd.style('--grist-cell-color', textColor),
-                       kd.style('--grist-cell-background-color', background));
+                       kd.style('--grist-cell-background-color', fillColor));
           })
          );
     };

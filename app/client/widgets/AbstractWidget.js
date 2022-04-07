@@ -14,6 +14,7 @@ function AbstractWidget(field, opts = {}) {
   const {defaultTextColor = '#000000'} = opts;
   this.defaultTextColor = defaultTextColor;
   this.valueFormatter = this.field.visibleColFormatter;
+  this.defaultTextColor = opts.defaultTextColor || '#000000';
 }
 dispose.makeDisposable(AbstractWidget);
 

@@ -6,7 +6,7 @@ import {Style} from 'app/client/models/Styles';
 import {cssFieldFormula} from 'app/client/ui/FieldConfig';
 import {cssIcon, cssLabel, cssRow} from 'app/client/ui/RightPanel';
 import {textButton} from 'app/client/ui2018/buttons';
-import {colorSelect} from 'app/client/ui2018/ColorSelect';
+import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
 import {colors} from 'app/client/ui2018/cssVars';
 import {setupEditorCleanup} from 'app/client/widgets/FieldEditor';
 import {cssError, openFormulaEditor} from 'app/client/widgets/FormulaEditor';
@@ -18,8 +18,12 @@ import debounce = require('lodash/debounce');
 const testId = makeTestId('test-widget-style-');
 
 export class CellStyle extends Disposable {
-  protected textColor: Observable<string>;
-  protected fillColor: Observable<string>;
+  protected textColor: Observable<string|undefined>;
+  protected fillColor: Observable<string|undefined>;
+  protected fontBold: Observable<boolean|undefined>;
+  protected fontUnderline: Observable<boolean|undefined>;
+  protected fontItalic: Observable<boolean|undefined>;
+  protected fontStrikethrough: Observable<boolean|undefined>;
   // Holds data from currently selected record (holds data only when this field has conditional styles).
   protected currentRecord: Computed<RowRecord | undefined>;
   // Helper field for refreshing current record data.
@@ -28,14 +32,15 @@ export class CellStyle extends Disposable {
   constructor(
     protected field: ViewFieldRec,
     protected gristDoc: GristDoc,
-    defaultTextColor: string = '#000000'
+    protected defaultTextColor: string
   ) {
     super();
-    this.textColor = Computed.create(
-      this,
-      use => use(this.field.textColor) || defaultTextColor
-    ).onWrite(val => this.field.textColor(val === defaultTextColor ? '' : val));
+    this.textColor = fromKo(this.field.textColor);
     this.fillColor = fromKo(this.field.fillColor);
+    this.fontBold = fromKo(this.field.fontBold);
+    this.fontUnderline = fromKo(this.field.fontUnderline);
+    this.fontItalic = fromKo(this.field.fontItalic);
+    this.fontStrikethrough = fromKo(this.field.fontStrikethrough);
     this.currentRecord = Computed.create(this, use => {
       if (!use(this.field.hasRules)) {
         return;
@@ -75,8 +80,14 @@ export class CellStyle extends Disposable {
       cssLabel('CELL STYLE', dom.autoDispose(holder)),
       cssRow(
         colorSelect(
-          this.textColor,
-          this.fillColor,
+          {
+            textColor:  new ColorOption(this.textColor, false, this.defaultTextColor),
+            fillColor: new ColorOption(this.fillColor, true, '', 'none', '#FFFFFF'),
+            fontBold: this.fontBold,
+            fontItalic: this.fontItalic,
+            fontUnderline: this.fontUnderline,
+            fontStrikethrough: this.fontStrikethrough
+          },
           // Calling `field.widgetOptionsJson.save()` saves both fill and text color settings.
           () => this.field.widgetOptionsJson.save()
         )
@@ -98,6 +109,10 @@ export class CellStyle extends Disposable {
             ...rules.map((column, ruleIndex) => {
               const textColor = this._buildStyleOption(owner, ruleIndex, 'textColor');
               const fillColor = this._buildStyleOption(owner, ruleIndex, 'fillColor');
+              const fontBold = this._buildStyleOption(owner, ruleIndex, 'fontBold');
+              const fontItalic = this._buildStyleOption(owner, ruleIndex, 'fontItalic');
+              const fontUnderline = this._buildStyleOption(owner, ruleIndex, 'fontUnderline');
+              const fontStrikethrough = this._buildStyleOption(owner, ruleIndex, 'fontStrikethrough');
               const save = async () => {
                 // This will save both options.
                 await this.field.rulesStyles.save();
@@ -131,7 +146,18 @@ export class CellStyle extends Disposable {
                       dom.show(hasError),
                       testId(`rule-error-${ruleIndex}`),
                     ),
-                    colorSelect(textColor, fillColor, save, true)
+                    colorSelect(
+                      {
+                        textColor: new ColorOption(textColor, true, '', 'default'),
+                        fillColor: new ColorOption(fillColor, true, '', 'none'),
+                        fontBold,
+                        fontItalic,
+                        fontUnderline,
+                        fontStrikethrough
+                      },
+                      save,
+                      'Cell style'
+                    )
                   ),
                   cssRemoveButton(
                     'Remove',
@@ -152,12 +178,12 @@ export class CellStyle extends Disposable {
     ];
   }
 
-  private _buildStyleOption(owner: Disposable, index: number, option: keyof Style) {
+  private _buildStyleOption<T extends keyof Style>(owner: Disposable, index: number, option: T) {
     const obs = Computed.create(owner, use => use(this.field.rulesStyles)[index]?.[option]);
     obs.onWrite(value => {
       const list = Array.from(this.field.rulesStyles.peek() ?? []);
       list[index] = list[index] ?? {};
-      list[index][option] = value;
+      list[index][option] = value as any;
       this.field.rulesStyles(list);
     });
     return obs;
