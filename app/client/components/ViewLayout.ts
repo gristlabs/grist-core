@@ -166,10 +166,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   // Freezes the layout until the passed in promise resolves. This is useful to achieve a single
   // layout rebuild when multiple user actions needs to apply, simply pass in a promise that resolves
   // when all user actions have resolved.
-  public async freezeUntil(promise: Promise<unknown>): Promise<void> {
+  public async freezeUntil<T>(promise: Promise<T>): Promise<T> {
     this._freeze = true;
     try {
-      await promise;
+      return await promise;
     } finally {
       this._freeze = false;
       this._rebuildLayout(this.layoutSpec.peek());

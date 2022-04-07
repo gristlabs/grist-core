@@ -588,18 +588,17 @@ export class GristDoc extends DisposableWithEvents {
 
     if (isEqual(oldVal, newVal)) {
       // nothing to be done
-      return;
+      return section;
     }
 
-    await this._viewLayout!.freezeUntil(docData.bundleActions(
+    return await this._viewLayout!.freezeUntil(docData.bundleActions(
       `Saved linked section ${section.title()} in view ${viewModel.name()}`,
       async () => {
 
         // if table changes or a table is made a summary table, let's replace the view section by a
         // new one, and return.
         if (oldVal.table !== newVal.table || oldVal.summarize !== newVal.summarize) {
-          await this._replaceViewSection(section, newVal);
-          return;
+          return await this._replaceViewSection(section, newVal);
         }
 
         // if type changes, let's save it.
@@ -618,8 +617,51 @@ export class GristDoc extends DisposableWithEvents {
         if (oldVal.link !== newVal.link) {
           await this.saveLink(linkFromId(newVal.link));
         }
-      }
+        return section;
+      },
+      {nestInActiveBundle: true}
     ));
+  }
+
+  // Set section's viewFields to be colIds in that order. Omit any colum id that do not belong to
+  // section's table.
+  public async setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
+
+    // remove old view fields
+    await Promise.all(section.viewFields.peek().all().map((viewField) => (
+      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()])
+    )));
+
+    // create map
+    const mapColIdToColumn = new Map();
+    for (const col of section.table().columns().all()) {
+      mapColIdToColumn.set(col.colId(), col);
+    }
+
+    // If split series and/or x-axis do not exist any more in new table, update options to make them
+    // undefined
+    if (!mapColIdToColumn.has(colIds[0])) {
+      if (section.optionsObj.prop('multiseries')()) {
+        await section.optionsObj.prop('multiseries').saveOnly(false);
+        if (!mapColIdToColumn.has(colIds[0])) {
+          await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
+        }
+      } else {
+        await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
+      }
+    }
+
+    // adds new view fields; ignore colIds that do not exist in new table.
+    await Promise.all(colIds.map((colId, i) => {
+      if (!mapColIdToColumn.has(colId)) { return; }
+      const colInfo = {
+        parentId: section.id(),
+        colRef: mapColIdToColumn.get(colId).id(),
+        parentPos: i
+      };
+      const action = ['AddRecord', null, colInfo];
+      return this.docModel.viewFields.sendTableAction(action);
+    }));
   }
 
   // Save link for the active section.
@@ -864,6 +906,10 @@ export class GristDoc extends DisposableWithEvents {
     const docModel = this.docModel;
     const viewModel = section.view();
     const docData = this.docModel.docData;
+    const options = section.options();
+    const colIds = section.viewFields().all().map((f) => f.column().colId());
+    const chartType = section.chartType();
+    const theme = section.theme();
 
     // we must read the current layout from the view layout because it can override the one in
     // `section.layoutSpec` (in particular it provides a default layout when missing from the
@@ -888,11 +934,22 @@ export class GristDoc extends DisposableWithEvents {
     });
     await viewModel.layoutSpec.saveOnly(JSON.stringify(newLayoutSpec));
 
+    // persist options
+    await newSection.options.saveOnly(options);
+
+    // persist view fields if possible
+    await this.setSectionViewFieldsFromArray(newSection, colIds);
+
+    // update theme, and chart type
+    await newSection.theme.saveOnly(theme);
+    await newSection.chartType.saveOnly(chartType);
+
     // The newly-added section should be given focus.
     this.viewModel.activeSectionId(newSection.getRowId());
 
     // remove old section
     await docData.sendAction(['RemoveViewSection', sectionId]);
+    return newSection;
   }
 
   /**

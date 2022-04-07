@@ -86,7 +86,7 @@ function isValidSelection(table: TableId, type: IWidgetType, isNewPage: boolean|
   return table !== null && getCompatibleTypes(table, isNewPage).includes(type);
 }
 
-export type ISaveFunc = (val: IPageWidget) => Promise<void>;
+export type ISaveFunc = (val: IPageWidget) => Promise<any>;
 
 // Delay in milliseconds, after a user click on the save btn, before we start showing a modal
 // spinner. If saving completes before this time elapses (which is likely to happen for regular

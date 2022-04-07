@@ -11,13 +11,15 @@ import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocMode
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
+import {toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanel';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
+import {IconName} from 'app/client/ui2018/IconList';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
-import {linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {nativeCompare, unwrap} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
@@ -81,6 +83,7 @@ interface ChartOptions {
   textSize?: number;
   isXAxisUndefined?: boolean;
   orientation?: 'v'|'h';
+  aggregate?: boolean;
 }
 
 // tslint:disable:no-console
@@ -443,6 +446,8 @@ function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
  */
 export class ChartConfig extends GrainJSDisposable {
 
+  private static _instanceMap = new WeakMap<ViewSectionRec, ChartConfig>();
+
   // helper to build the draggable field list
   private _configFieldsHelper = VisibleFieldsConfig.create(this, this._gristDoc, this._section);
 
@@ -456,13 +461,13 @@ export class ChartConfig extends GrainJSDisposable {
     )
   );
 
-  // The column id of the grouping column, or -1 if multiseries is disabled or there are no viewFields,
+  // The colId of the grouping column, or "" if multiseries is disabled or there are no viewFields,
   // for example during section removal.
-  private _groupDataColId: Computed<number> = Computed.create(this, (use) => {
+  private _groupDataColId: Computed<string> = Computed.create(this, (use) => {
     const multiseries = use(this._optionsObj.prop('multiseries'));
     const viewFields = use(use(this._section.viewFields).getObservable());
-    if (!multiseries || viewFields.length === 0) { return -1; }
-    return use(viewFields[0].column).getRowId();
+    if (!multiseries || viewFields.length === 0) { return ""; }
+    return use(use(viewFields[0].column).colId);
   })
     .onWrite((colId) => this._setGroupDataColumn(colId));
 
@@ -473,30 +478,38 @@ export class ChartConfig extends GrainJSDisposable {
 
   private _freezeYAxis = Observable.create(this, false);
 
-  // The column id of the x-axis.
-  private _xAxis: Computed<number> = Computed.create(
+  // The colId of the x-axis, or "" is x axis is undefined.
+  private _xAxis: Computed<string> = Computed.create(
     this, this._xAxisFieldIndex, this._freezeXAxis, (use, i, freeze) => {
       if (freeze) { return this._xAxis.get(); }
       const viewFields = use(use(this._section.viewFields).getObservable());
       if (-1 < i && i < viewFields.length) {
-        return use(viewFields[i].column).getRowId();
+        return use(use(viewFields[i].column).colId);
       }
-      return -1;
+      return "";
     })
     .onWrite((colId) => this._setXAxis(colId));
 
-  private _columns = Computed.create(this, (use) => use(use(use(this._section.table).columns).getObservable()));
-
-  // The list of available columns for the group data picker. Picking the actual x-axis is not
-  // permitted.
-  private _groupDataOptions = Computed.create<Array<IOption<number>>>(this, (use) => [
-    {value: -1, label: 'Pick a column'},
-    ...use(this._columns)
+  // Columns options
+  private _columnsOptions: Computed<Array<IOptionFull<string>>> = Computed.create(
+    this, this._freezeXAxis, (use, freeze) => {
+      if (freeze) { return this._columnsOptions.get(); }
+      const columns = use(this._optionsObj.prop('aggregate')) ?
+        this._getSummarySourceColumns(use) :
+        this._getColumns(use);
+      return columns
       // filter out hidden column (ie: manualsort ...)
-      .filter((col) => !col.isHiddenCol.peek())
-      .map((col) => ({
-        value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
-      }))
+        .filter((col) => !col.isHiddenCol.peek())
+        .map((col) => ({
+          value: col.colId(), label: col.label.peek(), icon: 'FieldColumn' as IconName,
+        }));
+    }
+  );
+
+  // The list of available columns for the group data picker.
+  private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, (use) => [
+    {value: "", label: 'Pick a column'},
+    ...use(this._columnsOptions)
   ]);
 
   // Force checking/unchecking of the group data checkbox option.
@@ -505,12 +518,12 @@ export class ChartConfig extends GrainJSDisposable {
   // State for the group data option checkbox. True, if a group data column is set or if the user
   // forced it. False otherwise.
   private _groupData = Computed.create(
-    this, this._groupDataColId, this._groupDataForce, (_use, col, force) => {
-      if (col > -1) { return true; }
+    this, this._groupDataColId, this._groupDataForce, (_use, colId, force) => {
+      if (colId) { return true; }
       return force;
     }).onWrite((val) => {
       if (val === false) {
-        this._groupDataColId.set(-1);
+        this._groupDataColId.set("");
       }
       this._groupDataForce.set(val);
     });
@@ -528,15 +541,18 @@ export class ChartConfig extends GrainJSDisposable {
         await this._section.chartTypeDef.saveOnly(val);
         // When switching chart type to 'pie' makes sure to remove the group data option.
         if (isPieLike(val)) {
-          await this._setGroupDataColumn(-1);
+          await this._setGroupDataColumn("");
           this._groupDataForce.set(false);
         }
       });
     });
 
+  private _isValueAggregated = Computed.create(this, (use) => use(this._optionsObj.prop('aggregate')))
+    .onWrite((val) => this._setAggregation(val));
 
   constructor(private _gristDoc: GristDoc, private _section: ViewSectionRec) {
     super();
+    ChartConfig._instanceMap.set(_section, this);
   }
 
   private get _optionsObj() { return this._section.optionsObj; }
@@ -560,7 +576,7 @@ export class ChartConfig extends GrainJSDisposable {
       ),
       dom.maybe((use) => !isPieLike(use(this._section.chartTypeDef)), () => [
         // These options don't make much sense for a pie chart.
-        cssCheckboxRowObs('Group data', this._groupData),
+        cssCheckboxRowObs('Split series', this._groupData),
         cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
         cssRow(
           cssRowLabel('Orientation'),
@@ -614,7 +630,7 @@ export class ChartConfig extends GrainJSDisposable {
       cssSeparator(),
 
       dom.maybe(this._groupData, () => [
-        cssLabel('Group data'),
+        cssLabel('Split Series'),
         cssRow(
           select(this._groupDataColId, this._groupDataOptions),
           testId('group-by-column'),
@@ -626,15 +642,12 @@ export class ChartConfig extends GrainJSDisposable {
       cssLabel(dom.text(this._firstFieldLabel), testId('first-field-label')),
       cssRow(
         select(
-          this._xAxis, Computed.create(this, (use) => use(this._columns)
-            .filter((col) => !col.isHiddenCol.peek())
-            .map((col) => ({
-              value: col.getRowId(), label: col.label.peek(), icon: 'FieldColumn',
-            }))),
+          this._xAxis, this._columnsOptions,
           { defaultLabel: 'Pick a column' }
         ),
         testId('x-axis'),
       ),
+      cssCheckboxRowObs('Aggregate values', this._isValueAggregated),
 
       cssLabel('SERIES'),
       this._buildYAxis(),
@@ -669,14 +682,24 @@ export class ChartConfig extends GrainJSDisposable {
     ];
   }
 
-  private async _setXAxis(colId: number) {
+  private async _setXAxis(colId: string) {
     const optionsObj = this._section.optionsObj;
-    const col = this._gristDoc.docModel.columns.getRowModel(colId);
+    const findColumn = () => this._getColumns().find((c) => c.colId() === colId);
     const viewFields = this._section.viewFields.peek();
 
     await this._gristDoc.docData.bundleActions('selected new x-axis', async () => {
       this._freezeYAxis.set(true);
+      this._freezeXAxis.set(true);
       try {
+
+        // if values aggregation is 'on' update the grouped by columns first. This will make sure
+        // that colId is not missing from the summary table's columns (as could happen if it were a
+        // non-numeric for instance).
+        if (this._optionsObj.prop('aggregate')()) {
+          const splitColId = this._groupDataColId.get();
+          const cols = splitColId === colId ? [colId] : [colId, splitColId];
+          await this._setGroupByColumns(cols);
+        }
 
         // first remove the current field
         if (this._xAxisFieldIndex.get() !== -1 && this._xAxisFieldIndex.get() < viewFields.peek().length) {
@@ -687,7 +710,7 @@ export class ChartConfig extends GrainJSDisposable {
         await setSaveValue(this._optionsObj.prop('isXAxisUndefined'), false);
 
         // if  new field was used to group by column series, disable multiseries
-        const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().getRowId() === colId);
+        const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().colId() === colId);
         if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
           await optionsObj.prop('multiseries').setAndSave(false);
           return;
@@ -701,29 +724,43 @@ export class ChartConfig extends GrainJSDisposable {
         if (fieldIndex > -1) {
           await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
         } else {
-          await this._configFieldsHelper.addField(col, xAxisField);
+          const col = findColumn();
+          if (col) {
+            await this._configFieldsHelper.addField(col, xAxisField);
+          }
         }
       } finally {
         this._freezeYAxis.set(false);
+        this._freezeXAxis.set(false);
       }
     });
   }
 
-  private async _setGroupDataColumn(colId: number) {
+  private async _setGroupDataColumn(colId: string) {
     const viewFields = this._section.viewFields.peek().peek();
 
     await this._gristDoc.docData.bundleActions('selected new group data columnd', async () => {
       this._freezeXAxis.set(true);
       this._freezeYAxis.set(true);
       try {
+
         // if grouping was already set, first remove the current field
-        if (this._groupDataColId.get() > -1) {
+        if (this._groupDataColId.get()) {
           await this._configFieldsHelper.removeField(viewFields[0]);
         }
 
-        if (colId > -1) {
-          const col = this._gristDoc.docModel.columns.getRowModel(colId);
-          const field = viewFields.find((f) => f.column.peek().getRowId() === colId);
+        // if values aggregation is 'on' update the grouped by columns first. This will make sure
+        // that colId is not missing from the summary table's columns (as could happen if it were a
+        // non-numeric for instance).
+        if (this._optionsObj.prop('aggregate')()) {
+          const xAxisColId = this._xAxis.get();
+          const cols = xAxisColId === colId ? [colId] : [xAxisColId, colId];
+          await this._setGroupByColumns(cols);
+        }
+
+        if (colId) {
+          const col = this._getColumns().find((c) => c.colId() === colId)!;
+          const field = viewFields.find((f) => f.column.peek().colId() === colId);
 
           // if new field is already visible, moves the fields to the first place else add the field to the first
           // place
@@ -739,12 +776,24 @@ export class ChartConfig extends GrainJSDisposable {
           }
         }
 
-        await this._optionsObj.prop('multiseries').setAndSave(colId > -1);
+        await this._optionsObj.prop('multiseries').setAndSave(Boolean(colId));
+
       } finally {
         this._freezeXAxis.set(false);
         this._freezeYAxis.set(false);
       }
     }, {nestInActiveBundle: true});
+  }
+
+  private _getColumns(use: UseCB = unwrap) {
+    const table = use(this._section.table);
+    return use(use(table.columns).getObservable());
+  }
+
+  private _getSummarySourceColumns(use: UseCB = unwrap) {
+    let table = use(this._section.table);
+    table = use(table.summarySource);
+    return use(use(table.columns).getObservable());
   }
 
   private _buildField(col: IField) {
@@ -785,6 +834,75 @@ export class ChartConfig extends GrainJSDisposable {
   private _isCompatibleSeries(col: ColumnRec, use: UseCB = unwrap) {
     return isNumericOnly(use(this._chartType)) ? isNumericLike(col, use) : true;
   }
+
+  private async _setAggregation(val: boolean) {
+    try {
+      this._freezeXAxis.set(true);
+      await this._gristDoc.docData.bundleActions(`Toggle chart aggregation`, async () => {
+        await this._optionsObj.prop('aggregate').saveOnly(val);
+        if (val) {
+          await this._doAggregation();
+        } else {
+          await this._undoAggregation();
+        }
+      });
+    } finally {
+      if (!this.isDisposed()) {
+        this._freezeXAxis.set(false);
+      }
+    }
+  }
+
+  // Do the aggregation: if not a summary table, turns into one; else update groupby columns to
+  // match the X-Axis and Split-series columns.
+  private async _doAggregation(): Promise<void> {
+    if (!this._isSummaryTable()) {
+      await this._toggleSummaryTable();
+    } else {
+      await this._setGroupByColumns([this._xAxis.get(), this._groupDataColId.get()]);
+    }
+  }
+
+  // Undo the aggregation.
+  private async _undoAggregation() {
+    if (this._isSummaryTable()) {
+      await this._toggleSummaryTable();
+    }
+  }
+
+  private _isSummaryTable(use: UseCB = unwrap) {
+    return Boolean(use(use(this._section.table).summarySourceTable));
+  }
+
+  // Toggle whether section table is a summary table. Must use with care: this function calls
+  // `this.dispose()` as a side effect. Conveniently returns the ChartConfig instance of the new
+  // view section that replaces the old one.
+  private async _toggleSummaryTable(): Promise<ChartConfig> {
+    const colIds = [this._xAxis.get(), this._groupDataColId.get()];
+    const pageWidget = toPageWidget(this._section);
+    pageWidget.summarize = !this._isSummaryTable();
+    pageWidget.columns = this._getColumnIds(colIds);
+    const newSection = await this._gristDoc.saveViewSection(this._section, pageWidget);
+    return ChartConfig._instanceMap.get(newSection)!;
+  }
+
+  private async _setGroupByColumns(groupByCols: string[]) {
+    const pageWidget = toPageWidget(this._section);
+    pageWidget.columns = this._getColumnIds(groupByCols);
+    return this._gristDoc.saveViewSection(this._section, pageWidget);
+  }
+
+  private _getColumnIds(colIds: string[]) {
+    const cols = this._isSummaryTable() ?
+      this._section.table().summarySource().columns().all() :
+      this._section.table().columns().all();
+    const columns = colIds
+      .map((colId) => colId && cols.find(c => c.colId() === colId))
+      .filter((col): col is ColumnRec => Boolean(col))
+      .map(col => col.id());
+    return columns;
+  }
+
 
 }
 

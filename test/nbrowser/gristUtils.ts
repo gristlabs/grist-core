@@ -1654,6 +1654,13 @@ export async function addColumn(name: string) {
   await waitForServer();
 }
 
+export async function showColumn(name: string) {
+  await scrollIntoView(await driver.find('.active_section .mod-add-column'));
+  await driver.find('.active_section .mod-add-column').click();
+  await driver.findContent('.grist-floating-menu li', `Show column ${name}`).click();
+  await waitForServer();
+}
+
 // Select a range of columns, clicking on col1 and dragging to col2.
 export async function selectColumnRange(col1: string, col2: string) {
   await getColumnHeader({col: col1}).mouseMove();
