@@ -1223,6 +1223,50 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         });
   }
 
+  /**
+   * Returns an array of objects where:
+   *   - `id` is a row ID of _grist_Attachments
+   *   - `used` is true if and only if `id` is in a list in a cell of type Attachments
+   *   - The value of `timeDeleted` in this row of _grist_Attachments needs to be updated
+   *     because its truthiness doesn't match `used`, i.e. either:
+   *       - a used attachment is marked as deleted, OR
+   *       - an unused attachment is not marked as deleted
+   */
+  public async scanAttachmentsForUsageChanges(): Promise<{ used: boolean, id: number }[]> {
+    // Array of SQL queries where attachment_ids contains JSON arrays (typically containg row IDs).
+    // Below we add one query for each column of type Attachments in the document.
+    // We always include this first dummy query because if the array is empty then the final SQL query
+    // will just have `()` causing a syntax error.
+    // We can't just return when there are no Attachments columns
+    // because we may still need to delete all remaining attachments.
+    const attachmentsQueries = ["SELECT '[0]' AS attachment_ids"];
+    for (const [tableId, cols] of Object.entries(this._docSchema)) {
+      for (const [colId, type] of Object.entries(cols)) {
+        if (type === "Attachments") {
+          attachmentsQueries.push(`
+            SELECT t.${quoteIdent(colId)} AS attachment_ids
+            FROM ${quoteIdent(tableId)} AS t
+            WHERE json_valid(attachment_ids)
+          `);
+        }
+      }
+    }
+
+    // `UNION ALL` instead of `UNION` because duplicate values are unlikely and deduplicating is not worth the cost
+    const allAttachmentsQuery = attachmentsQueries.join(' UNION ALL ');
+
+    const sql = `
+      WITH all_attachment_ids(id) AS (
+        SELECT json_each.value AS id
+        FROM json_each(attachment_ids), (${allAttachmentsQuery})
+      )  -- flatten out all the lists of IDs into a simple column of IDs
+      SELECT id, id IN all_attachment_ids AS used
+      FROM _grist_Attachments
+      WHERE used != (timeDeleted IS NULL);  -- only include rows that need updating
+    `;
+    return (await this.all(sql)) as any[];
+  }
+
   public all(sql: string, ...args: any[]): Promise<ResultRow[]> {
     return this._getDB().all(sql, ...args);
   }

@@ -24,6 +24,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {
+  BulkUpdateRecord,
   CellValue,
   DocAction,
   TableDataAction,
@@ -1296,6 +1297,27 @@ export class ActiveDoc extends EventEmitter {
     }
 
     return sandboxActionBundle;
+  }
+
+  /**
+   * Check which attachments in the _grist_Attachments metadata are actually used,
+   * i.e. referenced by some cell in an Attachments type column.
+   * Set timeDeleted to the current time on newly unused attachments,
+   * 'soft deleting' them so that they get cleaned up automatically from _gristsys_Files after enough time has passed.
+   * Set timeDeleted to null on used attachments that were previously soft deleted,
+   * so that undo can 'undelete' attachments.
+   */
+  public async updateUsedAttachments() {
+    const changes = await this.docStorage.scanAttachmentsForUsageChanges();
+    if (!changes.length) {
+      return;
+    }
+    const rowIds = changes.map(r => r.id);
+    const now = Date.now() / 1000;
+    const timeDeleted = changes.map(r => r.used ? null : now);
+    const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
+    // Don't use applyUserActions which may block the update action in delete-only mode
+    await this._applyUserActions(makeExceptionalDocSession('system'), [action]);
   }
 
   // Needed for test/server/migrations.js tests

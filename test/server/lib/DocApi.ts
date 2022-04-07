@@ -1,9 +1,9 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {BulkColValues} from 'app/common/DocActions';
+import {BulkColValues, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {DocState, UserAPIImpl} from 'app/common/UserAPI';
-import {AddOrUpdateRecord} from 'app/plugin/DocApiTypes';
 import {teamFreeFeatures} from 'app/gen-server/entity/Product';
+import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {applyQueryParameters, docDailyApiUsageKey} from 'app/server/lib/DocApi';
 import * as log from 'app/server/lib/log';
@@ -1543,6 +1543,132 @@ function testDocApi() {
       assert.deepEqual(resp.headers['cache-control'], 'private, max-age=3600');
       assert.deepEqual(resp.headers['bad-header'], undefined);   // Attempt to hack in more headers didn't work
       assert.deepEqual(resp.data, 'def');
+    });
+
+    it("POST /docs/{did}/attachments/updateUsed updates timeDeleted on metadata", async function() {
+      const wid = await getWorkspaceId(userApi, 'Private');
+      const docId = await userApi.newDoc({name: 'TestDoc2'}, wid);
+
+      // Apply the given user actions,
+      // POST to /attachments/updateUsed
+      // Check that Table1 and _grist_Attachments contain the expected rows
+      async function check(
+        actions: UserAction[],
+        userData: { id: number, Attached: any }[],
+        metaData: { id: number, deleted: boolean }[],
+      ) {
+        const docUrl = `${serverUrl}/api/docs/${docId}`;
+
+        let resp = await axios.post(`${docUrl}/apply`, actions, chimpy);
+        assert.equal(resp.status, 200);
+
+        resp = await axios.post(`${docUrl}/attachments/updateUsed`, actions, chimpy);
+        assert.equal(resp.status, 200);
+
+        resp = await axios.get(`${docUrl}/tables/Table1/records`, chimpy);
+        const actualUserData = resp.data.records.map(
+          ({id, fields: {Attached}}: ApiRecord) =>
+          ({id, Attached})
+        );
+        assert.deepEqual(actualUserData, userData);
+
+        resp = await axios.get(`${docUrl}/tables/_grist_Attachments/records`, chimpy);
+        const actualMetaData = resp.data.records.map(
+          ({id, fields: {timeDeleted}}: ApiRecord) =>
+          ({id, deleted: Boolean(timeDeleted)})
+        );
+        assert.deepEqual(actualMetaData, metaData);
+      }
+
+      // Set up the document and initial data.
+      await check(
+        [
+          ["AddColumn", "Table1", "Attached", {type: "Attachments"}],
+          ["BulkAddRecord", "Table1", [1, 2], {Attached: [['L', 1], ['L', 2, 3]]}],
+          // There's no actual attachments here but that doesn't matter
+          ["BulkAddRecord", "_grist_Attachments", [1, 2, 3], {}],
+        ],
+        [
+          {id: 1, Attached: ['L', 1]},
+          {id: 2, Attached: ['L', 2, 3]},
+        ],
+        [
+          {id: 1, deleted: false},
+          {id: 2, deleted: false},
+          {id: 3, deleted: false},
+        ],
+      );
+
+      // Remove the record containing ['L', 2, 3], so the metadata for 2 and 3 now says deleted
+      await check(
+        [["RemoveRecord", "Table1", 2]],
+        [
+          {id: 1, Attached: ['L', 1]},
+        ],
+        [
+          {id: 1, deleted: false},
+          {id: 2, deleted: true},  // deleted here
+          {id: 3, deleted: true},  // deleted here
+        ],
+      );
+
+      // Add back a reference to attacument 2 to test 'undeletion', plus some junk values
+      await check(
+        [["BulkAddRecord", "Table1", [3, 4, 5], {Attached: [null, "foo", ['L', 2, 2, 4, 4, 5]]}]],
+        [
+          {id: 1, Attached: ['L', 1]},
+          {id: 3, Attached: null},
+          {id: 4, Attached: "foo"},
+          {id: 5, Attached: ['L', 2, 2, 4, 4, 5]},
+        ],
+        [
+          {id: 1, deleted: false},
+          {id: 2, deleted: false},  // undeleted here
+          {id: 3, deleted: true},
+        ],
+      );
+
+      // Remove the whole column to test what happens when there's no Attachment columns
+      await check(
+        [["RemoveColumn", "Table1", "Attached"]],
+        [
+          {id: 1, Attached: undefined},
+          {id: 3, Attached: undefined},
+          {id: 4, Attached: undefined},
+          {id: 5, Attached: undefined},
+        ],
+        [
+          {id: 1, deleted: true},  // deleted here
+          {id: 2, deleted: true},  // deleted here
+          {id: 3, deleted: true},
+        ],
+      );
+
+      // Test performance with a large number of records and attachments.
+      // The maximum value of numRecords that doesn't return a 413 error is about 18,000.
+      // In that case it took about 5.7 seconds to apply the initial user actions (i.e. add the records),
+      // 0.3 seconds to call updateUsed once, and 0.1 seconds to call it again immediately after.
+      // That last time roughly measures the time taken to do the SQL query
+      // without having to apply any user actions after to update timeDeleted.
+      // 10,000 records is a compromise so that tests aren't too slow.
+      const numRecords = 10000;
+      const attachmentsPerRecord = 4;
+      const totalUsedAttachments = numRecords * attachmentsPerRecord;  // 40,000 attachments referenced in user data
+      const totalAttachments = totalUsedAttachments * 1.1;  // 44,000 attachment IDs listed in metadata
+      const attachedValues = _.chunk(_.range(1, totalUsedAttachments + 1), attachmentsPerRecord)
+        .map(arr => ['L', ...arr]);
+      await check(
+        [
+          // Reset the state: add back the removed column and delete the previously added data
+          ["AddColumn", "Table1", "Attached", {type: "Attachments"}],
+          ["BulkRemoveRecord", "Table1", [1, 3, 4, 5]],
+          ["BulkRemoveRecord", "_grist_Attachments", [1, 2, 3]],
+          ["BulkAddRecord", "Table1", arrayRepeat(numRecords, null), {Attached: attachedValues}],
+          ["BulkAddRecord", "_grist_Attachments", arrayRepeat(totalAttachments, null), {}],
+        ],
+        attachedValues.map((Attached, index) => ({id: index + 1, Attached})),
+        _.range(totalAttachments).map(index => ({id: index + 1, deleted: index >= totalUsedAttachments})),
+      );
     });
   });
 

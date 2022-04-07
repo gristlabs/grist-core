@@ -230,6 +230,12 @@ export class DocWorkerApi {
         .send(fileData);
     }));
 
+    // Mostly for testing
+    this._app.post('/api/docs/:docId/attachments/updateUsed', canEdit, withDoc(async (activeDoc, req, res) => {
+      await activeDoc.updateUsedAttachments();
+      res.json(null);
+    }));
+
     // Adds records given in a column oriented format,
     // returns an array of row IDs
     this._app.post('/api/docs/:docId/tables/:tableId/data', canEdit,
