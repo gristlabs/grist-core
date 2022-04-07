@@ -34,6 +34,7 @@ jobs:
           context: .
           load: true
           tags: ${{ github.repository_owner }}/grist:latest
+          cache-from: type=gha
       - name: Use Node.js ${{ matrix.node-version }} for testing
         uses: actions/setup-node@v1
         with:
@@ -64,6 +65,8 @@ jobs:
           platforms: linux/amd64,linux/arm64/v8
           push: true
           tags: ${{ github.repository_owner }}/grist:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Update latest branch
         uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
         with:
