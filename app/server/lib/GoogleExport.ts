@@ -22,9 +22,11 @@ export async function exportToDrive(
     throw new Error("No access token - Can't send file to Google Drive");
   }
 
+  const mreq = req as RequestWithLogin;
   const meta = {
-    docId : activeDoc.docName,
-    userId : (req as RequestWithLogin).userId
+    docId: activeDoc.docName,
+    userId: mreq.userId,
+    altSessionId: mreq.altSessionId,
   };
   // Prepare file for exporting.
   log.debug(`Export to drive - Preparing file for export`, meta);

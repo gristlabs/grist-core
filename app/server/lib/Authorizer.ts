@@ -300,9 +300,17 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     mreq.users = [dbManager.makeFullUser(anon)];
   }
 
-  log.debug("Auth[%s]: id %s email %s host %s path %s org %s%s", mreq.method,
-            mreq.userId, mreq.user?.loginEmail, mreq.get('host'), mreq.path, mreq.org,
-            customHostSession);
+  const meta = {
+    customHostSession,
+    method: mreq.method,
+    host: mreq.get('host'),
+    path: mreq.path,
+    org: mreq.org,
+    email: mreq.user?.loginEmail,
+    userId: mreq.userId,
+    altSessionId: mreq.altSessionId,
+  };
+  log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
 
   return next();
 }

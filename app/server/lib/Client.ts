@@ -365,6 +365,8 @@ export class Client {
       meta.age = Math.floor(moment.duration(moment().diff(this._firstLoginAt)).asDays());
     }
     if (this._org) { meta.org = this._org; }
+    const altSessionId = this.getAltSessionId();
+    if (altSessionId) { meta.altSessionId = altSessionId; }
     meta.clientId = this.clientId;    // identifies a client connection, essentially a websocket
     meta.counter = this._counter;     // identifies a GristWSConnection in the connected browser tab
     return meta;

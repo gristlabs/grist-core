@@ -116,6 +116,7 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
     org: mreq.org,
     email: mreq.user && mreq.user.loginEmail,
     userId: mreq.userId,
+    altSessionId: mreq.altSessionId,
   };
 
   log.rawDebug(`Prepared to receive upload into tmp dir ${tmpDir}`, meta);

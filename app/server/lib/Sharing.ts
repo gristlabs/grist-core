@@ -243,6 +243,7 @@ export class Sharing {
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
 
+      const altSessionId = client?.getAltSessionId();
       const logMeta = {
         actionNum,
         linkId: info.linkId,
@@ -250,6 +251,7 @@ export class Sharing {
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
         author: info.user,
+        ...(altSessionId ? {session: altSessionId}: {}),
       };
       this._log.rawLog('debug', docSession, '_doApplyUserActions', logMeta);
       if (LOG_ACTION_BUNDLE) {

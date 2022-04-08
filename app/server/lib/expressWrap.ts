@@ -26,14 +26,17 @@ interface JsonErrorHandlerOptions {
  * Currently allows for toggling of logging request bodies and params.
  */
 const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.ErrorRequestHandler => {
+  const {shouldLogBody, shouldLogParams} = options;
   return (err, req, res, _next) => {
     const mreq = req as RequestWithLogin;
-    log.warn(
-      "Error during api call to %s: (%s)%s%s%s",
-      req.path, err.message, mreq.userId !== undefined ? ` user ${mreq.userId}` : '',
-      options.shouldLogParams !== false ? ` params ${JSON.stringify(req.params)}` : '',
-      options.shouldLogBody !== false ? ` body ${JSON.stringify(req.body)}` : '',
-    );
+    const meta = {
+      path: mreq.path,
+      userId: mreq.userId,
+      altSessionId: mreq.altSessionId,
+      body: shouldLogBody !== false ? req.body : undefined,
+      params: shouldLogParams !== false ? req.params : undefined,
+    };
+    log.rawWarn(`Error during api call to ${meta.path}: ${err.message}`, meta);
     let details = err.details && {...err.details};
     const status = details?.status || err.status || 500;
     if (details) {

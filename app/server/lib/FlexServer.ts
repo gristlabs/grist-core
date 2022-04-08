@@ -581,6 +581,7 @@ export class FlexServer implements GristServer {
         org: mreq.org,
         email: mreq.user && mreq.user.loginEmail,
         userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
       });
       return resp.status(200).send();
     }));

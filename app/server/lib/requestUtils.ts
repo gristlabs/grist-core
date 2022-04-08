@@ -186,6 +186,7 @@ export async function sendReply<T>(
     log.rawDebug('api call', {
       url: req.url,
       userId: mreq.userId,
+      altSessionId: mreq.altSessionId,
       email: mreq.user && mreq.user.loginEmail,
       org: mreq.org,
       params: req.params,
