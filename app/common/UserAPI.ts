@@ -135,6 +135,9 @@ export interface Document extends DocumentProperties {
 export interface UserOptions {
   // Whether signing in with Google is allowed. Defaults to true if unset.
   allowGoogleLogin?: boolean;
+  // Whether user is a consultant. Consultant users can be added to sites
+  // without being counted for billing. Defaults to false if unset.
+  isConsultant?: boolean;
 }
 
 export interface PermissionDelta {
@@ -312,6 +315,7 @@ export interface UserAPI {
   getUserProfile(): Promise<FullUser>;
   updateUserName(name: string): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
+  updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
   getBillingAPI(): BillingAPI;
@@ -605,6 +609,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/allowGoogleLogin`, {
       method: 'POST',
       body: JSON.stringify({allowGoogleLogin})
+    });
+  }
+
+  public async updateIsConsultant(userId: number, isConsultant: boolean): Promise<void> {
+    await this.request(`${this._url}/api/profile/isConsultant`, {
+      method: 'POST',
+      body: JSON.stringify({userId, isConsultant})
     });
   }
 

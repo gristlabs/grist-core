@@ -379,6 +379,25 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
+    this._app.post('/api/profile/isConsultant', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      if (userId !== this._dbManager.getSupportUserId()) {
+        throw new ApiError('Only support user can enable/disable isConsultant', 401);
+      }
+      const isConsultant: boolean | undefined = req.body.isConsultant;
+      const targetUserId: number | undefined = req.body.userId;
+      if (isConsultant === undefined) {
+        throw new ApiError('Missing body param: isConsultant', 400);
+      }
+      if (targetUserId === undefined) {
+        throw new ApiError('Missing body param: targetUserId', 400);
+      }
+      await this._dbManager.updateUserOptions(targetUserId, {
+        isConsultant
+      });
+      res.sendStatus(200);
+    }));
+
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {

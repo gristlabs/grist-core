@@ -4185,7 +4185,7 @@ function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
 }
 
 // Flatten a map of users per role into a simple list of users.
-function removeRole(usersWithRoles: Map<roles.NonGuestRole, User[]>) {
+export function removeRole(usersWithRoles: Map<roles.NonGuestRole, User[]>) {
   return flatten([...usersWithRoles.values()]);
 }
 
