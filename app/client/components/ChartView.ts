@@ -692,15 +692,6 @@ export class ChartConfig extends GrainJSDisposable {
       this._freezeXAxis.set(true);
       try {
 
-        // if values aggregation is 'on' update the grouped by columns first. This will make sure
-        // that colId is not missing from the summary table's columns (as could happen if it were a
-        // non-numeric for instance).
-        if (this._optionsObj.prop('aggregate')()) {
-          const splitColId = this._groupDataColId.get();
-          const cols = splitColId === colId ? [colId] : [colId, splitColId];
-          await this._setGroupByColumns(cols);
-        }
-
         // first remove the current field
         if (this._xAxisFieldIndex.get() !== -1 && this._xAxisFieldIndex.get() < viewFields.peek().length) {
           await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
@@ -709,11 +700,20 @@ export class ChartConfig extends GrainJSDisposable {
         // if x axis was undefined, set option to false
         await setSaveValue(this._optionsObj.prop('isXAxisUndefined'), false);
 
-        // if  new field was used to group by column series, disable multiseries
+        // if new field was used to split series, disable multiseries
         const fieldIndex = viewFields.peek().findIndex((f) => f.column.peek().colId() === colId);
         if (fieldIndex === 0 && optionsObj.prop('multiseries').peek()) {
           await optionsObj.prop('multiseries').setAndSave(false);
           return;
+        }
+
+        // if values aggregation is 'on' update the grouped by columns before findColumn()
+        // call. This will make sure that colId is not missing from the summary table's columns (as
+        // could happen if it were a non-numeric for instance).
+        if (this._optionsObj.prop('aggregate')()) {
+          const splitColId = this._groupDataColId.get();
+          const cols = splitColId === colId ? [colId] : [splitColId, colId];
+          await this._setGroupByColumns(cols);
         }
 
         // if the new column for the x axis is already visible, make it the first visible column,
@@ -754,7 +754,7 @@ export class ChartConfig extends GrainJSDisposable {
         // non-numeric for instance).
         if (this._optionsObj.prop('aggregate')()) {
           const xAxisColId = this._xAxis.get();
-          const cols = xAxisColId === colId ? [colId] : [xAxisColId, colId];
+          const cols = xAxisColId === colId ? [colId] : [colId, xAxisColId];
           await this._setGroupByColumns(cols);
         }
 
