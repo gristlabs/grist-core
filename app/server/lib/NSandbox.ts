@@ -233,8 +233,13 @@ export class NSandbox implements ISandbox {
   }
 
   private _onExit(code: number, signal: string) {
+    const expected = this._isWriteClosed;
     this._close();
-    log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
+    if (expected) {
+      log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
+    } else {
+      log.rawWarn(`Sandbox unexpectedly exited with code ${code} signal ${signal}`, this._logMeta);
+    }
   }
 
 

@@ -177,11 +177,13 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
  */
 function _logError(error: Error|string) {
   if (!pageHasHome()) { return; }
+  const docId = G.window.gristDocPageModel?.currentDocId?.get();
   fetchFromHome('/api/log', {
     method: 'POST',
     body: JSON.stringify({
       // Errors don't stringify, so pick out properties explicitly for errors.
       event: (error instanceof Error) ? pick(error, Object.getOwnPropertyNames(error)) : error,
+      docId,
       page: G.window.location.href,
       browser: pick(G.window.navigator, ['language', 'platform', 'userAgent'])
     }),

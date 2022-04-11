@@ -576,6 +576,7 @@ export class FlexServer implements GristServer {
       const mreq = req as RequestWithLogin;
       log.rawWarn('client error', {
         event: req.body.event,
+        docId: req.body.docId,
         page: req.body.page,
         browser: req.body.browser,
         org: mreq.org,
