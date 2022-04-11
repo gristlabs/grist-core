@@ -73,7 +73,7 @@ export class CustomView extends Disposable {
   private _emptyWidgetPage: string;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    BaseView.call(this as any, gristDoc, viewSectionModel);
+    BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
 
     this._customDef =  this.viewSection.customDef;
 

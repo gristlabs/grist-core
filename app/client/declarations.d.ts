@@ -63,7 +63,7 @@ declare module "app/client/components/BaseView" {
     public isTruncated: ko.Observable<boolean>;
     public tableModel: DataTableModel;
 
-    constructor(gristDoc: GristDoc, viewSectionModel: any);
+    constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;
     public createFilterMenu(ctl: IOpenController, filterInfo: FilterInfo, onClose?: () => void): HTMLElement;
     public buildTitleControls(): DomArg;

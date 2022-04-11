@@ -328,7 +328,7 @@ export class GristViewImpl implements GristView {
     // Hidden/Visible columns will eventually reflect what is available, but this operation
     // is not instant - and widget can receive rows with fields that are not in the mapping.
     const columns: ColumnRec[] = this._visibleColumns();
-    const rowIds: number[] = this._baseView.sortedRows.getKoArray().peek() as number[];
+    const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != 'new');
     const data: BulkColValues = {};
     for (const column of columns) {
       // Use the colId of the displayCol, which may be different in case of Reference columns.

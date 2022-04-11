@@ -310,9 +310,21 @@ export function mapColumnNamesBack(data: any, options: {
  */
 export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
-    if (!msg.tableId || !msg.rowId) { return; }
+    if (!msg.tableId || !msg.rowId || msg.rowId === 'new') { return; }
     const rec = await docApi.fetchSelectedRecord(msg.rowId);
     callback(rec, await getMappingsIfChanged(msg));
+  });
+}
+
+/**
+ * For custom widgets, add a handler that will be called whenever the
+ * new (blank) row is selected.
+ */
+export function onNewRecord(callback: () => unknown) {
+  on('message', async function(msg) {
+    if (msg.tableId && msg.rowId === 'new') {
+      callback();
+    }
   });
 }
 
