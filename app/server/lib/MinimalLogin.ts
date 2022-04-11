@@ -24,7 +24,7 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
           // If working without a login system, make sure default user exists.
           const dbManager = gristServer.getHomeDBManager();
           const profile = getDefaultProfile();
-          const user = await dbManager.getUserByLoginWithRetry(profile.email, profile);
+          const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
           if (user) {
             // No need to survey this user!
             user.isFirstTimeUser = false;

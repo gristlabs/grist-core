@@ -3,6 +3,7 @@ import {OpenDocMode} from 'app/common/DocListAPI';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
+import {UserOptions} from 'app/common/UserAPI';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
 import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -243,8 +244,14 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
         // Modify request session object to link the current org with our choice of
         // profile.  Express-session will save this change.
         sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
+        const userOptions: UserOptions = {};
+        if (sessionUser?.profile?.loginMethod === 'Email + Password') {
+          // Link the session authSubject, if present, to the user. This has no effect
+          // if the user already has an authSubject set in the db.
+          userOptions.authSubject = sessionUser.authSubject;
+        }
         // In this special case of initially linking a profile, we need to look up the user's info.
-        mreq.user = await dbManager.getUserByLogin(option.email);
+        mreq.user = await dbManager.getUserByLogin(option.email, {userOptions});
         mreq.userId = option.id;
         mreq.userIsAuthorized = true;
       } else {
@@ -263,12 +270,18 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
       }
     }
 
-    profile = sessionUser && sessionUser.profile || undefined;
+    profile = sessionUser?.profile ?? undefined;
 
     // If we haven't computed a userId yet, check for one using an email address in the profile.
     // A user record will be created automatically for emails we've never seen before.
     if (profile && !mreq.userId) {
-      const user = await dbManager.getUserByLoginWithRetry(profile.email, profile);
+      const userOptions: UserOptions = {};
+      if (profile?.loginMethod === 'Email + Password') {
+        // Link the session authSubject, if present, to the user. This has no effect
+        // if the user already has an authSubject set in the db.
+        userOptions.authSubject = sessionUser.authSubject;
+      }
+      const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
       if (user) {
         mreq.user = user;
         mreq.userId = user.id;
@@ -280,7 +293,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   if (!mreq.userId) {
     profile = getRequestProfile(mreq);
     if (profile) {
-      const user = await dbManager.getUserByLoginWithRetry(profile.email, profile);
+      const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
       if(user) {
         mreq.user = user;
         mreq.users = [profile];
@@ -289,7 +302,6 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
       }
     }
   }
-
 
   // If no userId has been found yet, fall back on anonymous.
   if (!mreq.userId) {

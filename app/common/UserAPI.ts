@@ -135,6 +135,8 @@ export interface Document extends DocumentProperties {
 export interface UserOptions {
   // Whether signing in with Google is allowed. Defaults to true if unset.
   allowGoogleLogin?: boolean;
+  // The "sub" (subject) from the JWT issued by the password-based authentication provider.
+  authSubject?: string;
   // Whether user is a consultant. Consultant users can be added to sites
   // without being counted for billing. Defaults to false if unset.
   isConsultant?: boolean;

@@ -32,7 +32,7 @@ export function configForUser(username: string): AxiosRequestConfig {
 export async function createUser(dbManager: HomeDBManager, name: string): Promise<Organization> {
   const username = name.toLowerCase();
   const email = `${username}@getgrist.com`;
-  const user = await dbManager.getUserByLogin(email, {email, name});
+  const user = await dbManager.getUserByLogin(email, {profile: {email, name}});
   if (!user) { throw new Error('failed to create user'); }
   user.apiKey = `api_key_for_${username}`;
   await user.save();

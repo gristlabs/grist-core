@@ -19,8 +19,16 @@ export interface SessionUserObj {
    */
   lastLoginTimestamp?: number;
 
-  // [UNUSED] Authentication provider string indicating the login method used.
+  /**
+   * The authentication provider. (Typically the JWT "iss".)
+   */
   authProvider?: string;
+
+  /**
+   * Identifier for the user from the authentication provider. (Typically
+   * the JWT "sub".)
+   */
+  authSubject?: string;
 
   // [UNUSED] Login ID token used to access AWS services.
   idToken?: string;

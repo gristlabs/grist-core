@@ -78,10 +78,8 @@ export async function main() {
       if (!email) {
         throw new Error('need GRIST_DEFAULT_EMAIL to create site');
       }
-      const user = await db.getUserByLogin(email, {
-        email,
-        name: email,
-      });
+      const profile = {email, name: email};
+      const user = await db.getUserByLogin(email, {profile});
       if (!user) {
         // This should not happen.
         throw new Error('failed to create GRIST_DEFAULT_EMAIL user');

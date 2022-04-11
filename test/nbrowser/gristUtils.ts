@@ -1760,10 +1760,8 @@ export async function addSupportUserIfPossible() {
   if (!server.isExternalServer() && process.env.TEST_SUPPORT_API_KEY) {
     // Make sure we have a test support user.
     const dbManager = await server.getDatabase();
-    const user = await dbManager.getUserByLoginWithRetry('support@getgrist.com', {
-      email: 'support@getgrist.com',
-      name: 'Support',
-    });
+    const profile = {email: 'support@getgrist.com', name: 'Support'};
+    const user = await dbManager.getUserByLoginWithRetry('support@getgrist.com', {profile});
     if (!user) {
       throw new Error('Failed to create test support user');
     }

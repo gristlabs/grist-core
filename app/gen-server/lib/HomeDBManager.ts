@@ -203,6 +203,12 @@ export interface DocAuthResult {
   cachedDoc?: Document;       // For cases where stale info is ok.
 }
 
+interface GetUserOptions {
+  manager?: EntityManager;
+  profile?: UserProfile;
+  userOptions?: UserOptions;
+}
+
 // Represent a DocAuthKey as a string.  The format is "<urlId>:<org> <userId>".
 // flushSingleDocAuthCache() depends on this format.
 function stringifyDocAuthKey(key: DocAuthKey): string {
@@ -402,7 +408,7 @@ export class HomeDBManager extends EventEmitter {
   public async testClearUserPrefs(emails: string[]) {
     return await this._connection.transaction(async manager => {
       for (const email of emails) {
-        const user = await this.getUserByLogin(email, undefined, manager);
+        const user = await this.getUserByLogin(email, {manager});
         if (user) {
           await manager.delete(Pref, {userId: user.id});
         }
@@ -493,16 +499,16 @@ export class HomeDBManager extends EventEmitter {
   // for an email key conflict failure.  This is in case our transaction conflicts with a peer
   // doing the same thing.  This is quite likely if the first page visited by a previously
   // unseen user fires off multiple api calls.
-  public async getUserByLoginWithRetry(email: string, profile: UserProfile): Promise<User|undefined> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
     try {
-      return await this.getUserByLogin(email, profile);
+      return await this.getUserByLogin(email, options);
     } catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
           e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.
-        return await this.getUserByLogin(email, profile);
+        return await this.getUserByLogin(email, options);
       }
       throw e;
     }
@@ -513,15 +519,12 @@ export class HomeDBManager extends EventEmitter {
    * Fetches a user record based on an email address.  If a user record already
    * exists linked to the email address supplied, that is the record returned.
    * Otherwise a fresh record is created, linked to the supplied email address.
-   * The name supplied is used to create this fresh record - otherwise it is
-   * ignored.
+   * The supplied `options` are used when creating a fresh record, or updating
+   * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(
-    email: string,
-    profile?: UserProfile,
-    transaction?: EntityManager
-  ): Promise<User|undefined> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+    const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
     const userByLogin = await this._runInTransaction(transaction, async manager => {
       let needUpdate = false;
@@ -578,6 +581,11 @@ export class HomeDBManager extends EventEmitter {
         // instance.  It will get overwritten when the user logs in if the provider's
         // version is different.
         login.displayEmail = email;
+        needUpdate = true;
+      }
+      if (!user.options?.authSubject && userOptions?.authSubject) {
+        // Link subject from password-based authentication provider if not previously linked.
+        user.options = {...(user.options ?? {}), authSubject: userOptions.authSubject};
         needUpdate = true;
       }
       if (needUpdate) {
@@ -2879,7 +2887,7 @@ export class HomeDBManager extends EventEmitter {
       // get or create user - with retry, since there'll be a race to create the
       // user if a bunch of servers start simultaneously and the user doesn't exist
       // yet.
-      const user = await this.getUserByLoginWithRetry(profile.email, profile);
+      const user = await this.getUserByLoginWithRetry(profile.email, {profile});
       if (user) { id = this._specialUserIds[profile.email] = user.id; }
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
@@ -2979,7 +2987,7 @@ export class HomeDBManager extends EventEmitter {
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
       const emailUsers = await Promise.all(
-        emails.map(async email => await this.getUserByLogin(email, undefined, transaction))
+        emails.map(async email => await this.getUserByLogin(email, {manager: transaction}))
       );
       emails.forEach((email, i) => {
         const userIdAffected = emailUsers[i]!.id;
