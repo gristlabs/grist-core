@@ -24,6 +24,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {
+  BulkRemoveRecord,
   BulkUpdateRecord,
   CellValue,
   DocAction,
@@ -1318,6 +1319,20 @@ export class ActiveDoc extends EventEmitter {
     const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
     // Don't use applyUserActions which may block the update action in delete-only mode
     await this._applyUserActions(makeExceptionalDocSession('system'), [action]);
+  }
+
+  /**
+   * Delete unused attachments from _grist_Attachments and gristsys_Files.
+   * @param expiredOnly: if true, only delete attachments that were soft-deleted sufficiently long ago.
+   */
+  public async removeUnusedAttachments(expiredOnly: boolean) {
+    await this.updateUsedAttachments();
+    const rowIds = await this.docStorage.getSoftDeletedAttachmentIds(expiredOnly);
+    if (rowIds.length) {
+      const action: BulkRemoveRecord = ["BulkRemoveRecord", "_grist_Attachments", rowIds];
+      await this.applyUserActions(makeExceptionalDocSession('system'), [action]);
+    }
+    await this.docStorage.removeUnusedAttachments();
   }
 
   // Needed for test/server/migrations.js tests

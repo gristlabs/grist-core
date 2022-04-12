@@ -56,6 +56,7 @@ import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
+import * as assert from 'assert';
 import * as contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
 import * as _ from "lodash";
@@ -233,6 +234,18 @@ export class DocWorkerApi {
     // Mostly for testing
     this._app.post('/api/docs/:docId/attachments/updateUsed', canEdit, withDoc(async (activeDoc, req, res) => {
       await activeDoc.updateUsedAttachments();
+      res.json(null);
+    }));
+    this._app.post('/api/docs/:docId/attachments/removeUnused', isOwner, withDoc(async (activeDoc, req, res) => {
+      const expiredOnly = isAffirmative(req.query.expiredonly);
+      const verifyFiles = isAffirmative(req.query.verifyfiles);
+      await activeDoc.removeUnusedAttachments(expiredOnly);
+      if (verifyFiles) {
+        assert.deepStrictEqual(
+          await activeDoc.docStorage.all(`SELECT DISTINCT fileIdent AS ident FROM _grist_Attachments ORDER BY ident`),
+          await activeDoc.docStorage.all(`SELECT                       ident FROM _gristsys_Files    ORDER BY ident`),
+        );
+      }
       res.json(null);
     }));
 

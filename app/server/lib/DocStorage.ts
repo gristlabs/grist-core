@@ -39,6 +39,11 @@ const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing
 
 const PENDING_VALUE = [GristObjCode.Pending];
 
+// Number of days that soft-deleted attachments are kept in file storage before being completely deleted.
+// Once a file is deleted it can't be restored by undo, so we want it to be impossible or at least extremely unlikely
+// that someone would delete a reference to an attachment and then undo that action this many days later.
+export const ATTACHMENTS_EXPIRY_DAYS = 7;
+
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // ======================================================================
@@ -1265,6 +1270,41 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       WHERE used != (timeDeleted IS NULL);  -- only include rows that need updating
     `;
     return (await this.all(sql)) as any[];
+  }
+
+  /**
+   * Return row IDs of unused attachments in _grist_Attachments.
+   * Uses the timeDeleted column which is updated in ActiveDoc.updateUsedAttachments.
+   * @param expiredOnly: if true, only return attachments where timeDeleted is at least
+   *                     ATTACHMENTS_EXPIRY_DAYS days ago.
+   */
+  public async getSoftDeletedAttachmentIds(expiredOnly: boolean): Promise<number[]> {
+    const condition = expiredOnly
+      ? `datetime(timeDeleted, 'unixepoch') < datetime('now', '-${ATTACHMENTS_EXPIRY_DAYS} days')`
+      : "timeDeleted IS NOT NULL";
+
+    const rows = await this.all(`
+      SELECT id
+      FROM _grist_Attachments
+      WHERE ${condition}
+    `);
+    return rows.map(r => r.id);
+  }
+
+  /**
+   * Delete attachments from _gristsys_Files that have no matching metadata row in _grist_Attachments.
+   */
+  public async removeUnusedAttachments() {
+    await this.run(`
+      DELETE FROM _gristsys_Files
+      WHERE ident IN (
+        SELECT ident
+        FROM _gristsys_Files
+        LEFT JOIN _grist_Attachments
+        ON fileIdent = ident
+        WHERE fileIdent IS NULL
+      )
+    `);
   }
 
   public all(sql: string, ...args: any[]): Promise<ResultRow[]> {

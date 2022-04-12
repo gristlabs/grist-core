@@ -1562,7 +1562,7 @@ function testDocApi() {
         let resp = await axios.post(`${docUrl}/apply`, actions, chimpy);
         assert.equal(resp.status, 200);
 
-        resp = await axios.post(`${docUrl}/attachments/updateUsed`, actions, chimpy);
+        resp = await axios.post(`${docUrl}/attachments/updateUsed`, null, chimpy);
         assert.equal(resp.status, 200);
 
         resp = await axios.get(`${docUrl}/tables/Table1/records`, chimpy);
@@ -1670,6 +1670,57 @@ function testDocApi() {
         _.range(totalAttachments).map(index => ({id: index + 1, deleted: index >= totalUsedAttachments})),
       );
     });
+
+    it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function() {
+      const wid = await getWorkspaceId(userApi, 'Private');
+      const docId = await userApi.newDoc({name: 'TestDoc3'}, wid);
+      const docUrl = `${serverUrl}/api/docs/${docId}`;
+
+      const formData = new FormData();
+      formData.append('upload', 'foobar', "hello.doc");
+      formData.append('upload', '123456', "world.jpg");
+      formData.append('upload', 'foobar', "hello2.doc");
+      let resp = await axios.post(`${docUrl}/attachments`, formData,
+        defaultsDeep({headers: formData.getHeaders()}, chimpy));
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, [1, 2, 3]);
+
+      async function checkAttachmentIds(ids: number[]) {
+        resp = await axios.get(
+          `${docUrl}/tables/_grist_Attachments/records`,
+          chimpy,
+        );
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.data.records.map((r: any) => r.id), ids);
+      }
+
+      resp = await axios.patch(
+        `${docUrl}/tables/_grist_Attachments/records`,
+        {
+          records: [
+            {id: 1, fields: {timeDeleted: Date.now() / 1000 - 8 * 24 * 60 * 60}},  // 8 days ago, i.e. expired
+            {id: 2, fields: {timeDeleted: Date.now() / 1000 - 6 * 24 * 60 * 60}},  // 6 days ago, i.e. not expired
+          ]
+        },
+        chimpy,
+      );
+      assert.equal(resp.status, 200);
+      await checkAttachmentIds([1, 2, 3]);
+
+      // Remove the expired attachment (1)
+      // It has a duplicate (3) that hasn't expired and thus isn't removed,
+      // although they share the same fileIdent and row in _gristsys_Files.
+      // So for now only the metadata is removed.
+      resp = await axios.post(`${docUrl}/attachments/removeUnused?verifyfiles=1&expiredonly=1`, null, chimpy);
+      assert.equal(resp.status, 200);
+      await checkAttachmentIds([2, 3]);
+
+      // Remove the not expired attachments (2 and 3).
+      // We didn't set a timeDeleted for 3, but it gets set automatically by updateUsedAttachments.
+      resp = await axios.post(`${docUrl}/attachments/removeUnused?verifyfiles=1`, null, chimpy);
+      await checkAttachmentIds([]);
+    });
+
   });
 
   it("GET /docs/{did}/download serves document", async function() {
