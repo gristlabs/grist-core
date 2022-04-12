@@ -5,8 +5,8 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, Organization, PermissionData, PermissionDelta,
-        UserAPI, Workspace} from 'app/common/UserAPI';
+import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, Organization,
+        PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
 import {getRealAccess} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some = require('lodash/some');
@@ -22,8 +22,10 @@ export interface UserManagerModel {
   publicMember: IEditableMember|null;          // Member whose access (VIEWER or null) represents that of
                                                // anon@ or everyone@ (depending on the settings and resource).
   isAnythingChanged: Computed<boolean>;        // Indicates whether there are unsaved changes
+  isSelfRemoved: Computed<boolean>;            // Indicates whether current user is removed
   isOrg: boolean;                              // Indicates if the UserManager is for an org
   annotations: Observable<ShareAnnotations>;   // More information about shares, keyed by email.
+  isPersonal: boolean;                         // If user access info/control is restricted to self.
 
   gristDoc: GristDoc|null;                     // Populated if there is an open document.
 
@@ -119,6 +121,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public annotations = this.autoDispose(observable({users: new Map()}));
 
+  public isPersonal = this.initData.personal || false;
+
   public isOrg: boolean = this.resourceType === 'organization';
 
   public gristDoc: GristDoc|null;
@@ -131,6 +135,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     const isInheritanceChanged = !this.isOrg && use(this.maxInheritedRole) !== this.initData.maxInheritedRole;
     return some(use(this.membersEdited), isMemberChangedFn) || isInheritanceChanged ||
       (this.publicMember ? isMemberChangedFn(this.publicMember) : false);
+  }));
+
+  // Check if the current user is being removed.
+  public readonly isSelfRemoved: Computed<boolean> = this.autoDispose(computed<boolean>((use) => {
+    return some(use(this.membersEdited), m => m.isRemoved && m.email ===this._options.activeEmail);
   }));
 
   private _shareAnnotator?: ShareAnnotator;

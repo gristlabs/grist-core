@@ -204,7 +204,8 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
       permissionData: api.getWorkspaceAccess(ws.id),
       activeEmail: user ? user.email : null,
       resourceType: 'workspace',
-      resourceId: ws.id
+      resourceId: ws.id,
+      resource: ws,
     });
   }
 
@@ -217,8 +218,8 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     upgradableMenuItem(needUpgrade, deleteWorkspace, "Delete",
       dom.cls('disabled', user => !roles.canEdit(ws.access)),
       testId('dm-delete-workspace')),
-    upgradableMenuItem(needUpgrade, manageWorkspaceUsers, "Manage Users",
-      dom.cls('disabled', !roles.canEditAccess(ws.access)),
+    upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
+      roles.canEditAccess(ws.access) ? "Manage Users" : "Access Details",
       testId('dm-workspace-access')),
     upgradeText(needUpgrade),
   ];

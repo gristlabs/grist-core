@@ -35,7 +35,8 @@ import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {inputMenu, menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
+import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
+        modal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -47,7 +48,7 @@ export interface IUserManagerOptions {
   appModel?: AppModel;  // If present, we offer access to a nested team-level dialog.
   linkToCopy?: string;
   reload?: () => Promise<PermissionData>;
-  onSave?: () => Promise<unknown>;
+  onSave?: (personal: boolean) => Promise<unknown>;
   prompt?: {  // If set, user manager should open with this email filled in and ready to go.
     email: string;
   };
@@ -71,22 +72,42 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
 
   async function onConfirm(ctl: IModalControl) {
     const model = modelObs.get();
-    if (model) {
+    if (!model) {
+      ctl.close();
+      return;
+    }
+    const tryToSaveChanges = async () => {
       // Save changes to the server, reporting any errors to the app.
       try {
-        if (model.isAnythingChanged.get()) {
+        const isAnythingChanged = model.isAnythingChanged.get();
+        if (isAnythingChanged) {
           await model.save(userApi, options.resourceId);
         }
-        await options.onSave?.();
+        await options.onSave?.(model.isPersonal);
         ctl.close();
+        if (model.isPersonal && isAnythingChanged) {
+          // the only thing an individual without ACL_EDIT rights can do is
+          // remove themselves - so reload.
+          window.location.reload();
+        }
       } catch (err) {
         reportError(err);
       }
+    };
+    if (model.isSelfRemoved.get()) {
+      const name = resourceName(model.resourceType);
+      confirmModal(
+        `You are about to remove your own access to this ${name}`,
+        'Remove my access', tryToSaveChanges,
+        'Once you have removed your own access, ' +
+          'you will not be able to get it back without assistance ' +
+          `from someone else with sufficient access to the ${name}.`);
     } else {
-      ctl.close();
+      tryToSaveChanges().catch(reportError);
     }
   }
 
+  const personal = !roles.canEditAccess(options.resource?.access || null);
   // Get the model and assign it to the observable. Report errors to the app.
   getModel(options)
     .then(model => modelObs.set(model))
@@ -97,8 +118,9 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
     options.showAnimation ? dom.cls(cssAnimatedModal.className) : null,
     cssModalTitle(
       { style: 'margin: 40px 64px 0 64px;' },
-      renderTitle(options.resourceType, options.resource),
-      (options.resourceType === 'document' ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
+      renderTitle(options.resourceType, options.resource, personal),
+      ((options.resourceType === 'document' && !personal) ?
+        makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
       testId('um-header')
     ),
 
@@ -121,7 +143,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         dom.on('click', () => ctl.close()),
         testId('um-cancel')
       ),
-      dom.maybe(use => use(modelObs)?.resourceType === 'document' && use(modelObs)?.gristDoc, () =>
+      dom.maybe(use => use(modelObs)?.resourceType === 'document' && use(modelObs)?.gristDoc && !personal, () =>
         cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
           dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
           'Open Access Rules',
@@ -159,8 +181,8 @@ export class UserManager extends Disposable {
     const memberEmail = this.autoDispose(new MemberEmail(this._onAdd.bind(this),
                                                         this._options.prompt));
     return [
-      memberEmail.buildDom(),
-      this._buildOptionsDom(),
+      this._model.isPersonal ? null : memberEmail.buildDom(),
+      this._model.isPersonal ? null : this._buildOptionsDom(),
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
@@ -212,6 +234,7 @@ export class UserManager extends Disposable {
   // Build a single member row.
   private _buildMemberDom(member: IEditableMember) {
     const disableRemove = Computed.create(null, (use) =>
+      this._model.isPersonal ? !member.origAccess :
       Boolean(this._model.isActiveUser(member) || use(member.inheritedAccess)));
     return dom('div',
       dom.autoDispose(disableRemove),
@@ -632,9 +655,10 @@ const cssAnimatedModal = styled('div', `
 `);
 
 // Render the UserManager title for `resourceType` (e.g. org as "team site").
-function renderTitle(resourceType: ResourceType, resource?: Resource) {
+function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
   switch (resourceType) {
     case 'organization': {
+      if (personal) { return 'Your role for this team site'; }
       return [
         'Manage members of team site',
         !resource ? null : cssOrgName(
@@ -645,7 +669,12 @@ function renderTitle(resourceType: ResourceType, resource?: Resource) {
       ];
     }
     default: {
-      return `Invite people to ${resourceType}`;
+      return personal ? `Your role for this ${resourceType}` : `Invite people to ${resourceType}`;
     }
   }
+}
+
+// Rename organization to team site.
+function resourceName(resourceType: ResourceType): string {
+  return resourceType === 'organization' ? 'team site' : resourceType;
 }

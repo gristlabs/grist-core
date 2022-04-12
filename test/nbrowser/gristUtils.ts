@@ -1222,9 +1222,22 @@ export async function editOrgAcls(): Promise<void> {
   await driver.findWait('.test-um-members', 3000);
 }
 
-export async function saveAcls(): Promise<void> {
+/**
+ * Click confirm on a user manager dialog. If clickRemove is set, then
+ * any extra modal that pops up will be accepted. Returns true unless
+ * clickRemove was set and no modal popped up.
+ */
+export async function saveAcls(clickRemove: boolean = false): Promise<boolean> {
   await driver.findWait('.test-um-confirm', 3000).click();
-  await driver.wait(async () => !(await driver.find('.test-um-members').isPresent()), 3000);
+  let clickedRemove: boolean = false;
+  await driver.wait(async () => {
+    if (clickRemove && !clickedRemove && await driver.find('.test-modal-confirm').isPresent()) {
+      await driver.find('.test-modal-confirm').click();
+      clickedRemove = true;
+    }
+    return !(await driver.find('.test-um-members').isPresent());
+  }, 3000);
+  return clickedRemove || !clickRemove;
 }
 
 /**

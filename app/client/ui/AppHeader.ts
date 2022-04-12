@@ -37,7 +37,7 @@ export class AppHeader extends Disposable {
         activeEmail: user ? user.email : null,
         resourceType: 'organization',
         resourceId: org.id,
-        resource: org,
+        resource: org
       });
     };
 

@@ -112,6 +112,18 @@ export interface UserIdDelta {
   [userId: string]: roles.NonGuestRole|null;
 }
 
+// A collection of fun facts derived from a PermissionDelta (used to describe
+// a change of users) and a user.
+export interface PermissionDeltaAnalysis {
+  userIdDelta: UserIdDelta | null;   // New roles for users, indexed by user id.
+  permissionThreshold: Permissions;  // The permissions needed to make the change.
+                                     // Usually Permissions.ACL_EDIT, but
+                                     // Permissions.ACL_VIEW is enough for a user
+                                     // to removed themselves.
+  affectsSelf: boolean;              // Flags if the user making the change would
+                                     // be affected by the change.
+}
+
 // Options for certain create query helpers private to this file.
 interface QueryOptions {
   manager?: EntityManager;
@@ -1818,7 +1830,9 @@ export class HomeDBManager extends EventEmitter {
       }
       // Get the ids of users to update.
       const billingAccountId = billingAccount.id;
-      const userIdDelta = await this._verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
+      const analysis = await this._verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
+      this._failIfPowerfulAndChangingSelf(analysis);
+      const {userIdDelta} = analysis;
       if (!userIdDelta) { throw new ApiError('No userIdDelta', 500); }
       // Any duplicated emails have been merged, and userIdDelta is now keyed by user ids.
       // Now we iterate over users and add/remove them as managers.
@@ -1862,10 +1876,11 @@ export class HomeDBManager extends EventEmitter {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
-      const userIdDelta = await this._verifyAndLookupDeltaEmails(userId, delta, true, manager);
+      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, true, manager);
+      const {userIdDelta} = analysis;
       let orgQuery = this.org(scope, orgKey, {
         manager,
-        markPermissions: Permissions.ACL_EDIT,
+        markPermissions: analysis.permissionThreshold,
         needRealOrg: true
       })
       // Join the org's ACL rules (with 1st level groups/users listed) so we can edit them.
@@ -1873,11 +1888,13 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('acl_rules.group', 'org_groups')
       .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
       orgQuery = this._addFeatures(orgQuery);
+      orgQuery = this._withAccess(orgQuery, userId, 'orgs');
       const queryResult = await verifyIsPermitted(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
       }
+      this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const org: Organization = queryResult.data;
       const groups = getNonGuestGroups(org);
       if (userIdDelta) {
@@ -1916,10 +1933,11 @@ export class HomeDBManager extends EventEmitter {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
-      let userIdDelta = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      let {userIdDelta} = analysis;
       let wsQuery = this._workspace(scope, wsId, {
         manager,
-        markPermissions: Permissions.ACL_EDIT
+        markPermissions: analysis.permissionThreshold,
       })
       // Join the workspace's ACL rules and groups/users so we can edit them.
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
@@ -1931,11 +1949,13 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
       .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
       wsQuery = this._addFeatures(wsQuery, 'org');
+      wsQuery = this._withAccess(wsQuery, userId, 'workspaces');
       const queryResult = await verifyIsPermitted(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
       }
+      this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const ws: Workspace = queryResult.data;
       // Get all the non-guest groups on the org.
       const orgGroups = getNonGuestGroups(ws.org);
@@ -1986,8 +2006,10 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
-      let userIdDelta = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
-      const doc = await this._loadDocAccess(scope, Permissions.ACL_EDIT, manager);
+      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      let {userIdDelta} = analysis;
+      const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
+      this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
       // Get all the non-guest doc groups to be updated by the delta.
       const groups = getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
@@ -2050,9 +2072,11 @@ export class HomeDBManager extends EventEmitter {
       ...this.makeFullUser(u),
       access: userRoleMap[u.id]
     }));
+    const personal = this._filterAccessData(scope, users, null);
     return {
       status: 200,
       data: {
+        ...personal,
         users
       }
     };
@@ -2094,10 +2118,13 @@ export class HomeDBManager extends EventEmitter {
         parentAccess: roles.getEffectiveRole(orgMap[u.id] || null)
       };
     });
+    const maxInheritedRole = this._getMaxInheritedRole(workspace);
+    const personal = this._filterAccessData(scope, users, maxInheritedRole);
     return {
       status: 200,
       data: {
-        maxInheritedRole: this._getMaxInheritedRole(workspace),
+        ...personal,
+        maxInheritedRole,
         users
       }
     };
@@ -2173,14 +2200,7 @@ export class HomeDBManager extends EventEmitter {
       maxInheritedRole = null;
     }
 
-    // Unless we have special access to the document, or are an owner, limit user information
-    // returned to being about the current user.
-    const thisUser = users.find(user => user.id === scope.userId);
-    if (scope.specialPermit?.docId !== doc.id &&
-        (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners')) {
-      // If not an owner, don't return information about other users.
-      users = thisUser ? [thisUser] : [];
-    }
+    const personal = this._filterAccessData(scope, users, maxInheritedRole, doc.id);
 
     // If we are on a fork, make any access changes needed. Assumes results
     // have been flattened.
@@ -2193,6 +2213,7 @@ export class HomeDBManager extends EventEmitter {
     return {
       status: 200,
       data: {
+        ...personal,
         maxInheritedRole,
         users
       }
@@ -2952,7 +2973,7 @@ export class HomeDBManager extends EventEmitter {
     delta: PermissionDelta,
     isOrg: boolean = false,
     transaction?: EntityManager
-  ): Promise<UserIdDelta|null> {
+  ): Promise<PermissionDeltaAnalysis> {
     if (!delta) {
       throw new ApiError('Bad request: missing permission delta', 400);
     }
@@ -3001,12 +3022,35 @@ export class HomeDBManager extends EventEmitter {
         userIdMap[userIdAffected] = emailMap[email];
       });
     }
-    if (userId in userIdMap) {
+    const userIdDelta = delta.users ? userIdMap : null;
+    const userIds = Object.keys(userIdDelta || {});
+    const removingSelf = userIds.length === 1 && userIds[0] === String(userId) &&
+      delta.maxInheritedRole === undefined && userIdDelta?.[userId] === null;
+    const permissionThreshold = removingSelf ? Permissions.VIEW : Permissions.ACL_EDIT;
+    return {
+      userIdDelta,
+      permissionThreshold,
+      affectsSelf: userId in userIdMap,
+    };
+  }
+
+  /**
+   * A helper to throw an error if a user with ACL_EDIT permission attempts
+   * to change their own access rights. The user permissions are expected to
+   * be in the supplied QueryResult, or if none is supplied are assumed to be
+   * ACL_EDIT.
+   */
+  private _failIfPowerfulAndChangingSelf(analysis: PermissionDeltaAnalysis, result?: QueryResult<any>) {
+    const permissions: Permissions = result ? result.data.permissions : Permissions.ACL_EDIT;
+    if (permissions === undefined) {
+      throw new Error('Query malformed');
+    }
+    if ((permissions & Permissions.ACL_EDIT) && analysis.affectsSelf) {
+      // editors don't get to remove themselves.
       // TODO: Consider when to allow updating own permissions - allowing updating own
       // permissions indiscriminately could lead to orphaned resources.
       throw new ApiError('Bad request: cannot update own permissions', 400);
     }
-    return delta.users ? userIdMap : null;
   }
 
   /**
@@ -4112,6 +4156,21 @@ export class HomeDBManager extends EventEmitter {
         .update(Document).set({removedAt}).where({id: doc.id})
         .execute();
     });
+  }
+
+  private _filterAccessData(scope: Scope, users: UserAccessData[],
+                            maxInheritedRole: roles.BasicRole|null, docId?: string): { personal: true}|undefined {
+    if (scope.userId === this.getPreviewerUserId()) { return; }
+    // Unless we have special access to the resource, or are an owner,
+    // limit user information returned to being about the current user.
+    const thisUser = users.find(user => user.id === scope.userId);
+    if ((scope.specialPermit?.docId !== docId || !docId) &&
+        (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners')) {
+      // If not an owner, don't return information about other users.
+      users.length = 0;
+      if (thisUser) { users.push(thisUser); }
+      return { personal: true };
+    }
   }
 }
 

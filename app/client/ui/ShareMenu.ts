@@ -123,8 +123,9 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
 // Renders "Manage Users" menu item.
 function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
-    menuItem(() => manageUsers(doc, pageModel), 'Manage Users',
-      dom.cls('disabled', !roles.canEditAccess(doc.access) || doc.isFork),
+    menuItem(() => manageUsers(doc, pageModel),
+      roles.canEditAccess(doc.access) ? 'Manage Users' : 'Access Details',
+      dom.cls('disabled', doc.isFork),
       testId('tb-share-option')
     ),
     menuDivider(),
@@ -244,11 +245,14 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
     activeEmail: user ? user.email : null,
     resourceType: 'document',
     resourceId: doc.id,
+    resource: doc,
     docPageModel,
     appModel: docPageModel.appModel,
     linkToCopy: urlState().makeUrl(docUrl(doc)),
     // On save, re-fetch the document info, to toggle the "Public Access" icon if it changed.
-    onSave: () => docPageModel.refreshCurrentDoc(doc),
+    // Skip if personal, since personal cannot affect "Public Access", and the only
+    // change possible is to remove the user (which would make refreshCurrentDoc fail)
+    onSave: async (personal) => !personal && docPageModel.refreshCurrentDoc(doc),
     reload: () => api.getDocAccess(doc.id),
   });
 }

@@ -432,6 +432,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       activeEmail: user ? user.email : null,
       resourceType: 'document',
       resourceId: doc.id,
+      resource: doc,
       linkToCopy: urlState().makeUrl(docUrl(doc)),
       reload: () => api.getDocAccess(doc.id),
       appModel: home.app,
@@ -463,10 +464,9 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       dom.cls('disabled', !roles.canEdit(orgAccess)),
       testId('pin-doc')
     ),
-    menuItem(manageUsers, "Manage Users",
-      dom.cls('disabled', !roles.canEditAccess(doc.access)),
+    menuItem(manageUsers, roles.canEditAccess(doc.access) ? "Manage Users" : "Access Details",
       testId('doc-access')
-    ),
+    )
   ];
 }
 

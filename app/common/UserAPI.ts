@@ -151,6 +151,7 @@ export interface PermissionDelta {
 }
 
 export interface PermissionData {
+  personal?: boolean;
   maxInheritedRole?: roles.BasicRole|null;
   users: UserAccessData[];
 }
