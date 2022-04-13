@@ -109,8 +109,12 @@ const cssLabel = styled('span', `
 const cssOptions = styled('div', `
   position: absolute;
   right: 0;
-  top: 48px;
+  top: 46px;
   z-index: 1;
+  background: white;
+  padding: 2px 4px;
+  overflow: hidden;
+  white-space: nowrap;
 `);
 
 const cssShortcut = styled('span', `
@@ -202,7 +206,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
         testId('close'),
         dom.on('click', () => toggleMenu(false))),
       cssOptions(
-        labeledSquareCheckbox(model.multiPage, 'Search all pages'),
+        labeledSquareCheckbox(model.multiPage, dom.text(model.allLabel)),
         dom.on('mouseenter', () => keepExpanded = true),
         dom.on('mouseleave', () => keepExpanded = false),
         testId('option-all-pages'),

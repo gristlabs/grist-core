@@ -49,7 +49,10 @@ export class DataTables extends Disposable {
             cssItem(
               testId('table'),
               cssItemContent(
-                cssIcon('TypeTable'),
+                cssIcon('TypeTable',
+                  // Element to click in tests.
+                  dom.domComputed(use => `table-id-${use(tableRec.tableId)}`)
+                ),
                 cssLabels(
                   cssTitleLine(
                     cssLine(

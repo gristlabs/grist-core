@@ -3,13 +3,14 @@
 
 import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {PageRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {delay} from 'app/common/delay';
-import {waitObs} from 'app/common/gutil';
+import {IDocPage} from 'app/common/gristUrls';
+import {nativeCompare, waitObs} from 'app/common/gutil';
 import {TableData} from 'app/common/TableData';
 import {BaseFormatter} from 'app/common/ValueFormatter';
-import {Disposable, Observable} from 'grainjs';
+import {Computed, Disposable, Observable} from 'grainjs';
 import debounce = require('lodash/debounce');
 
 /**
@@ -22,6 +23,7 @@ export interface SearchModel {
   isEmpty: Observable<boolean>;     // indicates whether the value is empty
   isRunning: Observable<boolean>;  // indicates that matching is in progress
   multiPage: Observable<boolean>;   // if true will search across all pages
+  allLabel: Observable<string>;   // label to show instead of default 'Search all pages'
 
   findNext(): Promise<void>;       // find next match
   findPrev(): Promise<void>;       // find previous match
@@ -86,7 +88,63 @@ interface IFinder {
 }
 
 // A callback to opening a page: useful to switch to next page during an ongoing search.
-type DocPageOpener = (viewId: number) => Promise<void>;
+type DocPageOpener = (viewId: IDocPage) => Promise<void>;
+
+// To support Raw Data Views we will introduce a 'wrapped' page abstraction. Raw data
+// page is not a true page (it doesn't have a record), this will allow as to treat a raw view section
+// as if it were a PageRec.
+interface ISearchablePageRec {
+  viewSections(): ViewSectionRec[];
+  activeSectionId(): number;
+  getViewId(): IDocPage;
+  openPage(): Promise<void>;
+}
+
+class RawSectionWrapper implements ISearchablePageRec {
+  constructor(private _section: ViewSectionRec) {
+
+  }
+  public viewSections(): ViewSectionRec[] {
+    return [this._section];
+  }
+
+  public activeSectionId() {
+    return this._section.id.peek();
+  }
+
+  public getViewId(): IDocPage {
+    return 'data';
+  }
+
+  public async openPage() {
+    this._section.view.peek().activeSectionId(this._section.getRowId());
+    await waitObs(this._section.viewInstance);
+    await this._section.viewInstance.peek()?.getLoadingDonePromise();
+  }
+}
+
+class PageRecWrapper implements ISearchablePageRec {
+  constructor(private _page: PageRec, private _opener: DocPageOpener) {
+
+  }
+  public viewSections(): ViewSectionRec[] {
+    return this._page.view.peek().viewSections.peek().peek();
+  }
+
+  public activeSectionId() {
+    return this._page.view.peek().activeSectionId.peek();
+  }
+
+  public getViewId() {
+    return this._page.view.peek().getRowId();
+  }
+
+  public openPage() {
+    return this._opener(this.getViewId());
+  }
+}
+
+//activeSectionId
 
 /**
  * An implementation of an IFinder.
@@ -96,7 +154,7 @@ class FinderImpl implements IFinder {
   public startPosition: SearchPosition;
 
   private _searchRegexp: RegExp;
-  private _pageStepper = new Stepper<any>();
+  private _pageStepper = new Stepper<ISearchablePageRec>();
   private _sectionStepper = new Stepper<ViewSectionRec>();
   private _sectionTableData: TableData;
   private _rowStepper = new Stepper<number>();
@@ -126,16 +184,40 @@ class FinderImpl implements IFinder {
   }
 
   // Initialize the steppers. Returns false if anything goes wrong.
-  public init(): boolean {
-    const pages: any[] = this._gristDoc.docModel.visibleDocPages.peek();
-    this._pageStepper.array = pages;
-    this._pageStepper.index = pages.findIndex(t => t.viewRef() === this._gristDoc.activeViewId.get());
-    if (this._pageStepper.index < 0) { return false; }
+  public async init(): Promise<boolean> {
+    // If we are on a raw view page, pretend that we are looking at true pages.
+    if ('data' === this._gristDoc.activeViewId.get()) {
+      // Get all raw sections.
+      const rawSections = this._gristDoc.docModel.allTables.peek()
+                              // Filter out those we don't have permissions to see (through ACL-tableId will be empty).
+                              .filter(t => Boolean(t.tableId.peek()))
+                              // sort in order that is the same as on the raw data list page,
+                              .sort((a, b) => nativeCompare(a.tableTitle.peek(), b.tableTitle.peek()))
+                              // get rawViewSection,
+                              .map(t => t.rawViewSection.peek())
+                              // and test if it isn't an empty record.
+                              .filter(s => Boolean(s.id.peek()));
+      // Pretend that those are pages.
+      this._pageStepper.array = rawSections.map(r => new RawSectionWrapper(r));
+      // Find currently selected one (by comparing to active section id)
+      this._pageStepper.index = rawSections.findIndex(s =>
+        s.getRowId() === this._gristDoc.viewModel.activeSectionId.peek());
+      // If we are at listing, where no section is active open the first page. Otherwise, search will fail.
+      if (this._pageStepper.index < 0) {
+        this._pageStepper.index = 0;
+        await this._pageStepper.value.openPage();
+      }
+    } else {
+      // Else read all visible pages.
+      const pages = this._gristDoc.docModel.visibleDocPages.peek();
+      this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
+      this._pageStepper.index = pages.findIndex(t => t.viewRef.peek() === this._gristDoc.activeViewId.get());
+      if (this._pageStepper.index < 0) { return false; }
+    }
 
-    const view = this._pageStepper.value.view.peek();
-    const sections: any[] = view.viewSections().peek();
+    const sections = this._pageStepper.value.viewSections();
     this._sectionStepper.array = sections;
-    this._sectionStepper.index = sections.findIndex(s => s.getRowId() === view.activeSectionId());
+    this._sectionStepper.index = sections.findIndex(s => s.getRowId() === this._pageStepper.value.activeSectionId());
     if (this._sectionStepper.index < 0) { return false; }
 
     this._initNewSectionShown();
@@ -248,8 +330,8 @@ class FinderImpl implements IFinder {
     await this._pageStepper.next(step, () => undefined);
     this._pagesSwitched++;
 
-    const view = this._pageStepper.value.view.peek();
-    this._sectionStepper.array = view.viewSections().peek();
+    const view = this._pageStepper.value;
+    this._sectionStepper.array = view.viewSections();
   }
 
   private _initFormatters() {
@@ -287,15 +369,16 @@ class FinderImpl implements IFinder {
     // viewInstance to be created, reset the section info, and return true to continue searching.
     const section = this._sectionStepper.value;
     if (!section.viewInstance.peek()) {
-      const view = this._pageStepper.value.view.peek();
-      await this._openDocPage(view.getRowId());
-      console.log("SearchBar: loading view %s section %s", view.getRowId(), section.getRowId());
+      const view = this._pageStepper.value;
+      if (this._aborted) { return false; }
+      await view.openPage();
+      console.log("SearchBar: loading view %s section %s", view.getViewId(), section.getRowId());
       const viewInstance: any = await waitObs(section.viewInstance);
       await viewInstance.getLoadingDonePromise();
       this._initNewSectionShown();
       this._rowStepper.setStart(step);
       this._fieldStepper.setStart(step);
-      console.log("SearchBar: loaded view %s section %s", view.getRowId(), section.getRowId());
+      console.log("SearchBar: loaded view %s section %s", view.getViewId(), section.getRowId());
       return true;
     }
     return false;
@@ -346,11 +429,6 @@ class FinderImpl implements IFinder {
         this._fieldStepper.index === pos.fieldIndex
     );
   }
-
-  private _openDocPage(viewId: number) {
-    if (this._aborted) { return; }
-    return this._openDocPageCB(viewId);
-  }
 }
 
 /**
@@ -363,6 +441,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   public readonly noMatch = Observable.create(this, true);
   public readonly isEmpty = Observable.create(this, true);
   public readonly multiPage = Observable.create(this, false);
+  public readonly allLabel: Computed<string>;
 
   private _isRestartNeeded = false;
   private _finder: IFinder|null = null;
@@ -377,11 +456,22 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     // Set this.noMatch to false when multiPage gets turned ON.
     this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
 
+    this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
+        'Search all tables' : 'Search all pages');
+
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
     this.autoDispose(this._gristDoc.activeViewId.addListener(() => {
       if (!this.multiPage.get()) { this.noMatch.set(false); }
       this._isRestartNeeded = true;
+    }));
+
+    // On Raw data view, whenever table is closed (so activeSectionId = 0), restart search.
+    this.autoDispose(this._gristDoc.viewModel.activeSectionId.subscribe((sectionId) => {
+      if (this._gristDoc.activeViewId.get() === 'data' && sectionId === 0) {
+        this._isRestartNeeded = true;
+        this.noMatch.set(false);
+      }
     }));
   }
 
@@ -406,17 +496,17 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   private async _findFirst(value: string) {
     this._isRestartNeeded = false;
     this.isEmpty.set(!value);
-    this._updateFinder(value);
+    await this._updateFinder(value);
     if (!value || !this._finder) { this.noMatch.set(true); return; }
     await this._run(async (finder) => {
       await finder.matchNext(1);
     });
   }
 
-  private _updateFinder(value: string) {
+  private async _updateFinder(value: string) {
     if (this._finder) { this._finder.abort(); }
     const impl = new FinderImpl(this._gristDoc, value, this._openDocPage.bind(this), this.multiPage);
-    const isValid = impl.init();
+    const isValid = await impl.init();
     this._finder = isValid ? impl : null;
   }
 
@@ -438,7 +528,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   // Opens doc page without triggering a restart.
-  private async _openDocPage(viewId: number) {
+  private async _openDocPage(viewId: IDocPage) {
     await this._gristDoc.openDocPage(viewId);
     this._isRestartNeeded = false;
   }

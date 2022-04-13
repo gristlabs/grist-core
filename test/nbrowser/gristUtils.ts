@@ -1045,13 +1045,93 @@ export async function moveToHidden(col: string) {
 }
 
 export async function search(what: string) {
-  await driver.find('.test-tb-search-icon').doClick();
+  await driver.find('.test-tb-search-icon').click();
   await driver.sleep(500);
-  await driver.find('.test-tb-search-input').doClick();
+  await driver.find('.test-tb-search-input input').click();
   await selectAll();
   await driver.sendKeys(what);
   // Sleep for search debounce time
   await driver.sleep(120);
+}
+
+export async function toggleSearchAll() {
+  await closeTooltip();
+  await driver.find('.test-tb-search-option-all-pages').click();
+}
+
+export async function closeSearch() {
+  await driver.sendKeys(Key.ESCAPE);
+  await driver.sleep(500);
+}
+
+export async function closeTooltip() {
+  await driver.mouseMoveBy({x : 100, y: 100});
+  await waitToPass(async () => {
+    assert.equal(await driver.find('.test-tooltip').isPresent(), false);
+  });
+}
+
+export async function searchNext() {
+  await closeTooltip();
+  await driver.find('.test-tb-search-next').click();
+}
+
+export async function searchPrev() {
+  await closeTooltip();
+  await driver.find('.test-tb-search-prev').click();
+}
+
+export function getCurrentSectionName() {
+  return driver.find('.active_section .test-viewsection-title').value();
+}
+
+export function getCurrentPageName() {
+  return driver.find('.test-treeview-itemHeader.selected').find('.test-docpage-label').getText();
+}
+
+export async function getActiveRawTableName() {
+  const title = await driver.findWait('.test-raw-data-overlay .test-viewsection-title', 100).value();
+  return title;
+}
+
+export function getSearchInput() {
+  return driver.find('.test-tb-search-input');
+}
+
+export async function hasNoResult() {
+  await waitToPass(async () => {
+    assert.match(await driver.find('.test-tb-search-input').getText(), /No results/);
+  });
+}
+
+export async function hasSomeResult() {
+  await waitToPass(async () => {
+    assert.notMatch(await driver.find('.test-tb-search-input').getText(), /No results/);
+  });
+}
+
+export async function searchIsOpened() {
+  await waitToPass(async () => {
+    assert.isAbove((await getSearchInput().rect()).width, 50);
+  }, 500);
+}
+
+export async function searchIsClosed() {
+  await waitToPass(async () => {
+    assert.equal((await getSearchInput().rect()).width, 0);
+  }, 500);
+}
+
+export async function openRawTable(tableId: string) {
+  await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`).click();
+}
+
+export async function isRawTableOpened() {
+  return await driver.find('.test-raw-data-close-button').isPresent();
+}
+
+export async function closeRawTable() {
+  await driver.find('.test-raw-data-close-button').click();
 }
 
 /**

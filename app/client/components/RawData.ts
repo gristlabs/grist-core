@@ -6,12 +6,13 @@ import {printViewSection} from 'app/client/components/Printing';
 import {buildViewSectionDom, ViewSectionHelper} from 'app/client/components/ViewLayout';
 import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, fromKo, makeTestId, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
 
 const testId = makeTestId('test-raw-data-');
 
 export class RawData extends Disposable {
+  private _lightboxVisible: Observable<boolean>;
   constructor(private _gristDoc: GristDoc) {
     super();
     const commandGroup = {
@@ -19,6 +20,10 @@ export class RawData extends Disposable {
       printSection: () => { printViewSection(null, this._gristDoc.viewModel.activeSection()).catch(reportError); },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
+    this._lightboxVisible = Computed.create(this, use => {
+      const section = use(this._gristDoc.viewModel.activeSection);
+      return Boolean(section.getRowId());
+    });
   }
 
   public buildDom() {
@@ -26,8 +31,12 @@ export class RawData extends Disposable {
     const close = this._close.bind(this);
 
     return cssContainer(
-      dom.create(DataTables, this._gristDoc),
-      dom.create(DocumentUsage, this._gristDoc.docPageModel),
+      dom('div',
+        dom.create(DataTables, this._gristDoc),
+        dom.create(DocumentUsage, this._gristDoc.docPageModel),
+        // We are hiding it, because overlay doesn't have a z-index (it conflicts with a searchbar and list buttons)
+        dom.hide(this._lightboxVisible)
+      ),
       /***************  Lightbox section **********/
       dom.domComputedOwned(fromKo(this._gristDoc.viewModel.activeSection), (owner, viewSection) => {
         if (!viewSection.getRowId()) {
@@ -80,7 +89,6 @@ const cssContainer = styled('div', `
 `);
 
 const cssOverlay = styled('div', `
-  z-index: 10;
   background-color: ${colors.backdrop};
   inset: 0px;
   height: 100%;
