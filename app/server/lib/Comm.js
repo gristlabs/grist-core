@@ -85,6 +85,7 @@ function Comm(server, options) {
 
   this._settings = options.settings;
   this._hosts = options.hosts;
+  this._dbManager = options.dbManager;
 
   // This maps method names to their implementation.
   this.methods = {};
@@ -155,13 +156,23 @@ Comm.prototype._broadcastMessage = function(type, data, clients) {
 /**
  * Returns a profile based on the request or session.
  */
-Comm.prototype._getSessionProfile = function(scopedSession, req) {
-  const profile = getRequestProfile(req);
-  if (profile) {
-    return Promise.resolve(profile);
-  } else {
-    return scopedSession.getSessionProfile();
+Comm.prototype._getSessionProfile = async function(scopedSession, req) {
+  const profile = getRequestProfile(req) || await scopedSession.getSessionProfile();
+  if (this._dbManager && profile?.email) {
+    try {
+      // Use latest user name in database, since user name is now exposed via
+      // user.Name in granular access support.
+      // TODO: might want to subscribe to changes to user information while
+      // the document is open.
+      const user = await this._dbManager.getUserByLogin(profile.email, {profile});
+      profile.name = user.name;
+    } catch (e) {
+      // Not an expected problem, log it and fail brutally.
+      log.debug(`Comm: failed to look up user in database ${profile.email}`);
+      throw e;
+    }
   }
+  return profile;
 };
 
 

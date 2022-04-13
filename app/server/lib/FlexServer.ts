@@ -819,12 +819,13 @@ export class FlexServer implements GristServer {
   }
 
   public addComm() {
-    if (this._check('comm', 'start')) { return; }
+    if (this._check('comm', 'start', 'homedb')) { return; }
     this._comm = new Comm(this.server, {
       settings: this.settings,
       sessions: this._sessions,
       hosts: this._hosts,
       httpsServer: this.httpsServer,
+      dbManager: this._dbManager,
     });
   }
   /**
