@@ -89,16 +89,18 @@ export function getLoginOrSignupUrl(nextUrl: string = _getCurrentUrl()): string 
 // "/signed-out" page, in which case it returns the home page ("/").
 // This is a good URL to use for a post-login redirect.
 function _getCurrentUrl(): string {
-  if (window.location.pathname.endsWith('/signed-out')) { return '/'; }
+  const {hash, pathname, search} = new URL(window.location.href);
+  if (pathname.endsWith('/signed-out')) { return '/'; }
 
-  const {pathname, search} = new URL(window.location.href);
-  return parseFirstUrlPart('o', pathname).path + search;
+  return parseFirstUrlPart('o', pathname).path + search + hash;
 }
 
 // Returns the URL for the given login page, with 'next' param optionally set.
 function _getLoginLogoutUrl(page: 'login'|'logout'|'signin'|'signup', nextUrl?: string | null): string {
   const startUrl = new URL(window.location.href);
   startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + page;
+  startUrl.search = '';
+  startUrl.hash = '';
   if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
   return startUrl.href;
 }
