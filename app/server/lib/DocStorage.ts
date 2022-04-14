@@ -376,6 +376,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
       },
 
+      async function(db: SQLiteDB): Promise<void> {
+        // Storage version 8.
+        // Migration to add an index to _grist_Attachments.fileIdent for fast joining against _gristsys_Files.ident.
+        const tables = await db.all(`SELECT * FROM sqlite_master WHERE type='table' AND name='_grist_Attachments'`);
+        if (!tables.length) {
+          // _grist_Attachments is created in the first Python migration.
+          // For the sake of migration tests on ancient documents, just skip this migration if the table doesn't exist.
+          return;
+        }
+        await db.exec(`CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent)`);
+      },
+
     ]
   };
 
@@ -1226,6 +1238,31 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           this.docPath = this.storageManager.getPath(newName);
           return this.openFile();
         });
+  }
+
+  /**
+   * Returns the total number of bytes used for storing attachments that haven't been soft-deleted.
+   * May be stale if ActiveDoc.updateUsedAttachments isn't called first.
+   */
+  public async getTotalAttachmentFileSizes() {
+    const result = await this.get(`
+      SELECT SUM(len) AS total
+      FROM (
+        -- Using MAX(LENGTH()) instead of just LENGTH() is needed in the presence of GROUP BY
+        -- to make LENGTH() quickly read the stored length instead of actually reading the blob data.
+        -- We use LENGTH() in the first place instead of _grist_Attachments.fileSize because the latter can
+        -- be changed by users.
+        SELECT MAX(LENGTH(files.data)) AS len
+        FROM _gristsys_Files AS files
+          JOIN _grist_Attachments AS meta
+            ON meta.fileIdent = files.ident
+        WHERE meta.timeDeleted IS NULL  -- Don't count soft-deleted attachments
+        -- Duplicate attachments (i.e. identical file contents) are only stored once in _gristsys_Files
+        -- but can be duplicated in _grist_Attachments, so the GROUP BY prevents adding up duplicated sizes.
+        GROUP BY meta.fileIdent
+      )
+    `);
+    return result!.total as number;
   }
 
   /**

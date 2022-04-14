@@ -47,6 +47,8 @@ export interface Features {
                                  // Actual max for a document may be higher.
   baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
   baseMaxDataSizePerDocument?: number;  // Similar maximum for number of bytes of 'normal' data in a document
+  baseMaxAttachmentsBytesPerDocument?: number;  // Similar maximum for total number of bytes used
+                                                // for attached files in a document
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
 }

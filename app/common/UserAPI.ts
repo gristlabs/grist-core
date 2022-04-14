@@ -394,6 +394,9 @@ export interface DocAPI {
    * @param title Name of the spreadsheet that will be created (should use a Grist document's title)
    */
   sendToDrive(code: string, title: string): Promise<{url: string}>;
+  // Upload a single attachment and return the resulting metadata row ID.
+  // The arguments are passed to FormData.append.
+  uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
 }
 
 // Operations that are supported by a doc worker.
@@ -867,6 +870,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     url.searchParams.append('title', title);
     url.searchParams.append('code', code);
     return this.requestJson(url.href);
+  }
+
+  public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
+    const formData = this.newFormData();
+    formData.append('upload', value, filename);
+    const response = await this.requestAxios(`${this._url}/attachments`, {
+      method: 'POST',
+      data: formData,
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
+      // for setting the HTTP headers.
+      headers: {...this.defaultHeadersWithoutContentType()},
+    });
+    return response.data[0];
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

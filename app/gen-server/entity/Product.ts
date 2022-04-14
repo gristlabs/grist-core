@@ -39,6 +39,7 @@ export const teamFreeFeatures: Features = {
   baseMaxRowsPerDocument: 5000,
   baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
+  baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
   gracePeriodDays: 14,
 };
 

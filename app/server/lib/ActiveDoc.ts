@@ -96,6 +96,7 @@ import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import remove = require('lodash/remove');
+import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
 
@@ -650,6 +651,7 @@ export class ActiveDoc extends EventEmitter {
     const userId = getDocSessionUserId(docSession);
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
+      await this._checkDocAttachmentsLimit(upload);
       const userActions: UserAction[] = await Promise.all(
         upload.files.map(file => this._prepAttachment(docSession, file)));
       const result = await this.applyUserActions(docSession, userActions);
@@ -1307,11 +1309,12 @@ export class ActiveDoc extends EventEmitter {
    * 'soft deleting' them so that they get cleaned up automatically from _gristsys_Files after enough time has passed.
    * Set timeDeleted to null on used attachments that were previously soft deleted,
    * so that undo can 'undelete' attachments.
+   * Returns true if any changes were made, i.e. some row(s) of _grist_Attachments were updated.
    */
   public async updateUsedAttachments() {
     const changes = await this.docStorage.scanAttachmentsForUsageChanges();
     if (!changes.length) {
-      return;
+      return false;
     }
     const rowIds = changes.map(r => r.id);
     const now = Date.now() / 1000;
@@ -1319,6 +1322,7 @@ export class ActiveDoc extends EventEmitter {
     const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
     // Don't use applyUserActions which may block the update action in delete-only mode
     await this._applyUserActions(makeExceptionalDocSession('system'), [action]);
+    return true;
   }
 
   /**
@@ -1885,6 +1889,40 @@ export class ActiveDoc extends EventEmitter {
         }
       },
     });
+  }
+
+  /**
+   * Throw an error if the provided upload would exceed the total attachment filesize limit for this document.
+   */
+  private async _checkDocAttachmentsLimit(upload: UploadInfo) {
+    const maxSize = this._productFeatures?.baseMaxAttachmentsBytesPerDocument;
+    if (!maxSize) {
+      // This document has no limit, nothing to check.
+      return;
+    }
+
+    // Minor flaw: while we don't double-count existing duplicate files in the total size,
+    // we don't check here if any of the uploaded files already exist and could be left out of the calculation.
+    const totalAddedSize = sum(upload.files.map(f => f.size));
+
+    // Returns true if this upload won't bring the total over the limit.
+    const isOK = async () => (await this.docStorage.getTotalAttachmentFileSizes()) + totalAddedSize <= maxSize;
+
+    if (await isOK()) {
+      return;
+    }
+
+    // Looks like the limit is being exceeded.
+    // Check if any attachments are unused and can be soft-deleted to reduce the existing total size.
+    // We could do this from the beginning, but updateUsedAttachments is potentially expensive,
+    // so this optimises the common case of not exceeding the limit.
+    // updateUsedAttachments returns true if there were any changes. Otherwise there's no point checking isOK again.
+    if (await this.updateUsedAttachments() && await isOK()) {
+      return;
+    }
+
+    // TODO probably want a nicer error message here.
+    throw new Error("Exceeded attachments limit for document");
   }
 }
 
