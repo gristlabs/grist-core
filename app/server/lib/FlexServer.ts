@@ -825,7 +825,6 @@ export class FlexServer implements GristServer {
       sessions: this._sessions,
       hosts: this._hosts,
       httpsServer: this.httpsServer,
-      dbManager: this._dbManager,
     });
   }
   /**

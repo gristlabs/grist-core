@@ -77,6 +77,7 @@ export class Client {
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
   private _userId: number|null = null;
+  private _userName: string|null = null;
   private _firstLoginAt: Date|null = null;
   private _isAnonymous: boolean = false;
   // Identifier for the current GristWSConnection object connected to this client.
@@ -299,6 +300,7 @@ export class Client {
     // Unset userId, so that we look it up again on demand. (Not that userId could change in
     // practice via a change to profile, but let's not make any assumptions here.)
     this._userId = null;
+    this._userName = null;
     this._firstLoginAt = null;
     this._isAnonymous = !profile;
   }
@@ -311,7 +313,16 @@ export class Client {
         anonymous: true,
       };
     }
-    return this._profile;
+    // If we have a database, the user id and name will have been
+    // fetched before we start using the Client, so we take this
+    // opportunity to update the user name to use the latest user name
+    // in the database (important since user name is now exposed via
+    // user.Name in granular access support). TODO: might want to
+    // subscribe to changes in user name while the document is open.
+    return this._profile ? {
+      ...this._profile,
+      ...(this._userName && { name: this._userName }),
+    } : null;
   }
 
   public async getSessionProfile(): Promise<UserProfile|null|undefined> {
@@ -336,10 +347,12 @@ export class Client {
       if (this._profile) {
         const user = await this._fetchUser(dbManager);
         this._userId = (user && user.id) || null;
+        this._userName = (user && user.name) || null;
         this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
         this._firstLoginAt = (user && user.firstLoginAt) || null;
       } else {
         this._userId = dbManager.getAnonymousUserId();
+        this._userName = 'Anonymous';
         this._isAnonymous = true;
         this._firstLoginAt = null;
       }
