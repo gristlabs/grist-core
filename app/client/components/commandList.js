@@ -385,6 +385,15 @@ exports.groups = [{
 
   ],
 }, {
+  group: 'Filtering',
+  commands: [
+    {
+      name: 'filterByThisCellValue',
+      keys: [],
+      desc: `Filter this column by just this cell's value`,
+    },
+  ]
+}, {
   group: 'Linking',
   commands: [
     {

@@ -43,7 +43,9 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
     ...(
       (numCols > 1 || numRows > 1) ? [] : [
         menuDivider(),
-        menuItemCmd(allCommands.copyLink, 'Copy anchor link')
+        menuItemCmd(allCommands.copyLink, 'Copy anchor link'),
+        menuDivider(),
+        menuItemCmd(allCommands.filterByThisCellValue, `Filter by this value`),
       ]
     ),
 

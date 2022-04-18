@@ -407,6 +407,7 @@ interface ICountOptions {
  *
  * The optional column type controls how complex cell values are decomposed into keys (e.g. Choice Lists have
  * the possible choices as keys).
+ * Note that this logic is replicated in BaseView.prototype.filterByThisCellValue.
  */
 function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
                         { keyMapFunc = identity, labelMapFunc = identity, columnType,

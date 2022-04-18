@@ -229,6 +229,8 @@ BaseView.commonCommands = {
   insertCurrentDateTime: function() { this.insertCurrentDate(true); },
 
   copyLink: function() { this.copyLink().catch(reportError); },
+
+  filterByThisCellValue: function() { this.filterByThisCellValue(); },
 };
 
 /**
@@ -303,6 +305,26 @@ BaseView.prototype.copyLink = async function() {
   } catch (e) {
     throw new Error('cannot copy to clipboard');
   }
+};
+
+BaseView.prototype.filterByThisCellValue = function() {
+  const rowId = this.viewData.getRowId(this.cursor.rowIndex());
+  const col = this.viewSection.viewFields().peek()[this.cursor.fieldIndex()].column();
+  let value = this.tableModel.tableData.getValue(rowId, col.colId.peek());
+
+  // This mimics the logic in ColumnFilterMenu.addCountsToMap
+  // ChoiceList and Reflist values get 'flattened' out so we filter by each element within.
+  // In any other column type, complex values (even lists) get converted to JSON.
+  let filterValues;
+  if (gristTypes.isList(value) && gristTypes.isListType(col.type.peek())) {
+    filterValues = value.slice(1);
+  } else {
+    if (Array.isArray(value)) {
+      value = JSON.stringify(value);
+    }
+    filterValues = [value];
+  }
+  this.viewSection.setFilter(col.getRowId(), JSON.stringify({included: filterValues}));
 };
 
 /**
