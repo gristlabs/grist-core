@@ -216,6 +216,7 @@ DetailView.prototype.buildContextMenu = function(row, options) {
     disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
     disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || row._isAddRow()),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
+    numRows: this.getSelection().rowIds.length,
   };
   return RowContextMenu(options ? Object.assign(defaults, options) : defaults);
 }
@@ -420,6 +421,11 @@ DetailView.prototype._isAddRow = function(index = this.cursor.rowIndex()) {
 DetailView.prototype.scrollToCursor = function(sync = true) {
   if (!this.scrollPane) { return Promise.resolve(); }
   return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
+}
+
+DetailView.prototype._duplicateRows = async function() {
+  const addRowIds = await BaseView.prototype._duplicateRows.call(this);
+  this.setCursorPos({rowId: addRowIds[0]})
 }
 
 module.exports = DetailView;

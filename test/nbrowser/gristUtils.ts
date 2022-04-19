@@ -251,6 +251,45 @@ export async function getVisibleGridCells<T>(
   return rowNums.map((n) => fields[visibleRowNums.indexOf(n)]);
 }
 
+/**
+ * Experimental fast version of getVisibleGridCells that reads data directly from browser by
+ * invoking javascript code.
+ */
+export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>
+export async function getVisibleGridCellsFast(options: {cols: string[], rowNums: number[]}): Promise<string[]>
+export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: number[]): Promise<string[]>{
+  if (rowNums) {
+    return getVisibleGridCellsFast({cols: [colOrOptions], rowNums});
+  }
+  // Make sure we have active section.
+  await driver.findWait('.active_section', 4000);
+  const cols = colOrOptions.cols;
+  const rows = colOrOptions.rowNums;
+  const result = await driver.executeScript(`
+  const cols = arguments[0];
+  const rowNums = arguments[1];
+  // Read all columns and create object { ['ColName'] : index }
+  const columns = Object.fromEntries([...document.querySelectorAll(".g-column-label")]
+                      .map((col, index) => [col.innerText, index]))
+  const result = [];
+  // Read all rows and create object { [rowIndex] : RowNumberElement }
+  const rowNumElements = Object.fromEntries([...document.querySelectorAll(".gridview_data_row_num")]
+                            .map((row) => [Number(row.innerText), row]))
+  for(const r of rowNums) {
+    // If this is addRow, insert undefined x cols.length.
+    if (rowNumElements[r].parentElement.querySelector('.record-add')) {
+      result.push(...new Array(cols.length));
+      continue;
+    }
+    // Read all values from a row, and create an object { [cellIndex] : 'cell value' }
+    const values = Object.fromEntries([...rowNumElements[String(r)].parentElement.querySelectorAll('.field_clip')]
+                    .map((f, i) => [i, f.innerText]));
+    result.push(...cols.map(c => values[columns[c]]))
+  }
+  return result; `, cols, rows);
+  return result as string[];
+}
+
 
 /**
  * Returns the visible cells of the DetailView in the given field (using column name) at the
@@ -367,7 +406,8 @@ export async function getColumnNames() {
 
 export async function getCardFieldLabels() {
   const section = await driver.findWait('.active_section', 4000);
-  const labels = await section.findAll(".g_record_detail_label", el => el.getText());
+  const firstCard = await section.find(".g_record_detail");
+  const labels = await firstCard.findAll(".g_record_detail_label", el => el.getText());
   return labels;
 }
 
@@ -956,10 +996,16 @@ export async function begin(invariant: () => any = () => true) {
 export function revertChanges(test: () => Promise<void>, invariant: () => any = () => false) {
   return async function() {
     const revert = await begin(invariant);
+    let wasError = false;
     try {
       await test();
+    } catch(e) {
+      wasError = true;
+      throw e;
     } finally {
-      await revert();
+      if (!(noCleanup && wasError)) {
+        await revert();
+      }
     }
   };
 }
@@ -1327,6 +1373,13 @@ export function openRowMenu(rowNum: number) {
   const row = driver.findContent('.active_section .gridview_data_row_num', String(rowNum));
   return driver.withActions((actions) => actions.contextClick(row))
     .then(() => driver.findWait('.grist-floating-menu', 1000));
+}
+
+export async function openCardMenu(rowNum: number) {
+  const section = await driver.find('.active_section');
+  const firstRow = await section.findContent('.detail_row_num', String(rowNum));
+  await firstRow.find('.test-card-menu-trigger').click();
+  return await driver.findWait('.grist-floating-menu', 1000);
 }
 
 /**

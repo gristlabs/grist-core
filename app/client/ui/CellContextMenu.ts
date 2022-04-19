@@ -1,14 +1,8 @@
 import { allCommands } from 'app/client/components/commands';
 import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
-import { dom } from 'grainjs';
 import { IMultiColumnContextMenu } from 'app/client/ui/GridViewMenus';
-
-interface IRowContextMenu {
-  disableInsert: boolean;
-  disableDelete: boolean;
-  isViewSorted: boolean;
-  numRows: number;
-}
+import { IRowContextMenu } from 'app/client/ui/RowContextMenu';
+import { dom } from 'grainjs';
 
 export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiColumnContextMenu) {
 
@@ -65,7 +59,8 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
          menuItemCmd(allCommands.insertRecordAfter, 'Insert row below',
                      dom.cls('disabled', disableInsert))]
     ),
-
+    menuItemCmd(allCommands.duplicateRows, `Duplicate ${numRows === 1 ? 'row' : 'rows'}`,
+        dom.cls('disabled', disableInsert || numRows === 0)),
     menuItemCmd(allCommands.insertFieldBefore, 'Insert column to the left',
                 disableForReadonlyView),
     menuItemCmd(allCommands.insertFieldAfter, 'Insert column to the right',

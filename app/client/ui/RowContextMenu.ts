@@ -2,13 +2,14 @@ import { allCommands } from 'app/client/components/commands';
 import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
 import { dom } from 'grainjs';
 
-interface IRowContextMenu {
+export interface IRowContextMenu {
   disableInsert: boolean;
   disableDelete: boolean;
   isViewSorted: boolean;
+  numRows: number;
 }
 
-export function RowContextMenu({ disableInsert, disableDelete, isViewSorted }: IRowContextMenu) {
+export function RowContextMenu({ disableInsert, disableDelete, isViewSorted, numRows }: IRowContextMenu) {
   const result: Element[] = [];
   if (isViewSorted) {
     // When the view is sorted, any newly added records get shifts instantly at the top or
@@ -26,6 +27,10 @@ export function RowContextMenu({ disableInsert, disableDelete, isViewSorted }: I
         dom.cls('disabled', disableInsert)),
     );
   }
+  result.push(
+    menuItemCmd(allCommands.duplicateRows, `Duplicate ${numRows === 1 ? 'row' : 'rows'}`,
+      dom.cls('disabled', disableInsert || numRows === 0)),
+  );
   result.push(
     menuDivider(),
     // TODO: should show `Delete ${num} rows` when multiple are selected

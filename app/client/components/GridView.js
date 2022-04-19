@@ -6,7 +6,6 @@ const debounce = require('lodash/debounce');
 
 var gutil             = require('app/common/gutil');
 var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
-var MANUALSORT        = require('app/common/gristTypes').MANUALSORT;
 const {Sort} = require('app/common/SortSpec');
 
 var dom           = require('../lib/dom');
@@ -746,25 +745,6 @@ GridView.prototype.moveRows = function(oldIndices, newIndex) {
     this.cellSelector.row.start(newPos);
     this.cellSelector.row.end(newPos + numRows - 1);
   });
-};
-
-/**
- * Return a list of manual sort positions so that inserting {numInsert} rows
- * with the returned positions will place them in between index-1 and index.
- * when the GridView is sorted by MANUALSORT
- **/
-GridView.prototype._getRowInsertPos = function(index, numInserts) {
-  var lowerRowId = this.viewData.getRowId(index-1);
-  var upperRowId = this.viewData.getRowId(index);
-  if (lowerRowId === 'new') {
-    // set the lowerRowId to the rowId of the row before 'new'.
-    lowerRowId = this.viewData.getRowId(index - 2);
-  }
-
-  var lowerPos = this.tableModel.tableData.getValue(lowerRowId, MANUALSORT);
-  var upperPos = this.tableModel.tableData.getValue(upperRowId, MANUALSORT);
-  // tableUtil.insertPositions takes care of cases where upper/lowerPos are non-zero & falsy
-  return tableUtil.insertPositions(lowerPos, upperPos, numInserts);
 };
 
 
@@ -1574,7 +1554,7 @@ GridView.prototype._getRowContextMenuOptions = function() {
     disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
     disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.getSelection().onlyAddRowSelected()),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
-    numRows: this.getSelection().rowIds.length
+    numRows: this.getSelection().rowIds.length,
   };
 };
 
@@ -1589,6 +1569,19 @@ GridView.prototype.cellContextMenu = function() {
 
 GridView.prototype.scrollToCursor = function(sync = true) {
   return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
+}
+
+GridView.prototype._duplicateRows = async function() {
+  const addRowIds = await BaseView.prototype._duplicateRows.call(this);
+  // Highlight duplicated rows if the grid is not sorted (or the sort doesn't affect rowIndex).
+  const topRowIndex = this.viewData.getRowIndex(addRowIds[0]);
+  // Set row on the first record added.
+  this.setCursorPos({rowId: addRowIds[0]});
+  // Highlight inserted area (if we inserted rows in correct order)
+  if (addRowIds.every((r, i) => r === this.viewData.getRowId(topRowIndex + i))) {
+    this.cellSelector.selectArea(topRowIndex, 0,
+      topRowIndex + addRowIds.length - 1, this.viewSection.viewFields().peekLength - 1);
+  }
 }
 
 // Helper to show tooltip over column selection in the full edit mode.

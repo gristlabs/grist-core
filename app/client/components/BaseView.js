@@ -3,6 +3,8 @@ var ko = require('knockout');
 var moment = require('moment-timezone');
 var {getSelectionDesc} = require('app/common/DocActions');
 var {nativeCompare, roundDownToMultiple, waitObs} = require('app/common/gutil');
+var gutil = require('app/common/gutil');
+const MANUALSORT  = require('app/common/gristTypes').MANUALSORT;
 var gristTypes = require('app/common/gristTypes');
 var tableUtil = require('../lib/tableUtil');
 var {DataRowModel} = require('../models/DataRowModel');
@@ -231,6 +233,7 @@ BaseView.commonCommands = {
   copyLink: function() { this.copyLink().catch(reportError); },
 
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
+  duplicateRows: function() { this._duplicateRows().catch(reportError); }
 };
 
 /**
@@ -647,5 +650,70 @@ BaseView.prototype.scrollToCursor = function() {
   // to override
   return Promise.resolve();
 };
+
+/**
+ * Return a list of manual sort positions so that inserting {numInsert} rows
+ * with the returned positions will place them in between index-1 and index.
+ * when the GridView is sorted by MANUALSORT
+ **/
+ BaseView.prototype._getRowInsertPos = function(index, numInserts) {
+  var lowerRowId = this.viewData.getRowId(index-1);
+  var upperRowId = this.viewData.getRowId(index);
+  if (lowerRowId === 'new') {
+    // set the lowerRowId to the rowId of the row before 'new'.
+    lowerRowId = this.viewData.getRowId(index - 2);
+  }
+
+  var lowerPos = this.tableModel.tableData.getValue(lowerRowId, MANUALSORT);
+  var upperPos = this.tableModel.tableData.getValue(upperRowId, MANUALSORT);
+  // tableUtil.insertPositions takes care of cases where upper/lowerPos are non-zero & falsy
+  return tableUtil.insertPositions(lowerPos, upperPos, numInserts);
+};
+
+/**
+ * Duplicates selected row(s) and returns inserted rowIds
+ */
+BaseView.prototype._duplicateRows = async function() {
+  if (this.viewSection.disableAddRemoveRows() || this.disableEditing()) {
+    return;
+  }
+  // Get current selection (we need only rowIds).
+  const selection = this.getSelection();
+  const rowIds = selection.rowIds;
+  const length = rowIds.length;
+  // Start assembling action.
+  const action = ['BulkAddRecord'];
+  // Put nulls as rowIds.
+  action.push(gutil.arrayRepeat(length, null));
+  const columns = {};
+  action.push(columns);
+  // Calculate new positions for rows using helper function. It requires
+  // index where we want to put new rows (it accepts new row index).
+  const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length-1]);
+  columns.manualSort = this._getRowInsertPos(lastSelectedIndex + 1, length);
+  // Now copy all visible data.
+  for(const col of this.viewSection.columns.peek()) {
+    // But omit all formula columns (and empty ones).
+    const colId = col.colId.peek();
+    if (col.isFormula.peek()) {
+      continue;
+    }
+    columns[colId] = rowIds.map(id => this.tableModel.tableData.getValue(id, colId));
+    // If all values in a column are censored, remove this column,
+    if (columns[colId].every(gristTypes.isCensored)) {
+      delete columns[colId]
+    } else {
+      // else remove only censored values
+      columns[colId].forEach((val, i) => {
+        if (gristTypes.isCensored(val)) {
+          columns[colId][i] = null;
+        }
+      })
+    }
+  }
+  const result = await this.sendTableAction(action, `Duplicated rows ${rowIds}`);
+  return result;
+}
+
 
 module.exports = BaseView;
