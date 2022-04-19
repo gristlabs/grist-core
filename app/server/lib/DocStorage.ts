@@ -381,11 +381,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // Migration to add an index to _grist_Attachments.fileIdent for fast joining against _gristsys_Files.ident.
         const tables = await db.all(`SELECT * FROM sqlite_master WHERE type='table' AND name='_grist_Attachments'`);
         if (!tables.length) {
-          // _grist_Attachments is created in the first Python migration.
-          // For the sake of migration tests on ancient documents, just skip this migration if the table doesn't exist.
+          // _grist_Attachments is created in the first Python migration so doesn't exist here for new documents.
+          // createAttachmentsIndex is called separately by ActiveDoc for that.
           return;
         }
-        await db.exec(`CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent)`);
+        await createAttachmentsIndex(db);
       },
 
     ]
@@ -661,7 +661,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Creates a new SQLite database. Will throw an error if the database already exists.
-   * After a database is created it should be initialized by applying the InitNewDoc action.
+   * After a database is created it should be initialized by applying the InitNewDoc action
+   * or by executing the initialDocSql.
    */
   public createFile(): Promise<void> {
     // It turns out to be important to return a bluebird promise, a lot of code outside
@@ -1697,4 +1698,11 @@ export interface IndexColumns {
 // A summary of a database index, including its name.
 export interface IndexInfo extends IndexColumns {
   indexId: string;     // name of index
+}
+
+/**
+ * Creates an index that allows fast SQL JOIN between _grist_Attachments.fileIdent and _gristsys_Files.ident.
+ */
+export async function createAttachmentsIndex(db: ISQLiteDB) {
+  await db.exec(`CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent)`);
 }

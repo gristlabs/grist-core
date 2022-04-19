@@ -148,7 +148,7 @@ export interface ISQLiteDB {
  *    SQLiteDB.openDB(): Opens a DB, and initialize or migrate it to correct schema.
  *    db.execTransaction(cb): Runs a callback in the context of a new DB transaction.
  */
-export class SQLiteDB {
+export class SQLiteDB implements ISQLiteDB {
   /**
    * Opens a database or creates a new one, according to OpenMode enum. The schemaInfo specifies
    * how to initialize a new database, and how to migrate an existing one from an older version.

@@ -87,7 +87,7 @@ import {
   makeExceptionalDocSession,
   OptDocSession
 } from './DocSession';
-import {DocStorage} from './DocStorage';
+import {createAttachmentsIndex, DocStorage} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
@@ -449,6 +449,9 @@ export class ActiveDoc extends EventEmitter {
     const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc", timezone, locale]]);
     await this.docStorage.execTransaction(() =>
       this.docStorage.applyStoredActions(getEnvContent(initBundle.stored)));
+    // DocStorage can't create this index in the initial schema
+    // because the table _grist_Attachments doesn't exist at that point - it's created by InitNewDoc.
+    await createAttachmentsIndex(this.docStorage);
 
     await this._initDoc(docSession);
     await this._tableMetadataLoader.clean();

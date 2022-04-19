@@ -34,6 +34,7 @@ INSERT INTO _grist_ACLPrincipals VALUES(3,'group','','','Editors','');
 INSERT INTO _grist_ACLPrincipals VALUES(4,'group','','','Viewers','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLMemberships" (id INTEGER PRIMARY KEY, "parent" INTEGER DEFAULT 0, "child" INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_Filters" (id INTEGER PRIMARY KEY, "viewSectionRef" INTEGER DEFAULT 0, "colRef" INTEGER DEFAULT 0, "filter" TEXT DEFAULT '');
+CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent);
 COMMIT;
 `;
 
@@ -86,5 +87,6 @@ INSERT INTO _grist_ACLPrincipals VALUES(4,'group','','','Viewers','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLMemberships" (id INTEGER PRIMARY KEY, "parent" INTEGER DEFAULT 0, "child" INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_Filters" (id INTEGER PRIMARY KEY, "viewSectionRef" INTEGER DEFAULT 0, "colRef" INTEGER DEFAULT 0, "filter" TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS "Table1" (id INTEGER PRIMARY KEY, "manualSort" NUMERIC DEFAULT 1e999, "A" BLOB DEFAULT NULL, "B" BLOB DEFAULT NULL, "C" BLOB DEFAULT NULL);
+CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent);
 COMMIT;
 `;
