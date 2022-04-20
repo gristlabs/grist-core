@@ -445,6 +445,9 @@ export class FieldBuilder extends Disposable {
     // and wait for the update.
     const computedRule = koUtil.withKoUtils(ko.pureComputed<ComputedStyle>(() => {
       if (this.isDisposed()) { return null; }
+      // If this is add row or a blank row (not loaded yet with all fields = '')
+      // don't use rules.
+      if (row._isAddRow() || !row.id()) { return null; }
       const styles: Style[] = this.field.rulesStyles();
       // Make sure that rules where computed.
       if (!Array.isArray(styles) || styles.length === 0) { return null; }
