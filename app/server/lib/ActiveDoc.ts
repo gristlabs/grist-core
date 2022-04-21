@@ -10,7 +10,6 @@ import {ActionSummary} from "app/common/ActionSummary";
 import {
   ApplyUAOptions,
   ApplyUAResult,
-  DataLimitStatus,
   DataSourceTransformed,
   ForkResult,
   ImportOptions,
@@ -41,9 +40,11 @@ import {Features} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
+import {canEdit} from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
+import {APPROACHING_LIMIT_RATIO, DataLimitStatus, RowCount} from 'app/common/Usage';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
@@ -121,9 +122,6 @@ const REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS = 60 * 60 * 1000;
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
 
-// Ratio of the row/data size limit where we tell users that they're approaching the limit
-const APPROACHING_LIMIT_RATIO = 0.9;
-
 /**
  * Represents an active document with the given name. The document isn't actually open until
  * either .loadDoc() or .createEmptyDoc() is called.
@@ -172,7 +170,7 @@ export class ActiveDoc extends EventEmitter {
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _lastDataSizeMeasurement: number = 0;  // Timestamp when dbstat data size was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _rowCount?: number;
+  private _rowCount: RowCount = 'pending';
   private _dataSize?: number;
   private _productFeatures?: Features;
   private _gracePeriodStart: Date|null = null;
@@ -237,11 +235,21 @@ export class ActiveDoc extends EventEmitter {
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
   public get rowLimitRatio() {
-    return this._rowLimit && this._rowCount ? this._rowCount / this._rowLimit : 0;
+    if (!this._rowLimit || this._rowLimit <= 0 || typeof this._rowCount !== 'number') {
+      // Invalid row limits are currently treated as if they are undefined.
+      return 0;
+    }
+
+    return this._rowCount / this._rowLimit;
   }
 
   public get dataSizeLimitRatio() {
-    return this._dataSizeLimit && this._dataSize ? this._dataSize / this._dataSizeLimit : 0;
+    if (!this._dataSizeLimit || this._dataSizeLimit <= 0 || !this._dataSize) {
+      // Invalid data size limits are currently treated as if they are undefined.
+      return 0;
+    }
+
+    return this._dataSize / this._dataSizeLimit;
   }
 
   public get dataLimitRatio() {
@@ -264,15 +272,15 @@ export class ActiveDoc extends EventEmitter {
     return null;
   }
 
-  public async getRowCount(docSession: OptDocSession): Promise<number | undefined> {
-    if (await this._granularAccess.canReadEverything(docSession)) {
-      return this._rowCount;
-    }
+  public async getRowCount(docSession: OptDocSession): Promise<RowCount> {
+    const hasFullReadAccess = await this._granularAccess.canReadEverything(docSession);
+    const hasEditRole = canEdit(await this._granularAccess.getNominalAccess(docSession));
+    return hasFullReadAccess && hasEditRole ? this._rowCount : 'hidden';
   }
 
-  public async getDataLimitStatus(): Promise<DataLimitStatus> {
-    // TODO filter based on session permissions
-    return this.dataLimitStatus;
+  public async getDataLimitStatus(docSession: OptDocSession): Promise<DataLimitStatus> {
+    const hasEditRole = canEdit(await this._granularAccess.getNominalAccess(docSession));
+    return hasEditRole ? this.dataLimitStatus : null;
   }
 
   public async getUserOverride(docSession: OptDocSession) {

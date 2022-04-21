@@ -365,6 +365,7 @@ export const cssModalTitle = styled('div', `
   color: ${colors.dark};
   margin: 0 0 16px 0;
   line-height: 32px;
+  overflow-wrap: break-word;
 `);
 
 export const cssModalBody = styled('div', `

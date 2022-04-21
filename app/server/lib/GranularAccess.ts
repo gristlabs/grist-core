@@ -244,7 +244,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // An alternative to this check would be to sandwich user-defined access rules
     // between some defaults.  Currently the defaults have lower priority than
     // user-defined access rules.
-    if (!canEdit(await this._getNominalAccess(docSession))) {
+    if (!canEdit(await this.getNominalAccess(docSession))) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners or editors can modify documents');
     }
     if (this._ruler.haveRules()) {
@@ -578,7 +578,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * permissions.
    */
   public async canReadEverything(docSession: OptDocSession): Promise<boolean> {
-    const access = await this._getNominalAccess(docSession);
+    const access = await this.getNominalAccess(docSession);
     if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
     return this.getReadPermission(permInfo.getFullAccess()) === 'allow';
@@ -621,7 +621,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Check whether user has owner-level access to the document.
    */
   public async isOwner(docSession: OptDocSession): Promise<boolean> {
-    const access = await this._getNominalAccess(docSession);
+    const access = await this.getNominalAccess(docSession);
     return access === 'owners';
   }
 
@@ -769,6 +769,23 @@ export class GranularAccess implements GranularAccessForBundle {
     return result;
   }
 
+  /**
+   * Get the role the session user has for this document.  User may be overridden,
+   * in which case the role of the override is returned.
+   * The forkingAsOwner flag of docSession should not be respected for non-owners,
+   * so that the pseudo-ownership it offers is restricted to granular access within a
+   * document (as opposed to document-level operations).
+   */
+  public async getNominalAccess(docSession: OptDocSession): Promise<Role|null> {
+    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    const baseAccess = getDocSessionAccess(docSession);
+    if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
+      const info = await this._getUser(docSession);
+      return info.Access;
+    }
+    return baseAccess;
+  }
+
   // AddOrUpdateRecord requires broad read access to a table.
   // But tables can be renamed, and access can be granted and removed
   // within a bundle.
@@ -822,23 +839,6 @@ export class GranularAccess implements GranularAccessForBundle {
     if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
       await this._assertSchemaAccess(docSession);
     }
-  }
-
-  /**
-   * Get the role the session user has for this document.  User may be overridden,
-   * in which case the role of the override is returned.
-   * The forkingAsOwner flag of docSession should not be respected for non-owners,
-   * so that the pseudo-ownership it offers is restricted to granular access within a
-   * document (as opposed to document-level operations).
-   */
-  private async _getNominalAccess(docSession: OptDocSession): Promise<Role> {
-    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
-    const baseAccess = getDocSessionAccess(docSession);
-    if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
-      const info = await this._getUser(docSession);
-      return info.Access as Role;
-    }
-    return baseAccess;
   }
 
   /**

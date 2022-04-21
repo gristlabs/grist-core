@@ -3,85 +3,194 @@ import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {DataLimitStatus} from 'app/common/ActiveDocAPI';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {Features} from 'app/common/Features';
 import {commonUrls} from 'app/common/gristUrls';
-import {Computed, Disposable, dom, IDisposableOwner, Observable, styled} from 'grainjs';
+import {capitalizeFirstWord} from 'app/common/gutil';
+import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/Usage';
+import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 
-const limitStatusMessages: Record<NonNullable<DataLimitStatus>, string> = {
-  approachingLimit: 'This document is approaching free plan limits.',
-  deleteOnly: 'This document is now in delete-only mode.',
-  gracePeriod: 'This document has exceeded free plan limits.',
-};
+const testId = makeTestId('test-doc-usage-');
+
+// Default used by the progress bar to visually indicate row usage.
+const DEFAULT_MAX_ROWS = 20000;
+
+const ACCESS_DENIED_MESSAGE = 'Usage statistics are only available to users with '
+  + 'full access to the document data.';
 
 /**
  * Displays statistics about document usage, such as number of rows used.
- *
- * Currently only shows usage if current site is a free team site.
  */
 export class DocumentUsage extends Disposable {
+  private readonly _currentDoc = this._docPageModel.currentDoc;
+  private readonly _dataLimitStatus = this._docPageModel.dataLimitStatus;
+  private readonly _rowCount = this._docPageModel.rowCount;
+
+  private readonly _currentOrg = Computed.create(this, this._currentDoc, (_use, doc) => {
+    return doc?.workspace.org ?? null;
+  });
+
+  private readonly _rowMetrics: Computed<MetricOptions | null> =
+    Computed.create(this, this._currentOrg, this._rowCount, (_use, org, rowCount) => {
+      const features = org?.billingAccount?.product.features;
+      if (!features || typeof rowCount !== 'number') { return null; }
+
+      const {baseMaxRowsPerDocument: maxRows} = features;
+      // Invalid row limits are currently treated as if they are undefined.
+      const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
+      return {
+        name: 'Rows',
+        currentValue: rowCount,
+        maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
+        unit: 'rows',
+        shouldHideLimits: maxValue === undefined,
+      };
+    });
+
+  private readonly _isLoading: Computed<boolean> =
+    Computed.create(this, this._currentDoc, this._rowCount, (_use, doc, rowCount) => {
+      return doc === null || rowCount === 'pending';
+    });
+
+  private readonly _isAccessDenied: Computed<boolean | null> =
+    Computed.create(
+      this, this._isLoading, this._currentDoc, this._rowCount,
+      (_use, isLoading, doc, rowCount) => {
+        if (isLoading) { return null; }
+
+        const {access} = doc!.workspace.org;
+        const isPublicUser = access === 'guests' || access === null;
+        return isPublicUser || rowCount === 'hidden';
+      }
+    );
+
   constructor(private _docPageModel: DocPageModel) {
     super();
   }
 
   public buildDom() {
-    const features = this._docPageModel.appModel.currentFeatures;
-    if (features.baseMaxRowsPerDocument === undefined) { return null; }
-
     return dom('div',
-      cssHeader('Usage'),
-      dom.domComputed(this._docPageModel.dataLimitStatus, status => {
-        if (!status) { return null; }
+      cssHeader('Usage', testId('heading')),
+      dom.domComputed(this._isLoading, (isLoading) => {
+        if (isLoading) { return cssSpinner(loadingSpinner(), testId('loading')); }
 
-        return cssLimitWarning(
-          cssIcon('Idea'),
-          cssLightlyBoldedText(
-            limitStatusMessages[status],
-            ' For higher limits, ',
-            cssUnderlinedLink('start your 30-day free trial of the Pro plan.', {
-              href: commonUrls.plans,
-              target: '_blank',
-            }),
-          ),
-        );
+        return [this._buildMessage(), this._buildMetrics()];
       }),
+      testId('container'),
+    );
+  }
+
+  private _buildMessage() {
+    return dom.domComputed((use) => {
+      const isAccessDenied = use(this._isAccessDenied);
+      if (isAccessDenied === null) { return null; }
+      if (isAccessDenied) { return buildMessage(ACCESS_DENIED_MESSAGE); }
+
+      const org = use(this._currentOrg);
+      const status = use(this._dataLimitStatus);
+      if (!org || !status) { return null; }
+
+      return buildMessage([
+        getLimitStatusMessage(status, org.billingAccount?.product.features),
+        ' ',
+        buildUpgradeMessage(org.access === 'owners')
+      ]);
+    });
+  }
+
+  private _buildMetrics() {
+    return dom.maybe(use => use(this._isAccessDenied) === false, () =>
       cssUsageMetrics(
-        dom.create(buildUsageMetric, {
-          name: 'Rows',
-          currentValue: this._docPageModel.rowCount,
-          maximumValue: features.baseMaxRowsPerDocument,
-          units: 'rows',
-        }),
-      )
+        dom.maybe(this._rowMetrics, (metrics) =>
+          buildUsageMetric(metrics, testId('rows')),
+        ),
+        testId('metrics'),
+      ),
     );
   }
 }
 
+function buildMessage(message: DomContents) {
+  return cssWarningMessage(
+    cssIcon('Idea'),
+    cssLightlyBoldedText(message, testId('message-text')),
+    testId('message'),
+  );
+}
+
+interface MetricOptions {
+  name: string;
+  currentValue: number;
+  // If undefined or non-positive (i.e. invalid), no limits will be assumed.
+  maximumValue?: number;
+  unit?: string;
+  // If true, limits will always be hidden, even if `maximumValue` is a positive number.
+  shouldHideLimits?: boolean;
+}
+
 /**
  * Builds a component which displays the current and maximum values for
- * a particular metric (e.g. rows), and a progress meter showing how
+ * a particular metric (e.g. row count), and a progress meter showing how
  * close `currentValue` is to hitting `maximumValue`.
  */
-function buildUsageMetric(owner: IDisposableOwner, {name, currentValue, maximumValue, units}: {
-  name: string;
-  currentValue: Observable<number | undefined>;
-  maximumValue: number;
-  units?: string;
-}) {
-  const percentUsed = Computed.create(owner, currentValue, (_use, value) => {
-    return Math.min(100, Math.floor(((value ?? 0) / maximumValue) * 100));
-  });
+function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
+  const {name, currentValue, maximumValue, unit, shouldHideLimits} = options;
+  const ratioUsed = currentValue / (maximumValue || Infinity);
+  const percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
   return cssUsageMetric(
-    cssMetricName(name),
+    cssMetricName(name, testId('name')),
     cssProgressBarContainer(
       cssProgressBarFill(
-        dom.style('width', use => `${use(percentUsed)}%`),
-        cssProgressBarFill.cls('-approaching-limit', use => use(percentUsed) >= 90)
-      )
+        {style: `width: ${percentUsed}%`},
+        // Change progress bar to red if close to limit, unless limits are hidden.
+        shouldHideLimits || ratioUsed <= APPROACHING_LIMIT_RATIO
+          ? null
+          : cssProgressBarFill.cls('-approaching-limit'),
+        testId('progress-fill'),
+      ),
     ),
-    dom.maybe(currentValue, value =>
-      dom('div', `${value} of ${maximumValue}` + (units ? ` ${units}` : ''))
+    dom('div',
+      currentValue
+        + (shouldHideLimits || !maximumValue ? '' : ' of ' + maximumValue)
+        + (unit ? ` ${unit}` : ''),
+      testId('value'),
     ),
+    ...domArgs,
   );
+}
+
+export function getLimitStatusMessage(status: NonNullable<DataLimitStatus>, features?: Features): string {
+  switch (status) {
+    case 'approachingLimit': {
+      return 'This document is approaching free plan limits.';
+    }
+    case 'gracePeriod': {
+      const gracePeriodDays = features?.gracePeriodDays;
+      if (!gracePeriodDays) { return 'Document limits exceeded.'; }
+
+      return `Document limits exceeded. In ${gracePeriodDays} days, this document will be read-only.`;
+    }
+    case 'deleteOnly': {
+      return 'This document exceeded free plan limits and is now read-only, but you can delete rows.';
+    }
+  }
+}
+
+export function buildUpgradeMessage(isOwner: boolean, variant: 'short' | 'long' = 'long') {
+  if (!isOwner) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
+
+  const upgradeLinkText = 'start your 30-day free trial of the Pro plan.';
+  return [
+    variant === 'short' ? null : 'For higher limits, ',
+    buildUpgradeLink(variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText),
+  ];
+}
+
+export function buildUpgradeLink(linkText: string) {
+  return cssUnderlinedLink(linkText, {
+    href: commonUrls.plans,
+    target: '_blank',
+  });
 }
 
 const cssLightlyBoldedText = styled('div', `
@@ -93,7 +202,7 @@ const cssIconAndText = styled('div', `
   gap: 16px;
 `);
 
-const cssLimitWarning = styled(cssIconAndText, `
+const cssWarningMessage = styled(cssIconAndText, `
   margin-top: 16px;
 `);
 
@@ -112,7 +221,6 @@ const cssHeader = styled(docListHeader, `
 `);
 
 const cssUnderlinedLink = styled(cssLink, `
-  display: inline-block;
   color: unset;
   text-decoration: underline;
 
@@ -160,4 +268,10 @@ const cssProgressBarFill = styled(cssProgressBarContainer, `
   &-approaching-limit {
     background: ${colors.error};
   }
+`);
+
+const cssSpinner = styled('div', `
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
 `);

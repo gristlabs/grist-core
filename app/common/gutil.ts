@@ -50,6 +50,11 @@ export function capitalize(str: string): string {
   return str.replace(/\b[a-z]/gi, c => c.toUpperCase());
 }
 
+// Capitalizes the first word in a string.
+export function capitalizeFirstWord(str: string): string {
+  return str.replace(/\b[a-z]/i, c => c.toUpperCase());
+}
+
 // Returns whether the string n represents a valid number.
 // http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
 export function isNumber(n: string): boolean {

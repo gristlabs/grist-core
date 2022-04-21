@@ -1,8 +1,8 @@
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {DataLimitStatus} from 'app/common/ActiveDocAPI';
 import {TableDataAction} from 'app/common/DocActions';
 import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
+import {DataLimitStatus, RowCount} from 'app/common/Usage';
 import {FullUser} from 'app/common/UserAPI';
 
 // Possible flavors of items in a list of documents.
@@ -43,9 +43,9 @@ export interface OpenLocalDocResult {
   clientId: string;  // the docFD is meaningful only in the context of this session
   doc: {[tableId: string]: TableDataAction};
   log: MinimalActionGroup[];
+  rowCount: RowCount;
   recoveryMode?: boolean;
   userOverride?: UserOverride;
-  rowCount?: number;
   dataLimitStatus?: DataLimitStatus;
 }
 

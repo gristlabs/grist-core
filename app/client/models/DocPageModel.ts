@@ -14,13 +14,13 @@ import {bigBasicButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {DataLimitStatus} from 'app/common/ActiveDocAPI';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit} from 'app/common/roles';
+import {DataLimitStatus, RowCount} from 'app/common/Usage';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
@@ -66,7 +66,7 @@ export interface DocPageModel {
 
   gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
 
-  rowCount: Observable<number|undefined>;
+  rowCount: Observable<RowCount>;
   dataLimitStatus: Observable<DataLimitStatus|undefined>;
 
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
@@ -109,7 +109,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   // Observable set to the instance of GristDoc once it's created.
   public readonly gristDoc = Observable.create<GristDoc|null>(this, null);
 
-  public readonly rowCount = Observable.create<number|undefined>(this, undefined);
+  public readonly rowCount = Observable.create<RowCount>(this, 'pending');
   public readonly dataLimitStatus = Observable.create<DataLimitStatus|undefined>(this, null);
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the

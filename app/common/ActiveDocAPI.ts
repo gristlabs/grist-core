@@ -153,8 +153,6 @@ export interface PermissionDataWithExtraUsers extends PermissionData {
   exampleUsers: UserAccessData[];
 }
 
-export type DataLimitStatus = null | 'approachingLimit' | 'gracePeriod' | 'deleteOnly';
-
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.

@@ -318,7 +318,7 @@ export class DocManager extends EventEmitter {
         activeDoc.getRecentMinimalActions(docSession),
         activeDoc.getUserOverride(docSession),
         activeDoc.getRowCount(docSession),
-        activeDoc.getDataLimitStatus(),
+        activeDoc.getDataLimitStatus(docSession),
       ]);
 
       const result = {

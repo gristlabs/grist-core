@@ -28,6 +28,7 @@ export interface PageContents {
 
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
+  contentTop?: DomArg;
   contentBottom?: DomArg;
 }
 
@@ -62,119 +63,122 @@ export function pagePanels(page: PageContents) {
   return cssPageContainer(
     dom.autoDispose(sub1),
     dom.autoDispose(sub2),
-    cssLeftPane(
-      testId('left-panel'),
-      cssTopHeader(left.header),
-      left.content,
+    page.contentTop,
+    cssContentMain(
+      cssLeftPane(
+        testId('left-panel'),
+        cssTopHeader(left.header),
+        left.content,
 
-      dom.style('width', (use) => use(left.panelOpen) ? use(left.panelWidth) + 'px' : ''),
+        dom.style('width', (use) => use(left.panelOpen) ? use(left.panelWidth) + 'px' : ''),
 
-      // Opening/closing the left pane, with transitions.
-      cssLeftPane.cls('-open', left.panelOpen),
-      transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
-        prepare(elem, open) { elem.style.marginRight = (open ? -1 : 1) * (left.panelWidth.get() - 48) + 'px'; },
-        run(elem, open) { elem.style.marginRight = ''; },
-        finish: onResize,
-      }),
-    ),
-
-    // Resizer for the left pane.
-    // TODO: resizing to small size should collapse. possibly should allow expanding too
-    cssResizeFlexVHandle(
-      {target: 'left', onSave: (val) => { left.panelWidth.set(val); onResize(); }},
-      testId('left-resizer'),
-      dom.show(left.panelOpen),
-      cssHideForNarrowScreen.cls('')),
-
-    // Show plain border when the resize handle is hidden.
-    cssResizeDisabledBorder(
-      dom.hide(left.panelOpen),
-      cssHideForNarrowScreen.cls('')),
-
-    cssMainPane(
-      cssTopHeader(
-        testId('top-header'),
-        (left.hideOpener ? null :
-          cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
-            testId('left-opener'),
-            dom.on('click', () => toggleObs(left.panelOpen)),
-            cssHideForNarrowScreen.cls(''))
-        ),
-
-        page.headerMain,
-
-        (!right || right.hideOpener ? null :
-          cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
-            testId('right-opener'),
-            dom.cls('tour-creator-panel'),
-            dom.on('click', () => toggleObs(right.panelOpen)),
-            cssHideForNarrowScreen.cls(''))
-        ),
-      ),
-      page.contentMain,
-      testId('main-pane'),
-    ),
-    (right ? [
-      // Resizer for the right pane.
-      cssResizeFlexVHandle(
-        {target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); }},
-        testId('right-resizer'),
-        dom.show(right.panelOpen),
-        cssHideForNarrowScreen.cls('')),
-
-      cssRightPane(
-        testId('right-panel'),
-        cssTopHeader(right.header),
-        right.content,
-
-        dom.style('width', (use) => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
-
-        // Opening/closing the right pane, with transitions.
-        cssRightPane.cls('-open', right.panelOpen),
-        transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
-          prepare(elem, open) { elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + 'px'; },
-          run(elem, open) { elem.style.marginLeft = ''; },
+        // Opening/closing the left pane, with transitions.
+        cssLeftPane.cls('-open', left.panelOpen),
+        transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
+          prepare(elem, open) { elem.style.marginRight = (open ? -1 : 1) * (left.panelWidth.get() - 48) + 'px'; },
+          run(elem, open) { elem.style.marginRight = ''; },
           finish: onResize,
         }),
-      )] : null
-    ),
-    cssContentOverlay(
-      dom.show((use) => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
-      dom.on('click', () => {
-        left.panelOpen.set(false);
-        if (right) { right.panelOpen.set(false); }
-      }),
-      testId('overlay')
-    ),
-    dom.maybe(isNarrowScreenObs(), () =>
-      cssBottomFooter(
-        testId('bottom-footer'),
-        cssPanelOpenerNarrowScreenBtn(
-          cssPanelOpenerNarrowScreen(
-            'FieldTextbox',
-            dom.on('click', () => {
-              right?.panelOpen.set(false);
-              toggleObs(left.panelOpen);
-            }),
-            testId('left-opener-ns')
+      ),
+
+      // Resizer for the left pane.
+      // TODO: resizing to small size should collapse. possibly should allow expanding too
+      cssResizeFlexVHandle(
+        {target: 'left', onSave: (val) => { left.panelWidth.set(val); onResize(); }},
+        testId('left-resizer'),
+        dom.show(left.panelOpen),
+        cssHideForNarrowScreen.cls('')),
+
+      // Show plain border when the resize handle is hidden.
+      cssResizeDisabledBorder(
+        dom.hide(left.panelOpen),
+        cssHideForNarrowScreen.cls('')),
+
+      cssMainPane(
+        cssTopHeader(
+          testId('top-header'),
+          (left.hideOpener ? null :
+            cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
+              testId('left-opener'),
+              dom.on('click', () => toggleObs(left.panelOpen)),
+              cssHideForNarrowScreen.cls(''))
           ),
-          cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
+
+          page.headerMain,
+
+          (!right || right.hideOpener ? null :
+            cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
+              testId('right-opener'),
+              dom.cls('tour-creator-panel'),
+              dom.on('click', () => toggleObs(right.panelOpen)),
+              cssHideForNarrowScreen.cls(''))
+          ),
         ),
-        page.contentBottom,
-        (!right ? null :
+        page.contentMain,
+        testId('main-pane'),
+      ),
+      (right ? [
+        // Resizer for the right pane.
+        cssResizeFlexVHandle(
+          {target: 'right', onSave: (val) => { right.panelWidth.set(val); onResize(); }},
+          testId('right-resizer'),
+          dom.show(right.panelOpen),
+          cssHideForNarrowScreen.cls('')),
+
+        cssRightPane(
+          testId('right-panel'),
+          cssTopHeader(right.header),
+          right.content,
+
+          dom.style('width', (use) => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
+
+          // Opening/closing the right pane, with transitions.
+          cssRightPane.cls('-open', right.panelOpen),
+          transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
+            prepare(elem, open) { elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + 'px'; },
+            run(elem, open) { elem.style.marginLeft = ''; },
+            finish: onResize,
+          }),
+        )] : null
+      ),
+      cssContentOverlay(
+        dom.show((use) => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+        dom.on('click', () => {
+          left.panelOpen.set(false);
+          if (right) { right.panelOpen.set(false); }
+        }),
+        testId('overlay')
+      ),
+      dom.maybe(isNarrowScreenObs(), () =>
+        cssBottomFooter(
+          testId('bottom-footer'),
           cssPanelOpenerNarrowScreenBtn(
             cssPanelOpenerNarrowScreen(
-              'Settings',
+              'FieldTextbox',
               dom.on('click', () => {
-                left.panelOpen.set(false);
-                toggleObs(right.panelOpen);
+                right?.panelOpen.set(false);
+                toggleObs(left.panelOpen);
               }),
-              testId('right-opener-ns')
+              testId('left-opener-ns')
             ),
-            cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
-          )
-        ),
-      )
+            cssPanelOpenerNarrowScreenBtn.cls('-open', left.panelOpen)
+          ),
+          page.contentBottom,
+          (!right ? null :
+            cssPanelOpenerNarrowScreenBtn(
+              cssPanelOpenerNarrowScreen(
+                'Settings',
+                dom.on('click', () => {
+                  left.panelOpen.set(false);
+                  toggleObs(right.panelOpen);
+                }),
+                testId('right-opener-ns')
+              ),
+              cssPanelOpenerNarrowScreenBtn.cls('-open', right.panelOpen),
+            )
+          ),
+        )
+      ),
     ),
   );
 }
@@ -190,11 +194,10 @@ const cssVBox = styled('div', `
 const cssHBox = styled('div', `
   display: flex;
 `);
-const cssPageContainer = styled(cssHBox, `
+const cssPageContainer = styled(cssVBox, `
   position: absolute;
   isolation: isolate; /* Create a new stacking context */
   z-index: 0; /* As of March 2019, isolation does not have Edge support, so force one with z-index */
-  overflow: hidden;
   top: 0;
   left: 0;
   right: 0;
@@ -212,7 +215,10 @@ const cssPageContainer = styled(cssHBox, `
     }
   }
 `);
-
+const cssContentMain = styled(cssHBox, `
+  flex: 1 1 0px;
+  overflow: hidden;
+`);
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${colors.lightGrey};

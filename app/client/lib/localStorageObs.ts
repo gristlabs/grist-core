@@ -24,17 +24,34 @@ export function getStorage(): Storage {
   return _storage || (_storage = createStorage());
 }
 
+/**
+ * Similar to `getStorage`, but always returns sessionStorage (or an in-memory equivalent).
+ */
+export function getSessionStorage(): Storage {
+  return _sessionStorage || (_sessionStorage = createSessionStorage());
+}
+
 let _storage: Storage|undefined;
+let _sessionStorage: Storage|undefined;
 
 function createStorage(): Storage {
   if (typeof localStorage !== 'undefined' && testStorage(localStorage)) {
     return localStorage;
+  } else {
+    return createSessionStorage();
   }
+}
+
+function createSessionStorage(): Storage {
   if (typeof sessionStorage !== 'undefined' && testStorage(sessionStorage)) {
     return sessionStorage;
+  } else {
+    // Fall back to a Map-based implementation of (non-persistent) sessionStorage.
+    return createInMemoryStorage();
   }
+}
 
-  // Fall back to a Map-based implementation of (non-persistent) localStorage.
+function createInMemoryStorage(): Storage {
   const values = new Map<string, string>();
   return {
     setItem(key: string, val: string) { values.set(key, val); },
@@ -46,6 +63,13 @@ function createStorage(): Storage {
   };
 }
 
+function getStorageBoolObs(store: Storage, key: string, defValue: boolean) {
+  const storedNegation = defValue ? 'false' : 'true';
+  const obs = Observable.create(null, store.getItem(key) === storedNegation ? !defValue : defValue);
+  obs.addListener((val) => val === defValue ? store.removeItem(key) : store.setItem(key, storedNegation));
+  return obs;
+}
+
 /**
  * Helper to create a boolean observable whose state is stored in localStorage.
  *
@@ -53,11 +77,14 @@ function createStorage(): Storage {
  * same default value should be used for an observable every time it's created.
  */
 export function localStorageBoolObs(key: string, defValue = false): Observable<boolean> {
-  const store = getStorage();
-  const storedNegation = defValue ? 'false' : 'true';
-  const obs = Observable.create(null, store.getItem(key) === storedNegation ? !defValue : defValue);
-  obs.addListener((val) => val === defValue ? store.removeItem(key) : store.setItem(key, storedNegation));
-  return obs;
+  return getStorageBoolObs(getStorage(), key, defValue);
+}
+
+/**
+ * Similar to `localStorageBoolObs`, but always uses sessionStorage (or an in-memory equivalent).
+ */
+export function sessionStorageBoolObs(key: string, defValue = false): Observable<boolean> {
+  return getStorageBoolObs(getSessionStorage(), key, defValue);
 }
 
 /**
