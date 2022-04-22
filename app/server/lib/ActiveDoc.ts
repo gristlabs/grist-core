@@ -469,11 +469,9 @@ export class ActiveDoc extends EventEmitter {
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     await this._rawPyCall('load_empty');
-    const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
-    const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     // This init action is special. It creates schema tables, and is used to init the DB, but does
     // not go through other steps of a regular action (no ActionHistory or broadcasting).
-    const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc", timezone, locale]]);
+    const initBundle = await this._rawPyCall('apply_user_actions', [["InitNewDoc"]]);
     await this.docStorage.execTransaction(() =>
       this.docStorage.applyStoredActions(getEnvContent(initBundle.stored)));
     // DocStorage can't create this index in the initial schema
