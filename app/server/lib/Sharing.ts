@@ -215,16 +215,20 @@ export class Sharing {
 
     try {
 
-      // A trivial action does not merit allocating an actionNum,
-      // logging, and sharing.  Since we currently don't store
-      // calculated values in the database, it is best not to log the
-      // action that initializes them when the document is opened cold
-      // (without cached ActiveDoc) - otherwise we'll end up with spam
-      // log entries for each time the document is opened cold.
-
       const isCalculate = (userActions.length === 1 &&
                            userActions[0][0] === 'Calculate');
-      const trivial = isCalculate && sandboxActionBundle.stored.length === 0;
+      // `internal` is true if users shouldn't be able to undo the actions. Applies to:
+      // - Calculate because it's not considered as performed by a particular client.
+      // - Adding attachment metadata when uploading attachments,
+      //   because then the attachment file may get hard-deleted and redo won't work properly.
+      const internal = isCalculate || userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments");
+
+      // A trivial action does not merit allocating an actionNum,
+      // logging, and sharing. It's best not to log the
+      // action that calculates formula values when the document is opened cold
+      // (without cached ActiveDoc) if it doesn't change anything - otherwise we'll end up with spam
+      // log entries for each time the document is opened cold.
+      const trivial = internal && sandboxActionBundle.stored.length === 0;
 
       const actionNum = trivial ? 0 :
         (branch === Branch.Shared ? this._actionHistory.getNextHubActionNum() :
@@ -289,9 +293,7 @@ export class Sharing {
             // be shared. Once sharing is enabled, we would share a snapshot at that time.
             await this._actionHistory.recordNextShared(localActionBundle);
           }
-          // Check isCalculate because that's not an action we should allow undo/redo for (it's not
-          // considered as performed by a particular client).
-          if (client && client.clientId && !isCalculate) {
+          if (client && client.clientId && !internal) {
             this._actionHistory.setActionUndoInfo(
               localActionBundle.actionHash!,
               getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
@@ -308,9 +310,7 @@ export class Sharing {
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
         clientId: client?.clientId,
         retValues: sandboxActionBundle.retValues,
-        // Mark the on-open Calculate action as internal. In future, synchronizing fields to today's
-        // date and other changes from external values may count as internal.
-        internal: isCalculate,
+        internal,
       });
       actionGroup.actionSummary = actionSummary;
       actionGroup.rowCount = sandboxActionBundle.rowCount;
