@@ -11,7 +11,7 @@ import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocMode
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
-import {toPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanel';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -34,6 +34,7 @@ import defaults = require('lodash/defaults');
 import defaultsDeep = require('lodash/defaultsDeep');
 import isNumber = require('lodash/isNumber');
 import sum = require('lodash/sum');
+import union = require('lodash/union');
 import {Annotations, Config, Data, Datum, ErrorBar, Layout, LayoutAxis, Margin} from 'plotly.js';
 
 
@@ -882,6 +883,7 @@ export class ChartConfig extends GrainJSDisposable {
     const pageWidget = toPageWidget(this._section);
     pageWidget.summarize = !this._isSummaryTable();
     pageWidget.columns = this._getColumnIds(colIds);
+    this._ensureValidLinkingIfAny(pageWidget);
     const newSection = await this._gristDoc.saveViewSection(this._section, pageWidget);
     return ChartConfig._instanceMap.get(newSection)!;
   }
@@ -889,9 +891,21 @@ export class ChartConfig extends GrainJSDisposable {
   private async _setGroupByColumns(groupByCols: string[]) {
     const pageWidget = toPageWidget(this._section);
     pageWidget.columns = this._getColumnIds(groupByCols);
+    this._ensureValidLinkingIfAny(pageWidget);
     return this._gristDoc.saveViewSection(this._section, pageWidget);
   }
 
+  // If section is linked to a summary table, makes sure that pageWidget describes a summary table
+  // that is more detailed than the source summary table. Function mutates `pageWidget`.
+  private _ensureValidLinkingIfAny(pageWidget: IPageWidget) {
+    if (!pageWidget.summarize) { return; }
+    if (!this._section.linkSrcSection().getRowId()) { return; }
+    const srcPageWidget = toPageWidget(this._section.linkSrcSection());
+    pageWidget.columns = union(pageWidget.columns, srcPageWidget.columns);
+  }
+
+  // Returns column ids corresponding to each colIds in the selected table (or corresponding summary
+  // source table, if select table is a summary table).
   private _getColumnIds(colIds: string[]) {
     const cols = this._isSummaryTable() ?
       this._section.table().summarySource().columns().all() :
