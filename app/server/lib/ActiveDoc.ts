@@ -115,6 +115,9 @@ const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
 
+// Cleanup expired attachments every hour (also happens when shutting down)
+const REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS = 60 * 60 * 1000;
+
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
 
@@ -178,6 +181,12 @@ export class ActiveDoc extends EventEmitter {
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
+
+  // Cleanup expired attachments every hour (also happens when shutting down)
+  private _removeUnusedAttachmentsInterval = setInterval(
+    () => this.removeUnusedAttachments(true),
+    REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS,
+  );
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
@@ -388,6 +397,16 @@ export class ActiveDoc extends EventEmitter {
 
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
+
+      clearInterval(this._removeUnusedAttachmentsInterval);
+      try {
+        // Remove expired attachments, i.e. attachments that were soft deleted a while ago.
+        // This needs to happen periodically, and doing it here means we can guarantee that it happens even if
+        // the doc is only ever opened briefly, without having to slow down startup.
+        await this.removeUnusedAttachments(true);
+      } catch (e) {
+        this._log.error(docSession, "Failed to remove expired attachments", e);
+      }
 
       try {
         await this._docManager.storageManager.closeDocument(this.docName);

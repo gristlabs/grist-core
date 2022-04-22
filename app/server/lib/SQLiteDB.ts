@@ -77,6 +77,7 @@ import * as sqlite3 from '@gristlabs/sqlite3';
 import * as assert from 'assert';
 import {each} from 'bluebird';
 import * as fse from 'fs-extra';
+import {RunResult} from 'sqlite3';
 import fromPairs = require('lodash/fromPairs');
 import isEqual = require('lodash/isEqual');
 import noop = require('lodash/noop');
@@ -132,7 +133,7 @@ export interface MigrationHooks {
  */
 export interface ISQLiteDB {
   exec(sql: string): Promise<void>;
-  run(sql: string, ...params: any[]): Promise<void>;
+  run(sql: string, ...params: any[]): Promise<RunResult>;
   get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<sqlite3.Statement>;
@@ -288,8 +289,17 @@ export class SQLiteDB implements ISQLiteDB {
     return fromCallback(cb => this._db.exec(sql, cb));
   }
 
-  public run(sql: string, ...params: any[]): Promise<void> {
-    return fromCallback(cb => this._db.run(sql, ...params, cb));
+  public run(sql: string, ...params: any[]): Promise<RunResult> {
+    return new Promise((resolve, reject) => {
+      function callback(this: RunResult, err: Error | null) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this);
+        }
+      }
+      this._db.run(sql, ...params, callback);
+    });
   }
 
   public get(sql: string, ...params: any[]): Promise<ResultRow|undefined> {
@@ -339,11 +349,19 @@ export class SQLiteDB implements ISQLiteDB {
    * to db.run, e.g. [sqlString, [params...]].
    */
   public runEach(...statements: Array<string | [string, any[]]>): Promise<void> {
-    return each(statements, (stmt: any) => {
-      return (Array.isArray(stmt) ? this.run(stmt[0], ...stmt[1]) :
-              this.exec(stmt))
-        .catch(err => { log.warn(`SQLiteDB: Failed to run ${stmt}`); throw err; });
-    });
+    return each(statements,
+      async (stmt: any) => {
+        try {
+          return await (Array.isArray(stmt) ?
+              this.run(stmt[0], ...stmt[1]) :
+              this.exec(stmt)
+          );
+        } catch (err) {
+          log.warn(`SQLiteDB: Failed to run ${stmt}`);
+          throw err;
+        }
+      }
+    );
   }
 
   public close(): Promise<void> {
@@ -356,16 +374,9 @@ export class SQLiteDB implements ISQLiteDB {
    * is sqlite's rowid for the last insert made on this database connection. This method
    * is only useful if the sql is actually an INSERT operation, but we don't check this.
    */
-  public runAndGetId(sql: string, ...params: any[]): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      this._db.run(sql, ...params, function(this: any, err: any) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this.lastID);
-        }
-      });
-    });
+  public async runAndGetId(sql: string, ...params: any[]): Promise<number> {
+    const result = await this.run(sql, ...params);
+    return result.lastID;
   }
 
   /**

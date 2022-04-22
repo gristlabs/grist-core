@@ -699,6 +699,12 @@ def migration17(tdset):
       actions.ModifyColumn(tables_map[c.parentId].tableId, c.colId, {'type': 'Attachments'})
       for c in affected_cols
     )
+    # Update the types in the metadata tables
+    doc_actions.append(actions.BulkUpdateRecord(
+      '_grist_Tables_column',
+      [c.id for c in affected_cols],
+      {'type': ['Attachments' for c in affected_cols]}
+    ))
     # Update the values to lists
     for c in affected_cols:
       if c.isFormula:
@@ -710,12 +716,6 @@ def migration17(tdset):
         actions.BulkUpdateRecord(table_id, table.row_ids,
           {c.colId: [conv(val) for val in table.columns[c.colId]]})
       )
-    # Update the types in the metadata tables
-    doc_actions.append(actions.BulkUpdateRecord(
-      '_grist_Tables_column',
-      [c.id for c in affected_cols],
-      {'type': ['Attachments' for c in affected_cols]}
-    ))
 
   return tdset.apply_doc_actions(doc_actions)
 

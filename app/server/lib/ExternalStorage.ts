@@ -26,7 +26,7 @@ export interface ExternalStorage {
   head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata|null>;
 
   // Upload content from file to the given key.  Returns a snapshotId if store supports that.
-  upload(key: string, fname: string, metadata?: ObjMetadata): Promise<string|null>;
+  upload(key: string, fname: string, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
 
   // Download content from key to given file.  Can download a specific version of the key
   // if store supports that (should throw a fatal exception if not).
@@ -162,11 +162,11 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         const snapshotId = await this._options.latestVersion.load(key);
         log.info("ext %s upload: %s unchanged, not sending (checksum %s, version %s)", this.label, key,
                  checksum, snapshotId);
-        return snapshotId;
+        return Unchanged;
       }
       const snapshotId = await this._ext.upload(key, fname, metadata);
       log.info("ext %s upload: %s checksum %s version %s", this.label, this._ext.url(key), checksum, snapshotId);
-      if (snapshotId) { await this._options.latestVersion.save(key, snapshotId); }
+      if (typeof snapshotId === "string") { await this._options.latestVersion.save(key, snapshotId); }
       await this._options.localHash.save(key, checksum);
       await this._options.sharedHash.save(key, checksum);
       return snapshotId;
@@ -364,3 +364,5 @@ export interface PropStorage {
   save(key: string, val: string): Promise<void>;
   load(key: string): Promise<string|null>;
 }
+
+export const Unchanged = Symbol('Unchanged');

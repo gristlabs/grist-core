@@ -1707,17 +1707,20 @@ function testDocApi() {
       assert.equal(resp.status, 200);
       await checkAttachmentIds([1, 2, 3]);
 
-      // Remove the expired attachment (1)
+      // Remove the expired attachment (1) by force-reloading, so it removes it during shutdown.
       // It has a duplicate (3) that hasn't expired and thus isn't removed,
       // although they share the same fileIdent and row in _gristsys_Files.
       // So for now only the metadata is removed.
-      resp = await axios.post(`${docUrl}/attachments/removeUnused?verifyfiles=1&expiredonly=1`, null, chimpy);
+      resp = await axios.post(`${docUrl}/force-reload`, null, chimpy);
       assert.equal(resp.status, 200);
       await checkAttachmentIds([2, 3]);
+      resp = await axios.post(`${docUrl}/attachments/verifyFiles`, null, chimpy);
+      assert.equal(resp.status, 200);
 
       // Remove the not expired attachments (2 and 3).
       // We didn't set a timeDeleted for 3, but it gets set automatically by updateUsedAttachments.
       resp = await axios.post(`${docUrl}/attachments/removeUnused?verifyfiles=1`, null, chimpy);
+      assert.equal(resp.status, 200);
       await checkAttachmentIds([]);
     });
 

@@ -241,13 +241,21 @@ export class DocWorkerApi {
       const verifyFiles = isAffirmative(req.query.verifyfiles);
       await activeDoc.removeUnusedAttachments(expiredOnly);
       if (verifyFiles) {
-        assert.deepStrictEqual(
-          await activeDoc.docStorage.all(`SELECT DISTINCT fileIdent AS ident FROM _grist_Attachments ORDER BY ident`),
-          await activeDoc.docStorage.all(`SELECT                       ident FROM _gristsys_Files    ORDER BY ident`),
-        );
+        await verifyAttachmentFiles(activeDoc);
       }
       res.json(null);
     }));
+    this._app.post('/api/docs/:docId/attachments/verifyFiles', isOwner, withDoc(async (activeDoc, req, res) => {
+      await verifyAttachmentFiles(activeDoc);
+      res.json(null);
+    }));
+
+    async function verifyAttachmentFiles(activeDoc: ActiveDoc) {
+      assert.deepStrictEqual(
+        await activeDoc.docStorage.all(`SELECT DISTINCT fileIdent AS ident FROM _grist_Attachments ORDER BY ident`),
+        await activeDoc.docStorage.all(`SELECT                       ident FROM _gristsys_Files    ORDER BY ident`),
+      );
+    }
 
     // Adds records given in a column oriented format,
     // returns an array of row IDs

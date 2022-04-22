@@ -116,7 +116,7 @@ export class DocTriggers {
   public shutdown() {
     this._shuttingDown = true;
     if (!this._sending) {
-      this._redisClient?.quitAsync();
+      this._redisClientField?.quitAsync();
     }
   }
 

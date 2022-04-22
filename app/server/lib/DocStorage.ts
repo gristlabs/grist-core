@@ -22,6 +22,7 @@ import * as log from 'app/server/lib/log';
 import * as assert from 'assert';
 import * as bluebird from 'bluebird';
 import * as fse from 'fs-extra';
+import {RunResult} from 'sqlite3';
 import * as _ from 'underscore';
 import * as util from 'util';
 import * as uuidv4 from "uuid/v4";
@@ -1037,7 +1038,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {String} rowId   - Row ID.
    * @returns {Promise} - A promise for the SQL execution.
    */
-  public _process_RemoveRecord(tableId: string, rowId: string): Promise<void> {
+  public _process_RemoveRecord(tableId: string, rowId: string): Promise<RunResult> {
     const sql = "DELETE FROM " + quoteIdent(tableId) + " WHERE id=?";
     debuglog("RemoveRecord SQL: " + sql, [rowId]);
     return this.run(sql, [rowId]);
@@ -1060,8 +1061,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {Array[Integer]} rowIds - Array of row IDs to be deleted.
    * @returns {Promise} - Promise for SQL execution.
    */
-  public _process_BulkRemoveRecord(tableId: string, rowIds: number[]): Promise<void> {
-    if (rowIds.length === 0) { return Promise.resolve(); }// If we have nothing to remove, done.
+  public async _process_BulkRemoveRecord(tableId: string, rowIds: number[]): Promise<void> {
+    if (rowIds.length === 0) { return; }// If we have nothing to remove, done.
 
     const chunkSize = 10;
     const preSql = "DELETE FROM " + quoteIdent(tableId) + " WHERE id IN (";
@@ -1071,12 +1072,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const numChunks = Math.floor(rowIds.length / chunkSize);
     const numLeftovers = rowIds.length % chunkSize;
 
-    let chunkPromise;
-
     if (numChunks > 0) {
       debuglog("DocStorage.BulkRemoveRecord: splitting " + rowIds.length +
                " deletes into chunks of size " + chunkSize);
-      chunkPromise = this.prepare(preSql + chunkParams + postSql)
+      await this.prepare(preSql + chunkParams + postSql)
         .then(function(stmt) {
           return bluebird.Promise.each(_.range(0, numChunks * chunkSize, chunkSize), function(index: number) {
             debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
@@ -1086,18 +1085,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
               return bluebird.Promise.fromCallback((cb: any) => stmt.finalize(cb));
             });
         });
-    } else {
-      chunkPromise = Promise.resolve();
     }
 
-    return chunkPromise.then(() => {
-      if (numLeftovers > 0) {
-        debuglog("DocStorage.BulkRemoveRecord: leftover delete " + (numChunks * chunkSize) + "-" + (rowIds.length - 1));
-        const leftoverParams = _.range(numLeftovers).map(q).join(',');
-        return this.run(preSql + leftoverParams + postSql,
-                        rowIds.slice(numChunks * chunkSize, rowIds.length));
-      }
-    });
+    if (numLeftovers > 0) {
+      debuglog("DocStorage.BulkRemoveRecord: leftover delete " + (numChunks * chunkSize) + "-" + (rowIds.length - 1));
+      const leftoverParams = _.range(numLeftovers).map(q).join(',');
+      await this.run(preSql + leftoverParams + postSql,
+                     rowIds.slice(numChunks * chunkSize, rowIds.length));
+    }
   }
 
   /**
@@ -1333,7 +1328,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Delete attachments from _gristsys_Files that have no matching metadata row in _grist_Attachments.
    */
   public async removeUnusedAttachments() {
-    await this.run(`
+    const result = await this._getDB().run(`
       DELETE FROM _gristsys_Files
       WHERE ident IN (
         SELECT ident
@@ -1343,13 +1338,16 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         WHERE fileIdent IS NULL
       )
     `);
+    if (result.changes > 0) {
+      await this._markAsChanged(Promise.resolve());
+    }
   }
 
   public all(sql: string, ...args: any[]): Promise<ResultRow[]> {
     return this._getDB().all(sql, ...args);
   }
 
-  public run(sql: string, ...args: any[]): Promise<void> {
+  public run(sql: string, ...args: any[]): Promise<RunResult> {
     return this._markAsChanged(this._getDB().run(sql, ...args));
   }
 
@@ -1393,17 +1391,17 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return typeof row !== 'undefined';
   }
 
-  public setPluginDataItem(pluginId: string, key: string, value: string): Promise<void> {
-    return this.run('INSERT OR REPLACE into _gristsys_PluginData (pluginId, key, value) values (?, ?, ?)',
+  public async setPluginDataItem(pluginId: string, key: string, value: string): Promise<void> {
+    await this.run('INSERT OR REPLACE into _gristsys_PluginData (pluginId, key, value) values (?, ?, ?)',
       pluginId, key, value);
   }
 
-  public removePluginDataItem(pluginId: string, key: string): Promise<void> {
-    return this.run('DELETE from _gristsys_PluginData where pluginId = ? and key = ?', pluginId, key);
+  public async removePluginDataItem(pluginId: string, key: string): Promise<void> {
+    await this.run('DELETE from _gristsys_PluginData where pluginId = ? and key = ?', pluginId, key);
   }
 
-  public clearPluginDataItem(pluginId: string): Promise<void> {
-    return this.run('DELETE from _gristsys_PluginData where pluginId = ?', pluginId);
+  public async clearPluginDataItem(pluginId: string): Promise<void> {
+    await this.run('DELETE from _gristsys_PluginData where pluginId = ?', pluginId);
   }
 
   /**
@@ -1486,9 +1484,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Internal helper for applying Bulk Update or Add Record sql
    */
-  private _applyMaybeBulkUpdateOrAddSql(sql: string, sqlParams: any[]): Promise<void> {
+  private async _applyMaybeBulkUpdateOrAddSql(sql: string, sqlParams: any[]): Promise<void> {
     if (sqlParams.length === 1) {
-      return this.run(sql, sqlParams[0]);
+      await this.run(sql, sqlParams[0]);
     } else {
       return this.prepare(sql)
         .then(function(stmt) {

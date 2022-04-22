@@ -10,7 +10,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage} from 'app/server/lib/ExternalStorage';
+import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage, Unchanged} from 'app/server/lib/ExternalStorage';
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
 import {ICreate} from 'app/server/lib/ICreate';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -707,6 +707,10 @@ export class HostedStorageManager implements IDocStorageManager {
       };
       const prevSnapshotId = this._latestVersions.get(docId) || null;
       const newSnapshotId = await this._ext.upload(docId, tmpPath, metadata);
+      if (newSnapshotId === Unchanged) {
+        // Nothing uploaded because nothing changed
+        return;
+      }
       if (!newSnapshotId) {
         // This is unexpected.
         throw new Error('No snapshotId allocated after upload');
