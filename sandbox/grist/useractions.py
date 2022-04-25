@@ -319,6 +319,14 @@ class UserActions(object):
     """
     pass
 
+  @useraction
+  def UpdateCurrentTime(self):
+    """
+    Somewhat similar to Calculate, trigger calculation
+    of any cells that depend on the current time.
+    """
+    self._engine.update_current_time()
+
   #----------------------------------------
   # User actions on records.
   #----------------------------------------

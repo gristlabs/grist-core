@@ -60,8 +60,6 @@ class UserTable(object):
   def __init__(self, model_class):
     docmodel.enhance_model(model_class)
     self.Model = model_class
-    column_ids = {col for col in model_class.__dict__ if not col.startswith("_")}
-    column_ids.add('id')
     self.table = None
 
   def _set_table_impl(self, table_impl):

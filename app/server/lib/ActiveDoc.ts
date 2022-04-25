@@ -119,6 +119,9 @@ const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
 // Cleanup expired attachments every hour (also happens when shutting down)
 const REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS = 60 * 60 * 1000;
 
+// Apply the UpdateCurrentTime user action every hour
+const UPDATE_CURRENT_TIME_INTERVAL_MS = 60 * 60 * 1000;
+
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
 
@@ -180,11 +183,18 @@ export class ActiveDoc extends EventEmitter {
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
 
-  // Cleanup expired attachments every hour (also happens when shutting down)
-  private _removeUnusedAttachmentsInterval = setInterval(
-    () => this.removeUnusedAttachments(true),
-    REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS,
-  );
+  // Intervals to clear on shutdown
+  private _intervals = [
+    // Cleanup expired attachments every hour (also happens when shutting down)
+    setInterval(
+      () => this.removeUnusedAttachments(true),
+      REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS,
+    ),
+    setInterval(
+      () => this._applyUserActions(makeExceptionalDocSession('system'), [["UpdateCurrentTime"]]),
+      UPDATE_CURRENT_TIME_INTERVAL_MS,
+    ),
+  ];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
@@ -406,7 +416,10 @@ export class ActiveDoc extends EventEmitter {
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
 
-      clearInterval(this._removeUnusedAttachmentsInterval);
+      for (const interval of this._intervals) {
+        clearInterval(interval);
+      }
+
       try {
         // Remove expired attachments, i.e. attachments that were soft deleted a while ago.
         // This needs to happen periodically, and doing it here means we can guarantee that it happens even if

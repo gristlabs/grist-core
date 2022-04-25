@@ -447,8 +447,9 @@ def NOW(tz=None):
   """
   Returns the `datetime` object for the current time.
   """
+  engine = docmodel.global_docmodel._engine
+  engine.use_current_time()
   return datetime.datetime.now(_get_tzinfo(tz))
-
 
 
 def SECOND(time):

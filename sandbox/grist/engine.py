@@ -3,7 +3,6 @@
 The data engine ties the code generated from the schema with the document data, and with
 dependency tracking.
 """
-import contextlib
 import itertools
 import re
 import rlcompleter
@@ -1140,6 +1139,23 @@ class Engine(object):
     """
     self.dep_graph.invalidate_deps(table._new_columns_node, depend.ALL_ROWS, self.recompute_map,
                                    include_self=False)
+
+  def update_current_time(self):
+    self.dep_graph.invalidate_deps(self._current_time_node, depend.ALL_ROWS, self.recompute_map,
+                                   include_self=False)
+
+  def use_current_time(self):
+    """
+    Add a dependency on the current time to the current evaluating node,
+    so that calling update_current_time() will invalidate the node and cause its reevaluation.
+    """
+    if not self._current_node:
+      return
+    table_id = self._current_node[0]
+    table = self.tables[table_id]
+    self._use_node(self._current_time_node, table._identity_relation)
+
+  _current_time_node = ("#now", None)
 
   def mark_lookupmap_for_cleanup(self, lookup_map_column):
     """

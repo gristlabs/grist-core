@@ -216,9 +216,9 @@ export class Sharing {
     try {
 
       const isCalculate = (userActions.length === 1 &&
-                           userActions[0][0] === 'Calculate');
+                           (userActions[0][0] === 'Calculate' || userActions[0][0] === 'UpdateCurrentTime'));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
-      // - Calculate because it's not considered as performed by a particular client.
+      // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
       // - Adding attachment metadata when uploading attachments,
       //   because then the attachment file may get hard-deleted and redo won't work properly.
       const internal = isCalculate || userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments");

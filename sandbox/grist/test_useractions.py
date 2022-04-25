@@ -1336,3 +1336,59 @@ class TestUserActions(test_engine.EngineTestCase):
       [5, 2],
       [6, 2],
     ])
+
+  def test_update_current_time(self):
+    self.load_sample(self.sample)
+    self.apply_user_action(["AddEmptyTable"])
+    self.add_column('Table1', 'now', isFormula=True, formula='NOW()', type='Any')
+
+    # No records with NOW() in a formula yet, so this action should have no effect at all.
+    out_actions = self.apply_user_action(["UpdateCurrentTime"])
+    self.assertOutActions(out_actions, {})
+
+    class FakeDatetime(object):
+      counter = 0
+
+      @classmethod
+      def now(cls, *_):
+        cls.counter += 1
+        return cls.counter
+
+    import datetime
+    original = datetime.datetime
+    # This monkeypatch depends on NOW() using `import datetime`
+    # as opposed to `from datetime import datetime`
+    datetime.datetime = FakeDatetime
+
+    def check(expected_now):
+      self.assertEqual(expected_now, FakeDatetime.counter)
+      self.assertTableData('Table1', cols="subset", data=[
+        ["id", "now"],
+        [1, expected_now],
+      ])
+
+    try:
+      # The counter starts at 0. Adding an initial record calls FakeDatetime.now() for the 1st time.
+      # The call increments the counter to 1 before returning.
+      self.add_record('Table1')
+      check(1)
+
+      # Testing that unrelated actions don't change the time
+      self.apply_user_action(["AddEmptyTable"])
+      self.add_record("Table2")
+      self.apply_user_action(["Calculate"])  # only recalculates for fresh docs
+      check(1)
+
+      # Actually testing that the time is updated as requested
+      self.apply_user_action(["UpdateCurrentTime"])
+      check(2)
+      out_actions = self.apply_user_action(["UpdateCurrentTime"])
+      check(3)
+      self.assertOutActions(out_actions, {
+        "direct": [False],
+        "stored": [["UpdateRecord", "Table1", 1, {"now": 3}]],
+        "undo": [["UpdateRecord", "Table1", 1, {"now": 2}]],
+      })
+    finally:
+      # Revert the monkeypatch
+      datetime.datetime = original

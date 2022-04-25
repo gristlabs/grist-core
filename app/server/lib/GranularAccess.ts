@@ -99,7 +99,7 @@ const SURPRISING_ACTIONS = new Set([
                                    ]);
 
 // Actions we'll allow unconditionally for now.
-const OK_ACTIONS = new Set(['Calculate']);
+const OK_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime']);
 
 /**
  * Granular access for a single bundle, in different phases.
