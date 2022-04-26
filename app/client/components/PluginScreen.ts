@@ -111,6 +111,7 @@ const cssModalBody = styled('div', `
   padding: 16px 0;
   overflow-y: auto;
   max-width: 470px;
+  white-space: pre-line;
 `);
 
 const cssModalHeader = styled('div', `

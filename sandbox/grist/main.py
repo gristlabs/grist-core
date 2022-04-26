@@ -7,6 +7,7 @@ import sys
 sys.path.append('thirdparty')
 # pylint: disable=wrong-import-position
 
+import logging
 import marshal
 import functools
 
@@ -24,6 +25,9 @@ from imports.register import register_import_parsers
 
 import logger
 log = logger.Logger(__name__, logger.INFO)
+
+# Configure logging module to behave similarly to logger. (It may be OK to get rid of logger.)
+logging.basicConfig(format="[%(levelname)s] [%(name)s] %(message)s")
 
 def table_data_from_db(table_name, table_data_repr):
   if table_data_repr is None:

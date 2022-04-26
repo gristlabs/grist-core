@@ -40,7 +40,7 @@ def parse_file(file_path, orig_name, parse_options=None, table_name_hint=None, n
       return parse_open_file(f, orig_name, table_name_hint=table_name_hint)
     except Exception as e:
       # Log the full error, but simplify the thrown error to omit the unhelpful extra args.
-      log.info("import_xls parse_file failed: %s", e)
+      log.warn("import_xls parse_file failed: %s", e)
       if six.PY2 and e.args and isinstance(e.args[0], six.string_types):
         raise Exception(e.args[0])
       raise
@@ -58,6 +58,7 @@ def parse_open_file(file_obj, orig_name, table_name_hint=None):
     if table_set.encoding == 'ascii':
       table_set.encoding = 'utf8'
 
+  skipped_tables = 0
   export_list = []
   # A table set is a collection of tables:
   for row_set in table_set.tables:
@@ -101,6 +102,7 @@ def parse_open_file(file_obj, orig_name, table_name_hint=None):
 
     if not table_data:
       # Don't add tables with no columns.
+      skipped_tables += 1
       continue
 
     log.info("Output table %r with %d columns", table_name, len(column_metadata))
@@ -112,8 +114,12 @@ def parse_open_file(file_obj, orig_name, table_name_hint=None):
       "table_data": table_data
     })
 
-    parse_options = {}
+  if not export_list:
+    if skipped_tables:
+      raise Exception("No tables found ({} empty tables skipped)".format(skipped_tables))
+    raise Exception("No tables found")
 
+  parse_options = {}
   return parse_options, export_list
 
 

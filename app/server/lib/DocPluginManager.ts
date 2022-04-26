@@ -141,7 +141,7 @@ export class DocPluginManager {
         '.csv' : 'CSV',
       };
       const fileType = extToType[path.extname(fileName)] || path.extname(fileName);
-      throw new Error(`Failed to parse ${fileType} file. Error: ${messages.join("; ")}`);
+      throw new Error(`Failed to parse ${fileType} file.\nError: ${messages.join("; ")}`);
     }
     throw new Error(`File format is not supported.`);
   }
