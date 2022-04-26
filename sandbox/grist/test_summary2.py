@@ -456,16 +456,16 @@ class TestSummary2(test_engine.EngineTestCase):
       # Note that Table #2 is gone at this point, since it's unused.
       Table(3, "GristSummary_7_Address2", 0, 1, columns=[
         Column(19, "state",   "Text",     False,  "", 12),
-        Column(20, "count",   "Int",      True,   "len($group)", 0),
-        Column(21, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(22, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(20, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(21, "count",   "Int",      True,   "len($group)", 0),
+        Column(22, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=3, fields=[
         Field(2, colRef=19),
-        Field(3, colRef=20),
-        Field(4, colRef=21),
+        Field(3, colRef=21),
+        Field(4, colRef=22),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address2', cols="subset", data=[
@@ -481,7 +481,7 @@ class TestSummary2(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables_column', rows="subset", cols="subset", data=[
       ['id', 'colId',  'type',    'formula',            'widgetOptions',  'label'],
       [19,   'state',  'Text',    '',                   'WidgetOptions1', 'State'],
-      [21,   'amount', 'Numeric', 'SUM($group.amount)', 'WidgetOptions2', 'Amount'],
+      [22,   'amount', 'Numeric', 'SUM($group.amount)', 'WidgetOptions2', 'Amount'],
     ])
 
     # Change group-by to a different single column ('city')
@@ -491,16 +491,16 @@ class TestSummary2(test_engine.EngineTestCase):
       # Note that Table #3 is gone at this point, since it's unused.
       Table(4, "GristSummary_7_Address", 0, 1, columns=[
         Column(23, "city",    "Text",     False,  "", 11),
-        Column(24, "count",   "Int",      True,   "len($group)", 0),
-        Column(25, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(26, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(24, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(25, "count",   "Int",      True,   "len($group)", 0),
+        Column(26, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=4, fields=[
         Field(5, colRef=23),
-        Field(3, colRef=24),
-        Field(4, colRef=25),
+        Field(3, colRef=25),
+        Field(4, colRef=26),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
@@ -520,7 +520,7 @@ class TestSummary2(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables_column', rows="subset", cols="subset", data=[
       ['id', 'colId',  'type',    'formula',            'widgetOptions',  'label'],
       [23,   'city',   'Text',    '',                   '',               'City'],
-      [25,   'amount', 'Numeric', 'SUM($group.amount)', 'WidgetOptions2', 'Amount'],
+      [26,   'amount', 'Numeric', 'SUM($group.amount)', 'WidgetOptions2', 'Amount'],
     ])
 
     # Change group-by to no columns (totals)
@@ -529,15 +529,15 @@ class TestSummary2(test_engine.EngineTestCase):
       self.starting_table,
       # Note that Table #4 is gone at this point, since it's unused.
       Table(5, "GristSummary_7_Address2", 0, 1, columns=[
-        Column(27, "count",   "Int",      True,   "len($group)", 0),
-        Column(28, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(29, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(27, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(28, "count",   "Int",      True,   "len($group)", 0),
+        Column(29, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=5, fields=[
-        Field(3, colRef=27),
-        Field(4, colRef=28),
+        Field(3, colRef=28),
+        Field(4, colRef=29),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address2', cols="subset", data=[
@@ -554,17 +554,17 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
         Column(30, "state",   "Text",     False,  "", 12),
         Column(31, "city",    "Text",     False,  "", 11),
-        Column(32, "count",   "Int",      True,   "len($group)", 0),
-        Column(33, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(34, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(32, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(33, "count",   "Int",      True,   "len($group)", 0),
+        Column(34, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=6, fields=[
         Field(5, colRef=30),
         Field(6, colRef=31),
-        Field(3, colRef=32),
-        Field(4, colRef=33),
+        Field(3, colRef=33),
+        Field(4, colRef=34),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
@@ -588,23 +588,23 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
         Column(30, "state",   "Text",     False,  "", 12),
         Column(31, "city",    "Text",     False,  "", 11),
-        Column(32, "count",   "Int",      True,   "len($group)", 0),
-        Column(33, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(34, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(32, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(33, "count",   "Int",      True,   "len($group)", 0),
+        Column(34, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=6, fields=[
         Field(5, colRef=30),
         Field(6, colRef=31),
-        Field(3, colRef=32),
-        Field(4, colRef=33),
+        Field(3, colRef=33),
+        Field(4, colRef=34),
       ]),
       Section(2, parentKey="record", tableRef=6, fields=[
         Field(7,  colRef=31),
         Field(8,  colRef=30),
-        Field(9,  colRef=32),
-        Field(10, colRef=33),
+        Field(9,  colRef=33),
+        Field(10, colRef=34),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
@@ -616,26 +616,26 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
         Column(30, "state",   "Text",     False,  "", 12),
         Column(31, "city",    "Text",     False,  "", 11),
-        Column(32, "count",   "Int",      True,   "len($group)", 0),
-        Column(33, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(34, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(32, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(33, "count",   "Int",      True,   "len($group)", 0),
+        Column(34, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
       Table(7, "GristSummary_7_Address2", 0, 1, columns=[
-        Column(35, "count",   "Int",      True,   "len($group)", 0),
-        Column(36, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(37, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(35, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(36, "count",   "Int",      True,   "len($group)", 0),
+        Column(37, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=6, fields=[
         Field(5, colRef=30),
         Field(6, colRef=31),
-        Field(3, colRef=32),
-        Field(4, colRef=33),
+        Field(3, colRef=33),
+        Field(4, colRef=34),
       ]),
       Section(2, parentKey="record", tableRef=7, fields=[
-        Field(9,  colRef=35),
-        Field(10, colRef=36),
+        Field(9,  colRef=36),
+        Field(10, colRef=37),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address',
@@ -649,17 +649,17 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
         Column(30, "state",   "Text",     False,  "", 12),
         Column(31, "city",    "Text",     False,  "", 11),
-        Column(32, "count",   "Int",      True,   "len($group)", 0),
-        Column(33, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(34, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(32, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(33, "count",   "Int",      True,   "len($group)", 0),
+        Column(34, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ])
     ])
     self.assertViews([View(1, sections=[
       Section(1, parentKey="record", tableRef=6, fields=[
         Field(5, colRef=30),
         Field(6, colRef=31),
-        Field(3, colRef=32),
-        Field(4, colRef=33),
+        Field(3, colRef=33),
+        Field(4, colRef=34),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
@@ -673,8 +673,8 @@ class TestSummary2(test_engine.EngineTestCase):
         Column(35, "city",    "Text",     False,  "", 11),
         Column(36, "state",   "Text",     False,  "", 12),
         Column(37, "amount",  "Numeric",  False,   "", 13),
-        Column(38, "count",   "Int",      True,   "len($group)", 0),
-        Column(39, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(38, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(39, "count",   "Int",      True,   "len($group)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
@@ -682,7 +682,7 @@ class TestSummary2(test_engine.EngineTestCase):
         Field(6, colRef=35),
         Field(5, colRef=36),
         Field(7, colRef=37),
-        Field(3, colRef=38),
+        Field(3, colRef=39),
       ])
     ])])
     self.apply_user_action(["UpdateSummaryViewSection", 1, [11,12]])
@@ -691,9 +691,9 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(8, "GristSummary_7_Address", 0, 1, columns=[
         Column(40, "city",    "Text",     False,  "", 11),
         Column(41, "state",   "Text",     False,  "", 12),
-        Column(42, "count",   "Int",      True,   "len($group)", 0),
+        Column(42, "amount",  "Numeric",  True, "SUM($group.amount)", 0),
         Column(43, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
-        Column(44, "amount",  "Numeric",  True, "SUM($group.amount)", 0),
+        Column(44, "count",   "Int",      True,   "len($group)", 0),
 
       ]),
     ])
@@ -701,8 +701,28 @@ class TestSummary2(test_engine.EngineTestCase):
       Section(1, parentKey="record", tableRef=8, fields=[
         Field(6, colRef=40),
         Field(5, colRef=41),
-        Field(3, colRef=42),
-        Field(7, colRef=44),
+        Field(7, colRef=42),
+        Field(3, colRef=44),
+      ])
+    ])])
+
+    # Hide a formula and update group by columns; check that the formula columns had not been
+    # deleted
+    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 7])
+    self.apply_user_action(["UpdateSummaryViewSection", 1, [11]])
+    self.assertTables([
+      self.starting_table,
+      Table(9, "GristSummary_7_Address2", 0, 1, columns=[
+        Column(45, "city",    "Text",     False,  "", 11),
+        Column(46, "amount",  "Numeric",  True, "SUM($group.amount)", 0),
+        Column(48, "count",   "Int",      True,   "len($group)", 0),
+        Column(47, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+      ]),
+    ])
+    self.assertViews([View(1, sections=[
+      Section(1, parentKey="record", tableRef=9, fields=[
+        Field(6, colRef=45),
+        Field(3, colRef=48),
       ])
     ])])
 
@@ -755,9 +775,9 @@ class TestSummary2(test_engine.EngineTestCase):
       Table(3, "GristSummary_7_Address2", 0, 1, columns=[
         Column(19, "city",    "Text",     False,  "", 11),
         Column(20, "state",   "Text",     False,  "", 12),
-        Column(21, "count",   "Int",      True,   "len($group)", 0),
-        Column(22, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(23, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(21, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(22, "count",   "Int",      True,   "len($group)", 0),
+        Column(23, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     self.assertViews([View(1, sections=[
@@ -765,8 +785,8 @@ class TestSummary2(test_engine.EngineTestCase):
         # We requested 'city' to come before 'state', check that this is the case.
         Field(4, colRef=19),
         Field(1, colRef=20),
-        Field(2, colRef=21),
-        Field(3, colRef=22),
+        Field(2, colRef=22),
+        Field(3, colRef=23),
       ])
     ])])
 
@@ -890,15 +910,15 @@ class TestSummary2(test_engine.EngineTestCase):
       # Note that Table #2 is gone at this point, since it's unused.
       Table(3, "GristSummary_7_Address2", 0, 1, columns=[
         Column(19, "state",   "Text",     False,  "", 12),
-        Column(20, "count",   "Int",      True,   "len($group)", 0),
-        Column(21, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
-        Column(22, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(20, "group",   "RefList:Address", True, "table.getSummarySourceGroup(rec)", 0),
+        Column(21, "count",   "Int",      True,   "len($group)", 0),
+        Column(22, "amount",  "Numeric",  True,   "SUM($group.amount)", 0),
       ]),
     ])
     # Verify that sortColRefs refers to new columns.
     self.assertTableData('_grist_Views_section', cols="subset", data=[
       ["id",  "tableRef", "sortColRefs"],
-      [1,     3,          "[19,-20]"],
+      [1,     3,          "[19,-21]"],
     ])
 
   #----------------------------------------------------------------------

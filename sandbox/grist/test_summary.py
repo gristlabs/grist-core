@@ -824,9 +824,9 @@ class Address:
       ]),
       Table(3, "GristSummary_6_Table1_2", summarySourceTable=1, primaryViewId=0, columns=[
         Column(10, "B",          "Numeric",        False,  "", 3),
-        Column(11, "count",      "Int",            True,  "len($group)", 0),
-        Column(12, "C",          "Numeric",        True,  "SUM($group.C)", 0),
-        Column(13, "group",      "RefList:Table1", True,  "table.getSummarySourceGroup(rec)", 0),
+        Column(12, "count",      "Int",            True,  "len($group)", 0),
+        Column(13, "C",          "Numeric",        True,  "SUM($group.C)", 0),
+        Column(11, "group",      "RefList:Table1", True,  "table.getSummarySourceGroup(rec)", 0),
       ])
     ])
     self.assertTableData('Table1', data=[

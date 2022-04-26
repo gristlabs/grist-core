@@ -356,9 +356,9 @@ class TestColumnActions(test_engine.EngineTestCase):
       ]),
       # Note that the summary table here switches to a new one, without the deleted group-by.
       Table(4, "GristSummary_7_Address2", 0, 1, columns=[
-        Column(22, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
-        Column(23, "amount", "Numeric", True, summarySourceCol=0, formula="SUM($group.amount)"),
-        Column(24, "group", "RefList:Address", True, summarySourceCol=0,
+        Column(23, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+        Column(24, "amount", "Numeric", True, summarySourceCol=0, formula="SUM($group.amount)"),
+        Column(22, "group", "RefList:Address", True, summarySourceCol=0,
                formula="table.getSummarySourceGroup(rec)"),
       ]),
     ])
@@ -372,8 +372,8 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(12, colRef=17),
         ]),
         Section(5, parentKey="record", tableRef=4, fields=[
-          Field(14, colRef=22),
-          Field(15, colRef=23),
+          Field(14, colRef=23),
+          Field(15, colRef=24),
         ]),
       ]),
       View(2, sections=[

@@ -197,27 +197,26 @@ class SummaryActions(object):
   def update_summary_section(self, view_section, source_table, source_groupby_columns):
     source_groupby_colset = set(source_groupby_columns)
     groupby_colids = {c.colId for c in source_groupby_columns}
-    prev_fields = list(view_section.fields)
 
-    # Go through fields figuring out which ones we'll keep.
-    prev_group_fields, formula_fields, delete_fields, missing_colinfo = [], [], [], []
-    for field in prev_fields:
-      srcCol = field.colRef.summarySourceCol
+    # Go through columns figuring out which ones we'll keep.
+    prev_group_cols, formula_colinfo = [], []
+    for col in view_section.tableRef.columns:
+      srcCol = col.summarySourceCol
       # Records implement __hash__, so we can look them up in sets.
       if srcCol in source_groupby_colset:
-        prev_group_fields.append(field)
-      elif field.colRef.isFormula and field.colRef.colId not in groupby_colids:
-        formula_fields.append(field)
+        prev_group_cols.append(col)
+      elif col.isFormula and col.colId not in groupby_colids:
+        formula_colinfo.append(_make_col_info(col))
       else:
         # if user is removing a numeric column from the group by columns we must add it back as a
         # sum formula column
-        self._append_sister_column_if_any(missing_colinfo, source_table, srcCol)
-        delete_fields.append(field)
+        self._append_sister_column_if_any(formula_colinfo, source_table, srcCol)
 
-    # Prepare ColInfo for all columns we want to keep.
-    formula_colinfo = [_make_col_info(f.colRef) for f in formula_fields]
+    # All fields with a column that we don't keep, must be deleted
+    colid_keep_set = set(c.colId for c in prev_group_cols + formula_colinfo)
+    delete_fields = [f for f in view_section.fields if f.colRef.colId not in colid_keep_set]
 
-    have_group_col = any(f.colRef.colId == 'group' for f in formula_fields)
+    have_group_col = any(ci.colId == 'group' for ci in formula_colinfo)
     if not have_group_col:
       formula_colinfo.append(_group_colinfo(source_table))
 
@@ -242,19 +241,18 @@ class SummaryActions(object):
     # Delete fields no longer relevant.
     self.docmodel.remove(delete_fields)
 
-    # Add missing sum column
-    for ci in missing_colinfo:
-      col = self.useractions.AddColumn(summary_table.tableId, ci.colId,
-                                       _get_colinfo_dict(ci, with_id=False))
-      # AddColumn user action did not add the fields as the view section was not yet updated with
-      # new table, hence adds it manually
-      self.docmodel.add(view_section.fields, colRef=[col['colRef']])
-
     # Update fields for all formula fields and reused group-by fields to point to new columns.
+    colid_to_field_map = {field.colRef.colId: field for field in view_section.fields}
+    prev_group_fields = [
+      colid_to_field_map[col.colId] for col in prev_group_cols
+      if col.colId in colid_to_field_map
+    ]
     source_col_map = dict(zip(source_groupby_columns, groupby_columns))
     prev_group_columns = [source_col_map[f.colRef.summarySourceCol] for f in prev_group_fields]
+    visible_formula_columns = [c for c in formula_columns if c.colId in colid_to_field_map]
+    formula_fields = [colid_to_field_map[c.colId] for c in visible_formula_columns]
     self.docmodel.update(formula_fields + prev_group_fields,
-                         colRef=[c.id for c in formula_columns + prev_group_columns])
+                         colRef=[c.id for c in visible_formula_columns + prev_group_columns])
 
     # Finally, we need to create fields for newly-added group-by columns. If there were missing
     # fields for any group-by columns before, they'll be created now.
