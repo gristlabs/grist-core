@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 export const schema = {
 

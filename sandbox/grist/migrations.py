@@ -924,3 +924,39 @@ def migration28(tdset):
         doc_actions.append(actions.ModifyColumn(table.tableId, col.colId, {"type": "Attachments"}))
 
   return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=29)
+def migration29(tdset):
+  # This migration is fixing an error on summary tables with conditional rules.
+  # On summary tables all formula columns with the same name were updated together,
+  # which caused a situation where some summary columns have rules from diffrent tables.
+  # This migration is removing those rules in such columns.
+
+  tables = {table.id: table
+          for table in actions.transpose_bulk_action(tdset.all_tables["_grist_Tables"])}
+  columns = {col.id: col
+          for col in actions.transpose_bulk_action(tdset.all_tables["_grist_Tables_column"])}
+  doc_actions = []
+
+  def is_valid_rule(parentId, rule_id):
+    # Valid rule should be an existing column,
+    rule_col = columns.get(rule_id)
+    # in the same table.
+    return rule_col and rule_col.parentId == parentId
+
+  for col in columns.values():
+    if col.rules:
+      # Parse rules (they are a json encoded array like '[15]')
+      rules = safe_parse(col.rules)
+      # Remove all conditional styles if anything about rules is invalid.
+      if not (
+        isinstance(rules, list) and
+        all(is_valid_rule(col.parentId, ruleId) for ruleId in rules)
+      ):
+        doc_actions.append(actions.UpdateRecord('_grist_Tables_column', col.id, {
+          "rules": None,
+          "widgetOptions": summary._copy_widget_options(col.widgetOptions)
+        }))
+
+  return tdset.apply_doc_actions(doc_actions)

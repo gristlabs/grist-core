@@ -748,10 +748,6 @@ class UserActions(object):
     # Returns a list of (col, values) pairs (containing the input column but possibly more).
     # Note that it may modify col_values in-place, and may reuse it for multiple results.
 
-    results = []
-    def add(cols, value_dict):
-      results.extend((c, value_dict) for c in cols)
-
     # If changing label, sync it to colId unless untieColIdFromLabel flag is set.
     if 'label' in col_values and not col_values.get('untieColIdFromLabel',col.untieColIdFromLabel):
       col_values.setdefault('colId', col_values['label'])
@@ -780,13 +776,19 @@ class UserActions(object):
       col_values.setdefault('rules', None)
       col_values.setdefault('displayCol', 0)
 
+    # Collect all updates for dependent summary columns.
+    results = []
+    def add(cols, value_dict):
+      results.extend((c, summary.skip_rules_update(c, value_dict)) for c in cols)
+
     source_table = col.parentId.summarySourceTable
     if source_table:  # This is a summary-table column.
       # Disallow isFormula changes.
       if has_diff_value(col_values, 'isFormula', col.isFormula):
         raise ValueError("Cannot change summary column '%s' between formula and data" % col.colId)
 
-      if col.isFormula:
+      # Don't update any sister helper columns.
+      if col.isFormula and not col.colId.startswith("gristHelper"):
         # Get all same-named formula columns from other summary tables for the same source table,
         # and apply the same changes to them.
         add(self._get_sister_columns(source_table, col), col_values)

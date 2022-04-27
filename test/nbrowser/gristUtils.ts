@@ -1831,6 +1831,11 @@ export function hexToRgb(hex: string) {
 export async function addColumn(name: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
+  // If we are on a summary table, we could be see a menu helper
+  const menu = (await driver.findAll('.grist-floating-menu'))[0];
+  if (menu) {
+    await menu.findContent("li", name).click();
+  }
   await waitForServer();
   await waitAppFocus(false);
   await driver.sendKeys(name);

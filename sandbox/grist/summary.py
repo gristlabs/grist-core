@@ -35,6 +35,39 @@ def _get_colinfo_dict(col_info, with_id=False):
   return col_values
 
 
+def skip_rules_update(col, col_values):
+  """
+  Rules for summary tables can't be derived from source columns. This function
+  removes (and kips original) rules settings when updating summary tables.
+  """
+
+  # Remove rules from updates.
+  col_values = {k: v for k, v in six.iteritems(col_values) if k != 'rules'}
+
+  try:
+    # New widgetOptions to use.
+    new_widgetOptions = json.loads(col_values.get('widgetOptions', ''))
+  except ValueError:
+    # If we are not updating widgetOptions (or they are
+    # not a valid json string, i.e. in tests), just return the original updates.
+    return col_values
+
+  try:
+    # Original widgetOptions (maybe with styling rules "ruleOptions").
+    widgetOptions = json.loads(col.widgetOptions or '')
+  except ValueError:
+    widgetOptions = {}
+
+  # Keep the original rulesOptions if any, and ignore any new one.
+  new_widgetOptions.pop("rulesOptions", "")
+  rulesOptions = widgetOptions.get('rulesOptions')
+  if rulesOptions:
+    new_widgetOptions['rulesOptions'] = rulesOptions
+
+  col_values['widgetOptions'] = json.dumps(new_widgetOptions)
+  return col_values
+
+
 def _copy_widget_options(options):
   """Copies widgetOptions for a summary group-by column (omitting conditional formatting rules)"""
   if not options:

@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
+
+from collections import namedtuple
+from summary import skip_rules_update
 import testutil
 import test_engine
 
@@ -51,6 +55,41 @@ class TestRules(test_engine.EngineTestCase):
     rules = self.engine.docmodel.view_fields.table.get_record(field_id).rules
     rule = list(rules)[rule_index]
     return self.apply_user_action(['RemoveColumn', 'Inventory', rule.colId])
+
+  def test_summary_updates(self):
+    Col = namedtuple('Col', 'widgetOptions')
+    col = Col(None)
+    # Should remove rules from update
+    self.assertEqual({}, skip_rules_update(col, {'rules': [15]}))
+    # Should leave col_updates untouched when there are no rules.
+    col_updates = {'type': 'Int'}
+    self.assertEqual(col_updates, skip_rules_update(col, col_updates))
+
+    # Should return same dict when not updating ruleOptions
+    col_updates = {'widgetOptions': '{"color": "red"}'}
+    self.assertEqual(col_updates, skip_rules_update(col, col_updates))
+    col = Col('{"color": "red"}')
+    self.assertEqual(col_updates, skip_rules_update(col, col_updates))
+
+    # Should remove ruleOptions from update
+    col_updates = {'widgetOptions': '{"rulesOptions": [{"color": "black"}], "color": "blue"}'}
+    self.assertEqual({'widgetOptions': '{"color": "blue"}'},
+                         skip_rules_update(col, col_updates))
+    col_updates = {'widgetOptions': '{"rulesOptions": [], "color": "blue"}'}
+    self.assertEqual({'widgetOptions': '{"color": "blue"}'},
+                         skip_rules_update(col, col_updates))
+
+    # Should preserve original ruleOptions
+    col = Col('{"rulesOptions": [{"color":"red"}], "color": "blue"}')
+    col_updates = {'widgetOptions': '{"rulesOptions": [{"color": "black"}], "color": "red"}'}
+    updated = skip_rules_update(col, col_updates)
+    self.assertEqual({"rulesOptions": [{"color": "red"}], "color": "red"},
+                         json.loads(updated.get('widgetOptions')))
+    col_updates = {'widgetOptions': '{"color": "red"}'}
+    updated = skip_rules_update(col, col_updates)
+    self.assertEqual({"rulesOptions": [{"color": "red"}], "color": "red"},
+                         json.loads(updated.get('widgetOptions')))
+
 
   def test_simple_rules(self):
     self.load_sample(self.sample)
