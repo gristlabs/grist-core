@@ -362,7 +362,7 @@ exports.groups = [{
       desc: 'Delete the currently active viewsection'
     }, {
       name: 'duplicateRows',
-      keys: ['Ctrl+Shift+d'],
+      keys: ['Mod+Shift+d'],
       desc: 'Duplicate selected rows'
     }
   ],
