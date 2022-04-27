@@ -329,7 +329,7 @@ export function buildViewSectionDom(options: {
 // With new widgetPopup it is hard to click on viewSection without a activating it, hence we
 // add a little blank space to use in test.
 const cssTestClick = styled(`div`, `
-  min-width: 1px;
+  min-width: 2px;
 `);
 
 const cssSigmaIcon = styled(icon, `

@@ -491,11 +491,15 @@ export class ChartConfig extends GrainJSDisposable {
     })
     .onWrite((colId) => this._setXAxis(colId));
 
+  // Whether value is aggregated or not
+  private _isValueAggregated = Computed.create(this, (use) => this._isSummaryTable(use))
+    .onWrite((val) => this._setAggregation(val));
+
   // Columns options
   private _columnsOptions: Computed<Array<IOptionFull<string>>> = Computed.create(
     this, this._freezeXAxis, (use, freeze) => {
       if (freeze) { return this._columnsOptions.get(); }
-      const columns = use(this._optionsObj.prop('aggregate')) ?
+      const columns = use(this._isValueAggregated) ?
         this._getSummarySourceColumns(use) :
         this._getColumns(use);
       return columns
@@ -547,9 +551,6 @@ export class ChartConfig extends GrainJSDisposable {
         }
       });
     });
-
-  private _isValueAggregated = Computed.create(this, (use) => use(this._optionsObj.prop('aggregate')))
-    .onWrite((val) => this._setAggregation(val));
 
   constructor(private _gristDoc: GristDoc, private _section: ViewSectionRec) {
     super();
@@ -711,7 +712,7 @@ export class ChartConfig extends GrainJSDisposable {
         // if values aggregation is 'on' update the grouped by columns before findColumn()
         // call. This will make sure that colId is not missing from the summary table's columns (as
         // could happen if it were a non-numeric for instance).
-        if (this._optionsObj.prop('aggregate')()) {
+        if (this._isValueAggregated.get()) {
           const splitColId = this._groupDataColId.get();
           const cols = splitColId === colId ? [colId] : [splitColId, colId];
           await this._setGroupByColumns(cols);
@@ -753,7 +754,7 @@ export class ChartConfig extends GrainJSDisposable {
         // if values aggregation is 'on' update the grouped by columns first. This will make sure
         // that colId is not missing from the summary table's columns (as could happen if it were a
         // non-numeric for instance).
-        if (this._optionsObj.prop('aggregate')()) {
+        if (this._isValueAggregated.get()) {
           const xAxisColId = this._xAxis.get();
           const cols = xAxisColId === colId ? [colId] : [colId, xAxisColId];
           await this._setGroupByColumns(cols);
@@ -840,7 +841,6 @@ export class ChartConfig extends GrainJSDisposable {
     try {
       this._freezeXAxis.set(true);
       await this._gristDoc.docData.bundleActions(`Toggle chart aggregation`, async () => {
-        await this._optionsObj.prop('aggregate').saveOnly(val);
         if (val) {
           await this._doAggregation();
         } else {
