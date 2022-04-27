@@ -454,14 +454,16 @@ class TestUserActions(test_engine.EngineTestCase):
       [ 4,      'Table1',     3],
     ])
 
-    # Update the names in a few views, and ensure that primary ones cause tables to get renamed.
+    # Update the names in a few views, and ensure that primary ones won't cause tables to
+    # get renamed.
     self.apply_user_action(['BulkUpdateRecord', '_grist_Views', [2,3,4],
                             {'name': ['A', 'B', 'C']}])
+
     self.assertTableData('_grist_Tables', cols="subset", data=[
       [ 'id', 'tableId',  'primaryViewId'  ],
       [ 1,    'Schools',                1],
       [ 2,    'GristSummary_7_Schools', 0],
-      [ 3,    'C',                      4],
+      [ 3,    'Table1',                      4],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
       [ 'id',   'name',   'primaryViewTable'  ],
@@ -469,6 +471,97 @@ class TestUserActions(test_engine.EngineTestCase):
       [ 2,      'A',        0],
       [ 3,      'B',        0],
       [ 4,      'C',        3]
+    ])
+
+    # Now rename a table (by raw view section) and make sure that a view with the same name
+    # was renamed
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 2,
+                            {'title': 'Bars'}])
+
+    self.assertTableData('_grist_Tables', cols="subset", data=[
+      ['id', 'tableId'],
+      [1, 'Bars', 1],
+      [2, 'GristSummary_4_Bars', 0],
+      [3, 'Table1', 4],
+    ])
+    self.assertTableData('_grist_Views', cols="subset", data=[
+      ['id', 'name'],
+      [1, 'Bars'],
+      [2, 'A'],
+      [3, 'B'],
+      [4, 'C']
+    ])
+
+    # Now rename tables so that two tables will have same names, to test if only the view
+    # with a page will be renamed.
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 2,
+                            {'title': 'A'}])
+
+    self.assertTableData('_grist_Tables', cols="subset", data=[
+      ['id', 'tableId'],
+      [1, 'A', 1],
+      [2, 'GristSummary_1_A', 0],
+      [3, 'Table1', 4],
+    ])
+    self.assertTableData('_grist_Views', cols="subset", data=[
+      ['id', 'name'],
+      [1, 'A'],
+      [2, 'A'],
+      [3, 'B'],
+      [4, 'C']
+    ])
+
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 2,
+                            {'title': 'Z'}])
+
+    self.assertTableData('_grist_Tables', cols="subset", data=[
+      ['id', 'tableId'],
+      [1, 'Z', 1],
+      [2, 'GristSummary_1_Z', 0],
+      [3, 'Table1', 4],
+    ])
+    self.assertTableData('_grist_Views', cols="subset", data=[
+      ['id', 'name'],
+      [1, 'Z'],
+      [2, 'Z'],
+      [3, 'B'],
+      [4, 'C']
+    ])
+
+    # Add new table, with a view with the same name (Z) and make sure it won't be renamed
+    self.apply_user_action(['AddTable', 'Stations', [
+      {'id': 'city', 'type': 'Text'},
+    ]])
+
+    # Replacing only a page name (though primary)
+    self.apply_user_action(['UpdateRecord', '_grist_Views', 5, {'name': 'Z'}])
+    self.assertTableData('_grist_Views', cols="subset", data=[
+      ['id', 'name'],
+      [1, 'Z'],
+      [2, 'Z'],
+      [3, 'B'],
+      [4, 'C'],
+      [5, 'Z']
+    ])
+
+    # Rename table Z to Schools. Primary view for Stations (Z) should not be renamed.
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 2,
+                            {'title': 'Schools'}])
+
+    self.assertTableData('_grist_Tables', cols="subset", data=[
+      ['id', 'tableId'],
+      [1, 'Schools'],
+      [2, 'GristSummary_7_Schools'],
+      [3, 'Table1'],
+      [4, 'Stations'],
+    ])
+    self.assertTableData('_grist_Views', cols="subset", data=[
+      ['id', 'name'],
+      [1, 'Schools'],
+      [2, 'Schools'],
+      [3, 'B'],
+      [4, 'C'],
+      [5, 'Z']
     ])
 
   #----------------------------------------------------------------------
@@ -531,7 +624,8 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertEqual(count_calls[0], 0)
 
     # Do a schema action to ensure it gets called: this causes a table rename.
-    self.apply_user_action(['UpdateRecord', '_grist_Views', 4, {'name': 'C'}])
+    # 7 is id of raw view section for the Tabl1 table
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 7, {'title': 'C'}])
     self.assertEqual(count_calls[0], 1)
 
     self.assertTableData('_grist_Tables', cols="subset", data=[

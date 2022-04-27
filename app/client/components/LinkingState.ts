@@ -114,6 +114,9 @@ export class LinkingState extends Disposable {
       _update();
       function _update() {
         const result: FilterColValues = {filters: {}, operations: {}};
+        if (srcSection.isDisposed()) {
+          return result;
+        }
         const srcRowId = srcSection.activeRowId();
         for (const c of srcSection.table().groupByColumns()) {
           const col = c.summarySource();

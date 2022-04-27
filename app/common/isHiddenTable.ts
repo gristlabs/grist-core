@@ -7,6 +7,12 @@ import {TableData} from "./TableData";
  */
 export function isHiddenTable(tablesData: TableData, tableRef: UIRowId): boolean {
   const tableId = tablesData.getValue(tableRef, 'tableId') as string|undefined;
-  return tablesData.getValue(tableRef, 'summarySourceTable') !== 0 ||
-    Boolean(tableId?.startsWith('GristHidden'));
+  return !isRawTable(tablesData, tableRef) || Boolean(tableId?.startsWith('GristHidden'));
+}
+
+/**
+ * Return whether a table identified by the rowId of its metadata record should be visible on Raw Data page.
+ */
+export function isRawTable(tablesData: TableData, tableRef: UIRowId): boolean {
+  return tablesData.getValue(tableRef, 'summarySourceTable') === 0;
 }

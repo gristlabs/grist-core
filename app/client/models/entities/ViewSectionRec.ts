@@ -44,8 +44,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
 
   table: ko.Computed<TableRec>;
 
-  tableTitle: ko.Computed<string>;
+  // Widget title with a default value
   titleDef: modelUtil.KoSaveableObservable<string>;
+  // Default widget title (the one that is used in titleDef).
+  defaultWidgetTitle: ko.PureComputed<string>;
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
@@ -166,6 +168,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // List of selected rows
   selectedRows: Observable<number[]>;
 
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -279,13 +282,25 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.table = refRecord(docModel.tables, this.tableRef);
 
-  this.tableTitle = this.autoDispose(ko.pureComputed(() => this.table().tableTitle()));
-  this.titleDef = modelUtil.fieldWithDefault(
-    this.title,
-    () => this.table().tableTitle() + (
-      (this.parentKey() === 'record') ? '' : ` ${getWidgetTypes(this.parentKey.peek() as any).label}`
-    )
-  );
+
+  // The user-friendly name of the table, which is the same as tableId for non-summary tables,
+  // and is 'tableId[groupByCols...]' for summary tables.
+  // Consist of 3 parts
+  // - TableId (or primary table id for summary tables) capitalized
+  // - Grouping description (table record contains this for summary tables)
+  // - Widget type description (if not grid)
+  // All concatenated separated by space.
+  this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
+    const widgetTypeDesc = this.parentKey() !== 'record' ? `${getWidgetTypes(this.parentKey.peek() as any).label}` : '';
+    const table = this.table();
+    return [
+      table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
+      table.groupDesc(),
+      widgetTypeDesc
+    ].filter(part => Boolean(part?.trim())).join(' ');
+  }));
+  // Widget title.
+  this.titleDef = modelUtil.fieldWithDefault(this.title, this.defaultWidgetTitle);
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.

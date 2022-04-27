@@ -56,7 +56,7 @@ export class NumericTextBox extends NTextBox {
     const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits);
     const defaultMax = Computed.create(holder, resolved, (use, res) => res.maximumFractionDigits);
     const docCurrency = Computed.create(holder, docSettings, (use, settings) =>
-      settings.currency ?? LocaleCurrency.getCurrency(settings.locale)
+      settings.currency ?? LocaleCurrency.getCurrency(settings.locale ?? 'en-US')
     );
 
     // Save a value as the given property in this.options() observable. Set it, save, and revert

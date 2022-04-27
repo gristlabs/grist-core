@@ -62,7 +62,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   if (this.viewSection.table().summarySourceTable()) {
     const groupGetter = this.tableModel.tableData.getRowPropFunc('group');
     this._mainRowSource = rowset.BaseFilteredRowSource.create(this,
-      rowId => !gristTypes.isEmptyList(groupGetter(rowId)));
+      rowId => !groupGetter || !gristTypes.isEmptyList(groupGetter(rowId)));
     this._mainRowSource.subscribeTo(this._queryRowSource);
   } else {
     this._mainRowSource = this._queryRowSource;

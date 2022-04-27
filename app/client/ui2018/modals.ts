@@ -1,5 +1,4 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
-import * as Mousetrap from 'app/client/lib/Mousetrap';
 import {reportError} from 'app/client/models/errors';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
@@ -36,7 +35,7 @@ export interface IModalControl {
   ): (...args: Args) => Promise<void>;
 }
 
-class ModalControl extends Disposable implements IModalControl {
+export class ModalControl extends Disposable implements IModalControl {
   private _inProgress = Observable.create<number>(this, 0);
   private _workInProgress = Computed.create(this, this._inProgress, (use, n) => (n > 0));
   private _closePromise: Promise<boolean>|undefined;
@@ -44,13 +43,13 @@ class ModalControl extends Disposable implements IModalControl {
 
   constructor(
     private _doClose: () => void,
-    private _doFocus: () => void,
+    private _doFocus?: () => void,
   ) {
     super();
   }
 
   public focus() {
-    this._doFocus();
+    this._doFocus?.();
   }
 
   public close(): void {
@@ -163,11 +162,6 @@ export function modal(
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
-      // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
-      // will navigate in a grid underneath the modal, and Enter may open a cell there.
-      Mousetrap.setPaused(true);
-      owner.onDispose(() => Mousetrap.setPaused(false));
-
       const focus = () => dialog.focus();
       const ctl = ModalControl.create(owner, doClose, focus);
       close = () => ctl.close();
@@ -181,6 +175,9 @@ export function modal(
       FocusLayer.create(owner, {
         defaultFocusElem: dialog,
         allowFocus: (elem) => (elem !== document.body),
+        // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
+        // will navigate in a grid underneath the modal, and Enter may open a cell there.
+        pauseMousetrap: true
       });
       return dialog;
     }),

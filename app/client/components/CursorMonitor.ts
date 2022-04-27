@@ -48,6 +48,10 @@ export class CursorMonitor extends Disposable {
     this._whenCursorHasChangedStoreInMemory(doc);
   }
 
+  public clear() {
+    this._store.clear(this._key);
+  }
+
   private _whenCursorHasChangedStoreInMemory(doc: GristDoc) {
     // whenever current position changes, store it in the memory
     this.autoDispose(doc.cursorPosition.addListener(pos => {
@@ -62,8 +66,7 @@ export class CursorMonitor extends Disposable {
   private _whenDocumentLoadsRestorePosition(doc: GristDoc) {
     // if doc was opened with a hash link, don't restore last position
     if (doc.hasCustomNav.get()) {
-      this._restored = true;
-      return;
+      return this._abortRestore();
     }
 
     // if we are on raw data view, we need to set the position manually
@@ -85,12 +88,19 @@ export class CursorMonitor extends Disposable {
     // set that we already restored the position, as some view is shown to the user
     this._restored = true;
     const viewId = doc.activeViewId.get();
-    if (!isViewDocPage(viewId)) { return; }
+    if (!isViewDocPage(viewId)) {
+      return this._abortRestore();
+    }
     const position = this._readPosition(viewId);
     if (position) {
       // Ignore error with finding desired cell.
       await doc.recursiveMoveToCursorPos(position, true, true);
     }
+  }
+
+  private _abortRestore() {
+    this.clear();
+    this._restored = true;
   }
 
   private _storePosition(pos: ViewCursorPos) {

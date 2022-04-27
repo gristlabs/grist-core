@@ -14,15 +14,15 @@ import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
+import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
 import {colors, mediaSmall, testId} from 'app/client/ui2018/cssVars';
-import {editableLabel} from 'app/client/ui2018/editableLabel';
+import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
-import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
 import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
-import {icon} from 'app/client/ui2018/icons';
+import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
 
 // tslint:disable:no-console
 
@@ -275,11 +275,11 @@ export function buildViewSectionDom(options: {
   isResizing?: Observable<boolean>
   viewModel?: ViewRec,
   // Should show drag anchor.
-  draggable?: boolean /* defaults to true */
+  draggable?: boolean, /* defaults to true */
   // Should show green bar on the left (but preserves active-section class).
-  focusable?: boolean /* defaults to true */
-  // Custom handler for renaming the section.
-  onRename?: (name: string) => any
+  focusable?: boolean, /* defaults to true */
+  tableNameHidden?: boolean,
+  widgetNameHidden?: boolean,
 }) {
   const isResizing = options.isResizing ?? Observable.create(null, false);
   const {gristDoc, sectionRowId, viewModel, draggable = true, focusable = true} = options;
@@ -301,13 +301,7 @@ export function buildViewSectionDom(options: {
       ),
       dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
-      dom('div.viewsection_titletext_container.flexitem.flexhbox',
-        dom('span.viewsection_titletext', editableLabel(
-          fromKo(vs.titleDef),
-          (val) => options.onRename ? options.onRename(val) : vs.titleDef.saveOnly(val),
-          testId('viewsection-title'),
-        )),
-      ),
+      buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
       viewInstance.buildTitleControls(),
       dom('span.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc.docModel, vs, gristDoc.isReadonly)
@@ -332,6 +326,11 @@ export function buildViewSectionDom(options: {
   );
 }
 
+// With new widgetPopup it is hard to click on viewSection without a activating it, hence we
+// add a little blank space to use in test.
+const cssTestClick = styled(`div`, `
+  min-width: 1px;
+`);
 
 const cssSigmaIcon = styled(icon, `
   bottom: 1px;

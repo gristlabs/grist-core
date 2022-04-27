@@ -7,6 +7,7 @@
  * FocusLayerManager will watch for this element to lose focus or to get disposed, and will
  * restore focus to the default element.
  */
+import * as Mousetrap from 'app/client/lib/Mousetrap';
 import {arrayRemove} from 'app/common/gutil';
 import {RefCountMap} from 'app/common/RefCountMap';
 import {Disposable, dom} from 'grainjs';
@@ -21,7 +22,12 @@ export interface FocusLayerOptions {
   defaultFocusElem: HTMLElement;
 
   // When true for an element, that element may hold focus even while this layer is active.
-  allowFocus: (elem: Element) => boolean;
+  // Defaults to any element except document.body.
+  allowFocus?: (elem: Element) => boolean;
+
+  // If set, pause mousetrap keyboard shortcuts while this FocusLayer is active. Without it, arrow
+  // keys will navigate in a grid underneath this layer, and Enter may open a cell there.
+  pauseMousetrap?: boolean;
 
   // Called when the defaultFocusElem gets focused.
   onDefaultFocus?: () => void;
@@ -139,9 +145,19 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
   constructor(options: FocusLayerOptions) {
     super();
     this.defaultFocusElem = options.defaultFocusElem;
-    this.allowFocus = options.allowFocus;
+    this.allowFocus = options.allowFocus || (elem => elem !== document.body);
     this._onDefaultFocus = options.onDefaultFocus;
     this._onDefaultBlur = options.onDefaultBlur;
+
+    // Make sure the element has a tabIndex attribute, to make it focusable.
+    if (!this.defaultFocusElem.hasAttribute('tabindex')) {
+      this.defaultFocusElem.setAttribute('tabindex', '-1');
+    }
+
+    if (options.pauseMousetrap) {
+      Mousetrap.setPaused(true);
+      this.onDispose(() => Mousetrap.setPaused(false));
+    }
 
     const managerRefCount = this.autoDispose(_focusLayerManager.use(null));
     const manager = managerRefCount.get();

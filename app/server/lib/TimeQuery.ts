@@ -131,13 +131,15 @@ export class TimeLayout {
   public fields: TimeQuery;
   public columns: TimeQuery;
   public views: TimeQuery;
+  public sections: TimeQuery;
 
   constructor(public tc: TimeCursor) {
-    this.tables = new TimeQuery(tc, '_grist_Tables', ['tableId', 'primaryViewId']);
+    this.tables = new TimeQuery(tc, '_grist_Tables', ['tableId', 'primaryViewId', 'rawViewSectionRef']);
     this.fields = new TimeQuery(tc, '_grist_Views_section_field',
                                 ['parentId', 'parentPos', 'colRef']);
     this.columns = new TimeQuery(tc, '_grist_Tables_column', ['parentId', 'colId']);
     this.views = new TimeQuery(tc, '_grist_Views', ['id', 'name']);
+    this.sections = new TimeQuery(tc, '_grist_Views_section', ['id', 'title']);
   }
 
   /** update from TimeCursor */
@@ -146,6 +148,7 @@ export class TimeLayout {
     await this.columns.update();
     await this.fields.update();
     await this.views.update();
+    await this.sections.update();
   }
 
   public getColumnOrder(tableId: string): string[] {
@@ -158,7 +161,7 @@ export class TimeLayout {
   }
 
   public getTableName(tableId: string): string {
-    const primaryViewId = this.tables.one({tableId}).primaryViewId;
-    return this.views.one({id: primaryViewId}).name;
+    const rawViewSectionRef = this.tables.one({tableId}).rawViewSectionRef;
+    return this.sections.one({id: rawViewSectionRef}).title;
   }
 }

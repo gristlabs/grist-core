@@ -68,9 +68,19 @@ MetaTableModel.prototype.loadData = function() {
  * when the row is deleted; in that case lacking such dependency may cause subtle rare bugs.
  */
 MetaTableModel.prototype.getRowModel = function(rowId, optDependOnVersion) {
-  let r = this.rowModels[rowId] || this.getEmptyRowModel();
+  const rowIdModel = this.rowModels[rowId];
+  const r = rowIdModel || this.getEmptyRowModel();
   if (optDependOnVersion) {
-    this._rowModelVersions[rowId]();
+    // Versions are never deleted, so even if the rowModel is deleted, we still have its version
+    // in this list.
+    const version = this._rowModelVersions[rowId];
+    if (version) {
+      // Subscribe to updates for rowModel at rowId.
+      version();
+    } else {
+      // It shouldn't happen, but maybe it would be better to add an empty version observable at rowId.
+      // If it happens, it means we tried to get non existing row (row that wasn't created previously).
+    }
   }
   return r;
 };

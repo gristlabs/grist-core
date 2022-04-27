@@ -192,7 +192,7 @@ class FinderImpl implements IFinder {
                               // Filter out those we don't have permissions to see (through ACL-tableId will be empty).
                               .filter(t => Boolean(t.tableId.peek()))
                               // sort in order that is the same as on the raw data list page,
-                              .sort((a, b) => nativeCompare(a.tableTitle.peek(), b.tableTitle.peek()))
+                              .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
                               // get rawViewSection,
                               .map(t => t.rawViewSection.peek())
                               // and test if it isn't an empty record.

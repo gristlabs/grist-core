@@ -38,7 +38,7 @@ export interface NumberFormatOptions extends FormatOptions {
 }
 
 export function getCurrency(options: NumberFormatOptions, docSettings: DocumentSettings): string {
-  return options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale);
+  return options.currency || docSettings.currency || LocaleCurrency.getCurrency(docSettings.locale ?? 'en-US');
 }
 
 export function buildNumberFormat(options: NumberFormatOptions, docSettings: DocumentSettings): Intl.NumberFormat {

@@ -1,9 +1,9 @@
 import {KoArray} from 'app/client/lib/koArray';
 import {DocModel, IRowModel, recordSet, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import {ColumnRec, ValidationRec, ViewRec} from 'app/client/models/DocModel';
+import * as modelUtil from 'app/client/models/modelUtil';
 import {MANUALSORT} from 'app/common/gristTypes';
 import * as ko from 'knockout';
-import toUpper = require('lodash/toUpper');
 import * as randomcolor from 'randomcolor';
 
 // Represents a user-defined table.
@@ -23,10 +23,16 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
 
   // The list of grouped by columns.
   groupByColumns: ko.Computed<ColumnRec[]>;
-
-  // The user-friendly name of the table, which is the same as tableId for non-summary tables,
-  // and is 'tableId[groupByCols...]' for summary tables.
-  tableTitle: ko.Computed<string>;
+  // Grouping description.
+  groupDesc: ko.PureComputed<string>;
+  // Name of the data table - title of the rawViewSection
+  // for summary table it is name of primary table.
+  tableName: modelUtil.KoSaveableObservable<string>;
+  // Table name with a default value (which is tableId).
+  tableNameDef: modelUtil.KoSaveableObservable<string>;
+  // If user can select this table in various places.
+  // Note: Some hidden tables can still be visible on RawData view.
+  isHidden: ko.Computed<boolean>;
 
   tableColor: string;
   disableAddRemoveRows: ko.Computed<boolean>;
@@ -40,6 +46,10 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.primaryView = refRecord(docModel.views, this.primaryViewId);
   this.rawViewSection = refRecord(docModel.viewSections, this.rawViewSectionRef);
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
+  this.isHidden = this.autoDispose(
+    // This is repeated logic from isHiddenTable.
+    ko.pureComputed(() => !!this.summarySourceTable() || this.tableId()?.startsWith("GristHidden"))
+  );
 
   // A Set object of colRefs for all summarySourceCols of this table.
   this.summarySourceColRefs = this.autoDispose(ko.pureComputed(() => new Set(
@@ -51,18 +61,12 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
 
   this.groupByColumns = ko.pureComputed(() => this.columns().all().filter(c => c.summarySourceCol()));
 
-  const groupByDesc = ko.pureComputed(() => {
-    const groupBy = this.groupByColumns();
-    return groupBy.length ? 'by ' + groupBy.map(c => c.label()).join(", ") : "Totals";
-  });
-
-  // The user-friendly name of the table, which is the same as tableId for non-summary tables,
-  // and is 'tableId[groupByCols...]' for summary tables.
-  this.tableTitle = ko.pureComputed(() => {
-    if (this.summarySourceTable()) {
-      return toUpper(this.summarySource().tableId()) + " [" + groupByDesc() + "]";
+  this.groupDesc = ko.pureComputed(() => {
+    if (!this.summarySourceTable()) {
+      return '';
     }
-    return toUpper(this.tableId());
+    const groupBy = this.groupByColumns();
+    return `[${groupBy.length ? 'by ' + groupBy.map(c => c.label()).join(", ") : "Totals"}]`;
   });
 
   // TODO: We should save this value and let users change it.
@@ -74,4 +78,40 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable()));
 
   this.supportsManualSort = ko.pureComputed(() => this.columns().all().some(c => c.colId() === MANUALSORT));
+
+  this.tableName = modelUtil.savingComputed({
+    read: () => {
+      if (this.isDisposed()) {
+        return '';
+      }
+      if (this.summarySourceTable()) {
+        return this.summarySource().rawViewSection().title();
+      } else {
+        // Need to be extra careful here, rawViewSection might be disposed.
+        if (this.rawViewSection().isDisposed()) {
+          return '';
+        }
+        return this.rawViewSection().title();
+      }
+    },
+    write: (setter, val) => {
+      if (this.summarySourceTable()) {
+        setter(this.summarySource().rawViewSection().title, val);
+      } else {
+        setter(this.rawViewSection().title, val);
+      }
+    }
+  });
+  this.tableNameDef = modelUtil.fieldWithDefault(
+    this.tableName,
+    // TableId will be null/undefined when ACL will restrict access to it.
+    ko.computed(() => {
+      // During table removal, we could be disposed.
+      if (this.isDisposed()) {
+        return '';
+      }
+      const table = this.summarySourceTable() ? this.summarySource() : this;
+      return table.tableId() || '';
+    })
+  );
 }

@@ -186,11 +186,11 @@ export async function selectAll() {
 
 /**
  * Returns a WebElementPromise for the .viewsection_content element for the section which contains
- * the given RegExp content.
+ * the given text (case insensitive) content.
  */
 export function getSection(sectionOrTitle: string|WebElement): WebElement|WebElementPromise {
   if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
-  return driver.find(`.test-viewsection-title[value="${sectionOrTitle}" i]`)
+  return driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
     .findClosest('.viewsection_content');
 }
 
@@ -198,8 +198,8 @@ export function getSection(sectionOrTitle: string|WebElement): WebElement|WebEle
  * Click into a section without disrupting cursor positions.
  */
 export async function selectSectionByTitle(title: string) {
-  await driver.find(`.test-viewsection-title[value="${title}" i]`)
-    .findClosest('.viewsection_titletext_container').click();
+  // .test-viewsection is a special 1px width element added for tests only.
+  await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
 }
 
 
@@ -845,12 +845,15 @@ export async function addNewTable() {
 }
 
 export interface PageWidgetPickerOptions {
-  summarize?: RegExp[];   // Optional list of patterns to match Group By columns.
   selectBy?: RegExp|string;      // Optional pattern of SELECT BY option to pick.
+  summarize?: (RegExp|string)[];   // Optional list of patterns to match Group By columns.
 }
 
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
-export async function addNewPage(typeRe: RegExp, tableRe: RegExp, options?: PageWidgetPickerOptions) {
+export async function addNewPage(
+  typeRe: RegExp|'Table'|'Card'|'Card List'|'Chart'|'Custom',
+  tableRe: RegExp|string,
+  options?: PageWidgetPickerOptions) {
   const url = await driver.getCurrentUrl();
 
   // Click the 'Page' entry in the 'Add New' menu
@@ -874,9 +877,12 @@ export async function addNewSection(typeRe: RegExp, tableRe: RegExp, options?: P
   await selectWidget(typeRe, tableRe, options);
 }
 
-// Select type and table that matches respectivelly typeRe and tableRe and save. The widget picker
+// Select type and table that matches respectively typeRe and tableRe and save. The widget picker
 // must be already opened when calling this function.
-export async function selectWidget(typeRe: RegExp, tableRe: RegExp, options: PageWidgetPickerOptions = {}) {
+export async function selectWidget(
+  typeRe: RegExp|string,
+  tableRe: RegExp|string,
+  options: PageWidgetPickerOptions = {}) {
 
   const tableEl = driver.findContent('.test-wselect-table', tableRe);
 
@@ -937,11 +943,33 @@ export async function renamePage(oldName: string|RegExp, newName: string) {
 }
 
 /**
- * Rename a table. TODO at the moment it's done by renaming the "primary" page for this table.
- * Once "raw data views" are supported, they will be used to rename tables.
+ * Removes a page from the page menu, checks if the page is actually removable.
  */
-export async function renameTable(oldName: RegExp|string, newName: string) {
-  return renamePage(oldName, newName);
+export async function removePage(name: string|RegExp) {
+  await openPageMenu(name);
+  assert.equal(await driver.find('.test-docpage-remove').matches('.disabled'), false);
+  await driver.find('.test-docpage-remove').click();
+  await waitForServer();
+}
+
+/**
+ * Checks if a page can be removed.
+ */
+ export async function canRemovePage(name: string|RegExp) {
+  await openPageMenu(name);
+  const isDisabled = await driver.find('.test-docpage-remove').matches('.disabled');
+  await driver.sendKeys(Key.ESCAPE);
+  return !isDisabled;
+}
+
+/**
+ * Renames a table using exposed method from gristDoc. Use renameActiveTable to use the UI.
+ */
+export async function renameTable(tableId: string, newName: string) {
+  await driver.executeScript(`
+    return window.gristDocPageModel.gristDoc.get().renameTable(arguments[0], arguments[1]);
+  `, tableId, newName);
+  await waitForServer();
 }
 
 /**
@@ -955,6 +983,23 @@ export async function renameColumn(col: IColHeader, newName: string) {
   await waitForServer();
 }
 
+/**
+ * Removes a table using RAW data view. Return back a current url.
+ */
+export async function removeTable(tableId: string) {
+  const back = await driver.getCurrentUrl();
+  await driver.find(".test-tools-raw").click();
+  const tableIdList = await driver.findAll('.test-raw-data-table-id', e => e.getText());
+  const tableIndex = tableIdList.indexOf(tableId);
+  assert.isTrue(tableIndex >= 0, `No raw table with id ${tableId}`);
+  const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
+  assert.equal(menus.length, tableIdList.length);
+  await menus[tableIndex].click();
+  await driver.find(".test-raw-data-menu-remove").click();
+  await driver.find(".test-modal-confirm").click();
+  await waitForServer();
+  return back;
+}
 
 /**
  * Click the Undo button and wait for server. If optCount is given, click Undo that many times.
@@ -978,7 +1023,12 @@ export async function begin(invariant: () => any = () => true) {
   const start = await undoStackPointer();
   const previous = await invariant();
   return async () => {
-    await undo(await undoStackPointer() - start);
+    // We will be careful here and await every time for the server and check js errors.
+    const count = await undoStackPointer() - start;
+    for (let i = 0; i < count; ++i) {
+      await undo();
+      await checkForErrors();
+    }
     assert.deepEqual(await invariant(), previous);
   };
 }
@@ -1127,17 +1177,12 @@ export async function searchPrev() {
   await driver.find('.test-tb-search-prev').click();
 }
 
-export function getCurrentSectionName() {
-  return driver.find('.active_section .test-viewsection-title').value();
-}
-
 export function getCurrentPageName() {
   return driver.find('.test-treeview-itemHeader.selected').find('.test-docpage-label').getText();
 }
 
 export async function getActiveRawTableName() {
-  const title = await driver.findWait('.test-raw-data-overlay .test-viewsection-title', 100).value();
-  return title;
+  return await driver.findWait('.test-raw-data-overlay .test-viewsection-title', 100).getText();
 }
 
 export function getSearchInput() {
@@ -1170,6 +1215,18 @@ export async function searchIsClosed() {
 
 export async function openRawTable(tableId: string) {
   await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`).click();
+}
+
+export async function renameRawTable(tableId: string, newName: string) {
+  await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`)
+    .findClosest('.test-raw-data-table')
+    .find('.test-raw-data-widget-title')
+    .click();
+  const input = await driver.find(".test-widget-title-table-name-input");
+  await input.doClear();
+  await input.click();
+  await driver.sendKeys(newName, Key.ENTER);
+  await waitForServer();
 }
 
 export async function isRawTableOpened() {
@@ -1426,10 +1483,6 @@ export async function completeCopy(options: {destName?: string, destWorkspace?: 
  */
 export async function getCurrentUrlId() {
   return decodeUrl({}, new URL(await driver.getCurrentUrl())).doc;
-}
-
-export async function getActiveSectionTitle() {
-  return driver.find('.active_section .test-viewsection-title').value();
 }
 
 export function getToasts(): Promise<string[]> {
@@ -2255,6 +2308,57 @@ export async function refreshDismiss() {
 export async function waitForAnchor() {
   await waitForDocToLoad();
   await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
+}
+
+export async function getActiveSectionTitle(timeout?: number) {
+  return await driver.findWait('.active_section .test-viewsection-title', timeout ?? 0).getText();
+}
+
+export async function getSectionTitle(timeout?: number) {
+  return await driver.findWait('.test-viewsection-title', timeout ?? 0).getText();
+}
+
+export async function getSectionTitles() {
+  return await driver.findAll('.test-viewsection-title', el => el.getText());
+}
+
+export async function renameSection(sectionTitle: string, name: string) {
+  const renameWidget = driver.findContent(`.test-viewsection-title`, sectionTitle);
+  await renameWidget.find(".test-widget-title-text").click();
+  await driver.find(".test-widget-title-section-name-input").click();
+  await selectAll();
+  await driver.sendKeys(name || Key.DELETE, Key.ENTER);
+  await waitForServer();
+}
+
+export async function renameActiveSection(name: string) {
+  await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await driver.find(".test-widget-title-section-name-input").click();
+  await selectAll();
+  await driver.sendKeys(name || Key.DELETE, Key.ENTER);
+  await waitForServer();
+}
+
+/**
+ * Renames active data table using widget title popup (from active section).
+ */
+export async function renameActiveTable(name: string) {
+  await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await driver.find(".test-widget-title-table-name-input").click();
+  await selectAll();
+  await driver.sendKeys(name, Key.ENTER);
+  await waitForServer();
+}
+
+export async function setWidgetUrl(url: string) {
+  await driver.find('.test-config-widget-url').click();
+  // First clear textbox.
+  await clearInput();
+  if (url) {
+    await sendKeys(url);
+  }
+  await sendKeys(Key.ENTER);
+  await waitForServer();
 }
 
 } // end of namespace gristUtils

@@ -118,6 +118,7 @@
   flex-shrink: 0;
   padding: 0;
   margin-top: -4px;
+  text-transform: uppercase;
 }
 
 .grist-single-record__menu__count {

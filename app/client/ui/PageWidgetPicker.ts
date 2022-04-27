@@ -300,7 +300,8 @@ export class PageWidgetSelect extends Disposable {
           ),
           dom.forEach(this._tables, (table) => dom('div',
             cssEntryWrapper(
-              cssEntry(cssIcon('TypeTable'), cssLabel(dom.text(table.tableId)),
+              cssEntry(cssIcon('TypeTable'),
+                       cssLabel(dom.text(use => use(table.tableNameDef) || use(table.tableId))),
                        dom.on('click', () => this._selectTable(table.id())),
                        cssEntry.cls('-selected', (use) => use(this._value.table) === table.id()),
                        testId('table-label')

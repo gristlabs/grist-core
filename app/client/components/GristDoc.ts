@@ -7,7 +7,7 @@ import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import * as BaseView from 'app/client/components/BaseView';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
-import * as CodeEditorPanel from 'app/client/components/CodeEditorPanel';
+import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
@@ -380,9 +380,9 @@ export class GristDoc extends DisposableWithEvents {
     return cssViewContentPane(testId('gristdoc'),
       cssViewContentPane.cls("-contents", use => use(this.activeViewId) === 'data'),
       dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
-        viewId === 'code' ? dom.create((owner) => owner.autoDispose(CodeEditorPanel.create(this))) :
-        viewId === 'acl' ? dom.create((owner) => owner.autoDispose(AccessRules.create(this, this))) :
-        viewId === 'data' ? dom.create((owner) => owner.autoDispose(RawData.create(this, this))) :
+        viewId === 'code' ? dom.create(CodeEditorPanel, this) :
+        viewId === 'acl' ? dom.create(AccessRules, this) :
+        viewId === 'data' ? dom.create(RawData, this) :
         viewId === 'GristDocTour' ? null :
         dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
       )),
@@ -413,12 +413,14 @@ export class GristDoc extends DisposableWithEvents {
    * null, then moves to a position best suited for optActionGroup (not yet implemented).
    */
   public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void> {
-    if (!cursorPos || cursorPos.sectionId == null) {
+    if (!cursorPos || !cursorPos.sectionId) {
       // TODO We could come up with a suitable cursorPos here based on the action itself.
       // This should only come up if trying to undo/redo after reloading a page (since the cursorPos
       // associated with the action is only stored in memory of the current JS process).
       // A function like `getCursorPosForActionGroup(ag)` would also be useful to jump to the best
       // place from any action in the action log.
+      // When user deletes table from Raw Data view, the section id will be 0 and undoing that
+      // operation will move cursor to the empty section row (with id 0).
       return;
     }
     try {
@@ -787,6 +789,9 @@ export class GristDoc extends DisposableWithEvents {
       if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
       if (!cursorPos.rowId) { throw new Error('rowId required'); }
       const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      if (!section.id.peek()) {
+        throw new Error(`Section ${cursorPos.sectionId} does not exist`);
+      }
       const srcSection = section.linkSrcSection.peek();
       if (srcSection.id.peek()) {
         // We're in a linked section, so we need to recurse to make sure the row we want
@@ -865,6 +870,17 @@ export class GristDoc extends DisposableWithEvents {
   public async activateEditorAtCursor(options: { init?: string, state?: any}) {
     const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
+  }
+
+  /**
+   * Renames table. Method exposed primarily for tests.
+   */
+  public async renameTable(tableId: string, newTableName: string) {
+    const tableRec = this.docModel.allTables.all().find(t => t.tableId.peek() === tableId);
+    if (!tableRec) {
+      throw new UserError(`No table with id ${tableId}`);
+    }
+    await tableRec.tableName.saveOnly(newTableName);
   }
 
   /**

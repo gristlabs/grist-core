@@ -125,11 +125,8 @@ describe('ActionLog', function() {
     await item2.find('table td:nth-child(2)').click();
     assert.equal(await gu.getActiveCell().getText(), 'f');
 
-    // Delete the page and table for Table1Renamed.
-    await gu.openPageMenu('Table1Renamed');
-    await driver.find('.grist-floating-menu .test-docpage-remove').click();
-    await driver.findWait('.test-modal-confirm', 500).click();
-    await gu.waitForServer();
+    // Delete Table1Renamed.
+    await gu.removeTable('Table1Renamed');
     await driver.findContent('.action_log label', /All tables/).find('input').click();
 
     const item4 = await getActionLogItem(4);
@@ -143,6 +140,9 @@ describe('ActionLog', function() {
 
   it("should filter cell changes and renames by table", async function() {
     // Have Table2, now add some more
+    // We are at Raw Data view now (since we deleted a table).
+    assert.match(await driver.getCurrentUrl(), /p\/data$/);
+    await gu.getPageItem('Table2').click();
     await gu.enterGridRows({rowNum: 1, col: 0}, [['2']]);
     await gu.addNewTable();  // Table1
     await gu.enterGridRows({rowNum: 1, col: 0}, [['1']]);

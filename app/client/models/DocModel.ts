@@ -22,7 +22,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import * as MetaRowModel from 'app/client/models/MetaRowModel';
 import * as MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
-import {isHiddenTable} from 'app/common/isHiddenTable';
+import {isHiddenTable, isRawTable} from 'app/common/isHiddenTable';
 import {schema, SchemaTypes} from 'app/common/schema';
 
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
@@ -135,6 +135,7 @@ export class DocModel {
   public docInfoRow: DocInfoRec;
 
   public allTables: KoArray<TableRec>;
+  public rawTables: KoArray<TableRec>;
   public allTableIds: KoArray<string>;
 
   // A mapping from tableId to DataTableModel for user-defined tables.
@@ -169,6 +170,7 @@ export class DocModel {
     // An observable array of user-visible tables, sorted by tableId, excluding summary tables.
     // This is a publicly exposed member.
     this.allTables = createUserTablesArray(this.tables);
+    this.rawTables = createRawTablesArray(this.tables);
 
     // An observable array of user-visible tableIds. A shortcut mapped from allTables.
     const allTableIds = ko.computed(() => this.allTables.all().map(t => t.tableId()));
@@ -232,6 +234,16 @@ export class DocModel {
  */
 function createUserTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
   const rowSource = new rowset.FilteredRowSource(r => !isHiddenTable(tablesModel.tableData, r));
+  rowSource.subscribeTo(tablesModel);
+  // Create an observable RowModel array based on this rowSource, sorted by tableId.
+  return tablesModel._createRowSetModel(rowSource, 'tableId');
+}
+
+/**
+ * Helper to create an observable array of tables, sorted by tableId, and excluding summary tables.
+ */
+ function createRawTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
+  const rowSource = new rowset.FilteredRowSource(r => isRawTable(tablesModel.tableData, r));
   rowSource.subscribeTo(tablesModel);
   // Create an observable RowModel array based on this rowSource, sorted by tableId.
   return tablesModel._createRowSetModel(rowSource, 'tableId');

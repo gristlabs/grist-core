@@ -27,8 +27,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
                            gristDoc.docModel.rules.getNumRows() > 0);
   }
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
-  // TODO: Create global observable to enable raw tools (TO REMOVE once raw data ui has landed)
-  (window as any).enableRawTools = Observable.create(null, false);
   updateCanViewAccessRules();
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
@@ -48,17 +46,15 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       }),
       testId('access-rules'),
     ),
-    // Raw data - for now hidden.
-    dom.maybe((window as any).enableRawTools, () =>
-      cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
-        cssPageLink(
-          cssPageIcon('Database'),
-          cssLinkText('Raw data'),
-          testId('raw'),
-          urlState().setLinkUrl({docPage: 'data'})
-        ),
-    )),
+    cssPageEntry(
+      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
+      cssPageLink(
+        cssPageIcon('Database'),
+        cssLinkText('Raw data'),
+        testId('raw'),
+        urlState().setLinkUrl({docPage: 'data'})
+      )
+    ),
     cssPageEntry(
       cssPageLink(cssPageIcon('Log'), cssLinkText('Document History'), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))

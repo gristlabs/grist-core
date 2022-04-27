@@ -49,7 +49,7 @@ LocaleCurrencyMap["SS"] = "SSP";
 LocaleCurrencyMap["XK"] = "EUR";
 const currenciesCodes = Object.values(LocaleCurrencyMap);
 export function getCurrency(code: string) {
-  const currency = LocaleCurrency.getCurrency(code);
+  const currency = LocaleCurrency.getCurrency(code ?? 'en-US');
   // Fallback to USD
   return currency ?? DEFAULT_CURRENCY;
 }

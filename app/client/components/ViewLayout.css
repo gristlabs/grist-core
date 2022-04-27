@@ -15,30 +15,13 @@
   color: var(--grist-color-slate);
   font-size: var(--grist-small-font-size);
   font-weight: 500;
-  text-transform: uppercase;
   white-space: nowrap;
-}
-
-.viewsection_titletext {
-  cursor: text;
-  overflow: hidden;
-}
-.viewsection_titletext_container {
-  height: max-content;
 }
 
 .viewsection_content {
   background-color: #ffffff;
   overflow: visible;
   margin: 12px;
-}
-
-.viewsection_title_colorbox {
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  margin: auto .5rem auto 0;
-  box-shadow: inset 0px 0px 5px rgba(0,0,0,0.5);
 }
 
 /* TODO should be switched to use new icon */

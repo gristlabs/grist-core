@@ -299,7 +299,7 @@ export class RightPanel extends Disposable {
     });
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
-      cssLabel('WIDGET TITLE',
+      cssLabel(dom.text(use => use(activeSection.isRaw) ? 'DATA TABLE NAME' : 'WIDGET TITLE'),
                dom.style('margin-bottom', '14px')),
       cssRow(cssTextInput(
         Computed.create(owner, (use) => use(activeSection.titleDef)),

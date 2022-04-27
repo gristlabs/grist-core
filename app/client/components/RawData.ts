@@ -22,8 +22,22 @@ export class RawData extends Disposable {
     this.autoDispose(commands.createGroup(commandGroup, this, true));
     this._lightboxVisible = Computed.create(this, use => {
       const section = use(this._gristDoc.viewModel.activeSection);
-      return Boolean(section.getRowId());
+      return Boolean(use(section.id)) && use(section.isRaw);
     });
+    // When we are disposed, we want to clear active section in the viewModel we got (which is an empty model)
+    // to not restore the section when user will come back to Raw Data page.
+    // But by the time we are gone (disposed), active view will be changed, so here we will save the reference.
+    // TODO: empty view should rather have id = 0, not undefined. Should be fixed soon.
+    const emptyView = this._gristDoc.docModel.views.rowModels.find(x => x.id.peek() === undefined);
+    this.autoDispose(this._gristDoc.activeViewId.addListener(() => {
+      emptyView?.activeSectionId(0);
+    }));
+    // Whenever we close lightbox, clear cursor monitor state.
+    this.autoDispose(this._lightboxVisible.addListener(state => {
+      if (!state) {
+        this._gristDoc.cursorMonitor.clear();
+      }
+    }));
   }
 
   public buildDom() {
@@ -39,7 +53,8 @@ export class RawData extends Disposable {
       ),
       /***************  Lightbox section **********/
       dom.domComputedOwned(fromKo(this._gristDoc.viewModel.activeSection), (owner, viewSection) => {
-        if (!viewSection.getRowId()) {
+        const sectionId = viewSection.getRowId();
+        if (!sectionId || !viewSection.isRaw.peek()) {
           return null;
         }
         ViewSectionHelper.create(owner, this._gristDoc, viewSection);
@@ -51,7 +66,7 @@ export class RawData extends Disposable {
               sectionRowId: viewSection.getRowId(),
               draggable: false,
               focusable: false,
-              onRename: this._renameSection.bind(this)
+              widgetNameHidden: true
             })
           ),
           cssCloseButton('CrossBig',
@@ -67,12 +82,6 @@ export class RawData extends Disposable {
 
   private _close() {
     this._gristDoc.viewModel.activeSectionId(0);
-  }
-
-  private async _renameSection(name: string) {
-    // here we will rename primary page for active primary viewSection
-    const primaryViewName = this._gristDoc.viewModel.activeSection.peek().table.peek().primaryView.peek().name;
-    await primaryViewName.saveOnly(name);
   }
 }
 

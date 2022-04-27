@@ -5,27 +5,32 @@ import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {buildTableName} from 'app/client/ui/WidgetTitle';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import * as css from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Disposable, dom, fromKo, makeTestId, MultiHolder, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-raw-data-');
 
 export class DataTables extends Disposable {
+  private _tables: Observable<TableRec[]>;
+  private _view: Observable<string | null>;
   constructor(private _gristDoc: GristDoc) {
     super();
+    // Remove tables that we don't have access to. ACL will remove tableId from those tables.
+    this._tables = Computed.create(this, use =>
+      use(_gristDoc.docModel.rawTables.getObservable())
+      .filter(t => Boolean(use(t.tableId))));
+    // Get the user id, to remember selected layout on the next visit.
+    const userId = this._gristDoc.app.topAppModel.appObs.get()?.currentUser?.id ?? 0;
+    this._view = this.autoDispose(localStorageObs(`u=${userId}:raw:viewType`, "list"));
   }
 
   public buildDom() {
-    const holder = new MultiHolder();
-    // Get the user id, to remember selected layout on the next visit.
-    const userId = this._gristDoc.app.topAppModel.appObs.get()?.currentUser?.id ?? 0;
-    const view = holder.autoDispose(localStorageObs(`u=${userId}:raw:viewType`, "list"));
     return container(
-      dom.autoDispose(holder),
       cssTableList(
         /***************  List section **********/
         testId('list'),
@@ -33,7 +38,7 @@ export class DataTables extends Disposable {
           docListHeader('Raw data tables'),
           cssSwitch(
             buttonSelect<any>(
-              view,
+              this._view,
               [
                 {value: 'card', icon: 'TypeTable'},
                 {value: 'list', icon: 'TypeCardList'},
@@ -44,49 +49,65 @@ export class DataTables extends Disposable {
           )
         ),
         cssList(
-          cssList.cls(use => `-${use(view)}`),
-          dom.forEach(fromKo(this._gristDoc.docModel.allTables.getObservable()), tableRec =>
+          cssList.cls(use => `-${use(this._view)}`),
+          dom.forEach(this._tables, tableRec =>
             cssItem(
               testId('table'),
-              cssItemContent(
-                cssIcon('TypeTable',
-                  // Element to click in tests.
-                  dom.domComputed(use => `table-id-${use(tableRec.tableId)}`)
-                ),
-                cssLabels(
-                  cssTitleLine(
-                    cssLine(
-                      dom.text(use2 => use2(use2(tableRec.rawViewSection).title) || use2(tableRec.tableId)),
-                      testId('table-title'),
-                    )
-                  ),
-                  cssIdLine(
-                    cssIdLineContent(
-                      cssUpperCase("Table id: "),
-                      cssTableId(
-                        testId('table-id'),
-                        dom.text(tableRec.tableId),
-                      ),
-                      { title : 'Click to copy' },
-                      dom.on('click', async (e, t) => {
-                        e.stopImmediatePropagation();
-                        e.preventDefault();
-                        showTransientTooltip(t, 'Table id copied to clipboard', {
-                          key: 'copy-table-id'
-                        });
-                        await copyToClipboard(tableRec.tableId.peek());
-                        setTestState({clipboard: tableRec.tableId.peek()});
-                      })
-                    )
-                  ),
+              cssLeft(
+                dom.domComputed(tableRec.tableId, (tableId) =>
+                  cssGreenIcon(
+                    'TypeTable',
+                    testId(`table-id-${tableId}`)
+                  )
                 ),
               ),
-              cssDots(docMenuTrigger(
-                testId('table-dots'),
-                icon('Dots'),
-                menu(() => this._menuItems(tableRec), {placement: 'bottom-start'}),
-                dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-              )),
+              cssMiddle(
+                css60(
+                  testId('table-title'),
+                  dom.domComputed(fromKo(tableRec.rawViewSectionRef), vsRef => {
+                    if (!vsRef) {
+                      // Some very old documents might not have rawViewSection.
+                      return dom('span', dom.text(tableRec.tableNameDef));
+                    } else {
+                      return dom('div', // to disable flex grow in the widget
+                        dom.domComputed(fromKo(tableRec.rawViewSection), vs =>
+                          dom.update(
+                            buildTableName(vs, testId('widget-title')),
+                            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+                          )
+                        )
+                      );
+                    }
+                  }),
+                ),
+                css40(
+                  cssIdHoverWrapper(
+                    cssUpperCase("Table id: "),
+                    cssTableId(
+                      testId('table-id'),
+                      dom.text(tableRec.tableId),
+                    ),
+                    { title : 'Click to copy' },
+                    dom.on('click', async (e, t) => {
+                      e.stopImmediatePropagation();
+                      e.preventDefault();
+                      showTransientTooltip(t, 'Table id copied to clipboard', {
+                        key: 'copy-table-id'
+                      });
+                      await copyToClipboard(tableRec.tableId.peek());
+                      setTestState({clipboard: tableRec.tableId.peek()});
+                    })
+                  )
+                ),
+              ),
+              cssRight(
+                docMenuTrigger(
+                  testId('table-menu'),
+                  icon('Dots'),
+                  menu(() => this._menuItems(tableRec), {placement: 'bottom-start'}),
+                  dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+                )
+              ),
               dom.on('click', () => {
                 const sectionId = tableRec.rawViewSection.peek().getRowId();
                 if (!sectionId) {
@@ -101,17 +122,17 @@ export class DataTables extends Disposable {
     );
   }
 
-  private _menuItems(t: TableRec) {
+  private _menuItems(table: TableRec) {
     const {isReadonly, docModel} = this._gristDoc;
     return [
-      // TODO: in the upcoming diff
-      // menuItem(() => this._renameTable(t), "Rename", testId('rename'),
-      //       dom.cls('disabled', isReadonly)),
       menuItem(
-        () => this._removeTable(t),
+        () => this._removeTable(table),
         'Remove',
         testId('menu-remove'),
-        dom.cls('disabled', use => use(isReadonly) || use(docModel.allTables.getObservable()).length <= 1 )
+        dom.cls('disabled', use => use(isReadonly) || (
+          // Can't delete last user table, unless it is a hidden table.
+          use(docModel.allTables.getObservable()).length <= 1 && !use(table.isHidden)
+        ))
       ),
       dom.maybe(isReadonly, () => menuText('You do not have edit access to this document')),
     ];
@@ -124,10 +145,6 @@ export class DataTables extends Disposable {
     }
     confirmModal(`Delete ${t.tableId()} data, and remove it from all pages?`, 'Delete', doRemove);
   }
-
-  // private async _renameTable(t: TableRec) {
-  //   // TODO:
-  // }
 }
 
 const container = styled('div', `
@@ -169,23 +186,6 @@ const cssList = styled('div', `
   }
 `);
 
-const cssItemContent = styled('div', `
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  .${cssList.className}-list & {
-    align-items: center;
-  }
-  .${cssList.className}-card & {
-    align-items: flex-start;
-  }
-  @media ${css.mediaXSmall} {
-    & {
-      align-items: flex-start !important;
-    }
-  }
-`);
-
 const cssItem = styled('div', `
   display: flex;
   align-items: center;
@@ -197,7 +197,7 @@ const cssItem = styled('div', `
     border-color: ${css.colors.slate};
   }
   .${cssList.className}-list & {
-    height: calc(1em * 40/13); /* 40px for 13px font */
+    min-height: calc(1em * 40/13); /* 40px for 13px font */
   }
   .${cssList.className}-card & {
     width: 300px;
@@ -216,67 +216,69 @@ const cssItem = styled('div', `
   }
 `);
 
-const cssIcon = styled(icon, `
-  --icon-color: ${css.colors.lightGreen};
-  margin-left: 12px;
+// Holds icon in top left corner
+const cssLeft = styled('div', `
+  padding-top: 11px;
+  padding-left: 12px;
   margin-right: 8px;
+  align-self: flex-start;
+  display: flex;
   flex: none;
-  .${cssList.className}-card & {
-    margin-top: 1px;
-  }
-  @media ${css.mediaXSmall} {
-    & {
-      margin-top: 1px;
-    }
-  }
 `);
 
-const cssOverflow = styled('div', `
-  overflow: hidden;
-`);
-
-const cssLabels = styled(cssOverflow, `
-  overflow: hidden;
+const cssMiddle = styled('div', `
+  flex-grow: 1;
+  min-width: 0px;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  flex: 1;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  .${cssList.className}-card & {
+    margin: 0px:
+  }
+`);
+
+const css60 = styled('div', `
+  min-width: min(240px, 100%);
+  display: flex;
+  flex: 6;
+`);
+
+const css40 = styled('div', `
+  min-width: min(240px, 100%);
+  flex: 4;
+  display: flex;
+`);
+
+
+// Holds dots menu (which is 24px x 24px, but has its own 4px right margin)
+const cssRight = styled('div', `
+  padding-right: 8px;
+  margin-left: 8px;
+  align-self: center;
+  display: flex;
+  flex: none;
+`);
+
+const cssGreenIcon = styled(icon, `
+  --icon-color: ${css.colors.lightGreen};
 `);
 
 const cssLine = styled('span', `
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  overflow: hidden;
 `);
 
-const cssTitleLine = styled(cssOverflow, `
+const cssIdHoverWrapper = styled('div', `
   display: flex;
-  min-width: 50%;
-  .${cssList.className}-card & {
-    flex-basis: 100%;
-  }
-  @media ${css.mediaXSmall} {
-    & {
-      flex-basis: 100% !important;
-    }
-  }
-`);
-
-const cssIdLine = styled(cssOverflow, `
-  display: flex;
-  min-width: 40%;
-  .${cssList.className}-card & {
-    flex-basis: 100%;
-  }
-`);
-
-const cssIdLineContent = styled(cssOverflow, `
-  display: flex;
+  overflow: hidden;
   cursor: default;
   align-items: baseline;
   color: ${css.colors.slate};
   transition: background 0.05s;
   padding: 1px 2px;
+  line-height: 18px;
   &:hover {
     background: ${css.colors.lightGrey};
   }
@@ -299,11 +301,6 @@ const cssUpperCase = styled('span', `
   margin-right: 2px;
   flex: 0;
   white-space: nowrap;
-`);
-
-const cssDots = styled('div', `
-  flex: none;
-  margin-right: 8px;
 `);
 
 const cssTableList = styled('div', `

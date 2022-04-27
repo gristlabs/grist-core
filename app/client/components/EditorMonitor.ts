@@ -66,7 +66,10 @@ export class EditorMonitor extends Disposable {
    */
   private async _listenToReload(doc: GristDoc) {
     // don't restore on readonly mode or when there is custom nav
-    if (doc.isReadonly.get() || doc.hasCustomNav.get()) { return; }
+    if (doc.isReadonly.get() || doc.hasCustomNav.get()) {
+      this._store.clear();
+      return;
+     }
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
     if (doc.activeViewId.get() === 'data') {
@@ -86,7 +89,10 @@ export class EditorMonitor extends Disposable {
     this._restored = true;
     const viewId = doc.activeViewId.get();
     // if view wasn't rendered (page is displaying history or code view) do nothing
-    if (!isViewDocPage(viewId)) { return; }
+    if (!isViewDocPage(viewId)) {
+      this._store.clear();
+      return;
+     }
     const lastEdit = this._store.readValue();
     if (lastEdit) {
       // set the cursor at right cell
