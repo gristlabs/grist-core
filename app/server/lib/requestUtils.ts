@@ -70,7 +70,7 @@ export function addOrgToPath(req: RequestWithOrg, path: string): string {
  * Get url to the org associated with the request.
  */
 export function getOrgUrl(req: Request, path: string = '/') {
-  return req.protocol + '://' + req.get('host') + addOrgToPathIfNeeded(req, path);
+  return getOriginUrl(req) + addOrgToPathIfNeeded(req, path);
 }
 
 /**
@@ -97,8 +97,8 @@ export function trustOrigin(req: Request, resp: Response): boolean {
 // enough if only the base domains match. Differing ports are allowed, which helps in dev/testing.
 export function allowHost(req: Request, allowedHost: string|URL) {
   const mreq = req as RequestWithOrg;
-  const proto = req.protocol;
-  const actualUrl = new URL(`${proto}://${req.get('host')}`);
+  const proto = getEndUserProtocol(req);
+  const actualUrl = new URL(getOriginUrl(req));
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
   if (mreq.isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
@@ -282,9 +282,22 @@ export interface RequestWithGristInfo extends Request {
  * https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
  */
 export function getOriginUrl(req: Request) {
-  const host = req.headers.host!;
-  const protocol = req.get("X-Forwarded-Proto") || req.protocol;
+  const host = req.get('host')!;
+  const protocol = getEndUserProtocol(req);
   return `${protocol}://${host}`;
+}
+
+/**
+ * Get the protocol to use in Grist URLs that are intended to be reachable
+ * from a user's browser. Use the protocol in APP_HOME_URL if available,
+ * otherwise X-Forwarded-Proto is set on the provided request, otherwise
+ * the protocol of the request itself.
+ */
+export function getEndUserProtocol(req: Request) {
+  if (process.env.APP_HOME_URL) {
+    return new URL(process.env.APP_HOME_URL).protocol.replace(':', '');
+  }
+  return req.get("X-Forwarded-Proto") || req.protocol;
 }
 
 /**

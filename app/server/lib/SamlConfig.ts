@@ -61,6 +61,7 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
+import {getOriginUrl} from 'app/server/lib/requestUtils';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 
@@ -156,7 +157,7 @@ export class SamlConfig {
 
     // Starting point for login. It redirects to the IdP, and then to /saml/assert.
     app.get("/saml/login", expressWrap(async (req, res, next) => {
-      res.redirect(await this.getLoginRedirectUrl(req, new URL(req.protocol + "://" + req.get('host'))));
+      res.redirect(await this.getLoginRedirectUrl(req, new URL(getOriginUrl(req))));
     }));
 
     // Assert endpoint for when the login completes as POST.

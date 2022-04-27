@@ -45,7 +45,8 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, addOrgToPath, addPermit, getOrgUrl, getScope, optStringParam,
+import {
+  adaptServerUrl, addOrgToPath, addPermit, getOrgUrl, getOriginUrl, getScope, optStringParam,
         RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl} from 'app/server/lib/serverUtils';
@@ -1097,7 +1098,7 @@ export class FlexServer implements GristServer {
       const planRequired = task === 'signup' || task === 'updatePlan';
       if (!BillingTask.guard(task) || (planRequired && !req.query.billingPlan)) {
         // If the payment task/plan are invalid, redirect to the summary page.
-        return resp.redirect(req.protocol + '://' + req.get('host') + `/billing`);
+        return resp.redirect(getOriginUrl(req) + `/billing`);
       } else {
         return this._sendAppPage(req, resp, {path: 'billing.html', status: 200, config: {}});
       }
@@ -1519,7 +1520,7 @@ export class FlexServer implements GristServer {
   private _getOrgRedirectUrl(req: RequestWithLogin, subdomain: string, pathname: string = req.originalUrl): string {
     const config = this.getGristConfig();
     const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, config);
-    const redirectUrl = new URL(pathname, `${req.protocol}://${req.get('host')}`);
+    const redirectUrl = new URL(pathname, getOriginUrl(req));
     if (hostname) {
       redirectUrl.hostname = hostname;
     }

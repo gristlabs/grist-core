@@ -3,6 +3,7 @@ import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
 import { extractOrgParts, getHostType, getKnownOrg } from 'app/common/gristUrls';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { IncomingMessage } from 'http';
 
@@ -155,7 +156,7 @@ export class Hosts {
         return o && o.host || undefined;
       });
       if (orgHost && orgHost !== req.hostname) {
-        const url = new URL(`${req.protocol}://${req.headers.host}${req.path}`);
+        const url = new URL(getOriginUrl(req) + req.path);
         url.hostname = orgHost;  // assigning hostname rather than host preserves port.
         return resp.redirect(url.href);
       }

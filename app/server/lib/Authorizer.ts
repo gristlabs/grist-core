@@ -15,7 +15,7 @@ import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
-import {allowHost, optStringParam} from 'app/server/lib/requestUtils';
+import {allowHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
@@ -344,7 +344,7 @@ export function redirectToLoginUnconditionally(
     // logging out again, `users` will still be set.
     const signUp: boolean = (mreq.session.users === undefined);
     log.debug(`Authorizer: redirecting to ${signUp ? 'sign up' : 'log in'}`);
-    const redirectUrl = new URL(req.protocol + '://' + req.get('host') + req.originalUrl);
+    const redirectUrl = new URL(getOriginUrl(req) + req.originalUrl);
     if (signUp) {
       return resp.redirect(await getSignUpRedirectUrl(req, redirectUrl));
     } else {

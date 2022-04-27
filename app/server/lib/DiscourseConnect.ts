@@ -21,6 +21,7 @@
 import type {Express, NextFunction, Request, RequestHandler, Response} from 'express';
 import type {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
+import {getOriginUrl} from 'app/server/lib/requestUtils';
 import * as crypto from 'crypto';
 
 const DISCOURSE_CONNECT_SECRET = process.env.DISCOURSE_CONNECT_SECRET;
@@ -65,8 +66,8 @@ function discourseConnect(req: Request, resp: Response) {
     throw new Error('User is not authenticated');
   }
   if (!req.query.user && mreq.users && mreq.users.length > 1) {
-    const origUrl = new URL(req.originalUrl, `${req.protocol}://${req.get('host')}`);
-    const redirectUrl = new URL('/welcome/select-account', `${req.protocol}://${req.get('host')}`);
+    const origUrl = new URL(req.originalUrl, getOriginUrl(req));
+    const redirectUrl = new URL('/welcome/select-account', getOriginUrl(req));
     redirectUrl.searchParams.set('next', origUrl.toString());
     return resp.redirect(redirectUrl.toString());
   }
