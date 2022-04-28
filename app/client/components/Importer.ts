@@ -193,17 +193,22 @@ export class Importer extends DisposableWithEvents {
     return new Map(fields.map(f => [use(use(f.column).colId), use(use(f.column).label)]));
   });
 
-  // List of destination fields that aren't mapped to a source column.
-  private _unmatchedFields = Computed.create(this, this._sourceInfoSelected, (use, info) => {
+  // Transform section columns of the selected source.
+  private _transformSectionCols = Computed.create(this, this._sourceInfoSelected, (use, info) => {
     if (!info) { return null; }
 
     const transformSection = use(info.transformSection);
     if (!transformSection || use(transformSection._isDeleted)) { return null; }
 
     const fields = use(use(transformSection.viewFields).getObservable());
-    return fields
-      .filter(f => use(use(f.column).formula).trim() === '')
-      .map(f => f.column().label());
+    return fields.map(f => use(f.column));
+  });
+
+  // List of destination fields that aren't mapped to a source column.
+  private _unmatchedFields = Computed.create(this, this._transformSectionCols, (use, cols) => {
+    if (!cols) { return null; }
+
+    return cols.filter(c => use(c.formula).trim() === '').map(c => c.label());
   });
 
   // null tells to use the built-in file picker.
@@ -490,6 +495,20 @@ export class Importer extends DisposableWithEvents {
    * @param {SourceInfo} info The source to update the diff for.
    */
   private async _updateImportDiff(info: SourceInfo) {
+    const {updateExistingRecords, mergeCols} = this._mergeOptions[info.hiddenTableId]!;
+    const isMerging = info.destTableId && updateExistingRecords.get() && mergeCols.get().length > 0;
+    if (!isMerging && this._gristDoc.comparison) {
+      // If we're not merging but diffing is enabled, disable it; since `comparison` isn't
+      // currently observable, we'll wrap the modification around the `_isLoadingDiff`
+      // flag, which will force the preview table to re-render with diffing disabled.
+      this._isLoadingDiff.set(true);
+      this._gristDoc.comparison = null;
+      this._isLoadingDiff.set(false);
+    }
+
+    // If we're not merging, no diff is shown, so don't schedule an update for one.
+    if (!isMerging) { return; }
+
     this._hasScheduledDiffUpdate = true;
     this._isLoadingDiff.set(true);
     await this._debouncedUpdateDiff(info);
@@ -508,23 +527,17 @@ export class Importer extends DisposableWithEvents {
     // Reset the flag tracking scheduled updates since the debounced update has started.
     this._hasScheduledDiffUpdate = false;
 
-    const mergeOptions = this._mergeOptions[info.hiddenTableId]!;
-    if (!mergeOptions.updateExistingRecords.get() || mergeOptions.mergeCols.get().length === 0) {
-      // We can simply disable document comparison mode when merging isn't configured.
-      this._gristDoc.comparison = null;
-    } else {
-      // Request a diff of the current source and wait for a response.
-      const genImportDiffPromise = this._docComm.generateImportDiff(info.hiddenTableId,
-        this._createTransformRule(info), this._getMergeOptionsForSource(info)!);
-      this._lastGenImportDiffPromise = genImportDiffPromise;
-      const diff = await genImportDiffPromise;
+    // Request a diff of the current source and wait for a response.
+    const genImportDiffPromise = this._docComm.generateImportDiff(info.hiddenTableId,
+      this._createTransformRule(info), this._getMergeOptionsForSource(info)!);
+    this._lastGenImportDiffPromise = genImportDiffPromise;
+    const diff = await genImportDiffPromise;
 
-      // If the request is superseded by a newer request, or the Importer is disposed, do nothing.
-      if (this.isDisposed() || genImportDiffPromise !== this._lastGenImportDiffPromise) { return; }
+    // If the request is superseded by a newer request, or the Importer is disposed, do nothing.
+    if (this.isDisposed() || genImportDiffPromise !== this._lastGenImportDiffPromise) { return; }
 
-      // Otherwise, put the document in comparison mode with the diff data.
-      this._gristDoc.comparison = diff;
-    }
+    // Put the document in comparison mode with the diff data.
+    this._gristDoc.comparison = diff;
 
     // If more updates where scheduled since we started the update, leave the loading spinner up.
     if (!this._hasScheduledDiffUpdate) {
@@ -595,7 +608,7 @@ export class Importer extends DisposableWithEvents {
 
                 this._cancelPendingDiffRequests();
                 this._sourceInfoSelected.set(info);
-                await this._updateDiff(info);
+                await this._updateImportDiff(info);
               }),
               testId('importer-source'),
             );
@@ -675,14 +688,20 @@ export class Importer extends DisposableWithEvents {
                                 const sourceColIdsAndLabels = [...this._sourceColLabelsById.get()!.entries()];
                                 return [
                                   menuItem(
-                                    () => this._gristDoc.clearColumns([sourceColId]),
+                                    async () => {
+                                      await this._gristDoc.clearColumns([sourceColId]);
+                                      await this._updateImportDiff(info);
+                                    },
                                     'Skip',
                                     testId('importer-column-match-menu-item')
                                   ),
                                   menuDivider(),
                                   ...sourceColIdsAndLabels.map(([id, label]) =>
                                     menuItem(
-                                      () => this._setColumnFormula(sourceColId, '$' + id),
+                                      async () => {
+                                        await this._setColumnFormula(sourceColId, '$' + id);
+                                        await this._updateImportDiff(info);
+                                      },
                                       label,
                                       testId('importer-column-match-menu-item')
                                     ),
@@ -699,7 +718,11 @@ export class Importer extends DisposableWithEvents {
                         dom.domComputed(use => dom.create(
                           this._buildColMappingFormula.bind(this),
                           use(field.column),
-                          (elem: Element) => this._activateFormulaEditor(elem, field),
+                          (elem: Element) => this._activateFormulaEditor(
+                            elem,
+                            field,
+                            () => this._updateImportDiff(info),
+                          ),
                           'Skip'
                         )),
                         testId('importer-column-match-source-destination'),
@@ -719,18 +742,6 @@ export class Importer extends DisposableWithEvents {
                 }
 
                 const gridView = this._createPreview(previewSection);
-
-                // When changes are made to the preview table, update the import diff.
-                gridView.listenTo(gridView.sortedRows, 'rowNotify', async () => {
-                  // If we aren't showing a diff, there is no need to do anything.
-                  if (!info.destTableId || !updateExistingRecords.get() || mergeCols.get().length === 0) {
-                    return;
-                  }
-
-                  // Otherwise, update the diff and rebuild the preview table.
-                  await this._updateImportDiff(info);
-                });
-
                 return cssPreviewGrid(
                   dom.maybe(use1 => SKIP_TABLE === use1(info.destTableId),
                     () => cssOverlay(testId("importer-preview-overlay"))),
@@ -782,13 +793,21 @@ export class Importer extends DisposableWithEvents {
   /**
    * Opens a formula editor for `field` over `refElem`.
    */
-  private _activateFormulaEditor(refElem: Element, field: ViewFieldRec) {
-    // TODO: Set active section to hidden table section, so editor autocomplete is accurate.
+  private _activateFormulaEditor(refElem: Element, field: ViewFieldRec, onSave: () => Promise<void>) {
+    const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
+    const editRow = vsi?.moveEditRowToCursor();
     const editorHolder = openFormulaEditor({
       gristDoc: this._gristDoc,
       field,
       refElem,
+      editRow,
       setupCleanup: this._setupFormulaEditorCleanup.bind(this),
+      onSave: async (column, formula) => {
+        if (formula === column.formula.peek()) { return; }
+
+        await column.updateColValues({formula});
+        await onSave();
+      }
     });
     this._formulaEditorHolder.autoDispose(editorHolder);
   }

@@ -249,7 +249,7 @@ function _isInIdentifier(line: string, column: number) {
 export function openFormulaEditor(options: {
   gristDoc: GristDoc,
   field: ViewFieldRec,
-  // Associated formula from a diffrent column (for example style rule).
+  // Associated formula from a different column (for example style rule).
   column?: ColumnRec,
   // Needed to get exception value, if any.
   editRow?: DataRowModel,

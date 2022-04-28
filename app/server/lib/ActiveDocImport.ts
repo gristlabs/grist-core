@@ -137,8 +137,7 @@ export class ActiveDocImport {
     mergeCols = stripPrefixes(mergeCols);
 
     // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
-    const srcAndDestColIds: [string, string[]][] =
-      destCols.map(c => [c.colId!, [c.colId!.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length)]]);
+    const srcAndDestColIds: [string, string[]][] = destCols.map(c => [c.colId!, stripPrefixes([c.colId!])]);
     const srcToDestColIds = new Map(srcAndDestColIds);
     const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, srcToDestColIds, mergeCols);
 
@@ -152,6 +151,11 @@ export class ActiveDocImport {
 
     // Retrieve the function used to reconcile differences between source and destination.
     const merge = getMergeFunction(mergeStrategy);
+
+    // Destination columns with a blank formula (i.e. skipped columns).
+    const skippedColumnIds = new Set(
+      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!))
+    );
 
     const numResultRows = comparisonResult[hiddenTableId + '.id'].length;
     for (let i = 0; i < numResultRows; i++) {
@@ -172,7 +176,12 @@ export class ActiveDocImport {
           // Exclude unchanged cell values from the comparison.
           if (srcVal === destVal) { continue; }
 
-          updatedRecords[srcColId][srcRowId] = [[destVal], [merge(srcVal, destVal)]];
+          const shouldSkip = skippedColumnIds.has(matchingDestColId);
+          updatedRecords[srcColId][srcRowId] = [
+            [destVal],
+            // For skipped columns, always use the destination value.
+            [shouldSkip ? destVal : merge(srcVal, destVal)]
+          ];
         }
       }
 
@@ -419,7 +428,9 @@ export class ActiveDocImport {
     const columnData: BulkColValues = {};
 
     const srcColIds = srcCols.map(c => c.id as string);
-    const destCols = transformRule.destCols;
+
+    // Only include destination columns that weren't skipped.
+    const destCols = transformRule.destCols.filter(c => c.formula.trim() !== '');
     for (const destCol of destCols) {
       const formula = destCol.formula.trim();
       if (!formula) { continue; }
@@ -486,6 +497,16 @@ export class ActiveDocImport {
     let numNewRecords = 0;
     const updatedRecords: BulkColValues = {};
     const updatedRecordIds: number[] = [];
+
+    // Destination columns with a blank formula (i.e. skipped columns).
+    const skippedColumnIds = new Set(
+      stripPrefixes(destCols.filter(c => c.formula.trim() === '').map(c => c.colId!))
+    );
+
+    // Remove all skipped columns from the map.
+    srcToDestColIds.forEach((destColIds, srcColId) => {
+      srcToDestColIds.set(srcColId, destColIds.filter(id => !skippedColumnIds.has(id)));
+    });
 
     const destColIds = flatten([...srcToDestColIds.values()]);
     for (const id of destColIds) {
