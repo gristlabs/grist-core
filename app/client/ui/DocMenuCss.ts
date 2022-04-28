@@ -4,6 +4,10 @@ import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 
+// Import popweasel to ensure that sortSelector style below comes later in CSS than popweasel
+// styles, which gives it priority.
+import 'popweasel';
+
 // The "&:after" clause forces some padding below all docs.
 export const docList = styled('div', `
   height: 100%;
@@ -68,7 +72,7 @@ export const otherSitesBlock = styled('div', `
 
 export const otherSitesButtons = styled('div', `
   display: flex;
-  flex-wrap: wrap;
+  overflow: auto;
   padding-bottom: 16px;
   margin-top: 16px;
   margin-bottom: 28px;
