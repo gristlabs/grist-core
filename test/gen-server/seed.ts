@@ -37,7 +37,7 @@ import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";
 import {Organization} from "app/gen-server/entity/Organization";
-import {Product, synchronizeProducts} from "app/gen-server/entity/Product";
+import {Product, PRODUCTS, synchronizeProducts, testDailyApiLimitFeatures} from "app/gen-server/entity/Product";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/HomeDBManager';
@@ -47,6 +47,14 @@ import {FlexServer} from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
 
 const ACCESS_GROUPS = ['owners', 'editors', 'viewers', 'guests', 'members'];
+
+const testProducts = [
+  ...PRODUCTS,
+    {
+    name: 'testDailyApiLimit',
+    features: testDailyApiLimitFeatures,
+  },
+];
 
 export const exampleOrgs = [
   {
@@ -179,11 +187,23 @@ export const exampleOrgs = [
       }
     ]
   },
+  {
+    name: 'TestDailyApiLimit',
+    domain: 'testdailyapilimit',
+    product: 'testDailyApiLimit',
+    workspaces: [
+      {
+        name: 'TestDailyApiLimitWs',
+        docs: [],
+      }
+    ]
+  },
 ];
 
 
 const exampleUsers: {[user: string]: {[org: string]: string}} = {
   Chimpy: {
+    TestDailyApiLimit: 'owners',
     FreeTeam: 'owners',
     Chimpyland: 'owners',
     NASA: 'owners',
@@ -527,7 +547,7 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
 
 // add some test data to the database.
 export async function addSeedData(connection: Connection) {
-  await synchronizeProducts(connection, true);
+  await synchronizeProducts(connection, true, testProducts);
   await connection.transaction(async tr => {
     const seed = new Seed(tr.connection);
     await seed.run();

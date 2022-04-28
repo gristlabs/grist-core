@@ -61,6 +61,7 @@ import * as contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
 import * as _ from "lodash";
 import * as LRUCache from 'lru-cache';
+import * as moment from 'moment';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
@@ -71,6 +72,12 @@ import * as uuidv4 from "uuid/v4";
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
 // reply with status 429.
 const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
+
+// This is NOT the number of docs that can be handled at a time.
+// It's a very generous upper bound of what that number might be.
+// If there are more docs than this for which API requests are being regularly made at any moment,
+// then the _dailyUsage cache may become unreliable and users may be able to exceed their allocated requests.
+const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
 
 type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
 
@@ -99,6 +106,14 @@ function validate(checker: Checker): RequestHandler {
 }
 
 export class DocWorkerApi {
+  // Map from docId to number of requests currently being handled for that doc
+  private _currentUsage = new Map<string, number>();
+
+  // Map from (docId, time period) combination produced by docPeriodicApiUsageKey
+  // to number of requests previously served for that combination.
+  // We multiply by 5 because there are 5 relevant keys per doc at any time (current/next day/hour and current minute).
+  private _dailyUsage = new LRUCache<string, number>({max: 5 * MAX_ACTIVE_DOCS_USAGE_CACHE});
+
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
               private _dbManager: HomeDBManager, private _grist: GristServer) {}
@@ -771,19 +786,17 @@ export class DocWorkerApi {
   private _apiThrottle(callback: (req: RequestWithLogin,
                                   resp: Response,
                                   next: NextFunction) => void | Promise<void>): RequestHandler {
-    const usage = new Map<string, number>();
-    const dailyUsage = new LRUCache<string, number>({max: 1024});
     return async (req, res, next) => {
       const docId = getDocId(req);
       try {
-        const count = usage.get(docId) || 0;
-        usage.set(docId, count + 1);
+        const count = this._currentUsage.get(docId) || 0;
+        this._currentUsage.set(docId, count + 1);
         if (count + 1 > MAX_PARALLEL_REQUESTS_PER_DOC) {
           throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
             `try again later?`, 429);
         }
 
-        if (await this._checkDailyDocApiUsage(req, docId, dailyUsage)) {
+        if (await this._checkDailyDocApiUsage(req, docId)) {
           throw new ApiError(`Exceeded daily limit for document ${docId}`, 429);
         }
 
@@ -791,12 +804,12 @@ export class DocWorkerApi {
       } catch (err) {
         next(err);
       } finally {
-        const count = usage.get(docId);
+        const count = this._currentUsage.get(docId);
         if (count) {
           if (count === 1) {
-            usage.delete(docId);
+            this._currentUsage.delete(docId);
           } else {
-            usage.set(docId, count - 1);
+            this._currentUsage.set(docId, count - 1);
           }
         }
       }
@@ -805,57 +818,66 @@ export class DocWorkerApi {
 
   /**
    * Usually returns true if too many requests (based on the user's product plan)
-   * have been made today for this document.
+   * have been made today for this document and the request should be rejected.
    * Access to a document must already have been authorized.
    * This is called frequently so it uses caches to check quickly in the common case,
    * which allows a few ways for users to exceed the limit slightly if the timing works out,
    * but these should be acceptable.
    */
-  private async _checkDailyDocApiUsage(req: Request, docId: string, dailyUsage: LRUCache<string, number>) {
-    // Start with the possibly stale cached doc to avoid a database call.
-    // This leaves a small window for the user to bypass this limit after downgrading.
-    let doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
+  private async _checkDailyDocApiUsage(req: Request, docId: string): Promise<boolean> {
+    // Use the cached doc to avoid a database call.
+    // This leaves a small window (currently 5 seconds) for the user to bypass this limit after downgrading,
+    // or to be wrongly rejected after upgrading.
+    const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
 
-    function getMax() {
-      return doc.workspace.org.billingAccount?.product.features.baseMaxApiUnitsPerDocumentPerDay;
-    }
-
-    let max = getMax();
+    const max = doc.workspace.org.billingAccount?.product.features.baseMaxApiUnitsPerDocumentPerDay;
     if (!max) {
       // This doc has no associated product (happens to new unsaved docs)
-      // or the product has no API limit.
-      return;
+      // or the product has no API limit. Allow the request through.
+      return false;
     }
 
-    // Get the current count from the dailyUsage cache rather than waiting for redis.
-    // The cache will not have a count if this is the first request for this document served by this worker process
-    // or if so many other documents have been served since then that this key was evicted from the LRU cache.
+    // Check the counts in the dailyUsage cache rather than waiting for redis.
+    // The cache will not have counts if this is the first request for this document served by this worker process
+    // or if so many other documents have been served since then that the keys were evicted from the LRU cache.
     // Both scenarios are temporary and unlikely when usage has been exceeded.
-    const key = docDailyApiUsageKey(docId);
-    const count = dailyUsage.get(key);
-
-    if (count && count >= max) {
-      // The limit has apparently been exceeded.
-      // In case the user just upgraded, get a fresh Document entity from the DB and check again.
-      doc = await this._dbManager.getDoc(getDocScope(req));
-      max = getMax();
-      if (max && count >= max) {
-        return true;
-      }
+    // Note that if the limits are exceeded then `keys` below will be undefined,
+    // otherwise it will be an array of three keys corresponding to a day, hour, and minute.
+    const m = moment.utc();
+    const keys = getDocApiUsageKeysToIncr(docId, this._dailyUsage, max, m);
+    if (!keys) {
+      // The limit has been exceeded, reject the request.
+      return true;
     }
 
     // Note the increased API usage on redis and in our local cache.
-    // Do this in the background so that the rest of the request can continue without waiting for redis.
-    // If the user makes many concurrent requests quickly,
-    // a few extra might slip through before we see the count exceeding the limit, but this is basically unavoidable.
-    this._docWorkerMap.incrementDocApiUsage(key).then(newCount => {
-      if (newCount) {
+    // Update redis in the background so that the rest of the request can continue without waiting for redis.
+    const multi = this._docWorkerMap.getRedisClient().multi();
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      // Incrementing the local count immediately prevents many requests from being squeezed through every minute
+      // before counts are received from redis.
+      // But this cache is not 100% reliable and the count from redis may be higher.
+      this._dailyUsage.set(key, (this._dailyUsage.get(key) ?? 0) + 1);
+      const period = docApiUsagePeriods[i];
+      // Expire the key just so that it cleans itself up and saves memory on redis.
+      // Expire after two periods to handle 'next' buckets.
+      const expiry = 2 * 24 * 60 * 60 / period.periodsPerDay;
+      multi.incr(key).expire(key, expiry);
+    }
+    multi.execAsync().then(result => {
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const newCount = Number(result![i * 2]);  // incrs are at even positions, expires at odd positions
         // Theoretically this could be overwritten by a lower count that was requested earlier
         // but somehow arrived after.
         // This doesn't really matter, and the count on redis will still increase reliably.
-        dailyUsage.set(key, newCount);
+        this._dailyUsage.set(key, newCount);
       }
     }).catch(e => console.error(`Error tracking API usage for doc ${docId}`, e));
+
+    // Allow the request through.
+    return false;
   }
 
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
@@ -1140,14 +1162,78 @@ async function handleSandboxError<T>(tableId: string, colNames: string[], p: Pro
   return handleSandboxErrorOnPlatform(tableId, colNames, p, getErrorPlatform(tableId));
 }
 
+export interface DocApiUsagePeriod {
+  unit: 'day' | 'hour' | 'minute',
+  format: string;
+  periodsPerDay: number;
+}
+
+export const docApiUsagePeriods: DocApiUsagePeriod[] = [
+  {
+    unit: 'day',
+    format: 'YYYY-MM-DD',
+    periodsPerDay: 1,
+  },
+  {
+    unit: 'hour',
+    format: 'YYYY-MM-DDTHH',
+    periodsPerDay: 24,
+  },
+  {
+    unit: 'minute',
+    format: 'YYYY-MM-DDTHH:mm',
+    periodsPerDay: 24 * 60,
+  },
+];
+
 /**
  * Returns a key used for redis and a local cache
- * which store the number of API requests made for the given document today.
- * Defined here so that it can easily be accessed in tests.
- * The key contains the current UTC date so that counts from previous days are simply ignored and eventually evicted.
+ * which store the number of API requests made for the given document in the given period.
+ * The key contains the current UTC date (and maybe hour and minute)
+ * so that counts from previous periods are simply ignored and eventually evicted.
  * This means that the daily measured usage conceptually 'resets' at UTC midnight.
+ * If `current` is false, returns a key for the next day/hour.
  */
-export function docDailyApiUsageKey(docId: string) {
-  const d = new Date();
-  return `doc-${docId}-dailyApiUsage-${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
+export function docPeriodicApiUsageKey(docId: string, current: boolean, period: DocApiUsagePeriod, m: moment.Moment) {
+  if (!current) {
+    m = m.clone().add(1, period.unit);
+  }
+  return `doc-${docId}-periodicApiUsage-${m.format(period.format)}`;
+}
+
+/**
+ * Checks whether the doc API usage fits within the daily maximum.
+ * If so, returns an array of keys for each unit of time whose usage should be incremented.
+ * If not, returns undefined.
+ *
+ * Description of the algorithm this is implementing:
+ *
+ * Maintain up to 5 buckets: current day, next day, current hour, next hour, current minute.
+ * For each API request, check in order:
+ * - if current_day < DAILY_LIMIT, allow; increment all 3 current buckets
+ * - else if current_hour < DAILY_LIMIT/24, allow; increment next_day, current_hour, and current_minute buckets.
+ * - else if current_minute < DAILY_LIMIT/24/60, allow; increment next_day, next_hour, and current_minute buckets.
+ * - else reject.
+ * I think it has pretty good properties:
+ * - steady low usage may be maintained even if a burst exhausted the daily limit
+ * - user could get close to twice the daily limit on the first day with steady usage after a burst,
+ *   but would then be limited to steady usage the next day.
+ */
+export function getDocApiUsageKeysToIncr(
+  docId: string, usage: LRUCache<string, number>, dailyMax: number, m: moment.Moment
+): string[] | undefined {
+  // Start with keys for the current day, minute, and hour
+  const keys = docApiUsagePeriods.map(p => docPeriodicApiUsageKey(docId, true, p, m));
+  for (let i = 0; i < docApiUsagePeriods.length; i++) {
+    const period = docApiUsagePeriods[i];
+    const key = keys[i];
+    const periodMax = Math.ceil(dailyMax / period.periodsPerDay);
+    const count = usage.get(key) || 0;
+    if (count < periodMax) {
+      return keys;
+    }
+    // Allocation for the current day/hour/minute has been exceeded, increment the next day/hour/minute instead.
+    keys[i] = docPeriodicApiUsageKey(docId, false, period, m);
+  }
+  // Usage exceeded all the time buckets, so return undefined to reject the request.
 }

@@ -2,10 +2,15 @@ import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {DocState, UserAPIImpl} from 'app/common/UserAPI';
-import {teamFreeFeatures} from 'app/gen-server/entity/Product';
+import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
-import {applyQueryParameters, docDailyApiUsageKey} from 'app/server/lib/DocApi';
+import {
+  applyQueryParameters,
+  docApiUsagePeriods,
+  docPeriodicApiUsageKey,
+  getDocApiUsageKeysToIncr
+} from 'app/server/lib/DocApi';
 import * as log from 'app/server/lib/log';
 import {exitPromise} from 'app/server/lib/serverUtils';
 import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
@@ -17,6 +22,8 @@ import {ChildProcess, execFileSync, spawn} from 'child_process';
 import * as FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
+import * as LRUCache from 'lru-cache';
+import * as moment from 'moment';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
@@ -2305,42 +2312,158 @@ function testDocApi() {
 
   describe("Daily API Limit", () => {
     let redisClient: RedisClient;
-    let workspaceId: number;
-    let freeTeamApi: UserAPIImpl;
 
     before(async function() {
       if (!process.env.TEST_REDIS_URL) { this.skip(); }
       redisClient = createClient(process.env.TEST_REDIS_URL);
-      freeTeamApi = makeUserApi('freeteam');
-      workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
     });
 
     it("limits daily API usage", async function() {
-      // Make a new document in a free team site, currently the only product which limits daily API usage.
-      const docId = await freeTeamApi.newDoc({name: 'TestDoc'}, workspaceId);
-      const key = docDailyApiUsageKey(docId);
-      const limit = teamFreeFeatures.baseMaxApiUnitsPerDocumentPerDay!;
-      // Rather than making 5000 requests, set a high count directly in redis.
-      await redisClient.setAsync(key, String(limit - 2));
+      // Make a new document in a test product with a low daily limit
+      const api = makeUserApi('testdailyapilimit');
+      const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
+      const docId = await api.newDoc({name: 'TestDoc1'}, workspaceId);
+      const max = testDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay;
 
-      // Make three requests. The first two should succeed since we set the count to `limit - 2`.
-      // Wait a little after each request to allow time for the local cache to be updated with the redis count.
-      let response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
-      assert.equal(response.status, 200);
-      await delay(100);
+      for (let i = 1; i <= max + 2; i++) {
+        let success = true;
+        try {
+          // Make some doc request so that it fails or succeeds
+          await api.getTable(docId, "Table1");
+        } catch (e) {
+          success = false;
+        }
 
-      response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
-      assert.equal(response.status, 200);
-      await delay(100);
+        // Usually the first `max` requests should succeed and the rest should fail having exceeded the daily limit.
+        // If a new minute starts in the middle of the requests, an extra request will be allowed for that minute.
+        // If a new day starts in the middle of the requests, this test will fail.
+        if (success) {
+          assert.isAtMost(i, max + 1);
+        } else {
+          assert.isAtLeast(i, max + 1);
+        }
+      }
+    });
 
-      // The count should now have reached the limit, and the key should expire in one day.
-      assert.equal(await redisClient.ttlAsync(key), 86400);
-      assert.equal(await redisClient.getAsync(key), String(limit));
+    it("limits daily API usage and sets the correct keys in redis", async function() {
+      // Make a new document in a free team site, currently the only real product which limits daily API usage.
+      const freeTeamApi = makeUserApi('freeteam');
+      const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
+      const docId = await freeTeamApi.newDoc({name: 'TestDoc2'}, workspaceId);
+      // Rather than making 5000 requests, set high counts directly for the current and next daily and hourly keys
+      const used = 999999;
+      let m = moment.utc();
+      const currentDay = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[0], m);
+      const currentHour = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[1], m);
+      const nextDay = docPeriodicApiUsageKey(docId, false, docApiUsagePeriods[0], m);
+      const nextHour = docPeriodicApiUsageKey(docId, false, docApiUsagePeriods[1], m);
+      await redisClient.multi()
+        .set(currentDay, String(used))
+        .set(currentHour, String(used))
+        .set(nextDay, String(used))
+        .set(nextHour, String(used))
+        .execAsync();
 
-      // Making the same request a third time should fail.
-      response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
-      assert.equal(response.status, 429);
-      assert.deepEqual(response.data, {error: `Exceeded daily limit for document ${docId}`});
+      // Make 9 requests. The first 4 should succeed by fitting into the allocation for the minute.
+      // (Free team plans get 5000 requests per day, and 5000/24/60 ~= 3.47 which is rounded up to 4)
+      // The last request should fail. Don't check the middle 4 in case we're on the boundary of a minute.
+      for (let i = 1; i <= 9; i++) {
+        const last = i === 9;
+        m = moment.utc();  // get this before delaying to calculate accurate keys below
+        const response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
+        // Allow time for redis to be updated.
+        await delay(100);
+        if (i <= 4) {
+          assert.equal(response.status, 200);
+          // Keys of the periods we expect to be incremented.
+          // For the first request, the server's usage cache is empty and it hasn't seen the redis values.
+          // So it thinks there hasn't been any usage and increments the current day/hour.
+          // After that it increments the next day/hour.
+          // We're only checking this for the first 4 requests
+          // because once the limit is exceeded the counts aren't incremented.
+          const first = i === 1;
+          const day = docPeriodicApiUsageKey(docId, first, docApiUsagePeriods[0], m);
+          const hour = docPeriodicApiUsageKey(docId, first, docApiUsagePeriods[1], m);
+          const minute = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[2], m);
+
+          if (!first) {
+            // The first request takes longer to serve because the document gets loaded,
+            // so only check the TTL (which gets set before request processing starts) on subsequent requests.
+            assert.deepEqual(
+              await redisClient.multi()
+                .ttl(minute)
+                .ttl(hour)
+                .ttl(day)
+                .execAsync(),
+              [
+                2 * 60,
+                2 * 60 * 60,
+                2 * 60 * 60 * 24,
+              ],
+            );
+          }
+
+          assert.deepEqual(
+            await redisClient.multi()
+              .get(minute)
+              .get(hour)
+              .get(day)
+              .execAsync(),
+            [
+              String(i),
+              String(used + (first ? 1 : i - 1)),
+              String(used + (first ? 1 : i - 1)),
+            ],
+          );
+        }
+
+        if (last) {
+          assert.equal(response.status, 429);
+          assert.deepEqual(response.data, {error: `Exceeded daily limit for document ${docId}`});
+        }
+      }
+    });
+
+    it("correctly allocates API requests based on the day, hour, and minute", async function() {
+      const m = moment.utc("1999-12-31T23:59:59Z");
+      const docId = "myDocId";
+      const currentDay = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[0], m);
+      const currentHour = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[1], m);
+      const currentMinute = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[2], m);
+      const nextDay = docPeriodicApiUsageKey(docId, false, docApiUsagePeriods[0], m);
+      const nextHour = docPeriodicApiUsageKey(docId, false, docApiUsagePeriods[1], m);
+      assert.equal(currentDay, `doc-myDocId-periodicApiUsage-1999-12-31`);
+      assert.equal(currentHour, `doc-myDocId-periodicApiUsage-1999-12-31T23`);
+      assert.equal(currentMinute, `doc-myDocId-periodicApiUsage-1999-12-31T23:59`);
+      assert.equal(nextDay, `doc-myDocId-periodicApiUsage-2000-01-01`);
+      assert.equal(nextHour, `doc-myDocId-periodicApiUsage-2000-01-01T00`);
+
+      const usage = new LRUCache<string, number>({max: 1024});
+      function check(expected: string[] | undefined) {
+        assert.deepEqual(getDocApiUsageKeysToIncr(docId, usage, dailyMax, m), expected);
+      }
+
+      const dailyMax = 5000;
+      const hourlyMax = 209;  // 5000/24    ~= 208.33
+      const minuteMax = 4;    // 5000/24/60 ~= 3.47
+      check([currentDay, currentHour, currentMinute]);
+      usage.set(currentDay, dailyMax - 1);
+      check([currentDay, currentHour, currentMinute]);
+      usage.set(currentDay, dailyMax);
+      check([nextDay, currentHour, currentMinute]);  // used up daily allocation
+      usage.set(currentHour, hourlyMax - 1);
+      check([nextDay, currentHour, currentMinute]);
+      usage.set(currentHour, hourlyMax);
+      check([nextDay, nextHour, currentMinute]);  // used up hourly allocation
+      usage.set(currentMinute, minuteMax - 1);
+      check([nextDay, nextHour, currentMinute]);
+      usage.set(currentMinute, minuteMax);
+      check(undefined);  // used up minutely allocation
+      usage.set(currentDay, 0);
+      check([currentDay, currentHour, currentMinute]);
+      usage.set(currentDay, dailyMax);
+      usage.set(currentHour, 0);
+      check([nextDay, currentHour, currentMinute]);
     });
 
     after(async function() {

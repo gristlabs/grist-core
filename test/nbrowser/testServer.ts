@@ -25,6 +25,7 @@ import {tmpdir} from 'os';
 import * as path from 'path';
 import {removeConnection} from 'test/gen-server/seed';
 import {HomeUtil} from 'test/nbrowser/homeUtil';
+import {getDatabase} from 'test/testUtils';
 
 export class TestServerMerged implements IMochaServer {
   public testDir: string;
@@ -225,22 +226,7 @@ export class TestServerMerged implements IMochaServer {
    */
   public async getDatabase(): Promise<HomeDBManager> {
     if (!this._dbManager) {
-      const origTypeormDB = process.env.TYPEORM_DATABASE;
-      process.env.TYPEORM_DATABASE = this._getDatabaseFile();
-      this._dbManager = new HomeDBManager();
-      await this._dbManager.connect();
-      await this._dbManager.initializeSpecialIds();
-      if (origTypeormDB) {
-        process.env.TYPEORM_DATABASE = origTypeormDB;
-      }
-      // If this is Sqlite, we are making a separate connection to the database,
-      // so could get busy errors. We bump up our timeout. The rest of Grist could
-      // get busy errors if we do slow writes though.
-      const connection = this._dbManager.connection;
-      const sqlite = connection.driver.options.type === 'sqlite';
-      if (sqlite) {
-        await this._dbManager.connection.query('PRAGMA busy_timeout = 3000');
-      }
+      this._dbManager = await getDatabase(this._getDatabaseFile());
     }
     return this._dbManager;
   }

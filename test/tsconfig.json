@@ -1,6 +1,7 @@
 {
   "extends": "../buildtools/tsconfig-base.json",
   "include": [
+    "*",
     "**/*",
     "../app/server/declarations.d.ts",
     "../app/server/declarations/**/*.d.ts",

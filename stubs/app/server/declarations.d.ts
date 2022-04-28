@@ -66,6 +66,7 @@ declare module "redis" {
     public sadd(key: string, val: string): Multi;
     public set(key: string, val: string): Multi;
     public setex(key: string, ttl: number, val: string): Multi;
+    public ttl(key: string): Multi;
     public smembers(key: string): Multi;
     public srandmember(key: string): Multi;
     public srem(key: string, val: string): Multi;

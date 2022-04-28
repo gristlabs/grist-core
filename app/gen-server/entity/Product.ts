@@ -43,6 +43,11 @@ export const teamFreeFeatures: Features = {
   gracePeriodDays: 14,
 };
 
+export const testDailyApiLimitFeatures = {
+  ...teamFreeFeatures,
+  baseMaxApiUnitsPerDocumentPerDay: 3,
+};
+
 /**
  * A summary of features used in unrestricted grandfathered accounts, and also
  * in some test settings.
@@ -87,7 +92,7 @@ export interface IProduct {
  * TODO: change capitalization of name of grandfather product.
  *
  */
-const PRODUCTS: IProduct[] = [
+export const PRODUCTS: IProduct[] = [
   // This is a product for grandfathered accounts/orgs.
   {
     name: 'Free',
@@ -166,7 +171,9 @@ export class Product extends BaseEntity {
  * If `apply` is set, the products are changed in the db, otherwise
  * the are left unchanged.  A summary of affected products is returned.
  */
-export async function synchronizeProducts(connection: Connection, apply: boolean): Promise<string[]> {
+export async function synchronizeProducts(
+  connection: Connection, apply: boolean, products = PRODUCTS
+): Promise<string[]> {
   try {
     await connection.query('select name, features, stripe_product_id from products limit 1');
   } catch (e) {
@@ -175,7 +182,7 @@ export async function synchronizeProducts(connection: Connection, apply: boolean
   }
   const changingProducts: string[] = [];
   await connection.transaction(async transaction => {
-    const desiredProducts = new Map(PRODUCTS.map(p => [p.name, p]));
+    const desiredProducts = new Map(products.map(p => [p.name, p]));
     const existingProducts = new Map((await transaction.find(Product))
                                      .map(p => [p.name, p]));
     for (const product of desiredProducts.values()) {
