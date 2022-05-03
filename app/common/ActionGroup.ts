@@ -25,5 +25,4 @@ export interface ActionGroup extends MinimalActionGroup {
   user: string;
   primaryAction: string;  // The name of the first user action in the ActionGroup.
   internal: boolean;      // True if it is inappropriate to log/undo the action.
-  rowCount?: number;
 }

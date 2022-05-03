@@ -478,9 +478,7 @@ export class GristDoc extends DisposableWithEvents {
       if (schemaUpdated) {
         this.trigger('schemaUpdateAction', docActions);
       }
-      if (typeof actionGroup.rowCount === "number") {
-        this.docPageModel.rowCount.set(actionGroup.rowCount);
-      }
+      this.docPageModel.updateDocUsage(message.data.docUsage);
     }
   }
 

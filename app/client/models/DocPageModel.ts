@@ -17,10 +17,10 @@ import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
+import {AttachmentsSize, DataLimitStatus, DataSize, DocUsage, RowCount} from 'app/common/DocUsage';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit} from 'app/common/roles';
-import {DataLimitStatus, RowCount} from 'app/common/Usage';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
@@ -66,13 +66,16 @@ export interface DocPageModel {
 
   gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
 
+  dataLimitStatus: Observable<DataLimitStatus>;
   rowCount: Observable<RowCount>;
-  dataLimitStatus: Observable<DataLimitStatus|undefined>;
+  dataSizeBytes: Observable<DataSize>;
+  attachmentsSizeBytes: Observable<AttachmentsSize>;
 
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
   updateCurrentDoc(urlId: string, openMode: OpenDocMode): Promise<Document>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
+  updateDocUsage(docUsage: DocUsage): void;
 }
 
 export interface ImportSource {
@@ -109,8 +112,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   // Observable set to the instance of GristDoc once it's created.
   public readonly gristDoc = Observable.create<GristDoc|null>(this, null);
 
+  public readonly dataLimitStatus = Observable.create<DataLimitStatus>(this, null);
   public readonly rowCount = Observable.create<RowCount>(this, 'pending');
-  public readonly dataLimitStatus = Observable.create<DataLimitStatus|undefined>(this, null);
+  public readonly dataSizeBytes = Observable.create<DataSize>(this, 'pending');
+  public readonly attachmentsSizeBytes = Observable.create<AttachmentsSize>(this, 'pending');
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -203,6 +208,13 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     return urlState().pushUrl(nextState, {avoidReload: true, ...options});
   }
 
+  public updateDocUsage(docUsage: DocUsage) {
+    this.rowCount.set(docUsage.rowCount);
+    this.dataLimitStatus.set(docUsage.dataLimitStatus);
+    this.dataSizeBytes.set(docUsage.dataSizeBytes);
+    this.attachmentsSizeBytes.set(docUsage.attachmentsSizeBytes);
+  }
+
   private _onOpenError(err: Error) {
     if (err instanceof CancelledError) {
       // This means that we started loading a new doc before the previous one finished loading.
@@ -260,8 +272,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       doc.userOverride = openDocResponse.userOverride || null;
       this.currentDoc.set({...doc});
     }
-    this.rowCount.set(openDocResponse.rowCount);
-    this.dataLimitStatus.set(openDocResponse.dataLimitStatus);
+    if (openDocResponse.docUsage) {
+      this.updateDocUsage(openDocResponse.docUsage);
+    }
     const gdModule = await gristDocModulePromise;
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();

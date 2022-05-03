@@ -10,6 +10,7 @@ import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
+import { DocUsage } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
@@ -101,6 +102,12 @@ const SURPRISING_ACTIONS = new Set([
 // Actions we'll allow unconditionally for now.
 const OK_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime']);
 
+interface DocUpdateMessage {
+  actionGroup: ActionGroup;
+  docActions: DocAction[];
+  docUsage: DocUsage;
+}
+
 /**
  * Granular access for a single bundle, in different phases.
  */
@@ -108,7 +115,7 @@ export interface GranularAccessForBundle {
   canApplyBundle(): Promise<void>;
   appliedBundle(): Promise<void>;
   finishedBundle(): Promise<void>;
-  sendDocUpdateForBundle(actionGroup: ActionGroup): Promise<void>;
+  sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsage): Promise<void>;
 }
 
 /**
@@ -362,13 +369,16 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Filter an ActionGroup to be sent to a client.
    */
-  public async filterActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<ActionGroup> {
-    if (await this.allowActionGroup(docSession, actionGroup)) { return actionGroup; }
+  public async filterActionGroup(
+    docSession: OptDocSession,
+    actionGroup: ActionGroup,
+    options: {role?: Role | null} = {}
+  ): Promise<ActionGroup> {
+    if (await this.allowActionGroup(docSession, actionGroup, options)) { return actionGroup; }
     // For now, if there's any nuance at all, suppress the summary and description.
     const result: ActionGroup = { ...actionGroup };
     result.actionSummary = createEmptyActionSummary();
     result.desc = '';
-    result.rowCount = undefined;
     return result;
   }
 
@@ -376,8 +386,33 @@ export class GranularAccess implements GranularAccessForBundle {
    * Check whether an ActionGroup can be sent to the client.  TODO: in future, we'll want
    * to filter acceptable parts of ActionGroup, rather than denying entirely.
    */
-  public async allowActionGroup(docSession: OptDocSession, actionGroup: ActionGroup): Promise<boolean> {
-    return this.canReadEverything(docSession);
+  public async allowActionGroup(
+    docSession: OptDocSession,
+    _actionGroup: ActionGroup,
+    options: {role?: Role | null} = {}
+  ): Promise<boolean> {
+    return this.canReadEverything(docSession, options);
+  }
+
+  /**
+   * Filter DocUsage to be sent to a client.
+   */
+  public async filterDocUsage(
+    docSession: OptDocSession,
+    docUsage: DocUsage,
+    options: {role?: Role | null} = {}
+  ): Promise<DocUsage> {
+    const result: DocUsage = { ...docUsage };
+    const role = options.role ?? await this.getNominalAccess(docSession);
+    const hasEditRole = canEdit(role);
+    if (!hasEditRole) { result.dataLimitStatus = null; }
+    const hasFullReadAccess = await this.canReadEverything(docSession);
+    if (!hasEditRole || !hasFullReadAccess) {
+      result.rowCount = 'hidden';
+      result.dataSizeBytes = 'hidden';
+      result.attachmentsSizeBytes = 'hidden';
+    }
+    return result;
   }
 
   /**
@@ -577,8 +612,11 @@ export class GranularAccess implements GranularAccessForBundle {
    * Check whether user can read everything in document.  Checks both home-level and doc-level
    * permissions.
    */
-  public async canReadEverything(docSession: OptDocSession): Promise<boolean> {
-    const access = await this.getNominalAccess(docSession);
+  public async canReadEverything(
+    docSession: OptDocSession,
+    options: {role?: Role | null} = {}
+  ): Promise<boolean> {
+    const access = options.role ?? await this.getNominalAccess(docSession);
     if (!canView(access)) { return false; }
     const permInfo = await this._getAccess(docSession);
     return this.getReadPermission(permInfo.getFullAccess()) === 'allow';
@@ -709,11 +747,11 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Broadcast document changes to all clients, with appropriate filtering.
    */
-  public async sendDocUpdateForBundle(actionGroup: ActionGroup) {
+  public async sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsage) {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, docSession } = this._activeBundle;
     const client = docSession && docSession.client || null;
-    const message = { actionGroup, docActions };
+    const message: DocUpdateMessage = { actionGroup, docActions, docUsage };
     await this._docClients.broadcastDocMessage(client, 'docUserAction',
                                                message,
                                                (_docSession) => this._filterDocUpdate(_docSession, message));
@@ -866,18 +904,18 @@ export class GranularAccess implements GranularAccessForBundle {
    * This filters a message being broadcast to all clients to be appropriate for one
    * particular client, if that client may need some material filtered out.
    */
-  private async _filterDocUpdate(docSession: OptDocSession, message: {
-    actionGroup: ActionGroup,
-    docActions: DocAction[]
-  }) {
+  private async _filterDocUpdate(docSession: OptDocSession, message: DocUpdateMessage) {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
-    if (!this._ruler.haveRules() && !this._activeBundle.hasDeliberateRuleChange) {
-      return message;
-    }
+    const role = await this.getNominalAccess(docSession);
     const result = {
-      actionGroup: await this.filterActionGroup(docSession, message.actionGroup),
-      docActions: await this.filterOutgoingDocActions(docSession, message.docActions),
+      ...message,
+      docUsage: await this.filterDocUsage(docSession, message.docUsage, {role}),
     };
+    if (!this._ruler.haveRules() && !this._activeBundle.hasDeliberateRuleChange) {
+      return result;
+    }
+    result.actionGroup = await this.filterActionGroup(docSession, message.actionGroup, {role});
+    result.docActions = await this.filterOutgoingDocActions(docSession, message.docActions);
     if (result.docActions.length === 0) { return null; }
     return result;
   }

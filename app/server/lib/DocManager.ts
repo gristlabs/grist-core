@@ -9,6 +9,7 @@ import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocUsage} from 'app/common/DocUsage';
 import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -313,24 +314,28 @@ export class DocManager extends EventEmitter {
         }
       }
 
-      const [metaTables, recentActions, userOverride, rowCount, dataLimitStatus] = await Promise.all([
+      const [metaTables, recentActions, userOverride] = await Promise.all([
         activeDoc.fetchMetaTables(docSession),
         activeDoc.getRecentMinimalActions(docSession),
         activeDoc.getUserOverride(docSession),
-        activeDoc.getRowCount(docSession),
-        activeDoc.getDataLimitStatus(docSession),
       ]);
 
-      const result = {
+      let docUsage: DocUsage | undefined;
+      try {
+        docUsage = await activeDoc.getFilteredDocUsage(docSession);
+      } catch (e) {
+        log.warn("DocManager.openDoc failed to get doc usage", e);
+      }
+
+      const result: OpenLocalDocResult = {
         docFD: docSession.fd,
         clientId: docSession.client.clientId,
         doc: metaTables,
         log: recentActions,
         recoveryMode: activeDoc.recoveryMode,
         userOverride,
-        rowCount,
-        dataLimitStatus,
-      } as OpenLocalDocResult;
+        docUsage,
+      };
 
       if (!activeDoc.muted) {
         this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));

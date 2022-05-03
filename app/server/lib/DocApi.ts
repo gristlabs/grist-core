@@ -248,7 +248,7 @@ export class DocWorkerApi {
 
     // Mostly for testing
     this._app.post('/api/docs/:docId/attachments/updateUsed', canEdit, withDoc(async (activeDoc, req, res) => {
-      await activeDoc.updateUsedAttachments();
+      await activeDoc.updateUsedAttachmentsIfNeeded();
       res.json(null);
     }));
     this._app.post('/api/docs/:docId/attachments/removeUnused', isOwner, withDoc(async (activeDoc, req, res) => {

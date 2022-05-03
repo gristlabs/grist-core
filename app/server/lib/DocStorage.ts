@@ -1238,9 +1238,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Returns the total number of bytes used for storing attachments that haven't been soft-deleted.
-   * May be stale if ActiveDoc.updateUsedAttachments isn't called first.
+   * May be stale if ActiveDoc.updateUsedAttachmentsIfNeeded isn't called first.
    */
-  public async getTotalAttachmentFileSizes() {
+  public async getTotalAttachmentFileSizes(): Promise<number> {
     const result = await this.get(`
       SELECT SUM(len) AS total
       FROM (
@@ -1258,7 +1258,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         GROUP BY meta.fileIdent
       )
     `);
-    return result!.total as number;
+    return result!.total ?? 0;
   }
 
   /**
@@ -1307,7 +1307,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Return row IDs of unused attachments in _grist_Attachments.
-   * Uses the timeDeleted column which is updated in ActiveDoc.updateUsedAttachments.
+   * Uses the timeDeleted column which is updated in ActiveDoc.updateUsedAttachmentsIfNeeded.
    * @param expiredOnly: if true, only return attachments where timeDeleted is at least
    *                     ATTACHMENTS_EXPIRY_DAYS days ago.
    */

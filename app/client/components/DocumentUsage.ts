@@ -1,19 +1,26 @@
 import {DocPageModel} from 'app/client/models/DocPageModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
 import {commonUrls} from 'app/common/gristUrls';
 import {capitalizeFirstWord} from 'app/common/gutil';
-import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/Usage';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 
 const testId = makeTestId('test-doc-usage-');
 
 // Default used by the progress bar to visually indicate row usage.
 const DEFAULT_MAX_ROWS = 20000;
+
+// Default used by the progress bar to visually indicate data size usage.
+const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024; // 40MB (2KiB per row)
+
+// Default used by the progress bar to visually indicate attachments size usage.
+const DEFAULT_MAX_ATTACHMENTS_SIZE = 1 * 1024 * 1024 * 1024; // 1GiB
 
 const ACCESS_DENIED_MESSAGE = 'Usage statistics are only available to users with '
   + 'full access to the document data.';
@@ -25,6 +32,8 @@ export class DocumentUsage extends Disposable {
   private readonly _currentDoc = this._docPageModel.currentDoc;
   private readonly _dataLimitStatus = this._docPageModel.dataLimitStatus;
   private readonly _rowCount = this._docPageModel.rowCount;
+  private readonly _dataSizeBytes = this._docPageModel.dataSizeBytes;
+  private readonly _attachmentsSizeBytes = this._docPageModel.attachmentsSizeBytes;
 
   private readonly _currentOrg = Computed.create(this, this._currentDoc, (_use, doc) => {
     return doc?.workspace.org ?? null;
@@ -47,20 +56,65 @@ export class DocumentUsage extends Disposable {
       };
     });
 
-  private readonly _isLoading: Computed<boolean> =
-    Computed.create(this, this._currentDoc, this._rowCount, (_use, doc, rowCount) => {
-      return doc === null || rowCount === 'pending';
+  private readonly _dataSizeMetrics: Computed<MetricOptions | null> =
+    Computed.create(this, this._currentOrg, this._dataSizeBytes, (_use, org, dataSize) => {
+      const features = org?.billingAccount?.product.features;
+      if (!features || typeof dataSize !== 'number') { return null; }
+
+      const {baseMaxDataSizePerDocument: maxSize} = features;
+      // Invalid data size limits are currently treated as if they are undefined.
+      const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
+      return {
+        name: 'Data Size',
+        currentValue: dataSize,
+        maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
+        unit: 'MB',
+        shouldHideLimits: maxValue === undefined,
+        formatValue: (val) => {
+          // To display a nice, round number for `maximumValue`, we first convert
+          // to KiBs (base-2), and then convert to MBs (base-10). Normally, we wouldn't
+          // mix conversions like this, but to display something that matches our
+          // marketing limits (e.g. 40MB for Pro plan), we need to bend conversions a bit.
+          return ((val / 1024) / 1000).toFixed(2);
+        },
+      };
     });
+
+  private readonly _attachmentsSizeMetrics: Computed<MetricOptions | null> =
+    Computed.create(this, this._currentOrg, this._attachmentsSizeBytes, (_use, org, attachmentsSize) => {
+      const features = org?.billingAccount?.product.features;
+      if (!features || typeof attachmentsSize !== 'number') { return null; }
+
+      const {baseMaxAttachmentsBytesPerDocument: maxSize} = features;
+      // Invalid attachments size limits are currently treated as if they are undefined.
+      const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
+      return {
+        name: 'Attachments Size',
+        currentValue: attachmentsSize,
+        maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
+        unit: 'GB',
+        shouldHideLimits: maxValue === undefined,
+        formatValue: (val) => (val / (1024 * 1024 * 1024)).toFixed(2),
+      };
+    });
+
+  private readonly _isLoading: Computed<boolean> =
+    Computed.create(
+      this, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
+      (_use, doc, rowCount, dataSize, attachmentsSize) => {
+        return !doc || [rowCount, dataSize, attachmentsSize].some(metric => metric === 'pending');
+      }
+    );
 
   private readonly _isAccessDenied: Computed<boolean | null> =
     Computed.create(
-      this, this._isLoading, this._currentDoc, this._rowCount,
-      (_use, isLoading, doc, rowCount) => {
+      this, this._isLoading, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
+      (_use, isLoading, doc, rowCount, dataSize, attachmentsSize) => {
         if (isLoading) { return null; }
 
         const {access} = doc!.workspace.org;
         const isPublicUser = access === 'guests' || access === null;
-        return isPublicUser || rowCount === 'hidden';
+        return isPublicUser || [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
       }
     );
 
@@ -91,7 +145,9 @@ export class DocumentUsage extends Disposable {
       if (!org || !status) { return null; }
 
       return buildMessage([
-        getLimitStatusMessage(status, org.billingAccount?.product.features),
+        buildLimitStatusMessage(status, org.billingAccount?.product.features, {
+          disableRawDataLink: true
+        }),
         ' ',
         buildUpgradeMessage(org.access === 'owners')
       ]);
@@ -104,18 +160,79 @@ export class DocumentUsage extends Disposable {
         dom.maybe(this._rowMetrics, (metrics) =>
           buildUsageMetric(metrics, testId('rows')),
         ),
+        dom.maybe(this._dataSizeMetrics, (metrics) =>
+          buildUsageMetric(metrics, testId('data-size')),
+        ),
+        dom.maybe(this._attachmentsSizeMetrics, (metrics) =>
+          buildUsageMetric(metrics, testId('attachments-size')),
+        ),
         testId('metrics'),
       ),
     );
   }
 }
 
-function buildMessage(message: DomContents) {
-  return cssWarningMessage(
-    cssIcon('Idea'),
-    cssLightlyBoldedText(message, testId('message-text')),
-    testId('message'),
-  );
+export function buildLimitStatusMessage(
+  status: NonNullable<DataLimitStatus>,
+  features?: Features,
+  options: {
+    disableRawDataLink?: boolean;
+  } = {}
+) {
+  const {disableRawDataLink = false} = options;
+  switch (status) {
+    case 'approachingLimit': {
+      return [
+        'This document is ',
+        disableRawDataLink ? 'approaching' : buildRawDataPageLink('approaching'),
+        ' free plan limits.'
+      ];
+    }
+    case 'gracePeriod': {
+      const gracePeriodDays = features?.gracePeriodDays;
+      if (!gracePeriodDays) {
+        return [
+          'Document limits ',
+          disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
+          '.'
+        ];
+      }
+
+      return [
+        'Document limits ',
+        disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
+        `. In ${gracePeriodDays} days, this document will be read-only.`
+      ];
+    }
+    case 'deleteOnly': {
+      return [
+        'This document ',
+        disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
+        ' free plan limits and is now read-only, but you can delete rows.'
+      ];
+    }
+  }
+}
+
+export function buildUpgradeMessage(isOwner: boolean, variant: 'short' | 'long' = 'long') {
+  if (!isOwner) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
+
+  const upgradeLinkText = 'start your 30-day free trial of the Pro plan.';
+  return [
+    variant === 'short' ? null : 'For higher limits, ',
+    buildUpgradeLink(variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText),
+  ];
+}
+
+function buildUpgradeLink(linkText: string) {
+  return cssUnderlinedLink(linkText, {
+    href: commonUrls.plans,
+    target: '_blank',
+  });
+}
+
+function buildRawDataPageLink(linkText: string) {
+  return cssUnderlinedLink(linkText, urlState().setLinkUrl({docPage: 'data'}));
 }
 
 interface MetricOptions {
@@ -126,6 +243,7 @@ interface MetricOptions {
   unit?: string;
   // If true, limits will always be hidden, even if `maximumValue` is a positive number.
   shouldHideLimits?: boolean;
+  formatValue?(value: number): string;
 }
 
 /**
@@ -134,7 +252,14 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {name, currentValue, maximumValue, unit, shouldHideLimits} = options;
+  const {
+    name,
+    currentValue,
+    maximumValue,
+    unit,
+    shouldHideLimits,
+    formatValue = (val) => val.toString(),
+  } = options;
   const ratioUsed = currentValue / (maximumValue || Infinity);
   const percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
   return cssUsageMetric(
@@ -150,8 +275,8 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
       ),
     ),
     dom('div',
-      currentValue
-        + (shouldHideLimits || !maximumValue ? '' : ' of ' + maximumValue)
+      formatValue(currentValue)
+        + (shouldHideLimits || !maximumValue ? '' : ' of ' + formatValue(maximumValue))
         + (unit ? ` ${unit}` : ''),
       testId('value'),
     ),
@@ -159,38 +284,12 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
   );
 }
 
-export function getLimitStatusMessage(status: NonNullable<DataLimitStatus>, features?: Features): string {
-  switch (status) {
-    case 'approachingLimit': {
-      return 'This document is approaching free plan limits.';
-    }
-    case 'gracePeriod': {
-      const gracePeriodDays = features?.gracePeriodDays;
-      if (!gracePeriodDays) { return 'Document limits exceeded.'; }
-
-      return `Document limits exceeded. In ${gracePeriodDays} days, this document will be read-only.`;
-    }
-    case 'deleteOnly': {
-      return 'This document exceeded free plan limits and is now read-only, but you can delete rows.';
-    }
-  }
-}
-
-export function buildUpgradeMessage(isOwner: boolean, variant: 'short' | 'long' = 'long') {
-  if (!isOwner) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
-
-  const upgradeLinkText = 'start your 30-day free trial of the Pro plan.';
-  return [
-    variant === 'short' ? null : 'For higher limits, ',
-    buildUpgradeLink(variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText),
-  ];
-}
-
-export function buildUpgradeLink(linkText: string) {
-  return cssUnderlinedLink(linkText, {
-    href: commonUrls.plans,
-    target: '_blank',
-  });
+function buildMessage(message: DomContents) {
+  return cssWarningMessage(
+    cssIcon('Idea'),
+    cssLightlyBoldedText(message, testId('message-text')),
+    testId('message'),
+  );
 }
 
 const cssLightlyBoldedText = styled('div', `
@@ -233,13 +332,8 @@ const cssUsageMetrics = styled('div', `
   display: flex;
   flex-wrap: wrap;
   margin-top: 24px;
-  gap: 56px;
-
-  @media ${mediaXSmall} {
-    & {
-      gap: 24px;
-    }
-  }
+  row-gap: 24px;
+  column-gap: 54px;
 `);
 
 const cssUsageMetric = styled('div', `

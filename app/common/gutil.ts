@@ -935,3 +935,16 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
     throw new Error(`Expected '${name}' to be defined, but received ${value}`);
   }
 }
+
+/**
+ * Calls function `fn`, passes any thrown errors to function `recover`, and finally calls `fn`
+ * once more if `recover` doesn't throw.
+ */
+ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) => Promise<void>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    await recover(e);
+    return await fn();
+  }
+}

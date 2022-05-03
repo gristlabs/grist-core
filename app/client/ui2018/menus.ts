@@ -537,6 +537,10 @@ const cssCmdKey = styled('span', `
   margin-left: 16px;
   color: ${colors.slate};
   margin-right: -12px;
+
+  .${weasel.cssMenuItem.className}-sel > & {
+    color: ${colors.lightGrey};
+  }
 `);
 
 const cssAnnotateMenuItem = styled('span', `

@@ -1725,7 +1725,7 @@ function testDocApi() {
       assert.equal(resp.status, 200);
 
       // Remove the not expired attachments (2 and 3).
-      // We didn't set a timeDeleted for 3, but it gets set automatically by updateUsedAttachments.
+      // We didn't set a timeDeleted for 3, but it gets set automatically by updateUsedAttachmentsIfNeeded.
       resp = await axios.post(`${docUrl}/attachments/removeUnused?verifyfiles=1`, null, chimpy);
       assert.equal(resp.status, 200);
       await checkAttachmentIds([]);

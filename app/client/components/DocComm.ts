@@ -5,6 +5,7 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DocAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocUsage} from 'app/common/DocUsage';
 import {docUrl} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable, Emitter} from 'grainjs';
@@ -17,6 +18,7 @@ export interface DocUserAction extends CommMessage {
   data: {
     docActions: DocAction[];
     actionGroup: ActionGroup;
+    docUsage: DocUsage;
     error?: string;
   };
 }

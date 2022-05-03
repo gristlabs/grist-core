@@ -35,16 +35,24 @@ import {
 import {DocData} from 'app/common/DocData';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {
+  APPROACHING_LIMIT_RATIO,
+  AttachmentsSize,
+  DataLimitStatus,
+  DataSize,
+  DocUsage,
+  LimitExceededError,
+  NonHidden,
+  RowCount
+} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {Features} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
-import {byteString, countIf, safeJsonParse} from 'app/common/gutil';
+import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
-import {canEdit} from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {APPROACHING_LIMIT_RATIO, DataLimitStatus, RowCount} from 'app/common/Usage';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
@@ -173,8 +181,9 @@ export class ActiveDoc extends EventEmitter {
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _lastDataSizeMeasurement: number = 0;  // Timestamp when dbstat data size was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _rowCount: RowCount = 'pending';
-  private _dataSize?: number;
+  private _rowCount: NonHidden<RowCount> = 'pending';
+  private _dataSize: NonHidden<DataSize> = 'pending';
+  private _attachmentsSize: NonHidden<AttachmentsSize> = 'pending';
   private _productFeatures?: Features;
   private _gracePeriodStart: Date|null = null;
 
@@ -245,8 +254,8 @@ export class ActiveDoc extends EventEmitter {
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
   public get rowLimitRatio() {
-    if (!this._rowLimit || this._rowLimit <= 0 || typeof this._rowCount !== 'number') {
-      // Invalid row limits are currently treated as if they are undefined.
+    if (!isEnforceableLimit(this._rowLimit) || this._rowCount === 'pending') {
+      // If limit can't be enforced (e.g. undefined, non-positive), assume no limit.
       return 0;
     }
 
@@ -254,8 +263,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public get dataSizeLimitRatio() {
-    if (!this._dataSizeLimit || this._dataSizeLimit <= 0 || !this._dataSize) {
-      // Invalid data size limits are currently treated as if they are undefined.
+    if (!isEnforceableLimit(this._dataSizeLimit) || this._dataSize === 'pending') {
+      // If limit can't be enforced (e.g. undefined, non-positive), assume no limit.
       return 0;
     }
 
@@ -282,15 +291,17 @@ export class ActiveDoc extends EventEmitter {
     return null;
   }
 
-  public async getRowCount(docSession: OptDocSession): Promise<RowCount> {
-    const hasFullReadAccess = await this._granularAccess.canReadEverything(docSession);
-    const hasEditRole = canEdit(await this._granularAccess.getNominalAccess(docSession));
-    return hasFullReadAccess && hasEditRole ? this._rowCount : 'hidden';
+  public get docUsage(): DocUsage {
+    return {
+      dataLimitStatus: this.dataLimitStatus,
+      rowCount: this._rowCount,
+      dataSizeBytes: this._dataSize,
+      attachmentsSizeBytes: this._attachmentsSize,
+    };
   }
 
-  public async getDataLimitStatus(docSession: OptDocSession): Promise<DataLimitStatus> {
-    const hasEditRole = canEdit(await this._granularAccess.getNominalAccess(docSession));
-    return hasEditRole ? this.dataLimitStatus : null;
+  public getFilteredDocUsage(docSession: OptDocSession): Promise<DocUsage> {
+    return this._granularAccess.filterDocUsage(docSession, this.docUsage);
   }
 
   public async getUserOverride(docSession: OptDocSession) {
@@ -692,10 +703,31 @@ export class ActiveDoc extends EventEmitter {
     const userId = getDocSessionUserId(docSession);
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
-      await this._checkDocAttachmentsLimit(upload);
+      // We'll assert that the upload won't cause limits to be exceeded, retrying once after
+      // soft-deleting any unused attachments.
+      await retryOnce(
+        () => this._assertUploadSizeBelowLimit(upload),
+        async (e) => {
+          if (!(e instanceof LimitExceededError)) { throw e; }
+
+          // Check if any attachments are unused and can be soft-deleted to reduce the existing
+          // total size. We could do this from the beginning, but updateUsedAttachmentsIfNeeded
+          // is potentially expensive, so this optimises for the common case of not exceeding the limit.
+          const hadChanges = await this.updateUsedAttachmentsIfNeeded();
+          if (hadChanges) {
+            await this._updateAttachmentsSize();
+          } else {
+            // No point in retrying if nothing changed.
+            throw new LimitExceededError("Exceeded attachments limit for document");
+          }
+        }
+      );
       const userActions: UserAction[] = await Promise.all(
         upload.files.map(file => this._prepAttachment(docSession, file)));
       const result = await this.applyUserActions(docSession, userActions);
+      this._updateAttachmentsSize().catch(e => {
+        this._log.warn(docSession, 'failed to update attachments size', e);
+      });
       return result.retValues;
     } finally {
       await globalUploadSet.cleanup(uploadId);
@@ -1352,7 +1384,7 @@ export class ActiveDoc extends EventEmitter {
    * so that undo can 'undelete' attachments.
    * Returns true if any changes were made, i.e. some row(s) of _grist_Attachments were updated.
    */
-  public async updateUsedAttachments() {
+  public async updateUsedAttachmentsIfNeeded() {
     const changes = await this.docStorage.scanAttachmentsForUsageChanges();
     if (!changes.length) {
       return false;
@@ -1371,7 +1403,8 @@ export class ActiveDoc extends EventEmitter {
    * @param expiredOnly: if true, only delete attachments that were soft-deleted sufficiently long ago.
    */
   public async removeUnusedAttachments(expiredOnly: boolean) {
-    await this.updateUsedAttachments();
+    const hadChanges = await this.updateUsedAttachmentsIfNeeded();
+    if (hadChanges) { await this._updateAttachmentsSize(); }
     const rowIds = await this.docStorage.getSoftDeletedAttachmentIds(expiredOnly);
     if (rowIds.length) {
       const action: BulkRemoveRecord = ["BulkRemoveRecord", "_grist_Attachments", rowIds];
@@ -1807,6 +1840,10 @@ export class ActiveDoc extends EventEmitter {
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      // TODO: Initialize data and attachments size from Document.usage once it's available.
+      this._updateAttachmentsSize().catch(e => {
+        this._log.warn(docSession, 'failed to update attachments size', e);
+      });
     } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {
@@ -1935,35 +1972,32 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Throw an error if the provided upload would exceed the total attachment filesize limit for this document.
    */
-  private async _checkDocAttachmentsLimit(upload: UploadInfo) {
-    const maxSize = this._productFeatures?.baseMaxAttachmentsBytesPerDocument;
-    if (!maxSize) {
-      // This document has no limit, nothing to check.
-      return;
-    }
-
+  private async _assertUploadSizeBelowLimit(upload: UploadInfo) {
     // Minor flaw: while we don't double-count existing duplicate files in the total size,
     // we don't check here if any of the uploaded files already exist and could be left out of the calculation.
-    const totalAddedSize = sum(upload.files.map(f => f.size));
-
-    // Returns true if this upload won't bring the total over the limit.
-    const isOK = async () => (await this.docStorage.getTotalAttachmentFileSizes()) + totalAddedSize <= maxSize;
-
-    if (await isOK()) {
-      return;
-    }
-
-    // Looks like the limit is being exceeded.
-    // Check if any attachments are unused and can be soft-deleted to reduce the existing total size.
-    // We could do this from the beginning, but updateUsedAttachments is potentially expensive,
-    // so this optimises the common case of not exceeding the limit.
-    // updateUsedAttachments returns true if there were any changes. Otherwise there's no point checking isOK again.
-    if (await this.updateUsedAttachments() && await isOK()) {
-      return;
-    }
+    const uploadSizeBytes = sum(upload.files.map(f => f.size));
+    if (await this._isUploadSizeBelowLimit(uploadSizeBytes)) { return; }
 
     // TODO probably want a nicer error message here.
-    throw new Error("Exceeded attachments limit for document");
+    throw new LimitExceededError("Exceeded attachments limit for document");
+  }
+
+  /**
+   * Returns true if an upload with size `uploadSizeBytes` won't cause attachment size
+   * limits to be exceeded.
+   */
+  private async _isUploadSizeBelowLimit(uploadSizeBytes: number): Promise<boolean> {
+    const maxSize = this._productFeatures?.baseMaxAttachmentsBytesPerDocument;
+    if (!maxSize) { return true; }
+
+    const currentSize = this._attachmentsSize !== 'pending'
+      ? this._attachmentsSize
+      : await this.docStorage.getTotalAttachmentFileSizes();
+    return currentSize + uploadSizeBytes <= maxSize;
+  }
+
+  private async _updateAttachmentsSize() {
+    this._attachmentsSize = await this.docStorage.getTotalAttachmentFileSizes();
   }
 }
 
@@ -1988,4 +2022,9 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];
+}
+
+// Helper that returns true if `limit` is set to a valid, positive number.
+function isEnforceableLimit(limit: number | undefined): limit is number {
+  return limit !== undefined && limit > 0;
 }

@@ -313,9 +313,8 @@ export class Sharing {
         internal,
       });
       actionGroup.actionSummary = actionSummary;
-      actionGroup.rowCount = sandboxActionBundle.rowCount;
       await accessControl.appliedBundle();
-      await accessControl.sendDocUpdateForBundle(actionGroup);
+      await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.docUsage);
       if (docSession) {
         docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
       }

@@ -1,4 +1,4 @@
-import {buildUpgradeMessage, getLimitStatusMessage} from 'app/client/components/DocumentUsage';
+import {buildLimitStatusMessage, buildUpgradeMessage} from 'app/client/components/DocumentUsage';
 import {sessionStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
@@ -66,7 +66,7 @@ export class DocUsageBanner extends Disposable {
           cssBannerMessage(
             cssWhiteIcon('Idea'),
             cssLightlyBoldedText(
-              getLimitStatusMessage('approachingLimit', features),
+              buildLimitStatusMessage('approachingLimit', features),
               ' ',
               buildUpgradeMessage(org.access === 'owners'),
               testId('text'),
@@ -99,7 +99,7 @@ export class DocUsageBanner extends Disposable {
                 }
 
                 return [
-                  getLimitStatusMessage(isDeleteOnly ? 'deleteOnly' : 'gracePeriod', features),
+                  buildLimitStatusMessage(isDeleteOnly ? 'deleteOnly' : 'gracePeriod', features),
                   ' ',
                   buildUpgradeMessage(isOwner),
                 ];
