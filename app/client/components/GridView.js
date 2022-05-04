@@ -653,15 +653,22 @@ GridView.prototype.addNewColumn = function() {
  .then(() => this.scrollPaneRight());
 };
 
-GridView.prototype.insertColumn = function(index) {
-  var pos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index)[0];
+GridView.prototype.insertColumn = async function(index) {
+  const pos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index)[0];
   var action = ['AddColumn', null, {"_position": pos}];
-  return this.tableModel.sendTableAction(action)
-  .bind(this).then(function() {
-    this.selectColumn(index);
-    this.currentEditingColumnIndex(index);
-    // this.columnConfigTab.show();
+  await this.gristDoc.docData.bundleActions('Insert column', async () => {
+    const colInfo = await this.tableModel.sendTableAction(action);
+    if (!this.viewSection.isRaw.peek()){
+      const fieldInfo = {
+        colRef: colInfo.colRef,
+        parentPos: pos,
+        parentId: this.viewSection.id.peek()
+      };
+      await this.gristDoc.docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+    }
   });
+  this.selectColumn(index);
+  this.currentEditingColumnIndex(index);
 };
 
 GridView.prototype.scrollPaneRight = function() {

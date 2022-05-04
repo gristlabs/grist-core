@@ -611,7 +611,7 @@ export class ActiveDoc extends EventEmitter {
   public addInitialTable(docSession: OptDocSession) {
     // Use a non-client-specific session, so that this action is not part of anyone's undo history.
     const newDocSession = makeExceptionalDocSession('nascent');
-    return this.applyUserActions(newDocSession, [["AddEmptyTable"]]);
+    return this.applyUserActions(newDocSession, [["AddEmptyTable", null]]);
   }
 
   /**

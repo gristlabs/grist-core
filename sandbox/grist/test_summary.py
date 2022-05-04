@@ -96,7 +96,7 @@ class TestSummary(test_engine.EngineTestCase):
     self.assertViews([])
 
     # Create a view + section for the initial table.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", None, None])
 
     # Verify that we got a new view, with one section, and three fields.
     self.assertTables([self.starting_table])
@@ -112,7 +112,7 @@ class TestSummary(test_engine.EngineTestCase):
     self.assertTableData("Address", self.starting_table_data)
 
     # Create a "Totals" section, i.e. a summary with no group-by columns.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
 
     # Verify that a new table gets created, and a new view, with a section for that table,
     # and some auto-generated summary fields.
@@ -141,7 +141,7 @@ class TestSummary(test_engine.EngineTestCase):
     ])
 
     # Create a summary section, grouped by the "State" column.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12], None])
 
     # Verify that a new table gets created again, a new view, and a section for that table.
     # Note that we also check that summarySourceTable and summarySourceCol fields are correct.
@@ -182,7 +182,7 @@ class TestSummary(test_engine.EngineTestCase):
     ])
 
     # Create a summary section grouped by two columns ("city" and "state").
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # Verify the new table and views.
     summary_table3 = Table(4, "GristSummary_7_Address3", primaryViewId=0, summarySourceTable=1,
@@ -229,8 +229,8 @@ class TestSummary(test_engine.EngineTestCase):
   def test_summary_gencode(self):
     self.maxDiff = 1000       # If there is a discrepancy, allow the bigger diff.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
     self.assertMultiLineEqual(self.engine.fetch_table_schema(),
 """import grist
 from functions import *       # global uppercase functions
@@ -266,7 +266,7 @@ class Address:
     self.load_sample(self.sample)
 
     # Create a summary section grouped by two columns ("city" and "state").
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # Verify the new table and views.
     summary_table = Table(2, "GristSummary_7_Address", primaryViewId=0, summarySourceTable=1,
@@ -293,8 +293,8 @@ class Address:
 
     # Create twoo other views + view sections with the same breakdown (in different order
     # of group-by fields, which should still reuse the same table).
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12,11]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12,11], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
     summary_view2 = View(2, sections=[
       Section(2, parentKey="record", tableRef=2, fields=[
         Field(5, colRef=15),
@@ -337,8 +337,8 @@ class Address:
 
     # Load table and create a couple summary sections, for totals, and grouped by "state".
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12], None])
 
     self.assertTables([
       self.starting_table,
@@ -376,8 +376,8 @@ class Address:
     ])
 
     # Now create similar summary sections for the new table.
-    self.apply_user_action(["CreateViewSection", 4, 0, "record", []])
-    self.apply_user_action(["CreateViewSection", 4, 0, "record", [23]])
+    self.apply_user_action(["CreateViewSection", 4, 0, "record", [], None])
+    self.apply_user_action(["CreateViewSection", 4, 0, "record", [23], None])
 
     # Make sure this creates new section rather than reuses similar ones for the wrong table.
     self.assertTables([
@@ -421,7 +421,7 @@ class Address:
 
     # Load sample and create a summary section grouped by two columns ("city" and "state").
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # Verify that the summary table respects all updates to the source table.
     self._do_test_updates("Address", "GristSummary_7_Address")
@@ -536,7 +536,7 @@ class Address:
 
     # Load sample and create a couple of summary sections.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # Check what tables we have now.
     self.assertPartialData("_grist_Tables", ["id", "tableId", "summarySourceTable"], [
@@ -561,8 +561,8 @@ class Address:
     # Similar to the above, verify renames, but now with two summary tables.
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
     self.assertPartialData("_grist_Tables", ["id", "tableId", "summarySourceTable"], [
       [1, "Address",                  0],
       [2, "GristSummary_7_Address",   1],
@@ -604,8 +604,8 @@ class Address:
     # table, sharing all formulas and differing only in the group-by columns.)
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
 
     # These are the tables and columns we automatically get.
     self.assertTables([
@@ -667,7 +667,7 @@ class Address:
     ])
 
     # Add a new summary table, and check that it gets the new formula.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12], None])
     self.assertTables([
       self.starting_table,
       Table(2, "GristSummary_7_Address", 0, 1, columns=[
@@ -710,9 +710,9 @@ class Address:
     # Verify that we can convert the type of a column when there is a summary table using that
     # column to group by. Since converting generates extra summary records, this may cause bugs.
 
-    self.apply_user_action(["AddEmptyTable"])
+    self.apply_user_action(["AddEmptyTable", None])
     self.apply_user_action(["BulkAddRecord", "Table1", [None]*3, {"A": [10,20,10], "B": [1,2,3]}])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [2]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [2], None])
 
     # Verify metadata and actual data initially.
     self.assertTables([
@@ -778,10 +778,10 @@ class Address:
     # Verify that we can remove a column when there is a summary table using that column to group
     # by. (Bug T188.)
 
-    self.apply_user_action(["AddEmptyTable"])
+    self.apply_user_action(["AddEmptyTable", None])
     self.apply_user_action(["BulkAddRecord", "Table1", [None]*3,
                             {"A": ['a','b','c'], "B": [1,1,2], "C": [4,5,6]}])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [2,3]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [2,3], None])
 
     # Verify metadata and actual data initially.
     self.assertTables([

@@ -30,7 +30,7 @@ class TestSummaryUndo(test_engine.EngineTestCase):
     # This tests a particular case of a bug when a summary table wasn't fully updated after UNDO.
     self.load_sample(self.sample)
     # Create a summary section, grouped by the "State" column.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [1]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [1], None])
     self.assertTableData('GristSummary_6_Person', cols="subset", data=[
       [ "id", "state", "count"],
       [ 1,    "NY",    2],

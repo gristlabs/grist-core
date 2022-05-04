@@ -57,7 +57,7 @@ class TestDerived(test_engine.EngineTestCase):
     self.load_sample(self.sample)
 
     # Create a derived table summarizing count and total of orders by year.
-    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10]])
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10], None])
 
     # Check the results.
     self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
@@ -134,7 +134,7 @@ class TestDerived(test_engine.EngineTestCase):
     """
     self.load_sample(self.sample)
 
-    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10, 12]])
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10, 12], None])
     self.assertPartialData("GristSummary_6_Orders", [
       "id", "year", "product", "count", "amount", "group"
     ], [
@@ -193,7 +193,7 @@ class TestDerived(test_engine.EngineTestCase):
     self.load_sample(self.sample)
 
     # Create a summary on the Customers table. Adding orders involves a lookup for each customer.
-    self.apply_user_action(["CreateViewSection", 1, 0, 'record', [3]])
+    self.apply_user_action(["CreateViewSection", 1, 0, 'record', [3], None])
     self.add_column("GristSummary_9_Customers", "totalAmount",
       formula="sum(sum(Orders.lookupRecords(customer=c).amount) for c in $group)")
 
@@ -263,7 +263,7 @@ class TestDerived(test_engine.EngineTestCase):
     self.load_sample(self.sample)
 
     # Create a summary table summarizing count and total of orders by year.
-    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10]])
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10], None])
     self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   1,  15.0,   [1]],
       [2,   2013,   2,  30.0,   [2,3]],

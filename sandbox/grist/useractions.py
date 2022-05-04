@@ -1004,10 +1004,6 @@ class UserActions(object):
     # Remove any views that no longer have view sections.
     views_to_remove = [view for view in self._docmodel.views.all
                        if not view.viewSections]
-    # Also delete the primary views for tables being deleted, even if it has remaining sections.
-    for t in remove_table_recs:
-      if t.primaryViewId and t.primaryViewId not in views_to_remove:
-        views_to_remove.append(t.primaryViewId)
     self._docmodel.remove(views_to_remove)
 
     # Save table IDs, which will be inaccessible once we remove the metadata records.
@@ -1211,20 +1207,49 @@ class UserActions(object):
 
     ret = self.doAddColumn(table_id, col_id, col_info)
 
-    if not transform:
-      # Add a field for this column to the "raw_data" view(s) for this table.
-      for section in table_rec.viewSections:
-        if section.parentKey == 'record':
-          # TODO: the position of the inserted field or of the inserted column will often be
-          # bogus, since fields and columns are not the same. This requires better coordination
-          # with the client-side.
-          self._docmodel.insert(section.fields, col_info.get('_position'), colRef=ret['colRef'])
+    if not transform and table_rec.rawViewSectionRef:
+      # Add a field for this column to the "raw_data" section for this table.
+      # TODO: the position of the inserted field or of the inserted column will often be
+      # bogus, since fields and columns are not the same. This requires better coordination
+      # with the client-side.
+      self._docmodel.insert(
+        table_rec.rawViewSectionRef.fields,
+        col_info.get('_position'),
+        colRef=ret['colRef']
+      )
 
     return ret
 
   @useraction
   def AddHiddenColumn(self, table_id, col_id, col_info):
     return self.doAddColumn(table_id, col_id, col_info)
+
+
+  @useraction
+  def AddVisibleColumn(self, table_id, col_id, col_info):
+    '''Inserts column and adds it as a field to all 'record' views'''
+
+    ret = self.AddColumn(table_id, col_id, col_info)
+    table_rec = self._docmodel.get_table_rec(table_id)
+
+    transform = (
+      col_id is not None and
+      col_id.startswith((
+        'gristHelper_Transform',
+        'gristHelper_Converted',
+      ))
+    )
+
+    # Add a field for this column to the view(s) for this table.
+    if not transform:
+      for section in table_rec.viewSections:
+        if section.parentKey == 'record' and section != table_rec.rawViewSectionRef:
+          # TODO: the position of the inserted field or of the inserted column will often be
+          # bogus, since fields and columns are not the same. This requires better coordination
+          # with the client-side.
+          self._docmodel.insert(section.fields, col_info.get('_position'), colRef=ret['colRef'])
+    return ret
+
 
   @classmethod
   def _pick_col_name(cls, table_rec, col_id, old_col_id=None, avoid_extra=None):
@@ -1594,15 +1619,45 @@ class UserActions(object):
   #----------------------------------------
 
   @useraction
-  def AddEmptyTable(self):
+  def AddEmptyTable(self, table_id):
     """
-    Adds an empty table. Currently it makes up the next available table name, and adds three
-    default columns, also picking default names for them (presumably, A, B, and C).
+    Adds an empty table. Currently it makes up the next available table name (if not provided),
+    and adds three default columns, also picking default names for them (presumably, A, B, and C).
     """
-    return self.AddTable(None, [{'id': None, 'isFormula': True} for x in xrange(3)])
+    columns = [{'id': None, 'isFormula': True} for x in xrange(3)]
+    return self.AddTable(table_id, columns)
+
 
   @useraction
   def AddTable(self, table_id, columns):
+    return self.doAddTable(
+      table_id,
+      columns,
+      manual_sort=True,
+      primary_view=True,
+      raw_section=True)
+
+
+  @useraction
+  def AddRawTable(self, table_id):
+    """
+    Same as AddEmptyTable but does not create a primary view (and page).
+    """
+    columns = [{'id': None, 'isFormula': True} for x in xrange(3)]
+    return self.doAddTable(
+      table_id,
+      columns,
+      manual_sort=True,
+      primary_view=False,
+      raw_section=True
+    )
+
+
+  def doAddTable(self, table_id, columns, manual_sort=False, primary_view=False,
+                 raw_section=False, summarySourceTableRef=0):
+    """
+    Add the given table with columns with or without additional views.
+    """
     # For any columns missing 'isFormula' field, default to False when formula is empty. We will
     # normally default new columns to "empty" (isFormula=True), and AddEmptyTable creates empty
     # columns, but an AddTable action created e.g. by an import will default to data columns.
@@ -1610,35 +1665,14 @@ class UserActions(object):
       c.setdefault("isFormula", bool(c.get('formula')))
 
     # Add a manualSort column.
-    columns.insert(0, column.MANUAL_SORT_COL_INFO.copy())
+    if manual_sort:
+      columns.insert(0, column.MANUAL_SORT_COL_INFO.copy())
 
-    # First the tables is created without a primary view assigned as no view for it exists.
-    result = self.doAddTable(table_id, columns)
-    # Then its Primary View is created.
-    primary_view = self.doAddView(result["table_id"], 'raw_data', result["table_id"])
-    result["views"] = [primary_view]
-
-    raw_view_section = self._create_plain_view_section(
-      result["id"],
-      result["table_id"],
-      self._docmodel.view_sections,
-      "record",
-    )
-
-    self.UpdateRecord('_grist_Tables', result["id"], {
-      'primaryViewId': primary_view["id"],
-      'rawViewSectionRef': raw_view_section.id,
-    })
-
-    return result
-
-  def doAddTable(self, table_id, columns, summarySourceTableRef=0):
-    """
-    Add the given table with columns without creating views.
-    """
     # If needed, transform table_id into a valid identifier, and add a suffix to make it unique.
+    table_title = table_id
     table_id = identifiers.pick_table_ident(table_id, avoid=six.viewkeys(self._engine.tables))
-
+    if not table_title:
+      table_title = table_id
     # Sanitize and de-duplicate column identifiers.
     col_ids = [c['id'] for c in columns]
     col_ids = identifiers.pick_col_ident_list(col_ids, avoid={'id'})
@@ -1660,11 +1694,35 @@ class UserActions(object):
       label         = [c.get('label', col_id) for (c, col_id) in zip(columns, col_ids)],
       widgetOptions = [c.get('widgetOptions', '') for c in columns])
 
-    return {
+    result = {
       "id": table_rec.id,
       "table_id": table_id,
       "columns": col_ids[1:],   # All the column ids, except the auto-added manualSort.
     }
+
+    if primary_view:
+      # Create a primary view
+      primary_view = self.doAddView(result["table_id"], 'raw_data', table_title)
+      result["views"] = [primary_view]
+
+    if raw_section:
+      # Create raw view section
+      raw_section = self._create_plain_view_section(
+        result["id"],
+        table_id,
+        self._docmodel.view_sections,
+        "record",
+        table_title
+      )
+
+    if primary_view or raw_section:
+      self.UpdateRecord('_grist_Tables', result["id"], {
+        'primaryViewId': primary_view["id"] if primary_view else 0,
+        'rawViewSectionRef': raw_section.id if raw_section else 0,
+      })
+
+    return result
+
 
   @useraction
   def RemoveTable(self, table_id):
@@ -1694,7 +1752,7 @@ class UserActions(object):
     return cols
 
   @useraction
-  def CreateViewSection(self, table_ref, view_ref, section_type, groupby_colrefs):
+  def CreateViewSection(self, table_ref, view_ref, section_type, groupby_colrefs, table_id):
     """
     Create a new view section. If table_ref is 0, also creates a new empty table. If view_ref is
     0, also creates a new view that will contain the new section. If groupby_colrefs is None,
@@ -1705,7 +1763,7 @@ class UserActions(object):
       groupby_cols = self._fetch_table_col_recs(table_ref, groupby_colrefs)
 
     if not table_ref:
-      table_ref = self.AddEmptyTable()['id']
+      table_ref = self.AddRawTable(table_id)['id']
     table = self._docmodel.tables.table.get_record(table_ref)
 
     if not view_ref:
@@ -1720,6 +1778,7 @@ class UserActions(object):
         table.tableId,
         view.viewSections,
         section_type,
+        ''
       )
     return {
       'tableRef': table_ref,
@@ -1727,9 +1786,12 @@ class UserActions(object):
       'sectionRef': section.id
     }
 
-  def _create_plain_view_section(self, tableRef, tableId, view_sections, section_type):
+  def _create_plain_view_section(self, tableRef, tableId, view_sections, section_type, title):
+    # If title is the same as tableId leave it empty
+    if title == tableId:
+      title = ''
     section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
-                                 borderWidth=1, defaultWidth=100)[0]
+                                 title=title, borderWidth=1, defaultWidth=100)[0]
     # TODO: We should address the automatic selection of fields for charts in a better way.
     self._RebuildViewFields(tableId, section.id,
                             limit=(2 if section_type == 'chart' else None))

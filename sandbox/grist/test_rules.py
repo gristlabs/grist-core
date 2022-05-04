@@ -201,7 +201,7 @@ class TestRules(test_engine.EngineTestCase):
     # Test that rules are removed with a column when attached to a field.
 
     self.load_sample(self.sample)
-    self.apply_user_action(['CreateViewSection', 1, 0, 'record', None])
+    self.apply_user_action(['CreateViewSection', 1, 0, 'record', None, None])
     self.field_add_empty(2)
     self.field_set_rule(2, 0, "$Stock == 0")
     before = self.engine.docmodel.columns.lookupOne(colId='gristHelper_ConditionalRule')
@@ -218,7 +218,7 @@ class TestRules(test_engine.EngineTestCase):
     # Test that rules are removed with a field.
 
     self.load_sample(self.sample)
-    self.apply_user_action(['CreateViewSection', 1, 0, 'record', None])
+    self.apply_user_action(['CreateViewSection', 1, 0, 'record', None, None])
     self.field_add_empty(2)
     self.field_set_rule(2, 0, "$Stock == 0")
     rule_id = self.engine.docmodel.columns.lookupOne(colId='gristHelper_ConditionalRule').id

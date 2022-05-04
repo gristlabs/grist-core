@@ -45,6 +45,7 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
+import {invokePrompt} from 'app/client/ui2018/modals';
 import {IconName} from 'app/client/ui2018/IconList';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
@@ -500,7 +501,9 @@ export class GristDoc extends DisposableWithEvents {
    * Sends an action to create a new empty table and switches to that table's primary view.
    */
   public async addEmptyTable(): Promise<void> {
-    const tableInfo = await this.docData.sendAction(['AddEmptyTable']);
+    const name = await this._promptForName();
+    if (name === undefined) { return; }
+    const tableInfo = await this.docData.sendAction(['AddEmptyTable', name || null]);
     await this.openDocPage(this.docModel.tables.getRowModel(tableInfo.id).primaryViewId());
   }
 
@@ -510,10 +513,16 @@ export class GristDoc extends DisposableWithEvents {
   public async addWidgetToPage(val: IPageWidget) {
     const docData = this.docModel.docData;
     const viewName = this.viewModel.name.peek();
-
+    let tableId: string|null|undefined;
+    if (val.table === 'New Table') {
+      tableId = await this._promptForName();
+      if (tableId === undefined) {
+        return;
+      }
+    }
     const res = await docData.bundleActions(
       `Added new linked section to view ${viewName}`,
-      () => this.addWidgetToPageImpl(val)
+      () => this.addWidgetToPageImpl(val, tableId ?? null)
     );
 
     // The newly-added section should be given focus.
@@ -523,13 +532,12 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * The actual implementation of addWidgetToPage
    */
-  public async addWidgetToPageImpl(val: IPageWidget) {
+  public async addWidgetToPageImpl(val: IPageWidget, tableId: string|null = null) {
     const viewRef = this.activeViewId.get();
-    const tableRef = val.table === 'New Table' ? 0 : val.table;
     const link = linkFromId(val.link);
-
+    const tableRef = val.table === 'New Table' ? 0 : val.table;
     const result = await this.docData.sendAction(
-      ['CreateViewSection', tableRef, viewRef, val.type, val.summarize ? val.columns : null]
+      ['CreateViewSection', tableRef, viewRef, val.type, val.summarize ? val.columns : null, tableId]
     );
     if (val.type === 'chart') {
       await this._ensureOneNumericSeries(result.sectionRef);
@@ -549,13 +557,15 @@ export class GristDoc extends DisposableWithEvents {
    */
   public async addNewPage(val: IPageWidget) {
     if (val.table === 'New Table') {
-      const result = await this.docData.sendAction(['AddEmptyTable']);
+      const name = await this._promptForName();
+      if (name === undefined) { return; }
+      const result = await this.docData.sendAction(['AddEmptyTable', name]);
       await this.openDocPage(result.views[0].id);
     } else {
       let result: any;
       await this.docData.bundleActions(`Add new page`, async () => {
         result = await this.docData.sendAction(
-          ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null]
+          ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null, null]
         );
         if (val.type === 'chart') {
           await this._ensureOneNumericSeries(result.sectionRef);
@@ -915,6 +925,10 @@ export class GristDoc extends DisposableWithEvents {
         return null;
       }
     }
+  }
+
+  private async _promptForName() {
+    return await invokePrompt("Table name", "Create", '', "Default table name");
   }
 
   private async _replaceViewSection(section: ViewSectionRec, newVal: IPageWidget) {

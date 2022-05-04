@@ -1,10 +1,11 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {reportError} from 'app/client/models/errors';
+import {cssInput} from 'app/client/ui/MakeCopyMenu';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
-import {Computed, Disposable, dom, DomContents, DomElementArg, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, DomElementArg, input, MultiHolder, Observable, styled} from 'grainjs';
 
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
@@ -285,6 +286,93 @@ export function confirmModal(
     width: 'normal',
     extraButtons,
   }));
+}
+
+
+/**
+ * Creates a simple prompt modal (replacement for the native one).
+ * Closed via clicking anywhere outside the modal or Cancel button.
+ *
+ * Example usage:
+ *  promptModal(
+ *    "Enter your name",
+ *    (name: string) => alert(`Hello ${name}`),
+ *    "Ok" // Confirm button name,
+ *    "John doe", // Initial text (can be empty or undefined)
+ *    "Enter your name", // input placeholder
+ *    () => console.log('User cancelled') // Called when user cancels, or clicks outside.
+ *  )
+ *
+ * @param title: Prompt text.
+ * @param onConfirm: Handler for Confirm button.
+ * @param btnText: Text of the confirm button.
+ * @param initial: Initial value in the input element.
+ * @param placeholder: Placeholder for the input element.
+ * @param onCancel: Optional cancel handler.
+ */
+export function promptModal(
+  title: string,
+  onConfirm: (text: string) => Promise<unknown>,
+  btnText: string,
+  initial?: string,
+  placeholder?: string,
+  onCancel?: () => void
+): void {
+  saveModal((ctl, owner): ISaveModalOptions => {
+    let confirmed = false;
+    const text = Observable.create(owner, initial ?? '');
+    const txtInput = input(text, { onInput : true }, { placeholder }, cssInput.cls(''), testId('modal-prompt'));
+    const options: ISaveModalOptions = {
+      title,
+      body: txtInput,
+      saveLabel: btnText,
+      saveFunc: () => {
+        // Mark that confirm was invoked.
+        confirmed = true;
+        return onConfirm(text.get() || '');
+      },
+      width: 'normal'
+    };
+    owner.onDispose(() => {
+      if (confirmed) { return; }
+      onCancel?.();
+    });
+    setTimeout(() => txtInput.focus(), 10);
+    return options;
+  });
+}
+
+/**
+ * Wraps prompt modal in a promise that is resolved either when user confirms or cancels.
+ * When user cancels the returned value is always undefined.
+ *
+ * Example usage:
+ *  async handler() {
+ *    const name = await invokePrompt("Please enter your name");
+ *    if (name !== undefined) alert(`Hello ${name}`);
+ *  }
+ *
+ * @param title: Prompt text.
+ * @param btnText: Text of the confirm button, default is "Ok".
+ * @param initial: Initial value in the input element.
+ * @param placeholder: Placeholder for the input element.
+ */
+export function invokePrompt(
+  title: string,
+  btnText?: string,
+  initial?: string,
+  placeholder?: string
+): Promise<string|undefined> {
+  let onResolve: (text: string|undefined) => any;
+  const prom = new Promise<string|undefined>((resolve) => {
+    onResolve = resolve;
+  });
+  promptModal(title, onResolve!, btnText ?? 'Ok', initial, placeholder, () => {
+    if (onResolve) {
+      onResolve(undefined);
+    }
+  });
+  return prom;
 }
 
 /**

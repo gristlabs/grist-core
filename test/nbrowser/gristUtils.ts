@@ -838,13 +838,21 @@ export function getPageNames(): Promise<string[]> {
 /**
  * Adds a new empty table using the 'Add New' menu.
  */
-export async function addNewTable() {
+export async function addNewTable(name?: string) {
   await driver.findWait('.test-dp-add-new', 2000).click();
   await driver.find('.test-dp-empty-table').click();
+  if (name) {
+    const prompt = await driver.find(".test-modal-prompt");
+    await prompt.doClear();
+    await prompt.click();
+    await driver.sendKeys(name);
+  }
+  await driver.find(".test-modal-confirm").click();
   await waitForServer();
 }
 
 export interface PageWidgetPickerOptions {
+  tableName?: string;
   selectBy?: RegExp|string;      // Optional pattern of SELECT BY option to pick.
   summarize?: (RegExp|string)[];   // Optional list of patterns to match Group By columns.
 }
@@ -868,7 +876,7 @@ export async function addNewPage(
 }
 
 // Add a new widget to the current page using the 'Add New' menu.
-export async function addNewSection(typeRe: RegExp, tableRe: RegExp, options?: PageWidgetPickerOptions) {
+export async function addNewSection(typeRe: RegExp|string, tableRe: RegExp|string, options?: PageWidgetPickerOptions) {
   // Click the 'Add widget to page' entry in the 'Add New' menu
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 500).doClick();
@@ -918,6 +926,19 @@ export async function selectWidget(
   // let's select right type and save
   await driver.findContent('.test-wselect-type', typeRe).doClick();
   await driver.find('.test-wselect-addBtn').doClick();
+
+  // if we selected a new table, there will be a popup for a name
+  const prompts = await driver.findAll(".test-modal-prompt");
+  const prompt = prompts[0];
+  if (prompt) {
+    if (options.tableName) {
+      await prompt.doClear();
+      await prompt.click();
+      await driver.sendKeys(options.tableName);
+    }
+    await driver.find(".test-modal-confirm").click();
+  }
+
   await waitForServer();
 }
 
@@ -944,11 +965,36 @@ export async function renamePage(oldName: string|RegExp, newName: string) {
 
 /**
  * Removes a page from the page menu, checks if the page is actually removable.
+ * By default it will remove only page (handling prompt if necessary).
  */
-export async function removePage(name: string|RegExp) {
+export async function removePage(name: string|RegExp, options: {
+  expectPrompt?: boolean, // default undefined
+  withData?: boolean // default only page,
+  tables?: string[],
+  cancel?: boolean,
+} = { }) {
   await openPageMenu(name);
   assert.equal(await driver.find('.test-docpage-remove').matches('.disabled'), false);
   await driver.find('.test-docpage-remove').click();
+  const popups = await driver.findAll(".test-removepage-popup");
+  if (options.expectPrompt === true) {
+    assert.lengthOf(popups, 1);
+  } else if (options.expectPrompt === false) {
+    assert.lengthOf(popups, 0);
+  }
+  if (popups.length) {
+    const popup = popups.shift()!;
+    if (options.tables) {
+      const popupTables = await driver.findAll(".test-removepage-table", e => e.getText());
+      assert.deepEqual(popupTables.sort(), options.tables.sort());
+    }
+    await popup.find(`.test-removepage-option-${options.withData ? 'data': 'page'}`).click();
+    if (options.cancel) {
+      await driver.find(".test-modal-cancel").click();
+    } else {
+      await driver.find(".test-modal-confirm").click();
+    }
+  }
   await waitForServer();
 }
 

@@ -27,8 +27,8 @@ class TestSummary2(test_engine.EngineTestCase):
     # Start as in test_change_summary_formula() test case; see there for what tables and columns
     # we expect to have at this point.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
 
     # Check that we cannot add a non-formula column.
     with self.assertRaisesRegex(ValueError, r'non-formula column'):
@@ -37,16 +37,17 @@ class TestSummary2(test_engine.EngineTestCase):
 
     # Add two formula columns: one for 'state' (an existing column name, and a group-by column in
     # some tables), and one for 'average' (a new column name).
-    self.apply_user_action(["AddColumn", "GristSummary_7_Address2", "state",
+    self.apply_user_action(["AddVisibleColumn", "GristSummary_7_Address2", "state",
                             {"formula": "':'.join(sorted(set($group.state)))"}])
-    self.apply_user_action(["AddColumn", "GristSummary_7_Address", "average",
+
+    self.apply_user_action(["AddVisibleColumn", "GristSummary_7_Address", "average",
                             {"formula": "$amount / $count"}])
 
     # Add two more summary tables: by 'city', and by 'state', and see what columns they get.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12], None])
     # And also a summary table for an existing breakdown.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # Check the table and columns for all the summary tables.
     self.assertTables([
@@ -166,8 +167,8 @@ class TestSummary2(test_engine.EngineTestCase):
     # Start as in test_change_summary_formula() test case; see there for what tables and columns
     # we expect to have at this point.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
 
     # Check that we cannot rename a summary group-by column. (Perhaps it's better to raise an
     # exception, but currently we translate the invalid request to a no-op.)
@@ -336,8 +337,8 @@ class TestSummary2(test_engine.EngineTestCase):
     # (5) no renaming summary tables.
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
 
     self.assertTableData('GristSummary_7_Address', cols="all", data=[
       [ "id", "city",     "state", "group", "count", "amount" ],
@@ -418,7 +419,7 @@ class TestSummary2(test_engine.EngineTestCase):
       return [c for c in self.engine.tables[table_id].all_columns if c.startswith('#summary#')]
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
 
     # We should have a single summary table, and a single section referring to it.
     self.assertTables([
@@ -582,7 +583,7 @@ class TestSummary2(test_engine.EngineTestCase):
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
 
     # Now add a different view section with the same group-by columns.
-    self.apply_user_action(["CreateViewSection", 1, 1, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 1, "record", [11,12], None])
     self.assertTables([
       self.starting_table,
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
@@ -737,8 +738,8 @@ class TestSummary2(test_engine.EngineTestCase):
     # Verify that if we add a group-by column that conflicts with a formula, group-by column wins.
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12]])
-    self.apply_user_action(["AddColumn", "GristSummary_7_Address", "city",
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [12], None])
+    self.apply_user_action(["AddVisibleColumn", "GristSummary_7_Address", "city",
                             {"formula": "$state.lower()"}])
 
     # We should have a single summary table, and a single section referring to it.
@@ -801,10 +802,10 @@ class TestSummary2(test_engine.EngineTestCase):
 
     # Create one view with one summary section, and another view with three sections.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])  # Creates View #1
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])       # Creates View #2
-    self.apply_user_action(["CreateViewSection", 1, 2, "record", [11,12]])  # Refers to View #2
-    self.apply_user_action(["CreateViewSection", 1, 2, "record", [12]])     # Refers to View #2
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None]) # Creates View #1
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])      # Creates View #2
+    self.apply_user_action(["CreateViewSection", 1, 2, "record", [11,12], None]) # Refers to View #2
+    self.apply_user_action(["CreateViewSection", 1, 2, "record", [12], None])    # Refers to View #2
 
     # We should have a single summary table, and a single section referring to it.
     self.assertTables([
@@ -883,7 +884,7 @@ class TestSummary2(test_engine.EngineTestCase):
     # Verify that we correctly update sort spec when we update a summary view section.
 
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
     self.apply_user_action(["UpdateRecord", "_grist_Views_section", 1,
                             {"sortColRefs": "[15,14,-17]"}])
 
@@ -927,10 +928,10 @@ class TestSummary2(test_engine.EngineTestCase):
 
     self.load_sample(self.sample)
     # Add a couple of summary tables.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", []])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
     # Add a formula column
-    self.apply_user_action(["AddColumn", "GristSummary_7_Address", "average",
+    self.apply_user_action(["AddVisibleColumn", "GristSummary_7_Address", "average",
                             {"formula": "$amount / $count"}])
 
     # Check the table and columns for all the summary tables.
@@ -1037,11 +1038,11 @@ class TestSummary2(test_engine.EngineTestCase):
 
     # Add a summary table and detach it. Then add a summary table of that table.
     self.load_sample(self.sample)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
     self.apply_user_action(["DetachSummaryViewSection", 1])
 
     # Create a summary of the detached table (tableRef 3) by state (colRef 21).
-    self.apply_user_action(["CreateViewSection", 3, 0, "record", [21]])
+    self.apply_user_action(["CreateViewSection", 3, 0, "record", [21], None])
 
     # Verify the resulting metadata.
     self.assertTables([

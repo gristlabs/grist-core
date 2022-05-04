@@ -7,7 +7,6 @@ import { dom, IDomArgs, Observable, styled } from 'grainjs';
  * Styling for a simple green <A HREF> link.
  */
 
-// Match the font-weight of buttons.
 export const cssLink = styled('a', `
   color: ${colors.lightGreen};
   --icon-color: ${colors.lightGreen};

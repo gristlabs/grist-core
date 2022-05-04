@@ -6,7 +6,7 @@ class TestUndo(test_engine.EngineTestCase):
   def test_bad_undo(self):
     # Sometimes undo can make metadata inconsistent with schema. Check that we disallow it.
     self.load_sample(testsamples.sample_students)
-    out_actions1 = self.apply_user_action(['AddEmptyTable'])
+    out_actions1 = self.apply_user_action(['AddEmptyTable', None])
     self.assertPartialData("_grist_Tables", ["id", "tableId", "columns"], [
       [1,   "Students", [1,2,4,5,6]],
       [2,   "Schools", [10,12]],
@@ -60,7 +60,7 @@ class TestUndo(test_engine.EngineTestCase):
     # during undo of imports when the undo could omit part of the action bundle.
     self.load_sample(testsamples.sample_students)
 
-    out_actions1 = self.apply_user_action(['AddEmptyTable'])
+    out_actions1 = self.apply_user_action(['AddEmptyTable', None])
     out_actions2 = self.add_column('Table1', 'D', type='Text')
     out_actions3 = self.remove_column('Table1', 'D')
     out_actions4 = self.apply_user_action(['RemoveTable', 'Table1'])

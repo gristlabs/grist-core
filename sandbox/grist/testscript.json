@@ -916,7 +916,7 @@
             {"parentId": 1, "colRef": 34, "parentPos": 1.0}],
 
           // Raw data widget
-          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4}],
+          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
           ["AddRecord", "_grist_Views_section_field", 2, {"colRef": 34, "parentId": 2, "parentPos": 2.0}],
           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
 
@@ -927,10 +927,9 @@
             {"colId": "world", "parentPos": 13.0,
               "formula": "rec.hello.upper()", "parentId": 4, "type": "Text",
               "isFormula": true, "label": "world", "widgetOptions": ""}],
-          ["AddRecord", "_grist_Views_section_field", 3, {"colRef": 35, "parentId": 1, "parentPos": 3.0}],
-          ["AddRecord", "_grist_Views_section_field", 4, {"colRef": 35, "parentId": 2, "parentPos": 4.0}]
+          ["AddRecord", "_grist_Views_section_field", 3, {"colRef": 35, "parentId": 2, "parentPos": 3.0}]
         ],
-        "direct": [true, true, true, true, true,
+        "direct": [true, true, true, true,
                    true, true, true, true, true, true, true,
                    true, true, true],
         "undo": [
@@ -947,8 +946,7 @@
           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0}],
           ["RemoveColumn", "Bar", "world"],
           ["RemoveRecord", "_grist_Tables_column", 35],
-          ["RemoveRecord", "_grist_Views_section_field", 3],
-          ["RemoveRecord", "_grist_Views_section_field", 4]
+          ["RemoveRecord", "_grist_Views_section_field", 3]
         ],
         "retValue": [
           {
@@ -1257,7 +1255,7 @@
               "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [1,2],
             {"parentId": [1,1], "colRef": [31,32], "parentPos": [1.0,2.0]}],
-          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4}],
+          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [3, 4], {"colRef": [31, 32], "parentId": [2, 2], "parentPos": [3.0, 4.0]}],
           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
           ["BulkRemoveRecord", "_grist_Views_section_field", [1, 3]],
@@ -2200,7 +2198,7 @@
           ["AddRecord", "_grist_Views_section", 1,
             {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
               "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
-          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4}],
+          ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
           ["AddTable", "Bar", [
             {"id": "manualSort", "formula": "", "isFormula": false, "type": "ManualSortPos"},
@@ -2230,7 +2228,7 @@
               "parentId": 2, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [1,2,3],
             {"parentId": [3,3,3], "colRef": [32,33,34], "parentPos": [1.0,2.0,3.0]}],
-          ["AddRecord", "_grist_Views_section", 4, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 5}],
+          ["AddRecord", "_grist_Views_section", 4, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 5, "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [4, 5, 6], {"colRef": [32, 33, 34], "parentId": [4, 4, 4], "parentPos": [4.0, 5.0, 6.0]}],
           ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 2, "rawViewSectionRef": 4}],
           ["AddRecord", "Bar", 1, {"foo": 0, "hello": "a", "manualSort": 1.0}],
@@ -2334,7 +2332,7 @@
              {"tableRef": 4, "defaultWidth": 100, "borderWidth": 1,
                "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
            // Raw data widget
-           ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4}],
+           ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
            // As part of adding a table, we also set the primaryViewId.
            ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}]
          ],

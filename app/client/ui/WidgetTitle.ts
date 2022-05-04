@@ -60,16 +60,18 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   // User input for table name.
   const inputTableName = Observable.create(ctrl, tableName);
   // User input for widget title.
-  const inputWidgetTitle = Observable.create(ctrl, vs.title.peek());
+  const inputWidgetTitle = Observable.create(ctrl, vs.title.peek() ?? '');
   // Placeholder for widget title:
   // - when widget title is empty shows a default widget title (what would be shown when title is empty)
   // - when widget title is set, shows just a text to override it.
   const inputWidgetPlaceholder = !vs.title.peek() ? 'Override widget title' : vs.defaultWidgetTitle.peek();
 
-  const disableSave = Computed.create(ctrl, (use) =>
-    (use(inputTableName) === tableName || use(inputTableName).trim() === '') &&
-    use(inputWidgetTitle) === vs.title.peek()
-  );
+  const disableSave = Computed.create(ctrl, (use) => {
+    const newTableName = use(inputTableName)?.trim() ?? '';
+    const newWidgetTitle = use(inputWidgetTitle)?.trim() ?? '';
+    // Can't save when table name is empty or there wasn't any change.
+    return !newTableName || (newTableName === tableName && newWidgetTitle === use(vs.title));
+  });
 
   const modalCtl = ModalControl.create(ctrl, () => ctrl.close());
 
@@ -88,9 +90,10 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   };
 
   const saveWidgetTitle = async () => {
+    const newTitle = inputWidgetTitle.get()?.trim() ?? '';
     // If value was changed.
-    if (inputWidgetTitle.get() !== vs.title.peek()) {
-      await vs.title.saveOnly(inputWidgetTitle.get());
+    if (newTitle !== vs.title.peek()) {
+      await vs.title.saveOnly(newTitle);
     }
   };
   const doSave = modalCtl.doWork(() => Promise.all([
@@ -99,23 +102,20 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   ]), {close: true});
 
   function initialFocus() {
-    // Set focus on a thing user is likely to change.
-    // Initial focus is set on tableName unless:
-    // - if this is a summary table - as it is not editable,
-    // - if widgetTitle is not empty - so user wants to change it further,
-    // - if widgetTitle is empty but the default widget name will have type suffix (like Table1 (Card)), so it won't
-    //   be a table name - so user doesn't want the default value.
-    if (
-       !widgetInput ||
-       isSummary ||
-       vs.title.peek() ||
-       (
-          !vs.title.peek() &&
-          vs.defaultWidgetTitle.peek().toUpperCase() !== tableRec.tableName.peek().toUpperCase()
-       )) {
-      widgetInput?.focus();
-    } else if (!isSummary) {
-      tableInput?.focus();
+    const isRawView = !widgetInput;
+    const isWidgetTitleEmpty = !vs.title.peek();
+    function focus(inputEl?: HTMLInputElement) {
+      inputEl?.focus();
+      inputEl?.select();
+    }
+    if (isSummary) {
+      focus(widgetInput);
+    } else if (isRawView) {
+      focus(tableInput);
+    } else if (isWidgetTitleEmpty) {
+      focus(tableInput);
+    } else {
+      focus(widgetInput);
     }
   }
 

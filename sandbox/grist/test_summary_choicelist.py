@@ -43,7 +43,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertViews([])
 
     # Create a summary section, grouped by the "choices1" column.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
 
     summary_table1 = Table(
       2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
@@ -57,7 +57,7 @@ class TestSummaryChoiceList(EngineTestCase):
     )
 
     # Create another summary section, grouped by both choicelist columns.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12], None])
 
     summary_table2 = Table(
       3, "GristSummary_6_Source2", primaryViewId=0, summarySourceTable=1,
@@ -72,7 +72,7 @@ class TestSummaryChoiceList(EngineTestCase):
     )
 
     # Create another summary section, grouped by the non-choicelist column
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [10]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [10], None])
 
     summary_table3 = Table(
       4, "GristSummary_6_Source3", primaryViewId=0, summarySourceTable=1,
@@ -86,7 +86,7 @@ class TestSummaryChoiceList(EngineTestCase):
     )
 
     # Create another summary section, grouped by the non-choicelist column and choices1
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [10, 11]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [10, 11], None])
 
     summary_table4 = Table(
       5, "GristSummary_6_Source4", primaryViewId=0, summarySourceTable=1,
@@ -321,7 +321,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertViews([])
 
     # Create a summary section, grouped by the "choices1" column.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
 
     summary_table = Table(
       2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
@@ -359,7 +359,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.load_sample(self.sample)
 
     # Create a summary section, grouped by both choicelist columns.
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12], None])
 
     summary_table = Table(
       2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,

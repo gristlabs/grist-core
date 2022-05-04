@@ -167,11 +167,16 @@ export function buildPageWidgetPicker(
       link: value.link.get(),
       section: value.section.get(),
     });
-    // If savePromise throws an error, before or after timeout, we let the error propagate as it
-    // should be handle by the caller.
-    if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
-      const label = getWidgetTypes(type).label;
-      await spinnerModal(`Building ${label} widget`, savePromise);
+    if (value.table.get() === 'New Table') {
+      // Adding empty table will show a prompt, so we don't want to wait for it.
+      await savePromise;
+    } else {
+      // If savePromise throws an error, before or after timeout, we let the error propagate as it
+      // should be handle by the caller.
+      if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
+        const label = getWidgetTypes(type).label;
+        await spinnerModal(`Building ${label} widget`, savePromise);
+      }
     }
   }
 

@@ -135,7 +135,7 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
 
     # Add a new column with a formula.
-    self.apply_user_action(['AddColumn', 'Favorites', 'fav_viewers', {
+    self.apply_user_action(['AddVisibleColumn', 'Favorites', 'fav_viewers', {
       'formula': '$favorite.viewers'
     }])
     # Add a field back for the favorites table and set its display formula to the

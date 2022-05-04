@@ -186,7 +186,7 @@ async function createNewViewSections(docData: GristDoc['docData'], viewSections:
 
 // Helper to create an action that add widget to the view with viewId.
 function newViewSectionAction(widget: IPageWidget, viewId: number) {
-  return ['CreateViewSection', widget.table, viewId, widget.type, widget.summarize ? widget.columns : null];
+  return ['CreateViewSection', widget.table, viewId, widget.type, widget.summarize ? widget.columns : null, null];
 }
 
 /**

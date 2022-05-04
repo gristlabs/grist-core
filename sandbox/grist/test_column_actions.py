@@ -185,9 +185,10 @@ class TestColumnActions(test_engine.EngineTestCase):
   def init_sample_data(self):
     # Add a new view with a section, and a new table to that view, and a summary table.
     self.load_sample(self.sample2)
-    self.apply_user_action(["CreateViewSection", 1, 0, "record", None])
-    self.apply_user_action(["CreateViewSection", 0, 1, "record", None])
-    self.apply_user_action(["CreateViewSection", 1, 1, "record", [12]])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", None, None])
+    self.apply_user_action(["AddEmptyTable", None])
+    self.apply_user_action(["CreateViewSection", 2, 1, "record", None, None])
+    self.apply_user_action(["CreateViewSection", 1, 1, "record", [12], None])
     self.apply_user_action(["BulkAddRecord", "Table1", [None]*3, {
       "A": ["a", "b", "c"],
       "B": ["d", "e", "f"],

@@ -53,9 +53,9 @@ class TestTableActions(test_engine.EngineTestCase):
     self.apply_user_action(["BulkAddRecord", "People", d.row_ids, d.columns])
 
     # Add a view with several sections, including a summary table.
-    self.apply_user_action(["CreateViewSection", 1, 0, 'record', None])
-    self.apply_user_action(["CreateViewSection", 1, 3, 'record', [3]])
-    self.apply_user_action(["CreateViewSection", 2, 3, 'record', None])
+    self.apply_user_action(["CreateViewSection", 1, 0, 'record', None, None])
+    self.apply_user_action(["CreateViewSection", 1, 3, 'record', [3], None])
+    self.apply_user_action(["CreateViewSection", 2, 3, 'record', None, None])
 
     # Verify the new structure of tables and views.
     self.assertTables([
@@ -211,7 +211,7 @@ class TestTableActions(test_engine.EngineTestCase):
     self.init_sample_data()
 
     # Add a table grouped by a reference column (the 'Ref:Address' column named 'address').
-    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [7]])
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [7], None])
     self.assertTableData('_grist_Tables_column', cols="subset", data=[
       ["id",  "colId",    "type",           "isFormula",    "formula" ],
       [ 13,   "address",  "Ref:Address",    False,          ""        ],
@@ -258,10 +258,10 @@ class TestTableActions(test_engine.EngineTestCase):
     self.init_sample_data()
 
     # Add one more table, and one more view for tables #1 and #4 (those we are about to delete).
-    self.apply_user_action(["AddEmptyTable"])
-    out_actions = self.apply_user_action(["CreateViewSection", 1, 0, 'detail', None])
+    self.apply_user_action(["AddEmptyTable", None])
+    out_actions = self.apply_user_action(["CreateViewSection", 1, 0, 'detail', None, None])
     self.assertEqual(out_actions.retValues[0]["viewRef"], 5)
-    self.apply_user_action(["CreateViewSection", 4, 5, 'detail', None])
+    self.apply_user_action(["CreateViewSection", 4, 5, 'detail', None, None])
 
     # See what's in TabBar table, to verify after we remove a table.
     self.assertTableData('_grist_TabBar', cols="subset", data=[
