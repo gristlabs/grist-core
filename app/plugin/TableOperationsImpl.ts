@@ -67,15 +67,12 @@ export class TableOperationsImpl implements TableOperations {
     });
   }
 
-  public destroy(recordId: Types.RecordId): Promise<Types.RecordId>;
-  public destroy(recordIds: Types.RecordId[]): Promise<Types.RecordId[]>;
-  public async destroy(recordIdOrRecordIds: Types.RecordId|Types.RecordId[]): Promise<Types.RecordId|Types.RecordId[]> {
-    return withRecords(recordIdOrRecordIds, async (recordIds) => {
+  public async destroy(recordIdOrRecordIds: Types.RecordId|Types.RecordId[]): Promise<void> {
+    await withRecords(recordIdOrRecordIds, async (recordIds) => {
       const tableId = await this._platform.getTableId();
       const actions = [['BulkRemoveRecord', tableId, recordIds]];
-      const sandboxRes = await this._applyUserActions(
-        tableId, [], actions);
-      return sandboxRes.retValues[0];
+      await this._applyUserActions(tableId, [], actions);
+      return [];
     });
   }
 

@@ -18,8 +18,7 @@ export interface TableOperations {
   /**
    * Delete a record or records.
    */
-  destroy(recordId: Types.RecordId): Promise<Types.RecordId>;
-  destroy(recordIds: Types.RecordId[]): Promise<Types.RecordId[]>;
+  destroy(recordIds: Types.RecordId|Types.RecordId[]): Promise<void>;
 
   /**
    * Add or update a record or records.

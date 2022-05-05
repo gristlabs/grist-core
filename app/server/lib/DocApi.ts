@@ -298,7 +298,8 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
       const rowIds = req.body;
       const op = getTableOperations(req, activeDoc);
-      res.json(await op.destroy(rowIds));
+      await op.destroy(rowIds);
+      res.json(null);
     }));
 
     // Download full document

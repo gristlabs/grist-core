@@ -216,13 +216,13 @@ async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
  * Returns null if not all required columns were mapped or not widget doesn't support
  * custom column mapping.
  */
-export function mapColumnNames(data: any, options: {
+export function mapColumnNames(data: any, options?: {
   columns?: ColumnsToMap
   mappings?: WidgetColumnMap|null,
   reverse?: boolean,
 }) {
   options = {columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options};
-  // If not column configuration was requested or
+  // If no column configuration was requested or
   // table has no rows, return original data.
   if (!options.columns) {
     return data;
@@ -246,8 +246,8 @@ export function mapColumnNames(data: any, options: {
   function isOptional(col: string) {
     return Boolean(
       // Columns passed as strings are required.
-      !options.columns?.includes(col)
-      && options.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional)
+      !options!.columns?.includes(col)
+      && options!.columns?.find(c => typeof c === 'object' && c?.name === col && c.optional)
     );
   }
   // For each widget column in mapping.
@@ -292,7 +292,7 @@ export function mapColumnNames(data: any, options: {
  * original table in a widget with column mappings. As for mapColumnNames(),
  * we don't attempt to do these transformations automatically.
  */
-export function mapColumnNamesBack(data: any, options: {
+export function mapColumnNamesBack(data: any, options?: {
   columns?: ColumnsToMap
   mappings?: WidgetColumnMap|null,
 }) {
@@ -320,10 +320,10 @@ export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColu
  * For custom widgets, add a handler that will be called whenever the
  * new (blank) row is selected.
  */
-export function onNewRecord(callback: () => unknown) {
+export function onNewRecord(callback: (mappings: WidgetColumnMap | null) => unknown) {
   on('message', async function(msg) {
     if (msg.tableId && msg.rowId === 'new') {
-      callback();
+      callback(await getMappingsIfChanged(msg));
     }
   });
 }
