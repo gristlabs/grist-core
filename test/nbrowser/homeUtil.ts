@@ -179,9 +179,13 @@ export class HomeUtil {
     const code = authenticator.generate(secret);
     await this.driver.find('input[name="verificationCode"]').sendKeys(code);
     await this.driver.find('.test-mfa-submit').click();
-    await this.driver.wait(async () => {
-      return !await this.driver.findContent('.test-mfa-title', 'Almost there!').isPresent();
-    }, 4000);
+    await this.driver.wait(
+      async () => {
+        return !await this.driver.findContent('.test-mfa-title', 'Almost there!').isPresent();
+      },
+      4000,
+      'Possible reason: verification code is invalid or expired (i.e. was recently used to log in)'
+    );
   }
 
   /**
