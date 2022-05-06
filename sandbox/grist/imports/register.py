@@ -6,8 +6,9 @@ def register_import_parsers(sandbox):
   sandbox.register("csv_parser.parseFile", parse_csv)
 
   def parse_excel(file_source, parse_options):
+    # pylint: disable=unused-argument
     from imports.import_xls import import_file
-    return import_file(file_source, parse_options)
+    return import_file(file_source)
 
   sandbox.register("xls_parser.parseFile", parse_excel)
 

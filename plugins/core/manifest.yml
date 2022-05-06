@@ -5,11 +5,11 @@ components:
   safePython: sandbox/main.py
 contributions:
   fileParsers:
-    - fileExtensions: ["csv"]
+    - fileExtensions: ["csv", "tsv", "txt"]
       parseFile:
         component: safePython
         name: csv_parser
-    - fileExtensions: ["xls", "xlsx", "tsv", "txt", "xlsm"]
+    - fileExtensions: ["xlsx", "xlsm"]
       parseFile:
         component: safePython
         name: xls_parser

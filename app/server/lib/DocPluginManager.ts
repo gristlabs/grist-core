@@ -136,7 +136,6 @@ export class DocPluginManager {
     if (messages.length) {
       const extToType: Record<string, string> = {
         '.xlsx' : 'Excel',
-        '.xls' : 'Excel',
         '.json' : 'JSON',
         '.csv' : 'CSV',
       };

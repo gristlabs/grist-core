@@ -559,7 +559,8 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // if checkpoints are in use.
   const venv = path.join(process.cwd(),
                          pythonVersion === '2' ? 'venv' : 'sandbox_venv3');
-  if (fs.existsSync(venv) && !process.env.GRIST_CHECKPOINT) {
+  const useCheckpoint = process.env.GRIST_CHECKPOINT && !paths.importDir;
+  if (fs.existsSync(venv) && !useCheckpoint) {
     wrapperArgs.addMount(venv);
     wrapperArgs.push('-s', path.join(venv, 'bin', 'python'));
   }
@@ -570,17 +571,16 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // between the checkpoint and how it gets used later).
   // If a sandbox is being used for import, it will have a special mount we can't
   // deal with easily right now. Should be possible to do in future if desired.
-  if (options.useGristEntrypoint && pythonVersion === '3' && !paths.importDir &&
-      process.env.GRIST_CHECKPOINT) {
+  if (options.useGristEntrypoint && pythonVersion === '3' && useCheckpoint) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
-        spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
+        spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
                         `python${pythonVersion}`, '--', ...pythonArgs]);
       // We don't want process control for this.
       return {child, control: new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
-    wrapperArgs.push(process.env.GRIST_CHECKPOINT);
+    wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
   }
   const child = spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
   // For gvisor under ptrace, main work is done by a traced process identifiable as

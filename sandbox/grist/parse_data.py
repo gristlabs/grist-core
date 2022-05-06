@@ -10,7 +10,6 @@ of values. All "data" lists will have the same length.
 import datetime
 import logging
 import re
-import messytables
 import moment # TODO grist internal libraries might not be available to plugins in the future.
 import six
 from six.moves import zip, xrange
@@ -59,12 +58,16 @@ class BaseConverter(object):
     raise NotImplementedError()
 
 
+numeric_types = six.integer_types + (float, complex, type(None))
+
 class NumericConverter(BaseConverter):
   """Handles the Grist Numeric type"""
 
   @classmethod
   def convert(cls, value):
-    if type(value) in six.integer_types + (float, complex):
+    if type(value) is bool:
+      return int(value)
+    elif type(value) in numeric_types:
       return value
     raise ValueError()
 
@@ -80,7 +83,7 @@ class SimpleDateTimeConverter(BaseConverter):
   def convert(cls, value):
     if type(value) is datetime.datetime:
       return value
-    elif value == "":
+    elif not value:
       return None
     raise ValueError()
 
@@ -103,6 +106,8 @@ class AnyConverter(BaseConverter):
   """
   @classmethod
   def convert(cls, value):
+    if value is None:
+      return u''
     return six.text_type(value)
 
   @classmethod
@@ -156,7 +161,7 @@ def _guess_basic_types(rows, num_columns):
   column_detectors = [ColumnDetector() for i in xrange(num_columns)]
   for row in rows:
     for cell, detector in zip(row, column_detectors):
-      detector.add_value(cell.value)
+      detector.add_value(cell)
 
   return [detector.get_converter() for detector in column_detectors]
 
@@ -194,10 +199,10 @@ class ColumnConverter(object):
     return {"type": grist_type, "data": self._all_col_values}
 
 
-def get_table_data(row_set, num_columns, num_rows=0):
-  converters = _guess_basic_types(row_set.sample, num_columns)
+def get_table_data(rows, num_columns, num_rows=0):
+  converters = _guess_basic_types(rows[:1000], num_columns)
   col_converters = [ColumnConverter(c) for c in converters]
-  for num, row in enumerate(row_set):
+  for num, row in enumerate(rows):
     if num_rows and num == num_rows:
       break
 
@@ -207,9 +212,9 @@ def get_table_data(row_set, num_columns, num_rows=0):
     # Make sure we have a value for every column.
     missing_values = len(converters) - len(row)
     if missing_values > 0:
-      row.extend([messytables.Cell("")] * missing_values)
+      row.extend([""] * missing_values)
 
     for cell, conv in zip(row, col_converters):
-      conv.convert_and_add(cell.value)
+      conv.convert_and_add(cell)
 
   return [conv.get_grist_column() for conv in col_converters]

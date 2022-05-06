@@ -271,8 +271,8 @@ export class ActiveDocImport {
   /**
    * Imports the data stored at tmpPath.
    *
-   * Currently it starts a python parser (that relies on the messytables library) as a child process
-   * outside the sandbox, and supports xls(x), csv, txt, and perhaps some other formats. It may
+   * Currently it starts a python parser as a child process
+   * outside the sandbox, and supports xlsx, csv, and perhaps some other formats. It may
    * result in the import of multiple tables, in case of e.g. Excel formats.
    * @param {OptDocSession} docSession: Session instance to use for importing.
    * @param {String} tmpPath: The path from of the original file.

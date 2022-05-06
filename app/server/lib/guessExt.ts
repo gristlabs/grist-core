@@ -21,7 +21,7 @@ export async function guessExt(filePath: string, fileName: string, mimeType: str
     return mimeExt;
   }
 
-  if (origExt === ".csv" || origExt === ".xls") {
+  if (origExt === ".csv") {
     // File type detection doesn't work for these, and mime type can't be trusted. E.g. Windows
     // may report "application/vnd.ms-excel" for .csv files. See
     // https://github.com/ManifoldScholar/manifold/issues/2409#issuecomment-545152220

@@ -150,8 +150,11 @@ def _parse_open_file(file_obj, parse_options=None):
       headers = [''] * len(headers)
 
     row_set.register_processor(messytables.offset_processor(data_offset))
-
-    table_data_with_types = parse_data.get_table_data(row_set, len(headers), num_rows)
+    rows = [
+      [cell.value for cell in row]
+      for row in row_set
+    ]
+    table_data_with_types = parse_data.get_table_data(rows, len(headers), num_rows)
 
     # Identify and remove empty columns, and populate separate metadata and data lists.
     column_metadata = []
