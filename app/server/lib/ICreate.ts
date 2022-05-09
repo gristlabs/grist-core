@@ -20,7 +20,14 @@ export interface ICreate {
   //  - meta. This store need not be versioned, and can be eventually consistent.
   // For test purposes an extra prefix may be supplied.  Stores with different prefixes
   // should not interfere with each other.
-  ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage|undefined;
+  // innerCreate should be a function returning the core ExternalStorage implementation,
+  // which this method may wrap in additional layer(s) of ExternalStorage.
+  // Uses S3 by default in hosted Grist.
+  ExternalStorage(
+    purpose: 'doc' | 'meta',
+    testExtraPrefix: string,
+    innerCreate?: (bucket: string) => ExternalStorage
+  ): ExternalStorage | undefined;
 
   ActiveDoc(docManager: DocManager, docName: string, options: ICreateActiveDocOptions): ActiveDoc;
   NSandbox(options: ISandboxCreationOptions): ISandbox;

@@ -35,3 +35,35 @@ export interface DocSnapshot extends ObjSnapshotWithMetadata {
 export interface DocSnapshots {
   snapshots: DocSnapshot[];
 }
+
+/**
+ * Metadata format for external storage like S3 and Azure.
+ * The only difference is that external metadata values must be strings.
+ *
+ * For S3, there are restrictions on total length of metadata (2 KB).
+ * See: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#UserMetadata
+ */
+type ExternalMetadata = Record<string, string>;
+
+/**
+ * Convert metadata from internal Grist format to external storage format (string values).
+ */
+export function toExternalMetadata(metadata: ObjMetadata): ExternalMetadata {
+  const result: ExternalMetadata = {};
+  for (const [key, val] of Object.entries(metadata)) {
+    if (val !== undefined) { result[key] = String(val); }
+  }
+  return result;
+}
+
+/**
+ * Select metadata controlled by Grist, and convert to expected formats.
+ */
+export function toGristMetadata(metadata: ExternalMetadata): ObjMetadata {
+  const result: ObjMetadata = {};
+  for (const key of ['t', 'tz', 'h', 'label'] as const) {
+    if (metadata[key]) { result[key] = metadata[key]; }
+  }
+  if (metadata.n) { result.n = parseInt(metadata.n, 10); }
+  return result;
+}
