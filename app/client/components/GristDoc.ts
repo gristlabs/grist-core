@@ -595,6 +595,7 @@ export class GristDoc extends DisposableWithEvents {
     const docData = this.docModel.docData;
     const oldVal: IPageWidget = toPageWidget(section);
     const viewModel = section.view();
+    const colIds = section.viewFields().all().map((f) => f.column().colId());
 
     if (isEqual(oldVal, newVal)) {
       // nothing to be done
@@ -621,6 +622,10 @@ export class GristDoc extends DisposableWithEvents {
           await docData.sendAction(
             ['UpdateSummaryViewSection', section.getRowId(), newVal.columns]
           );
+          // Charts needs to keep view fields consistent across update.
+          if (newVal.type === 'chart' && oldVal.type === 'chart') {
+            await this.setSectionViewFieldsFromArray(section, colIds);
+          }
         }
 
         // update link
@@ -650,13 +655,15 @@ export class GristDoc extends DisposableWithEvents {
 
     // If split series and/or x-axis do not exist any more in new table, update options to make them
     // undefined
-    if (!mapColIdToColumn.has(colIds[0])) {
+    if (colIds.length) {
       if (section.optionsObj.prop('multiseries')()) {
-        await section.optionsObj.prop('multiseries').saveOnly(false);
         if (!mapColIdToColumn.has(colIds[0])) {
+          await section.optionsObj.prop('multiseries').saveOnly(false);
+        }
+        if (colIds.length > 1 && !mapColIdToColumn.has(colIds[1])) {
           await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
         }
-      } else {
+      } else if (!mapColIdToColumn.has(colIds[0])) {
         await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
       }
     }
