@@ -98,6 +98,7 @@ export async function main(port: number, serverTypes: ServerType[],
 
   server.addAccessMiddleware();
   server.addApiMiddleware();
+  await server.addBillingMiddleware();
 
   await server.start();
 

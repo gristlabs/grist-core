@@ -1,6 +1,6 @@
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {getTagManagerSnippet} from 'app/common/tagManager';
-import {isAnonymousUser} from 'app/server/lib/Authorizer';
+import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
@@ -49,6 +49,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
+    activation: (mreq as RequestWithLogin|undefined)?.activation,
     ...extra,
   };
 }
@@ -91,7 +92,22 @@ export function makeSendAppPage(opts: {
     const staticOrigin = process.env.APP_STATIC_URL || "";
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
     const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
-    const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
+    // TODO: Temporary changes until there is a handy banner to put this in.
+    let warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
+    const activation = config.activation;
+    if (!warning && activation) {
+      if (activation.trial) {
+        warning = `Trial: ${activation.trial.daysLeft} day(s) left`;
+      } else if (activation.needKey) {
+        warning = 'Activation key needed. Documents in read-only mode.';
+      } else if (activation.key?.daysLeft && activation.key.daysLeft < 30) {
+        warning = `Need reactivation in ${activation.key.daysLeft} day(s)`;
+      }
+      if (warning) {
+        warning = `<div class="dev_warning activation-msg">${warning}</div>`;
+      }
+    }
+    // Temporary changes end.
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)

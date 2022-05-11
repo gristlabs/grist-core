@@ -253,6 +253,8 @@ export class HomeDBManager extends EventEmitter {
                                    // deployments on same subdomain.
 
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
+  // In restricted mode, documents should be read-only.
+  private _restrictedMode: boolean = false;
 
   public emit(event: NotifierEvent, ...args: any[]): boolean {
     return super.emit(event, ...args);
@@ -336,6 +338,10 @@ export class HomeDBManager extends EventEmitter {
 
   public setPrefix(prefix: string) {
     this._idPrefix = prefix;
+  }
+
+  public setRestrictedMode(restricted: boolean) {
+    this._restrictedMode = restricted;
   }
 
   public async connect(): Promise<void> {
@@ -1104,7 +1110,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
       const features = doc.workspace.org.billingAccount.product.features;
-      if (features.readOnlyDocs) {
+      if (features.readOnlyDocs || this._restrictedMode) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
       }

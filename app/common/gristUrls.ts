@@ -518,6 +518,23 @@ export interface GristLoadConfig {
 
   // Google Tag Manager id. Currently only used to load tag manager for reporting new sign-ups.
   tagManagerId?: string;
+
+  activation?: ActivationState;
+}
+
+/**
+ * For a packaged version of Grist that requires activation, this
+ * summarizes the current state. Not applicable to grist-core.
+ */
+export interface ActivationState {
+  trial?: {               // Present when installation has not yet been activated.
+    days: number;         // Max number of days allowed prior to activation.
+    daysLeft: number;     // Number of days left until Grist will get cranky.
+  }
+  needKey?: boolean;      // Set when Grist is cranky and demanding activation.
+  key?: {                 // Set when Grist is activated.
+    daysLeft?: number;    // Number of days until Grist will need reactivation.
+  }
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

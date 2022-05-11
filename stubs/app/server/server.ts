@@ -59,12 +59,13 @@ export async function main() {
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);
   // Make a blank db if needed.
   await updateDb();
+  const db = new HomeDBManager();
+  await db.connect();
+  await db.initializeSpecialIds({skipWorkspaces: true});
+
   // If a team/organization is specified, make sure it exists.
   const org = process.env.GRIST_SINGLE_ORG;
   if (org && org !== 'docs') {
-    const db = new HomeDBManager();
-    await db.connect();
-    await db.initializeSpecialIds({skipWorkspaces: true});
     try {
       db.unwrapQueryResult(await db.getOrg({
         userId: db.getPreviewerUserId(),
@@ -94,6 +95,7 @@ export async function main() {
       });
     }
   }
+
   // Launch single-port, self-contained version of Grist.
   const server = await mergedServerMain(G.port, ["home", "docs", "static"]);
   if (process.env.GRIST_TESTING_SOCKET) {

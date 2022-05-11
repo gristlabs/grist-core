@@ -1,6 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
+import {ActivationState} from 'app/common/gristUrls';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {UserOptions} from 'app/common/UserAPI';
@@ -34,6 +35,7 @@ export interface RequestWithLogin extends Request {
   docAuth?: DocAuthResult;      // For doc requests, the docId and the user's access level.
   specialPermit?: Permit;
   altSessionId?: string;   // a session id for use in trigger formulas and granular access rules
+  activation?: ActivationState;
 }
 
 /**

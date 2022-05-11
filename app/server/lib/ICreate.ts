@@ -9,6 +9,7 @@ import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 import {createSandbox} from 'app/server/lib/NSandbox';
+import * as express from 'express';
 
 export interface ICreate {
 
@@ -48,13 +49,18 @@ export interface ICreateStorageOptions {
 export function makeSimpleCreator(opts: {
   sessionSecret?: string,
   storage?: ICreateStorageOptions[],
+  activationMiddleware?: (db: HomeDBManager, app: express.Express) => Promise<void>,
 }): ICreate {
   return {
-    Billing() {
+    Billing(db) {
       return {
         addEndpoints() { /* do nothing */ },
         addEventHandlers() { /* do nothing */ },
-        addWebhooks() { /* do nothing */ }
+        addWebhooks() { /* do nothing */ },
+        async addMiddleware(app) {
+          // add activation middleware, if needed.
+          return opts?.activationMiddleware?.(db, app);
+        }
       };
     },
     Notifier() {

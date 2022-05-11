@@ -12,6 +12,7 @@ import {ApiServer} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Workspace} from 'app/gen-server/entity/Workspace';
+import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -470,6 +471,9 @@ export class FlexServer implements GristServer {
     await this._dbManager.initializeSpecialIds();
     // Report which database we are using, without sensitive credentials.
     this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
+    // If the installation appears to be new, give it an id and a creation date.
+    const activations = new Activations(this._dbManager);
+    await activations.current();
   }
 
   public addDocWorkerMap() {
@@ -564,6 +568,12 @@ export class FlexServer implements GristServer {
     this._getBilling();
     this._billing.addEndpoints(this.app);
     this._billing.addEventHandlers();
+  }
+
+  public async addBillingMiddleware() {
+    if (this._check('activation', 'homedb')) { return; }
+    this._getBilling();
+    await this._billing.addMiddleware?.(this.app);
   }
 
   /**
