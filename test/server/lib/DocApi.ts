@@ -67,6 +67,13 @@ describe('DocApi', function() {
   const oldEnv = clone(process.env);
 
   before(async function() {
+    // Clear redis test database if redis is in use.
+    if (process.env.TEST_REDIS_URL) {
+      const cli = createClient(process.env.TEST_REDIS_URL);
+      await cli.flushdbAsync();
+      await cli.quitAsync();
+    }
+
     // Create the tmp dir removing any previous one
     await fse.remove(tmpDir);
     await fse.mkdirs(tmpDir);
