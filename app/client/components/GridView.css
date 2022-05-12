@@ -235,7 +235,6 @@
   width: 0px; /* Matches rowid width (+border) */
   height: 100%;
   z-index: 3;
-  left: calc(4rem);
   border-right: 1px solid var(--grist-color-dark-grey) !important;
   user-select: none;
   pointer-events: none

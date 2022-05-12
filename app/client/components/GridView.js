@@ -924,7 +924,13 @@ GridView.prototype.buildDom = function() {
     dom('div.frozen_line', kd.show(this.frozenLine)),
     dom('div.gridview_header_backdrop_left'), //these hide behind the actual headers to keep them from flashing
     dom('div.gridview_header_backdrop_top'),
-    dom('div.gridview_left_border'), //these hide behind the actual headers to keep them from flashing
+    // When there are frozen columns, right border for number row will not be visible (as actually there is no border,
+    // it comes from the first cell in the grid) making a gap between row-number and actual column. So when we scroll
+    // the content of the scrolled columns will be visible to the user (as there is blank space there).
+    // This line fills the gap. NOTE that we are using number here instead of a boolean.
+    dom('div.gridview_left_border', kd.show(this.numFrozen),
+      kd.style("left", ROW_NUMBER_WIDTH + 'px')
+    ),
     // left shadow that will be visible on top of frozen columns
     dom('div.scroll_shadow_frozen', kd.show(this.frozenShadow)),
     // When cursor leaves the GridView, remove hover immediately (without debounce).

@@ -75,6 +75,10 @@
   color: var(--grist-actual-cell-color, black);
 }
 
+.field.selected .field_clip {
+  mix-blend-mode: darken;
+}
+
 .field_clip.invalid, .field_clip.field-error-from-style {
   background-color: #ffb6c1;
   color: black;
