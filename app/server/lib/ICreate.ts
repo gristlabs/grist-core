@@ -8,6 +8,7 @@ import {IBilling} from 'app/server/lib/IBilling';
 import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
+import {createSandbox} from 'app/server/lib/NSandbox';
 
 export interface ICreate {
 
@@ -20,14 +21,7 @@ export interface ICreate {
   //  - meta. This store need not be versioned, and can be eventually consistent.
   // For test purposes an extra prefix may be supplied.  Stores with different prefixes
   // should not interfere with each other.
-  // innerCreate should be a function returning the core ExternalStorage implementation,
-  // which this method may wrap in additional layer(s) of ExternalStorage.
-  // Uses S3 by default in hosted Grist.
-  ExternalStorage(
-    purpose: 'doc' | 'meta',
-    testExtraPrefix: string,
-    innerCreate?: (bucket: string) => ExternalStorage
-  ): ExternalStorage | undefined;
+  ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage | undefined;
 
   ActiveDoc(docManager: DocManager, docName: string, options: ICreateActiveDocOptions): ActiveDoc;
   NSandbox(options: ISandboxCreationOptions): ISandbox;
@@ -41,4 +35,61 @@ export interface ICreateActiveDocOptions {
   safeMode?: boolean;
   docUrl?: string;
   doc?: Document;
+}
+
+export interface ICreateStorageOptions {
+  check(): Record<string, string>|undefined;
+  create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
+}
+
+export function makeSimpleCreator(opts: {
+  sessionSecret?: string,
+  storage?: ICreateStorageOptions[],
+}): ICreate {
+  return {
+    Billing() {
+      return {
+        addEndpoints() { /* do nothing */ },
+        addEventHandlers() { /* do nothing */ },
+        addWebhooks() { /* do nothing */ }
+      };
+    },
+    Notifier() {
+      return {
+        get testPending() { return false; },
+        deleteUser()      { throw new Error('deleteUser unavailable'); },
+      };
+    },
+    Shell() {
+      return {
+        moveItemToTrash()  { throw new Error('moveToTrash unavailable'); },
+        showItemInFolder() { throw new Error('showItemInFolder unavailable'); }
+      };
+    },
+    ExternalStorage(purpose, extraPrefix) {
+      for (const storage of opts.storage || []) {
+        const config = storage.check();
+        if (config) { return storage.create(purpose, extraPrefix); }
+      }
+      return undefined;
+    },
+    ActiveDoc(docManager, docName, options) { return new ActiveDoc(docManager, docName, options); },
+    NSandbox(options) {
+      return createSandbox('unsandboxed', options);
+    },
+    sessionSecret() {
+      const secret = process.env.GRIST_SESSION_SECRET || opts.sessionSecret;
+      if (!secret) {
+        throw new Error('need GRIST_SESSION_SECRET');
+      }
+      return secret;
+    },
+    configurationOptions() {
+      for (const storage of opts.storage || []) {
+        const config = storage.check();
+        if (config) { return config; }
+      }
+      return {};
+    }
+  };
 }

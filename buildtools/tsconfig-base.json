@@ -16,7 +16,8 @@
       "*": [
         "*",
         "grist-core/*",
-        "stubs/*"
+        "stubs/*",
+        "ext/*"
       ],
     },
     "composite": true,

@@ -53,7 +53,7 @@ export interface HostedStorageOptions {
   // which may then be wrapped in additional layer(s) of ExternalStorage.
   // See ICreate.ExternalStorage.
   // Uses S3 by default in hosted Grist.
-  innerExternalStorageCreate?: (bucket: string) => ExternalStorage;
+  externalStorageCreator?: (purpose: 'doc'|'meta') => ExternalStorage;
 }
 
 const defaultOptions: HostedStorageOptions = {
@@ -127,16 +127,15 @@ export class HostedStorageManager implements IDocStorageManager {
     private _docsRoot: string,
     private _docWorkerId: string,
     private _disableS3: boolean,
-    extraS3Prefix: string,
     private _docWorkerMap: IDocWorkerMap,
     dbManager: HomeDBManager,
     create: ICreate,
     options: HostedStorageOptions = defaultOptions
   ) {
+    const creator = options.externalStorageCreator || ((purpose) => create.ExternalStorage(purpose, ''));
     // We store documents either in a test store, or in an s3 store
     // at s3://<s3Bucket>/<s3Prefix><docId>.grist
-    const externalStoreDoc = this._disableS3 ? undefined :
-      create.ExternalStorage('doc', extraS3Prefix, options.innerExternalStorageCreate);
+    const externalStoreDoc = this._disableS3 ? undefined : creator('doc');
     if (!externalStoreDoc) { this._disableS3 = true; }
     const secondsBeforePush = options.secondsBeforePush;
     if (options.pushDocUpdateTimes) {
@@ -157,7 +156,7 @@ export class HostedStorageManager implements IDocStorageManager {
       this._ext = this._getChecksummedExternalStorage('doc', this._baseStore,
                                                       this._latestVersions, options);
 
-      const baseStoreMeta = create.ExternalStorage('meta', extraS3Prefix, options.innerExternalStorageCreate);
+      const baseStoreMeta = creator('meta');
       if (!baseStoreMeta) {
         throw new Error('bug: external storage should be created for "meta" if it is created for "doc"');
       }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Create a checkpoint of a gvisor sandbox. It is best to make the
 # checkpoint in as close to the same circumstances as it will be used,
@@ -18,7 +18,7 @@ set -ex
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-export NODE_PATH=_build:_build/core:_build/stubs
+export NODE_PATH=_build:_build/core:_build/stubs:_build/ext
 source $SCRIPT_DIR/get_checkpoint_path.sh
 
 if [[ -z "GRIST_CHECKPOINT" ]]; then

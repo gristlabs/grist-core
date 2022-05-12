@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This defines a GRIST_CHECKPOINT environment variable, where we will store
 # a sandbox checkpoint. The path is in principle arbitrary. In practice,

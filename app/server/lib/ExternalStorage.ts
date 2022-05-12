@@ -366,3 +366,38 @@ export interface PropStorage {
 }
 
 export const Unchanged = Symbol('Unchanged');
+
+export interface ExternalStorageSettings {
+  purpose: 'doc' | 'meta';
+  basePrefix?: string;
+  extraPrefix?: string;
+}
+
+/**
+ * The storage mapping we use for our SaaS. A reasonable default, but relies
+ * on appropriate lifecycle rules being set up in the bucket.
+ */
+export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (docId: string) => string {
+  const {basePrefix, extraPrefix, purpose} = settings;
+  let fullPrefix = basePrefix + (basePrefix?.endsWith('/') ? '' : '/');
+  if (extraPrefix) {
+    fullPrefix += extraPrefix + (extraPrefix.endsWith('/') ? '' : '/');
+  }
+
+  // Set up how we name files/objects externally.
+  let fileNaming: (docId: string) => string;
+  if (purpose === 'doc') {
+    fileNaming = docId => `${docId}.grist`;
+  } else if (purpose === 'meta') {
+    // Put this in separate prefix so a lifecycle rule can prune old versions of the file.
+    // Alternatively, could go in separate bucket.
+    fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
+  } else {
+    throw new Error('create.ExternalStorage: unrecognized purpose');
+  }
+  return docId => (fullPrefix + fileNaming(docId));
+}
+
+export function wrapWithKeyMappedStorage(rawStorage: ExternalStorage, settings: ExternalStorageSettings) {
+  return new KeyMappedExternalStorage(rawStorage, getExternalStorageKeyMap(settings));
+}

@@ -52,8 +52,8 @@ Here are some specific feature highlights of Grist:
     - Useful for intranet operation and specific compliance requirements.
   * Sandboxing options for untrusted documents.
     - On Linux or with docker, you can enable
-	  [gVisor](https://github.com/google/gvisor) sandboxing at the individual
-	  document level.
+      [gVisor](https://github.com/google/gvisor) sandboxing at the individual
+      document level.
     - On OSX, you can use native sandboxing.
 
 If you are curious about where Grist is going heading,
@@ -268,5 +268,7 @@ GRIST_TEST_ROUTER | if set, then the home server will serve a mock version of ro
 
 This repository, `grist-core`, is released under the [Apache License, Version
 2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an
-[OSI](https://opensource.org/)-approved free software license. See LICENSE.txt and NOTICE.txt for
-more information.
+[OSI](https://opensource.org/)-approved free software license.
+See LICENSE.txt and NOTICE.txt for more information.
+If you have received a version of Grist with an `ext` directory,
+the material within it is separately licensed.

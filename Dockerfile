@@ -1,21 +1,37 @@
 ################################################################################
+## The Grist source can be extended. This is a stub that can be overridden
+## from command line, as:
+##   docker buildx build -t ... --build-context=ext=<path> .
+## The code in <path> will then be built along with the rest of Grist.
+################################################################################
+FROM scratch as ext
+
+################################################################################
 ## Javascript build stage
 ################################################################################
 
 FROM node:14-buster as builder
 
 # Install all node dependencies.
-ADD package.json package.json
-ADD yarn.lock yarn.lock
-RUN yarn install --frozen-lockfile
+WORKDIR /grist
+COPY package.json yarn.lock /grist/
+RUN yarn install --frozen-lockfile --verbose
+
+# Install any extra node dependencies (at root level, to avoid having to wrestle
+# with merging them).
+COPY --from=ext / /grist/ext
+RUN \
+ mkdir /node_modules && \
+ cd /grist/ext && \
+ { if [ -e package.json ] ; then yarn install --frozen-lockfile --modules-folder=/node_modules --verbose ; fi }
 
 # Build node code.
-ADD tsconfig.json tsconfig.json
-ADD app app
-ADD stubs stubs
-ADD buildtools buildtools
-ADD static static
-ADD test/tsconfig.json test/tsconfig.json
+COPY tsconfig.json /grist
+COPY tsconfig-ext.json /grist
+COPY test/tsconfig.json /grist/test/tsconfig.json
+COPY app /grist/app
+COPY stubs /grist/stubs
+COPY buildtools /grist/buildtools
 RUN yarn run build:prod
 
 ################################################################################
@@ -63,9 +79,10 @@ RUN \
 RUN mkdir -p /persist/docs
 
 # Copy node files.
-COPY --from=builder /node_modules node_modules
-COPY --from=builder /_build _build
-COPY --from=builder /static static
+COPY --from=builder /node_modules /node_modules
+COPY --from=builder /grist/node_modules /grist/node_modules
+COPY --from=builder /grist/_build /grist/_build
+COPY --from=builder /grist/static /grist/static-built
 
 # Copy python files.
 COPY --from=collector /usr/bin/python2.7 /usr/bin/python2.7
@@ -84,11 +101,19 @@ RUN \
 COPY --from=sandbox /runsc /usr/bin/runsc
 
 # Add files needed for running server.
-ADD package.json package.json
-ADD ormconfig.js ormconfig.js
-ADD bower_components bower_components
-ADD sandbox sandbox
-ADD plugins plugins
+ADD package.json /grist/package.json
+ADD ormconfig.js /grist/ormconfig.js
+ADD bower_components /grist/bower_components
+ADD sandbox /grist/sandbox
+ADD plugins /grist/plugins
+ADD static /grist/static
+
+# Finalize static directory
+RUN \
+  mv /grist/static-built/* /grist/static && \
+  rmdir /grist/static-built
+
+WORKDIR /grist
 
 # Set some default environment variables to give a setup that works out of the box when
 # started as:

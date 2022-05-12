@@ -3,6 +3,7 @@
 !package.json
 !yarn.lock
 !tsconfig.json
+!tsconfig-ext.json
 !stubs
 !app
 !buildtools
@@ -12,3 +13,4 @@
 !sandbox
 !plugins
 !test
+!ext

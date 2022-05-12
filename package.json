@@ -6,15 +6,15 @@
   "homepage": "https://github.com/gristlabs/grist-core",
   "repository": "git://github.com/gristlabs/grist-core.git",
   "scripts": {
-    "start": "tsc --build -w --preserveWatchOutput & catw app/client/*.css app/client/*/*.css -o static/bundle.css -v & webpack --config buildtools/webpack.config.js --mode development --watch --hide-modules & NODE_PATH=_build:_build/stubs nodemon --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js & wait",
+    "start": "sandbox/watch.sh",
     "install:python": "buildtools/prepare_python.sh",
     "install:python2": "buildtools/prepare_python2.sh",
     "install:python3": "buildtools/prepare_python3.sh",
-    "build:prod": "tsc --build && webpack --config buildtools/webpack.config.js --mode production && webpack --config buildtools/webpack.check.js --mode production && cat app/client/*.css app/client/*/*.css > static/bundle.css",
-    "start:prod": "NODE_PATH=_build:_build/stubs node _build/stubs/app/server/server.js",
-    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs mocha _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
-    "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
-    "test:smoke": "NODE_PATH=_build:_build/stubs mocha _build/test/nbrowser/Smoke.js",
+    "build:prod": "buildtools/build.sh",
+    "start:prod": "sandbox/run.sh",
+    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
+    "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
+    "test:smoke": "NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh"
   },
   "keywords": [
