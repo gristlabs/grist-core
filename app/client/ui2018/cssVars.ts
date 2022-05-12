@@ -110,6 +110,7 @@ export const vars = {
   controlBorderRadius:  new CustomProp('border-radius', '4px'),
 
   logoBg: new CustomProp('logo-bg', '#040404'),
+  logoSize: new CustomProp('logo-size', '22px 22px'),
   toastBg: new CustomProp('toast-bg', '#040404'),
 };
 

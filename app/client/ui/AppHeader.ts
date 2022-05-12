@@ -98,7 +98,7 @@ const cssAppLogo = styled('a', `
   height: 48px;
   width: 48px;
   background-image: var(--icon-GristLogo);
-  background-size: 22px 22px;
+  background-size: ${vars.logoSize};
   background-repeat: no-repeat;
   background-position: center;
   background-color: ${vars.logoBg};

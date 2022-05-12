@@ -90,10 +90,12 @@ export function makeSendAppPage(opts: {
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
     const staticOrigin = process.env.APP_STATIC_URL || "";
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
+    const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
+      .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
       .replace("<!-- INSERT CONFIG -->", `<script>window.gristConfig = ${JSON.stringify(config)};</script>`);
     resp.status(options.status).type('html').send(content);
   };

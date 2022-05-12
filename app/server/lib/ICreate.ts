@@ -29,6 +29,9 @@ export interface ICreate {
   sessionSecret(): string;
   // Get configuration information to show at start-up.
   configurationOptions(): {[key: string]: any};
+  // Return a string containing 1 or more HTML tags to insert into the head element of every
+  // static page.
+  getExtraHeadHtml?(): string;
 }
 
 export interface ICreateActiveDocOptions {
@@ -90,6 +93,13 @@ export function makeSimpleCreator(opts: {
         if (config) { return config; }
       }
       return {};
-    }
+    },
+    getExtraHeadHtml() {
+      let customHeadHtmlSnippet = '';
+      if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
+        customHeadHtmlSnippet += '<link rel="stylesheet" href="custom.css">';
+      }
+      return customHeadHtmlSnippet;
+    },
   };
 }

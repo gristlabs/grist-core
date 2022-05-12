@@ -1,0 +1,42 @@
+:root {
+  /* logo */
+  --icon-GristLogo: url("ui-icons/Logo/GristLogo.svg") !important;
+  --grist-logo-bg: #040404 !important;
+  --grist-logo-size: 22px 22px !important;
+
+  /* colors */
+  --grist-color-light-grey: #F7F7F7 !important;
+  --grist-color-medium-grey: rgba(217,217,217,0.6) !important;
+  --grist-color-medium-grey-opaque: #E8E8E8 !important;
+  --grist-color-dark-grey: #D9D9D9 !important;
+  --grist-color-light: #FFFFFF !important;
+  --grist-color-dark: #262633 !important;
+  --grist-color-dark-bg: #262633 !important;
+  --grist-color-slate: #929299 !important;
+  --grist-color-light-green: #16B378 !important;
+  --grist-color-dark-green: #009058 !important;
+  --grist-color-darker-green: #007548 !important;
+  --grist-color-lighter-green: #b1ffe2 !important;
+  --grist-color-lighter-blue: #87b2f9 !important;
+  --grist-color-light-blue: #3B82F6 !important;
+  --grist-color-cursor: #16B378 !important;
+  --grist-color-selection: rgba(22,179,120,0.15) !important;
+  --grist-color-selection-opaque: #DCF4EB !important;
+  --grist-color-selection-darker-opaque: #d6eee5 !important;
+  --grist-color-inactive-cursor: #A2E1C9 !important;
+  --grist-color-hover: #bfbfbf !important;
+  --grist-color-error: #D0021B !important;
+  --grist-color-warning: #F9AE41 !important;
+  --grist-color-warning-bg: #dd962c !important;
+  --grist-color-backdrop: rgba(38,38,51,0.9) !important;
+  --grist-label-text-bg: #FFFFFF !important;
+  --grist-label-active-bg: #F0F0F0 !important;
+  --grist-primary-fg: #16B378 !important;
+  --grist-primary-fg-hover: #009058 !important;
+  --grist-primary-bg: #ffffff !important;
+  --grist-control-bg: #ffffff !important;
+  --grist-control-fg: #16B378 !important;
+  --grist-primary-fg-hover: #009058 !important;
+  --grist-control-border: 1px solid #11B683 !important;
+  --grist-toast-bg: #040404 !important;
+}
