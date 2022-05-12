@@ -69,8 +69,13 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  // summary table can only link to and from the main node (node with no column)
-  if ((source.isSummary || target.isSummary) && (source.column || target.column)) {
+  // cannot link to the somewhat special 'group' reflist column of summary tables
+  // because in most cases it's equivalent to the usual summary table linking but potentially slower,
+  // and in other cases it may cause confusion with overwhelming options.
+  if (
+    (source.isSummary && source.column?.colId.peek() === "group") ||
+    (target.isSummary && target.column?.colId.peek() === "group")
+  ) {
     return false;
   }
 

@@ -96,7 +96,7 @@ export class LinkingState extends Disposable {
       }
     } else if (srcColId && isRefListType(srcCol.type())) {
       this.filterColValues = this._srcCellFilter('id', 'in');
-    } else if (isSummaryOf(srcSection.table(), tgtSection.table())) {
+    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {
       // We filter summary tables when a summary section is linked to a more detailed one without
       // specifying src or target column. The filtering is on the shared group-by column (i.e. all
       // those in the srcSection).
