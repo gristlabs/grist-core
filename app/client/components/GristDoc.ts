@@ -478,7 +478,7 @@ export class GristDoc extends DisposableWithEvents {
       if (schemaUpdated) {
         this.trigger('schemaUpdateAction', docActions);
       }
-      this.docPageModel.updateDocUsage(message.data.docUsage);
+      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
     }
   }
 

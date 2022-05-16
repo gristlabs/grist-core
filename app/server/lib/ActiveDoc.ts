@@ -33,21 +33,26 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
+import {
+  getDataLimitRatio,
+  getDataLimitStatus,
+  getSeverity,
+  LimitExceededError,
+} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
   APPROACHING_LIMIT_RATIO,
-  AttachmentsSize,
   DataLimitStatus,
-  DataSize,
-  DocUsage,
-  LimitExceededError,
-  NonHidden,
-  RowCount
+  DocumentUsage,
+  DocUsageSummary,
+  FilteredDocUsageSummary,
+  getUsageRatio,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {Features} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
+import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
@@ -180,12 +185,12 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _lastDataSizeMeasurement: number = 0;  // Timestamp when dbstat data size was last measured.
+  private _lastDataLimitStatus?: DataLimitStatus;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _rowCount: NonHidden<RowCount> = 'pending';
-  private _dataSize: NonHidden<DataSize> = 'pending';
-  private _attachmentsSize: NonHidden<AttachmentsSize> = 'pending';
+  private _docUsage: DocumentUsage|null = null;
   private _productFeatures?: Features;
   private _gracePeriodStart: Date|null = null;
+  private _isForkOrSnapshot: boolean = false;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
@@ -207,10 +212,30 @@ export class ActiveDoc extends EventEmitter {
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
+    const {forkId, snapshotId} = parseUrlId(docName);
+    this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
-      this._productFeatures = _options.doc.workspace.org.billingAccount?.product.features;
-      this._gracePeriodStart = _options.doc.gracePeriodStart;
+      const {gracePeriodStart, workspace, usage} = _options.doc;
+      this._productFeatures = workspace.org.billingAccount?.product.features;
+      this._gracePeriodStart = gracePeriodStart;
+
+      if (!this._isForkOrSnapshot) {
+        /* Note: We don't currently persist usage for forks or snapshots anywhere, so
+         * we need to hold off on setting _docUsage here. Normally, usage is set shortly
+         * after initialization finishes, after data/attachments size has finished
+         * calculating. However, this leaves a narrow window where forks can circumvent
+         * delete-only restrictions and replace the trunk document (even when the trunk
+         * is delete-only). This isn't very concerning today as the window is typically
+         * too narrow to easily exploit, and there are other ways to work around limits,
+         * like resetting gracePeriodStart by momentarily lowering usage. Regardless, it
+         * would be good to fix this eventually (perhaps around the same time we close
+         * up the gracePeriodStart loophole).
+         *
+         * TODO: Revisit this later and patch up the loophole. */
+        this._docUsage = usage;
+        this._lastDataLimitStatus = this.dataLimitStatus;
+      }
     }
     this._docManager = docManager;
     this._docName = docName;
@@ -253,55 +278,46 @@ export class ActiveDoc extends EventEmitter {
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
-  public get rowLimitRatio() {
-    if (!isEnforceableLimit(this._rowLimit) || this._rowCount === 'pending') {
-      // If limit can't be enforced (e.g. undefined, non-positive), assume no limit.
-      return 0;
-    }
 
-    return this._rowCount / this._rowLimit;
+  public get rowLimitRatio(): number {
+    return getUsageRatio(
+      this._docUsage?.rowCount,
+      this._productFeatures?.baseMaxRowsPerDocument
+    );
   }
 
-  public get dataSizeLimitRatio() {
-    if (!isEnforceableLimit(this._dataSizeLimit) || this._dataSize === 'pending') {
-      // If limit can't be enforced (e.g. undefined, non-positive), assume no limit.
-      return 0;
-    }
-
-    return this._dataSize / this._dataSizeLimit;
+  public get dataSizeLimitRatio(): number {
+    return getUsageRatio(
+      this._docUsage?.dataSizeBytes,
+      this._productFeatures?.baseMaxDataSizePerDocument
+    );
   }
 
-  public get dataLimitRatio() {
-    return Math.max(this.rowLimitRatio, this.dataSizeLimitRatio);
+  public get dataLimitRatio(): number {
+    return getDataLimitRatio(this._docUsage, this._productFeatures);
   }
 
   public get dataLimitStatus(): DataLimitStatus {
-    const ratio = this.dataLimitRatio;
-    if (ratio > 1) {
-      const start = this._gracePeriodStart;
-      const days = this._productFeatures?.gracePeriodDays;
-      if (start && days && moment().diff(moment(start), 'days') >= days) {
-        return 'deleteOnly';
-      } else {
-        return 'gracePeriod';
-      }
-    } else if (ratio > APPROACHING_LIMIT_RATIO) {
-      return 'approachingLimit';
-    }
-    return null;
+    return getDataLimitStatus({
+      docUsage: this._docUsage,
+      productFeatures: this._productFeatures,
+      gracePeriodStart: this._gracePeriodStart,
+    });
   }
 
-  public get docUsage(): DocUsage {
+  public getDocUsageSummary(): DocUsageSummary {
     return {
       dataLimitStatus: this.dataLimitStatus,
-      rowCount: this._rowCount,
-      dataSizeBytes: this._dataSize,
-      attachmentsSizeBytes: this._attachmentsSize,
+      rowCount: this._docUsage?.rowCount ?? 'pending',
+      dataSizeBytes: this._docUsage?.dataSizeBytes ?? 'pending',
+      attachmentsSizeBytes: this._docUsage?.attachmentsSizeBytes ?? 'pending',
     };
   }
 
-  public getFilteredDocUsage(docSession: OptDocSession): Promise<DocUsage> {
-    return this._granularAccess.filterDocUsage(docSession, this.docUsage);
+  public async getFilteredDocUsageSummary(
+    docSession: OptDocSession
+  ): Promise<FilteredDocUsageSummary> {
+    return this._granularAccess.filterDocUsageSummary(docSession, this.getDocUsageSummary());
   }
 
   public async getUserOverride(docSession: OptDocSession) {
@@ -431,14 +447,28 @@ export class ActiveDoc extends EventEmitter {
         clearInterval(interval);
       }
 
+      // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
+      // needs to happen periodically, and doing it here means we can guarantee that it happens
+      // even if the doc is only ever opened briefly, without having to slow down startup.
+      const removeAttachmentsPromise = this.removeUnusedAttachments(true, {syncUsageToDatabase: false});
+
+      // Update data size as well. We'll schedule a sync to the database once both this and the
+      // above promise settle.
+      const updateDataSizePromise = this._updateDataSize({syncUsageToDatabase: false});
+
       try {
-        // Remove expired attachments, i.e. attachments that were soft deleted a while ago.
-        // This needs to happen periodically, and doing it here means we can guarantee that it happens even if
-        // the doc is only ever opened briefly, without having to slow down startup.
-        await this.removeUnusedAttachments(true);
+        await removeAttachmentsPromise;
       } catch (e) {
         this._log.error(docSession, "Failed to remove expired attachments", e);
       }
+
+      try {
+        await updateDataSizePromise;
+      } catch (e) {
+        this._log.error(docSession, "Failed to update data size", e);
+      }
+
+      this._syncDocUsageToDatabase(true);
 
       try {
         await this._docManager.storageManager.closeDocument(this.docName);
@@ -715,7 +745,7 @@ export class ActiveDoc extends EventEmitter {
           // is potentially expensive, so this optimises for the common case of not exceeding the limit.
           const hadChanges = await this.updateUsedAttachmentsIfNeeded();
           if (hadChanges) {
-            await this._updateAttachmentsSize();
+            await this._updateAttachmentsSize({syncUsageToDatabase: false});
           } else {
             // No point in retrying if nothing changed.
             throw new LimitExceededError("Exceeded attachments limit for document");
@@ -1401,10 +1431,13 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Delete unused attachments from _grist_Attachments and gristsys_Files.
    * @param expiredOnly: if true, only delete attachments that were soft-deleted sufficiently long ago.
+   * @param options.syncUsageToDatabase: if true, schedule an update to the usage column of the docs table, if
+   * any unused attachments were soft-deleted. defaults to true.
    */
-  public async removeUnusedAttachments(expiredOnly: boolean) {
+  public async removeUnusedAttachments(expiredOnly: boolean, options: {syncUsageToDatabase?: boolean} = {}) {
+    const {syncUsageToDatabase = true} = options;
     const hadChanges = await this.updateUsedAttachmentsIfNeeded();
-    if (hadChanges) { await this._updateAttachmentsSize(); }
+    if (hadChanges) { await this._updateAttachmentsSize({syncUsageToDatabase}); }
     const rowIds = await this.docStorage.getSoftDeletedAttachmentIds(expiredOnly);
     if (rowIds.length) {
       const action: BulkRemoveRecord = ["BulkRemoveRecord", "_grist_Attachments", rowIds];
@@ -1468,7 +1501,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async updateRowCount(rowCount: number, docSession: OptDocSession | null) {
-    this._rowCount = rowCount;
+    this._updateDocUsage({rowCount});
     log.rawInfo('Sandbox row count', {...this.getLogMeta(docSession), rowCount});
     await this._checkDataLimitRatio();
 
@@ -1649,17 +1682,50 @@ export class ActiveDoc extends EventEmitter {
     };
   }
 
-  private get _rowLimit(): number | undefined {
-    return this._productFeatures?.baseMaxRowsPerDocument;
+  /**
+   * Applies all metrics from `usage` to the current document usage state.
+   * Syncs updated usage to the home database by default, unless
+   * `options.syncUsageToDatabase` is set to false.
+   */
+  private _updateDocUsage(
+    usage: Partial<DocumentUsage>,
+    options: {
+      syncUsageToDatabase?: boolean
+    } = {}
+  ) {
+    const {syncUsageToDatabase = true} = options;
+    this._docUsage = {...(this._docUsage || {}), ...usage};
+    if (this._lastDataLimitStatus === this.dataLimitStatus) {
+      // If status is unchanged, there's no need to sync usage to the database, as it currently
+      // won't result in any noticeable difference to site usage banners. On shutdown, we'll
+      // still schedule a sync so that the latest usage is persisted.
+      return;
+    }
+
+    const lastStatus = this._lastDataLimitStatus;
+    this._lastDataLimitStatus = this.dataLimitStatus;
+    if (!syncUsageToDatabase) { return; }
+
+    // If status decreased, we'll want to update usage in the DB with minimal delay, so that site
+    // usage banners show up-to-date statistics. If status increased or stayed the same, we'll
+    // schedule a delayed update, since it's less critical for such banners to update quickly
+    // when usage grows.
+    const didStatusDecrease = (
+      lastStatus !== undefined &&
+      getSeverity(this.dataLimitStatus) < getSeverity(lastStatus)
+    );
+    this._syncDocUsageToDatabase(didStatusDecrease);
   }
 
-  private get _dataSizeLimit(): number | undefined {
-    return this._productFeatures?.baseMaxDataSizePerDocument;
+  private _syncDocUsageToDatabase(minimizeDelay = false) {
+    this._docManager.storageManager.scheduleUsageUpdate(this._docName, this._docUsage, minimizeDelay);
   }
 
   private async _updateGracePeriodStart(gracePeriodStart: Date | null) {
     this._gracePeriodStart = gracePeriodStart;
-    await this.getHomeDbManager()?.setDocGracePeriodStart(this.docName, gracePeriodStart);
+    if (!this._isForkOrSnapshot) {
+      await this.getHomeDbManager()?.setDocGracePeriodStart(this.docName, gracePeriodStart);
+    }
   }
 
   private async _checkDataLimitRatio() {
@@ -1673,11 +1739,27 @@ export class ActiveDoc extends EventEmitter {
 
   private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
     const start = Date.now();
-    const dataSize = await this.docStorage.getDataSize();
+    const dataSizeBytes = await this._updateDataSize();
     const timeToMeasure = Date.now() - start;
-    this._dataSize = dataSize;
-    log.rawInfo('Data size from dbstat...', {...this.getLogMeta(docSession), dataSize, timeToMeasure});
+    log.rawInfo('Data size from dbstat...', {
+      ...this.getLogMeta(docSession),
+      dataSizeBytes,
+      timeToMeasure,
+    });
     await this._checkDataLimitRatio();
+  }
+
+  /**
+   * Calculates the total data size in bytes and sets it in _docUsage. Schedules
+   * a sync to the database, unless `options.syncUsageToDatabase` is set to false.
+   *
+   * Returns the calculated data size.
+   */
+  private async _updateDataSize(options: {syncUsageToDatabase?: boolean} = {}): Promise<number> {
+    const {syncUsageToDatabase = true} = options;
+    const dataSizeBytes = await this.docStorage.getDataSize();
+    this._updateDocUsage({dataSizeBytes}, {syncUsageToDatabase});
+    return dataSizeBytes;
   }
 
   /**
@@ -1840,10 +1922,7 @@ export class ActiveDoc extends EventEmitter {
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
-      // TODO: Initialize data and attachments size from Document.usage once it's available.
-      this._updateAttachmentsSize().catch(e => {
-        this._log.warn(docSession, 'failed to update attachments size', e);
-      });
+      this._initializeDocUsageIfNeeded(docSession);
     } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {
@@ -1881,6 +1960,21 @@ export class ActiveDoc extends EventEmitter {
         const dataEngine = await this._getEngine();
         await dataEngine.reportMemoryUsage();
       }
+    }
+  }
+
+  private _initializeDocUsageIfNeeded(docSession: OptDocSession) {
+    // TODO: Broadcast a message to clients after usage is fully calculated.
+    if (this._docUsage?.dataSizeBytes === undefined) {
+      this._updateDataSize().catch(e => {
+        this._log.warn(docSession, 'failed to update data size', e);
+      });
+    }
+
+    if (this._docUsage?.attachmentsSizeBytes === undefined) {
+      this._updateAttachmentsSize().catch(e => {
+        this._log.warn(docSession, 'failed to update attachments size', e);
+      });
     }
   }
 
@@ -1990,14 +2084,22 @@ export class ActiveDoc extends EventEmitter {
     const maxSize = this._productFeatures?.baseMaxAttachmentsBytesPerDocument;
     if (!maxSize) { return true; }
 
-    const currentSize = this._attachmentsSize !== 'pending'
-      ? this._attachmentsSize
-      : await this.docStorage.getTotalAttachmentFileSizes();
+    let currentSize = this._docUsage?.attachmentsSizeBytes;
+    currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
     return currentSize + uploadSizeBytes <= maxSize;
   }
 
-  private async _updateAttachmentsSize() {
-    this._attachmentsSize = await this.docStorage.getTotalAttachmentFileSizes();
+  /**
+   * Calculates the total attachments size in bytes and sets it in _docUsage. Schedules
+   * a sync to the database, unless `options.syncUsageToDatabase` is set to false.
+   *
+   * Returns the calculated attachments size.
+   */
+  private async _updateAttachmentsSize(options: {syncUsageToDatabase?: boolean} = {}): Promise<number> {
+    const {syncUsageToDatabase = true} = options;
+    const attachmentsSizeBytes = await this.docStorage.getTotalAttachmentFileSizes();
+    this._updateDocUsage({attachmentsSizeBytes}, {syncUsageToDatabase});
+    return attachmentsSizeBytes;
   }
 }
 
@@ -2022,9 +2124,4 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];
-}
-
-// Helper that returns true if `limit` is set to a valid, positive number.
-function isEnforceableLimit(limit: number | undefined): limit is number {
-  return limit !== undefined && limit > 0;
 }

@@ -851,6 +851,9 @@ export class DocWorkerApi {
       return true;
     }
 
+    // If Redis isn't configured, this is as far as we can go with checks.
+    if (!process.env.REDIS_URL) { return false; }
+
     // Note the increased API usage on redis and in our local cache.
     // Update redis in the background so that the rest of the request can continue without waiting for redis.
     const multi = this._docWorkerMap.getRedisClient().multi();

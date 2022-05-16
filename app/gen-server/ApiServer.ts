@@ -146,6 +146,15 @@ export class ApiServer {
       return sendReply(req, res, query);
     }));
 
+    // GET /api/orgs/:oid/usage
+    // Get usage summary of all un-deleted documents in the organization.
+    // Only accessible to org owners.
+    this._app.get('/api/orgs/:oid/usage', expressWrap(async (req, res) => {
+      const org = getOrgKey(req);
+      const usage = await this._dbManager.getOrgUsageSummary(getScope(req), org);
+      return sendOkReply(req, res, usage);
+    }));
+
     // POST /api/orgs
     // Body params: name (required), domain
     // Create a new org.
@@ -194,7 +203,7 @@ export class ApiServer {
       return sendReply(req, res, query);
     }));
 
-    // // DELETE /api/workspaces/:wid
+    // DELETE /api/workspaces/:wid
     // Delete the specified workspace and all included docs.
     this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
       const wsId = integerParam(req.params.wid, 'wid');

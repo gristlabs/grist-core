@@ -5,6 +5,7 @@ import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
+import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {isClient} from 'app/common/gristUrls';
@@ -288,6 +289,7 @@ export interface UserAPI {
   getWorkspace(workspaceId: number): Promise<Workspace>;
   getOrg(orgId: number|string): Promise<Organization>;
   getOrgWorkspaces(orgId: number|string): Promise<Workspace[]>;
+  getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
   getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
   getDoc(docId: string): Promise<Document>;
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
@@ -446,6 +448,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async getOrgWorkspaces(orgId: number|string): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=1`,
       { method: 'GET' });
+  }
+
+  public async getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary> {
+    return this.requestJson(`${this._url}/api/orgs/${orgId}/usage`, { method: 'GET' });
   }
 
   public async getTemplates(onlyFeatured: boolean = false): Promise<Workspace[]> {

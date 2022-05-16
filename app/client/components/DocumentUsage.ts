@@ -30,13 +30,23 @@ const ACCESS_DENIED_MESSAGE = 'Usage statistics are only available to users with
  */
 export class DocumentUsage extends Disposable {
   private readonly _currentDoc = this._docPageModel.currentDoc;
-  private readonly _dataLimitStatus = this._docPageModel.dataLimitStatus;
-  private readonly _rowCount = this._docPageModel.rowCount;
-  private readonly _dataSizeBytes = this._docPageModel.dataSizeBytes;
-  private readonly _attachmentsSizeBytes = this._docPageModel.attachmentsSizeBytes;
+  private readonly _currentDocUsage = this._docPageModel.currentDocUsage;
+  private readonly _currentOrg = this._docPageModel.currentOrg;
 
-  private readonly _currentOrg = Computed.create(this, this._currentDoc, (_use, doc) => {
-    return doc?.workspace.org ?? null;
+  private readonly _dataLimitStatus = Computed.create(this, this._currentDocUsage, (_use, usage) => {
+    return usage?.dataLimitStatus ?? null;
+  });
+
+  private readonly _rowCount = Computed.create(this, this._currentDocUsage, (_use, usage) => {
+    return usage?.rowCount;
+  });
+
+  private readonly _dataSizeBytes = Computed.create(this, this._currentDocUsage, (_use, usage) => {
+    return usage?.dataSizeBytes;
+  });
+
+  private readonly _attachmentsSizeBytes = Computed.create(this, this._currentDocUsage, (_use, usage) => {
+    return usage?.attachmentsSizeBytes;
   });
 
   private readonly _rowMetrics: Computed<MetricOptions | null> =
@@ -102,7 +112,9 @@ export class DocumentUsage extends Disposable {
     Computed.create(
       this, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
       (_use, doc, rowCount, dataSize, attachmentsSize) => {
-        return !doc || [rowCount, dataSize, attachmentsSize].some(metric => metric === 'pending');
+        return !doc || [rowCount, dataSize, attachmentsSize].some(metric => {
+          return metric === 'pending' || metric === undefined;
+        });
       }
     );
 

@@ -314,7 +314,7 @@ export class Sharing {
       });
       actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
-      await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.docUsage);
+      await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.getDocUsageSummary());
       if (docSession) {
         docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
       }

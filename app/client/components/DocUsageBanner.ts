@@ -11,12 +11,12 @@ export class DocUsageBanner extends Disposable {
   // Whether the banner is vertically expanded on narrow screens.
   private readonly _isExpanded = Observable.create(this, true);
 
-  private readonly _currentDoc = this._docPageModel.currentDoc;
   private readonly _currentDocId = this._docPageModel.currentDocId;
-  private readonly _dataLimitStatus = this._docPageModel.dataLimitStatus;
+  private readonly _currentDocUsage = this._docPageModel.currentDocUsage;
+  private readonly _currentOrg = this._docPageModel.currentOrg;
 
-  private readonly _currentOrg = Computed.create(this, this._currentDoc, (_use, doc) => {
-    return doc?.workspace.org ?? null;
+  private readonly _dataLimitStatus = Computed.create(this, this._currentDocUsage, (_use, usage) => {
+    return usage?.dataLimitStatus ?? null;
   });
 
   private readonly _shouldShowBanner: Computed<boolean> =

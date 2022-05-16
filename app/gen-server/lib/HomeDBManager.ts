@@ -1,5 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
+import {getDataLimitStatus} from 'app/common/DocLimits';
+import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
@@ -229,6 +231,12 @@ function stringifyDocAuthKey(key: DocAuthKey): string {
 
 function stringifyUrlIdOrg(urlId: string, org?: string): string {
   return `${urlId}:${org}`;
+}
+
+export interface DocumentMetadata {
+  // ISO 8601 UTC date (e.g. the output of new Date().toISOString()).
+  updatedAt?: string;
+  usage?: DocumentUsage|null;
 }
 
 /**
@@ -920,6 +928,44 @@ export class HomeDBManager extends EventEmitter {
       result.data = result.data[0];
     }
     return result;
+  }
+
+  /**
+   * Returns an organization's usage summary (e.g. count of documents that are approaching or exceeding
+   * limits).
+   */
+  public async getOrgUsageSummary(scope: Scope, orgKey: string|number): Promise<OrgUsageSummary> {
+    // Check that an owner of the org is making the request.
+    const markPermissions = Permissions.OWNER;
+    let orgQuery = this.org(scope, orgKey, {
+      markPermissions,
+      needRealOrg: true
+    });
+    orgQuery = this._addFeatures(orgQuery);
+    const orgQueryResult = await verifyIsPermitted(orgQuery);
+    const org: Organization = this.unwrapQueryResult(orgQueryResult);
+    const productFeatures = org.billingAccount.product.features;
+
+    // Grab all the non-removed documents in the org.
+    let docsQuery = this._docs()
+      .innerJoin('docs.workspace', 'workspaces')
+      .innerJoin('workspaces.org', 'orgs')
+      .where('docs.workspace_id = workspaces.id')
+      .andWhere('workspaces.removed_at IS NULL AND docs.removed_at IS NULL');
+    docsQuery = this._whereOrg(docsQuery, orgKey);
+    if (this.isMergedOrg(orgKey)) {
+      docsQuery = docsQuery.andWhere('orgs.owner_id = :userId', {userId: scope.userId});
+    }
+    const docsQueryResult = await this._verifyAclPermissions(docsQuery, { scope, emptyAllowed: true });
+    const docs: Document[] = this.unwrapQueryResult(docsQueryResult);
+
+    // Return an aggregate count of documents, grouped by data limit status.
+    const summary = createEmptyOrgUsageSummary();
+    for (const {usage: docUsage, gracePeriodStart} of docs) {
+      const dataLimitStatus = getDataLimitStatus({docUsage, gracePeriodStart, productFeatures});
+      if (dataLimitStatus) { summary[dataLimitStatus] += 1; }
+    }
+    return summary;
   }
 
   /**
@@ -2364,12 +2410,13 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
-   * Updates the updatedAt values for several docs. Takes a map where each entry maps a docId to
-   * an ISO date string representing the new updatedAt time. This is not a part of the API, it
-   * should be called only by the HostedMetadataManager when a change is made to a doc.
+   * Updates the updatedAt and usage values for several docs. Takes a map where each entry maps
+   * a docId to a metadata object containing the updatedAt and/or usage values. This is not a part
+   * of the API, it should be called only by the HostedMetadataManager when a change is made to a
+   * doc.
    */
-  public async setDocsUpdatedAt(
-    docUpdateMap: {[docId: string]: string}
+  public async setDocsMetadata(
+    docUpdateMap: {[docId: string]: DocumentMetadata}
   ): Promise<QueryResult<void>> {
     if (!docUpdateMap || Object.keys(docUpdateMap).length === 0) {
       return {
@@ -2382,7 +2429,7 @@ export class HomeDBManager extends EventEmitter {
       const updateTasks = docIds.map(docId => {
         return manager.createQueryBuilder()
           .update(Document)
-          .set({updatedAt: docUpdateMap[docId]})
+          .set(docUpdateMap[docId])
           .where("id = :docId", {docId})
           .execute();
       });

@@ -1,5 +1,6 @@
 import {DocEntry} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {DocumentUsage} from 'app/common/DocUsage';
 import {DocReplacementOptions} from 'app/common/UserAPI';
 
 export interface IDocStorageManager {
@@ -24,6 +25,7 @@ export interface IDocStorageManager {
   // Mark document as needing a backup (due to edits, migrations, etc).
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
   markAsChanged(docName: string, reason?: 'edit'): void;
+  scheduleUsageUpdate(docName: string, usage: DocumentUsage|null, minimizeDelay?: boolean): void;
   testReopenStorage(): void;                // restart storage during tests
   addToStorage(docName: string): Promise<void>;  // add a new local document to storage
   prepareToCloseStorage(): void;            // speed up sync with remote store

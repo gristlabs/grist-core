@@ -10,7 +10,7 @@ import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app
 import { TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
-import { DocUsage } from 'app/common/DocUsage';
+import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
@@ -105,7 +105,7 @@ const OK_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime']);
 interface DocUpdateMessage {
   actionGroup: ActionGroup;
   docActions: DocAction[];
-  docUsage: DocUsage;
+  docUsage: DocUsageSummary;
 }
 
 /**
@@ -115,7 +115,7 @@ export interface GranularAccessForBundle {
   canApplyBundle(): Promise<void>;
   appliedBundle(): Promise<void>;
   finishedBundle(): Promise<void>;
-  sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsage): Promise<void>;
+  sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsageSummary): Promise<void>;
 }
 
 /**
@@ -395,14 +395,14 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Filter DocUsage to be sent to a client.
+   * Filter DocUsageSummary to be sent to a client.
    */
-  public async filterDocUsage(
+  public async filterDocUsageSummary(
     docSession: OptDocSession,
-    docUsage: DocUsage,
+    docUsage: DocUsageSummary,
     options: {role?: Role | null} = {}
-  ): Promise<DocUsage> {
-    const result: DocUsage = { ...docUsage };
+  ): Promise<FilteredDocUsageSummary> {
+    const result: FilteredDocUsageSummary = { ...docUsage };
     const role = options.role ?? await this.getNominalAccess(docSession);
     const hasEditRole = canEdit(role);
     if (!hasEditRole) { result.dataLimitStatus = null; }
@@ -747,7 +747,7 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Broadcast document changes to all clients, with appropriate filtering.
    */
-  public async sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsage) {
+  public async sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsageSummary) {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, docSession } = this._activeBundle;
     const client = docSession && docSession.client || null;
@@ -909,7 +909,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const role = await this.getNominalAccess(docSession);
     const result = {
       ...message,
-      docUsage: await this.filterDocUsage(docSession, message.docUsage, {role}),
+      docUsage: await this.filterDocUsageSummary(docSession, message.docUsage, {role}),
     };
     if (!this._ruler.haveRules() && !this._activeBundle.hasDeliberateRuleChange) {
       return result;

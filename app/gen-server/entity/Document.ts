@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {DocumentUsage} from 'app/common/DocUsage';
 import {Role} from 'app/common/roles';
 import {DocumentOptions, DocumentProperties, documentPropertyKeys, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
@@ -64,6 +65,9 @@ export class Document extends Resource {
 
   @OneToMany(_type => Secret, secret => secret.doc)
   public secrets: Secret[];
+
+  @Column({name: 'usage', type: nativeValues.jsonEntityType, nullable: true})
+  public usage: DocumentUsage | null;
 
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);

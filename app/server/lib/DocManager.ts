@@ -9,7 +9,7 @@ import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} from 'app/common/DocListAPI';
-import {DocUsage} from 'app/common/DocUsage';
+import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -320,9 +320,9 @@ export class DocManager extends EventEmitter {
         activeDoc.getUserOverride(docSession),
       ]);
 
-      let docUsage: DocUsage | undefined;
+      let docUsage: FilteredDocUsageSummary | undefined;
       try {
-        docUsage = await activeDoc.getFilteredDocUsage(docSession);
+        docUsage = await activeDoc.getFilteredDocUsageSummary(docSession);
       } catch (e) {
         log.warn("DocManager.openDoc failed to get doc usage", e);
       }

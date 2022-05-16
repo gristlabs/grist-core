@@ -3,6 +3,7 @@ import {mapGetOrSet} from 'app/common/AsyncCreate';
 import {delay} from 'app/common/delay';
 import {DocEntry} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {DocumentUsage} from 'app/common/DocUsage';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {KeyedOps} from 'app/common/KeyedOps';
 import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -323,6 +324,8 @@ export class HostedStorageManager implements IDocStorageManager {
       // NOTE: fse.remove succeeds also when the file does not exist.
       await fse.remove(this._getHashFile(this.getPath(docId)));
       this.markAsChanged(docId, 'edit');
+      // Invalidate usage; it'll get re-computed the next time the document is opened.
+      this.scheduleUsageUpdate(docId, null, true);
     } catch (err) {
       this._log.error(docId, "problem replacing doc: %s", err);
       await fse.move(tmpPath, docPath, {overwrite: true});
@@ -484,6 +487,27 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   /**
+   * Schedule an update to a document's usage column.
+   *
+   * If `minimizeDelay` is true, HostedMetadataManager will attempt to
+   * minimize delays by scheduling the update to occur as soon as possible.
+   */
+  public scheduleUsageUpdate(
+    docName: string,
+    docUsage: DocumentUsage|null,
+    minimizeDelay = false
+  ): void {
+    const {forkId, snapshotId} = parseUrlId(docName);
+    if (!this._metadataManager || forkId || snapshotId) { return; }
+
+    this._metadataManager.scheduleUpdate(
+      docName,
+      {usage: docUsage},
+      minimizeDelay
+    );
+  }
+
+  /**
    * Check if there is a pending change to be pushed to S3.
    */
   public needsUpdate(): boolean {
@@ -524,9 +548,9 @@ export class HostedStorageManager implements IDocStorageManager {
    * This is called when a document was edited by the user.
    */
   private _markAsEdited(docName: string, timestamp: string): void {
-    if (parseUrlId(docName).snapshotId) { return; }
+    if (parseUrlId(docName).snapshotId || !this._metadataManager) { return; }
     // Schedule a metadata update for the modified doc.
-    if (this._metadataManager) { this._metadataManager.scheduleUpdate(docName, timestamp); }
+    this._metadataManager.scheduleUpdate(docName, {updatedAt: timestamp});
   }
 
   /**

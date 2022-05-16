@@ -6,6 +6,7 @@ import * as path from 'path';
 
 import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {DocumentUsage} from 'app/common/DocUsage';
 import * as gutil from 'app/common/gutil';
 import * as Comm from 'app/server/lib/Comm';
 import * as docUtils from 'app/server/lib/docUtils';
@@ -214,6 +215,14 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public markAsEdited(docName: string): void {
+    // nothing to do
+  }
+
+  public scheduleUsageUpdate(
+    docName: string,
+    docUsage: DocumentUsage,
+    minimizeDelay = false
+  ): void {
     // nothing to do
   }
 

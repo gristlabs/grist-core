@@ -17,7 +17,7 @@ import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
-import {AttachmentsSize, DataLimitStatus, DataSize, DocUsage, RowCount} from 'app/common/DocUsage';
+import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit} from 'app/common/roles';
@@ -44,6 +44,7 @@ export interface DocPageModel {
 
   appModel: AppModel;
   currentDoc: Observable<DocInfo|null>;
+  currentDocUsage: Observable<FilteredDocUsageSummary|null>;
 
   // This block is to satisfy previous interface, but usable as this.currentDoc.get().id, etc.
   currentDocId: Observable<string|undefined>;
@@ -66,16 +67,11 @@ export interface DocPageModel {
 
   gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
 
-  dataLimitStatus: Observable<DataLimitStatus>;
-  rowCount: Observable<RowCount>;
-  dataSizeBytes: Observable<DataSize>;
-  attachmentsSizeBytes: Observable<AttachmentsSize>;
-
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
   updateCurrentDoc(urlId: string, openMode: OpenDocMode): Promise<Document>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
-  updateDocUsage(docUsage: DocUsage): void;
+  updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
 }
 
 export interface ImportSource {
@@ -88,6 +84,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly pageType = "doc";
 
   public readonly currentDoc = Observable.create<DocInfo|null>(this, null);
+  public readonly currentDocUsage = Observable.create<FilteredDocUsageSummary|null>(this, null);
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
@@ -111,11 +108,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   // Observable set to the instance of GristDoc once it's created.
   public readonly gristDoc = Observable.create<GristDoc|null>(this, null);
-
-  public readonly dataLimitStatus = Observable.create<DataLimitStatus>(this, null);
-  public readonly rowCount = Observable.create<RowCount>(this, 'pending');
-  public readonly dataSizeBytes = Observable.create<DataSize>(this, 'pending');
-  public readonly attachmentsSizeBytes = Observable.create<AttachmentsSize>(this, 'pending');
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -199,6 +191,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     return this.updateCurrentDoc(doc.urlId || doc.id, doc.openMode);
   }
 
+  public updateCurrentDocUsage(docUsage: FilteredDocUsageSummary) {
+    this.currentDocUsage.set(docUsage);
+  }
+
   // Replace the URL without reloading the doc.
   public updateUrlNoReload(urlId: string, urlOpenMode: OpenDocMode, options: {replace: boolean}) {
     const state = urlState().state.get();
@@ -206,13 +202,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     // We preemptively update _openerDocKey so that the URL update doesn't trigger a reload.
     this._openerDocKey = this._getDocKey(nextState);
     return urlState().pushUrl(nextState, {avoidReload: true, ...options});
-  }
-
-  public updateDocUsage(docUsage: DocUsage) {
-    this.rowCount.set(docUsage.rowCount);
-    this.dataLimitStatus.set(docUsage.dataLimitStatus);
-    this.dataSizeBytes.set(docUsage.dataSizeBytes);
-    this.attachmentsSizeBytes.set(docUsage.attachmentsSizeBytes);
   }
 
   private _onOpenError(err: Error) {
@@ -273,7 +262,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       this.currentDoc.set({...doc});
     }
     if (openDocResponse.docUsage) {
-      this.updateDocUsage(openDocResponse.docUsage);
+      this.updateCurrentDocUsage(openDocResponse.docUsage);
     }
     const gdModule = await gristDocModulePromise;
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
