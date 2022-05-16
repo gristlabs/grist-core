@@ -1,5 +1,6 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionSummary, TableDelta} from 'app/common/ActionSummary';
+import {MapWithTTL} from 'app/common/AsyncCreate';
 import {delay} from 'app/common/delay';
 import {fromTableDataAction, RowRecord, TableColValues, TableDataAction} from 'app/common/DocActions';
 import {StringUnion} from 'app/common/StringUnion';
@@ -11,7 +12,6 @@ import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import * as log from 'app/server/lib/log';
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
-import * as LRUCache from 'lru-cache';
 import fetch from 'node-fetch';
 import {createClient, Multi, RedisClient} from 'redis';
 
@@ -69,6 +69,8 @@ interface Task {
 
 const MAX_QUEUE_SIZE = 1000;
 
+const WEBHOOK_CACHE_TTL = 10000;
+
 // Processes triggers for records changed as described in action bundles.
 // initiating webhooks and automations.
 // The interesting stuff starts in the handle() method.
@@ -87,7 +89,7 @@ export class DocTriggers {
   private _webHookEventQueue: WebHookEvent[] = [];
 
   // DB cache for webhook secrets
-  private _webhookCache = new LRUCache<string, WebHookSecret>({max: 1000});
+  private _webhookCache = new MapWithTTL<string, WebHookSecret>(WEBHOOK_CACHE_TTL);
 
   // Set to true by shutdown().
   // Indicates that loops (especially for sending requests) should stop.
