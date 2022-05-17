@@ -154,6 +154,7 @@ export async function createDocManager(
 export function createDummyGristServer(): GristServer {
   return {
     create,
+    settings: {},
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },
     getHomeUrlByDocId() { return Promise.resolve('http://localhost:4242'); },

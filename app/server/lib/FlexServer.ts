@@ -6,7 +6,6 @@ import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPath
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
-import {UserConfig} from 'app/common/UserConfig';
 import * as version from 'app/common/version';
 import {ApiServer} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
@@ -103,7 +102,7 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings: any;
+  public settings?: Readonly<Record<string, unknown>>;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
@@ -802,22 +801,24 @@ export class FlexServer implements GristServer {
     });
   }
 
-  // Load user config file from standard location.  Alternatively, a config object
-  // can be supplied, in which case no file is needed.  The notion of a user config
-  // file doesn't mean much in hosted grist, so it is convenient to be able to skip it.
-  public async loadConfig(settings?: UserConfig) {
+  /**
+   * Load user config file from standard location (if present).
+   *
+   * Note that the user config file doesn't do anything today, but may be useful in
+   * the future for configuring things that don't fit well into environment variables.
+   *
+   * TODO: Revisit this, and update `GristServer.settings` type to match the expected shape
+   * of config.json. (ts-interface-checker could be useful here for runtime validation.)
+   */
+  public async loadConfig() {
     if (this._check('config')) { return; }
-    if (!settings) {
-      const settingsPath = path.join(this.instanceRoot, 'config.json');
-      if (await fse.pathExists(settingsPath)) {
-        log.info(`Loading config from ${settingsPath}`);
-        this.settings = JSON.parse(await fse.readFile(settingsPath, 'utf8'));
-      } else {
-        log.info(`Loading empty config because ${settingsPath} missing`);
-        this.settings = {};
-      }
+    const settingsPath = path.join(this.instanceRoot, 'config.json');
+    if (await fse.pathExists(settingsPath)) {
+      log.info(`Loading config from ${settingsPath}`);
+      this.settings = JSON.parse(await fse.readFile(settingsPath, 'utf8'));
     } else {
-      this.settings = settings;
+      log.info(`Loading empty config because ${settingsPath} missing`);
+      this.settings = {};
     }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we

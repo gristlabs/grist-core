@@ -22,7 +22,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addDocWorkerMap();
   home.addAccessMiddleware();
   dbManager = home.getHomeDBManager();
-  await home.loadConfig({});
+  await home.loadConfig();
   home.addSessions();
   home.addHealthCheck();
   docManager.testSetHomeDbManager(dbManager);

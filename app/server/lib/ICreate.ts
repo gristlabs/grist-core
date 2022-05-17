@@ -46,10 +46,15 @@ export interface ICreateStorageOptions {
   create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
 }
 
+export interface ICreateNotifierOptions {
+  create(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined;
+}
+
 export function makeSimpleCreator(opts: {
   sessionSecret?: string,
   storage?: ICreateStorageOptions[],
   activationMiddleware?: (db: HomeDBManager, app: express.Express) => Promise<void>,
+  notifier?: ICreateNotifierOptions,
 }): ICreate {
   return {
     Billing(db) {
@@ -63,8 +68,9 @@ export function makeSimpleCreator(opts: {
         }
       };
     },
-    Notifier() {
-      return {
+    Notifier(dbManager, gristConfig) {
+      const {notifier} = opts;
+      return notifier?.create(dbManager, gristConfig) ?? {
         get testPending() { return false; },
         deleteUser()      { throw new Error('deleteUser unavailable'); },
       };

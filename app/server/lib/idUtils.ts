@@ -40,3 +40,10 @@ export function makeForkIds(options: { userId: number|null, isAnonymous: boolean
 export function getAssignmentId(docWorkerMap: IDocWorkerMap, docId: string): string {
   return docId;
 }
+
+// Get the externalId to use for an AppSumo user.  AppSumo identifies users by
+// an activation email, so we just use that (with an appsumo/ prefix it allow
+// for other families of id in the future).
+export function getExternalIdForAppSumoUser(email: string) {
+  return `appsumo/${email}`;
+}

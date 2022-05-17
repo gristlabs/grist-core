@@ -22,6 +22,7 @@ import * as express from 'express';
  */
 export interface GristServer {
   readonly create: ICreate;
+  settings?: Readonly<Record<string, unknown>>;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;

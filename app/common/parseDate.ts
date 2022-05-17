@@ -1,7 +1,7 @@
 import escapeRegExp = require('lodash/escapeRegExp');
 import last = require('lodash/last');
 import memoize = require('lodash/memoize');
-import {getDistinctValues, isObject} from 'app/common/gutil';
+import {getDistinctValues, isNonNullish} from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
 import * as guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
 import * as moment from 'moment-timezone';
@@ -346,7 +346,7 @@ export function guessDateFormat(values: Array<string | null>, timezone: string =
  * May return null if there are no matching formats or choosing one is too expensive.
  */
 export function guessDateFormats(values: Array<string | null>, timezone: string = 'UTC'): string[] | null {
-  const dateStrings: string[] = values.filter(isObject);
+  const dateStrings: string[] = values.filter(isNonNullish);
   const sample = getDistinctValues(dateStrings, 100);
   const formats: Record<string, number> = {};
   for (const dateString of sample) {

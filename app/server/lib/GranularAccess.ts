@@ -16,7 +16,7 @@ import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
 import { isCensored } from 'app/common/gristTypes';
-import { getSetMapValue, isObject, pruneArray } from 'app/common/gutil';
+import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -1039,7 +1039,7 @@ export class GranularAccess implements GranularAccessForBundle {
       this._makeAdditions(rowsAfter, forceAdds),
       this._removeRows(action, removals),
       this._makeRemovals(rowsAfter, forceRemoves),
-    ].filter(isObject);
+    ].filter(isNonNullish);
 
     // Check whether there are column rules for this table, and if so whether they are row
     // dependent.  If so, we may need to update visibility of cells not mentioned in the

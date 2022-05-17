@@ -35,7 +35,7 @@ import {
   UserAttributeRule
 } from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
-import {isObject} from 'app/common/gutil';
+import {isNonNullish} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {
@@ -1331,7 +1331,7 @@ function syncRecords(tableData: TableData, newRecords: RowRecord[],
     const newRec = newRecordMap.get(uniqueId(r));
     const updated = newRec && {...r, ...newRec, id: r.id};
     return updated && !isEqual(updated, r) ? [r, updated] : null;
-  }).filter(isObject);
+  }).filter(isNonNullish);
 
   console.log("syncRecords: removing [%s], adding [%s], updating [%s]",
     removedRecords.map(uniqueId).join(", "),
