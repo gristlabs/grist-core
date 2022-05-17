@@ -41,7 +41,7 @@ def parse_open_file(file_obj):
   for sheet in workbook:
     table_name = sheet.title
     rows = [
-      row
+      list(row)
       for row in sheet.iter_rows(values_only=True)
       # Exclude empty rows, i.e. rows with only empty values.
       # `if not any(row)` would be slightly faster, but would count `0` as empty.
