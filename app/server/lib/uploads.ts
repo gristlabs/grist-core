@@ -54,7 +54,11 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
       res.status(200).send(JSON.stringify(uploadResult));
     } catch (err) {
       req.resume();
-      log.error("Error uploading file", err);
+      if (err.message && /Request aborted/.test(err.message)) {
+        log.warn("File upload request aborted", err);
+      } else {
+        log.error("Error uploading file", err);
+      }
       // Respond with a JSON error like jsonErrorHandler does for API calls,
       // to make it easier for the caller to parse it.
       res.status(err.status || 500).json({error: err.message || 'internal error'});

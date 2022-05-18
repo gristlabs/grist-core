@@ -75,7 +75,11 @@ export class DocWorker {
     return res.type('application/x-sqlite3')
       .download(tmpPath, (optStringParam(req.query.title) || docTitle || 'document') + ".grist", async (err: any) => {
         if (err) {
-          log.error(`Download failure for doc ${docId}`, err);
+          if (err.message && /Request aborted/.test(err.message)) {
+            log.warn(`Download request aborted for doc ${docId}`, err);
+          } else {
+            log.error(`Download failure for doc ${docId}`, err);
+          }
         }
         await fse.unlink(tmpPath);
       });
