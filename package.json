@@ -125,6 +125,7 @@
     "multiparty": "4.2.2",
     "node-fetch": "2.2.0",
     "numeral": "2.0.6",
+    "pg": "8.6.0",
     "plotly.js-basic-dist": "1.51.1",
     "popper-max-size-modifier": "0.2.0",
     "popweasel": "0.1.18",
