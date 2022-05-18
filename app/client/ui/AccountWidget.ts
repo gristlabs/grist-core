@@ -91,7 +91,7 @@ export class AccountWidget extends Disposable {
     }
 
     const users = this._appModel.topAppModel.users;
-
+    const isExternal = user?.loginMethod === 'External';
     return [
       cssUserInfo(
         createUserImage(user, 'large'),
@@ -138,7 +138,7 @@ export class AccountWidget extends Disposable {
             cssOtherEmail(_user.email, testId('usermenu-other-email')),
           );
         }),
-        menuItemLink({href: getLoginUrl()}, "Add Account", testId('dm-add-account')),
+        isExternal ? null : menuItemLink({href: getLoginUrl()}, "Add Account", testId('dm-add-account')),
       ],
 
       menuItemLink({href: getLogoutUrl()}, "Sign Out", testId('dm-log-out')),

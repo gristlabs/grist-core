@@ -1,5 +1,6 @@
 import * as session from '@gristlabs/express-session';
 import {parseSubdomain} from 'app/common/gristUrls';
+import {isNumber} from 'app/common/gutil';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {Sessions} from 'app/server/lib/Sessions';
@@ -12,7 +13,10 @@ import * as shortUUID from "short-uuid";
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
-export const COOKIE_MAX_AGE = 90 * 24 * 60 * 60 * 1000;  // 90 days in milliseconds
+export const COOKIE_MAX_AGE =
+      process.env.COOKIE_MAX_AGE === 'none' ? null :
+      isNumber(process.env.COOKIE_MAX_AGE || '') ? Number(process.env.COOKIE_MAX_AGE) :
+      90 * 24 * 60 * 60 * 1000;  // 90 days in milliseconds
 
 // RedisStore and SqliteStore are expected to provide a set/get interface for sessions.
 export interface SessionStore {

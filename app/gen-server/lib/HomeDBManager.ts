@@ -476,6 +476,60 @@ export class HomeDBManager extends EventEmitter {
     return result;
   }
 
+  /**
+   * Ensures that user with external id exists and updates its profile and email if necessary.
+   *
+   * @param profile External profile
+   */
+  public async ensureExternalUser(profile: UserProfile) {
+    await this._connection.transaction(async manager => {
+      // First find user by the connectId from the profile
+      const existing = await manager.findOne(User, { connectId: profile.connectId}, {relations: ["logins"]});
+
+      // If a user does not exist, create it with data from the external profile.
+      if (!existing) {
+        const newUser = await this.getUserByLoginWithRetry(profile.email, {
+          profile,
+          manager
+        });
+        if (!newUser) {
+          throw new ApiError("Unable to create user", 500);
+        }
+        // No need to survey this user.
+        newUser.isFirstTimeUser = false;
+        await newUser.save();
+      } else {
+        // Else update profile and login information from external profile.
+        let updated = false;
+        let login: Login = existing.logins[0]!;
+        const properEmail = normalizeEmail(profile.email);
+
+        if (properEmail !== existing.loginEmail) {
+          login = login ?? new Login();
+          login.email = properEmail;
+          login.displayEmail = profile.email;
+          existing.logins.splice(0, 1, login);
+          login.user = existing;
+          updated = true;
+        }
+
+        if (profile?.name && profile?.name !== existing.name) {
+          existing.name = profile.name;
+          updated = true;
+        }
+
+        if (profile?.picture && profile?.picture !== existing.picture) {
+          existing.picture = profile.picture;
+          updated = true;
+        }
+
+        if (updated) {
+          await manager.save([existing, login]);
+        }
+      }
+    });
+  }
+
   public async updateUser(userId: number, props: UserProfileChange): Promise<void> {
     let isWelcomed: boolean = false;
     let user: User|undefined;
@@ -601,6 +655,12 @@ export class HomeDBManager extends EventEmitter {
         login.displayEmail = profile.email;
         needUpdate = true;
       }
+
+      if (profile?.connectId && profile?.connectId !== user.connectId) {
+        user.connectId = profile.connectId;
+        needUpdate = true;
+      }
+
       if (!login.displayEmail) {
         // Save some kind of display email if we don't have anything at all for it yet.
         // This could be coming from how someone wrote it in a UserManager dialog, for

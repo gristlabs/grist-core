@@ -31,7 +31,7 @@ const DISCOURSE_SITE = process.env.DISCOURSE_SITE;
 export const Deps = {DISCOURSE_CONNECT_SECRET, DISCOURSE_SITE};
 
 // Calculate payload signature using the given secret.
-function calcSignature(payload: string, secret: string) {
+export function calcSignature(payload: string, secret: string) {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex');
 }
 

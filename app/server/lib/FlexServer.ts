@@ -89,6 +89,8 @@ export interface FlexServerOptions {
   pluginUrl?: string;
 }
 
+const noop: express.RequestHandler = (req, res, next) => next();
+
 export class FlexServer implements GristServer {
   public readonly create = create;
   public tagChecker: TagChecker;
@@ -508,17 +510,14 @@ export class FlexServer implements GristServer {
                                                                             this._getSignUpRedirectUrl);
       this._redirectToOrgMiddleware = tbind(this._redirectToOrg, this);
     } else {
-      const noop: express.RequestHandler = (req, res, next) => next();
       this._userIdMiddleware = noop;
       this._trustOriginsMiddleware = noop;
-      this._docPermissionsMiddleware = (req, res, next) => {
-        // For standalone single-user Grist, documents are stored on-disk
-        // with their filename equal to the document title, no document
-        // aliases are possible, and there is no access control.
-        // The _docPermissionsMiddleware is a no-op.
-        // TODO We might no longer have any tests for isSingleUserMode, or modes of operation.
-        next();
-      };
+      // For standalone single-user Grist, documents are stored on-disk
+      // with their filename equal to the document title, no document
+      // aliases are possible, and there is no access control.
+      // The _docPermissionsMiddleware is a no-op.
+      // TODO We might no longer have any tests for isSingleUserMode, or modes of operation.
+      this._docPermissionsMiddleware = noop;
       this._redirectToLoginWithExceptionsMiddleware = noop;
       this._redirectToLoginWithoutExceptionsMiddleware = noop;
       this._redirectToLoginUnconditionally = null;  // there is no way to log in.
@@ -722,6 +721,9 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
+    const forcedLoginMiddleware = process.env.GRIST_FORCE_LOGIN === 'true' ?
+      this._redirectToLoginWithoutExceptionsMiddleware : noop;
+
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
       expressWrap(async (req, res, next) => {
@@ -781,6 +783,7 @@ export class FlexServer implements GristServer {
       middleware: [
         this._redirectToHostMiddleware,
         this._userIdMiddleware,
+        forcedLoginMiddleware,
         this._redirectToLoginWithExceptionsMiddleware,
         this._redirectToOrgMiddleware,
         welcomeNewUser
@@ -789,6 +792,7 @@ export class FlexServer implements GristServer {
         // Same as middleware, except without login redirect middleware.
         this._redirectToHostMiddleware,
         this._userIdMiddleware,
+        forcedLoginMiddleware,
         this._redirectToOrgMiddleware,
         welcomeNewUser
       ],

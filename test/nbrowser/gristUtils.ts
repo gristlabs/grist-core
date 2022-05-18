@@ -92,6 +92,13 @@ export function exactMatch(value: string): RegExp {
 }
 
 /**
+ * Helper function that creates a regular expression to match the begging of the string.
+ */
+export function startsWith(value: string): RegExp {
+  return new RegExp(`^${escapeRegExp(value)}`);
+}
+
+/**
  * Helper to scroll an element into view.
  */
 export function scrollIntoView(elem: WebElement): Promise<void> {
@@ -2114,7 +2121,7 @@ export function addSamplesForSuite() {
   });
 }
 
-async function openAccountMenu() {
+export async function openAccountMenu() {
   await driver.findWait('.test-dm-account', 1000).click();
   // Since the AccountWidget loads orgs and the user data asynchronously, the menu
   // can expand itself causing the click to land on a wrong button.

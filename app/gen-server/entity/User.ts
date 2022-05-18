@@ -47,6 +47,9 @@ export class User extends BaseEntity {
   @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})
   public options: UserOptions | null;
 
+  @Column({name: 'connect_id', type: String, nullable: true})
+  public connectId: string | null;
+
   /**
    * Get user's email.  Returns undefined if logins has not been joined, or no login
    * is available

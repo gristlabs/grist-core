@@ -1,6 +1,6 @@
-import { UserProfile } from 'app/common/UserAPI';
-import { GristLoginSystem, GristServer, setUserInSession } from 'app/server/lib/GristServer';
-import { Request } from 'express';
+import {UserProfile} from 'app/common/UserAPI';
+import {GristLoginSystem, GristServer, setUserInSession} from 'app/server/lib/GristServer';
+import {Request} from 'express';
 
 /**
  * Return a login system that supports a single hard-coded user.
@@ -10,10 +10,10 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
   // no nuance here.
   return {
     async getMiddleware(gristServer: GristServer) {
-      async function getLoginRedirectUrl(req: Request, url: URL)  {
+      async function getLoginRedirectUrl(req: Request, url: URL) {
         await setUserInSession(req, gristServer, getDefaultProfile());
         return url.href;
-    }
+      }
       return {
         getLoginRedirectUrl,
         getSignUpRedirectUrl: getLoginRedirectUrl,
@@ -30,7 +30,7 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
             user.isFirstTimeUser = false;
             await user.save();
           }
-          return "no-logins";
+          return 'no-logins';
         },
       };
     },

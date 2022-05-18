@@ -1,5 +1,5 @@
 import {AppModel} from 'app/client/models/AppModel';
-import {getLoginUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
@@ -24,6 +24,8 @@ export function createErrPage(appModel: AppModel) {
  * Creates a page to show that the user has no access to this org.
  */
 export function createForbiddenPage(appModel: AppModel, message?: string) {
+  const isAnonym = () => !appModel.currentValidUser;
+  const isExternal = () => appModel.currentValidUser?.loginMethod === 'External';
   return pagePanelsError(appModel, 'Access denied', [
     dom.domComputed(appModel.currentValidUser, user => user ? [
       cssErrorText(message || "You do not have access to this organization's documents."),
@@ -32,12 +34,14 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
     ] : [
       // This page is not normally shown because a logged out user with no access will get
       // redirected to log in. But it may be seen if a user logs out and returns to a cached
-      // version of this page.
+      // version of this page or is an external user (connected through GristConnect).
       cssErrorText("Sign in to access this organization's documents."),
     ]),
     cssButtonWrap(bigPrimaryButtonLink(
-      appModel.currentValidUser ? 'Add account' : 'Sign in',
-      {href: getLoginUrl()},
+        isExternal() ? 'Go to main page' :
+        isAnonym() ? 'Sign in' :
+        'Add account',
+      {href: isExternal() ? getMainOrgUrl() : getLoginUrl()},
       testId('error-signin'),
     ))
   ]);

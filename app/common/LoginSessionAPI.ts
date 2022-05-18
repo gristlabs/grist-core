@@ -4,7 +4,8 @@ export interface UserProfile {
   name: string;
   picture?: string|null; // when present, a url to a public image of unspecified dimensions.
   anonymous?: boolean;   // when present, asserts whether user is anonymous (not authorized).
-  loginMethod?: 'Google'|'Email + Password';
+  connectId?: string|null, // used by GristConnect to identify user in external provider.
+  loginMethod?: 'Google'|'Email + Password'|'External';
 }
 
 // User profile including user id.  All information in it should

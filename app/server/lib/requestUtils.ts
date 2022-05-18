@@ -223,6 +223,9 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
       if (key === 'options' && value === null) { return undefined; }
       // Don't prune anything that is explicitly allowed.
       if (allowedFields?.has(key)) { return value; }
+      // User connect id is not used in regular configuration, so we remove it from the response, when
+      // it's not filled.
+      if (key === 'connectId' && value === null) { return undefined; }
       return INTERNAL_FIELDS.has(key) ? undefined : value;
     });
   return JSON.parse(output);

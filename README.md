@@ -216,10 +216,12 @@ GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
 GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN
 GRIST_SESSION_SECRET | a key used to encode sessions
+GRIST_FORCE_LOGIN    | when set to 'true' disables anonymous access
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
+COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching

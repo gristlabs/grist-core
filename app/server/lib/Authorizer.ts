@@ -230,8 +230,10 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
 
     // If we haven't set a maxAge yet, set it now.
     if (session && session.cookie && !session.cookie.maxAge) {
-      session.cookie.maxAge = COOKIE_MAX_AGE;
-      forceSessionChange(session);
+      if (COOKIE_MAX_AGE !== null) {
+        session.cookie.maxAge = COOKIE_MAX_AGE;
+        forceSessionChange(session);
+      }
     }
 
     // See if we have a profile linked with the active organization already.
