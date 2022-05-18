@@ -6,7 +6,7 @@ import {EventEmitter} from 'events';
 import * as path from 'path';
 
 import {ApiError} from 'app/common/ApiError';
-import {mapSetOrClear} from 'app/common/AsyncCreate';
+import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
@@ -37,6 +37,10 @@ import noop = require('lodash/noop');
 // but is a bit of a burden under heavy traffic.
 export const DEFAULT_CACHE_TTL = 10000;
 
+// How long to remember that a document has been explicitly set in a
+// recovery mode.
+export const RECOVERY_CACHE_TTL = 30000;
+
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
  * in-memory, with clients connected to them.
@@ -45,6 +49,8 @@ export class DocManager extends EventEmitter {
   // Maps docName to promise for ActiveDoc object. Most of the time the promise
   // will be long since resolved, with the resulting document cached.
   private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
+  // Remember recovery mode of documents.
+  private _inRecovery = new MapWithTTL<string, boolean>(RECOVERY_CACHE_TTL);
 
   constructor(
     public readonly storageManager: IDocStorageManager,
@@ -53,6 +59,10 @@ export class DocManager extends EventEmitter {
     public gristServer: GristServer
   ) {
     super();
+  }
+
+  public setRecovery(docId: string, recovery: boolean) {
+    this._inRecovery.set(docId, recovery);
   }
 
   // attach a home database to the DocManager.  During some tests, it
@@ -459,7 +469,7 @@ export class DocManager extends EventEmitter {
     if (!this._activeDocs.has(docName)) {
       activeDoc = await mapSetOrClear(
         this._activeDocs, docName,
-        this._createActiveDoc(docSession, docName, wantRecoveryMode)
+        this._createActiveDoc(docSession, docName, wantRecoveryMode ?? this._inRecovery.get(docName))
           .then(newDoc => {
             // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
             newDoc.on('backupMade', (bakPath: string) => {

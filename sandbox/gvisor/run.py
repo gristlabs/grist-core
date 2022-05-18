@@ -44,6 +44,9 @@ if os.environ.get('CHECK_FOR_TERMINAL') == '1':
 
 args = parser.parse_args(main_args)
 
+sys.stderr.write('run.py: ' + ' '.join(sys.argv) + "\n")
+sys.stderr.flush()
+
 include_bash = args.command == 'bash'
 include_python2 = args.command == 'python2'
 include_python3 = args.command == 'python3'
@@ -84,7 +87,7 @@ settings = {
     },
     "args": cmd_args,
     "env": env,
-    "cwd": "/",
+    "cwd": "/"
   },
   "root": {
     "path": "/",        # The fork of gvisor we use shares paths with host.
@@ -113,6 +116,15 @@ settings = {
     ]
   }
 }
+memory_limit = os.environ.get('GVISOR_LIMIT_MEMORY')
+if memory_limit:
+  settings['process']['rlimits'] = [
+    {
+      "type": "RLIMIT_AS",
+      "hard": int(memory_limit),
+      "soft": int(memory_limit)
+    }
+  ]
 
 # Helper for preparing a mount.
 def preserve(*locations, short_failure=False):
@@ -184,8 +196,10 @@ if args.mount:
 for directory in os.listdir('/'):
   if directory not in exceptions and ("/" + directory) not in preserved:
     mounts.insert(0, {
-      "destination": "/" + directory,
-      "type": "tmpfs"              # This places an empty directory at this destination.
+      # This places an empty directory at this destination.
+      # Follow any symlinks since otherwise there is an error.
+      "destination": os.path.realpath("/" + directory),
+      "type": "tmpfs"
     })
 
 # Set up faketime inside the sandbox if requested.  Can't be set up outside the sandbox,
@@ -245,12 +259,21 @@ with tempfile.TemporaryDirectory() as root:  # pylint: disable=no-member
       # Start up the sandbox, and wait for it to emit a message on stderr ('Ready').
       command = make_command(root, ["run"])
       process = subprocess.Popen(command, cwd=root, stderr=subprocess.PIPE)
-      ready_line = process.stderr.readline()  # wait for ready
-      sys.stderr.write('Ready message: ' + ready_line.decode('utf-8'))
-      sys.stderr.flush()
+      text = process.stderr.readline().decode('utf-8')  # wait for ready
+      if 'Ready' in text:
+        sys.stderr.write('Ready message: ' + text)
+        sys.stderr.flush()
+      else:
+        # Something unexpected has happened, echo the full error and hang.
+        while True:
+          sys.stderr.write('Problem: ' + text)
+          sys.stderr.flush()
+          text = process.stderr.readline().decode('utf-8')
       # Remove existing checkpoint if present.
       if os.path.exists(os.path.join(args.checkpoint, 'checkpoint.img')):
         os.remove(os.path.join(args.checkpoint, 'checkpoint.img'))
+      if os.path.exists(os.path.join(args.checkpoint, 'checkpoint.json')):
+        os.remove(os.path.join(args.checkpoint, 'checkpoint.json'))
       # Make the directory, so we will later have the right to delete the checkpoint if
       # we wish to replace it. Otherwise there is a muddle around permissions.
       if not os.path.exists(args.checkpoint):
@@ -261,4 +284,9 @@ with tempfile.TemporaryDirectory() as root:  # pylint: disable=no-member
       result = subprocess.run(command, cwd=root)  # pylint: disable=no-member
       if result.returncode != 0:
         raise Exception('gvisor runsc checkpointing problem: ' + json.dumps(command))
+      # Save the configuration of the checkpoint for easy reference.
+      with open(config_filename, 'r', encoding='utf-8') as fin:
+        with open(os.path.join(args.checkpoint, 'checkpoint.json'), 'w', encoding='utf-8') as fout:
+          spec = json.load(fin)
+          json.dump(spec, fout, indent=2)
       # We are done!

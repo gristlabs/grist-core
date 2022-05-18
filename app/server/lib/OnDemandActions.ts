@@ -25,11 +25,13 @@ export class OnDemandActions {
   private _tablesMeta: TableData = this._docData.getMetaTable('_grist_Tables');
   private _columnsMeta: TableData = this._docData.getMetaTable('_grist_Tables_column');
 
-  constructor(private _storage: OnDemandStorage, private _docData: DocData) {}
+  constructor(private _storage: OnDemandStorage, private _docData: DocData,
+              private _forceOnDemand: boolean = false) {}
 
   // TODO: Ideally a faster data structure like an index by tableId would be used to decide whether
   // the table is onDemand.
   public isOnDemand(tableId: string): boolean {
+    if (this._forceOnDemand) { return true; }
     const tableRef = this._tablesMeta.findRow('tableId', tableId);
     // OnDemand tables must have a record in the _grist_Tables metadata table.
     return tableRef ? Boolean(this._tablesMeta.getValue(tableRef, 'onDemand')) : false;

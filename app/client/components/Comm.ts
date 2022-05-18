@@ -110,7 +110,7 @@ import {Events as BackboneEvents} from 'backbone';
  * @property {Number} data - An array of unread invites (see app/common/sharing).
  */
 
-const ValidEvent = StringUnion('docListAction', 'docUserAction', 'docShutdown',
+const ValidEvent = StringUnion('docListAction', 'docUserAction', 'docShutdown', 'docError',
                                'clientConnect', 'clientLogout',
                                'profileFetch', 'userSettings', 'receiveInvites');
 type ValidEvent = typeof ValidEvent.type;
@@ -213,8 +213,10 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   private _connections: Map<string|null, GristWSConnection> = new Map();
   private _collectedUserActions: UserAction[] | null;
   private _singleWorkerMode: boolean = getInitialDocAssignment() === null;  // is this classic Grist?
+  private _reportError?: (err: Error) => void;  // optional callback for errors
 
-  public create() {
+  public create(reportError?: (err: Error) => void) {
+    this._reportError = reportError;
     this.autoDisposeCallback(() => {
       for (const connection of this._connections.values()) { connection.dispose(); }
       this._connections.clear();
@@ -469,6 +471,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
             err.shouldFork = message.shouldFork;
             console.log(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
                         + (message.shouldFork ? ` (should fork)` : ''));
+            this._reportError?.(err);
             r.reject(err);
           } else {
             console.log(`Comm response #${reqId} ${r.methodName} OK`);

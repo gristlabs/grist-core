@@ -1381,7 +1381,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
     if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
-      if (access !== 'owners') { throw new Error('only an owner can override user'); }
+      if (access !== 'owners') { throw new ErrorWithCode('ACL_DENY', 'only an owner can override user'); }
       if (attrs.override) {
         // Used cached properties.
         access = attrs.override.access;

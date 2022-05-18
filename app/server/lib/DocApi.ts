@@ -495,6 +495,7 @@ export class DocWorkerApi {
       const recoveryModeRaw = req.body.recoveryMode;
       const recoveryMode = (typeof recoveryModeRaw === 'boolean') ? recoveryModeRaw : undefined;
       if (!await this._isOwner(req)) { throw new Error('Only owners can control recovery mode'); }
+      this._docManager.setRecovery(getDocId(req), recoveryMode ?? true);
       const activeDoc = await this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req), recoveryMode);
       res.json({
         recoveryMode: activeDoc.recoveryMode

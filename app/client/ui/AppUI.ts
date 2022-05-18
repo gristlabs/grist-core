@@ -110,6 +110,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   // To simplify manual inspection in the common case, keep the most recently created
   // DocPageModel available as a global variable.
   (window as any).gristDocPageModel = pageModel;
+  appObj.setDocPageModel(pageModel);
   const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
   const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
   const leftPanelWidth = createSessionObs<number>(owner, "leftPanelWidth", 240, isNumber);

@@ -1,6 +1,7 @@
 /**
  * JS controller for the pypy sandbox.
  */
+import {arrayToString} from 'app/common/arrayToString';
 import * as marshal from 'app/common/marshal';
 import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
@@ -94,6 +95,7 @@ export class NSandbox implements ISandbox {
   private _logMeta: log.ILogMeta;
   private _streamToSandbox: Writable;
   private _streamFromSandbox: Stream;
+  private _lastStderr: Uint8Array;  // Record last error line seen.
 
   // Create a unique subdirectory for each sandbox process so they can be replayed separately
   private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
@@ -131,7 +133,11 @@ export class NSandbox implements ISandbox {
       this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
       this.childProc.stdout.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
     }
-    this.childProc.stderr.on('data', sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta));
+    const sandboxStderrLogger = sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta);
+    this.childProc.stderr.on('data', data => {
+      this._lastStderr = data;
+      sandboxStderrLogger(data);
+    });
 
     this.childProc.on('close', this._onExit.bind(this));
     this.childProc.on('error', this._onError.bind(this));
@@ -254,7 +260,7 @@ export class NSandbox implements ISandbox {
    */
   private _sendData(msgCode: MsgCode, data: any) {
     if (this._isReadClosed) {
-      throw new sandboxUtil.SandboxError("PipeToSandbox is closed");
+      throw this._sandboxClosedError('PipeToSandbox');
     }
     this._marshaller.marshal(msgCode);
     this._marshaller.marshal(data);
@@ -287,12 +293,24 @@ export class NSandbox implements ISandbox {
     this._control.prepareToClose();
     this._isReadClosed = true;
     // Clear out all reads pending on PipeFromSandbox, rejecting them with the given error.
-    const err = new sandboxUtil.SandboxError("PipeFromSandbox is closed");
+    const err = this._sandboxClosedError('PipeFromSandbox');
 
     this._pendingReads.forEach(resolvePair => resolvePair[1](err));
     this._pendingReads = [];
   }
 
+  /**
+   * Generate an error message for a pipe to the sandbox. Include the
+   * last stderr line seen from the sandbox - more reliable than
+   * error results send via the standard protocol.
+   */
+  private _sandboxClosedError(label: string) {
+    const parts = [`${label} is closed`];
+    if (this._lastStderr) {
+      parts.push(arrayToString(this._lastStderr));
+    }
+    return new sandboxUtil.SandboxError(parts.join(': '));
+  }
 
   /**
    * Process a parsed message from the sandboxed process.

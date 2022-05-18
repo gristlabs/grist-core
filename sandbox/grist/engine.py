@@ -866,6 +866,9 @@ class Engine(object):
         raise self._cell_required_error  # pylint: disable=raising-bad-type
       self.formula_tracer(col, record)
       return result
+    except MemoryError:
+      # Don't try to wrap memory errors.
+      raise
     except:  # pylint: disable=bare-except
       # Since col.method runs untrusted user code, we use a bare except to catch all
       # exceptions (even those not derived from BaseException).

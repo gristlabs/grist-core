@@ -72,6 +72,10 @@ export interface DocPageModel {
   updateCurrentDoc(urlId: string, openMode: OpenDocMode): Promise<Document>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
   updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
+  // Offer to open document in recovery mode, if user is owner, and report
+  // the error that prompted the offer. If user is not owner, just flag that
+  // document needs attention of an owner.
+  offerRecovery(err: Error): void;
 }
 
 export interface ImportSource {
@@ -204,6 +208,28 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     return urlState().pushUrl(nextState, {avoidReload: true, ...options});
   }
 
+  public offerRecovery(err: Error) {
+    const isDenied = (err as any).code === 'ACL_DENY';
+    const isOwner = this.currentDoc.get()?.access === 'owners';
+    confirmModal(
+      "Error accessing document",
+      "Reload",
+      async () => window.location.reload(true),
+      isOwner ? `You can try reloading the document, or using recovery mode. ` +
+        `Recovery mode opens the document to be fully accessible to owners, and ` +
+        `inaccessible to others. It also disables formulas. ` +
+        `[${err.message}]` :
+        isDenied ? `Sorry, access to this document has been denied. [${err.message}]` :
+        `Document owners can attempt to recover the document. [${err.message}]`,
+      {  hideCancel: true,
+         extraButtons: (isOwner && !isDenied) ? bigBasicButton('Enter recovery mode', dom.on('click', async () => {
+           await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
+           window.location.reload(true);
+         }), testId('modal-recovery-mode')) : null,
+      },
+    );
+  }
+
   private _onOpenError(err: Error) {
     if (err instanceof CancelledError) {
       // This means that we started loading a new doc before the previous one finished loading.
@@ -213,22 +239,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     // Expected errors (e.g. Access Denied) produce a separate error page. For unexpected errors,
     // show a modal, and include a toast for the sake of the "Report error" link.
     reportError(err);
-    const isOwner = this.currentDoc.get()?.access === 'owners';
-    confirmModal(
-      "Error opening document",
-      "Reload",
-      async () => window.location.reload(true),
-      isOwner ? `You can try reloading the document, or using recovery mode. ` +
-        `Recovery mode opens the document to be fully accessible to owners, and ` +
-        `inaccessible to others. ` +
-        `[${err.message}]` : err.message,
-      {  hideCancel: true,
-         extraButtons: isOwner ? bigBasicButton('Enter recovery mode', dom.on('click', async () => {
-           await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
-           window.location.reload(true);
-         }), testId('modal-recovery-mode')) : null,
-      },
-    );
+    this.offerRecovery(err);
   }
 
   private async _openDoc(flow: AsyncFlow, urlId: string, urlOpenMode: OpenDocMode | undefined,

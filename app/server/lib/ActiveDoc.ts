@@ -584,7 +584,13 @@ export class ActiveDoc extends EventEmitter {
       this._startLoadingTables(docSession, desiredTableNames);
       const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
       await this._initDoc(docSession);
-      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames, onDemandNames, startTime);
+      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames,
+                                                               onDemandNames, startTime).catch(async (err) => {
+        await this.docClients.broadcastDocMessage(null, 'docError', {
+          when: 'initialization',
+          message: String(err),
+        });
+      });
     } catch (err) {
       await this.shutdown();
       throw err;
@@ -613,7 +619,8 @@ export class ActiveDoc extends EventEmitter {
   public async _initDoc(docSession: OptDocSession): Promise<void> {
     const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
     this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
-    this._onDemandActions = new OnDemandActions(this.docStorage, this.docData);
+    this._onDemandActions = new OnDemandActions(this.docStorage, this.docData,
+                                                this._recoveryMode);
 
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, this.docClients, (query) => {
@@ -1579,7 +1586,8 @@ export class ActiveDoc extends EventEmitter {
 
     // Figure out which tables are on-demand.
     const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
-    const onDemandNames = remove(tableNames, (t) => onDemandMap[t]);
+    const onDemandNames = remove(tableNames, (t) => (onDemandMap[t] ||
+      (this._recoveryMode && !t.startsWith('_grist_'))));
 
     this._log.debug(docSession, "Loading %s normal tables, skipping %s on-demand tables",
       tableNames.length, onDemandNames.length);

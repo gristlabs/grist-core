@@ -14,7 +14,7 @@
 # Note for mac users: the checkpoint will be made in the docker
 # container running runsc.
 
-set -ex
+set -e
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
