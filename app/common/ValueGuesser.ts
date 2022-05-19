@@ -1,9 +1,12 @@
+import {CellValue} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {isObject} from 'app/common/gristTypes';
 import {countIf} from 'app/common/gutil';
 import {NumberFormatOptions} from 'app/common/NumberFormat';
 import NumberParse from 'app/common/NumberParse';
 import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
+import {MetaRowRecord} from 'app/common/TableData';
 import {createFormatter} from 'app/common/ValueFormatter';
 import {createParserRaw, ValueParser} from 'app/common/ValueParser';
 import * as moment from 'moment-timezone';
@@ -14,8 +17,15 @@ interface GuessedColInfo {
 }
 
 export interface GuessResult {
-  values?: any[];
+  values?: CellValue[];
   colInfo: GuessedColInfo;
+}
+
+type ColMetadata = Partial<MetaRowRecord<'_grist_Tables_column'>>;
+
+export interface GuessColMetadata {
+  values: CellValue[];
+  colMetadata?: ColMetadata;    // omitted if no changes are proposed.
 }
 
 /**
@@ -168,4 +178,30 @@ export function guessColInfo(
     // as they have to be serialized and transferred over a pipe to Python.
     {colInfo: {type: 'Text'}}
   );
+}
+
+/**
+ * Guess column info for a new column, returning the metadata suitable for using with AddTable or
+ * AddColumn user actions. In particular, widgetOptions, if any, are returned as a JSON string.
+ * Will suggest turning the column to an empty one if all the values are empty (null or "").
+ */
+export function guessColInfoForImports(values: CellValue[], docData: DocData): GuessColMetadata {
+  if (values.every(v => (v === null || v === ''))) {
+    // Suggest empty column.
+    return {values, colMetadata: {type: 'Any', isFormula: true, formula: ''}};
+  }
+  if (values.some(isObject)) {
+    // Suggest no changes.
+    return {values};
+  }
+  const strValues = values.map(v => (v === null || typeof v === 'string' ? v : String(v)));
+  const guessed = guessColInfoWithDocData(strValues, docData);
+  values = guessed.values || values;
+
+  const opts = guessed.colInfo.widgetOptions;
+  const colMetadata: ColMetadata = {...guessed.colInfo, widgetOptions: opts && JSON.stringify(opts)};
+  if (!colMetadata.widgetOptions) {
+    delete colMetadata.widgetOptions;     // Omit widgetOptions unless it is actually valid JSON.
+  }
+  return {values, colMetadata};
 }

@@ -12,6 +12,7 @@ import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue, UserAction} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
 import {DocStateComparison} from 'app/common/UserAPI';
+import {guessColInfoForImports} from 'app/common/ValueGuesser';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristColumn, GristTable} from 'app/plugin/GristTable';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -303,7 +304,7 @@ export class ActiveDocImport {
       const origTableName = table.table_name ? table.table_name : '';
       const transformRule = transformRuleMap && transformRuleMap.hasOwnProperty(origTableName) ?
         transformRuleMap[origTableName] : null;
-      const columnMetadata = cleanColumnMetadata(table.column_metadata);
+      const columnMetadata = cleanColumnMetadata(table.column_metadata, table.table_data, this._activeDoc);
       const result: ApplyUAResult = await this._activeDoc.applyUserActions(docSession,
         [["AddTable", hiddenTableName, columnMetadata]]);
       const retValue: AddTableRetValue = result.retValues[0];
@@ -758,17 +759,24 @@ function getMergeFunction({type}: MergeStrategy): MergeFunction {
  * Tweak the column metadata used in the AddTable action.
  * If `columns` is populated with non-blank column ids, adds labels to all
  * columns using the values set for the column ids.
- * Ensure that columns of type Any start out as formula columns, i.e. empty columns,
- * so that type guessing is triggered when new data is added.
+ * For columns of type Any, guess the type and parse data according to it, or mark as empty
+ * formula columns when they should be empty.
  */
-function cleanColumnMetadata(columns: GristColumn[]) {
-  return columns.map(c => {
+function cleanColumnMetadata(columns: GristColumn[], tableData: unknown[][], activeDoc: ActiveDoc) {
+  return columns.map((c, index) => {
     const newCol: any = {...c};
     if (c.id) {
       newCol.label = c.id;
     }
     if (c.type === "Any") {
-      newCol.isFormula = true;
+      // If import logic left it to us to decide on column type, then use our guessing logic to
+      // pick a suitable type and widgetOptions, and to convert values to it.
+      const origValues = tableData[index] as CellValue[];
+      const {values, colMetadata} = guessColInfoForImports(origValues, activeDoc.docData!);
+      tableData[index] = values;
+      if (colMetadata) {
+        Object.assign(newCol, colMetadata);
+      }
     }
     return newCol;
   });
