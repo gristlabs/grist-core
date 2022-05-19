@@ -202,7 +202,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     const user = home.app.currentUser;
     (await loadUserManager()).showUserManagerModal(api, {
       permissionData: api.getWorkspaceAccess(ws.id),
-      activeEmail: user ? user.email : null,
+      activeUser: user,
       resourceType: 'workspace',
       resourceId: ws.id,
       resource: ws,

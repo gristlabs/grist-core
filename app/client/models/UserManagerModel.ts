@@ -5,18 +5,19 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
-import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, Organization,
+import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
         PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
-import {getRealAccess} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some = require('lodash/some');
 
 export interface UserManagerModel {
   initData: PermissionData;                    // PermissionData used to initialize the UserManager
-  resourceType: ResourceType;                  // String representing the access resource
+  resource: Resource|null;                     // The access resource.
+  resourceType: ResourceType;                  // String representing the access resource type.
   userSelectOptions: IMemberSelectOption[];    // Select options for each user's role dropdown
   orgUserSelectOptions: IOrgMemberSelectOption[];  // Select options for each user's role dropdown on the org
   inheritSelectOptions: IMemberSelectOption[]; // Select options for the maxInheritedRole dropdown
+  publicUserSelectOptions: IMemberSelectOption[]; // Select options for the public member's role dropdown
   maxInheritedRole: Observable<roles.BasicRole|null>;  // Current unsaved maxInheritedRole setting
   membersEdited: ObsArray<IEditableMember>;    // Current unsaved editable array of members
   publicMember: IEditableMember|null;          // Member whose access (VIEWER or null) represents that of
@@ -26,7 +27,9 @@ export interface UserManagerModel {
   isOrg: boolean;                              // Indicates if the UserManager is for an org
   annotations: Observable<ShareAnnotations>;   // More information about shares, keyed by email.
   isPersonal: boolean;                         // If user access info/control is restricted to self.
+  isPublicMember: boolean;                     // Indicates if current user is a public member.
 
+  activeUser: FullUser|null;                   // Populated if current user is logged in.
   gristDoc: GristDoc|null;                     // Populated if there is an open document.
 
   // Resets all unsaved changes
@@ -108,6 +111,15 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.VIEWER, label: 'View Only'   },
     { value: null,         label: 'None'        }
   ];
+  // Select options for the public member's role dropdown.
+  public readonly publicUserSelectOptions: IMemberSelectOption[] = [
+    { value: roles.EDITOR, label: 'Editor' },
+    { value: roles.VIEWER, label: 'Viewer' },
+  ];
+
+  public activeUser: FullUser|null = this._options.activeUser ?? null;
+
+  public resource: Resource|null = this._options.resource ?? null;
 
   public maxInheritedRole: Observable<roles.BasicRole|null> =
     observable(this.initData.maxInheritedRole || null);
@@ -121,11 +133,13 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public annotations = this.autoDispose(observable({users: new Map()}));
 
-  public isPersonal = this.initData.personal || false;
+  public isPersonal = this.initData.personal ?? false;
+
+  public isPublicMember = this.initData.public ?? false;
 
   public isOrg: boolean = this.resourceType === 'organization';
 
-  public gristDoc: GristDoc|null;
+  public gristDoc: GristDoc|null = this._options.docPageModel?.gristDoc.get() ?? null;
 
   // Checks if any members were added/removed/changed, if the max inherited role changed or if the
   // anonymous access setting changed to enable the confirm button to write changes to the server.
@@ -139,7 +153,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   // Check if the current user is being removed.
   public readonly isSelfRemoved: Computed<boolean> = this.autoDispose(computed<boolean>((use) => {
-    return some(use(this.membersEdited), m => m.isRemoved && m.email ===this._options.activeEmail);
+    return some(use(this.membersEdited), m => m.isRemoved && m.email === this.activeUser?.email);
   }));
 
   private _shareAnnotator?: ShareAnnotator;
@@ -148,14 +162,14 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     public initData: PermissionData,
     public resourceType: ResourceType,
     private _options: {
-      activeEmail?: string|null,
+      activeUser?: FullUser|null,
       reload?: () => Promise<PermissionData>,
       docPageModel?: DocPageModel,
       appModel?: AppModel,
+      resource?: Resource,
     }
   ) {
     super();
-    this.gristDoc = this._options.docPageModel?.gristDoc.get() ?? null;
     if (this._options.appModel) {
       const features = this._options.appModel.currentFeatures;
       this._shareAnnotator = new ShareAnnotator(features, initData);
@@ -236,7 +250,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   }
 
   public isActiveUser(member: IEditableMember): boolean {
-    return member.email === this._options.activeEmail;
+    return member.email === this.activeUser?.email;
   }
 
   // Analyze the relation that users have to the resource or site.
@@ -322,7 +336,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     const access = Observable.create(this, member.access);
     let inheritedAccess: Computed<roles.BasicRole|null>;
 
-    if (member.email === this._options.activeEmail) {
+    if (member.email === this.activeUser?.email) {
       // Note that we currently prevent the active user's role from changing to prevent users from
       // locking themselves out of resources. We ensure that by setting inheritedAccess to the
       // active user's initial access level, which is OWNER normally. (It's sometimes possible to

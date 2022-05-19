@@ -53,7 +53,7 @@ export class AccountWidget extends Disposable {
       const api = this._appModel.api;
       (await loadUserManager()).showUserManagerModal(api, {
         permissionData: api.getOrgAccess(org.id),
-        activeEmail: user ? user.email : null,
+        activeUser: user,
         resourceType: 'organization',
         resourceId: org.id,
         resource: org,

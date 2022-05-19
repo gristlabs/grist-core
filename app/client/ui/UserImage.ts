@@ -6,7 +6,7 @@ export type Size = 'small' | 'medium' | 'large';
 
 /**
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
- * picture is missing. Also vares the color of the circle when using initials.
+ * picture is missing. Also varies the color of the circle when using initials.
  */
 export function createUserImage(user: FullUser|null, size: Size, ...args: DomElementArg[]): HTMLElement {
   let initials: string;

@@ -31,16 +31,17 @@ import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMem
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
         cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {inputMenu, menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
         modal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
-  activeEmail: string|null;
+  activeUser: FullUser|null;
   resourceType: ResourceType;
   resourceId: string|number;
   resource?: Resource;
@@ -59,8 +60,10 @@ export interface IUserManagerOptions {
 // required properties of the options.
 async function getModel(options: IUserManagerOptions): Promise<UserManagerModelImpl> {
   const permissionData = await options.permissionData;
-  return new UserManagerModelImpl(permissionData, options.resourceType,
-                                  pick(options, ['activeEmail', 'reload', 'appModel', 'docPageModel']));
+  return new UserManagerModelImpl(
+    permissionData, options.resourceType,
+    pick(options, ['activeUser', 'reload', 'appModel', 'docPageModel', 'resource'])
+  );
 }
 
 /**
@@ -107,55 +110,73 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
     }
   }
 
-  const personal = !roles.canEditAccess(options.resource?.access || null);
   // Get the model and assign it to the observable. Report errors to the app.
   getModel(options)
     .then(model => modelObs.set(model))
     .catch(reportError);
-  modal(ctl => [
+
+  return buildUserManagerModal(modelObs, onConfirm, options);
+}
+
+function buildUserManagerModal(
+  modelObs: Observable<UserManagerModel|null>,
+  onConfirm: (ctl: IModalControl) => Promise<void>,
+  options: IUserManagerOptions
+) {
+  return modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
     options.showAnimation ? dom.cls(cssAnimatedModal.className) : null,
-    cssModalTitle(
-      { style: 'margin: 40px 64px 0 64px;' },
-      renderTitle(options.resourceType, options.resource, personal),
-      ((options.resourceType === 'document' && !personal) ?
-        makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header')) : null),
-      testId('um-header')
-    ),
+    dom.maybe(modelObs, model => cssTitle(
+      renderTitle(options.resourceType, options.resource, model.isPersonal),
+      (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
+        ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
+        : null
+      ),
+      testId('um-header'),
+    )),
+    dom.domComputed(modelObs, model => {
+      if (!model) { return cssSpinner(loadingSpinner()); }
 
-    cssModalBody(
-      cssUserManagerBody(
-        // TODO: Show a loading indicator before the model is loaded.
-        dom.maybe(modelObs, model => new UserManager(
-          model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt')
-        ).buildDom()),
-      ),
-    ),
-    cssModalButtons(
-      { style: 'margin: 32px 64px; display: flex;' },
-      bigPrimaryButton('Confirm',
-        dom.boolAttr('disabled', (use) => !use(modelObs) || !use(use(modelObs)!.isAnythingChanged)),
-        dom.on('click', () => onConfirm(ctl)),
-        testId('um-confirm')
-      ),
-      bigBasicButton('Cancel',
-        dom.on('click', () => ctl.close()),
-        testId('um-cancel')
-      ),
-      dom.maybe(use => use(modelObs)?.resourceType === 'document' && use(modelObs)?.gristDoc && !personal, () =>
-        cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
-          dom.text(use => (use(modelObs) && use(use(modelObs)!.isAnythingChanged)) ? 'Save & ' : ''),
-          'Open Access Rules',
-          dom.on('click', (ev) => {
-            ev.preventDefault();
-            return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
-          }),
-          testId('um-open-access-rules')
+      const cssBody = model.isPersonal ? cssAccessDetailsBody : cssUserManagerBody;
+      return [
+        cssModalBody(
+          cssBody(
+            new UserManager(
+              model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+            ).buildDom()
+          ),
+        ),
+        cssModalButtons(
+          { style: 'margin: 32px 64px; display: flex;' },
+          (model.isPublicMember ? null :
+            bigPrimaryButton('Confirm',
+              dom.boolAttr('disabled', (use) => !use(model.isAnythingChanged)),
+              dom.on('click', () => onConfirm(ctl)),
+              testId('um-confirm')
+            )
+          ),
+          bigBasicButton(
+            model.isPublicMember ? 'Close' : 'Cancel',
+            dom.on('click', () => ctl.close()),
+            testId('um-cancel')
+          ),
+          (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
+            ? cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
+              dom.text(use => use(model.isAnythingChanged) ? 'Save & ' : ''),
+              'Open Access Rules',
+              dom.on('click', (ev) => {
+                ev.preventDefault();
+                return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+              }),
+              testId('um-open-access-rules')
+            )
+            : null
+          ),
+          testId('um-buttons'),
         )
-      ),
-      testId('um-buttons'),
-    )
+      ];
+    })
   ]);
 }
 
@@ -172,7 +193,8 @@ export class UserManager extends Disposable {
     linkToCopy?: string,
     docPageModel?: DocPageModel,
     appModel?: AppModel,
-    prompt?: {email: string}
+    prompt?: {email: string},
+    resource?: Resource,
   }) {
     super();
   }
@@ -180,9 +202,17 @@ export class UserManager extends Disposable {
   public buildDom() {
     const memberEmail = this.autoDispose(new MemberEmail(this._onAdd.bind(this),
                                                         this._options.prompt));
+    if (this._model.isPublicMember) {
+      return this._buildSelfPublicAccessDom();
+    }
+
+    if (this._model.isPersonal) {
+      return this._buildSelfAccessDom();
+    }
+
     return [
-      this._model.isPersonal ? null : memberEmail.buildDom(),
-      this._model.isPersonal ? null : this._buildOptionsDom(),
+      memberEmail.buildDom(),
+      this._buildOptionsDom(),
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
@@ -245,9 +275,21 @@ export class UserManager extends Disposable {
             createUserImage(getFullUser(member), 'large')
           ),
           cssMemberText(
-            cssMemberPrimary(member.name || dom('span', member.email, dom.cls('member-email'), testId('um-email'))),
-            member.name ? cssMemberSecondary(member.email, dom.cls('member-email'), testId('um-email')) : null,
-            this._buildAnnotationDom(member),
+            cssMemberPrimary(
+              member.name || member.email,
+              member.email ? dom.cls('member-email') : null,
+              testId('um-member-name'),
+            ),
+            !member.name ? null : cssMemberSecondary(
+              member.email, dom.cls('member-email'), testId('um-member-email')
+            ),
+            dom('span',
+              (this._model.isPersonal
+                ? this._buildSelfAnnotationDom(member)
+                : this._buildAnnotationDom(member)
+              ),
+              testId('um-member-annotation'),
+            ),
           ),
           member.isRemoved ? null : this._memberRoleSelector(member.effectiveAccess,
             member.inheritedAccess, this._model.isActiveUser(member)),
@@ -273,7 +315,7 @@ export class UserManager extends Disposable {
     );
   }
 
-  // Build an annotation for a single member.
+  // Build an annotation for a single member in the Manage Users dialog.
   private _buildAnnotationDom(member: IEditableMember) {
     return dom.domComputed(this._model.annotations, (annotations) => {
       const annotation = annotations.users.get(member.email);
@@ -316,6 +358,24 @@ export class UserManager extends Disposable {
     });
   }
 
+  // Build an annotation for the current user in the Access Details dialog.
+  private _buildSelfAnnotationDom(user: IEditableMember) {
+    return dom.domComputed(this._model.annotations, (annotations) => {
+      const annotation = annotations.users.get(user.email);
+      if (!annotation) { return null; }
+
+      if (annotation.isSupport) {
+        return cssMemberType('Grist support');
+      } else if (annotation.isMember && annotations.hasTeam) {
+        return cssMemberType('Team member');
+      } else if (annotations.hasTeam) {
+        return cssMemberType('Outside collaborator');
+      } else {
+        return cssMemberType('Collaborator');
+      }
+    });
+  }
+
   private _buildPublicAccessMember() {
     const publicMember = this._model.publicMember;
     if (!publicMember) { return null; }
@@ -328,8 +388,7 @@ export class UserManager extends Disposable {
             cssMemberSecondary('Anyone with link ', makeCopyBtn(this._options.linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
-            // Only show the Editor and Viewer options for the role of the "Public Access" member.
-            this._model.userSelectOptions.filter(opt => [roles.EDITOR, roles.VIEWER].includes(opt.value!))
+            this._model.publicUserSelectOptions
           ),
           cssMemberBtn(
             cssRemoveIcon('Remove', testId('um-member-delete')),
@@ -338,6 +397,48 @@ export class UserManager extends Disposable {
           testId('um-public-member')
         )
       )
+    );
+  }
+
+  private _buildSelfPublicAccessDom() {
+    const accessValue = this._options.resource?.access;
+    const accessLabel = this._model.publicUserSelectOptions
+      .find(opt => opt.value === accessValue)?.label;
+    const activeUser = this._model.activeUser;
+    const name = activeUser?.name ?? 'Anonymous';
+
+    return dom('div',
+      cssMemberListItem(
+        (!activeUser
+          ? cssPublicMemberIcon('PublicFilled')
+          : cssMemberImage(createUserImage(activeUser, 'large'))
+        ),
+        cssMemberText(
+          cssMemberPrimary(name, testId('um-member-name')),
+          activeUser?.email ? cssMemberSecondary(activeUser.email) : null,
+          cssMemberPublicAccess(
+            dom('span', 'Public access', testId('um-member-annotation')),
+            cssPublicAccessIcon('PublicFilled'),
+          ),
+        ),
+        cssRoleBtn(
+          accessLabel ?? 'Guest',
+          cssCollapseIcon('Collapse'),
+          dom.cls('disabled'),
+          testId('um-member-role'),
+        ),
+        testId('um-member'),
+      ),
+      testId('um-members'),
+    );
+  }
+
+  private _buildSelfAccessDom() {
+    return dom('div',
+      dom.domComputed(this._model.membersEdited, members =>
+        members[0] ? this._buildMemberDom(members[0]) : null
+      ),
+      testId('um-members'),
     );
   }
 
@@ -351,7 +452,8 @@ export class UserManager extends Disposable {
     const allRoles = allRolesOverride ||
       (this._model.isOrg ? this._model.orgUserSelectOptions : this._model.userSelectOptions);
     return cssRoleBtn(
-      menu(() => [
+      // Don't include the menu if we're only showing access details for the current user.
+      this._model.isPersonal ? null : menu(() => [
         dom.forEach(allRoles, _role =>
           // The active user should be prevented from changing their own role.
           menuItem(() => isActiveUser || role.set(_role.value), _role.label,
@@ -384,6 +486,7 @@ export class UserManager extends Disposable {
         return activeRole ? activeRole.label : "Guest";
       }),
       cssCollapseIcon('Collapse'),
+      this._model.isPersonal ? dom.cls('disabled') : null,
       testId('um-member-role')
     );
   }
@@ -535,7 +638,7 @@ async function manageTeam(appModel: AppModel,
     const api = appModel.api;
     showUserManagerModal(api, {
       permissionData: api.getOrgAccess(currentOrg.id),
-      activeEmail: user ? user.email : null,
+      activeUser: user,
       resourceType: 'organization',
       resourceId: currentOrg.id,
       resource: currentOrg,
@@ -546,13 +649,23 @@ async function manageTeam(appModel: AppModel,
   }
 }
 
-const cssUserManagerBody = styled('div', `
+const cssAccessDetailsBody = styled('div', `
   display: flex;
   flex-direction: column;
   width: 600px;
+  font-size: ${vars.mediumFontSize};
+`);
+
+const cssUserManagerBody = styled(cssAccessDetailsBody, `
   height: 374px;
   border-bottom: 1px solid ${colors.darkGrey};
-  font-size: ${vars.mediumFontSize};
+`);
+
+const cssSpinner = styled('div', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px;
 `);
 
 const cssCopyBtn = styled(basicButton, `
@@ -583,9 +696,13 @@ const cssOptionBtn = styled('span', `
 `);
 
 const cssPublicMemberIcon = styled(icon, `
-  width: 32px;
-  height: 32px;
-  margin: 4px 8px;
+  width: 40px;
+  height: 40px;
+  margin: 0 4px;
+  --icon-color: ${colors.lightGreen};
+`);
+
+const cssPublicAccessIcon = styled(icon, `
   --icon-color: ${colors.lightGreen};
 `);
 
@@ -602,6 +719,7 @@ const cssRoleBtn = styled('div', `
   cursor: pointer;
 
   &.disabled {
+    opacity: 0.5;
     cursor: default;
   }
 `);
@@ -652,6 +770,22 @@ const cssAnimatedModal = styled('div', `
   animation-name: ${cssFadeInFromTop};
   animation-duration: 0.4s;
   position: relative;
+`);
+
+const cssTitle = styled(cssModalTitle, `
+  margin: 40px 64px 0 64px;
+
+  @media ${mediaXSmall} {
+    & {
+      margin: 16px;
+    }
+  }
+`);
+
+const cssMemberPublicAccess = styled(cssMemberSecondary, `
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `);
 
 // Render the UserManager title for `resourceType` (e.g. org as "team site").

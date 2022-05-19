@@ -242,7 +242,7 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
   const user = appModel.currentValidUser;
   (await loadUserManager()).showUserManagerModal(api, {
     permissionData: api.getDocAccess(doc.id),
-    activeEmail: user ? user.email : null,
+    activeUser: user,
     resourceType: 'document',
     resourceId: doc.id,
     resource: doc,

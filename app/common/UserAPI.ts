@@ -152,7 +152,10 @@ export interface PermissionDelta {
 }
 
 export interface PermissionData {
-  personal?: boolean;
+  // True if permission data is restricted to current user.
+  personal?: true;
+  // True if current user is a public member.
+  public?: boolean;
   maxInheritedRole?: roles.BasicRole|null;
   users: UserAccessData[];
 }

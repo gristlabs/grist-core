@@ -429,7 +429,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
     const user = home.app.currentUser;
     (await loadUserManager()).showUserManagerModal(api, {
       permissionData: api.getDocAccess(doc.id),
-      activeEmail: user ? user.email : null,
+      activeUser: user,
       resourceType: 'document',
       resourceId: doc.id,
       resource: doc,

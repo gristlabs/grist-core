@@ -4271,19 +4271,29 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  private _filterAccessData(scope: Scope, users: UserAccessData[],
-                            maxInheritedRole: roles.BasicRole|null, docId?: string): { personal: true}|undefined {
+  private _filterAccessData(
+    scope: Scope,
+    users: UserAccessData[],
+    maxInheritedRole: roles.BasicRole|null,
+    docId?: string
+  ): {personal: true, public: boolean}|undefined {
     if (scope.userId === this.getPreviewerUserId()) { return; }
-    // Unless we have special access to the resource, or are an owner,
-    // limit user information returned to being about the current user.
-    const thisUser = users.find(user => user.id === scope.userId);
-    if ((scope.specialPermit?.docId !== docId || !docId) &&
-        (!thisUser || getRealAccess(thisUser, { maxInheritedRole, users }) !== 'owners')) {
-      // If not an owner, don't return information about other users.
-      users.length = 0;
-      if (thisUser) { users.push(thisUser); }
-      return { personal: true };
-    }
+
+    // If we have special access to the resource, don't filter user information.
+    if (scope.specialPermit?.docId === docId && docId) { return; }
+
+    const thisUser = this.getAnonymousUserId() === scope.userId
+      ? null
+      : users.find(user => user.id === scope.userId);
+    const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
+
+    // If we are an owner, don't filter user information.
+    if (thisUser && realAccess === 'owners') { return; }
+
+    // Limit user information returned to being about the current user.
+    users.length = 0;
+    if (thisUser) { users.push(thisUser); }
+    return { personal: true, public: !realAccess };
   }
 }
 
