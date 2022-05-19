@@ -1045,7 +1045,7 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
 
   const dataSeries = series.slice(1).map((line: Series): Data => ({
     name: getSeriesName(line, series.length > 2),
-    [axis1]: series[0].values,
+    [axis1]: replaceEmptyLabels(series[0].values),
     [axis2]: line.values,
     [`error_${axis2}`]: errorBars.get(line),
     orientation: options.orientation,
@@ -1129,7 +1129,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
         name: getSeriesName(line, false),
         // nulls cause JS errors when pie charts resize, so replace with blanks.
         // (a falsy value would cause plotly to show its index, like "2" which is more confusing).
-        labels: series[0].values.map(v => (v == null || v === "") ? "-" : v),
+        labels: replaceEmptyLabels(series[0].values),
         values: line.values,
         ...dataOptions,
       }]
@@ -1200,6 +1200,18 @@ function trimNonNumericData(series: Series[]): void {
   for (const s of series) {
     s.values = s.values.filter((_, i) => values.some(v => typeof v[i] === 'number'));
   }
+}
+
+/**
+ * Replace empty values with "-", which is relevant for labels in Pie Charts and for X-axis in
+ * other chart types.
+ *
+ * In pie charts, nulls cause JS errors. In other types, nulls in X-axis cause that point to be
+ * omitted (but still affect the Y scale, causing confusion). Replace with "-" rather than blank
+ * because plotly replaces falsy values by their index (eg "2") in Pie charts, which is confusing.
+ */
+function replaceEmptyLabels(values: Datum[]): Datum[] {
+  return values.map(v => (v == null || v === "") ? "-" : v);
 }
 
 // Given two parallel arrays, returns an array of series of the form
