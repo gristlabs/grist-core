@@ -22,10 +22,10 @@ export class ColumnFilterMenuModel extends Disposable {
   // computes a set of all keys that matches the search text.
   public readonly filterSet = Computed.create(this, this.searchValue, (_use, searchValue) => {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
+    const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType!);
     return new Set(
       this._valueCount
-        .filter(([_, {count}]) => count)
-        .filter(([_, {label}]) => searchRegex.test(label))
+        .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(label))
         .map(([key]) => key)
     );
   });

@@ -29,6 +29,10 @@ export class ColumnFilter extends Disposable {
     this.setState(_initialFilterJson);
   }
 
+  public get columnType() {
+    return this._columnType;
+  }
+
   public setState(filterJson: string|FilterSpec) {
     const state = makeFilterState(filterJson);
     this._include = state.include;

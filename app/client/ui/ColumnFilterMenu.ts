@@ -277,6 +277,23 @@ function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
 }
 
 /**
+ * Returns a new `Map` object to holds pairs of `CellValue` and `IFilterCount`. For `Bool`, `Choice`
+ * and `ChoiceList` type of column, the map is initialized with all possible values in order to make
+ * sure they get shown to the user.
+ */
+function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue, IFilterCount> {
+  const columnType = fieldOrColumn.origCol().type();
+  let values: any[] = [];
+  if (columnType === 'Bool') {
+    values = [true, false];
+  } else if (['Choice', 'ChoiceList'].includes(columnType)) {
+    const options = fieldOrColumn.origCol().widgetOptionsJson;
+    values = options.prop('choices')();
+  }
+  return new Map(values.map((v) => [v, {label: String(v), count: 0}]));
+}
+
+/**
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
 export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, filterInfo: FilterInfo,
@@ -297,13 +314,12 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
 
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
-  const valueCounts: Map<CellValue, {label: string, count: number}> = new Map();
+  const valueCounts = getEmptyCountMap(fieldOrColumn);
   addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType});
   addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
                                                                areHiddenRows: true});
 
   const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
-
 
   return columnFilterMenu(openCtl, {
     model,
