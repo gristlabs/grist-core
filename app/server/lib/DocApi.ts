@@ -6,6 +6,7 @@ import {isRaisedException} from "app/common/gristTypes";
 import {isAffirmative} from "app/common/gutil";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
+import {MetaRowRecord} from 'app/common/TableData';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
@@ -147,14 +148,14 @@ export class DocWorkerApi {
       res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body, {parseStrings}));
     }));
 
-    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin) {
+    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string) {
       const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
       // Option to skip waiting for document initialization.
       const immediate = isAffirmative(req.query.immediate);
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
-      const tableId = req.params.tableId;
+      const tableId = optTableId || req.params.tableId;
       const session = docSessionFromRequest(req);
       const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
         session, {tableId, filters}, !immediate));
@@ -168,6 +169,29 @@ export class DocWorkerApi {
       return applyQueryParameters(fromTableDataAction(tableData), params, columns);
     }
 
+    async function getTableRecords(
+      activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string
+    ): Promise<TableRecordValue[]> {
+      const columnData = await getTableData(activeDoc, req, optTableId);
+      const fieldNames = Object.keys(columnData)
+        .filter(k => !(
+          ["id", "manualSort"].includes(k)
+          || k.startsWith("gristHelper_")
+        ));
+      return columnData.id.map((id, index) => {
+        const result: TableRecordValue = {id, fields: {}};
+        for (const key of fieldNames) {
+          let value = columnData[key][index];
+          if (isRaisedException(value)) {
+            _.set(result, ["errors", key], (value as string[])[1]);
+            value = null;
+          }
+          result.fields[key] = value;
+        }
+        return result;
+      });
+    }
+
     // Get the specified table in column-oriented format
     this._app.get('/api/docs/:docId/tables/:tableId/data', canView,
       withDoc(async (activeDoc, req, res) => {
@@ -178,24 +202,7 @@ export class DocWorkerApi {
     // Get the specified table in record-oriented format
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
-        const columnData = await getTableData(activeDoc, req);
-        const fieldNames = Object.keys(columnData)
-          .filter(k => !(
-            ["id", "manualSort"].includes(k)
-            || k.startsWith("gristHelper_")
-          ));
-        const records = columnData.id.map((id, index) => {
-          const result: TableRecordValue = {id, fields: {}};
-          for (const key of fieldNames) {
-            let value = columnData[key][index];
-            if (isRaisedException(value)) {
-              _.set(result, ["errors", key], (value as string[])[1]);
-              value = null;
-            }
-            result.fields[key] = value;
-          }
-          return result;
-        });
+        const records = await getTableRecords(activeDoc, req);
         res.json({records});
       })
     );
@@ -222,12 +229,28 @@ export class DocWorkerApi {
       res.json(await activeDoc.addAttachments(docSessionFromRequest(req), uploadResult.uploadId));
     }));
 
-    // Returns the metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
+    // Select the fields from an attachment record that we want to return to the user,
+    // and convert the timeUploaded from a number to an ISO string.
+    function cleanAttachmentRecord(record: MetaRowRecord<"_grist_Attachments">) {
+      const {fileName, fileSize, timeUploaded: time} = record;
+      const timeUploaded = (typeof time === 'number') ? new Date(time).toISOString() : undefined;
+      return {fileName, fileSize, timeUploaded};
+    }
+
+    // Returns cleaned metadata for all attachments in /records format.
+    this._app.get('/api/docs/:docId/attachments', canView, withDoc(async (activeDoc, req, res) => {
+      const rawRecords = await getTableRecords(activeDoc, req, "_grist_Attachments");
+      const records = rawRecords.map(r => ({
+        id: r.id,
+        fields: cleanAttachmentRecord(r.fields as MetaRowRecord<"_grist_Attachments">),
+      }));
+      res.json({records});
+    }));
+
+    // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
     this._app.get('/api/docs/:docId/attachments/:attId', canView, withDoc(async (activeDoc, req, res) => {
       const attRecord = activeDoc.getAttachmentMetadata(req.params.attId as string);
-      const {fileName, fileSize, timeUploaded: t} = attRecord;
-      const timeUploaded = (typeof t === 'number') ? new Date(t).toISOString() : undefined;
-      res.json({fileName, fileSize, timeUploaded});
+      res.json(cleanAttachmentRecord(attRecord));
     }));
 
     // Responds with attachment contents, with suitable Content-Type and Content-Disposition.

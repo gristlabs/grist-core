@@ -1460,6 +1460,23 @@ function testDocApi() {
       assert.deepEqual(resp.data, [3]);
     });
 
+    it("GET /docs/{did}/attachments lists attachment metadata", async function() {
+      // Test that the usual /records query parameters like sort and filter also work
+      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
+      const resp = await axios.get(url, chimpy);
+      assert.equal(resp.status, 200);
+      const {records} = resp.data;
+      for (const record of records) {
+        assert.match(record.fields.timeUploaded, /^\d{4}-\d{2}-\d{2}T/);
+        delete record.fields.timeUploaded;
+      }
+      assert.deepEqual(records, [
+          {id: 2, fields: {fileName: "world.jpg", fileSize: 6}},
+          {id: 3, fields: {fileName: "hello.png", fileSize: 6}},
+        ]
+      );
+    });
+
     it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function() {
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
       assert.equal(resp.status, 200);
@@ -1700,10 +1717,7 @@ function testDocApi() {
       assert.deepEqual(resp.data, [1, 2, 3]);
 
       async function checkAttachmentIds(ids: number[]) {
-        resp = await axios.get(
-          `${docUrl}/tables/_grist_Attachments/records`,
-          chimpy,
-        );
+        resp = await axios.get(`${docUrl}/attachments`, chimpy);
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data.records.map((r: any) => r.id), ids);
       }
