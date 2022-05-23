@@ -3,6 +3,7 @@ from collections import namedtuple, Counter, OrderedDict
 import re
 import json
 import sys
+from contextlib import contextmanager
 
 import six
 from six.moves import xrange
@@ -221,19 +222,22 @@ class UserActions(object):
     self._overrides = {key: method.__get__(self, UserActions)
                        for key, method in six.iteritems(_action_method_overrides)}
 
-  def enter_indirection(self):
+  @contextmanager
+  def indirect_actions(self):
     """
-    Mark any actions following this call as being indirect, until leave_indirection is
-    called. Nesting is supported (but not used).
-    """
-    self._indirection_level += 1
+    Usage:
 
-  def leave_indirection(self):
+      with self.indirect_actions():
+        # apply actions here
+
+    This marks those actions as being indirect, for ACL purposes.
     """
-    Undo an enter_indirection.
-    """
-    self._indirection_level -= 1
-    assert self._indirection_level >= 0
+    try:
+      self._indirection_level += 1
+      yield
+    finally:
+      self._indirection_level -= 1
+      assert self._indirection_level >= 0
 
   def _do_doc_action(self, action):
     if hasattr(action, 'simplify'):
@@ -862,18 +866,21 @@ class UserActions(object):
       raise ValueError("Can't save value to formula column %s" % col_id)
 
     # An empty column (isFormula=True, formula=""), now is the time to convert it to data.
-    if schema_col.type == 'Any':
-      # Guess the type when it starts out as Any. We unfortunately need to update the column
-      # separately for type conversion, to recompute type-specific defaults
-      # before they are used in formula->data conversion.
-      col_info, values = guess_col_info(values)
-      # If the values are all blank (None or empty string) leave the column empty
-      if not col_info:
-        return values
-      col_rec = self._docmodel.get_column_rec(table_id, col_id)
-      self._docmodel.update([col_rec], **col_info)
-    self.ModifyColumn(table_id, col_id, {'isFormula': False})
-    return values
+    # Since the user is merely adding/updating plain records, they shouldn't be blocked by
+    # ACL rules preventing schema changes, i.e. these column changing actions are not direct.
+    with self.indirect_actions():
+      if schema_col.type == 'Any':
+        # Guess the type when it starts out as Any. We unfortunately need to update the column
+        # separately for type conversion, to recompute type-specific defaults
+        # before they are used in formula->data conversion.
+        col_info, values = guess_col_info(values)
+        # If the values are all blank (None or empty string) leave the column empty
+        if not col_info:
+          return values
+        col_rec = self._docmodel.get_column_rec(table_id, col_id)
+        self._docmodel.update([col_rec], **col_info)
+      self.ModifyColumn(table_id, col_id, {'isFormula': False})
+      return values
 
   @useraction
   def AddOrUpdateRecord(self, table_id, require, col_values, options):

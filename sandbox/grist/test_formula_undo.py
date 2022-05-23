@@ -119,7 +119,7 @@ return '#%s %s' % (table.my_counter, $schoolName)
         ["UpdateRecord", "_grist_Tables_column", 22, {"isFormula": False}],
         ["UpdateRecord", "Students", 6, {"newCol": "Boo!"}],
       ],
-      "direct": [True, True, True, False, True, True],
+      "direct": [False, False, False, False, False, True],
       "undo": [
         ["ModifyColumn", "Students", "newCol", {"type": "Any"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Any"}],
