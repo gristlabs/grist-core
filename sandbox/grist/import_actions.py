@@ -147,26 +147,33 @@ class ImportActions(object):
 
     log.debug("MakeImportTransformColumns: {}".format("gen_all" if gen_all else "optimize"))
 
+    # Calling rebuild_usercode once per added column is wasteful and can be very slow.
+    self._engine._should_rebuild_usercode = False
+
     #create prefixed formula column for each of dest_cols
     #take formula from transform_rule
     new_cols = []
-    for c in dest_cols:
-      # skip copy columns (unless gen_all)
-      formula = c.formula.strip()
-      isCopyFormula = (formula.startswith("$") and formula[1:] in src_cols)
+    try:
+      for c in dest_cols:
+        # skip copy columns (unless gen_all)
+        formula = c.formula.strip()
+        isCopyFormula = (formula.startswith("$") and formula[1:] in src_cols)
 
-      if gen_all or not isCopyFormula:
-        # If colId specified, use that. Otherwise, use the (sanitized) label.
-        col_id = c.colId or identifiers.pick_col_ident(c.label)
-        new_col_id = _import_transform_col_prefix + col_id
-        new_col_spec = {
-          "label": c.label,
-          "type": c.type,
-          "widgetOptions": getattr(c, "widgetOptions", ""),
-          "isFormula": True,
-          "formula": c.formula}
-        result = self._useractions.doAddColumn(hidden_table_id, new_col_id, new_col_spec)
-        new_cols.append(result["colRef"])
+        if gen_all or not isCopyFormula:
+          # If colId specified, use that. Otherwise, use the (sanitized) label.
+          col_id = c.colId or identifiers.pick_col_ident(c.label)
+          new_col_id = _import_transform_col_prefix + col_id
+          new_col_spec = {
+            "label": c.label,
+            "type": c.type,
+            "widgetOptions": getattr(c, "widgetOptions", ""),
+            "isFormula": True,
+            "formula": c.formula}
+          result = self._useractions.doAddColumn(hidden_table_id, new_col_id, new_col_spec)
+          new_cols.append(result["colRef"])
+    finally:
+      self._engine._should_rebuild_usercode = True
+    self._engine.rebuild_usercode()
 
     return new_cols
 

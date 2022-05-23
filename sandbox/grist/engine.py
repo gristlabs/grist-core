@@ -213,6 +213,10 @@ class Engine(object):
     # A flag for when a useraction causes a schema change, to verify consistency afterwards.
     self._schema_updated = False
 
+    # Set to false temporarily to suppress rebuild_usercode for performance.
+    # Used when importing which can add many columns which calls rebuild_usercode each time.
+    self._should_rebuild_usercode = True
+
     # Stores an exception representing the first unevaluated cell met while recomputing the
     # current cell.
     self._cell_required_error = None
@@ -1013,6 +1017,9 @@ class Engine(object):
     """
     Compiles the usercode from the schema, and updates all tables and columns to match.
     """
+    if not self._should_rebuild_usercode:
+      return
+
     self.gencode.make_module(self.schema)
 
     # Re-populate self.tables, reusing existing tables whenever possible.
@@ -1281,6 +1288,7 @@ class Engine(object):
       if saved_schema:
         log.info("Restoring schema and usercode on exception")
         self.schema = saved_schema
+        self._should_rebuild_usercode = True
         try:
           self.rebuild_usercode()
         except Exception:
