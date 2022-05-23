@@ -76,9 +76,10 @@ class TestCodeBuilder(unittest.TestCase):
                      "# foo($bar=1)\n"
                      "raise SyntaxError('invalid syntax', ('usercode', 1, 5, %s'foo($bar=1)'))"
                      % unicode_prefix)
-    self.assertEqual(make_body('def $bar(): pass'),
-                     "# def $bar(): pass\n"
-                     "raise SyntaxError('invalid syntax', ('usercode', 1, 5, %s'def $bar(): pass'))"
+    self.assertEqual(make_body('def $bar(): return 3'),
+                     "# def $bar(): return 3\n"
+                     "raise SyntaxError('invalid syntax', "
+                     "('usercode', 1, 5, %s'def $bar(): return 3'))"
                      % unicode_prefix)
 
     # If $ is a syntax error, we don't want to turn it into a different syntax error.
@@ -101,20 +102,19 @@ class TestCodeBuilder(unittest.TestCase):
     # Check for reasonable behaviour with non-empty text and no statements.
     self.assertEqual(make_body('# comment'), '# comment\npass')
 
-    self.assertEqual(make_body('rec = 1'), "# rec = 1\n" +
+    self.assertEqual(make_body('rec = 1; rec'), "# rec = 1; rec\n" +
                      "raise SyntaxError('Grist disallows assignment " +
-                     "to the special variable \"rec\"', ('usercode', 1, 1, %s'rec = 1'))"
+                     "to the special variable \"rec\"', ('usercode', 1, 1, %s'rec = 1; rec'))"
                      % unicode_prefix)
-    self.assertEqual(make_body('for rec in []: pass'), "# for rec in []: pass\n" +
+    self.assertEqual(make_body('for rec in []: return rec'), "# for rec in []: return rec\n" +
                      "raise SyntaxError('Grist disallows assignment " +
                      "to the special variable \"rec\"', "
-                     "('usercode', 1, 4, %s'for rec in []: pass'))"
+                     "('usercode', 1, 4, %s'for rec in []: return rec'))"
                      % unicode_prefix)
 
     # some legitimates use of rec
     body = ("""
 foo = rec
-rec.foo = 1
 [rec for x in rec]
 for a in rec:
   t = a
@@ -126,7 +126,6 @@ return rec
     # mostly legitimate use of rec but one failing
     body = ("""
 foo = rec
-rec.foo = 1
 [1 for rec in []]
 for a in rec:
   t = a
@@ -137,9 +136,33 @@ return rec
     self.assertRegex(make_body(body),
                      r"raise SyntaxError\('Grist disallows assignment" +
                      r" to the special variable \"rec\"', "
-                     r"\('usercode', 4, 7, %s'\[1 for rec in \[\]\]'\)\)"
+                     r"\('usercode', 3, 7, %s'\[1 for rec in \[\]\]'\)\)"
                      % unicode_prefix)
 
+    self.assertEqual(make_body('rec.foo = 1; rec'), "# rec.foo = 1; rec\n" +
+                     "raise SyntaxError(\"You can't assign a value to a column with `=`. "
+                     "If you mean to check for equality, use `==` instead.\", "
+                     "('usercode', 1, 1, %s'rec.foo = 1; rec'))"
+                     % unicode_prefix)
+
+    self.assertEqual(make_body('$foo = 1; rec'), "# $foo = 1; rec\n" +
+                     "raise SyntaxError(\"You can't assign a value to a column with `=`. "
+                     "If you mean to check for equality, use `==` instead.\", "
+                     "('usercode', 1, 1, %s'$foo = 1; rec'))"
+                     % unicode_prefix)
+
+    self.assertEqual(make_body('assert foo'), "# assert foo\n" +
+                     'raise SyntaxError("No `return` statement, '
+                     "and the last line isn't an expression.\", "
+                     "('usercode', 1, 1, %s'assert foo'))"
+                     % unicode_prefix)
+
+    self.assertEqual(make_body('foo = 1'), "# foo = 1\n" +
+                     'raise SyntaxError("No `return` statement, '
+                     "and the last line isn't an expression."
+                     " If you want to check for equality, use `==` instead of `=`.\", "
+                     "('usercode', 1, 1, %s'foo = 1'))"
+                     % unicode_prefix)
 
   def test_make_formula_body_unicode(self):
     # Test that we don't fail when strings include unicode characters

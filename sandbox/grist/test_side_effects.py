@@ -40,7 +40,7 @@ class TestSideEffects(test_engine.EngineTestCase):
     # Verify that when a formula fails after a side-effect, the effect is reverted.
     self.load_sample(self.sample)
 
-    formula = 'Schools.lookupOrAddDerived(city="TESTCITY")\nraise Exception("test-error")'
+    formula = 'Schools.lookupOrAddDerived(city="TESTCITY")\nraise Exception("test-error")\nNone'
     out_actions = self.apply_user_action(['AddColumn', 'Address', "A", { 'formula': formula }])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["AddColumn", "Address", "A", {"formula": formula, "isFormula": True, "type": "Any"}],
@@ -70,6 +70,7 @@ class TestSideEffects(test_engine.EngineTestCase):
 Schools.lookupOrAddDerived(city=$city)
 if $amount < 0:
   raise Exception("test-error")
+return None
 '''
     self.add_column('Schools', 'ucity', formula='$city.upper()')
     self.add_column('Address', 'A', formula=formula)

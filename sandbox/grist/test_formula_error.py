@@ -35,7 +35,7 @@ else:
         [13, "syntax_err", "Text", True, syntax_err, "", ""],
         [14, "indent_err", "Text", True, indent_err, "", ""],
         [15, "other_err", "Text", True, textwrap.dedent(indent_err), "", ""],
-        [15, "custom_err", "Text", True, "raise Exception('hello')", "", ""],
+        [15, "custom_err", "Text", True, "raise Exception('hello'); return 1", "", ""],
       ]]
     ],
     "DATA": {
