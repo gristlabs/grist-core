@@ -31,6 +31,11 @@ export const RowRecord = t.iface([], {
   [t.indexKey]: "CellValue",
 });
 
+export const RowRecords = t.iface([], {
+  "id": t.array("number"),
+  [t.indexKey]: t.array("CellValue"),
+});
+
 export const GristType = t.union(t.lit('Any'), t.lit('Attachments'), t.lit('Blob'), t.lit('Bool'), t.lit('Choice'), t.lit('ChoiceList'), t.lit('Date'), t.lit('DateTime'), t.lit('Id'), t.lit('Int'), t.lit('ManualSortPos'), t.lit('Numeric'), t.lit('PositionNumber'), t.lit('Ref'), t.lit('RefList'), t.lit('Text'));
 
 const exportedTypeSuite: t.ITypeSuite = {
@@ -38,6 +43,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   CellValue,
   BulkColValues,
   RowRecord,
+  RowRecords,
   GristType,
 };
 export default exportedTypeSuite;

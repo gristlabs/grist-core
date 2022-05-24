@@ -37,20 +37,22 @@ export interface TableOperations {
 
 /**
  * General options for table operations.
- * By default, string field values will be parsed based on the column type.
- * This can be disabled.
  */
 export interface OpOptions {
-  parseStrings?: boolean;  /** whether to parse strings based on the column type. */
+  /** Whether to parse strings based on the column type. Defaults to true. */
+  parseStrings?: boolean;
 }
 
 /**
- * Extra options for upserts. By default, add and update are true,
- * onMany is first, and allowEmptyRequire is false.
+ * Extra options for upserts.
  */
 export interface UpsertOptions extends OpOptions {
-  add?: boolean;      /** permit inserting a record */
-  update?: boolean;   /** permit updating a record */
-  onMany?: 'none' | 'first' | 'all';  /** whether to update none, one, or all matching records */
-  allowEmptyRequire?: boolean; /** allow "wildcard" operation */
+  /** Permit inserting a record. Defaults to true. */
+  add?: boolean;
+  /** Permit updating a record. Defaults to true. */
+  update?: boolean;
+  /** Whether to update none, one, or all matching records. Defaults to "first". */
+  onMany?: 'none' | 'first' | 'all';
+  /** Allow "wildcard" operation. Defaults to false. */
+  allowEmptyRequire?: boolean;
 }

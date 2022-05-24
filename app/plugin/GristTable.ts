@@ -3,14 +3,13 @@
  */
 
 /**
- *
- * Metadata and data for a table.  This is documenting what is currently returned by the
- * core plugins.  Could be worth reconciling with:
- *   https://phab.getgrist.com/w/grist_data_format/
- * Capitalization is python-style.
- *
+ * Metadata and data for a table.
  */
 export interface GristTable {
+  // This is documenting what is currently returned by the core plugins. Capitalization
+  // is python-style.
+  //
+  // TODO: could be worth reconciling with: https://phab.getgrist.com/w/grist_data_format/.
   table_name: string | null;  // currently allow names to be null
   column_metadata: GristColumn[];
   table_data: any[][];
@@ -21,9 +20,7 @@ export interface GristTables {
 }
 
 /**
- *
  * Metadata about a single column.
- *
  */
 export interface GristColumn {
   id: string;

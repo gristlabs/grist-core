@@ -69,7 +69,7 @@ export interface GristAPI {
 }
 
 /**
- * Allows getting information from and nteracting with the Grist document to which a plugin or widget is attached.
+ * Allows getting information from and interacting with the Grist document to which a plugin or widget is attached.
  */
 export interface GristDocAPI {
   /**
@@ -83,19 +83,20 @@ export interface GristDocAPI {
   listTables(): Promise<string[]>;
 
   /**
-   * Returns a complete table of data in the format {colId: [values]}, including the 'id' column.
-   * Do not modify the returned arrays in-place, especially if used directly (not over RPC).
-   * TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
-   * ts-interface-builder does not properly support index-signature.
+   * Returns a complete table of data as [[RowRecords]], including the
+   * 'id' column. Do not modify the returned arrays in-place, especially if used
+   * directly (not over RPC).
    */
   fetchTable(tableId: string): Promise<any>;
+  // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified
+  // because ts-interface-builder does not properly support index-signature.
 
   /**
    * Applies an array of user actions.
-   * TODO: return type should be Promise<ApplyUAResult>, but this requires importing modules from
-   * `app/common` which is not currently supported by the build.
    */
   applyUserActions(actions: any[][], options?: any): Promise<any>;
+  // TODO: return type should be Promise<ApplyUAResult>, but this requires importing
+  // modules from `app/common` which is not currently supported by the build.
 }
 
 /**
@@ -104,15 +105,17 @@ export interface GristDocAPI {
 export interface GristView {
   /**
    * Like [[GristDocAPI.fetchTable]], but gets data for the custom section specifically, if there is any.
-   * TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified because
-   * ts-interface-builder does not properly support index-signature.
    */
   fetchSelectedTable(): Promise<any>;
+  // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified
+  // because ts-interface-builder does not properly support index-signature.
 
   /**
-   * Similar TODO to `fetchSelectedTable()` for return type.
+   * Fetches selected record by its `rowId`.
    */
   fetchSelectedRecord(rowId: number): Promise<any>;
+  // TODO: return type is Promise{[colId: string]: CellValue}> but cannot be specified
+  // because ts-interface-builder does not properly support index-signature.
 
   /**
    * Allow custom widget to be listed as a possible source for linking with SELECT BY.

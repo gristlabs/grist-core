@@ -33,6 +33,7 @@ import { WidgetAPI } from './WidgetAPI';
 export * from './TypeCheckers';
 export * from './FileParserAPI';
 export * from './GristAPI';
+export * from './GristData';
 export * from './GristTable';
 export * from './ImportSourceAPI';
 export * from './StorageAPI';
@@ -78,7 +79,7 @@ export const setSelectedRows = viewApi.setSelectedRows;
  * but decoding data by default, replacing e.g. ['D', timestamp] with
  * a moment date. Option `keepEncoded` skips the decoding step.
  */
-export async function fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
+ export async function fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
   const table = await viewApi.fetchSelectedTable();
   return options.keepEncoded ? table :
     mapValues<any[], any[]>(table, (col) => col.map(decodeObject));
@@ -305,10 +306,9 @@ export function mapColumnNamesBack(data: any, options?: {
  * by some value within the row potentially changing.  Handler may
  * in the future be called with null if the cursor moves away from
  * any row.
- * TODO: currently this will be called even if the content of a different row
- * changes.
  */
 export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown) {
+  // TODO: currently this will be called even if the content of a different row changes.
   on('message', async function(msg) {
     if (!msg.tableId || !msg.rowId || msg.rowId === 'new') { return; }
     const rec = await docApi.fetchSelectedRecord(msg.rowId);
