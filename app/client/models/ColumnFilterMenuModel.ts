@@ -1,17 +1,27 @@
 import { ColumnFilter } from "app/client/models/ColumnFilter";
-import { localeCompare, nativeCompare } from "app/common/gutil";
 import { CellValue } from "app/plugin/GristData";
 import { Computed, Disposable, Observable } from "grainjs";
 import escapeRegExp = require("lodash/escapeRegExp");
+import isNull = require("lodash/isNull");
 
 const MAXIMUM_SHOWN_FILTER_ITEMS = 500;
 
 export interface IFilterCount {
+
+  // label is the formatted value
   label: string;
+
+  // number of occurences in the table
   count: number;
+
+  // displayValue is the underlying value (from the display column, if any), useful to perform
+  // comparison
+  displayValue: any;
 }
 
 type ICompare<T> = (a: T, b: T) => number
+
+const localeCompare = new Intl.Collator('en-US', {numeric: true}).compare;
 
 export class ColumnFilterMenuModel extends Disposable {
 
@@ -22,7 +32,7 @@ export class ColumnFilterMenuModel extends Disposable {
   // computes a set of all keys that matches the search text.
   public readonly filterSet = Computed.create(this, this.searchValue, (_use, searchValue) => {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType!);
+    const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
     return new Set(
       this._valueCount
         .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(label))
@@ -34,12 +44,21 @@ export class ColumnFilterMenuModel extends Disposable {
   public readonly filteredValues = Computed.create(
     this, this.filterSet, this.isSortedByCount,
     (_use, filter, isSortedByCount) => {
-      const comparator: ICompare<[CellValue, IFilterCount]> = isSortedByCount ?
-        (a, b) => nativeCompare(b[1].count, a[1].count) :
-        (a, b) => localeCompare(a[1].label, b[1].label);
+      const prop: keyof IFilterCount = isSortedByCount ? 'count' : 'displayValue';
+      let isShownFirst: (val: any) => boolean = isNull;
+      if (['Date', 'DateTime', 'Numeric', 'Int'].includes(this.columnFilter.visibleColumnType)) {
+        isShownFirst = (val) => isNull(val) || isNaN(val);
+      }
+
+      const comparator: ICompare<any> = (a, b) => {
+        if (isShownFirst(a)) { return -1; }
+        if (isShownFirst(b)) { return 1; }
+        return localeCompare(a,  b);
+      };
+
       return this._valueCount
         .filter(([key]) => filter.has(key))
-        .sort(comparator);
+        .sort((a, b) => comparator(a[1][prop], b[1][prop]));
     }
   );
 

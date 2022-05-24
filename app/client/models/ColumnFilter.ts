@@ -24,7 +24,8 @@ export class ColumnFilter extends Disposable {
   private _include: boolean;
   private _values: Set<CellValue>;
 
-  constructor(private _initialFilterJson: string, private _columnType?: string) {
+  constructor(private _initialFilterJson: string, private _columnType: string = '',
+              public visibleColumnType: string = '') {
     super();
     this.setState(_initialFilterJson);
   }

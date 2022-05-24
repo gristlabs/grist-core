@@ -290,7 +290,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
     const options = fieldOrColumn.origCol().widgetOptionsJson;
     values = options.prop('choices')();
   }
-  return new Map(values.map((v) => [v, {label: String(v), count: 0}]));
+  return new Map(values.map((v) => [v, {label: String(v), count: 0, displayValue: v}]));
 }
 
 /**
@@ -301,7 +301,8 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
   const fieldOrColumn = filterInfo.fieldOrColumn;
   const columnType = fieldOrColumn.origCol.peek().type.peek();
-  const {keyMapFunc, labelMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
+  const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
+  const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
   const activeFilterBar = sectionFilter.viewSection.activeFilterBar;
 
   function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
@@ -310,14 +311,15 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const filterFunc = Computed.create(null, use => sectionFilter.buildFilterFunc(getFilterFunc, use));
   openCtl.autoDispose(filterFunc);
 
-  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType);
+  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType, visibleColumnType);
   sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
 
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
   const valueCounts = getEmptyCountMap(fieldOrColumn);
-  addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType});
+  addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType,
+                                        valueMapFunc});
   addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
-                                                               areHiddenRows: true});
+                                           areHiddenRows: true, valueMapFunc});
 
   const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
 
@@ -341,8 +343,9 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
 }
 
 /**
- * Returns two callback functions, `keyMapFunc` and `labelMapFunc`,
- * which map row ids to cell values and labels respectively.
+ * Returns three callback functions, `keyMapFunc`, `labelMapFunc`
+ * and `valueMapFunc`, which map row ids to cell values, labels
+ * and visible col value respectively.
  *
  * The functions vary based on the `columnType`. For example,
  * Reference Lists have a unique `labelMapFunc` that returns a list
@@ -357,6 +360,8 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
   const formatter = fieldOrColumn.visibleColFormatter();
 
   let labelMapFunc: (rowId: number) => string | string[];
+  const valueMapFunc: (rowId: number) => any = (rowId: number) => decodeObject(labelGetter(rowId)!);
+
   if (isRefListType(columnType)) {
     labelMapFunc = (rowId: number) => {
       const maybeLabels = labelGetter(rowId);
@@ -367,8 +372,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
   } else {
     labelMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
   }
-
-  return {keyMapFunc, labelMapFunc};
+  return {keyMapFunc, labelMapFunc, valueMapFunc};
 }
 
 /**
@@ -412,14 +416,19 @@ function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec
 
 interface ICountOptions {
   columnType: string;
+  // returns the indexing key for the filter
   keyMapFunc?: (v: any) => any;
+  // returns the string representation of the value (can involves some formatting).
   labelMapFunc?: (v: any) => any;
+  // returns the underlying value (useful for comparison)
+  valueMapFunc: (v: any) => any;
   areHiddenRows?: boolean;
 }
 
 /**
- * For each row id in Iterable, adds a key mapped with `keyMapFunc` and a value object with a `label` mapped
- * with `labelMapFunc` and a `count` representing the total number of times the key has been encountered.
+ * For each row id in Iterable, adds a key mapped with `keyMapFunc` and a value object with a
+ * `label` mapped with `labelMapFunc` and a `count` representing the total number of times the key
+ * has been encountered and a `displayValues` mapped with `valueMapFunc`.
  *
  * The optional column type controls how complex cell values are decomposed into keys (e.g. Choice Lists have
  * the possible choices as keys).
@@ -427,7 +436,7 @@ interface ICountOptions {
  */
 function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
                         { keyMapFunc = identity, labelMapFunc = identity, columnType,
-                          areHiddenRows = false }: ICountOptions) {
+                          areHiddenRows = false, valueMapFunc }: ICountOptions) {
 
   for (const rowId of rowIds) {
     let key = keyMapFunc(rowId);
@@ -436,7 +445,7 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
     if (isList(key) && (columnType === 'ChoiceList')) {
       const list = decodeObject(key) as unknown[];
       for (const item of list) {
-        addSingleCountToMap(valueMap, item, () => item, areHiddenRows);
+        addSingleCountToMap(valueMap, item, () => item, () => item, areHiddenRows);
       }
       continue;
     }
@@ -445,14 +454,15 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
     if (isList(key) && isRefListType(columnType)) {
       const refIds = decodeObject(key) as unknown[];
       const refLabels = labelMapFunc(rowId);
+      const displayValues = valueMapFunc(rowId);
       refIds.forEach((id, i) => {
-        addSingleCountToMap(valueMap, id, () => refLabels[i], areHiddenRows);
+        addSingleCountToMap(valueMap, id, () => refLabels[i], () => displayValues[i], areHiddenRows);
       });
       continue;
     }
     // For complex values, serialize the value to allow them to be properly stored
     if (Array.isArray(key)) { key = JSON.stringify(key); }
-    addSingleCountToMap(valueMap, key, () => labelMapFunc(rowId), areHiddenRows);
+    addSingleCountToMap(valueMap, key, () => labelMapFunc(rowId), () => valueMapFunc(rowId), areHiddenRows);
   }
 }
 
@@ -460,10 +470,10 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
  * Adds the `value` to `valueMap` using `labelGetter` to get the label and increments `count` unless
  * isHiddenRow is true.
  */
-function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any, labelGetter: () => any,
-                       isHiddenRow: boolean) {
+function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any, label: () => any,
+                             displayValue: () => any, isHiddenRow: boolean) {
   if (!valueMap.has(value)) {
-    valueMap.set(value, { label: labelGetter(), count: 0 });
+    valueMap.set(value, { label: label(), count: 0, displayValue: displayValue() });
   }
   if (!isHiddenRow) {
     valueMap.get(value)!.count++;
