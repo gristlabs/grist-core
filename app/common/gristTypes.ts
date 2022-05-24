@@ -337,6 +337,10 @@ export function isListType(type: string) {
   return type === "ChoiceList" || isRefListType(type);
 }
 
+export function isNumberType(type: string|undefined) {
+  return ['Numeric', 'Int'].includes(type || '');
+}
+
 export function isFullReferencingType(type: string) {
   return type.startsWith('Ref:') || isRefListType(type);
 }

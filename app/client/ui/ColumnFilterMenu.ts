@@ -19,16 +19,18 @@ import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
 import {isEquivalentFilter} from "app/common/FilterState";
-import {Computed, dom, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId, styled} from 'grainjs';
+import {Computed, dom, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId, Observable,
+  styled} from 'grainjs';
 import concat = require('lodash/concat');
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
 import partition = require('lodash/partition');
 import some = require('lodash/some');
 import tail = require('lodash/tail');
+import debounce = require('lodash/debounce');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {decodeObject} from 'app/plugin/objtypes';
-import {isList, isRefListType} from 'app/common/gristTypes';
+import {isList, isNumberType, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
@@ -39,12 +41,13 @@ interface IFilterMenuOptions {
   doSave: (reset: boolean) => void;
   onClose: () => void;
   renderValue: (key: CellValue, value: IFilterCount) => DomElementArg;
+  valueParser?: (val: string) => any;
 }
 
 const testId = makeTestId('test-filter-menu-');
 
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doSave, onClose, renderValue } = opts;
+  const { model, doSave, onClose, renderValue, valueParser } = opts;
   const { columnFilter } = model;
   // Save the initial state to allow reverting back to it on Cancel
   const initialStateJson = columnFilter.makeFilterJson();
@@ -52,12 +55,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
 
-  // Listen for changes to filterFunc, and update checkboxes accordingly
-  const filterListener = columnFilter.filterFunc.addListener(func => {
+  // Listen for changes to filterFunc, and update checkboxes accordingly. Debounce is needed to
+  // prevent some weirdness when users click on a checkbox while focus was on a range input (causing
+  // sometimes the checkbox to not toggle)
+  const filterListener = columnFilter.filterFunc.addListener(debounce(func => {
     for (const [value, elem] of checkboxMap) {
       elem.checked = func(value);
     }
-  });
+  }));
 
   const {searchValue: searchValueObs, filteredValues, filteredKeys, isSortedByCount} = model;
 
@@ -65,10 +70,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
 
   let searchInput: HTMLInputElement;
+  let minRangeInput: HTMLInputElement;
   let reset = false;
 
-  // Gives focus to the searchInput on open
-  setTimeout(() => searchInput.focus(), 0);
+  // Gives focus to the searchInput on open (or to the min input if the range filter is present).
+  setTimeout(() => (minRangeInput || searchInput).select(), 0);
 
   const filterMenu: HTMLElement = cssMenu(
     { tabindex: '-1' }, // Allow menu to be focused
@@ -80,6 +86,18 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       Enter: () => onClose(),
       Escape: () => onClose()
     }),
+
+    // Filter by range
+    dom.maybe(isNumberType(columnFilter.columnType), () => [
+      cssRangeHeader('Filter by Range'),
+      cssRangeContainer(
+        minRangeInput = rangeInput('Min ', columnFilter.min, {valueParser}, testId('min')),
+        cssRangeInputSeparator('→'),
+        rangeInput('Max ', columnFilter.max, {valueParser}, testId('max')),
+      ),
+      cssMenuDivider(),
+    ]),
+
     cssMenuHeader(
       cssSearchIcon('Search'),
       searchInput = cssSearch(
@@ -149,8 +167,9 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           cssLabel(
             cssCheckboxSquare(
               {type: 'checkbox'},
-              dom.on('change', (_ev, elem) =>
-                elem.checked ? columnFilter.add(key) : columnFilter.delete(key)),
+              dom.on('change', (_ev, elem) => {
+                elem.checked ? columnFilter.add(key) : columnFilter.delete(key);
+             }),
               (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
               dom.style('position', 'relative'),
             ),
@@ -192,6 +211,37 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     )
   );
   return filterMenu;
+}
+
+function rangeInput(placeholder: string, obs: Observable<number|undefined>,
+                    opts: {valueParser?: (val: string) => any},
+                    ...args: DomElementArg[]) {
+  const valueParser = opts.valueParser || Number;
+  const formatValue = ((val: any) => val?.toString() || '');
+  let editMode = false;
+  let el: HTMLInputElement;
+  // keep input content in sync only when no edit are going on.
+  const lis = obs.addListener(() => editMode ? null : el.value = formatValue(obs.get()));
+  // handle change
+  const onBlur = () => {
+    onInput.flush();
+    editMode = false;
+    el.value = formatValue(obs.get());
+  };
+  const onInput = debounce(() => {
+    editMode = true;
+    const val = el.value ? valueParser(el.value) : undefined;
+    if (val === undefined || !isNaN(val)) {
+      obs.set(val);
+    }
+  }, 10);
+  return el = cssRangeInput(
+    {inputmode: 'numeric', placeholder, value: formatValue(obs.get())},
+    dom.on('input', onInput),
+    dom.on('blur', onBlur),
+    dom.autoDispose(lis),
+    ...args
+  );
 }
 
 
@@ -304,15 +354,13 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
   const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
   const activeFilterBar = sectionFilter.viewSection.activeFilterBar;
+  const valueParser = (fieldOrColumn as any).createValueParser?.();
 
   function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
     return col.getRowId() === fieldOrColumn.getRowId() ? null : colFilter;
   }
   const filterFunc = Computed.create(null, use => sectionFilter.buildFilterFunc(getFilterFunc, use));
   openCtl.autoDispose(filterFunc);
-
-  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType, visibleColumnType);
-  sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
 
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
   const valueCounts = getEmptyCountMap(fieldOrColumn);
@@ -321,7 +369,11 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
                                            areHiddenRows: true, valueMapFunc});
 
-  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, Array.from(valueCounts));
+  const valueCountsArr = Array.from(valueCounts);
+  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType, visibleColumnType,
+                                           valueCountsArr.map((arr) => arr[0]));
+  sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
+  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, valueCountsArr);
 
   return columnFilterMenu(openCtl, {
     model,
@@ -339,6 +391,7 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
       }
     },
     renderValue: getRenderFunc(columnType, fieldOrColumn),
+    valueParser,
   });
 }
 
@@ -615,4 +668,25 @@ const cssLabel = styled(cssCheckboxLabel, `
 const cssToken = styled('div', `
   margin-left: 8px;
   margin-right: 12px;
+`);
+const cssRangeHeader = styled(cssMenuItem, `
+  padding: unset;
+  border-radius: 0 0 3px 0;
+  text-transform: uppercase;
+  font-size: var(--grist-x-small-font-size);
+  margin: 16px 16px 6px 16px;
+`);
+const cssRangeContainer = styled(cssMenuItem, `
+  display: flex;
+  justify-content: left;
+  column-gap: 10px;
+`);
+const cssRangeInputSeparator = styled('span', `
+  font-weight: 600;
+  position: relative;
+  top: 3px;
+  color: var(--grist-color-slate);
+`);
+const cssRangeInput = styled('input', `
+  width: 80px;
 `);

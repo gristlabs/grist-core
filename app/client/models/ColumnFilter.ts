@@ -1,6 +1,6 @@
 import {ColumnFilterFunc, makeFilterFunc} from "app/common/ColumnFilterFunc";
 import {CellValue} from 'app/common/DocActions';
-import {FilterSpec, FilterState, makeFilterState} from "app/common/FilterState";
+import {FilterSpec, FilterState, isRangeFilter, makeFilterState} from "app/common/FilterState";
 import {nativeCompare} from 'app/common/gutil';
 import {Computed, Disposable, Observable} from 'grainjs';
 
@@ -13,6 +13,10 @@ import {Computed, Disposable, Observable} from 'grainjs';
  * been customized.
  */
 export class ColumnFilter extends Disposable {
+
+  public min = Observable.create<number|undefined>(this, undefined);
+  public max = Observable.create<number|undefined>(this, undefined);
+
   public readonly filterFunc = Observable.create<ColumnFilterFunc>(this, () => true);
 
   // Computed that returns true if filter is an inclusion filter, false otherwise.
@@ -25,9 +29,11 @@ export class ColumnFilter extends Disposable {
   private _values: Set<CellValue>;
 
   constructor(private _initialFilterJson: string, private _columnType: string = '',
-              public visibleColumnType: string = '') {
+              public visibleColumnType: string = '', private _allValues: CellValue[] = []) {
     super();
     this.setState(_initialFilterJson);
+    this.autoDispose(this.min.addListener(() => this._updateState()));
+    this.autoDispose(this.max.addListener(() => this._updateState()));
   }
 
   public get columnType() {
@@ -36,13 +42,25 @@ export class ColumnFilter extends Disposable {
 
   public setState(filterJson: string|FilterSpec) {
     const state = makeFilterState(filterJson);
-    this._include = state.include;
-    this._values = state.values;
+    if (isRangeFilter(state)) {
+      this.min.set(state.min);
+      this.max.set(state.max);
+      // Setting _include to false allows to make sure that the filter reverts to all values
+      // included when users delete one bound (min or max) while the other bound is already
+      // undefined (filter reverts to switching by value when both min and max are undefined).
+      this._include = false;
+      this._values = new Set();
+    } else {
+      this.min.set(undefined);
+      this.max.set(undefined);
+      this._include = state.include;
+      this._values = state.values;
+    }
     this._updateState();
   }
 
   public includes(val: CellValue): boolean {
-    return this._values.has(val) === this._include;
+    return this.filterFunc.get()(val);
   }
 
   public add(val: CellValue) {
@@ -50,6 +68,7 @@ export class ColumnFilter extends Disposable {
   }
 
   public addMany(values: CellValue[]) {
+    this._toValues();
     for (const val of values) {
       this._include ? this._values.add(val) : this._values.delete(val);
     }
@@ -61,6 +80,7 @@ export class ColumnFilter extends Disposable {
   }
 
   public deleteMany(values: CellValue[]) {
+    this._toValues();
     for (const val of values) {
       this._include ? this._values.delete(val) : this._values.add(val);
     }
@@ -81,8 +101,14 @@ export class ColumnFilter extends Disposable {
 
   // For saving the filter value back.
   public makeFilterJson(): string {
-    const values = Array.from(this._values).sort(nativeCompare);
-    return JSON.stringify(this._include ? {included: values} : {excluded: values});
+    let filter: any;
+    if (this.min.get() !== undefined || this.max.get() !== undefined) {
+      filter = {min: this.min.get(), max: this.max.get()};
+    } else {
+      const values = Array.from(this._values).sort(nativeCompare);
+      filter = {[this._include ? 'included' : 'excluded']: values};
+    }
+    return JSON.stringify(filter);
   }
 
   public hasChanged(): boolean {
@@ -94,7 +120,21 @@ export class ColumnFilter extends Disposable {
   }
 
   private _getState(): FilterState {
-    return {include: this._include, values: this._values};
+    return {include: this._include, values: this._values, min: this.min.get(), max: this.max.get()};
+  }
+
+  private _isRange() {
+    return isRangeFilter(this._getState());
+  }
+
+  private _toValues() {
+    if (this._isRange()) {
+      const func = this.filterFunc.get();
+      const state = this._include ?
+        { included: this._allValues.filter((val) => func(val)) } :
+        { excluded: this._allValues.filter((val) => !func(val)) };
+      this.setState(state);
+    }
   }
 }
 
