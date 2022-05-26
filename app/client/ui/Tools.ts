@@ -13,17 +13,18 @@ import {cssLink} from 'app/client/ui2018/links';
 import {menuAnnotate} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {userOverrideParams} from 'app/common/gristUrls';
+import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-tools-');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const docPageModel = gristDoc.docPageModel;
-  const isOwner = docPageModel.currentDoc.get()?.access === 'owners';
+  const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
-    canViewAccessRules.set((isOwner && !isOverridden) ||
+    canViewAccessRules.set((isDocOwner && !isOverridden) ||
                            gristDoc.docModel.rules.getNumRows() > 0);
   }
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
@@ -103,7 +104,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             testId('doctour'),
           ),
         ),
-        !isOwner ? null : cssPageEntrySmall(
+        !isDocOwner ? null : cssPageEntrySmall(
           cssPageLink(cssPageIcon('Remove'),
             dom.on('click', () => confirmModal('Delete document tour?', 'Delete', () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))

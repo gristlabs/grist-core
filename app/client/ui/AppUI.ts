@@ -1,4 +1,5 @@
 import {DocUsageBanner} from 'app/client/components/DocUsageBanner';
+import {SiteUsageBanner} from 'app/client/components/SiteUsageBanner';
 import {domAsync} from 'app/client/lib/domAsync';
 import {loadBillingPage} from 'app/client/lib/imports';
 import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
@@ -102,6 +103,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
     },
     headerMain: createTopBarHome(appModel),
     contentMain: createDocMenu(pageModel),
+    contentTop: dom.create(SiteUsageBanner, pageModel),
   });
 }
 

@@ -1,3 +1,4 @@
+import {isOwner} from 'app/common/roles';
 import {ManagerDelta, PermissionDelta, UserAPI} from 'app/common/UserAPI';
 
 /**
@@ -7,7 +8,7 @@ import {ManagerDelta, PermissionDelta, UserAPI} from 'app/common/UserAPI';
  */
 export async function resetOrg(api: UserAPI, org: string|number) {
   const session = await api.getSessionActive();
-  if (!(session.org && session.org.access === 'owners')) {
+  if (!isOwner(session.org)) {
     throw new Error('user must be an owner of the org to be reset');
   }
   const billing = api.getBillingAPI();

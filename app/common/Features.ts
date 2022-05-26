@@ -3,6 +3,12 @@ export interface SnapshotWindow {
   unit: 'days' | 'month' | 'year';
 }
 
+// Information about the product associated with an org or orgs.
+export interface Product {
+  name: string;
+  features: Features;
+}
+
 // A product is essentially a list of flags and limits that we may enforce/support.
 export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
@@ -59,4 +65,9 @@ export interface Features {
 // to org (even though this is not enforced).
 export function canAddOrgMembers(features: Features): boolean {
   return features.maxWorkspacesPerOrg !== 1;
+}
+
+// Returns true if `product` is free.
+export function isFreeProduct(product: Product): boolean {
+  return ['starter', 'teamFree'].includes(product.name);
 }

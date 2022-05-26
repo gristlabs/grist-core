@@ -1,4 +1,4 @@
-import {Features} from 'app/common/Features';
+import {Features, Product as IProduct} from 'app/common/Features';
 import {nativeValues} from 'app/gen-server/lib/values';
 import * as assert from 'assert';
 import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
@@ -66,14 +66,6 @@ export const suspendedFeatures: Features = {
   maxSharesPerDoc: 0,
   maxWorkspacesPerOrg: 0,
 };
-
-/**
- * Basic fields needed for products supported by Grist.
- */
-export interface IProduct {
-  name: string;
-  features: Features;
-}
 
 /**
  *

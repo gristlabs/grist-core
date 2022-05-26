@@ -17,10 +17,10 @@ export class HostedMetadataManager {
   private _lastPushTime: number = 0.0;
 
   // Callback for next opportunity to push changes.
-  private _timeout: any = null;
+  private _timeout: NodeJS.Timeout|null = null;
 
   // Maintains the update Promise to wait on it if the class is closing.
-  private _push: Promise<any>|null;
+  private _push: Promise<void>|null;
 
   // The default delay in milliseconds between metadata pushes to the database.
   private readonly _minPushDelayMs: number;

@@ -283,12 +283,9 @@ export class UserManager extends Disposable {
             !member.name ? null : cssMemberSecondary(
               member.email, dom.cls('member-email'), testId('um-member-email')
             ),
-            dom('span',
-              (this._model.isPersonal
-                ? this._buildSelfAnnotationDom(member)
-                : this._buildAnnotationDom(member)
-              ),
-              testId('um-member-annotation'),
+            (this._model.isPersonal
+              ? this._buildSelfAnnotationDom(member)
+              : this._buildAnnotationDom(member)
             ),
           ),
           member.isRemoved ? null : this._memberRoleSelector(member.effectiveAccess,
@@ -364,15 +361,18 @@ export class UserManager extends Disposable {
       const annotation = annotations.users.get(user.email);
       if (!annotation) { return null; }
 
+      let memberType: string;
       if (annotation.isSupport) {
-        return cssMemberType('Grist support');
+        memberType = 'Grist support';
       } else if (annotation.isMember && annotations.hasTeam) {
-        return cssMemberType('Team member');
+        memberType = 'Team member';
       } else if (annotations.hasTeam) {
-        return cssMemberType('Outside collaborator');
+        memberType = 'Outside collaborator';
       } else {
-        return cssMemberType('Collaborator');
+        memberType = 'Collaborator';
       }
+
+      return cssMemberType(memberType, testId('um-member-annotation'));
     });
   }
 

@@ -1,3 +1,5 @@
+import {Organization} from 'app/common/UserAPI';
+
 export const OWNER  = 'owners';
 export const EDITOR = 'editors';
 export const VIEWER = 'viewers';
@@ -37,6 +39,15 @@ export function canDelete(role: string|null): boolean {
 
 export function canView(role: string|null): boolean {
   return role !== null;
+}
+
+export function isOwner(resource: {access: Role}|null): resource is {access: Role} {
+  return resource?.access === OWNER;
+}
+
+export function canUpgradeOrg(org: Organization|null): org is Organization {
+  // TODO: Need to consider billing managers and support user.
+  return isOwner(org);
 }
 
 // Returns true if the role string is a valid role or null.

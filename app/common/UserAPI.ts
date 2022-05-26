@@ -6,7 +6,7 @@ import {BrowserSettings} from 'app/common/BrowserSettings';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Features} from 'app/common/Features';
+import {Product} from 'app/common/Features';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {isClient} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
@@ -71,12 +71,6 @@ export interface BillingAccount {
   externalOptions?: {
     invoiceId?: string;
   };
-}
-
-// Information about the product associated with an org or orgs.
-export interface Product {
-  name: string;
-  features: Features;
 }
 
 // The upload types vary based on which fetch implementation is in use.  This is

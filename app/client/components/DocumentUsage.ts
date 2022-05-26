@@ -6,9 +6,10 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/DocUsage';
-import {Features} from 'app/common/Features';
+import {Features, isFreeProduct} from 'app/common/Features';
 import {commonUrls} from 'app/common/gristUrls';
 import {capitalizeFirstWord} from 'app/common/gutil';
+import {canUpgradeOrg} from 'app/common/roles';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 
 const testId = makeTestId('test-doc-usage-');
@@ -156,12 +157,15 @@ export class DocumentUsage extends Disposable {
       const status = use(this._dataLimitStatus);
       if (!org || !status) { return null; }
 
+      const product = org.billingAccount?.product;
       return buildMessage([
-        buildLimitStatusMessage(status, org.billingAccount?.product.features, {
+        buildLimitStatusMessage(status, product?.features, {
           disableRawDataLink: true
         }),
-        ' ',
-        buildUpgradeMessage(org.access === 'owners')
+        (product && isFreeProduct(product)
+          ? [' ', buildUpgradeMessage(canUpgradeOrg(org))]
+          : null
+        ),
       ]);
     });
   }
@@ -226,8 +230,8 @@ export function buildLimitStatusMessage(
   }
 }
 
-export function buildUpgradeMessage(isOwner: boolean, variant: 'short' | 'long' = 'long') {
-  if (!isOwner) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
+export function buildUpgradeMessage(canUpgrade: boolean, variant: 'short' | 'long' = 'long') {
+  if (!canUpgrade) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
 
   const upgradeLinkText = 'start your 30-day free trial of the Pro plan.';
   return [

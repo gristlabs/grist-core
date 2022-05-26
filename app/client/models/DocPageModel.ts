@@ -20,7 +20,7 @@ import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
-import {canEdit} from 'app/common/roles';
+import {canEdit, isOwner} from 'app/common/roles';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
@@ -210,19 +210,19 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public offerRecovery(err: Error) {
     const isDenied = (err as any).code === 'ACL_DENY';
-    const isOwner = this.currentDoc.get()?.access === 'owners';
+    const isDocOwner = isOwner(this.currentDoc.get());
     confirmModal(
       "Error accessing document",
       "Reload",
       async () => window.location.reload(true),
-      isOwner ? `You can try reloading the document, or using recovery mode. ` +
+      isDocOwner ? `You can try reloading the document, or using recovery mode. ` +
         `Recovery mode opens the document to be fully accessible to owners, and ` +
         `inaccessible to others. It also disables formulas. ` +
         `[${err.message}]` :
         isDenied ? `Sorry, access to this document has been denied. [${err.message}]` :
         `Document owners can attempt to recover the document. [${err.message}]`,
       {  hideCancel: true,
-         extraButtons: (isOwner && !isDenied) ? bigBasicButton('Enter recovery mode', dom.on('click', async () => {
+         extraButtons: (isDocOwner && !isDenied) ? bigBasicButton('Enter recovery mode', dom.on('click', async () => {
            await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
            window.location.reload(true);
          }), testId('modal-recovery-mode')) : null,
