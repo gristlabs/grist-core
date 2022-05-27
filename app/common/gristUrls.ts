@@ -5,6 +5,7 @@ import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {UIRowId} from 'app/common/UIRowId';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
@@ -520,6 +521,23 @@ export interface GristLoadConfig {
   tagManagerId?: string;
 
   activation?: ActivationState;
+
+  // Parts of the UI to hide
+  hideUiElements?: IHideableUiElement[];
+
+  // String to append to the end of the HTML document.title
+  pageTitleSuffix?: string;
+}
+
+export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
+export type IHideableUiElement = typeof HideableUiElements.type;
+
+export function shouldHideUiElement(elem: IHideableUiElement): boolean {
+  return (getGristConfig().hideUiElements || []).includes(elem);
+}
+
+export function getPageTitleSuffix(config?: GristLoadConfig) {
+  return config?.pageTitleSuffix ?? " - Grist";
 }
 
 /**

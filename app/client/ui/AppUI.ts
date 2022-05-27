@@ -18,6 +18,8 @@ import {RightPanel} from 'app/client/ui/RightPanel';
 import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
 import {WelcomePage} from 'app/client/ui/WelcomePage';
 import {testId} from 'app/client/ui2018/cssVars';
+import {getPageTitleSuffix} from 'app/common/gristUrls';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe} from 'grainjs';
 
 // When integrating into the old app, we might in theory switch between new-style and old-style
@@ -90,7 +92,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
       page === 'templates' ? 'Examples & Templates' :
       ws ? ws.name : appModel.currentOrgName
     );
-    document.title = `${name} - Grist`;
+    document.title = `${name}${getPageTitleSuffix(getGristConfig())}`;
   }));
 
   return pagePanels({
@@ -127,7 +129,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
 
   // Set document title to strings like "DocName - Grist"
   owner.autoDispose(subscribe(pageModel.currentDocTitle, (use, docName) => {
-    document.title = `${docName} - Grist`;
+    document.title = `${docName}${getPageTitleSuffix(getGristConfig())}`;
   }));
 
   // Called after either panel is closed, opened, or resized.

@@ -1,4 +1,4 @@
-import {GristLoadConfig} from 'app/common/gristUrls';
+import {getPageTitleSuffix, GristLoadConfig, HideableUiElements, IHideableUiElement} from 'app/common/gristUrls';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -38,6 +38,8 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     pathOnly,
     supportAnon: shouldSupportAnon(),
     supportEngines: getSupportedEngineChoices(),
+    hideUiElements: getHiddenUiElements(),
+    pageTitleSuffix: configuredPageTitleSuffix(),
     pluginUrl,
     stripeAPIKey: process.env.STRIPE_PUBLIC_API_KEY,
     googleClientId: process.env.GOOGLE_CLIENT_ID,
@@ -110,6 +112,7 @@ export function makeSendAppPage(opts: {
     // Temporary changes end.
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
+      .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server?.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
       .replace("<!-- INSERT CONFIG -->", `<script>window.gristConfig = ${JSON.stringify(config)};</script>`);
@@ -120,4 +123,17 @@ export function makeSendAppPage(opts: {
 function shouldSupportAnon() {
   // Enable UI for anonymous access if a flag is explicitly set in the environment
   return process.env.GRIST_SUPPORT_ANON === "true";
+}
+
+function getHiddenUiElements(): IHideableUiElement[] {
+  const str = process.env.GRIST_HIDE_UI_ELEMENTS;
+  if (!str) {
+    return [];
+  }
+  return HideableUiElements.checkAll(str.split(","));
+}
+
+function configuredPageTitleSuffix() {
+  const result = process.env.GRIST_PAGE_TITLE_SUFFIX;
+  return result === "_blank" ? "" : result;
 }

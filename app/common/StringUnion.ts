@@ -33,6 +33,10 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value;
   };
 
+  const checkAll = (arr: string[]): UnionType[] => {
+    return arr.map(check);
+  };
+
   /**
    * StringUnion.parse(value) returns value when it's valid, and undefined otherwise.
    */
@@ -40,6 +44,6 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value != null && guard(value) ? value : undefined;
   };
 
-  const unionNamespace = {guard, check, parse, values};
+  const unionNamespace = {guard, check, parse, values, checkAll};
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };

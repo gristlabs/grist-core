@@ -8,7 +8,7 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IconName} from "app/client/ui2018/IconList";
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 import {cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
@@ -142,6 +142,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
     cssDropdownContent(
       cssDropdownHeader(
         cssDropdownHeaderTitle('Notifications'),
+        shouldHideUiElement("helpCenter") ? null :
         cssDropdownFeedbackLink(
           cssDropdownFeedbackIcon('Feedback'),
           'Give feedback',

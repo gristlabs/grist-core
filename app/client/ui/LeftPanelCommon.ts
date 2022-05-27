@@ -17,7 +17,7 @@ import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {AppModel} from 'app/client/models/AppModel';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, DomContents, Observable, styled} from 'grainjs';
 
 /**
@@ -25,6 +25,9 @@ import {dom, DomContents, Observable, styled} from 'grainjs';
  * HelpCenter in a new tab.
  */
 export function createHelpTools(appModel: AppModel, spacer = true): DomContents {
+  if (shouldHideUiElement("helpCenter")) {
+    return [];
+  }
   return [
     spacer ? cssSpacer() : null,
     cssSplitPageEntry(

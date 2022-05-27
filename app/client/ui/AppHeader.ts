@@ -2,6 +2,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {shouldHideUiElement} from 'app/common/gristUrls';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
@@ -64,7 +65,7 @@ export class AppHeader extends Disposable {
             null),
 
           // Show link to billing pages.
-          currentOrg && !currentOrg.owner ?
+          currentOrg && !currentOrg.owner && !shouldHideUiElement("billing") ?
             // For links, disabling with just a class is hard; easier to just not make it a link.
             // TODO weasel menus should support disabling menuItemLink.
             (isBillingManager ?
