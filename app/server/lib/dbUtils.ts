@@ -55,8 +55,12 @@ export async function getOrCreateConnection(): Promise<Connection> {
       // If multiple servers are started within the same process, we
       // share the database connection.  This saves locking trouble
       // with Sqlite.
-      return getConnection();
+      const connection = getConnection();
+      return connection;
     } catch (e) {
+      if (!String(e).match(/ConnectionNotFoundError/)) {
+        throw e;
+      }
       const connection = await createConnection();
       // When using Sqlite, set a busy timeout of 3s to tolerate a little
       // interference from connections made by tests. Logging doesn't show

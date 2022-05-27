@@ -13,6 +13,7 @@
 // changed during construction of a query.
 
 import * as sqlite3 from '@gristlabs/sqlite3';
+import * as log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
 import isEqual = require('lodash/isEqual');
 import {EntityManager, QueryRunner} from 'typeorm';
@@ -102,6 +103,7 @@ export function applyPatch() {
       await queryRunner.commitTransaction();
       return result;
     } catch (err) {
+      log.debug(`SQLite transaction error [${arg1} ${arg2}] - ${err}`);
       try {
         // we throw original error even if rollback thrown an error
         await queryRunner.rollbackTransaction();
