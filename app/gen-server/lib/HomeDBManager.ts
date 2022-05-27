@@ -50,6 +50,7 @@ import {
   now,
   readJson
 } from 'app/gen-server/sqlUtils';
+import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import * as log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -60,10 +61,8 @@ import {Request} from "express";
 import {
   Brackets,
   Connection,
-  createConnection,
   DatabaseType,
   EntityManager,
-  getConnection,
   SelectQueryBuilder,
   WhereExpression
 } from "typeorm";
@@ -345,14 +344,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async connect(): Promise<void> {
-    try {
-      // If multiple servers are started within the same process, we
-      // share the database connection.  This saves locking trouble
-      // with Sqlite.
-      this._connection = getConnection();
-    } catch (e) {
-      this._connection = await createConnection();
-    }
+    this._connection = await getOrCreateConnection();
     this._dbType = this._connection.driver.options.type;
   }
 

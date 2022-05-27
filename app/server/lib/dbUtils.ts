@@ -1,5 +1,6 @@
 import {synchronizeProducts} from 'app/gen-server/entity/Product';
-import {Connection, createConnection} from 'typeorm';
+import {Mutex} from 'async-mutex';
+import {Connection, createConnection, getConnection} from 'typeorm';
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -38,9 +39,37 @@ export async function getMigrations(connection: Connection): Promise<MigrationSu
  * Run any needed migrations, and make sure products are up to date.
  */
 export async function updateDb(connection?: Connection) {
-  connection = connection || await createConnection();
+  connection = connection || await getOrCreateConnection();
   await runMigrations(connection);
   await synchronizeProducts(connection, true);
+}
+
+/**
+ * Get a connection to db if one exists, or create one. Serialized to
+ * avoid duplication.
+ */
+const connectionMutex = new Mutex();
+export async function getOrCreateConnection(): Promise<Connection> {
+  return connectionMutex.runExclusive(async() => {
+    try {
+      // If multiple servers are started within the same process, we
+      // share the database connection.  This saves locking trouble
+      // with Sqlite.
+      return getConnection();
+    } catch (e) {
+      const connection = await createConnection();
+      // When using Sqlite, set a busy timeout of 3s to tolerate a little
+      // interference from connections made by tests. Logging doesn't show
+      // any particularly slow queries, but bad luck is possible.
+      // This doesn't affect when Postgres is in use. It also doesn't have
+      // any impact when there is a single connection to the db, as is the
+      // case when Grist is run as a single process.
+      if (connection.driver.options.type === 'sqlite') {
+        await connection.query('PRAGMA busy_timeout = 3000');
+      }
+      return connection;
+    }
+  });
 }
 
 export async function runMigrations(connection: Connection) {

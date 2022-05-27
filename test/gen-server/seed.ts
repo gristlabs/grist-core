@@ -25,7 +25,7 @@
 import {addPath} from 'app-module-path';
 import {IHookCallbackContext} from 'mocha';
 import * as path from 'path';
-import {Connection, createConnection, getConnectionManager, Repository} from 'typeorm';
+import {Connection, getConnectionManager, Repository} from 'typeorm';
 
 if (require.main === module) {
   addPath(path.dirname(path.dirname(__dirname)));
@@ -42,7 +42,7 @@ import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
-import {runMigrations, undoLastMigration, updateDb} from 'app/server/lib/dbUtils';
+import {getOrCreateConnection, runMigrations, undoLastMigration, updateDb} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
 
@@ -512,7 +512,7 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
   // sqlite db is in memory (":memory:") there's nothing to delete.
   const uncommitted = !connection;  // has user already created a connection?
                                     // if so we won't be able to delete sqlite db
-  connection = connection || await createConnection();
+  connection = connection || await getOrCreateConnection();
   const opt = connection.driver.options;
   if (process.env.TEST_CLEAN_DATABASE) {
     if (opt.type === 'sqlite') {
@@ -527,7 +527,7 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
         if (await fse.pathExists(database)) {
           await fse.unlink(database);
         }
-        connection = await createConnection();
+        connection = await getOrCreateConnection();
       }
     } else if (opt.type === 'postgres') {
       // recreate schema, destroying everything that was inside it
@@ -555,7 +555,7 @@ export async function addSeedData(connection: Connection) {
 }
 
 export async function createBenchmarkDb(connection?: Connection) {
-  connection = connection || await createConnection();
+  connection = connection || await getOrCreateConnection();
   await updateDb(connection);
   await connection.transaction(async tr => {
     const seed = new Seed(tr.connection);
@@ -629,18 +629,18 @@ async function main() {
     await createInitialDb();
     return;
   } else if (cmd === 'benchmark') {
-    const connection = await createConnection();
+    const connection = await getOrCreateConnection();
     await createInitialDb(connection, false);
     await createBenchmarkDb(connection);
     return;
   } else if (cmd === 'migrate') {
     process.env.TYPEORM_LOGGING = 'true';
-    const connection = await createConnection();
+    const connection = await getOrCreateConnection();
     await runMigrations(connection);
     return;
   } else if (cmd === 'revert') {
     process.env.TYPEORM_LOGGING = 'true';
-    const connection = await createConnection();
+    const connection = await getOrCreateConnection();
     await undoLastMigration(connection);
     return;
   } else if (cmd === 'serve') {

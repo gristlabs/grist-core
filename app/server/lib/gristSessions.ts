@@ -73,8 +73,16 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
       const store = new SQLiteStore({
         dir: path.dirname(sessionsDB),
         db: path.basename(sessionsDB),    // SQLiteStore no longer appends a .db suffix.
-        table: 'sessions'
+        table: 'sessions',
       });
+      // In testing, and monorepo's "yarn start", session is accessed from multiple
+      // processes, so could hit lock failures.
+      // connect-sqlite3 has a concurrentDb: true flag that can be set, but
+      // it puts the database in WAL mode, which would have implications
+      // for self-hosters (a second file to think about). Instead we just
+      // set a busy timeout.
+      store.db.run('PRAGMA busy_timeout = 1000');
+
       return assignIn(store, { async close() {}});
     };
   }
