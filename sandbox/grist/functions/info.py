@@ -10,6 +10,7 @@ import re
 import six
 
 import column
+import docmodel
 from functions import date      # pylint: disable=import-error
 from functions.unimplemented import unimplemented
 from objtypes import CellError
@@ -532,6 +533,26 @@ def CELL(info_type, reference):
   Returns the requested information about the specified cell. This is not implemented in Grist
   """
   raise NotImplementedError()
+
+
+def PEEK(func):
+  """
+  Evaluates the given expression without creating dependencies
+  or requiring that referenced values are up to date, using whatever value it finds in a cell.
+  This is useful for preventing circular reference errors, particularly in trigger formulas.
+
+  For example, if the formula for `A` depends on `$B` and the formula for `B` depends on `$A`,
+  then normally this would raise a circular reference error because each value needs to be
+  calculated before the other. But if `A` uses `PEEK($B)` then it will simply get the value
+  already stored in `$B` without requiring that `$B` is first calculated to the latest value.
+  Therefore `A` will be calculated first, and `B` can use `$A` without problems.
+  """
+  engine = docmodel.global_docmodel._engine
+  engine._peeking = True
+  try:
+    return func()
+  finally:
+    engine._peeking = False
 
 
 def RECORD(record_or_list, dates_as_iso=False, expand_refs=0):

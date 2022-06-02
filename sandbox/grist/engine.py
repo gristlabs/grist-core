@@ -177,6 +177,9 @@ class Engine(object):
     # on any of these cells implies a circular dependency.
     self._locked_cells = set()
 
+    # Set to True by the PEEK() function to temporarily disable dependency tracking
+    self._peeking = False
+
     # The lists of actions of different kinds, built up while applying an action.
     self.out_actions = action_obj.ActionGroup()
 
@@ -473,6 +476,9 @@ class Engine(object):
   def _use_node(self, node, relation, row_ids=[]):
     # This is used whenever a formula accesses any part of any record. It's hot code, and
     # it's worth optimizing.
+
+    if self._peeking:
+      return
 
     if self._current_node:
       # Add an edge to indicate that the node being computed depends on the node passed in.

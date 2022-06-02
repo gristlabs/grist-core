@@ -19,6 +19,7 @@ LAZY_ARG_FUNCTIONS = {
   'ISERR': slice(0, 1),
   'ISERROR': slice(0, 1),
   'IFERROR': slice(0, 1),
+  'PEEK': slice(0, 1),
 }
 
 def make_formula_body(formula, default_value, assoc_value=None):

@@ -701,3 +701,70 @@ else:
       [ 2,   2,    circle,      circle],
       [ 3,   3,    circle,      circle],
     ])
+
+  def test_peek(self):
+    """
+    Test using the PEEK function to avoid circular errors in formulas.
+    """
+    col = testutil.col_schema_row
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          col(31, "A", "Numeric", False, "$B + 1", recalcDeps=[31, 32]),
+          col(32, "B", "Numeric", False, "$A + 1", recalcDeps=[31, 32]),
+        ]]
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "A", "B"],
+        ]
+      }
+    })
+    self.load_sample(sample)
+
+    # Normal formulas without PEEK() raise a circular error as expected.
+    self.add_record("Table1", A=1)
+    self.add_record("Table1")
+    error = depend.CircularRefError("Circular Reference")
+    self.assertTableData('Table1', data=[
+      ['id', 'A', 'B'],
+      [1, objtypes.RaisedException(error, user_input=None),
+          objtypes.RaisedException(error, user_input=0)],
+      [2, objtypes.RaisedException(error, user_input=None),
+          objtypes.RaisedException(error, user_input=0)],
+    ])
+    self.remove_record("Table1", 1)
+    self.remove_record("Table1", 2)
+
+    self.modify_column("Table1", "A", formula="PEEK($B) + 1")
+    self.add_record("Table1", A=10)
+    self.add_record("Table1", B=20)
+
+    self.modify_column("Table1", "A", formula="$B + 1")
+    self.modify_column("Table1", "B", formula="PEEK($A + 1)")
+    self.add_record("Table1", A=100)
+    self.add_record("Table1", B=200)
+
+    self.assertTableData('Table1', data=[
+      ['id', 'A', 'B'],
+      # When A peeks at B, A gets evaluated first, so it's always 1 less than B
+      [1, 1,  2],  # Here we set A=10 but it used $B+1 where B=0 (the default value)
+      [2, 21, 22],
+
+      # Now B peeks at A so B is evaluated first
+      [3, 102, 101],
+      [4, 2,   1],
+    ])
+
+    # Test updating records (instead of just adding)
+    self.update_record("Table1", 1, A=30)
+    self.update_record("Table1", 2, B=40)
+    self.update_record("Table1", 3, A=50, B=60)
+
+    self.assertTableData('Table1', rows="subset", data=[
+      ['id', 'A', 'B'],
+      # B is still peeking at A so it's always evaluated first and 1 less than A
+      [1, 32, 31],
+      [2, 23, 22],  # The user input B=40 was overridden by the formula, which saw the old A=21
+      [3, 52, 51],
+    ])
