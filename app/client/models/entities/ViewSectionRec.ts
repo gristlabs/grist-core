@@ -221,6 +221,10 @@ export interface CustomViewSectionDef {
 }
 
 // Information about filters for a field or hidden column.
+// TODO: It looks like that it is not needed for FilterInfo to support ViewFieldRec anymore (db
+// _grist_Filters explicitely maintain a reference to _grist_Tables_column, not
+// _grist_Views_section_field). And it has caused a bug (due to mismatching a viewField id against a
+// column id).
 export interface FilterInfo {
   // The field or column associated with this filter info.
   fieldOrColumn: ViewFieldRec|ColumnRec;
@@ -333,7 +337,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
    */
   this.filters = this.autoDispose(ko.computed(() => {
     const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
-    const viewFieldsByColRef = new Map(this.viewFields().all().map(f => [f.colRef(), f]));
 
     return this.columns().map(column => {
       const savedFilter = savedFiltersByColRef.get(column.origColRef());
@@ -348,9 +351,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
       return {
         filter,
-        fieldOrColumn: viewFieldsByColRef.get(column.origColRef()) ?? column,
+        fieldOrColumn: column,
         isFiltered: ko.pureComputed(() => filter() !== '')
-      };
+      } as FilterInfo;
     });
   }));
 
