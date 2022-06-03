@@ -3,6 +3,7 @@ import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
 import { getReferencedTableId } from 'app/common/gristTypes';
 import { IOptionFull } from 'grainjs';
 import * as assert from 'assert';
+import * as gutil from "app/common/gutil";
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
@@ -40,6 +41,9 @@ interface LinkNode {
   // is the table a summary table
   isSummary: boolean;
 
+  // For a summary table, the set of col refs of the groupby columns of the underlying table
+  groupbyColumns?: Set<number>;
+
   // list of ids of the sections that are ancestors to this section according to the linked section
   // relationship
   ancestors: Set<number>;
@@ -56,6 +60,12 @@ interface LinkNode {
 }
 
 
+// Returns true if this node corresponds to the special 'group' reflist column of a summary table
+function isSummaryGroup(node: LinkNode): boolean {
+  return node.isSummary && node.column?.colId.peek() === "group";
+}
+
+
 // Returns true is the link from `source` to `target` is valid, false otherwise.
 function isValidLink(source: LinkNode, target: LinkNode) {
 
@@ -69,12 +79,36 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  // cannot link to the somewhat special 'group' reflist column of summary tables
-  // because in most cases it's equivalent to the usual summary table linking but potentially slower,
-  // and in other cases it may cause confusion with overwhelming options.
+  // Can only link to the somewhat special 'group' reflist column of summary tables
+  // with another ref/reflist column that isn't also a group column
+  // because otherwise it's equivalent to the usual summary table linking but potentially slower
   if (
-    (source.isSummary && source.column?.colId.peek() === "group") ||
-    (target.isSummary && target.column?.colId.peek() === "group")
+    isSummaryGroup(source) && (!target.column || isSummaryGroup(target)) ||
+    isSummaryGroup(target)
+  ) {
+    return false;
+  }
+
+  // Cannot directly link a summary table to a column referencing the source table.
+  // Instead the ref column must link against the group column of the summary table, which is allowed above.
+  // The 'group' column name will be hidden from the options so it feels like linking using summaryness.
+  if (
+    (source.groupbyColumns && !source.column && target.column) ||
+    (target.groupbyColumns && !target.column && source.column)
+  ) {
+    return false;
+  }
+
+  // If the target is a summary table and we're linking based on 'summaryness' (i.e. there are no ref columns)
+  // then the source must be a less detailed summary table, i.e. having a subset of the groupby columns.
+  // (or they should be the same summary table for same-record linking, which this check allows through)
+  if (
+    !source.column &&
+    !target.column &&
+    target.groupbyColumns && !(
+      source.groupbyColumns &&
+      gutil.isSubset(source.groupbyColumns, target.groupbyColumns)
+    )
   ) {
     return false;
   }
@@ -136,11 +170,15 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
       // a human readable description
       let label = srcNode.section.titleDef();
 
-      // add the source node col name or nothing for table node
-      label += srcNode.column ? ` ${BLACK_CIRCLE} ${srcNode.column.label.peek()}` : '';
+      // add the source node col name (except for 'group') or nothing for table node
+      if (srcNode.column && !isSummaryGroup(srcNode)) {
+        label += ` ${BLACK_CIRCLE} ${srcNode.column.label.peek()}`;
+      }
 
-      // add the target column name only if target has multiple valid nodes
-      label += hasMany && tgtNode.column ? ` ${RIGHT_ARROW} ${tgtNode.column.label.peek()}` : '';
+      // add the target column name (except for 'group') only if target has multiple valid nodes
+      if (hasMany && tgtNode.column && !isSummaryGroup(tgtNode)) {
+        label += ` ${RIGHT_ARROW} ${tgtNode.column.label.peek()}`;
+      }
 
       // add the new option
       options.push({ label, value });
@@ -183,9 +221,11 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
     ancestors.add(sec.getRowId());
   }
 
-  const mainNode = {
+  const isSummary = table.primaryTableId.peek() !== table.tableId.peek();
+  const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
-    isSummary: table.primaryTableId.peek() !== table.tableId.peek(),
+    isSummary,
+    groupbyColumns: isSummary ? table.summarySourceColRefs.peek() : undefined,
     widgetType: section.parentKey.peek(),
     ancestors,
     section,
@@ -200,10 +240,11 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
   if (typeof pageWidget.table !== 'number') { return []; }
 
   const table = docModel.tables.getRowModel(pageWidget.table);
-
+  const isSummary = pageWidget.summarize;
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
-    isSummary: pageWidget.summarize,
+    isSummary,
+    groupbyColumns: isSummary ? new Set(pageWidget.columns) : undefined,
     widgetType: pageWidget.type,
     ancestors: new Set(),
     section: docModel.viewSections.getRowModel(pageWidget.section),
