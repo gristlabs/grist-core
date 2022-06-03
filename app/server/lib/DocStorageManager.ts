@@ -42,7 +42,7 @@ export class DocStorageManager implements IDocStorageManager {
               private _comm?: Comm, gristServer?: GristServer) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._watcher = null;
-    this._shell = (gristServer && gristServer.create.Shell()) || {
+    this._shell = gristServer?.create.Shell?.() || {
       moveItemToTrash()  { throw new Error('Unable to move document to trash'); },
       showItemInFolder() { throw new Error('Unable to show item in folder'); }
     };

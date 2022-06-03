@@ -1,7 +1,5 @@
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DocManager} from 'app/server/lib/DocManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
@@ -15,7 +13,7 @@ export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  Shell(): IShell|undefined;
+  Shell?(): IShell;  // relevant to electron version of Grist only.
 
   // Create a space to store files externally, for storing either:
   //  - documents. This store should be versioned, and can be eventually consistent.
@@ -24,12 +22,11 @@ export interface ICreate {
   // should not interfere with each other.
   ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage | undefined;
 
-  ActiveDoc(docManager: DocManager, docName: string, options: ICreateActiveDocOptions): ActiveDoc;
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
   sessionSecret(): string;
-  // Get configuration information to show at start-up.
-  configurationOptions(): {[key: string]: any};
+  // Check configuration of the app early enough to show on startup.
+  configure?(): Promise<void>;
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
@@ -42,7 +39,7 @@ export interface ICreateActiveDocOptions {
 }
 
 export interface ICreateStorageOptions {
-  check(): Record<string, string>|undefined;
+  check(): boolean;
   create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
 }
 
@@ -75,20 +72,14 @@ export function makeSimpleCreator(opts: {
         deleteUser()      { throw new Error('deleteUser unavailable'); },
       };
     },
-    Shell() {
-      return {
-        moveItemToTrash()  { throw new Error('moveToTrash unavailable'); },
-        showItemInFolder() { throw new Error('showItemInFolder unavailable'); }
-      };
-    },
     ExternalStorage(purpose, extraPrefix) {
       for (const storage of opts.storage || []) {
-        const config = storage.check();
-        if (config) { return storage.create(purpose, extraPrefix); }
+        if (storage.check()) {
+          return storage.create(purpose, extraPrefix);
+        }
       }
       return undefined;
     },
-    ActiveDoc(docManager, docName, options) { return new ActiveDoc(docManager, docName, options); },
     NSandbox(options) {
       return createSandbox('unsandboxed', options);
     },
@@ -99,12 +90,10 @@ export function makeSimpleCreator(opts: {
       }
       return secret;
     },
-    configurationOptions() {
+    async configure() {
       for (const storage of opts.storage || []) {
-        const config = storage.check();
-        if (config) { return config; }
+        if (storage.check()) { break; }
       }
-      return {};
     },
     getExtraHeadHtml() {
       let customHeadHtmlSnippet = '';

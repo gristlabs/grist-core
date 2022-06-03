@@ -18,6 +18,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getUser, getUserId, isSingleUserMode,
         redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -127,7 +128,7 @@ export class FlexServer implements GristServer {
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
-  private _disableS3: boolean = false;
+  private _disableExternalStorage: boolean = false;
   private _healthy: boolean = true;  // becomes false if a serious error has occurred and
                                      // server cannot do its work.
   private _healthCheckCounter: number = 0;
@@ -1006,21 +1007,21 @@ export class FlexServer implements GristServer {
     await this.loadConfig();
     this.addComm();
 
+    await this.create.configure?.();
     if (!isSingleUserMode()) {
-      if (!process.env.GRIST_DOCS_S3_BUCKET || process.env.GRIST_DISABLE_S3 === 'true') {
-        this._disableS3 = true;
+      const externalStorage = appSettings.section('externalStorage');
+      const haveExternalStorage = Object.values(externalStorage.nested)
+        .some(storage => storage.flag('active').getAsBool());
+      const disabled = externalStorage.flag('disable')
+        .read({ envVar: 'GRIST_DISABLE_S3' }).getAsBool();
+      if (disabled || !haveExternalStorage) {
+        this._disableExternalStorage = true;
+        externalStorage.flag('active').set(false);
       }
-      for (const [key, val] of Object.entries(this.create.configurationOptions())) {
-        this.info.push([key, val]);
-      }
-      if (this._disableS3) {
-        this.info.push(['s3', 'disabled']);
-      }
-
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
-      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableS3, workers,
+      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableExternalStorage, workers,
                                                       this._dbManager, this.create);
       this._storageManager = storageManager;
     } else {
@@ -1065,11 +1066,11 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public disableS3() {
+  public disableExternalStorage() {
     if (this.deps.has('doc')) {
-      throw new Error('disableS3 called too late');
+      throw new Error('disableExternalStorage called too late');
     }
-    this._disableS3 = true;
+    this._disableExternalStorage = true;
   }
 
   public addAccountPage() {
@@ -1202,6 +1203,14 @@ export class FlexServer implements GristServer {
   public summary() {
     for (const [label, value] of this.info) {
       log.info("== %s: %s", label, value);
+    }
+    for (const item of appSettings.describeAll()) {
+      const txt =
+        ((item.value !== undefined) ? String(item.value) : '-') +
+        (item.foundInEnvVar ? ` [${item.foundInEnvVar}]` : '') +
+        (item.usedDefault ? ' [default]' : '') +
+        ((item.wouldFindInEnvVar && !item.foundInEnvVar) ? ` [${item.wouldFindInEnvVar}]` : '');
+      log.info("== %s: %s", item.name, txt);
     }
   }
 
