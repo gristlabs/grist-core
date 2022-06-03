@@ -84,6 +84,14 @@ export function getOrgName(org: Organization): string {
   return org.owner ? `@` + org.owner.name : org.name;
 }
 
+/**
+ * Returns whether the given org is the templates org, which contains the public templates.
+ */
+export function isTemplatesOrg(org: Organization): boolean {
+  // TODO: It would be nice to have a more robust way to detect the templates org.
+  return org.domain === 'templates' || org.domain === 'templates-s';
+}
+
 export type WorkspaceProperties = CommonProperties;
 export const workspacePropertyKeys = ['createdAt', 'name', 'updatedAt'];
 

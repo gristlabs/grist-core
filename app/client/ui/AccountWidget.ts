@@ -1,7 +1,8 @@
-import {loadGristDoc, loadUserManager} from 'app/client/lib/imports';
+import {loadGristDoc} from 'app/client/lib/imports';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
+import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
 import {primaryButton} from 'app/client/ui2018/buttons';
@@ -11,7 +12,7 @@ import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/clie
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
+import {SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
@@ -47,19 +48,6 @@ export class AccountWidget extends Disposable {
    * Note that `user` should NOT be anonymous (none of the items are really relevant).
    */
   private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
-    // Opens the user-manager for the org.
-    // TODO: Factor out manageUsers, and related UI code, since AppHeader also uses it.
-    const manageUsers = async (org: Organization) => {
-      const api = this._appModel.api;
-      (await loadUserManager()).showUserManagerModal(api, {
-        permissionData: api.getOrgAccess(org.id),
-        activeUser: user,
-        resourceType: 'organization',
-        resourceId: org.id,
-        resource: org,
-      });
-    };
-
     const currentOrg = this._appModel.currentOrg;
     const gristDoc = this._docPageModel ? this._docPageModel.gristDoc.get() : null;
     const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
@@ -104,8 +92,8 @@ export class AccountWidget extends Disposable {
       documentSettingsItem,
 
       // Show 'Organization Settings' when on a home page of a valid org.
-      (!this._docPageModel && currentOrg && !currentOrg.owner ?
-        menuItem(() => manageUsers(currentOrg),
+      (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
+        menuItem(() => manageTeamUsers(currentOrg, user, this._appModel.api),
                  roles.canEditAccess(currentOrg.access) ? 'Manage Team' : 'Access Details',
                  testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.
@@ -113,7 +101,7 @@ export class AccountWidget extends Disposable {
 
       shouldHideUiElement("billing") ? null :
       // Show link to billing pages.
-      currentOrg && !currentOrg.owner ?
+      this._appModel.isTeamSite ?
         // For links, disabling with just a class is hard; easier to just not make it a link.
         // TODO weasel menus should support disabling menuItemLink.
         (isBillingManager ?

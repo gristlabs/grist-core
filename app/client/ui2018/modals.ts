@@ -5,7 +5,8 @@ import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/but
 import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
-import {Computed, Disposable, dom, DomContents, DomElementArg, input, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+  MultiHolder, Observable, styled} from 'grainjs';
 
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
@@ -466,6 +467,10 @@ export const cssModalButtons = styled('div', `
   }
 `);
 
+const cssFadeIn = keyframes(`
+  from {background-color: transparent}
+`);
+
 const cssModalBacker = styled('div', `
   position: fixed;
   display: flex;
@@ -478,6 +483,8 @@ const cssModalBacker = styled('div', `
   z-index: 999;
   background-color: ${colors.backdrop};
   overflow-y: auto;
+  animation-name: ${cssFadeIn};
+  animation-duration: 0.4s;
 `);
 
 const cssSpinner = styled('div', `

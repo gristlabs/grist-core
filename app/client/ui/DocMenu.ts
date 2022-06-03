@@ -67,7 +67,9 @@ function createLoadedDocMenu(home: HomeModel) {
 
         return [
           // Hide the sort option only when showing intro.
-          buildPrefs(viewSettings, {hideSort: showIntro}),
+          ((showIntro && page === 'all') ? null :
+            buildPrefs(viewSettings, {hideSort: showIntro})
+          ),
 
           // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded or
           dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [

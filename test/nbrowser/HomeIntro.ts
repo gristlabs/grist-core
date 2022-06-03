@@ -21,10 +21,10 @@ describe('HomeIntro', function() {
 
       // Check message specific to anon
       assert.equal(await driver.find('.test-welcome-title').getText(), 'Welcome to Grist!');
-      assert.match(await driver.find('.test-welcome-text').getText(), /without logging in.*need to sign up/);
+      assert.match(await driver.find('.test-welcome-text').getText(), /Sign up.*Visit our Help Center/);
 
       // Check the sign-up link.
-      const signUp = await driver.findContent('.test-welcome-text a', 'sign up');
+      const signUp = await driver.findContent('.test-welcome-text a', 'Sign up');
       assert.include(await signUp.getAttribute('href'), '/signin');
 
       // Check that the link takes us to a Grist login page.
@@ -34,21 +34,7 @@ describe('HomeIntro', function() {
       await gu.waitForDocMenuToLoad();
     });
 
-    // Check intro screen.
-    it('should should intro screen for anon, with video thumbnail', async function() {
-      // Check image for first video.
-      assert.equal(await driver.find('.test-intro-image img').isPresent(), true);
-      await checkImageLoaded(driver.find('.test-intro-image img'));
-
-      // Check links to first video in image and title.
-      assert.include(await driver.find('.test-intro-image img').findClosest('a').getAttribute('href'),
-        'support.getgrist.com');
-
-      // Check link to Help Center
-      assert.include(await driver.findContent('.test-welcome-text a', /Help Center/).getAttribute('href'),
-        'support.getgrist.com');
-    });
-
+    it('should should intro screen for anon', () => testIntroScreen({team: false}));
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
     it('should allow collapsing examples and remember the state', testExamplesCollapsing);
@@ -70,12 +56,12 @@ describe('HomeIntro', function() {
 
       // Check message specific to logged-in user
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Watch video/);
-      assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
+      assert.match(await driver.find('.test-welcome-text').getText(), /Visit our Help Center/);
+      assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/i);
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', testIntroScreenLoggedIn);
+    it('should show intro screen for empty org', () => testIntroScreen({team: false}));
     it('should allow create/import from intro screen', testCreateImport.bind(null, true));
     it('should allow collapsing examples and remember the state', testExamplesCollapsing);
     it('should show examples workspace with the intro', testExamplesSection);
@@ -93,14 +79,15 @@ describe('HomeIntro', function() {
       // Open doc-menu
       await session.loadDocMenu('/', 'skipWelcomeQuestions');
 
-      // Check message specific to logged-in user
-      assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Watch video/);
+      // Check message specific to logged-in user and an empty team site.
+      assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.orgName}`));
+      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more.*find an expert/);
       assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', testIntroScreenLoggedIn);
+    it('should show intro screen for empty org', () => testIntroScreen({team: true}));
+    it('should allow create/import from intro screen', testCreateImport.bind(null, true));
     it('should show examples workspace with the intro', testExamplesSection);
     it('should allow copying examples', testCopyingExamples.bind(null, gu.session().teamSite.orgName));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
@@ -111,18 +98,23 @@ describe('HomeIntro', function() {
     assert.isFalse(await driver.find('.test-dm-other-sites-header').isPresent());
   }
 
-  async function testIntroScreenLoggedIn() {
-    // Check image for first video.
-    assert.equal(await driver.find('.test-intro-image img').isPresent(), true);
-    await checkImageLoaded(driver.find('.test-intro-image img'));
-
-    // Check link to first video in welcome text
-    assert.include(await driver.findContent('.test-welcome-text a', /creating a document/).getAttribute('href'),
-      'support.getgrist.com');
+  async function testIntroScreen(options: {team: boolean}) {
+    // TODO There is no longer a thumbnail + video link on an empty site, but it's a good place to
+    // check for the presence and functionality of the planned links that open an intro video.
 
     // Check link to Help Center
     assert.include(await driver.findContent('.test-welcome-text a', /Help Center/).getAttribute('href'),
       'support.getgrist.com');
+
+    if (options.team) {
+      assert.equal(await driver.find('.test-intro-invite').getText(), 'Invite Team Members');
+      assert.equal(await driver.find('.test-topbar-manage-team').getText(), 'Manage Team');
+    } else {
+      assert.equal(await driver.find('.test-intro-invite').isPresent(), false);
+      assert.equal(await driver.find('.test-topbar-manage-team').isPresent(), false);
+      assert.equal(await driver.find('.test-intro-templates').getText(), 'Browse Templates');
+      assert.include(await driver.find('.test-intro-templates').getAttribute('href'), '/p/templates');
+    }
   }
 
   async function testCreateImport(isLoggedIn: boolean) {

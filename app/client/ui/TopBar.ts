@@ -5,17 +5,33 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
+import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
+import {basicButton} from 'app/client/ui2018/buttons';
 import {colors, cssHideForNarrowScreen, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {waitGrainObs} from 'app/common/gutil';
+import * as roles from 'app/common/roles';
 import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 
 export function createTopBarHome(appModel: AppModel) {
   return [
     cssFlexSpace(),
+
+    (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
+      [
+        basicButton(
+          'Manage Team',
+          dom.on('click', () => manageTeamUsersApp(appModel)),
+          testId('topbar-manage-team')
+        ),
+        cssSpacer()
+      ] :
+      null
+    ),
+
     buildNotifyMenuButton(appModel.notifier, appModel),
     dom('div', dom.create(AccountWidget, appModel)),
   ];

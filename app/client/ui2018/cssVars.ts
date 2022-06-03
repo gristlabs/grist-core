@@ -43,6 +43,7 @@ export const colors = {
 
   lighterBlue: new CustomProp('color-lighter-blue', '#87b2f9'),
   lightBlue: new CustomProp('color-light-blue', '#3B82F6'),
+  orange: new CustomProp('color-orange', '#F9AE41'),
 
   cursor: new CustomProp('color-cursor', '#16B378'),   // cursor is lightGreen
   selection: new CustomProp('color-selection', 'rgba(22,179,120,0.15)'),
@@ -74,6 +75,7 @@ export const vars = {
   xsmallFontSize:   new CustomProp('x-small-font-size',   '10px'),
   smallFontSize:    new CustomProp('small-font-size',     '11px'),
   mediumFontSize:   new CustomProp('medium-font-size',    '13px'),
+  introFontSize:    new CustomProp('intro-font-size',     '14px'),    // feels friendlier
   largeFontSize:    new CustomProp('large-font-size',     '16px'),
   xlargeFontSize:   new CustomProp('x-large-font-size',   '18px'),
   xxlargeFontSize:  new CustomProp('xx-large-font-size',  '20px'),

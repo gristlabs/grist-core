@@ -14,7 +14,7 @@ import {select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalWidth, modal, saveModal} from 'app/client/ui2018/modals';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {Document, Organization, Workspace} from 'app/common/UserAPI';
+import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 
@@ -99,10 +99,9 @@ export async function makeCopy(doc: Document, app: AppModel, modalTitle: string)
   }
   let orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
   if (orgs) {
-    // TODO: Need a more robust way to detect and exclude the templates org.
     // Don't show the templates org since it's selected by default, and
     // is not writable to.
-    orgs = orgs.filter(o => o.domain !== 'templates' && o.domain !== 'templates-s');
+    orgs = orgs.filter(o => !isTemplatesOrg(o));
   }
 
   // Show a dialog with a form to select destination.

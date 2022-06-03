@@ -6,14 +6,25 @@ import {shouldHideUiElement} from 'app/common/gristUrls';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
+import {isTemplatesOrg, Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
-import {loadUserManager} from 'app/client/lib/imports';
+import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
+import {DomContents} from 'grainjs';
 
+// Maps a name of a Product (from app/gen-server/entity/Product.ts) to a tag (pill) to show next
+// to the org name.
+const productPills: {[name: string]: string|null} = {
+  // TODO We don't label paid team plans with a tag yet, but we should label as "Pro" once we
+  // update our pricing pages to refer to paid team plans as Pro plans.
+  "professional": null,   // Deprecated but used in development.
+  "team": null,           // Used for the paid team plans.
+  "teamFree": "Free",     // The new free team plan.
+  // Other plans are either personal, or grandfathered, or for testing.
+};
 
 export class AppHeader extends Disposable {
   constructor(private _orgName: BindableValue<string>, private _appModel: AppModel,
@@ -26,21 +37,8 @@ export class AppHeader extends Disposable {
 
     const user = this._appModel.currentValidUser;
     const currentOrg = this._appModel.currentOrg;
-    const isTeamSite = Boolean(currentOrg && !currentOrg.owner);
     const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
       (currentOrg.billingAccount.isManager || user?.email === SUPPORT_EMAIL));
-
-    // Opens the user-manager for the org.
-    const manageUsers = async (org: Organization) => {
-      const api = this._appModel.api;
-      (await loadUserManager()).showUserManagerModal(api, {
-        permissionData: api.getOrgAccess(org.id),
-        activeUser: user,
-        resourceType: 'organization',
-        resourceId: org.id,
-        resource: org
-      });
-    };
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', theme.wideLogo || false),
@@ -51,15 +49,17 @@ export class AppHeader extends Disposable {
         testId('dm-logo')
       ),
       cssOrg(
-        cssOrgName(dom.text(this._orgName)),
+        cssOrgName(dom.text(this._orgName), testId('dm-orgname')),
+        productPill(currentOrg),
         this._orgName && cssDropdownIcon('Dropdown'),
         menu(() => [
-          menuSubHeader(`${isTeamSite ? 'Team' : 'Personal'} Site`, testId('orgmenu-title')),
+          menuSubHeader(`${this._appModel.isTeamSite ? 'Team' : 'Personal'} Site`, testId('orgmenu-title')),
           menuItemLink(urlState().setLinkUrl({}), 'Home Page', testId('orgmenu-home-page')),
 
           // Show 'Organization Settings' when on a home page of a valid org.
           (!this._docPageModel && currentOrg && !currentOrg.owner ?
-            menuItem(() => manageUsers(currentOrg), 'Manage Team', testId('orgmenu-manage-team'),
+            menuItem(() => manageTeamUsersApp(this._appModel),
+              'Manage Team', testId('orgmenu-manage-team'),
               dom.cls('disabled', !roles.canEditAccess(currentOrg.access))) :
             // Don't show on doc pages, or for personal orgs.
             null),
@@ -81,6 +81,22 @@ export class AppHeader extends Disposable {
     );
   }
 }
+
+export function productPill(org: Organization|null, options: {large?: boolean} = {}): DomContents {
+  if (!org || isTemplatesOrg(org)) {
+    return null;
+  }
+  const product = org?.billingAccount?.product.name;
+  const pillTag = product && productPills[product];
+  if (!pillTag) {
+    return null;
+  }
+  return cssProductPill(cssProductPill.cls('-' + pillTag),
+    options.large ? cssProductPill.cls('-large') : null,
+    pillTag,
+    testId('appheader-product-pill'));
+}
+
 
 const cssAppHeader = styled('div', `
   display: flex;
@@ -126,6 +142,11 @@ const cssOrg = styled('div', `
   max-width: calc(100% - 48px);
   cursor: pointer;
   height: 100%;
+  font-weight: 500;
+
+  &:hover {
+    background-color: ${colors.mediumGrey};
+  }
 `);
 
 const cssOrgName = styled('div', `
@@ -136,5 +157,27 @@ const cssOrgName = styled('div', `
   text-overflow: ellipsis;
   .${cssAppHeader.className}-widelogo & {
     display: none;
+  }
+`);
+
+const cssProductPill = styled('div', `
+  border-radius: 4px;
+  font-size: ${vars.smallFontSize};
+  padding: 2px 4px;
+  display: inline;
+  vertical-align: middle;
+
+  &-Free {
+    background-color: ${colors.orange};
+    color: white;
+  }
+  &-Pro {
+    background-color: ${colors.lightGreen};
+    color: white;
+  }
+  &-large {
+    padding: 4px 8px;
+    margin-left: 16px;
+    font-size: ${vars.mediumFontSize};
   }
 `);

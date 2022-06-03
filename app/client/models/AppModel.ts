@@ -60,6 +60,8 @@ export interface AppModel {
 
   currentOrg: Organization|null;        // null if no access to currentSubdomain
   currentOrgName: string;               // Our best guess for human-friendly name.
+  isPersonal: boolean;                  // Is it a personal site?
+  isTeamSite: boolean;                  // Is it a team site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
 
   currentFeatures: Features;            // features of the current org's product.
@@ -179,6 +181,9 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   // Figure out the org name, or blank if details are unavailable.
   public readonly currentOrgName = getOrgNameOrGuest(this.currentOrg, this.currentUser);
+
+  public readonly isPersonal = Boolean(this.currentOrg?.owner);
+  public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
 
   public readonly currentFeatures = (this.currentOrg && this.currentOrg.billingAccount) ?
     this.currentOrg.billingAccount.product.features : {};

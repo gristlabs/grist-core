@@ -6,6 +6,7 @@
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
 import {commonUrls} from 'app/common/gristUrls';
+import {isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
@@ -71,11 +72,11 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
  * the UserManager menu with save and cancel buttons.
  */
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
-  const modelObs: Observable<UserManagerModel|null> = observable(null);
+  const modelObs: Observable<UserManagerModel|null|"slow"> = observable(null);
 
   async function onConfirm(ctl: IModalControl) {
     const model = modelObs.get();
-    if (!model) {
+    if (!model || model === "slow") {
       ctl.close();
       return;
     }
@@ -111,15 +112,17 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
   }
 
   // Get the model and assign it to the observable. Report errors to the app.
-  getModel(options)
+  const waitPromise = getModel(options)
     .then(model => modelObs.set(model))
     .catch(reportError);
+
+  isLongerThan(waitPromise, 400).then((slow) => slow && modelObs.set("slow")).catch(() => {});
 
   return buildUserManagerModal(modelObs, onConfirm, options);
 }
 
 function buildUserManagerModal(
-  modelObs: Observable<UserManagerModel|null>,
+  modelObs: Observable<UserManagerModel|null|"slow">,
   onConfirm: (ctl: IModalControl) => Promise<void>,
   options: IUserManagerOptions
 ) {
@@ -127,19 +130,20 @@ function buildUserManagerModal(
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
     options.showAnimation ? dom.cls(cssAnimatedModal.className) : null,
-    dom.maybe(modelObs, model => cssTitle(
-      renderTitle(options.resourceType, options.resource, model.isPersonal),
-      (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
-        ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
-        : null
-      ),
-      testId('um-header'),
-    )),
     dom.domComputed(modelObs, model => {
-      if (!model) { return cssSpinner(loadingSpinner()); }
+      if (!model) { return null; }
+      if (model === "slow") { return cssSpinner(loadingSpinner()); }
 
       const cssBody = model.isPersonal ? cssAccessDetailsBody : cssUserManagerBody;
       return [
+        cssTitle(
+          renderTitle(options.resourceType, options.resource, model.isPersonal),
+          (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
+            ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
+            : null
+          ),
+          testId('um-header'),
+        ),
         cssModalBody(
           cssBody(
             new UserManager(

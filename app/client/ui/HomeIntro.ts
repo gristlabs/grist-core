@@ -1,63 +1,80 @@
-import {getLoginOrSignupUrl} from 'app/client/models/gristUrlState';
+import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
+import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
 import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/HomeLeftPane';
-import {bigBasicButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, testId} from 'app/client/ui2018/cssVars';
+import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
+import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
+import {testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls} from 'app/common/gristUrls';
-import {dom, DomContents, DomCreateFunc, styled} from 'grainjs';
+import {FullUser} from 'app/common/LoginSessionAPI';
+import * as roles from 'app/common/roles';
+import {dom, DomContents, styled} from 'grainjs';
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const user = homeModel.app.currentValidUser;
   if (user) {
-    return [
-      css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
-      cssIntroSplit(
-        cssIntroLeft(
-          cssIntroImage({src: 'https://www.getgrist.com/themes/grist/assets/images/empty-folder.png'}),
-          testId('intro-image'),
-        ),
-        cssIntroRight(
-          cssParagraph(
-            'Watch video on ',
-            cssLink({href: 'https://support.getgrist.com/creating-doc/', target: '_blank'}, 'creating a document'),
-            '.', dom('br'),
-            'Learn more in our ', cssLink({href: commonUrls.help, target: '_blank'}, 'Help Center'), '.',
-            testId('welcome-text')
-          ),
-          makeCreateButtons(homeModel),
-        ),
-      ),
-    ];
+    return homeModel.app.isTeamSite ? makeTeamSiteIntro(homeModel) : makePersonalIntro(homeModel, user);
   } else {
-    return [
-      cssIntroSplit(
-        cssIntroLeft(
-          cssLink({href: 'https://support.getgrist.com/creating-doc/', target: '_blank'},
-            cssIntroImage({src: 'https://www.getgrist.com/themes/grist/assets/images/video-create-doc.png'}),
-          ),
-          testId('intro-image'),
-        ),
-        cssIntroRight(
-          css.docListHeader('Welcome to Grist!', testId('welcome-title')),
-          cssParagraph(
-            'You can explore and experiment without logging in. ',
-            'To save your work, however, you’ll need to ',
-            cssLink({href: getLoginOrSignupUrl()}, 'sign up'), '.', dom('br'),
-            'Learn more in our ', cssLink({href: commonUrls.help, target: '_blank'}, 'Help Center'), '.',
-            testId('welcome-text')
-          ),
-          makeCreateButtons(homeModel),
-        ),
-      ),
-    ];
+    return makeAnonIntro(homeModel);
   }
 }
 
+function makeTeamSiteIntro(homeModel: HomeModel) {
+  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, 'Sprouts Program');
+  return [
+    css.docListHeader(`Welcome to ${homeModel.app.currentOrgName}`,
+      productPill(homeModel.app.currentOrg, {large: true}),
+      testId('welcome-title')),
+    cssIntroLine('Get started by inviting your team and creating your first Grist document.'),
+    cssIntroLine('Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
+      testId('welcome-text')),
+    makeCreateButtons(homeModel),
+  ];
+}
+
+function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
+  return [
+    css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
+    cssIntroLine('Get started by creating your first Grist document.'),
+    cssIntroLine('Visit our ', helpCenterLink(), ' to learn more.',
+      testId('welcome-text')),
+    makeCreateButtons(homeModel),
+  ];
+}
+
+function makeAnonIntro(homeModel: HomeModel) {
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, 'Sign up');
+  return [
+    css.docListHeader(`Welcome to Grist!`, testId('welcome-title')),
+    cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
+    cssIntroLine(signUp, ' to save your work. Visit our ', helpCenterLink(), ' to learn more.',
+      testId('welcome-text')),
+    makeCreateButtons(homeModel),
+  ];
+}
+
+function helpCenterLink() {
+  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), 'Help Center');
+}
+
+
 function makeCreateButtons(homeModel: HomeModel) {
+  const canManageTeam = homeModel.app.isTeamSite &&
+    roles.canEditAccess(homeModel.app.currentOrg?.access || null);
   return cssBtnGroup(
+    (canManageTeam ?
+      cssBtn(cssBtnIcon('Help'), 'Invite Team Members', testId('intro-invite'),
+        cssButton.cls('-primary'),
+        dom.on('click', () => manageTeamUsersApp(homeModel.app)),
+      ) :
+      cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
+        cssButton.cls('-primary'),
+        urlState().setLinkUrl({homePage: 'templates'}),
+      )
+    ),
     cssBtn(cssBtnIcon('Import'), 'Import Document', testId('intro-import-doc'),
       dom.on('click', () => importDocAndOpen(homeModel)),
     ),
@@ -67,44 +84,24 @@ function makeCreateButtons(homeModel: HomeModel) {
   );
 }
 
-const cssIntroSplit = styled(css.docBlock, `
-  display: flex;
-  align-items: center;
-
-  @media ${mediaXSmall} {
-    & {
-      display: block;
-    }
-  }
-`);
-
-const cssIntroLeft = styled('div', `
-  flex: 0.4 1 0px;
-  overflow: hidden;
-  max-height: 150px;
-  text-align: center;
-  margin: 32px 0;
-`);
-
-const cssIntroRight = styled('div', `
-  flex: 0.6 1 0px;
-  overflow: auto;
-  margin-left: 8px;
-`);
-
 const cssParagraph = styled(css.docBlock, `
   line-height: 1.6;
+`);
+
+const cssIntroLine = styled(cssParagraph, `
+  font-size: ${vars.introFontSize};
+  margin-bottom: 8px;
 `);
 
 const cssBtnGroup = styled('div', `
   display: inline-flex;
   flex-direction: column;
   align-items: stretch;
-  margin-top: -16px;
 `);
 
 const cssBtn = styled(bigBasicButton, `
-  display: block;
+  display: flex;
+  align-items: center;
   margin-right: 16px;
   margin-top: 16px;
   text-align: left;
@@ -114,11 +111,6 @@ const cssBtnIcon = styled(icon, `
   margin-right: 8px;
 `);
 
-// Helper to create an image scaled down to half of its intrinsic size.
-// Based on https://stackoverflow.com/a/25026615/328565
-const cssIntroImage: DomCreateFunc<HTMLDivElement> =
-  (...args) => _cssImageWrap1(_cssImageWrap2(_cssImageScaled(...args)));
-
-const _cssImageWrap1 = styled('div', `width: 200%; margin-left: -50%;`);
-const _cssImageWrap2 = styled('div', `display: inline-block;`);
-const _cssImageScaled = styled('img', `width: 50%;`);
+const cssInlineIcon = styled(icon, `
+  margin: -2px 4px 2px 4px;
+`);

@@ -33,7 +33,7 @@ export const docList = styled('div', `
 `);
 
 export const docListHeader = styled('div', `
-  height: 32px;
+  min-height: 32px;
   line-height: 32px;
   margin-bottom: 24px;
   color: ${colors.dark};

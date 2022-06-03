@@ -39,7 +39,8 @@ export const cssButton = styled('button', `
 
   &-large {
     font-weight: 500;
-    padding: 12px 24px;
+    padding: 10px 24px;
+    min-height: 40px;
   }
 
   &-primary {
