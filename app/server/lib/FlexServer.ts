@@ -23,7 +23,7 @@ import {addRequestUser, getUser, getUserId, isSingleUserMode,
         redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
-import * as Comm from 'app/server/lib/Comm';
+import {Comm} from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';

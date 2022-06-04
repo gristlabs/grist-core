@@ -5,7 +5,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
-import * as Comm from 'app/server/lib/Comm';
+import { Comm } from 'app/server/lib/Comm';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';

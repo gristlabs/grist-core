@@ -15,6 +15,7 @@ import {createAppUI} from 'app/client/ui/AppUI';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {BaseAPI} from 'app/common/BaseAPI';
+import {CommDocError} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {fetchFromHome} from 'app/common/urlUtils';
 import {ISupportedFeatures} from 'app/common/UserConfig';
@@ -158,7 +159,7 @@ export class App extends DisposableWithEvents {
       setTimeout(() => this.reloadPane(), 0);
     });
 
-    this.listenTo(this.comm, 'docError', (msg) => {
+    this.listenTo(this.comm, 'docError', (msg: CommDocError) => {
       this._checkError(new Error(msg.data.message));
     });
 

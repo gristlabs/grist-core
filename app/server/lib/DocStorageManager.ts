@@ -8,7 +8,7 @@ import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentUsage} from 'app/common/DocUsage';
 import * as gutil from 'app/common/gutil';
-import * as Comm from 'app/server/lib/Comm';
+import {Comm} from 'app/server/lib/Comm';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';

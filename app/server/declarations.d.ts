@@ -2,31 +2,6 @@ declare module "app/server/lib/ActionLog";
 declare module "app/server/lib/sandboxUtil";
 declare module "app/server/lib/User";
 
-declare module "app/server/lib/Comm" {
-  import {Client, ClientMethod} from "app/server/lib/Client";
-  import {ScopedSession} from "app/server/lib/BrowserSession";
-  import * as http from "http";
-
-  class Comm {
-    constructor(server: http.Server, options: any);
-    public broadcastMessage(type: string, messageData: any): void;
-    public destroyAllClients(): void;
-    public setServerVersion(serverVersion: string|null): void;
-    public setServerActivation(active: boolean): void;
-    public getSessionIdFromCookie(gristSidCookie: string): string;
-    public getOrCreateSession(sessionId: string, req: any): ScopedSession;
-    public registerMethods(methods: {[name: string]: ClientMethod}): void;
-    public getClient(clientId: string): Client;
-    public testServerShutdown(): Promise<void>;
-    public testServerRestart(): Promise<void>;
-    public testSetClientPersistence(ttlMs: number): void;
-  }
-  namespace Comm {
-    function sendDocMessage(client: Client, docFD: number, type: string, mesageData: any, fromSelf: boolean): void;
-  }
-  export = Comm;
-}
-
 declare module "app/server/lib/shutdown" {
   export function addCleanupHandler<T>(context: T, method: (this: T) => void, timeout?: number, name?: string): void;
   export function removeCleanupHandlers<T>(context: T): void;
@@ -90,9 +65,6 @@ declare module "@gristlabs/express-session";
 declare module "app-module-path" {
   export function addPath(path: string): void;
 }
-
-// Used in tests
-declare module "ws";
 
 // version of pidusage that has correct ctime on linux
 declare module '@gristlabs/pidusage' {

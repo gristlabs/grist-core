@@ -12,7 +12,7 @@ export const ITestingHooks = t.iface([], {
   "disconnectClients": t.func("void"),
   "commShutdown": t.func("void"),
   "commRestart": t.func("void"),
-  "commSetClientPersistence": t.func("void", t.param("ttlMs", "number")),
+  "commSetClientPersistence": t.func("number", t.param("ttlMs", "number")),
   "closeDocs": t.func("void"),
   "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
   "flushAuthorizerCache": t.func("void"),

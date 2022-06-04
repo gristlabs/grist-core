@@ -16,118 +16,26 @@
  *
  * Implementation
  * --------------
- * Messages are serialized as follows. Note that this is a matter between the client's and the
- * server's communication libraries, and code outside of them should not rely on these details.
- *   Requests: {
- *      reqId: Number,
- *      method: String,
- *      args: Array
- *   }
- *   Responses: {
- *      reqId: Number,          // distinguishes responses from async messages
- *      error: String           // if the request failed
- *      data: Object            // if the request succeeded, may be undefined if nothing to return
- *   }
- *   Async messages from server: {
- *      type: String,     // 'docListAction' or 'docUserAction' or 'clientConnect'
- *      docFD: Number,    // For 'docUserAction', the file descriptor of the open document.
- *      data: Object      // The message data.
- *      // other keys may exist depending on message type.
- *   }
+ * Messages are serialized as JSON using types CommRequest, CommResponse, CommResponseError for
+ * method calls, and CommMessage for async messages from the server. These are all defined in
+ * app/common/CommTypes. Note that this is a matter between the client's and the server's
+ * communication libraries, and code outside of them should not rely on these details.
  */
 
 import {GristWSConnection} from 'app/client/components/GristWSConnection';
 import * as dispose from 'app/client/lib/dispose';
+import {CommMessage, CommRequest, CommResponse, CommResponseError, ValidEvent} from 'app/common/CommTypes';
 import {UserAction} from 'app/common/DocActions';
 import {DocListAPI, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {GristServerAPI} from 'app/common/GristServerAPI';
-import {StringUnion} from 'app/common/StringUnion';
 import {getInitialDocAssignment} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
-
-// tslint:disable:no-console
-
-/**
- * Event for a change to the document list.
- * These are sent to all connected clients, regardless of which documents they have open.
- * TODO: implement and document.
- * @event docListAction
- */
-
-/**
- * Event for a user action on a document, or part of one. Sent to all clients that have this
- * document open.
- * @event docUserAction
- * @property {Number}  docFD - The file descriptor of the open document, specific to each client.
- * @property {Array}   data.actionGroup - ActionGroup object containing user action, and doc actions.
- * @property {Boolean} fromSelf - Flag to indicate whether the action originated from this client.
- */
-
-/**
- * Event for a change to document usage. Sent to all clients that have this document open.
- * @event docUsage
- * @property {Number} docFD - The file descriptor of the open document, specific to each client.
- * @property {FilteredDocUsageSummary} data.docUsage - Document usage summary.
- * @property {Product} data.product - Product that was used to compute `data.docUsage`
- */
-
-/**
- * Event for when a document is forcibly shutdown, and requires the client to re-open it.
- * @event docShutdown
- * @property {Number}  docFD - The file descriptor of the open document, specific to each client.
- */
-
-/**
- * Event sent by server received when a client first connects.
- * @event clientConnect
- * @property {Number} clientId - The ID for the client, which may be reused if a client reconnects
- *    to reattach to its state on the server.
- * @property {Number} missedMessages - Array of messages missed from the server.
- * @property {Object} settings - Object containing server settings and features which
- *    should be used to initialize the client.
- * @property {Object} profile - Object containing session profile information if the user
- *    is signed in, or null otherwise. See "clientLogin" message below for fields.
- */
-
-/**
- * Event sent by server to all clients in the session when the updated profile is retrieved.
- * Does not necessarily contain all properties, may only include updated properties.
- * Gets sent on login with all properties.
- * @event profileFetch
- * @property {String}  email            User email.
- * @property {String}  name             User name,
- * @property {String}  imageUrl         The url of the user's profile image.
- */
-
-/**
- * Event sent by server to all clients in the session when the user settings are updated.
- * @event userSettings
- * @property {Object} features - Object containing feature flags such as login, indicating
- *  which features are activated.
- */
-
-/**
- * Event sent by server to all clients in the session when a client logs out.
- * @event clientLogout
- */
-
-/**
- * Event sent by server to all clients when an invite is received or for all invites received
- * while away when a user logs in.
- * @event receiveInvites
- * @property {Number} data - An array of unread invites (see app/common/sharing).
- */
-
-const ValidEvent = StringUnion('docListAction', 'docUserAction', 'docShutdown', 'docError',
-                               'docUsage', 'clientConnect', 'clientLogout',
-                               'profileFetch', 'userSettings', 'receiveInvites');
-type ValidEvent = typeof ValidEvent.type;
 
 /**
  * A request that is currently being processed.
  */
 export interface CommRequestInFlight {
-  resolve: (result: any) => void;
+  resolve: (result: unknown) => void;
   reject: (err: Error) => void;
   // clientId is non-null for those requests which should not be re-sent on reconnect if
   // the clientId has changed; it is null when it's safe to re-send.
@@ -138,48 +46,8 @@ export interface CommRequestInFlight {
   sent: boolean;
 }
 
-/**
- * A request in the appropriate form for sending to the server.
- */
-export interface CommRequest {
-  reqId: number;
-  method: string;
-  args: any[];
-}
-
-/**
- * A regular, successful response from the server.
- */
-export interface CommResponse {
-  reqId: number;
-  data: any;
-  error?: null;  // TODO: keep until sure server never sets this on regular responses.
-}
-
-/**
- * An exceptional response from the server when there is an error.
- */
-export interface CommResponseError {
-  reqId: number;
-  error: string;
-  errorCode: string;
-  shouldFork?: boolean;  // if set, the server suggests forking the document.
-  details?: any;  // if set, error has extra details available. TODO - the treatment of
-                  // details could do with some harmonisation between rest API and ws API,
-                  // and between front-end and back-end types.
-}
-
 function isCommResponseError(msg: CommResponse | CommResponseError): msg is CommResponseError {
   return Boolean(msg.error);
-}
-
-/**
- * A message pushed from the server, not in response to a request.
- */
-export interface CommMessage {
-  type: ValidEvent;
-  docFD: number;
-  data: any;
 }
 
 /**

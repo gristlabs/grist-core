@@ -8,7 +8,7 @@ export interface ITestingHooks {
   disconnectClients(): Promise<void>;
   commShutdown(): Promise<void>;
   commRestart(): Promise<void>;
-  commSetClientPersistence(ttlMs: number): Promise<void>;
+  commSetClientPersistence(ttlMs: number): Promise<number>;
   closeDocs(): Promise<void>;
   setDocWorkerActivation(workerId: string, active: 'active'|'inactive'|'crash'): Promise<void>;
   flushAuthorizerCache(): Promise<void>;

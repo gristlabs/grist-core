@@ -119,7 +119,7 @@ export class Hosts {
     }
   }
 
-  public async addOrgInfo(req: Request): Promise<RequestWithOrg> {
+  public async addOrgInfo<T extends IncomingMessage>(req: T): Promise<T & RequestOrgInfo> {
     return Object.assign(req, await this.getOrgInfo(req));
   }
 

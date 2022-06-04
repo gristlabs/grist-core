@@ -6,7 +6,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import * as Comm from 'app/server/lib/Comm';
+import {Comm} from 'app/server/lib/Comm';
 import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
 import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';

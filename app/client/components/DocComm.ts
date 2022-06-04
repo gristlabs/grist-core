@@ -1,34 +1,13 @@
-import {Comm, CommMessage} from 'app/client/components/Comm';
+import {Comm} from 'app/client/components/Comm';
 import {reportError, reportMessage} from 'app/client/models/errors';
 import {Notifier} from 'app/client/models/NotifyModel';
-import {ActionGroup} from 'app/common/ActionGroup';
 import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DocAction, UserAction} from 'app/common/DocActions';
+import {CommMessage} from 'app/common/CommTypes';
+import {UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
 import {docUrl} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable, Emitter} from 'grainjs';
-
-// tslint:disable:no-console
-
-export interface DocUserAction extends CommMessage {
-  fromSelf?: boolean;
-  data: {
-    docActions: DocAction[];
-    actionGroup: ActionGroup;
-    docUsage: FilteredDocUsageSummary;
-    error?: string;
-  };
-}
-
-export interface DocUsageMessage extends CommMessage {
-  data: {
-    docUsage: FilteredDocUsageSummary;
-    product?: Product;
-  };
-}
 
 const SLOW_NOTIFICATION_TIMEOUT_MS = 1000; // applies to user actions only
 

@@ -3,6 +3,7 @@
  * open, and what FD they are using.
  */
 
+import {CommDocEventType} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
@@ -81,7 +82,7 @@ export class DocClients {
    * @param {Object} messageData: The data for this type of message.
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
-  public async broadcastDocMessage(client: Client|null, type: string, messageData: any,
+  public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
                                    filterMessage?: (docSession: OptDocSession,
                                                     messageData: any) => Promise<any>): Promise<void> {
     const send = (curr: DocSession) => this._send(curr, client, type, messageData, filterMessage);
@@ -102,7 +103,7 @@ export class DocClients {
   /**
    * Send a message to a single client. See broadcastDocMessage for parameters.
    */
-  private async _send(target: DocSession, client: Client|null, type: string, messageData: any,
+  private async _send(target: DocSession, client: Client|null, type: CommDocEventType, messageData: any,
                       filterMessage?: (docSession: OptDocSession,
                                        messageData: any) => Promise<any>): Promise<void> {
     const fromSelf = (target.client === client);

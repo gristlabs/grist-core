@@ -3,7 +3,8 @@ import * as net from 'net';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
 import {Deps as DiscourseConnectDeps} from 'app/server/lib/DiscourseConnect';
-import * as Comm from 'app/server/lib/Comm';
+import {Deps as CommClientDeps} from 'app/server/lib/Client';
+import {Comm} from 'app/server/lib/Comm';
 import * as log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
 import {Request} from 'express';
@@ -76,7 +77,7 @@ export class TestingHooks implements ITestingHooks {
   public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void> {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
     const sessionId = this._comm.getSessionIdFromCookie(gristSidCookie);
-    const scopedSession = this._comm.getOrCreateSession(sessionId, {org});
+    const scopedSession = this._comm.getOrCreateSession(sessionId as string, {org});
     const req = {} as Request;
     await scopedSession.updateUserProfile(req, profile);
     this._server.getSessions().clearCacheIfNeeded({email: profile?.email, org});
@@ -115,13 +116,12 @@ export class TestingHooks implements ITestingHooks {
   }
 
   // Set how long new clients will persist after disconnection.
-  // Call with 0 to return to default duration.
-  public async commSetClientPersistence(ttlMs: number) {
+  // Returns the previous value.
+  public async commSetClientPersistence(ttlMs: number): Promise<number> {
     log.info("TestingHooks.setClientPersistence called with", ttlMs);
-    this._comm.testSetClientPersistence(ttlMs);
-    for (const server of this._workerServers) {
-      server.getComm().testSetClientPersistence(ttlMs);
-    }
+    const prev = CommClientDeps.clientRemovalTimeoutMs;
+    CommClientDeps.clientRemovalTimeoutMs = ttlMs;
+    return prev;
   }
 
   public async closeDocs(): Promise<void> {

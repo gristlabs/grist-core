@@ -11,7 +11,7 @@ import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DocComm, DocUsageMessage, DocUserAction} from 'app/client/components/DocComm';
+import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
@@ -51,6 +51,7 @@ import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
 import {delay} from 'app/common/delay';
+import {CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
@@ -441,7 +442,7 @@ export class GristDoc extends DisposableWithEvents {
    * Process actions received from the server by forwarding them to `docData.receiveAction()` and
    * pushing them to actionLog.
    */
-  public onDocUserAction(message: DocUserAction) {
+  public onDocUserAction(message: CommDocUserAction) {
     console.log("GristDoc.onDocUserAction", message);
     let schemaUpdated = false;
     /**
@@ -489,7 +490,7 @@ export class GristDoc extends DisposableWithEvents {
    * Process usage and product received from the server by updating their respective
    * observables.
    */
-  public onDocUsageMessage(message: DocUsageMessage) {
+  public onDocUsageMessage(message: CommDocUsage) {
     if (!this.docComm.isActionFromThisDoc(message)) { return; }
 
     bundleChanges(() => {

@@ -143,7 +143,7 @@ export async function openClient(server: FlexServer, email: string, org: string,
     if (email !== 'anon@getgrist.com') {
       const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
       const comm = server.getComm();
-      const sessionId = comm.getSessionIdFromCookie(cid);
+      const sessionId = comm.getSessionIdFromCookie(cid)!;
       const scopedSession = comm.getOrCreateSession(sessionId, {org});
       const profile = { email, email_verified: true, name: "Someone" };
       await scopedSession.updateUserProfile({} as any, profile);
@@ -155,6 +155,7 @@ export async function openClient(server: FlexServer, email: string, org: string,
   const ws = new WebSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
     headers
   });
+  const client = new GristClient(ws);
   await new Promise(function(resolve, reject) {
     ws.on('open', function() {
       resolve(ws);
@@ -163,5 +164,5 @@ export async function openClient(server: FlexServer, email: string, org: string,
       reject(err);
     });
   });
-  return new GristClient(ws);
+  return client;
 }
