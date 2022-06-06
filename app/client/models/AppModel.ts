@@ -4,11 +4,13 @@ import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
+import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
 import {UserPrefs} from 'app/common/Prefs';
+import {isOwner} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -60,6 +62,7 @@ export interface AppModel {
 
   currentOrg: Organization|null;        // null if no access to currentSubdomain
   currentOrgName: string;               // Our best guess for human-friendly name.
+  currentOrgUsage: Observable<OrgUsageSummary|null>;
   isPersonal: boolean;                  // Is it a personal site?
   isTeamSite: boolean;                  // Is it a team site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
@@ -70,6 +73,8 @@ export interface AppModel {
   pageType: Observable<PageType>;
 
   notifier: Notifier;
+
+  refreshOrgUsage(): Promise<void>;
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -182,6 +187,8 @@ export class AppModelImpl extends Disposable implements AppModel {
   // Figure out the org name, or blank if details are unavailable.
   public readonly currentOrgName = getOrgNameOrGuest(this.currentOrg, this.currentUser);
 
+  public readonly currentOrgUsage: Observable<OrgUsageSummary|null> = Observable.create(this, null);
+
   public readonly isPersonal = Boolean(this.currentOrg?.owner);
   public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
 
@@ -204,6 +211,23 @@ export class AppModelImpl extends Disposable implements AppModel {
   ) {
     super();
     this._recordSignUpIfIsNewUser();
+  }
+
+  /**
+   * Fetch and update the current org's usage.
+   */
+  public async refreshOrgUsage() {
+    const currentOrg = this.currentOrg;
+    if (!isOwner(currentOrg)) {
+      // Note: getOrgUsageSummary already checks for owner access; we do an early return
+      // here to skip making unnecessary API calls.
+      return;
+    }
+
+    const usage = await this.api.getOrgUsageSummary(currentOrg.id);
+    if (!this.isDisposed()) {
+      this.currentOrgUsage.set(usage);
+    }
   }
 
   /**

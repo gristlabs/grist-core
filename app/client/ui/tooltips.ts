@@ -6,9 +6,10 @@
  */
 
 import {prepareForTransition} from 'app/client/ui/transitions';
-import {testId} from 'app/client/ui2018/cssVars';
+import {colors, testId} from 'app/client/ui2018/cssVars';
+import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomContents, DomElementMethod, styled} from 'grainjs';
+import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
 import Popper from 'popper.js';
 
 export interface ITipOptions {
@@ -193,6 +194,34 @@ export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
   );
 }
 
+/**
+ * Renders an icon that shows a tooltip with the specified `tipContent` on hover.
+ */
+export function iconTooltip(
+  iconName: IconName,
+  tipContent: ITooltipContentFunc,
+  ...domArgs: DomElementArg[]
+) {
+  return cssIconTooltip(iconName,
+    hoverTooltip(tipContent, {
+      openDelay: 0,
+      closeDelay: 0,
+      openOnClick: true,
+    }),
+    ...domArgs,
+  );
+}
+
+/**
+ * Renders an info icon that shows a tooltip with the specified `tipContent` on hover.
+ */
+export function infoTooltip(tipContent: DomContents, ...domArgs: DomElementArg[]) {
+  return iconTooltip('Info',
+    () => cssInfoTooltipBody(tipContent),
+    ...domArgs,
+  );
+}
+
 const cssTooltip = styled('div', `
   position: absolute;
   z-index: 5000;      /* should be higher than a modal */
@@ -224,4 +253,16 @@ const cssTooltipCloseButton = styled('div', `
     background-color: white;
     --icon-color: black;
   }
+`);
+
+const cssIconTooltip = styled(icon, `
+  height: 12px;
+  width: 12px;
+  background-color: ${colors.slate};
+  flex-shrink: 0;
+`);
+
+const cssInfoTooltipBody = styled('div', `
+  text-align: left;
+  max-width: 200px;
 `);

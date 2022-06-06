@@ -18,6 +18,7 @@ import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
+import {Product} from 'app/common/Features';
 import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit, isOwner} from 'app/common/roles';
@@ -45,6 +46,12 @@ export interface DocPageModel {
   appModel: AppModel;
   currentDoc: Observable<DocInfo|null>;
   currentDocUsage: Observable<FilteredDocUsageSummary|null>;
+
+  /**
+   * Initially set to the product referenced by `currentDoc`, and updated whenever `currentDoc`
+   * changes, or a doc usage message is received from the server.
+   */
+  currentProduct: Observable<Product|null>;
 
   // This block is to satisfy previous interface, but usable as this.currentDoc.get().id, etc.
   currentDocId: Observable<string|undefined>;
@@ -89,6 +96,12 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public readonly currentDoc = Observable.create<DocInfo|null>(this, null);
   public readonly currentDocUsage = Observable.create<FilteredDocUsageSummary|null>(this, null);
+
+  /**
+   * Initially set to the product referenced by `currentDoc`, and updated whenever `currentDoc`
+   * changes, or a doc usage message is received from the server.
+   */
+  public readonly currentProduct = Observable.create<Product|null>(this, null);
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
@@ -144,6 +157,14 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           )
           .resultPromise.catch(err => this._onOpenError(err));
         }
+      }
+    }));
+
+    this.autoDispose(this.currentOrg.addListener((org) => {
+      // Whenever the current doc is updated, set the current product to be the
+      // one referenced by the updated doc.
+      if (org?.billingAccount?.product.name !== this.currentProduct.get()?.name) {
+        this.currentProduct.set(org?.billingAccount?.product ?? null);
       }
     }));
   }

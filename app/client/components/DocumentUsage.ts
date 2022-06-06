@@ -1,6 +1,7 @@
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
+import {infoTooltip} from 'app/client/ui/tooltips';
 import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
@@ -33,6 +34,7 @@ export class DocumentUsage extends Disposable {
   private readonly _currentDoc = this._docPageModel.currentDoc;
   private readonly _currentDocUsage = this._docPageModel.currentDocUsage;
   private readonly _currentOrg = this._docPageModel.currentOrg;
+  private readonly _currentProduct = this._docPageModel.currentProduct;
 
   private readonly _dataLimitStatus = Computed.create(this, this._currentDocUsage, (_use, usage) => {
     return usage?.dataLimitStatus ?? null;
@@ -51,8 +53,8 @@ export class DocumentUsage extends Disposable {
   });
 
   private readonly _rowMetrics: Computed<MetricOptions | null> =
-    Computed.create(this, this._currentOrg, this._rowCount, (_use, org, rowCount) => {
-      const features = org?.billingAccount?.product.features;
+    Computed.create(this, this._currentProduct, this._rowCount, (_use, product, rowCount) => {
+      const features = product?.features;
       if (!features || typeof rowCount !== 'number') { return null; }
 
       const {baseMaxRowsPerDocument: maxRows} = features;
@@ -68,8 +70,8 @@ export class DocumentUsage extends Disposable {
     });
 
   private readonly _dataSizeMetrics: Computed<MetricOptions | null> =
-    Computed.create(this, this._currentOrg, this._dataSizeBytes, (_use, org, dataSize) => {
-      const features = org?.billingAccount?.product.features;
+    Computed.create(this, this._currentProduct, this._dataSizeBytes, (_use, product, dataSize) => {
+      const features = product?.features;
       if (!features || typeof dataSize !== 'number') { return null; }
 
       const {baseMaxDataSizePerDocument: maxSize} = features;
@@ -81,6 +83,10 @@ export class DocumentUsage extends Disposable {
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
         shouldHideLimits: maxValue === undefined,
+        tooltipContent: () => cssTooltipBody(
+          dom('div', 'The total size of all data in this document, excluding attachments.'),
+          dom('div', 'Updates every 5 minutes.'),
+        ),
         formatValue: (val) => {
           // To display a nice, round number for `maximumValue`, we first convert
           // to KiBs (base-2), and then convert to MBs (base-10). Normally, we wouldn't
@@ -92,8 +98,8 @@ export class DocumentUsage extends Disposable {
     });
 
   private readonly _attachmentsSizeMetrics: Computed<MetricOptions | null> =
-    Computed.create(this, this._currentOrg, this._attachmentsSizeBytes, (_use, org, attachmentsSize) => {
-      const features = org?.billingAccount?.product.features;
+    Computed.create(this, this._currentProduct, this._attachmentsSizeBytes, (_use, product, attachmentsSize) => {
+      const features = product?.features;
       if (!features || typeof attachmentsSize !== 'number') { return null; }
 
       const {baseMaxAttachmentsBytesPerDocument: maxSize} = features;
@@ -154,10 +160,10 @@ export class DocumentUsage extends Disposable {
       if (isAccessDenied) { return buildMessage(ACCESS_DENIED_MESSAGE); }
 
       const org = use(this._currentOrg);
+      const product = use(this._currentProduct);
       const status = use(this._dataLimitStatus);
       if (!org || !status) { return null; }
 
-      const product = org.billingAccount?.product;
       return buildMessage([
         buildLimitStatusMessage(status, product?.features, {
           disableRawDataLink: true
@@ -259,6 +265,8 @@ interface MetricOptions {
   unit?: string;
   // If true, limits will always be hidden, even if `maximumValue` is a positive number.
   shouldHideLimits?: boolean;
+  // Shows an icon next to the metric name that displays a tooltip on hover.
+  tooltipContent?(): DomContents;
   formatValue?(value: number): string;
 }
 
@@ -274,12 +282,16 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
     maximumValue,
     unit,
     shouldHideLimits,
+    tooltipContent,
     formatValue = (val) => val.toString(),
   } = options;
   const ratioUsed = currentValue / (maximumValue || Infinity);
   const percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
   return cssUsageMetric(
-    cssMetricName(name, testId('name')),
+    cssMetricName(
+      cssOverflowableText(name, testId('name')),
+      tooltipContent ? infoTooltip(tooltipContent()) : null,
+    ),
     cssProgressBarContainer(
       cssProgressBarFill(
         {style: `width: ${percentUsed}%`},
@@ -328,7 +340,16 @@ const cssIcon = styled(icon, `
 `);
 
 const cssMetricName = styled('div', `
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
+`);
+
+const cssOverflowableText = styled('span', `
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `);
 
 const cssHeader = styled(docListHeader, `
@@ -384,4 +405,10 @@ const cssSpinner = styled('div', `
   display: flex;
   justify-content: center;
   margin-top: 32px;
+`);
+
+const cssTooltipBody = styled('div', `
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `);

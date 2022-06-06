@@ -11,7 +11,7 @@ import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DocComm, DocUserAction} from 'app/client/components/DocComm';
+import {DocComm, DocUsageMessage, DocUserAction} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
@@ -61,7 +61,8 @@ import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
-import {Computed, dom, Emitter, Holder, IDisposable, IDomComponent, Observable, styled, subscribe, toKo} from 'grainjs';
+import {bundleChanges, Computed, dom, Emitter, Holder, IDisposable, IDomComponent, Observable,
+        styled, subscribe, toKo} from 'grainjs';
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
@@ -298,6 +299,8 @@ export class GristDoc extends DisposableWithEvents {
 
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
 
+    this.listenTo(app.comm, 'docUsage', this.onDocUsageMessage);
+
     this.autoDispose(DocConfigTab.create({gristDoc: this}));
 
     this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
@@ -480,6 +483,19 @@ export class GristDoc extends DisposableWithEvents {
       }
       this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
     }
+  }
+
+  /**
+   * Process usage and product received from the server by updating their respective
+   * observables.
+   */
+  public onDocUsageMessage(message: DocUsageMessage) {
+    if (!this.docComm.isActionFromThisDoc(message)) { return; }
+
+    bundleChanges(() => {
+      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
+      this.docPageModel.currentProduct.set(message.data.product ?? null);
+    });
   }
 
   public getTableModel(tableId: string): DataTableModel {

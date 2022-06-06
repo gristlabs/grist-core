@@ -7,7 +7,6 @@ import {AppModel, reportError} from 'app/client/models/AppModel';
 import {reportMessage, UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {ownerName} from 'app/client/models/WorkspaceInfo';
-import {OrgUsageSummary} from 'app/common/DocUsage';
 import {IHomePage} from 'app/common/gristUrls';
 import {isLongerThan} from 'app/common/gutil';
 import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
@@ -75,8 +74,6 @@ export interface HomeModel {
   // The workspace for new docs, or "unsaved" to only allow unsaved-doc creation, or null if the
   // user isn't allowed to create a doc.
   newDocWorkspace: Observable<Workspace|null|"unsaved">;
-
-  currentOrgUsage: Observable<OrgUsageSummary|null>;
 
   createWorkspace(name: string): Promise<void>;
   renameWorkspace(id: number, name: string): Promise<void>;
@@ -158,8 +155,6 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0) &&
     Boolean(use(this.newDocWorkspace))));
 
-  public readonly currentOrgUsage: Observable<OrgUsageSummary|null> = Observable.create(this, null);
-
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 
   constructor(private _app: AppModel, clientScope: ClientScope) {
@@ -193,7 +188,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     const importSources = ImportSourceElement.fromArray(pluginManager.pluginsList);
     this.importSources.set(importSources);
 
-    this._updateCurrentOrgUsage().catch(reportError);
+    this._app.refreshOrgUsage().catch(reportError);
   }
 
   // Accessor for the AppModel containing this HomeModel.
@@ -385,14 +380,6 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       this._userOrgPrefs.set(org.userOrgPrefs);
       await this._app.api.updateOrg('current', {userOrgPrefs: org.userOrgPrefs});
     }
-  }
-
-  private async _updateCurrentOrgUsage() {
-    const currentOrg = this.app.currentOrg;
-    if (!roles.isOwner(currentOrg)) { return; }
-
-    const api = this.app.api;
-    this.currentOrgUsage.set(await api.getOrgUsageSummary(currentOrg.id));
   }
 }
 

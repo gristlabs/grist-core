@@ -62,7 +62,7 @@ export function getDataLimitRatio(
  * Maps `dataLimitStatus` status to an integer and returns it; larger integer
  * values indicate a more "severe" status.
  *
- * Useful for relatively comparing the severity of two statuses.
+ * Useful for relatively comparing the severity of two DataLimitStatus values.
  */
 export function getSeverity(dataLimitStatus: DataLimitStatus): number {
   switch (dataLimitStatus) {

@@ -64,6 +64,14 @@ import {Events as BackboneEvents} from 'backbone';
  */
 
 /**
+ * Event for a change to document usage. Sent to all clients that have this document open.
+ * @event docUsage
+ * @property {Number} docFD - The file descriptor of the open document, specific to each client.
+ * @property {FilteredDocUsageSummary} data.docUsage - Document usage summary.
+ * @property {Product} data.product - Product that was used to compute `data.docUsage`
+ */
+
+/**
  * Event for when a document is forcibly shutdown, and requires the client to re-open it.
  * @event docShutdown
  * @property {Number}  docFD - The file descriptor of the open document, specific to each client.
@@ -111,7 +119,7 @@ import {Events as BackboneEvents} from 'backbone';
  */
 
 const ValidEvent = StringUnion('docListAction', 'docUserAction', 'docShutdown', 'docError',
-                               'clientConnect', 'clientLogout',
+                               'docUsage', 'clientConnect', 'clientLogout',
                                'profileFetch', 'userSettings', 'receiveInvites');
 type ValidEvent = typeof ValidEvent.type;
 

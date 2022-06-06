@@ -1,3 +1,4 @@
+import {SiteUsageBanner} from 'app/client/components/SiteUsageBanner';
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {BillingModel, BillingModelImpl, ISubscriptionModel} from 'app/client/models/BillingModel';
@@ -51,6 +52,8 @@ export class BillingPage extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
+
+    this._appModel.refreshOrgUsage().catch(reportError);
   }
 
   public buildDom() {
@@ -70,7 +73,8 @@ export class BillingPage extends Disposable {
             content: leftPanelBasic(this._appModel, panelOpen),
           },
           headerMain: this._createTopBarBilling(),
-          contentMain: this.buildCurrentPageDom()
+          contentMain: this.buildCurrentPageDom(),
+          contentTop: dom.create(SiteUsageBanner, this._appModel),
         });
       }
     });

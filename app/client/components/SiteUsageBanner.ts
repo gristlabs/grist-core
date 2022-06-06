@@ -1,7 +1,7 @@
 import {Banner, buildBannerMessage} from 'app/client/components/Banner';
 import {buildUpgradeMessage} from 'app/client/components/DocumentUsage';
 import {sessionStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {HomeModel} from 'app/client/models/HomeModel';
+import {AppModel} from 'app/client/models/AppModel';
 import {isFreeProduct} from 'app/common/Features';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable} from 'grainjs';
@@ -9,15 +9,15 @@ import {Disposable, dom, makeTestId, Observable} from 'grainjs';
 const testId = makeTestId('test-site-usage-banner-');
 
 export class SiteUsageBanner extends Disposable {
-  private readonly _currentOrg = this._homeModel.app.currentOrg;
-  private readonly _currentOrgUsage = this._homeModel.currentOrgUsage;
+  private readonly _currentOrg = this._app.currentOrg;
+  private readonly _currentOrgUsage = this._app.currentOrgUsage;
   private readonly _product = this._currentOrg?.billingAccount?.product;
-  private readonly _currentUser = this._homeModel.app.currentValidUser;
+  private readonly _currentUser = this._app.currentValidUser;
 
   // Session storage observable. Set to false to dismiss the banner for the session.
   private _showApproachingLimitBannerPref?: Observable<boolean>;
 
-  constructor(private _homeModel: HomeModel) {
+  constructor(private _app: AppModel) {
     super();
 
     if (this._currentUser && isOwner(this._currentOrg)) {

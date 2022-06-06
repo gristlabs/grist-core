@@ -6,6 +6,7 @@ import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocA
 import {DocAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
+import {Product} from 'app/common/Features';
 import {docUrl} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable, Emitter} from 'grainjs';
@@ -13,13 +14,19 @@ import {Disposable, Emitter} from 'grainjs';
 // tslint:disable:no-console
 
 export interface DocUserAction extends CommMessage {
-  docFD: number;
   fromSelf?: boolean;
   data: {
     docActions: DocAction[];
     actionGroup: ActionGroup;
     docUsage: FilteredDocUsageSummary;
     error?: string;
+  };
+}
+
+export interface DocUsageMessage extends CommMessage {
+  data: {
+    docUsage: FilteredDocUsageSummary;
+    product?: Product;
   };
 }
 

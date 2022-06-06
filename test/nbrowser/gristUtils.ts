@@ -806,11 +806,10 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
  * has been processed.
  * @param optTimeout: Timeout in ms, defaults to 2000.
  */
- // TODO: waits also for api requests (both to home server or doc worker) to be resolved (maybe
- // requires to track requests in app/common/UserAPI)
 export async function waitForServer(optTimeout: number = 2000) {
   await driver.wait(() => driver.executeScript(
-    "return !window.gristApp.comm.hasActiveRequests() && window.gristApp.testNumPendingApiRequests() === 0",
+    "return (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
+    + " && window.gristApp.testNumPendingApiRequests() === 0",
     optTimeout,
     "Timed out waiting for server requests to complete"
   ));
