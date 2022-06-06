@@ -9,6 +9,7 @@ export class KeyedOps {
                                                              // (will accumulate without limit)
   private _changed = new Set<string>();    // set when key needs an operation
   private _operating = new Set<string>();  // set when operation is in progress for key
+  private _stopped: boolean = false;       // set to prohibit all new operations or retries
 
   /**
    * Provide a function to apply operation, and some optional
@@ -72,6 +73,14 @@ export class KeyedOps {
         this._schedule(op.key, true);
       }
     }
+  }
+
+  /**
+   * Don't allow any more operations, or retries of existing operations.
+   */
+  public stopOperations() {
+    this._stopped = true;
+    this.expediteOperations();
   }
 
   /**
@@ -154,6 +163,11 @@ export class KeyedOps {
     return hist;
   }
 
+  private async _doOp(key: string) {
+    if (this._stopped) { throw new Error('operations forcibly stopped'); }
+    return this._op(key);
+  }
+
   // Implement the next scheduled operation for a resource.
   private _update(key: string) {
     const status = this._getOperationStatus(key);
@@ -171,7 +185,7 @@ export class KeyedOps {
     history.lastStart = Date.now();
 
     // Store a promise for the operation.
-    status.promise = this._op(key).then(() => {
+    status.promise = this._doOp(key).then(() => {
       // Successful push!  Reset failure count, notify callbacks.
       status.failures = 0;
       status.callbacks.forEach(callback => callback());
@@ -179,7 +193,7 @@ export class KeyedOps {
     }).catch(err => {
       // Operation failed.  Increment failure count, notify callbacks.
       status.failures++;
-      if (this._options.retry) {
+      if (this._options.retry && !this._stopped) {
         this._changed.add(key);
       }
       if (this._options.logError) {

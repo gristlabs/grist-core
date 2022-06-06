@@ -438,6 +438,13 @@ export class HostedStorageManager implements IDocStorageManager {
     this._uploads.expediteOperations();
   }
 
+  // forcibly stop operations that might otherwise retry indefinitely,
+  // for testing purposes.
+  public async testStopOperations() {
+    this._uploads.stopOperations();
+    await this._uploads.wait();
+  }
+
   /**
    * Finalize any operations involving the named document.
    */
