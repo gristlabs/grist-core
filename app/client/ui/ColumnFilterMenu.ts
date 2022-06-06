@@ -33,7 +33,6 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {isList, isNumberType, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
 
 interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
@@ -455,9 +454,9 @@ function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec
           fontUnderline: choiceOptions[value.label]?.fontUnderline ?? false,
           fontItalic: choiceOptions[value.label]?.fontItalic ?? false,
           fontStrikethrough: choiceOptions[value.label]?.fontStrikethrough ?? false,
+          invalid: !choiceSet.has(value.label),
         },
         dom.cls(cssToken.className),
-        cssInvalidToken.cls('-invalid', !choiceSet.has(value.label)),
         testId('choice-token')
       );
     };

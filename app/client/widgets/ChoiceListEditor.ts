@@ -4,7 +4,6 @@ import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {cssInvalidToken} from 'app/client/widgets/ChoiceListCell';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
@@ -13,7 +12,7 @@ import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {dom, styled} from 'grainjs';
 import {ChoiceOptions, getRenderFillColor, getRenderTextColor} from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
+import {choiceToken, cssChoiceACItem, cssChoiceToken} from 'app/client/widgets/ChoiceToken';
 import {icon} from 'app/client/ui2018/icons';
 
 export class ChoiceItem implements ACItem, IToken {
@@ -79,7 +78,7 @@ export class ChoiceListEditor extends NewBaseEditor {
         dom.cls('font-underline', this._choiceOptionsByName[item.label]?.fontUnderline ?? false),
         dom.cls('font-italic', this._choiceOptionsByName[item.label]?.fontItalic ?? false),
         dom.cls('font-strikethrough', this._choiceOptionsByName[item.label]?.fontStrikethrough ?? false),
-        cssInvalidToken.cls('-invalid', item.isInvalid)
+        cssChoiceToken.cls('-invalid', item.isInvalid)
       ],
       createToken: label => new ChoiceItem(label, !choiceSet.has(label)),
       acOptions,

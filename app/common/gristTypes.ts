@@ -200,19 +200,7 @@ const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
   ManualSortPos:  isNumber,
   Ref:            isNumber,
   RefList:        isListOrNull,
-  Choice:         (v: CellValue, options?: any) => {
-    // TODO widgets options should not be used outside of the client. They are an instance of
-    // modelUtil.jsonObservable, passed in by FieldBuilder.
-    if (v === '') {
-      // Accept empty-string values as valid
-      return true;
-    } else if (options) {
-      const choices = options().choices;
-      return Array.isArray(choices) && choices.includes(v);
-    } else {
-      return false;
-    }
-  },
+  Choice:         isString,
   ChoiceList:     isListOrNull,
 };
 

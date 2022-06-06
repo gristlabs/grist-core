@@ -5,7 +5,7 @@ import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField'
 import { reportError } from 'app/client/models/errors';
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { menuCssClass } from 'app/client/ui2018/menus';
-import { cssInvalidToken } from 'app/client/widgets/ChoiceListCell';
+import { cssChoiceToken } from 'app/client/widgets/ChoiceToken';
 import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
 import { EditorPlacement } from 'app/client/widgets/EditorPlacement';
 import { NewBaseEditor, Options } from 'app/client/widgets/NewBaseEditor';
@@ -87,7 +87,7 @@ export class ReferenceListEditor extends NewBaseEditor {
         return [
           isBlankReference ? '[Blank]' : item.text,
           cssToken.cls('-blank', isBlankReference),
-          cssInvalidToken.cls('-invalid', item.rowId === 'invalid')
+          cssChoiceToken.cls('-invalid', item.rowId === 'invalid')
         ];
       },
       createToken: text => new ReferenceItem(text, 'invalid'),

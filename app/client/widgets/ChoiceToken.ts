@@ -5,7 +5,9 @@ import {Style} from 'app/client/models/Styles';
 export const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value;
 export const DEFAULT_TEXT_COLOR = '#000000';
 
-export type IChoiceTokenOptions = Style;
+export interface IChoiceTokenOptions extends Style {
+  invalid?: boolean;
+}
 
 /**
  * Creates a colored token representing a choice (e.g. Choice and Choice List values).
@@ -23,9 +25,11 @@ export type IChoiceTokenOptions = Style;
  */
 export function choiceToken(
   label: DomElementArg,
-  {fillColor, textColor, fontBold, fontItalic, fontUnderline, fontStrikethrough}: IChoiceTokenOptions,
+  options: IChoiceTokenOptions,
   ...args: DomElementArg[]
 ): DomContents {
+  const {fillColor, textColor, fontBold, fontItalic, fontUnderline,
+         fontStrikethrough, invalid} = options;
   return cssChoiceToken(
     label,
     dom.style('background-color', fillColor ?? DEFAULT_FILL_COLOR),
@@ -34,17 +38,23 @@ export function choiceToken(
     dom.cls('font-underline', fontUnderline ?? false),
     dom.cls('font-italic', fontItalic ?? false),
     dom.cls('font-strikethrough', fontStrikethrough ?? false),
+    invalid ? cssChoiceToken.cls('-invalid') : null,
     ...args
   );
 }
 
-const cssChoiceToken = styled('div', `
+export const cssChoiceToken = styled('div', `
   display: inline-block;
   padding: 1px 4px;
   border-radius: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: pre;
+
+  &-invalid {
+    background-color: white !important;
+    box-shadow: inset 0 0 0 1px ${colors.error};
+  }
 `);
 
 const ADD_NEW_HEIGHT = '37px';

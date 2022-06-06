@@ -27,6 +27,7 @@ export function getRenderTextColor(choiceOptions?: IChoiceOptions) {
 export class ChoiceTextBox extends NTextBox {
   private _choices: KoSaveableObservable<string[]>;
   private _choiceValues: Computed<string[]>;
+  private _choiceValuesSet: Computed<Set<string>>;
   private _choiceOptions: KoSaveableObservable<ChoiceOptions | null | undefined>;
   private _choiceOptionsByName: Computed<ChoiceOptionsByName>
 
@@ -35,6 +36,7 @@ export class ChoiceTextBox extends NTextBox {
     this._choices = this.options.prop('choices');
     this._choiceOptions = this.options.prop('choiceOptions');
     this._choiceValues = Computed.create(this, (use) => use(this._choices) || []);
+    this._choiceValuesSet = Computed.create(this, this._choiceValues, (_use, values) => new Set(values));
     this._choiceOptionsByName = Computed.create(this, (use) => toMap(use(this._choiceOptions)));
   }
 
@@ -49,12 +51,14 @@ export class ChoiceTextBox extends NTextBox {
           const formattedValue = use(this.valueFormatter).formatAny(use(value));
           if (formattedValue === '') { return null; }
 
-          const choiceOptions = use(this._choiceOptionsByName).get(formattedValue);
           return choiceToken(
             formattedValue,
-            choiceOptions || {},
+            {
+              ...(use(this._choiceOptionsByName).get(formattedValue) || {}),
+              invalid: !use(this._choiceValuesSet).has(formattedValue),
+            },
             dom.cls(cssChoiceText.className),
-            testId('choice-text')
+            testId('choice-token')
           );
         }),
       ),
@@ -81,8 +85,8 @@ export class ChoiceTextBox extends NTextBox {
     return this.buildConfigDom();
   }
 
-  protected getChoiceValues(): Computed<string[]> {
-    return this._choiceValues;
+  protected getChoiceValuesSet(): Computed<Set<string>> {
+    return this._choiceValuesSet;
   }
 
   protected getChoiceOptions(): Computed<ChoiceOptionsByName> {

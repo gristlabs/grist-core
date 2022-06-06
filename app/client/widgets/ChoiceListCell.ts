@@ -1,20 +1,18 @@
 import {DataRowModel} from 'app/client/models/DataRowModel';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId} from 'app/client/ui2018/cssVars';
 import {
   ChoiceOptionsByName,
   ChoiceTextBox,
 } from 'app/client/widgets/ChoiceTextBox';
 import {CellValue} from 'app/common/DocActions';
 import {decodeObject} from 'app/plugin/objtypes';
-import {Computed, dom, styled} from 'grainjs';
+import {dom, styled} from 'grainjs';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 
 /**
  * ChoiceListCell - A cell that renders a list of choice tokens.
  */
 export class ChoiceListCell extends ChoiceTextBox {
-  private _choiceSet = Computed.create(this, this.getChoiceValues(), (use, values) => new Set(values));
-
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()];
 
@@ -25,7 +23,7 @@ export class ChoiceListCell extends ChoiceTextBox {
       dom.domComputed((use) => {
         return use(row._isAddRow) ? null :
           [
-            use(value), use(this._choiceSet),
+            use(value), use(this.getChoiceValuesSet()),
             use(this.getChoiceOptions())
           ] as [CellValue, Set<string>, ChoiceOptionsByName];
       }, (input) => {
@@ -38,8 +36,10 @@ export class ChoiceListCell extends ChoiceTextBox {
         return tokens.map(token =>
           choiceToken(
             String(token),
-            choiceOptionsByName.get(String(token)) || {},
-            cssInvalidToken.cls('-invalid', !choiceSet.has(String(token))),
+            {
+              ...(choiceOptionsByName.get(String(token)) || {}),
+              invalid: !choiceSet.has(String(token)),
+            },
             dom.cls(cssToken.className),
             testId('choice-list-cell-token')
           )
@@ -68,12 +68,4 @@ export const cssToken = styled('div', `
   min-width: 0px;
   margin: 2px;
   line-height: 16px;
-`);
-
-export const cssInvalidToken = styled('div', `
-  &-invalid {
-    background-color: white !important;
-    box-shadow: inset 0 0 0 1px var(--grist-color-error);
-    color: ${colors.slate};
-  }
 `);

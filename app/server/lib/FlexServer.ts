@@ -732,7 +732,7 @@ export class FlexServer implements GristServer {
         const user = getUser(req);
         if (user && user.isFirstTimeUser) {
           log.debug(`welcoming user: ${user.name}`);
-           // Reset isFirstTimeUser flag.
+          // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
 
           // This is a good time to set some other flags, for showing a popup with welcome question(s)
@@ -744,19 +744,18 @@ export class FlexServer implements GristServer {
             recordSignUpEvent: true,
           }});
 
-          if (process.env.GRIST_SINGLE_ORG) {
-            // Merged org is not meaningful in this case.
-            return res.redirect(this.getHomeUrl(req));
+          const domain = mreq.org ?? null;
+          if (!process.env.GRIST_SINGLE_ORG && this._dbManager.isMergedOrg(domain)) {
+            // We're logging in for the first time on the merged org; if the user has
+            // access to other team sites, forward the user to a page that lists all
+            // the teams they have access to.
+            const result = await this._dbManager.getMergedOrgs(user.id, user.id, domain);
+            const orgs = this._dbManager.unwrapQueryResult(result);
+            if (orgs.length > 1 && mreq.path === '/') {
+              // Only forward if the request is for the home page.
+              return res.redirect(this.getMergedOrgUrl(mreq, '/welcome/teams'));
+            }
           }
-
-          // Redirect to teams page if users has access to more than one org. Otherwise, redirect to
-          // personal org.
-          const domain = mreq.org;
-          const result = await this._dbManager.getMergedOrgs(user.id, user.id, domain || null);
-          const orgs = (result.status === 200) ? result.data : null;
-          const redirectPath = orgs && orgs.length > 1 ? '/welcome/teams' : '/';
-          const redirectUrl = this.getMergedOrgUrl(mreq, redirectPath);
-          return res.redirect(redirectUrl);
         }
         if (mreq.org && mreq.org.startsWith('o-')) {
           // We are on a team site without a custom subdomain.

@@ -342,11 +342,11 @@ export class PageWidgetSelect extends Disposable {
       cssFooter(
         cssFooterContent(
           // If _selectByOptions exists and has more than then "NoLinkOption", show the selector.
-          dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () => [
+          dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () => cssSelectBy(
             cssSmallLabel('SELECT BY'),
             dom.update(cssSelect(this._value.link, this._selectByOptions!),
                        testId('selectby'))
-          ]),
+          )),
           dom('div', {style: 'flex-grow: 1'}),
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
@@ -540,6 +540,12 @@ const cssSmallLabel = styled('span', `
 
 const cssSelect = styled(select, `
   flex: 1 0 160px;
+  width: 160px;
+`);
+
+const cssSelectBy = styled('div', `
+  display: flex;
+  align-items: center;
 `);
 
 // Returns a copy of array with its items sorted in the same order as they appear in other.
