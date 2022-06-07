@@ -8,10 +8,11 @@ import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
 import {testId, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {dom, DomContents, styled} from 'grainjs';
+
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const user = homeModel.app.currentValidUser;
@@ -29,8 +30,10 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')),
     cssIntroLine('Get started by inviting your team and creating your first Grist document.'),
-    cssIntroLine('Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
-      testId('welcome-text')),
+    (shouldHideUiElement('helpCenter') ? null :
+      cssIntroLine('Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
+        testId('welcome-text'))
+    ),
     makeCreateButtons(homeModel),
   ];
 }
@@ -39,8 +42,10 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
     css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
     cssIntroLine('Get started by creating your first Grist document.'),
-    cssIntroLine('Visit our ', helpCenterLink(), ' to learn more.',
-      testId('welcome-text')),
+    (shouldHideUiElement('helpCenter') ? null :
+      cssIntroLine('Visit our ', helpCenterLink(), ' to learn more.',
+        testId('welcome-text'))
+    ),
     makeCreateButtons(homeModel),
   ];
 }
@@ -50,7 +55,8 @@ function makeAnonIntro(homeModel: HomeModel) {
   return [
     css.docListHeader(`Welcome to Grist!`, testId('welcome-title')),
     cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
-    cssIntroLine(signUp, ' to save your work. Visit our ', helpCenterLink(), ' to learn more.',
+    cssIntroLine(signUp, ' to save your work.',
+      (shouldHideUiElement('helpCenter') ? null : [' Visit our ', helpCenterLink(), ' to learn more.']),
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];
@@ -72,6 +78,7 @@ function makeCreateButtons(homeModel: HomeModel) {
       ) :
       cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
         cssButton.cls('-primary'),
+        dom.hide(shouldHideUiElement("templates")),
         urlState().setLinkUrl({homePage: 'templates'}),
       )
     ),
