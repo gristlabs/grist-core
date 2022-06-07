@@ -151,7 +151,17 @@ def VLOOKUP(table, **field_value_pairs):
   """
   return table.lookupOne(**field_value_pairs)
 
-class _Contains(namedtuple("_Contains", "value")):
+
+class _NoMatchEmpty(object):
+  """
+  Singleton sentinel value for CONTAINS match_empty parameter to indicate no argument was passed
+  and no value should match against empty lists in lookups.
+  """
+  def __repr__(self):
+    return "no_match_empty"
+
+
+class _Contains(namedtuple("_Contains", "value match_empty")):
   """
   Use this marker with [UserTable.lookupRecords](#lookuprecords) to find records
   where a field of a list type (such as `Choice List` or `Reference List`) contains the given value.
@@ -169,6 +179,16 @@ class _Contains(namedtuple("_Contains", "value")):
   In particular the values mustn't be strings, e.g. `"Comedy-Drama"` won't match
   even though `"Drama" in "Comedy-Drama"` is `True` in Python.
   It also won't match substrings within container elements, e.g. `["Comedy-Drama"]`.
+
+  You can optionally pass a second argument `match_empty` to indicate a value that
+  should be matched against empty lists in the looked up column.
+
+  For example, given this formula:
+
+      MoviesTable.lookupRecords(genre=CONTAINS(g, match_empty=''))
+
+  If `g` is `''` (i.e. equal to `match_empty`) then the column `genre` in the returned records
+  will either be an empty list (or other container) or a list containing `g` as usual.
   """
   # While users should apply this marker to values in queries, internally
   # the marker is moved to the column ID so that the LookupMapColumn knows how to
@@ -177,9 +197,16 @@ class _Contains(namedtuple("_Contains", "value")):
   # The CONTAINS function is for users
   # Having a function as the interface makes things like docs and autocomplete
   # work more consistently
-  pass
 
-def CONTAINS(value):
-  return _Contains(value)
+  no_match_empty = _NoMatchEmpty()
+
+
+def CONTAINS(value, match_empty=_Contains.no_match_empty):
+  try:
+    hash(match_empty)
+  except TypeError:
+    raise TypeError("match_empty must be hashable")
+
+  return _Contains(value, match_empty)
 
 CONTAINS.__doc__ = _Contains.__doc__

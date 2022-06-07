@@ -9,10 +9,10 @@ import itertools
 
 import six
 
+import functions
 import records
 import usertypes
 import relabeling
-import lookup
 import table
 import moment
 from schema import RecalcWhen
@@ -31,7 +31,7 @@ def _record_ref_list_set(table_id, group_by, sort_by=None):
   @usertypes.formulaType(usertypes.ReferenceList(table_id))
   def func(rec, table):
     lookup_table = table.docmodel.get_table(table_id)
-    return lookup_table.lookupRecords(sort_by=sort_by, **{group_by: lookup._Contains(rec.id)})
+    return lookup_table.lookupRecords(sort_by=sort_by, **{group_by: functions.CONTAINS(rec.id)})
   return func
 
 

@@ -198,6 +198,8 @@ class ContainsLookupMapColumn(BaseLookupMapColumn):
         # group = [] essentially means there are no new keys in this call
         if isinstance(group, (six.binary_type, six.text_type)):
           group = []
+        elif not group and col_id.match_empty != _Contains.no_match_empty:
+          group = [col_id.match_empty]
       else:
         group = [group]
 

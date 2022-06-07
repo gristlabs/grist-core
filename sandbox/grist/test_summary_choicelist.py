@@ -142,10 +142,10 @@ class TestSummaryChoiceList(EngineTestCase):
       {k: type(v) for k, v in self.engine.tables["Source"]._special_cols.items()},
       {
         '#summary#GristSummary_6_Source': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source', match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
         '#summary#GristSummary_6_Source2': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source2')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source2', match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
 
         # simple summary and lookup
@@ -153,7 +153,7 @@ class TestSummaryChoiceList(EngineTestCase):
         '#lookup##summary#GristSummary_6_Source3': lookup.SimpleLookupMapColumn,
 
         '#summary#GristSummary_6_Source4': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source4')":
+        "#lookup#_Contains(value='#summary#GristSummary_6_Source4', match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
 
         "#lookup#": lookup.SimpleLookupMapColumn,
@@ -203,14 +203,19 @@ class TestSummaryChoiceList(EngineTestCase):
       [5, "a", "e", [21], 1],
     ])
 
-    # Remove record from source
-    self.remove_record("Source", 21)
+    # Empty choices1
+    self.update_record("Source", 21, choices1=None)
 
-    # All summary rows are now empty
+    self.assertTableData('Source', data=[
+      ["id", "choices1", "choices2", "other"],
+      [21, None, ["c", "d", "e"], "foo"],
+    ])
+
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [], 0],
       [2, "b", [], 0],
+      [3, "", [21], 1],
     ])
 
     self.assertTableData('GristSummary_6_Source2', data=[
@@ -220,6 +225,32 @@ class TestSummaryChoiceList(EngineTestCase):
       [3, "b", "c", [], 0],
       [4, "b", "d", [], 0],
       [5, "a", "e", [], 0],
+      [6, "", "c", [21], 1],
+      [7, "", "d", [21], 1],
+      [8, "", "e", [21], 1],
+    ])
+
+    # Remove record from source
+    self.remove_record("Source", 21)
+
+    # All summary rows are now empty
+    self.assertTableData('GristSummary_6_Source', data=[
+      ["id", "choices1", "group", "count"],
+      [1, "a", [], 0],
+      [2, "b", [], 0],
+      [3, "", [], 0],
+    ])
+
+    self.assertTableData('GristSummary_6_Source2', data=[
+      ["id", "choices1", "choices2", "group", "count"],
+      [1, "a", "c", [], 0],
+      [2, "a", "d", [], 0],
+      [3, "b", "c", [], 0],
+      [4, "b", "d", [], 0],
+      [5, "a", "e", [], 0],
+      [6, "",  "c", [], 0],
+      [7, "",  "d", [], 0],
+      [8, "",  "e", [], 0],
     ])
 
     # Make rows with every combination of {a,b,ab} and {c,d,cd}
@@ -236,6 +267,8 @@ class TestSummaryChoiceList(EngineTestCase):
         [107, ["L", "a"],      ["L", "c", "d"]],
         [108, ["L", "b"],      ["L", "c", "d"]],
         [109, ["L", "a", "b"], ["L", "c", "d"]],
+        # and one row with empty lists
+        [110, ["L"],           ["L"]],
       ]
     )
 
@@ -250,6 +283,7 @@ class TestSummaryChoiceList(EngineTestCase):
       [107, ["a"],      ["c", "d"]],
       [108, ["b"],      ["c", "d"]],
       [109, ["a", "b"], ["c", "d"]],
+      [110, None,       None],
     ])
 
     # Summary tables now have an even distribution of combinations
@@ -257,6 +291,7 @@ class TestSummaryChoiceList(EngineTestCase):
       ["id", "choices1", "group", "count"],
       [1, "a", [101, 103, 104, 106, 107, 109], 6],
       [2, "b", [102, 103, 105, 106, 108, 109], 6],
+      [3, "",  [110], 1],
     ])
 
     summary_data = [
@@ -266,6 +301,10 @@ class TestSummaryChoiceList(EngineTestCase):
       [3, "b", "c", [102, 103, 108, 109], 4],
       [4, "b", "d", [105, 106, 108, 109], 4],
       [5, "a", "e", [], 0],
+      [6, "", "c", [], 0],
+      [7, "", "d", [], 0],
+      [8, "", "e", [], 0],
+      [9, "", "", [110], 1],
     ]
 
     self.assertTableData('GristSummary_6_Source2', data=summary_data)
@@ -284,8 +323,9 @@ class TestSummaryChoiceList(EngineTestCase):
           Column(30, "count", "Int", isFormula=True, summarySourceCol=0,
                  formula="len($group)"),
           Column(31, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
-                 formula="Source.lookupRecords(choices1=CONTAINS($choices1), choices2=CONTAINS($choices2))"),
-
+                 formula='Source.lookupRecords('
+                         'choices1=CONTAINS($choices1, match_empty=""), '
+                         'choices2=CONTAINS($choices2, match_empty=""))'),
         ],
       )
     ])

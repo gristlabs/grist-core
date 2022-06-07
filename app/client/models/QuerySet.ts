@@ -33,16 +33,16 @@ import {TableData} from 'app/client/models/TableData';
 import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
 import {CellValue, TableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
+import {isList} from "app/common/gristTypes";
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
-import {TableData as BaseTableData} from 'app/common/TableData';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
+import {TableData as BaseTableData} from 'app/common/TableData';
 import {tbind} from 'app/common/tbind';
+import {decodeObject} from "app/plugin/objtypes";
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
 import debounce = require('lodash/debounce');
-import {isList} from "app/common/gristTypes";
-import {decodeObject} from "app/plugin/objtypes";
 
 // Limit on the how many rows to request for OnDemand tables.
 const ON_DEMAND_ROW_LIMIT = 10000;
@@ -310,17 +310,21 @@ export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFu
     (colId) => {
       const getter = tableData.getRowPropFunc(colId)!;
       const values = new Set(query.filters[colId]);
-      switch (query.operations![colId]) {
+      switch (query.operations[colId]) {
         case "intersects":
           return (rowId: RowId) => {
             const value = getter(rowId) as CellValue;
             return isList(value) &&
               (decodeObject(value) as unknown[]).some(v => values.has(v));
           };
+        case "empty":
+          return (rowId: RowId) => {
+            const value = getter(rowId);
+            // `isList(value) && value.length === 1` means `value == ['L']` i.e. an empty list
+            return !value || isList(value) && value.length === 1;
+          };
         case "in":
           return (rowId: RowId) => values.has(getter(rowId));
-        default:
-          throw new Error("Unknown operation");
       }
     });
   return (rowId: RowId) => colFuncs.every(f => f(rowId));
@@ -342,7 +346,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
     const values = query.filters[colId];
     // Keep filter values sorted by value, for consistency.
     values.sort(nativeCompare);
-    return [colRefsByColId[colId], query.operations![colId], values] as FilterTuple;
+    return [colRefsByColId[colId], query.operations[colId], values] as FilterTuple;
   });
   // Keep filters sorted by colRef, for consistency.
   filterTuples.sort((a, b) =>

@@ -388,9 +388,11 @@ class SummaryActions(object):
     group_args = ', '.join(
       '%s=%s' % (
         c.summarySourceCol.colId,
-        'CONTAINS($%s)' % c.colId
-        if c.summarySourceCol.type.startswith(('ChoiceList', 'RefList:')) else
-        '$%s' % c.colId,
+        (
+          'CONTAINS($%s, match_empty="")' if c.summarySourceCol.type == 'ChoiceList' else
+          'CONTAINS($%s, match_empty=0)' if c.summarySourceCol.type.startswith('Reflist') else
+          '$%s'
+        ) % c.colId,
       )
       for c in field_col_recs if c.summarySourceCol
     )

@@ -121,7 +121,10 @@ export interface QueryFilters {
   [colId: string]: any[];
 }
 
-export type QueryOperation = "in" | "intersects";
+// - in: value should be contained in filters array
+// - intersects: value should be a list with some overlap with filters array
+// - empty: value should be falsy (e.g. null) or an empty list, filters is ignored
+export type QueryOperation = "in" | "intersects" | "empty";
 
 /**
  * Response from useQuerySet(). A query returns data AND creates a subscription to receive

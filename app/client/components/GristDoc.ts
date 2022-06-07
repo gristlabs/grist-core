@@ -55,7 +55,7 @@ import {CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {isList, isRefListType, RecalcWhen} from 'app/common/gristTypes';
+import {isList, isListType, isRefListType, RecalcWhen} from 'app/common/gristTypes';
 import {HashLink, IDocPage, isViewDocPage, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
@@ -856,9 +856,12 @@ export class GristDoc extends DisposableWithEvents {
             // must be a summary -- otherwise dealt with earlier.
             const destTable = await this._getTableData(section);
             for (const srcCol of srcSection.table.peek().groupByColumns.peek()) {
-              const filterColId = srcCol.summarySource.peek().colId.peek();
+              const filterCol = srcCol.summarySource.peek();
+              const filterColId = filterCol.colId.peek();
               controller = destTable.getValue(cursorPos.rowId, filterColId);
-              query.operations[filterColId] = 'in';
+              // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
+              // should match against an empty list in the source table.
+              query.operations[filterColId] = isListType(filterCol.type.peek()) && !controller ? 'empty' : 'in';
               query.filters[filterColId] = isList(controller) ? controller.slice(1) : [controller];
             }
           }

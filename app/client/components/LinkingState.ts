@@ -7,14 +7,14 @@ import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import {RowId} from "app/client/models/rowset";
 import {LinkConfig} from "app/client/ui/selectBy";
 import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
-import {isList, isRefListType} from "app/common/gristTypes";
+import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable, toKo} from "grainjs";
 import * as  ko from "knockout";
+import identity = require('lodash/identity');
 import mapValues = require('lodash/mapValues');
 import pickBy = require('lodash/pickBy');
-import identity = require('lodash/identity');
 
 
 /**
@@ -124,18 +124,14 @@ export class LinkingState extends Disposable {
           const srcValue = srcTableData.getValue(srcRowId as number, colId);
           result.filters[colId] = [srcValue];
           result.operations[colId] = 'in';
-          if (isDirectSummary) {
-            const tgtColType = col.type();
-            if (tgtColType === 'ChoiceList' || tgtColType.startsWith('RefList:')) {
-              result.operations[colId] = 'intersects';
-            }
+          if (isDirectSummary && isListType(col.type())) {
+            // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
+            // should match against an empty list in the source table.
+            result.operations[colId] = srcValue ? 'intersects' : 'empty';
           }
         }
         _filterColValues(result);
       }
-    } else if (isSummaryOf(tgtSection.table(), srcSection.table())) {
-      // TODO: We should move the cursor, but don't currently it for summaries. For that, we need a
-      // column or map representing the inverse of summary table's "group" column.
     } else if (srcSection.parentKey() === 'custom') {
       this.filterColValues = this._srcCustomFilter('id', 'in');
     } else {

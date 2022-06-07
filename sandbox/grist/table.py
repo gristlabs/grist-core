@@ -8,6 +8,7 @@ from six.moves import xrange
 import column
 import depend
 import docmodel
+import functions
 import logger
 import lookup
 import records
@@ -336,8 +337,8 @@ class Table(object):
         lookup_values = []
         for group_col in groupby_cols:
           lookup_value = getattr(rec, group_col)
-          if isinstance(self.all_columns[group_col],
-                        (column.ChoiceListColumn, column.ReferenceListColumn)):
+          group_col_obj = self.all_columns[group_col]
+          if isinstance(group_col_obj, (column.ChoiceListColumn, column.ReferenceListColumn)):
             # Check that ChoiceList/ReferenceList cells have appropriate types.
             # Don't iterate over characters of a string.
             if isinstance(lookup_value, (six.binary_type, six.text_type)):
@@ -347,6 +348,13 @@ class Table(object):
               lookup_value = set(lookup_value)
             except TypeError:
               return []
+
+            if not lookup_value:
+              if isinstance(group_col_obj, column.ChoiceListColumn):
+                lookup_value = {""}
+              else:
+                lookup_value = {0}
+
           else:
             lookup_value = [lookup_value]
           lookup_values.append(lookup_value)
@@ -459,11 +467,11 @@ class Table(object):
     for col_id in sorted(kwargs):
       value = kwargs[col_id]
       if isinstance(value, lookup._Contains):
-        value = value.value
         # While users should use CONTAINS on lookup values,
         # the marker is moved to col_id so that the LookupMapColumn knows how to
         # update its index correctly for that column.
-        col_id = lookup._Contains(col_id)
+        col_id = value._replace(value=col_id)
+        value = value.value
       else:
         col = self.get_column(col_id)
         # Convert `value` to the correct type of rich value for that column
@@ -527,7 +535,7 @@ class Table(object):
       # _summary_source_table._summary_simple determines whether
       # the column named self._summary_helper_col_id is a single reference
       # or a reference list.
-      lookup_value = rec if self._summary_simple else lookup._Contains(rec)
+      lookup_value = rec if self._summary_simple else functions.CONTAINS(rec)
       return self._summary_source_table.lookup_records(**{
         self._summary_helper_col_id: lookup_value
       })
