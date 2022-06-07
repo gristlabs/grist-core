@@ -401,7 +401,7 @@ export class VisibleFieldsConfig extends Disposable {
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
-                             nextField: ViewFieldRec|null): number {
+                             nextField: ViewFieldRec|null): number|null {
   const index = getItemIndex(fields, nextField);
   return tableUtil.fieldInsertPositions(fields, index, 1)[0];
 }

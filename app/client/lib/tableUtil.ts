@@ -14,55 +14,15 @@ import zipObject = require('lodash/zipObject');
 const G = getBrowserGlobals('document', 'DOMParser');
 
 /**
- *  Returns unique positions given upper and lower position. This function returns a suitable
- *  position number for the to-be-inserted element to end up at the given index.
- *  Inserting n elements between a and b should give the positions:
- *  (a+(b-a)/(n+1)), (a+2(b-a)/(n+1)) , ..., (a+(n)(b-a)/(n+1))
- *  @param {number} lowerPos - a lower bound
- *  @param {number} upperPos - an upper bound, must be greater than or equal to lowerPos
- *  @param {number} numInserts - Number of new positions to insert
- *  @returns {number[]} A sorted Array of unique positions bounded by lowerPos and upperPos.
- *                        If neither an upper nor lowerPos is given, return 0, 1, ..., numInserts - 1
- *                        If an upperPos is not given, return consecutive values greater than lowerPos
- *                        If a lowerPos is not given, return consecutive values lower than upperPos
- *                        Else return the avg position of to-be neighboring elements.
- *  Ex: insertPositions(null, 0, 4) = [-4, -3, -2, -1]
- *      insertPositions(0, null, 4) = [1, 2, 3, 4]
- *      insertPositions(0, 1, 4) = [0.2, 0.4, 0.6, 0.8]
- */
-export function insertPositions(lowerPos: number|null, upperPos: number|null, numInserts: number): number[] {
-  numInserts = (typeof numInserts === 'undefined') ? 1 : numInserts;
-  let start = 0;
-  let step = 1;
-  const positions = [];
-
-  if (typeof lowerPos !== 'number' && typeof upperPos !== 'number') {
-    start = 0;
-  } else if (typeof lowerPos !== 'number') {
-    start = upperPos! - numInserts;
-  } else if (typeof upperPos !== 'number') {
-    start = lowerPos + 1;
-  } else {
-    step = (upperPos - lowerPos)/(numInserts + 1);
-    start = lowerPos + step;
-  }
-
-  for(let i = 0; i < numInserts; i++ ){
-    positions.push(start + step*i);
-  }
-  return positions;
-}
-
-/**
- * Returns a sorted array of parentPos values between the parentPos of the viewField at index-1 and index.
+ * Returns a sorted array of parentPos values for a viewField to be inserted just before index.
  * @param {koArray} viewFields - koArray of viewFields
- * @{param} {number} index - index to insert the viewFields into
+ * @{param} {number} index - index in viewFields at which to insert the new fields
  * @{param} {number} numInserts - number of new fields to insert
  */
-export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number): number[] {
-  const leftPos = (index > 0) ? viewFields.at(index - 1)!.parentPos() : null;
+export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1
+): Array<number|null> {
   const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
-  return insertPositions(leftPos, rightPos, numInserts);
+  return Array(numInserts).fill(rightPos);
 }
 
 /**

@@ -12,7 +12,6 @@
  *
  */
 
-import { insertPositions } from "app/client/lib/tableUtil";
 import { BulkColValues, UserAction } from "app/common/DocActions";
 import { nativeCompare } from "app/common/gutil";
 import { obsArray, ObsArray } from "grainjs";
@@ -155,24 +154,21 @@ export class TreeNodeRecord implements TreeNode {
       const indentations = records.map((rec, i) => rec.indentation + indent - records[0].indentation);
 
       // adjust positions
-      let upperPos, lowerPos: number|null;
+      let upperPos: number|null;
       if (nextChild) {
         const index = nextChild.index;
         upperPos = this._records[index].pagePos;
-        lowerPos = index ? this._records[index - 1].pagePos : null;
       } else {
         const lastIndex = this.findLastIndex();
         if (lastIndex !== "root") {
           upperPos = (this._records[lastIndex + 1] || {pagePos: null}).pagePos;
-          lowerPos = this._records[lastIndex].pagePos;
         } else {
-          upperPos = lowerPos = null;
+          upperPos = null;
         }
       }
-      const positions = insertPositions(lowerPos, upperPos, records.length);
 
       // do update
-      const update = records.map((rec, i) => ({...rec, indentation: indentations[i], pagePos: positions[i]}));
+      const update = records.map((rec, i) => ({...rec, indentation: indentations[i], pagePos: upperPos!}));
       await this.sendActions({update});
     }
   }

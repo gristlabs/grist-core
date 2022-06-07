@@ -656,18 +656,10 @@ BaseView.prototype.scrollToCursor = function() {
  * with the returned positions will place them in between index-1 and index.
  * when the GridView is sorted by MANUALSORT
  **/
- BaseView.prototype._getRowInsertPos = function(index, numInserts) {
-  var lowerRowId = this.viewData.getRowId(index-1);
-  var upperRowId = this.viewData.getRowId(index);
-  if (lowerRowId === 'new') {
-    // set the lowerRowId to the rowId of the row before 'new'.
-    lowerRowId = this.viewData.getRowId(index - 2);
-  }
-
-  var lowerPos = this.tableModel.tableData.getValue(lowerRowId, MANUALSORT);
-  var upperPos = this.tableModel.tableData.getValue(upperRowId, MANUALSORT);
-  // tableUtil.insertPositions takes care of cases where upper/lowerPos are non-zero & falsy
-  return tableUtil.insertPositions(lowerPos, upperPos, numInserts);
+BaseView.prototype._getRowInsertPos = function(index, numInserts) {
+  var rowId = this.viewData.getRowId(index);
+  var insertPos = this.tableModel.tableData.getValue(rowId, MANUALSORT);
+  return Array(numInserts).fill(insertPos);
 };
 
 /**

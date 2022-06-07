@@ -630,7 +630,7 @@ export class SortedRowSet extends RowListener {
     // Note that the logic is all or none, since we can't assume that a single row is in its right
     // place by comparing to neighbors because the neighbors might themselves be affected and wrong.
     const sortedRows = Array.from(rows).sort(this._compareFunc);
-    if (_allRowsSorted(this._koArray.peek(), sortedRows, this._compareFunc)) {
+    if (_allRowsSorted(this._koArray.peek(), this._allRows, sortedRows, this._compareFunc)) {
       return;
     }
 
@@ -724,12 +724,15 @@ function _isIndexInOrder<T>(array: T[], index: number, compareFunc: CompareFunc<
  * Helper function to tell if each of sortedRows, if present in the array, is in order relative to
  * its neighbors. sortedRows should be sorted the same way as the array.
  */
-function _allRowsSorted<T>(array: T[], sortedRows: Iterable<T>, compareFunc: CompareFunc<T>): boolean {
+function _allRowsSorted<T>(array: T[], allRows: Set<T>, sortedRows: Iterable<T>, compareFunc: CompareFunc<T>): boolean {
   let last = 0;
   for (const r of sortedRows) {
+    if (!allRows.has(r)) {
+      continue;
+    }
     const index = array.indexOf(r, last);
-    if (index === -1) { continue; }
-    if (!_isIndexInOrder(array, index, compareFunc)) {
+    if (index === -1 || !_isIndexInOrder(array, index, compareFunc)) {
+      // rows of sortedRows are not present in the array in the same relative order.
       return false;
     }
     last = index;
