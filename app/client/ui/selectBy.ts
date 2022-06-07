@@ -93,8 +93,8 @@ function isValidLink(source: LinkNode, target: LinkNode) {
   // Instead the ref column must link against the group column of the summary table, which is allowed above.
   // The 'group' column name will be hidden from the options so it feels like linking using summaryness.
   if (
-    (source.groupbyColumns && !source.column && target.column) ||
-    (target.groupbyColumns && !target.column && source.column)
+    (source.isSummary && !source.column && target.column) ||
+    (target.isSummary && !target.column && source.column)
   ) {
     return false;
   }
@@ -105,9 +105,9 @@ function isValidLink(source: LinkNode, target: LinkNode) {
   if (
     !source.column &&
     !target.column &&
-    target.groupbyColumns && !(
-      source.groupbyColumns &&
-      gutil.isSubset(source.groupbyColumns, target.groupbyColumns)
+    target.isSummary && !(
+      source.isSummary &&
+      gutil.isSubset(source.groupbyColumns!, target.groupbyColumns!)
     )
   ) {
     return false;
@@ -175,8 +175,12 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
         label += ` ${BLACK_CIRCLE} ${srcNode.column.label.peek()}`;
       }
 
-      // add the target column name (except for 'group') only if target has multiple valid nodes
-      if (hasMany && tgtNode.column && !isSummaryGroup(tgtNode)) {
+      // add the target column name (except for 'group') when clarification is needed, i.e. if either:
+      // - target has multiple valid nodes, or
+      // - source col is 'group' and is thus hidden.
+      //     Need at least one column name to distinguish from simply selecting by summary table.
+      //     This is relevant when a table has a column referencing itself.
+      if (tgtNode.column && !isSummaryGroup(tgtNode) && (hasMany || isSummaryGroup(srcNode))) {
         label += ` ${RIGHT_ARROW} ${tgtNode.column.label.peek()}`;
       }
 
