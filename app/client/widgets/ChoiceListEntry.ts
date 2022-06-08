@@ -330,6 +330,9 @@ export class ChoiceListEntry extends Disposable {
         // Don't bubble up keyboard events, use them for editing the text.
         // Without this keys like Backspace, or Mod+a will propagate and modify all tokens.
         dom.on('keydown', stopPropagation),
+        dom.on('copy', stopPropagation),
+        dom.on('cut', stopPropagation),
+        dom.on('paste', stopPropagation),
         // On enter, focus on the input element.
         dom.onKeyDown({
           Enter : focusOnNew
