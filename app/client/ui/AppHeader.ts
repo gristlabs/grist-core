@@ -6,7 +6,7 @@ import {shouldHideUiElement} from 'app/common/gristUrls';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {isTemplatesOrg, Organization, SUPPORT_EMAIL} from 'app/common/UserAPI';
+import {isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
 import {DocPageModel} from 'app/client/models/DocPageModel';
@@ -35,10 +35,8 @@ export class AppHeader extends Disposable {
   public buildDom() {
     const theme = getTheme(this._appModel.topAppModel.productFlavor);
 
-    const user = this._appModel.currentValidUser;
     const currentOrg = this._appModel.currentOrg;
-    const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
-      (currentOrg.billingAccount.isManager || user?.email === SUPPORT_EMAIL));
+    const isBillingManager = this._appModel.isBillingManager() || this._appModel.isSupport();
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', theme.wideLogo || false),

@@ -181,7 +181,7 @@ export async function sendReply<T>(
   result: QueryResult<T>,
   options: SendReplyOptions = {},
 ) {
-  const data = pruneAPIResult(result.data || null, options.allowedFields);
+  const data = pruneAPIResult(result.data, options.allowedFields);
   if (shouldLogApiDetails && req) {
     const mreq = req as RequestWithLogin;
     log.rawDebug('api call', {
@@ -196,7 +196,7 @@ export async function sendReply<T>(
     });
   }
   if (result.status === 200) {
-    return res.json(data);
+    return res.json(data ?? null); // can't handle undefined
   } else {
     return res.status(result.status).json({error: result.errMessage});
   }
@@ -228,7 +228,7 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
       if (key === 'connectId' && value === null) { return undefined; }
       return INTERNAL_FIELDS.has(key) ? undefined : value;
     });
-  return JSON.parse(output);
+  return output !== undefined ? JSON.parse(output) : undefined;
 }
 
 /**

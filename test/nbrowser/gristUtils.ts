@@ -24,6 +24,7 @@ import { HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import { Cleanup } from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
+import type { AssertionError } from 'assert';
 
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
@@ -92,17 +93,25 @@ export function exactMatch(value: string): RegExp {
 }
 
 /**
- * Helper function that creates a regular expression to match the begging of the string.
+ * Helper function that creates a regular expression to match the beginning of the string.
  */
 export function startsWith(value: string): RegExp {
   return new RegExp(`^${escapeRegExp(value)}`);
+}
+
+
+/**
+ * Helper function that creates a regular expression to match the anywhere in of the string.
+ */
+ export function contains(value: string): RegExp {
+  return new RegExp(`${escapeRegExp(value)}`);
 }
 
 /**
  * Helper to scroll an element into view.
  */
 export function scrollIntoView(elem: WebElement): Promise<void> {
-  return driver.executeScript((el: any) => el.scrollIntoView(), elem);
+  return driver.executeScript((el: any) => el.scrollIntoView({behavior: 'auto'}), elem);
 }
 
 /**
@@ -571,7 +580,7 @@ export async function setApiKey(username: string, apiKey?: string) {
 /**
  * Reach into the DB to set the given org to use the given billing plan product.
  */
-export async function updateOrgPlan(orgName: string, productName: string = 'professional') {
+export async function updateOrgPlan(orgName: string, productName: string = 'team') {
   const dbManager = await server.getDatabase();
   const db = dbManager.connection.manager;
   const dbOrg = await db.findOne(Organization, {where: {name: orgName},
@@ -747,12 +756,13 @@ export async function userActionsVerify(expectedUserActions: unknown[]): Promise
       await driver.executeScript("return window.gristApp.comm.userActionsFetchAndReset()"),
       expectedUserActions);
   } catch (err) {
-    if (!Array.isArray(err.actual)) {
+    const assertError = err as AssertionError;
+    if (!Array.isArray(assertError.actual)) {
       throw new Error('userActionsVerify: no user actions, run userActionsCollect() first');
     }
-    err.actual = err.actual.map((a: any) => JSON.stringify(a) + ",").join("\n");
-    err.expected = err.expected.map((a: any) => JSON.stringify(a) + ",").join("\n");
-    assert.deepEqual(err.actual, err.expected);
+    assertError.actual = assertError.actual.map((a: any) => JSON.stringify(a) + ",").join("\n");
+    assertError.expected = assertError.expected.map((a: any) => JSON.stringify(a) + ",").join("\n");
+    assert.deepEqual(assertError.actual, assertError.expected);
     throw err;
   }
 }
@@ -2411,6 +2421,10 @@ export async function setWidgetUrl(url: string) {
   }
   await sendKeys(Key.ENTER);
   await waitForServer();
+}
+
+export async function toggleNewDeal(on = true) {
+  await driver.executeScript(`NEW_DEAL.set(${on ? 'true' : 'false'});`);
 }
 
 } // end of namespace gristUtils

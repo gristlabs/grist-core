@@ -1,9 +1,9 @@
-import {commonUrls, getSingleOrg, shouldHideUiElement} from 'app/common/gristUrls';
+import {getSingleOrg, shouldHideUiElement} from 'app/common/gristUrls';
 import {getOrgName} from 'app/common/UserAPI';
 import {dom, makeTestId, styled} from 'grainjs';
 import {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
-import {menuDivider, menuIcon, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
+import {menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {icon} from 'app/client/ui2018/icons';
 import {colors} from 'app/client/ui2018/cssVars';
 
@@ -39,8 +39,8 @@ export function buildSiteSwitcher(appModel: AppModel) {
         testId('org'),
       )
     ),
-    menuItemLink(
-      { href: commonUrls.createTeamSite },
+    menuItem(
+      () => appModel.showNewSiteModal(),
       menuIcon('Plus'),
       'Create new team site',
       testId('create-new-site'),

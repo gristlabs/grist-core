@@ -1,4 +1,3 @@
-import {BillingTask} from 'app/common/BillingAPI';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
 import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPathOnly,
@@ -7,7 +6,7 @@ import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
-import {ApiServer} from 'app/gen-server/ApiServer';
+import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -70,6 +69,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
+import {BillingTask} from 'app/common/BillingAPI';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -565,7 +565,7 @@ export class FlexServer implements GristServer {
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
     this._getBilling();
-    this._billing.addEndpoints(this.app);
+    this._billing.addEndpoints(this.app, this);
     this._billing.addEventHandlers();
   }
 
@@ -685,7 +685,7 @@ export class FlexServer implements GristServer {
         await axios.get(statusUrl);
         return w.data;
       } catch (err) {
-        log.debug(`While waiting for ${statusUrl} got error ${err.message}`);
+        log.debug(`While waiting for ${statusUrl} got error ${(err as Error).message}`);
       }
     }
     throw new Error(`Cannot connect to ${statusUrl}`);
@@ -759,6 +759,8 @@ export class FlexServer implements GristServer {
         }
         if (mreq.org && mreq.org.startsWith('o-')) {
           // We are on a team site without a custom subdomain.
+          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({userId: user.id}, mreq.org));
+
           // If the user is a billing manager for the org, and the org
           // is supposed to have a custom subdomain, forward the user
           // to a page to set it.
@@ -769,10 +771,9 @@ export class FlexServer implements GristServer {
           // If "welcomeNewUser" is ever added to billing pages, we'd need
           // to avoid a redirect loop.
 
-          const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({userId: user.id}, mreq.org));
           if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.product.features.vanityDomain) {
-          const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
-          return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
+            const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
+            return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
           }
         }
         next();
@@ -1091,6 +1092,16 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware
     ];
 
+    function getPrefix(req: express.Request) {
+      const org = getOrgFromRequest(req);
+      if (!org) {
+        return getOriginUrl(req);
+      }
+      const prefix = isOrgInPathOnly(req.hostname) ? `/o/${org}` : '';
+      return prefix;
+    }
+
+    // Add billing summary page (.../billing)
     this.app.get('/billing', ...middleware, expressWrap(async (req, resp, next) => {
       const mreq = req as RequestWithLogin;
       const orgDomain = mreq.org;
@@ -1109,20 +1120,31 @@ export class FlexServer implements GristServer {
     }));
 
     this.app.get('/billing/payment', ...middleware, expressWrap(async (req, resp, next) => {
-      const task = optStringParam(req.query.billingTask) || '';
-      const planRequired = task === 'signup' || task === 'updatePlan';
-      if (!BillingTask.guard(task) || (planRequired && !req.query.billingPlan)) {
-        // If the payment task/plan are invalid, redirect to the summary page.
+      const task = (optStringParam(req.query.billingTask) || '') as BillingTask;
+      if (!BillingTask.guard(task)) {
+        // If the payment task are invalid, redirect to the summary page.
         return resp.redirect(getOriginUrl(req) + `/billing`);
       } else {
         return this._sendAppPage(req, resp, {path: 'billing.html', status: 200, config: {}});
       }
     }));
 
-    // This endpoint is used only during testing, to support existing tests that
-    // depend on a page that has been removed.
-    this.app.get('/test/support/billing/plans', expressWrap(async (req, resp, next) => {
-      return this._sendAppPage(req, resp, {path: 'billing.html', status: 200, config: {}});
+    /**
+     * Add landing page for creating pro team sites. Creates new org and redirect to Stripe Checkout Page.
+     * @param billingPlan Stripe plan/price id to use. Must be a standard plan that resolves to a billable product.
+     * @param planType Product type to use. Grist will look for a Stripe Product with a default price
+     *                 that has metadata 'gristProduct' parameter with this plan. If billingPlan is passed, this
+     *                 parameter is ignored.
+     */
+    this.app.get('/billing/signup', ...middleware, expressWrap(async (req, resp, next) => {
+      const planType = optStringParam(req.query.planType) || '';
+      const billingPlan = optStringParam(req.query.billingPlan) || '';
+      if (!planType && !billingPlan) {
+        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
+      }
+      // Redirect to GET endpoint in the billing api to create a team site.
+      const url = `${getPrefix(req)}/api/billing/signup?planType=${planType}&billingPlan=${billingPlan}`;
+      return resp.redirect(url);
     }));
   }
 
@@ -1242,12 +1264,17 @@ export class FlexServer implements GristServer {
    * Get a url for a team site.
    */
   public async getOrgUrl(orgKey: string|number): Promise<string> {
+    const org = await this.getOrg(orgKey);
+    return this.getResourceUrl(org);
+  }
+
+  public async getOrg(orgKey: string|number) {
     if (!this._dbManager) { throw new Error('database missing'); }
     const org = await this._dbManager.getOrg({
       userId: this._dbManager.getPreviewerUserId(),
       showAll: true
     }, orgKey);
-    return this.getResourceUrl(this._dbManager.unwrapQueryResult(org));
+    return this._dbManager.unwrapQueryResult(org);
   }
 
   /**

@@ -4,14 +4,18 @@ import {StringUnion} from 'app/common/StringUnion';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import {BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo} from 'app/common/UserAPI';
 
-export const BillingSubPage = StringUnion('payment', 'plans');
+export const BillingSubPage = StringUnion('payment');
 export type BillingSubPage = typeof BillingSubPage.type;
 
 export const BillingPage = StringUnion(...BillingSubPage.values, 'billing');
 export type BillingPage = typeof BillingPage.type;
 
-export const BillingTask = StringUnion('signUp', 'signUpLite', 'updatePlan', 'addCard',
-                                       'updateCard', 'updateAddress', 'updateDomain');
+// updateDomain - it is a subpage for billing page, to update domain name.
+// The rest are for payment page:
+// signUpLite - it is a subpage for payment, to finalize (complete) signup process
+// and set domain and team name when they are not set yet (currently only from landing pages).
+// signUp - it is landing page for new team sites (it doesn't ask for the name of the team)
+export const BillingTask = StringUnion('signUpLite', 'updateDomain', 'signUp', 'cancelPlan');
 export type BillingTask = typeof BillingTask.type;
 
 // Note that IBillingPlan includes selected fields from the Stripe plan object along with
@@ -36,24 +40,11 @@ export interface IBillingPlan {
   };
   trial_period_days: number|null;  // Number of days in the trial period, or null if there is none.
   product: string;         // the Stripe product id.
-}
-
-// Stripe customer address information. Used to maintain the company address.
-// For reference: https://stripe.com/docs/api/customers/object#customer_object-address
-export interface IBillingAddress {
-  line1: string|null;
-  line2: string|null;
-  city: string|null;
-  state: string|null;
-  postal_code: string|null;
-  country: string|null;
+  active: boolean;
 }
 
 // Utility type that requires all properties to be non-nullish.
-type NonNullableProperties<T> = { [P in keyof T]: Required<NonNullable<T[P]>>; };
-
-// Filled address info from the client. Fields can be blank strings.
-export type IFilledBillingAddress = NonNullableProperties<IBillingAddress>;
+// type NonNullableProperties<T> = { [P in keyof T]: Required<NonNullable<T[P]>>; };
 
 // Stripe promotion code and coupon information. Used by client to apply signup discounts.
 // For reference: https://stripe.com/docs/api/promotion_codes/object#promotion_code_object-coupon
@@ -74,13 +65,6 @@ export interface IBillingDiscount {
   end_timestamp_ms: number|null;
 }
 
-export interface IBillingCard {
-  funding?: string|null;
-  brand?: string|null;
-  country?: string|null;         // uppercase two-letter ISO country code
-  last4?: string|null;           // last 4 digits of the card number
-  name?: string|null;
-}
 
 export interface IBillingSubscription {
   // All standard plan options.
@@ -98,10 +82,6 @@ export interface IBillingSubscription {
   // Value in cents remaining for the current subscription. This indicates the amount that
   // will be discounted from a subscription upgrade.
   valueRemaining: number;
-  // The payment card, or null if none is attached.
-  card: IBillingCard|null;
-  // The company address.
-  address: IBillingAddress|null;
   // The effective tax rate of the customer for the given address.
   taxRate: number;
   // The current number of users with whom the paid org is shared.
@@ -112,8 +92,18 @@ export interface IBillingSubscription {
   discount: IBillingDiscount|null;
   // Last plan we had a subscription for, if any.
   lastPlanId: string|null;
-  // Whether there is a valid plan in effect
+  // Whether there is a valid plan in effect.
   isValidPlan: boolean;
+  // A flag for when all is well with the user's subscription.
+  inGoodStanding: boolean;
+  // Whether there is a paying valid account (even on free plan). It this is set
+  // user needs to upgrade the plan using Stripe Customer portal. In not, we need to
+  // go though checkout process.
+  activeSubscription: boolean;
+  // Whether the plan is billable. Billable plans must be in Stripe.
+  billable: boolean;
+  // Whether we are waiting for upgrade to complete.
+  upgradingPlanIndex: number;
 
   // Stripe status, documented at https://stripe.com/docs/api/subscriptions/object#subscription_object-status
   // such as "active", "trialing" (reflected in isInTrial), "incomplete", etc.
@@ -136,24 +126,18 @@ export interface FullBillingAccount extends BillingAccount {
 
 export interface BillingAPI {
   isDomainAvailable(domain: string): Promise<boolean>;
-  getCoupon(promotionCode: string): Promise<IBillingCoupon>;
-  getTaxRate(address: IBillingAddress): Promise<number>;
   getPlans(): Promise<IBillingPlan[]>;
   getSubscription(): Promise<IBillingSubscription>;
   getBillingAccount(): Promise<FullBillingAccount>;
-  // The signUp function takes the tokenId generated when card data is submitted to Stripe.
-  // See: https://stripe.com/docs/stripe-js/reference#stripe-create-token
-  signUp(planId: string, tokenId: string, address: IBillingAddress,
-         settings: IBillingOrgSettings, promotionCode?: string): Promise<OrganizationWithoutAccessInfo>;
-  setCard(tokenId: string): Promise<void>;
-  removeCard(): Promise<void>;
-  setSubscription(planId: string, options: {
-    tokenId?: string,
-    address?: IBillingAddress,
-    settings?: IBillingOrgSettings,
-  }): Promise<void>;
-  updateAddress(address?: IBillingAddress, settings?: IBillingOrgSettings): Promise<void>;
   updateBillingManagers(delta: ManagerDelta): Promise<void>;
+  updateSettings(settings: IBillingOrgSettings): Promise<void>;
+  subscriptionStatus(planId: string): Promise<boolean>;
+  createFreeTeam(name: string, domain: string): Promise<string>;
+  createTeam(name: string, domain: string): Promise<string>;
+  upgrade(): Promise<string>;
+  cancelCurrentPlan(): Promise<void>;
+  renewPlan(): string;
+  customerPortal(): string;
 }
 
 export class BillingAPIImpl extends BaseAPI implements BillingAPI {
@@ -167,20 +151,6 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       body: JSON.stringify({ domain })
     });
   }
-
-  public async getCoupon(promotionCode: string): Promise<IBillingCoupon> {
-    return this.requestJson(`${this._url}/api/billing/coupon/${promotionCode}`, {
-      method: 'GET',
-    });
-  }
-
-  public async getTaxRate(address: IBillingAddress): Promise<number> {
-    return this.requestJson(`${this._url}/api/billing/tax`, {
-      method: 'POST',
-      body: JSON.stringify({ address })
-    });
-  }
-
   public async getPlans(): Promise<IBillingPlan[]> {
     return this.requestJson(`${this._url}/api/billing/plans`, {method: 'GET'});
   }
@@ -194,50 +164,17 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     return this.requestJson(`${this._url}/api/billing`, {method: 'GET'});
   }
 
-  // Returns the new Stripe customerId.
-  public async signUp(
-    planId: string,
-    tokenId: string,
-    address: IBillingAddress,
-    settings: IBillingOrgSettings,
-    promotionCode?: string,
-  ): Promise<OrganizationWithoutAccessInfo> {
-    const parsed = await this.requestJson(`${this._url}/api/billing/signup`, {
+  public async cancelCurrentPlan() {
+    await this.request(`${this._url}/api/billing/cancel-plan`, {
       method: 'POST',
-      body: JSON.stringify({ tokenId, planId, address, settings, promotionCode }),
-    });
-    return parsed.data;
-  }
-
-  public async setSubscription(planId: string, options: {
-    tokenId?: string,
-    address?: IBillingAddress,
-  }): Promise<void> {
-    await this.request(`${this._url}/api/billing/subscription`, {
-      method: 'POST',
-      body: JSON.stringify({ ...options, planId })
     });
   }
 
-  public async removeSubscription(): Promise<void> {
-    await this.request(`${this._url}/api/billing/subscription`, {method: 'DELETE'});
-  }
 
-  public async setCard(tokenId: string): Promise<void> {
-    await this.request(`${this._url}/api/billing/card`, {
+  public async updateSettings(settings?: IBillingOrgSettings): Promise<void> {
+    await this.request(`${this._url}/api/billing/settings`, {
       method: 'POST',
-      body: JSON.stringify({ tokenId })
-    });
-  }
-
-  public async removeCard(): Promise<void> {
-    await this.request(`${this._url}/api/billing/card`, {method: 'DELETE'});
-  }
-
-  public async updateAddress(address?: IBillingAddress, settings?: IBillingOrgSettings): Promise<void> {
-    await this.request(`${this._url}/api/billing/address`, {
-      method: 'POST',
-      body: JSON.stringify({ address, settings })
+      body: JSON.stringify({ settings })
     });
   }
 
@@ -246,6 +183,55 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       method: 'PATCH',
       body: JSON.stringify({delta})
     });
+  }
+
+  public async createFreeTeam(name: string, domain: string): Promise<string> {
+    const data = await this.requestJson(`${this._url}/api/billing/team-free`, {
+      method: 'POST',
+      body: JSON.stringify({
+        domain,
+        name
+      })
+    });
+    return data.orgUrl;
+  }
+
+  public async createTeam(name: string, domain: string): Promise<string> {
+    const data = await this.requestJson(`${this._url}/api/billing/team`, {
+      method: 'POST',
+      body: JSON.stringify({
+        domain,
+        name,
+        planType: 'team'
+      })
+    });
+    return data.checkoutUrl;
+  }
+
+  public async upgrade(): Promise<string> {
+    const data = await this.requestJson(`${this._url}/api/billing/upgrade`, {
+      method: 'POST',
+    });
+    return data.checkoutUrl;
+  }
+
+  public customerPortal(): string {
+    return `${this._url}/api/billing/customer-portal`;
+  }
+
+  public renewPlan(): string {
+    return `${this._url}/api/billing/renew`;
+  }
+
+  /**
+   * Checks if current org has active subscription for a Stripe plan.
+   */
+  public async subscriptionStatus(planId: string): Promise<boolean> {
+    const data = await this.requestJson(`${this._url}/api/billing/status`, {
+      method: 'POST',
+      body: JSON.stringify({planId})
+    });
+    return data.active;
   }
 
   private get _url(): string {

@@ -101,7 +101,7 @@ export class HomeUtil {
     if (options.cacheCredentials) {
       // Take this opportunity to cache access info.
       if (!this._apiKey.has(email)) {
-        await this.driver.get(this.server.getUrl(org, ''));
+        await this.driver.get(this.server.getUrl(org || 'docs', ''));
         this._apiKey.set(email, await this._getApiKey());
       }
     }

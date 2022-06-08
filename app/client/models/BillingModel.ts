@@ -1,12 +1,10 @@
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {IFormData} from 'app/client/ui/BillingForm';
-import {BillingAPI, BillingAPIImpl, BillingSubPage, BillingTask, IBillingCoupon} from 'app/common/BillingAPI';
-import {IBillingCard, IBillingPlan, IBillingSubscription} from 'app/common/BillingAPI';
+import {BillingAPI, BillingAPIImpl, BillingSubPage,
+        BillingTask, IBillingPlan, IBillingSubscription} from 'app/common/BillingAPI';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {bundleChanges, Computed, Disposable, Observable} from 'grainjs';
-import isEqual = require('lodash/isEqual');
-import omit = require('lodash/omit');
 
 export interface BillingModel {
   readonly error: Observable<string|null>;
@@ -15,8 +13,6 @@ export interface BillingModel {
   // Client-friendly version of the IBillingSubscription fetched from the server.
   // See ISubscriptionModel for details.
   readonly subscription: Observable<ISubscriptionModel|undefined>;
-  // Payment card fetched from the server.
-  readonly card: Observable<IBillingCard|null>;
 
   readonly currentSubpage: Computed<BillingSubPage|undefined>;
   // The billingTask query param of the url - indicates the current operation, if any.
@@ -29,8 +25,6 @@ export interface BillingModel {
   // Indicates whether the request for billing account information fails with unauthorized.
   // Initialized to false until the request is made.
   readonly isUnauthorized: Observable<boolean>;
-  // The tax rate to use for the sign up charge. Initialized by calling fetchSignupTaxRate.
-  signupTaxRate: number|undefined;
 
   reportBlockingError(this: void, err: Error): void;
 
@@ -40,25 +34,25 @@ export interface BillingModel {
   addManager(email: string): Promise<void>;
   // Remove billing account manager.
   removeManager(email: string): Promise<void>;
-  // Remove the payment card from the account.
-  removeCard(): Promise<void>;
   // Returns a boolean indicating if the org domain string is available.
   isDomainAvailable(domain: string): Promise<boolean>;
-  // Triggered when submit is clicked on the payment page. Performs the API billing account
-  // management call based on currentTask, signupPlan and whether an address/tokenId was submitted.
-  submitPaymentPage(formData?: IFormData): Promise<void>;
-  // Fetches coupon information for a valid `discountCode`.
-  fetchSignupCoupon(discountCode: string): Promise<IBillingCoupon>;
-  // Fetches the effective tax rate for the address in the given form.
-  fetchSignupTaxRate(formData: IFormData): Promise<void>;
   // Fetches subscription data associated with the given org, if the pages are associated with an
   // org and the user is a plan manager. Otherwise, fetches available plans only.
   fetchData(forceReload?: boolean): Promise<void>;
+  // Triggered when submit is clicked on the payment page. Performs the API billing account
+  // management call based on currentTask, signupPlan and whether an address/tokenId was submitted.
+  submitPaymentPage(formData?: IFormData): Promise<void>;
+  // Cancels current subscription.
+  cancelCurrentPlan(): Promise<void>;
+  // Retrieves customer portal session URL.
+  getCustomerPortalUrl(): string;
+  // Renews plan (either by opening customer portal or creating Stripe Checkout session)
+  renewPlan(): string;
 }
 
-export interface ISubscriptionModel extends Omit<IBillingSubscription, 'plans'|'card'> {
+export interface ISubscriptionModel extends IBillingSubscription {
   // The active plan.
-  activePlan: IBillingPlan;
+  activePlan: IBillingPlan|null;
   // The upcoming plan, or null if the current plan is not set to end.
   upcomingPlan: IBillingPlan|null;
 }
@@ -73,8 +67,6 @@ export class BillingModelImpl extends Disposable implements BillingModel {
   // Client-friendly version of the IBillingSubscription fetched from the server.
   // See ISubscriptionModel for details.
   public readonly subscription: Observable<ISubscriptionModel|undefined> = Observable.create(this, undefined);
-  // Payment card fetched from the server.
-  public readonly card: Observable<IBillingCard|null> = Observable.create(this, null);
 
   public readonly currentSubpage: Computed<BillingSubPage|undefined> =
     Computed.create(this, urlState().state, (use, s) => s.billing === 'billing' ? undefined : s.billing);
@@ -88,8 +80,7 @@ export class BillingModelImpl extends Disposable implements BillingModel {
   // The plan to which the user is in process of signing up.
   public readonly signupPlan: Computed<IBillingPlan|undefined> =
     Computed.create(this, this.plans, this.signupPlanId, (use, plans, pid) => plans.find(_p => _p.id === pid));
-  // The tax rate to use for the sign up charge. Initialized by calling fetchSignupTaxRate.
-  public signupTaxRate: number|undefined;
+
 
   // Indicates whether the request for billing account information fails with unauthorized.
   // Initialized to false until the request is made.
@@ -121,107 +112,51 @@ export class BillingModelImpl extends Disposable implements BillingModel {
     });
   }
 
-  // Remove the payment card from the account.
-  public async removeCard(): Promise<void> {
-    try {
-      await this._billingAPI.removeCard();
-      this.card.set(null);
-    } catch (err) {
-      reportError(err);
-    }
-  }
-
   public isDomainAvailable(domain: string): Promise<boolean> {
     return this._billingAPI.isDomainAvailable(domain);
   }
 
-  public async fetchSignupCoupon(discountCode: string): Promise<IBillingCoupon> {
-    return await this._billingAPI.getCoupon(discountCode);
+  public getCustomerPortalUrl() {
+    return this._billingAPI.customerPortal();
+  }
+
+  public renewPlan() {
+    return this._billingAPI.renewPlan();
+  }
+
+  public async cancelCurrentPlan() {
+    const data = await this._billingAPI.cancelCurrentPlan();
+    return data;
   }
 
   public async submitPaymentPage(formData: IFormData = {}): Promise<void> {
     const task = this.currentTask.get();
-    const planId = this.signupPlanId.get();
     // TODO: The server should prevent most of the errors in this function from occurring by
     // redirecting improper urls.
     try {
-      if (task === 'signUp') {
-        // Sign up from an unpaid plan to a paid plan.
-        if (!planId) { throw new Error('BillingPage _submit error: no plan selected'); }
-        if (!formData.token) { throw new Error('BillingPage _submit error: no card submitted'); }
-        if (!formData.address) { throw new Error('BillingPage _submit error: no address submitted'); }
-        if (!formData.settings) { throw new Error('BillingPage _submit error: no settings submitted'); }
-        const {token, address, settings, coupon} = formData;
-        const o = await this._billingAPI.signUp(planId, token, address, settings, coupon?.promotion_code);
-        if (o && o.domain) {
-          await urlState().pushUrl({ org: o.domain, billing: 'billing', params: undefined });
-        } else {
-          // TODO: show problems nicely
-          throw new Error('BillingPage _submit error: problem creating new organization');
+      if (task === 'signUpLite' || task === 'updateDomain') {
+        // All that can change here is company name, and domain.
+        const org = this._appModel.currentOrg;
+        const name = formData.settings && formData.settings.name;
+        const domain = formData.settings && formData.settings.domain;
+        const newDomain = domain !== org?.domain;
+        const newSettings = org && (name !== org.name || newDomain) && formData.settings;
+        // If the address or settings have a new value, run the update.
+        if (newSettings) {
+          await this._billingAPI.updateSettings(newSettings || undefined);
         }
+        // If the domain has changed, should redirect page.
+        if (newDomain) {
+          window.location.assign(urlState().makeUrl({ org: domain, billing: 'billing', params: undefined }));
+          return;
+        }
+        // If there is an org update, re-initialize the org in the client.
+        if (newSettings) { this._appModel.topAppModel.initialize(); }
       } else {
-        // Any task after sign up.
-        if (task === 'updatePlan') {
-          // Change plan from a paid plan to another paid plan or to the free plan.
-          if (!planId) { throw new Error('BillingPage _submit error: no plan selected'); }
-          await this._billingAPI.setSubscription(planId, {tokenId: formData.token});
-        } else if (task === 'addCard' || task === 'updateCard') {
-          // Add or update payment card.
-          if (!formData.token) { throw new Error('BillingPage _submit error: missing card info token'); }
-          await this._billingAPI.setCard(formData.token);
-        } else if (task === 'updateAddress') {
-          const org = this._appModel.currentOrg;
-          const sub = this.subscription.get();
-          const name = formData.settings && formData.settings.name;
-          // Get the values of the new address and settings if they have changed.
-          const newAddr = sub && !isEqual(formData.address, sub.address) && formData.address;
-          const newSettings = org && (name !== org.name) && formData.settings;
-          // If the address or settings have a new value, run the update.
-          if (newAddr || newSettings) {
-            await this._billingAPI.updateAddress(newAddr || undefined, newSettings || undefined);
-          }
-          // If there is an org update, re-initialize the org in the client.
-          if (newSettings) { this._appModel.topAppModel.initialize(); }
-        } else if (task === 'signUpLite' || task === 'updateDomain') {
-          // All that can change here is company name, and domain.
-          const org = this._appModel.currentOrg;
-          const name = formData.settings && formData.settings.name;
-          const domain = formData.settings && formData.settings.domain;
-          const newDomain = domain !== org?.domain;
-          const newSettings = org && (name !== org.name || newDomain) && formData.settings;
-          // If the address or settings have a new value, run the update.
-          if (newSettings) {
-            await this._billingAPI.updateAddress(undefined, newSettings || undefined);
-          }
-          // If the domain has changed, should redirect page.
-          if (newDomain) {
-            window.location.assign(urlState().makeUrl({ org: domain, billing: 'billing', params: undefined }));
-            return;
-          }
-          // If there is an org update, re-initialize the org in the client.
-          if (newSettings) { this._appModel.topAppModel.initialize(); }
-        } else {
-          throw new Error('BillingPage _submit error: no task in progress');
-        }
-        // Show the billing summary page after submission
-        await urlState().pushUrl({ billing: 'billing', params: undefined });
+        throw new Error('BillingPage _submit error: no task in progress');
       }
-    } catch (err) {
-      // TODO: These errors may need to be reported differently since they're not user-friendly
-      reportError(err);
-      throw err;
-    }
-  }
-
-  public async fetchSignupTaxRate(formData: IFormData): Promise<void> {
-    try {
-      if (this.currentTask.get() !== 'signUp') {
-        throw new Error('fetchSignupTaxRate only available during signup');
-      }
-      if (!formData.address) {
-        throw new Error('Signup form data must include address');
-      }
-      this.signupTaxRate = await this._billingAPI.getTaxRate(formData.address);
+      // Show the billing summary page after submission
+      await urlState().pushUrl({ billing: 'billing', params: undefined });
     } catch (err) {
       // TODO: These errors may need to be reported differently since they're not user-friendly
       reportError(err);
@@ -231,13 +166,8 @@ export class BillingModelImpl extends Disposable implements BillingModel {
 
   // If forceReload is set, re-fetches and updates already fetched data.
   public async fetchData(forceReload: boolean = false): Promise<void> {
-    if (this.currentSubpage.get() === 'plans' && !this._appModel.currentOrg) {
-      // If these are billing sign up pages, fetch the plan options only.
-      await this._fetchPlans();
-    } else {
-      // If these are billing settings pages for an existing org, fetch the subscription data.
-      await this._fetchSubscription(forceReload);
-    }
+    // If these are billing settings pages for an existing org, fetch the subscription data.
+    await this._fetchSubscription(forceReload);
   }
 
   private _reportBlockingError(err: Error) {
@@ -260,10 +190,9 @@ export class BillingModelImpl extends Disposable implements BillingModel {
           const subModel: ISubscriptionModel = {
             activePlan: sub.plans[sub.planIndex],
             upcomingPlan: sub.upcomingPlanIndex !== sub.planIndex ? sub.plans[sub.upcomingPlanIndex] : null,
-            ...omit(sub, 'plans', 'card'),
+            ...sub
           };
           this.subscription.set(subModel);
-          this.card.set(sub.card);
           // Clear the fetch errors on success.
           this.isUnauthorized.set(false);
           this.error.set(null);
@@ -272,13 +201,6 @@ export class BillingModelImpl extends Disposable implements BillingModel {
         if (e.status === 401 || e.status === 403) { this.isUnauthorized.set(true); }
         throw e;
       }
-    }
-  }
-
-  // Fetches the plans only - used when the billing pages are not associated with an org.
-  private async _fetchPlans(): Promise<void> {
-    if (this.plans.get().length === 0) {
-      this.plans.set(await this._billingAPI.getPlans());
     }
   }
 }

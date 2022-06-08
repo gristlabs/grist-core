@@ -13,9 +13,10 @@ import {UserPrefs} from 'app/common/Prefs';
 import {isOwner} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getGristConfig} from 'app/common/urlUtils';
-import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {getOrgName, Organization, OrgError, SUPPORT_EMAIL, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 
 export {reportError} from 'app/client/models/errors';
 
@@ -73,8 +74,13 @@ export interface AppModel {
   pageType: Observable<PageType>;
 
   notifier: Notifier;
+  planName: string|null;
 
   refreshOrgUsage(): Promise<void>;
+  showUpgradeModal(): void;
+  showNewSiteModal(): void;
+  isBillingManager(): boolean;          // If user is a billing manager for this org
+  isSupport(): boolean;                 // If user is a Support user
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -211,6 +217,30 @@ export class AppModelImpl extends Disposable implements AppModel {
   ) {
     super();
     this._recordSignUpIfIsNewUser();
+  }
+
+  public get planName() {
+    return this.currentOrg?.billingAccount?.product.name ?? null;
+  }
+
+  public async showUpgradeModal() {
+    if (this.planName && this.currentOrg) {
+      buildUpgradeModal(this, this.planName);
+    }
+  }
+
+  public async showNewSiteModal() {
+    if (this.planName) {
+      buildNewSiteModal(this, this.planName);
+    }
+  }
+
+  public isSupport() {
+    return this.currentValidUser?.email === SUPPORT_EMAIL;
+  }
+
+  public isBillingManager() {
+    return Boolean(this.currentOrg?.billingAccount?.isManager);
   }
 
   /**

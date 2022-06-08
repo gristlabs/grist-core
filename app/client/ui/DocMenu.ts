@@ -10,12 +10,13 @@ import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'ap
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro} from 'app/client/ui/HomeIntro';
+import {buildUpgradeNudge} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
 import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
@@ -24,11 +25,12 @@ import {IHomePage} from 'app/common/gristUrls';
 import {SortPref, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {Computed, computed, dom, DomContents, makeTestId, Observable, observable} from 'grainjs';
+import {Computed, computed, dom, DomContents, makeTestId, Observable, observable, styled} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
+import {getUserOrgPrefObs, getUserOrgPrefsObs} from 'app/client/models/UserPrefs';
 
 const testId = makeTestId('test-dm-');
 
@@ -46,94 +48,113 @@ export function createDocMenu(home: HomeModel) {
   ));
 }
 
+function createUpgradeNudge(home: HomeModel) {
+  const isLoggedIn = !!home.app.currentValidUser;
+  const isOnFreePersonal = home.app.currentOrg?.billingAccount?.product?.name === 'starter';
+  const userOrgPrefs = getUserOrgPrefsObs(home.app);
+  const seenNudge = getUserOrgPrefObs(userOrgPrefs, 'seenFreeTeamUpgradeNudge');
+  return dom.maybe(use => isLoggedIn && isOnFreePersonal && !use(seenNudge),
+    () => buildUpgradeNudge({
+      onClose: () => seenNudge.set(true),
+      // On show prices, we will clear the nudge in database once there is some free team site created
+      // The better way is to read all workspaces that this person have and decide then - but this is done
+      // asynchronously - so we potentially can show this nudge to people that already have team site.
+      onUpgrade: () => home.app.showUpgradeModal()
+  }));
+}
+
 function createLoadedDocMenu(home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   return css.docList(
     showWelcomeQuestions(home.app.userPrefsObs),
-    dom.maybe(!home.app.currentFeatures.workspaces, () => [
-      css.docListHeader('This service is not available right now'),
-      dom('span', '(The organization needs a paid plan)')
-    ]),
+    cssDocMenu(
+      dom.maybe(!home.app.currentFeatures.workspaces, () => [
+        css.docListHeader('This service is not available right now'),
+        dom('span', '(The organization needs a paid plan)')
+      ]),
 
-    // currentWS and showIntro observables change together. We capture both in one domComputed call.
-    dom.domComputed<[IHomePage, Workspace|undefined, boolean]>(
-      (use) => [use(home.currentPage), use(home.currentWS), use(home.showIntro)],
-      ([page, workspace, showIntro]) => {
-        const viewSettings: ViewSettings =
-          page === 'trash' ? makeLocalViewSettings(home, 'trash') :
-          page === 'templates' ? makeLocalViewSettings(home, 'templates') :
-          workspace ? makeLocalViewSettings(home, workspace.id) :
-          home;
+      // currentWS and showIntro observables change together. We capture both in one domComputed call.
+      dom.domComputed<[IHomePage, Workspace|undefined, boolean]>(
+        (use) => [use(home.currentPage), use(home.currentWS), use(home.showIntro)],
+        ([page, workspace, showIntro]) => {
+          const viewSettings: ViewSettings =
+            page === 'trash' ? makeLocalViewSettings(home, 'trash') :
+            page === 'templates' ? makeLocalViewSettings(home, 'templates') :
+            workspace ? makeLocalViewSettings(home, workspace.id) :
+            home;
 
-        return [
-          // Hide the sort option only when showing intro.
-          ((showIntro && page === 'all') ? null :
-            buildPrefs(viewSettings, {hideSort: showIntro})
-          ),
-
-          // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded or
-          dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
-            css.docListHeader(css.docHeaderIconDark('PinBig'), 'Pinned Documents'),
-            createPinnedDocs(home, home.currentWSPinnedDocs),
-          ]),
-
-          // Build the featured templates dom if on the Examples & Templates page.
-          dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
-            css.featuredTemplatesHeader(
-              css.featuredTemplatesIcon('Idea'),
-              'Featured',
-              testId('featured-templates-header')
+          return [
+            // Hide the sort option only when showing intro.
+            ((showIntro && page === 'all') ? null :
+              buildPrefs(viewSettings, {hideSort: showIntro})
             ),
-            createPinnedDocs(home, home.featuredTemplates, true),
-          ]),
 
-          dom.maybe(home.available, () => [
-            buildOtherSites(home),
-            (showIntro && page === 'all' ?
-              null :
-              css.docListHeader(
-                (
-                  page === 'all' ? 'All Documents' :
-                  page === 'templates' ?
-                    dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                      hasFeaturedTemplates ? 'More Examples & Templates' : 'Examples & Templates'
-                  ) :
-                  page === 'trash' ? 'Trash' :
-                  workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
-                ),
-                testId('doc-header'),
-              )
-            ),
-            (
-              (page === 'all') ?
-                dom('div',
-                  showIntro ? buildHomeIntro(home) : null,
-                  buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                  shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
-                ) :
-              (page === 'trash') ?
-                dom('div',
-                  css.docBlock('Documents stay in Trash for 30 days, after which they get deleted permanently.'),
-                  dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
-                    css.docBlock('Trash is empty.')
+            // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded or
+            dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
+              css.docListHeader(css.docHeaderIconDark('PinBig'), 'Pinned Documents'),
+              createPinnedDocs(home, home.currentWSPinnedDocs),
+            ]),
+
+            // Build the featured templates dom if on the Examples & Templates page.
+            dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
+              css.featuredTemplatesHeader(
+                css.featuredTemplatesIcon('Idea'),
+                'Featured',
+                testId('featured-templates-header')
+              ),
+              createPinnedDocs(home, home.featuredTemplates, true),
+            ]),
+
+            dom.maybe(home.available, () => [
+              buildOtherSites(home),
+              (showIntro && page === 'all' ?
+                null :
+                css.docListHeader(
+                  (
+                    page === 'all' ? 'All Documents' :
+                    page === 'templates' ?
+                      dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
+                        hasFeaturedTemplates ? 'More Examples & Templates' : 'Examples & Templates'
+                    ) :
+                    page === 'trash' ? 'Trash' :
+                    workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
                   ),
-                  buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
-                ) :
-              (page === 'templates') ?
-                dom('div',
-                  buildAllTemplates(home, home.templateWorkspaces, viewSettings)
-                ) :
-                workspace && !workspace.isSupportWorkspace ?
-                  css.docBlock(
-                    buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
-                    testId('doc-block')
+                  testId('doc-header'),
+                )
+              ),
+              (
+                (page === 'all') ?
+                  dom('div',
+                    showIntro ? buildHomeIntro(home) : null,
+                    buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
+                    dom.maybe(use => use(isNarrowScreenObs()), () => createUpgradeNudge(home)),
+                    shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
                   ) :
-                  css.docBlock('Workspace not found')
-            )
-          ]),
-        ];
-      }),
-    testId('doclist')
+                (page === 'trash') ?
+                  dom('div',
+                    css.docBlock('Documents stay in Trash for 30 days, after which they get deleted permanently.'),
+                    dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
+                      css.docBlock('Trash is empty.')
+                    ),
+                    buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
+                  ) :
+                (page === 'templates') ?
+                  dom('div',
+                    buildAllTemplates(home, home.templateWorkspaces, viewSettings)
+                  ) :
+                  workspace && !workspace.isSupportWorkspace ?
+                    css.docBlock(
+                      buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
+                      testId('doc-block')
+                    ) :
+                    css.docBlock('Workspace not found')
+              )
+            ]),
+          ];
+        }),
+      testId('doclist')
+    ),
+    dom.maybe(use => !use(isNarrowScreenObs()) && use(home.currentPage) === 'all', () => createUpgradeNudge(home)),
   );
 }
 
@@ -407,7 +428,7 @@ async function doRename(home: HomeModel, doc: Document, val: string, flashDocId:
       flashDocId.set(doc.id);
       flashDocId.set(null);
     } catch (err) {
-      reportError(err);
+      reportError(err as Error);
     }
   }
 }
@@ -565,3 +586,7 @@ function shouldShowTemplates(home: HomeModel, showIntro: boolean): boolean {
   // Show templates for all personal orgs, and for non-personal orgs when showing intro.
   return isPersonalOrg || showIntro;
 }
+
+const cssDocMenu = styled('div', `
+  flex-grow: 1;
+`);

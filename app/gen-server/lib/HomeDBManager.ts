@@ -823,6 +823,7 @@ export class HomeDBManager extends EventEmitter {
             features: starterFeatures,
           },
           isManager: false,
+          inGoodStanding: true,
         },
         host: null
       };
@@ -1263,6 +1264,7 @@ export class HomeDBManager extends EventEmitter {
    * @param useNewPlan: by default, the individual billing account associated with the
    *   user's personal org will be used for all other orgs they create.  Set useNewPlan
    *   to force a distinct non-individual billing account to be used for this org.
+   *   NOTE: Currently it is always a true - billing account is one to one with org.
    * @param planType: if set, controls the type of plan used for the org. Only
    *   meaningful for team sites currently.
    *
@@ -1270,7 +1272,7 @@ export class HomeDBManager extends EventEmitter {
   public async addOrg(user: User, props: Partial<OrganizationProperties>,
                       options: { setUserAsOwner: boolean,
                                  useNewPlan: boolean,
-                                 planType?: 'free',
+                                 planType?: string,
                                  externalId?: string,
                                  externalOptions?: ExternalBillingOptions },
                       transaction?: EntityManager): Promise<QueryResult<number>> {
@@ -1297,13 +1299,15 @@ export class HomeDBManager extends EventEmitter {
       // Create or find a billing account to associate with this org.
       const billingAccountEntities = [];
       let billingAccount;
-      if (options.useNewPlan) {
+      if (options.useNewPlan) { // use separate billing account (currently yes)
         const productNames = getDefaultProductNames();
         let productName = options.setUserAsOwner ? productNames.personal :
-          options.planType === 'free' ? productNames.teamFree : productNames.teamInitial;
+          options.planType === productNames.teamFree ? productNames.teamFree : productNames.teamInitial;
         // A bit fragile: this is called during creation of support@ user, before
         // getSupportUserId() is available, but with setUserAsOwner of true.
-        if (!options.setUserAsOwner && user.id === this.getSupportUserId() && options.planType !== 'free') {
+        if (!options.setUserAsOwner
+            && user.id === this.getSupportUserId()
+            && options.planType !== productNames.teamFree) {
           // For teams created by support@getgrist.com, set the product to something
           // good so payment not needed.  This is useful for testing.
           productName = productNames.team;
@@ -1328,6 +1332,7 @@ export class HomeDBManager extends EventEmitter {
           billingAccount.externalOptions = options.externalOptions;
         }
       } else {
+        log.warn("Creating org with shared billing account");
         // Use the billing account from the user's personal org to start with.
         billingAccount = await manager.createQueryBuilder()
           .select('billing_accounts')

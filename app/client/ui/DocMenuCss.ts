@@ -14,6 +14,7 @@ export const docList = styled('div', `
   padding: 32px 64px 24px 64px;
   overflow-y: auto;
   position: relative;
+  display: flex;
 
   &:after {
     content: "";

@@ -108,7 +108,7 @@ export class AccountWidget extends Disposable {
           menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
           menuItem(() => null, 'Billing Account', dom.cls('disabled', true))
         ) :
-        menuItemLink({href: commonUrls.plans}, 'Upgrade Plan'),
+        menuItem(() => this._appModel.showUpgradeModal(), 'Upgrade Plan'),
 
       mobileModeToggle,
 

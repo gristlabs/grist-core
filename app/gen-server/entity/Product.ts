@@ -98,6 +98,7 @@ export const PRODUCTS: IProduct[] = [
   },
 
   // These are products set up in stripe.
+  // TODO: this is not true anymore
   {
     name: 'starter',
     features: starterFeatures,
@@ -108,20 +109,21 @@ export const PRODUCTS: IProduct[] = [
   },
   {
     name: 'team',
-    features: teamFeatures,
+    features: teamFeatures
   },
 
   // This is a product for a team site that is no longer in good standing, but isn't yet
   // to be removed / deactivated entirely.
   {
     name: 'suspended',
-    features: suspendedFeatures,
+    features: suspendedFeatures
   },
   {
     name: 'teamFree',
-    features: teamFreeFeatures,
+    features: teamFreeFeatures
   },
 ];
+
 
 /**
  * Get names of products for different situations.

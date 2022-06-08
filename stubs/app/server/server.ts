@@ -91,7 +91,7 @@ export async function main() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        planType: 'free'
+        planType: 'teamFree'
       });
     }
   }

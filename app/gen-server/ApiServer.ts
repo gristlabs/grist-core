@@ -73,7 +73,7 @@ export function addOrg(
   userId: number,
   props: Partial<OrganizationProperties>,
   options?: {
-    planType?: 'free'
+    planType?: string,
   }
 ): Promise<number> {
   return dbManager.connection.transaction(async manager => {

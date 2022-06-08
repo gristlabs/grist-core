@@ -9,6 +9,7 @@ export interface Product {
   features: Features;
 }
 
+
 // A product is essentially a list of flags and limits that we may enforce/support.
 export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
@@ -69,5 +70,5 @@ export function canAddOrgMembers(features: Features): boolean {
 
 // Returns true if `product` is free.
 export function isFreeProduct(product: Product): boolean {
-  return ['starter', 'teamFree'].includes(product.name);
+  return ['starter', 'teamFree', 'Free'].includes(product?.name);
 }

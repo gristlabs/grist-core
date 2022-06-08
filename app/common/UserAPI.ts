@@ -68,6 +68,7 @@ export interface BillingAccount {
   individual: boolean;
   product: Product;
   isManager: boolean;
+  inGoodStanding: boolean;
   externalOptions?: {
     invoiceId?: string;
   };
