@@ -335,7 +335,11 @@ export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFu
  * rowIds), and consistently sorted. We use that to identify a Query across table/column renames.
  */
 function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
-  const tableRec: any = docModel.dataTables[query.tableId].tableMetaRow;
+  // During table rename, we can be referencing old name of a table.
+  const tableRec = Object.values(docModel.dataTables).find(t => t.tableData.tableId === query.tableId)?.tableMetaRow;
+  if (!tableRec) {
+    throw new Error(`Table ${query.tableId} not found`);
+  }
 
   const colRefsByColId: {[colId: string]: ColRef} = {id: 'id'};
   for (const col of tableRec.columns.peek().peek()) {
