@@ -319,8 +319,13 @@ BaseView.prototype.filterByThisCellValue = function() {
   // ChoiceList and Reflist values get 'flattened' out so we filter by each element within.
   // In any other column type, complex values (even lists) get converted to JSON.
   let filterValues;
-  if (gristTypes.isList(value) && gristTypes.isListType(col.type.peek())) {
+  const colType = col.type.peek();
+  if (gristTypes.isList(value) && gristTypes.isListType(colType)) {
     filterValues = value.slice(1);
+    if (!filterValues.length) {
+      // If the list is empty, filter instead by an empty value for the whole list
+      filterValues = [colType === "ChoiceList" ? "" : null];
+    }
   } else {
     if (Array.isArray(value)) {
       value = JSON.stringify(value);

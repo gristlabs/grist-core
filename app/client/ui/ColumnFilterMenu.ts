@@ -496,6 +496,10 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
     // If row contains a list and the column is a Choice List, treat each choice as a separate key
     if (isList(key) && (columnType === 'ChoiceList')) {
       const list = decodeObject(key) as unknown[];
+      if (!list.length) {
+        // If the list is empty, add an item for the whole list, otherwise the row will be missing from filters.
+        addSingleCountToMap(valueMap, '', () => '', () => '', areHiddenRows);
+      }
       for (const item of list) {
         addSingleCountToMap(valueMap, item, () => item, () => item, areHiddenRows);
       }
@@ -505,6 +509,10 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
     // If row contains a Reference List, treat each reference as a separate key
     if (isList(key) && isRefListType(columnType)) {
       const refIds = decodeObject(key) as unknown[];
+      if (!refIds.length) {
+        // If the list is empty, add an item for the whole list, otherwise the row will be missing from filters.
+        addSingleCountToMap(valueMap, null, () => null, () => null, areHiddenRows);
+      }
       const refLabels = labelMapFunc(rowId);
       const displayValues = valueMapFunc(rowId);
       refIds.forEach((id, i) => {

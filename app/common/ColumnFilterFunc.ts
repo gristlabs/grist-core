@@ -35,7 +35,11 @@ export function makeFilterFunc(state: FilterState,
   return (val: CellValue) => {
     if (isList(val) && columnType && isListType(columnType)) {
       const list = decodeObject(val) as unknown[];
-      return list.some(item => values.has(item as any) === include);
+      if (list.length) {
+        return list.some(item => values.has(item as any) === include);
+      }
+      // If the list is empty, filter instead by an empty value for the whole list
+      val = columnType === "ChoiceList" ? "" : null;
     }
     return (values.has(Array.isArray(val) ? JSON.stringify(val) : val) === include);
   };
