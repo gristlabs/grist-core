@@ -6,7 +6,8 @@ import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
-import {GristLoadConfig} from 'app/common/gristUrls';
+import {getPageTitleSuffix, GristLoadConfig} from 'app/common/gristUrls';
+import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-');
@@ -24,6 +25,8 @@ export function createErrPage(appModel: AppModel) {
  * Creates a page to show that the user has no access to this org.
  */
 export function createForbiddenPage(appModel: AppModel, message?: string) {
+  document.title = `Access denied${getPageTitleSuffix(getGristConfig())}`;
+
   const isAnonym = () => !appModel.currentValidUser;
   const isExternal = () => appModel.currentValidUser?.loginMethod === 'External';
   return pagePanelsError(appModel, 'Access denied', [
@@ -51,6 +54,8 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
  * Creates a page that shows the user is logged out.
  */
 export function createSignedOutPage(appModel: AppModel) {
+  document.title = `Signed out${getPageTitleSuffix(getGristConfig())}`;
+
   return pagePanelsError(appModel, 'Signed out', [
     cssErrorText("You are now signed out."),
     cssButtonWrap(bigPrimaryButtonLink(
@@ -63,6 +68,8 @@ export function createSignedOutPage(appModel: AppModel) {
  * Creates a "Page not found" page.
  */
 export function createNotFoundPage(appModel: AppModel, message?: string) {
+  document.title = `Page not found${getPageTitleSuffix(getGristConfig())}`;
+
   return pagePanelsError(appModel, 'Page not found', [
     cssErrorText(message || "The requested page could not be found.", dom('br'),
       "Please check the URL and try again."),
@@ -76,6 +83,8 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
  * Creates a generic error page with the given message.
  */
 export function createOtherErrorPage(appModel: AppModel, message?: string) {
+  document.title = `Error${getPageTitleSuffix(getGristConfig())}`;
+
   return pagePanelsError(appModel, 'Something went wrong', [
     cssErrorText(message ? `There was an error: ${addPeriod(message)}` :
       "There was an unknown error."),
