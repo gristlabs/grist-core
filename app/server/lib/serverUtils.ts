@@ -31,7 +31,7 @@ export function fromCallback<T>(nodeFunc: NodeCallbackFunc<T>): Promise<T> {
  * @param {Number} optCount: Number of ports to check, defaults to 200.
  * @returns Promise<Number>: Promise for an available port.
  */
-export function getAvailablePort(firstPort: number = 8000, optCount: number = 200) {
+export function getAvailablePort(firstPort: number = 8000, optCount: number = 200): Promise<number> {
   const lastPort = firstPort + optCount - 1;
   function checkNext(port: number): Promise<number> {
     if (port > lastPort) {

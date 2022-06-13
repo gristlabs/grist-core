@@ -73,12 +73,12 @@ export class Client {
 
   private _session: ScopedSession|null = null;
 
-  private _log = new LogMethods('Client ', (s: null) => this.getLogMeta());
+  private _log = new LogMethods('Client ', (extra?: object|null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
   private _docFDs: Array<DocSession|null> = [];
 
-  private _missedMessages: string[] = [];
+  private _missedMessages = new Map<number, string>();
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
   private _websocket: WebSocket|null;
@@ -88,13 +88,15 @@ export class Client {
   private _userName: string|null = null;
   private _firstLoginAt: Date|null = null;
   private _isAnonymous: boolean = false;
+  private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
+
+  // Identifier for the current GristWSConnection object connected to this client.
+  private _counter: string|null = null;
 
   constructor(
     private _comm: Comm,
     private _methods: Map<string, ClientMethod>,
     private _locale: string,
-    // Identifier for the current GristWSConnection object connected to this client.
-    private _counter: string|null,
   ) {
     this.clientId = generateClientId();
   }
@@ -105,13 +107,14 @@ export class Client {
     return this._locale;
   }
 
-  public setConnection(websocket: WebSocket, browserSettings: BrowserSettings) {
+  public setConnection(websocket: WebSocket, counter: string|null, browserSettings: BrowserSettings) {
     this._websocket = websocket;
+    this._counter = counter;
     this.browserSettings = browserSettings;
 
-    websocket.on('error', this._onError.bind(this));
-    websocket.on('close', this._onClose.bind(this));
-    websocket.on('message', this._onMessage.bind(this));
+    websocket.on('error', (err) => this._onError(err));
+    websocket.on('close', () => this._onClose());
+    websocket.on('message', (msg: string) => this._onMessage(msg));
   }
 
   /**
@@ -138,25 +141,10 @@ export class Client {
     this._docFDs[fd] = null;
   }
 
-  // Check that client still has access to all documents.  Used to determine whether
-  // a Comm client can be safely reused after a reconnect.  Without this check, the client
-  // would be reused even if access to a document has been lost (although an error would be
-  // issued later, on first use of the document).
-  public async isAuthorized(): Promise<boolean> {
-    for (const docFD of this._docFDs) {
-      try {
-        if (docFD !== null) { await docFD.authorizer.assertAccess('viewers'); }
-      } catch (e) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   /**
-   * Closes all docs.
+   * Closes all docs. Returns the number of documents closed.
    */
-  public closeAllDocs() {
+  public closeAllDocs(): number {
     let count = 0;
     for (let fd = 0; fd < this._docFDs.length; fd++) {
       const docSession = this._docFDs[fd];
@@ -168,7 +156,7 @@ export class Client {
       }
       this._docFDs[fd] = null;
     }
-    this._log.debug(null, "closeAllDocs() closed %d doc(s)", count);
+    return count;
   }
 
   public interruptConnection() {
@@ -187,7 +175,8 @@ export class Client {
       return;
     }
 
-    const message: string = JSON.stringify(messageObj);
+    const seqId = this._nextSeqId++;
+    const message: string = JSON.stringify({...messageObj, seqId});
 
     // Log something useful about the message being sent.
     if ('error' in messageObj && messageObj.error) {
@@ -199,89 +188,123 @@ export class Client {
       try {
         await this._sendToWebsocket(message);
       } catch (err) {
-        // Sending failed. Presumably we should be getting onClose around now too.
-        // NOTE: if this handler is run after onClose, we could have messages end up out of order.
-        // Let's check to make sure. If this can happen, we need to refactor for correct ordering.
-        if (!this._websocket) {
-          this._log.error(null, "sendMessage: UNEXPECTED ORDER OF CALLBACKS");
-        }
-        this._log.warn(null, "sendMessage: queuing after send error: %s", err.toString());
-        this._missedMessages.push(message);
+        // Sending failed. Add the message to missedMessages.
+        this._log.warn(null, "sendMessage: queuing after send error:", err.toString());
+        this._missedMessages.set(seqId, message);
+
+        // NOTE: A successful send does NOT mean the message was received. For a better system, see
+        // https://docs.microsoft.com/en-us/azure/azure-web-pubsub/howto-develop-reliable-clients
+        // (keeping a copy of messages until acked). With our system, we are more likely to be
+        // lacking the needed messages on reconnect, and having to reset the client.
       }
-    } else if (this._missedMessages.length < clientMaxMissedMessages) {
+    } else if (this._missedMessages.size < clientMaxMissedMessages) {
       // Queue up the message.
-      this._missedMessages.push(message);
+      this._missedMessages.set(seqId, message);
     } else {
       // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
-      this._log.error(null, "sendMessage: too many messages queued; booting client");
-      if (this._destroyTimer) {
-        clearTimeout(this._destroyTimer);
-        this._destroyTimer = null;
-      }
+      this._log.warn(null, "sendMessage: too many messages queued; booting client");
       this.destroy();
     }
   }
 
   /**
-   * Called from Comm.ts to prepare this Client object to accept a new connection that requests
-   * the same clientId. Returns whether this Client is available and ready for this connection.
+   * Called from Comm.ts to decide whether this Client is available to accept a new connection
+   * that requests the same clientId.
    */
-  public async reconnect(counter: string|null, newClient: boolean): Promise<boolean> {
-    // Refuse reconnect if another websocket is currently active. It may be a new browser tab,
-    // and will need its own Client object.
-    if (this._websocket) { return false; }
-
-    // Don't reuse this Client object if it's no longer authorized to access the open documents.
-    if (!await this.isAuthorized()) { return false; }
-
-    this._counter = counter;
-
-    this._log.info(null, "existing client reconnected (%d missed messages)", this._missedMessages.length);
-    if (this._destroyTimer) {
-      this._log.warn(null, "clearing scheduled destruction");
-      clearTimeout(this._destroyTimer);
-      this._destroyTimer = null;
-    }
-    if (newClient) {
-      // If newClient is set, then we assume that the browser client lost its state (e.g.
-      // reloaded the page), so we treat it as a disconnect followed by a new connection to the
-      // same state. At the moment, this only means that we close all docs.
-      if (this._missedMessages.length) {
-        this._log.warn(null, "clearing missed messages for new client");
-      }
-      this._missedMessages.length = 0;
-      this.closeAllDocs();
-    }
-    return true;
+  public canAcceptConnection(): boolean {
+    // Refuse reconnect if another websocket is currently active. It may be a new browser tab
+    // (which may reuse clientId from a copy of sessinStorage). It will need its own Client object.
+    return !this._websocket;
   }
 
   /**
-   * Send the initial 'clientConnect' message after receiving a connection.
+   * Complete initialization of a new connection, and send the initial 'clientConnect' message.
+   * See comments at the top of app/server/lib/Comm.ts for some relevant notes.
    */
-  public async sendConnectMessage(parts: Partial<CommClientConnect>): Promise<void> {
-    this._log.debug(null, `sending clientConnect with ${this._missedMessages.length} missed messages`);
+  public async sendConnectMessage(
+    newClient: boolean, reuseClient: boolean, lastSeqId: number|null, parts: Partial<CommClientConnect>
+  ): Promise<void> {
+    if (this._destroyTimer) {
+      clearTimeout(this._destroyTimer);
+      this._destroyTimer = null;
+    }
+
+    let missedMessages: string[]|undefined = undefined;
+    let seamlessReconnect = false;
+    if (!newClient && reuseClient && await this._isAuthorized()) {
+      // Websocket-level reconnect: existing browser tab reconnected to an existing Client object.
+      // We also check that the Client is still authorized to access all open docs. If not, we'll
+      // close the docs and tell the Client to reload the app.
+      missedMessages = this.getMissedMessages(lastSeqId);
+      if (missedMessages) {
+        // We have all the needed messages (possibly an empty array); can do a seamless reconnect.
+        seamlessReconnect = true;
+      }
+    }
+
+    // We collected any missed messages we need; clear the stored map of them.
+    this._missedMessages.clear();
+
+    let docsClosed: number|null = null;
+    if (!seamlessReconnect) {
+      // The browser client can't recover from missed messages and will need to reopen docs. Close
+      // all docs we kept open. If it's a new Client object, this is a no-op.
+      docsClosed = this.closeAllDocs();
+    }
+
+    // An existing browser client that can't recover, or that connected to a new Client object,
+    // will need to reopen docs. Tell it to reload.
+    const needReload = !newClient && !seamlessReconnect;
+
+    this._log.debug({newClient, needReload, docsClosed, missedMessages: missedMessages?.length},
+      'sending clientConnect');
+
     // Don't use sendMessage here, since we don't want to queue up this message on failure.
     const clientConnectMsg: CommClientConnect = {
       ...parts,
       type: 'clientConnect',
       clientId: this.clientId,
-      missedMessages: this._missedMessages.slice(0),
       profile: this._profile,
+      missedMessages,
+      needReload,
     };
-    // If reconnecting a client with missed messages, clear them now.
-    this._missedMessages.length = 0;
 
-    await this._sendToWebsocket(JSON.stringify(clientConnectMsg));
-    // A heavy-handed fix to T396, since 'clientConnect' is sometimes not seen in the browser,
-    // (seemingly when the 'message' event is triggered before 'open' on the native WebSocket.)
-    // See also my report at https://stackoverflow.com/a/48411315/328565
-    await delay(250);
+    try {
+      await this._sendToWebsocket(JSON.stringify(clientConnectMsg));
 
-    if (this._destroyed || this._websocket?.readyState !== WebSocket.OPEN) {
-      this._log.debug(null, `websocket closed right after clientConnect`);
-    } else {
-      await this._sendToWebsocket(JSON.stringify({...clientConnectMsg, dup: true}));
+      if (needReload) {
+        // If the client should reload, close the socket without waiting. This connection should
+        // not be used anyway, and we want it released by the time the new connection comes in.
+        this._websocket?.close();
+        return;
+      }
+
+      // A heavy-handed fix to T396, since 'clientConnect' is sometimes not seen in the browser,
+      // (seemingly when the 'message' event is triggered before 'open' on the native WebSocket.)
+      // See also my report at https://stackoverflow.com/a/48411315/328565
+      await delay(250);
+
+      if (!this._destroyed && this._websocket?.readyState === WebSocket.OPEN) {
+        await this._sendToWebsocket(JSON.stringify({...clientConnectMsg, dup: true}));
+      }
+    } catch (err) {
+      // It's possible that the connection was closed while we were preparing this response.
+      // We just warn, and let _onClose() take care of cleanup.
+      this._log.warn(null, "failed to prepare or send clientConnect:", err.toString());
     }
+  }
+
+  // Get messages in order of their key in the _missedMessages map.
+  public getMissedMessages(lastSeqId: number|null): string[]|undefined {
+    const result: string[] = [];
+    if (lastSeqId !== null) {
+      for (let i = lastSeqId + 1; i < this._nextSeqId; i++) {
+        const m = this._missedMessages.get(i);
+        if (m === undefined) { return; }
+        result.push(m);
+      }
+    }
+    return result;
   }
 
   // Assigns the given ScopedSession to the client.
@@ -302,11 +325,13 @@ export class Client {
    * object and clientId.
    */
   public destroy() {
-    this._log.info(null, "client gone");
-    this.closeAllDocs();
+    const docsClosed = this.closeAllDocs();
+    this._log.info({docsClosed}, "client gone");
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);
+      this._destroyTimer = null;
     }
+    this._missedMessages.clear();
     this._comm.removeClient(this);
     this._destroyed = true;
   }
@@ -379,8 +404,7 @@ export class Client {
     throw new ApiError(this._profile ? `user not known: ${this._profile.email}` : 'user not set', 403);
   }
 
-  public getLogMeta() {
-    const meta: {[key: string]: any} = {};
+  public getLogMeta(meta: {[key: string]: any} = {}) {
     if (this._profile) { meta.email = this._profile.email; }
     // We assume the _userId has already been cached, which will be true always (for all practical
     // purposes) because it's set when the Authorizer checks this client.
@@ -455,6 +479,21 @@ export class Client {
       undefined;
   }
 
+  // Check that client still has access to all documents.  Used to determine whether
+  // a Comm client can be safely reused after a reconnect.  Without this check, the client
+  // would be reused even if access to a document has been lost (although an error would be
+  // issued later, on first use of the document).
+  private async _isAuthorized(): Promise<boolean> {
+    for (const docFD of this._docFDs) {
+      try {
+        if (docFD !== null) { await docFD.authorizer.assertAccess('viewers'); }
+      } catch (e) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // Returns the next unused docFD number.
   private _getNextDocFD(): number {
     let fd = 0;
@@ -478,7 +517,6 @@ export class Client {
    * Processes the closing of a websocket.
    */
   private _onClose() {
-    this._log.info(null, "onClose");
     this._websocket?.removeAllListeners();
 
     // Remove all references to the websocket.
@@ -490,7 +528,7 @@ export class Client {
       this._log.warn(null, "clearing previously scheduled destruction");
       clearTimeout(this._destroyTimer);
     }
-    this._log.warn(null, "will discard client in %s sec", Deps.clientRemovalTimeoutMs / 1000);
+    this._log.info(null, "websocket closed; will discard client in %s sec", Deps.clientRemovalTimeoutMs / 1000);
     this._destroyTimer = setTimeout(() => this.destroy(), Deps.clientRemovalTimeoutMs);
   }
 }

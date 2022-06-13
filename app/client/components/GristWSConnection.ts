@@ -1,6 +1,7 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
 import {getWorker} from 'app/client/models/gristConfigCache';
+import {CommResponseBase} from 'app/common/CommTypes';
 import * as gutil from 'app/common/gutil';
 import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
 import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -121,6 +122,10 @@ export class GristWSConnection extends Disposable {
   private _wantReconnect: boolean = true;
   private _ws: WebSocket|null = null;
 
+  // The server sends incremental seqId numbers with each message on the connection, starting with
+  // 0. We keep track of them to allow for seamless reconnects.
+  private _lastReceivedSeqId: number|null = null;
+
   constructor(private _settings: GristWSSettings = new GristWSSettingsBrowser()) {
     super();
     this._clientCounter = _settings.advanceCounter();
@@ -204,45 +209,14 @@ export class GristWSConnection extends Disposable {
    * @event serverMessage Triggered when a message arrives from the server. Callbacks receive
    *    the raw message data as an additional argument.
    */
-  public onmessage(ev: any) {
-    this._log('GristWSConnection: onmessage (%d bytes)', ev.data.length);
-    this._scheduleHeartbeat();
-    const message = JSON.parse(ev.data);
-
-    // clientConnect is the first message from the server that sets the clientId. We only consider
-    // the connection established once we receive it.
-    if (message.type === 'clientConnect') {
-      if (this._established) {
-        this._log("GristWSConnection skipping duplicate 'clientConnect' message");
-        return;
-      }
-      this._established = true;
-      // Add a flag to the message to indicate if the active session changed, and warrants a reload.
-      message.resetClientId = (message.clientId !== this._clientId && !this._firstConnect);
-      this._log(`GristWSConnection established: clientId ${message.clientId} counter ${this._clientCounter}` +
-                ` resetClientId ${message.resetClientId}`);
-      if (message.dup) {
-        this._warn("GristWSConnection missed initial 'clientConnect', processing its duplicate");
-      }
-      if (message.clientId !== this._clientId) {
-        this._clientId = message.clientId;
-        if (this._settings) {
-          this._settings.updateClientId(this._assignmentId, message.clientId);
-        }
-      }
-      this._firstConnect = false;
-      this.trigger('connectState', true);
-
-      // Process any missed messages. (Should only have any if resetClientId is false.)
-      for (const msg of message.missedMessages) {
-        this.trigger('serverMessage', JSON.parse(msg));
-      }
-    }
-    if (!this._established) {
-      this._log("GristWSConnection not yet established; ignoring message", message);
+  public onmessage(ev: MessageEvent) {
+    if (!this._ws) {
+      // It's possible to receive a message after we disconnect, at least in tests (where
+      // WebSocket is a node library). Ignoring is easier than unsubscribing properly.
       return;
     }
-    this.trigger('serverMessage', message);
+    this._scheduleHeartbeat();
+    this._processReceivedMessage(ev.data, true);
   }
 
   public send(message: any) {
@@ -253,6 +227,70 @@ export class GristWSConnection extends Disposable {
     this._ws!.send(message);
     this._scheduleHeartbeat();
     return true;
+  }
+
+  private _processReceivedMessage(msgData: string, processClientConnect: boolean) {
+    this._log('GristWSConnection: onmessage (%d bytes)', msgData.length);
+    const message: CommResponseBase & {seqId: number} = JSON.parse(msgData);
+
+    if (typeof message.seqId === 'number') {
+      // For sequenced messages (all except clientConnect), check that seqId is as expected, and
+      // update this._lastReceivedSeqId.
+      if (this._lastReceivedSeqId !== null && message.seqId !== this._lastReceivedSeqId + 1) {
+        this._log('GristWSConnection: unexpected seqId after %s: %s', this._lastReceivedSeqId, message.seqId);
+        this.disconnect();
+        return;
+      }
+      this._lastReceivedSeqId = message.seqId;
+    }
+
+    // clientConnect is the first message from the server that sets the clientId. We only consider
+    // the connection established once we receive it.
+    let needReload = false;
+    if ('type' in message && message.type === 'clientConnect' && processClientConnect) {
+      if (this._established) {
+        this._log("GristWSConnection skipping duplicate 'clientConnect' message");
+        return;
+      }
+      this._established = true;
+
+      // Update flag to indicate if the active session changed, and warrants a reload. (The server
+      // should be setting needReload too, so this shouldn't be strictly needed.)
+      if (message.clientId !== this._clientId && !this._firstConnect) {
+        message.needReload = true;
+      }
+      needReload = Boolean(message.needReload);
+      this._log(`GristWSConnection established: clientId ${message.clientId} counter ${this._clientCounter}` +
+                ` needReload ${needReload}`);
+      if (message.dup) {
+        this._warn("GristWSConnection missed initial 'clientConnect', processing its duplicate");
+      }
+      if (message.clientId !== this._clientId) {
+        this._clientId = message.clientId;
+        this._settings.updateClientId(this._assignmentId, message.clientId);
+      }
+      this._firstConnect = false;
+      this.trigger('connectState', true);
+
+      // Process any missed messages. (Should only have any if needReload is false.)
+      if (!needReload && message.missedMessages) {
+        for (const msg of message.missedMessages) {
+          this._processReceivedMessage(msg, false);
+        }
+      }
+    }
+    if (!this._established) {
+      this._log("GristWSConnection not yet established; ignoring message", message);
+      return;
+    }
+
+    if (needReload) {
+      // If we are unable to resume this connection, disconnect to avoid accept more messages on
+      // this connection, they are likely to only cause errors. Elsewhere, the app will reload.
+      this._log('GristWSConnection: needReload');
+      this.disconnect();
+    }
+    this.trigger('serverMessage', message);
   }
 
   // unschedule any pending heartbeat message
@@ -309,18 +347,16 @@ export class GristWSConnection extends Disposable {
 
     this._ws.onmessage = this.onmessage.bind(this);
 
-    this._ws.onerror = (ev: Event) => {
-      this._log('GristWSConnection: onerror', ev);
+    this._ws.onerror = (ev: Event|ErrorEvent) => {
+      this._log('GristWSConnection: onerror', 'error' in ev ? String(ev.error) : ev);
     };
 
     this._ws.onclose = () => {
-      if (this._settings) {
-        this._log('GristWSConnection: onclose');
-      }
       if (this.isDisposed()) {
         return;
       }
 
+      this._log('GristWSConnection: onclose');
       this._established = false;
       this._ws = null;
       this.trigger('connectState', false);
@@ -344,6 +380,9 @@ export class GristWSConnection extends Disposable {
     url.searchParams.append('clientId', this._clientId || '0');
     url.searchParams.append('counter', this._clientCounter);
     url.searchParams.append('newClient', String(isReconnecting ? 0 : 1));
+    if (isReconnecting && this._lastReceivedSeqId !== null) {
+      url.searchParams.append('lastSeqId', String(this._lastReceivedSeqId));
+    }
     url.searchParams.append('browserSettings', JSON.stringify({timezone}));
     url.searchParams.append('user', this._settings.getUserSelector());
     return url.href;
@@ -362,29 +401,8 @@ export class GristWSConnection extends Disposable {
     }
   }
 
-  // Log a message using the configured logger, or send it to console if no
-  // logger available.
-  private _log(...args: any[]): void {
-    if (!this._settings) {
-      // tslint:disable-next-line:no-console
-      console.warn('log called without settings in GristWSConnection');
-      console.log(...args);   // tslint:disable-line:no-console
-    } else {
-      this._settings.log(...args);
-    }
-  }
-
-  // Log a warning using the configured logger, or send it to console if no
-  // logger available.
-  private _warn(...args: any[]): void {
-    if (!this._settings) {
-      // tslint:disable-next-line:no-console
-      console.warn('warn called without settings in GristWSConnection');
-      console.warn(...args);   // tslint:disable-line:no-console
-    } else {
-      this._settings.warn(...args);
-    }
-  }
+  private _log = (...args: any[]) => this._settings.log(...args);
+  private _warn = (...args: any[]) => this._settings.warn(...args);
 }
 
 Object.assign(GristWSConnection.prototype, BackboneEvents);

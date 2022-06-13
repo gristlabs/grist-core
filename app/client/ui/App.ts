@@ -134,7 +134,7 @@ export class App extends DisposableWithEvents {
     }, this, isHelpPaneVisible));
 
     this.listenTo(this.comm, 'clientConnect', (message) => {
-      console.log(`App clientConnect event: resetClientId ${message.resetClientId} version ${message.serverVersion}`);
+      console.log(`App clientConnect event: needReload ${message.needReload} version ${message.serverVersion}`);
       this._settings(message.settings);
       if (message.serverVersion === 'dead' || (this._serverVersion && this._serverVersion !== message.serverVersion)) {
         console.log("Upgrading...");
@@ -142,9 +142,9 @@ export class App extends DisposableWithEvents {
         return this.reload();
       }
       this._serverVersion = message.serverVersion;
-      // If the clientId changed, then we need to reload any open documents. We'll simply reload the
-      // active component of the App regardless of what it is.
-      if (message.resetClientId) {
+      // Reload any open documents if needed (if clientId changed, or client can't get all missed
+      // messages). We'll simply reload the active component of the App regardless of what it is.
+      if (message.needReload) {
         this.reloadPane();
       }
     });

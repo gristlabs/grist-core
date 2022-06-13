@@ -137,7 +137,9 @@ export async function captureLog(minLevel: string, callback: () => void|Promise<
     }
   }
 
-  log.transports.file.level = -1 as any;   // Suppress all log output.
+  if (!process.env.VERBOSE) {
+    log.transports.file.level = -1 as any;   // Suppress all log output.
+  }
   log.add(CaptureTransport as any, { captureFunc: capture, name });  // types are off.
   try {
     await callback();

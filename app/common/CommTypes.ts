@@ -53,6 +53,8 @@ export interface CommMessageBase {
 export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown | CommDocError;
 export type CommMessage = CommDocMessage | CommDocListAction | CommClientConnect;
 
+export type CommResponseBase = CommResponse | CommResponseError | CommMessage;
+
 export type CommDocEventType = CommDocMessage['type']
 
 /**
@@ -130,8 +132,11 @@ export interface CommClientConnect extends CommMessageBase {
   // the server.
   clientId: string;
 
+  // If set, the reconnecting client cannot be sent all missed messages, and needs to reload.
+  needReload?: boolean;
+
   // Array of serialized messages missed from the server while disconnected.
-  missedMessages: string[];
+  missedMessages?: string[];
 
   // Which version the server reports for itself.
   serverVersion?: string;

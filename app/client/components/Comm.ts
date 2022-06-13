@@ -24,7 +24,8 @@
 
 import {GristWSConnection} from 'app/client/components/GristWSConnection';
 import * as dispose from 'app/client/lib/dispose';
-import {CommMessage, CommRequest, CommResponse, CommResponseError, ValidEvent} from 'app/common/CommTypes';
+import * as log from 'app/client/lib/log';
+import {CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent} from 'app/common/CommTypes';
 import {UserAction} from 'app/common/DocActions';
 import {DocListAPI, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {GristServerAPI} from 'app/common/GristServerAPI';
@@ -161,7 +162,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   public useDocConnection(docId: string): GristWSConnection {
     const connection = this._connection(docId);
     connection.useCount += 1;
-    console.log(`Comm.useDocConnection(${docId}): useCount now ${connection.useCount}`);
+    log.debug(`Comm.useDocConnection(${docId}): useCount now ${connection.useCount}`);
     return connection;
   }
 
@@ -175,7 +176,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     const connection = this._connections.get(docId);
     if (connection) {
       connection.useCount -= 1;
-      console.log(`Comm.releaseDocConnection(${docId}): useCount now ${connection.useCount}`);
+      log.debug(`Comm.releaseDocConnection(${docId}): useCount now ${connection.useCount}`);
       // Dispose the connection if it is no longer in use (except in "classic grist").
       if (!this._singleWorkerMode && connection.useCount <= 0) {
         this.stopListening(connection);
@@ -249,7 +250,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
                             methodName: string, ...args: any[]): Promise<any> {
     const connection = this._connection(docId);
     if (clientId !== null && clientId !== connection.clientId) {
-      console.log("Comm: Rejecting " + methodName + " for outdated clientId %s (current %s)",
+      log.warn("Comm: Rejecting " + methodName + " for outdated clientId %s (current %s)",
                   clientId, connection.clientId);
       return Promise.reject(new Error('Comm: outdated session'));
     }
@@ -258,7 +259,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       method: methodName,
       args
     };
-    console.log("Comm request #" + request.reqId + " " + methodName, request.args);
+    log.debug("Comm request #" + request.reqId + " " + methodName, request.args);
     return new Promise((resolve, reject) => {
       const requestMsg = JSON.stringify(request);
       const sent = connection.send(requestMsg);
@@ -304,7 +305,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     const error = "GristWSConnection disposed";
     for (const [reqId, req] of this.pendingRequests) {
       if (reqMatchesConnection(req.docId, docId)) {
-        console.log(`Comm: Rejecting req #${reqId} ${req.methodName}: ${error}`);
+        log.warn(`Comm: Rejecting req #${reqId} ${req.methodName}: ${error}`);
         this.pendingRequests.delete(reqId);
         req.reject(new Error('Comm: ' + error));
       }
@@ -319,8 +320,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * We should watch timeouts, and log something when there is no response for a while.
    *    There is probably no need for callers to deal with timeouts.
    */
-  private _onServerMessage(docId: string|null,
-                           message: CommResponse | CommResponseError | CommMessage) {
+  private _onServerMessage(docId: string|null, message: CommResponseBase) {
     if ('reqId' in message) {
       const reqId = message.reqId;
       const r = this.pendingRequests.get(reqId);
@@ -331,7 +331,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
             // We should not let the user see the document any more.  Let's reload the
             // page, reducing this to the problem of arriving at a document the user
             // doesn't have access to, which is already handled.
-            console.log(`Comm response #${reqId} ${r.methodName} issued AUTH_NO_VIEW - closing`);
+            log.warn(`Comm response #${reqId} ${r.methodName} issued AUTH_NO_VIEW - closing`);
             window.location.reload();
           }
           if (isCommResponseError(message)) {
@@ -345,19 +345,19 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
               err.details = message.details;
             }
             err.shouldFork = message.shouldFork;
-            console.log(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
+            log.warn(`Comm response #${reqId} ${r.methodName} ERROR:${code} ${message.error}`
                         + (message.shouldFork ? ` (should fork)` : ''));
             this._reportError?.(err);
             r.reject(err);
           } else {
-            console.log(`Comm response #${reqId} ${r.methodName} OK`);
+            log.debug(`Comm response #${reqId} ${r.methodName} OK`);
             r.resolve(message.data);
           }
         } finally {
           this.pendingRequests.delete(reqId);
         }
       } else {
-        console.log("Comm: Response to unknown reqId " + reqId);
+        log.warn("Comm: Response to unknown reqId " + reqId);
       }
     } else {
       if (message.type === 'clientConnect') {
@@ -372,10 +372,10 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
 
       // Another asynchronous message that's not a response. Broadcast it as an event.
       if (ValidEvent.guard(message.type)) {
-        console.log("Comm: Triggering event " + message.type);
+        log.debug("Comm: Triggering event " + message.type);
         this.trigger(message.type, message);
       } else {
-        console.log("Comm: Server message of unknown type " + message.type);
+        log.warn("Comm: Server message of unknown type " + message.type);
       }
     }
   }
@@ -395,7 +395,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       r.sent = connection.send(r.requestMsg);
     }
     if (error) {
-      console.log("Comm: Rejecting req #" + reqId + " " + r.methodName + ": " + error);
+      log.warn("Comm: Rejecting req #" + reqId + " " + r.methodName + ": " + error);
       r.reject(new Error('Comm: ' + error));
       this.pendingRequests.delete(reqId);
     }

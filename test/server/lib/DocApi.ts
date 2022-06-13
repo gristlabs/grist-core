@@ -2596,7 +2596,7 @@ function testDocApi() {
 
     after(async function() {
       if (!process.env.TEST_REDIS_URL) { this.skip(); }
-      serving.shutdown();
+      await serving.shutdown();
       await redisMonitor.quitAsync();
     });
 

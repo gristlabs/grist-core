@@ -14,6 +14,22 @@
  * browser window, and should persist across brief disconnects. A Client has a 'clientId'
  * property, which uniquely identifies a client within the currently running server. Method
  * registered with Comm always receive a Client object as the first argument.
+ *
+ * NOTES:
+ *
+ * The communication setup involves primarily the modules app/server/lib/{Comm,Client}.ts, and
+ * app/client/components/{Comm,GristWSConnection}.ts. In particular, these implement reconnect
+ * logic, which is particularly confusing as done here because it combines two layers:
+ *
+ * - Websocket-level reconnects, where an existing browser tab may reconnect and attempt to
+ *   restore state seamlessly by recovering any missed messages.
+ *
+ * - Application-level reconnects, where even in case of a failed websocket-level reconnect (e.g.
+ *   a reloaded browser tab, or existing tab that can't recover missed messages), the tab may
+ *   connect to existing state. This matters for undo/redo history (to allow a user to undo after
+ *   reloading a browser tab), but the only thing this relies on is preserving the clientId.
+ *
+ * In other words, there is an opportunity for untangling and simplifying.
  */
 
 import {EventEmitter} from 'events';
@@ -185,7 +201,6 @@ export class Comm extends EventEmitter {
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: WebSocket, req: http.IncomingMessage) {
-    log.info("Comm: Got WebSocket connection: %s", req.url);
     if (this._options.hosts) {
       // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
       // needed. addOrgInfo assumes req.url starts with /o/ if present.
@@ -197,37 +212,37 @@ export class Comm extends EventEmitter {
     // Parse the cookie in the request to get the sessionId.
     const sessionId = this.sessions.getSessionIdFromRequest(req);
 
-    const params = new URL(req.url!, `http://${req.headers.host}`).searchParams;
+    const params = new URL(req.url!, `ws://${req.headers.host}`).searchParams;
     const existingClientId = params.get('clientId');
     const browserSettings = safeJsonParse(params.get('browserSettings') || '', {});
-    const newClient = (params.get('newClient') === '1');
+    const newClient = (params.get('newClient') !== '0');  // Treat omitted as new, for the sake of tests.
+    const lastSeqIdStr = params.get('lastSeqId');
+    const lastSeqId = lastSeqIdStr ? parseInt(lastSeqIdStr) : null;
     const counter = params.get('counter');
     const userSelector = params.get('user') || '';
 
+    const scopedSession = this.getOrCreateSession(sessionId!, req as RequestWithOrg, userSelector);
+    const profile = await this._getSessionProfile(scopedSession, req);
+
     // Associate an ID with each websocket, reusing the supplied one if it's valid.
     let client: Client|undefined = this._clients.get(existingClientId!);
-    if (!client || !await client.reconnect(counter, newClient)) {
-      client = new Client(this, this._methods, localeFromRequest(req), counter);
+    let reuseClient = true;
+    if (!client?.canAcceptConnection()) {
+      reuseClient = false;
+      client = new Client(this, this._methods, localeFromRequest(req));
       this._clients.set(client.clientId, client);
     }
-    // Add a Session object to the client.
-    log.info(`Comm ${client}: using session ${sessionId}`);
-    const scopedSession = this.getOrCreateSession(sessionId!, req as RequestWithOrg, userSelector);
-    client.setSession(scopedSession);
 
-    // Associate the client with this websocket.
-    client.setConnection(websocket, browserSettings);
+    log.rawInfo('Comm: Got Websocket connection', {...client.getLogMeta(), urlPath: req.url, reuseClient});
 
-    const profile = await this._getSessionProfile(scopedSession, req);
+    client.setSession(scopedSession);                 // Add a Session object to the client.
     client.setOrg((req as RequestWithOrg).org || "");
     client.setProfile(profile);
+    client.setConnection(websocket, counter, browserSettings);
 
-    client.sendConnectMessage({
+    await client.sendConnectMessage(newClient, reuseClient, lastSeqId, {
       serverVersion: this._serverVersion || version.gitcommit,
       settings: this._options.settings,
-    })
-    .catch(err => {
-      log.error(`Comm ${client}: failed to prepare or send clientConnect:`, err);
     });
   }
 
