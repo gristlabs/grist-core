@@ -94,22 +94,7 @@ export function makeSendAppPage(opts: {
     const staticOrigin = process.env.APP_STATIC_URL || "";
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
     const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
-    // TODO: Temporary changes until there is a handy banner to put this in.
-    let warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
-    const activation = config.activation;
-    if (!warning && activation) {
-      if (activation.trial) {
-        warning = `Trial: ${activation.trial.daysLeft} day(s) left`;
-      } else if (activation.needKey) {
-        warning = 'Activation key needed. Documents in read-only mode.';
-      } else if (activation.key?.daysLeft && activation.key.daysLeft < 30) {
-        warning = `Need reactivation in ${activation.key.daysLeft} day(s)`;
-      }
-      if (warning) {
-        warning = `<div class="dev_warning activation-msg">${warning}</div>`;
-      }
-    }
-    // Temporary changes end.
+    const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server?.getGristConfig()))

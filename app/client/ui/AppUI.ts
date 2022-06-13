@@ -1,5 +1,4 @@
-import {DocUsageBanner} from 'app/client/components/DocUsageBanner';
-import {SiteUsageBanner} from 'app/client/components/SiteUsageBanner';
+import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
 import {domAsync} from 'app/client/lib/domAsync';
 import {loadBillingPage} from 'app/client/lib/imports';
 import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
@@ -105,7 +104,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
     },
     headerMain: createTopBarHome(appModel),
     contentMain: createDocMenu(pageModel),
-    contentTop: dom.create(SiteUsageBanner, appModel),
+    contentTop: buildHomeBanners(appModel),
   });
 }
 
@@ -155,7 +154,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     contentMain: dom.maybe(pageModel.gristDoc, (gristDoc) => gristDoc.buildDom()),
     onResize,
     testId,
-    contentTop: dom.create(DocUsageBanner, pageModel),
+    contentTop: buildDocumentBanners(pageModel),
     contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen),
   });
 }

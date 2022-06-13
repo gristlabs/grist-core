@@ -1,4 +1,4 @@
-import {SiteUsageBanner} from 'app/client/components/SiteUsageBanner';
+import {buildHomeBanners} from 'app/client/components/Banners';
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {BillingModel, BillingModelImpl, ISubscriptionModel} from 'app/client/models/BillingModel';
@@ -66,7 +66,7 @@ export class BillingPage extends Disposable {
             content: leftPanelBasic(this._appModel, panelOpen),
           },
           headerMain: this._createTopBarBilling(),
-          contentTop: dom.create(SiteUsageBanner, this._appModel),
+          contentTop: buildHomeBanners(this._appModel),
           contentMain: this._buildCurrentPageDom()
         });
       }
