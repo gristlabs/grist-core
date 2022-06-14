@@ -30,6 +30,10 @@ declare module "redis" {
   class RedisClient {
     public eval(args: any[], callback?: (err: Error | null, res: any) => void): any;
 
+    public subscribe(channel: string): void;
+    public on(eventType: string, callback: (...args: any[]) => void): void;
+    public publishAsync(channel: string, message: string): Promise<number>;
+
     public delAsync(key: string): Promise<'OK'>;
     public flushdbAsync(): Promise<void>;
     public getAsync(key: string): Promise<string|null>;

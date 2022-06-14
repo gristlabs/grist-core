@@ -87,6 +87,7 @@ import {IMessage, MsgType} from 'grain-rpc';
 import * as imageSize from 'image-size';
 import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
+import {createClient, RedisClient} from 'redis';
 import * as tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
@@ -200,6 +201,9 @@ export class ActiveDoc extends EventEmitter {
   private _gracePeriodStart: Date|null = null;
   private _isForkOrSnapshot: boolean = false;
 
+  // Client watching for 'product changed' event published by Billing to update usage
+  private _redisSubscriber?: RedisClient;
+
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
@@ -230,8 +234,20 @@ export class ActiveDoc extends EventEmitter {
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
       const {gracePeriodStart, workspace, usage} = _options.doc;
-      this._product = workspace.org.billingAccount?.product;
+      const billingAccount = workspace.org.billingAccount;
+      this._product = billingAccount?.product;
       this._gracePeriodStart = gracePeriodStart;
+
+      if (process.env.REDIS_URL && billingAccount) {
+        const channel = `billingAccount-${billingAccount.id}-product-changed`;
+        this._redisSubscriber = createClient(process.env.REDIS_URL);
+        this._redisSubscriber.subscribe(channel);
+        this._redisSubscriber.on("message", async () => {
+          // A product change has just happened in Billing.
+          // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
+          await this.reloadDoc();
+        });
+      }
 
       if (!this._isForkOrSnapshot) {
         /* Note: We don't currently persist usage for forks or snapshots anywhere, so
@@ -451,6 +467,9 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._triggers.shutdown();
+
+      this._redisSubscriber?.quitAsync()
+        .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
 
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
