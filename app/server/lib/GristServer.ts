@@ -15,6 +15,7 @@ import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import * as express from 'express';
+import { IncomingMessage } from 'http';
 
 /**
  * Basic information about a Grist server.  Accessible in many
@@ -59,6 +60,10 @@ export interface GristLoginMiddleware {
   getLogoutMiddleware?(): express.RequestHandler[];
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;
+  // Optionally, extract profile from request. Result can be a profile,
+  // or null if anonymous (and other methods of determining profile such
+  // as a cookie should not be used), or undefined to use other methods.
+  getProfile?(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined>;
 }
 
 /**

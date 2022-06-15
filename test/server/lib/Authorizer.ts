@@ -17,6 +17,7 @@ let server: FlexServer;
 let dbManager: HomeDBManager;
 
 async function activateServer(home: FlexServer, docManager: DocManager) {
+  await home.loadConfig();
   await home.initHomeDBManager();
   home.addHosts();
   home.addDocWorkerMap();

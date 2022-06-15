@@ -37,6 +37,7 @@ export class TestServerMerged implements IMochaServer {
   public removeLogin: HomeUtil["removeLogin"];
 
   private _serverUrl: string;
+  private _proxyUrl: string|null = null;
   private _server: ChildProcess;
   private _exitPromise: Promise<number|string>;
   private _starts: number = 0;
@@ -86,6 +87,9 @@ export class TestServerMerged implements IMochaServer {
     const stubCmd = '_build/stubs/app/server/server';
     const isCore = await fse.pathExists(stubCmd + '.js');
     const cmd = isCore ? stubCmd : '_build/core/app/server/devServerMain';
+    // If a proxy is set, use a single port - otherwise we'd need a lot of
+    // proxies.
+    const useSinglePort = this._proxyUrl !== null;
 
     // The reason we fork a process rather than start a server within the same process is mainly
     // logging. Server code uses a global logger, so it's hard to separate out (especially so if
@@ -106,7 +110,10 @@ export class TestServerMerged implements IMochaServer {
       GRIST_SERVE_SAME_ORIGIN: 'true',
       APP_UNTRUSTED_URL : "http://localhost:18096",
       // Run with HOME_PORT, STATIC_PORT, DOC_PORT, DOC_WORKER_COUNT in the environment to override.
-      ...(isCore ? {
+      ...(useSinglePort ? {
+        APP_HOME_URL: this.getHost(),
+        GRIST_SINGLE_PORT: 'true',
+      } : (isCore ? {
         HOME_PORT: '8095',
         STATIC_PORT: '8095',
         DOC_PORT: '8095',
@@ -118,7 +125,7 @@ export class TestServerMerged implements IMochaServer {
         DOC_PORT: '8100',
         DOC_WORKER_COUNT: '5',
         PORT: '0',
-      }),
+      })),
       // This skips type-checking when running server, but reduces startup time a lot.
       TS_NODE_TRANSPILE_ONLY: 'true',
       ...process.env,
@@ -186,7 +193,7 @@ export class TestServerMerged implements IMochaServer {
 
   public getHost(): string {
     if (this.isExternalServer()) { return process.env.HOME_URL!; }
-    return this._serverUrl;
+    return this._proxyUrl || this._serverUrl;
   }
 
   public getUrl(team: string, relPath: string) {
@@ -198,6 +205,12 @@ export class TestServerMerged implements IMochaServer {
     const gristConfig = makeGristConfig(this.getHost(), {}, baseDomain);
     const url = encodeUrl(gristConfig, state, new URL(this.getHost())).replace(/\/$/, "");
     return `${url}${relPath}`;
+  }
+
+  // Configure the server to be accessed via a proxy. You'll need to
+  // restart the server after changing this setting.
+  public updateProxy(proxyUrl: string|null) {
+    this._proxyUrl = proxyUrl;
   }
 
   /**

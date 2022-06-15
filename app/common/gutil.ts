@@ -150,6 +150,17 @@ export function undef<T extends Array<any>>(...list: T): Undef<T> {
   return undefined as any;
 }
 
+/**
+ * Like undef, but each element of list is a method that is only called
+ * if needed, and promises are supported. No fancy type inference though, sorry.
+ */
+export async function firstDefined<T>(...list: Array<() => Promise<T>>): Promise<T | undefined> {
+  for(const op of list) {
+    const value = await op();
+    if (value !== undefined) { return value; }
+  }
+  return undefined;
+}
 
 /**
  * Parses json and returns the result, or returns defaultVal if parsing fails.

@@ -98,11 +98,14 @@ export function isSingleUserMode(): boolean {
  * Returns a profile if it can be deduced from the request. This requires a
  * header to specify the users' email address. The header to set comes from the
  * environment variable GRIST_PROXY_AUTH_HEADER, or may be passed in.
+ * A result of null means that the user should be considered known to be anonymous.
+ * A result of undefined means we should go on to consider other authentication
+ * methods (such as cookies).
  */
 export function getRequestProfile(req: Request|IncomingMessage,
-                                  header?: string): UserProfile|undefined {
+                                  header?: string): UserProfile|null|undefined {
   header = header || process.env.GRIST_PROXY_AUTH_HEADER;
-  let profile: UserProfile|undefined;
+  let profile: UserProfile|null|undefined;
 
   if (header) {
     // Careful reading headers. If we have an IncomingMessage, there is no
@@ -118,8 +121,13 @@ export function getRequestProfile(req: Request|IncomingMessage,
         };
       }
     }
+    // If no profile at this point, and header was present,
+    // treat as anonymous user, represented by null value.
+    // Don't go on to look at session.
+    if (!profile && headerContent !== undefined) {
+      profile = null;
+    }
   }
-
   return profile;
 }
 
@@ -134,6 +142,10 @@ export function getRequestProfile(req: Request|IncomingMessage,
  *   - req.users: set for org-and-session-based logins, with list of profiles in session
  */
 export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPermitStore,
+                                     options: {
+                                       skipSession?: boolean,
+                                       getProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
+                                     },
                                      req: Request, res: Response, next: NextFunction) {
   const mreq = req as RequestWithLogin;
   let profile: UserProfile|undefined;
@@ -184,125 +196,137 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     return res.status(401).send('Bad request (missing header)');
   }
 
-  // A bit of extra info we'll add to the "Auth" log message when this request passes the check
-  // for custom-host-specific sessionID.
-  let customHostSession = '';
-
-  // If we haven't selected a user by other means, and have profiles available in the
-  // session, then select a user based on those profiles.
-  const session = mreq.session;
-  if (session && !session.altSessionId) {
-    // Create a default alternative session id for use in documents.
-    session.altSessionId = makeId();
-    forceSessionChange(session);
-  }
-  mreq.altSessionId = session?.altSessionId;
-  if (!mreq.userId && session && session.users && session.users.length > 0 &&
-     mreq.org !== undefined) {
-
-    // Prevent using custom-domain sessionID to authorize to a different domain, since
-    // custom-domain owner could hijack such sessions.
-    const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);
-    if (allowedOrg) {
-      if (allowHost(req, allowedOrg.host)) {
-        customHostSession = ` custom-host-match ${allowedOrg.host}`;
-      } else {
-        // We need an exception for internal forwarding from home server to doc-workers. These use
-        // internal hostnames, so we can't expect a custom domain. These requests do include an
-        // Organization header, which we'll use to grant the exception, but security issues remain.
-        // TODO Issue 1: an attacker can use a custom-domain request to get an API key, which is an
-        // open door to all orgs accessible by this user.
-        // TODO Issue 2: Organization header is easy for an attacker (who has stolen a session
-        // cookie) to include too; it does nothing to prove that the request is internal.
-        const org = req.header('organization');
-        if (org && org === allowedOrg.org) {
-          customHostSession = ` custom-host-fwd ${org}`;
-        } else {
-          // Log error and fail.
-          log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
-              allowedOrg.host, allowedOrg.org, mreq.get('host'), mreq.org);
-          return res.status(403).send('Bad request: invalid session ID');
-        }
-      }
-    }
-
-    mreq.users = getSessionProfiles(session);
-
-    // If we haven't set a maxAge yet, set it now.
-    if (session && session.cookie && !session.cookie.maxAge) {
-      if (COOKIE_MAX_AGE !== null) {
-        session.cookie.maxAge = COOKIE_MAX_AGE;
-        forceSessionChange(session);
-      }
-    }
-
-    // See if we have a profile linked with the active organization already.
-    // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
-    let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, optStringParam(mreq.query.user) || '');
-
-    if (!sessionUser) {
-      // No profile linked yet, so let's elect one.
-      // Choose a profile that is no worse than the others available.
-      const option = await dbManager.getBestUserForOrg(mreq.users, mreq.org);
-      if (option) {
-        // Modify request session object to link the current org with our choice of
-        // profile.  Express-session will save this change.
-        sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
-        const userOptions: UserOptions = {};
-        if (sessionUser?.profile?.loginMethod === 'Email + Password') {
-          // Link the session authSubject, if present, to the user. This has no effect
-          // if the user already has an authSubject set in the db.
-          userOptions.authSubject = sessionUser.authSubject;
-        }
-        // In this special case of initially linking a profile, we need to look up the user's info.
-        mreq.user = await dbManager.getUserByLogin(option.email, {userOptions});
-        mreq.userId = option.id;
-        mreq.userIsAuthorized = true;
-      } else {
-        // No profile has access to this org.  We could choose to
-        // link no profile, in which case user will end up
-        // immediately presented with a sign-in page, or choose to
-        // link an arbitrary profile (say, the first one the user
-        // logged in as), in which case user will end up with a
-        // friendlier page explaining the situation and offering to
-        // add an account to resolve it.  We go ahead and pick an
-        // arbitrary profile.
-        sessionUser = session.users[0];
-        if (!session.orgToUser) { throw new Error("Session misconfigured"); }
-        // Express-session will save this change.
-        session.orgToUser[mreq.org] = 0;
-      }
-    }
-
-    profile = sessionUser?.profile ?? undefined;
-
-    // If we haven't computed a userId yet, check for one using an email address in the profile.
-    // A user record will be created automatically for emails we've never seen before.
-    if (profile && !mreq.userId) {
-      const userOptions: UserOptions = {};
-      if (profile?.loginMethod === 'Email + Password') {
-        // Link the session authSubject, if present, to the user. This has no effect
-        // if the user already has an authSubject set in the db.
-        userOptions.authSubject = sessionUser.authSubject;
-      }
-      const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
-      if (user) {
-        mreq.user = user;
-        mreq.userId = user.id;
-        mreq.userIsAuthorized = true;
-      }
-    }
-  }
-
+  // For some configurations, the user profile can be determined from the request.
+  // If this is the case, we won't use session information.
+  let skipSession: boolean = options.skipSession || false;
   if (!mreq.userId) {
-    profile = getRequestProfile(mreq);
-    if (profile) {
+    let candidate = await options.getProfile?.(mreq);
+    if (candidate === undefined) {
+      candidate = getRequestProfile(mreq);
+    }
+    if (candidate !== undefined) {
+      skipSession = true;
+    }
+    if (candidate) {
+      profile = candidate;
       const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
-      if(user) {
+      if (user) {
         mreq.user = user;
         mreq.users = [profile];
         mreq.userId = user.id;
         mreq.userIsAuthorized = true;
+      }
+    }
+  }
+
+  // A bit of extra info we'll add to the "Auth" log message when this request passes the check
+  // for custom-host-specific sessionID.
+  let customHostSession = '';
+
+  if (!skipSession) {
+    // If we haven't selected a user by other means, and have profiles available in the
+    // session, then select a user based on those profiles.
+    const session = mreq.session;
+    if (session && !session.altSessionId) {
+      // Create a default alternative session id for use in documents.
+      session.altSessionId = makeId();
+      forceSessionChange(session);
+    }
+    mreq.altSessionId = session?.altSessionId;
+    if (!mreq.userId && session && session.users && session.users.length > 0 &&
+      mreq.org !== undefined) {
+
+      // Prevent using custom-domain sessionID to authorize to a different domain, since
+      // custom-domain owner could hijack such sessions.
+      const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);
+      if (allowedOrg) {
+        if (allowHost(req, allowedOrg.host)) {
+          customHostSession = ` custom-host-match ${allowedOrg.host}`;
+        } else {
+          // We need an exception for internal forwarding from home server to doc-workers. These use
+          // internal hostnames, so we can't expect a custom domain. These requests do include an
+          // Organization header, which we'll use to grant the exception, but security issues remain.
+          // TODO Issue 1: an attacker can use a custom-domain request to get an API key, which is an
+          // open door to all orgs accessible by this user.
+          // TODO Issue 2: Organization header is easy for an attacker (who has stolen a session
+          // cookie) to include too; it does nothing to prove that the request is internal.
+          const org = req.header('organization');
+          if (org && org === allowedOrg.org) {
+            customHostSession = ` custom-host-fwd ${org}`;
+          } else {
+            // Log error and fail.
+            log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
+                     allowedOrg.host, allowedOrg.org, mreq.get('host'), mreq.org);
+            return res.status(403).send('Bad request: invalid session ID');
+          }
+        }
+      }
+
+      mreq.users = getSessionProfiles(session);
+
+      // If we haven't set a maxAge yet, set it now.
+      if (session && session.cookie && !session.cookie.maxAge) {
+        if (COOKIE_MAX_AGE !== null) {
+          session.cookie.maxAge = COOKIE_MAX_AGE;
+          forceSessionChange(session);
+        }
+      }
+
+      // See if we have a profile linked with the active organization already.
+      // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
+      let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, optStringParam(mreq.query.user) || '');
+
+      if (!sessionUser) {
+        // No profile linked yet, so let's elect one.
+        // Choose a profile that is no worse than the others available.
+        const option = await dbManager.getBestUserForOrg(mreq.users, mreq.org);
+        if (option) {
+          // Modify request session object to link the current org with our choice of
+          // profile.  Express-session will save this change.
+          sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
+          const userOptions: UserOptions = {};
+          if (sessionUser?.profile?.loginMethod === 'Email + Password') {
+            // Link the session authSubject, if present, to the user. This has no effect
+            // if the user already has an authSubject set in the db.
+            userOptions.authSubject = sessionUser.authSubject;
+          }
+          // In this special case of initially linking a profile, we need to look up the user's info.
+          mreq.user = await dbManager.getUserByLogin(option.email, {userOptions});
+          mreq.userId = option.id;
+          mreq.userIsAuthorized = true;
+        } else {
+          // No profile has access to this org.  We could choose to
+          // link no profile, in which case user will end up
+          // immediately presented with a sign-in page, or choose to
+          // link an arbitrary profile (say, the first one the user
+          // logged in as), in which case user will end up with a
+          // friendlier page explaining the situation and offering to
+          // add an account to resolve it.  We go ahead and pick an
+          // arbitrary profile.
+          sessionUser = session.users[0];
+          if (!session.orgToUser) { throw new Error("Session misconfigured"); }
+          // Express-session will save this change.
+          session.orgToUser[mreq.org] = 0;
+        }
+      }
+
+      profile = sessionUser?.profile ?? undefined;
+
+      // If we haven't computed a userId yet, check for one using an email address in the profile.
+      // A user record will be created automatically for emails we've never seen before.
+      if (profile && !mreq.userId) {
+        const userOptions: UserOptions = {};
+        if (profile?.loginMethod === 'Email + Password') {
+          // Link the session authSubject, if present, to the user. This has no effect
+          // if the user already has an authSubject set in the db.
+          userOptions.authSubject = sessionUser.authSubject;
+        }
+        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
+        if (user) {
+          mreq.user = user;
+          mreq.userId = user.id;
+          mreq.userIsAuthorized = true;
+        }
       }
     }
   }

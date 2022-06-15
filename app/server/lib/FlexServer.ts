@@ -178,7 +178,12 @@ export class FlexServer implements GristServer {
     this.info.push(['docsRoot', this.docsRoot]);
 
     const homeUrl = process.env.APP_HOME_URL;
-    this._defaultBaseDomain = options.baseDomain || (homeUrl && parseSubdomain(new URL(homeUrl).hostname).base);
+    // The "base domain" is only a thing if orgs are encoded as a subdomain.
+    if (process.env.GRIST_ORG_IN_PATH === 'true' || process.env.GRIST_SINGLE_ORG) {
+      this._defaultBaseDomain = options.baseDomain || (homeUrl && new URL(homeUrl).hostname);
+    } else {
+      this._defaultBaseDomain = options.baseDomain || (homeUrl && parseSubdomain(new URL(homeUrl).hostname).base);
+    }
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
     this.info.push(['pluginUrl', this._pluginUrl]);
@@ -488,13 +493,23 @@ export class FlexServer implements GristServer {
   // Set up the main express middleware used.  For a single user setup, without logins,
   // all this middleware is currently a no-op.
   public addAccessMiddleware() {
-    if (this._check('middleware', 'map', isSingleUserMode() ? null : 'hosts')) { return; }
+    if (this._check('middleware', 'map', 'config', isSingleUserMode() ? null : 'hosts')) { return; }
 
     if (!isSingleUserMode()) {
+      const skipSession = appSettings.section('login').flag('skipSession').readBool({
+        envVar: 'GRIST_IGNORE_SESSION',
+      });
       // Middleware to redirect landing pages to preferred host
       this._redirectToHostMiddleware = this._hosts.redirectHost;
       // Middleware to add the userId to the express request object.
-      this._userIdMiddleware = expressWrap(addRequestUser.bind(null, this._dbManager, this._internalPermitStore));
+      this._userIdMiddleware = expressWrap(addRequestUser.bind(
+        null, this._dbManager, this._internalPermitStore,
+        {
+          getProfile: this._loginMiddleware.getProfile?.bind(this._loginMiddleware),
+            // Set this to false to stop Grist using a cookie for authentication purposes.
+          skipSession,
+        }
+      ));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
       // middleware to authorize doc access to the app. Note that this requires the userId
       // to be set on the request by _userIdMiddleware.
@@ -722,8 +737,10 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
-    const forcedLoginMiddleware = process.env.GRIST_FORCE_LOGIN === 'true' ?
-      this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    const isForced = appSettings.section('login').flag('forced').readBool({
+      envVar: 'GRIST_FORCE_LOGIN',
+    });
+    const forcedLoginMiddleware = isForced ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -836,11 +853,12 @@ export class FlexServer implements GristServer {
   }
 
   public addComm() {
-    if (this._check('comm', 'start', 'homedb')) { return; }
+    if (this._check('comm', 'start', 'homedb', 'config')) { return; }
     this._comm = new Comm(this.server, {
       settings: this.settings,
       sessions: this._sessions,
       hosts: this._hosts,
+      loginMiddleware: this._loginMiddleware,
       httpsServer: this.httpsServer,
     });
   }

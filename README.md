@@ -206,13 +206,14 @@ GRIST_HIDE_UI_ELEMENTS | comma-separated list of parts of the UI to hide. Allowe
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
+GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication.
 GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.
 GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone
 GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited).
 GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited).
 GRIST_ORG_IN_PATH | if true, encode org in path rather than domain
 GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all.
-GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service.
+GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service. See also GRIST_FORWARD_AUTH_HEADER.
 GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer
 GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
@@ -236,6 +237,25 @@ GRIST_SANDBOX_FLAVOR | can be pynbox, unsandboxed, docker, or macSandboxExec. If
 GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details.
 PYTHON_VERSION | can be 2 or 3. If set, documents without an engine setting are assumed to use the specified version of python. Not all sandboxes support all versions.
 PYTHON_VERSION_ON_CREATION | can be 2 or 3. If set, newly created documents have an engine setting set to python2 or python3. Not all sandboxes support all versions.
+
+Forward authentication variables:
+
+Variable | Purpose
+-------- | -------
+GRIST_FORWARD_AUTH_HEADER | if set, trust the specified header (e.g. "x-forwarded-user") to contain authorized user emails, and enable "forward auth" logins.
+GRIST_FORWARD_AUTH_LOGIN_PATH | if GRIST_FORWARD_AUTH_HEADER is set, Grist will listen at this path for logins. Defaults to `/auth/login`.
+GRIST_FORWARD_AUTH_LOGOUT_PATH | if GRIST_FORWARD_AUTH_HEADER is set, Grist will forward to this path when user logs out.
+
+When using forward authentication, you may wish to also set the following variables:
+
+  * GRIST_FORCE_LOGIN=true to disable anonymous access.
+  * GRIST_IGNORE_SESSION=true to ignore any user identity information in a cookie.
+    Only do this if you use forward authentication on all paths.
+    You may not want to use forward authentication on all paths if it makes
+    signing in required, and you are trying to permit anonymous access.
+
+GRIST_FORWARD_AUTH_HEADER is similar to GRIST_PROXY_AUTH_HEADER, but enables
+a login system (assuming you have some forward authentication set up).
 
 Google Drive integrations:
 

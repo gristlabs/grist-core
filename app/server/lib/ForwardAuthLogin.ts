@@ -1,9 +1,12 @@
 import { ApiError } from 'app/common/ApiError';
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { appSettings } from 'app/server/lib/AppSettings';
 import { getRequestProfile } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristLoginSystem, GristServer, setUserInSession } from 'app/server/lib/GristServer';
 import { optStringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
+import { IncomingMessage } from 'http';
 import trimEnd = require('lodash/trimEnd');
 import trimStart = require('lodash/trimStart');
 
@@ -30,13 +33,24 @@ import trimStart = require('lodash/trimStart');
  * Redirection logic currently assumes a single-site installation.
  */
 export async function getForwardAuthLoginSystem(): Promise<GristLoginSystem|undefined> {
-  const header = process.env.GRIST_FORWARD_AUTH_HEADER;
-  const logoutPath = process.env.GRIST_FORWARD_AUTH_LOGOUT_PATH || '';
+  const section = appSettings.section('login').section('system').section('forwardAuth');
+  const header = section.flag('header').readString({
+    envVar: 'GRIST_FORWARD_AUTH_HEADER',
+  });
   if (!header) { return; }
+  section.flag('active').set(true);
+  const logoutPath = section.flag('logoutPath').readString({
+    envVar: 'GRIST_FORWARD_AUTH_LOGOUT_PATH'
+  }) || '';
+  const loginPath = section.flag('loginPath').requireString({
+    envVar: 'GRIST_FORWARD_AUTH_LOGIN_PATH',
+    defaultValue: '/auth/login',
+  }) || '';
   return {
     async getMiddleware(gristServer: GristServer) {
       async function getLoginRedirectUrl(req: express.Request, url: URL)  {
-        const target = new URL(trimEnd(gristServer.getHomeUrl(req), '/') + "/auth/login");
+        const target = new URL(trimEnd(gristServer.getHomeUrl(req), '/') +
+          '/' + trimStart(loginPath, '/'));
         // In lieu of sanatizing the next url, we include only the path
         // component. This will only work for single-domain installations.
         target.searchParams.append('next', url.pathname);
@@ -64,6 +78,9 @@ export async function getForwardAuthLoginSystem(): Promise<GristLoginSystem|unde
             res.redirect(target.href);
           }));
           return "forward-auth";
+        },
+        async getProfile(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined> {
+          return getRequestProfile(req, header);
         },
       };
     },

@@ -23,13 +23,14 @@ import * as WebSocket from 'ws';
 
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {parseFirstUrlPart} from 'app/common/gristUrls';
-import {safeJsonParse} from 'app/common/gutil';
+import {firstDefined, safeJsonParse} from 'app/common/gutil';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import * as version from 'app/common/version';
 import {getRequestProfile} from 'app/server/lib/Authorizer';
 import {ScopedSession} from "app/server/lib/BrowserSession";
 import {Client, ClientMethod} from "app/server/lib/Client";
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
+import {GristLoginMiddleware} from 'app/server/lib/GristServer';
 import * as log from 'app/server/lib/log';
 import {localeFromRequest} from 'app/server/lib/ServerLocale';
 import {fromCallback} from 'app/server/lib/serverUtils';
@@ -39,6 +40,7 @@ export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
   settings?: {[key: string]: unknown};  // The config object containing instance settings including features.
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
+  loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
   httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
 }
 
@@ -55,17 +57,8 @@ export interface CommOptions {
  */
 export class Comm extends EventEmitter {
   // Collection of all sessions; maps sessionIds to ScopedSession objects.
-  public readonly sessions: Sessions;
+  public readonly sessions: Sessions = this._options.sessions;
   private _wss: WebSocket.Server[]|null = null;
-
-  // The config object containing instance settings including features.
-  private _settings?: {[key: string]: unknown};
-
-  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
-  private _hosts?: Hosts;
-
-  // An optional HTTPS server to listen on too.
-  private _httpsServer?: https.Server;
 
   private _clients = new Map<string, Client>();   // Maps clientIds to Client objects.
 
@@ -77,14 +70,9 @@ export class Comm extends EventEmitter {
   // for a valid server.
   private _serverVersion: string|null = null;
 
-  constructor(private _server: http.Server, options: CommOptions) {
+  constructor(private _server: http.Server, private _options: CommOptions) {
     super();
-    this._httpsServer = options.httpsServer;
     this._wss = this._startServer();
-
-    this.sessions = options.sessions;
-    this._settings = options.settings;
-    this._hosts = options.hosts;
   }
 
   /**
@@ -186,7 +174,11 @@ export class Comm extends EventEmitter {
    * Returns a profile based on the request or session.
    */
   private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile|null> {
-    return getRequestProfile(req) || scopedSession.getSessionProfile();
+    return await firstDefined(
+      async () => this._options.loginMiddleware?.getProfile?.(req),
+      async () => getRequestProfile(req),
+      async () => scopedSession.getSessionProfile(),
+    ) || null;
   }
 
   /**
@@ -194,12 +186,12 @@ export class Comm extends EventEmitter {
    */
   private async _onWebSocketConnection(websocket: WebSocket, req: http.IncomingMessage) {
     log.info("Comm: Got WebSocket connection: %s", req.url);
-    if (this._hosts) {
+    if (this._options.hosts) {
       // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
       // needed. addOrgInfo assumes req.url starts with /o/ if present.
       req.url = parseFirstUrlPart('dw', req.url!).path;
       req.url = parseFirstUrlPart('v', req.url).path;
-      await this._hosts.addOrgInfo(req);
+      await this._options.hosts.addOrgInfo(req);
     }
 
     // Parse the cookie in the request to get the sessionId.
@@ -232,7 +224,7 @@ export class Comm extends EventEmitter {
 
     client.sendConnectMessage({
       serverVersion: this._serverVersion || version.gitcommit,
-      settings: this._settings,
+      settings: this._options.settings,
     })
     .catch(err => {
       log.error(`Comm ${client}: failed to prepare or send clientConnect:`, err);
@@ -241,7 +233,7 @@ export class Comm extends EventEmitter {
 
   private _startServer() {
     const servers = [this._server];
-    if (this._httpsServer) { servers.push(this._httpsServer); }
+    if (this._options.httpsServer) { servers.push(this._options.httpsServer); }
     const wss = [];
     for (const server of servers) {
       const wssi = new WebSocket.Server({server});

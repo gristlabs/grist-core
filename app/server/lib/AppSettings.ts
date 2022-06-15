@@ -80,6 +80,17 @@ export class AppSettings {
     return result;
   }
 
+  /**
+   * As for read() but type (and store, and report) the result as
+   * a boolean.
+   */
+  public readBool(query: AppSettingQuery): boolean|undefined {
+    this.readString(query);
+    const result = this.getAsBool();
+    this._value = result;
+    return result;
+  }
+
   /* set this setting 'manually' */
   public set(value: JSONValue): void {
     this._value = value;
