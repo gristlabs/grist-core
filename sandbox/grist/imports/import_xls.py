@@ -39,6 +39,10 @@ def parse_open_file(file_obj):
   export_list = []
   # A table set is a collection of tables:
   for sheet in workbook:
+    # openpyxl fails to read xlsx files with incorrect dimensions; we reset here as a precaution.
+    # See https://openpyxl.readthedocs.io/en/stable/optimized.html#worksheet-dimensions.
+    sheet.reset_dimensions()
+
     table_name = sheet.title
     rows = [
       list(row)
@@ -50,7 +54,9 @@ def parse_open_file(file_obj):
     sample = [
       # Create messytables.Cells for the sake of messytables.headers_guess
       [messytables.Cell(cell) for cell in row]
-      for row in rows[:1000]
+      # Resetting dimensions via openpyxl causes rows to not be padded. Make sure
+      # sample rows are padded; get_table_data will handle padding the rest.
+      for row in _with_padding(rows[:1000])
     ]
     offset, headers = messytables.headers_guess(sample)
     data_offset = offset + 1  # Add the header line
@@ -100,3 +106,14 @@ def parse_open_file(file_obj):
 
   parse_options = {}
   return parse_options, export_list
+
+def _with_padding(rows):
+  if not rows:
+    return []
+  max_width = max(len(row) for row in rows)
+  min_width = min(len(row) for row in rows)
+  if min_width == max_width:
+    return rows
+  for row in rows:
+    row.extend([""] * (max_width - len(row)))
+  return rows

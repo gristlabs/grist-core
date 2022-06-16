@@ -163,7 +163,27 @@ class TestImportXLS(unittest.TestCase):
       ],
       'table_data': [
         [0, None, 1],
-        [None, 0, 2],
+        [u'', 0, 2],
+      ],
+    }])
+
+  def test_invalid_dimensions(self):
+    # Check that files with invalid dimensions (typically a result of software
+    # incorrectly writing the xlsx file) are imported correctly. Previously, Grist
+    # would fail to import any rows from such files due to how openpyxl parses them.
+    parsed_file = import_xls.parse_file(*_get_fixture('test_invalid_dimensions.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual(tables, [{
+      'table_name': 'Sheet1',
+      'column_metadata': [
+        {'id': u'A', 'type': 'Numeric'},
+        {'id': u'B', 'type': 'Numeric'},
+        {'id': u'C', 'type': 'Numeric'},
+      ],
+      'table_data': [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
       ],
     }])
 
