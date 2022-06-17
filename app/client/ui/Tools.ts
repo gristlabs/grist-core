@@ -114,7 +114,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         )
       ),
     ),
-    createHelpTools(docPageModel.appModel, false)
+    createHelpTools(docPageModel.appModel),
   );
 }
 

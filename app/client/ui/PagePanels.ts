@@ -1,9 +1,10 @@
 /**
  * Note that it assumes the presence of cssVars.cssRootVars on <body>.
  */
+import * as commands from 'app/client/components/commands';
 import {urlState} from "app/client/models/gristUrlState";
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
-import {transition} from 'app/client/ui/transitions';
+import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {colors, cssHideForNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -40,6 +41,7 @@ export function pagePanels(page: PageContents) {
 
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
+  let leftPaneDom: HTMLElement;
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
@@ -60,12 +62,21 @@ export function pagePanels(page: PageContents) {
     }
   });
 
+  const commandsGroup = commands.createGroup({
+    leftPanelOpen: () => new Promise((resolve) => {
+      const watcher = new TransitionWatcher(leftPaneDom);
+      watcher.onDispose(() => resolve(undefined));
+      left.panelOpen.set(true);
+    }),
+  }, null, true);
+
   return cssPageContainer(
     dom.autoDispose(sub1),
     dom.autoDispose(sub2),
+    dom.autoDispose(commandsGroup),
     page.contentTop,
     cssContentMain(
-      cssLeftPane(
+      leftPaneDom = cssLeftPane(
         testId('left-panel'),
         cssTopHeader(left.header),
         left.content,
@@ -187,6 +198,7 @@ function toggleObs(boolObs: Observable<boolean>) {
   boolObs.set(!boolObs.get());
 }
 
+const bottomFooterHeightPx = 48;
 const cssVBox = styled('div', `
   display: flex;
   flex-direction: column;
@@ -207,7 +219,7 @@ const cssPageContainer = styled(cssVBox, `
 
   @media ${mediaSmall} {
     & {
-      padding-bottom: 48px;
+      padding-bottom: ${bottomFooterHeightPx}px;
       min-width: 240px;
     }
     .interface-light & {
@@ -232,7 +244,7 @@ export const cssLeftPane = styled(cssVBox, `
       position: fixed;
       z-index: 10;
       top: 0;
-      bottom: 0;
+      bottom: ${bottomFooterHeightPx}px;
       left: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       visibility: hidden;
       box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
@@ -279,7 +291,7 @@ const cssRightPane = styled(cssVBox, `
       position: fixed;
       z-index: 10;
       top: 0;
-      bottom: 0;
+      bottom: ${bottomFooterHeightPx}px;
       right: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
       visibility: hidden;
@@ -324,7 +336,7 @@ const cssTopHeader = styled('div', `
   }
 `);
 const cssBottomFooter = styled ('div', `
-  height: 48px;
+  height: ${bottomFooterHeightPx}px;
   background-color: white;
   z-index: 20;
   display: flex;

@@ -24,28 +24,25 @@ import {dom, DomContents, Observable, styled} from 'grainjs';
  * Creates the "help tools", a button/link to open HelpScout beacon, and one to open the
  * HelpCenter in a new tab.
  */
-export function createHelpTools(appModel: AppModel, spacer = true): DomContents {
+export function createHelpTools(appModel: AppModel): DomContents {
   if (shouldHideUiElement("helpCenter")) {
     return [];
   }
-  return [
-    spacer ? cssSpacer() : null,
-    cssSplitPageEntry(
-      cssPageEntryMain(
-        cssPageLink(cssPageIcon('Help'),
-          cssLinkText('Help Center'),
-          dom.cls('tour-help-center'),
-          dom.on('click', (ev) => beaconOpenMessage({appModel})),
-          testId('left-feedback'),
-        ),
+  return cssSplitPageEntry(
+    cssPageEntryMain(
+      cssPageLink(cssPageIcon('Help'),
+        cssLinkText('Help Center'),
+        dom.cls('tour-help-center'),
+        dom.on('click', (ev) => beaconOpenMessage({appModel})),
+        testId('left-feedback'),
       ),
-      cssPageEntrySmall(
-        cssPageLink(cssPageIcon('FieldLink'),
-          {href: commonUrls.help, target: '_blank'},
-        ),
-      )
     ),
-  ];
+    cssPageEntrySmall(
+      cssPageLink(cssPageIcon('FieldLink'),
+        {href: commonUrls.help, target: '_blank'},
+      ),
+    ),
+  );
 }
 
 /**
@@ -56,6 +53,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
     cssScrollPane(
       cssTools(
         cssTools.cls('-collapsed', (use) => !use(panelOpen)),
+        cssSpacer(),
         createHelpTools(appModel),
       )
     )

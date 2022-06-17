@@ -8,6 +8,11 @@ import {bigBasicButton} from 'app/client/ui2018/buttons';
 // styles, which gives it priority.
 import 'popweasel';
 
+export const docMenu = styled('div', `
+  flex-grow: 1;
+  max-width: 100%;
+`);
+
 // The "&:after" clause forces some padding below all docs.
 export const docList = styled('div', `
   height: 100%;
@@ -33,16 +38,34 @@ export const docList = styled('div', `
   }
 `);
 
-export const docListHeader = styled('div', `
+const listHeader = styled('div', `
   min-height: 32px;
   line-height: 32px;
-  margin-bottom: 24px;
   color: ${colors.dark};
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
 `);
 
-export const templatesHeader = styled(docListHeader, `
+export const docListHeader = styled(listHeader, `
+  margin-bottom: 24px;
+`);
+
+export const templatesHeaderWrap = styled('div', `
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media ${mediaSmall} {
+    & {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+`);
+
+export const templatesHeader = styled(listHeader, `
   cursor: pointer;
 `);
 
@@ -53,13 +76,18 @@ export const featuredTemplatesHeader = styled(docListHeader, `
 
 export const otherSitesHeader = templatesHeader;
 
+export const allDocsTemplates = styled('div', `
+  display: flex;
+`);
+
 export const docBlock = styled('div', `
   max-width: 550px;
   min-width: 300px;
   margin-bottom: 28px;
 
   &-icons {
-    max-width: unset;
+    max-width: max-content;
+    min-width: calc(min(550px, 100%));
   }
 `);
 

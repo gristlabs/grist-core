@@ -1,6 +1,7 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {reportError} from 'app/client/models/errors';
 import {cssInput} from 'app/client/ui/MakeCopyMenu';
+import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -112,10 +113,25 @@ export class ModalControl extends Disposable implements IModalControl {
   }
 }
 
-export interface IModalOptions {
-  noEscapeKey?: boolean;      // If set, escape key does not close the dialog
-  noClickAway?: boolean;      // If set, clicking into background does not close dialog.
+/**
+ * The modal variant.
+ *
+ * Fade-in modals open with a fade-in background animation, and close immediately.
+ *
+ * Collapsing modals open with a expanding animation from a referenced DOM element, and
+ * close with a collapsing animation into the referenced element.
+ */
+export type IModalVariant = 'fade-in' | 'collapsing';
 
+export interface IModalOptions {
+  // The modal variant. Defaults to "fade-in".
+  variant?: IModalVariant;
+  // Required for "collapsing" variant modals. This is the anchor element for animations.
+  refElement?: HTMLElement;
+  // If set, escape key does not close the dialog.
+  noEscapeKey?: boolean;
+  // If set, clicking into background does not close dialog.
+  noClickAway?: boolean;
   // If given, call and wait for this before closing the dialog. If it returns false, don't close.
   // Error also prevents closing, and is reported as an unexpected error.
   beforeClose?: () => Promise<boolean>;
@@ -153,41 +169,78 @@ export function modal(
   createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
   options: IModalOptions = {}
 ): void {
+  const {noEscapeKey, noClickAway, refElement = document.body, variant = 'fade-in'} = options;
 
   function doClose() {
     if (!modalDom.isConnected) { return; }
+
+    variant === 'collapsing' ? collapseAndCloseModal() : closeModal();
+  }
+
+  function closeModal() {
     document.body.removeChild(modalDom);
     // Ensure we run the disposers for the DOM contained in the modal.
     dom.domDispose(modalDom);
   }
+
+  function collapseAndCloseModal() {
+    const watcher = new TransitionWatcher(dialogDom);
+    watcher.onDispose(() => closeModal());
+    modalDom.classList.add(cssModalBacker.className + '-collapsing');
+    collapseModal();
+  }
+
+  function expandModal() {
+    prepareForTransition(dialogDom, () => collapseModal());
+    Object.assign(dialogDom.style, {
+      transform: '',
+      opacity: '',
+      visibility: 'visible',
+    });
+  }
+
+  function collapseModal() {
+    const rect = dialogDom.getBoundingClientRect();
+    const collapsedRect = refElement.getBoundingClientRect();
+    const originX = (collapsedRect.left + collapsedRect.width / 2) - rect.left;
+    const originY = (collapsedRect.top + collapsedRect.height / 2) - rect.top;
+    Object.assign(dialogDom.style, {
+      transform: `scale(${collapsedRect.width / rect.width}, ${collapsedRect.height / rect.height})`,
+      transformOrigin: `${originX}px ${originY}px`,
+      opacity: '0',
+    });
+  }
+
   let close = doClose;
+  let dialogDom: HTMLElement;
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
-      const focus = () => dialog.focus();
+      const focus = () => dialogDom.focus();
       const ctl = ModalControl.create(owner, doClose, focus);
       close = () => ctl.close();
 
-      const dialog = cssModalDialog(
+      dialogDom = cssModalDialog(
         createFn(ctl, owner),
+        cssModalDialog.cls('-collapsing', variant === 'collapsing'),
         dom.on('click', (ev) => ev.stopPropagation()),
-        options.noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
-        testId('modal-dialog')
+        noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
+        testId('modal-dialog'),
       );
       FocusLayer.create(owner, {
-        defaultFocusElem: dialog,
+        defaultFocusElem: dialogDom,
         allowFocus: (elem) => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
         // will navigate in a grid underneath the modal, and Enter may open a cell there.
         pauseMousetrap: true
       });
-      return dialog;
+      return dialogDom;
     }),
-    options.noClickAway ? null : dom.on('click', () => close()),
+    noClickAway ? null : dom.on('click', () => close()),
   );
 
-
   document.body.appendChild(modalDom);
+  if (variant === 'collapsing') { expandModal(); }
 }
 
 export interface ISaveModalOptions {
@@ -436,6 +489,11 @@ const cssModalDialog = styled('div', `
   &-fixed-wide {
     width: 600px;
   }
+  &-collapsing {
+    transition-property: opacity, transform;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-in-out;
+  }
   @media ${mediaSmall} {
     & {
       width: unset;
@@ -471,6 +529,10 @@ const cssFadeIn = keyframes(`
   from {background-color: transparent}
 `);
 
+const cssFadeOut = keyframes(`
+  from {background-color: ${colors.backdrop}}
+`);
+
 const cssModalBacker = styled('div', `
   position: fixed;
   display: flex;
@@ -485,6 +547,11 @@ const cssModalBacker = styled('div', `
   overflow-y: auto;
   animation-name: ${cssFadeIn};
   animation-duration: 0.4s;
+
+  &-collapsing {
+    animation-name: ${cssFadeOut};
+    background-color: transparent;
+  }
 `);
 
 const cssSpinner = styled('div', `

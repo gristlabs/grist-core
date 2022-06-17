@@ -64,6 +64,7 @@ export const commonUrls = {
 
   efcrConnect: 'https://efc-r.com/connect',
   efcrHelp: 'https://www.nioxus.info/eFCR-Help',
+  videoTour: 'https://www.youtube.com/embed/qnr2Pfnxdlc?autoplay=1',
 };
 
 /**

@@ -10,6 +10,7 @@ import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'ap
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro} from 'app/client/ui/HomeIntro';
+import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buildUpgradeNudge} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
@@ -25,7 +26,7 @@ import {IHomePage} from 'app/common/gristUrls';
 import {SortPref, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {Computed, computed, dom, DomContents, makeTestId, Observable, observable, styled} from 'grainjs';
+import {Computed, computed, dom, DomContents, makeTestId, Observable, observable} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
@@ -67,7 +68,7 @@ function createLoadedDocMenu(home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   return css.docList(
     showWelcomeQuestions(home.app.userPrefsObs),
-    cssDocMenu(
+    css.docMenu(
       dom.maybe(!home.app.currentFeatures.workspaces, () => [
         css.docListHeader('This service is not available right now'),
         dom('span', '(The organization needs a paid plan)')
@@ -208,15 +209,18 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
     if (templates.length === 0) { return null; }
 
     const hideTemplatesObs = localStorageBoolObs('hide-examples');
-    return css.templatesDocBlock(
+    return css.allDocsTemplates(css.templatesDocBlock(
       dom.autoDispose(hideTemplatesObs),
-      css.templatesHeader(
-        'Examples & Templates',
-        dom.domComputed(hideTemplatesObs, (collapsed) =>
-          collapsed ? css.templatesHeaderIcon('Expand') : css.templatesHeaderIcon('Collapse')
+      css.templatesHeaderWrap(
+        css.templatesHeader(
+          'Examples & Templates',
+          dom.domComputed(hideTemplatesObs, (collapsed) =>
+            collapsed ? css.templatesHeaderIcon('Expand') : css.templatesHeaderIcon('Collapse')
+          ),
+          dom.on('click', () => hideTemplatesObs.set(!hideTemplatesObs.get())),
+          testId('all-docs-templates-header'),
         ),
-        dom.on('click', () => hideTemplatesObs.set(!hideTemplatesObs.get())),
-        testId('all-docs-templates-header'),
+        createVideoTourTextButton(),
       ),
       dom.maybe((use) => !use(hideTemplatesObs), () => [
         buildTemplateDocs(home, templates, viewSettings),
@@ -228,7 +232,7 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
       ]),
       css.docBlock.cls((use) => '-' + use(home.currentView)),
       testId('all-docs-templates'),
-    );
+    ));
   });
 }
 
@@ -586,7 +590,3 @@ function shouldShowTemplates(home: HomeModel, showIntro: boolean): boolean {
   // Show templates for all personal orgs, and for non-personal orgs when showing intro.
   return isPersonalOrg || showIntro;
 }
-
-const cssDocMenu = styled('div', `
-  flex-grow: 1;
-`);

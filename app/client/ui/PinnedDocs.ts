@@ -121,6 +121,11 @@ const pinnedDocWrapper = styled('div', `
   &:hover {
     border: 1px solid ${colors.slate};
   }
+
+  /* TODO: Specify a gap on flexbox parents of pinnedDocWrapper instead. */
+  &:last-child {
+    margin-right: 0px;
+  }
 `);
 
 const pinnedDoc = styled('a', `

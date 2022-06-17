@@ -6,7 +6,8 @@ import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
-import {cssLinkText, cssPageEntry, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
+import {cssLinkText, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer} from 'app/client/ui/LeftPanelCommon';
+import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
 import {transientInput} from 'app/client/ui/transientInput';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -111,6 +112,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             testId('dm-trash'),
           ),
         ),
+        cssSpacer(),
+        createVideoTourToolsButton(),
         createHelpTools(home.app),
       )
     )

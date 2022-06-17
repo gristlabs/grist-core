@@ -102,7 +102,17 @@ exports.groups = [{
       name: 'openWidgetConfiguration',
       keys: [],
       desc: 'Open Custom widget configuration screen',
-    }
+    },
+    {
+      name: 'leftPanelOpen',
+      keys: [],
+      desc: 'Shortcut to open the left panel',
+    },
+    {
+      name: 'videoTourToolsOpen',
+      keys: [],
+      desc: 'Shortcut to open video tour from home left panel',
+    },
   ]
 }, {
   group: 'Navigation',

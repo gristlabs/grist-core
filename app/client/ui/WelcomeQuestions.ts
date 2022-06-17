@@ -1,3 +1,4 @@
+import * as commands from 'app/client/components/commands';
 import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -29,9 +30,16 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
         {method: 'POST', body: JSON.stringify({use_cases, use_other})});
     }
 
-    // Whichever way the modal is closed, don't show the questions again. (We set the value to
-    // undefined to remove it from the JSON prefs object entirely; it's never used again.)
-    owner.onDispose(() => showQuestions.set(undefined));
+
+    owner.onDispose(async () => {
+      // Whichever way the modal is closed, don't show the questions again. (We set the value to
+      // undefined to remove it from the JSON prefs object entirely; it's never used again.)
+      showQuestions.set(undefined);
+
+      // Show the Grist video tour when the modal is closed.
+      await commands.allCommands.leftPanelOpen.run();
+      commands.allCommands.videoTourToolsOpen.run();
+    });
 
     return {
       title: [cssLogo(), dom('div', 'Welcome to Grist!')],
