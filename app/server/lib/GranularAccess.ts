@@ -4,7 +4,13 @@ import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { ServerQuery } from 'app/common/ActiveDocAPI';
 import { ApiError } from 'app/common/ApiError';
-import { AddRecord, BulkAddRecord, BulkColValues, BulkRemoveRecord, BulkUpdateRecord } from 'app/common/DocActions';
+import {
+  AddRecord,
+  BulkAddRecord,
+  BulkColValues,
+  BulkRemoveRecord,
+  BulkUpdateRecord,
+} from 'app/common/DocActions';
 import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { TableDataAction, UserAction } from 'app/common/DocActions';

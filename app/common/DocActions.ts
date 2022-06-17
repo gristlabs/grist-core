@@ -144,6 +144,9 @@ export interface TableRecordValue {
 
 export type UserAction = Array<string|number|object|boolean|null|undefined>;
 
+// Actions that trigger formula calculations in the data engine
+export const CALCULATING_USER_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime', 'RespondToRequests']);
+
 /**
  * Gives a description for an action which involves setting values to a selection.
  * @param {Array} action - The (Bulk)AddRecord/(Bulk)UpdateRecord action to describe.

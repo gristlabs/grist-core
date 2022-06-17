@@ -4,7 +4,13 @@
  * change events.
  */
 
-import {getEnvContent, LocalActionBundle, SandboxActionBundle, UserActionBundle} from 'app/common/ActionBundle';
+import {
+  getEnvContent,
+  LocalActionBundle,
+  SandboxActionBundle,
+  SandboxRequest,
+  UserActionBundle
+} from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
 import {
@@ -33,12 +39,7 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {
-  getDataLimitRatio,
-  getDataLimitStatus,
-  getSeverity,
-  LimitExceededError,
-} from 'app/common/DocLimits';
+import {getDataLimitRatio, getDataLimitStatus, getSeverity, LimitExceededError} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
@@ -75,6 +76,7 @@ import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDo
 import {ISandbox} from 'app/server/lib/ISandbox';
 import * as log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {DocTriggers} from "app/server/lib/Triggers";
@@ -182,6 +184,7 @@ export class ActiveDoc extends EventEmitter {
 
   private _log = new LogMethods('ActiveDoc ', (s: OptDocSession) => this.getLogMeta(s));
   private _triggers: DocTriggers;
+  private _requests: DocRequests;
   private _dataEngine: Promise<ISandbox>|undefined;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
@@ -270,6 +273,7 @@ export class ActiveDoc extends EventEmitter {
     this.docStorage = new DocStorage(docManager.storageManager, docName);
     this.docClients = new DocClients(this);
     this._triggers = new DocTriggers(this);
+    this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = new DocPluginManager(docManager.pluginManager.getPlugins(),
       docManager.pluginManager.appRoot!, this, this._docManager.gristServer);
@@ -1095,7 +1099,7 @@ export class ActiveDoc extends EventEmitter {
       this.dataLimitStatus === "deleteOnly" &&
       !actions.every(action => [
           'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
-          'RemoveViewSection', 'RemoveView', 'ApplyUndoActions',
+          'RemoveViewSection', 'RemoveView', 'ApplyUndoActions', 'RespondToRequests',
         ].includes(action[0] as string))
     ) {
       throw new Error("Document is in delete-only mode");
@@ -1420,6 +1424,10 @@ export class ActiveDoc extends EventEmitter {
       }
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
+      const {requests} = sandboxActionBundle;
+      if (requests) {
+        this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
+      }
       await this._reportDataEngineMemory();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
@@ -2087,6 +2095,7 @@ export class ActiveDoc extends EventEmitter {
       preferredPythonVersion,
       sandboxOptions: {
         exports: {
+          request: (key: string, args: SandboxRequest) => this._requests.handleSingleRequestWithCache(key, args),
           guessColInfo: (values: Array<string | null>) =>
             guessColInfoWithDocData(values, this.docData!),
           convertFromColumn: (...args: Parameters<ReturnType<typeof convertFromColumn>>) =>

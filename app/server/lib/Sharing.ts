@@ -6,7 +6,7 @@ import {
   LocalActionBundle,
   UserActionBundle
 } from 'app/common/ActionBundle';
-import {DocAction, getNumRows, UserAction} from 'app/common/DocActions';
+import {CALCULATING_USER_ACTIONS, DocAction, getNumRows, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
 import * as log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
@@ -215,8 +215,7 @@ export class Sharing {
 
     try {
 
-      const isCalculate = (userActions.length === 1 &&
-                           (userActions[0][0] === 'Calculate' || userActions[0][0] === 'UpdateCurrentTime'));
+      const isCalculate = (userActions.length === 1 && CALCULATING_USER_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
       // - Adding attachment metadata when uploading attachments,

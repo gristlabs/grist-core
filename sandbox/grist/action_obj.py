@@ -27,6 +27,7 @@ class ActionGroup(object):
     self.undo     = []
     self.retValues = []
     self.summary = ActionSummary()
+    self.requests = {}
 
   def flush_calc_changes(self):
     """

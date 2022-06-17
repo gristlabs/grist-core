@@ -9,6 +9,7 @@ import six
 from six.moves import xrange
 
 import acl
+import depend
 import gencode
 from acl_formula import parse_acl_formula_json
 import actions
@@ -330,6 +331,25 @@ class UserActions(object):
     of any cells that depend on the current time.
     """
     self._engine.update_current_time()
+
+  @useraction
+  def RespondToRequests(self, responses, cached_keys):
+    """
+    Reevaluate formulas which called the REQUEST function using the now available responses.
+    """
+    engine = self._engine
+
+    # The actual raw responses which will be returned to the REQUEST function
+    engine._request_responses = responses
+    # Keys for older requests which are stored in files and can be retrieved synchronously
+    engine._cached_request_keys = set(cached_keys)
+
+    # Invalidate the exact cells which made the exact requests which are being responded to here.
+    for response in six.itervalues(responses):
+      for table_id, table_deps in six.iteritems(response.pop("deps")):
+        for col_id, row_ids in six.iteritems(table_deps):
+          node = depend.Node(table_id, col_id)
+          engine.dep_graph.invalidate_deps(node, row_ids, engine.recompute_map)
 
   #----------------------------------------
   # User actions on records.

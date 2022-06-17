@@ -3,10 +3,13 @@
 
 from __future__ import absolute_import
 import datetime
+import hashlib
+import json
 import math
 import numbers
 import re
 
+import chardet
 import six
 
 import column
@@ -656,3 +659,91 @@ def is_error(value):
   return ((value is _error_sentinel)
       or isinstance(value, AltText)
       or (isinstance(value, float) and math.isnan(value)))
+
+
+@unimplemented  # exclude from autocomplete while in beta
+def REQUEST(url, params=None, headers=None):
+  # Makes a GET HTTP request with an API similar to `requests.get`.
+  # Actually jumps through hoops internally to make the request asynchronously (usually)
+  # while feeling synchronous to the formula writer.
+
+  # Requests are identified by a string key in various places.
+  # The same arguments should produce the same key so the request is only made once.
+  args = dict(url=url, params=params, headers=headers)
+  args_json = json.dumps(args, sort_keys=True)
+  key = hashlib.sha256(args_json.encode()).hexdigest()
+
+  # This may either return the raw response data or it may raise a special exception
+  # to delegate the request and reevaluate the formula later.
+  response_dict = docmodel.global_docmodel._engine._requesting(key, args)
+
+  if "error" in response_dict:
+    # Indicates a complete failure to make the request, such as a connection problem.
+    # An unsuccessful status code like 404 or 500 doesn't raise this error.
+    raise HTTPError(response_dict["error"])
+
+  return Response(**response_dict)
+
+
+class HTTPError(Exception):
+  pass
+
+
+class Response(object):
+  """
+  Similar to the Response class from the `requests` library.
+  """
+  def __init__(self, content, status, statusText, headers, encoding):
+    self.content = content  # raw bytes
+    self.status_code = status  # e.g. 404
+    self.reason = statusText  # e.g. "Not Found"
+    self.headers = CaseInsensitiveDict(headers)
+    self.encoding = encoding or self.apparent_encoding
+
+  @property
+  def text(self):
+    return self.content.decode(self.encoding)
+
+  def json(self, **kwargs):
+    return json.loads(self.text, **kwargs)
+
+  @property
+  def ok(self):
+    return self.status_code < 400
+
+  def raise_for_status(self):
+    if not self.ok:
+      raise HTTPError("Request failed with status %s" % self.status_code)
+
+  @property
+  def apparent_encoding(self):
+    return chardet.detect(self.content)["encoding"]
+
+  def close(self):
+    pass  # nothing to do
+
+
+class CaseInsensitiveDict(dict):
+  """
+  Similar to dict but treats all keys (which must be strings) case-insensitively,
+  e.g. `d["foo"]` and `d["FOO"]` are equivalent.
+  """
+  def __init__(self, *args, **kwargs):
+    dict.__init__(self, *args, **kwargs)
+    for k in list(self):
+      # Convert key to lowercase
+      self[k] = dict.pop(self, k)
+
+  def update(self, E=None, **F):
+    dict.update(self.__class__(E or {}))
+    dict.update(self.__class__(**F))
+
+
+def _forward_dict_method(name):
+  # Replace method 'name' where the first argument is a key with a version that lowercases the key
+  def method(self, key, *args, **kwargs):
+    return getattr(dict, name)(self, key.lower(), *args, **kwargs)
+  return method
+
+for _name in "__getitem__ __setitem__ __delitem__ __contains__ get setdefault pop has_key".split():
+  setattr(CaseInsensitiveDict, _name, _forward_dict_method(_name))

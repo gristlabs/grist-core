@@ -30,6 +30,7 @@ import match_counter
 import objtypes
 from objtypes import strict_equal
 from relation import SingleRowsIdentityRelation
+import sandbox
 import schema
 from schema import RecalcWhen
 import table as table_module
@@ -65,6 +66,16 @@ class OrderError(Exception):
   def set_requirer(self, node, row_id):
     self.requiring_node = node
     self.requiring_row_id = row_id
+
+
+class RequestingError(Exception):
+  """
+  An exception thrown and handled internally, a bit like OrderError.
+  Indicates that the formula called the REQUEST function and needs to delegate an HTTP request
+  to the NodeJS server.
+  """
+  pass
+
 
 # An item of work to be done by Engine._update
 WorkItem = namedtuple('WorkItem', ('node', 'row_ids', 'locks'))
@@ -186,6 +197,7 @@ class Engine(object):
     # What's currently being computed
     self._current_node = None
     self._current_row_id = None
+    self._is_current_node_formula = False  # True for formula columns, False for trigger formulas
 
     # Certain recomputations are triggered by a particular doc action. This keep track of it.
     self._triggering_doc_action = None
@@ -235,6 +247,19 @@ class Engine(object):
     self._autocomplete_context = None
 
     self._table_stats = {"meta": [], "user": []}
+
+    #### Attributes used by the REQUEST function:
+    # True when the formula should synchronously call the exported JS method to make the request
+    # immediately instead of reevaluating the formula later. Used when reevaluating a single
+    # formula cell to get an error traceback.
+    self._sync_request = False
+    # dict of string keys to responses, set by the RespondToRequests user action to reevaluate
+    # formulas based on a batch of completed requests.
+    self._request_responses = {}
+    # set of string keys identifying requests that are currently cached in files and can thus
+    # be fetched synchronously via the exported JS method. This allows a single formula to
+    # make multiple different requests without needing to keep all the responses in memory.
+    self._cached_request_keys = set()
 
   @property
   def autocomplete_context(self):
@@ -480,7 +505,7 @@ class Engine(object):
     if self._peeking:
       return
 
-    if self._current_node:
+    if self._is_current_node_formula:
       # Add an edge to indicate that the node being computed depends on the node passed in.
       # Note that during evaluation, we only *add* dependencies. We *remove* them by clearing them
       # whenever ALL rows for a node are invalidated (on schema changes and reloads).
@@ -671,6 +696,8 @@ class Engine(object):
     table = self.tables[table_id]
     col = table.get_column(col_id)
     checkpoint = self._get_undo_checkpoint()
+    # Makes calls to REQUEST synchronous, since raising a RequestingError can't work here.
+    self._sync_request = True
     try:
       result = self._recompute_one_cell(table, col, row_id)
       # If the error is gone for a trigger formula
@@ -686,6 +713,7 @@ class Engine(object):
       # It is possible for formula evaluation to have side-effects that produce DocActions (e.g.
       # lookupOrAddDerived() creates those). In case of get_formula_error(), these aren't fully
       # processed (e.g. don't get applied to DocStorage), so it's important to reverse them.
+      self._sync_request = False
       self._undo_to_checkpoint(checkpoint)
 
   def _recompute(self, node, row_ids=None):
@@ -757,9 +785,11 @@ class Engine(object):
     require_rows = sorted(require_rows or [])
 
     previous_current_node = self._current_node
+    previous_is_current_node_formula = self._is_current_node_formula
+    self._current_node = node
     # Prevents dependency creation for non-formula nodes. A non-formula column may include a
     # formula to eval for a newly-added record. Those shouldn't create dependencies.
-    self._current_node = node if col.is_formula() else None
+    self._is_current_node_formula = col.is_formula()
 
     changes = None
     cleaned = []    # this lists row_ids that can be removed from dirty_rows once we are no
@@ -789,11 +819,16 @@ class Engine(object):
           # For common-case formulas, all cells in a column are likely to fail in the same way,
           # so don't bother trying more from this column until we've reordered.
           return
+
+        making_request = False
         try:
           # We figure out if we've hit a cycle here.  If so, we just let _recompute_on_cell
           # know, so it can set the cell value appropriately and do some other bookkeeping.
           cycle = required and (node, row_id) in self._locked_cells
           value = self._recompute_one_cell(table, col, row_id, cycle=cycle, node=node)
+        except RequestingError:
+          making_request = True
+          value = RequestingError
         except OrderError as e:
           if not required:
             # We're out of order, but for a cell we were evaluating opportunistically.
@@ -822,19 +857,24 @@ class Engine(object):
         if column.is_validation_column_name(col.col_id):
           value = (value in (True, None))
 
-        # Convert the value, and if needed, set, and include into the returned action.
-        value = col.convert(value)
-        previous = col.raw_get(row_id)
-        if not strict_equal(value, previous):
-          if not changes:
-            changes = self._changes_map.setdefault(node, [])
-          changes.append((row_id, previous, value))
-          col.set(row_id, value)
+        # When the formula raises a RequestingError, leave the existing value in the cell.
+        # The formula will be evaluated again soon when we have a response.
+        if not making_request:
+          # Convert the value, and if needed, set, and include into the returned action.
+          value = col.convert(value)
+          previous = col.raw_get(row_id)
+          if not strict_equal(value, previous):
+            if not changes:
+              changes = self._changes_map.setdefault(node, [])
+            changes.append((row_id, previous, value))
+            col.set(row_id, value)
+
         exclude.add(row_id)
         cleaned.append(row_id)
         self._recompute_done_counter += 1
     finally:
       self._current_node = previous_current_node
+      self._is_current_node_formula = previous_is_current_node_formula
       # Usually dirty_rows refers to self.recompute_map[node], so this modifies both
       dirty_rows -= cleaned
 
@@ -843,6 +883,43 @@ class Engine(object):
       # so here we check self.recompute_map[node] directly
       if not self.recompute_map[node]:
         self.recompute_map.pop(node)
+
+  def _requesting(self, key, args):
+    """
+    Called by the REQUEST function. If we don't have a response already and we can't
+    synchronously get it from the JS side, then note the request to be made in JS asynchronously
+    and raise RequestingError to indicate that the formula
+    should be evaluated again later when we have a response.
+    """
+    # This will make the formula reevaluate periodically with the UpdateCurrentTime action.
+    # This assumes that the response changes with time and having the latest data is ideal.
+    # We will probably want to reconsider this to avoid making unwanted requests,
+    # along with avoiding refreshing the request when the doc is loaded with the Calculate action.
+    self.use_current_time()
+
+    if key in self._request_responses:
+      # This formula is being reevaluated in a RespondToRequests action, and the response is ready.
+      return self._request_responses[key]
+    elif self._sync_request or key in self._cached_request_keys:
+      # Not always ideal, but in this case the best strategy is to make the request immediately
+      # and block while waiting for a response.
+      return sandbox.call_external("request", key, args)
+
+    # We can't get a response to this request now. Note the request so it can be delegated.
+    table_id, column_id = self._current_node
+    (self.out_actions.requests  # `out_actions.requests` is returned by apply_user_actions
+         # Here is where the request arguments are stored if they haven't been already
+         .setdefault(key, args)
+         # While all this stores the cell that made the request so that it can be invalidated later
+         .setdefault("deps", {})
+         .setdefault(table_id, {})
+         .setdefault(column_id, [])
+         .append(self._current_row_id))
+
+    # As with OrderError, note the exception so it gets raised even if the formula catches it
+    self._cell_required_error = RequestingError()
+
+    raise RequestingError()
 
   def _recompute_one_cell(self, table, col, row_id, cycle=False, node=None):
     """
@@ -1198,6 +1275,11 @@ class Engine(object):
 
     self.out_actions = action_obj.ActionGroup()
     self._user = User(user, self.tables) if user else None
+
+    # These should usually be empty, but may be populated by the RespondToRequests action.
+    self._request_responses = {}
+    self._cached_request_keys = set()
+
     checkpoint = self._get_undo_checkpoint()
     try:
       for user_action in user_actions:
@@ -1252,6 +1334,8 @@ class Engine(object):
     self.out_actions.flush_calc_changes()
     self.out_actions.check_sanity()
     self._user = None
+    self._request_responses = {}
+    self._cached_request_keys = set()
     return self.out_actions
 
   def acl_split(self, action_group):
