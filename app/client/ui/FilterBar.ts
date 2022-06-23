@@ -25,7 +25,7 @@ function makeFilterField(viewSection: ViewSectionRec, filterInfo: FilterInfo,
     primaryButton(
       testId('btn'),
       cssIcon('FilterSimple'),
-      cssMenuTextLabel(dom.text(filterInfo.fieldOrColumn.label)),
+      cssMenuTextLabel(dom.text(filterInfo.fieldOrColumn.origCol().label)),
       cssBtn.cls('-grayed', filterInfo.filter.isSaved),
       attachColumnFilterMenu(viewSection, filterInfo, {
         placement: 'bottom-start', attach: 'body',
@@ -48,7 +48,7 @@ export function addFilterMenu(filters: FilterInfo[], viewSection: ViewSectionRec
       ...filters.map((filterInfo) => (
         menuItemAsync(
           () => turnOnAndOpenFilter(filterInfo.fieldOrColumn, viewSection, popupControls),
-          filterInfo.fieldOrColumn.label.peek(),
+          filterInfo.fieldOrColumn.origCol().label.peek(),
           dom.cls('disabled', filterInfo.isFiltered),
           testId('add-filter-item'),
         )

@@ -30,23 +30,23 @@ import tail = require('lodash/tail');
 import debounce = require('lodash/debounce');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {decodeObject} from 'app/plugin/objtypes';
-import {isList, isNumberType, isRefListType} from 'app/common/gristTypes';
+import {isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 
-interface IFilterMenuOptions {
+export interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
   valueCounts: Map<CellValue, IFilterCount>;
   doSave: (reset: boolean) => void;
   onClose: () => void;
   renderValue: (key: CellValue, value: IFilterCount) => DomElementArg;
-  valueParser?: (val: string) => any;
+  rangeInputOptions?: IRangeInputOptions
 }
 
 const testId = makeTestId('test-filter-menu-');
 
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doSave, onClose, renderValue, valueParser } = opts;
+  const { model, doSave, onClose, rangeInputOptions = {}, renderValue } = opts;
   const { columnFilter } = model;
   // Save the initial state to allow reverting back to it on Cancel
   const initialStateJson = columnFilter.makeFilterJson();
@@ -67,6 +67,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
   const isAboveLimitObs = Computed.create(owner, (use) => use(model.valuesBeyondLimit).length > 0);
   const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
+  const showRangeFilter = isNumberType(columnFilter.columnType) || isDateLikeType(columnFilter.columnType);
 
   let searchInput: HTMLInputElement;
   let minRangeInput: HTMLInputElement;
@@ -87,12 +88,12 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     }),
 
     // Filter by range
-    dom.maybe(isNumberType(columnFilter.columnType), () => [
+    dom.maybe(showRangeFilter, () => [
       cssRangeHeader('Filter by Range'),
       cssRangeContainer(
-        minRangeInput = rangeInput('Min ', columnFilter.min, {valueParser}, testId('min')),
+        minRangeInput = rangeInput('Min ', columnFilter.min, rangeInputOptions, testId('min')),
         cssRangeInputSeparator('→'),
-        rangeInput('Max ', columnFilter.max, {valueParser}, testId('max')),
+        rangeInput('Max ', columnFilter.max, rangeInputOptions, testId('max')),
       ),
       cssMenuDivider(),
     ]),
@@ -212,11 +213,15 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   return filterMenu;
 }
 
-function rangeInput(placeholder: string, obs: Observable<number|undefined>,
-                    opts: {valueParser?: (val: string) => any},
+export interface IRangeInputOptions {
+  valueParser?: (val: string) => any;
+  valueFormatter?: (val: any) => string;
+}
+
+function rangeInput(placeholder: string, obs: Observable<number|undefined>, opts: IRangeInputOptions,
                     ...args: DomElementArg[]) {
   const valueParser = opts.valueParser || Number;
-  const formatValue = ((val: any) => val?.toString() || '');
+  const formatValue = opts.valueFormatter || ((val) => val?.toString() || '');
   let editMode = false;
   let el: HTMLInputElement;
   // keep input content in sync only when no edit are going on.
@@ -233,7 +238,7 @@ function rangeInput(placeholder: string, obs: Observable<number|undefined>,
     if (val === undefined || !isNaN(val)) {
       obs.set(val);
     }
-  }, 10);
+  }, 100);
   return el = cssRangeInput(
     {inputmode: 'numeric', placeholder, value: formatValue(obs.get())},
     dom.on('input', onInput),
@@ -353,7 +358,17 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
   const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
   const activeFilterBar = sectionFilter.viewSection.activeFilterBar;
+
+  // range input options
   const valueParser = (fieldOrColumn as any).createValueParser?.();
+  const colFormatter = fieldOrColumn.visibleColFormatter();
+  // formatting values for Numeric columns entail issues. For instance with '%' when users type
+  // 0.499 and press enter, the input now shows 50% and there's no way to know what is the actual
+  // underlying value. Maybe worth, both 0.499 and 0.495 format to 50% but they can have different
+  // effects depending on data. Hence as of writing better to keep it only for Date.
+  const valueFormatter = isDateLikeType(visibleColumnType) ?
+    (val: any) => colFormatter.formatAny(val) :
+    undefined;
 
   function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
     return col.getRowId() === fieldOrColumn.getRowId() ? null : colFilter;
@@ -371,7 +386,7 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
   const valueCountsArr = Array.from(valueCounts);
   const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType, visibleColumnType,
                                            valueCountsArr.map((arr) => arr[0]));
-  sectionFilter.setFilterOverride(fieldOrColumn.getRowId(), columnFilter); // Will be removed on menu disposal
+  sectionFilter.setFilterOverride(fieldOrColumn.origCol().getRowId(), columnFilter); // Will be removed on menu disposal
   const model = ColumnFilterMenuModel.create(openCtl, columnFilter, valueCountsArr);
 
   return columnFilterMenu(openCtl, {
@@ -390,7 +405,10 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
       }
     },
     renderValue: getRenderFunc(columnType, fieldOrColumn),
-    valueParser,
+    rangeInputOptions: {
+      valueParser,
+      valueFormatter,
+    }
   });
 }
 
@@ -695,5 +713,5 @@ const cssRangeInputSeparator = styled('span', `
   color: var(--grist-color-slate);
 `);
 const cssRangeInput = styled('input', `
-  width: 80px;
+  width: 120px;
 `);

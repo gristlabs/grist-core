@@ -329,6 +329,10 @@ export function isNumberType(type: string|undefined) {
   return ['Numeric', 'Int'].includes(type || '');
 }
 
+export function isDateLikeType(type: string) {
+  return type === 'Date' || type.startsWith('DateTime');
+}
+
 export function isFullReferencingType(type: string) {
   return type.startsWith('Ref:') || isRefListType(type);
 }

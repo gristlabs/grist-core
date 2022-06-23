@@ -1,18 +1,18 @@
 import {CellValue} from "app/common/DocActions";
 import {FilterState, isRangeFilter, makeFilterState} from "app/common/FilterState";
 import {decodeObject} from "app/plugin/objtypes";
-import {isList, isListType, isNumberType} from "./gristTypes";
+import {isDateLikeType, isList, isListType, isNumberType} from "./gristTypes";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 
 // Returns a filter function for a particular column: the function takes a cell value and returns
 // whether it's accepted according to the given FilterState.
 export function makeFilterFunc(state: FilterState,
-                               columnType?: string): ColumnFilterFunc {
+                               columnType: string = ''): ColumnFilterFunc {
 
   if (isRangeFilter(state)) {
     const {min, max} = state;
-    if (isNumberType(columnType)) {
+    if (isNumberType(columnType) || isDateLikeType(columnType)) {
       return (val) => {
         if (typeof val !== 'number') { return false; }
         return (
