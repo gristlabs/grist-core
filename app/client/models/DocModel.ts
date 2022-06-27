@@ -41,16 +41,8 @@ import {decodeObject} from 'app/plugin/objtypes';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-export {ColumnRec} from 'app/client/models/entities/ColumnRec';
-export {DocInfoRec} from 'app/client/models/entities/DocInfoRec';
-export {FilterRec} from 'app/client/models/entities/FilterRec';
-export {PageRec} from 'app/client/models/entities/PageRec';
-export {TabBarRec} from 'app/client/models/entities/TabBarRec';
-export {TableRec} from 'app/client/models/entities/TableRec';
-export {ValidationRec} from 'app/client/models/entities/ValidationRec';
-export {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-export {ViewRec} from 'app/client/models/entities/ViewRec';
-export {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
+export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
+    ViewFieldRec, ViewRec, ViewSectionRec};
 
 
 /**

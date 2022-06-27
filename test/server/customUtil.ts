@@ -1,5 +1,5 @@
 import {getAppRoot} from 'app/server/lib/places';
-import {fromCallback} from 'app/server/lib/serverUtils';
+import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
 import * as express from 'express';
 import * as http from 'http';
 import {AddressInfo, Socket} from 'net';
@@ -45,7 +45,7 @@ export function serveCustomViews(): Promise<Serving> {
 export async function serveSomething(setup: (app: express.Express) => void, port= 0): Promise<Serving> {
   const app = express();
   const server = http.createServer(app);
-  await fromCallback(cb => server.listen(port, cb));
+  await listenPromise(server.listen(port));
 
   const connections = new Set<Socket>();
   server.on('connection', (conn) => {

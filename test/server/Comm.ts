@@ -16,7 +16,7 @@ import {Client, ClientMethod} from 'app/server/lib/Client';
 import {CommClientConnect} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {isLongerThan} from 'app/common/gutil';
-import {fromCallback, getAvailablePort} from 'app/server/lib/serverUtils';
+import {connect as connectSock, fromCallback, getAvailablePort, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as testUtils from 'test/server/testUtils';
 import * as session from '@gristlabs/express-session';
@@ -52,7 +52,7 @@ describe('Comm', function() {
     server = http.createServer();
     comm = new Comm(server, {sessions});
     comm.registerMethods(methods);
-    return fromCallback(cb => server.listen(0, 'localhost', cb));
+    return listenPromise(server.listen(0, 'localhost'));
   }
 
   async function stopComm() {
@@ -500,8 +500,7 @@ export class TcpForwarder {
   public async connect() {
     await this.disconnect();
     this._server = new Server((sock) => this._onConnect(sock));
-    await new Promise((resolve, reject) =>
-      this._server!.on('error', reject).listen(this.port, resolve));
+    await listenPromise(this._server.listen(this.port));
   }
   public async disconnectClientSide() {
     await Promise.all(Array.from(this._connections.keys(), destroySock));
@@ -528,9 +527,7 @@ export class TcpForwarder {
     }
   }
   private async _onConnect(clientSock: Socket) {
-    const serverSock = new Socket();
-    await new Promise((resolve, reject) =>
-      serverSock.on('error', reject).connect(this._serverPort, resolve));
+    const serverSock = await connectSock(this._serverPort);
     clientSock.pipe(serverSock);
     serverSock.pipe(clientSock);
     clientSock.on('error', (err) => serverSock.destroy(err));

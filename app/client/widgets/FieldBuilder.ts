@@ -55,6 +55,7 @@ function getTypeDefinition(type: string | false) {
 }
 
 type ComputedStyle = {style?: Style; error?: true} | null | undefined;
+
 /**
  * Builds a font option computed property.
  */
@@ -62,12 +63,13 @@ function buildFontOptions(
   builder: FieldBuilder,
   computedRule: ko.Computed<ComputedStyle>,
   optionName: keyof Style) {
-  return koUtil.withKoUtils(ko.computed(function() {
+
+  return koUtil.withKoUtils(ko.computed(() => {
     if (builder.isDisposed()) { return false; }
     const style = computedRule()?.style;
-    const styleFlag = style?.[optionName] || this.field[optionName]();
+    const styleFlag = style?.[optionName] || builder.field[optionName]();
     return styleFlag;
-  }, builder)).onlyNotifyUnequal();
+  })).onlyNotifyUnequal();
 }
 
 /**
@@ -131,9 +133,9 @@ export class FieldBuilder extends Disposable {
     });
 
     // Observable which evaluates to a *function* that decides if a value is valid.
-    this._isRightType = ko.pureComputed(function() {
+    this._isRightType = ko.pureComputed<(value: CellValue, options?: any) => boolean>(() => {
       return gristTypes.isRightType(this._readOnlyPureType()) || _.constant(false);
-    }, this);
+    });
 
     // Returns a boolean indicating whether the column is type Reference or ReferenceList.
     this._isRef = this.autoDispose(ko.computed(() => {
@@ -154,7 +156,7 @@ export class FieldBuilder extends Disposable {
       }
     }));
 
-    this.widget = ko.pureComputed({
+    this.widget = ko.pureComputed<object>({
       owner: this,
       read() { return this.options().widget; },
       write(widget) {
@@ -196,10 +198,10 @@ export class FieldBuilder extends Disposable {
     this._rowMap = new Map();
 
     // Returns the constructor for the widget, and only notifies subscribers on changes.
-    this._widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(function() {
+    this._widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(() => {
       return UserTypeImpl.getWidgetConstructor(this.options().widget,
                                                this._readOnlyPureType());
-    }, this)).onlyNotifyUnequal());
+    })).onlyNotifyUnequal());
 
     // Computed builder for the widget.
     this.widgetImpl = this.autoDispose(koUtil.computedBuilder(() => {
@@ -467,28 +469,28 @@ export class FieldBuilder extends Disposable {
       return { style : new CombinedStyle(styles, flags) };
     }, this).extend({ deferred: true })).previousOnUndefined();
 
-    const widgetObs = koUtil.withKoUtils(ko.computed(function() {
+    const widgetObs = koUtil.withKoUtils(ko.computed(() => {
       // TODO: Accessing row values like this doesn't always work (row and field might not be updated
       // simultaneously).
       if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
       const value = row.cells[this.field.colId()];
       const cell = value && value();
-      if (value && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
+      if ((value) && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
         return this.widgetImpl();
       } else if (gristTypes.isVersions(cell)) {
         return this.diffImpl;
       } else {
         return null;
       }
-    }, this).extend({ deferred: true })).onlyNotifyUnequal();
+    }).extend({ deferred: true })).onlyNotifyUnequal();
 
-    const textColor = koUtil.withKoUtils(ko.computed(function() {
+    const textColor = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }
       const fromRules = computedRule()?.style?.textColor;
       return fromRules || this.field.textColor() || '';
-    }, this)).onlyNotifyUnequal();
+    })).onlyNotifyUnequal();
 
-    const fillColor = koUtil.withKoUtils(ko.computed(function() {
+    const fillColor = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }
       const fromRules = computedRule()?.style?.fillColor;
       let fill = fromRules || this.field.fillColor();
@@ -496,7 +498,7 @@ export class FieldBuilder extends Disposable {
       // If there is no color we are using fully transparent white color (for tests mainly).
       fill = fill ? fill.toUpperCase() : fill;
       return (fill === '#FFFFFF' ? '' : fill) || '#FFFFFF00';
-    }, this)).onlyNotifyUnequal();
+    })).onlyNotifyUnequal();
 
     const fontBold = buildFontOptions(this, computedRule, 'fontBold');
     const fontItalic = buildFontOptions(this, computedRule, 'fontItalic');

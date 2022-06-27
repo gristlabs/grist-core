@@ -13,9 +13,6 @@
  *
  */
 
-// important to explicitly import this, or webpack --watch gets confused.
-import {clearTimeout, setTimeout} from "timers";
-
 export class InactivityTimer {
 
   private _timeout?: NodeJS.Timer | null;

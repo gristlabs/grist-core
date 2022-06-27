@@ -49,7 +49,7 @@ import {
   adaptServerUrl, addOrgToPath, addPermit, getOrgUrl, getOriginUrl, getScope, optStringParam,
         RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl} from 'app/server/lib/serverUtils';
+import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
@@ -1666,14 +1666,11 @@ export class FlexServer implements GristServer {
 
   private async _startServers(server: http.Server, httpsServer: https.Server|undefined,
                               name: string, port: number, verbose: boolean) {
-    await new Promise((resolve, reject) => server.listen(port, this.host, resolve).on('error', reject));
+    await listenPromise(server.listen(port, this.host));
     if (verbose) { log.info(`${name} available at ${this.host}:${port}`); }
     if (TEST_HTTPS_OFFSET && httpsServer) {
       const httpsPort = port + TEST_HTTPS_OFFSET;
-      await new Promise((resolve, reject) => {
-        httpsServer.listen(httpsPort, this.host, resolve)
-          .on('error', reject);
-      });
+      await listenPromise(httpsServer.listen(httpsPort, this.host));
       if (verbose) { log.info(`${name} available at https://${this.host}:${httpsPort}`); }
     }
   }

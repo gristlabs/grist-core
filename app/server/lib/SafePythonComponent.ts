@@ -16,7 +16,7 @@ import {IMsgCustom, IMsgRpcCall} from 'grain-rpc';
  */
 export class SafePythonComponent extends BaseComponent {
 
-  private _sandbox: ISandbox;
+  private _sandbox?: ISandbox;
   private _logMeta: log.ILogMeta;
 
   // safe python component does not need pluginInstance.rpc because it is not possible to forward

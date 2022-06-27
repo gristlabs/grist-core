@@ -18,33 +18,6 @@ declare module "bluebird" {
   class Disposer<T> {}
 }
 
-// TODO This is a module by Grist Labs; we should add index.d.ts to it.
-declare module "@gristlabs/basket-api" {
-  interface Item { [colId: string]: any; }
-  interface ColValues { [colId: string]: any[]; }
-  interface AuthToken { [authProvider: string]: string; }
-
-  class Basket {
-    public static addBasket(login: AuthToken): Promise<string>;
-    public static getBaskets(login: AuthToken): Promise<string[]>;
-
-    public basketId: Readonly<string>;
-    public apiKey: Readonly<string|undefined>;
-
-    constructor(basketId: string, apiKey?: string);
-    public addTable(optTableId: string): Promise<string>;
-    public getTable(tableId: string): Promise<Item[]>;
-    public renameTable(oldTableId: string, newTableId: string): Promise<void>;
-    public replaceTableData(tableId: string, columnValues: ColValues): Promise<void>;
-    public deleteTable(tableId: string): Promise<void>;
-    public getTables(): Promise<string[]>;
-    public uploadAttachment(attachmentId: string, attachment: Buffer): Promise<void>;
-    public delete(login: AuthToken): Promise<void>;
-  }
-  namespace Basket {}
-  export = Basket;
-}
-
 // Used in one place, and the typings are almost entirely unhelpful.
 declare module "multiparty";
 

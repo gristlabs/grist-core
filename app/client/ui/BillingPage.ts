@@ -236,7 +236,7 @@ export class BillingPage extends Disposable {
             moneyPlan?.amount ? [
               makeSummaryFeature([`Your team site has `, `${sub.userCount}`,
                 ` member${sub.userCount !== 1 ? 's' : ''}`]),
-              tier ? this._makeAppSumoFeature(discountName!) : null,
+              tier ? this._makeAppSumoFeature(discountName) : null,
               // Currently the subtotal is misleading and scary when tiers are in effect.
               // In this case, for now, just report what will be invoiced.
               !tier ? makeSummaryFeature([`Your ${moneyPlan.interval}ly subtotal is `,

@@ -17,6 +17,9 @@ export interface IMargins {
   right: number;
 }
 
+export type IRect = ISize & IMargins;
+
+
 // edgeMargin is how many pixels to leave before the edge of the browser window by default.
 // This is added to margins that may be passed into the constructor.
 const edgeMargin = 12;
@@ -37,8 +40,8 @@ export class EditorPlacement extends Disposable {
   public readonly onReposition = this.autoDispose(new Emitter());
 
   private _editorRoot: HTMLElement;
-  private _maxRect: ClientRect|DOMRect;
-  private _cellRect: ClientRect|DOMRect;
+  private _maxRect: IRect;
+  private _cellRect: IRect;
   private _margins: IMargins;
 
   // - editorDom is the DOM to attach. It gets destroyed when EditorPlacement is disposed.
@@ -141,7 +144,7 @@ export class EditorPlacement extends Disposable {
 
 // Get the bounding rect of elem excluding borders. This allows the editor to match cellElem more
 // closely which is more visible in case of DetailView.
-function rectWithoutBorders(elem: Element): ClientRect {
+function rectWithoutBorders(elem: Element): IRect {
   const rect = elem.getBoundingClientRect();
   const style = getComputedStyle(elem, null);
   const bTop = parseFloat(style.getPropertyValue('border-top-width'));

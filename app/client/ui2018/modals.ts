@@ -1,6 +1,6 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {reportError} from 'app/client/models/errors';
-import {cssInput} from 'app/client/ui/MakeCopyMenu';
+import {cssInput} from 'app/client/ui/cssInput';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';

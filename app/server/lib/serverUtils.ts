@@ -64,6 +64,13 @@ export function connect(arg: any, ...moreArgs: any[]): Promise<net.Socket> {
 }
 
 /**
+ * Promisified version of net.Server.listen().
+ */
+export function listenPromise<T extends net.Server>(server: T): Promise<void> {
+  return new Promise<void>((resolve, reject) => server.once('listening', resolve).once('error', reject));
+}
+
+/**
  * Returns whether the path `inner` is contained within the directory `outer`.
  */
 export function isPathWithin(outer: string, inner: string): boolean {

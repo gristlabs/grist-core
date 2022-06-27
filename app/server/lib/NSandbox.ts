@@ -125,16 +125,16 @@ export class NSandbox implements ISandbox {
 
     if (options.minimalPipeMode) {
       log.rawDebug("3-pipe Sandbox started", this._logMeta);
-      this._streamToSandbox = this.childProc.stdin;
-      this._streamFromSandbox = this.childProc.stdout;
+      this._streamToSandbox = this.childProc.stdin!;
+      this._streamFromSandbox = this.childProc.stdout!;
     } else {
       log.rawDebug("5-pipe Sandbox started", this._logMeta);
       this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
       this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
-      this.childProc.stdout.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
+      this.childProc.stdout!.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
     }
     const sandboxStderrLogger = sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta);
-    this.childProc.stderr.on('data', data => {
+    this.childProc.stderr!.on('data', data => {
       this._lastStderr = data;
       sandboxStderrLogger(data);
     });

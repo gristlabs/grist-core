@@ -21,13 +21,12 @@ export class DataRowModel extends BaseRowModel {
   public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
   public _isAddRow: ko.Observable<boolean>;
 
-  private _allValidationsList: ko.Computed<KoArray<ValidationRec>>;
   private _isRealChange: ko.Observable<boolean>;
 
   public constructor(dataTableModel: DataTableModel, colNames: string[]) {
     super(dataTableModel, colNames);
 
-    this._allValidationsList = dataTableModel.tableMetaRow.validations;
+    const allValidationsList: ko.Computed<KoArray<ValidationRec>> = dataTableModel.tableMetaRow.validations;
 
     this._isAddRow = ko.observable(false);
 
@@ -36,10 +35,10 @@ export class DataRowModel extends BaseRowModel {
     // changes, those should only be enabled when _isRealChange is true.
     this._isRealChange = ko.observable(true);
 
-    this._validationFailures = this.autoDispose(ko.pureComputed(function() {
-      return this._allValidationsList().all().filter(
+    this._validationFailures = this.autoDispose(ko.pureComputed(() => {
+      return allValidationsList().all().filter(
         validation => !this.cells[this.getValidationNameFromId(validation.id())]());
-    }, this));
+    }));
   }
 
   /**

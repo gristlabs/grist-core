@@ -4,7 +4,7 @@
 
 // Some definitions have moved to be part of plugin API.
 import { BulkColValues, CellValue, RowRecord } from 'app/plugin/GristData';
-export { BulkColValues, CellValue, RowRecord } from 'app/plugin/GristData';
+export type { BulkColValues, CellValue, RowRecord };
 
 // Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
 export interface AllCellVersions {
@@ -173,7 +173,7 @@ export function getNumRows(action: DocAction): number {
 export function toTableDataAction(tableId: string, colValues: TableColValues): TableDataAction {
   const colData = {...colValues};   // Make a copy to avoid changing passed-in arguments.
   const rowIds: number[] = colData.id;
-  delete colData.id;
+  delete (colData as BulkColValues).id;
   return ['TableData', tableId, rowIds, colData];
 }
 

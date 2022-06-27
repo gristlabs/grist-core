@@ -12,7 +12,6 @@ declare module "app/client/lib/browserGlobals";
 declare module "app/client/lib/dom";
 declare module "app/client/lib/koDom";
 declare module "app/client/lib/koForm";
-declare module "app/client/lib/koSession";
 declare module "app/client/widgets/UserType";
 declare module "app/client/widgets/UserTypeImpl";
 
@@ -319,3 +318,9 @@ declare module "app/client/lib/koUtil" {
 // with polyfills for old browsers.
 declare module "bowser/bundled";
 declare module "randomcolor";
+
+interface Location {
+  // We use reload(true) in places, which has an effect in Firefox, but may be more of a
+  // historical accident than an intentional choice.
+  reload(forceGet?: boolean): void;
+}

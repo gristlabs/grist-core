@@ -402,7 +402,7 @@ export interface ReadyPayload extends Omit<InteractionOptionsRequest, "hasCustom
   /**
    * Handler that will be called by Grist to open additional configuration panel inside the Custom Widget.
    */
-  onEditOptions: () => unknown;
+  onEditOptions?: () => unknown;
 }
 /**
  * Declare that a component is prepared to receive messages from the outside world.

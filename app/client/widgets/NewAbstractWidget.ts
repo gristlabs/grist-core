@@ -14,6 +14,7 @@ import {
   dom,
   DomContents,
   fromKo,
+  IDisposableOwnerT,
   Observable,
 } from 'grainjs';
 
@@ -30,8 +31,13 @@ export abstract class NewAbstractWidget extends Disposable {
   /**
    * Override the create() method to match the parameters of create() expected by FieldBuilder.
    */
-  public static create(field: ViewFieldRec) {
-    return Disposable.create.call(this as any, null, field);
+  // We copy Disposable.create() signature (the second one) to pacify typescript, but code must
+  // use the first signature, which is compatible with old-style constructors.
+  public static create<T extends new (...args: any[]) => any>(field: ViewFieldRec): InstanceType<T>;
+  public static create<T extends new (...args: any[]) => any>(
+    this: T, owner: IDisposableOwnerT<InstanceType<T>>|null, ...args: ConstructorParameters<T>): InstanceType<T>;
+  public static create(...args: any[]) {
+    return Disposable.create.call(this as any, null, ...args);
   }
 
   protected options: SaveableObjObservable<any>;

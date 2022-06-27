@@ -6,6 +6,7 @@
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
+import {cssInput} from 'app/client/ui/cssInput';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
@@ -274,16 +275,6 @@ class SaveCopyModal extends Disposable {
     }
   }
 }
-
-export const cssInput = styled('input', `
-  height: 30px;
-  width: 100%;
-  font-size: ${vars.mediumFontSize};
-  border-radius: 3px;
-  padding: 5px;
-  border: 1px solid ${colors.darkGrey};
-  outline: none;
-`);
 
 export const cssField = styled('div', `
   margin: 16px 0;

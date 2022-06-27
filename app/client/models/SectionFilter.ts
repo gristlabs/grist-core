@@ -6,7 +6,7 @@ import {buildColFilter, ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
 import {buildRowFilter, RowFilterFunc, RowValueFunc } from 'app/common/RowFilterFunc';
 import {Computed, Disposable, MutableObsArray, obsArray, Observable, UseCB} from 'grainjs';
 
-export {ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
+export type {ColumnFilterFunc};
 
 interface OpenColumnFilter {
   colRef: number;

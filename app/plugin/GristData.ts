@@ -1,5 +1,5 @@
 // Letter codes for CellValue types encoded as [code, args...] tuples.
-export const enum GristObjCode {
+export enum GristObjCode {
   List            = 'L',
   LookUp          = 'l',
   Dict            = 'O',

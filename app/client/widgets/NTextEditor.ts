@@ -135,6 +135,7 @@ export class NTextEditor extends NewBaseEditor {
     // but we got same enough spaces, we will force browser to check the available space once more time.
     if (enoughSpace(rect, size) && hasScroll(textInput)) {
       textInput.style.overflow = "hidden";
+      // eslint-disable-next-line no-unused-expressions
       textInput.clientHeight; // just access metrics is enough to repaint
       textInput.style.overflow = "auto";
     }

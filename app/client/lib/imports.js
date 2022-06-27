@@ -8,7 +8,9 @@
 
 exports.loadBillingPage = () => import('app/client/ui/BillingPage' /* webpackChunkName: "BillingModule" */);
 exports.loadGristDoc = () => import('app/client/components/GristDoc' /* webpackChunkName: "GristDoc" */);
-exports.loadMomentTimezone = () => import('moment-timezone');
+// When importing this way, the module is under the "default" member, not sure why (maybe
+// esbuild-loader's doing).
+exports.loadMomentTimezone = () => import('moment-timezone').then(m => m.default);
 exports.loadPlotly = () => import('plotly.js-basic-dist' /* webpackChunkName: "plotly" */);
 exports.loadSearch = () => import('app/client/ui2018/search' /* webpackChunkName: "search" */);
 exports.loadUserManager = () => import('app/client/ui/UserManager' /* webpackChunkName: "usermanager" */);

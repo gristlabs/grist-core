@@ -306,7 +306,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   this.isRaw = this.autoDispose(ko.pureComputed(() => this.table().rawViewSectionRef() === this.getRowId()));
 
-  this.borderWidthPx = ko.pureComputed(function() { return this.borderWidth() + 'px'; }, this);
+  this.borderWidthPx = ko.pureComputed(() => this.borderWidth() + 'px');
 
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
@@ -487,7 +487,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkSrcCol = refRecord(docModel.columns, this.activeLinkSrcColRef);
   this.linkTargetCol = refRecord(docModel.columns, this.activeLinkTargetColRef);
 
-  this.activeRowId = ko.observable(null);
+  this.activeRowId = ko.observable<RowId|null>(null);
 
   this._linkingState = Holder.create(this);
   this.linkingState = this.autoDispose(ko.pureComputed(() => {
@@ -506,7 +506,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   // If the view instance for this section is instantiated, it will be accessible here.
-  this.viewInstance = ko.observable(null);
+  this.viewInstance = ko.observable<BaseView|null>(null);
 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
@@ -542,8 +542,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   );
 
   this.hasCustomOptions = ko.observable(false);
-  this.desiredAccessLevel = ko.observable(null);
-  this.columnsToMap = ko.observable(null);
+  this.desiredAccessLevel = ko.observable<AccessLevel|null>(null);
+  this.columnsToMap = ko.observable<ColumnsToMap|null>(null);
   // Calculate mapped columns for Custom Widget.
   this.mappedColumns = ko.pureComputed(() => {
     // First check if widget has requested a custom column mapping and

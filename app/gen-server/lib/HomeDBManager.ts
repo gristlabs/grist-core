@@ -255,10 +255,6 @@ export class HomeDBManager extends EventEmitter {
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
 
-  public emit(event: NotifierEvent, ...args: any[]): boolean {
-    return super.emit(event, ...args);
-  }
-
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
    * 'guests', and 'members') are created by default on every new entity (Organization,
@@ -297,6 +293,10 @@ export class HomeDBManager extends EventEmitter {
     nestParent: false,
     orgOnly: true
   }];
+
+  public emit(event: NotifierEvent, ...args: any[]): boolean {
+    return super.emit(event, ...args);
+  }
 
   // All groups.
   public get defaultGroups(): GroupDescriptor[] {

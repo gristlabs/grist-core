@@ -1,13 +1,13 @@
-const StatsPlugin = require('stats-webpack-plugin');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
+const { ProvidePlugin } = require('webpack');
 const path = require('path');
 
 module.exports = {
   target: 'web',
   entry: {
-    main: "app/client/app.js",
-    errorPages: "app/client/errorMain.js",
-    account: "app/client/accountMain.js",
+    main: "app/client/app",
+    errorPages: "app/client/errorMain",
+    account: "app/client/accountMain",
   },
   output: {
     filename: "[name].bundle.js",
@@ -32,15 +32,29 @@ module.exports = {
   // typescript ("cheap-module-eval-source-map" is faster, but breakpoints are largely broken).
   devtool: "source-map",
   resolve: {
+    extensions: ['.ts', '.js'],
     modules: [
-      path.resolve('./_build'),
-      path.resolve('./_build/ext'),
-      path.resolve('./_build/stubs'),
+      path.resolve('.'),
+      path.resolve('./ext'),
+      path.resolve('./stubs'),
       path.resolve('./node_modules')
     ],
+    fallback: {
+      'path': require.resolve("path-browserify"),
+    },
   },
   module: {
     rules: [
+      {
+        test: /\.(js|ts)?$/,
+        loader: 'esbuild-loader',
+        options: {
+          loader: 'ts',
+          target: 'es2017',
+          sourcemap: true,
+        },
+        exclude: /node_modules/
+      },
       { test: /\.js$/,
         use: ["source-map-loader"],
         enforce: "pre"
@@ -48,10 +62,11 @@ module.exports = {
     ]
   },
   plugins: [
-    new StatsPlugin(
-      '../.build_stats_js_bundle',  // relative to output folder
-      {source: false},              // Omit sources, which unnecessarily make the stats file huge.
-    ),
+    // Some modules assume presence of Buffer and process.
+    new ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer']
+    }),
     // To strip all locales except “en”
     new MomentLocalesPlugin()
   ],

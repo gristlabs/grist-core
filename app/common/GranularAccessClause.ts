@@ -67,7 +67,7 @@ export type AclMatchFunc = (input: AclMatchInput) => boolean;
  * Representation of a parsed ACL formula.
  */
 type PrimitiveCellValue = number|string|boolean|null;
-export type ParsedAclFormula = [string, ...Array<ParsedAclFormula|PrimitiveCellValue>];
+export type ParsedAclFormula = [string, ...(ParsedAclFormula|PrimitiveCellValue)[]];
 
 /**
  * Observations about a formula.

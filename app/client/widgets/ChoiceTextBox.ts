@@ -29,7 +29,7 @@ export class ChoiceTextBox extends NTextBox {
   private _choiceValues: Computed<string[]>;
   private _choiceValuesSet: Computed<Set<string>>;
   private _choiceOptions: KoSaveableObservable<ChoiceOptions | null | undefined>;
-  private _choiceOptionsByName: Computed<ChoiceOptionsByName>
+  private _choiceOptionsByName: Computed<ChoiceOptionsByName>;
 
   constructor(field: ViewFieldRec) {
     super(field);

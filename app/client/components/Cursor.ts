@@ -81,7 +81,7 @@ export class Cursor extends Disposable {
     this.viewData = baseView.viewData;
 
     this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()));
-    this._rowId = ko.observable(optCursorPos.rowId || 0);
+    this._rowId = ko.observable<RowId|null>(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
         if (!this._isLive()) { return this.rowIndex.peek(); }
