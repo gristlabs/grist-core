@@ -275,6 +275,7 @@ class RaisedException(object):
     self._message = None
     if error is not None:
       self._fill_from_error(self.has_user_input(), include_details)
+      error.__traceback__ = None
 
   def encode_args(self):
     if self._encoded_error is not None:
