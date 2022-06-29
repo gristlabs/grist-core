@@ -26,3 +26,8 @@ export function isIOS() {
 export function modKeyProp(): 'metaKey'|'ctrlKey' {
   return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
 }
+
+export function isWin() {
+  const os = getParser().getOSName();
+  return os === 'Windows';
+}

@@ -19,6 +19,7 @@ var ko = require('knockout');
 var _ = require('underscore');
 var dispose = require('../lib/dispose');
 var gutil = require('app/common/gutil');
+const {isWin} = require('app/client/lib/browserInfo')
 
 var ROW = 'row';
 var COL = 'col';
@@ -53,6 +54,7 @@ function Selector(view, opt) {
   opt = opt || {};
 
   this.isDisabled = opt.isDisabled || _.constant(false);
+  this.isWindows = isWin();
 }
 
 /**
@@ -118,6 +120,17 @@ Selector.prototype.applyCallbacks = function(dragOrSelect, callbacks, mouseDownE
 
   callbacks.mousedown[dragOrSelect].call(this.view, mouseDownElem, mouseDownEvent);
   this.view.onEvent(callbacks.mousemove.source, 'mousemove', function(elem, event) {
+    // On windows, when browser doesn't have focus, the first click produces artificial mousemove
+    // event. Fortunately, the mousemove event has the same coordinates as the mousedown event, so
+    // we will ignore it.
+    // Related issues:
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=161464
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=721341#c34
+    if (self.isWindows) {
+      if (event.screenX === mouseDownEvent.screenX && event.screenY === mouseDownEvent.screenY) {
+        return;
+      }
+    }
     callbacks.mousemove[dragOrSelect].call(self.view, elem, event);
   });
 
