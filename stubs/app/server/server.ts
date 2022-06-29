@@ -6,6 +6,7 @@
 
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {TEAM_FREE_PLAN} from 'app/common/Features';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -91,7 +92,7 @@ export async function main() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        planType: 'teamFree'
+        planType: TEAM_FREE_PLAN
       });
     }
   }

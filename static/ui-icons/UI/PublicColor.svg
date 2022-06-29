@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg4593"
+   version="1.1"
+   viewBox="0 0 16 14"
+   height="14px"
+   width="16px">
+  <metadata
+     id="metadata4599">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>1</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4597">
+    <linearGradient
+       osb:paint="solid"
+       id="linearGradient5335">
+      <stop
+         id="stop5333"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+    </linearGradient>
+  </defs>
+  <!-- Generator: Sketch 55 (78076) - https://sketchapp.com -->
+  <title
+     id="title4581">1</title>
+  <desc
+     id="desc4583">Created with Sketch.</desc>
+  <g
+     style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
+     id="Onboarding-&amp;-Panel">
+    <g
+       transform="translate(-482,-145)"
+       id="Main-List-Copy">
+      <g
+         transform="translate(482,144)"
+         id="1">
+        <rect
+           height="16"
+           width="16"
+           y="0"
+           x="0"
+           id="Rectangle" />
+        <g
+           style="opacity:0.78299997;fill:none;fill-opacity:1;fill-rule:evenodd"
+           id="Group">
+          <path
+             style="fill:#e6a117;fill-opacity:1;fill-rule:evenodd"
+             id="Path"
+             d="M 15.275,10.293 13.087,9.668 C 12.726478,9.5649178 12.45392,9.2688105 12.381,8.901 L 12.247,8.226 C 13.31412,7.7383061 13.999002,6.6732817 14,5.5 V 4.126 C 14.025198,2.4730033 12.742506,1.0941534 11.092,1 9.8793709,0.96341082 8.7640655,1.6607727 8.266,2.767 8.7430478,3.4612785 8.9989198,4.2836247 9,5.126 V 6.5 C 8.9982077,6.8637706 8.9460456,7.2255404 8.845,7.575 9.1042325,7.8469423 9.4122395,8.0677711 9.753,8.226 L 9.619,8.9 C 9.5460796,9.2678105 9.2735219,9.5639178 8.913,9.667 L 8.07,9.908 9.55,10.331 c 0.856964,0.247554 1.447706,1.030999 1.45,1.923 V 14.5 c -0.0017,0.17072 -0.03278,0.339871 -0.092,0.5 H 15.5 c 0.276142,0 0.5,-0.223858 0.5,-0.5 v -3.246 c -1.98e-4,-0.446208 -0.295996,-0.838293 -0.725,-0.961 z" />
+          <path
+             style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd"
+             id="path4587"
+             d="M 9.275,11.293 7.087,10.668 C 6.7262023,10.564754 6.453583,10.268194 6.381,9.9 L 6.247,9.225 C 7.3137914,8.7374569 7.9986112,7.6729195 8,6.5 V 5.126 C 8.0251976,3.4730033 6.7425055,2.0941534 5.092,2 4.2805327,1.9751032 3.4936202,2.2801483 2.9109532,2.8454785 2.3282863,3.4108086 1.9996182,4.1881509 2,5 v 1.5 c 9.979e-4,1.1732817 0.6858797,2.2383062 1.753,2.726 L 3.619,9.9 C 3.54608,10.267811 3.2735219,10.563918 2.913,10.667 L 0.725,11.292 C 0.29563926,11.414809 -2.4817716e-4,11.807421 0,12.254 V 14.5 C 0,14.776142 0.22385763,15 0.5,15 h 9 C 9.7761424,15 10,14.776142 10,14.5 V 12.254 C 9.9998018,11.807792 9.7040043,11.415707 9.275,11.293 Z" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

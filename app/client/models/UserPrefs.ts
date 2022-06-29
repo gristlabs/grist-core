@@ -51,10 +51,10 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
 }
 
 // Functions actually exported are:
-// - getUserOrgPrefsObs(appModel): Observsble<UserOrgPrefs>
-// - getUserOrgPrefObs(userOrgPrefsObs, prefName): Observsble<PrefType[prefName]>
-// - getUserPrefsObs(appModel): Observsble<UserPrefs>
-// - getUserPrefObs(userPrefsObs, prefName): Observsble<PrefType[prefName]>
+// - getUserOrgPrefsObs(appModel): Observable<UserOrgPrefs>
+// - getUserOrgPrefObs(userOrgPrefsObs, prefName): Observable<PrefType[prefName]>
+// - getUserPrefsObs(appModel): Observable<UserPrefs>
+// - getUserPrefObs(userPrefsObs, prefName): Observable<PrefType[prefName]>
 
 export const {getPrefsObs: getUserOrgPrefsObs, getPrefObs: getUserOrgPrefObs} = makePrefFunctions('userOrgPrefs');
 export const {getPrefsObs: getUserPrefsObs, getPrefObs: getUserPrefObs} = makePrefFunctions('userPrefs');

@@ -58,6 +58,7 @@ export type IconName = "ChartArea" |
   "Feedback" |
   "Filter" |
   "FilterSimple" |
+  "Fireworks" |
   "Folder" |
   "FontBold" |
   "FontItalic" |
@@ -89,6 +90,7 @@ export type IconName = "ChartArea" |
   "Pivot" |
   "Plus" |
   "Public" |
+  "PublicColor" |
   "PublicFilled" |
   "Redo" |
   "Remove" |
@@ -181,6 +183,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Feedback",
   "Filter",
   "FilterSimple",
+  "Fireworks",
   "Folder",
   "FontBold",
   "FontItalic",
@@ -212,6 +215,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Pivot",
   "Plus",
   "Public",
+  "PublicColor",
   "PublicFilled",
   "Redo",
   "Remove",

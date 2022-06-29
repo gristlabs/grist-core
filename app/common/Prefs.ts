@@ -38,9 +38,6 @@ export interface UserOrgPrefs extends Prefs {
 
   // List of document IDs where the user has seen and dismissed the document tour.
   seenDocTours?: string[];
-
-  // Whether the user seen the nudge to upgrade to Free Team Site and dismissed it.
-  seenFreeTeamUpgradeNudge?: boolean;
 }
 
 export type OrgPrefs = Prefs;

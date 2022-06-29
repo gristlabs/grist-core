@@ -1,3 +1,4 @@
+import {safeJsonParse} from 'app/common/gutil';
 import {Observable} from 'grainjs';
 
 /**
@@ -94,5 +95,16 @@ export function localStorageObs(key: string, defaultValue?: string): Observable<
   const store = getStorage();
   const obs = Observable.create<string|null>(null, store.getItem(key) ?? defaultValue ?? null);
   obs.addListener((val) => (val === null) ? store.removeItem(key) : store.setItem(key, val));
+  return obs;
+}
+
+/**
+ * Helper to create a JSON observable whose state is stored in localStorage.
+ */
+ export function localStorageJsonObs<T>(key: string, defaultValue: T): Observable<T> {
+  const store = getStorage();
+  const currentValue = safeJsonParse(store.getItem(key) || '', defaultValue ?? null);
+  const obs = Observable.create<T>(null, currentValue);
+  obs.addListener((val) => (val === null) ? store.removeItem(key) : store.setItem(key, JSON.stringify(val ?? null)));
   return obs;
 }

@@ -10,12 +10,12 @@ import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'ap
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro} from 'app/client/ui/HomeIntro';
-import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
-import {buildUpgradeNudge} from 'app/client/ui/ProductUpgrades';
+import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
 import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
+import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -26,12 +26,12 @@ import {IHomePage} from 'app/common/gristUrls';
 import {SortPref, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {Computed, computed, dom, DomContents, makeTestId, Observable, observable} from 'grainjs';
-import sortBy = require('lodash/sortBy');
+import {computed, Computed, dom, DomArg, DomContents, IDisposableOwner,
+        makeTestId, observable, Observable} from 'grainjs';
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
-import {getUserOrgPrefObs, getUserOrgPrefsObs} from 'app/client/models/UserPrefs';
+import sortBy = require('lodash/sortBy');
 
 const testId = makeTestId('test-dm-');
 
@@ -45,27 +45,14 @@ export function createDocMenu(home: HomeModel) {
   return dom.domComputed(home.loading, loading => (
     loading === 'slow' ? css.spinner(loadingSpinner()) :
     loading ? null :
-    createLoadedDocMenu(home)
+    dom.create(createLoadedDocMenu, home)
   ));
 }
 
-function createUpgradeNudge(home: HomeModel) {
-  const isLoggedIn = !!home.app.currentValidUser;
-  const isOnFreePersonal = home.app.currentOrg?.billingAccount?.product?.name === 'starter';
-  const userOrgPrefs = getUserOrgPrefsObs(home.app);
-  const seenNudge = getUserOrgPrefObs(userOrgPrefs, 'seenFreeTeamUpgradeNudge');
-  return dom.maybe(use => isLoggedIn && isOnFreePersonal && !use(seenNudge),
-    () => buildUpgradeNudge({
-      onClose: () => seenNudge.set(true),
-      // On show prices, we will clear the nudge in database once there is some free team site created
-      // The better way is to read all workspaces that this person have and decide then - but this is done
-      // asynchronously - so we potentially can show this nudge to people that already have team site.
-      onUpgrade: () => home.app.showUpgradeModal()
-  }));
-}
 
-function createLoadedDocMenu(home: HomeModel) {
+function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const flashDocId = observable<string|null>(null);
+  const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList(
     showWelcomeQuestions(home.app.userPrefsObs),
     css.docMenu(
@@ -83,14 +70,16 @@ function createLoadedDocMenu(home: HomeModel) {
             page === 'templates' ? makeLocalViewSettings(home, 'templates') :
             workspace ? makeLocalViewSettings(home, workspace.id) :
             home;
-
           return [
             // Hide the sort option only when showing intro.
-            ((showIntro && page === 'all') ? null :
-              buildPrefs(viewSettings, {hideSort: showIntro})
+            ((showIntro && page === 'all') ? css.prefSelectors(upgradeButton.showUpgradeButton()) :
+              // This is float:right element
+              buildPrefs(viewSettings, {hideSort: showIntro}, upgradeButton.showUpgradeButton())
             ),
 
-            // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded or
+            // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
+            // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
+            // removes all pinned docs when on trash page.
             dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
               css.docListHeader(css.docHeaderIconDark('PinBig'), 'Pinned Documents'),
               createPinnedDocs(home, home.currentWSPinnedDocs),
@@ -128,7 +117,8 @@ function createLoadedDocMenu(home: HomeModel) {
                   dom('div',
                     showIntro ? buildHomeIntro(home) : null,
                     buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                    dom.maybe(use => use(isNarrowScreenObs()), () => createUpgradeNudge(home)),
+                    dom.maybe(use => use(isNarrowScreenObs()),
+                      () => upgradeButton.showUpgradeCard()),
                     shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
                   ) :
                 (page === 'trash') ?
@@ -155,7 +145,8 @@ function createLoadedDocMenu(home: HomeModel) {
         }),
       testId('doclist')
     ),
-    dom.maybe(use => !use(isNarrowScreenObs()) && use(home.currentPage) === 'all', () => createUpgradeNudge(home)),
+    dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
+              () => upgradeButton.showUpgradeCard()),
   );
 }
 
@@ -309,7 +300,10 @@ function buildOtherSites(home: HomeModel) {
  * If hideSort is true, will hide the sort dropdown: it has no effect on the list of examples, so
  * best to hide when those are the only docs shown.
  */
-function buildPrefs(viewSettings: ViewSettings, options: {hideSort: boolean}): DomContents {
+function buildPrefs(
+  viewSettings: ViewSettings,
+  options: {hideSort: boolean},
+  ...args: DomArg<HTMLElement>[]): DomContents {
   return css.prefSelectors(
     // The Sort selector.
     options.hideSort ? null : dom.update(
@@ -330,6 +324,7 @@ function buildPrefs(viewSettings: ViewSettings, options: {hideSort: boolean}): D
       cssButtonSelect.cls("-light"),
       testId('view-mode')
     ),
+    ...args
   );
 }
 

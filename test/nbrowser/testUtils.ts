@@ -82,7 +82,9 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   checkForExtraWindows();
 
   // After every suite, clear sessionStorage and localStorage to avoid affecting other tests.
-  after(clearCurrentWindowStorage);
+  if (!process.env.NO_CLEANUP) {
+    after(clearCurrentWindowStorage);
+  }
   // Also, log out, to avoid logins interacting, unless NO_CLEANUP is requested (useful for
   // debugging tests).
   if (!process.env.NO_CLEANUP) {

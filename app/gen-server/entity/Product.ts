@@ -1,4 +1,4 @@
-import {Features, Product as IProduct} from 'app/common/Features';
+import {Features, FREE_PERSONAL_PLAN, Product as IProduct, TEAM_FREE_PLAN, TEAM_PLAN} from 'app/common/Features';
 import {nativeValues} from 'app/gen-server/lib/values';
 import * as assert from 'assert';
 import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
@@ -100,7 +100,7 @@ export const PRODUCTS: IProduct[] = [
   // These are products set up in stripe.
   // TODO: this is not true anymore
   {
-    name: 'starter',
+    name: FREE_PERSONAL_PLAN,
     features: starterFeatures,
   },
   {
@@ -108,7 +108,7 @@ export const PRODUCTS: IProduct[] = [
     features: teamFeatures,
   },
   {
-    name: 'team',
+    name: TEAM_PLAN,
     features: teamFeatures
   },
 
@@ -119,7 +119,7 @@ export const PRODUCTS: IProduct[] = [
     features: suspendedFeatures
   },
   {
-    name: 'teamFree',
+    name: TEAM_FREE_PLAN,
     features: teamFreeFeatures
   },
 ];
@@ -131,11 +131,11 @@ export const PRODUCTS: IProduct[] = [
 export function getDefaultProductNames() {
   const defaultProduct = process.env.GRIST_DEFAULT_PRODUCT;
   return {
-    personal: defaultProduct || 'starter',  // Personal site start off on a functional plan.
+    personal: defaultProduct || FREE_PERSONAL_PLAN,  // Personal site start off on a functional plan.
     teamInitial: defaultProduct || 'stub',  // Team site starts off on a limited plan, requiring subscription.
     teamCancel: 'suspended',  // Team site that has been 'turned off'.
-    team: defaultProduct || 'team',         // Functional team site.
-    teamFree: defaultProduct || 'teamFree',
+    team: defaultProduct || TEAM_PLAN,         // Functional team site.
+    teamFree: defaultProduct || TEAM_FREE_PLAN,
   };
 }
 

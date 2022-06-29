@@ -50,6 +50,10 @@ export interface TopAppModel {
    * Returns the UntrustedContentOrigin use settings. Throws if not defined.
    */
   getUntrustedContentOrigin(): string;
+  /**
+   * Reloads orgs and accounts for current user.
+   */
+  fetchUsersAndOrgs(): Promise<void>;
 }
 
 // AppModel is specific to the currently loaded organization and active user. It gets rebuilt when
@@ -110,7 +114,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     this.autoDispose(subscribe(this.currentSubdomain, (use) => this.initialize()));
     this.plugins = this._gristConfig?.plugins || [];
 
-    this._fetchUsersAndOrgs().catch(reportError);
+    this.fetchUsersAndOrgs().catch(reportError);
   }
 
   public initialize(): void {
@@ -143,6 +147,15 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     return origin + ":" + G.window.location.port;
   }
 
+  public async fetchUsersAndOrgs() {
+    const data = await this.api.getSessionAll();
+    if (this.isDisposed()) { return; }
+    bundleChanges(() => {
+      this.users.set(data.users);
+      this.orgs.set(data.orgs);
+    });
+  }
+
   private async _doInitialize() {
     this.appObs.set(null);
     try {
@@ -171,15 +184,6 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       if (this.isDisposed()) { return; }
       AppModelImpl.create(this.appObs, this, null, null, {error: err.message, status: err.status || 500});
     }
-  }
-
-  private async _fetchUsersAndOrgs() {
-    const data = await this.api.getSessionAll();
-    if (this.isDisposed()) { return; }
-    bundleChanges(() => {
-      this.users.set(data.users);
-      this.orgs.set(data.orgs);
-    });
   }
 }
 
@@ -225,13 +229,22 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public async showUpgradeModal() {
     if (this.planName && this.currentOrg) {
-      buildUpgradeModal(this, this.planName);
+      if (this.isPersonal) {
+        this.showNewSiteModal();
+      } else if (this.isTeamSite) {
+        buildUpgradeModal(this, this.planName);
+      } else {
+        throw new Error("Unexpected state");
+      }
     }
   }
 
-  public async showNewSiteModal() {
+  public showNewSiteModal() {
     if (this.planName) {
-      buildNewSiteModal(this, this.planName);
+      buildNewSiteModal(this, {
+        planName: this.planName,
+        onCreate: () => this.topAppModel.fetchUsersAndOrgs().catch(reportError)
+      });
     }
   }
 

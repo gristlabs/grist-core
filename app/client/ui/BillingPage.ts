@@ -14,11 +14,12 @@ import { createTopBarHome } from 'app/client/ui/TopBar';
 import { cssBreadcrumbs, cssBreadcrumbsLink, separator } from 'app/client/ui2018/breadcrumbs';
 import { bigBasicButton, bigBasicButtonLink, bigPrimaryButton } from 'app/client/ui2018/buttons';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { NEW_DEAL, showTeamUpgradeConfirmation } from 'app/client/ui/ProductUpgrades';
+import { IconName } from 'app/client/ui2018/IconList';
 import { BillingTask, IBillingCoupon } from 'app/common/BillingAPI';
 import { capitalize } from 'app/common/gutil';
 import { Organization } from 'app/common/UserAPI';
 import { Disposable, dom, DomArg, IAttrObj, makeTestId, Observable } from 'grainjs';
-import { IconName } from '../ui2018/IconList';
 
 const testId = makeTestId('test-bp-');
 const billingTasksNames = {
@@ -26,6 +27,7 @@ const billingTasksNames = {
   signUpLite: 'Complete Sign Up', // task for payment page
   updateDomain: 'Update Name', // task for summary page
   cancelPlan: 'Cancel plan', // this is not a task, but a sub page
+  upgraded: 'Account',
 };
 
 /**
@@ -41,6 +43,8 @@ export class BillingPage extends Disposable {
   constructor(private _appModel: AppModel) {
     super();
 
+    // TODO: remove once NEW_DEAL is there. Execute for side effect
+    void NEW_DEAL();
     this._appModel.refreshOrgUsage().catch(reportError);
   }
 
@@ -77,7 +81,7 @@ export class BillingPage extends Disposable {
    * Builds the contentMain dom for the current billing page.
    */
   private _buildCurrentPageDom() {
-    return css.billingWrapper(
+    const page = css.billingWrapper(
       dom.domComputed(this._model.currentSubpage, (subpage) => {
         if (!subpage) {
           return this._buildSummaryPage();
@@ -86,6 +90,11 @@ export class BillingPage extends Disposable {
         }
       })
     );
+    if (this._model.currentTask.get() === 'upgraded') {
+      urlState().pushUrl({params: {}}, { replace: true }).catch(() => {});
+      showTeamUpgradeConfirmation(this);
+    }
+    return page;
   }
 
   private _buildSummaryPage() {

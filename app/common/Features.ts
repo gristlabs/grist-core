@@ -68,7 +68,12 @@ export function canAddOrgMembers(features: Features): boolean {
   return features.maxWorkspacesPerOrg !== 1;
 }
 
+
+export const FREE_PERSONAL_PLAN = 'starter';
+export const TEAM_FREE_PLAN = 'teamFree';
+export const TEAM_PLAN = 'team';
+
 // Returns true if `product` is free.
 export function isFreeProduct(product: Product): boolean {
-  return ['starter', 'teamFree', 'Free'].includes(product?.name);
+  return [FREE_PERSONAL_PLAN, TEAM_FREE_PLAN, 'Free'].includes(product?.name);
 }

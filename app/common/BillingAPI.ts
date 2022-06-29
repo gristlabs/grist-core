@@ -15,7 +15,7 @@ export type BillingPage = typeof BillingPage.type;
 // signUpLite - it is a subpage for payment, to finalize (complete) signup process
 // and set domain and team name when they are not set yet (currently only from landing pages).
 // signUp - it is landing page for new team sites (it doesn't ask for the name of the team)
-export const BillingTask = StringUnion('signUpLite', 'updateDomain', 'signUp', 'cancelPlan');
+export const BillingTask = StringUnion('signUpLite', 'updateDomain', 'signUp', 'cancelPlan', 'upgraded');
 export type BillingTask = typeof BillingTask.type;
 
 // Note that IBillingPlan includes selected fields from the Stripe plan object along with
