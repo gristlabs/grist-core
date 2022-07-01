@@ -51,9 +51,8 @@ describe('Authorizer', function() {
 
   testUtils.setTmpLogLevel('fatal');
 
-  server = new FlexServer(0, 'test docWorker');
   const docTools = createDocTools({persistAcrossCases: true, useFixturePlugins: false,
-                                   server});
+                                   server: () => (server = new FlexServer(0, 'test docWorker'))});
   const docs: {[name: string]: {id: string}} = {};
 
   // Loads the fixtures documents so that they are available to the doc worker under the correct

@@ -2,11 +2,15 @@
 // monkey-patch. Also refactored, but not converted to typescript, to avoid slowing down mocha
 // runs with ts-node.
 //
+// It also produces a file timings.txt with timings, made of lines of the form:
+//    <TEST_SUITE> <top-level-describe-suite> <number-of-milliseconds>
+//
 // Respects the following environment variables:
 //    XUNIT_FILE: path of output XML file (default: xunit.xml)
 //    XUNIT_SILENT: suppress human-friendly logging to the console
 //    XUNIT_SUITE_NAME: name to use for the top-level <testsuite> (default: "Mocha Tests")
 //    XUNIT_CLASS_PREFIX: prefix to use for <testcase classname=...> attribute (default: "")
+//    TEST_SUITE: name of the test suite to prefix timings with.
 
 
 
@@ -19,6 +23,8 @@ const filePath = process.env.XUNIT_FILE || "xunit.xml";
 const consoleOutput = !process.env.XUNIT_SILENT;
 const suiteName = process.env.XUNIT_SUITE_NAME || 'Mocha Tests';
 const classPrefix = process.env.XUNIT_CLASS_PREFIX || '';
+const timingsPath = path.join(path.dirname(filePath), "timings.txt");
+const testSuite = process.env.TEST_SUITE || 'unset_suite';
 
 /**
  * Save reference to avoid Sinon interfering (see GH-237).
@@ -43,10 +49,33 @@ class XUnitFile extends reporters.Base {
     const stats = this.stats;
     const tests = [];
     fse.mkdirpSync(path.dirname(filePath));
-    const fd = fse.openSync(filePath, 'w', 0o0755);
+    const fd = fse.openSync(filePath, 'w', 0o0644);
+    const timingsFd = fse.openSync(timingsPath, 'w', 0o0644);
+    const startedSuites = new Map();
+    let ending = false;
+
+    // We have to be a little clever about closing the timings descriptor because the 'end' event
+    // may occur *before* the last 'suite end' event.
+    function maybeCloseTimings() {
+      if (ending && startedSuites.size === 0) {
+        fse.closeSync(timingsFd);
+      }
+    }
 
     runner.on('suite', (suite) => {
       logToConsole(suite.fullTitle());
+      startedSuites.set(suite, Date.now());
+    });
+
+    runner.on('suite end', (suite) => {
+      // Every time a (top-level) suite ends, add a line to the timings file.
+      if (suite.titlePath().length == 1) {
+        const duration = Date.now() - startedSuites.get(suite);
+        appendLine(timingsFd, `${testSuite} ${suite.fullTitle()} ${duration}`);
+        startedSuites.delete(suite);
+        // If 'end' has already happened, close the file.
+        maybeCloseTimings();
+      }
     });
 
     runner.on('pass', (test) => {
@@ -85,6 +114,8 @@ class XUnitFile extends reporters.Base {
 
       appendLine(fd, '</testsuite>');
       fse.closeSync(fd);
+      ending = true;
+      maybeCloseTimings();
     });
   }
 }

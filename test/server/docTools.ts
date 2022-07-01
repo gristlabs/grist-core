@@ -43,7 +43,7 @@ const noCleanup = Boolean(process.env.NO_CLEANUP);
 export function createDocTools(options: {persistAcrossCases?: boolean,
                                          useFixturePlugins?: boolean,
                                          storageManager?: IDocStorageManager,
-                                         server?: GristServer} = {}) {
+                                         server?: () => GristServer} = {}) {
   let tmpDir: string;
   let docManager: DocManager;
 
@@ -51,7 +51,7 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
     tmpDir = await createTmpDir();
     const pluginManager = options.useFixturePlugins ? await createFixturePluginManager() : undefined;
     docManager = await createDocManager({tmpDir, pluginManager, storageManager: options.storageManager,
-                                         server: options.server});
+                                         server: options.server?.()});
   }
 
   async function doAfter() {
