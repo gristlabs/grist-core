@@ -2,7 +2,7 @@ import {LocalPlugin} from 'app/common/plugin';
 import {BaseComponent, createRpcLogger} from 'app/common/PluginInstance';
 import {GristServer} from 'app/server/lib/GristServer';
 import {ISandbox} from 'app/server/lib/ISandbox';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {IMsgCustom, IMsgRpcCall} from 'grain-rpc';
 
 // TODO safePython component should be able to call other components function

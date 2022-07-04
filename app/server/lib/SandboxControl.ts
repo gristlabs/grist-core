@@ -1,8 +1,8 @@
 import { delay } from 'app/common/delay';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { Throttle } from 'app/server/lib/Throttle';
 
-import * as pidusage from '@gristlabs/pidusage';
+import pidusage from '@gristlabs/pidusage';
 import * as childProcess from 'child_process';
 import * as util from 'util';
 

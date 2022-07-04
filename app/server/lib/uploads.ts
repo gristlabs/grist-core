@@ -8,7 +8,7 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
 import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
 import {guessExt} from 'app/server/lib/guessExt';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {optStringParam} from 'app/server/lib/requestUtils';
 import {isPathWithin} from 'app/server/lib/serverUtils';
 import * as shutdown from 'app/server/lib/shutdown';

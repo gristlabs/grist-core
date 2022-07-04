@@ -12,7 +12,7 @@ import {buildNumberFormat, NumberFormatOptions} from 'app/common/NumberFormat';
 import {createParserOrFormatterArguments, ReferenceParsingOptions} from 'app/common/ValueParser';
 import {GristObjCode} from 'app/plugin/GristData';
 import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import isPlainObject = require('lodash/isPlainObject');
 
 export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';

@@ -12,7 +12,7 @@ import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {StringUnion} from 'app/common/StringUnion';
 import {DocSnapshot} from 'app/common/UserAPI';
 import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
-import * as moment from 'moment';
+import moment from 'moment';
 
 const DocHistorySubTab = StringUnion("activity", "snapshots");
 

@@ -1,4 +1,4 @@
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import { ColumnGetter, ColumnGetters } from 'app/common/ColumnGetters';
 import * as gristTypes from 'app/common/gristTypes';
 import { choiceGetter } from 'app/common/SortFunc';

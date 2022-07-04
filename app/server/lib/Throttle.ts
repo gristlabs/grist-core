@@ -18,8 +18,8 @@
  *
  */
 
-import * as pidusage from '@gristlabs/pidusage';
-import * as log from 'app/server/lib/log';
+import pidusage from '@gristlabs/pidusage';
+import log from 'app/server/lib/log';
 
 /**
  * Parameters related to throttling.

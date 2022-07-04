@@ -1,4 +1,4 @@
-import * as pidusage from '@gristlabs/pidusage';
+import pidusage from '@gristlabs/pidusage';
 import {Document} from 'app/gen-server/entity/Document';
 import {getScope} from 'app/server/lib/requestUtils';
 import * as bluebird from 'bluebird';
@@ -27,7 +27,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';

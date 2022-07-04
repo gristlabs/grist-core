@@ -1,4 +1,4 @@
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {Cursor} from 'app/client/components/Cursor';
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -7,9 +7,9 @@ import {ConfigNotifier, CustomSectionAPIImpl, GristDocAPIImpl, GristViewImpl,
         WidgetFrame} from 'app/client/components/WidgetFrame';
 import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
 import {Disposable} from 'app/client/lib/dispose';
-import * as dom from 'app/client/lib/dom';
+import dom from 'app/client/lib/dom';
 import * as kd from 'app/client/lib/koDom';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
 import {UserError} from 'app/client/models/errors';

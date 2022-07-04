@@ -2,7 +2,7 @@ import {drive} from '@googleapis/drive';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {makeXLSX} from 'app/server/lib/ExportXLSX';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {optStringParam} from 'app/server/lib/requestUtils';
 import {Request, Response} from 'express';
 import {PassThrough} from 'stream';

@@ -3,8 +3,8 @@ import last = require('lodash/last');
 import memoize = require('lodash/memoize');
 import {getDistinctValues, isNonNullish} from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
-import * as guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
-import * as moment from 'moment-timezone';
+import guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
+import moment from 'moment-timezone';
 
 // When using YY format, use a consistent interpretation in datepicker and in moment parsing: add
 // 2000 if the result is at most 10 years greater than the current year; otherwise add 1900. See

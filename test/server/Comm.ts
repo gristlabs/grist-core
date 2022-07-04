@@ -4,7 +4,7 @@ import {assert} from 'chai';
 import * as http from 'http';
 import {AddressInfo, Server, Socket} from 'net';
 import * as sinon from 'sinon';
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 import * as path from 'path';
 import * as tmp from 'tmp';
 
@@ -80,6 +80,9 @@ describe('Comm', function() {
   beforeEach(function() {
     // Silence console messages from client-side Comm.ts.
     if (!process.env.VERBOSE) {
+      // TODO: This no longer works, now that 'log' is a more proper "module" object rather than
+      // an arbitrary JS object. Also used in a couple other tests where logs are no longer
+      // silenced.
       sandbox.stub(log, 'debug');
     }
   });

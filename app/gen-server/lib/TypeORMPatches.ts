@@ -14,7 +14,7 @@
 
 import * as sqlite3 from '@gristlabs/sqlite3';
 import {delay} from 'app/common/delay';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
 import isEqual = require('lodash/isEqual');
 import {EntityManager, QueryRunner} from 'typeorm';

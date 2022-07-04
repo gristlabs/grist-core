@@ -58,16 +58,16 @@ import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
 import * as assert from 'assert';
-import * as contentDisposition from 'content-disposition';
+import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
 import * as _ from "lodash";
-import * as LRUCache from 'lru-cache';
+import LRUCache from 'lru-cache';
 import * as moment from 'moment';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
-import * as uuidv4 from "uuid/v4";
+import uuidv4 from "uuid/v4";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate

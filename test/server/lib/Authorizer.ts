@@ -10,7 +10,7 @@ import {configForUser, getGristConfig} from 'test/gen-server/testUtils';
 import {createDocTools} from 'test/server/docTools';
 import {openClient} from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
-import * as uuidv4 from 'uuid/v4';
+import uuidv4 from 'uuid/v4';
 
 let serverUrl: string;
 let server: FlexServer;

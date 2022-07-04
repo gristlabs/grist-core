@@ -31,7 +31,7 @@
 
 import { ClientScope } from 'app/client/components/ClientScope';
 import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import * as dom from 'app/client/lib/dom';
+import dom from 'app/client/lib/dom';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { ActionRouter } from 'app/common/ActionRouter';
 import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';

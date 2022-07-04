@@ -47,7 +47,7 @@ import {ScopedSession} from "app/server/lib/BrowserSession";
 import {Client, ClientMethod} from "app/server/lib/Client";
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristLoginMiddleware} from 'app/server/lib/GristServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {localeFromRequest} from 'app/server/lib/ServerLocale';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';

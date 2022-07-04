@@ -6,7 +6,7 @@
  */
 
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
 // environment variable.

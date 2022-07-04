@@ -2,7 +2,7 @@ import {Document} from 'app/gen-server/entity/Document';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 // Frequency of logging usage information.  Not something we need
 // to track with much granularity.

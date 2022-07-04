@@ -1,4 +1,4 @@
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 export type ILogMeta = log.ILogMeta;
 

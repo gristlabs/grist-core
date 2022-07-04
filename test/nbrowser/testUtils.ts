@@ -15,7 +15,7 @@
  * Run `bin/mocha 'test/nbrowser/*.ts' -b --no-exit` to open a command-line prompt on
  * first-failure for debugging and quick reruns.
  */
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {addToRepl, assert, driver, enableDebugCapture, Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';

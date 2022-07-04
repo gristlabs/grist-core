@@ -1,7 +1,7 @@
 /**
  * Contains some non-webdriver functionality needed by tests.
  */
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import defaults = require('lodash/defaults');
 import {WebElement} from 'mocha-webdriver';
@@ -13,7 +13,7 @@ import {WebDriver} from 'selenium-webdriver';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {TestingHooksClient} from 'app/server/lib/TestingHooks';
 
 export interface Server {

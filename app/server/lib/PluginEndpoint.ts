@@ -1,5 +1,5 @@
 import {FlexServer} from 'app/server/lib/FlexServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as express from 'express';
 import * as mimeTypes from 'mime-types';

@@ -7,7 +7,7 @@ import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';

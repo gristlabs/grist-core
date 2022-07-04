@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
     "target": "es2017",
     "module": "commonjs",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "strict": true,
     "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": false,

@@ -9,13 +9,13 @@ import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {isClient} from 'app/common/gristUrls';
-import {FullUser} from 'app/common/LoginSessionAPI';
+import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import {encodeQueryParams} from 'app/common/gutil';
 
-export {FullUser} from 'app/common/LoginSessionAPI';
+export type {FullUser, UserProfile};
 
 // Nominal email address of the anonymous user.
 export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
@@ -284,8 +284,6 @@ export interface DocStateComparisonDetails {
   leftChanges: ActionSummary;
   rightChanges: ActionSummary;
 }
-
-export {UserProfile} from 'app/common/LoginSessionAPI';
 
 export interface UserAPI {
   getSessionActive(): Promise<ActiveSessionInfo>;

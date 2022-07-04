@@ -1,5 +1,5 @@
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {createTmpDir} from 'app/server/lib/uploads';
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';

@@ -20,7 +20,7 @@
 
 import {updateDb} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import {promisifyAll} from 'bluebird';
 import * as fse from 'fs-extra';

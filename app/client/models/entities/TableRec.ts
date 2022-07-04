@@ -4,7 +4,7 @@ import {ColumnRec, ValidationRec, ViewRec} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {MANUALSORT} from 'app/common/gristTypes';
 import * as ko from 'knockout';
-import * as randomcolor from 'randomcolor';
+import randomcolor from 'randomcolor';
 
 // Represents a user-defined table.
 export interface TableRec extends IRowModel<"_grist_Tables"> {

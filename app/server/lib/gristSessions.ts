@@ -1,4 +1,4 @@
-import * as session from '@gristlabs/express-session';
+import session from '@gristlabs/express-session';
 import {parseSubdomain} from 'app/common/gristUrls';
 import {isNumber} from 'app/common/gutil';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';

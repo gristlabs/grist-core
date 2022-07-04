@@ -5,7 +5,7 @@ import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
 import {URL} from 'url';

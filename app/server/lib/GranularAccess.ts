@@ -31,7 +31,7 @@ import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
          OptDocSession } from 'app/server/lib/DocSession';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';

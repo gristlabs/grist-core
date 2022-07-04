@@ -52,7 +52,7 @@ import {
 } from 'app/gen-server/sqlUtils';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
@@ -66,7 +66,7 @@ import {
   SelectQueryBuilder,
   WhereExpression
 } from "typeorm";
-import * as uuidv4 from "uuid/v4";
+import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 

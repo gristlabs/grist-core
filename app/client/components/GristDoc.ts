@@ -5,7 +5,7 @@
 
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
@@ -27,7 +27,7 @@ import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';

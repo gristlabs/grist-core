@@ -1,4 +1,4 @@
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {ChartView} from 'app/client/components/ChartView';
 import * as commands from 'app/client/components/commands';
 import {CustomView} from 'app/client/components/CustomView';

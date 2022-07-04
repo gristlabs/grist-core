@@ -16,11 +16,11 @@ import * as ko from 'knockout';
 
 import * as koArray from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {DocData} from 'app/client/models/DocData';
 import {urlState} from 'app/client/models/gristUrlState';
-import * as MetaRowModel from 'app/client/models/MetaRowModel';
-import * as MetaTableModel from 'app/client/models/MetaTableModel';
+import MetaRowModel from 'app/client/models/MetaRowModel';
+import MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
 import {isHiddenTable, isRawTable} from 'app/common/isHiddenTable';
 import {schema, SchemaTypes} from 'app/common/schema';

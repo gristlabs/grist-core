@@ -12,7 +12,7 @@
  */
 import {encodeUrl, IGristUrlState, parseSubdomain} from 'app/common/gristUrls';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {getAppRoot} from 'app/server/lib/places';
 import {makeGristConfig} from 'app/server/lib/sendAppPage';
 import {exitPromise} from 'app/server/lib/serverUtils';

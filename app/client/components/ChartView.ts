@@ -1,4 +1,4 @@
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
         uniqXValues} from 'app/client/lib/chartUtil';
@@ -6,7 +6,7 @@ import {Delay} from 'app/client/lib/Delay';
 import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';

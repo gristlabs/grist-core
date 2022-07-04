@@ -12,12 +12,12 @@ import {Authorizer} from 'app/server/lib/Authorizer';
 import {ScopedSession} from 'app/server/lib/BrowserSession';
 import type {Comm} from 'app/server/lib/Comm';
 import {DocSession} from 'app/server/lib/DocSession';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as crypto from 'crypto';
-import * as moment from 'moment';
+import moment from 'moment';
 import * as WebSocket from 'ws';
 
 /// How many messages to accumulate for a disconnected client before booting it.

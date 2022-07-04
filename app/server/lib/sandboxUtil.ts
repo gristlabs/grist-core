@@ -2,7 +2,7 @@
  * Various utilities and constants for communicating with the python sandbox.
  */
 import * as MemBuffer from 'app/common/MemBuffer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 
 /**

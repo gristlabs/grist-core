@@ -6,7 +6,7 @@ import {FormatOptions, formatUnknown, IsRightTypeFunc} from 'app/common/ValueFor
 import {GristType} from 'app/plugin/GristData';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Style} from 'exceljs';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 
 interface WidgetOptions extends NumberFormatOptions {
   textColor?: 'string';

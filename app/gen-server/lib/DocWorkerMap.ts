@@ -1,13 +1,13 @@
 import {MapWithTTL} from 'app/common/AsyncCreate';
 import * as version from 'app/common/version';
 import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
 import {promisifyAll} from 'bluebird';
 import mapValues = require('lodash/mapValues');
 import {createClient, Multi, RedisClient} from 'redis';
-import * as Redlock from 'redlock';
-import * as uuidv4 from 'uuid/v4';
+import Redlock from 'redlock';
+import uuidv4 from 'uuid/v4';
 
 promisifyAll(RedisClient.prototype);
 promisifyAll(Multi.prototype);

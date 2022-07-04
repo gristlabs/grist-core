@@ -1,7 +1,7 @@
 import { KoArray } from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
-import * as BaseRowModel from 'app/client/models/BaseRowModel';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import BaseRowModel from 'app/client/models/BaseRowModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import { IRowModel } from 'app/client/models/DocModel';
 import { ValidationRec } from 'app/client/models/entities/ValidationRec';
 import * as modelUtil from 'app/client/models/modelUtil';

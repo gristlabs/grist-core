@@ -1,8 +1,8 @@
 import {ICustomWidget} from 'app/common/CustomWidget';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
 import {ApiError} from 'app/common/ApiError';
-import * as LRUCache from 'lru-cache';
+import LRUCache from 'lru-cache';
 
 /**
  * Widget Repository returns list of available Custom Widgets.

@@ -1,12 +1,12 @@
-import * as bluebird from 'bluebird';
+import bluebird from 'bluebird';
 import { ChildProcess } from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import { ConnectionOptions } from 'typeorm';
-import * as uuidv4 from 'uuid/v4';
+import uuidv4 from 'uuid/v4';
 
 import {EngineCode} from 'app/common/DocumentSettings';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
 import { getDocSessionAccessOrNull, getDocSessionUser, OptDocSession } from './DocSession';
 

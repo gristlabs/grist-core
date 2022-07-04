@@ -2,7 +2,7 @@ import {auth} from '@googleapis/oauth2';
 import {ApiError} from 'app/common/ApiError';
 import {parseSubdomain} from 'app/common/gristUrls';
 import {expressWrap} from 'app/server/lib/expressWrap';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {getOriginUrl, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import {URL} from 'url';

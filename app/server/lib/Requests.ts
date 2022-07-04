@@ -11,7 +11,7 @@ import chunk = require('lodash/chunk');
 import fromPairs = require('lodash/fromPairs');
 import zipObject = require('lodash/zipObject');
 import * as fse from 'fs-extra';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 export class DocRequests {
   // Request responses are briefly cached in files only to handle multiple requests in a formula

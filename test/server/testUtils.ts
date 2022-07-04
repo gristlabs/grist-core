@@ -11,9 +11,7 @@
 /* global before, after */
 
 import * as _ from 'underscore';
-import * as chai from 'chai';
 import { assert } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 import clone = require('lodash/clone');
@@ -22,10 +20,8 @@ import * as winston from 'winston';
 import { serialize } from 'winston/lib/winston/common';
 
 import * as docUtils from 'app/server/lib/docUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { getAppRoot } from 'app/server/lib/places';
-
-chai.use(chaiAsPromised);
 
 /**
  * Creates a temporary file with the given contents.

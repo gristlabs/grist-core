@@ -13,7 +13,7 @@ import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Organization, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import flatten = require('lodash/flatten');
 import sortBy = require('lodash/sortBy');
 

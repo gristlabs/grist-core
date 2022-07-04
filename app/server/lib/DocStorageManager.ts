@@ -1,7 +1,7 @@
 import * as bluebird from 'bluebird';
 import * as chokidar from 'chokidar';
 import * as fse from 'fs-extra';
-import * as moment from 'moment';
+import moment from 'moment';
 import * as path from 'path';
 
 import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
@@ -13,8 +13,8 @@ import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {IShell} from 'app/server/lib/IShell';
-import * as log from 'app/server/lib/log';
-import * as uuidv4 from "uuid/v4";
+import log from 'app/server/lib/log';
+import uuidv4 from "uuid/v4";
 
 
 /**

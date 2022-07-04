@@ -9,7 +9,7 @@ import {CellDelta} from 'app/common/TabularDiff';
 import {summarizeAction} from 'app/server/lib/ActionSummary';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import fetch from 'node-fetch';

@@ -4,7 +4,7 @@ import { FormulaTransform } from 'app/client/components/FormulaTransform';
 import { GristDoc } from 'app/client/components/GristDoc';
 import { addColTypeSuffix } from 'app/client/components/TypeConversion';
 import { TypeTransform } from 'app/client/components/TypeTransform';
-import * as dom from 'app/client/lib/dom';
+import dom from 'app/client/lib/dom';
 import { KoArray } from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
 import * as kf from 'app/client/lib/koForm';

@@ -59,7 +59,7 @@ import * as saml2 from 'saml2-js';
 
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getOriginUrl} from 'app/server/lib/requestUtils';
 import {fromCallback} from 'app/server/lib/serverUtils';

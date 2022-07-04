@@ -2,10 +2,10 @@ import {ApiError} from 'app/common/ApiError';
 import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import * as bluebird from 'bluebird';
-import * as contentDisposition from 'content-disposition';
-import * as csv from 'csv';
+import contentDisposition from 'content-disposition';
+import csv from 'csv';
 import * as express from 'express';
 
 export interface DownloadCSVOptions {

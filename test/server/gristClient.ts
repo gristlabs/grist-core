@@ -2,7 +2,7 @@ import { DocAction } from 'app/common/DocActions';
 import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import pick = require('lodash/pick');
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 
 interface GristRequest {
   reqId: number;

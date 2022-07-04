@@ -1,6 +1,6 @@
 import {CustomView} from 'app/client/components/CustomView';
 import {DataRowModel} from 'app/client/models/DataRowModel';
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {dom} from 'grainjs';
 

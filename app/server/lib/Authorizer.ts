@@ -14,13 +14,13 @@ import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
         cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
 import {makeId} from 'app/server/lib/idUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {allowHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
-import * as onHeaders from 'on-headers';
+import onHeaders from 'on-headers';
 
 export interface RequestWithLogin extends Request {
   sessionID: string;

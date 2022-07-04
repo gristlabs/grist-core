@@ -2,7 +2,7 @@ import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models
 import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
 import { getReferencedTableId } from 'app/common/gristTypes';
 import { IOptionFull } from 'grainjs';
-import * as assert from 'assert';
+import assert from 'assert';
 import * as gutil from "app/common/gutil";
 
 // some unicode characters

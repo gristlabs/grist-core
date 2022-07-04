@@ -5,7 +5,7 @@ import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
 import {Deps as DiscourseConnectDeps} from 'app/server/lib/DiscourseConnect';
 import {Deps as CommClientDeps} from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
 import {Request} from 'express';
 import * as t from 'ts-interface-checker';

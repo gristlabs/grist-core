@@ -17,7 +17,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristColumn, GristTable} from 'app/plugin/GristTable';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {globalUploadSet, moveUpload, UploadInfo} from 'app/server/lib/uploads';
 import {buildComparisonQuery} from 'app/server/lib/ExpandedQuery';
 import flatten = require('lodash/flatten');

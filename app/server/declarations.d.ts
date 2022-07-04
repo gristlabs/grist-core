@@ -41,8 +41,8 @@ declare module "app-module-path" {
 
 // version of pidusage that has correct ctime on linux
 declare module '@gristlabs/pidusage' {
-  import * as pidusage from 'pidusage';
-  export = pidusage;
+  import pidusage from 'pidusage';
+  export default pidusage;
 }
 
 declare module "csv";

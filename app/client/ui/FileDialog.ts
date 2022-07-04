@@ -16,7 +16,7 @@
  */
 
 import * as browserGlobals from 'app/client/lib/browserGlobals';
-import * as dom from 'app/client/lib/dom';
+import dom from 'app/client/lib/dom';
 const G = browserGlobals.get('document', 'window');
 
 export interface FileDialogOptions {

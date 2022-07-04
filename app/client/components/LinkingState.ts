@@ -1,5 +1,5 @@
 import {DataRowModel} from "app/client/models/DataRowModel";
-import * as DataTableModel from "app/client/models/DataTableModel";
+import DataTableModel from "app/client/models/DataTableModel";
 import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";

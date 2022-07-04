@@ -1,5 +1,5 @@
-import * as BaseRowModel from "app/client/models/BaseRowModel";
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import BaseRowModel from "app/client/models/BaseRowModel";
+import DataTableModel from 'app/client/models/DataTableModel';
 import { DocModel } from 'app/client/models/DocModel';
 import { TableRec } from 'app/client/models/entities/TableRec';
 import { TableQuerySets } from 'app/client/models/QuerySet';

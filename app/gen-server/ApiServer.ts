@@ -9,7 +9,7 @@ import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';

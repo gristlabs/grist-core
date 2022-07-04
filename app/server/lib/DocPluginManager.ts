@@ -13,13 +13,13 @@ import { DocPluginData } from 'app/server/lib/DocPluginData';
 import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
 import { FileParserElement } from 'app/server/lib/FileParserElement';
 import { GristServer } from 'app/server/lib/GristServer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { SafePythonComponent } from 'app/server/lib/SafePythonComponent';
 import { UnsafeNodeComponent } from 'app/server/lib/UnsafeNodeComponent';
 import { promisifyAll } from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import * as tmp from 'tmp';
+import tmp from 'tmp';
 
 
 promisifyAll(tmp);

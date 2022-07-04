@@ -1,7 +1,7 @@
 import {normalizeEmail} from 'app/common/emails';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {SessionStore} from 'app/server/lib/gristSessions';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Request} from 'express';
 

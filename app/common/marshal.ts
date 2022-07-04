@@ -25,7 +25,7 @@
  * unmarshalled to JS strings if 'bufferToString' option is set.
  */
 import {BigInt} from 'app/common/BigInt';
-import * as MemBuffer from 'app/common/MemBuffer';
+import MemBuffer from 'app/common/MemBuffer';
 import {EventEmitter} from 'events';
 import * as util from 'util';
 

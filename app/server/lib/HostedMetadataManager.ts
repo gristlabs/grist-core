@@ -1,5 +1,5 @@
 import {DocumentMetadata, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 /**
  * HostedMetadataManager handles pushing document metadata changes to the Home database when

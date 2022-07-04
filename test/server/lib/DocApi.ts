@@ -11,7 +11,7 @@ import {
   docPeriodicApiUsageKey,
   getDocApiUsageKeysToIncr
 } from 'app/server/lib/DocApi';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {exitPromise} from 'app/server/lib/serverUtils';
 import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
 import axios, {AxiosResponse} from 'axios';
@@ -19,10 +19,10 @@ import {delay} from 'bluebird';
 import * as bodyParser from 'body-parser';
 import {assert} from 'chai';
 import {ChildProcess, execFileSync, spawn} from 'child_process';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
-import * as LRUCache from 'lru-cache';
+import LRUCache from 'lru-cache';
 import * as moment from 'moment';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';

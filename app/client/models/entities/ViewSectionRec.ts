@@ -1,4 +1,4 @@
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {CursorPos} from 'app/client/components/Cursor';
 import {FilterColValues, LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';

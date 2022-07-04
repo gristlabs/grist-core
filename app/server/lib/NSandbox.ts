@@ -4,7 +4,7 @@
 import {arrayToString} from 'app/common/arrayToString';
 import * as marshal from 'app/common/marshal';
 import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {DirectProcessControl, ISandboxControl, NoProcessControl, ProcessInfo,
         SubprocessControl} from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';

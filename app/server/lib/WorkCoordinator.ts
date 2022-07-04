@@ -1,4 +1,4 @@
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 
 /**
  * WorkCoordinator is a helper to do work serially. It takes a doWork() callback which may either

@@ -70,11 +70,11 @@
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {timeFormat} from 'app/common/timeFormat';
 import * as docUtils from 'app/server/lib/docUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {fromCallback} from 'app/server/lib/serverUtils';
 
 import * as sqlite3 from '@gristlabs/sqlite3';
-import * as assert from 'assert';
+import assert from 'assert';
 import {each} from 'bluebird';
 import * as fse from 'fs-extra';
 import {RunResult} from 'sqlite3';

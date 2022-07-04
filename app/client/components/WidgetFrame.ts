@@ -1,4 +1,4 @@
-import * as BaseView from 'app/client/components/BaseView';
+import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';

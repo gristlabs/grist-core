@@ -19,7 +19,7 @@ import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import * as uuidv4 from "uuid/v4";
+import uuidv4 from "uuid/v4";
 import { OpenMode, SQLiteDB } from './SQLiteDB';
 
 // Check for a valid document id.

@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {APPROACHING_LIMIT_RATIO, DataLimitStatus, DocumentUsage, getUsageRatio} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 
 /**
  * Error class indicating failure due to limits being exceeded.

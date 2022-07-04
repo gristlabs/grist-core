@@ -33,10 +33,10 @@ declare module "app/client/components/BaseView" {
   import {Cursor, CursorPos} from 'app/client/components/Cursor';
   import {GristDoc} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';
-  import * as BaseRowModel from "app/client/models/BaseRowModel";
+  import BaseRowModel from "app/client/models/BaseRowModel";
   import {DataRowModel} from 'app/client/models/DataRowModel';
   import {LazyArrayModel} from "app/client/models/DataTableModel";
-  import * as DataTableModel from "app/client/models/DataTableModel";
+  import DataTableModel from "app/client/models/DataTableModel";
   import {ViewSectionRec} from "app/client/models/DocModel";
   import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
   import {SortedRowSet} from 'app/client/models/rowset';
@@ -141,7 +141,7 @@ declare module "app/client/components/commands" {
 
 declare module "app/client/models/BaseRowModel" {
   import {Disposable} from 'app/client/lib/dispose';
-  import * as TableModel from 'app/client/models/TableModel';
+  import TableModel from 'app/client/models/TableModel';
   import {ColValues} from 'app/common/DocActions';
 
   namespace BaseRowModel {}
@@ -158,7 +158,7 @@ declare module "app/client/models/BaseRowModel" {
 }
 
 declare module "app/client/models/MetaRowModel" {
-  import * as BaseRowModel from "app/client/models/BaseRowModel";
+  import BaseRowModel from "app/client/models/BaseRowModel";
   namespace MetaRowModel {}
   class MetaRowModel extends BaseRowModel {
     public _isDeleted: ko.Observable<boolean>;
@@ -246,10 +246,10 @@ declare module "app/client/models/TableModel" {
 declare module "app/client/models/MetaTableModel" {
   import {KoArray} from "app/client/lib/koArray";
   import {DocModel} from "app/client/models/DocModel";
-  import * as MetaRowModel from "app/client/models/MetaRowModel";
+  import MetaRowModel from "app/client/models/MetaRowModel";
   import {RowSource} from "app/client/models/rowset";
   import {TableData} from "app/client/models/TableData";
-  import * as TableModel from "app/client/models/TableModel";
+  import TableModel from "app/client/models/TableModel";
   import {CellValue} from "app/common/DocActions";
 
   namespace MetaTableModel {}
@@ -270,12 +270,12 @@ declare module "app/client/models/MetaTableModel" {
 
 declare module "app/client/models/DataTableModel" {
   import {KoArray} from "app/client/lib/koArray";
-  import * as BaseRowModel from "app/client/models/BaseRowModel";
+  import BaseRowModel from "app/client/models/BaseRowModel";
   import {DocModel, TableRec} from "app/client/models/DocModel";
   import {TableQuerySets} from 'app/client/models/QuerySet';
   import {SortedRowSet} from "app/client/models/rowset";
   import {TableData} from "app/client/models/TableData";
-  import * as TableModel from "app/client/models/TableModel";
+  import TableModel from "app/client/models/TableModel";
   import {UIRowId} from "app/common/UIRowId";
 
   namespace DataTableModel {

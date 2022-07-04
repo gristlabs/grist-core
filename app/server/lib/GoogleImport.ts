@@ -3,7 +3,7 @@ import {Readable} from 'form-data';
 import {GaxiosError, GaxiosPromise} from 'gaxios';
 import {FetchError, Response as FetchResponse, Headers} from 'node-fetch';
 import {getGoogleAuth} from "app/server/lib/GoogleAuth";
-import * as contentDisposition from 'content-disposition';
+import contentDisposition from 'content-disposition';
 
 const
   SPREADSHEETS_MIMETYPE = 'application/vnd.google-apps.spreadsheet',

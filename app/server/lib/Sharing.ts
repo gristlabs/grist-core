@@ -8,12 +8,12 @@ import {
 } from 'app/common/ActionBundle';
 import {CALCULATING_USER_ACTIONS, DocAction, getNumRows, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
-import * as assert from 'assert';
+import assert from 'assert';
 import {Mutex} from 'async-mutex';
-import * as Deque from 'double-ended-queue';
+import Deque from 'double-ended-queue';
 import {ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';

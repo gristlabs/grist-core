@@ -1,6 +1,6 @@
 import {getAppRoot} from 'app/server/lib/places';
 import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
-import * as express from 'express';
+import express from 'express';
 import * as http from 'http';
 import {AddressInfo, Socket} from 'net';
 import * as path from 'path';

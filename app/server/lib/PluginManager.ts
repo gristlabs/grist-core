@@ -1,5 +1,5 @@
 import {DirectoryScanEntry, LocalPlugin} from 'app/common/plugin';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {readManifest} from 'app/server/lib/manifest';
 import {getAppPathTo} from 'app/server/lib/places';
 import * as fse from 'fs-extra';

@@ -16,8 +16,8 @@
 
 import * as commands from 'app/client/components/commands';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
-import * as RefSelect from 'app/client/components/RefSelect';
-import * as ViewConfigTab from 'app/client/components/ViewConfigTab';
+import RefSelect from 'app/client/components/RefSelect';
+import ViewConfigTab from 'app/client/components/ViewConfigTab';
 import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {createSessionObs} from 'app/client/lib/sessionObs';

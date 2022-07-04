@@ -2,7 +2,7 @@ import { ActionRouter } from 'app/common/ActionRouter';
 import { LocalPlugin } from 'app/common/plugin';
 import { BaseComponent, createRpcLogger, warnIfNotReady } from 'app/common/PluginInstance';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { getAppPathTo } from 'app/server/lib/places';
 import { makeLinePrefixer } from 'app/server/lib/sandboxUtil';
 import { exitPromise, timeoutReached } from 'app/server/lib/serverUtils';

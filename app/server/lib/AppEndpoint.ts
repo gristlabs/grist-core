@@ -19,7 +19,7 @@ import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
 import {getAssignmentId} from 'app/server/lib/idUtils';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 

@@ -26,7 +26,7 @@
  * TODO: client-side should show "..." or "50000 more rows not shown" in that case.
  * TODO: Reference columns don't work properly because always use a displayCol which relies on formulas
  */
-import * as DataTableModel from 'app/client/models/DataTableModel';
+import DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
 import {BaseFilteredRowSource, RowId, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';

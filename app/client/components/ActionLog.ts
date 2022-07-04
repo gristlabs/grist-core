@@ -3,7 +3,7 @@
  */
 
 import * as dispose from 'app/client/lib/dispose';
-import * as dom from 'app/client/lib/dom';
+import dom from 'app/client/lib/dom';
 import {timeFormat} from 'app/common/timeFormat';
 import * as ko from 'knockout';
 import map = require('lodash/map');

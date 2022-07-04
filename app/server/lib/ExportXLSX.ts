@@ -3,8 +3,8 @@ import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
 import {ExportData, exportDoc} from 'app/server/lib/Export';
 import {Alignment, Border, Fill, Workbook} from 'exceljs';
 import * as express from 'express';
-import * as log from 'app/server/lib/log';
-import * as contentDisposition from 'content-disposition';
+import log from 'app/server/lib/log';
+import contentDisposition from 'content-disposition';
 
 export interface DownloadXLSXOptions {
   filename: string;

@@ -3,7 +3,7 @@ import {duplicatePage} from 'app/client/components/duplicatePage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {PageRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
-import * as MetaTableModel from 'app/client/models/MetaTableModel';
+import MetaTableModel from 'app/client/models/MetaTableModel';
 import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
         TreeTableData} from 'app/client/models/TreeModel';
 import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';

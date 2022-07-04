@@ -1,5 +1,5 @@
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import * as express from 'express';
 
 /**

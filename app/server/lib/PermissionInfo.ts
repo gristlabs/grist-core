@@ -5,7 +5,7 @@ import { ALL_PERMISSION_PROPS, emptyPermissionSet,
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import { AclMatchInput, RuleSet, UserInfo } from 'app/common/GranularAccessClause';
 import { getSetMapValue } from 'app/common/gutil';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import { mapValues } from 'lodash';
 
 /**
