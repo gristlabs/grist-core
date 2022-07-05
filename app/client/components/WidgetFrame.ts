@@ -68,6 +68,9 @@ export class WidgetFrame extends DisposableWithEvents {
     // Build RPC object and connect it to iframe.
     this._rpc = new Rpc({});
 
+    // queue until iframe's content emit ready() message
+    this._rpc.queueOutgoingUntilReadyMessage();
+
     // Register outgoing message handler.
     this._rpc.setSendMessage(msg => this._iframe?.contentWindow!.postMessage(msg, '*'));
 
