@@ -29,6 +29,7 @@ RUN \
 COPY tsconfig.json /grist
 COPY tsconfig-ext.json /grist
 COPY test/tsconfig.json /grist/test/tsconfig.json
+COPY test/chai-as-promised.js /grist/test/chai-as-promised.js
 COPY app /grist/app
 COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
