@@ -300,10 +300,16 @@ export class RightPanel extends Disposable {
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
       cssLabel(dom.text(use => use(activeSection.isRaw) ? 'DATA TABLE NAME' : 'WIDGET TITLE'),
-               dom.style('margin-bottom', '14px')),
+        dom.style('margin-bottom', '14px'),
+      ),
       cssRow(cssTextInput(
         Computed.create(owner, (use) => use(activeSection.titleDef)),
         val => activeSection.titleDef.saveOnly(val),
+        dom.boolAttr('disabled', use => {
+          const isRawTable = use(activeSection.isRaw);
+          const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
+          return isRawTable && isSummaryTable;
+        }),
         testId('right-widget-title')
       )),
 
@@ -753,4 +759,10 @@ const cssListItem = styled('li', `
 
 export const cssTextInput = styled(textInput, `
   flex: 1 0 auto;
+
+  &:disabled {
+    color: ${colors.slate};
+    background-color: ${colors.lightGrey};
+    pointer-events: none;
+  }
 `);

@@ -51,7 +51,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
-        cssLinkText('Raw data'),
+        cssLinkText('Raw Data'),
         testId('raw'),
         urlState().setLinkUrl({docPage: 'data'})
       )

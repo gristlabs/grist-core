@@ -228,10 +228,10 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(11, colRef=16),
           Field(12, colRef=17),
         ]),
-        Section(5, parentKey="record", tableRef=3, fields=[
-          Field(13, colRef=18),
-          Field(14, colRef=20),
-          Field(15, colRef=21),
+        Section(6, parentKey="record", tableRef=3, fields=[
+          Field(16, colRef=18),
+          Field(17, colRef=20),
+          Field(18, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -315,10 +315,10 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(10, colRef=15),
           Field(12, colRef=17),
         ]),
-        Section(5, parentKey="record", tableRef=3, fields=[
-          Field(13, colRef=18),
-          Field(14, colRef=20),
-          Field(15, colRef=21),
+        Section(6, parentKey="record", tableRef=3, fields=[
+          Field(16, colRef=18),
+          Field(17, colRef=20),
+          Field(18, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -372,9 +372,9 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(10, colRef=15),
           Field(12, colRef=17),
         ]),
-        Section(5, parentKey="record", tableRef=4, fields=[
-          Field(14, colRef=23),
-          Field(15, colRef=24),
+        Section(6, parentKey="record", tableRef=4, fields=[
+          Field(17, colRef=23),
+          Field(18, colRef=24),
         ]),
       ]),
       View(2, sections=[

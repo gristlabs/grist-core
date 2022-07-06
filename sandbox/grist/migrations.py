@@ -960,3 +960,57 @@ def migration29(tdset):
         }))
 
   return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=30)
+def migration30(tdset):
+  """
+  Add raw view sections for each summary table. This is similar to migration 26, but for
+  summary tables instead of user tables.
+  """
+  doc_actions = []
+
+  tables = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables"]))
+  columns = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables_column"]))
+
+  new_view_section_id = next_id(tdset, "_grist_Views_section")
+
+  for table in sorted(tables, key=lambda t: t.tableId):
+    if not table.summarySourceTable:
+      continue
+
+    table_columns = [
+      col for col in columns
+      if table.id == col.parentId and is_visible_column(col.colId)
+    ]
+    table_columns.sort(key=lambda c: c.parentPos)
+    fields = {
+      "parentId": [new_view_section_id] * len(table_columns),
+      "colRef": [col.id for col in table_columns],
+      "parentPos": [col.parentPos for col in table_columns],
+    }
+    field_ids = [None] * len(table_columns)
+
+    doc_actions += [
+      actions.AddRecord(
+        "_grist_Views_section", new_view_section_id, {
+          "tableRef": table.id,
+          "parentId": 0,
+          "parentKey": "record",
+          "title": "",
+          "defaultWidth": 100,
+          "borderWidth": 1,
+        }
+      ),
+      actions.UpdateRecord(
+        "_grist_Tables", table.id, {
+          "rawViewSectionRef": new_view_section_id,
+        })
+      ,
+      actions.BulkAddRecord(
+        "_grist_Views_section_field", field_ids, fields
+      ),
+    ]
+
+    new_view_section_id += 1
+
+  return tdset.apply_doc_actions(doc_actions)

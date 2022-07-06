@@ -20,10 +20,13 @@ export class DataTables extends Disposable {
   private _view: Observable<string | null>;
   constructor(private _gristDoc: GristDoc) {
     super();
-    // Remove tables that we don't have access to. ACL will remove tableId from those tables.
-    this._tables = Computed.create(this, use =>
-      use(_gristDoc.docModel.rawTables.getObservable())
-      .filter(t => Boolean(use(t.tableId))));
+    this._tables = Computed.create(this, use => {
+      const dataTables = use(_gristDoc.docModel.rawDataTables.getObservable());
+      const summaryTables = use(_gristDoc.docModel.rawSummaryTables.getObservable());
+      // Remove tables that we don't have access to. ACL will remove tableId from those tables.
+      return [...dataTables, ...summaryTables].filter(t => Boolean(use(t.tableId)));
+    });
+
     // Get the user id, to remember selected layout on the next visit.
     const userId = this._gristDoc.app.topAppModel.appObs.get()?.currentUser?.id ?? 0;
     this._view = this.autoDispose(localStorageObs(`u=${userId}:raw:viewType`, "list"));
@@ -35,7 +38,7 @@ export class DataTables extends Disposable {
         /***************  List section **********/
         testId('list'),
         cssBetween(
-          docListHeader('Raw data tables'),
+          docListHeader('Raw Data Tables'),
           cssSwitch(
             buttonSelect<any>(
               this._view,
@@ -54,32 +57,13 @@ export class DataTables extends Disposable {
             cssItem(
               testId('table'),
               cssLeft(
-                dom.domComputed(tableRec.tableId, (tableId) =>
-                  cssGreenIcon(
-                    'TypeTable',
-                    testId(`table-id-${tableId}`)
-                  )
-                ),
+                dom.domComputed((use) => cssGreenIcon(
+                  use(tableRec.summarySourceTable) !== 0 ? 'PivotLight' : 'TypeTable',
+                  testId(`table-id-${use(tableRec.tableId)}`)
+                )),
               ),
               cssMiddle(
-                css60(
-                  testId('table-title'),
-                  dom.domComputed(fromKo(tableRec.rawViewSectionRef), vsRef => {
-                    if (!vsRef) {
-                      // Some very old documents might not have rawViewSection.
-                      return dom('span', dom.text(tableRec.tableNameDef));
-                    } else {
-                      return dom('div', // to disable flex grow in the widget
-                        dom.domComputed(fromKo(tableRec.rawViewSection), vs =>
-                          dom.update(
-                            buildTableName(vs, testId('widget-title')),
-                            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-                          )
-                        )
-                      );
-                    }
-                  }),
-                ),
+                css60(this._tableTitle(tableRec), testId('table-title')),
                 css40(
                   cssIdHoverWrapper(
                     cssUpperCase("Table id: "),
@@ -122,6 +106,30 @@ export class DataTables extends Disposable {
     );
   }
 
+  private _tableTitle(table: TableRec) {
+    return dom.domComputed((use) => {
+      const rawViewSectionRef = use(fromKo(table.rawViewSectionRef));
+      const isSummaryTable = use(table.summarySourceTable) !== 0;
+      if (!rawViewSectionRef || isSummaryTable) {
+        // Some very old documents might not have a rawViewSection, and raw summary
+        // tables can't currently be renamed.
+        const tableName = [
+          use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : ''
+        ].filter(p => Boolean(p?.trim())).join(' ');
+        return dom('span', tableName);
+      } else {
+        return dom('div', // to disable flex grow in the widget
+          dom.domComputed(fromKo(table.rawViewSection), vs =>
+            dom.update(
+              buildTableName(vs, testId('widget-title')),
+              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+            )
+          )
+        );
+      }
+    });
+  }
+
   private _menuItems(table: TableRec) {
     const {isReadonly, docModel} = this._gristDoc;
     return [
@@ -130,8 +138,8 @@ export class DataTables extends Disposable {
         'Remove',
         testId('menu-remove'),
         dom.cls('disabled', use => use(isReadonly) || (
-          // Can't delete last user table, unless it is a hidden table.
-          use(docModel.allTables.getObservable()).length <= 1 && !use(table.isHidden)
+          // Can't delete last visible table, unless it is a hidden table.
+          use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
         ))
       ),
       dom.maybe(isReadonly, () => menuText('You do not have edit access to this document')),
@@ -141,9 +149,9 @@ export class DataTables extends Disposable {
   private _removeTable(t: TableRec) {
     const {docModel} = this._gristDoc;
     function doRemove() {
-      return docModel.docData.sendAction(['RemoveTable', t.tableId.peek()]);
+      return docModel.docData.sendAction(['RemoveTable', t.tableId()]);
     }
-    confirmModal(`Delete ${t.tableId()} data, and remove it from all pages?`, 'Delete', doRemove);
+    confirmModal(`Delete ${t.formattedTableName()} data, and remove it from all pages?`, 'Delete', doRemove);
   }
 }
 

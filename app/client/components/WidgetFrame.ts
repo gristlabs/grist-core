@@ -305,7 +305,7 @@ export class GristDocAPIImpl implements GristDocAPI {
   }
 
   public async listTables(): Promise<string[]> {
-    // Could perhaps read tableIds from this.gristDoc.docModel.allTableIds.all()?
+    // Could perhaps read tableIds from this.gristDoc.docModel.visibleTableIds.all()?
     const tables = await this._doc.docComm.fetchTable('_grist_Tables');
     // Tables the user doesn't have access to are just blanked out.
     return tables[3].tableId.filter(tableId => tableId !== '') as string[];

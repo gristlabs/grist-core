@@ -13,7 +13,7 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
     const name = this.view().name();
     const isTableHidden = () => {
       const viewId = this.view().id();
-      const tables = docModel.rawTables.all();
+      const tables = docModel.rawDataTables.all();
       const primaryTable = tables.find(t => t.primaryViewId() === viewId);
       return !!primaryTable && primaryTable.isHidden();
     };

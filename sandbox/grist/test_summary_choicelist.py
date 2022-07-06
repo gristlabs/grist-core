@@ -310,7 +310,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertTableData('GristSummary_6_Source2', data=summary_data)
 
     # Verify that "DetachSummaryViewSection" useraction works correctly.
-    self.apply_user_action(["DetachSummaryViewSection", 2])
+    self.apply_user_action(["DetachSummaryViewSection", 4])
 
     self.assertTables([
       self.starting_table, summary_table1, summary_table3, summary_table4,

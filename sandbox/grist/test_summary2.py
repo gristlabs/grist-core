@@ -83,11 +83,13 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
 
-    # We should now have two sections for table 2 (the one with two group-by fields).
+    # We should now have three sections for table 2 (the one with two group-by fields). One for
+    # the raw summary table view, and two for the non-raw views.
     self.assertTableData('_grist_Views_section', cols="subset", data=[
       ["id",  "parentId", "tableRef"],
-      [1,     1,          2],
-      [5,     5,          2],
+      [1,     0,          2],
+      [2,     1,          2],
+      [9,     5,          2],
     ], rows=lambda r: r.tableRef.id == 2)
     self.assertTableData('_grist_Views_section_field', cols="subset", data=[
       ["id", "parentId", "colRef"],
@@ -95,11 +97,11 @@ class TestSummary2(test_engine.EngineTestCase):
       [2,     1,          15],
       [3,     1,          17],
       [4,     1,          18],
-      [8,     1,          23],
-      [16,    5,          14],
-      [17,    5,          15],
-      [18,    5,          17],
-      [19,    5,          18],    # new section doesn't automatically get 'average' column
+      [15,    1,          23],
+      [17,    5,          24],
+      [18,    5,          26],
+      [19,    5,          27],
+      [20,    5,          28],  # new section doesn't automatically get 'average' column
     ], rows=lambda r: r.parentId.id in {1,5})
 
 
@@ -433,11 +435,11 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=2, fields=[
-        Field(1, colRef=14),
-        Field(2, colRef=15),
-        Field(3, colRef=17),
-        Field(4, colRef=18),
+      Section(2, parentKey="record", tableRef=2, fields=[
+        Field(5, colRef=14),
+        Field(6, colRef=15),
+        Field(7, colRef=17),
+        Field(8, colRef=18),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
@@ -451,7 +453,7 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
     # Now change the group-by to just one of the columns ('state')
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [12]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [12]])
     self.assertTables([
       self.starting_table,
       # Note that Table #2 is gone at this point, since it's unused.
@@ -463,10 +465,10 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=3, fields=[
-        Field(2, colRef=19),
-        Field(3, colRef=21),
-        Field(4, colRef=22),
+      Section(2, parentKey="record", tableRef=3, fields=[
+        Field(6, colRef=19),
+        Field(7, colRef=21),
+        Field(8, colRef=22),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address2', cols="subset", data=[
@@ -486,7 +488,7 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
     # Change group-by to a different single column ('city')
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [11]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11]])
     self.assertTables([
       self.starting_table,
       # Note that Table #3 is gone at this point, since it's unused.
@@ -498,10 +500,10 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=4, fields=[
-        Field(5, colRef=23),
-        Field(3, colRef=25),
-        Field(4, colRef=26),
+      Section(2, parentKey="record", tableRef=4, fields=[
+        Field(15, colRef=23),
+        Field(7, colRef=25),
+        Field(8, colRef=26),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
@@ -525,7 +527,7 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
     # Change group-by to no columns (totals)
-    self.apply_user_action(["UpdateSummaryViewSection", 1, []])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, []])
     self.assertTables([
       self.starting_table,
       # Note that Table #4 is gone at this point, since it's unused.
@@ -536,9 +538,9 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=5, fields=[
-        Field(3, colRef=28),
-        Field(4, colRef=29),
+      Section(2, parentKey="record", tableRef=5, fields=[
+        Field(7, colRef=28),
+        Field(8, colRef=29),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address2', cols="subset", data=[
@@ -548,7 +550,7 @@ class TestSummary2(test_engine.EngineTestCase):
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address2'])
 
     # Back to full circle, but with group-by columns differently arranged.
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [12,11]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [12,11]])
     self.assertTables([
       self.starting_table,
       # Note that Table #5 is gone at this point, since it's unused.
@@ -561,11 +563,11 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=6, fields=[
-        Field(5, colRef=30),
-        Field(6, colRef=31),
-        Field(3, colRef=33),
-        Field(4, colRef=34),
+      Section(2, parentKey="record", tableRef=6, fields=[
+        Field(22, colRef=30),
+        Field(23, colRef=31),
+        Field(7, colRef=33),
+        Field(8, colRef=34),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
@@ -595,23 +597,23 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=6, fields=[
-        Field(5, colRef=30),
-        Field(6, colRef=31),
-        Field(3, colRef=33),
-        Field(4, colRef=34),
-      ]),
       Section(2, parentKey="record", tableRef=6, fields=[
-        Field(7,  colRef=31),
-        Field(8,  colRef=30),
-        Field(9,  colRef=33),
-        Field(10, colRef=34),
+        Field(22, colRef=30),
+        Field(23, colRef=31),
+        Field(7, colRef=33),
+        Field(8, colRef=34),
+      ]),
+      Section(7, parentKey="record", tableRef=6, fields=[
+        Field(24,  colRef=31),
+        Field(25,  colRef=30),
+        Field(26,  colRef=33),
+        Field(27, colRef=34),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
 
     # Change one view section, and ensure there are now two summary tables.
-    self.apply_user_action(["UpdateSummaryViewSection", 2, []])
+    self.apply_user_action(["UpdateSummaryViewSection", 7, []])
     self.assertTables([
       self.starting_table,
       Table(6, "GristSummary_7_Address", 0, 1, columns=[
@@ -628,22 +630,22 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=6, fields=[
-        Field(5, colRef=30),
-        Field(6, colRef=31),
-        Field(3, colRef=33),
-        Field(4, colRef=34),
+      Section(2, parentKey="record", tableRef=6, fields=[
+        Field(22, colRef=30),
+        Field(23, colRef=31),
+        Field(7, colRef=33),
+        Field(8, colRef=34),
       ]),
-      Section(2, parentKey="record", tableRef=7, fields=[
-        Field(9,  colRef=36),
-        Field(10, colRef=37),
+      Section(7, parentKey="record", tableRef=7, fields=[
+        Field(26,  colRef=36),
+        Field(27, colRef=37),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address',
                                                   '#summary#GristSummary_7_Address2'])
 
     # Delete one view section, and see that the summary table is gone.
-    self.apply_user_action(["RemoveViewSection", 2])
+    self.apply_user_action(["RemoveViewSection", 7])
     self.assertTables([
       self.starting_table,
       # Note that Table #7 is gone at this point, since it's now unused.
@@ -656,18 +658,18 @@ class TestSummary2(test_engine.EngineTestCase):
       ])
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=6, fields=[
-        Field(5, colRef=30),
-        Field(6, colRef=31),
-        Field(3, colRef=33),
-        Field(4, colRef=34),
+      Section(2, parentKey="record", tableRef=6, fields=[
+        Field(22, colRef=30),
+        Field(23, colRef=31),
+        Field(7, colRef=33),
+        Field(8, colRef=34),
       ])
     ])])
     self.assertEqual(get_helper_cols('Address'), ['#summary#GristSummary_7_Address'])
 
     # Change the section to add and then remove the "amount" to the group-by column; check that
     # column "amount" was correctly restored
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [11, 12, 13]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11, 12, 13]])
     self.assertTables([
       self.starting_table,
       Table(7, "GristSummary_7_Address2", 0, 1, columns=[
@@ -679,14 +681,14 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=7, fields=[
-        Field(6, colRef=35),
-        Field(5, colRef=36),
-        Field(7, colRef=37),
-        Field(3, colRef=39),
+      Section(2, parentKey="record", tableRef=7, fields=[
+        Field(23, colRef=35),
+        Field(22, colRef=36),
+        Field(28, colRef=37),
+        Field(7, colRef=39),
       ])
     ])])
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [11,12]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11,12]])
     self.assertTables([
       self.starting_table,
       Table(8, "GristSummary_7_Address", 0, 1, columns=[
@@ -699,18 +701,18 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=8, fields=[
-        Field(6, colRef=40),
-        Field(5, colRef=41),
-        Field(7, colRef=42),
-        Field(3, colRef=44),
+      Section(2, parentKey="record", tableRef=8, fields=[
+        Field(23, colRef=40),
+        Field(22, colRef=41),
+        Field(28, colRef=42),
+        Field(7, colRef=44),
       ])
     ])])
 
     # Hide a formula and update group by columns; check that the formula columns had not been
     # deleted
     self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', 7])
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [11]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11]])
     self.assertTables([
       self.starting_table,
       Table(9, "GristSummary_7_Address2", 0, 1, columns=[
@@ -721,9 +723,9 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=9, fields=[
-        Field(6, colRef=45),
-        Field(3, colRef=48),
+      Section(2, parentKey="record", tableRef=9, fields=[
+        Field(23, colRef=45),
+        Field(28, colRef=46),
       ])
     ])])
 
@@ -754,11 +756,11 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=2, fields=[
-        Field(1, colRef=14),
-        Field(2, colRef=16),
-        Field(3, colRef=17),
-        Field(4, colRef=18),
+      Section(2, parentKey="record", tableRef=2, fields=[
+        Field(4, colRef=14),
+        Field(5, colRef=16),
+        Field(6, colRef=17),
+        Field(8, colRef=18),
       ])
     ])])
     self.assertTableData('GristSummary_7_Address', cols="subset", data=[
@@ -770,7 +772,7 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
 
     # Change the section to add "city" as a group-by column; check that the formula is gone.
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [11,12]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11,12]])
     self.assertTables([
       self.starting_table,
       Table(3, "GristSummary_7_Address2", 0, 1, columns=[
@@ -782,12 +784,12 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=3, fields=[
+      Section(2, parentKey="record", tableRef=3, fields=[
         # We requested 'city' to come before 'state', check that this is the case.
-        Field(4, colRef=19),
-        Field(1, colRef=20),
-        Field(2, colRef=22),
-        Field(3, colRef=23),
+        Field(13, colRef=19),
+        Field(4, colRef=20),
+        Field(5, colRef=22),
+        Field(6, colRef=23),
       ])
     ])])
 
@@ -830,27 +832,27 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=2, fields=[
-        Field(1, colRef=14),
-        Field(2, colRef=15),
-        Field(3, colRef=17),
-        Field(4, colRef=18),
+      Section(2, parentKey="record", tableRef=2, fields=[
+        Field(5, colRef=14),
+        Field(6, colRef=15),
+        Field(7, colRef=17),
+        Field(8, colRef=18),
       ])
     ]), View(2, sections=[
-      Section(2, parentKey="record", tableRef=3, fields=[
-        Field(5, colRef=20),
-        Field(6, colRef=21),
+      Section(4, parentKey="record", tableRef=3, fields=[
+        Field(11, colRef=20),
+        Field(12, colRef=21),
       ]),
-      Section(3, parentKey="record", tableRef=2, fields=[
-        Field(7, colRef=14),
-        Field(8, colRef=15),
-        Field(9, colRef=17),
-        Field(10, colRef=18),
+      Section(5, parentKey="record", tableRef=2, fields=[
+        Field(13, colRef=14),
+        Field(14, colRef=15),
+        Field(15, colRef=17),
+        Field(16, colRef=18),
       ]),
-      Section(4, parentKey="record", tableRef=4, fields=[
-        Field(11, colRef=22),
-        Field(12, colRef=24),
-        Field(13, colRef=25),
+      Section(7, parentKey="record", tableRef=4, fields=[
+        Field(20, colRef=22),
+        Field(21, colRef=24),
+        Field(22, colRef=25),
       ])
     ])])
 
@@ -869,11 +871,11 @@ class TestSummary2(test_engine.EngineTestCase):
       ]),
     ])
     self.assertViews([View(1, sections=[
-      Section(1, parentKey="record", tableRef=2, fields=[
-        Field(1, colRef=14),
-        Field(2, colRef=15),
-        Field(3, colRef=17),
-        Field(4, colRef=18),
+      Section(2, parentKey="record", tableRef=2, fields=[
+        Field(5, colRef=14),
+        Field(6, colRef=15),
+        Field(7, colRef=17),
+        Field(8, colRef=18),
       ])
     ])])
 
@@ -885,10 +887,10 @@ class TestSummary2(test_engine.EngineTestCase):
 
     self.load_sample(self.sample)
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
-    self.apply_user_action(["UpdateRecord", "_grist_Views_section", 1,
+    self.apply_user_action(["UpdateRecord", "_grist_Views_section", 2,
                             {"sortColRefs": "[15,14,-17]"}])
 
-    # We should have a single summary table, and a single section referring to it.
+    # We should have a single summary table, and a single (non-raw) section referring to it.
     self.assertTables([
       self.starting_table,
       Table(2, "GristSummary_7_Address", 0, 1, columns=[
@@ -901,11 +903,12 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
     self.assertTableData('_grist_Views_section', cols="subset", data=[
       ["id",  "tableRef", "sortColRefs"],
-      [1,     2,          "[15,14,-17]"],
+      [1,     2,          ""], # This is the raw section.
+      [2,     2,          "[15,14,-17]"],
     ])
 
     # Now change the group-by to just one of the columns ('state')
-    self.apply_user_action(["UpdateSummaryViewSection", 1, [12]])
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [12]])
     self.assertTables([
       self.starting_table,
       # Note that Table #2 is gone at this point, since it's unused.
@@ -919,7 +922,8 @@ class TestSummary2(test_engine.EngineTestCase):
     # Verify that sortColRefs refers to new columns.
     self.assertTableData('_grist_Views_section', cols="subset", data=[
       ["id",  "tableRef", "sortColRefs"],
-      [1,     3,          "[19,-21]"],
+      [2,     3,          "[19,-21]"],
+      [3,     3,          ""], # This is the raw section.
     ])
 
   #----------------------------------------------------------------------
@@ -953,8 +957,10 @@ class TestSummary2(test_engine.EngineTestCase):
     ])
     self.assertTableData('_grist_Views_section', cols="subset", data=[
       ["id",  "parentId", "tableRef"],
-      [1,     1,          2],
-      [2,     2,          3],
+      [1,     0,          2],
+      [2,     1,          2],
+      [3,     0,          3],
+      [4,     2,          3],
     ])
     self.assertTableData('_grist_Views_section_field', cols="subset", data=[
       ["id", "parentId", "colRef"],
@@ -962,13 +968,20 @@ class TestSummary2(test_engine.EngineTestCase):
       [2,     1,          15],
       [3,     1,          17],
       [4,     1,          18],
-      [7,     1,          22],
-      [5,     2,          20],
-      [6,     2,          21],
+      [13,    1,          22],
+      [5,     2,          14],
+      [6,     2,          15],
+      [7,     2,          17],
+      [8,     2,          18],
+      [14,    2,          22],
+      [9,     3,          20],
+      [10,    3,          21],
+      [11,    4,          20],
+      [12,    4,          21],
     ], sort=lambda r: (r.parentId, r.id))
 
     # Now save one section as a separate table, i.e. "detach" it from its source.
-    self.apply_user_action(["DetachSummaryViewSection", 1])
+    self.apply_user_action(["DetachSummaryViewSection", 2])
 
     # Check the table and columns for all the summary tables.
     self.assertTables([
@@ -992,25 +1005,25 @@ class TestSummary2(test_engine.EngineTestCase):
     # We should now have two sections for table 2 (the one with two group-by fields).
     self.assertTableData('_grist_Views_section', cols="subset", rows=lambda r: r.parentId, data=[
       ["id",  "parentId", "tableRef"],
-      [1,     1,          4],
-      [2,     2,          3],
-      [3,     3,          4],
+      [2,     1,          4],
+      [4,     2,          3],
+      [5,     3,          4],
     ])
     self.assertTableData(
       '_grist_Views_section_field', cols="subset", rows=lambda r: r.parentId.parentId, data=[
       ["id", "parentId", "colRef"],
-      [1,     1,          24],
-      [2,     1,          25],
-      [3,     1,          26],
-      [4,     1,          27],
-      [7,     1,          28],
-      [5,     2,          20],
-      [6,     2,          21],
-      [8,     3,          24],
-      [9,     3,          25],
-      [10,    3,          26],
-      [11,    3,          27],
-      [12,    3,          28],
+      [5,     2,         24],
+      [6,     2,         25],
+      [7,     2,         26],
+      [8,     2,         27],
+      [14,    2,         28],
+      [11,    4,         20],
+      [12,    4,         21],
+      [15,    5,         24],
+      [16,    5,         25],
+      [17,    5,         26],
+      [18,    5,         27],
+      [19,    5,         28],
     ], sort=lambda r: (r.parentId, r.id))
 
     # Check that the data is as we expect.
@@ -1039,7 +1052,7 @@ class TestSummary2(test_engine.EngineTestCase):
     # Add a summary table and detach it. Then add a summary table of that table.
     self.load_sample(self.sample)
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
-    self.apply_user_action(["DetachSummaryViewSection", 1])
+    self.apply_user_action(["DetachSummaryViewSection", 2])
 
     # Create a summary of the detached table (tableRef 3) by state (colRef 21).
     self.apply_user_action(["CreateViewSection", 3, 0, "record", [21], None])

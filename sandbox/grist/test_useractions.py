@@ -172,9 +172,9 @@ class TestUserActions(test_engine.EngineTestCase):
       Section(2, parentKey="record", tableRef=1, fields=[
         Field(2, colRef=21),
       ]),
-      Section(3, parentKey="record", tableRef=2, fields=[
-        Field(3, colRef=22),
-        Field(4, colRef=24),
+      Section(4, parentKey="record", tableRef=2, fields=[
+        Field(5, colRef=22),
+        Field(6, colRef=24),
       ]),
     ])
     self.assertTables([self.starting_table, summary_table])
@@ -255,8 +255,8 @@ class TestUserActions(test_engine.EngineTestCase):
       Column(35, "count", "Int", isFormula=True, formula="len($group)", summarySourceCol=0),
     ])
     self.assertTables([self.starting_table, new_table, new_table2, new_table3, summary_table])
-    new_view.sections.append(Section(6, parentKey="record", tableRef=5, fields=[
-      Field(16, colRef=35)
+    new_view.sections.append(Section(7, parentKey="record", tableRef=5, fields=[
+      Field(17, colRef=35)
     ]))
     self.assertViews([new_view])
 
@@ -315,21 +315,21 @@ class TestUserActions(test_engine.EngineTestCase):
           Field(8, colRef=3),
           Field(9, colRef=4),
         ]),
-        Section(4, parentKey="record", tableRef=2, fields=[
-          Field(10, colRef=5),
-          Field(11, colRef=7),
-          Field(12, colRef=8),
+        Section(5, parentKey="record", tableRef=2, fields=[
+          Field(13, colRef=5),
+          Field(14, colRef=7),
+          Field(15, colRef=8),
         ]),
-        Section(7, parentKey='record', tableRef=3, fields=[
-          Field(18, colRef=10),
-          Field(19, colRef=11),
-          Field(20, colRef=12),
+        Section(8, parentKey='record', tableRef=3, fields=[
+          Field(21, colRef=10),
+          Field(22, colRef=11),
+          Field(23, colRef=12),
         ]),
       ]),
       View(3, sections=[
-        Section(5, parentKey="chart", tableRef=1, fields=[
-          Field(13, colRef=2),
-          Field(14, colRef=3),
+        Section(6, parentKey="chart", tableRef=1, fields=[
+          Field(16, colRef=2),
+          Field(17, colRef=3),
         ]),
       ])
     ])
@@ -469,8 +469,8 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
       [1, 'Z', 1, 2],
-      [2, 'GristSummary_1_Z', 0, 0],
-      [3, 'Table1', 0, 6],
+      [2, 'GristSummary_1_Z', 0, 4],
+      [3, 'Table1', 0, 7],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
       ['id', 'name'],
@@ -486,9 +486,9 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
       [1, 'Z', 1, 2],
-      [2, 'GristSummary_1_Z', 0, 0],
-      [3, 'Table1', 0, 6],
-      [4, 'Stations', 4, 9],
+      [2, 'GristSummary_1_Z', 0, 4],
+      [3, 'Table1', 0, 7],
+      [4, 'Stations', 4, 10],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
       ['id', 'name'],
@@ -546,27 +546,27 @@ class TestUserActions(test_engine.EngineTestCase):
           Field(8, colRef=3),
           Field(9, colRef=4),
         ]),
-        Section(4, parentKey="record", tableRef=2, fields=[
-          Field(10, colRef=5),
-          Field(11, colRef=7),
-          Field(12, colRef=8),
+        Section(5, parentKey="record", tableRef=2, fields=[
+          Field(13, colRef=5),
+          Field(14, colRef=7),
+          Field(15, colRef=8),
         ]),
-        Section(7, parentKey='record', tableRef=3, fields=[
-          Field(18, colRef=10),
-          Field(19, colRef=11),
-          Field(20, colRef=12),
+        Section(8, parentKey='record', tableRef=3, fields=[
+          Field(21, colRef=10),
+          Field(22, colRef=11),
+          Field(23, colRef=12),
         ]),
       ]),
       View(3, sections=[
-        Section(5, parentKey="chart", tableRef=1, fields=[
-          Field(13, colRef=2),
-          Field(14, colRef=3),
+        Section(6, parentKey="chart", tableRef=1, fields=[
+          Field(16, colRef=2),
+          Field(17, colRef=3),
         ]),
       ])
     ])
 
     # Remove a couple of sections. Ensure their fields get removed.
-    self.apply_user_action(['BulkRemoveRecord', '_grist_Views_section', [4, 7]])
+    self.apply_user_action(['BulkRemoveRecord', '_grist_Views_section', [5, 8]])
 
     self.assertViews([
       View(1, sections=[
@@ -584,9 +584,9 @@ class TestUserActions(test_engine.EngineTestCase):
         ])
       ]),
       View(3, sections=[
-        Section(5, parentKey="chart", tableRef=1, fields=[
-          Field(13, colRef=2),
-          Field(14, colRef=3),
+        Section(6, parentKey="chart", tableRef=1, fields=[
+          Field(16, colRef=2),
+          Field(17, colRef=3),
         ]),
       ])
     ])
@@ -607,13 +607,13 @@ class TestUserActions(test_engine.EngineTestCase):
       orig_method()
     self.engine.assert_schema_consistent = types.MethodType(override, self.engine)
 
-    # Do a non-sschema action to ensure it doesn't get called.
+    # Do a non-schema action to ensure it doesn't get called.
     self.apply_user_action(['UpdateRecord', '_grist_Views', 2, {'name': 'A'}])
     self.assertEqual(count_calls[0], 0)
 
     # Do a schema action to ensure it gets called: this causes a table rename.
     # 7 is id of raw view section for the Tabl1 table
-    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 6, {'title': 'C'}])
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 7, {'title': 'C'}])
     self.assertEqual(count_calls[0], 1)
 
     self.assertTableData('_grist_Tables', cols="subset", data=[

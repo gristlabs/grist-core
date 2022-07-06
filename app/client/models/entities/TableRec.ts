@@ -30,6 +30,9 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
   tableName: modelUtil.KoSaveableObservable<string>;
   // Table name with a default value (which is tableId).
   tableNameDef: modelUtil.KoSaveableObservable<string>;
+  // Like tableNameDef, but formatted to be more suitable for displaying to
+  // users (e.g. including group columns for summary tables).
+  formattedTableName: ko.PureComputed<string>;
   // If user can select this table in various places.
   // Note: Some hidden tables can still be visible on RawData view.
   isHidden: ko.Computed<boolean>;
@@ -114,4 +117,9 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
       return table.tableId() || '';
     })
   );
+  this.formattedTableName = ko.pureComputed(() => {
+    return this.summarySourceTable()
+      ? `${this.tableNameDef()} ${this.groupDesc()}`
+      : this.tableNameDef();
+  });
 }

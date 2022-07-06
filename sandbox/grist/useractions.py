@@ -455,10 +455,17 @@ class UserActions(object):
     if (
         table_id == "_grist_Views_section"
         and any(rec.isRaw for i, rec in self._bulk_action_iter(table_id, row_ids))
-        # Only these fields are allowed to be modified
-        and not set(column_values) <= {"title", "options", "sortColRefs"}
     ):
-      raise ValueError("Cannot modify raw view section")
+      allowed_fields = {"title", "options", "sortColRefs"}
+      has_summary_section = any(rec.tableRef.summarySourceTable
+                                for i, rec in self._bulk_action_iter(table_id, row_ids))
+      if has_summary_section:
+        # When a group-by column is removed from a summary source table, the source table reference
+        # changes; we pre-emptively allow changes to tableRef here to avoid blocking such actions.
+        allowed_fields.add("tableRef")
+
+      if not set(column_values) <= allowed_fields:
+        raise ValueError("Cannot modify raw view section")
 
     if (
         table_id == "_grist_Views_section_field"
@@ -1734,12 +1741,12 @@ class UserActions(object):
 
     if raw_section:
       # Create raw view section
-      raw_section = self._create_plain_view_section(
+      raw_section = self.create_plain_view_section(
         result["id"],
         table_id,
         self._docmodel.view_sections,
         "record",
-        table_title
+        table_title if not summarySourceTableRef else ""
       )
 
     if primary_view or raw_section:
@@ -1800,7 +1807,7 @@ class UserActions(object):
     if groupby_colrefs is not None:
       section = self._summary.create_new_summary_section(table, groupby_cols, view, section_type)
     else:
-      section = self._create_plain_view_section(
+      section = self.create_plain_view_section(
         table.id,
         table.tableId,
         view.viewSections,
@@ -1813,7 +1820,7 @@ class UserActions(object):
       'sectionRef': section.id
     }
 
-  def _create_plain_view_section(self, tableRef, tableId, view_sections, section_type, title):
+  def create_plain_view_section(self, tableRef, tableId, view_sections, section_type, title):
     # If title is the same as tableId leave it empty
     if title == tableId:
       title = ''

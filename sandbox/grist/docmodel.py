@@ -73,8 +73,13 @@ class MetaTableExtras(object):
               if rec.summarySourceTable else None)
 
     def setAutoRemove(rec, table):
-      """Marks the table for removal if it's a summary table with no more view sections."""
-      table.docmodel.setAutoRemove(rec, rec.summarySourceTable and not rec.viewSections)
+      """
+      Marks the table for removal if it's a summary table with no more (non-raw) view sections.
+      """
+      is_summary_table = rec.summarySourceTable
+      view_sections_table = table.docmodel.get_table('_grist_Views_section')
+      has_view_sections = view_sections_table.lookupOne(isRaw=False, tableRef=rec.id)
+      table.docmodel.setAutoRemove(rec, is_summary_table and not has_view_sections)
 
 
   class _grist_Tables_column(object):

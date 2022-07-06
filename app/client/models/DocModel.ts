@@ -22,7 +22,8 @@ import {urlState} from 'app/client/models/gristUrlState';
 import MetaRowModel from 'app/client/models/MetaRowModel';
 import MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
-import {isHiddenTable, isRawTable} from 'app/common/isHiddenTable';
+import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
+import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
 
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
@@ -126,9 +127,11 @@ export class DocModel {
 
   public docInfoRow: DocInfoRec;
 
-  public allTables: KoArray<TableRec>;
-  public rawTables: KoArray<TableRec>;
-  public allTableIds: KoArray<string>;
+  public visibleTables: KoArray<TableRec>;
+  public rawDataTables: KoArray<TableRec>;
+  public rawSummaryTables: KoArray<TableRec>;
+
+  public visibleTableIds: KoArray<string>;
 
   // A mapping from tableId to DataTableModel for user-defined tables.
   public dataTables: {[tableId: string]: DataTableModel} = {};
@@ -161,12 +164,15 @@ export class DocModel {
 
     // An observable array of user-visible tables, sorted by tableId, excluding summary tables.
     // This is a publicly exposed member.
-    this.allTables = createUserTablesArray(this.tables);
-    this.rawTables = createRawTablesArray(this.tables);
+    this.visibleTables = createVisibleTablesArray(this.tables);
 
-    // An observable array of user-visible tableIds. A shortcut mapped from allTables.
-    const allTableIds = ko.computed(() => this.allTables.all().map(t => t.tableId()));
-    this.allTableIds = koArray.syncedKoArray(allTableIds);
+    // Observable arrays of raw data and summary tables, sorted by tableId.
+    this.rawDataTables = createRawDataTablesArray(this.tables);
+    this.rawSummaryTables = createRawSummaryTablesArray(this.tables);
+
+    // An observable array of user-visible tableIds. A shortcut mapped from visibleTables.
+    const visibleTableIds = ko.computed(() => this.visibleTables.all().map(t => t.tableId()));
+    this.visibleTableIds = koArray.syncedKoArray(visibleTableIds);
 
     // Create an observable array of RowModels for all the data tables. We'll trigger
     // onAddTable/onRemoveTable in response to this array's splice events below.
@@ -219,24 +225,40 @@ export class DocModel {
   }
 }
 
-
 /**
- * Helper to create an observable array of tables, sorted by tableId, and excluding hidden
- * tables.
+ * Creates an observable array of tables, sorted by tableId.
+ *
+ * An optional `filterFunc` may be specified to filter tables.
  */
-function createUserTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  const rowSource = new rowset.FilteredRowSource(r => !isHiddenTable(tablesModel.tableData, r));
+function createTablesArray(
+  tablesModel: MetaTableModel<TableRec>,
+  filterFunc: RowFilterFunc<rowset.RowId> = (_row) => true
+) {
+  const rowSource = new rowset.FilteredRowSource(filterFunc);
   rowSource.subscribeTo(tablesModel);
   // Create an observable RowModel array based on this rowSource, sorted by tableId.
   return tablesModel._createRowSetModel(rowSource, 'tableId');
 }
 
 /**
- * Helper to create an observable array of tables, sorted by tableId, and excluding summary tables.
+ * Returns an observable array of user tables, sorted by tableId, and excluding hidden/summary
+ * tables.
  */
- function createRawTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  const rowSource = new rowset.FilteredRowSource(r => isRawTable(tablesModel.tableData, r));
-  rowSource.subscribeTo(tablesModel);
-  // Create an observable RowModel array based on this rowSource, sorted by tableId.
-  return tablesModel._createRowSetModel(rowSource, 'tableId');
+function createVisibleTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
+  return createTablesArray(tablesModel, r => !isHiddenTable(tablesModel.tableData, r));
+}
+
+/**
+ * Returns an observable array of raw data tables, sorted by tableId, and excluding summary
+ * tables.
+ */
+function createRawDataTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
+  return createTablesArray(tablesModel, r => !isSummaryTable(tablesModel.tableData, r));
+}
+
+/**
+ * Returns an observable array of raw summary tables, sorted by tableId.
+ */
+ function createRawSummaryTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
+  return createTablesArray(tablesModel, r => isSummaryTable(tablesModel.tableData, r));
 }

@@ -182,7 +182,7 @@ export class Importer extends DisposableWithEvents {
   private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, (use) => [
     {value: NEW_TABLE, label: 'New Table'},
     ...(use(this._sourceInfoArray).length > 1 ? [{value: SKIP_TABLE, label: 'Skip'}] : []),
-    ...use(this._gristDoc.docModel.allTableIds.getObservable()).map((t) => ({value: t, label: t})),
+    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map((id) => ({value: id, label: id})),
   ]);
 
   // Source column labels for the selected import source, keyed by column id.

@@ -171,7 +171,7 @@ export class GristDoc extends DisposableWithEvents {
     this.docInfo = this.docModel.docInfoRow;
 
     this.hasDocTour = Computed.create(this, use =>
-      use(this.docModel.allTableIds.getObservable()).includes('GristDocTour'));
+      use(this.docModel.visibleTableIds.getObservable()).includes('GristDocTour'));
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 
@@ -911,7 +911,7 @@ export class GristDoc extends DisposableWithEvents {
    * Renames table. Method exposed primarily for tests.
    */
   public async renameTable(tableId: string, newTableName: string) {
-    const tableRec = this.docModel.allTables.all().find(t => t.tableId.peek() === tableId);
+    const tableRec = this.docModel.visibleTables.all().find(t => t.tableId.peek() === tableId);
     if (!tableRec) {
       throw new UserError(`No table with id ${tableId}`);
     }

@@ -124,7 +124,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   // Returns the rowModel for the referenced table, or null, if this is not a reference column.
   this.refTable = ko.pureComputed(() => {
     const refTableId = getReferencedTableId(this.type() || "");
-    return refTableId ? docModel.allTables.all().find(t => t.tableId() === refTableId) || null : null;
+    return refTableId ? docModel.visibleTables.all().find(t => t.tableId() === refTableId) || null : null;
   });
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol

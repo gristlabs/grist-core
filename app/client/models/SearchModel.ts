@@ -188,7 +188,7 @@ class FinderImpl implements IFinder {
     // If we are on a raw view page, pretend that we are looking at true pages.
     if ('data' === this._gristDoc.activeViewId.get()) {
       // Get all raw sections.
-      const rawSections = this._gristDoc.docModel.allTables.peek()
+      const rawSections = this._gristDoc.docModel.visibleTables.peek()
                               // Filter out those we don't have permissions to see (through ACL-tableId will be empty).
                               .filter(t => Boolean(t.tableId.peek()))
                               // sort in order that is the same as on the raw data list page,

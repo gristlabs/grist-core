@@ -126,9 +126,9 @@ class TestSummary(test_engine.EngineTestCase):
              formula="SUM($group.amount)"),
     ])
     summary_view1 = View(2, sections=[
-      Section(2, parentKey="record", tableRef=2, fields=[
-        Field(4, colRef=15),
-        Field(5, colRef=16),
+      Section(3, parentKey="record", tableRef=2, fields=[
+        Field(6, colRef=15),
+        Field(7, colRef=16),
       ])
     ])
     self.assertTables([self.starting_table, summary_table1])
@@ -156,10 +156,10 @@ class TestSummary(test_engine.EngineTestCase):
              formula="SUM($group.amount)"),
     ])
     summary_view2 = View(3, sections=[
-      Section(3, parentKey="record", tableRef=3, fields=[
-        Field(6, colRef=17),
-        Field(7, colRef=19),
-        Field(8, colRef=20),
+      Section(5, parentKey="record", tableRef=3, fields=[
+        Field(11, colRef=17),
+        Field(12, colRef=19),
+        Field(13, colRef=20),
       ])
     ])
     self.assertTables([self.starting_table, summary_table1, summary_table2])
@@ -197,11 +197,11 @@ class TestSummary(test_engine.EngineTestCase):
              formula="SUM($group.amount)"),
     ])
     summary_view3 = View(4, sections=[
-      Section(4, parentKey="record", tableRef=4, fields=[
-        Field(9, colRef=21),
-        Field(10, colRef=22),
-        Field(11, colRef=24),
-        Field(12, colRef=25),
+      Section(7, parentKey="record", tableRef=4, fields=[
+        Field(18, colRef=21),
+        Field(19, colRef=22),
+        Field(20, colRef=24),
+        Field(21, colRef=25),
       ])
     ])
     self.assertTables([self.starting_table, summary_table1, summary_table2, summary_table3])
@@ -281,11 +281,11 @@ class Address:
              formula="SUM($group.amount)"),
     ])
     summary_view = View(1, sections=[
-      Section(1, parentKey="record", tableRef=2, fields=[
-        Field(1, colRef=14),
-        Field(2, colRef=15),
-        Field(3, colRef=17),
-        Field(4, colRef=18),
+      Section(2, parentKey="record", tableRef=2, fields=[
+        Field(5, colRef=14),
+        Field(6, colRef=15),
+        Field(7, colRef=17),
+        Field(8, colRef=18),
       ])
     ])
     self.assertTables([self.starting_table, summary_table])
@@ -296,19 +296,19 @@ class Address:
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [12,11], None])
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
     summary_view2 = View(2, sections=[
-      Section(2, parentKey="record", tableRef=2, fields=[
-        Field(5, colRef=15),
-        Field(6, colRef=14),
-        Field(7, colRef=17),
-        Field(8, colRef=18),
+      Section(3, parentKey="record", tableRef=2, fields=[
+        Field(9, colRef=15),
+        Field(10, colRef=14),
+        Field(11, colRef=17),
+        Field(12, colRef=18),
       ])
     ])
     summary_view3 = View(3, sections=[
-      Section(3, parentKey="record", tableRef=2, fields=[
-        Field(9, colRef=14),
-        Field(10, colRef=15),
-        Field(11, colRef=17),
-        Field(12, colRef=18),
+      Section(4, parentKey="record", tableRef=2, fields=[
+        Field(13, colRef=14),
+        Field(14, colRef=15),
+        Field(15, colRef=17),
+        Field(16, colRef=18),
       ])
     ])
     # Verify that we have a new view, but are reusing the table.

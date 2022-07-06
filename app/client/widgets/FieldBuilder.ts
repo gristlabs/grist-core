@@ -289,7 +289,7 @@ export class FieldBuilder extends Disposable {
   // Builds the reference type table selector. Built when the column is type reference.
   public _buildRefTableSelect() {
     const allTables = Computed.create(null, (use) =>
-                                      use(this._docModel.allTableIds.getObservable()).map(tableId => ({
+                                      use(this._docModel.visibleTableIds.getObservable()).map(tableId => ({
                                         value: tableId,
                                         label: tableId,
                                         icon: 'FieldTable' as const

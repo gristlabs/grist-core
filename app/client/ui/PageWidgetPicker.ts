@@ -131,7 +131,7 @@ export function buildPageWidgetPicker(
     onSave: ISaveFunc,
     options: IOptions = {}) {
 
-  const tables = fromKo(docModel.allTables.getObservable());
+  const tables = fromKo(docModel.visibleTables.getObservable());
   const columns = fromKo(docModel.columns.createAllRowsModel('parentPos').getObservable());
 
   // default value for when it is omitted
