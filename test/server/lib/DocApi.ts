@@ -1511,11 +1511,11 @@ function testDocApi() {
       let resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
       resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
-      checkError(404, /Attachment not found: moo/, resp);
+      checkError(400, /parameter cannot be understood as an integer: moo/, resp);
       resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/22/download`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
       resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/moo/download`, chimpy);
-      checkError(404, /Attachment not found: moo/, resp);
+      checkError(400, /parameter cannot be understood as an integer: moo/, resp);
     });
 
     it("POST /docs/{did}/attachments produces reasonable errors", async function() {

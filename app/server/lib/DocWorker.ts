@@ -34,7 +34,13 @@ export class DocWorker {
       const docSession = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
                                              integerParam(req.query.docFD, 'docFD'));
       const activeDoc = docSession.activeDoc;
-      const ext = path.extname(stringParam(req.query.ident, 'ident'));
+      const colId = stringParam(req.query.colId, 'colId');
+      const tableId = stringParam(req.query.tableId, 'tableId');
+      const rowId = integerParam(req.query.rowId, 'rowId');
+      const cell = {colId, tableId, rowId};
+      const attId = integerParam(req.query.attId, 'attId');
+      const attRecord = activeDoc.getAttachmentMetadata(attId);
+      const ext = path.extname(attRecord.fileIdent);
       const type = mimeTypes.lookup(ext);
 
       let inline = Boolean(req.query.inline);
@@ -44,7 +50,7 @@ export class DocWorker {
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
       const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
-      const data = await activeDoc.getAttachmentData(docSession, stringParam(req.query.ident, 'ident'));
+      const data = await activeDoc.getAttachmentData(docSession, attRecord, cell);
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)

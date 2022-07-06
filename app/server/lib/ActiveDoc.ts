@@ -51,13 +51,14 @@ import {
   getUsageRatio,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
+import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {Product} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
-import {MetaRowRecord} from 'app/common/TableData';
+import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
@@ -659,7 +660,7 @@ export class ActiveDoc extends EventEmitter {
                                                 this._recoveryMode);
 
     await this._actionHistory.initialize();
-    this._granularAccess = new GranularAccess(this.docData, this.docClients, (query) => {
+    this._granularAccess = new GranularAccess(this.docData, this.docStorage, this.docClients, (query) => {
       return this._fetchQueryFromDB(query, false);
     }, this.recoveryMode, this.getHomeDbManager(), this.docName);
     await this._granularAccess.update();
@@ -811,14 +812,12 @@ export class ActiveDoc extends EventEmitter {
    * Returns the record from _grist_Attachments table for the given attachment ID,
    * or throws an error if not found.
    */
-  public getAttachmentMetadata(attId: number|string): MetaRowRecord<'_grist_Attachments'> {
+  public getAttachmentMetadata(attId: number): MetaRowRecord<'_grist_Attachments'> {
     // docData should always be available after loadDoc() or createDoc().
     if (!this.docData) {
       throw new Error("No doc data");
     }
-    // Parse strings into numbers to make more convenient to call from route handlers.
-    const attachmentId: number = (typeof attId === 'string') ? parseInt(attId, 10) : attId;
-    const attRecord = this.docData.getMetaTable('_grist_Attachments').getRecord(attachmentId);
+    const attRecord = this.docData.getMetaTable('_grist_Attachments').getRecord(attId);
     if (!attRecord) {
       throw new ApiError(`Attachment not found: ${attId}`, 404);
     }
@@ -826,16 +825,49 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Given the fileIdent of an attachment, returns a promise for the attachment data.
-   * @param {String} fileIdent: The unique identifier of the attachment (as stored in fileIdent
-   *    field of the _grist_Attachments table).
+   * Given a _gristAttachments record, returns a promise for the attachment data.
    * @returns {Promise<Buffer>} Promise for the data of this attachment; rejected on error.
    */
-  public async getAttachmentData(docSession: OptDocSession, fileIdent: string): Promise<Buffer> {
-    // We don't know for sure whether the attachment is available via a table the user
-    // has access to, but at least they are presenting a SHA1 checksum of the file content,
-    // and they have at least view access to the document to get to this point.  So we go ahead
-    // and serve the attachment.
+  public async getAttachmentData(docSession: OptDocSession, attRecord: MetaRowRecord<"_grist_Attachments">,
+                                 cell?: SingleCell): Promise<Buffer> {
+    const attId = attRecord.id;
+    const fileIdent = attRecord.fileIdent;
+    if (
+      await this._granularAccess.canReadEverything(docSession) ||
+      await this.canDownload(docSession)
+    ) {
+      // Do not need to sweat over access to attachments if user can
+      // read everything or download everything.
+    } else if (cell) {
+      // Only provide the download if the user has access to the cell
+      // they specified, and that cell is in an attachment column,
+      // and the cell contains the specified attachment.
+      await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
+    } else {
+      // Find cells that refer to the given attachment.
+      const cells = await this.docStorage.findAttachmentReferences(attId);
+      // Run through them to see if the user has access to any of them.
+      // If so, we'll allow the download. We'd expect in a typical document
+      // this this will be a small list of cells, typically 1 or less, but
+      // of course extreme cases are possible.
+      let goodCell: SingleCell|undefined;
+      for (const possibleCell of cells) {
+        try {
+          await this._granularAccess.assertAttachmentAccess(docSession, possibleCell, attId);
+          goodCell = possibleCell;
+          break;
+        } catch (e) {
+          if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
+            continue;
+          }
+          throw e;
+        }
+      }
+      if (!goodCell) {
+        // We found no reason to allow this user to access the attachment.
+        throw new ApiError('Cannot access attachment', 403);
+      }
+    }
     const data = await this.docStorage.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);

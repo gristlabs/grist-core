@@ -204,6 +204,7 @@ export class FieldEditor extends Disposable {
       gristDoc: this._gristDoc,
       field: this._field,
       cellValue,
+      rowId: this._editRow.id(),
       formulaError: error,
       editValue,
       cursorPos,

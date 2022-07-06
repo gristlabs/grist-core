@@ -17,6 +17,7 @@ export interface Options {
   gristDoc: GristDoc;
   field: ViewFieldRec;
   cellValue: CellValue;
+  rowId: number;
   formulaError?: Observable<CellValue>;
   editValue?: string;
   cursorPos: number;

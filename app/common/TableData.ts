@@ -22,6 +22,12 @@ interface ColData {
   values: CellValue[];
 }
 
+export interface SingleCell {
+  tableId: string;
+  colId: string;
+  rowId: number;
+}
+
 /**
  * An interface for a table with rows that may be skipped.
  */

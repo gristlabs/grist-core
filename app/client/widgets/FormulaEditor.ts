@@ -292,6 +292,7 @@ export function openFormulaEditor(options: {
   const editor = FormulaEditor.create(holder, {
     gristDoc,
     field,
+    rowId: editRow ? editRow.id() : 0,
     cellValue: column.formula(),
     formulaError: editRow ? getFormulaError(gristDoc, editRow, column) : undefined,
     editValue: options.editValue,

@@ -258,8 +258,14 @@ export function stringParam(p: any, name: string, allowed?: string[]): string {
 
 export function integerParam(p: any, name: string): number {
   if (typeof p === 'number') { return Math.floor(p); }
-  if (typeof p === 'string') { return parseInt(p, 10); }
-  throw new Error(`${name} parameter should be an integer: ${p}`);
+  if (typeof p === 'string') {
+    const result = parseInt(p, 10);
+    if (isNaN(result)) {
+      throw new ApiError(`${name} parameter cannot be understood as an integer: ${p}`, 400);
+    }
+    return result;
+  }
+  throw new ApiError(`${name} parameter should be an integer: ${p}`, 400);
 }
 
 export function optIntegerParam(p: any): number|undefined {

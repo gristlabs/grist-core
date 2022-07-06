@@ -14,6 +14,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {isList, isListType, isRefListType} from 'app/common/gristTypes';
 import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
+import {SingleCell} from 'app/common/TableData';
 import {GristObjCode} from "app/plugin/GristData";
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ExpandedQuery} from 'app/server/lib/ExpandedQuery';
@@ -800,6 +801,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   /**
+   * Look up Grist type of column.
+   */
+  public getColumnType(tableId: string, colId: string): string|undefined {
+    return this._docSchema[tableId]?.[colId];
+  }
+
+  /**
    * Fetches all rows of the table with the given rowIds.
    */
   public async fetchActionData(tableId: string, rowIds: number[], colIds?: string[]): Promise<TableDataAction> {
@@ -1303,6 +1311,32 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       WHERE used != (timeDeleted IS NULL);  -- only include rows that need updating
     `;
     return (await this.all(sql)) as any[];
+  }
+
+  /**
+   * Collect all cells that refer to a particular attachment. Ideally this is
+   * something we could use an index for. Regular indexes in SQLite don't help.
+   * FTS5 works, but is somewhat overkill.
+   */
+  public async findAttachmentReferences(attId: number): Promise<Array<SingleCell>> {
+    const queries: string[] = [];
+    // Switch quotes so to insert a table or column name as a string literal
+    // rather than as an identifier.
+    function asLiteral(name: string) {
+      return quoteIdent(name).replace(/"/g, '\'');
+    }
+    for (const [tableId, cols] of Object.entries(this._docSchema)) {
+      for (const [colId, type] of Object.entries(cols)) {
+        if (type !== "Attachments") { continue; }
+        queries.push(`SELECT
+          t.id as rowId,
+          ${asLiteral(tableId)} as tableId,
+          ${asLiteral(colId)} as colId
+        FROM ${quoteIdent(tableId)} AS t, json_each(t.${quoteIdent(colId)}) as a
+        WHERE a.value = ${attId}`);
+      }
+    }
+    return (await this.all(queries.join(' UNION ALL '))) as any[];
   }
 
   /**

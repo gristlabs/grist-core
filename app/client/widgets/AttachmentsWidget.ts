@@ -10,6 +10,7 @@ import {encodeQueryParams} from 'app/common/gutil';
 import {MetaTableData} from 'app/client/models/TableData';
 import {UploadResult} from 'app/common/uploads';
 import {extname} from 'path';
+import { SingleCell } from 'app/common/TableData';
 
 const testId: TestId = makeTestId('test-pw-');
 
@@ -90,6 +91,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const values = Computed.create(null, fromKo(cellValue), (use, _cellValue) =>
       Array.isArray(_cellValue) ? _cellValue.slice(1) : []);
 
+    const colId = this.field.colId();
+    const tableId = this.field.column().table().tableId();
     return attachmentWidget(
       dom.autoDispose(values),
 
@@ -98,9 +101,12 @@ export class AttachmentsWidget extends NewAbstractWidget {
         dom.cls('attachment_hover_icon', (use) => use(values).length > 0),
         dom.on('click', () => this._selectAndSave(cellValue))
       ),
-      dom.forEach(values, (value: number) =>
-        isNaN(value) ? null : this._buildAttachment(value, values)
-      ),
+      dom.maybe(_row.id, rowId => {
+        return dom.forEach(values, (value: number) =>
+          isNaN(value) ? null : this._buildAttachment(value, values, {
+            rowId, colId, tableId,
+          }));
+      }),
       dom.on('drop', ev => this._uploadAndSave(cellValue, ev.dataTransfer!.files))
     );
   }
@@ -121,7 +127,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     );
   }
 
-  protected _buildAttachment(value: number, allValues: Computed<number[]>): Element {
+  protected _buildAttachment(value: number, allValues: Computed<number[]>, cell: SingleCell): Element {
     const filename = this._attachmentsTable.getValue(value, 'fileName')!;
     const fileIdent = this._attachmentsTable.getValue(value, 'fileIdent')!;
     const height = this._attachmentsTable.getValue(value, 'imageHeight')!;
@@ -134,7 +140,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       dom.style('width', (use) => `${parseInt(use(this._height), 10) * ratio}px`),
       // TODO: Update to legitimately determine whether a file preview exists.
       hasPreview ? dom('img', {style: 'height: 100%; min-width: 100%; vertical-align: top;'},
-        dom.attr('src', this._getUrl(value))
+        dom.attr('src', this._getUrl(value, cell))
       ) : renderFileType(filename, fileIdent, this._height),
       // Open editor as if with input, using it to tell it which of the attachments to show. We
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
@@ -145,18 +151,14 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   // Returns the attachment download url.
-  private _getUrl(rowId: number): string {
-    const ident = this._attachmentsTable.getValue(rowId, 'fileIdent');
-    if (!ident) {
-      return '';
-    } else {
-      const docComm = this._getDocComm();
-      return docComm.docUrl('attachment') + '?' + encodeQueryParams({
-        ...docComm.getUrlParams(),
-        ident,
-        name: this._attachmentsTable.getValue(rowId, 'fileName')
-      });
-    }
+  private _getUrl(attId: number, cell: SingleCell): string {
+    const docComm = this._getDocComm();
+    return docComm.docUrl('attachment') + '?' + encodeQueryParams({
+      ...docComm.getUrlParams(),
+      ...cell,
+      attId,
+      name: this._attachmentsTable.getValue(attId, 'fileName')
+    });
   }
 
   private async _selectAndSave(value: SavingObservable<number[]>): Promise<void> {

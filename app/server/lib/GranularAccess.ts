@@ -21,8 +21,9 @@ import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
-import { isCensored } from 'app/common/gristTypes';
+import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
+import { SingleCell } from 'app/common/TableData';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -31,6 +32,7 @@ import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
          OptDocSession } from 'app/server/lib/DocSession';
+import { DocStorage } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
@@ -187,6 +189,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   public constructor(
     private _docData: DocData,
+    private _docStorage: DocStorage,
     private _docClients: DocClients,
     private _fetchQueryFromDB: (query: ServerQuery) => Promise<TableDataAction>,
     private _recoveryMode: boolean,
@@ -237,6 +240,57 @@ export class GranularAccess implements GranularAccessForBundle {
   public async hasTableAccess(docSession: OptDocSession, tableId: string) {
     const pset = await this.getTableAccess(docSession, tableId);
     return this.getReadPermission(pset) !== 'deny';
+  }
+
+  /**
+   * Get content of a given cell, if user has read access.
+   * Throws if not.
+   */
+  public async getCellValue(docSession: OptDocSession, cell: SingleCell): Promise<CellValue> {
+    function fail(): never {
+      throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
+    }
+    const pset = await this.getTableAccess(docSession, cell.tableId);
+    const tableAccess = this.getReadPermission(pset);
+    if (tableAccess === 'deny') { fail(); }
+    const rows = await this._fetchQueryFromDB({
+      tableId: cell.tableId,
+      filters: { id: [cell.rowId] }
+    });
+    if (!rows || rows[2].length === 0) { fail(); }
+    const rec = new RecordView(rows, 0);
+    const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec: rec};
+    const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
+    const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
+    if (rowAccess === 'deny') { fail(); }
+    if (rowAccess !== 'allow') {
+      const colAccess = rowPermInfo.getColumnAccess(cell.tableId, cell.colId).perms.read;
+      if (colAccess === 'deny') { fail(); }
+    }
+    const colValues = rows[3];
+    if (!(cell.colId in colValues)) { fail(); }
+    return rec.get(cell.colId);
+  }
+
+  /**
+   * Checks whether the specified cell is accessible by the user, and contains
+   * the specified attachment. Throws with ACL_DENY code if not.
+   */
+  public async assertAttachmentAccess(docSession: OptDocSession, cell: SingleCell, attId: number): Promise<void> {
+    const value = await this.getCellValue(docSession, cell);
+
+    // Need to check column is actually an attachment column.
+    if (this._docStorage.getColumnType(cell.tableId, cell.colId) !== 'Attachments') {
+      throw new ErrorWithCode('ACL_DENY', 'not an attachment column');
+    }
+
+    // Check that material in cell includes the attachment.
+    if (!gristTypes.isList(value)) {
+      throw new ErrorWithCode('ACL_DENY', 'not a list');
+    }
+    if (value.indexOf(attId) <= 0) {
+      throw new ErrorWithCode('ACL_DENY', 'attachment not present in cell');
+    }
   }
 
   /**
@@ -1728,7 +1782,7 @@ export class GranularAccess implements GranularAccessForBundle {
       return [filteredAction];
     }
 
-    return filterColValues(filteredAction, (idx) => censoredRows.has(idx), isCensored);
+    return filterColValues(filteredAction, (idx) => censoredRows.has(idx), gristTypes.isCensored);
   }
 
   /**
