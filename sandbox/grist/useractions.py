@@ -997,7 +997,8 @@ class UserActions(object):
   def BulkRemoveRecord(self, table_id, row_ids):
     # table_rec will not be found for metadata tables, but they are not summary tables anyway.
     table_rec = self._docmodel.tables.lookupOne(tableId=table_id)
-    if table_rec and table_rec.summarySourceTable:
+    # docmodel.setAutoRemove is used for empty summary table rows, but does so 'indirectly'
+    if table_rec and table_rec.summarySourceTable and self._indirection_level == DIRECT_ACTION:
       raise ValueError("Cannot remove record from summary table")
 
     method = self._overrides.get(('BulkRemoveRecord', table_id), self.doBulkRemoveRecord)

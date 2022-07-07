@@ -168,19 +168,16 @@ class TestSummaryChoiceList(EngineTestCase):
       [21, ["a"], ["c", "d"], "foo"],
     ])
 
-    # Verify that the summary table rows containing 'b' are empty
+    # Verify that the summary table rows containing 'b' are removed
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [21], 1],
-      [2, "b", [], 0],
     ])
 
     self.assertTableData('GristSummary_6_Source2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [21], 1],
       [2, "a", "d", [21], 1],
-      [3, "b", "c", [], 0],
-      [4, "b", "d", [], 0],
     ])
 
     # Add 'e' to choices2
@@ -190,7 +187,6 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [21], 1],
-      [2, "b", [], 0],
     ])
 
     # New row added for 'e'
@@ -198,9 +194,7 @@ class TestSummaryChoiceList(EngineTestCase):
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [21], 1],
       [2, "a", "d", [21], 1],
-      [3, "b", "c", [], 0],
-      [4, "b", "d", [], 0],
-      [5, "a", "e", [21], 1],
+      [3, "a", "e", [21], 1],
     ])
 
     # Empty choices1
@@ -213,44 +207,26 @@ class TestSummaryChoiceList(EngineTestCase):
 
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "group", "count"],
-      [1, "a", [], 0],
-      [2, "b", [], 0],
-      [3, "", [21], 1],
+      [2, "", [21], 1],
     ])
 
     self.assertTableData('GristSummary_6_Source2', data=[
       ["id", "choices1", "choices2", "group", "count"],
-      [1, "a", "c", [], 0],
-      [2, "a", "d", [], 0],
-      [3, "b", "c", [], 0],
-      [4, "b", "d", [], 0],
-      [5, "a", "e", [], 0],
-      [6, "", "c", [21], 1],
-      [7, "", "d", [21], 1],
-      [8, "", "e", [21], 1],
+      [4, "", "c", [21], 1],
+      [5, "", "d", [21], 1],
+      [6, "", "e", [21], 1],
     ])
 
     # Remove record from source
     self.remove_record("Source", 21)
 
-    # All summary rows are now empty
+    # All summary rows are now empty and thus removed
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "group", "count"],
-      [1, "a", [], 0],
-      [2, "b", [], 0],
-      [3, "", [], 0],
     ])
 
     self.assertTableData('GristSummary_6_Source2', data=[
       ["id", "choices1", "choices2", "group", "count"],
-      [1, "a", "c", [], 0],
-      [2, "a", "d", [], 0],
-      [3, "b", "c", [], 0],
-      [4, "b", "d", [], 0],
-      [5, "a", "e", [], 0],
-      [6, "",  "c", [], 0],
-      [7, "",  "d", [], 0],
-      [8, "",  "e", [], 0],
     ])
 
     # Make rows with every combination of {a,b,ab} and {c,d,cd}
@@ -297,14 +273,10 @@ class TestSummaryChoiceList(EngineTestCase):
     summary_data = [
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [101, 103, 107, 109], 4],
-      [2, "a", "d", [104, 106, 107, 109], 4],
-      [3, "b", "c", [102, 103, 108, 109], 4],
+      [2, "b", "c", [102, 103, 108, 109], 4],
+      [3, "a", "d", [104, 106, 107, 109], 4],
       [4, "b", "d", [105, 106, 108, 109], 4],
-      [5, "a", "e", [], 0],
-      [6, "", "c", [], 0],
-      [7, "", "d", [], 0],
-      [8, "", "e", [], 0],
-      [9, "", "", [110], 1],
+      [5, "", "", [110], 1],
     ]
 
     self.assertTableData('GristSummary_6_Source2', data=summary_data)
@@ -429,18 +401,15 @@ class TestSummaryChoiceList(EngineTestCase):
        [5, 6, 7, 8],
        {'choices1': [u'aa', u'aa', u'bb', u'bb'],
         'choices2': [u'c', u'd', u'c', u'd']}],
+      ['BulkRemoveRecord', 'GristSummary_6_Source', [1, 2, 3, 4]],
       ['BulkUpdateRecord',
        'GristSummary_6_Source',
-       [1, 2, 3, 4, 5, 6, 7, 8],
-       {'count': [0, 0, 0, 0, 1, 1, 1, 1]}],
+       [5, 6, 7, 8],
+       {'count': [1, 1, 1, 1]}],
       ['BulkUpdateRecord',
        'GristSummary_6_Source',
-       [1, 2, 3, 4, 5, 6, 7, 8],
-       {'group': [['L'],
-                  ['L'],
-                  ['L'],
-                  ['L'],
-                  ['L', 21],
+       [5, 6, 7, 8],
+       {'group': [['L', 21],
                   ['L', 21],
                   ['L', 21],
                   ['L', 21]]}]
@@ -456,14 +425,6 @@ class TestSummaryChoiceList(EngineTestCase):
     # left over from each rename
     self.assertTableData('GristSummary_6_Source', data=[
       ["id", "choices1", "choices2", "group", "count"],
-      [1, "a", "c", [], 0],
-      [2, "a", "d", [], 0],
-      [3, "b", "c", [], 0],
-      [4, "b", "d", [], 0],
-      [5, "aa", "c", [], 0],
-      [6, "aa", "d", [], 0],
-      [7, "bb", "c", [], 0],
-      [8, "bb", "d", [], 0],
       [9, "aa", "cc", [21], 1],
       [10, "aa", "dd", [21], 1],
       [11, "bb", "cc", [21], 1],

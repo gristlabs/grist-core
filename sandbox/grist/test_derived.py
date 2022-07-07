@@ -158,14 +158,15 @@ class TestDerived(test_engine.EngineTestCase):
         actions.BulkUpdateRecord("Orders", [2, 6, 7], {"product": ["B", "B", "C"]}),
         actions.AddRecord("GristSummary_6_Orders", 7, {'year': 2013, 'product': 'B'}),
         actions.AddRecord("GristSummary_6_Orders", 8, {'year': 2015, 'product': 'C'}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
-          "amount": [15.0, 86.0, 0, 17.0, 15.0, 17.0]
+        actions.RemoveRecord("GristSummary_6_Orders", 4),
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+          "amount": [15.0, 86.0, 17.0, 15.0, 17.0]
         }),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
-          "count": [1, 3, 0, 1, 1, 1]
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+          "count": [1, 3, 1, 1, 1]
         }),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,4,5,7,8], {
-          "group": [[3], [4,5,6], [], [10], [2], [7]]
+        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+          "group": [[3], [4,5,6], [10], [2], [7]]
         }),
       ],
     })
@@ -177,7 +178,6 @@ class TestDerived(test_engine.EngineTestCase):
       [1,   2012,   "A",  1,  15.0,   [1]],
       [2,   2013,   "A",  1,  15.0,   [3]],
       [3,   2014,   "B",  3,  86.0,   [4,5,6]],
-      [4,   2014,   "A",  0,  0.0,    []],
       [5,   2015,   "A",  1,  17.0,   [10]],
       [6,   2015,   "B",  2,  72.0,   [8,9]],
       [7,   2013,   "B",  1,  15.0,   [2]],
@@ -274,7 +274,6 @@ class TestDerived(test_engine.EngineTestCase):
     # Update a record so that a new line appears in the summary table.
     out_actions_update = self.update_record("Orders", 1, year=2007)
     self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
-      [1,   2012,   0,  0.0,    []],
       [2,   2013,   2,  30.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
       [4,   2015,   4,  106.0,  [7,8,9,10]],
@@ -291,13 +290,18 @@ class TestDerived(test_engine.EngineTestCase):
     ])
     self.assertPartialOutActions(out_actions_undo, {
       "stored": [
-        actions.UpdateRecord("GristSummary_6_Orders", 1, {"group": [1]}),
-        actions.UpdateRecord("GristSummary_6_Orders", 1, {"count": 1}),
-        actions.UpdateRecord("GristSummary_6_Orders", 1, {"amount": 15.0}),
+        actions.AddRecord("GristSummary_6_Orders", 1, {
+          "amount": 15.0, "count": 1, "group": [1], "year": 2012
+        }),
         actions.RemoveRecord("GristSummary_6_Orders", 5),
         actions.UpdateRecord("Orders", 1, {"year": 2012}),
       ],
-      "calls": {"GristSummary_6_Orders": {"group": 1, "amount": 1, "count": 1},
-                "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
-                           "#summary#GristSummary_6_Orders": 1}}
+      "calls": {
+        "GristSummary_6_Orders": {
+          "#lookup#": 1, "#lookup#year": 1, "group": 1, "amount": 1, "count": 1
+        },
+        "Orders": {
+          "#lookup##summary#GristSummary_6_Orders": 1, "#summary#GristSummary_6_Orders": 1,
+        },
+      },
     })

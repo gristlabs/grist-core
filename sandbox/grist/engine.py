@@ -819,16 +819,21 @@ class Engine(object):
           # For common-case formulas, all cells in a column are likely to fail in the same way,
           # so don't bother trying more from this column until we've reordered.
           return
-
-        making_request = False
+        save_value = True
+        value = None
         try:
           # We figure out if we've hit a cycle here.  If so, we just let _recompute_on_cell
           # know, so it can set the cell value appropriately and do some other bookkeeping.
           cycle = required and (node, row_id) in self._locked_cells
           value = self._recompute_one_cell(table, col, row_id, cycle=cycle, node=node)
+        except table_module.EmptySummaryRow:
+          # This record is going to be deleted after the update loop completes.
+          # Don't save a value for it because that will lead to broken undo actions
+          # trying to update a record that doesn't exist.
+          save_value = False
         except RequestingError:
-          making_request = True
-          value = RequestingError
+          # The formula will be evaluated again soon when we have a response.
+          save_value = False
         except OrderError as e:
           if not required:
             # We're out of order, but for a cell we were evaluating opportunistically.
@@ -857,9 +862,7 @@ class Engine(object):
         if column.is_validation_column_name(col.col_id):
           value = (value in (True, None))
 
-        # When the formula raises a RequestingError, leave the existing value in the cell.
-        # The formula will be evaluated again soon when we have a response.
-        if not making_request:
+        if save_value:
           # Convert the value, and if needed, set, and include into the returned action.
           value = col.convert(value)
           previous = col.raw_get(row_id)
@@ -953,8 +956,9 @@ class Engine(object):
         raise self._cell_required_error  # pylint: disable=raising-bad-type
       self.formula_tracer(col, record)
       return result
-    except MemoryError:
+    except (MemoryError, table_module.EmptySummaryRow):
       # Don't try to wrap memory errors.
+      # EmptySummaryRow should be handled in _recompute_step
       raise
     except:  # pylint: disable=bare-except
       # Since col.method runs untrusted user code, we use a bare except to catch all

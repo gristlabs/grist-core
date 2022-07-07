@@ -459,9 +459,10 @@ class Address:
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.UpdateRecord(source_tbl_name, 28, {'state': 'MA'}),
-        actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'amount': [5.0 + 8.0, 0.0]}),
-        actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'count': [2, 0]}),
-        actions.BulkUpdateRecord(summary_tbl_name, [5,7], {'group': [[25, 28], []]}),
+        actions.RemoveRecord(summary_tbl_name, 7),
+        actions.UpdateRecord(summary_tbl_name, 5, {'amount': 5.0 + 8.0}),
+        actions.UpdateRecord(summary_tbl_name, 5, {'count': 2}),
+        actions.UpdateRecord(summary_tbl_name, 5, {'group': [25, 28]}),
       ]
     })
 
@@ -522,7 +523,6 @@ class Address:
       [ 4,    "Chicago",  "IL"   , 1,       4.        ],
       [ 5,    "Bedford",  "MA"   , 1,       108.      ],
       [ 6,    "Buffalo",  "NY"   , 1,       7.        ],
-      [ 7,    "Bedford",  "NY"   , 0,       0.        ],
       [ 8,    "Boston",   "MA"   , 1,       9.        ],
       [ 9,    "Yonkers",  "NY"   , 1,       10.       ],
       [ 10,   "Salem",    "MA"   , 1,       5.0       ],

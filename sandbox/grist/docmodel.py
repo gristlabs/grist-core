@@ -221,7 +221,8 @@ class DocModel(object):
     Marks a record for automatic removal. To use, create a formula in your table, e.g.
     'setAutoRemove', which calls `table.docmodel.setAutoRemove(boolean_value)`. Whenever it gets
     reevaluated and the boolean_value is true, the record will be automatically removed.
-    For now, it is only usable in metadata tables, although we could extend to user tables.
+    It's mostly used for metadata tables. It's also used for summary table rows with empty groups,
+    which requires a bit of extra care.
     """
     if yes_or_no:
       self._auto_remove_set.add(record)
@@ -235,7 +236,9 @@ class DocModel(object):
     # Sort to make sure removals are done in deterministic order.
     gone_records = sorted(self._auto_remove_set)
     self._auto_remove_set.clear()
-    self.remove(gone_records)
+    # setAutoRemove is called by formulas, notably summary tables, and shouldn't be blocked by ACL.
+    with self._engine.user_actions.indirect_actions():
+      self.remove(gone_records)
     return bool(gone_records)
 
   def remove(self, records):
