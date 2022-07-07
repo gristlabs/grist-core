@@ -705,11 +705,10 @@ class UserActions(object):
       if has_diff_value(values, 'colId', c.colId):
         self._do_doc_action(actions.RenameColumn(c.parentId.tableId, c.colId, values['colId']))
 
-    # If we change a column's type, we should ALSO unset each affected field's widgetOptions and
-    # displayCol.
+    # If we change a column's type, we should ALSO unset each affected field's displayCol.
     type_changed = [c for c, values in update_pairs if has_diff_value(values, 'type', c.type)]
     self._docmodel.update([f for c in type_changed for f in c.viewFields],
-                          widgetOptions='', displayCol=0)
+                          displayCol=0)
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
 
@@ -820,10 +819,8 @@ class UserActions(object):
       # Look at the actual data for that column (first 1000 values) to decide on the type.
       col_values['type'] = guess_type(self._get_column_values(col), convert=False)
 
-    # If changing the type of a column, unset its widgetOptions, displayCol and rules by default.
+    # If changing the type of a column, unset its displayCol by default.
     if 'type' in col_values:
-      col_values.setdefault('widgetOptions', '')
-      col_values.setdefault('rules', None)
       col_values.setdefault('displayCol', 0)
 
     # Collect all updates for dependent summary columns.

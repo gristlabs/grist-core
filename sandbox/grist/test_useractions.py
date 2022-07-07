@@ -104,7 +104,6 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, { "stored": [
       ['ModifyColumn', 'Schools', 'city', {'type': 'Ref:Address'}],
       ['UpdateRecord', 'Schools', 4, {'city': 0}],
-      ['UpdateRecord', '_grist_Views_section_field', 1, {'widgetOptions': ''}],
       ['UpdateRecord', '_grist_Tables_column', 23, {
         'type': 'Ref:Address', 'widgetOptions': 'world'
       }],

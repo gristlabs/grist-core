@@ -11,7 +11,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import NumberParse from 'app/common/NumberParse';
-import {dateTimeWidgetOptions, guessDateFormat} from 'app/common/parseDate';
+import {dateTimeWidgetOptions, guessDateFormat, timeFormatOptions} from 'app/common/parseDate';
 import {TableData} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 
@@ -87,31 +87,60 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
                                            toTypeMaybeFull: string): Promise<ColInfo> {
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
-  let widgetOptions: any = null;
-  let rules: gristTypes.RefListValue = null;
+
+  const visibleCol = origCol.visibleColModel();
+  // Column used to derive previous widget options and sample values for guessing
+  const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
+  let widgetOptions = {...(sourceCol.widgetOptionsJson() || {})};
+
+  if (isReferenceCol(origCol)) {
+    // While reference columns copy most options from their visible column, conditional style rules are kept
+    // from the original reference column for a few reasons:
+    // 1. The rule formula of the visible column is less likely to make sense after conversion,
+    //    especially if the reference points to a different table.
+    // 2. Overwriting the conditional styles of the original reference column could be annoying, whereas
+    //    most other widget options in reference columns aren't particularly valuable.
+    // 3. The `rules` column (i.e. a reflist to other formula columns) can't simply be copied because those rule columns
+    //    can't currently be shared by multiple columns.
+    // So in general we keep `rules: origCol.rules()` (further below) and the corresponding
+    // `widgetOptions.rulesOptions`.
+    // A quirk of this is that the default (non-conditional) cell style can still be copied from the visible column,
+    // so a subset of the overall cell styling can change.
+    delete widgetOptions.rulesOptions;
+    const {rulesOptions} = origCol.widgetOptionsJson() || {};
+    if (rulesOptions) {
+      widgetOptions.rulesOptions = rulesOptions;
+    }
+  }
 
   const colInfo: ColInfo = {
     type: addColTypeSuffix(toTypeMaybeFull, origCol, docModel),
     isFormula: true,
     visibleCol: 0,
     formula: "CURRENT_CONVERSION(rec)",
-    rules,
+    rules: origCol.rules(),
   };
 
-  const visibleCol = origCol.visibleColModel();
-  // Column used to derive previous widget options and sample values for guessing
-  const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
-  const prevOptions = sourceCol.widgetOptionsJson.peek() || {};
-  const prevRules = sourceCol.rules.peek();
   switch (toType) {
+    case 'Bool':
+      // Most types use a TextBox as the default widget.
+      // We don't want to reuse that for Toggle columns, which should be a CheckBox by default.
+      delete widgetOptions.widget;
+      break;
     case 'Date':
     case 'DateTime': {
-      let {dateFormat} = prevOptions;
+      let {dateFormat} = widgetOptions;
       if (!dateFormat) {
+        // Guess date and time format if there aren't any already
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
         dateFormat = guessDateFormat(colValues.map(String));
+        widgetOptions = {...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true))};
       }
-      widgetOptions = dateTimeWidgetOptions(dateFormat, true);
+      if (toType === 'DateTime' && !widgetOptions.timeFormat) {
+        // Ensure DateTime columns have a time format. This is needed when converting from a Date column.
+        widgetOptions.timeFormat = timeFormatOptions[0];
+        widgetOptions.isCustomTimeFormat = false;
+      }
       break;
     }
     case 'Numeric':
@@ -119,34 +148,27 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       if (!["Numeric", "Int"].includes(sourceCol.type())) {
         const numberParse = NumberParse.fromSettings(docModel.docData.docSettings());
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
-        widgetOptions = numberParse.guessOptions(colValues.filter(isString));
-      } else {
-        widgetOptions = prevOptions;
-        rules = prevRules;
+        widgetOptions = {...widgetOptions, ...numberParse.guessOptions(colValues.filter(isString))};
       }
       break;
     }
     case 'Choice': {
-      if (Array.isArray(prevOptions.choices)) {
-        // Use previous choices if they are set, e.g. if converting from ChoiceList
-        widgetOptions = {choices: prevOptions.choices, choiceOptions: prevOptions.choiceOptions};
-      } else {
+      // Use previous choices if they are set, e.g. if converting from ChoiceList
+      if (!Array.isArray(widgetOptions.choices)) {
         // Set suggested choices. Limit to 100, since too many choices is more likely to cause
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
         const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
           columnData.delete("");
           columnData.delete(null);
-          widgetOptions = {choices: Array.from(columnData, String)};
+          widgetOptions = {...widgetOptions, choices: Array.from(columnData, String)};
         }
       }
       break;
     }
     case 'ChoiceList': {
-      if (Array.isArray(prevOptions.choices)) {
-        // Use previous choices if they are set, e.g. if converting from ChoiceList
-        widgetOptions = {choices: prevOptions.choices, choiceOptions: prevOptions.choiceOptions};
-      } else {
+      // Use previous choices if they are set, e.g. if converting from Choice
+      if (!Array.isArray(widgetOptions.choices)) {
         // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
         // light guessing for likely choices to suggest.
         const choices = new Set<string>();
@@ -160,7 +182,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
           }
         }
         choices.delete("");
-        widgetOptions = {choices: Array.from(choices)};
+        widgetOptions = {...widgetOptions, choices: Array.from(choices)};
       }
       break;
     }
@@ -204,11 +226,8 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     }
   }
 
-  if (widgetOptions) {
+  if (Object.keys(widgetOptions).length) {
     colInfo.widgetOptions = JSON.stringify(widgetOptions);
-  }
-  if (rules) {
-    colInfo.rules = rules;
   }
   return colInfo;
 }
