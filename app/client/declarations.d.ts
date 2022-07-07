@@ -76,26 +76,6 @@ declare module "app/client/components/BaseView" {
   export = BaseView;
 }
 
-declare module "app/client/components/RefSelect" {
-  import {Disposable} from 'app/client/lib/dispose';
-  import {ColumnRec} from "app/client/models/DocModel";
-  import {DocModel} from "app/client/models/DocModel";
-  import {FieldBuilder} from "app/client/widgets/FieldBuilder";
-
-  namespace RefSelect {}
-  class RefSelect extends Disposable {
-    public isForeignRefCol: ko.Computed<boolean>;
-
-    constructor(options: {
-      docModel: DocModel,
-      origColumn: ColumnRec,
-      fieldBuilder: ko.Computed<FieldBuilder|null>,
-    });
-    public buildDom(): HTMLElement;
-  }
-  export = RefSelect;
-}
-
 declare module "app/client/components/ViewConfigTab" {
   import {GristDoc} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';

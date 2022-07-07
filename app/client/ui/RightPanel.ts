@@ -16,7 +16,7 @@
 
 import * as commands from 'app/client/components/commands';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
-import RefSelect from 'app/client/components/RefSelect';
+import {RefSelect} from 'app/client/components/RefSelect';
 import ViewConfigTab from 'app/client/components/ViewConfigTab';
 import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
@@ -194,7 +194,7 @@ export class RightPanel extends Disposable {
     const isColumnValid = owner.autoDispose(ko.computed(() => Boolean(origColRef())));
 
     // Builder for the reference display column multiselect.
-    const refSelect = owner.autoDispose(RefSelect.create({docModel, origColumn, fieldBuilder}));
+    const refSelect = RefSelect.create(owner, {docModel, origColumn, fieldBuilder});
 
     // build cursor position observable
     const cursor = owner.autoDispose(ko.computed(() => {
