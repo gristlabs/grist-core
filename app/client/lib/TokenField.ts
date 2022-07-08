@@ -525,8 +525,15 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
 
       // Find the token before which we are inserting the dragged elements. If inserting at the
       // end (just before or over the input box), destToken will be undefined.
-      const index = allTargets.indexOf(ev.target as HTMLElement);
-      if (index < 0) { return; }
+      let index = allTargets.indexOf(ev.target as HTMLElement);
+      if (index < 0) {
+        // Sometimes we are at inner input element of the target (when dragging past the last element).
+        // In this case we need to test the parent.
+        if (ev.target instanceof HTMLInputElement && ev.target.parentElement) {
+          index = allTargets.indexOf(ev.target.parentElement);
+        }
+        if (index < 0) { return; }
+      }
       const destToken: TokenWrap<Token>|undefined = this._tokens.get()[index];
 
       const selection = this._selection.get();
