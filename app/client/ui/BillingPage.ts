@@ -6,20 +6,23 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {BillingForm, IFormData} from 'app/client/ui/BillingForm';
 import * as css from 'app/client/ui/BillingPageCss';
-import { BillingPlanManagers } from 'app/client/ui/BillingPlanManagers';
-import { createForbiddenPage } from 'app/client/ui/errorPages';
-import { leftPanelBasic } from 'app/client/ui/LeftPanelCommon';
-import { pagePanels } from 'app/client/ui/PagePanels';
-import { createTopBarHome } from 'app/client/ui/TopBar';
-import { cssBreadcrumbs, cssBreadcrumbsLink, separator } from 'app/client/ui2018/breadcrumbs';
-import { bigBasicButton, bigBasicButtonLink, bigPrimaryButton } from 'app/client/ui2018/buttons';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { NEW_DEAL, showTeamUpgradeConfirmation } from 'app/client/ui/ProductUpgrades';
-import { IconName } from 'app/client/ui2018/IconList';
-import { BillingTask, IBillingCoupon } from 'app/common/BillingAPI';
-import { capitalize } from 'app/common/gutil';
-import { Organization } from 'app/common/UserAPI';
-import { Disposable, dom, DomArg, IAttrObj, makeTestId, Observable } from 'grainjs';
+import {BillingPlanManagers} from 'app/client/ui/BillingPlanManagers';
+import {createForbiddenPage} from 'app/client/ui/errorPages';
+import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
+import {pagePanels} from 'app/client/ui/PagePanels';
+import {NEW_DEAL, showTeamUpgradeConfirmation} from 'app/client/ui/ProductUpgrades';
+import {createTopBarHome} from 'app/client/ui/TopBar';
+import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/breadcrumbs';
+import {bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
+import {colors} from 'app/client/ui2018/cssVars';
+import {IconName} from 'app/client/ui2018/IconList';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {confirmModal} from 'app/client/ui2018/modals';
+import {BillingTask, IBillingCoupon} from 'app/common/BillingAPI';
+import {displayPlanName, TEAM_FREE_PLAN, TEAM_PLAN} from 'app/common/Features';
+import {capitalize} from 'app/common/gutil';
+import {Organization} from 'app/common/UserAPI';
+import {Disposable, dom, DomArg, IAttrObj, makeTestId, Observable} from 'grainjs';
 
 const testId = makeTestId('test-bp-');
 const billingTasksNames = {
@@ -212,23 +215,27 @@ export class BillingPage extends Disposable {
         const discountName = sub.discount && sub.discount.name;
         const discountEnd = sub.discount && sub.discount.end_timestamp_ms;
         const tier = discountName && discountName.includes(' Tier ');
-        const activePlanName = sub.activePlan?.nickname ?? this._appModel.planName;
+        const activePlanName = sub.activePlan?.nickname ??
+          displayPlanName[this._appModel.planName || ''] ?? this._appModel.planName;
         const planName = tier ? discountName : activePlanName;
         const appSumoInvoiced = this._appModel.currentOrg?.billingAccount?.externalOptions?.invoiceId;
         const isPaidPlan = sub.billable;
-        // If subscription is cancelled, we need to create a new one using Stripe Checkout.
+        // If subscription is canceled, we need to create a new one using Stripe Checkout.
         const canRenew = (sub.status === 'canceled' && isPaidPlan);
         // We can upgrade only free team plan at this moment.
         const canUpgrade = !canRenew && !isPaidPlan;
-        // And we can manage team plan that is not cancelled.
+        // And we can manage team plan that is not canceled.
         const canManage = !canRenew && isPaidPlan;
+        const isCanceled = sub.status === 'canceled';
+        const wasTeam = this._appModel.planName === TEAM_PLAN && isCanceled && !validPlan;
         return [
           css.summaryFeatures(
             validPlan && planName ? [
               makeSummaryFeature(['You are subscribed to the ', planName, ' plan'])
             ] : [
-                makeSummaryFeature(['This team site is not in good standing'],
-                  { isBad: true }),
+                isCanceled ?
+                makeSummaryFeature(['You were subscribed to the ', planName, ' plan'], { isBad: true }) :
+                makeSummaryFeature(['This team site is not in good standing'], { isBad: true }),
               ],
             // If the plan is changing, include the date the current plan ends
             // and the plan that will be in effect afterwards.
@@ -239,8 +246,7 @@ export class BillingPage extends Disposable {
             ] : null,
             cancellingPlan && isPaidPlan ? [
               makeSummaryFeature(['Your subscription ends on ', dateFmt(sub.periodEnd)]),
-              makeSummaryFeature(['On this date, your team site will become ', 'read-only',
-                ' for one month, then removed'])
+              makeSummaryFeature(['On this date, your team site will become read-only'])
             ] : null,
             moneyPlan?.amount ? [
               makeSummaryFeature([`Your team site has `, `${sub.userCount}`,
@@ -269,6 +275,9 @@ export class BillingPage extends Disposable {
           ),
           !canManage ? null :
             makeActionLink('Manage billing', 'Settings', this._model.getCustomerPortalUrl(), testId('portal-link')),
+          !wasTeam ? null :
+          makeActionButton('Downgrade plan', 'Settings',
+            () => this._confirmDowngradeToTeamFree(), testId('downgrade-free-link')),
           !canRenew ? null :
             makeActionLink('Renew subscription', 'Settings', this._model.renewPlan(), testId('renew-link')),
           !canUpgrade ? null :
@@ -293,6 +302,29 @@ export class BillingPage extends Disposable {
         ];
       }
     });
+  }
+
+  private _confirmDowngradeToTeamFree() {
+    confirmModal('Downgrade to Free Team Plan',
+      'Downgrade',
+      () => this._downgradeToTeamFree(),
+      dom('div', {style: `color: ${colors.dark}`}, testId('downgrade-confirm-modal'),
+        dom('div', 'Documents on free team plan are subject to the following limits. '
+                  +'Any documents in excess of these limits will be put in read-only mode.'),
+        dom('ul',
+          dom('li', { style: 'margin-bottom: 0.6em'}, dom('strong', '5,000'), ' rows per document'),
+          dom('li', { style: 'margin-bottom: 0.6em'}, dom('strong', '10MB'), ' max document size'),
+          dom('li', 'API limit: ', dom('strong', '5k'), ' calls/day'),
+        )
+      ),
+    );
+  }
+
+  private async _downgradeToTeamFree() {
+    // Perform the downgrade operation.
+    await this._model.downgradePlan(TEAM_FREE_PLAN);
+    // Refresh app model
+    this._appModel.topAppModel.initialize();
   }
 
   private _makeAppSumoFeature(name: string) {

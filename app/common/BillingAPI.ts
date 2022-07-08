@@ -136,6 +136,7 @@ export interface BillingAPI {
   createTeam(name: string, domain: string): Promise<string>;
   upgrade(): Promise<string>;
   cancelCurrentPlan(): Promise<void>;
+  downgradePlan(planName: string): Promise<void>;
   renewPlan(): string;
   customerPortal(): string;
 }
@@ -170,6 +171,12 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
+  public async downgradePlan(planName: string): Promise<void> {
+    await this.request(`${this._url}/api/billing/downgrade-plan`, {
+      method: 'POST',
+      body: JSON.stringify({ planName })
+    });
+  }
 
   public async updateSettings(settings?: IBillingOrgSettings): Promise<void> {
     await this.request(`${this._url}/api/billing/settings`, {

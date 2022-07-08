@@ -48,6 +48,9 @@ export interface BillingModel {
   getCustomerPortalUrl(): string;
   // Renews plan (either by opening customer portal or creating Stripe Checkout session)
   renewPlan(): string;
+  // Downgrades team plan. Currently downgrades only from team to team free plan, and
+  // only when plan is cancelled.
+  downgradePlan(planName: string): Promise<void>;
 }
 
 export interface ISubscriptionModel extends IBillingSubscription {
@@ -122,6 +125,10 @@ export class BillingModelImpl extends Disposable implements BillingModel {
 
   public renewPlan() {
     return this._billingAPI.renewPlan();
+  }
+
+  public async downgradePlan(planName: string): Promise<void> {
+    await this._billingAPI.downgradePlan(planName);
   }
 
   public async cancelCurrentPlan() {
