@@ -234,7 +234,8 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.autoDispose(commands.createGroup(GridView.gridCommands, this, this.viewSection.hasFocus));
   // Cancel command is registered conditionally, only when there is an active
   // cell selection. This command is also used by Raw Data Views, to close the Grid popup.
-  const hasSelection = this.autoDispose(ko.pureComputed(() => !this.cellSelector.isCurrentSelectType('')));
+  const hasSelection = this.autoDispose(ko.pureComputed(() =>
+    !this.cellSelector.isCurrentSelectType('') || this.copySelection()));
   this.autoDispose(commands.createGroup(GridView.selectionCommands, this, hasSelection));
 
   // Timer to allow short, otherwise non-actionable clicks on column names to trigger renaming.
@@ -614,8 +615,21 @@ GridView.prototype.assignCursor = function(elem, elemType) {
     console.error("GridView.assignCursor expects a row/col header, or cell as an input.");
   }
 
-
-  this.cellSelector.currentSelectType(elemType);
+  /* CellSelector already updates the selection whenever rowIndex/fieldIndex is changed, but
+   * since those observables don't currently notify subscribers when an unchanged value is
+   * written, there are cases where the selection doesn't get updated. For example, when doing
+   * a click and drag to select cells and then clicking the "selected" cell that's outlined in
+   * green, the row/column numbers remain highlighted as if they are still selected, while
+   * GridView indicates the cells are not selected. This causes bugs that range from the
+   * aformentioned visual discrepancy to incorrect copy/paste behavior due to out-of-date
+   * selection ranges.
+   *
+   * We address this by calling setToCursor here unconditionally, but another possible approach
+   * might be to extend rowIndex/fieldIndex to always notify their subscribers. Always notifying
+   * currently introduces some bugs, and we'd also need to check that it doesn't cause too
+   * much unnecessary UI recomputation elsewhere, so in the interest of time we use the first
+   * approach. */
+  this.cellSelector.setToCursor(elemType);
 };
 
 /**
