@@ -247,6 +247,23 @@ class InferLookupReference(InferenceTip):
   def infer(cls, node, context=None):
     yield astroid.bases.Instance(infer(node.func.expr))
 
+
+class InferAllReference(InferenceTip):
+  """
+  Inference helper to treat the return value of `Table.all` as returning instances
+  of table `Table`.
+  """
+  node_class = astroid.nodes.Attribute
+
+  @classmethod
+  def filter(cls, node):
+    return node.attrname == "all" and _is_table(infer(node.expr))
+
+  @classmethod
+  def infer(cls, node, context=None):
+    yield astroid.bases.Instance(infer(node.expr))
+
+
 class InferLookupComprehension(InferenceTip):
   node_class = astroid.nodes.AssignName
 
@@ -255,9 +272,11 @@ class InferLookupComprehension(InferenceTip):
     compr = node.parent
     if not isinstance(compr, astroid.nodes.Comprehension):
       return False
-    if not isinstance(compr.iter, astroid.nodes.Call):
-      return False
-    return InferLookupReference.filter(compr.iter)
+    if isinstance(compr.iter, astroid.nodes.Call):
+      return InferLookupReference.filter(compr.iter)
+    if isinstance(compr.iter, astroid.nodes.Attribute):
+      return InferAllReference.filter(compr.iter)
+    return False
 
   @classmethod
   def infer(cls, node, context=None):
@@ -311,7 +330,7 @@ def parse_grist_names(builder):
   code_text = builder.get_text()
 
   with use_inferences(InferReferenceColumn, InferReferenceFormula, InferLookupReference,
-                      InferLookupComprehension):
+                      InferLookupComprehension, InferAllReference):
     atok = asttokens.ASTTokens(code_text, tree=astroid.builder.parse(code_text))
 
   def make_tuple(start, end, table_id, col_id):

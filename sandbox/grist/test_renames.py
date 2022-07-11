@@ -213,6 +213,7 @@ class TestRenames(test_engine.EngineTestCase):
     self.load_sample(self.sample)
     self.add_column("Address", "people", formula="People.lookupOne(addr=$id, city=$city).name")
     self.add_column("Address", "people2", formula="People.lookupRecords(addr=$id).name")
+    self.add_column("Address", "people3", formula="People.all.name")
     out_actions = self.apply_user_action(["RenameColumn", "People", "name", "nombre"])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "People", "name", "nombre"],
@@ -220,11 +221,14 @@ class TestRenames(test_engine.EngineTestCase):
                                              "People.lookupOne(addr=$id, city=$city).nombre"}],
       ["ModifyColumn", "Address", "people2", {"formula":
                                               "People.lookupRecords(addr=$id).nombre"}],
-      ["BulkUpdateRecord", "_grist_Tables_column", [22, 25, 26], {
-        "colId": ["nombre", "people", "people2"],
+      ["ModifyColumn", "Address", "people3", {"formula":
+                                              "People.all.nombre"}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [22, 25, 26, 27], {
+        "colId": ["nombre", "people", "people2", "people3"],
         "formula": ["",
                     "People.lookupOne(addr=$id, city=$city).nombre",
-                    "People.lookupRecords(addr=$id).nombre"]
+                    "People.lookupRecords(addr=$id).nombre",
+                    "People.all.nombre"]
       }],
     ]})
 
