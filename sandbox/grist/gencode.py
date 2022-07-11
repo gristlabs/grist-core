@@ -128,7 +128,7 @@ class GenCode(object):
     If filter_for_user is True, includes only user-visible columns.
     """
     table_id = table_info.tableId
-    source_table_id = summary.decode_summary_table_name(table_id)
+    source_table_id = summary.decode_summary_table_name(table_info)
 
     # Sort columns by "isFormula" to output all data columns before all formula columns.
     columns = sorted(six.itervalues(table_info.columns), key=lambda c: c.isFormula)
@@ -156,7 +156,7 @@ class GenCode(object):
     # Collect summary tables to group them by source table.
     summary_tables = {}
     for table_info in six.itervalues(schema):
-      source_table_id = summary.decode_summary_table_name(table_info.tableId)
+      source_table_id = summary.decode_summary_table_name(table_info)
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
 
@@ -167,7 +167,10 @@ class GenCode(object):
     for table_info in six.itervalues(schema):
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
-      if not _is_special_table(table_info.tableId):
+      if not (
+          _is_special_table(table_info.tableId) or
+          summary.decode_summary_table_name(table_info)
+      ):
         userparts.append("\n\n")
         userparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId),
           filter_for_user=True))
@@ -193,7 +196,7 @@ class GenCode(object):
 
 
 def _is_special_table(table_id):
-  return table_id.startswith("_grist_") or bool(summary.decode_summary_table_name(table_id))
+  return table_id.startswith("_grist_")
 
 
 def exec_module_text(module_text):

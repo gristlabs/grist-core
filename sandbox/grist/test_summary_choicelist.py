@@ -46,7 +46,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
 
     summary_table1 = Table(
-      2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
+      2, "Source_summary_choices1", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(13, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
         Column(14, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
@@ -60,7 +60,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12], None])
 
     summary_table2 = Table(
-      3, "GristSummary_6_Source2", primaryViewId=0, summarySourceTable=1,
+      3, "Source_summary_choices1_choices2", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(16, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
         Column(17, "choices2", "Choice", isFormula=False, formula="", summarySourceCol=12),
@@ -75,7 +75,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [10], None])
 
     summary_table3 = Table(
-      4, "GristSummary_6_Source3", primaryViewId=0, summarySourceTable=1,
+      4, "Source_summary_other", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(20, "other", "Text", isFormula=False, formula="", summarySourceCol=10),
         Column(21, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
@@ -89,7 +89,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [10, 11], None])
 
     summary_table4 = Table(
-      5, "GristSummary_6_Source4", primaryViewId=0, summarySourceTable=1,
+      5, "Source_summary_choices1_other", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(23, "other", "Text", isFormula=False, formula="", summarySourceCol=10),
         Column(24, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
@@ -105,13 +105,13 @@ class TestSummaryChoiceList(EngineTestCase):
     )
 
     # Verify the summarized data.
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [21], 1],
       [2, "b", [21], 1],
     ])
 
-    self.assertTableData('GristSummary_6_Source2', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [21], 1],
       [2, "a", "d", [21], 1],
@@ -119,12 +119,12 @@ class TestSummaryChoiceList(EngineTestCase):
       [4, "b", "d", [21], 1],
     ])
 
-    self.assertTableData('GristSummary_6_Source3', data=[
+    self.assertTableData('Source_summary_other', data=[
       ["id", "other", "group", "count"],
       [1, "foo", [21], 1],
     ])
 
-    self.assertTableData('GristSummary_6_Source4', data=[
+    self.assertTableData('Source_summary_choices1_other', data=[
       ["id", "other", "choices1", "group", "count"],
       [1, "foo", "a", [21], 1],
       [2, "foo", "b", [21], 1],
@@ -132,28 +132,30 @@ class TestSummaryChoiceList(EngineTestCase):
 
     # Verify the optimisation works for the table without choicelists
     self.assertIs(self.engine.tables["Source"]._summary_simple, None)
-    self.assertIs(self.engine.tables["GristSummary_6_Source"]._summary_simple, False)
-    self.assertIs(self.engine.tables["GristSummary_6_Source2"]._summary_simple, False)
+    self.assertIs(self.engine.tables["Source_summary_choices1"]._summary_simple, False)
+    self.assertIs(self.engine.tables["Source_summary_choices1_choices2"]._summary_simple, False)
     # simple summary and lookup
-    self.assertIs(self.engine.tables["GristSummary_6_Source3"]._summary_simple, True)
-    self.assertIs(self.engine.tables["GristSummary_6_Source4"]._summary_simple, False)
+    self.assertIs(self.engine.tables["Source_summary_other"]._summary_simple, True)
+    self.assertIs(self.engine.tables["Source_summary_choices1_other"]._summary_simple, False)
 
     self.assertEqual(
       {k: type(v) for k, v in self.engine.tables["Source"]._special_cols.items()},
       {
-        '#summary#GristSummary_6_Source': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source', match_empty=no_match_empty)":
+        '#summary#Source_summary_choices1': column.ReferenceListColumn,
+        "#lookup#_Contains(value='#summary#Source_summary_choices1', match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
-        '#summary#GristSummary_6_Source2': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source2', match_empty=no_match_empty)":
+        '#summary#Source_summary_choices1_choices2': column.ReferenceListColumn,
+        "#lookup#_Contains(value='#summary#Source_summary_choices1_choices2', "
+        "match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
 
         # simple summary and lookup
-        '#summary#GristSummary_6_Source3': column.ReferenceColumn,
-        '#lookup##summary#GristSummary_6_Source3': lookup.SimpleLookupMapColumn,
+        '#summary#Source_summary_other': column.ReferenceColumn,
+        '#lookup##summary#Source_summary_other': lookup.SimpleLookupMapColumn,
 
-        '#summary#GristSummary_6_Source4': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#GristSummary_6_Source4', match_empty=no_match_empty)":
+        '#summary#Source_summary_choices1_other': column.ReferenceListColumn,
+        "#lookup#_Contains(value='#summary#Source_summary_choices1_other', "
+        "match_empty=no_match_empty)":
           lookup.ContainsLookupMapColumn,
 
         "#lookup#": lookup.SimpleLookupMapColumn,
@@ -169,12 +171,12 @@ class TestSummaryChoiceList(EngineTestCase):
     ])
 
     # Verify that the summary table rows containing 'b' are removed
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [21], 1],
     ])
 
-    self.assertTableData('GristSummary_6_Source2', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [21], 1],
       [2, "a", "d", [21], 1],
@@ -184,13 +186,13 @@ class TestSummaryChoiceList(EngineTestCase):
     self.update_record("Source", 21, choices2=["L", "c", "d", "e"])
 
     # First summary table unaffected
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [21], 1],
     ])
 
     # New row added for 'e'
-    self.assertTableData('GristSummary_6_Source2', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [1, "a", "c", [21], 1],
       [2, "a", "d", [21], 1],
@@ -205,12 +207,12 @@ class TestSummaryChoiceList(EngineTestCase):
       [21, None, ["c", "d", "e"], "foo"],
     ])
 
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
       [2, "", [21], 1],
     ])
 
-    self.assertTableData('GristSummary_6_Source2', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [4, "", "c", [21], 1],
       [5, "", "d", [21], 1],
@@ -221,11 +223,11 @@ class TestSummaryChoiceList(EngineTestCase):
     self.remove_record("Source", 21)
 
     # All summary rows are now empty and thus removed
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
     ])
 
-    self.assertTableData('GristSummary_6_Source2', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
     ])
 
@@ -263,7 +265,7 @@ class TestSummaryChoiceList(EngineTestCase):
     ])
 
     # Summary tables now have an even distribution of combinations
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1', data=[
       ["id", "choices1", "group", "count"],
       [1, "a", [101, 103, 104, 106, 107, 109], 6],
       [2, "b", [102, 103, 105, 106, 108, 109], 6],
@@ -279,7 +281,7 @@ class TestSummaryChoiceList(EngineTestCase):
       [5, "", "", [110], 1],
     ]
 
-    self.assertTableData('GristSummary_6_Source2', data=summary_data)
+    self.assertTableData('Source_summary_choices1_choices2', data=summary_data)
 
     # Verify that "DetachSummaryViewSection" useraction works correctly.
     self.apply_user_action(["DetachSummaryViewSection", 4])
@@ -336,7 +338,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
 
     summary_table = Table(
-      2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
+      2, "Source_summary_choices1", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(12, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
         Column(13, "group", "RefList:Source", isFormula=True, summarySourceCol=0,
@@ -353,7 +355,7 @@ class TestSummaryChoiceList(EngineTestCase):
     ]
 
     self.assertTables([starting_table, summary_table])
-    self.assertTableData('GristSummary_6_Source', data=data)
+    self.assertTableData('Source_summary_choices1', data=data)
 
     # Change the column from Choice to ChoiceList
     self.apply_user_action(["UpdateRecord", "_grist_Tables_column", 11, {"type": "ChoiceList"}])
@@ -365,7 +367,7 @@ class TestSummaryChoiceList(EngineTestCase):
 
     starting_table.columns[1] = starting_table.columns[1]._replace(type="ChoiceList")
     self.assertTables([starting_table, summary_table])
-    self.assertTableData('GristSummary_6_Source', data=data)
+    self.assertTableData('Source_summary_choices1', data=data)
 
   def test_rename_choices(self):
     self.load_sample(self.sample)
@@ -374,7 +376,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [11, 12], None])
 
     summary_table = Table(
-      2, "GristSummary_6_Source", primaryViewId=0, summarySourceTable=1,
+      2, "Source_summary_choices1_choices2", primaryViewId=0, summarySourceTable=1,
       columns=[
         Column(13, "choices1", "Choice", isFormula=False, formula="", summarySourceCol=11),
         Column(14, "choices2", "Choice", isFormula=False, formula="", summarySourceCol=12),
@@ -397,17 +399,17 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertPartialOutActions(out_actions, {'stored': [
       ['UpdateRecord', 'Source', 21, {'choices1': ['L', u'aa', u'bb']}],
       ['BulkAddRecord',
-       'GristSummary_6_Source',
+       'Source_summary_choices1_choices2',
        [5, 6, 7, 8],
        {'choices1': [u'aa', u'aa', u'bb', u'bb'],
         'choices2': [u'c', u'd', u'c', u'd']}],
-      ['BulkRemoveRecord', 'GristSummary_6_Source', [1, 2, 3, 4]],
+      ['BulkRemoveRecord', 'Source_summary_choices1_choices2', [1, 2, 3, 4]],
       ['BulkUpdateRecord',
-       'GristSummary_6_Source',
+       'Source_summary_choices1_choices2',
        [5, 6, 7, 8],
        {'count': [1, 1, 1, 1]}],
       ['BulkUpdateRecord',
-       'GristSummary_6_Source',
+       'Source_summary_choices1_choices2',
        [5, 6, 7, 8],
        {'group': [['L', 21],
                   ['L', 21],
@@ -423,7 +425,7 @@ class TestSummaryChoiceList(EngineTestCase):
 
     # Final summary table is very similar to before, but with two empty chunks of 4 rows
     # left over from each rename
-    self.assertTableData('GristSummary_6_Source', data=[
+    self.assertTableData('Source_summary_choices1_choices2', data=[
       ["id", "choices1", "choices2", "group", "count"],
       [9, "aa", "cc", [21], 1],
       [10, "aa", "dd", [21], 1],

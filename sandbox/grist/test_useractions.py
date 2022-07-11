@@ -156,7 +156,7 @@ class TestUserActions(test_engine.EngineTestCase):
 
     # Create another section for the same view, this time summarized.
     self.apply_user_action(["CreateViewSection", 1, 1, "record", [21], None])
-    summary_table = Table(2, "GristSummary_7_Address", 0, summarySourceTable=1, columns=[
+    summary_table = Table(2, "Address_summary_city", 0, summarySourceTable=1, columns=[
         Column(22, "city", "Text", isFormula=False, formula="", summarySourceCol=21),
         Column(23, "group", "RefList:Address", isFormula=True,
                formula="table.getSummarySourceGroup(rec)", summarySourceCol=0),
@@ -248,7 +248,7 @@ class TestUserActions(test_engine.EngineTestCase):
       Column(33, "C", "Any", isFormula=True, formula="", summarySourceCol=0),
     ])
     # A summary of it.
-    summary_table = Table(5, "GristSummary_6_Table3", 0, summarySourceTable=4, columns=[
+    summary_table = Table(5, "Table3_summary", 0, summarySourceTable=4, columns=[
       Column(34, "group", "RefList:Table3", isFormula=True,
              formula="table.getSummarySourceGroup(rec)", summarySourceCol=0),
       Column(35, "count", "Int", isFormula=True, formula="len($group)", summarySourceCol=0),
@@ -287,7 +287,7 @@ class TestUserActions(test_engine.EngineTestCase):
         Column(3, "state", "Text", False, "", 0),
         Column(4, "size",  "Numeric", False, "", 0),
       ]),
-      Table(2, "GristSummary_7_Schools", 0, 1, columns=[
+      Table(2, "Schools_summary_state", 0, 1, columns=[
         Column(5, "state", "Text", False, "", 3),
         Column(6, "group", "RefList:Schools", True, "table.getSummarySourceGroup(rec)", 0),
         Column(7, "count", "Int",     True, "len($group)", 0),
@@ -398,7 +398,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       [ 'id', 'tableId',  'primaryViewId'  ],
       [ 1,    'Schools',                1],
-      [ 2,    'GristSummary_7_Schools', 0],
+      [ 2,    'Schools_summary_state', 0],
       [ 3,    'Table1',                 0],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
@@ -416,7 +416,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       [ 'id', 'tableId',  'primaryViewId'  ],
       [ 1,    'Schools',                1],
-      [ 2,    'GristSummary_7_Schools', 0],
+      [ 2,    'Schools_summary_state', 0],
       [ 3,    'Table1',                      0],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
@@ -434,7 +434,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId'],
       [1, 'Bars', 1],
-      [2, 'GristSummary_4_Bars', 0],
+      [2, 'Bars_summary_state', 0],
       [3, 'Table1', 0],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
@@ -452,7 +452,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId'],
       [1, 'A', 1],
-      [2, 'GristSummary_1_A', 0],
+      [2, 'A_summary_state', 0],
       [3, 'Table1', 0],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
@@ -468,7 +468,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
       [1, 'Z', 1, 2],
-      [2, 'GristSummary_1_Z', 0, 4],
+      [2, 'Z_summary_state', 0, 4],
       [3, 'Table1', 0, 7],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
@@ -485,7 +485,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
       [1, 'Z', 1, 2],
-      [2, 'GristSummary_1_Z', 0, 4],
+      [2, 'Z_summary_state', 0, 4],
       [3, 'Table1', 0, 7],
       [4, 'Stations', 4, 10],
     ])
@@ -513,7 +513,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       ['id', 'tableId'],
       [1, 'Schools'],
-      [2, 'GristSummary_7_Schools'],
+      [2, 'Schools_summary_state'],
       [3, 'Table1'],
       [4, 'Stations'],
     ])
@@ -618,7 +618,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('_grist_Tables', cols="subset", data=[
       [ 'id', 'tableId',  'primaryViewId'  ],
       [ 1,    'Schools',                1],
-      [ 2,    'GristSummary_7_Schools', 0],
+      [ 2,    'Schools_summary_state', 0],
       [ 3,    'C',                      0],
     ])
 

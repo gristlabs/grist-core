@@ -1,5 +1,6 @@
 import json
 import re
+from collections import defaultdict
 
 import six
 from six.moves import xrange
@@ -378,7 +379,8 @@ def migration7(tdset):
     groupby_colrefs = [int(x) for x in m.group(2).strip("_").split("_")]
     # Prepare a new-style name for the summary table. Be sure not to conflict with existing tables
     # or with each other (i.e. don't rename multiple tables to the same name).
-    new_name = summary.encode_summary_table_name(source_table_name)
+    groupby_col_ids = [columns_map_by_ref[c].colId for c in groupby_colrefs]
+    new_name = summary.encode_summary_table_name(source_table_name, groupby_col_ids)
     new_name = identifiers.pick_table_ident(new_name, avoid=table_name_set)
     table_name_set.add(new_name)
     log.warn("Upgrading summary table %s for %s(%s) to %s" % (
@@ -1012,5 +1014,62 @@ def migration30(tdset):
     ]
 
     new_view_section_id += 1
+
+  return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=31)
+def migration31(tdset):
+  columns = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables_column']))
+  tables = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables']))
+
+  tables_by_ref = {t.id: t for t in tables}
+  columns_by_table_ref = defaultdict(list)
+  for col in columns:
+    columns_by_table_ref[col.parentId].append(col)
+
+  table_name_set = {t.tableId for t in tables}
+
+  table_renames = []      # List of (table, new_name) pairs
+
+  for t in six.itervalues(tables_by_ref):
+    if not t.summarySourceTable:
+      continue
+    source_table = tables_by_ref[t.summarySourceTable]
+    # Prepare a new-style name for the summary table. Be sure not to conflict with existing tables
+    # or with each other (i.e. don't rename multiple tables to the same name).
+    groupby_col_ids = [c.colId for c in columns_by_table_ref[t.id] if c.summarySourceCol]
+    new_name = summary.encode_summary_table_name(source_table.tableId, groupby_col_ids)
+    if new_name == t.tableId:
+      continue
+    new_name = identifiers.pick_table_ident(new_name, avoid=table_name_set)
+    table_name_set.add(new_name)
+    log.warn("Upgrading summary table %s for %s(%s) to %s" % (
+      t.tableId, source_table.tableId, groupby_col_ids, new_name))
+
+    # Schedule a rename of the summary table.
+    table_renames.append((t, new_name))
+
+  doc_actions = [
+    actions.RenameTable(t.tableId, new)
+    for (t, new) in table_renames
+  ]
+  if table_renames:
+    doc_actions.append(
+      actions.BulkUpdateRecord(
+        '_grist_Tables', [t.id for t, new in table_renames],
+        {'tableId': [new for t, new in table_renames]}
+      )
+    )
+
+  # Update formulas in all columns containing old-style names like 'GristSummary_'
+  for col in columns:
+    if 'GristSummary_' not in col.formula:
+      continue
+    formula = col.formula
+    for table, new_name in table_renames:
+      # Use regex to only match whole words
+      formula = re.sub(r'\b%s\b' % table.tableId, new_name, formula)
+    doc_actions.append(actions.UpdateRecord('_grist_Tables_column', col.id, {'formula': formula}))
 
   return tdset.apply_doc_actions(doc_actions)

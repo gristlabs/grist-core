@@ -71,7 +71,7 @@ class TestTableActions(test_engine.EngineTestCase):
         Column(7, "address",    "Ref:Address",  False, "", 0),
         Column(8, "city",       "Any", True, "$address.city", 0),
       ]),
-      Table(3, "GristSummary_7_Address", 0, 1, columns=[
+      Table(3, "Address_summary_state", 0, 1, columns=[
         Column(9, "state", "Text", False, "", summarySourceCol=3),
         Column(10, "group", "RefList:Address", True, summarySourceCol=0,
                formula="table.getSummarySourceGroup(rec)"),
@@ -116,7 +116,7 @@ class TestTableActions(test_engine.EngineTestCase):
     # Verify the data we've loaded.
     self.assertTableData('Address', cols="subset", data=self.address_table_data)
     self.assertTableData('People', cols="subset", data=self.people_table_data)
-    self.assertTableData("GristSummary_7_Address", cols="subset", data=[
+    self.assertTableData("Address_summary_state", cols="subset", data=[
       [ "id", "state", "count", "amount"          ],
       [ 1,    "NY",     7,      1.+2+6+7+8+10+11  ],
       [ 2,    "WA",     1,      3.                ],
@@ -142,7 +142,7 @@ class TestTableActions(test_engine.EngineTestCase):
       ["id",  "tableId"],
       [1,     "Location"],
       [2,     "Persons"],
-      [3,     "GristSummary_8_Location"],
+      [3,     "Location_summary_state"],
     ])
 
     # Check that reference columns to renamed tables get their type modified.
@@ -161,14 +161,14 @@ class TestTableActions(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["ModifyColumn", "Persons", "address", {"type": "Int"}],
-        ["ModifyColumn", "GristSummary_8_Location", "group", {"type": "Int"}],
+        ["ModifyColumn", "Location_summary_state", "group", {"type": "Int"}],
         ["RenameTable", "Location", "A2"],
-        ["RenameTable", "GristSummary_8_Location", "GristSummary_2_A2"],
+        ["RenameTable", "Location_summary_state", "A2_summary_state"],
         ["RenameTable", "Persons", "A3"],
         ["BulkUpdateRecord", "_grist_Tables", [1, 3, 2],
-         {"tableId": ["A2", "GristSummary_2_A2", "A3"]}],
+         {"tableId": ["A2", "A2_summary_state", "A3"]}],
         ["ModifyColumn", "A3", "address", {"type": "Ref:A2"}],
-        ["ModifyColumn", "GristSummary_2_A2", "group", {"type": "RefList:A2"}],
+        ["ModifyColumn", "A2_summary_state", "group", {"type": "RefList:A2"}],
         ["BulkUpdateRecord", "_grist_Tables_column", [7, 10], {"type": ["Ref:A2", "RefList:A2"]}],
       ]
     })
@@ -178,7 +178,7 @@ class TestTableActions(test_engine.EngineTestCase):
       ["id",  "tableId"],
       [1,     "A2"],
       [2,     "A3"],
-      [3,     "GristSummary_2_A2"],
+      [3,     "A2_summary_state"],
       [4,     "A"],
     ])
 
@@ -192,7 +192,7 @@ class TestTableActions(test_engine.EngineTestCase):
     # Verify the data we've loaded.
     self.assertTableData('A2', cols="subset", data=self.address_table_data)
     self.assertTableData('A3', cols="subset", data=self.people_table_data)
-    self.assertTableData("GristSummary_2_A2", cols="subset", data=[
+    self.assertTableData("A2_summary_state", cols="subset", data=[
       [ "id", "state", "count", "amount"          ],
       [ 1,    "NY",     7,      1.+2+6+7+8+10+11  ],
       [ 2,    "WA",     1,      3.                ],
@@ -226,15 +226,15 @@ class TestTableActions(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["ModifyColumn", "People", "address", {"type": "Int"}],
-        ["ModifyColumn", "GristSummary_7_Address", "group", {"type": "Int"}],
-        ["ModifyColumn", "GristSummary_6_People", "address", {"type": "Int"}],
+        ["ModifyColumn", "Address_summary_state", "group", {"type": "Int"}],
+        ["ModifyColumn", "People_summary_address", "address", {"type": "Int"}],
         ["RenameTable", "Address", "Location"],
-        ["RenameTable", "GristSummary_7_Address", "GristSummary_8_Location"],
+        ["RenameTable", "Address_summary_state", "Location_summary_state"],
         ["BulkUpdateRecord", "_grist_Tables", [1, 3],
-         {"tableId": ["Location", "GristSummary_8_Location"]}],
+         {"tableId": ["Location", "Location_summary_state"]}],
         ["ModifyColumn", "People", "address", {"type": "Ref:Location"}],
-        ["ModifyColumn", "GristSummary_8_Location", "group", {"type": "RefList:Location"}],
-        ["ModifyColumn", "GristSummary_6_People", "address", {"type": "Ref:Location"}],
+        ["ModifyColumn", "Location_summary_state", "group", {"type": "RefList:Location"}],
+        ["ModifyColumn", "People_summary_address", "address", {"type": "Ref:Location"}],
         ["BulkUpdateRecord", "_grist_Tables_column", [7, 10, 13],
          {"type": ["Ref:Location", "RefList:Location", "Ref:Location"]}],
       ]

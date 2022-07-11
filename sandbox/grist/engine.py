@@ -436,7 +436,7 @@ class Engine(object):
     m = match_counter.MatchCounter(sample)
     # Iterates through each valid column in the document, counting matches.
     for c in search_cols:
-      if (not gencode._is_special_table(c.tableId) and
+      if (not (gencode._is_special_table(c.tableId) or c.parentId.summarySourceTable) and
           column.is_visible_column(c.colId) and
           not c.type.startswith('Ref')):
         table = self.tables[c.tableId]
@@ -1265,7 +1265,7 @@ class Engine(object):
     return sum(
       table._num_rows()
       for table_id, table in six.iteritems(self.tables)
-      if useractions.is_user_table(table_id)
+      if useractions.is_user_table(table_id) and not table._summary_source_table
     )
 
   def apply_user_actions(self, user_actions, user=None):

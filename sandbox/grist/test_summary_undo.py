@@ -31,7 +31,7 @@ class TestSummaryUndo(test_engine.EngineTestCase):
     self.load_sample(self.sample)
     # Create a summary section, grouped by the "State" column.
     self.apply_user_action(["CreateViewSection", 1, 0, "record", [1], None])
-    self.assertTableData('GristSummary_6_Person', cols="subset", data=[
+    self.assertTableData('Person_summary_state', cols="subset", data=[
       [ "id", "state", "count"],
       [ 1,    "NY",    2],
       [ 2,    "IL",    2],
@@ -39,7 +39,7 @@ class TestSummaryUndo(test_engine.EngineTestCase):
     ])
 
     out_actions = self.update_record('Person', 4, state='ME')
-    self.assertTableData('GristSummary_6_Person', cols="subset", data=[
+    self.assertTableData('Person_summary_state', cols="subset", data=[
       [ "id", "state", "count"],
       [ 1,    "NY",    1],
       [ 2,    "IL",    2],
@@ -47,7 +47,7 @@ class TestSummaryUndo(test_engine.EngineTestCase):
     ])
 
     self.apply_undo_actions(out_actions.undo[0:1])
-    self.assertTableData('GristSummary_6_Person', cols="subset", data=[
+    self.assertTableData('Person_summary_state', cols="subset", data=[
       [ "id", "state", "count"],
       [ 1,    "NY",    2],
       [ 2,    "IL",    2],

@@ -33,9 +33,10 @@ class GristDocAPIImpl implements GristDocAPI {
   public async getDocName() { return this._activeDoc.docName; }
 
   public async listTables(): Promise<string[]> {
-    const table = this._activeDoc.docData!.getMetaTable('_grist_Tables');
-    return table.getColValues('tableId')
-      .filter(id => !id.startsWith("GristSummary_")).sort();
+    return this._activeDoc.docData!.getMetaTable('_grist_Tables')
+      .getRecords()
+      .filter(r => !r.summarySourceTable)
+      .map(r => r.tableId);
   }
 
   public async fetchTable(tableId: string): Promise<TableColValues> {

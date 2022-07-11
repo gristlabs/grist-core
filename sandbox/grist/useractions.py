@@ -561,7 +561,7 @@ class UserActions(object):
       update_pairs.append((rec, values))
       if has_diff_value(values, 'tableId', rec.tableId):
         # Disallow renaming of summary tables.
-        if rec.summarySourceTable:
+        if rec.summarySourceTable and self._indirection_level == DIRECT_ACTION:
           raise ValueError("RenameTable: cannot rename a summary table")
 
         # Find a non-conflicting name, except that we don't need to avoid the old name.
@@ -572,7 +572,8 @@ class UserActions(object):
         if new_table_id != rec.tableId:
           # If there are summary tables based on this table, rename them to appropriate names.
           for st in rec.summaryTables:
-            st_table_id = summary.encode_summary_table_name(new_table_id)
+            groupby_col_ids = [c.colId for c in st.columns if c.summarySourceCol]
+            st_table_id = summary.encode_summary_table_name(new_table_id, groupby_col_ids)
             st_table_id = identifiers.pick_table_ident(st_table_id, avoid=avoid_tableid_set)
             avoid_tableid_set.add(st_table_id)
             update_pairs.append((st, {'tableId': st_table_id}))
@@ -697,6 +698,7 @@ class UserActions(object):
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
 
+    rename_summary_tables = set()
     for c, values in update_pairs:
       # Trigger ModifyColumn and RenameColumn as necessary
       schema_colinfo = select_keys(values, _modify_col_schema_props)
@@ -704,6 +706,8 @@ class UserActions(object):
         self.doModifyColumn(c.parentId.tableId, c.colId, schema_colinfo)
       if has_diff_value(values, 'colId', c.colId):
         self._do_doc_action(actions.RenameColumn(c.parentId.tableId, c.colId, values['colId']))
+        if c.summarySourceCol:
+          rename_summary_tables.add(c.parentId)
 
     # If we change a column's type, we should ALSO unset each affected field's displayCol.
     type_changed = [c for c, values in update_pairs if has_diff_value(values, 'type', c.type)]
@@ -718,6 +722,12 @@ class UserActions(object):
 
     make_acl_updates()
 
+    for table in rename_summary_tables:
+      groupby_col_ids = [c.colId for c in table.columns if c.summarySourceCol]
+      new_table_id = summary.encode_summary_table_name(table.summarySourceTable.tableId,
+                                                       groupby_col_ids)
+      with self.indirect_actions():
+        self.RenameTable(table.tableId, new_table_id)
 
   @override_action('BulkUpdateRecord', '_grist_Views_section')
   def _updateViewSections(self, table_id, row_ids, col_values):

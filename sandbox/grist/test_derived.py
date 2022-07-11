@@ -60,7 +60,7 @@ class TestDerived(test_engine.EngineTestCase):
     self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10], None])
 
     # Check the results.
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   1,  15,   [1]],
       [2,   2013,   2,  30,   [2,3]],
       [3,   2014,   3,  86,   [4,5,6]],
@@ -75,9 +75,9 @@ class TestDerived(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.BulkUpdateRecord("Orders", [1,2], {'amount': [14, 14]}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,2], {'amount': [14, 29]})
+        actions.BulkUpdateRecord("Orders_summary_year", [1,2], {'amount': [14, 29]})
       ],
-      "calls": {"GristSummary_6_Orders": {"amount": 2}}
+      "calls": {"Orders_summary_year": {"amount": 2}}
     })
 
     # Changing a record from one product to another should cause the two affected lines to change.
@@ -85,16 +85,16 @@ class TestDerived(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.UpdateRecord("Orders", 10, {"year": 2012}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"amount": [31.0, 89.0]}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"count": [2,3]}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,4], {"group": [[1,10], [7,8,9]]}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,4], {"amount": [31.0, 89.0]}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,4], {"count": [2,3]}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,4], {"group": [[1,10], [7,8,9]]}),
       ],
-      "calls": {"GristSummary_6_Orders": {"group": 2, "amount": 2, "count": 2},
-                "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
-                           "#summary#GristSummary_6_Orders": 1}}
+      "calls": {"Orders_summary_year": {"group": 2, "amount": 2, "count": 2},
+                "Orders": {"#lookup##summary#Orders_summary_year": 1,
+                           "#summary#Orders_summary_year": 1}}
     })
 
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   2,  31.0,   [1,10]],
       [2,   2013,   2,  29.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
@@ -106,20 +106,20 @@ class TestDerived(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.UpdateRecord("Orders", 10, {"year": 1999}),
-        actions.AddRecord("GristSummary_6_Orders", 5, {'year': 1999}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"amount": [14.0, 17.0]}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"count": [1,1]}),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [1,5], {"group": [[1], [10]]}),
+        actions.AddRecord("Orders_summary_year", 5, {'year': 1999}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,5], {"amount": [14.0, 17.0]}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,5], {"count": [1,1]}),
+        actions.BulkUpdateRecord("Orders_summary_year", [1,5], {"group": [[1], [10]]}),
       ],
       "calls": {
-        "GristSummary_6_Orders": {
+        "Orders_summary_year": {
           '#lookup#year': 1, "group": 2, "amount": 2, "count": 2, "#lookup#": 1
         },
-        "Orders": {"#lookup##summary#GristSummary_6_Orders": 1,
-                   "#summary#GristSummary_6_Orders": 1}}
+        "Orders": {"#lookup##summary#Orders_summary_year": 1,
+                   "#summary#Orders_summary_year": 1}}
     })
 
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   1,  14.0,   [1]],
       [2,   2013,   2,  29.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
@@ -135,7 +135,7 @@ class TestDerived(test_engine.EngineTestCase):
     self.load_sample(self.sample)
 
     self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10, 12], None])
-    self.assertPartialData("GristSummary_6_Orders", [
+    self.assertPartialData("Orders_summary_product_year", [
       "id", "year", "product", "count", "amount", "group"
     ], [
       [1,   2012,   "A",  1,  15.0,   [1]],
@@ -156,23 +156,23 @@ class TestDerived(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.BulkUpdateRecord("Orders", [2, 6, 7], {"product": ["B", "B", "C"]}),
-        actions.AddRecord("GristSummary_6_Orders", 7, {'year': 2013, 'product': 'B'}),
-        actions.AddRecord("GristSummary_6_Orders", 8, {'year': 2015, 'product': 'C'}),
-        actions.RemoveRecord("GristSummary_6_Orders", 4),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+        actions.AddRecord("Orders_summary_product_year", 7, {'year': 2013, 'product': 'B'}),
+        actions.AddRecord("Orders_summary_product_year", 8, {'year': 2015, 'product': 'C'}),
+        actions.RemoveRecord("Orders_summary_product_year", 4),
+        actions.BulkUpdateRecord("Orders_summary_product_year", [2,3,5,7,8], {
           "amount": [15.0, 86.0, 17.0, 15.0, 17.0]
         }),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+        actions.BulkUpdateRecord("Orders_summary_product_year", [2,3,5,7,8], {
           "count": [1, 3, 1, 1, 1]
         }),
-        actions.BulkUpdateRecord("GristSummary_6_Orders", [2,3,5,7,8], {
+        actions.BulkUpdateRecord("Orders_summary_product_year", [2,3,5,7,8], {
           "group": [[3], [4,5,6], [10], [2], [7]]
         }),
       ],
     })
 
     # Verify the results.
-    self.assertPartialData("GristSummary_6_Orders", [
+    self.assertPartialData("Orders_summary_product_year", [
       "id", "year", "product", "count", "amount", "group"
     ], [
       [1,   2012,   "A",  1,  15.0,   [1]],
@@ -194,10 +194,10 @@ class TestDerived(test_engine.EngineTestCase):
 
     # Create a summary on the Customers table. Adding orders involves a lookup for each customer.
     self.apply_user_action(["CreateViewSection", 1, 0, 'record', [3], None])
-    self.add_column("GristSummary_9_Customers", "totalAmount",
+    self.add_column("Customers_summary_state", "totalAmount",
       formula="sum(sum(Orders.lookupRecords(customer=c).amount) for c in $group)")
 
-    self.assertPartialData("GristSummary_9_Customers", ["id", "state", "count", "totalAmount"], [
+    self.assertPartialData("Customers_summary_state", ["id", "state", "count", "totalAmount"], [
       [1,   "NY",   2,  103.0 ],
       [2,   "CT",   2,  134.0 ],
       [3,   "NJ",   1,    0.0 ],
@@ -219,14 +219,14 @@ class TestDerived(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, {
       "stored": [
         actions.UpdateRecord("Orders", 9, {"amount": 37}),
-        actions.UpdateRecord("GristSummary_9_Customers", 2, {"totalAmount": 135.0}),
+        actions.UpdateRecord("Customers_summary_state", 2, {"totalAmount": 135.0}),
       ]
     })
 
     # In either case, changing a customer's state should trigger recomputation too.
     # We are changing a NY customer with $51 in orders to MA.
     self.update_record('Customers', 2, state="MA")
-    self.assertPartialData("GristSummary_9_Customers", ["id", "state", "count", "totalAmount"], [
+    self.assertPartialData("Customers_summary_state", ["id", "state", "count", "totalAmount"], [
       [1,   "NY",   1,   52.0 ],
       [2,   "CT",   2,  135.0 ],
       [3,   "NJ",   1,    0.0 ],
@@ -246,7 +246,7 @@ class TestDerived(test_engine.EngineTestCase):
     #              actions.AddRecord("Summary4", 4, {"state": "NJ"}),
     #              actions.UpdateRecord("Summary4", 4, {"manualSort": 4.0})]
     # })
-    self.assertPartialData("GristSummary_9_Customers", ["id", "state", "count", "totalAmount"], [
+    self.assertPartialData("Customers_summary_state", ["id", "state", "count", "totalAmount"], [
       [1,   "NY",   1,   35.0 ],
       [2,   "CT",   2,  135.0 ],
       [3,   "NJ",   1,   17.0 ],
@@ -264,7 +264,7 @@ class TestDerived(test_engine.EngineTestCase):
 
     # Create a summary table summarizing count and total of orders by year.
     self.apply_user_action(["CreateViewSection", 2, 0, 'record', [10], None])
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   1,  15.0,   [1]],
       [2,   2013,   2,  30.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
@@ -273,7 +273,7 @@ class TestDerived(test_engine.EngineTestCase):
 
     # Update a record so that a new line appears in the summary table.
     out_actions_update = self.update_record("Orders", 1, year=2007)
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [2,   2013,   2,  30.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
       [4,   2015,   4,  106.0,  [7,8,9,10]],
@@ -282,7 +282,7 @@ class TestDerived(test_engine.EngineTestCase):
 
     # Undo and ensure that the new line is gone from the summary table.
     out_actions_undo = self.apply_undo_actions(out_actions_update.undo)
-    self.assertPartialData("GristSummary_6_Orders", ["id", "year", "count", "amount", "group" ], [
+    self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
       [1,   2012,   1,  15.0,   [1]],
       [2,   2013,   2,  30.0,   [2,3]],
       [3,   2014,   3,  86.0,   [4,5,6]],
@@ -290,18 +290,18 @@ class TestDerived(test_engine.EngineTestCase):
     ])
     self.assertPartialOutActions(out_actions_undo, {
       "stored": [
-        actions.AddRecord("GristSummary_6_Orders", 1, {
+        actions.AddRecord("Orders_summary_year", 1, {
           "amount": 15.0, "count": 1, "group": [1], "year": 2012
         }),
-        actions.RemoveRecord("GristSummary_6_Orders", 5),
+        actions.RemoveRecord("Orders_summary_year", 5),
         actions.UpdateRecord("Orders", 1, {"year": 2012}),
       ],
       "calls": {
-        "GristSummary_6_Orders": {
+        "Orders_summary_year": {
           "#lookup#": 1, "#lookup#year": 1, "group": 1, "amount": 1, "count": 1
         },
         "Orders": {
-          "#lookup##summary#GristSummary_6_Orders": 1, "#summary#GristSummary_6_Orders": 1,
+          "#lookup##summary#Orders_summary_year": 1, "#summary#Orders_summary_year": 1,
         },
       },
     })
