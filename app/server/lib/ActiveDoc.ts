@@ -485,24 +485,28 @@ export class ActiveDoc extends EventEmitter {
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
 
-      // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
-      // needs to happen periodically, and doing it here means we can guarantee that it happens
-      // even if the doc is only ever opened briefly, without having to slow down startup.
-      const removeAttachmentsPromise = this.removeUnusedAttachments(true, usageOptions);
+      // This cleanup requires docStorage, which may have failed to start up.
+      // We don't want to log pointless errors in that case.
+      if (this.docStorage.isInitialized()) {
+        // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
+        // needs to happen periodically, and doing it here means we can guarantee that it happens
+        // even if the doc is only ever opened briefly, without having to slow down startup.
+        const removeAttachmentsPromise = this.removeUnusedAttachments(true, usageOptions);
 
-      // Update data size; we'll be syncing both it and attachments size to the database soon.
-      const updateDataSizePromise = this._updateDataSize(usageOptions);
+        // Update data size; we'll be syncing both it and attachments size to the database soon.
+        const updateDataSizePromise = this._updateDataSize(usageOptions);
 
-      try {
-        await removeAttachmentsPromise;
-      } catch (e) {
-        this._log.error(docSession, "Failed to remove expired attachments", e);
-      }
+        try {
+          await removeAttachmentsPromise;
+        } catch (e) {
+          this._log.error(docSession, "Failed to remove expired attachments", e);
+        }
 
-      try {
-        await updateDataSizePromise;
-      } catch (e) {
-        this._log.error(docSession, "Failed to update data size", e);
+        try {
+          await updateDataSizePromise;
+        } catch (e) {
+          this._log.error(docSession, "Failed to update data size", e);
+        }
       }
 
       this._syncDocUsageToDatabase(true);

@@ -674,6 +674,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // Note that we don't call _updateMetadata() as there are no metadata tables yet anyway.
   }
 
+  public isInitialized(): boolean {
+    return Boolean(this._db);
+  }
+
   /**
    * Initializes the database with proper settings.
    */
