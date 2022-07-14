@@ -1118,7 +1118,9 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getFormulaError(docSession: DocSession, tableId: string, colId: string,
                                rowId: number): Promise<CellValue> {
-    if (!await this._granularAccess.hasTableAccess(docSession, tableId)) { return null; }
+    // Throw an error if the user doesn't have access to read this cell.
+    await this._granularAccess.getCellValue(docSession, {tableId, colId, rowId});
+
     this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
