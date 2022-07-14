@@ -54,7 +54,7 @@ export class DocManager extends EventEmitter {
 
   constructor(
     public readonly storageManager: IDocStorageManager,
-    public readonly pluginManager: PluginManager,
+    public readonly pluginManager: PluginManager|null,
     private _homeDbManager: HomeDBManager|null,
     public gristServer: GristServer
   ) {
@@ -610,7 +610,7 @@ export class DocManager extends EventEmitter {
       return docUtils.createExclusive(this.storageManager.getPath(name));
     });
     log.debug('DocManager._createNewDoc picked name', docName);
-    await this.pluginManager.pluginsLoaded;
+    await this.pluginManager?.pluginsLoaded;
     return docName;
   }
 }

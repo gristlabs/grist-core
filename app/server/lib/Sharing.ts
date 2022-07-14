@@ -281,7 +281,7 @@ export class Sharing {
       // Apply the action to the database, and record in the action log.
       if (!trivial) {
         await this._activeDoc.docStorage.execTransaction(async () => {
-          await this._activeDoc.docStorage.applyStoredActions(getEnvContent(ownActionBundle.stored));
+          await this._activeDoc.applyStoredActionsToDocStorage(getEnvContent(ownActionBundle.stored));
           if (this.isShared() && branch === Branch.Local) {
             // this call will compute an actionHash for localActionBundle
             await this._actionHistory.recordNextLocalUnsent(localActionBundle);

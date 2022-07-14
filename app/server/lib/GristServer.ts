@@ -6,6 +6,7 @@ import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
+import { create } from 'app/server/lib/create';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
@@ -87,4 +88,34 @@ export interface RequestWithGrist extends express.Request {
 export interface DocTemplate {
   page: string,
   tag: string,
+}
+
+/**
+ * A very minimal GristServer object that throws an error if its bluff is
+ * called.
+ */
+export function createDummyGristServer(): GristServer {
+  return {
+    create,
+    settings: {},
+    getHost() { return 'localhost:4242'; },
+    getHomeUrl() { return 'http://localhost:4242'; },
+    getHomeUrlByDocId() { return Promise.resolve('http://localhost:4242'); },
+    getMergedOrgUrl() { return 'http://localhost:4242'; },
+    getOwnUrl() { return 'http://localhost:4242'; },
+    getPermitStore() { throw new Error('no permit store'); },
+    getExternalPermitStore() { throw new Error('no external permit store'); },
+    getGristConfig() { return { homeUrl: '', timestampMs: 0 }; },
+    getOrgUrl() { return Promise.resolve(''); },
+    getResourceUrl() { return Promise.resolve(''); },
+    getSessions() { throw new Error('no sessions'); },
+    getComm() { throw new Error('no comms'); },
+    getHosts() { throw new Error('no hosts'); },
+    getHomeDBManager() { throw new Error('no db'); },
+    getStorageManager() { throw new Error('no storage manager'); },
+    getNotifier() { throw new Error('no notifier'); },
+    getDocTemplate() { throw new Error('no doc template'); },
+    getTag() { return 'tag'; },
+    sendAppPage() { return Promise.resolve(); },
+  };
 }

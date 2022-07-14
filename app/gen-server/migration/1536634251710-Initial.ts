@@ -1,3 +1,4 @@
+import * as sqlUtils from "app/gen-server/sqlUtils";
 import {MigrationInterface, QueryRunner, Table} from "typeorm";
 
 
@@ -6,9 +7,9 @@ export class Initial1536634251710 implements MigrationInterface {
     // TypeORM doesn't currently help with types of created tables:
     //   https://github.com/typeorm/typeorm/issues/305
     // so we need to do a little smoothing over postgres and sqlite.
-    const sqlite = queryRunner.connection.driver.options.type === 'sqlite';
-    const datetime = sqlite ? "datetime" : "timestamp with time zone";
-    const now = "now()";
+    const dbType = queryRunner.connection.driver.options.type;
+    const datetime = sqlUtils.datetime(dbType);
+    const now = sqlUtils.now(dbType);
 
     await queryRunner.createTable(new Table({
       name: "users",

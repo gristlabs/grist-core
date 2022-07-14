@@ -95,7 +95,7 @@ export class DocClients {
     }
     if (type === "docUserAction" && messageData.docActions) {
       for (const action of messageData.docActions) {
-        this.activeDoc.docPluginManager.receiveAction(action);
+        this.activeDoc.docPluginManager?.receiveAction(action);
       }
     }
   }

@@ -15,7 +15,8 @@
     "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha -g ${GREP_TEST:-''} _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:smoke": "NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/Smoke.js",
-    "test:docker": "./test/test_under_docker.sh"
+    "test:docker": "./test/test_under_docker.sh",
+    "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js"
   },
   "keywords": [
     "grist",
@@ -96,6 +97,7 @@
     "bowser": "2.7.0",
     "brace": "0.11.1",
     "collect-js-deps": "^0.1.1",
+    "commander": "9.3.0",
     "components-jqueryui": "1.12.1",
     "connect-redis": "3.4.0",
     "cookie": "0.5.0",

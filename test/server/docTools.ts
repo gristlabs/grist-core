@@ -1,11 +1,10 @@
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
-import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
-import {GristServer} from 'app/server/lib/GristServer';
+import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {getAppRoot} from 'app/server/lib/places';
 import {PluginManager} from 'app/server/lib/PluginManager';
@@ -149,32 +148,6 @@ export async function createDocManager(
     getExternalPermitStore() { return externalPermitStore; },
     getStorageManager() { return docStorageManager; },
   });
-}
-
-export function createDummyGristServer(): GristServer {
-  return {
-    create,
-    settings: {},
-    getHost() { return 'localhost:4242'; },
-    getHomeUrl() { return 'http://localhost:4242'; },
-    getHomeUrlByDocId() { return Promise.resolve('http://localhost:4242'); },
-    getMergedOrgUrl() { return 'http://localhost:4242'; },
-    getOwnUrl() { return 'http://localhost:4242'; },
-    getPermitStore() { throw new Error('no permit store'); },
-    getExternalPermitStore() { throw new Error('no external permit store'); },
-    getGristConfig() { return { homeUrl: '', timestampMs: 0 }; },
-    getOrgUrl() { return Promise.resolve(''); },
-    getResourceUrl() { return Promise.resolve(''); },
-    getSessions() { throw new Error('no sessions'); },
-    getComm() { throw new Error('no comms'); },
-    getHosts() { throw new Error('no hosts'); },
-    getHomeDBManager() { throw new Error('no db'); },
-    getStorageManager() { throw new Error('no storage manager'); },
-    getNotifier() { throw new Error('no notifier'); },
-    getDocTemplate() { throw new Error('no doc template'); },
-    getTag() { return 'tag'; },
-    sendAppPage() { return Promise.resolve(); },
-  };
 }
 
 export async function createTmpDir(): Promise<string> {

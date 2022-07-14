@@ -33,6 +33,7 @@ import {
   BulkUpdateRecord,
   CellValue,
   DocAction,
+  getTableId,
   TableDataAction,
   TableRecordValue,
   toTableDataAction,
@@ -170,7 +171,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public readonly docStorage: DocStorage;
-  public readonly docPluginManager: DocPluginManager;
+  public readonly docPluginManager: DocPluginManager|null;
   public readonly docClients: DocClients;               // Only exposed for Sharing.ts
   public docData: DocData|null = null;
 
@@ -204,6 +205,7 @@ export class ActiveDoc extends EventEmitter {
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
   private _isForkOrSnapshot: boolean = false;
+  private _onlyAllowMetaDataActionsOnDb: boolean = false;
 
   // Client watching for 'product changed' event published by Billing to update usage
   private _redisSubscriber?: RedisClient;
@@ -276,8 +278,9 @@ export class ActiveDoc extends EventEmitter {
     this._triggers = new DocTriggers(this);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
-    this.docPluginManager = new DocPluginManager(docManager.pluginManager.getPlugins(),
-      docManager.pluginManager.appRoot!, this, this._docManager.gristServer);
+    this.docPluginManager = docManager.pluginManager ?
+      new DocPluginManager(docManager.pluginManager.getPlugins(),
+                           docManager.pluginManager.appRoot!, this, this._docManager.gristServer) : null;
     this._tableMetadataLoader = new TableMetadataLoader({
       decodeBuffer: this.docStorage.decodeMarshalledData.bind(this.docStorage),
       fetchTable: this.docStorage.fetchTable.bind(this.docStorage),
@@ -529,7 +532,7 @@ export class ActiveDoc extends EventEmitter {
         }
         await Promise.all([
           this.docStorage.shutdown(),
-          this.docPluginManager.shutdown(),
+          this.docPluginManager?.shutdown(),
           dataEngine?.shutdown()
         ]);
         // The this.waitForInitialization promise may not yet have resolved, but
@@ -576,7 +579,7 @@ export class ActiveDoc extends EventEmitter {
     await this._initDoc(docSession);
     await this._tableMetadataLoader.clean();
     // Makes sure docPluginManager is ready in case new doc is used to import new data
-    await this.docPluginManager.ready;
+    await this.docPluginManager?.ready;
     this._fullyLoaded = true;
     return this;
   }
@@ -585,10 +588,13 @@ export class ActiveDoc extends EventEmitter {
    * Create a new blank document (no "Table1"), used as a stub when importing.
    */
   @ActiveDoc.keepDocOpen
-  public async createEmptyDoc(docSession: OptDocSession): Promise<ActiveDoc> {
-    await this.loadDoc(docSession, {forceNew: true, skipInitialTable: true});
+  public async createEmptyDoc(docSession: OptDocSession,
+                              options?: { useExisting?: boolean }): Promise<ActiveDoc> {
+    await this.loadDoc(docSession, {forceNew: true,
+                                    skipInitialTable: true,
+                                    ...options});
     // Makes sure docPluginManager is ready in case new doc is used to import new data
-    await this.docPluginManager.ready;
+    await this.docPluginManager?.ready;
     this._fullyLoaded = true;
     return this;
   }
@@ -603,13 +609,18 @@ export class ActiveDoc extends EventEmitter {
   public async loadDoc(docSession: OptDocSession, options?: {
     forceNew?: boolean,          // If set, document will be created.
     skipInitialTable?: boolean,  // If set, and document is new, "Table1" will not be added.
+    useExisting?: boolean,       // If set, document can be created as an overlay on
+                                 // an existing sqlite file.
   }): Promise<ActiveDoc> {
     const startTime = Date.now();
     this._log.debug(docSession, "loadDoc");
     try {
       const isNew: boolean = options?.forceNew || await this._docManager.storageManager.prepareLocalDoc(this.docName);
       if (isNew) {
-        await this._createDocFile(docSession, {skipInitialTable: options?.skipInitialTable});
+        await this._createDocFile(docSession, {
+          skipInitialTable: options?.skipInitialTable,
+          useExisting: options?.useExisting,
+        });
       } else {
         await this.docStorage.openFile({
           beforeMigration: async (currentVersion, newVersion) => {
@@ -1253,6 +1264,7 @@ export class ActiveDoc extends EventEmitter {
     if (await this._granularAccess.hasNuancedAccess(docSession)) {
       throw new Error('cannot confirm access to plugin');
     }
+    if (!this.docPluginManager) { throw new Error('no plugin manager available'); }
     const pluginRpc = this.docPluginManager.plugins[pluginId].rpc;
     switch (msg.mtype) {
       case MsgType.RpcCall: return pluginRpc.forwardCall(msg);
@@ -1266,6 +1278,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async reloadPlugins(docSession: DocSession) {
     // refresh the list plugins found on the system
+    if (!this._docManager.pluginManager || !this.docPluginManager) { return; }
     await this._docManager.pluginManager.reloadPlugins();
     const plugins = this._docManager.pluginManager.getPlugins();
     // reload found plugins
@@ -1433,6 +1446,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public getGristDocAPI(): GristDocAPI {
+    if (!this.docPluginManager) { throw new Error('no plugin manager available'); }
     return this.docPluginManager.gristDocAPI;
   }
 
@@ -1571,6 +1585,27 @@ export class ActiveDoc extends EventEmitter {
 
   public makeAccessId(userId: number|null): string|null {
     return this._docManager.makeAccessId(userId);
+  }
+
+  /**
+   * Apply actions that have already occurred in the data engine to the
+   * database also.
+   */
+  public async applyStoredActionsToDocStorage(docActions: DocAction[]): Promise<void> {
+    // When "gristifying" an sqlite database, we may take create tables and
+    // columns in the data engine that already exist in the sqlite database.
+    // During that process, _onlyAllowMetaDataActionsOnDb will be turned on,
+    // and we silently swallow any non-metadata actions.
+    if (this._onlyAllowMetaDataActionsOnDb) {
+      docActions = docActions.filter(a => getTableId(a).startsWith('_grist'));
+    }
+    await this.docStorage.applyStoredActions(docActions);
+  }
+
+  // Set a flag that controls whether user data can be changed in the database,
+  // or only grist-managed tables (those whose names start with _grist)
+  public onlyAllowMetaDataActionsOnDb(flag: boolean) {
+    this._onlyAllowMetaDataActionsOnDb = flag;
   }
 
   /**
@@ -1720,10 +1755,12 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   private async _createDocFile(docSession: OptDocSession, options?: {
     skipInitialTable?: boolean,  // If set, "Table1" will not be added.
+    useExisting?: boolean,       // If set, an existing sqlite db is permitted.
+                                 // Useful for "gristifying" an existing db.
   }): Promise<void> {
     this._log.debug(docSession, "createDoc");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
-    await this.docStorage.createFile();
+    await this.docStorage.createFile(options);
     const sql = options?.skipInitialTable ? GRIST_DOC_SQL : GRIST_DOC_WITH_TABLE1_SQL;
     await this.docStorage.exec(sql);
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;

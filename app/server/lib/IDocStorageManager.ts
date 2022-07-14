@@ -38,3 +38,33 @@ export interface IDocStorageManager {
   removeSnapshots(docName: string, snapshotIds: string[]): Promise<void>;
   replace(docName: string, options: DocReplacementOptions): Promise<void>;
 }
+
+/**
+ * A very minimal implementation of IDocStorageManager that is just
+ * enough to allow an ActiveDoc to open and get to work.
+ */
+export class TrivialDocStorageManager implements IDocStorageManager {
+  public getPath(docName: string): string { return docName; }
+  public getSampleDocPath() { return null; }
+  public async getCanonicalDocName(altDocName: string) { return altDocName; }
+  public async prepareLocalDoc() { return false; }
+  public async prepareToCreateDoc() { }
+  public async prepareFork(): Promise<never> { throw new Error('no'); }
+  public async listDocs() { return []; }
+  public async deleteDoc(): Promise<never> { throw new Error('no'); }
+  public async renameDoc(): Promise<never> { throw new Error('no'); }
+  public async makeBackup(): Promise<never> { throw new Error('no'); }
+  public async showItemInFolder(): Promise<never> { throw new Error('no'); }
+  public async closeStorage() {}
+  public async closeDocument() {}
+  public markAsChanged() {}
+  public scheduleUsageUpdate() {}
+  public testReopenStorage() {}
+  public async addToStorage(): Promise<never> { throw new Error('no'); }
+  public prepareToCloseStorage() {}
+  public async getCopy(): Promise<never> { throw new Error('no'); }
+  public async flushDoc() {}
+  public async getSnapshots(): Promise<never> { throw new Error('no'); }
+  public async removeSnapshots(): Promise<never> { throw new Error('no'); }
+  public async replace(): Promise<never> { throw new Error('no'); }
+}

@@ -242,6 +242,7 @@ export class ActiveDocImport {
 
     // The upload must be within the plugin-accessible directory. Once moved, subsequent calls to
     // moveUpload() will return without having to do anything.
+    if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
     await moveUpload(upload, this._activeDoc.docPluginManager.tmpDir());
 
     const importResult: ImportResult = {options: parseOptions, tables: []};
@@ -287,6 +288,7 @@ export class ActiveDocImport {
     const {originalFilename, parseOptions, mergeOptionsMap, isHidden, uploadFileIndex,
            transformRuleMap} = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
+    if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
     const optionsAndData: ParseFileResult =
       await this._activeDoc.docPluginManager.parseFile(tmpPath, originalFilename, parseOptions);
     const options = optionsAndData.parseOptions;

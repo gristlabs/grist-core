@@ -166,7 +166,7 @@ export class SQLiteDB implements ISQLiteDB {
 
     // It's possible that userVersion is 0 for a non-empty DB if it was created without this
     // module. In that case, we apply migrations starting with the first one.
-    if (userVersion === 0 && (await isEmpty(db))) {
+    if (userVersion === 0 && (await isGristEmpty(db))) {
       await db._initNewDB(schemaInfo);
     } else if (mode === OpenMode.CREATE_EXCL) {
       await db.close();
@@ -537,15 +537,15 @@ export class SQLiteDB implements ISQLiteDB {
 // dummy DB, and we use it to do sanity checking, in particular after migrations. To avoid
 // creating dummy DBs multiple times, the result is cached, keyed by the "create" function itself.
 const dbMetadataCache: Map<DBFunc, DBMetadata> = new Map();
-interface DBMetadata {
+export interface DBMetadata {
   [tableName: string]: {
     [colName: string]: string;      // Maps column name to SQLite type, e.g. "TEXT".
   };
 }
 
-// Helper to see if a database is empty.
-async function isEmpty(db: SQLiteDB): Promise<boolean> {
-  return (await db.get("SELECT count(*) as count FROM sqlite_master"))!.count === 0;
+// Helper to see if a database is empty of grist metadata tables.
+async function isGristEmpty(db: SQLiteDB): Promise<boolean> {
+  return (await db.get("SELECT count(*) as count FROM sqlite_master WHERE name LIKE '_grist%'"))!.count === 0;
 }
 
 /**
