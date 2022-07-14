@@ -456,7 +456,8 @@ export class Client {
           (typeof code === 'string' && code.startsWith('AUTH_NO'))
         );
 
-        this._log.warn(null, "Error %s %s", skipStack ? err : err.stack, code || '');
+        this._log.warn(null, "Responding to method %s with error: %s %s",
+          request.method, skipStack ? err : err.stack, code || '');
         response = {reqId: request.reqId, error: err.message};
         if (err.code) {
           response.errorCode = err.code;

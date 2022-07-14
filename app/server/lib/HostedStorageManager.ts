@@ -1,4 +1,5 @@
 import * as sqlite3 from '@gristlabs/sqlite3';
+import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet} from 'app/common/AsyncCreate';
 import {delay} from 'app/common/delay';
 import {DocEntry} from 'app/common/DocListAPI';
@@ -596,9 +597,9 @@ export class HostedStorageManager implements IDocStorageManager {
         // skip S3, just use file system
         let present: boolean = await fse.pathExists(this.getPath(docName));
         if ((forkId || snapshotId) && !present) {
-          if (!canCreateFork) { throw new Error(`Cannot create fork`); }
+          if (!canCreateFork) { throw new ApiError("Document fork not found", 404); }
           if (snapshotId && snapshotId !== 'current') {
-            throw new Error(`cannot find snapshot ${snapshotId} of ${docName}`);
+            throw new ApiError(`cannot find snapshot ${snapshotId} of ${docName}`, 404);
           }
           if (await fse.pathExists(this.getPath(trunkId))) {
             await fse.copy(this.getPath(trunkId), this.getPath(docName));
@@ -681,10 +682,10 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!await this._ext.exists(destIdWithoutSnapshot)) {
       if (!options.trunkId) { return false; }   // Document not found in S3
       // No such fork in s3 yet, try from trunk (if we are allowed to create the fork).
-      if (!options.canCreateFork) { throw new Error('Cannot create fork'); }
+      if (!options.canCreateFork) { throw new ApiError("Document fork not found", 404); }
       // The special NEW_DOCUMENT_CODE trunk means we should create an empty document.
       if (options.trunkId === NEW_DOCUMENT_CODE) { return false; }
-      if (!await this._ext.exists(options.trunkId)) { throw new Error('Cannot find original'); }
+      if (!await this._ext.exists(options.trunkId)) { throw new ApiError('Cannot find original', 404); }
       sourceDocId = options.trunkId;
     }
     await this._ext.downloadTo(sourceDocId, destId, this.getPath(destId), options.snapshotId);

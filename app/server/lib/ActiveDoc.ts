@@ -644,6 +644,8 @@ export class ActiveDoc extends EventEmitter {
         });
       });
     } catch (err) {
+      const level = err.status === 404 ? "warn" : "error";
+      this._log.log(level, docSession, "Failed to load document", err);
       await this.shutdown();
       throw err;
     }
