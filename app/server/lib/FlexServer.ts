@@ -327,7 +327,8 @@ export class FlexServer implements GristServer {
         status: tokens.status(req, res),
         timeMs: parseFloat(tokens['response-time'](req, res)) || undefined,
         contentLength: parseInt(tokens.res(req, res, 'content-length'), 10) || undefined,
-        host: tokens.host(req, res)
+        host: tokens.host(req, res),
+        altSessionId: req.altSessionId,
       });
     }
     this.app.use(morganLogger(process.env.GRIST_HOSTED_VERSION ? outputJson : msg, {
