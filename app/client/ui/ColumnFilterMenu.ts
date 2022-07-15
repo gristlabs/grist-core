@@ -342,7 +342,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
     values = [true, false];
   } else if (['Choice', 'ChoiceList'].includes(columnType)) {
     const options = fieldOrColumn.origCol().widgetOptionsJson;
-    values = options.prop('choices')();
+    values = options.prop('choices')() ?? [];
   }
   return new Map(values.map((v) => [v, {label: String(v), count: 0, displayValue: v}]));
 }

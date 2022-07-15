@@ -1371,7 +1371,7 @@ export async function setType(type: RegExp, options: {skipWait?: boolean} = {}) 
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
-  await driver.findContentWait('.test-select-menu .test-select-row', type, 200).click();
+  await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
   if (!options.skipWait) { await waitForServer(); }
 }
 
@@ -1949,7 +1949,7 @@ export async function addColumn(name: string) {
   // If we are on a summary table, we could be see a menu helper
   const menu = (await driver.findAll('.grist-floating-menu'))[0];
   if (menu) {
-    await menu.findContent("li", name).click();
+    await menu.findContent("li", "Add Column").click();
   }
   await waitForServer();
   await waitAppFocus(false);
