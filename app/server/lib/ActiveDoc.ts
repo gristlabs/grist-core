@@ -14,6 +14,7 @@ import {
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
 import {
+  AclTableDescription,
   ApplyUAOptions,
   ApplyUAResult,
   DataSourceTransformed,
@@ -1369,23 +1370,34 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Returns the full set of tableIds, with the list of colIds for each table. This is intended
+   * Returns the full set of tableIds, with basic metadata for each table. This is intended
    * for editing ACLs. It is only available to users who can edit ACLs, and lists all resources
    * regardless of rules that may block access to them.
    */
-  public async getAclResources(docSession: DocSession): Promise<{[tableId: string]: string[]}> {
+  public async getAclResources(docSession: DocSession): Promise<{[tableId: string]: AclTableDescription}> {
     if (!this.docData || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
       throw new Error('Cannot list ACL resources');
     }
-    const result: {[tableId: string]: string[]} = {};
+    const result: {[tableId: string]: AclTableDescription} = {};
     const tables = this.docData.getMetaTable('_grist_Tables');
-    for (const tableId of tables.getColValues('tableId')) {
-      result[tableId] = ['id'];
-    }
+    const sections = this.docData.getMetaTable('_grist_Views_section');
     const columns = this.docData.getMetaTable('_grist_Tables_column');
+    for (const table of tables.getRecords()) {
+      const sourceTable = table.summarySourceTable ? tables.getRecord(table.summarySourceTable)! : table;
+      const rawSection = sections.getRecord(sourceTable.rawViewSectionRef)!;
+      result[table.tableId] = {
+        title: rawSection.title || sourceTable.tableId,
+        colIds: ['id'],
+        groupByColLabels: table.summarySourceTable ? [] : null,
+      };
+    }
     for (const col of columns.getRecords()) {
       const tableId = tables.getValue(col.parentId, 'tableId')!;
-      result[tableId].push(col.colId);
+      result[tableId].colIds.push(col.colId);
+      if (col.summarySourceCol) {
+        const sourceCol = columns.getRecord(col.summarySourceCol)!;
+        result[tableId].groupByColLabels!.push(sourceCol.label);
+      }
     }
     return result;
   }

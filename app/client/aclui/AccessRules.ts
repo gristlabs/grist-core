@@ -26,6 +26,7 @@ import {
   summarizePermissionSet
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
+import {AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
   FormulaProperties,
@@ -108,8 +109,8 @@ export class AccessRules extends Disposable {
   // Error or warning message to show next to Save/Reset buttons if non-empty.
   private _errorMessage = Observable.create(this, '');
 
-  // Map of tableId to the list of columns for all tables in the document.
-  private _aclResources: {[tableId: string]: string[]} = {};
+  // Map of tableId to basic metadata for all tables in the document.
+  private _aclResources: {[tableId: string]: AclTableDescription} = {};
 
   private _aclUsersPopup = ACLUsersPopup.create(this);
 
@@ -171,6 +172,10 @@ export class AccessRules extends Disposable {
   public get allTableIds() { return Object.keys(this._aclResources).sort(); }
   public get userAttrRules() { return this._userAttrRules; }
   public get userAttrChoices() { return this._userAttrChoices; }
+
+  public getTableTitle(tableId: string) {
+    return getTableTitle(this._aclResources[tableId]);
+  }
 
   /**
    * Replace internal state from the rules in DocData.
@@ -328,7 +333,7 @@ export class AccessRules extends Disposable {
               // Add the table on a timeout, to avoid disabling the clicked menu item
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
-                tableId,
+                this.getTableTitle(tableId),
                 dom.cls('disabled', (use) => use(this._tableRules).some(t => t.tableId === tableId)),
               )
             ),
@@ -416,7 +421,7 @@ export class AccessRules extends Disposable {
   // Returns '' if valid, or an error string if not. Exempt colIds will not trigger an error.
   public checkTableColumns(tableId: string, colIds?: string[], exemptColIds?: string[]): string {
     if (!tableId || tableId === SPECIAL_RULES_TABLE_ID) { return ''; }
-    const tableColIds = this._aclResources[tableId];
+    const tableColIds = this._aclResources[tableId].colIds;
     if (!tableColIds) { return `Invalid table: ${tableId}`; }
     if (colIds) {
       const validColIds = new Set([...tableColIds, ...exemptColIds || []]);
@@ -429,7 +434,7 @@ export class AccessRules extends Disposable {
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
   public getValidColIds(tableId: string): string[]|undefined {
-    return this._aclResources[tableId]?.filter(id => !isHiddenCol(id)).sort();
+    return this._aclResources[tableId]?.colIds.filter(id => !isHiddenCol(id)).sort();
   }
 
   private _addTableRules(tableId: string) {
@@ -512,7 +517,7 @@ class TableRules extends Disposable {
   public buildDom() {
     return cssSection(
       cssSectionHeading(
-        dom('span', 'Rules for table ', cssTableName(this.tableId)),
+        dom('span', 'Rules for table ', cssTableName(this._accessRules.getTableTitle(this.tableId))),
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
             menuItemAsync(() => this._addColumnRuleSet(), 'Add Column Rule'),
@@ -1055,8 +1060,14 @@ class ObsUserAttributeRule extends Disposable {
             testId('rule-userattr-attr'),
           ),
           cssCell1(
-            aclSelect(this._tableId, this._accessRules.allTableIds,
-              {defaultLabel: '[Select Table]'}),
+            aclSelect(
+              this._tableId,
+              this._accessRules.allTableIds.map(tableId => ({
+                value: tableId,
+                label: this._accessRules.getTableTitle(tableId),
+              })),
+              {defaultLabel: '[Select Table]'},
+            ),
             testId('rule-userattr-table'),
           ),
           cssCell1(

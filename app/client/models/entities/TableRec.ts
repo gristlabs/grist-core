@@ -2,6 +2,7 @@ import {KoArray} from 'app/client/lib/koArray';
 import {DocModel, IRowModel, recordSet, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import {ColumnRec, ValidationRec, ViewRec} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {summaryGroupByDescription} from 'app/common/ActiveDocAPI';
 import {MANUALSORT} from 'app/common/gristTypes';
 import * as ko from 'knockout';
 import randomcolor from 'randomcolor';
@@ -68,8 +69,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     if (!this.summarySourceTable()) {
       return '';
     }
-    const groupBy = this.groupByColumns();
-    return `[${groupBy.length ? 'by ' + groupBy.map(c => c.label()).join(", ") : "Totals"}]`;
+    return summaryGroupByDescription(this.groupByColumns().map(c => c.label()));
   });
 
   // TODO: We should save this value and let users change it.
