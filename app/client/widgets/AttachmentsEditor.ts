@@ -141,8 +141,10 @@ export class AttachmentsEditor extends NewBaseEditor {
         ),
         dom.maybe(this._selected, selected =>
           cssTitle(
-            cssEditableLabel(selected.filename, (val) => this._renameAttachment(selected, val),
-              testId('pw-name'))
+            cssEditableLabel(selected.filename, {
+              save: (val) => this._renameAttachment(selected, val),
+              inputArgs: [testId('pw-name')],
+            }),
           )
         ),
         cssFlexExpand(

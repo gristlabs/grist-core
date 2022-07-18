@@ -44,6 +44,9 @@ export interface ITokenFieldOptions<Token extends IToken> {
   // CSV escaping, and pasted from clipboard by applying createToken() to parsed CSV text.
   tokensToClipboard?: (tokens: Token[], clipboard: DataTransfer) => void;
   clipboardToTokens?: (clipboard: DataTransfer) => Token[];
+
+  // Defaults to horizontal.
+  variant?: ITokenFieldVariant;
 }
 
 /**
@@ -55,6 +58,8 @@ export interface ITokenFieldKeyBindings {
   previous?: string;
   next?: string;
 }
+
+export type ITokenFieldVariant = 'horizontal' | 'vertical';
 
 const defaultKeyBindings: Required<ITokenFieldKeyBindings> = {
   previous: 'ArrowLeft',
@@ -96,6 +101,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   private _undoStack: UndoItem[] = [];
   private _undoIndex = 0;   // The last action done; next to undo.
   private _inUndoRedo = false;
+  private _variant: ITokenFieldVariant = this._options.variant ?? 'horizontal';
 
   constructor(private _options: ITokenFieldOptions<Token>) {
     super();
@@ -480,10 +486,12 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     const xInitial = startEvent.clientX;
     const yInitial = startEvent.clientY;
     const dragTargetSelector = `.${this._styles.cssToken.className}, .${this._styles.cssInputWrapper.className}`;
+    const dragTargetStyle = this._variant === 'horizontal' ? cssDragTarget : cssVerticalDragTarget;
 
     let started = false;
     let allTargets: HTMLElement[];
     let tokenList: HTMLElement[];
+    let nextUnselectedToken: HTMLElement|undefined;
 
     const onMove = (ev: MouseEvent) => {
       if (!started) {
@@ -498,11 +506,17 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
 
         // Get a list of all drag targets, and add a CSS class that shows drop location on hover.
         allTargets = Array.prototype.filter.call(this._rootElem.children, el => el.matches(dragTargetSelector));
-        allTargets.forEach(el => el.classList.add(cssDragTarget.className));
+        allTargets.forEach(el => el.classList.add(dragTargetStyle.className));
 
         // Get a list of element we are dragging, and add a CSS class to show them as dragged.
         tokenList = allTargets.filter(el => el.matches('.selected'));
         tokenList.forEach(el => el.classList.add('token-dragging'));
+
+        // Add a CSS class to the first unselected token after the current selection; we use it for showing
+        // the drag/drop markers when hovering over a token.
+        nextUnselectedToken = allTargets.find(el => el.previousElementSibling === tokenList[tokenList.length - 1]);
+        nextUnselectedToken?.classList.add(dragTargetStyle.className + "-next");
+        nextUnselectedToken?.style.setProperty('--count', String(tokenList.length));
       }
       const xOffset = ev.clientX - xInitial;
       const yOffset = ev.clientY - yInitial;
@@ -519,21 +533,16 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
 
       // Restore all style changes.
       this._rootElem.classList.remove('token-dragactive');
-      allTargets.forEach(el => el.classList.remove(cssDragTarget.className));
+      allTargets.forEach(el => el.classList.remove(dragTargetStyle.className));
       tokenList.forEach(el => el.classList.remove('token-dragging'));
       tokenList.forEach(el => { el.style.transform = ''; });
+      nextUnselectedToken?.classList.remove(dragTargetStyle.className + "-next");
 
       // Find the token before which we are inserting the dragged elements. If inserting at the
       // end (just before or over the input box), destToken will be undefined.
-      let index = allTargets.indexOf(ev.target as HTMLElement);
-      if (index < 0) {
-        // Sometimes we are at inner input element of the target (when dragging past the last element).
-        // In this case we need to test the parent.
-        if (ev.target instanceof HTMLInputElement && ev.target.parentElement) {
-          index = allTargets.indexOf(ev.target.parentElement);
-        }
-        if (index < 0) { return; }
-      }
+      const index = allTargets.findIndex((target) => target.contains(ev.target as Node));
+      if (index < 0) { return; }
+
       const destToken: TokenWrap<Token>|undefined = this._tokens.get()[index];
 
       const selection = this._selection.get();
@@ -704,6 +713,37 @@ const cssDragTarget = styled('div', `
     top: 0px;
     bottom: 0px;
     left: -4px;
+  }
+`);
+
+const cssVerticalDragTarget = styled('div', `
+  /* This pseudo-element prevents small, flickering height changes when
+   * dragging the selection over targets. */
+  &::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+  }
+  &-next::before {
+    /* 27.75px is the height of a token. */
+    top: calc(-27.75px * var(--count, 1) - 8px);
+  }
+  &:hover {
+    transform: translateY(4px);
+    margin-bottom: 8px;
+  }
+  &:hover::after {
+    content: "";
+    position: absolute;
+    background-color: ${colors.lightGreen};
+    height: 2px;
+    top: -5px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
   }
 `);
 

@@ -129,7 +129,8 @@ export class ChoiceListEntry extends Disposable {
           keyBindings: {
             previous: 'ArrowUp',
             next: 'ArrowDown'
-          }
+          },
+          variant: 'vertical',
         });
 
         return cssVerticalFlex(
@@ -324,22 +325,26 @@ export class ChoiceListEntry extends Disposable {
           }));
         }
       ),
-      editableLabel(choiceText,
-        rename,
-        testId('token-label'),
-        // Don't bubble up keyboard events, use them for editing the text.
-        // Without this keys like Backspace, or Mod+a will propagate and modify all tokens.
-        dom.on('keydown', stopPropagation),
-        dom.on('copy', stopPropagation),
-        dom.on('cut', stopPropagation),
-        dom.on('paste', stopPropagation),
-        // On enter, focus on the input element.
-        dom.onKeyDown({
-          Enter : focusOnNew
-        }),
-        // Don't bubble up click, as it would change focus.
-        dom.on('click', stopPropagation),
-        dom.cls(cssTokenLabel.className)),
+      editableLabel(choiceText, {
+        save: rename,
+        inputArgs: [
+          testId('token-label'),
+          // Don't bubble up keyboard events, use them for editing the text.
+          // Without this keys like Backspace, or Mod+a will propagate and modify all tokens.
+          dom.on('keydown', stopPropagation),
+          dom.on('copy', stopPropagation),
+          dom.on('cut', stopPropagation),
+          dom.on('paste', stopPropagation),
+          // On enter, focus on the input element.
+          dom.onKeyDown({
+            Enter : focusOnNew
+          }),
+          // Don't bubble up click, as it would change focus.
+          dom.on('click', stopPropagation),
+          dom.cls(cssEditableLabelInput.className),
+        ],
+        args: [dom.cls(cssEditableLabel.className)],
+      }),
     );
   }
 }
@@ -432,7 +437,6 @@ const cssListRow = styled('div', `
   color: ${colors.dark};
   background-color: ${colors.mediumGrey};
   border-radius: 3px;
-  overflow: hidden;
   text-overflow: ellipsis;
 `);
 
@@ -478,6 +482,20 @@ const cssTokenLabel = styled('span', `
   overflow: hidden;
 `);
 
+const cssEditableLabelInput = styled('input', `
+  display: inline-block;
+  text-overflow: ellipsis;
+  white-space: pre;
+  overflow: hidden;
+`);
+
+const cssEditableLabel = styled('div', `
+  margin-left: 6px;
+  text-overflow: ellipsis;
+  white-space: pre;
+  overflow: hidden;
+`);
+
 const cssTokenInput = styled('input', `
   padding-top: 4px;
   padding-bottom: 4px;
@@ -503,7 +521,7 @@ const cssFlex = styled('div', `
 `);
 
 const cssColorAndLabel = styled(cssFlex, `
-  max-width: calc(100% - 16px);
+  max-width: calc(100% - 20px);
 `);
 
 const cssVerticalFlex = styled('div', `
@@ -521,7 +539,8 @@ const cssButtonRow = styled('div', `
 
 const cssDeleteButton = styled('div', `
   display: inline;
-  float:right;
+  float: right;
+  margin-left: 4px;
   cursor: pointer;
   .${cssTokenField.className}.token-dragactive & {
     cursor: unset;

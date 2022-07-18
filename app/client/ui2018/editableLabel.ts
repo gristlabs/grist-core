@@ -64,12 +64,20 @@ enum Status { NORMAL, EDITING, SAVING }
 
 type SaveFunc = (value: string) => Promise<void>;
 
+export interface EditableLabelOptions {
+  save: SaveFunc;
+  args?: Array<DomArg<HTMLDivElement>>;
+  inputArgs?: Array<DomArg<HTMLInputElement>>;
+}
+
 /**
  * Provides a label that takes in an observable that is set on Enter or loss of focus. Escape
  * cancels editing. Label grows in size with typed input. Validation logic (if any) should happen in
  * the save function, to reject a value simply throw an error, this will revert to the saved one .
  */
-export function editableLabel(label: Observable<string>, save: SaveFunc, ...args: Array<DomArg<HTMLInputElement>>) {
+export function editableLabel(label: Observable<string>, options: EditableLabelOptions) {
+  const {save, args, inputArgs} = options;
+
   let input: HTMLInputElement;
   let sizer: HTMLSpanElement;
 
@@ -81,8 +89,9 @@ export function editableLabel(label: Observable<string>, save: SaveFunc, ...args
     sizer = cssSizer(label.get()),
     input = rawTextInput(label, save, updateSizer, dom.cls(cssLabelText.className),
       dom.on('focus', () => input.select()),
-      ...args
+      ...inputArgs ?? [],
     ),
+    ...args ?? [],
   );
 }
 

@@ -140,10 +140,14 @@ export function docBreadcrumbs(
           ];
         }
       ),
-      editableLabel(
-        docName, options.docNameSave, testId('bc-doc'), cssEditableName.cls(''),
-        dom.boolAttr('disabled', options.isDocNameReadOnly || false),
-      ),
+      editableLabel(docName, {
+        save: options.docNameSave,
+        inputArgs: [
+          testId('bc-doc'),
+          cssEditableName.cls(''),
+          dom.boolAttr('disabled', options.isDocNameReadOnly || false),
+        ],
+      }),
       dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
       dom.domComputed((use) => {
         if (options.isSnapshot && use(options.isSnapshot)) {
@@ -175,10 +179,14 @@ export function docBreadcrumbs(
       separator(' / ',
                 testId('bc-separator'),
                 cssHideForNarrowScreen.cls('')),
-      editableLabel(
-        pageName, options.pageNameSave, testId('bc-page'), cssEditableName.cls(''),
-        dom.boolAttr('disabled', options.isPageNameReadOnly || false),
-        dom.cls(cssHideForNarrowScreen.className),
-      ),
+      editableLabel(pageName, {
+        save: options.pageNameSave,
+        inputArgs: [
+          testId('bc-page'),
+          cssEditableName.cls(''),
+          dom.boolAttr('disabled', options.isPageNameReadOnly || false),
+          dom.cls(cssHideForNarrowScreen.className),
+        ],
+      }),
     );
 }
