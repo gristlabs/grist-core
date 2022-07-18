@@ -871,6 +871,7 @@ export interface PageWidgetPickerOptions {
   tableName?: string;
   selectBy?: RegExp|string;      // Optional pattern of SELECT BY option to pick.
   summarize?: (RegExp|string)[];   // Optional list of patterns to match Group By columns.
+  dontAdd?: boolean;  // If true, configure the widget selection without actually adding to the page
 }
 
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
@@ -939,8 +940,14 @@ export async function selectWidget(
     await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
   }
 
-  // let's select right type and save
+  // select right type
   await driver.findContent('.test-wselect-type', typeRe).doClick();
+
+  if (options.dontAdd) {
+    return;
+  }
+
+  // add the widget
   await driver.find('.test-wselect-addBtn').doClick();
 
   // if we selected a new table, there will be a popup for a name

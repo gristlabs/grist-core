@@ -4,6 +4,7 @@ import { getReferencedTableId } from 'app/common/gristTypes';
 import { IOptionFull } from 'grainjs';
 import assert from 'assert';
 import * as gutil from "app/common/gutil";
+import isEqual = require('lodash/isEqual');
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
@@ -243,24 +244,44 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
 
   if (typeof pageWidget.table !== 'number') { return []; }
 
-  const table = docModel.tables.getRowModel(pageWidget.table);
+  let table = docModel.tables.getRowModel(pageWidget.table);
   const isSummary = pageWidget.summarize;
+  const groupbyColumns = isSummary ? new Set(pageWidget.columns) : undefined;
+  let tableExists = true;
+  if (isSummary) {
+    const summaryTable = docModel.tables.rowModels.find(
+      t => t?.summarySourceTable.peek() && isEqual(t.summarySourceColRefs.peek(), groupbyColumns));
+    if (summaryTable) {
+      // The selected source table and groupby columns correspond to this existing summary table.
+      table = summaryTable;
+    } else {
+      // This summary table doesn't exist yet. `fromColumns` will be using columns from the source table.
+      // Make sure it only uses columns that are in the selected groupby columns.
+      // The resulting targetColRef will incorrectly be from the source table,
+      // but will be corrected in GristDoc.saveLink after the summary table is created.
+      tableExists = false;
+    }
+  }
+
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
     isSummary,
-    groupbyColumns: isSummary ? new Set(pageWidget.columns) : undefined,
+    groupbyColumns,
     widgetType: pageWidget.type,
     ancestors: new Set(),
     section: docModel.viewSections.getRowModel(pageWidget.section),
   };
 
-  return fromColumns(table, mainNode);
+  return fromColumns(table, mainNode, tableExists);
 }
 
-function fromColumns(table: TableRec, mainNode: LinkNode): LinkNode[] {
+function fromColumns(table: TableRec, mainNode: LinkNode, tableExists: boolean = true): LinkNode[] {
   const nodes = [mainNode];
   const columns = table.columns.peek().peek();
   for (const column of columns) {
+    if (!tableExists && !mainNode.groupbyColumns!.has(column.getRowId())) {
+      continue;
+    }
     const tableId = getReferencedTableId(column.type.peek());
     if (tableId) {
       nodes.push({...mainNode, tableId, column});

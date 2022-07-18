@@ -25,7 +25,7 @@ import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkFromId, linkId, selectBy} from 'app/client/ui/selectBy';
+import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
@@ -409,7 +409,7 @@ export class RightPanel extends Disposable {
       )
     );
 
-    link.onWrite((val) => this._gristDoc.saveLink(linkFromId(val)));
+    link.onWrite((val) => this._gristDoc.saveLink(val));
     return [
       this._disableIfReadonly(),
       cssLabel('DATA TABLE'),

@@ -42,16 +42,16 @@ import {startDocTour} from "app/client/ui/DocTour";
 import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {IPageWidgetLink, linkFromId, selectBy} from 'app/client/ui/selectBy';
+import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
-import {invokePrompt} from 'app/client/ui2018/modals';
 import {IconName} from 'app/client/ui2018/IconList';
+import {invokePrompt} from 'app/client/ui2018/modals';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
-import {delay} from 'app/common/delay';
 import {CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
+import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
@@ -62,8 +62,19 @@ import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
-import {bundleChanges, Computed, dom, Emitter, Holder, IDisposable, IDomComponent, Observable,
-        styled, subscribe, toKo} from 'grainjs';
+import {
+  bundleChanges,
+  Computed,
+  dom,
+  Emitter,
+  Holder,
+  IDisposable,
+  IDomComponent,
+  Observable,
+  styled,
+  subscribe,
+  toKo
+} from 'grainjs';
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
@@ -549,7 +560,6 @@ export class GristDoc extends DisposableWithEvents {
    */
   public async addWidgetToPageImpl(val: IPageWidget, tableId: string|null = null) {
     const viewRef = this.activeViewId.get();
-    const link = linkFromId(val.link);
     const tableRef = val.table === 'New Table' ? 0 : val.table;
     const result = await this.docData.sendAction(
       ['CreateViewSection', tableRef, viewRef, val.type, val.summarize ? val.columns : null, tableId]
@@ -557,13 +567,7 @@ export class GristDoc extends DisposableWithEvents {
     if (val.type === 'chart') {
       await this._ensureOneNumericSeries(result.sectionRef);
     }
-    await this.docData.sendAction(
-      ['UpdateRecord', '_grist_Views_section', result.sectionRef, {
-        linkSrcSectionRef: link.srcSectionRef,
-        linkSrcColRef: link.srcColRef,
-        linkTargetColRef: link.targetColRef
-      }]
-    );
+    await this.saveLink(val.link, result.sectionRef);
     return result;
   }
 
@@ -647,7 +651,7 @@ export class GristDoc extends DisposableWithEvents {
 
         // update link
         if (oldVal.link !== newVal.link) {
-          await this.saveLink(linkFromId(newVal.link));
+          await this.saveLink(newVal.link);
         }
         return section;
       },
@@ -698,11 +702,23 @@ export class GristDoc extends DisposableWithEvents {
     }));
   }
 
-  // Save link for the active section.
-  public async saveLink(link: IPageWidgetLink) {
-    const viewModel = this.viewModel;
+  // Save link for a given section, by default the active section.
+  public async saveLink(linkId: string, sectionId?: number) {
+    sectionId = sectionId || this.viewModel.activeSection.peek().getRowId();
+    const link = linkFromId(linkId);
+    if (link.targetColRef) {
+      const targetTable = this.docModel.viewSections.getRowModel(sectionId).table();
+      const targetCol = this.docModel.columns.getRowModel(link.targetColRef);
+      if (targetTable.id() !== targetCol.table().id()) {
+        // targetColRef is actually not a column in the target table.
+        // This should mean that the target table is a summary table (which didn't exist when the
+        // option was selected) and targetColRef is from the source table.
+        // Change it to the corresponding summary table column instead.
+        link.targetColRef = targetTable.columns().all().find(c => c.summarySourceCol() === link.targetColRef)!.id();
+      }
+    }
     return this.docData.sendAction(
-      ['UpdateRecord', '_grist_Views_section', viewModel.activeSection.peek().getRowId(), {
+      ['UpdateRecord', '_grist_Views_section', sectionId, {
         linkSrcSectionRef: link.srcSectionRef,
         linkSrcColRef: link.srcColRef,
         linkTargetColRef: link.targetColRef
