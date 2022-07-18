@@ -43,7 +43,8 @@ export function buildRenameWidget(
           attach: 'body',
           boundaries: 'viewport',
         });
-      }
+      },
+      dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
     ),
     ...args
   );

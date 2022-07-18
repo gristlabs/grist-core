@@ -1289,7 +1289,7 @@ export async function openRawTable(tableId: string) {
 export async function renameRawTable(tableId: string, newName: string) {
   await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`)
     .findClosest('.test-raw-data-table')
-    .find('.test-raw-data-widget-title')
+    .find('.test-widget-title-text')
     .click();
   const input = await driver.find(".test-widget-title-table-name-input");
   await input.doClear();

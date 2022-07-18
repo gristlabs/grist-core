@@ -63,7 +63,7 @@ export class DataTables extends Disposable {
                 )),
               ),
               cssMiddle(
-                css60(this._tableTitle(tableRec), testId('table-title')),
+                css60(cssTableTitle(this._tableTitle(tableRec), testId('table-title'))),
                 css40(
                   cssIdHoverWrapper(
                     cssUpperCase("Table id: "),
@@ -120,10 +120,7 @@ export class DataTables extends Disposable {
       } else {
         return dom('div', // to disable flex grow in the widget
           dom.domComputed(fromKo(table.rawViewSection), vs =>
-            dom.update(
-              buildTableName(vs, testId('widget-title')),
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-            )
+            buildTableName(vs, testId('widget-title'))
           )
         );
       }
@@ -242,14 +239,14 @@ const cssMiddle = styled('div', `
   margin-top: 6px;
   margin-bottom: 4px;
   .${cssList.className}-card & {
-    margin: 0px:
+    margin: 0px;
   }
 `);
 
 const css60 = styled('div', `
   min-width: min(240px, 100%);
-  display: flex;
   flex: 6;
+  margin-right: 4px;
 `);
 
 const css40 = styled('div', `
@@ -299,6 +296,10 @@ const cssIdHoverWrapper = styled('div', `
 
 const cssTableId = styled(cssLine, `
   font-size: ${css.vars.smallFontSize};
+`);
+
+const cssTableTitle = styled('div', `
+  white-space: nowrap;
 `);
 
 const cssUpperCase = styled('span', `
