@@ -1022,6 +1022,7 @@ def migration30(tdset):
 def migration31(tdset):
   columns = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables_column']))
   tables = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables']))
+  acl_resources = list(actions.transpose_bulk_action(tdset.all_tables['_grist_ACLResources']))
 
   tables_by_ref = {t.id: t for t in tables}
   columns_by_table_ref = defaultdict(list)
@@ -1072,4 +1073,11 @@ def migration31(tdset):
       formula = re.sub(r'\b%s\b' % table.tableId, new_name, formula)
     doc_actions.append(actions.UpdateRecord('_grist_Tables_column', col.id, {'formula': formula}))
 
+  table_renames_dict = {t.tableId: new for t, new in table_renames}
+  for resource in acl_resources:
+    new_name = table_renames_dict.get(resource.tableId)
+    if new_name:
+      doc_actions.append(
+        actions.UpdateRecord('_grist_ACLResources', resource.id, {'tableId': new_name})
+      )
   return tdset.apply_doc_actions(doc_actions)
