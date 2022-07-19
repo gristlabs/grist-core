@@ -137,8 +137,8 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     return null;
   }
 
-  public getRedisClient(): RedisClient {
-    throw new Error("No redis client here");
+  public getRedisClient() {
+    return null;
   }
 }
 

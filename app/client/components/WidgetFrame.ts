@@ -6,7 +6,7 @@ import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {CustomSectionAPI, GristDocAPI, GristView,
+import {AccessTokenOptions, CustomSectionAPI, GristDocAPI, GristView,
         InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
@@ -317,6 +317,21 @@ export class GristDocAPIImpl implements GristDocAPI {
 
   public async applyUserActions(actions: any[][], options?: any) {
     return this._doc.docComm.applyUserActions(actions, {desc: undefined, ...options});
+  }
+
+  // Get a token for out-of-band access to the document.
+  // Currently will require the custom widget to have full access to the
+  // document.
+  // It would be great to support this with read_table rights. This could be
+  // possible to do by adding a tableId setting to AccessTokenOptions,
+  // encoding that limitation in the access token, and ensuring the back-end
+  // respects it. But the current motivating use for adding access tokens is
+  // showing attachments, and they aren't currently something that logically
+  // lives within a specific table.
+  public async getAccessToken(options: AccessTokenOptions) {
+    return this._doc.docComm.getAccessToken({
+      readOnly: options.readOnly,
+    });
   }
 }
 

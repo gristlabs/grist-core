@@ -890,7 +890,9 @@ export class DocWorkerApi {
 
     // Note the increased API usage on redis and in our local cache.
     // Update redis in the background so that the rest of the request can continue without waiting for redis.
-    const multi = this._docWorkerMap.getRedisClient().multi();
+    const cli = this._docWorkerMap.getRedisClient();
+    if (!cli) { throw new Error('redis unexpectedly not available'); }
+    const multi = cli.multi();
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       // Incrementing the local count immediately prevents many requests from being squeezed through every minute
@@ -922,7 +924,7 @@ export class DocWorkerApi {
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemoved = scope.showAll || scope.showRemoved || allowRemoved;
-    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
+    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
     if (role) { assertAccess(role, docAuth, {allowRemoved}); }
     next();
   }
@@ -932,7 +934,7 @@ export class DocWorkerApi {
    */
   private async _isOwner(req: Request) {
     const scope = getDocScope(req);
-    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
+    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
     return docAuth.access === 'owners';
   }
 

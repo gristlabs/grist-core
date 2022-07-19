@@ -6,7 +6,7 @@ import { createRpcLogger, PluginInstance } from 'app/common/PluginInstance';
 import { Promisified } from 'app/common/tpromisified';
 import { ParseFileResult, ParseOptions } from 'app/plugin/FileParserAPI';
 import { checkers, GristTable } from "app/plugin/grist-plugin-api";
-import { GristDocAPI } from "app/plugin/GristAPI";
+import { AccessTokenResult, GristDocAPI } from "app/plugin/GristAPI";
 import { Storage } from 'app/plugin/StorageAPI';
 import { ActiveDoc } from 'app/server/lib/ActiveDoc';
 import { DocPluginData } from 'app/server/lib/DocPluginData';
@@ -46,6 +46,13 @@ class GristDocAPIImpl implements GristDocAPI {
 
   public applyUserActions(actions: any[][]): Promise<ApplyUAResult> {
     return this._activeDoc.applyUserActions(makeExceptionalDocSession('plugin'), actions);
+  }
+
+  // These implementations of GristDocAPI are from an early implementation of
+  // plugins that is incompatible with access control. No need to add new
+  // methods here.
+  public async getAccessToken(): Promise<AccessTokenResult> {
+    throw new Error('getAccessToken not implemented');
   }
 }
 

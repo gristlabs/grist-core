@@ -4,6 +4,7 @@ import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
+import {AccessTokenOptions, AccessTokenResult} from 'app/plugin/GristAPI';
 import {IMessage} from 'grain-rpc';
 
 export interface ApplyUAOptions {
@@ -315,6 +316,11 @@ export interface ActiveDocAPI {
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
   checkAclFormula(text: string): Promise<FormulaProperties>;
+
+  /**
+   * Get a token for out-of-band access to the document.
+   */
+  getAccessToken(options: AccessTokenOptions): Promise<AccessTokenResult>;
 
   /**
    * Returns the full set of tableIds, with the list of colIds for each table. This is intended

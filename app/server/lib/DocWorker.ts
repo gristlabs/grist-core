@@ -9,6 +9,7 @@ import {Client} from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
 import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
 import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
+import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import {getDocId, integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
@@ -21,12 +22,15 @@ import * as path from 'path';
 
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket
+  gristServer: GristServer;
 }
 
 export class DocWorker {
   private _comm: Comm;
-  constructor(private _dbManager: HomeDBManager, {comm}: AttachOptions) {
-    this._comm = comm;
+  private _gristServer: GristServer;
+  constructor(private _dbManager: HomeDBManager, options: AttachOptions) {
+    this._comm = options.comm;
+    this._gristServer = options.gristServer;
   }
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
@@ -121,6 +125,7 @@ export class DocWorker {
       getAclResources:          activeDocMethod.bind(null, 'viewers', 'getAclResources'),
       waitForInitialization:    activeDocMethod.bind(null, 'viewers', 'waitForInitialization'),
       getUsersForViewAs:        activeDocMethod.bind(null, 'viewers', 'getUsersForViewAs'),
+      getAccessToken:           activeDocMethod.bind(null, 'viewers', 'getAccessToken'),
     });
   }
 
@@ -160,7 +165,7 @@ export class DocWorker {
       }
       if (!urlId) { return res.status(403).send({error: 'missing document id'}); }
 
-      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, urlId);
+      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
       assertAccess('viewers', docAuth);
       next();
     } catch (err) {

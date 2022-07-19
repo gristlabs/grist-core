@@ -20,7 +20,8 @@
 
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
          WidgetColumnMap } from './CustomSectionAPI';
-import { GristAPI, GristDocAPI, GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
+import { AccessTokenOptions, AccessTokenResult, GristAPI, GristDocAPI,
+         GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
 import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
 import { decodeObject, mapValues } from './objtypes';
@@ -156,6 +157,14 @@ export function getTable(tableId?: string): TableOperations {
       return docApi.applyUserActions(actions, opts);
     },
   }, {});
+}
+
+/**
+ * Get an access token, for making API calls outside of the custom widget
+ * API. There is no caching of tokens.
+ */
+export async function getAccessToken(options?: AccessTokenOptions): Promise<AccessTokenResult> {
+  return docApi.getAccessToken(options || {});
 }
 
 /**

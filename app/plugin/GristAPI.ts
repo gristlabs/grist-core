@@ -97,6 +97,11 @@ export interface GristDocAPI {
   applyUserActions(actions: any[][], options?: any): Promise<any>;
   // TODO: return type should be Promise<ApplyUAResult>, but this requires importing
   // modules from `app/common` which is not currently supported by the build.
+
+  /**
+   * Get a token for out-of-band access to the document.
+   */
+  getAccessToken(options: AccessTokenOptions): Promise<AccessTokenResult>;
 }
 
 /**
@@ -126,4 +131,14 @@ export interface GristView {
    * Set the list of selected rows to be used against any linked widget. Requires `allowSelectBy()`.
    */
   setSelectedRows(rowIds: number[]): Promise<void>;
+}
+
+export interface AccessTokenOptions {
+  readOnly?: boolean;   // restrict use of token to reading.
+}
+
+export interface AccessTokenResult {
+  token: string;        // token string
+  baseUrl: string;      // url of document api, like https://..../api/docs/DOCID
+  ttlMsecs: number;     // number of milliseconds token will be valid for (typically several minutes)
 }

@@ -11,11 +11,13 @@ import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/HomeD
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
+import {GristServer} from 'app/server/lib/GristServer';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
         cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
+import {AccessTokenInfo} from 'app/server/lib/AccessTokens';
 import {allowHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
@@ -34,6 +36,7 @@ export interface RequestWithLogin extends Request {
   userIsAuthorized?: boolean;   // If userId is for "anonymous", this will be false.
   docAuth?: DocAuthResult;      // For doc requests, the docId and the user's access level.
   specialPermit?: Permit;
+  accessToken?: AccessTokenInfo;
   altSessionId?: string;   // a session id for use in trigger formulas and granular access rules
   activation?: ActivationState;
 }
@@ -143,6 +146,7 @@ export function getRequestProfile(req: Request|IncomingMessage,
  */
 export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPermitStore,
                                      options: {
+                                       gristServer: GristServer,
                                        skipSession?: boolean,
                                        getProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
                                      },
@@ -150,8 +154,27 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   const mreq = req as RequestWithLogin;
   let profile: UserProfile|undefined;
 
-  // First, check for an apiKey
-  if (mreq.headers && mreq.headers.authorization) {
+  // We support multiple method of authentication. This flag gets set once
+  // we need not try any more. Specifically, it is used to avoid processing
+  // anything else after setting an access token, for simplicity in reasoning
+  // about this case.
+  let authDone: boolean = false;
+
+  // Support providing an access token via an `auth` query parameter.
+  // This is useful for letting the browser load assets like image
+  // attachments.
+  const auth = optStringParam(mreq.query.auth);
+  if (auth) {
+    const tokens = options.gristServer.getAccessTokens();
+    const token = await tokens.verify(auth);
+    mreq.accessToken = token;
+    // Once an accessToken is supplied, we don't consider anything else.
+    // User is treated as anonymous apart from having an accessToken.
+    authDone = true;
+  }
+
+  // Now, check for an apiKey
+  if (!authDone && mreq.headers && mreq.headers.authorization) {
     // header needs to be of form "Bearer XXXXXXXXX" to apply
     const parts = String(mreq.headers.authorization).split(' ');
     if (parts[0] === "Bearer") {
@@ -172,7 +195,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   }
 
   // Special permission header for internal housekeeping tasks
-  if (mreq.headers && mreq.headers.permit) {
+  if (!authDone && mreq.headers && mreq.headers.permit) {
     const permitKey = String(mreq.headers.permit);
     try {
       const permit = await permitStore.getPermit(permitKey);
@@ -193,13 +216,13 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   //   https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
   //   https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
   if (!mreq.userId && !mreq.xhr && !['GET', 'HEAD', 'OPTIONS'].includes(mreq.method)) {
-    return res.status(401).send('Bad request (missing header)');
+    return res.status(401).json({error: 'Bad request (missing header)'});
   }
 
   // For some configurations, the user profile can be determined from the request.
   // If this is the case, we won't use session information.
-  let skipSession: boolean = options.skipSession || false;
-  if (!mreq.userId) {
+  let skipSession: boolean = options.skipSession || authDone;
+  if (!authDone && !mreq.userId) {
     let candidate = await options.getProfile?.(mreq);
     if (candidate === undefined) {
       candidate = getRequestProfile(mreq);
@@ -223,7 +246,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   // for custom-host-specific sessionID.
   let customHostSession = '';
 
-  if (!skipSession) {
+  if (!authDone && !skipSession) {
     // If we haven't selected a user by other means, and have profiles available in the
     // session, then select a user based on those profiles.
     const session = mreq.session;
@@ -429,14 +452,38 @@ export function redirectToLogin(
  * Sets mreq.docAuth if not yet set, and returns it.
  */
 export async function getOrSetDocAuth(
-  mreq: RequestWithLogin, dbManager: HomeDBManager, urlId: string
+  mreq: RequestWithLogin, dbManager: HomeDBManager,
+  gristServer: GristServer,
+  urlId: string
 ): Promise<DocAuthResult> {
   if (!mreq.docAuth) {
     let effectiveUserId = getUserId(mreq);
     if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId()) {
       effectiveUserId = dbManager.getPreviewerUserId();
     }
+
+    // A permit with a token gives us the userId associated with that token.
+    const tokenObj = mreq.accessToken;
+    if (tokenObj) {
+      effectiveUserId = tokenObj.userId;
+    }
+
     mreq.docAuth = await dbManager.getDocAuthCached({urlId, userId: effectiveUserId, org: mreq.org});
+
+    if (tokenObj) {
+      // Sanity check: does the current document match the document the token is
+      // for? If not, fail.
+      if (!mreq.docAuth.docId || mreq.docAuth.docId !== tokenObj.docId) {
+        throw new ApiError('token misuse', 401);
+      }
+      // Limit access to read-only if specified.
+      if (tokenObj.readOnly) {
+        mreq.docAuth = {...mreq.docAuth, access: getWeakestRole('viewers', mreq.docAuth.access)};
+      }
+    }
+
+    // A permit with a user set to the anonymous user and linked to this document
+    // gets updated to full access.
     if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
         mreq.specialPermit.docId === mreq.docAuth.docId) {
       mreq.docAuth = {...mreq.docAuth, access: 'owners'};

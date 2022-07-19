@@ -16,6 +16,7 @@ import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
+import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getUser, getUserId, isSingleUserMode,
@@ -125,6 +126,7 @@ export class FlexServer implements GristServer {
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
+  private _accessTokens: IAccessTokens;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
@@ -301,6 +303,14 @@ export class FlexServer implements GristServer {
   public getNotifier(): INotifier {
     if (!this._notifier) { throw new Error('no notifier available'); }
     return this._notifier;
+  }
+
+  public getAccessTokens() {
+    if (this._accessTokens) { return this._accessTokens; }
+    this.addDocWorkerMap();
+    const cli = this._docWorkerMap.getRedisClient();
+    this._accessTokens = new AccessTokens(cli);
+    return this._accessTokens;
   }
 
   public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
@@ -509,6 +519,7 @@ export class FlexServer implements GristServer {
           getProfile: this._loginMiddleware.getProfile?.bind(this._loginMiddleware),
             // Set this to false to stop Grist using a cookie for authentication purposes.
           skipSession,
+          gristServer: this,
         }
       ));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
@@ -625,6 +636,7 @@ export class FlexServer implements GristServer {
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     await this._shutdown();
+    if (this._accessTokens) { await this._accessTokens.close(); }
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
     if (this._sessionStore) { await this._sessionStore.close(); }
@@ -632,7 +644,7 @@ export class FlexServer implements GristServer {
 
   public addDocApiForwarder() {
     if (this._check('doc_api_forwarder', '!json', 'homedb', 'api-mw', 'map')) { return; }
-    const docApiForwarder = new DocApiForwarder(this._docWorkerMap, this._dbManager);
+    const docApiForwarder = new DocApiForwarder(this._docWorkerMap, this._dbManager, this);
     docApiForwarder.addEndpoints(this.app);
   }
 
@@ -1064,7 +1076,7 @@ export class FlexServer implements GristServer {
     }
 
     // Attach docWorker endpoints and Comm methods.
-    const docWorker = new DocWorker(this._dbManager, {comm: this._comm});
+    const docWorker = new DocWorker(this._dbManager, {comm: this._comm, gristServer: this});
     this._docWorker = docWorker;
 
     // Register the websocket comm functions associated with the docworker.
@@ -1299,7 +1311,8 @@ export class FlexServer implements GristServer {
   /**
    * Get a url for an organization, workspace, or document.
    */
-  public async getResourceUrl(resource: Organization|Workspace|Document): Promise<string> {
+  public async getResourceUrl(resource: Organization|Workspace|Document,
+                              purpose?: 'api'|'html'): Promise<string> {
     if (!this._dbManager) { throw new Error('database missing'); }
     const gristConfig = this.getGristConfig();
     const state: IGristUrlState = {};
@@ -1316,7 +1329,8 @@ export class FlexServer implements GristServer {
     }
     state.org = this._dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
     if (!gristConfig.homeUrl) { throw new Error('Computing a resource URL requires a home URL'); }
-    return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl));
+    return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl),
+                     { api: purpose === 'api' });
   }
 
   public addUsage() {

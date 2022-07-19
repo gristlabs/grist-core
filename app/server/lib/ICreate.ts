@@ -35,6 +35,7 @@ export interface ICreate {
 export interface ICreateActiveDocOptions {
   safeMode?: boolean;
   docUrl?: string;
+  docApiUrl?: string;
   doc?: Document;
 }
 

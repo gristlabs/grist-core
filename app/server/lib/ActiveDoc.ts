@@ -59,6 +59,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
+import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
@@ -67,7 +68,7 @@ import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
-import {GristDocAPI} from 'app/plugin/GristAPI';
+import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
@@ -102,6 +103,7 @@ import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {
   DocSession,
+  getDocSessionAccess,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -1348,6 +1350,33 @@ export class ActiveDoc extends EventEmitter {
     }
 
     return forkIds;
+  }
+
+  public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
+    const tokens = this._docManager.gristServer.getAccessTokens();
+    const userId = getDocSessionUserId(docSession);
+    const docId = this.docName;
+    const access = getDocSessionAccess(docSession);
+    // If we happen to be using a "readOnly" connection, max out at "readOnly"
+    // even if user could do more.
+    if (roles.getStrongestRole('viewers', access) === 'viewers') {
+      options.readOnly = true;
+    }
+    // Return a token that can be used to authorize as the given user.
+    if (!userId) { throw new Error('creating access token requires a user'); }
+    const token = await tokens.sign({
+      readOnly: options.readOnly,
+      userId,  // definitely do not want userId overridable by options.
+      docId,   // likewise for docId.
+    });
+    const ttlMsecs = tokens.getNominalTTLInMsec();
+    const baseUrl = this._options?.docApiUrl;
+    if (!baseUrl) { throw new Error('cannot create token without URLs'); }
+    return {
+      token,
+      baseUrl,
+      ttlMsecs,
+    };
   }
 
   /**

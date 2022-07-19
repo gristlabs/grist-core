@@ -511,9 +511,12 @@ export class DocManager extends EventEmitter {
     return await db.getRawDocById(docName);
   }
 
-  private async _getDocUrl(doc: Document) {
+  private async _getDocUrls(doc: Document) {
     try {
-      return await this.gristServer.getResourceUrl(doc);
+      return {
+        docUrl: await this.gristServer.getResourceUrl(doc),
+        docApiUrl: await this.gristServer.getResourceUrl(doc, 'api'),
+      };
     } catch (e) {
       // If there is no home url, we cannot construct links.  Accept this, for the benefit
       // of legacy tests.
@@ -526,8 +529,8 @@ export class DocManager extends EventEmitter {
   private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
-    const docUrl = doc && await this._getDocUrl(doc);
-    return new ActiveDoc(this, docName, {docUrl, safeMode, doc});
+    const docUrls = doc && await this._getDocUrls(doc);
+    return new ActiveDoc(this, docName, {...docUrls, safeMode, doc});
   }
 
   /**

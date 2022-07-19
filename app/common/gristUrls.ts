@@ -178,7 +178,12 @@ export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgU
  *    localhost:8080/o/<org>
  */
 export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
-                          state: IGristUrlState, baseLocation: Location | URL): string {
+                          state: IGristUrlState, baseLocation: Location | URL,
+                          options: {
+                            // make an api url - warning: just barely works, and
+                            // only for documents
+                            api?: boolean
+                          } = {}): string {
   const url = new URL(baseLocation.href);
   const parts = ['/'];
 
@@ -193,9 +198,14 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
   }
 
+  if (options.api) {
+    parts.push(`api/`);
+  }
   if (state.ws) { parts.push(`ws/${state.ws}/`); }
   if (state.doc) {
-    if (state.slug) {
+    if (options.api) {
+      parts.push(`docs/${encodeURIComponent(state.doc)}`);
+    } else if (state.slug) {
       parts.push(`${encodeURIComponent(state.doc)}/${encodeURIComponent(state.slug)}`);
     } else {
       parts.push(`doc/${encodeURIComponent(state.doc)}`);

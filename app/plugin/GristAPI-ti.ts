@@ -18,6 +18,7 @@ export const GristDocAPI = t.iface([], {
   "listTables": t.func(t.array("string")),
   "fetchTable": t.func("any", t.param("tableId", "string")),
   "applyUserActions": t.func("any", t.param("actions", t.array(t.array("any"))), t.param("options", "any", true)),
+  "getAccessToken": t.func("AccessTokenResult", t.param("options", "AccessTokenOptions")),
 });
 
 export const GristView = t.iface([], {
@@ -27,10 +28,22 @@ export const GristView = t.iface([], {
   "setSelectedRows": t.func("void", t.param("rowIds", t.array("number"))),
 });
 
+export const AccessTokenOptions = t.iface([], {
+  "readOnly": t.opt("boolean"),
+});
+
+export const AccessTokenResult = t.iface([], {
+  "token": "string",
+  "baseUrl": "string",
+  "ttlMsecs": "number",
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   ComponentKind,
   GristAPI,
   GristDocAPI,
   GristView,
+  AccessTokenOptions,
+  AccessTokenResult,
 };
 export default exportedTypeSuite;
