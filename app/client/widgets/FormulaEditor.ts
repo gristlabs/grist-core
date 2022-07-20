@@ -93,8 +93,12 @@ export class FormulaEditor extends NewBaseEditor {
       return error.details ?? "";
     });
 
+    // Once the exception details are available, update the sizing. The extra delay is to allow
+    // the DOM to update before resizing.
+    this.autoDispose(errorDetails.addListener(() => setTimeout(() => this._formulaEditor.resize(), 0)));
+
     this.autoDispose(this._formulaEditor);
-    this._dom = dom('div.default_editor',
+    this._dom = dom('div.default_editor.formula_editor_wrapper',
       // switch border shadow
       dom.cls("readonly_editor", options.readonly),
       createMobileButtons(options.commands),
@@ -128,8 +132,7 @@ export class FormulaEditor extends NewBaseEditor {
           aceObj.once("change", () => editingFormula(true));
         })
       ),
-      (options.formulaError ?
-        dom('div.error_box',
+      (options.formulaError ? [
           dom('div.error_msg', testId('formula-error-msg'),
             dom.on('click', () => {
               if (errorDetails.get()){
@@ -142,14 +145,15 @@ export class FormulaEditor extends NewBaseEditor {
             ),
             dom.text(errorText),
           ),
-          dom.maybe(errorDetails, () =>
+          dom.maybe(use => Boolean(use(errorDetails) && !use(hideErrDetails)), () =>
             dom('div.error_details',
-              dom.hide(hideErrDetails),
-              dom.text(errorDetails),
+              dom('div.error_details_inner',
+                dom.text(errorDetails),
+              ),
               testId('formula-error-details'),
             )
           )
-        ) : null
+        ] : null
       )
     );
   }
@@ -181,12 +185,28 @@ export class FormulaEditor extends NewBaseEditor {
   }
 
   private _calcSize(elem: HTMLElement, desiredElemSize: ISize) {
+    const errorBox: HTMLElement|null = this._dom.querySelector('.error_details');
+    const errorBoxStartHeight = errorBox?.getBoundingClientRect().height || 0;
+    const errorBoxDesiredHeight = errorBox?.scrollHeight || 0;
+
     // If we have an error to show, ask for a larger size for formulaEditor.
     const desiredSize = {
       width: Math.max(desiredElemSize.width, (this.options.formulaError ? minFormulaErrorWidth : 0)),
-      height: desiredElemSize.height,
+      // Ask for extra space for the error; we'll decide how to allocate it below.
+      height: desiredElemSize.height + (errorBoxDesiredHeight - errorBoxStartHeight),
     };
-    return this._editorPlacement.calcSizeWithPadding(elem, desiredSize);
+    const result = this._editorPlacement.calcSizeWithPadding(elem, desiredSize);
+    if (errorBox) {
+      // Note that result.height does not include errorBoxStartHeight, but includes any available
+      // extra space that we requested.
+      const availableForError = errorBoxStartHeight + (result.height - desiredElemSize.height);
+      // This is the key calculation: if space is available, use it; if not, give 64px to error
+      // (it'll scroll within that), but don't use more than desired.
+      const errorBoxEndHeight = Math.min(errorBoxDesiredHeight, Math.max(availableForError, 64));
+      errorBox.style.height = `${errorBoxEndHeight}px`;
+      result.height -= (errorBoxEndHeight - errorBoxStartHeight);
+    }
+    return result;
   }
 
   // TODO: update regexes to unicode?

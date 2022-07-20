@@ -234,11 +234,17 @@ AceEditor.prototype._setup = function() {
 AceEditor.prototype.resize = function() {
   var wrap = this.session.getUseWrapMode();
   var contentWidth = wrap ? 0 : this._getContentWidth();
+  var contentHeight = this._getContentHeight();
   var desiredSize = {
     width: wrap ? 0 : contentWidth + this.textPadding,
-    height: this._getContentHeight()
+    height: contentHeight,
   };
   var size = this.calcSize(this._fullDom, desiredSize);
+  if (size.height < contentHeight) {
+    // Editor will show a vertical scrollbar, so recalculate to make space for it.
+    desiredSize.width += 20;
+    size = this.calcSize(this._fullDom, desiredSize);
+  }
   if (size.width < contentWidth) {
     // Editor will show a horizontal scrollbar, so recalculate to make space for it.
     desiredSize.height += 20;

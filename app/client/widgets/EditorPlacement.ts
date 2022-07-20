@@ -115,6 +115,7 @@ export class EditorPlacement extends Disposable {
         // stretch to the calculated width (so need an explicit value), but may be dynamic in
         // height. (This feels hacky, but solves the problem.)
         width: width + 'px',
+        'max-height': maxHeight + 'px',
       });
     }
 
