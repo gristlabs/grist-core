@@ -396,18 +396,21 @@ export class RightPanel extends Disposable {
       });
     });
 
-    // TODO: this computed is not enough to make sure that the linkOptions are up to date. Indeed
+    // This computed is not enough to make sure that the linkOptions are up to date. Indeed
     // the selectBy function depends on a much greater number of observables. Creating that many
-    // dependencies does not seem a better approach. Instead, we could refresh the list of
-    // linkOptions only when the user clicks the dropdown. Such behaviour is not supported by the
-    // weasel select function as of writing and would require a custom implementation.
-    const linkOptions = Computed.create(owner, (use) =>
-      selectBy(
+    // dependencies does not seem a better approach. Instead, we refresh the list of
+    // linkOptions only when the user clicks on the dropdown. Such behavior is not supported by the
+    // weasel select function as of writing and would require a custom implementation, so we will simulate
+    // this behavior by using temporary observable that will be changed when the user clicks on the dropdown.
+    const refreshTrigger = Observable.create(owner, false);
+    const linkOptions = Computed.create(owner, (use) => {
+      void use(refreshTrigger);
+      return selectBy(
         this._gristDoc.docModel,
-        use(viewModel.viewSections).peek(),
+        viewModel.viewSections().all(),
         activeSection,
-      )
-    );
+      );
+    });
 
     link.onWrite((val) => this._gristDoc.saveLink(val));
     return [
@@ -456,7 +459,12 @@ export class RightPanel extends Disposable {
       dom.maybe((use) => !use(activeSection.isRaw), () => [
         cssLabel('SELECT BY'),
         cssRow(
-          select(link, linkOptions, {defaultLabel: 'Select Widget'}),
+          dom.update(
+            select(link, linkOptions, {defaultLabel: 'Select Widget'}),
+            dom.on('click', () => {
+              refreshTrigger.set(!refreshTrigger.get());
+            })
+          ),
           testId('right-select-by')
         ),
       ]),

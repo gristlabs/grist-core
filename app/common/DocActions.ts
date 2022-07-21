@@ -189,7 +189,7 @@ export function fromTableDataAction(tableData: TableDataAction): TableColValues 
  * Convert a list of rows into an object with columns of values, used for
  * BulkAddRecord/BulkUpdateRecord actions.
  */
-export function getColValues(records: RowRecord[]): BulkColValues {
+export function getColValues(records: Partial<RowRecord>[]): BulkColValues {
   const colIdSet = new Set<string>();
   for (const r of records) {
     for (const c of Object.keys(r)) {
@@ -200,7 +200,7 @@ export function getColValues(records: RowRecord[]): BulkColValues {
   }
   const result: BulkColValues = {};
   for (const colId of colIdSet) {
-    result[colId] = records.map(r => r[colId]);
+    result[colId] = records.map(r => r[colId]!);
   }
   return result;
 }

@@ -1157,7 +1157,7 @@ export function isSidePanelOpen(which: 'right'|'left'): Promise<boolean> {
 }
 
 /*
- * Toggles (opens or closes) the right panel and wait for the transition to complete. An optional
+ * Toggles (opens or closes) the right or left panel and wait for the transition to complete. An optional
  * argument can specify the desired state.
  */
 export async function toggleSidePanel(which: 'right'|'left', goal: 'open'|'close'|'toggle' = 'toggle') {
