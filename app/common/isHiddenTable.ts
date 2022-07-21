@@ -7,7 +7,7 @@ import {UIRowId} from 'app/common/UIRowId';
  */
 export function isHiddenTable(tablesData: TableData, tableRef: UIRowId): boolean {
   const tableId = tablesData.getValue(tableRef, 'tableId') as string|undefined;
-  return isSummaryTable(tablesData, tableRef) || Boolean(tableId?.startsWith('GristHidden'));
+  return !tableId || isSummaryTable(tablesData, tableRef) || tableId.startsWith('GristHidden_');
 }
 
 /**

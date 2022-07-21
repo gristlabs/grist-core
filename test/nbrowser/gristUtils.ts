@@ -902,6 +902,11 @@ export async function addNewSection(typeRe: RegExp|string, tableRe: RegExp|strin
   await selectWidget(typeRe, tableRe, options);
 }
 
+export async function openAddWidgetToPage() {
+  await driver.findWait('.test-dp-add-new', 2000).doClick();
+  await driver.findWait('.test-dp-add-widget-to-page', 2000).doClick();
+}
+
 // Select type and table that matches respectively typeRe and tableRe and save. The widget picker
 // must be already opened when calling this function.
 export async function selectWidget(

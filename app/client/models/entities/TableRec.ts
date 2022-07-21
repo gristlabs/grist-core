@@ -52,7 +52,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
   this.isHidden = this.autoDispose(
     // This is repeated logic from isHiddenTable.
-    ko.pureComputed(() => !!this.summarySourceTable() || this.tableId()?.startsWith("GristHidden"))
+    ko.pureComputed(() => !this.tableId() || !!this.summarySourceTable() || this.tableId().startsWith("GristHidden_"))
   );
 
   // A Set object of colRefs for all summarySourceCols of this table.

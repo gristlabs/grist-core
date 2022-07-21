@@ -15,7 +15,7 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
       const viewId = this.view().id();
       const tables = docModel.rawDataTables.all();
       const primaryTable = tables.find(t => t.primaryViewId() === viewId);
-      return !!primaryTable && primaryTable.isHidden();
+      return !!primaryTable && primaryTable.tableId()?.startsWith("GristHidden_");
     };
     // Page is hidden when any of this is true:
     // - It has an empty name (or no name at all)
