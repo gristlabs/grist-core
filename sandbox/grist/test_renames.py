@@ -255,34 +255,42 @@ class TestRenames(test_engine.EngineTestCase):
 
   def test_rename_lookup_iter_attr(self):
     # Renaming `[x.COLUMN for x in Table.lookupRecords(...)]`.
+    self.check_comprehension_rename("People.lookupRecords(addr=$id)",
+                                    "People.lookupRecords(ADDRESS=$id)")
+
+  def test_rename_all_iter_attr(self):
+    # Renaming `[x.COLUMN for x in Table.all]`.
+    self.check_comprehension_rename("People.all", "People.all")
+
+  def check_comprehension_rename(self, iter_expr1, iter_expr2):
     self.load_sample(self.sample)
     self.add_column("Address", "people",
-                    formula="','.join(x.addr.city for x in People.lookupRecords(addr=$id))")
+                    formula="','.join(x.addr.city for x in %s)" % iter_expr1)
     self.add_column("Address", "people2",
-                    formula="','.join([x.addr.city for x in People.lookupRecords(addr=$id)])")
+                    formula="','.join([x.addr.city for x in %s])" % iter_expr1)
     self.add_column("Address", "people3",
-                    formula="','.join({x.addr.city for x in People.lookupRecords(addr=$id)})")
+                    formula="','.join({x.addr.city for x in %s})" % iter_expr1)
     self.add_column("Address", "people4",
-                    formula="{x.addr.city:x.addr for x in People.lookupRecords(addr=$id)}")
+                    formula="{x.addr.city:x.addr for x in %s}" % iter_expr1)
     out_actions = self.apply_user_action(["RenameColumn", "People", "addr", "ADDRESS"])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "People", "addr", "ADDRESS"],
       ["ModifyColumn", "People", "city", {"formula": "$ADDRESS.city"}],
       ["ModifyColumn", "Address", "people",
-           {"formula": "','.join(x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id))"}],
+           {"formula": "','.join(x.ADDRESS.city for x in %s)" % iter_expr2}],
       ["ModifyColumn", "Address", "people2",
-           {"formula": "','.join([x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id)])"}],
+           {"formula": "','.join([x.ADDRESS.city for x in %s])" % iter_expr2}],
       ["ModifyColumn", "Address", "people3",
-           {"formula": "','.join({x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id)})"}],
+           {"formula": "','.join({x.ADDRESS.city for x in %s})" % iter_expr2}],
       ["ModifyColumn", "Address", "people4",
-           {"formula": "{x.ADDRESS.city:x.ADDRESS for x in People.lookupRecords(ADDRESS=$id)}"}],
+           {"formula": "{x.ADDRESS.city:x.ADDRESS for x in %s}" % iter_expr2}],
       ["BulkUpdateRecord", "_grist_Tables_column", [23, 24, 25, 26, 27, 28], {
         "colId": ["ADDRESS", "city", "people", "people2", "people3", "people4"],
         "formula": ["", "$ADDRESS.city",
-           "','.join(x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id))",
-           "','.join([x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id)])",
-           "','.join({x.ADDRESS.city for x in People.lookupRecords(ADDRESS=$id)})",
-           "{x.ADDRESS.city:x.ADDRESS for x in People.lookupRecords(ADDRESS=$id)}"],
+           "','.join(x.ADDRESS.city for x in %s)" % iter_expr2,
+           "','.join([x.ADDRESS.city for x in %s])" % iter_expr2,
+           "','.join({x.ADDRESS.city for x in %s})" % iter_expr2,
+           "{x.ADDRESS.city:x.ADDRESS for x in %s}" % iter_expr2],
       }],
     ]})
 

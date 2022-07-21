@@ -264,23 +264,31 @@ class InferAllReference(InferenceTip):
     yield astroid.bases.Instance(infer(node.expr))
 
 
-class InferLookupComprehension(InferenceTip):
+class InferComprehensionBase(InferenceTip):
   node_class = astroid.nodes.AssignName
+  reference_inference_class = None
 
   @classmethod
   def filter(cls, node):
     compr = node.parent
     if not isinstance(compr, astroid.nodes.Comprehension):
       return False
-    if isinstance(compr.iter, astroid.nodes.Call):
-      return InferLookupReference.filter(compr.iter)
-    if isinstance(compr.iter, astroid.nodes.Attribute):
-      return InferAllReference.filter(compr.iter)
+    if isinstance(compr.iter, cls.reference_inference_class.node_class):
+      return cls.reference_inference_class.filter(compr.iter)
     return False
 
   @classmethod
   def infer(cls, node, context=None):
-    return InferLookupReference.infer(node.parent.iter)
+    return cls.reference_inference_class.infer(node.parent.iter)
+
+
+class InferLookupComprehension(InferComprehensionBase):
+  reference_inference_class = InferLookupReference
+
+
+class InferAllComprehension(InferComprehensionBase):
+  reference_inference_class = InferAllReference
+
 
 class InferRecAssignment(InferenceTip):
   """
@@ -330,7 +338,7 @@ def parse_grist_names(builder):
   code_text = builder.get_text()
 
   with use_inferences(InferReferenceColumn, InferReferenceFormula, InferLookupReference,
-                      InferLookupComprehension, InferAllReference):
+                      InferLookupComprehension, InferAllReference, InferAllComprehension):
     atok = asttokens.ASTTokens(code_text, tree=astroid.builder.parse(code_text))
 
   def make_tuple(start, end, table_id, col_id):
