@@ -293,12 +293,17 @@ export function openFormulaEditor(options: {
   // AsyncOnce ensures it's called once even if triggered multiple times.
   const saveEdit = asyncOnce(async () => {
     const formula = editor.getCellValue();
-    if (options.onSave) {
-      await options.onSave(column, formula as string);
-    } else if (formula !== column.formula.peek()) {
-      await column.updateColValues({formula});
+    if (formula !== column.formula.peek()) {
+      if (options.onSave) {
+        await options.onSave(column, formula as string);
+      } else {
+        await column.updateColValues({formula});
+      }
+      holder.dispose();
+    } else {
+      holder.dispose();
+      options.onCancel?.();
     }
-    holder.dispose();
   });
 
   // These are the commands for while the editor is active.
