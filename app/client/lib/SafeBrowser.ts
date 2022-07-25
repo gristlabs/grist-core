@@ -40,7 +40,7 @@ import { getOriginUrl } from 'app/common/urlUtils';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 import { checkers } from 'app/plugin/TypeCheckers';
-import { IpcMessageEvent, WebviewTag } from 'electron';
+import { IpcMessageEvent } from 'electron';
 import { IMsgCustom, IMsgRpcCall, Rpc } from 'grain-rpc';
 import { Disposable } from './dispose';
 const G = getBrowserGlobals('document', 'window');
@@ -305,7 +305,7 @@ class IframeProcess extends ViewProcess {
 class WebviewProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    const webview: WebviewTag = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_focus', {
+    const webview = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_focus', {
       src,
       allowpopups: '',
       // Requests with this partition get an extra header (see main.js) to get access to plugin content.

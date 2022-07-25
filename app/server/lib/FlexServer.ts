@@ -190,6 +190,29 @@ export class FlexServer implements GristServer {
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
     this.info.push(['pluginUrl', this._pluginUrl]);
 
+    // The electron build is not supported at this time, but this stub
+    // implementation of electronServerMethods is present to allow kicking
+    // its tires.
+    let userConfig: any = {
+      recentItems: [],
+    };
+    this.electronServerMethods = {
+      async importDoc() { throw new Error('not implemented'); },
+      onDocOpen(cb) {
+        // currently only a stub.
+        cb('');
+      },
+      async getUserConfig() {
+        return userConfig;
+      },
+      async updateUserConfig(obj: any) {
+        userConfig = obj;
+      },
+      onBackupMade() {
+        log.info('backup skipped');
+      }
+    };
+
     this.app.use((req, res, next) => {
       (req as RequestWithGrist).gristServer = this;
       next();
@@ -1790,7 +1813,7 @@ function noCaching(req: express.Request, res: express.Response, next: express.Ne
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
   importDoc(filepath: string): Promise<DocCreationInfo>;
-  onDocOpen(cb: () => void): void;
+  onDocOpen(cb: (filePath: string) => void): void;
   getUserConfig(): Promise<any>;
   updateUserConfig(obj: any): Promise<void>;
   onBackupMade(cb: () => void): void;

@@ -43,7 +43,7 @@ export class DocStorageManager implements IDocStorageManager {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._watcher = null;
     this._shell = gristServer?.create.Shell?.() || {
-      moveItemToTrash()  { throw new Error('Unable to move document to trash'); },
+      trashItem() { throw new Error('Unable to move document to trash'); },
       showItemInFolder() { throw new Error('Unable to show item in folder'); }
     };
     if (_comm) {
@@ -118,16 +118,15 @@ export class DocStorageManager implements IDocStorageManager {
    * @param {String} docName: docName of the document to delete.
    * @returns {Promise} Resolved on success.
    */
-  public deleteDoc(docName: string, deletePermanently?: boolean): Promise<void> {
+  public async deleteDoc(docName: string, deletePermanently?: boolean): Promise<void> {
     const docPath = this.getPath(docName);
     // Keep this check, to protect against wiping out the whole disk or the user's home.
     if (path.extname(docPath) !== '.grist') {
       return Promise.reject(new Error("Refusing to delete path which does not end in .grist"));
     } else if (deletePermanently) {
-      return fse.remove(docPath);
+      await fse.remove(docPath);
     } else {
-      this._shell.moveItemToTrash(docPath);  // this is a synchronous action
-      return Promise.resolve();
+      await this._shell.trashItem(docPath);
     }
   }
 

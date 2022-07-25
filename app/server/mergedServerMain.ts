@@ -88,7 +88,7 @@ export async function main(port: number, serverTypes: ServerType[],
     await server.addAssetsForPlugins();
   }
 
-  if (includeHome && !includeApp) {
+  if (includeHome) {
     server.addEarlyWebhooks();
   }
 
@@ -103,21 +103,17 @@ export async function main(port: number, serverTypes: ServerType[],
   await server.start();
 
   if (includeHome) {
-    if (!includeApp) {
-      server.addUsage();
-    }
+    server.addUsage();
     if (!includeDocs) {
       server.addDocApiForwarder();
     }
     server.addJsonSupport();
     await server.addLandingPages();
     // todo: add support for home api to standalone app
-    if (!includeApp) {
-      server.addHomeApi();
-      server.addBillingApi();
-      server.addNotifier();
-      await server.addHousekeeper();
-    }
+    server.addHomeApi();
+    server.addBillingApi();
+    server.addNotifier();
+    await server.addHousekeeper();
     await server.addLoginRoutes();
     server.addAccountPage();
     server.addBillingPages();

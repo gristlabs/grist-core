@@ -1,4 +1,4 @@
 export interface IShell {
-  moveItemToTrash(docPath: string): void;
+  trashItem(docPath: string): Promise<void>;
   showItemInFolder(docPath: string): void;
 }
