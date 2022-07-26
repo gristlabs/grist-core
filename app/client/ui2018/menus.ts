@@ -1,11 +1,11 @@
 import { Command } from 'app/client/components/commands';
 import { NeedUpgradeError, reportError } from 'app/client/models/errors';
+import { textButton } from 'app/client/ui2018/buttons';
 import { cssCheckboxSquare, cssLabel, cssLabelText } from 'app/client/ui2018/checkbox';
 import { colors, testId, vars } from 'app/client/ui2018/cssVars';
 import { IconName } from 'app/client/ui2018/IconList';
 import { icon } from 'app/client/ui2018/icons';
 import { cssSelectBtn } from 'app/client/ui2018/select';
-import { commonUrls } from 'app/common/gristUrls';
 import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
          MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
 import * as weasel from 'popweasel';
@@ -299,10 +299,10 @@ export function upgradableMenuItem(needUpgrade: boolean, action: () => void, ...
   }
 }
 
-export function upgradeText(needUpgrade: boolean) {
+export function upgradeText(needUpgrade: boolean, onClick: () => void) {
   if (!needUpgrade) { return null; }
   return menuText(dom('span', '* Workspaces are available on team plans. ',
-        dom('a', {href: commonUrls.plans}, 'Upgrade now')));
+    cssUpgradeTextButton('Upgrade now', dom.on('click', () => onClick()))));
 }
 
 /**
@@ -583,4 +583,8 @@ const cssCheckboxText = styled(cssLabelText, `
   margin-right: 12px;
   color: ${colors.dark};
   white-space: pre;
+`);
+
+const cssUpgradeTextButton = styled(textButton, `
+  font-size: ${vars.smallFontSize};
 `);

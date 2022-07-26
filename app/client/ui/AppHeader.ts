@@ -51,7 +51,11 @@ export class AppHeader extends Disposable {
         productPill(currentOrg),
         this._orgName && cssDropdownIcon('Dropdown'),
         menu(() => [
-          menuSubHeader(`${this._appModel.isTeamSite ? 'Team' : 'Personal'} Site`, testId('orgmenu-title')),
+          menuSubHeader(
+            `${this._appModel.isTeamSite ? 'Team' : 'Personal'} Site`
+              + (this._appModel.isLegacySite ? ' (Legacy)' : ''),
+            testId('orgmenu-title'),
+          ),
           menuItemLink(urlState().setLinkUrl({}), 'Home Page', testId('orgmenu-home-page')),
 
           // Show 'Organization Settings' when on a home page of a valid org.

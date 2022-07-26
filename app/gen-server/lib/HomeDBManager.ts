@@ -35,7 +35,8 @@ import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
 import {Pref} from "app/gen-server/entity/Pref";
-import {getDefaultProductNames, Product, starterFeatures} from "app/gen-server/entity/Product";
+import {getDefaultProductNames, personalFreeFeatures, personalLegacyFeatures,
+        Product} from "app/gen-server/entity/Product";
 import {Secret} from "app/gen-server/entity/Secret";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
@@ -811,7 +812,7 @@ export class HomeDBManager extends EventEmitter {
         id: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-         domain: this.mergedOrgDomain(),
+        domain: this.mergedOrgDomain(),
         name: 'Anonymous',
         owner: this.makeFullUser(this.getAnonymousUser()),
         access: 'viewers',
@@ -820,7 +821,8 @@ export class HomeDBManager extends EventEmitter {
           individual: true,
           product: {
             name: 'anonymous',
-            features: starterFeatures,
+            features: process.env.NEW_DEAL === 'true'
+              ? personalFreeFeatures : personalLegacyFeatures,
           },
           isManager: false,
           inGoodStanding: true,

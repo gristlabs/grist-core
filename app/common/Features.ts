@@ -68,16 +68,55 @@ export function canAddOrgMembers(features: Features): boolean {
   return features.maxWorkspacesPerOrg !== 1;
 }
 
-export const FREE_PERSONAL_PLAN = 'starter';
+
+export const PERSONAL_LEGACY_PLAN = 'starter';
+export const PERSONAL_FREE_PLAN = 'personalFree';
 export const TEAM_FREE_PLAN = 'teamFree';
 export const TEAM_PLAN = 'team';
 
 export const displayPlanName: { [key: string]: string } = {
+  [PERSONAL_LEGACY_PLAN]: 'Free Personal (Legacy)',
+  [PERSONAL_FREE_PLAN]: 'Free Personal',
   [TEAM_FREE_PLAN]: 'Team Free',
   [TEAM_PLAN]: 'Team'
 } as const;
 
-// Returns true if `product` is free.
-export function isFreeProduct(product: Product): boolean {
-  return [FREE_PERSONAL_PLAN, TEAM_FREE_PLAN, 'Free'].includes(product?.name);
+// Returns true if `planName` is for a personal product.
+export function isPersonalPlan(planName: string): boolean {
+  return isFreePersonalPlan(planName);
+}
+
+// Returns true if `planName` is for a free personal product.
+export function isFreePersonalPlan(planName: string): boolean {
+  return [PERSONAL_LEGACY_PLAN, PERSONAL_FREE_PLAN].includes(planName);
+}
+
+// Returns true if `planName` is for a legacy product.
+export function isLegacyPlan(planName: string): boolean {
+  return isFreeLegacyPlan(planName);
+}
+
+// Returns true if `planName` is for a free legacy product.
+export function isFreeLegacyPlan(planName: string): boolean {
+  return [PERSONAL_LEGACY_PLAN].includes(planName);
+}
+
+// Returns true if `planName` is for a team product.
+export function isTeamPlan(planName: string): boolean {
+  return !isPersonalPlan(planName);
+}
+
+// Returns true if `planName` is for a free team product.
+export function isFreeTeamPlan(planName: string): boolean {
+  return [TEAM_FREE_PLAN].includes(planName);
+}
+
+// Returns true if `planName` is for a free product.
+export function isFreePlan(planName: string): boolean {
+  return (
+    isFreePersonalPlan(planName) ||
+    isFreeTeamPlan(planName) ||
+    isFreeLegacyPlan(planName) ||
+    planName === 'Free'
+  );
 }

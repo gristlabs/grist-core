@@ -4,8 +4,9 @@ import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
+import {buildNewSiteModal, buildUpgradeModal, NEW_DEAL} from 'app/client/ui/ProductUpgrades';
 import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Features} from 'app/common/Features';
+import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
@@ -16,7 +17,6 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, SUPPORT_EMAIL, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
-import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 
 export {reportError} from 'app/client/models/errors';
 
@@ -70,9 +70,11 @@ export interface AppModel {
   currentOrgUsage: Observable<OrgUsageSummary|null>;
   isPersonal: boolean;                  // Is it a personal site?
   isTeamSite: boolean;                  // Is it a team site?
+  isLegacySite: boolean;                // Is it a legacy site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
 
-  currentFeatures: Features;            // features of the current org's product.
+  currentProduct: Product|null;         // The current org's product.
+  currentFeatures: Features;            // Features of the current org's product.
   userPrefsObs: Observable<UserPrefs>;
 
   pageType: Observable<PageType>;
@@ -199,11 +201,14 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly currentOrgUsage: Observable<OrgUsageSummary|null> = Observable.create(this, null);
 
+  public readonly currentProduct = this.currentOrg?.billingAccount?.product ?? null;
+  public readonly currentFeatures = this.currentProduct?.features ?? {};
+
   public readonly isPersonal = Boolean(this.currentOrg?.owner);
   public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
-
-  public readonly currentFeatures = (this.currentOrg && this.currentOrg.billingAccount) ?
-    this.currentOrg.billingAccount.product.features : {};
+  // TODO: the `NEW_DEAL` observable can be removed after new deal is released.
+  public readonly isLegacySite = Boolean(
+    NEW_DEAL().get() && this.currentProduct && isLegacyPlan(this.currentProduct.name));
 
   public readonly userPrefsObs = getUserPrefsObs(this);
 
@@ -224,7 +229,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 
   public get planName() {
-    return this.currentOrg?.billingAccount?.product.name ?? null;
+    return this.currentProduct?.name ?? null;
   }
 
   public async showUpgradeModal() {

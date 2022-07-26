@@ -191,7 +191,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
              dom.cls('disabled', (use) => !roles.canEdit(orgAccess) || !use(home.available)),
              testId("dm-new-workspace")
     ),
-    upgradeText(needUpgrade),
+    upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];
 }
 
@@ -225,8 +225,12 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
       testId('dm-delete-workspace')),
     upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
       roles.canEditAccess(ws.access) ? "Manage Users" : "Access Details",
+      // TODO: Personal plans can't currently share workspaces, but that restriction
+      // should formally be documented and defined in `Features`, with this check updated
+      // to look there instead.
+      dom.cls('disabled', () => home.app.isPersonal),
       testId('dm-workspace-access')),
-    upgradeText(needUpgrade),
+    upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];
 }
 

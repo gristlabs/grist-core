@@ -71,10 +71,11 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
             workspace ? makeLocalViewSettings(home, workspace.id) :
             home;
           return [
-            // Hide the sort option only when showing intro.
-            ((showIntro && page === 'all') ? css.prefSelectors(upgradeButton.showUpgradeButton()) :
-              // This is float:right element
-              buildPrefs(viewSettings, {hideSort: showIntro}, upgradeButton.showUpgradeButton())
+            buildPrefs(
+              viewSettings,
+              // Hide the sort and view options when showing the intro.
+              {hideSort: showIntro, hideView: showIntro && page === 'all'},
+              ['all', 'workspace'].includes(page) ? upgradeButton.showUpgradeButton() : null,
             ),
 
             // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
@@ -297,12 +298,16 @@ function buildOtherSites(home: HomeModel) {
 
 /**
  * Build the widget for selecting sort and view mode options.
- * If hideSort is true, will hide the sort dropdown: it has no effect on the list of examples, so
- * best to hide when those are the only docs shown.
+ *
+ * Options hideSort and hideView control which options are shown; they should have no effect
+ * on the list of examples, so best to hide when those are the only docs shown.
  */
 function buildPrefs(
   viewSettings: ViewSettings,
-  options: {hideSort: boolean},
+  options: {
+    hideSort: boolean,
+    hideView: boolean,
+  },
   ...args: DomArg<HTMLElement>[]): DomContents {
   return css.prefSelectors(
     // The Sort selector.
@@ -317,7 +322,7 @@ function buildPrefs(
     ),
 
     // The View selector.
-    buttonSelect<ViewPref>(viewSettings.currentView, [
+    options.hideView ? null : buttonSelect<ViewPref>(viewSettings.currentView, [
         {value: 'icons', icon: 'TypeTable'},
         {value: 'list', icon: 'TypeCardList'},
       ],

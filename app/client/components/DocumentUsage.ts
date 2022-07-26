@@ -4,11 +4,9 @@ import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {infoTooltip} from 'app/client/ui/tooltips';
 import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/DocUsage';
-import {Features, isFreeProduct} from 'app/common/Features';
-import {commonUrls} from 'app/common/gristUrls';
+import {Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
 import {canUpgradeOrg} from 'app/common/roles';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
@@ -168,8 +166,12 @@ export class DocumentUsage extends Disposable {
         buildLimitStatusMessage(status, product?.features, {
           disableRawDataLink: true
         }),
-        (product && isFreeProduct(product)
-          ? [' ', buildUpgradeMessage(canUpgradeOrg(org))]
+        (product && isFreePlan(product.name)
+          ? [' ', buildUpgradeMessage(
+            canUpgradeOrg(org),
+            'long',
+            () =>  this._docPageModel.appModel.showUpgradeModal()
+          )]
           : null
         ),
       ]);
@@ -236,21 +238,25 @@ export function buildLimitStatusMessage(
   }
 }
 
-export function buildUpgradeMessage(canUpgrade: boolean, variant: 'short' | 'long' = 'long') {
+export function buildUpgradeMessage(
+  canUpgrade: boolean,
+  variant: 'short' | 'long',
+  onUpgrade: () => void,
+) {
   if (!canUpgrade) { return 'Contact the site owner to upgrade the plan to raise limits.'; }
 
   const upgradeLinkText = 'start your 30-day free trial of the Pro plan.';
   return [
     variant === 'short' ? null : 'For higher limits, ',
-    buildUpgradeLink(variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText),
+    buildUpgradeLink(
+      variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText,
+      () => onUpgrade(),
+    ),
   ];
 }
 
-function buildUpgradeLink(linkText: string) {
-  return cssUnderlinedLink(linkText, {
-    href: commonUrls.plans,
-    target: '_blank',
-  });
+function buildUpgradeLink(linkText: string, onClick: () => void) {
+  return cssUnderlinedLink(linkText, dom.on('click', () => onClick()));
 }
 
 function buildRawDataPageLink(linkText: string) {
@@ -356,7 +362,8 @@ const cssHeader = styled(docListHeader, `
   margin-bottom: 0px;
 `);
 
-const cssUnderlinedLink = styled(cssLink, `
+const cssUnderlinedLink = styled('span', `
+  cursor: pointer;
   color: unset;
   text-decoration: underline;
 

@@ -106,6 +106,17 @@ export const exampleOrgs = [
     ]
   },
   {
+    name: 'Charonland',
+    workspaces: [
+      {
+        name: 'Home',
+        docs: []
+      }
+    ],
+    // Some tests check behavior on new free personal plans.
+    product: 'personalFree',
+  },
+  {
     name: 'Chimpyland',
     workspaces: [
       {
@@ -121,6 +132,17 @@ export const exampleOrgs = [
   {
     name: 'Kiwiland',
     workspaces: []
+  },
+  {
+    name: 'Hamland',
+    workspaces: [
+      {
+        name: 'Home',
+        docs: []
+      },
+    ],
+    // Some tests check behavior on legacy free personal plans.
+    product: 'starter',
   },
   {
     name: 'EmptyWsOrg',
@@ -223,6 +245,7 @@ const exampleUsers: {[user: string]: {[org: string]: string}} = {
     Fish: 'editors'
   },
   Charon: {
+    Charonland: 'owners',
     NASA: 'guests',
     Horizon: 'guests',
     Pluto: 'viewers',
@@ -231,7 +254,9 @@ const exampleUsers: {[user: string]: {[org: string]: string}} = {
     Abyss: 'owners',
   },
   // User Ham has two-factor authentication enabled on staging/prod.
-  Ham: {},
+  Ham: {
+    Hamland: 'owners',
+  },
   // User support@ owns a workspace "Examples & Templates" in its personal org. It can be shared
   // with everyone@ to let all users see it (this is not done here to avoid impacting all tests).
   Support: { Supportland: 'owners' },

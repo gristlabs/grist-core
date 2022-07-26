@@ -139,7 +139,7 @@ const cssButton = styled(icon, `
 
 const cssExpandButton = styled(cssButton, `
   &-expanded {
-    -webkit-mask-image: var(--icon-DropdownUp);
+    -webkit-mask-image: var(--icon-DropdownUp) !important;
   }
 `);
 

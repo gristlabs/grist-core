@@ -2435,10 +2435,6 @@ export async function setWidgetUrl(url: string) {
   await waitForServer();
 }
 
-export async function toggleNewDeal(on = true) {
-  await driver.executeScript(`NEW_DEAL.set(${on ? 'true' : 'false'});`);
-}
-
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

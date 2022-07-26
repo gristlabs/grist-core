@@ -19,9 +19,13 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
   const appModel = options.appModel;
   switch (action) {
     case 'upgrade':
-      return dom('a', cssToastAction.cls(''), 'Upgrade Plan', {target: '_blank'},
-        {href: commonUrls.plans});
-
+      if (appModel) {
+        return cssToastAction('Upgrade Plan', dom.on('click', () =>
+          appModel.showUpgradeModal()));
+      } else {
+        return dom('a', cssToastAction.cls(''), 'Upgrade Plan', {target: '_blank'},
+          {href: commonUrls.plans});
+      }
     case 'renew':
       // If already on the billing page, nothing to return.
       if (urlState().state.get().billing === 'billing') { return null; }

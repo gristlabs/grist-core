@@ -171,8 +171,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   ) {
     super();
     if (this._options.appModel) {
-      const features = this._options.appModel.currentFeatures;
-      this._shareAnnotator = new ShareAnnotator(features, initData);
+      const product = this._options.appModel.currentProduct;
+      this._shareAnnotator = new ShareAnnotator(product, initData);
     }
     this.annotate();
   }

@@ -10,7 +10,7 @@ import {BillingPlanManagers} from 'app/client/ui/BillingPlanManagers';
 import {createForbiddenPage} from 'app/client/ui/errorPages';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
-import {NEW_DEAL, showTeamUpgradeConfirmation} from 'app/client/ui/ProductUpgrades';
+import {showTeamUpgradeConfirmation} from 'app/client/ui/ProductUpgrades';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {cssBreadcrumbs, cssBreadcrumbsLink, separator} from 'app/client/ui2018/breadcrumbs';
 import {bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
@@ -45,9 +45,6 @@ export class BillingPage extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
-
-    // TODO: remove once NEW_DEAL is there. Execute for side effect
-    void NEW_DEAL();
     this._appModel.refreshOrgUsage().catch(reportError);
   }
 
