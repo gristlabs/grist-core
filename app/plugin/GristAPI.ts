@@ -133,12 +133,40 @@ export interface GristView {
   setSelectedRows(rowIds: number[]): Promise<void>;
 }
 
+/**
+ * Options when creating access tokens.
+ */
 export interface AccessTokenOptions {
-  readOnly?: boolean;   // restrict use of token to reading.
+  /** Restrict use of token to reading only */
+  readOnly?: boolean;
 }
 
+/**
+ * Access token information, including the token string itself, a base URL for
+ * API calls for which the access token can be used, and the time-to-live the
+ * token was created with.
+ */
 export interface AccessTokenResult {
-  token: string;        // token string
-  baseUrl: string;      // url of document api, like https://..../api/docs/DOCID
-  ttlMsecs: number;     // number of milliseconds token will be valid for (typically several minutes)
+  /**
+   * The token string, which can currently be provided in an api call as a
+   * query parameter called "auth"
+   */
+  token: string;
+
+  /**
+   * The base url of the API for which the token can be used. Currently tokens
+   * are associated with a single document, so the base url will be something
+   * like `https://..../api/docs/DOCID`
+   *
+   * Access tokens currently only grant access to endpoints dealing with the
+   * internal content of a document (such as tables and cells) and not its
+   * metadata (such as the document name or who it is shared with).
+   */
+  baseUrl: string;
+
+  /**
+   * Number of milliseconds the access token will remain valid for
+   * after creation. This will be several minutes.
+   */
+  ttlMsecs: number;
 }

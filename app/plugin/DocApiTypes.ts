@@ -4,7 +4,11 @@ import { CellValue } from "app/plugin/GristData";
  * JSON schema for api /record endpoint. Used in POST method for adding new records.
  */
 export interface NewRecord {
-  fields?: { [coldId: string]: CellValue }; // fields is optional, user can create blank records
+  /**
+   * Initial values of cells in record. Optional, if not set cells are left
+   * blank.
+   */
+  fields?: { [coldId: string]: CellValue };
 }
 
 /**
@@ -19,7 +23,16 @@ export interface Record {
  * JSON schema for api /record endpoint. Used in PUT method for adding or updating records.
  */
 export interface AddOrUpdateRecord {
+  /**
+   * The values we expect to have in particular columns, either by matching with
+   * an existing record, or creating a new record.
+   */
   require: { [coldId: string]: CellValue } & { id?: number };
+
+  /**
+   * The values we will place in particular columns, either overwriting values in
+   * an existing record, or setting initial values in a new record.
+   */
   fields?: { [coldId: string]: CellValue };
 }
 
@@ -46,6 +59,9 @@ export interface RecordsPut {
 
 export type RecordId = number;
 
+/**
+ * The row id of a record, without any of its content.
+ */
 export interface MinimalRecord {
   id: number
 }

@@ -161,7 +161,21 @@ export function getTable(tableId?: string): TableOperations {
 
 /**
  * Get an access token, for making API calls outside of the custom widget
- * API. There is no caching of tokens.
+ * API. There is no caching of tokens. The returned token can
+ * be used to authorize regular REST API calls that access the content of the
+ * document. For example, in a custom widget for a table with a `Photos` column
+ * containing attachments, the following code will update the `src` of an
+ * image with id `the_image` to show the attachment:
+ * ```js
+ * grist.onRecord(async (record) => {
+ *   const tokenInfo = await grist.docApi.getAccessToken({readOnly: true});
+ *   const img = document.getElementById('the_image');
+ *   const id = record.Photos[0];  // get an id of an attachment - there could be several
+ *                                 // in a cell, for this example we just take the first.
+ *   const src = `${tokenInfo.baseUrl}/attachments/${id}/download?auth=${tokenInfo.token}`;
+ *   img.setAttribute('src', src);
+ * });
+ * ```
  */
 export async function getAccessToken(options?: AccessTokenOptions): Promise<AccessTokenResult> {
   return docApi.getAccessToken(options || {});
