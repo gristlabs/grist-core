@@ -1,11 +1,14 @@
 import {getPageTitleSuffix, GristLoadConfig, HideableUiElements, IHideableUiElement} from 'app/common/gristUrls';
 import {getTagManagerSnippet} from 'app/common/tagManager';
+import {Document} from 'app/common/UserAPI';
 import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import * as express from 'express';
 import * as fse from 'fs-extra';
+import jsesc from 'jsesc';
+import * as handlebars from 'handlebars';
 import * as path from 'path';
 
 export interface ISendAppPageOptions {
@@ -65,8 +68,10 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
 export function makeMessagePage(staticDir: string) {
   return async (req: express.Request, resp: express.Response, message: any) => {
     const fileContent = await fse.readFile(path.join(staticDir, "message.html"), 'utf8');
-    const content = fileContent
-      .replace("<!-- INSERT MESSAGE -->", `<script>window.message = ${JSON.stringify(message)};</script>`);
+    const content = fileContent.replace(
+      "<!-- INSERT MESSAGE -->",
+      `<script>window.message = ${jsesc(message, {isScriptContext: true, json: true})};</script>`
+    );
     resp.status(200).type('html').send(content);
   };
 }
@@ -98,10 +103,15 @@ export function makeSendAppPage(opts: {
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
+      .replace("<!-- INSERT TITLE -->", getPageTitle(config))
+      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server?.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
-      .replace("<!-- INSERT CONFIG -->", `<script>window.gristConfig = ${JSON.stringify(config)};</script>`);
+      .replace(
+        "<!-- INSERT CONFIG -->",
+        `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`
+      );
     resp.status(options.status).type('html').send(content);
   };
 }
@@ -122,4 +132,52 @@ function getHiddenUiElements(): IHideableUiElement[] {
 function configuredPageTitleSuffix() {
   const result = process.env.GRIST_PAGE_TITLE_SUFFIX;
   return result === "_blank" ? "" : result;
+}
+
+/**
+ * Returns a page title suitable for inserting into an HTML title element.
+ *
+ * Currently returns the document name if the page being requested is for a document, or
+ * a placeholder, "Loading...", that's updated in the client once the page has loaded.
+ *
+ * Note: The string returned is escaped and safe to insert into HTML.
+ */
+function getPageTitle(config: GristLoadConfig): string {
+  const maybeDoc = getDocFromConfig(config);
+  if (!maybeDoc) { return 'Loading...'; }
+
+  return handlebars.Utils.escapeExpression(maybeDoc.name);
+}
+
+/**
+ * Returns a string representation of 0 or more HTML metadata elements.
+ *
+ * Currently includes the document description and thumbnail if the requested page is
+ * for a document and the document has one set.
+ *
+ * Note: The string returned is escaped and safe to insert into HTML.
+ */
+function getPageMetadataHtmlSnippet(config: GristLoadConfig): string {
+  const metadataElements: string[] = [];
+  const maybeDoc = getDocFromConfig(config);
+
+  const description = maybeDoc?.options?.description;
+  if (description) {
+    const content = handlebars.Utils.escapeExpression(description);
+    metadataElements.push(`<meta name="description" content="${content}">`);
+  }
+
+  const thumbnail = maybeDoc?.options?.icon;
+  if (thumbnail) {
+    const content = handlebars.Utils.escapeExpression(thumbnail);
+    metadataElements.push(`<meta name="thumbnail" content="${content}">`);
+  }
+
+  return metadataElements.join('\n');
+}
+
+function getDocFromConfig(config: GristLoadConfig): Document | null {
+  if (!config.getDoc || !config.assignmentId) { return null; }
+
+  return config.getDoc[config.assignmentId] ?? null;
 }

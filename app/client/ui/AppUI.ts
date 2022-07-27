@@ -128,6 +128,10 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
 
   // Set document title to strings like "DocName - Grist"
   owner.autoDispose(subscribe(pageModel.currentDocTitle, (use, docName) => {
+    // If the document hasn't loaded yet, don't update the title; since the HTML document already has
+    // a title element with the document's name, there's no need for further action.
+    if (!pageModel.currentDoc.get()) { return; }
+
     document.title = `${docName}${getPageTitleSuffix(getGristConfig())}`;
   }));
 
