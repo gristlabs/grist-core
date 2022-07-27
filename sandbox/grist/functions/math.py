@@ -15,10 +15,6 @@ from functions.info import ISNUMBER, ISLOGICAL
 from functions.unimplemented import unimplemented
 import roman
 
-if os.environ.get("DETERMINISTIC_MODE"):
-  random.seed(1)
-
-
 # Iterates through elements of iterable arguments, or through individual args when not iterable.
 def _chain(*values_or_iterables):
   for v in values_or_iterables:

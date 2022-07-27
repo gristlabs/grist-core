@@ -2059,9 +2059,7 @@ export class ActiveDoc extends EventEmitter {
         num_on_demand_tables: onDemandNames.length,
       });
 
-      if (this._options?.docUrl) {
-        await this._pyCall('set_doc_url', this._options.docUrl);
-      }
+      await this._pyCall('initialize', this._options?.docUrl);
 
       // Calculations are not associated specifically with the user opening the document.
       // TODO: be careful with which users can create formulas.

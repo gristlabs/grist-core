@@ -3,6 +3,7 @@ This module defines what sandbox functions are made available to the Node contro
 and starts the grist sandbox. See engine.py for the API documentation.
 """
 import os
+import random
 import sys
 sys.path.append('thirdparty')
 # pylint: disable=wrong-import-position
@@ -121,8 +122,14 @@ def run(sandbox):
     return schema.SCHEMA_VERSION
 
   @export
-  def set_doc_url(doc_url):
-    os.environ['DOC_URL'] = doc_url
+  def initialize(doc_url):
+    if os.environ.get("DETERMINISTIC_MODE"):
+      random.seed(1)
+    else:
+      # Make sure we have randomness, even if we are being cloned from a checkpoint
+      random.seed()
+    if doc_url:
+      os.environ['DOC_URL'] = doc_url
 
   @export
   def get_formula_error(table_id, col_id, row_id):
