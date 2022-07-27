@@ -138,7 +138,7 @@ const cssDropdownIcon = styled(icon, `
 `);
 
 const cssOrg = styled('div', `
-  display: flex;
+  display: none;
   flex-grow: 1;
   align-items: center;
   max-width: calc(100% - 48px);
@@ -148,6 +148,10 @@ const cssOrg = styled('div', `
 
   &:hover {
     background-color: ${colors.mediumGrey};
+  }
+
+  .${cssLeftPane.className}-open & {
+    display: flex;
   }
 `);
 

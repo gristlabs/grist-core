@@ -186,7 +186,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
  * Because elements getting removed from the DOM don't always trigger 'blur' event, this also
  * uses MutationObserver to watch for the element to get removed from DOM.
  */
-function watchElementForBlur(elem: Element, callback: () => void) {
+export function watchElementForBlur(elem: Element, callback: () => void) {
   const maybeDone = () => {
     if (document.activeElement !== elem) {
       lis.dispose();
