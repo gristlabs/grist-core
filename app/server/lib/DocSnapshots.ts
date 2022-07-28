@@ -148,7 +148,29 @@ export class DocSnapshotInventory implements IInventory {
    * The snapshot supplied will be modified in place to a normalized form.
    */
   public async add(key: string, snapshot: ObjSnapshotWithMetadata, prevSnapshotId: string|null) {
+    await this.uploadAndAdd(key, async () => {
+      return { snapshot, prevSnapshotId };
+    });
+  }
+
+  /**
+   * Like add(), but takes an "upload" callback that allows
+   * preparing snapshot and prevSnapshotId atomically with the
+   * rest of the add operation, and thus serialized with any
+   * other operations such as versions(). This is important since an
+   * upload changes the list of versions as far as the external store
+   * is concerned, which could trigger a "surprise" and a full reload
+   * of the version list.
+   */
+  public async uploadAndAdd(key: string,
+                            upload: () => Promise<{snapshot?: ObjSnapshotWithMetadata,
+                                                   prevSnapshotId: string|null}>) {
     await this._mutex.runExclusive(key, async() => {
+      const {snapshot, prevSnapshotId} = await upload();
+      if (!snapshot) {
+        // the upload generated no snapshot, so there is nothing to do.
+        return;
+      }
       const snapshots = await this._getSnapshots(key, prevSnapshotId);
       // Could be already added if reconstruction happened.
       if (snapshots[0] && snapshots[0].snapshotId === snapshot.snapshotId) { return; }

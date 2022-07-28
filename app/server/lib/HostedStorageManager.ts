@@ -739,23 +739,29 @@ export class HostedStorageManager implements IDocStorageManager {
         ...label && {label},
         t,
       };
-      const prevSnapshotId = this._latestVersions.get(docId) || null;
-      const newSnapshotId = await this._ext.upload(docId, tmpPath, metadata);
-      if (newSnapshotId === Unchanged) {
-        // Nothing uploaded because nothing changed
-        return;
+      let changeMade: boolean = false;
+      await this._inventory.uploadAndAdd(docId, async () => {
+        const prevSnapshotId = this._latestVersions.get(docId) || null;
+        const newSnapshotId = await this._ext.upload(docId, tmpPath as string, metadata);
+        if (newSnapshotId === Unchanged) {
+          // Nothing uploaded because nothing changed
+          return { prevSnapshotId };
+        }
+        if (!newSnapshotId) {
+          // This is unexpected.
+          throw new Error('No snapshotId allocated after upload');
+        }
+        const snapshot = {
+          lastModified: t,
+          snapshotId: newSnapshotId,
+          metadata
+        };
+        changeMade = true;
+        return { snapshot, prevSnapshotId };
+      });
+      if (changeMade) {
+        await this._onInventoryChange(docId);
       }
-      if (!newSnapshotId) {
-        // This is unexpected.
-        throw new Error('No snapshotId allocated after upload');
-      }
-      const snapshot = {
-        lastModified: t,
-        snapshotId: newSnapshotId,
-        metadata
-      };
-      await this._inventory.add(docId, snapshot, prevSnapshotId);
-      await this._onInventoryChange(docId);
     } finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.
