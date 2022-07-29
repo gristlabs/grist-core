@@ -54,8 +54,8 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   });
 
   async function shutdown() {
-    await fromCallback(cb => server.close(cb));
     for (const conn of connections) { conn.destroy(); }
+    await fromCallback(cb => server.close(cb));
   }
 
   port = (server.address() as AddressInfo).port;
