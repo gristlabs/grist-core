@@ -293,7 +293,7 @@ export class ChoiceListEntry extends Disposable {
       focus(tokenField.getTextInput());
     };
 
-    return cssColorAndLabel(
+    const tokenColorAndLabel: HTMLDivElement = cssColorAndLabel(
       dom.autoDispose(fillColorObs),
       dom.autoDispose(textColorObs),
       dom.autoDispose(choiceText),
@@ -335,9 +335,13 @@ export class ChoiceListEntry extends Disposable {
           dom.on('copy', stopPropagation),
           dom.on('cut', stopPropagation),
           dom.on('paste', stopPropagation),
-          // On enter, focus on the input element.
           dom.onKeyDown({
-            Enter : focusOnNew
+            // On enter, focus on the input element.
+            Enter : focusOnNew,
+            // On escape, focus on the token (i.e. the parent node of this element). That way
+            // the browser will scroll the view if needed, and a subsequent escape will close
+            // the editor.
+            Escape: () => tokenColorAndLabel.parentElement?.focus(),
           }),
           // Don't bubble up click, as it would change focus.
           dom.on('click', stopPropagation),
@@ -346,6 +350,11 @@ export class ChoiceListEntry extends Disposable {
         args: [dom.cls(cssEditableLabel.className)],
       }),
     );
+
+    return [
+      tokenColorAndLabel,
+      dom.onKeyDown({Escape$: () => this._cancel()}),
+    ];
   }
 }
 
@@ -463,6 +472,9 @@ const cssToken = styled(cssListRow, `
   }
   .${cssTokenField.className}.token-dragactive & {
     cursor: unset;
+  }
+  &:focus {
+    outline: none;
   }
 `);
 
