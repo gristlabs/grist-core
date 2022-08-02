@@ -35,7 +35,8 @@ import defaultsDeep = require('lodash/defaultsDeep');
 import isNumber = require('lodash/isNumber');
 import sum = require('lodash/sum');
 import union = require('lodash/union');
-import {Annotations, Config, Data, Datum, ErrorBar, Layout, LayoutAxis, Margin} from 'plotly.js';
+import type {Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
+    PlotData as PlotlyPlotData} from 'plotly.js';
 
 
 let Plotly: PlotlyType;
@@ -118,6 +119,7 @@ function getSeriesName(series: Series, haveMultiple: boolean) {
   }
 }
 
+type Data = Partial<PlotlyPlotData>;
 
 // The output of a ChartFunc. Normally it just returns one or more Data[] series, but sometimes it
 // includes layout information: e.g. a "Scatter Plot" returns a Layout with axis labels.
@@ -421,7 +423,8 @@ Object.assign(ChartView.prototype, BackboneEvents);
 function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
   // Note that each call to getPlotlyLayout() creates a new layout object. We are intentionally
   // avoiding reuse because Plotly caches too many layout calculations when the object is reused.
-  const yaxis: Partial<LayoutAxis> = {};
+  const yaxis: Partial<LayoutAxis> = {automargin: true, title: {standoff: 0}};
+  const xaxis: Partial<LayoutAxis> = {automargin: true, title: {standoff: 0}};
   if (options.logYAxis) { yaxis.type = 'log'; }
   if (options.invertYAxis) { yaxis.autorange = 'reversed'; }
   return {
@@ -438,6 +441,7 @@ function getPlotlyLayout(options: ChartOptions): Partial<Layout> {
       bgcolor: "#FFFFFF80",
     },
     yaxis,
+    xaxis,
     ...(options.stacked ? {barmode: 'relative'} : {}),
   };
 }
@@ -1067,12 +1071,12 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   return {
     data: dataSeries,
     layout: {
-      [`${axis1}axis`]: series.length > 0 ? {title: series[0].label} : {},
+      [`${axis1}axis`]: {title: series.length > 0 ? {text: series[0].label}: {}},
       // Include yaxis title for a single y-value series only (2 series total);
       // If there are fewer than 2 total series, there is no y-series to display.
       // If there are multiple y-series, a legend will be included instead, and the yaxis title
       // is less meaningful, so omit it.
-      [`${axis2}axis`]: series.length === 2 ? {title: series[1].label} : {},
+      [`${axis2}axis`]: {title: series.length === 2 ? {text: series[1].label} : {}},
     },
   };
 }

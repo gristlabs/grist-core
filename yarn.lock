@@ -467,10 +467,10 @@
   resolved "https://registry.yarnpkg.com/@types/pidusage/-/pidusage-2.0.1.tgz#45eb309be947dcfa177957ef662ce2a0a2311d48"
   integrity sha512-tYYcz/+5v/EGYT83C0pIXrJGOiVBLksQvxgJboG4nGqx/gZTvq0Ro4SkAjECqMk7L4Ww58VWB4j48qeYh4/YJg==
 
-"@types/plotly.js@1.44.15":
-  version "1.44.15"
-  resolved "https://registry.yarnpkg.com/@types/plotly.js/-/plotly.js-1.44.15.tgz#14d5f72fa1f08c57b1c84666ff5732cbf9b1b534"
-  integrity sha512-hsoML6JX6WnArYbol2xfqRxMPf7x9h7ZhgQ4Ni/jQqDXh+r3XhS0jjnWTsrU+DS2AK872xJ8YjU42KaLhYrmRg==
+"@types/plotly.js@2.12.1":
+  version "2.12.1"
+  resolved "https://registry.yarnpkg.com/@types/plotly.js/-/plotly.js-2.12.1.tgz#112a0b322e19de3d61c4fe0213bccc57e6292022"
+  integrity sha512-Nn8tr4TDYYNaTzX+fA8b2V+OHk1cGPoMpiVFRQmlH3ICcwZOlQCCVogHkfRdYaG5/Rqg8B1Wnr+r6GyaSKlC+Q==
   dependencies:
     "@types/d3" "^3"
 
@@ -5173,10 +5173,10 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-plotly.js-basic-dist@1.51.1:
-  version "1.51.1"
-  resolved "https://registry.yarnpkg.com/plotly.js-basic-dist/-/plotly.js-basic-dist-1.51.1.tgz#a81f9514ed50ff4660fa5f30caa333318650814f"
-  integrity sha512-QnbSF6hzYYXjjfoImSaNDJM05mfCwrgaYc+k5oT4rSmwIeqhRiQE57YMd1BuTEKDpZOwE5OtzMxhfmxx0CbCMQ==
+plotly.js-basic-dist@2.13.2:
+  version "2.13.2"
+  resolved "https://registry.yarnpkg.com/plotly.js-basic-dist/-/plotly.js-basic-dist-2.13.2.tgz#7ee2386ed7f255afac54305458cda2dc274da08b"
+  integrity sha512-6sXQv3agrwHPot3gtX+UH5VyuTPsMfddigamBAEhHoJXsnAEo5DYiWS6WDnpsD7FZDsDtd7YkBZiymt4eMD7cQ==
 
 pngjs@^5.0.0:
   version "5.0.0"
