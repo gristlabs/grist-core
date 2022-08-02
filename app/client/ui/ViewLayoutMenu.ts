@@ -1,5 +1,6 @@
 import {allCommands} from 'app/client/components/commands';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuItemCmd, menuItemLink} from 'app/client/ui2018/menus';
 import {dom} from 'grainjs';
@@ -31,8 +32,12 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   ];
 
   const viewRec = viewSection.view();
+  const isLight = urlState().state.get().params?.style === 'light';
   return [
     dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
+    dom.maybe((use) => !use(viewSection.isRaw) && !isLight,
+      () => menuItemCmd(allCommands.showRawData, 'Show raw data', testId('show-raw-data')),
+    ),
     menuItemCmd(allCommands.printSection, 'Print widget', testId('print-section')),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       'Download as CSV', testId('download-section')),
@@ -40,10 +45,12 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.editLayout, 'Edit Card Layout',
         dom.cls('disabled', isReadonly))),
 
-    menuDivider(),
-    menuItemCmd(allCommands.viewTabOpen, 'Widget options', testId('widget-options')),
-    menuItemCmd(allCommands.sortFilterTabOpen, 'Advanced Sort & Filter'),
-    menuItemCmd(allCommands.dataSelectionTabOpen, 'Data selection'),
+    dom.maybe(!isLight, () => [
+      menuDivider(),
+      menuItemCmd(allCommands.viewTabOpen, 'Widget options', testId('widget-options')),
+      menuItemCmd(allCommands.sortFilterTabOpen, 'Advanced Sort & Filter'),
+      menuItemCmd(allCommands.dataSelectionTabOpen, 'Data selection'),
+    ]),
 
     menuDivider(),
     dom.maybe((use) => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>

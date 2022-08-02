@@ -99,6 +99,11 @@ exports.groups = [{
       desc: 'Print currently selected page widget',
     },
     {
+      name: 'showRawData',
+      keys: [],
+      desc: 'Show raw data widget for table of currently selected page widget',
+    },
+    {
       name: 'openWidgetConfiguration',
       keys: [],
       desc: 'Open Custom widget configuration screen',

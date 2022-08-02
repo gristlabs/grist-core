@@ -232,6 +232,8 @@ BaseView.commonCommands = {
 
   copyLink: function() { this.copyLink().catch(reportError); },
 
+  showRawData: function() { this.showRawData().catch(reportError); },
+
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); }
 };
@@ -295,13 +297,26 @@ BaseView.prototype.moveEditRowToCursor = function() {
   return this.editRowModel;
 };
 
+// Get an anchor link for the current cell and a given view section to the clipboard.
+BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
+  const rowId = this.viewData.getRowId(this.cursor.rowIndex())
+      // If there are no visible rows (happens in some widget linking situations),
+      // pick an arbitrary row which will hopefully be close to the top of the table.
+      || this.tableModel.tableData.findMatchingRowId({})
+      // If there are no rows at all, return the 'new record' row ID.
+      // Note that this case only happens in combination with the widget linking mentioned.
+      // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
+      || 'new';
+  const colRef = this.viewSection.viewFields().peek()[this.cursor.fieldIndex()].colRef();
+  return {hash: {sectionId, rowId, colRef}};
+}
+
 // Copy an anchor link for the current row to the clipboard.
 BaseView.prototype.copyLink = async function() {
-  const rowId = this.viewData.getRowId(this.cursor.rowIndex());
-  const colRef = this.viewSection.viewFields().peek()[this.cursor.fieldIndex()].colRef();
   const sectionId = this.viewSection.getRowId();
+  const anchorUrlState = this.getAnchorLinkForSection(sectionId);
   try {
-    const link = urlState().makeUrl({ hash: { sectionId, rowId, colRef } });
+    const link = urlState().makeUrl(anchorUrlState);
     await copyToClipboard(link);
     setTestState({clipboard: link});
     reportSuccess('Link copied to clipboard', {key: 'clipboard'});
@@ -309,6 +324,12 @@ BaseView.prototype.copyLink = async function() {
     throw new Error('cannot copy to clipboard');
   }
 };
+
+BaseView.prototype.showRawData = async function() {
+  const sectionId = this.schemaModel.rawViewSectionRef.peek();
+  const anchorUrlState = this.getAnchorLinkForSection(sectionId);
+  await urlState().pushUrl({...anchorUrlState, docPage: 'data'});
+}
 
 BaseView.prototype.filterByThisCellValue = function() {
   const rowId = this.viewData.getRowId(this.cursor.rowIndex());
