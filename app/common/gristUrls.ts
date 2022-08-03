@@ -87,8 +87,10 @@ export interface IGristUrlState {
   welcomeTour?: boolean;
   docTour?: boolean;
   manageUsers?: boolean;
+  createTeam?: boolean;
   params?: {
     billingPlan?: string;
+    planType?: string;
     billingTask?: BillingTask;
     embed?: boolean;
     state?: string;
@@ -258,6 +260,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     url.hash = 'repeat-doc-tour';
   } else if (state.manageUsers) {
     url.hash = 'manage-users';
+  } else if (state.createTeam) {
+    url.hash = 'create-team';
   } else {
     url.hash = '';
   }
@@ -313,6 +317,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has('account')) { state.account = AccountPage.parse(map.get('account')) || 'account'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
+  if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
     state.params!.billingTask = BillingTask.parse(sp.get('billingTask'));
@@ -374,6 +379,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.welcomeTour = hashMap.get('#') === 'repeat-welcome-tour';
     state.docTour = hashMap.get('#') === 'repeat-doc-tour';
     state.manageUsers = hashMap.get('#') === 'manage-users';
+    state.createTeam = hashMap.get('#') === 'create-team';
   }
   return state;
 }

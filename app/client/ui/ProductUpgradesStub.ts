@@ -4,6 +4,7 @@ import {Disposable, DomContents, IDisposableOwner, Observable, observable} from 
 
 export function buildNewSiteModal(context: Disposable, options: {
   planName: string,
+  selectedPlan?: string,
   onCreate?: () => void
 }) {
   window.location.href = commonUrls.plans;

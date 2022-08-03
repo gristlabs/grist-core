@@ -4,6 +4,8 @@ import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPath
         parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {BillingTask} from 'app/common/BillingAPI';
+import {TEAM_FREE_PLAN, TEAM_PLAN} from 'app/common/Features';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
@@ -70,7 +72,6 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {BillingTask} from 'app/common/BillingAPI';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1200,6 +1201,19 @@ export class FlexServer implements GristServer {
       const url = `${getPrefix(req)}/api/billing/signup?planType=${planType}&billingPlan=${billingPlan}`;
       return resp.redirect(url);
     }));
+
+    // New landing page for the new NEW_DEAL.
+    this.app.get('/billing/create-team', ...middleware, expressWrap(async (req, resp, next) => {
+      const planType = optStringParam(req.query.planType) || '';
+      // Currently we have hardcoded support only for those two plans.
+      const supportedPlans = [TEAM_PLAN, TEAM_FREE_PLAN];
+      if (!supportedPlans.includes(planType)) {
+        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
+      }
+      // Redirect to home page with url params
+      const url = `${getPrefix(req)}?planType=${planType}#create-team`;
+      return resp.redirect(url);
+    }));
   }
 
   /**
@@ -1238,9 +1252,7 @@ export class FlexServer implements GristServer {
       });
 
       resp.status(200).send();
-    }),
-    // Add a final error handler that reports errors as JSON.
-    jsonErrorHandler);
+    }), jsonErrorHandler); // Add a final error handler that reports errors as JSON.
   }
 
   public finalize() {

@@ -226,6 +226,13 @@ export class AppModelImpl extends Disposable implements AppModel {
   ) {
     super();
     this._recordSignUpIfIsNewUser();
+
+    const state = urlState().state.get();
+    if (state.createTeam) {
+      // Remove params from the URL.
+      urlState().pushUrl({createTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
+      this.showNewSiteModal(state.params?.planType);
+    }
   }
 
   public get planName() {
@@ -244,10 +251,11 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
   }
 
-  public showNewSiteModal() {
+  public showNewSiteModal(selectedPlan?: string) {
     if (this.planName) {
       buildNewSiteModal(this, {
         planName: this.planName,
+        selectedPlan,
         onCreate: () => this.topAppModel.fetchUsersAndOrgs().catch(reportError)
       });
     }
