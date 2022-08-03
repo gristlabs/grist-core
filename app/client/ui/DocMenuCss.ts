@@ -333,3 +333,17 @@ export const sortSelector = styled('div', `
     }
   }
 `);
+
+export const upgradeButton = styled('div', `
+  margin-left: 32px;
+
+  @media ${mediaSmall} {
+    & {
+      margin-left: 8px;
+    }
+  }
+`);
+
+export const upgradeCard = styled('div', `
+  margin-left: 64px;
+`);

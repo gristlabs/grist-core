@@ -52,6 +52,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       ),
       dom.forEach(home.workspaces, (ws) => {
         if (ws.isSupportWorkspace) { return null; }
+        const info = getWorkspaceInfo(home.app, ws);
         const isTrivial = computed((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
                                                     use(home.singleWorkspace)));
         // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
@@ -65,7 +66,10 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           cssPageLink(cssPageIcon('Folder'), cssLinkText(workspaceName(home.app, ws)),
             dom.hide(isRenaming),
             urlState().setLinkUrl({ws: ws.id}),
-            cssMenuTrigger(icon('Dots'),
+            // Don't show menu if workspace is personal and shared by another user; we could
+            // be a bit more nuanced here, but as of today the menu isn't particularly useful
+            // as all the menu options are disabled.
+            !info.self && info.owner ? null : cssMenuTrigger(icon('Dots'),
               menu(() => workspaceMenu(home, ws, renaming),
                 {placement: 'bottom-start', parentSelectorToMark: '.' + cssPageEntry.className}),
 
@@ -223,12 +227,11 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     upgradableMenuItem(needUpgrade, deleteWorkspace, "Delete",
       dom.cls('disabled', user => !roles.canEdit(ws.access)),
       testId('dm-delete-workspace')),
-    upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
+    // TODO: Personal plans can't currently share workspaces, but that restriction
+    // should formally be documented and defined in `Features`, with this check updated
+    // to look there instead.
+    home.app.isPersonal ? null : upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
       roles.canEditAccess(ws.access) ? "Manage Users" : "Access Details",
-      // TODO: Personal plans can't currently share workspaces, but that restriction
-      // should formally be documented and defined in `Features`, with this check updated
-      // to look there instead.
-      dom.cls('disabled', () => home.app.isPersonal),
       testId('dm-workspace-access')),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];

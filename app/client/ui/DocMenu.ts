@@ -75,7 +75,9 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
               viewSettings,
               // Hide the sort and view options when showing the intro.
               {hideSort: showIntro, hideView: showIntro && page === 'all'},
-              ['all', 'workspace'].includes(page) ? upgradeButton.showUpgradeButton() : null,
+              ['all', 'workspace'].includes(page)
+                ? upgradeButton.showUpgradeButton(css.upgradeButton.cls(''))
+                : null,
             ),
 
             // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
@@ -118,8 +120,6 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                   dom('div',
                     showIntro ? buildHomeIntro(home) : null,
                     buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                    dom.maybe(use => use(isNarrowScreenObs()),
-                      () => upgradeButton.showUpgradeCard()),
                     shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
                   ) :
                 (page === 'trash') ?
@@ -147,7 +147,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
       testId('doclist')
     ),
     dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
-              () => upgradeButton.showUpgradeCard()),
+              () => upgradeButton.showUpgradeCard(css.upgradeCard.cls(''))),
   );
 }
 

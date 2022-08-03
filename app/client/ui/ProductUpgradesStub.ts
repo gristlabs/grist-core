@@ -1,6 +1,6 @@
 import type {AppModel} from 'app/client/models/AppModel';
 import {commonUrls} from 'app/common/gristUrls';
-import {Disposable, DomContents, IDisposableOwner, Observable, observable} from 'grainjs';
+import {Disposable, DomArg, DomContents, IDisposableOwner, Observable, observable} from 'grainjs';
 
 export function buildNewSiteModal(context: Disposable, options: {
   planName: string,
@@ -18,8 +18,8 @@ export function showTeamUpgradeConfirmation(owner: Disposable) {
 }
 
 export interface UpgradeButton  {
-  showUpgradeCard(): DomContents;
-  showUpgradeButton(): DomContents;
+  showUpgradeCard(...args: DomArg<HTMLElement>[]): DomContents;
+  showUpgradeButton(...args: DomArg<HTMLElement>[]): DomContents;
 }
 
 export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
