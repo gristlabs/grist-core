@@ -11,30 +11,69 @@ import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {dom, DomContents, styled} from 'grainjs';
+import {Computed, dom, DomContents, styled} from 'grainjs';
 
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
+  const isViewer = homeModel.app.currentOrg?.access === roles.VIEWER;
   const user = homeModel.app.currentValidUser;
-  if (user) {
-    return homeModel.app.isTeamSite ? makeTeamSiteIntro(homeModel) : makePersonalIntro(homeModel, user);
-  } else {
+  const isAnonym = !user;
+  const isPersonal = !homeModel.app.isTeamSite;
+  if (isAnonym) {
     return makeAnonIntro(homeModel);
+  } else if (isPersonal) {
+    return makePersonalIntro(homeModel, user);
+  } else { // isTeamSite
+    if (isViewer) {
+      return makeViewerTeamSiteIntro(homeModel);
+    } else {
+      return makeTeamSiteIntro(homeModel);
+    }
   }
+}
+
+function makeViewerTeamSiteIntro(homeModel: HomeModel) {
+  const personalOrg = Computed.create(null, use => use(homeModel.app.topAppModel.orgs).find(o => o.owner));
+  const docLink = (dom.maybe(personalOrg, org => {
+    return cssLink(
+      urlState().setLinkUrl({org: org.domain ?? undefined}),
+      'free, personal site',
+      testId('welcome-personal-url'));
+  }));
+  return [
+    css.docListHeader(
+      dom.autoDispose(personalOrg),
+      `Welcome to ${homeModel.app.currentOrgName}`,
+      productPill(homeModel.app.currentOrg, {large: true}),
+      testId('welcome-title')
+    ),
+    cssIntroLine(
+      testId('welcome-info'),
+      "You have read-only access to this site. Currently there are no documents.", dom('br'),
+      "Any documents created in this site will appear here."),
+    cssIntroLine(
+      'Interested in using Grist outside of your team? Visit your ', docLink, '.',
+      testId('welcome-text')
+    )
+  ];
 }
 
 function makeTeamSiteIntro(homeModel: HomeModel) {
   const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, 'Sprouts Program');
   return [
-    css.docListHeader(`Welcome to ${homeModel.app.currentOrgName}`,
+    css.docListHeader(
+      `Welcome to ${homeModel.app.currentOrgName}`,
       productPill(homeModel.app.currentOrg, {large: true}),
-      testId('welcome-title')),
+      testId('welcome-title')
+    ),
     cssIntroLine('Get started by inviting your team and creating your first Grist document.'),
     (shouldHideUiElement('helpCenter') ? null :
-      cssIntroLine('Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
-        testId('welcome-text'))
+      cssIntroLine(
+        'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
+        testId('welcome-text')
+      )
     ),
-    makeCreateButtons(homeModel),
+    makeCreateButtons(homeModel)
   ];
 }
 

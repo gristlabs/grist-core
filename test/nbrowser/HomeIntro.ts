@@ -3,7 +3,7 @@
  * page, both for anonymous and logged-in users.
  */
 
-import {assert, driver, stackWrapFunc, WebElement} from 'mocha-webdriver';
+import {assert, driver, Key, stackWrapFunc, WebElement} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -38,6 +38,42 @@ describe('HomeIntro', function() {
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
     it('should allow collapsing examples and remember the state', testExamplesCollapsing);
+    it('should show examples workspace with the intro', testExamplesSection);
+    it('should render selected Examples workspace specially', testSelectedExamplesPage);
+  });
+
+  describe("Viewer on a team site", function() {
+    it('should show welcome for viewers', async function() {
+      // Sign in as to a team that has no docs.
+      await server.simulateLogin("Chimpy", "chimpy@getgrist.com", "FreeTeam");
+      await driver.get(server.getUrl('freeteam', ''));
+      await gu.editOrgAcls();
+      const orgInput = await driver.find('.test-um-member-new input');
+      await orgInput.sendKeys('charon@getgrist.com', Key.ENTER);
+      await gu.saveAcls();
+      await gu.removeLogin();
+      await server.simulateLogin("Charon", "charon@getgrist.com", "abyss");
+      await driver.get(server.getUrl('freeteam', ''));
+
+      // Check message specific to logged-in user and an empty team site.
+      assert.match(await driver.findWait('.test-welcome-title', 1000).getText(), new RegExp(`Welcome.* FreeTeam`));
+      assert.match(await driver.find('.test-welcome-info').getText(),
+        /You have read-only access to this site.*/);
+      assert.match(await driver.find('.test-welcome-text').getText(),
+        /Interested in using Grist outside of your team\? Visit your free, personal site\./);
+      assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
+      await driver.find(".test-welcome-personal-url").click();
+      await gu.waitForDocMenuToLoad();
+      assert.equal(
+        await driver.find('.test-dm-other-sites-message').getText(),
+        'You are on your personal site. You also have access to the following sites:'
+      );
+      await driver.get(server.getUrl('freeteam', ''));
+      await gu.waitForDocMenuToLoad();
+    });
+
+    it('should not show Other Sites section', testOtherSitesSection);
+    it('should not show welcome buttons', testNoButtonsOnHome);
     it('should show examples workspace with the intro', testExamplesSection);
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
   });
@@ -117,6 +153,13 @@ describe('HomeIntro', function() {
     }
   }
 
+  async function testNoButtonsOnHome() {
+    const buttons = ['test-intro-templates', 'test-intro-import-doc', 'test-intro-create-doc'];
+    for (const button of buttons) {
+      assert.isFalse(await driver.find(`.${button}`).isPresent());
+    }
+  }
+
   async function testCreateImport(isLoggedIn: boolean) {
     // Create doc from intro button
     await driver.find('.test-intro-create-doc').click();
@@ -160,7 +203,7 @@ describe('HomeIntro', function() {
 
   // Wait for doc to load, check it, then return to home page, and remove the doc so that we
   // can see the intro again.
-  const checkDocAndRestore = stackWrapFunc(async function(isLoggedIn: boolean, docChecker: () => Promise<void>,
+  const checkDocAndRestore = async function(isLoggedIn: boolean, docChecker: () => Promise<void>,
                                                           stepsBackToDocMenu: number = 1) {
     await gu.waitForDocToLoad();
     await gu.dismissWelcomeTourIfNeeded();
@@ -180,7 +223,7 @@ describe('HomeIntro', function() {
       await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
     }
     assert.equal(await driver.find('.test-dm-doc').isPresent(), false);
-  });
+  };
 
   async function testExamplesCollapsing() {
     assert.equal(await driver.find('.test-dm-pinned-doc-name').isDisplayed(), true);

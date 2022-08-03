@@ -150,10 +150,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     return destWS && roles.canEdit(destWS.access) ? destWS : null;
   });
 
-  // Whether to show intro: no docs (other than examples) and user may create docs.
+  // Whether to show intro: no docs (other than examples).
   public readonly showIntro = Computed.create(this, this.workspaces, (use, wss) => (
-    wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0) &&
-    Boolean(use(this.newDocWorkspace))));
+    wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0)));
 
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 
