@@ -4,6 +4,7 @@
  */
 
 import {DocAction, UserAction} from 'app/common/DocActions';
+import {RowCounts} from 'app/common/DocUsage';
 
 // Metadata about the action.
 export interface ActionInfo {
@@ -61,7 +62,7 @@ export interface SandboxActionBundle {
   calc: Array<EnvContent<DocAction>>;
   undo: Array<EnvContent<DocAction>>;   // Inverse actions for all 'stored' actions.
   retValues: any[];                     // Contains retValue for each of userActions.
-  rowCount: number;
+  rowCount: RowCounts;
   // Mapping of keys (hashes of request args) to all unique requests made in a round of calculation
   requests?: Record<string, SandboxRequest>;
 }

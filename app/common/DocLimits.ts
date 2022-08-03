@@ -53,7 +53,7 @@ export function getDataLimitRatio(
   const {rowCount, dataSizeBytes} = docUsage;
   const maxRows = productFeatures?.baseMaxRowsPerDocument;
   const maxDataSize = productFeatures?.baseMaxDataSizePerDocument;
-  const rowRatio = getUsageRatio(rowCount, maxRows);
+  const rowRatio = getUsageRatio(rowCount?.total, maxRows);
   const dataSizeRatio = getUsageRatio(dataSizeBytes, maxDataSize);
   return Math.max(rowRatio, dataSizeRatio);
 }

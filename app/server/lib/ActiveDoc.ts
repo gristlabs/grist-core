@@ -51,6 +51,7 @@ import {
   DocUsageSummary,
   FilteredDocUsageSummary,
   getUsageRatio,
+  RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
@@ -320,7 +321,7 @@ export class ActiveDoc extends EventEmitter {
 
   public get rowLimitRatio(): number {
     return getUsageRatio(
-      this._docUsage?.rowCount,
+      this._docUsage?.rowCount?.total,
       this._product?.features.baseMaxRowsPerDocument
     );
   }
@@ -1666,10 +1667,10 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess;
   }
 
-  public async updateRowCount(rowCount: number, docSession: OptDocSession | null) {
+  public async updateRowCount(rowCount: RowCounts, docSession: OptDocSession | null) {
     // Up-to-date row counts are included in every DocUserAction, so we can skip broadcasting here.
     await this._updateDocUsage({rowCount}, {broadcastUsageToClients: false});
-    log.rawInfo('Sandbox row count', {...this.getLogMeta(docSession), rowCount});
+    log.rawInfo('Sandbox row count', {...this.getLogMeta(docSession), rowCount: rowCount.total});
     await this._checkDataLimitRatio();
 
     // Calculating data size is potentially expensive, so skip calculating it unless the
@@ -2269,7 +2270,7 @@ function createEmptySandboxActionBundle(): SandboxActionBundle {
     calc: [],
     undo: [],
     retValues: [],
-    rowCount: 0,
+    rowCount: {total: 0},
   };
 }
 

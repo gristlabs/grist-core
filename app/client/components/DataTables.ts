@@ -1,12 +1,10 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
-import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {buildTableName} from 'app/client/ui/WidgetTitle';
-import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import * as css from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
@@ -17,7 +15,13 @@ const testId = makeTestId('test-raw-data-');
 
 export class DataTables extends Disposable {
   private _tables: Observable<TableRec[]>;
-  private _view: Observable<string | null>;
+
+  private readonly _rowCount = Computed.create(
+    this, this._gristDoc.docPageModel.currentDocUsage, (_use, usage) => {
+      return usage?.rowCount;
+    }
+  );
+
   constructor(private _gristDoc: GristDoc) {
     super();
     this._tables = Computed.create(this, use => {
@@ -26,10 +30,6 @@ export class DataTables extends Disposable {
       // Remove tables that we don't have access to. ACL will remove tableId from those tables.
       return [...dataTables, ...summaryTables].filter(t => Boolean(use(t.tableId)));
     });
-
-    // Get the user id, to remember selected layout on the next visit.
-    const userId = this._gristDoc.app.topAppModel.appObs.get()?.currentUser?.id ?? 0;
-    this._view = this.autoDispose(localStorageObs(`u=${userId}:raw:viewType`, "list"));
   }
 
   public buildDom() {
@@ -37,22 +37,8 @@ export class DataTables extends Disposable {
       cssTableList(
         /***************  List section **********/
         testId('list'),
-        cssBetween(
-          docListHeader('Raw Data Tables'),
-          cssSwitch(
-            buttonSelect<any>(
-              this._view,
-              [
-                {value: 'card', icon: 'TypeTable'},
-                {value: 'list', icon: 'TypeCardList'},
-              ],
-              css.testId('view-mode'),
-              cssButtonSelect.cls("-light")
-            )
-          )
-        ),
+        docListHeader('Raw Data Tables'),
         cssList(
-          cssList.cls(use => `-${use(this._view)}`),
           dom.forEach(this._tables, tableRec =>
             cssItem(
               testId('table'),
@@ -63,10 +49,10 @@ export class DataTables extends Disposable {
                 )),
               ),
               cssMiddle(
-                css60(cssTableTitle(this._tableTitle(tableRec), testId('table-title'))),
-                css40(
-                  cssIdHoverWrapper(
-                    cssUpperCase("Table id: "),
+                cssTitleRow(cssTableTitle(this._tableTitle(tableRec), testId('table-title'))),
+                cssDetailsRow(
+                  cssTableIdWrapper(cssHoverWrapper(
+                    cssUpperCase("Table ID: "),
                     cssTableId(
                       testId('table-id'),
                       dom.text(tableRec.tableId),
@@ -75,13 +61,14 @@ export class DataTables extends Disposable {
                     dom.on('click', async (e, t) => {
                       e.stopImmediatePropagation();
                       e.preventDefault();
-                      showTransientTooltip(t, 'Table id copied to clipboard', {
+                      showTransientTooltip(t, 'Table ID copied to clipboard', {
                         key: 'copy-table-id'
                       });
                       await copyToClipboard(tableRec.tableId.peek());
                       setTestState({clipboard: tableRec.tableId.peek()});
                     })
-                  )
+                  )),
+                  this._tableRows(tableRec),
                 ),
               ),
               cssRight(
@@ -150,6 +137,21 @@ export class DataTables extends Disposable {
     }
     confirmModal(`Delete ${t.formattedTableName()} data, and remove it from all pages?`, 'Delete', doRemove);
   }
+
+  private _tableRows(table: TableRec) {
+    return cssTableRowsWrapper(
+      cssUpperCase("Rows: "),
+      cssTableRows(
+        testId('table-rows'),
+        dom.text(use => {
+          const rowCounts = use(this._rowCount);
+          if (typeof rowCounts !== 'object') { return ''; }
+
+          return rowCounts[table.getRowId()]?.toString() ?? '';
+        }),
+      ),
+    );
+  }
 }
 
 const container = styled('div', `
@@ -157,38 +159,10 @@ const container = styled('div', `
   position: relative;
 `);
 
-const cssBetween = styled('div', `
-  display: flex;
-  justify-content: space-between;
-`);
-
-// Below styles makes the list view look like a card view
-// on smaller screens.
-
-const cssSwitch = styled('div', `
-  @media ${css.mediaXSmall} {
-    & {
-      display: none;
-    }
-  }
-`);
-
 const cssList = styled('div', `
   display: flex;
-  &-list {
-    flex-direction: column;
-    gap: 8px;
-  }
-  &-card {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 24px;
-  }
-  @media ${css.mediaSmall} {
-    & {
-      gap: 12px !important;
-    }
-  }
+  flex-direction: column;
+  gap: 12px;
 `);
 
 const cssItem = styled('div', `
@@ -196,28 +170,12 @@ const cssItem = styled('div', `
   align-items: center;
   cursor: pointer;
   border-radius: 3px;
+  width: 100%;
+  height: calc(1em * 56/13); /* 56px for 13px font */
   max-width: 750px;
   border: 1px solid ${css.colors.mediumGrey};
   &:hover {
     border-color: ${css.colors.slate};
-  }
-  .${cssList.className}-list & {
-    min-height: calc(1em * 40/13); /* 40px for 13px font */
-  }
-  .${cssList.className}-card & {
-    width: 300px;
-    height: calc(1em * 56/13); /* 56px for 13px font */
-  }
-  @media ${css.mediaSmall} {
-    .${cssList.className}-card & {
-      width: calc(50% - 12px);
-    }
-  }
-  @media ${css.mediaXSmall} {
-    & {
-      width: 100% !important;
-      height: calc(1em * 56/13) !important; /* 56px for 13px font */
-    }
   }
 `);
 
@@ -238,21 +196,17 @@ const cssMiddle = styled('div', `
   flex-wrap: wrap;
   margin-top: 6px;
   margin-bottom: 4px;
-  .${cssList.className}-card & {
-    margin: 0px;
-  }
 `);
 
-const css60 = styled('div', `
-  min-width: min(240px, 100%);
-  flex: 6;
+const cssTitleRow = styled('div', `
+  min-width: 100%;
   margin-right: 4px;
 `);
 
-const css40 = styled('div', `
-  min-width: min(240px, 100%);
-  flex: 4;
+const cssDetailsRow = styled('div', `
+  min-width: 100%;
   display: flex;
+  gap: 8px;
 `);
 
 
@@ -275,28 +229,42 @@ const cssLine = styled('span', `
   overflow: hidden;
 `);
 
-const cssIdHoverWrapper = styled('div', `
+const cssTableIdWrapper = styled('div', `
+  display: flex;
+  flex-grow: 1;
+  min-width: 0;
+`);
+
+const cssTableRowsWrapper = styled('div', `
+  display: flex;
+  flex-shrink: 0;
+  width: 80px;
+  overflow: hidden;
+  align-items: baseline;
+  color: ${css.colors.slate};
+  line-height: 18px;
+  padding: 0px 2px;
+`);
+
+const cssHoverWrapper = styled('div', `
   display: flex;
   overflow: hidden;
   cursor: default;
   align-items: baseline;
   color: ${css.colors.slate};
   transition: background 0.05s;
-  padding: 1px 2px;
+  padding: 0px 2px;
   line-height: 18px;
   &:hover {
     background: ${css.colors.lightGrey};
-  }
-  @media ${css.mediaSmall} {
-    & {
-      padding: 0px 2px !important;
-    }
   }
 `);
 
 const cssTableId = styled(cssLine, `
   font-size: ${css.vars.smallFontSize};
 `);
+
+const cssTableRows = cssTableId;
 
 const cssTableTitle = styled('div', `
   white-space: nowrap;

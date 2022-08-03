@@ -1,7 +1,12 @@
 export interface DocumentUsage {
-  rowCount?: number;
+  rowCount?: RowCounts;
   dataSizeBytes?: number;
   attachmentsSizeBytes?: number;
+}
+
+export interface RowCounts {
+  total: number;
+  [tableRef: number]: number;
 }
 
 export type DataLimitStatus = 'approachingLimit' | 'gracePeriod' | 'deleteOnly' | null;

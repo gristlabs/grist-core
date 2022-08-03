@@ -53,14 +53,14 @@ export class DocumentUsage extends Disposable {
   private readonly _rowMetrics: Computed<MetricOptions | null> =
     Computed.create(this, this._currentProduct, this._rowCount, (_use, product, rowCount) => {
       const features = product?.features;
-      if (!features || typeof rowCount !== 'number') { return null; }
+      if (!features || typeof rowCount !== 'object') { return null; }
 
       const {baseMaxRowsPerDocument: maxRows} = features;
       // Invalid row limits are currently treated as if they are undefined.
       const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
       return {
         name: 'Rows',
-        currentValue: rowCount,
+        currentValue: rowCount.total,
         maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
         unit: 'rows',
         shouldHideLimits: maxValue === undefined,

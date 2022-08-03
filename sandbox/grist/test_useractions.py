@@ -1266,7 +1266,7 @@ class TestUserActions(test_engine.EngineTestCase):
     for i in range(20):
       self.add_record("Address", None)
       self.assertEqual(i + 1, table._num_rows())
-      self.assertEqual(i + 1, self.engine.count_rows())
+      self.assertEqual({1: i + 1, "total": i + 1}, self.engine.count_rows())
 
   def test_raw_view_section_restrictions(self):
     # load_sample handles loading basic metadata, but doesn't create any view sections

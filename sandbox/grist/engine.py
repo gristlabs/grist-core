@@ -1262,11 +1262,13 @@ class Engine(object):
     self._unused_lookups.add(lookup_map_column)
 
   def count_rows(self):
-    return sum(
-      table._num_rows()
-      for table_id, table in six.iteritems(self.tables)
-      if useractions.is_user_table(table_id) and not table._summary_source_table
-    )
+    result = {"total": 0}
+    for table_rec in self.docmodel.tables.all:
+      if useractions.is_user_table(table_rec.tableId):
+        count = self.tables[table_rec.tableId]._num_rows()
+        result[table_rec.id] = count
+        result["total"] += count
+    return result
 
   def apply_user_actions(self, user_actions, user=None):
     """
