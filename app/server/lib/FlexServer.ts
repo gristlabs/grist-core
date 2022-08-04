@@ -1211,7 +1211,7 @@ export class FlexServer implements GristServer {
         return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
       }
       // Redirect to home page with url params
-      const url = `${getPrefix(req)}?planType=${planType}#create-team`;
+      const url = `${getPrefix(req)}/?planType=${planType}#create-team`;
       return resp.redirect(url);
     }));
   }
