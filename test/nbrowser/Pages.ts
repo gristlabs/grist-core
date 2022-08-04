@@ -68,13 +68,13 @@ describe('Pages', function() {
     await gu.waitForServer();
 
     // Click on a page; check the URL, selected item, and the title of the view section.
-    await driver.findContent('.test-treeview-itemHeader', /Documents/).doClick();
+    await clickPage(/Documents/)
     assert.match(await driver.getCurrentUrl(), /\/p\/3/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Documents/);
     assert.match(await gu.getActiveSectionTitle(), /Documents/i);
 
     // Click on another page; check the URL, selected item, and the title of the view section.
-    await driver.findContent('.test-treeview-itemHeader', /People/).doClick();
+    await clickPage(/People/)
     assert.match(await driver.getCurrentUrl(), /\/p\/2/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /People/);
     assert.match(await gu.getActiveSectionTitle(), /People/i);
@@ -106,6 +106,24 @@ describe('Pages', function() {
     await gu.undo(2);
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
   });
+
+  it('should allow renaming table when click on page selected label', async () => {
+    // do rename
+    await clickPage(/People/)
+    await driver.findContent('.test-treeview-label', 'People').doClick();
+    await driver.find('.test-docpage-editor').sendKeys('PeopleRenamed', Key.ENTER);
+    await gu.waitForServer();
+
+    assert.deepEqual(
+      await gu.getPageNames(),
+      ['Interactions', 'Documents', 'PeopleRenamed', 'User & Leads', 'Overview']
+    );
+
+    // revert changes
+    await gu.undo(2);
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
+
+  })
 
   it('should not allow blank page name', async () => {
     // Begin renaming of People page
@@ -196,7 +214,7 @@ describe('Pages', function() {
     }
 
     // goto page 'Interactions'
-    await driver.findContent('.test-treeview-itemHeader', /Interactions/).doClick();
+    await clickPage(/Interactions/);
 
     // check selected page
     assert.match(await selectedPage(), /Interactions/);
@@ -231,14 +249,15 @@ describe('Pages', function() {
   it('undo/redo should update url', async () => {
 
     // goto page 'Interactions' and send keys
-    await driver.findContent('.test-treeview-itemHeader', /Interactions/).doClick();
+    await clickPage(/Interactions/);
+    assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
     await driver.findContentWait('.gridview_data_row_num', /1/, 2000);
     await driver.sendKeys(Key.ENTER, 'Foo', Key.ENTER);
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells(0, [1]), ['Foo']);
 
     // goto page 'People' and click undo
-    await driver.findContent('.test-treeview-itemHeader', /People/).doClick();
+    await clickPage(/People/);
     await gu.waitForDocToLoad();
     await gu.waitForUrl(/\/p\/2\b/); // check that url match p/2
 
@@ -251,11 +270,14 @@ describe('Pages', function() {
 
     // check that undo worked
     assert.deepEqual(await gu.getVisibleGridCells(0, [1]), ['']);
+
+    // Click on next test should not trigger renaming input
+    await driver.findContent('.test-treeview-itemHeader', /People/).doClick();
   });
 
   it('Add new page should update url', async () => {
     // goto page 'Interactions'  and check that url updated
-    await driver.findContent('.test-treeview-itemHeader', /Interactions/).doClick();
+    await clickPage(/Interactions/);
     await gu.waitForUrl(/\/p\/1\b/);
 
     // Add new Page, check that url updated and page is selected
@@ -264,7 +286,7 @@ describe('Pages', function() {
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table1/);
 
     // goto page 'Interactions' and check that url updated and page selectd
-    await driver.findContent('.test-treeview-itemHeader', /Interactions/).doClick();
+    await clickPage(/Interactions/);
     await gu.waitForUrl(/\/p\/1\b/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
   });
@@ -449,6 +471,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageNames(), ['Table C', 'Table Last']);
 
     // Removing page Table C should also show prompt (it is last page for Table1,Table D and TableC)
+    await gu.getPageItem('Table Last').click();
     await gu.getPageItem('Table C').click();
     assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1' ]);
     await gu.removePage("Table C", { expectPrompt : true, tables: ['Table D', 'Table C', 'Table1'] });
@@ -472,4 +495,8 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}) 
       y: 'after' in target ? 1 : -1
     })
     .release());
+}
+
+function clickPage(name: string|RegExp) {
+  return driver.findContent('.test-treeview-itemHeader', name).find(".test-docpage-initial").doClick();
 }

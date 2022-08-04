@@ -57,7 +57,10 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
       domComputed(isRenaming, (isrenaming) => (
         isrenaming ?
           cssPageItem(
-            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
+            cssPageInitial(
+              testId('initial'),
+              dom.text((use) => Array.from(use(name))[0])
+              ),
             cssEditorInput(
               {
                 initialValue: name.get() || '',
@@ -73,7 +76,10 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
+            cssPageInitial(
+              testId('initial'),
+              dom.text((use) => Array.from(use(name))[0]),
+            ),
             cssPageName(
               dom.text(name),
               testId('label'),
@@ -129,6 +135,7 @@ const cssPageName = styled('div', `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-grow: 1;
   .${treeViewContainer.className}-close & {
     display: none;
   }
