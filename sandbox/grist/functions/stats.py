@@ -1,8 +1,9 @@
 # pylint: disable=redefined-builtin, line-too-long, unused-argument
+import datetime
 
-from .math import _chain, _chain_numeric, _chain_numeric_a
+from .math import _chain, _chain_numeric, _chain_numeric_a, _chain_numeric_or_date
 from .info import ISNUMBER, ISLOGICAL
-from .date import DATE       # pylint: disable=unused-import
+from .date import DATE, DTIME       # pylint: disable=unused-import
 from .unimplemented import unimplemented
 
 def _average(iterable):
@@ -127,21 +128,24 @@ def CORREL(data_y, data_x):
 
 def COUNT(value, *more_values):
   """
-  Returns the count of numerical values in a dataset, ignoring non-numerical values.
+  Returns the count of numerical and date/datetime values in a dataset,
+  ignoring other types of values.
 
-  Each argument may be a value or an array. Values that are not numbers, including logical
+  Each argument may be a value or an array. Values that are not numbers or dates, including logical
   and blank values, and text representations of numbers, are ignored.
 
   >>> COUNT([2, -1.0, 11])
   3
   >>> COUNT([2, -1, 11, "Hello"])
   3
-  >>> COUNT([2, -1, "Hello", DATE(2015,1,1)], True, [False, "123", "", 11.5])
+  >>> COUNT([DATE(2000, 1, 1), DATE(2000, 1, 2), DATE(2000, 1, 3), "Hello"])
   3
+  >>> COUNT([2, -1, "Hello", DATE(2015,1,1)], True, [False, "123", "", 11.5])
+  4
   >>> COUNT(False, True)
   0
   """
-  return sum(1 for v in _chain_numeric(value, *more_values))
+  return sum(1 for _ in _chain_numeric_or_date(value, *more_values))
 
 
 def COUNTA(value, *more_values):
@@ -159,7 +163,7 @@ def COUNTA(value, *more_values):
   >>> COUNTA(False, True)
   2
   """
-  return sum(1 for v in _chain(value, *more_values))
+  return sum(1 for _ in _chain(value, *more_values))
 
 
 @unimplemented
@@ -267,24 +271,31 @@ def LOGNORMDIST(x, mean, standard_deviation):
 
 def MAX(value, *more_values):
   """
-  Returns the maximum value in a dataset, ignoring non-numerical values.
+  Returns the maximum value in a dataset, ignoring values other than numbers and dates/datetimes.
 
-  Each argument may be a value or an array. Values that are not numbers, including logical
+  Each argument may be a value or an array. Values that are not numbers or dates, including logical
   and blank values, and text representations of numbers, are ignored. Returns 0 if the arguments
-  contain no numbers.
+  contain no numbers or dates.
 
   >>> MAX([2, -1.5, 11.5])
   11.5
-  >>> MAX([2, -1.5, "Hello", DATE(2015, 1, 1)], True, [False, "123", "", 11.5])
+  >>> MAX([2, -1.5, "Hello"], True, [False, "123", "", 11.5])
   11.5
   >>> MAX(True, -123)
   -123
   >>> MAX("123", -123)
   -123
-  >>> MAX("Hello", "123", DATE(2015, 1, 1))
+  >>> MAX("Hello", "123", True, False)
   0
+  >>> MAX(DATE(2015, 1, 1), DATE(2015, 1, 2))
+  datetime.date(2015, 1, 2)
+  >>> MAX(DATE(2015, 1, 1), datetime.datetime(2015, 1, 1, 12, 34, 56))
+  datetime.datetime(2015, 1, 1, 12, 34, 56)
+  >>> MAX(DATE(2015, 1, 2), datetime.datetime(2015, 1, 1, 12, 34, 56))
+  datetime.date(2015, 1, 2)
   """
-  return max(_default_if_empty(_chain_numeric(value, *more_values), 0))
+  values = _default_if_empty(_chain_numeric_or_date(value, *more_values), 0)
+  return max(values, key=_compare_date_datetime_key)
 
 
 def MAXA(value, *more_values):
@@ -345,26 +356,41 @@ def MEDIAN(value, *more_values):
     return values[(count - 1) // 2]
 
 
+def _compare_date_datetime_key(x):
+  # Convert dates and naive datetimes to timezone-aware datetimes for sorting.
+  if isinstance(x, (datetime.date, datetime.datetime)):
+    return DTIME(x)
+  else:
+    return x
+
+
 def MIN(value, *more_values):
   """
-  Returns the minimum value in a dataset, ignoring non-numerical values.
+  Returns the minimum value in a dataset, ignoring values other than numbers and dates/datetimes.
 
-  Each argument may be a value or an array. Values that are not numbers, including logical
+  Each argument may be a value or an array. Values that are not numbers or dates, including logical
   and blank values, and text representations of numbers, are ignored. Returns 0 if the arguments
-  contain no numbers.
+  contain no numbers or dates.
 
   >>> MIN([2, -1.5, 11.5])
   -1.5
-  >>> MIN([2, -1.5, "Hello", DATE(2015, 1, 1)], True, [False, "123", "", 11.5])
+  >>> MIN([2, -1.5, "Hello"], True, [False, "123", "", 11.5])
   -1.5
   >>> MIN(True, 123)
   123
   >>> MIN("-123", 123)
   123
-  >>> MIN("Hello", "123", DATE(2015, 1, 1))
+  >>> MIN("Hello", "123", True, False)
   0
+  >>> MIN(DATE(2015, 1, 1), DATE(2015, 1, 2))
+  datetime.date(2015, 1, 1)
+  >>> MIN(DATE(2015, 1, 1), datetime.datetime(2015, 1, 1, 12, 34, 56))
+  datetime.date(2015, 1, 1)
+  >>> MIN(DATE(2015, 1, 2), datetime.datetime(2015, 1, 1, 12, 34, 56))
+  datetime.datetime(2015, 1, 1, 12, 34, 56)
   """
-  return min(_default_if_empty(_chain_numeric(value, *more_values), 0))
+  values = _default_if_empty(_chain_numeric_or_date(value, *more_values), 0)
+  return min(values, key=_compare_date_datetime_key)
 
 def MINA(value, *more_values):
   """

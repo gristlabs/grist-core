@@ -1,6 +1,8 @@
 # pylint: disable=unused-argument
 
 from __future__ import absolute_import
+
+import datetime
 import math as _math
 import operator
 import os
@@ -36,6 +38,13 @@ def _chain_numeric(*values_or_iterables):
 def _chain_numeric_a(*values_or_iterables):
   for v in _chain(*values_or_iterables):
     yield int(v) if ISLOGICAL(v) else v if ISNUMBER(v) else 0
+
+
+# Iterates through iterable or other arguments, only including numbers, dates, and datetimes.
+def _chain_numeric_or_date(*values_or_iterables):
+  for v in _chain(*values_or_iterables):
+    if ISNUMBER(v) and not ISLOGICAL(v) or isinstance(v, (datetime.date, datetime.datetime)):
+      yield v
 
 
 def _round_toward_zero(value):
