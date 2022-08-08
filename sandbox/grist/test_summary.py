@@ -529,6 +529,13 @@ class Address:
       [2, "Address_summary_city_state",   1],
     ])
 
+    # Add a column to the summary table with a name that doesn't exist in the source table,
+    # to test a specific bug fix.
+    self.add_column(
+      "Address_summary_city_state", "lookup",
+      formula="Address.lookupRecords(city=$city)", isFormula=True
+    )
+
     # Rename the table: this is what we are really testing in this test case.
     self.apply_user_action(["RenameTable", "Address", "Location"])
 
@@ -536,6 +543,14 @@ class Address:
       [1, "Location",                  0],
       [2, "Location_summary_city_state",   1],
     ])
+
+    # Check that the summary table column's formula was updated correctly.
+    self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
+      ["id", "colId", "formula"],
+      [19, "lookup", "Location.lookupRecords(city=$city)"],
+    ])
+    # This column isn't expected in _do_test_updates().
+    self.remove_column("Location_summary_city_state", "lookup")
 
     # Verify that the bigger summary table respects all updates to the renamed source table.
     self._do_test_updates("Location", "Location_summary_city_state")

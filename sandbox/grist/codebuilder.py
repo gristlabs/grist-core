@@ -350,7 +350,8 @@ def parse_grist_names(builder):
     if not patch_source:
       return None
     in_text, in_value, in_patch = patch_source
-    return (in_value, in_patch.start, table_id, col_id)
+    if in_value:
+      return (in_value, in_patch.start, table_id, col_id)
 
   parsed_names = []
   for node in asttokens.util.walk(atok.tree):

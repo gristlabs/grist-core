@@ -92,7 +92,10 @@ class GenCode(object):
     body = self._formula_cache.get(key)
     if body is None:
       default = get_type_default(col_info.type)
-      body = codebuilder.make_formula_body(col_info.formula, default, (table_id, col_info.colId))
+      # If we have a table_id like `Table._Summary`, then we don't want to actually associate
+      # this field with any real table/column.
+      assoc_value = None if table_id.endswith("._Summary") else (table_id, col_info.colId)
+      body = codebuilder.make_formula_body(col_info.formula, default, assoc_value)
     self._new_formula_cache[key] = body
 
     decorator = ''
@@ -147,7 +150,12 @@ class GenCode(object):
                              for c in six.itervalues(s.columns) if c.isFormula)
       parts.append(indent(textbuilder.Text("\nclass _Summary:\n")))
       for col_info in six.itervalues(formulas):
-        parts.append(indent(self._make_field(col_info, table_id), levels=2))
+        # Associate this field with the fake table `table_id + "._Summary"`.
+        # We don't know which summary table each formula belongs to, there might be several,
+        # and we don't care here because this is just for display in the code view.
+        # The real formula will be associated with the real summary table elsewhere.
+        # Previously this field was accidentally associated with the source table, causing bugs.
+        parts.append(indent(self._make_field(col_info, table_id + "._Summary"), levels=2))
 
     return textbuilder.Combiner(parts)
 
