@@ -8,6 +8,7 @@ import {
   FilterRec,
   IRowModel,
   recordSet,
+  refListRecords,
   refRecord,
   TableRec,
   ViewFieldRec,
@@ -22,13 +23,14 @@ import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
+import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
 // a grid section and a chart section).
-export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
+export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleOwner {
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
 
   // All table columns associated with this view section, excluding hidden helper columns.
@@ -168,6 +170,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section"> {
   // List of selected rows
   selectedRows: Observable<number[]>;
 
+  editingFormula: ko.Computed<boolean>;
 
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
@@ -235,7 +238,12 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().columns().all().filter(c => !c.isHiddenCol())));
-
+  this.editingFormula = ko.pureComputed({
+    read: () => docModel.editingFormula(),
+    write: val => {
+      docModel.editingFormula(val);
+    }
+  });
   const defaultOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
@@ -586,4 +594,25 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.allowSelectBy = Observable.create(this, false);
   this.selectedRows = Observable.create(this, []);
+
+  this.tableId = ko.pureComputed(() => this.table().tableId());
+  const rawSection = ko.pureComputed(() => this.table().rawViewSection());
+  this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => rawSection().rules()));
+  this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
+  this.rulesStyles = modelUtil.savingComputed({
+    read: () => rawSection().optionsObj.prop("rulesOptions")() ?? [],
+    write: (setter, val) => setter(rawSection().optionsObj.prop("rulesOptions"), val)
+  });
+  this.hasRules = ko.pureComputed(() => this.rulesCols().length > 0);
+  this.addEmptyRule = async () => {
+    const action = [
+      'AddEmptyRule',
+      this.tableId.peek(),
+      null,
+      null
+    ];
+    await docModel.docData.sendAction(action, `Update rules for ${this.table.peek().tableId.peek()}`);
+  };
+
+  this.removeRule = (index: number) => removeRule(docModel, this, index);
 }

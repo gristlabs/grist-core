@@ -23,7 +23,8 @@ const minFormulaErrorWidth = 400;
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
-  editingFormula?: ko.Computed<boolean>,
+  editingFormula: ko.Computed<boolean>,
+  column: ColumnRec,
 }
 
 
@@ -42,12 +43,12 @@ export class FormulaEditor extends NewBaseEditor {
   private _formulaEditor: any;
   private _commandGroup: any;
   private _dom: HTMLElement;
-  private _editorPlacement: EditorPlacement;
+  private _editorPlacement!: EditorPlacement;
 
   constructor(options: IFormulaEditorOptions) {
     super(options);
 
-    const editingFormula = options.editingFormula || options.field.editingFormula;
+    const editingFormula = options.editingFormula;
 
     const initialValue = undef(options.state as string | undefined, options.editValue, String(options.cellValue));
     // create editor state observable (used by draft and latest position memory)
@@ -56,7 +57,7 @@ export class FormulaEditor extends NewBaseEditor {
     this._formulaEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
       // and _editorPlacement created.
-      field: options.field,
+      column: options.column,
       calcSize: this._calcSize.bind(this),
       gristDoc: options.gristDoc,
       saveValueOnBlurEvent: !options.readonly,
@@ -129,7 +130,7 @@ export class FormulaEditor extends NewBaseEditor {
             aceObj.gotoLine(0, 0); // By moving, ace editor won't highlight anything
           }
           // This catches any change to the value including e.g. via backspace or paste.
-          aceObj.once("change", () => editingFormula(true));
+          aceObj.once("change", () => editingFormula?.(true));
         })
       ),
       (options.formulaError ? [
@@ -268,9 +269,10 @@ function _isInIdentifier(line: string, column: number) {
  */
 export function openFormulaEditor(options: {
   gristDoc: GristDoc,
-  field: ViewFieldRec,
   // Associated formula from a different column (for example style rule).
   column?: ColumnRec,
+  field?: ViewFieldRec,
+  editingFormula?: ko.Computed<boolean>,
   // Needed to get exception value, if any.
   editRow?: DataRowModel,
   // Element over which to position the editor.
@@ -282,13 +284,17 @@ export function openFormulaEditor(options: {
   setupCleanup: (
     owner: MultiHolder,
     doc: GristDoc,
-    field: ViewFieldRec,
+    editingFormula: ko.Computed<boolean>,
     save: () => Promise<void>
   ) => void,
 }): Disposable {
-  const {gristDoc, field, editRow, refElem, setupCleanup} = options;
+  const {gristDoc, editRow, refElem, setupCleanup} = options;
   const holder = MultiHolder.create(null);
-  const column = options.column ? options.column : field.origCol();
+  const column = options.column ?? options.field?.column();
+
+  if (!column) {
+    throw new Error('Column or field is required');
+  }
 
   // AsyncOnce ensures it's called once even if triggered multiple times.
   const saveEdit = asyncOnce(async () => {
@@ -316,7 +322,8 @@ export function openFormulaEditor(options: {
   // Replace the item in the Holder with a new one, disposing the previous one.
   const editor = FormulaEditor.create(holder, {
     gristDoc,
-    field,
+    column,
+    editingFormula: options.editingFormula,
     rowId: editRow ? editRow.id() : 0,
     cellValue: column.formula(),
     formulaError: editRow ? getFormulaError(gristDoc, editRow, column) : undefined,
@@ -325,17 +332,23 @@ export function openFormulaEditor(options: {
     commands: editCommands,
     cssClass: 'formula_editor_sidepane',
     readonly : false
-  });
+  } as IFormulaEditorOptions);
   editor.attach(refElem);
+
+  const editingFormula = options.editingFormula ?? options?.field?.editingFormula;
+
+  if (!editingFormula) {
+    throw new Error('editingFormula is required');
+  }
 
   // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
   // This function is used for primarily for switching between different column behaviors, so we want to enter full
   // edit mode right away.
   // TODO: consider converting it to parameter, when this will be used in different scenarios.
   if (!column.formula()) {
-    field.editingFormula(true);
+    editingFormula(true);
   }
-  setupCleanup(holder, gristDoc, field, saveEdit);
+  setupCleanup(holder, gristDoc, editingFormula, saveEdit);
   return holder;
 }
 

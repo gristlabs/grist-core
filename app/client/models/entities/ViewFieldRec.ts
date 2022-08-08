@@ -1,6 +1,7 @@
 import {ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRec} from 'app/client/models/DocModel';
 import {formatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {Style} from 'app/client/models/Styles';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
@@ -9,7 +10,7 @@ import {createParser} from 'app/common/ValueParser';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
-export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
+export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, RuleOwner {
   viewSection: ko.Computed<ViewSectionRec>;
   widthDef: modelUtil.KoSaveableObservable<number>;
 
@@ -85,26 +86,6 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field"> {
   // (i.e. they aren't actually referenced but they exist in the visible column and are relevant to e.g. autocomplete)
   // `formatter` formats actual cell values, e.g. a whole list from the display column.
   formatter: ko.Computed<BaseFormatter>;
-
-  // Field can have a list of conditional styling rules. Each style is a combination of a formula and options
-  // that must by applied to a field. Style is persisted as a new hidden formula column and the list of such
-  // columns is stored as Reference List property ('rules') in a field or column.
-  // Rule for conditional style is a formula of the hidden column, style options are saved as JSON object in
-  // a styleOptions field (in that hidden formula column).
-
-  // If this field (or column) has a list of conditional styling rules.
-  hasRules: ko.Computed<boolean>;
-  // List of columns that are used as rules for conditional styles.
-  rulesCols: ko.Computed<ColumnRec[]>;
-  // List of columns ids that are used as rules for conditional styles.
-  rulesColsIds: ko.Computed<string[]>;
-  // List of styles used by conditional rules.
-  rulesStyles: modelUtil.KoSaveableObservable<Style[]>;
-
-  // Adds empty conditional style rule. Sets before sending to the server.
-  addEmptyRule(): Promise<void>;
-  // Removes one rule from the collection. Removes before sending update to the server.
-  removeRule(index: number): Promise<void>;
 
   createValueParser(): (value: string) => any;
 
@@ -253,6 +234,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     return docModel.docData.bundleActions("Update choices configuration", callback, actionOptions);
   };
 
+  this.tableId = ko.pureComputed(() => this.column().table().tableId());
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.fieldWithDefault(
@@ -274,25 +256,5 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     await docModel.docData.sendAction(action, `Update rules for ${this.colId.peek()}`);
   };
 
-  // Helper method to remove a rule.
-  this.removeRule = async (index: number) => {
-    const col = this.rulesCols.peek()[index];
-    if (!col) {
-      throw new Error(`There is no rule at index ${index}`);
-    }
-    const tableData = docModel.dataTables[col.table.peek().tableId.peek()].tableData;
-    const newStyles = this.rulesStyles.peek().slice();
-    if (newStyles.length >= index) {
-      newStyles.splice(index, 1);
-    } else {
-      console.debug(`There are not style options at index ${index}`);
-    }
-    const callback = () =>
-      Promise.all([
-        this.rulesStyles.setAndSave(newStyles),
-        tableData.sendTableAction(['RemoveColumn', col.colId.peek()])
-      ]);
-    const actionOptions = {nestInActiveBundle: this.column.peek().isTransforming.peek()};
-    await docModel.docData.bundleActions("Remove conditional rule", callback, actionOptions);
-  };
+  this.removeRule = (index: number) => removeRule(docModel, this, index);
 }

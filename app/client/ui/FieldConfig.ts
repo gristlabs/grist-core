@@ -2,7 +2,7 @@ import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {cssBlockedCursor, cssEmptySeparator, cssLabel, cssRow} from 'app/client/ui/RightPanel';
+import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -381,4 +381,8 @@ const cssColTieConnectors = styled('div', `
   left: 0px;
   border-left: none;
   z-index: -1;
+`);
+
+const cssEmptySeparator = styled('div', `
+  margin-top: 16px;
 `);

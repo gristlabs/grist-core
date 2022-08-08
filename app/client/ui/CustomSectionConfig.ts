@@ -4,11 +4,12 @@ import * as kf from 'app/client/lib/koForm';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
-import {cssLabel, cssRow, cssSeparator, cssSubLabel, cssTextInput} from 'app/client/ui/RightPanel';
+import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
+import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
@@ -534,6 +535,13 @@ const cssRemoveIcon = styled(icon, `
   }
 `);
 
+// Additional text in label (greyed out)
+const cssSubLabel = styled('span', `
+  text-transform: none;
+  font-size: ${vars.xsmallFontSize};
+  color: ${colors.slate};
+`);
+
 const cssAddMapping = styled('div', `
   display: flex;
   cursor: pointer;
@@ -546,5 +554,15 @@ const cssAddMapping = styled('div', `
   &:hover, &:focus, &:active {
     color: ${colors.darkGreen};
     --icon-color: ${colors.darkGreen};
+  }
+`);
+
+const cssTextInput = styled(textInput, `
+  flex: 1 0 auto;
+
+  &:disabled {
+    color: ${colors.slate};
+    background-color: ${colors.lightGrey};
+    pointer-events: none;
   }
 `);

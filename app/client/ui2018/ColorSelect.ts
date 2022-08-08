@@ -19,19 +19,20 @@ export interface StyleOptions {
 }
 
 export class ColorOption {
-  constructor(
-    public color: Observable<string|undefined>,
-    // If the color accepts undefined/empty as a value. Controls empty selector in the picker.
-    public allowsNone: boolean = false,
-    // Default color to show when value is empty or undefined (itself can be empty).
-    public defaultColor: string = '',
-    // Text to be shown in the picker when color is not set.
-    public noneText: string = '',
-    // Preview color to show when value is undefined.
-    public previewNoneColor: string = '',) {
-      if (defaultColor && allowsNone) {
-        throw new Error("Allowing an empty value is not compatible with a default color");
-      }
+  public color: Observable<string|undefined>;
+  // If the color accepts undefined/empty as a value. Controls empty selector in the picker.
+  public allowsNone: boolean = false;
+  // Default color to show when value is empty or undefined (itself can be empty).
+  public defaultColor: string = '';
+  // Text to be shown in the picker when color is not set.
+  public noneText: string = '';
+  constructor(options: {
+    color: Observable<string|undefined>,
+    allowsNone?: boolean,
+    defaultColor?: string,
+    noneText?: string
+  }) {
+    Object.assign(this, options);
   }
 }
 
@@ -53,8 +54,8 @@ export function colorSelect(
     cssContent(
       cssButtonIcon(
         'T',
-        dom.style('color', use => use(textColor.color) || textColor.previewNoneColor),
-        dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.previewNoneColor),
+        dom.style('color', use => use(textColor.color) || textColor.defaultColor),
+        dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
         dom.cls('font-bold', use => use(styleOptions.fontBold) ?? false),
         dom.cls('font-italic', use => use(styleOptions.fontItalic) ?? false),
         dom.cls('font-underline', use => use(styleOptions.fontUnderline) ?? false),
@@ -80,8 +81,8 @@ export function colorButton(
   const { textColor, fillColor } = styleOptions;
   const iconBtn = cssIconBtn(
     'T',
-    dom.style('color', use => use(textColor.color) || textColor.previewNoneColor),
-    dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.previewNoneColor),
+    dom.style('color', use => use(textColor.color) || textColor.defaultColor),
+    dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
     dom.cls('font-bold', use => use(styleOptions.fontBold) ?? false),
     dom.cls('font-italic', use => use(styleOptions.fontItalic) ?? false),
     dom.cls('font-underline', use => use(styleOptions.fontUnderline) ?? false),
@@ -228,8 +229,6 @@ interface PickerComponentOptions {
   defaultColor: string;
   // Text to be shown in the picker when color is not set.
   noneText: string;
-  // Preview color to show when value is undefined.
-  previewNoneColor: string;
 }
 class PickerComponent extends Disposable {
 

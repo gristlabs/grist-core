@@ -1,4 +1,4 @@
-import {Options} from 'app/client/widgets/NewBaseEditor';
+import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
 
 /**
@@ -6,7 +6,7 @@ import {NTextEditor} from 'app/client/widgets/NTextEditor';
  * to the user how links should be formatted.
  */
 export class HyperLinkEditor extends NTextEditor {
-  constructor(options: Options) {
+  constructor(options: FieldOptions) {
     super(options);
     this.textInput.setAttribute('placeholder', '[link label] url');
   }

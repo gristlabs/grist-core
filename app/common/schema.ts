@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 31;
+export const SCHEMA_VERSION = 32;
 
 export const schema = {
 
@@ -115,6 +115,7 @@ export const schema = {
     linkSrcColRef       : "Ref:_grist_Tables_column",
     linkTargetColRef    : "Ref:_grist_Tables_column",
     embedId             : "Text",
+    rules               : "RefList:_grist_Tables_column",
   },
 
   "_grist_Views_section_field": {
@@ -306,6 +307,7 @@ export interface SchemaTypes {
     linkSrcColRef: number;
     linkTargetColRef: number;
     embedId: string;
+    rules: [GristObjCode.List, ...number[]]|null;
   };
 
   "_grist_Views_section_field": {

@@ -99,6 +99,7 @@
     "bowser": "2.7.0",
     "brace": "0.11.1",
     "collect-js-deps": "^0.1.1",
+    "color-convert": "2.0.1",
     "commander": "9.3.0",
     "components-jqueryui": "1.12.1",
     "connect-redis": "3.4.0",

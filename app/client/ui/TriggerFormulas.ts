@@ -1,7 +1,7 @@
 import type {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import type {TableRec} from 'app/client/models/entities/TableRec';
 import {reportError} from 'app/client/models/errors';
-import {cssRow} from 'app/client/ui/RightPanel';
+import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {basicButton, primaryButton} from "app/client/ui2018/buttons";
 import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";

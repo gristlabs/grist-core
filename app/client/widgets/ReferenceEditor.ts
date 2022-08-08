@@ -5,7 +5,7 @@ import { reportError } from 'app/client/models/errors';
 import { colors, testId, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { menuCssClass } from 'app/client/ui2018/menus';
-import { Options } from 'app/client/widgets/NewBaseEditor';
+import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
 import { NTextEditor } from 'app/client/widgets/NTextEditor';
 import { nocaseEqual, ReferenceUtils } from 'app/client/lib/ReferenceUtils';
 import { undef } from 'app/common/gutil';
@@ -21,7 +21,7 @@ export class ReferenceEditor extends NTextEditor {
   private _autocomplete?: Autocomplete<ICellItem>;
   private _utils: ReferenceUtils;
 
-  constructor(options: Options) {
+  constructor(options: FieldOptions) {
     super(options);
 
     const docData = options.gristDoc.docData;

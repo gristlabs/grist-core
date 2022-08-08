@@ -200,6 +200,7 @@ def allowed_summary_change(key, updated, original):
     allowed_to_change = {'widget', 'dateFormat', 'timeFormat', 'isCustomDateFormat', 'alignment',
                          'fillColor', 'textColor', 'isCustomTimeFormat', 'isCustomDateFormat',
                          'numMode', 'numSign', 'decimals', 'maxDecimals', 'currency',
+                         'fontBold', 'fontItalic', 'fontUnderline', 'fontStrikethrough',
                          'rulesOptions'}
     # Helper function to remove protected keys from dictionary.
     def trim(options):
@@ -456,7 +457,7 @@ class UserActions(object):
         table_id == "_grist_Views_section"
         and any(rec.isRaw for i, rec in self._bulk_action_iter(table_id, row_ids))
     ):
-      allowed_fields = {"title", "options", "sortColRefs"}
+      allowed_fields = {"title", "options", "sortColRefs", "rules"}
       has_summary_section = any(rec.tableRef.summarySourceTable
                                 for i, rec in self._bulk_action_iter(table_id, row_ids))
       if has_summary_section:
@@ -1637,23 +1638,26 @@ class UserActions(object):
     Adds empty conditional style rule to a field or column.
     """
     assert table_id, "table_id is required"
-    assert field_ref or col_ref, "field_ref or col_ref is required"
-    assert not field_ref or not col_ref, "can't set both field_ref and col_ref"
+
+    col_name = "gristHelper_ConditionalRule"
 
     if field_ref:
-      field_or_col = self._docmodel.view_fields.table.get_record(field_ref)
+      rule_owner = self._docmodel.view_fields.table.get_record(field_ref)
+    elif col_ref:
+      rule_owner = self._docmodel.columns.table.get_record(col_ref)
     else:
-      field_or_col = self._docmodel.columns.table.get_record(col_ref)
+      col_name = "gristHelper_RowConditionalRule"
+      rule_owner = self._docmodel.get_table_rec(table_id).rawViewSectionRef
 
-    col_info = self.AddHiddenColumn(table_id, 'gristHelper_ConditionalRule', {
+    col_info = self.AddHiddenColumn(table_id, col_name, {
       "type": "Any",
       "isFormula": True,
       "formula": ''
     })
     new_rule = col_info['colRef']
-    existing_rules = field_or_col.rules._get_encodable_row_ids() if field_or_col.rules else []
+    existing_rules = rule_owner.rules._get_encodable_row_ids() if rule_owner.rules else []
     updated_rules = existing_rules + [new_rule]
-    self._docmodel.update([field_or_col], rules=[encode_object(updated_rules)])
+    self._docmodel.update([rule_owner], rules=[encode_object(updated_rules)])
 
 
   #----------------------------------------

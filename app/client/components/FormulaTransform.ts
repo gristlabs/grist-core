@@ -8,7 +8,7 @@
 import * as AceEditor from 'app/client/components/AceEditor';
 import {ColumnTransform} from 'app/client/components/ColumnTransform';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {cssButtonRow} from 'app/client/ui/RightPanel';
+import {cssButtonRow} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';

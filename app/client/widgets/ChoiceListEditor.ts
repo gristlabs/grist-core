@@ -6,7 +6,7 @@ import {colors, testId} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
-import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
+import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
@@ -31,9 +31,9 @@ export class ChoiceListEditor extends NewBaseEditor {
   private _tokenField: TokenField<ChoiceItem>;
   private _textInput: HTMLInputElement;
   private _dom: HTMLElement;
-  private _editorPlacement: EditorPlacement;
+  private _editorPlacement!: EditorPlacement;
   private _contentSizer: HTMLElement;   // Invisible element to size the editor with all the tokens
-  private _inputSizer: HTMLElement;     // Part of _contentSizer to size the text input
+  private _inputSizer!: HTMLElement;     // Part of _contentSizer to size the text input
   private _alignment: string;
 
   // Whether to include a button to show a new choice.
@@ -43,7 +43,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   private _choiceOptionsByName: ChoiceOptions;
 
-  constructor(options: Options) {
+  constructor(protected options: FieldOptions) {
     super(options);
 
     const choices: string[] = options.field.widgetOptionsJson.peek().choices || [];

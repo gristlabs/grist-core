@@ -161,7 +161,7 @@ export class FieldEditor extends Disposable {
 
     // for readonly field we don't need to do anything special
     if (!options.readonly) {
-      setupEditorCleanup(this, this._gristDoc, this._field, this._saveEdit);
+      setupEditorCleanup(this, this._gristDoc, this._field.editingFormula, this._saveEdit);
     } else {
       setupReadonlyEditorCleanup(this, this._gristDoc, this._field, () => this._cancelEdit());
     }
@@ -203,6 +203,8 @@ export class FieldEditor extends Disposable {
     const editor = this._editorHolder.autoDispose(editorCtor.create({
       gristDoc: this._gristDoc,
       field: this._field,
+      column: this._field.column(), // needed for FormulaEditor
+      editingFormula: this._field.editingFormula, // needed for Formula editor
       cellValue,
       rowId: this._editRow.id(),
       formulaError: error,
@@ -394,7 +396,7 @@ function setupReadonlyEditorCleanup(
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
 export function setupEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, field: ViewFieldRec, _saveEdit: () => Promise<unknown>
+  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
 ) {
   const saveEdit = () => _saveEdit().catch(reportError);
 
@@ -408,6 +410,6 @@ export function setupEditorCleanup(
   owner.onDispose(() => {
     gristDoc.app.off('clipboard_focus', saveEdit);
     // Unset field.editingFormula flag when the editor closes.
-    field.editingFormula(false);
+    editingFormula(false);
   });
 }

@@ -15,7 +15,7 @@ import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
 import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
 import { CombinedStyle, Style } from 'app/client/models/Styles';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
-import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanel';
+import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { colors } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
@@ -497,7 +497,7 @@ export class FieldBuilder extends Disposable {
       // If user set white color - remove it to play nice with zebra strips.
       // If there is no color we are using fully transparent white color (for tests mainly).
       fill = fill ? fill.toUpperCase() : fill;
-      return (fill === '#FFFFFF' ? '' : fill) || '#FFFFFF00';
+      return (fill === '#FFFFFF' ? '' : fill) || '';
     })).onlyNotifyUnequal();
 
     const fontBold = buildFontOptions(this, computedRule, 'fontBold');
@@ -622,7 +622,8 @@ export class FieldBuilder extends Disposable {
     onCancel?: () => void) {
     const editorHolder = openFormulaEditor({
       gristDoc: this.gristDoc,
-      field: this.field,
+      column: this.field.column(),
+      editingFormula: this.field.editingFormula,
       setupCleanup: setupEditorCleanup,
       editRow,
       refElem,

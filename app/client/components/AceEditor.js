@@ -26,7 +26,7 @@ function AceEditor(options) {
   this.saveValueOnBlurEvent = !(options.saveValueOnBlurEvent === false);
   this.calcSize = options.calcSize || ((_elem, size) => size);
   this.gristDoc = options.gristDoc || null;
-  this.field = options.field || null;
+  this.column = options.column || null;
   this.editorState = options.editorState || null;
   this._readonly = options.readonly || false;
 
@@ -185,10 +185,10 @@ AceEditor.prototype.setFontSize = function(pxVal) {
 AceEditor.prototype._setup = function() {
   // Standard editor setup
   this.editor = this.autoDisposeWith('destroy', ace.edit(this.editorDom));
-  if (this.gristDoc && this.field) {
+  if (this.gristDoc && this.column) {
     const getSuggestions = (prefix) => {
       const tableId = this.gristDoc.viewModel.activeSection().table().tableId();
-      const columnId = this.field.column().colId();
+      const columnId = this.column.colId();
       return this.gristDoc.docComm.autocomplete(prefix, tableId, columnId);
     };
     setupAceEditorCompletions(this.editor, {getSuggestions});

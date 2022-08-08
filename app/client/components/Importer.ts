@@ -798,7 +798,8 @@ export class Importer extends DisposableWithEvents {
     const editRow = vsi?.moveEditRowToCursor();
     const editorHolder = openFormulaEditor({
       gristDoc: this._gristDoc,
-      field,
+      column: field.column(),
+      editingFormula: field.editingFormula,
       refElem,
       editRow,
       setupCleanup: this._setupFormulaEditorCleanup.bind(this),
@@ -819,7 +820,7 @@ export class Importer extends DisposableWithEvents {
    * focus.
    */
   private _setupFormulaEditorCleanup(
-    owner: MultiHolder, _doc: GristDoc, field: ViewFieldRec, _saveEdit: () => Promise<unknown>
+    owner: MultiHolder, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
   ) {
     const saveEdit = () => _saveEdit().catch(reportError);
 
@@ -828,7 +829,7 @@ export class Importer extends DisposableWithEvents {
 
     owner.onDispose(() => {
       this.off('importer_focus', saveEdit);
-      field.editingFormula(false);
+      editingFormula(false);
     });
   }
 

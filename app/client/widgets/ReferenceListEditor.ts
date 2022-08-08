@@ -8,7 +8,7 @@ import { menuCssClass } from 'app/client/ui2018/menus';
 import { cssChoiceToken } from 'app/client/widgets/ChoiceToken';
 import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
 import { EditorPlacement } from 'app/client/widgets/EditorPlacement';
-import { NewBaseEditor, Options } from 'app/client/widgets/NewBaseEditor';
+import { FieldOptions, NewBaseEditor } from 'app/client/widgets/NewBaseEditor';
 import { cssRefList, renderACItem } from 'app/client/widgets/ReferenceEditor';
 import { ReferenceUtils } from 'app/client/lib/ReferenceUtils';
 import { csvEncodeRow } from 'app/common/csvFormat';
@@ -46,13 +46,13 @@ export class ReferenceListEditor extends NewBaseEditor {
   private _tokenField: TokenField<ReferenceItem>;
   private _textInput: HTMLInputElement;
   private _dom: HTMLElement;
-  private _editorPlacement: EditorPlacement;
+  private _editorPlacement!: EditorPlacement;
   private _contentSizer: HTMLElement;   // Invisible element to size the editor with all the tokens
-  private _inputSizer: HTMLElement;     // Part of _contentSizer to size the text input
+  private _inputSizer!: HTMLElement;     // Part of _contentSizer to size the text input
   private _alignment: string;
   private _utils: ReferenceUtils;
 
-  constructor(options: Options) {
+  constructor(protected options: FieldOptions) {
     super(options);
 
     const docData = options.gristDoc.docData;

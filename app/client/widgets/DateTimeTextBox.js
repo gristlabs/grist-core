@@ -10,7 +10,7 @@ var gutil = require('app/common/gutil');
 
 const {fromKoSave} = require('app/client/lib/fromKoSave');
 const {alignmentSelect} = require('app/client/ui2018/buttonSelect');
-const {cssRow, cssLabel} = require('app/client/ui/RightPanel');
+const {cssRow, cssLabel} = require('app/client/ui/RightPanelStyles');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {dom: gdom, styled, fromKo} = require('grainjs');
 const {select} = require('app/client/ui2018/menus');

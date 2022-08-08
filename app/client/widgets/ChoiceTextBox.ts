@@ -2,7 +2,7 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {Style} from 'app/client/models/Styles';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
+import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId} from 'app/client/ui2018/cssVars';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';

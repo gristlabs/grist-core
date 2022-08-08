@@ -3,7 +3,7 @@ import {Computed, dom, fromKo, input, makeTestId, onElem, styled, TestId} from '
 import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
-import {cssRow} from 'app/client/ui/RightPanel';
+import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';

@@ -335,6 +335,17 @@ export class RightPanel extends Disposable {
         return dom.create(GridOptions, activeSection);
       }),
 
+      domComputed((use) => {
+        if (use(this._pageWidgetType) !== 'record') { return null; }
+        return [
+          cssSeparator(),
+          cssLabel('ROW STYLE'),
+          domAsync(imports.loadViewPane().then(ViewPane =>
+            dom.create(ViewPane.ConditionalStyle, "Row Style", activeSection, this._gristDoc)
+          ))
+        ];
+      }),
+
       dom.maybe((use) => use(this._pageWidgetType) === 'chart', () => [
         cssLabel('CHART TYPE'),
         vct._buildChartConfigDom(),
@@ -572,20 +583,14 @@ const cssBottomText = styled('span', `
   padding: 4px 16px;
 `);
 
-export const cssLabel = styled('div', `
+const cssLabel = styled('div', `
   text-transform: uppercase;
   margin: 16px 16px 12px 16px;
   font-size: ${vars.xsmallFontSize};
 `);
 
-// Additional text in label (greyed out)
-export const cssSubLabel = styled('span', `
-  text-transform: none;
-  font-size: ${vars.xsmallFontSize};
-  color: ${colors.slate};
-`);
 
-export const cssRow = styled('div', `
+const cssRow = styled('div', `
   display: flex;
   margin: 8px 16px;
   align-items: center;
@@ -597,13 +602,8 @@ export const cssRow = styled('div', `
   }
 `);
 
-export const cssBlockedCursor = styled('span', `
-  &, & * {
-    cursor: not-allowed !important;
-  }
-`);
 
-export const cssButtonRow = styled(cssRow, `
+const cssButtonRow = styled(cssRow, `
   margin-left: 0;
   margin-right: 0;
   & > button {
@@ -611,7 +611,7 @@ export const cssButtonRow = styled(cssRow, `
   }
 `);
 
-export const cssIcon = styled(icon, `
+const cssIcon = styled(icon, `
   flex: 0 0 auto;
   --icon-color: ${colors.slate};
 `);
@@ -669,7 +669,7 @@ const cssHoverIcon = styled(icon, `
   background-color: vars(--icon-color);
 `);
 
-export const cssSubTabContainer = styled('div', `
+const cssSubTabContainer = styled('div', `
   height: 48px;
   flex: none;
   display: flex;
@@ -677,7 +677,7 @@ export const cssSubTabContainer = styled('div', `
   justify-content: space-between;
 `);
 
-export const cssSubTab = styled('div', `
+const cssSubTab = styled('div', `
   color: ${colors.lightGreen};
   flex: auto;
   height: 100%;
@@ -709,12 +709,8 @@ const cssTabContents = styled('div', `
   overflow: auto;
 `);
 
-export const cssSeparator = styled('div', `
+const cssSeparator = styled('div', `
   border-bottom: 1px solid ${colors.mediumGrey};
-  margin-top: 16px;
-`);
-
-export const cssEmptySeparator = styled('div', `
   margin-top: 16px;
 `);
 
@@ -765,7 +761,7 @@ const cssListItem = styled('li', `
   padding: 4px 8px;
 `);
 
-export const cssTextInput = styled(textInput, `
+const cssTextInput = styled(textInput, `
   flex: 1 0 auto;
 
   &:disabled {

@@ -19,7 +19,8 @@
      selected fields - this still remains white.
      TODO: consider making this color the single source
   */
-  background: white;
+  background: var(--grist-row-background-color, white);
+  color: var(--grist-row-color, black);
 }
 
 .record.record-hlines {  /* Overwrites style, width set on element */
@@ -27,7 +28,7 @@
 }
 
 .record.record-zebra.record-even {
-  background-color: #f8f8f8;
+  background-color: var(--grist-row-background-color-zebra, #f8f8f8);
 }
 
 .record.record-add {
@@ -71,12 +72,12 @@
   width: 100%;
   height: 100%;
   background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, unset));
-  --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color));
-  color: var(--grist-actual-cell-color, black);
+  --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color, var(--grist-row-color)));
+  color: var(--grist-actual-cell-color, unset);
 }
 
 .field.selected .field_clip {
-  mix-blend-mode: darken;
+  mix-blend-mode: luminosity;
 }
 
 .field_clip.invalid, .field_clip.field-error-from-style {

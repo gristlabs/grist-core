@@ -1,5 +1,5 @@
 import {IToken, TokenField} from 'app/client/lib/TokenField';
-import {cssBlockedCursor} from 'app/client/ui/RightPanel';
+import {cssBlockedCursor} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colorButton, ColorOption} from 'app/client/ui2018/ColorSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -298,8 +298,9 @@ export class ChoiceListEntry extends Disposable {
       dom.autoDispose(textColorObs),
       dom.autoDispose(choiceText),
       colorButton({
-          textColor: new ColorOption(textColorObs, false, '#000000'),
-          fillColor: new ColorOption(fillColorObs, true, '', 'none', '#FFFFFF'),
+          textColor: new ColorOption({color: textColorObs, defaultColor: '#000000'}),
+          fillColor: new ColorOption(
+            {color: fillColorObs, allowsNone: true, noneText: 'none', defaultColor: '#FFFFFF'}),
           fontBold: fontBoldObs,
           fontItalic: fontItalicObs,
           fontUnderline: fontUnderlineObs,

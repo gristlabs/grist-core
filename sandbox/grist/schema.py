@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 31
+SCHEMA_VERSION = 32
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -194,6 +194,8 @@ def schema_create_actions():
       make_column("linkTargetColRef",   "Ref:_grist_Tables_column"),
       # embedId is deprecated as of version 12. Do not remove or reuse.
       make_column("embedId",            "Text"),
+      # Points to formula columns that hold conditional formatting rules for this view section.
+      make_column("rules",              "RefList:_grist_Tables_column"),
     ]),
     # The fields of a view section.
     actions.AddTable("_grist_Views_section_field", [

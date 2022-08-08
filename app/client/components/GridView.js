@@ -1,26 +1,28 @@
 /* globals alert, document, $ */
 
-var _         = require('underscore');
-var ko        = require('knockout');
+const _         = require('underscore');
+const ko        = require('knockout');
 const debounce = require('lodash/debounce');
 
-var gutil             = require('app/common/gutil');
-var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
+const gutil             = require('app/common/gutil');
+const BinaryIndexedTree = require('app/common/BinaryIndexedTree');
 const {Sort} = require('app/common/SortSpec');
 
-var dom           = require('../lib/dom');
-var kd            = require('../lib/koDom');
-var kf            = require('../lib/koForm');
-var koDomScrolly  = require('../lib/koDomScrolly');
-var tableUtil     = require('../lib/tableUtil');
-var {addToSort, sortBy}   = require('../lib/sortUtil');
+const dom           = require('../lib/dom');
+const kd            = require('../lib/koDom');
+const kf            = require('../lib/koForm');
+const koDomScrolly  = require('../lib/koDomScrolly');
+const tableUtil     = require('../lib/tableUtil');
+const {addToSort, sortBy}   = require('../lib/sortUtil');
 
-var commands      = require('./commands');
-var viewCommon    = require('./viewCommon');
-var Base          = require('./Base');
-var BaseView      = require('./BaseView');
-var selector      = require('./Selector');
-var {CopySelection} = require('./CopySelection');
+const commands      = require('./commands');
+const viewCommon    = require('./viewCommon');
+const Base          = require('./Base');
+const BaseView      = require('./BaseView');
+const selector      = require('./Selector');
+const {CopySelection} = require('./CopySelection');
+const koUtil      = require('app/client/lib/koUtil');
+const convert       = require('color-convert');
 
 const {renderAllRows} = require('app/client/components/Printing');
 const {reportError} = require('app/client/models/AppModel');
@@ -40,6 +42,7 @@ const {contextMenu} = require('app/client/ui/contextMenu');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
+const {CombinedStyle} = require("app/client/models/Styles");
 
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
@@ -1111,8 +1114,41 @@ GridView.prototype.buildDom = function() {
     // rows. IsCellActive is only subscribed to columns for the active row. This way, when
     // the cursor moves, there are (rows+2*columns) calls rather than rows*columns.
     var isRowActive = ko.computed(() => row._index() === self.cursor.rowIndex());
+
+    const computedFlags = ko.pureComputed(() => {
+      return self.viewSection.rulesColsIds().map(colRef => {
+        if (row.cells[colRef]) { return row.cells[colRef]() || false; }
+        return false;
+      });
+    });
+
+    const computedRule = koUtil.withKoUtils(ko.pureComputed(() => {
+      if (row._isAddRow() || !row.id()) { return null; }
+      const flags = computedFlags();
+      if (flags.length === 0) { return null; }
+      const styles = self.viewSection.rulesStyles() || [];
+      return { style : new CombinedStyle(styles, flags) };
+    }, this).extend({deferred: true}));
+
+    const fillColor = buildStyleOption(self, computedRule, 'fillColor');
+    const zebraColor = ko.pureComputed(() => calcZebra(fillColor()));
+    const textColor = buildStyleOption(self, computedRule, 'textColor');
+    const fontBold = buildStyleOption(self, computedRule, 'fontBold');
+    const fontItalic = buildStyleOption(self, computedRule, 'fontItalic');
+    const fontUnderline = buildStyleOption(self, computedRule, 'fontUnderline');
+    const fontStrikethrough = buildStyleOption(self, computedRule, 'fontStrikethrough');
+
     return dom('div.gridview_row',
       dom.autoDispose(isRowActive),
+      dom.autoDispose(computedFlags),
+      dom.autoDispose(computedRule),
+      dom.autoDispose(textColor),
+      dom.autoDispose(fillColor),
+      dom.autoDispose(zebraColor),
+      dom.autoDispose(fontBold),
+      dom.autoDispose(fontItalic),
+      dom.autoDispose(fontUnderline),
+      dom.autoDispose(fontStrikethrough),
 
       // rowid dom
       dom('div.gridview_data_row_num',
@@ -1159,6 +1195,13 @@ GridView.prototype.buildDom = function() {
         kd.toggleClass('record-add', row._isAddRow),
         kd.style('borderLeftWidth', v.borderWidthPx),
         kd.style('borderBottomWidth', v.borderWidthPx),
+        kd.toggleClass('font-bold', fontBold),
+        kd.toggleClass('font-underline', fontUnderline),
+        kd.toggleClass('font-italic', fontItalic),
+        kd.toggleClass('font-strikethrough', fontStrikethrough),
+        kd.style('--grist-row-background-color', fillColor),
+        kd.style('--grist-row-background-color-zebra', zebraColor),
+        kd.style('--grist-row-color', textColor),
         //These are grabbed from v.optionsObj at start of GridView buildDom
         kd.toggleClass('record-hlines', vHorizontalGridlines),
         kd.toggleClass('record-vlines', vVerticalGridlines),
@@ -1611,6 +1654,15 @@ GridView.prototype._duplicateRows = async function() {
   }
 }
 
+function buildStyleOption(owner, computedRule, optionName) {
+  return ko.computed(() => {
+    if (owner.isDisposed()) { return null; }
+    const rule = computedRule();
+    if (!rule || !rule.style) { return ''; }
+    return rule.style[optionName] || '';
+  });
+}
+
 // Helper to show tooltip over column selection in the full edit mode.
 class HoverColumnTooltip {
   constructor(el) {
@@ -1629,6 +1681,22 @@ class HoverColumnTooltip {
   dispose() {
     this.hide();
   }
+}
+
+// Simple function that calculates good color for zebra stripes.
+function calcZebra(hex) {
+  if (!hex || hex.length !== 7) { return hex; }
+  // HSL: [HUE, SATURATION, LIGHTNESS]
+  const hsl = convert.hex.hsl(hex.substr(1));
+  // For bright color, we will make it darker. Value was picked by hand, to
+  // produce #f8f8f8f out of #ffffff.
+  if (hsl[2] > 50) { hsl[2] -= 2.6; }
+  // For darker color, we will make it brighter. Value was picked by hand to look
+  // good for the darkest colors in our palette.
+  else if (hsl[2] > 1) { hsl[2] += 11; }
+  // For very dark colors
+  else { hsl[2] += 16; }
+  return `#${convert.hsl.hex(hsl)}`;
 }
 
 module.exports = GridView;

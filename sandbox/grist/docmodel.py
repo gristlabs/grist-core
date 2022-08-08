@@ -89,6 +89,7 @@ class MetaTableExtras(object):
     usedByFields = _record_set('_grist_Views_section_field', 'displayCol')
     ruleUsedByCols = _record_ref_list_set('_grist_Tables_column', 'rules')
     ruleUsedByFields = _record_ref_list_set('_grist_Views_section_field', 'rules')
+    ruleUsedByTables = _record_ref_list_set('_grist_Views_section', 'rules')
 
     def tableId(rec, table):
       return rec.parentId.tableId
@@ -101,9 +102,15 @@ class MetaTableExtras(object):
 
     def numRuleColUsers(rec, table):
       """
-      Returns the number of cols and fields using this col as a rule col
+      Returns the number of cols and fields using this col as a rule
       """
       return len(rec.ruleUsedByCols) + len(rec.ruleUsedByFields)
+
+    def numRuleTableUsers(rec, table):
+      """
+      Returns the number of tables using this col as a rule
+      """
+      return len(rec.ruleUsedByTables)
 
     def recalcOnChangesToSelf(rec, table):
       """
@@ -115,8 +122,11 @@ class MetaTableExtras(object):
     def setAutoRemove(rec, table):
       """Marks the col for removal if it's a display/rule helper col with no more users."""
       as_display = rec.colId.startswith('gristHelper_Display') and rec.numDisplayColUsers == 0
-      as_rule = rec.colId.startswith('gristHelper_Conditional') and rec.numRuleColUsers == 0
-      table.docmodel.setAutoRemove(rec, as_display or as_rule)
+      as_col_rule = rec.colId.startswith('gristHelper_ConditionalRule') and rec.numRuleColUsers == 0
+      as_row_rule = (
+        rec.colId.startswith('gristHelper_RowConditionalRule') and rec.numRuleTableUsers == 0
+      )
+      table.docmodel.setAutoRemove(rec, as_display or as_col_rule or as_row_rule)
 
 
   class _grist_Views(object):

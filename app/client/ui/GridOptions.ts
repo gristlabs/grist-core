@@ -1,6 +1,6 @@
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
-import { cssLabel, cssRow } from "app/client/ui/RightPanel";
+import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { squareCheckbox } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
 import { Computed, Disposable, dom, IDisposableOwner, styled } from "grainjs";

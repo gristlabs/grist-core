@@ -15,7 +15,6 @@ export interface IEditorCommandGroup {
 
 export interface Options {
   gristDoc: GristDoc;
-  field: ViewFieldRec;
   cellValue: CellValue;
   rowId: number;
   formulaError?: Observable<CellValue>;
@@ -24,6 +23,10 @@ export interface Options {
   commands: IEditorCommandGroup;
   state?: any;
   readonly: boolean;
+}
+
+export interface FieldOptions extends Options {
+  field: ViewFieldRec;
 }
 
 /**
@@ -42,7 +45,7 @@ export abstract class NewBaseEditor extends Disposable {
    * updated to new-style Disposables.
    */
   public static create<Opt extends Options>(owner: IDisposableOwner|null, options: Opt): NewBaseEditor;
-  public static create(options: Options): NewBaseEditor;
+  public static create<Opt extends Options>(options: Opt): NewBaseEditor;
   public static create(ownerOrOptions: any, options?: any): NewBaseEditor {
     return options ?
       Disposable.create.call(this as any, ownerOrOptions, options) :

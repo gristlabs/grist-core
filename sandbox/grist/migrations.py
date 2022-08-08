@@ -28,6 +28,11 @@ log = logger.Logger(__name__, logger.INFO)
 # This should make it at least barely possible to share documents by people who are not all on the
 # same Grist version (even so, it will require more work). It should also make it somewhat safe to
 # upgrade and then open the document with a previous version.
+#
+# After each migration you probably should run these commands:
+# ./test/upgradeDocument public_samples/*.grist
+# UPDATE_REGRESSION_DATA=1 GREP_TESTS=DocRegressionTests ./test/testrun.sh server
+# ./test/upgradeDocument test/fixtures/docs/Hello.grist
 
 all_migrations = {}
 
@@ -1081,3 +1086,9 @@ def migration31(tdset):
         actions.UpdateRecord('_grist_ACLResources', resource.id, {'tableId': new_name})
       )
   return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=32)
+def migration32(tdset):
+  return tdset.apply_doc_actions([
+    add_column('_grist_Views_section', 'rules', 'RefList:_grist_Tables_column'),
+  ])

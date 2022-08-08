@@ -37,6 +37,7 @@
   min-height: 16px;
   white-space: pre;
   word-wrap: break-word;
+  color: black;
 }
 
 .g_record_detail_value.record-add {

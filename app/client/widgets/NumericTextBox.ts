@@ -3,7 +3,7 @@
  */
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
-import {cssLabel, cssRow} from 'app/client/ui/RightPanel';
+import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {ISelectorOption, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';

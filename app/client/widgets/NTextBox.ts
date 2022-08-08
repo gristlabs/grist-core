@@ -2,7 +2,7 @@ import { fromKoSave } from 'app/client/lib/fromKoSave';
 import { findLinks } from 'app/client/lib/textUtils';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { cssRow } from 'app/client/ui/RightPanel';
+import { cssRow } from 'app/client/ui/RightPanelStyles';
 import { alignmentSelect, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { cssIconBackground, icon } from 'app/client/ui2018/icons';

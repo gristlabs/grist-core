@@ -14,7 +14,7 @@ import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {renderFileType} from 'app/client/widgets/AttachmentsWidget';
-import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
+import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from 'app/common/DocActions';
 import {SingleCell} from 'app/common/TableData';
 import {clamp, encodeQueryParams} from 'app/common/gutil';
@@ -56,7 +56,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   private _index: LiveIndex;
   private _selected: Computed<Attachment|null>;
 
-  constructor(options: Options) {
+  constructor(options: FieldOptions) {
     super(options);
 
     const docData: DocData = options.gristDoc.docData;

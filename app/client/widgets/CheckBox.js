@@ -19,6 +19,7 @@ CheckBox.prototype.buildConfigDom = function() {
 
 CheckBox.prototype.buildDom = function(row) {
   var value = row[this.field.colId()];
+  console.log(this);
   return dom('div.field_clip',
     dom('div.widget_checkbox',
       dom.on('click', () => {
@@ -28,14 +29,8 @@ CheckBox.prototype.buildDom = function(row) {
       }),
       dom('div.widget_checkmark',
         kd.show(value),
-        dom('div.checkmark_kick',
-          kd.style('background-color', this.field.textColor),
-          kd.style('border-color', this.field.textColor)
-        ),
-        dom('div.checkmark_stem',
-          kd.style('background-color', this.field.textColor),
-          kd.style('border-color', this.field.textColor)
-        )
+        dom('div.checkmark_kick'),
+        dom('div.checkmark_stem')
       )
     )
   );
