@@ -17,6 +17,11 @@ export interface PageActions {
   isReadonly: Observable<boolean>;
 }
 
+function isTargetSelected(target: HTMLElement) {
+  const parentItemHeader = target.closest('.' + itemHeader.className);
+  return parentItemHeader ? parentItemHeader.classList.contains('selected') : false;
+}
+
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
 // but later we'll support user selected icon), the name and a dots menu containing a "Rename" and
 // "Remove" entries. Clicking "Rename" turns the page name into an editable input, which then call
@@ -52,7 +57,10 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
       domComputed(isRenaming, (isrenaming) => (
         isrenaming ?
           cssPageItem(
-            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
+            cssPageInitial(
+              testId('initial'),
+              dom.text((use) => Array.from(use(name))[0])
+              ),
             cssEditorInput(
               {
                 initialValue: name.get() || '',
@@ -68,8 +76,15 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageInitial(dom.text((use) => Array.from(use(name))[0])),
-            cssPageName(dom.text(name), testId('label')),
+            cssPageInitial(
+              testId('initial'),
+              dom.text((use) => Array.from(use(name))[0]),
+            ),
+            cssPageName(
+              dom.text(name),
+              testId('label'),
+              dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+            ),
             cssPageMenuTrigger(
               cssPageIcon('Dots'),
               menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
@@ -120,6 +135,7 @@ const cssPageName = styled('div', `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-grow: 1;
   .${treeViewContainer.className}-close & {
     display: none;
   }
