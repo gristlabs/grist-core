@@ -28,6 +28,7 @@ Here are some specific feature highlights of Grist:
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
     - [Attachments](https://support.getgrist.com/col-types/#attachment-columns), to include media or document files in records.
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
+    - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas, to draw attention to important information.
   * Great for dashboards, visualizations, and data entry.
     - [Charts](https://support.getgrist.com/widget-chart/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
@@ -134,9 +135,12 @@ docker run --env GRIST_DEFAULT_EMAIL=my@email -p 8484:8484 -v $PWD/persist:/pers
 
 You can change your name in `Profile Settings` in
 the [User Menu](https://support.getgrist.com/glossary/#user-menu).
-For multi-user operation, and/or if you wish to access Grist across the
-public internet, you'll want to connect it to your own single sign-in service
-[SAML](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/SamlConfig.ts).
+
+For multi-user operation, or if you wish to access Grist across the
+public internet, you'll want to connect it to your own single sign-in service.
+There's a `docker-compose` template at https://community.getgrist.com/t/a-template-for-self-hosting-grist-with-traefik-and-docker-compose/856
+covering using Let's Encrypt for certificates and Google for sign-ins.
+You can also use [SAML](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/SamlConfig.ts).
 Grist has been tested with [Authentik](https://goauthentik.io/) and [Auth0](https://auth0.com/).
 
 ## Why free and open source software
