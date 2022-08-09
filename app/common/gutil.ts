@@ -55,6 +55,11 @@ export function capitalizeFirstWord(str: string): string {
   return str.replace(/\b[a-z]/i, c => c.toUpperCase());
 }
 
+// Remove diacritics (accents and other signs).
+export function removeDiacritics(text: string): string {
+  return text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+}
+
 // Returns whether the string n represents a valid number.
 // http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
 export function isNumber(n: string): boolean {

@@ -1,5 +1,5 @@
 import { createGroup } from 'app/client/components/commands';
-import { ACItem, ACResults, HighlightFunc } from 'app/client/lib/ACIndex';
+import { ACItem, ACResults, cleanText as clean, HighlightFunc } from 'app/client/lib/ACIndex';
 import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
 import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
 import { reportError } from 'app/client/models/errors';
@@ -26,7 +26,7 @@ class ReferenceItem implements IToken, ACItem {
    * similar to getItemText() from IAutocompleteOptions.
    */
   public label: string = typeof this.rowId === 'number' ? String(this.rowId) : this.text;
-  public cleanText: string = this.text.trim().toLowerCase();
+  public cleanText: string = clean(this.text);
 
   constructor(
     public text: string,
@@ -264,7 +264,7 @@ export class ReferenceListEditor extends NewBaseEditor {
     this._showAddNew = false;
     if (!this._enableAddNew || !text) { return result; }
 
-    const cleanText = text.trim().toLowerCase();
+    const cleanText = clean(text);
     if (result.items.find((item) => item.cleanText === cleanText)) {
       return result;
     }

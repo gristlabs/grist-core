@@ -1,5 +1,5 @@
 import {createGroup} from 'app/client/components/commands';
-import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, HighlightFunc} from 'app/client/lib/ACIndex';
+import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, cleanText as clean, HighlightFunc} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -16,7 +16,7 @@ import {choiceToken, cssChoiceACItem, cssChoiceToken} from 'app/client/widgets/C
 import {icon} from 'app/client/ui2018/icons';
 
 export class ChoiceItem implements ACItem, IToken {
-  public cleanText: string = this.label.toLowerCase().trim();
+  public cleanText: string = clean(this.label);
   constructor(
     public label: string,
     public isInvalid: boolean,  // If set, this token is not one of the valid choices.
