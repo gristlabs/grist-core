@@ -1,6 +1,6 @@
 import type {AppModel} from 'app/client/models/AppModel';
 import {commonUrls} from 'app/common/gristUrls';
-import {Disposable, DomArg, DomContents, IDisposableOwner, Observable, observable} from 'grainjs';
+import {Disposable, DomArg, DomContents, IDisposableOwner} from 'grainjs';
 
 export function buildNewSiteModal(context: Disposable, options: {
   planName: string,
@@ -27,8 +27,4 @@ export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): Upgr
     showUpgradeCard : () => null,
     showUpgradeButton : () => null,
   };
-}
-
-export function NEW_DEAL(): Observable<boolean> {
-  return observable(false);
 }

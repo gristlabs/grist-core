@@ -147,8 +147,7 @@ export const PRODUCTS: IProduct[] = [
 export function getDefaultProductNames() {
   const defaultProduct = process.env.GRIST_DEFAULT_PRODUCT;
   // TODO: can be removed once new deal is released.
-  const personalFreePlan = process.env.NEW_DEAL === 'true'
-    ? PERSONAL_FREE_PLAN : PERSONAL_LEGACY_PLAN;
+  const personalFreePlan = PERSONAL_FREE_PLAN;
   return {
     // Personal site start off on a functional plan.
     personal: defaultProduct || personalFreePlan,

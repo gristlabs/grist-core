@@ -4,7 +4,7 @@ import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {buildNewSiteModal, buildUpgradeModal, NEW_DEAL} from 'app/client/ui/ProductUpgrades';
+import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
@@ -206,9 +206,7 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly isPersonal = Boolean(this.currentOrg?.owner);
   public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
-  // TODO: the `NEW_DEAL` observable can be removed after new deal is released.
-  public readonly isLegacySite = Boolean(
-    NEW_DEAL().get() && this.currentProduct && isLegacyPlan(this.currentProduct.name));
+  public readonly isLegacySite = Boolean(this.currentProduct && isLegacyPlan(this.currentProduct.name));
 
   public readonly userPrefsObs = getUserPrefsObs(this);
 

@@ -545,9 +545,6 @@ export interface GristLoadConfig {
 
   // String to append to the end of the HTML document.title
   pageTitleSuffix?: string;
-
-  // TODO: can be removed once new deal is released.
-  newDeal?: boolean;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
