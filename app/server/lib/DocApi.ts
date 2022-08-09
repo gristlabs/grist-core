@@ -599,8 +599,15 @@ export class DocWorkerApi {
     // and frees it for reassignment if not.  Has no effect if document is in the
     // expected group.  Does not require specific rights.  Returns true if the document
     // is freed up for reassignment, otherwise false.
+    //
+    // Optionally accepts a `group` query param for updating the document's group prior
+    // to (possible) reassignment. (Note: Requires special permit.)
     this._app.post('/api/docs/:docId/assign', canEdit, throttled(async (req, res) => {
       const docId = getDocId(req);
+      const group = optStringParam(req.query.group);
+      if (group && req.specialPermit?.action === 'assign-doc') {
+        await this._docWorkerMap.updateDocGroup(docId, group);
+      }
       const status = await this._docWorkerMap.getDocWorker(docId);
       if (!status) { res.json(false); return; }
       const workerGroup = await this._docWorkerMap.getWorkerGroup(status.docWorker.id);

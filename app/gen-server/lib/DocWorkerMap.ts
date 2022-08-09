@@ -137,6 +137,10 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     return null;
   }
 
+  public async updateDocGroup(docId: string, docGroup: string): Promise<void> {
+    // nothing to do
+  }
+
   public getRedisClient() {
     return null;
   }
@@ -515,6 +519,10 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async getDocGroup(docId: string): Promise<string|null> {
     return this._client.getAsync(`doc-${docId}-group`);
+  }
+
+  public async updateDocGroup(docId: string, docGroup: string): Promise<void> {
+    await this._client.setAsync(`doc-${docId}-group`, docGroup);
   }
 
   public getRedisClient(): RedisClient {

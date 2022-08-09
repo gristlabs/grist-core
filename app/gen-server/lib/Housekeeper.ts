@@ -9,7 +9,7 @@ import { GristServer } from 'app/server/lib/GristServer';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
-import { stringParam } from 'app/server/lib/requestUtils';
+import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
@@ -130,7 +130,7 @@ export class Housekeeper {
     // Remove unlisted snapshots that are not recorded in inventory.
     // Once all such snapshots have been removed, there should be no
     // further need for this endpoint.
-    app.post('/api/housekeeping/docs/:docId/snapshots/clean', this._withSupport(async (docId, headers) => {
+    app.post('/api/housekeeping/docs/:docId/snapshots/clean', this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/snapshots/remove`);
       return fetch(url, {
         method: 'POST',
@@ -143,7 +143,7 @@ export class Housekeeper {
     // use, for allowing support to help users looking to purge some
     // information that leaked into document history that they'd
     // prefer not be there, until there's an alternative.
-    app.post('/api/housekeeping/docs/:docId/states/remove', this._withSupport(async (docId, headers) => {
+    app.post('/api/housekeeping/docs/:docId/states/remove', this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/states/remove`);
       return fetch(url, {
         method: 'POST',
@@ -154,7 +154,7 @@ export class Housekeeper {
 
     // Force a document to reload.  Can be useful during administrative
     // actions.
-    app.post('/api/housekeeping/docs/:docId/force-reload', this._withSupport(async (docId, headers) => {
+    app.post('/api/housekeeping/docs/:docId/force-reload', this._withSupport(async (_req, docId, headers) => {
       const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/force-reload`);
       return fetch(url, {
         method: 'POST',
@@ -164,13 +164,19 @@ export class Housekeeper {
 
     // Move a document to its assigned worker.  Can be useful during administrative
     // actions.
-    app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (docId, headers) => {
-      const url = await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`);
-      return fetch(url, {
+    //
+    // Optionally accepts a `group` query param for updating the document's group prior
+    // to moving. This is useful for controlling which worker group the document is assigned
+    // a worker from.
+    app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (req, docId, headers) => {
+      const url = new URL(await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`));
+      const group = optStringParam(req.query.group);
+      if (group) { url.searchParams.set('group', group); }
+      return fetch(url.toString(), {
         method: 'POST',
         headers,
       });
-    }));
+    }, 'assign-doc'));
   }
 
   /**
@@ -221,7 +227,8 @@ export class Housekeeper {
   // Call a document endpoint with a permit, cleaning up after the call.
   // Checks that the user is the support user.
   private _withSupport(
-    callback: (docId: string, headers: Record<string, string>) => Promise<Fetch.Response>
+    callback: (req: express.Request, docId: string, headers: Record<string, string>) => Promise<Fetch.Response>,
+    permitAction?: string,
   ): express.RequestHandler {
     return expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
@@ -229,9 +236,9 @@ export class Housekeeper {
         throw new ApiError('access denied', 403);
       }
       const docId = stringParam(req.params.docId, 'docId');
-      const permitKey = await this._permitStore.setPermit({docId});
+      const permitKey = await this._permitStore.setPermit({docId, action: permitAction});
       try {
-        const result = await callback(docId, {
+        const result = await callback(req, docId, {
           Permit: permitKey,
           'Content-Type': 'application/json',
         });

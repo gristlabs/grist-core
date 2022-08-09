@@ -67,6 +67,7 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   getWorkerGroup(workerId: string): Promise<string|null>;
   getDocGroup(docId: string): Promise<string|null>;
+  updateDocGroup(docId: string, docGroup: string): Promise<void>;
 
   getRedisClient(): RedisClient|null;
 }
