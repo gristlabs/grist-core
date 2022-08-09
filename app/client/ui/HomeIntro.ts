@@ -37,7 +37,7 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
   const docLink = (dom.maybe(personalOrg, org => {
     return cssLink(
       urlState().setLinkUrl({org: org.domain ?? undefined}),
-      'free, personal site',
+      'personal site',
       testId('welcome-personal-url'));
   }));
   return [
@@ -52,7 +52,7 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
       "You have read-only access to this site. Currently there are no documents.", dom('br'),
       "Any documents created in this site will appear here."),
     cssIntroLine(
-      'Interested in using Grist outside of your team? Visit your ', docLink, '.',
+      'Interested in using Grist outside of your team? Visit your free ', docLink, '.',
       testId('welcome-text')
     )
   ];
