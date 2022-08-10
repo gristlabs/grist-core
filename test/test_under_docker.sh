@@ -3,7 +3,7 @@
 # This runs browser tests with the server started using docker, to
 # catch any configuration problems.
 # Run with MOCHA_WEBDRIVER_HEADLESS=1 for headless operation.
-# Run with VERBOSE=1 for server logs.
+# Run with DEBUG=1 for server logs.
 
 # Settings for script robustness
 set -o pipefail  # trace ERR through pipes
@@ -28,12 +28,18 @@ cleanup() {
   exit $return_value
 }
 
+GRIST_LOG_LEVEL="error"
+if [[ "${DEBUG:-}" == 1 ]]; then
+  GRIST_LOG_LEVEL=""
+fi
+
 docker run --name $DOCKER_CONTAINER --rm \
-  --env VERBOSE=${VERBOSE:-} \
+  --env VERBOSE=${DEBUG:-} \
   -p $PORT:$PORT --env PORT=$PORT \
   --env GRIST_SESSION_COOKIE=grist_test_cookie \
   --env GRIST_TEST_LOGIN=1 \
-  --env GRIST_LOG_LEVEL=error \
+  --env GRIST_LOG_LEVEL=$GRIST_LOG_LEVEL \
+  --env GRIST_LOG_SKIP_HTTP=${DEBUG:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   ${TEST_IMAGE:-gristlabs/grist} &
 
