@@ -4,6 +4,9 @@
 /static/*.bundle.js.map
 /static/bundle.css
 /static/browser-check.js
+/static/*.bundle.js.*.txt
+/grist-sessions.db
+/landing.db
 
 # Build helper files.
 /.build*
