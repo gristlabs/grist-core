@@ -33,6 +33,7 @@ docker run --name $DOCKER_CONTAINER --rm \
   -p $PORT:$PORT --env PORT=$PORT \
   --env GRIST_SESSION_COOKIE=grist_test_cookie \
   --env GRIST_TEST_LOGIN=1 \
+  --env GRIST_LOG_LEVEL=error \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   ${TEST_IMAGE:-gristlabs/grist} &
 
@@ -45,10 +46,16 @@ while true; do
 done
 echo ""
 echo "[server found]"
+MOCHA=mocha
+# Test if we have mocha available as a command
+if ! type $MOCHA > /dev/null 2>&1; then
+  echo "Mocha not found, using from ./node_modules/.bin/mocha"
+  MOCHA=./node_modules/.bin/mocha
+fi
 
 TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   HOME_URL=http://localhost:8585 \
   GRIST_SESSION_COOKIE=grist_test_cookie \
   GRIST_TEST_LOGIN=1 \
   NODE_PATH=_build:_build/stubs \
-  mocha _build/test/nbrowser/*.js "$@"
+  $MOCHA _build/test/nbrowser/*.js "$@"
