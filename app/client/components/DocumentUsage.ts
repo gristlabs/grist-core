@@ -4,7 +4,7 @@ import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {infoTooltip} from 'app/client/ui/tooltips';
 import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
 import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/DocUsage';
 import {Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
@@ -34,6 +34,9 @@ export class DocumentUsage extends Disposable {
   private readonly _currentOrg = this._docPageModel.currentOrg;
   private readonly _currentProduct = this._docPageModel.currentProduct;
 
+  // TODO: Update this whenever the rest of the UI is internationalized.
+  private readonly _rowCountFormatter = new Intl.NumberFormat('en-US');
+
   private readonly _dataLimitStatus = Computed.create(this, this._currentDocUsage, (_use, usage) => {
     return usage?.dataLimitStatus ?? null;
   });
@@ -50,34 +53,29 @@ export class DocumentUsage extends Disposable {
     return usage?.attachmentsSizeBytes;
   });
 
-  private readonly _rowMetrics: Computed<MetricOptions | null> =
+  private readonly _rowMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentProduct, this._rowCount, (_use, product, rowCount) => {
-      const features = product?.features;
-      if (!features || typeof rowCount !== 'object') { return null; }
-
-      const {baseMaxRowsPerDocument: maxRows} = features;
+      const maxRows = product?.features.baseMaxRowsPerDocument;
       // Invalid row limits are currently treated as if they are undefined.
       const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
       return {
         name: 'Rows',
-        currentValue: rowCount.total,
+        currentValue: typeof rowCount !== 'object' ? undefined : rowCount.total,
         maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
         unit: 'rows',
         shouldHideLimits: maxValue === undefined,
+        formatValue: (val) => this._rowCountFormatter.format(val),
       };
     });
 
-  private readonly _dataSizeMetrics: Computed<MetricOptions | null> =
+  private readonly _dataSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentProduct, this._dataSizeBytes, (_use, product, dataSize) => {
-      const features = product?.features;
-      if (!features || typeof dataSize !== 'number') { return null; }
-
-      const {baseMaxDataSizePerDocument: maxSize} = features;
+      const maxSize = product?.features.baseMaxDataSizePerDocument;
       // Invalid data size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
         name: 'Data Size',
-        currentValue: dataSize,
+        currentValue: typeof dataSize !== 'number' ? undefined : dataSize,
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
         shouldHideLimits: maxValue === undefined,
@@ -95,17 +93,14 @@ export class DocumentUsage extends Disposable {
       };
     });
 
-  private readonly _attachmentsSizeMetrics: Computed<MetricOptions | null> =
+  private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentProduct, this._attachmentsSizeBytes, (_use, product, attachmentsSize) => {
-      const features = product?.features;
-      if (!features || typeof attachmentsSize !== 'number') { return null; }
-
-      const {baseMaxAttachmentsBytesPerDocument: maxSize} = features;
+      const maxSize = product?.features.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
         name: 'Attachments Size',
-        currentValue: attachmentsSize,
+        currentValue: typeof attachmentsSize !== 'number' ? undefined : attachmentsSize,
         maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
         unit: 'GB',
         shouldHideLimits: maxValue === undefined,
@@ -113,25 +108,26 @@ export class DocumentUsage extends Disposable {
       };
     });
 
-  private readonly _isLoading: Computed<boolean> =
+  private readonly _areAllMetricsPending: Computed<boolean> =
     Computed.create(
       this, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
       (_use, doc, rowCount, dataSize, attachmentsSize) => {
-        return !doc || [rowCount, dataSize, attachmentsSize].some(metric => {
-          return metric === 'pending' || metric === undefined;
-        });
+        const hasNonPendingMetrics = [rowCount, dataSize, attachmentsSize]
+          .some(metric => metric !== 'pending' && metric !== undefined);
+        return !doc || !hasNonPendingMetrics;
       }
     );
 
   private readonly _isAccessDenied: Computed<boolean | null> =
-    Computed.create(
-      this, this._isLoading, this._currentDoc, this._rowCount, this._dataSizeBytes, this._attachmentsSizeBytes,
+    Computed.create(this, this._areAllMetricsPending, this._currentDoc, this._rowCount,
+      this._dataSizeBytes, this._attachmentsSizeBytes,
       (_use, isLoading, doc, rowCount, dataSize, attachmentsSize) => {
         if (isLoading) { return null; }
 
         const {access} = doc!.workspace.org;
         const isPublicUser = access === 'guests' || access === null;
-        return isPublicUser || [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
+        const hasHiddenMetrics = [rowCount, dataSize, attachmentsSize].some(metric => metric === 'hidden');
+        return isPublicUser || hasHiddenMetrics;
       }
     );
 
@@ -142,7 +138,7 @@ export class DocumentUsage extends Disposable {
   public buildDom() {
     return dom('div',
       cssHeader('Usage', testId('heading')),
-      dom.domComputed(this._isLoading, (isLoading) => {
+      dom.domComputed(this._areAllMetricsPending, (isLoading) => {
         if (isLoading) { return cssSpinner(loadingSpinner(), testId('loading')); }
 
         return [this._buildMessage(), this._buildMetrics()];
@@ -181,13 +177,13 @@ export class DocumentUsage extends Disposable {
   private _buildMetrics() {
     return dom.maybe(use => use(this._isAccessDenied) === false, () =>
       cssUsageMetrics(
-        dom.maybe(this._rowMetrics, (metrics) =>
+        dom.domComputed(this._rowMetricOptions, (metrics) =>
           buildUsageMetric(metrics, testId('rows')),
         ),
-        dom.maybe(this._dataSizeMetrics, (metrics) =>
+        dom.domComputed(this._dataSizeMetricOptions, (metrics) =>
           buildUsageMetric(metrics, testId('data-size')),
         ),
-        dom.maybe(this._attachmentsSizeMetrics, (metrics) =>
+        dom.domComputed(this._attachmentsSizeMetricOptions, (metrics) =>
           buildUsageMetric(metrics, testId('attachments-size')),
         ),
         testId('metrics'),
@@ -265,7 +261,8 @@ function buildRawDataPageLink(linkText: string) {
 
 interface MetricOptions {
   name: string;
-  currentValue: number;
+  // If undefined, loading dots will be shown.
+  currentValue?: number;
   // If undefined or non-positive (i.e. invalid), no limits will be assumed.
   maximumValue?: number;
   unit?: string;
@@ -282,22 +279,37 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {
-    name,
-    currentValue,
-    maximumValue,
-    unit,
-    shouldHideLimits,
-    tooltipContent,
-    formatValue = (val) => val.toString(),
-  } = options;
-  const ratioUsed = currentValue / (maximumValue || Infinity);
-  const percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
+  const {name, tooltipContent} = options;
   return cssUsageMetric(
     cssMetricName(
       cssOverflowableText(name, testId('name')),
       tooltipContent ? infoTooltip(tooltipContent()) : null,
     ),
+    buildUsageProgressBar(options),
+    ...domArgs,
+  );
+}
+
+function buildUsageProgressBar(options: MetricOptions) {
+  const {
+    currentValue,
+    maximumValue,
+    shouldHideLimits,
+    unit,
+    formatValue = (n) => n.toString()
+  } = options;
+
+  let ratioUsed: number;
+  let percentUsed: number;
+  if (currentValue === undefined) {
+    ratioUsed = 0;
+    percentUsed = 0;
+  } else {
+    ratioUsed = currentValue / (maximumValue || Infinity);
+    percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
+  }
+
+  return [
     cssProgressBarContainer(
       cssProgressBarFill(
         {style: `width: ${percentUsed}%`},
@@ -309,13 +321,12 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
       ),
     ),
     dom('div',
-      formatValue(currentValue)
+      currentValue === undefined ? ['Loading ', cssLoadingDots()] : formatValue(currentValue)
         + (shouldHideLimits || !maximumValue ? '' : ' of ' + formatValue(maximumValue))
         + (unit ? ` ${unit}` : ''),
       testId('value'),
     ),
-    ...domArgs,
-  );
+  ];
 }
 
 function buildMessage(message: DomContents) {
@@ -418,4 +429,8 @@ const cssTooltipBody = styled('div', `
   display: flex;
   flex-direction: column;
   gap: 8px;
+`);
+
+const cssLoadingDots = styled(loadingDots, `
+  --dot-size: 8px;
 `);

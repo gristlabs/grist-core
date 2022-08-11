@@ -7,6 +7,7 @@ import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {buildTableName} from 'app/client/ui/WidgetTitle';
 import * as css from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
@@ -21,6 +22,9 @@ export class DataTables extends Disposable {
       return usage?.rowCount;
     }
   );
+
+  // TODO: Update this whenever the rest of the UI is internationalized.
+  private readonly _rowCountFormatter = new Intl.NumberFormat('en-US');
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -139,18 +143,19 @@ export class DataTables extends Disposable {
   }
 
   private _tableRows(table: TableRec) {
-    return cssTableRowsWrapper(
-      cssUpperCase("Rows: "),
-      cssTableRows(
-        testId('table-rows'),
-        dom.text(use => {
-          const rowCounts = use(this._rowCount);
-          if (typeof rowCounts !== 'object') { return ''; }
+    return dom.maybe(this._rowCount, (rowCounts) => {
+      if (rowCounts === 'hidden') { return null; }
 
-          return rowCounts[table.getRowId()]?.toString() ?? '';
-        }),
-      ),
-    );
+      return cssTableRowsWrapper(
+        cssUpperCase("Rows: "),
+        rowCounts === 'pending' ? cssLoadingDots() : cssTableRows(
+          rowCounts[table.getRowId()] !== undefined
+            ? this._rowCountFormatter.format(rowCounts[table.getRowId()])
+            : '',
+          testId('table-rows'),
+        )
+      );
+    });
   }
 }
 
@@ -284,4 +289,8 @@ const cssTableList = styled('div', `
   overflow-y: auto;
   position: relative;
   margin-bottom: 56px;
+`);
+
+const cssLoadingDots = styled(loadingDots, `
+  --dot-size: 6px;
 `);
