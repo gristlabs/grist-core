@@ -872,7 +872,14 @@ def UUID():
   This would only calculate UUID() once and freeze the calculated value. By contrast, a regular formula
   may get recalculated any time the document is reloaded, producing a different value for UUID() each time.
   """
-  if six.PY2:
-    return str(uuid.UUID(bytes=[chr(random.randrange(0, 256)) for _ in xrange(0, 16)], version=4))
-  else:
-    return str(uuid.UUID(bytes=bytes([random.randrange(0, 256) for _ in range(0, 16)]), version=4))
+  try:
+    uid = uuid.uuid4()
+  except Exception:
+    # Pynbox doesn't support the above because it doesn't support `os.urandom()`.
+    # Using the `random` module is less secure but should be OK.
+    if six.PY2:
+      byts = [chr(random.randrange(0, 256)) for _ in xrange(0, 16)]
+    else:
+      byts = bytes([random.randrange(0, 256) for _ in range(0, 16)])
+    uid = uuid.UUID(bytes=byts, version=4)
+  return str(uid)

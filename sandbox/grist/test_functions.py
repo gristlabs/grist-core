@@ -1,6 +1,8 @@
 import doctest
 import os
+import random
 import re
+import unittest
 
 import six
 
@@ -41,3 +43,40 @@ def load_tests(loader, tests, ignore):
                                       setUp = date_setUp, tearDown = date_tearDown))
   tests.addTests(doctest.DocTestSuite(functions.lookup, checker=Py23DocChecker()))
   return tests
+
+
+class TestUuid(unittest.TestCase):
+  def check_uuids(self, expected_unique):
+    uuids = set()
+    for _ in range(100):
+      random.seed(0)  # should make only 'fallback' UUIDs all the same
+      uuids.add(functions.UUID())
+
+    self.assertEqual(len(uuids), expected_unique)
+    for uid in uuids:
+      match = re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', uid)
+      self.assertIsNotNone(match, uid)
+
+  def test_standard_uuid(self):
+    # Test that uuid.uuid4() is used correctly.
+    # uuid.uuid4() shouldn't be affected by random.seed().
+    # Depending on the test environment, uuid.uuid4() may or may not actually be available.
+    try:
+      os.urandom(1)
+    except NotImplementedError:
+      expected_unique = 1
+    else:
+      expected_unique = 100
+
+    self.check_uuids(expected_unique)
+
+  def test_fallback_uuid(self):
+    # Test that our custom implementation with the `random` module works
+    # and is used when uuid.uuid4() is not available.
+    import uuid
+    v4 = uuid.uuid4
+    del uuid.uuid4
+    try:
+      self.check_uuids(1)  # because of the `random.seed(0)` in `check_uuids()`
+    finally:
+      uuid.uuid4 = v4
