@@ -1,5 +1,8 @@
 import copy
 import time
+
+import six
+
 import logger
 import objtypes
 import testutil
@@ -669,8 +672,20 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       ["id",  "A",  "B",  "C"],
       [1,     0,    0,    div_error(0)],
     ])
+    message = 'float division by zero'
+    if six.PY3:
+      message += """
+
+A `ZeroDivisionError` occurs when you are attempting to divide a value
+by zero either directly or by using some other mathematical operation.
+
+You are dividing by the following term
+
+    rec.A
+
+which is equal to zero."""
     self.assertFormulaError(self.engine.get_formula_error('Math', 'C', 1),
-                            ZeroDivisionError, 'float division by zero',
+                            ZeroDivisionError, message,
                             r"1/rec\.A \+ 1/rec\.B")
     self.update_record("Math", 1, A=1)
 
@@ -682,7 +697,6 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     ])
     error = self.engine.get_formula_error('Math', 'C', 1)
     self.assertFormulaError(error, ZeroDivisionError, 'float division by zero')
-    self.assertEqual(error._message, 'float division by zero')
     self.assertEqual(error.details, objtypes.RaisedException(ZeroDivisionError()).no_traceback().details)
 
 

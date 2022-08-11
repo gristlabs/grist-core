@@ -54,12 +54,33 @@ else:
                               TypeError, 'SQRT() takes exactly 1 argument (2 given)',
                               r"TypeError: SQRT\(\) takes exactly 1 argument \(2 given\)")
     else:
-      self.assertFormulaError(self.engine.get_formula_error('Math', 'excel_formula', 3),
-                              TypeError, 'SQRT() takes 1 positional argument but 2 were given',
-                              r"TypeError: SQRT\(\) takes 1 positional argument but 2 were given")
+      self.assertFormulaError(
+        self.engine.get_formula_error('Math', 'excel_formula', 3), TypeError,
+        'SQRT() takes 1 positional argument but 2 were given\n\n'
+        'A `TypeError` is usually caused by trying\n'
+        'to combine two incompatible types of objects,\n'
+        'by calling a function with the wrong type of object,\n'
+        'or by trying to do an operation not allowed on a given type of object.\n\n'
+        'You apparently have called the function `SQRT` with\n'
+        '2 positional argument(s) while it requires 1\n'
+        'such positional argument(s).',
+        r"TypeError: SQRT\(\) takes 1 positional argument but 2 were given",
+      )
 
+    int_not_iterable_message = "'int' object is not iterable"
+    if six.PY3:
+      int_not_iterable_message += (
+        '\n\n'
+        'A `TypeError` is usually caused by trying\n'
+        'to combine two incompatible types of objects,\n'
+        'by calling a function with the wrong type of object,\n'
+        'or by trying to do an operation not allowed on a given type of object.\n\n'
+        'An iterable is an object capable of returning its members one at a time.\n'
+        'Python containers (`list, tuple, dict`, etc.) are iterables.\n'
+        'An iterable is required here.'
+      )
     self.assertFormulaError(self.engine.get_formula_error('Math', 'built_in_formula', 3),
-                            TypeError, "'int' object is not iterable",
+                            TypeError, int_not_iterable_message,
                             textwrap.dedent(
                               r"""
                                 File "usercode", line \d+, in built_in_formula
@@ -68,8 +89,21 @@ else:
                               """
                             ))
 
+    if six.PY2:
+      message = "invalid syntax (usercode, line 5)"
+    else:
+      message = textwrap.dedent(
+        """\
+        invalid syntax
+
+        A `SyntaxError` occurs when Python cannot understand your code.
+
+        I am guessing that you wrote `:` by mistake.
+        Removing it and writing `return 0` seems to fix the error.
+
+         (usercode, line 5)""")
     self.assertFormulaError(self.engine.get_formula_error('Math', 'syntax_err', 3),
-                            SyntaxError, "invalid syntax (usercode, line 5)",
+                            SyntaxError, message,
                             textwrap.dedent(
                               r"""
                                 File "usercode", line 5
@@ -88,6 +122,7 @@ else:
         IndentationError: unexpected indent
         """
       )
+      message = 'unexpected indent (usercode, line 2)'
     else:
       traceback_regex = textwrap.dedent(
         r"""
@@ -96,12 +131,21 @@ else:
         IndentationError: unexpected indent
         """
       )
+      message = textwrap.dedent(
+        """\
+        unexpected indent
+
+        An `IndentationError` occurs when a given line of code is
+        not indented (aligned vertically with other lines) as expected.
+
+        Line `2` identified above is more indented than expected.
+
+         (usercode, line 2)""")
     self.assertFormulaError(self.engine.get_formula_error('Math', 'indent_err', 3),
-                            IndentationError, 'unexpected indent (usercode, line 2)',
-                            traceback_regex)
+                            IndentationError, message, traceback_regex)
 
     self.assertFormulaError(self.engine.get_formula_error('Math', 'other_err', 3),
-                            TypeError, "'int' object is not iterable",
+                            TypeError, int_not_iterable_message,
                             textwrap.dedent(
                               r"""
                                 File "usercode", line \d+, in other_err
@@ -350,9 +394,11 @@ else:
                             AttributeError, "Table 'AttrTest' has no column 'AA'",
                             r"AttributeError: Table 'AttrTest' has no column 'AA'")
     cell_error = self.engine.get_formula_error('AttrTest', 'C', 1)
-    self.assertFormulaError(cell_error,
-                            objtypes.CellError, "AttributeError in referenced cell AttrTest[1].B",
-                            r"CellError: AttributeError in referenced cell AttrTest\[1\].B")
+    self.assertFormulaError(
+      cell_error, objtypes.CellError,
+      "Table 'AttrTest' has no column 'AA'\n(in referenced cell AttrTest[1].B)",
+      r"CellError: AttributeError in referenced cell AttrTest\[1\].B",
+    )
     self.assertEqual(
       objtypes.encode_object(cell_error),
       ['E',

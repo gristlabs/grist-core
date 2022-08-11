@@ -208,18 +208,9 @@ def _is_special_table(table_id):
 
 
 def exec_module_text(module_text):
+  mod = imp.new_module(codebuilder.code_filename)
+  codebuilder.save_to_linecache(module_text)
+  code_obj = compile(module_text, codebuilder.code_filename, "exec")
   # pylint: disable=exec-used
-  filename = "usercode"
-  mod = imp.new_module(filename)
-
-  # Ensure that source lines show in tracebacks
-  linecache.cache[filename] = (
-    len(module_text),
-    None,
-    [line + '\n' for line in module_text.splitlines()],
-    filename,
-  )
-
-  code_obj = compile(module_text, filename, "exec")
   exec(code_obj, mod.__dict__)
   return mod

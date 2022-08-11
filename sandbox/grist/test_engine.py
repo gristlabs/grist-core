@@ -270,7 +270,7 @@ class EngineTestCase(unittest.TestCase):
   def assertFormulaError(self, exc, type_, message, tracebackRegexp=None):
     self.assertIsInstance(exc, objtypes.RaisedException)
     self.assertIsInstance(exc.error, type_)
-    self.assertEqual(str(exc.error), message)
+    self.assertEqual(exc._message, message)
     if tracebackRegexp:
       self.assertRegex(exc.details, tracebackRegexp)
 

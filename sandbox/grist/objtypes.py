@@ -15,9 +15,12 @@ import traceback
 from datetime import date, datetime
 from math import isnan
 
+import six
+
+import friendly_errors
 import moment
 import records
-import six
+import depend
 
 
 class UnmarshallableError(ValueError):
@@ -306,6 +309,10 @@ class RaisedException(object):
     if include_details:
       self.details = traceback.format_exc()
       self._message = str(error) + location
+      if not (isinstance(error, (SyntaxError, depend.CircularRefError)) or error != self.error):
+        # For SyntaxError, the friendly message was already added earlier.
+        # CircularRefError and CellError are Grist-specific and have no friendly message.
+        self._message += friendly_errors.friendly_message(error)
     elif isinstance(error, InvalidTypedValue):
       self._message = error.typename
       self.details = error.value

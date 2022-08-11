@@ -1,4 +1,13 @@
-astroid==2.5.7  # this is a difference between python 2 and 3, everything else is same
+# friendly-traceback and its dependencies, for python 3 only
+friendly-traceback==0.5.46
+stack-data==0.3.0
+executing==0.8.3
+pure-eval==0.2.2
+
+# Different astroid version for python 3
+astroid==2.5.7
+
+# Everything after this is the same for python 2 and 3
 asttokens==2.0.5
 backports.functools-lru-cache==1.6.4
 chardet==4.0.0

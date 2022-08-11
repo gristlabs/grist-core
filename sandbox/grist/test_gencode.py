@@ -71,9 +71,12 @@ class TestGenCode(unittest.TestCase):
     gcode.make_module(self.schema)
     generated = gcode.get_user_text()
     if six.PY3:
-      generated = generated.replace(
-         ", 'for a in b'))",
-        ", u'for a in b'))",
+      saved_sample = saved_sample.replace(
+        "raise SyntaxError('invalid syntax', ('usercode', 1, 11, u'for a in b'))",
+        "raise SyntaxError('invalid syntax\\n\\n"
+        "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n"
+        "You wrote a `for` loop but\\nforgot to add a colon `:` at the end\\n\\n', "
+        "('usercode', 1, 11, 'for a in b'))"
       )
     self.assertEqual(generated, saved_sample, "Generated code doesn't match sample:\n" +
                      "".join(difflib.unified_diff(generated.splitlines(True),

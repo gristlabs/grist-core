@@ -72,22 +72,44 @@ class TestCodeBuilder(unittest.TestCase):
                      "'''test1'''\nreturn \"\"\"test2\"\"\"")
 
     # Test that we produce valid code when "$foo" occurs in invalid places.
+    if six.PY2:
+      raise_code = "raise SyntaxError('invalid syntax', ('usercode', 1, 5, u'foo($bar=1)'))"
+    else:
+      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                    "('usercode', 1, 5, 'foo($bar=1)'))")
     self.assertEqual(make_body('foo($bar=1)'),
-                     "# foo($bar=1)\n"
-                     "raise SyntaxError('invalid syntax', ('usercode', 1, 5, %s'foo($bar=1)'))"
-                     % unicode_prefix)
+                     "# foo($bar=1)\n" + raise_code)
+
+    if six.PY2:
+      raise_code = ("raise SyntaxError('invalid syntax', "
+                    "('usercode', 1, 5, u'def $bar(): return 3'))")
+    else:
+      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                    "('usercode', 1, 5, 'def $bar(): return 3'))")
     self.assertEqual(make_body('def $bar(): return 3'),
-                     "# def $bar(): return 3\n"
-                     "raise SyntaxError('invalid syntax', "
-                     "('usercode', 1, 5, %s'def $bar(): return 3'))"
-                     % unicode_prefix)
+                     "# def $bar(): return 3\n" + raise_code)
 
     # If $ is a syntax error, we don't want to turn it into a different syntax error.
+    if six.PY2:
+      raise_code = ("raise SyntaxError('invalid syntax', "
+                    "('usercode', 1, 17, u'$foo + (\"$%.2f\" $ ($17.5))'))")
+    else:
+      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                    "('usercode', 1, 17, '$foo + (\"$%.2f\" $ ($17.5))'))")
     self.assertEqual(make_body('$foo + ("$%.2f" $ ($17.5))'),
-                     '# $foo + ("$%.2f" $ ($17.5))\n'
-                     "raise SyntaxError('invalid syntax', "
-                     "('usercode', 1, 17, {}'$foo + (\"$%.2f\" $ ($17.5))'))"
-                     .format(unicode_prefix))
+                     '# $foo + ("$%.2f" $ ($17.5))\n' + raise_code)
+
+    if six.PY2:
+      raise_code = "raise SyntaxError('invalid syntax', ('usercode', 4, 10, u'  return $ bar'))"
+    else:
+      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n"
+                    "I am guessing that you wrote `$` by mistake.\\n"
+                    "Removing it and writing `return  bar` seems to fix the error.\\n\\n', "
+                    "('usercode', 4, 10, '  return $ bar'))")
     self.assertEqual(make_body('if $foo:\n' +
                                '  return $foo\n' +
                                'else:\n' +
@@ -96,8 +118,7 @@ class TestCodeBuilder(unittest.TestCase):
                      '#   return $foo\n' +
                      '# else:\n' +
                      '#   return $ bar\n' +
-                     "raise SyntaxError('invalid syntax', ('usercode', 4, 10, %s'  return $ bar'))"
-                     % unicode_prefix)
+                     raise_code)
 
     # Check for reasonable behaviour with non-empty text and no statements.
     self.assertEqual(make_body('# comment'), '# comment\npass')

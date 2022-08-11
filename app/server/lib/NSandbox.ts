@@ -5,15 +5,20 @@ import {arrayToString} from 'app/common/arrayToString';
 import * as marshal from 'app/common/marshal';
 import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
-import {DirectProcessControl, ISandboxControl, NoProcessControl, ProcessInfo,
-        SubprocessControl} from 'app/server/lib/SandboxControl';
+import {
+  DirectProcessControl,
+  ISandboxControl,
+  NoProcessControl,
+  ProcessInfo,
+  SubprocessControl
+} from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
 import {ChildProcess, spawn} from 'child_process';
+import * as fs from 'fs';
+import * as _ from 'lodash';
 import * as path from 'path';
 import {Stream, Writable} from 'stream';
-import * as _ from 'lodash';
-import * as fs from 'fs';
 import * as which from 'which';
 
 type SandboxMethod = (...args: any[]) => any;
@@ -570,15 +575,9 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // Check for local virtual environments created with core's
   // install:python2 or install:python3 targets. They'll need
   // some extra sharing to make available in the sandbox.
-  // This appears to currently be incompatible with checkpoints?
-  // Shares and checkpoints interact delicately because the file
-  // handle layout/ordering needs to remain exactly the same.
-  // Fixable no doubt, but for now I just disable this convenience
-  // if checkpoints are in use.
   const venv = path.join(process.cwd(),
                          pythonVersion === '2' ? 'venv' : 'sandbox_venv3');
-  const useCheckpoint = process.env.GRIST_CHECKPOINT && !paths.importDir;
-  if (fs.existsSync(venv) && !useCheckpoint) {
+  if (fs.existsSync(venv)) {
     wrapperArgs.addMount(venv);
     wrapperArgs.push('-s', path.join(venv, 'bin', 'python'));
   }
@@ -589,7 +588,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // between the checkpoint and how it gets used later).
   // If a sandbox is being used for import, it will have a special mount we can't
   // deal with easily right now. Should be possible to do in future if desired.
-  if (options.useGristEntrypoint && pythonVersion === '3' && useCheckpoint) {
+  if (options.useGristEntrypoint && pythonVersion === '3' && process.env.GRIST_CHECKPOINT && !paths.importDir) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
