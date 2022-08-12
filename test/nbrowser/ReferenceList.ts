@@ -298,6 +298,9 @@ describe('ReferenceList', function() {
     });
 
     it('should allow entering numeric id before target table is loaded', async function() {
+      if (server.isExternalServer()) {
+        this.skip();
+      }
       // Refresh the document.
       await driver.navigate().refresh();
       await gu.waitForDocToLoad();
