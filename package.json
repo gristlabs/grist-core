@@ -12,7 +12,7 @@
     "install:python3": "buildtools/prepare_python3.sh",
     "build:prod": "buildtools/build.sh",
     "start:prod": "sandbox/run.sh",
-    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha -g ${GREP_TEST:-''} _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
+    "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha -g ${GREP_TESTS:-''} _build/test/nbrowser/*.js _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:smoke": "NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",

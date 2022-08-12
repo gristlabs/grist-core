@@ -176,6 +176,9 @@ export class TestServerMerged implements IMochaServer {
    * request takes a long time.
    */
   public async pauseUntil(callback: () => Promise<void>) {
+    if (this.isExternalServer()) {
+      throw new Error("Can't pause external server");
+    }
     log.info("Pausing node server");
     this._server.kill('SIGSTOP');
     try {
