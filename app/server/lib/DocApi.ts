@@ -601,12 +601,17 @@ export class DocWorkerApi {
     // is freed up for reassignment, otherwise false.
     //
     // Optionally accepts a `group` query param for updating the document's group prior
-    // to (possible) reassignment. (Note: Requires special permit.)
+    // to (possible) reassignment. A blank string unsets the current group, if any.
+    // (Requires a special permit.)
     this._app.post('/api/docs/:docId/assign', canEdit, throttled(async (req, res) => {
       const docId = getDocId(req);
       const group = optStringParam(req.query.group);
-      if (group && req.specialPermit?.action === 'assign-doc') {
-        await this._docWorkerMap.updateDocGroup(docId, group);
+      if (group !== undefined && req.specialPermit?.action === 'assign-doc') {
+        if (group.trim() === '') {
+          await this._docWorkerMap.removeDocGroup(docId);
+        } else {
+          await this._docWorkerMap.updateDocGroup(docId, group);
+        }
       }
       const status = await this._docWorkerMap.getDocWorker(docId);
       if (!status) { res.json(false); return; }

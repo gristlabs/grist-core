@@ -166,12 +166,12 @@ export class Housekeeper {
     // actions.
     //
     // Optionally accepts a `group` query param for updating the document's group prior
-    // to moving. This is useful for controlling which worker group the document is assigned
-    // a worker from.
+    // to moving. A blank string unsets the current group, if any. This is useful for controlling
+    // which worker group the document is assigned a worker from.
     app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (req, docId, headers) => {
       const url = new URL(await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`));
       const group = optStringParam(req.query.group);
-      if (group) { url.searchParams.set('group', group); }
+      if (group !== undefined) { url.searchParams.set('group', group); }
       return fetch(url.toString(), {
         method: 'POST',
         headers,
