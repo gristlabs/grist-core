@@ -3,7 +3,7 @@
 # This runs browser tests with the server started using docker, to
 # catch any configuration problems.
 # Run with MOCHA_WEBDRIVER_HEADLESS=1 for headless operation.
-# Run with VERBOSE=1 for server logs.
+# Run with DEBUG=1 for server logs.
 
 # Settings for script robustness
 set -o pipefail  # trace ERR through pipes
@@ -28,11 +28,18 @@ cleanup() {
   exit $return_value
 }
 
+GRIST_LOG_LEVEL="error"
+if [[ "${DEBUG:-}" == 1 ]]; then
+  GRIST_LOG_LEVEL=""
+fi
+
 docker run --name $DOCKER_CONTAINER --rm \
-  --env VERBOSE=${VERBOSE:-} \
+  --env VERBOSE=${DEBUG:-} \
   -p $PORT:$PORT --env PORT=$PORT \
   --env GRIST_SESSION_COOKIE=grist_test_cookie \
   --env GRIST_TEST_LOGIN=1 \
+  --env GRIST_LOG_LEVEL=$GRIST_LOG_LEVEL \
+  --env GRIST_LOG_SKIP_HTTP=${DEBUG:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   ${TEST_IMAGE:-gristlabs/grist} &
 
@@ -45,10 +52,16 @@ while true; do
 done
 echo ""
 echo "[server found]"
+MOCHA=mocha
+# Test if we have mocha available as a command
+if ! type $MOCHA > /dev/null 2>&1; then
+  echo "Mocha not found, using from ./node_modules/.bin/mocha"
+  MOCHA=./node_modules/.bin/mocha
+fi
 
 TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   HOME_URL=http://localhost:8585 \
   GRIST_SESSION_COOKIE=grist_test_cookie \
   GRIST_TEST_LOGIN=1 \
   NODE_PATH=_build:_build/stubs \
-  mocha _build/test/nbrowser/*.js "$@"
+  $MOCHA _build/test/nbrowser/*.js -g ${GREP_TESTS:-''} "$@"

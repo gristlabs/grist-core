@@ -607,8 +607,6 @@ export class ActiveDocImport {
     const srcColIds = srcCols.map(c => c.id as string);
 
     for (const {id, fields} of targetCols) {
-      if (fields.isFormula === true || fields.formula !== '') { continue; }
-
       destCols.push({
         colId: destTableId ? id as string : null,
         label: fields.label as string,
