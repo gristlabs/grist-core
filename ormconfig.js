@@ -1,7 +1,7 @@
 // Cache configuration for typeorm does not seem available via ormconfig.env, so
 // we use ormconfig.js style.
 
-const {codeRoot} = require('app/server/lib/places');
+const {codeRoot} = require('./_build/app/server/lib/places');
 
 module.exports = {
   "name": process.env.TYPEORM_NAME || "default",

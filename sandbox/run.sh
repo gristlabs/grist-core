@@ -7,4 +7,4 @@ if [[ "$GRIST_SANDBOX_FLAVOR" = "gvisor" ]]; then
   source ./sandbox/gvisor/get_checkpoint_path.sh
 fi
 
-NODE_PATH=_build:_build/stubs:_build/ext node _build/stubs/app/server/server.js
+node _build/stubs/app/server/server.js

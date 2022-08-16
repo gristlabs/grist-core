@@ -9,7 +9,7 @@ if [[ -e ext/app ]]; then
 fi
 
 set -x
-tsc --build $PROJECT
+tsc --build $PROJECT && resolve-tspaths
 webpack --config buildtools/webpack.config.js --mode production
 webpack --config buildtools/webpack.check.js --mode production
 cat app/client/*.css app/client/*/*.css > static/bundle.css

@@ -72,6 +72,7 @@
     "moment-locales-webpack-plugin": "^1.2.0",
     "nodemon": "^2.0.4",
     "otplib": "12.0.1",
+    "resolve-tspaths": "0.7.4",
     "selenium-webdriver": "3.6.0",
     "sinon": "7.1.1",
     "source-map-loader": "^0.2.4",

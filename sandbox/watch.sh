@@ -12,8 +12,8 @@ if [ ! -e _build ]; then
   buildtools/build.sh
 fi
 
-tsc --build -w --preserveWatchOutput $PROJECT &
+tsc --build -w --preserveWatchOutput $PROJECT && resolve-tspaths &
 catw app/client/*.css app/client/*/*.css -o static/bundle.css -v & webpack --config buildtools/webpack.config.js --mode development --watch &
-NODE_PATH=_build:_build/stubs:_build/ext nodemon --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
+nodemon --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
 
 wait
