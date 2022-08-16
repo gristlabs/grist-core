@@ -164,12 +164,16 @@ function getPageMetadataHtmlSnippet(config: GristLoadConfig): string {
   if (description) {
     const content = handlebars.Utils.escapeExpression(description);
     metadataElements.push(`<meta name="description" content="${content}">`);
+    metadataElements.push(`<meta property="og:description" content="${content}">`);
+    metadataElements.push(`<meta name="twitter:description" content="${content}">`);
   }
 
-  const thumbnail = maybeDoc?.options?.icon;
-  if (thumbnail) {
-    const content = handlebars.Utils.escapeExpression(thumbnail);
+  const icon = maybeDoc?.options?.icon;
+  if (icon) {
+    const content = handlebars.Utils.escapeExpression(icon);
     metadataElements.push(`<meta name="thumbnail" content="${content}">`);
+    metadataElements.push(`<meta property="og:image" content="${content}">`);
+    metadataElements.push(`<meta name="twitter:image" content="${content}">`);
   }
 
   return metadataElements.join('\n');
