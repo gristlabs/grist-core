@@ -37,6 +37,7 @@ import * as fse from 'fs-extra';
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
 };
+setDefaultEnv('PORT', String(G.port));
 
 // Set a default for an environment variable.
 function setDefaultEnv(name: string, value: string) {
