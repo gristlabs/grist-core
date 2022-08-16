@@ -19,7 +19,7 @@ from sortedcontainers import SortedSet
 import acl
 import actions
 import action_obj
-from autocomplete_context import AutocompleteContext
+from autocomplete_context import AutocompleteContext, lookup_autocomplete_options
 from codebuilder import DOLLAR_REGEX
 import depend
 import docactions
@@ -1418,12 +1418,33 @@ class Engine(object):
     """
     Return a list of suggested completions of the python fragment supplied.
     """
+    table = self.tables[table_id]
+
+    # Table.lookup methods are special to suggest arguments after '('
+    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\($", txt)
+    if match:
+      # Get the 'Table1' in 'Table1.lookupRecords('
+      lookup_table_id = match.group(1)
+      if lookup_table_id in self.tables:
+        lookup_table = self.tables[lookup_table_id]
+        # Add a keyword argument with no value for each column name in the lookup table.
+        result = [
+          txt + col_id + "="
+          for col_id in lookup_table.all_columns
+          if column.is_user_column(col_id) or col_id == 'id'
+        ]
+        # Add specific complete lookups involving reference columns.
+        result += [
+          txt + option
+          for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
+        ]
+        return sorted(result)
+
     # replace $ with rec. and add a dummy rec object
     tweaked_txt = DOLLAR_REGEX.sub(r'rec.', txt)
     # convert a bare $ with nothing after it also
     if txt == '$':
       tweaked_txt = 'rec.'
-    table = self.tables[table_id]
 
     autocomplete_context = self.autocomplete_context
     context = autocomplete_context.get_context()
@@ -1433,10 +1454,10 @@ class Engine(object):
     context.pop('value', None)
     context.pop('user', None)
 
-    column = table.get_column(column_id) if table.has_column(column_id) else None
-    if column and not column.is_formula():
+    col = table.get_column(column_id) if table.has_column(column_id) else None
+    if col and not col.is_formula():
       # Add trigger formula completions.
-      context['value'] = column.sample_value()
+      context['value'] = col.sample_value()
       context['user'] = User(user, self.tables, is_sample=True)
 
     completer = rlcompleter.Completer(context)
@@ -1450,7 +1471,19 @@ class Engine(object):
         break
       if skipped_completions.search(result):
         continue
-      results.append(autocomplete_context.process_result(result))
+      result = autocomplete_context.process_result(result)
+      results.append(result)
+      funcname = result[0]
+      # Suggest reverse reference lookups, specifically only for .lookupRecords(),
+      # not for .lookupOne().
+      if isinstance(result, tuple) and funcname.endswith(".lookupRecords"):
+        lookup_table_id = funcname.split(".")[0]
+        if lookup_table_id in self.tables:
+          lookup_table = self.tables[lookup_table_id]
+          results += [
+            funcname + "(" + option
+            for option in lookup_autocomplete_options(lookup_table, table, reverse_only=True)
+          ]
 
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
     if tweaked_txt != txt:

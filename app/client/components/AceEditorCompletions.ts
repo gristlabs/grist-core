@@ -27,6 +27,40 @@ export function setupAceEditorCompletions(editor: ace.Editor, options: ICompleti
   completer.autoSelect = false;
   (editor as any).completer = completer;
 
+  // Patch updateCompletions and insertMatch so that fresh completions are fetched when the user types '.' or '('
+  const originalUpdate = completer.updateCompletions.bind(completer);
+  completer.updateCompletions = function(this: any, keepPopupPosition: boolean) {
+    // The next three lines are copied from updateCompletions() in the ace autocomplete source code.
+    if (keepPopupPosition && this.base && this.completions) {
+      const pos = this.editor.getCursorPosition();
+      const prefix = this.editor.session.getTextRange({start: this.base, end: pos});
+      // If the cursor is just after '.' or '(', prevent this same block from running
+      // in the original updateCompletions() function. Otherwise it will just keep any remaining completions that match,
+      // or not show any completions at all.
+      // But the last character implies that the set of completions is likely to have changed.
+      if (prefix.endsWith(".") || prefix.endsWith("(")) {
+        this.completions = null;
+      }
+    }
+    return originalUpdate(keepPopupPosition);
+  }.bind(completer);
+
+  // Similar patch to the above.
+  const originalInsertMatch = completer.insertMatch.bind(completer);
+  completer.insertMatch = function(this: any) {
+    const base = this.base;  // this.base may become null after the next line, save it now.
+    const result = originalInsertMatch.apply(...arguments);
+    // Like in the above patch, get the current text in the editor to be completed.
+    const pos = this.editor.getCursorPosition();
+    const prefix = this.editor.session.getTextRange({start: base, end: pos});
+    // This patch is specifically for when a previous completion is inserted by pressing Enter/Tab,
+    // and such completions may end in '(', which can lead to more completions, e.g. for `.lookupRecords(`.
+    if (prefix.endsWith("(")) {
+      this.showPopup(this.editor);
+    }
+    return result;
+  }.bind(completer);
+
   aceCompleterAddHelpLinks(completer);
 
   // Explicitly destroy the auto-completer on disposal, since it doesn't not remove the element
@@ -55,8 +89,9 @@ function initCustomCompleter() {
   aceLanguageTools.addCompleter({
     // Default regexp stops at periods, which doesn't let autocomplete
     // work on members.  So we expand it to include periods.
-    // We also include $, which grist uses for column names.
-    identifierRegexps: [/[a-zA-Z_0-9.$\u00A2-\uFFFF]/],
+    // We also include $, which grist uses for column names,
+    // and '(' for the start of a function call, which may provide completions for arguments.
+    identifierRegexps: [/[a-zA-Z_0-9.$\u00A2-\uFFFF(]/],
 
     // For autocompletion we ship text to the sandbox and run standard completion there.
     async getCompletions(editor: ace.Editor, session: ace.IEditSession, pos: number, prefix: string, callback: any) {

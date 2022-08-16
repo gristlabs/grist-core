@@ -20,7 +20,8 @@ class TestCompletion(test_engine.EngineTestCase):
     self.load_sample(testsamples.sample_students)
 
     # To test different column types, we add some differently-typed columns to the sample.
-    self.add_column('Students', 'school', type='Ref:Schools')
+    self.add_column('Students', 'school', type='Ref:Schools', visibleCol=10)
+    self.add_column('Students', 'homeAddress', type='Ref:Address', visibleCol=21)
     self.add_column('Students', 'birthDate', type='Date')
     self.add_column('Students', 'lastVisit', type='DateTime:America/New_York')
     self.add_column('Schools', 'yearFounded', type='Int')
@@ -102,10 +103,13 @@ class TestCompletion(test_engine.EngineTestCase):
       [
         'user.StudentInfo.birthDate',
         'user.StudentInfo.firstName',
+        'user.StudentInfo.homeAddress',
+        'user.StudentInfo.homeAddress.city',
         'user.StudentInfo.id',
         'user.StudentInfo.lastName',
         'user.StudentInfo.lastVisit',
         'user.StudentInfo.school',
+        'user.StudentInfo.school.name',
         'user.StudentInfo.schoolCities',
         'user.StudentInfo.schoolIds',
         'user.StudentInfo.schoolName'
@@ -164,8 +168,15 @@ class TestCompletion(test_engine.EngineTestCase):
       ('STDEVP', '(value, *more_values)', True),
       ('STDEVPA', '(value, *more_values)', True)
     ])
-    self.assertEqual(self.engine.autocomplete("stu", "Address", "city", self.user),
-        ["Students"])
+    self.assertEqual(
+      self.engine.autocomplete("stu", "Address", "city", self.user),
+      [
+        'Students',
+        ('Students.lookupOne', '(colName=<value>, ...)', True),
+        ('Students.lookupRecords', '(colName=<value>, ...)', True),
+        'Students.lookupRecords(homeAddress=$id)',
+      ],
+    )
 
     # Add a table name whose lowercase version conflicts with a builtin.
     self.apply_user_action(['AddTable', 'Max', []])
@@ -173,6 +184,8 @@ class TestCompletion(test_engine.EngineTestCase):
       ('MAX', '(value, *more_values)', True),
       ('MAXA', '(value, *more_values)', True),
       'Max',
+      ('Max.lookupOne', '(colName=<value>, ...)', True),
+      ('Max.lookupRecords', '(colName=<value>, ...)', True),
       'max(',
     ])
     self.assertEqual(self.engine.autocomplete("MAX", "Address", "city", self.user), [
@@ -185,7 +198,14 @@ class TestCompletion(test_engine.EngineTestCase):
     # Should suggest globals and table names.
     self.assertEqual(self.engine.autocomplete("ME", "Address", "city", self.user),
         [('MEDIAN', '(value, *more_values)', True)])
-    self.assertEqual(self.engine.autocomplete("Ad", "Address", "city", self.user), ['Address'])
+    self.assertEqual(
+      self.engine.autocomplete("Ad", "Address", "city", self.user),
+      [
+        'Address',
+        ('Address.lookupOne', '(colName=<value>, ...)', True),
+        ('Address.lookupRecords', '(colName=<value>, ...)', True),
+      ],
+    )
     self.assertGreaterEqual(set(self.engine.autocomplete("S", "Address", "city", self.user)), {
       'Schools',
       'Students',
@@ -199,7 +219,14 @@ class TestCompletion(test_engine.EngineTestCase):
       ('SUM', '(value1, *more_values)', True),
       ('STDEV', '(value, *more_values)', True),
     })
-    self.assertEqual(self.engine.autocomplete("Addr", "Schools", "budget", self.user), ['Address'])
+    self.assertEqual(
+      self.engine.autocomplete("Addr", "Schools", "budget", self.user),
+      [
+        'Address',
+        ('Address.lookupOne', '(colName=<value>, ...)', True),
+        ('Address.lookupRecords', '(colName=<value>, ...)', True),
+      ],
+    )
 
   def test_suggest_columns(self):
     self.assertEqual(self.engine.autocomplete("$ci", "Address", "city", self.user),
@@ -211,12 +238,13 @@ class TestCompletion(test_engine.EngineTestCase):
 
     # A few more detailed examples.
     self.assertEqual(self.engine.autocomplete("$", "Students", "school", self.user),
-                     ['$birthDate', '$firstName', '$id', '$lastName', '$lastVisit',
-                      '$school', '$schoolCities', '$schoolIds', '$schoolName'])
+                     ['$birthDate', '$firstName', '$homeAddress', '$homeAddress.city',
+                      '$id', '$lastName', '$lastVisit',
+                      '$school', '$school.name', '$schoolCities', '$schoolIds', '$schoolName'])
     self.assertEqual(self.engine.autocomplete("$fi", "Students", "birthDate", self.user),
                      ['$firstName'])
     self.assertEqual(self.engine.autocomplete("$school", "Students", "lastVisit", self.user),
-        ['$school', '$schoolCities', '$schoolIds', '$schoolName'])
+        ['$school', '$school.name', '$schoolCities', '$schoolIds', '$schoolName'])
 
   def test_suggest_lookup_methods(self):
     # Should suggest lookup formulas for tables.
@@ -304,4 +332,124 @@ class TestCompletion(test_engine.EngineTestCase):
     self.assertEqual(
       self.engine.autocomplete("$school.address.city.st", "Students", "lastName", self.user),
       ['$school.address.city.startswith(', '$school.address.city.strip(']
+    )
+
+  def test_suggest_lookup_early(self):
+    # For part of a table name, suggest lookup methods early,
+    # including a 'reverse reference' lookup, i.e. `<refcol to current table>=$id`,
+    # but only for `lookupRecords`, not `lookupOne`.
+    self.assertEqual(
+      self.engine.autocomplete("stu", "Schools", "name", self.user),
+      [
+        'Students',
+        ('Students.lookupOne', '(colName=<value>, ...)', True),
+        ('Students.lookupRecords', '(colName=<value>, ...)', True),
+        # i.e. Students.school is a reference to Schools
+        'Students.lookupRecords(school=$id)',
+      ],
+    )
+    self.assertEqual(
+      self.engine.autocomplete("scho", "Address", "city", self.user),
+      [
+        'Schools',
+        ('Schools.lookupOne', '(colName=<value>, ...)', True),
+        ('Schools.lookupRecords', '(colName=<value>, ...)', True),
+        # i.e. Schools.address is a reference to Address
+        'Schools.lookupRecords(address=$id)',
+      ],
+    )
+
+    # Same as above, but the formula is being entered in 'Students' instead of 'Address',
+    # which means there's no reverse reference to suggest.
+    self.assertEqual(
+      self.engine.autocomplete("scho", "Students", "firstName", self.user),
+      [
+        'Schools',
+        ('Schools.lookupOne', '(colName=<value>, ...)', True),
+        ('Schools.lookupRecords', '(colName=<value>, ...)', True),
+      ],
+    )
+
+  def test_suggest_lookup_arguments(self):
+    # Typing in the full `.lookupRecords(` should suggest keyword argument (i.e. column) names,
+    # in addition to reference lookups, including the reverse reference lookups above.
+    self.assertEqual(
+      self.engine.autocomplete("Schools.lookupRecords(", "Address", "city", self.user),
+      [
+        'Schools.lookupRecords(address=',
+        'Schools.lookupRecords(address=$id)',
+        'Schools.lookupRecords(budget=',
+        'Schools.lookupRecords(id=',
+        'Schools.lookupRecords(lastModified=',
+        'Schools.lookupRecords(lastModifier=',
+        'Schools.lookupRecords(name=',
+        'Schools.lookupRecords(yearFounded=',
+      ],
+    )
+
+    # In addition to reverse reference lookups, suggest other lookups involving two reference
+    # columns (one from the looked up table, one from the current table) targeting the same table,
+    # e.g. `address=$homeAddress` in the two cases below.
+    self.assertEqual(
+      self.engine.autocomplete("Schools.lookupRecords(", "Students", "firstName", self.user),
+      [
+        'Schools.lookupRecords(address=',
+        'Schools.lookupRecords(address=$homeAddress)',
+        'Schools.lookupRecords(budget=',
+        'Schools.lookupRecords(id=',
+        'Schools.lookupRecords(lastModified=',
+        'Schools.lookupRecords(lastModifier=',
+        'Schools.lookupRecords(name=',
+        'Schools.lookupRecords(yearFounded=',
+      ],
+    )
+
+    self.assertEqual(
+      self.engine.autocomplete("Students.lookupRecords(", "Schools", "name", self.user),
+      [
+        'Students.lookupRecords(birthDate=',
+        'Students.lookupRecords(firstName=',
+        'Students.lookupRecords(homeAddress=',
+        'Students.lookupRecords(homeAddress=$address)',
+        'Students.lookupRecords(id=',
+        'Students.lookupRecords(lastName=',
+        'Students.lookupRecords(lastVisit=',
+        'Students.lookupRecords(school=',
+        'Students.lookupRecords(school=$id)',
+        'Students.lookupRecords(schoolCities=',
+        'Students.lookupRecords(schoolIds=',
+        'Students.lookupRecords(schoolName=',
+      ],
+    )
+
+    # Add some more reference columns to test that all combinations are offered
+    self.add_column('Students', 'homeAddress2', type='Ref:Address')
+    self.add_column('Schools', 'address2', type='Ref:Address')
+    # This leads to `Students.lookupRecords(moreAddresses=CONTAINS($address[2]))`
+    self.add_column('Students', 'moreAddresses', type='RefList:Address')
+    # This doesn't affect anything, because there's no way to do the opposite of CONTAINS()
+    self.add_column('Schools', 'otherAddresses', type='RefList:Address')
+    self.assertEqual(
+      self.engine.autocomplete("Students.lookupRecords(", "Schools", "name", self.user),
+      [
+        'Students.lookupRecords(birthDate=',
+        'Students.lookupRecords(firstName=',
+        'Students.lookupRecords(homeAddress2=',
+        'Students.lookupRecords(homeAddress2=$address)',
+        'Students.lookupRecords(homeAddress2=$address2)',
+        'Students.lookupRecords(homeAddress=',
+        'Students.lookupRecords(homeAddress=$address)',
+        'Students.lookupRecords(homeAddress=$address2)',
+        'Students.lookupRecords(id=',
+        'Students.lookupRecords(lastName=',
+        'Students.lookupRecords(lastVisit=',
+        'Students.lookupRecords(moreAddresses=',
+        'Students.lookupRecords(moreAddresses=CONTAINS($address))',
+        'Students.lookupRecords(moreAddresses=CONTAINS($address2))',
+        'Students.lookupRecords(school=',
+        'Students.lookupRecords(school=$id)',
+        'Students.lookupRecords(schoolCities=',
+        'Students.lookupRecords(schoolIds=',
+        'Students.lookupRecords(schoolName=',
+      ],
     )

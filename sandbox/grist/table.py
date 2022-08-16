@@ -18,22 +18,6 @@ import usertypes
 log = logger.Logger(__name__, logger.INFO)
 
 
-def _make_sample_record(table_id, col_objs):
-  """
-  Helper to create a sample record for a table, used for auto-completions.
-  """
-  # This type gets created with a property for each column. We use property-methods rather than
-  # plain properties because this sample record is created before all tables have initialized, so
-  # reference values (using .sample_record for other tables) are not yet available.
-  RecType = type(table_id, (), {
-    # Note col=col to bind col at lambda-creation time; see
-    # https://stackoverflow.com/questions/10452770/python-lambdas-binding-to-local-values
-    col.col_id: property(lambda self, col=col: col.sample_value())
-    for col in col_objs
-    if column.is_user_column(col.col_id) or col.col_id == 'id'
-  })
-  return RecType()
-
 def get_default_func_name(col_id):
   return "_default_" + col_id
 
@@ -252,10 +236,33 @@ class Table(object):
     """
     Used for auto-completion as a record with correct properties of correct types.
     """
-    return _make_sample_record(
-      self.table_id,
-      [col for col_id, col in self.all_columns.items() if col_id not in self._special_cols],
-    )
+    # Create a type with a property for each column. We use property-methods rather than
+    # plain attributes because this sample record is created before all tables have initialized, so
+    # reference values (using .sample_record for other tables) are not yet available.
+    props = {}
+    for col in self.all_columns.values():
+      if not (column.is_user_column(col.col_id) or col.col_id == 'id'):
+        continue
+      # Note c=col to bind at lambda-creation time; see
+      # https://stackoverflow.com/questions/10452770/python-lambdas-binding-to-local-values
+      props[col.col_id] = property(lambda _self, c=col: c.sample_value())
+      if col.col_id == 'id':
+        # The column lookup below doesn't work for the id column
+        continue
+      # For columns with a visible column (i.e. most Reference/ReferenceList columns),
+      # we also want to show how to get that visible column instead of the 'raw' record
+      # returned by the reference column itself.
+      col_rec = self._engine.docmodel.get_column_rec(self.table_id, col.col_id)
+      visible_col_id = col_rec.visibleCol.colId
+      if visible_col_id:
+        # This creates a fake attribute like `RefCol.VisibleCol` which isn't valid syntax normally,
+        # to show the `.VisibleCol` part before the user has typed the `.`
+        props[col.col_id + "." + visible_col_id] = property(
+          lambda _self, c=col, v=visible_col_id: getattr(c.sample_value(), v)
+        )
+
+    RecType = type(self.table_id, (), props)
+    return RecType()
 
   def _rebuild_model(self, user_table):
     """
