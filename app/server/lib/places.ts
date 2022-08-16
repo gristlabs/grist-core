@@ -7,8 +7,10 @@ import * as path from 'path';
 /**
  * codeRoot is the directory containing ./app with all the JS code.
  */
-export const codeRoot = path.dirname(path.dirname(path.dirname(__dirname)));
-
+export const codeRoot = path.dirname(path.dirname(path.dirname(convertWinPath(__dirname))));
+function convertWinPath(winPath: string) {
+  return winPath.replace(/^\\\\\?\\/, "").replace(/\\/g, '\/').replace(/\/\/+/g, '\/');
+}
 /**
  * Returns the appRoot, i.e. the directory containing ./sandbox, ./node_modules, ./ormconfig.js,
  * etc.
@@ -25,8 +27,9 @@ export function getAppRoot(): string {
  * which is that .asar file in packaged form, and returns a directory where
  * remaining files are available on the regular filesystem.
  */
-export function getUnpackedAppRoot(appRoot: string): string {
-  return path.resolve(path.dirname(appRoot), path.basename(appRoot, '.asar'));
+export function getUnpackedAppRoot(appRoot: string = getAppRoot()): string {
+  if (path.basename(appRoot) == 'app.asar') return path.resolve(path.dirname(appRoot), 'app.asar.unpacked');
+  return appRoot
 }
 
 /**

@@ -683,7 +683,7 @@ export class FlexServer implements GristServer {
     this.addOrg();
 
     // Create the sessionStore and related objects.
-    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(this.instanceRoot, this);
+    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(getUnpackedAppRoot(this.appRoot), this);
     this.app.use(sessionMiddleware);
     this.app.use(signInStatusMiddleware);
 

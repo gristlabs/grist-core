@@ -1,3 +1,7 @@
+/dist/
+/docs/
+/sandbox_venv3/
+/winpython/
 /node_modules/
 /_build/
 /static/*.bundle.js

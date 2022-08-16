@@ -7,8 +7,14 @@
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
+import * as places from 'app/server/lib/places';
+import path from 'path';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
+
+setDefaultEnv('TYPEORM_DATABASE', path.resolve(places.getUnpackedAppRoot(), 'landing.db'));
+setDefaultEnv('GRIST_SANDBOX', path.resolve(places.getUnpackedAppRoot(),'sandbox_venv3/Scripts/python.exe'));
+setDefaultEnv('GRIST_SANDBOX_FLAVOR', 'unsandboxed');
 
 // Set log levels before importing anything.
 if (!debugging) {
