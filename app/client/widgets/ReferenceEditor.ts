@@ -1,4 +1,4 @@
-import { ACResults, buildHighlightedDom, cleanText as clean, HighlightFunc } from 'app/client/lib/ACIndex';
+import { ACResults, buildHighlightedDom, normalizeText, HighlightFunc } from 'app/client/lib/ACIndex';
 import { Autocomplete } from 'app/client/lib/autocomplete';
 import { ICellItem } from 'app/client/models/ColumnACIndexes';
 import { reportError } from 'app/client/models/errors';
@@ -115,7 +115,7 @@ export class ReferenceEditor extends NTextEditor {
     this._showAddNew = false;
     if (!this._enableAddNew || !text) { return result; }
 
-    const cleanText = clean(text);
+    const cleanText = normalizeText(text);
     if (result.items.find((item) => item.cleanText === cleanText)) {
       return result;
     }

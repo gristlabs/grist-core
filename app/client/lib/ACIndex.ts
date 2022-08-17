@@ -21,7 +21,7 @@ export interface ACItem {
 // Returns a trimmed, lowercase version of a string,
 // from which accents and other diacritics have been removed,
 // so that autocomplete is case- and accent-insensitive.
-export function cleanText(text: string): string {
+export function normalizeText(text: string): string {
   return deburr(text).trim().toLowerCase();
 }
 
@@ -99,7 +99,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   // The main search function. SearchText will be cleaned (trimmed and lowercased) at the start.
   // Empty search text returns the first N items in the search universe.
   public search(searchText: string): ACResults<Item> {
-    const cleanedSearchText = cleanText(searchText);
+    const cleanedSearchText = normalizeText(searchText);
     const searchWords = cleanedSearchText.split(wordSepRegexp).filter(w => w);
 
     // Maps item index in _allItems to its score.

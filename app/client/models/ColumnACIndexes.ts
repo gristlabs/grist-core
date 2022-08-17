@@ -8,7 +8,7 @@
  *
  * It is currently used for auto-complete in the ReferenceEditor and ReferenceListEditor widgets.
  */
-import {ACIndex, ACIndexImpl, cleanText as clean} from 'app/client/lib/ACIndex';
+import {ACIndex, ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {ColumnCache} from 'app/client/models/ColumnCache';
 import {UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
@@ -45,7 +45,7 @@ export class ColumnACIndexes {
     const items: ICellItem[] = valColumn.map((val, i) => {
       const rowId = rowIds[i];
       const text = formatter.formatAny(val);
-      const cleanText = clean(text);
+      const cleanText = normalizeText(text);
       return {rowId, text, cleanText};
     });
     items.sort(itemCompare);
