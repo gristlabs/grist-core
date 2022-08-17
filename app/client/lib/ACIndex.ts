@@ -7,9 +7,10 @@
  * "lush" would only match the "L" in "Lavender".
  */
 
-import {localeCompare, nativeCompare, removeDiacritics, sortedIndex} from 'app/common/gutil';
+import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
 import escapeRegExp = require("lodash/escapeRegExp");
+import deburr = require("lodash/deburr");
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
@@ -17,10 +18,11 @@ export interface ACItem {
   cleanText: string;
 }
 
-// Returns a normalized, trimmed, lowercase version of a string, so that autocomplete is case-
-// and accent-insensitive.
+// Returns a trimmed, lowercase version of a string,
+// from which accents and other diacritics have been removed,
+// so that autocomplete is case- and accent-insensitive.
 export function cleanText(text: string): string {
-  return removeDiacritics(text).trim().toLowerCase();
+  return deburr(text).trim().toLowerCase();
 }
 
 // Regexp used to split text into words; includes nearly all punctuation. This means that
