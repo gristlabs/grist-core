@@ -348,9 +348,9 @@ exports.groups = [{
       keys: ['Ctrl+m'],
       desc: 'Rename the currently selected column'
     }, {
-      name: 'hideField',
+      name: 'hideFields',
       keys: ['Alt+Shift+-'],
-      desc: 'Hide the currently selected column'
+      desc: 'Hide currently selected columns'
     }, {
       name: 'toggleFreeze',
       keys: [],

@@ -305,7 +305,7 @@ GridView.gridCommands = {
   insertFieldBefore: function() { this.insertColumn(this.cursor.fieldIndex()); },
   insertFieldAfter: function() { this.insertColumn(this.cursor.fieldIndex() + 1); },
   renameField: function() { this.currentEditingColumnIndex(this.cursor.fieldIndex()); },
-  hideField: function() { this.hideField(this.cursor.fieldIndex()); },
+  hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() { this.deleteColumns(this.getSelection()); },
   clearValues: function() { this.clearValues(this.getSelection()); },
   clearColumns: function() { this._clearColumns(this.getSelection()); },
@@ -723,10 +723,10 @@ GridView.prototype.deleteColumns = function(selection) {
   }
 };
 
-GridView.prototype.hideField = function(index) {
-  var field = this.viewSection.viewFields().at(index);
-  var action = ['RemoveRecord', field.id()];
-  return this.gristDoc.docModel.viewFields.sendTableAction(action);
+GridView.prototype.hideFields = function(selection) {
+  var actions = selection.fields.map(field => ['RemoveRecord', field.id()]);
+  return this.gristDoc.docModel.viewFields.sendTableActions(actions, `Hide columns ${actions.map(a => a[1]).join(', ')} ` +
+  `from ${this.tableModel.tableData.tableId}.`);
 };
 
 GridView.prototype.moveColumns = function(oldIndices, newIndex) {
