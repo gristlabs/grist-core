@@ -14,6 +14,7 @@ describe('ReferenceList', function() {
     await session.tempDoc(cleanup, 'Favorite_Films.grist');
 
     await gu.toggleSidePanel('right');
+    await driver.find(".test-right-tab-pagewidget").click();
     await driver.find('.test-config-data').click();
   });
 

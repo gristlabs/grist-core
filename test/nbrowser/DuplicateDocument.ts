@@ -28,7 +28,7 @@ describe("DuplicateDocument", function() {
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), null);
 
     // Save a copy with a proper name.
-    await gu.completeCopy({destName: 'DuplicateTest1'});
+    await gu.completeCopy({destName: 'DuplicateTest1', destWorkspace: 'Test Workspace'});
 
     // check the breadcrumbs reflect new document name, and the doc is not empty.
     assert.equal(await driver.find('.test-bc-doc').value(), 'DuplicateTest1');
@@ -62,7 +62,7 @@ describe("DuplicateDocument", function() {
 
     await driver.find('.test-tb-share').click();
     await driver.find('.test-save-copy').click();
-    await gu.completeCopy({destName: 'DuplicateTest2'});
+    await gu.completeCopy({destName: 'DuplicateTest2', destWorkspace: 'Test Workspace'});
     urlId = (await gu.getCurrentUrlId())!;
 
     // check the breadcrumbs reflect new document name, and the doc contains our change.
