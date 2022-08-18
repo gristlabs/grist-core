@@ -301,6 +301,23 @@ describe('ChoiceList', function() {
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
     assert.equal(await gu.getCell({rowNum: 1, col: 'B'}).getText(), 'Blue\nGreen\nBlack');
+
+
+    // Starting to type names without accents should match the actual choices
+    await gu.addColumn("Accents");
+    await api.applyUserActions(docId, [
+      ['ModifyColumn', 'Table1', 'Accents', {
+        type: 'ChoiceList',
+        widgetOptions: JSON.stringify({
+          choices: ['Adélaïde', 'Adèle', 'Agnès', 'Amélie'],
+        })
+      }],
+    ]);
+    await gu.getCell({rowNum: 1, col: 'Accents'}).click();
+    await driver.sendKeys('Ade', Key.ENTER);
+    await driver.sendKeys('Agne', Key.ENTER);
+    await driver.sendKeys('Ame', Key.ENTER);
+    assert.deepEqual(await getEditorTokens(), ['Adélaïde', 'Agnès', 'Amélie']);
   });
 
   it('should be visible in formulas', async () => {
