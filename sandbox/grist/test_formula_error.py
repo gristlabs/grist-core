@@ -157,6 +157,81 @@ else:
     self.assertFormulaError(self.engine.get_formula_error('Math', 'custom_err', 3),
                             Exception, "hello")
 
+  def test_missing_all_attribute(self):
+    # Test that `Table.Col` raises a helpful AttributeError suggesting to use `Table.all.Col`.
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table", [
+          [11, "A", "Any", True, "Table.id", "", ""],
+          [12, "B", "Any", True, "Table.id2", "", ""],
+        ]]
+      ],
+      "DATA": {
+        "Table": [
+          ["id"],
+          [1],
+        ]
+      }
+    })
+
+    self.load_sample(sample)
+
+    # `Table.id` gives a custom message because `id` is an existing column.
+    self.assertFormulaError(
+      self.engine.get_formula_error('Table', 'A', 1),
+      AttributeError,
+        'To retrieve all values in a column, use `Table.all.id`. '
+        "Tables have no attribute 'id'"
+        + six.PY3 * (
+          "\n\nAn `AttributeError` occurs when the code contains something like\n"
+          "    `object.x`\n"
+          "and `x` is not a method or attribute (variable) belonging to `object`."
+        )
+    )
+
+    # `Table.id2` gives a standard message because `id2` is not an existing column.
+    error = self.engine.get_formula_error('Table', 'B', 1).error
+    message = str(error)
+    self.assertNotIn('Table.all', message)
+    self.assertIn("'UserTable' object has no attribute 'id2'", message)
+
+  def test_missing_all_iteration(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "MyTable", [
+          [11, "A", "Any", True, "list(MyTable)", "", ""],
+          [12, "B", "Any", True, "list(MyTable.all)", "", ""],
+        ]]
+      ],
+      "DATA": {
+        "MyTable": [
+          ["id"],
+          [1],
+        ]
+      }
+    })
+
+    self.load_sample(sample)
+
+    # `list(MyTable)` gives a custom message suggesting `.all`.
+    self.assertFormulaError(
+      self.engine.get_formula_error('MyTable', 'A', 1),
+      TypeError,
+        "To iterate (loop) over all records in a table, use `MyTable.all`. "
+        "Tables are not directly iterable."
+        + six.PY3 * (
+          '\n\nA `TypeError` is usually caused by trying\n'
+          'to combine two incompatible types of objects,\n'
+          'by calling a function with the wrong type of object,\n'
+          'or by trying to do an operation not allowed on a given type of object.'
+        )
+    )
+
+    # `list(MyTable.all)` works correctly.
+    self.assertTableData('MyTable', data=[
+      ['id', 'A', 'B'],
+      [ 1,   objtypes.RaisedException(TypeError()), [objtypes.RecordStub('MyTable', 1)]],
+    ])
 
   def test_lookup_state(self):
     # Bug https://phab.getgrist.com/T297 was caused by lookup maps getting corrupted while

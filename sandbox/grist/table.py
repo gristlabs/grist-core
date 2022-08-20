@@ -133,6 +133,20 @@ class UserTable(object):
     # the constructor.
     return []
 
+  def __getattr__(self, item):
+    if self.table.has_column(item):
+      raise AttributeError(
+        "To retrieve all values in a column, use `{table_id}.all.{item}`. "
+        "Tables have no attribute '{item}'".format(table_id=self.table.table_id, item=item)
+      )
+    super(UserTable, self).__getattribute__(item)
+
+  def __iter__(self):
+    raise TypeError(
+      "To iterate (loop) over all records in a table, use `{table_id}.all`. "
+      "Tables are not directly iterable.".format(table_id=self.table.table_id)
+    )
+
 
 class Table(object):
   """
