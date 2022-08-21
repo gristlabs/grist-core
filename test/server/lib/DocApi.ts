@@ -2367,6 +2367,7 @@ function testDocApi() {
     });
 
     it("limits daily API usage and sets the correct keys in redis", async function() {
+      this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
       const freeTeamApi = makeUserApi('freeteam');
       const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
