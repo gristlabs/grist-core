@@ -1184,24 +1184,6 @@ export class FlexServer implements GristServer {
       }
     }));
 
-    /**
-     * Add landing page for creating pro team sites. Creates new org and redirect to Stripe Checkout Page.
-     * @param billingPlan Stripe plan/price id to use. Must be a standard plan that resolves to a billable product.
-     * @param planType Product type to use. Grist will look for a Stripe Product with a default price
-     *                 that has metadata 'gristProduct' parameter with this plan. If billingPlan is passed, this
-     *                 parameter is ignored.
-     */
-    this.app.get('/billing/signup', ...middleware, expressWrap(async (req, resp, next) => {
-      const planType = optStringParam(req.query.planType) || '';
-      const billingPlan = optStringParam(req.query.billingPlan) || '';
-      if (!planType && !billingPlan) {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
-      }
-      // Redirect to GET endpoint in the billing api to create a team site.
-      const url = `${getPrefix(req)}/api/billing/signup?planType=${planType}&billingPlan=${billingPlan}`;
-      return resp.redirect(url);
-    }));
-
     // New landing page for the new NEW_DEAL.
     this.app.get('/billing/create-team', ...middleware, expressWrap(async (req, resp, next) => {
       const planType = optStringParam(req.query.planType) || '';

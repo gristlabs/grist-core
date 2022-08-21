@@ -19,7 +19,6 @@ CheckBox.prototype.buildConfigDom = function() {
 
 CheckBox.prototype.buildDom = function(row) {
   var value = row[this.field.colId()];
-  console.log(this);
   return dom('div.field_clip',
     dom('div.widget_checkbox',
       dom.on('click', () => {
