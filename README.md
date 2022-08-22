@@ -98,6 +98,10 @@ To enable gVisor sandboxing, set `--env GRIST_SANDBOX_FLAVOR=gvisor`.
 This should work with default docker settings, but may not work in all
 environments.
 
+You can find a lot more about configuring Grist, setting up authentication,
+and running it on a public server in our
+[Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+
 ## Building from source
 
 To build Grist from source, follow these steps:
@@ -137,11 +141,10 @@ You can change your name in `Profile Settings` in
 the [User Menu](https://support.getgrist.com/glossary/#user-menu).
 
 For multi-user operation, or if you wish to access Grist across the
-public internet, you'll want to connect it to your own single sign-in service.
-There's a `docker-compose` template at https://community.getgrist.com/t/a-template-for-self-hosting-grist-with-traefik-and-docker-compose/856
-covering using Let's Encrypt for certificates and Google for sign-ins.
-You can also use [SAML](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/SamlConfig.ts).
-Grist has been tested with [Authentik](https://goauthentik.io/) and [Auth0](https://auth0.com/).
+public internet, you'll want to connect it to your own Single Sign-On service.
+There are a lot of ways to do this, including [SAML and forward authentication](https://support.getgrist.com/self-managed/#how-do-i-set-up-authentication).
+Grist has been tested with [Authentik](https://goauthentik.io/), [Auth0](https://auth0.com/),
+and Google/Microsoft sign-ins via [Dex](https://dexidp.io/).
 
 ## Why free and open source software
 
@@ -151,7 +154,7 @@ here, combined with business-specific software designed to scale it to many user
 etc.
 
 Grist Labs is an open-core company. We offer Grist hosting as a
-service, with free and paid plans. We intend to also develop and sell
+service, with free and paid plans. We also develop and sell
 features related to Grist using a proprietary license, targeted at the
 needs of enterprises with large self-managed installations. We see
 data portability and autonomy as a key value Grist can bring to our

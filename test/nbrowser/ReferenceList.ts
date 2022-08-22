@@ -710,6 +710,18 @@ describe('ReferenceList', function() {
         ['Dark Slate Blue', 'Dark Slate Gray', 'Slate Blue', 'Medium Slate Blue']);
       await driver.sendKeys(Key.ESCAPE);
 
+      // Starting to type Añil with the accent
+      await driver.sendKeys('añ');
+      assert.deepEqual(await getACOptions(2),
+        ['Añil', 'Alice Blue']);
+      await driver.sendKeys(Key.ESCAPE);
+
+      // Starting to type Añil without the accent should work too
+      await driver.sendKeys('an');
+      assert.deepEqual(await getACOptions(2),
+        ['Añil', 'Alice Blue']);
+      await driver.sendKeys(Key.ESCAPE);
+
       await driver.sendKeys('blac');
       assert.deepEqual(await getACOptions(6),
         ['Black', 'Blanched Almond', 'Blue', 'Blue Violet', 'Alice Blue', 'Cadet Blue']);

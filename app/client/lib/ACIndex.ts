@@ -10,11 +10,19 @@
 import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
 import escapeRegExp = require("lodash/escapeRegExp");
+import deburr = require("lodash/deburr");
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
   // Note that items with empty cleanText are never suggested.
   cleanText: string;
+}
+
+// Returns a trimmed, lowercase version of a string,
+// from which accents and other diacritics have been removed,
+// so that autocomplete is case- and accent-insensitive.
+export function normalizeText(text: string): string {
+  return deburr(text).trim().toLowerCase();
 }
 
 // Regexp used to split text into words; includes nearly all punctuation. This means that
@@ -91,7 +99,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   // The main search function. SearchText will be cleaned (trimmed and lowercased) at the start.
   // Empty search text returns the first N items in the search universe.
   public search(searchText: string): ACResults<Item> {
-    const cleanedSearchText = searchText.trim().toLowerCase();
+    const cleanedSearchText = normalizeText(searchText);
     const searchWords = cleanedSearchText.split(wordSepRegexp).filter(w => w);
 
     // Maps item index in _allItems to its score.
