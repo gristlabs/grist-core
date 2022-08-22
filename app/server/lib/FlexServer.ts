@@ -4,11 +4,9 @@ import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPath
         parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
-import {BillingTask} from 'app/common/BillingAPI';
-import {TEAM_FREE_PLAN, TEAM_PLAN} from 'app/common/Features';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
-import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
+import {ApiServer} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -48,8 +46,7 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {
-  adaptServerUrl, addOrgToPath, addPermit, getOrgUrl, getOriginUrl, getScope, optStringParam,
+import {adaptServerUrl, addOrgToPath, getOrgUrl, getOriginUrl, getScope, optStringParam,
         RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
@@ -616,7 +613,7 @@ export class FlexServer implements GristServer {
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
     this._getBilling();
-    this._billing.addEndpoints(this.app, this);
+    this._billing.addEndpoints(this.app);
     this._billing.addEventHandlers();
   }
 
@@ -1147,55 +1144,8 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware
     ];
 
-    function getPrefix(req: express.Request) {
-      const org = getOrgFromRequest(req);
-      if (!org) {
-        return getOriginUrl(req);
-      }
-      const prefix = isOrgInPathOnly(req.hostname) ? `/o/${org}` : '';
-      return prefix;
-    }
-
-    // Add billing summary page (.../billing)
-    this.app.get('/billing', ...middleware, expressWrap(async (req, resp, next) => {
-      const mreq = req as RequestWithLogin;
-      const orgDomain = mreq.org;
-      if (!orgDomain) {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
-      }
-      // Allow the support user access to billing pages.
-      const scope = addPermit(getScope(mreq), this._dbManager.getSupportUserId(), {org: orgDomain});
-      const query = await this._dbManager.getOrg(scope, orgDomain);
-      const org = this._dbManager.unwrapQueryResult(query);
-      // This page isn't available for personal site.
-      if (org.owner) {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
-      }
-      return this._sendAppPage(req, resp, {path: 'billing.html', status: 200, config: {}});
-    }));
-
-    this.app.get('/billing/payment', ...middleware, expressWrap(async (req, resp, next) => {
-      const task = (optStringParam(req.query.billingTask) || '') as BillingTask;
-      if (!BillingTask.guard(task)) {
-        // If the payment task are invalid, redirect to the summary page.
-        return resp.redirect(getOriginUrl(req) + `/billing`);
-      } else {
-        return this._sendAppPage(req, resp, {path: 'billing.html', status: 200, config: {}});
-      }
-    }));
-
-    // New landing page for the new NEW_DEAL.
-    this.app.get('/billing/create-team', ...middleware, expressWrap(async (req, resp, next) => {
-      const planType = optStringParam(req.query.planType) || '';
-      // Currently we have hardcoded support only for those two plans.
-      const supportedPlans = [TEAM_PLAN, TEAM_FREE_PLAN];
-      if (!supportedPlans.includes(planType)) {
-        return this._sendAppPage(req, resp, {path: 'error.html', status: 404, config: {errPage: 'not-found'}});
-      }
-      // Redirect to home page with url params
-      const url = `${getPrefix(req)}/?planType=${planType}#create-team`;
-      return resp.redirect(url);
-    }));
+    this._getBilling();
+    this._billing.addPages(this.app, middleware);
   }
 
   /**

@@ -8,6 +8,8 @@ module.exports = {
     main: "app/client/app",
     errorPages: "app/client/errorMain",
     account: "app/client/accountMain",
+    billing: "app/client/billingMain",
+    activation: "app/client/activationMain",
   },
   output: {
     filename: "[name].bundle.js",

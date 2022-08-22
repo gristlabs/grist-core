@@ -2,6 +2,7 @@ import {loadGristDoc} from 'app/client/lib/imports';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
+import {buildUserMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
@@ -12,7 +13,6 @@ import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/clie
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {SUPPORT_EMAIL} from 'app/common/UserAPI';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
@@ -50,8 +50,6 @@ export class AccountWidget extends Disposable {
   private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
     const currentOrg = this._appModel.currentOrg;
     const gristDoc = this._docPageModel ? this._docPageModel.gristDoc.get() : null;
-    const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
-      (currentOrg.billingAccount.isManager || user?.email === SUPPORT_EMAIL));
 
     // The 'Document Settings' item, when there is an open document.
     const documentSettingsItem = (gristDoc ?
@@ -99,16 +97,7 @@ export class AccountWidget extends Disposable {
         // Don't show on doc pages, or for personal orgs.
         null),
 
-      shouldHideUiElement("billing") ? null :
-      // Show link to billing pages.
-      this._appModel.isTeamSite ?
-        // For links, disabling with just a class is hard; easier to just not make it a link.
-        // TODO weasel menus should support disabling menuItemLink.
-        (isBillingManager ?
-          menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
-          menuItem(() => null, 'Billing Account', dom.cls('disabled', true))
-        ) :
-        menuItem(() => this._appModel.showUpgradeModal(), 'Upgrade Plan'),
+      buildUserMenuBillingItem(this._appModel),
 
       mobileModeToggle,
 

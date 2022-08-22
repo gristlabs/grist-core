@@ -7,7 +7,6 @@ import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 import {createSandbox} from 'app/server/lib/NSandbox';
-import * as express from 'express';
 
 export interface ICreate {
 
@@ -48,35 +47,37 @@ export interface ICreateNotifierOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined;
 }
 
+export interface ICreateBillingOptions {
+  create(dbManager: HomeDBManager, gristConfig: GristServer): IBilling|undefined;
+}
+
 export function makeSimpleCreator(opts: {
   sessionSecret?: string,
   storage?: ICreateStorageOptions[],
-  activationMiddleware?: (db: HomeDBManager, app: express.Express) => Promise<void>,
+  billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
 }): ICreate {
+  const {sessionSecret, storage, notifier, billing} = opts;
   return {
-    Billing(db) {
-      return {
+    Billing(dbManager, gristConfig) {
+      return billing?.create(dbManager, gristConfig) ?? {
         addEndpoints() { /* do nothing */ },
         addEventHandlers() { /* do nothing */ },
         addWebhooks() { /* do nothing */ },
-        async addMiddleware(app) {
-          // add activation middleware, if needed.
-          return opts?.activationMiddleware?.(db, app);
-        }
+        async addMiddleware() { /* do nothing */ },
+        addPages() { /* do nothing */ },
       };
     },
     Notifier(dbManager, gristConfig) {
-      const {notifier} = opts;
       return notifier?.create(dbManager, gristConfig) ?? {
         get testPending() { return false; },
         deleteUser()      { throw new Error('deleteUser unavailable'); },
       };
     },
     ExternalStorage(purpose, extraPrefix) {
-      for (const storage of opts.storage || []) {
-        if (storage.check()) {
-          return storage.create(purpose, extraPrefix);
+      for (const s of storage || []) {
+        if (s.check()) {
+          return s.create(purpose, extraPrefix);
         }
       }
       return undefined;
@@ -85,15 +86,15 @@ export function makeSimpleCreator(opts: {
       return createSandbox('unsandboxed', options);
     },
     sessionSecret() {
-      const secret = process.env.GRIST_SESSION_SECRET || opts.sessionSecret;
+      const secret = process.env.GRIST_SESSION_SECRET || sessionSecret;
       if (!secret) {
         throw new Error('need GRIST_SESSION_SECRET');
       }
       return secret;
     },
     async configure() {
-      for (const storage of opts.storage || []) {
-        if (storage.check()) { break; }
+      for (const s of storage || []) {
+        if (s.check()) { break; }
       }
     },
     getExtraHeadHtml() {

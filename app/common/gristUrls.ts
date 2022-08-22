@@ -34,6 +34,9 @@ export type WelcomePage = typeof WelcomePage.type;
 export const AccountPage = StringUnion('account');
 export type AccountPage = typeof AccountPage.type;
 
+export const ActivationPage = StringUnion('activation');
+export type ActivationPage = typeof ActivationPage.type;
+
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
@@ -61,6 +64,7 @@ export const commonUrls = {
   plans: "https://www.getgrist.com/pricing",
   createTeamSite: "https://www.getgrist.com/create-team-site",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
+  contact: "https://www.getgrist.com/contact",
 
   efcrConnect: 'https://efc-r.com/connect',
   efcrHelp: 'https://www.nioxus.info/eFCR-Help',
@@ -82,6 +86,7 @@ export interface IGristUrlState {
   docPage?: IDocPage;
   account?: AccountPage;
   billing?: BillingPage;
+  activation?: ActivationPage;
   login?: LoginPage;
   welcome?: WelcomePage;
   welcomeTour?: boolean;
@@ -230,6 +235,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(state.billing === 'billing' ? 'billing' : `billing/${state.billing}`);
   }
 
+  if (state.activation) { parts.push(state.activation); }
+
   if (state.login) { parts.push(state.login); }
 
   if (state.welcome) {
@@ -316,6 +323,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has('m')) { state.mode = OpenDocMode.parse(map.get('m')); }
   if (map.has('account')) { state.account = AccountPage.parse(map.get('account')) || 'account'; }
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
+  if (map.has('activation')) {
+    state.activation = ActivationPage.parse(map.get('activation')) || 'activation';
+  }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
   if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
@@ -538,7 +548,7 @@ export interface GristLoadConfig {
   // Google Tag Manager id. Currently only used to load tag manager for reporting new sign-ups.
   tagManagerId?: string;
 
-  activation?: ActivationState;
+  activation?: Activation;
 
   // Parts of the UI to hide
   hideUiElements?: IHideableUiElement[];
@@ -563,14 +573,20 @@ export function getPageTitleSuffix(config?: GristLoadConfig) {
  * summarizes the current state. Not applicable to grist-core.
  */
 export interface ActivationState {
-  trial?: {               // Present when installation has not yet been activated.
-    days: number;         // Max number of days allowed prior to activation.
-    daysLeft: number;     // Number of days left until Grist will get cranky.
+  trial?: {                  // Present when installation has not yet been activated.
+    days: number;            // Max number of days allowed prior to activation.
+    expirationDate: string;  // ISO8601 date that Grist will get cranky.
+    daysLeft: number;        // Number of days left until Grist will get cranky.
   }
-  needKey?: boolean;      // Set when Grist is cranky and demanding activation.
-  key?: {                 // Set when Grist is activated.
-    daysLeft?: number;    // Number of days until Grist will need reactivation.
+  needKey?: boolean;         // Set when Grist is cranky and demanding activation.
+  key?: {                    // Set when Grist is activated.
+    expirationDate?: string; // ISO8601 date that Grist will need reactivation.
+    daysLeft?: number;       // Number of days until Grist will need reactivation.
   }
+}
+
+export interface Activation extends ActivationState {
+  isManager: boolean;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

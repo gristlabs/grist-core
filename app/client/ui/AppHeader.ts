@@ -1,8 +1,8 @@
 import {urlState} from 'app/client/models/gristUrlState';
+import {buildAppMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, vars} from 'app/client/ui2018/cssVars';
-import {shouldHideUiElement} from 'app/common/gristUrls';
 import * as version from 'app/common/version';
 import {BindableValue, Disposable, dom, styled} from "grainjs";
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
@@ -36,7 +36,6 @@ export class AppHeader extends Disposable {
     const theme = getTheme(this._appModel.topAppModel.productFlavor);
 
     const currentOrg = this._appModel.currentOrg;
-    const isBillingManager = this._appModel.isBillingManager() || this._appModel.isSupport();
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', theme.wideLogo || false),
@@ -66,15 +65,7 @@ export class AppHeader extends Disposable {
             // Don't show on doc pages, or for personal orgs.
             null),
 
-          // Show link to billing pages.
-          currentOrg && !currentOrg.owner && !shouldHideUiElement("billing") ?
-            // For links, disabling with just a class is hard; easier to just not make it a link.
-            // TODO weasel menus should support disabling menuItemLink.
-            (isBillingManager ?
-              menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
-              menuItem(() => null, 'Billing Account', dom.cls('disabled', true), testId('orgmenu-billing'))
-            ) :
-            null,
+          buildAppMenuBillingItem(this._appModel, testId('orgmenu-billing')),
 
           maybeAddSiteSwitcherSection(this._appModel),
         ], { placement: 'bottom-start' }),

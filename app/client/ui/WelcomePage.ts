@@ -1,11 +1,11 @@
-import { Disposable, dom, domComputed, DomContents, input, MultiHolder, Observable, styled } from "grainjs";
+import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 import { handleSubmit, submitForm } from "app/client/lib/formUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { AppHeader } from 'app/client/ui/AppHeader';
-import * as BillingPageCss from "app/client/ui/BillingPageCss";
+import { textInput } from 'app/client/ui/inputs';
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createUserImage } from 'app/client/ui/UserImage';
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
@@ -325,7 +325,13 @@ const cssButtonGroup = styled('div', `
   }
 `);
 
-const cssInput = styled(input, BillingPageCss.inputStyle);
+const cssInput = styled(textInput, `
+  display: inline;
+  height: 42px;
+  line-height: 16px;
+  padding: 13px;
+  border-radius: 3px;
+`);
 
 const cssOrgButton = styled(bigPrimaryButtonLink, `
   margin: 0 0 8px;

@@ -54,7 +54,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
-    activation: (mreq as RequestWithLogin|undefined)?.activation,
+    activation: getActivation(req as RequestWithLogin | undefined),
     ...extra,
   };
 }
@@ -183,4 +183,12 @@ function getDocFromConfig(config: GristLoadConfig): Document | null {
   if (!config.getDoc || !config.assignmentId) { return null; }
 
   return config.getDoc[config.assignmentId] ?? null;
+}
+
+function getActivation(mreq: RequestWithLogin|undefined) {
+  const defaultEmail = process.env.GRIST_DEFAULT_EMAIL;
+  return {
+    ...mreq?.activation,
+    isManager: Boolean(defaultEmail && defaultEmail === mreq?.user?.loginEmail),
+  };
 }

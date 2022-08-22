@@ -142,7 +142,7 @@ export class UrlStateImpl {
    */
   public updateState(prevState: IGristUrlState, newState: IGristUrlState): IGristUrlState {
     const keepState = (newState.org || newState.ws || newState.homePage || newState.doc || isEmpty(newState) ||
-                       newState.account || newState.billing  || newState.welcome) ?
+                       newState.account || newState.billing  || newState.activation || newState.welcome) ?
       (prevState.org ? {org: prevState.org} : {}) :
       prevState;
     return {...keepState, ...newState};
@@ -163,6 +163,8 @@ export class UrlStateImpl {
     const accountReload = Boolean(prevState.account) !== Boolean(newState.account);
     // Reload when moving to/from a billing page.
     const billingReload = Boolean(prevState.billing) !== Boolean(newState.billing);
+    // Reload when moving to/from an activation page.
+    const activationReload = Boolean(prevState.activation) !== Boolean(newState.activation);
     // Reload when moving to/from a welcome page.
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
@@ -170,8 +172,8 @@ export class UrlStateImpl {
     // Reload when moving to/from the Grist sign-up page.
     const signupReload = [prevState.login, newState.login].includes('signup')
       && prevState.login !== newState.login;
-    return Boolean(orgReload || accountReload || billingReload || gristConfig.errPage
-      || docReload || welcomeReload || linkKeysReload || signupReload);
+    return Boolean(orgReload || accountReload || billingReload || activationReload
+      || gristConfig.errPage || docReload || welcomeReload || linkKeysReload || signupReload);
   }
 
   /**
