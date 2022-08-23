@@ -469,6 +469,7 @@ const cssEntry = styled('div', `
   align-items: center;
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
   &-selected {
     background-color: ${colors.mediumGrey};
   }
