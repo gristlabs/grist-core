@@ -4,7 +4,7 @@ import * as kf from 'app/client/lib/koForm';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
-import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {colors, vars} from 'app/client/ui2018/cssVars';
@@ -61,6 +61,10 @@ class ColumnPicker extends Disposable {
         this._column.optional ? cssSubLabel(" (optional)") : null,
         testId('label-for-' + this._column.name),
       ),
+      this._column.description ? cssHelp(
+        this._column.description,
+        testId('help-for-' + this._column.name),
+      ) : null,
       cssRow(
         select(
           properValue,

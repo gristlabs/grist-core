@@ -13,6 +13,12 @@ export const cssLabel = styled('div', `
   font-size: ${vars.xsmallFontSize};
 `);
 
+export const cssHelp = styled('div', `
+  margin: -8px 16px 12px 16px;
+  font-style: italic;
+  font-size: ${vars.xsmallFontSize};
+`);
+
 export const cssRow = styled('div', `
   display: flex;
   margin: 8px 16px;
