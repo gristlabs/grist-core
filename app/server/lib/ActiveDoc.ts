@@ -60,6 +60,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
+import {RandomizedTimer} from 'app/common/RandomizedTimer';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
@@ -219,23 +220,8 @@ export class ActiveDoc extends EventEmitter {
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
 
-  // Intervals to clear on shutdown
-  private _intervals = [
-    // Cleanup expired attachments every hour (also happens when shutting down)
-    setInterval(
-      () => this.removeUnusedAttachments(true),
-      REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS,
-    ),
-    setInterval(
-      () => this._applyUserActions(makeExceptionalDocSession('system'), [["UpdateCurrentTime"]]),
-      UPDATE_CURRENT_TIME_INTERVAL_MS,
-    ),
-    // Measure and broadcast data size every 5 minutes
-    setInterval(
-      () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
-      UPDATE_DATA_SIZE_INTERVAL_MS,
-    ),
-  ];
+  // Randomized timers to clear on shutdown.
+  private _randomizedTimers: RandomizedTimer[] = [];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
@@ -486,8 +472,8 @@ export class ActiveDoc extends EventEmitter {
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
 
-      for (const interval of this._intervals) {
-        clearInterval(interval);
+      for (const timer of this._randomizedTimers) {
+        timer.disable();
       }
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
@@ -2075,6 +2061,7 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
       void this._initializeDocUsage(docSession);
+      void this._scheduleBackgroundJobs();
     } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {
@@ -2133,6 +2120,40 @@ export class ActiveDoc extends EventEmitter {
       await this._broadcastDocUsageToClients();
     } catch (e) {
       this._log.warn(docSession, 'failed to initialize doc usage', e);
+    }
+  }
+
+  private _scheduleBackgroundJobs() {
+    /* In cases where large numbers of documents are restarted simultaneously
+     * (like during deployments), there's a tendency for scheduled intervals to
+     * execute at roughly the same moment in time, which causes spikes in load.
+     *
+     * To mitigate this, we use randomized timers that re-compute their delay
+     * in-between intervals, with a maximum variance of 30 seconds. */
+    const VARIANCE_MS = 30000;
+    this._randomizedTimers = [
+      // Cleanup expired attachments every hour (also happens when shutting down).
+      new RandomizedTimer(
+        () => this.removeUnusedAttachments(true),
+        REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS - VARIANCE_MS,
+        REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS + VARIANCE_MS,
+      ),
+      // Update the time in formulas every hour.
+      new RandomizedTimer(
+        () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+        UPDATE_CURRENT_TIME_INTERVAL_MS - VARIANCE_MS,
+        UPDATE_CURRENT_TIME_INTERVAL_MS + VARIANCE_MS,
+      ),
+      // Measure and broadcast data size every 5 minutes.
+      new RandomizedTimer(
+        () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
+        UPDATE_DATA_SIZE_INTERVAL_MS - VARIANCE_MS,
+        UPDATE_DATA_SIZE_INTERVAL_MS + VARIANCE_MS,
+      ),
+    ];
+
+    for (const timer of this._randomizedTimers) {
+      timer.enable();
     }
   }
 
