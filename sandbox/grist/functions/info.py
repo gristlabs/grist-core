@@ -661,7 +661,11 @@ def is_error(value):
       or (isinstance(value, float) and math.isnan(value)))
 
 
-@unimplemented  # exclude from autocomplete while in beta
+@unimplemented
+# ^ This excludes this function from autocomplete while in beta
+# and marks it as unimplemented in the docs.
+# It also makes grist-help expect to see the string 'raise NotImplemented' in the function source,
+# which it does now, because of this comment. Removing this comment will currently break the docs.
 def REQUEST(url, params=None, headers=None):
   # Makes a GET HTTP request with an API similar to `requests.get`.
   # Actually jumps through hoops internally to make the request asynchronously (usually)
