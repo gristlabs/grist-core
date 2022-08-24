@@ -15,8 +15,12 @@ import {dom, DomElementArg, styled} from 'grainjs';
 import pick = require('lodash/pick');
 import {cssMenuItem} from 'popweasel';
 
+// import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
+// import {ACResults, ACIndex, ACItem, ACIndexImpl, buildHighlightedDom} from 'app/client/lib/ACIndex';
+import {ACIndexImpl} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
+import { ACUserItem, buildACMemberEmail } from 'app/client/lib/ACUserManager';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
@@ -206,6 +210,12 @@ export class UserManager extends Disposable {
   public buildDom() {
     const memberEmail = this.autoDispose(new MemberEmail(this._onAdd.bind(this),
                                                         this._options.prompt));
+    const acmemberEmail = this.autoDispose(new ACMemberEmail(
+      this._onAdd.bind(this),
+      (member) => this._model.isActiveUser(member),
+      this._model.membersEdited.get())
+    );
+                                                        // this._options.prompt));
     if (this._model.isPublicMember) {
       return this._buildSelfPublicAccessDom();
     }
@@ -216,6 +226,7 @@ export class UserManager extends Disposable {
 
     return [
       memberEmail.buildDom(),
+      acmemberEmail.buildDom(),
       this._buildOptionsDom(),
       this._dom = shadowScroll(
         testId('um-members'),
@@ -514,6 +525,58 @@ export class UserManager extends Disposable {
       }),
       cssCollapseIcon('Collapse'),
       testId('um-max-inherited-role')
+    );
+  }
+}
+
+
+/**
+ * Represents the widget that allows typing in an email and adding it.
+ * The border of the input turns green when the email is considered valid.
+ */
+
+export class ACMemberEmail extends Disposable {
+  public email = this.autoDispose(observable<string>(""));
+  private _isValid = this.autoDispose(observable<boolean>(false));
+
+  constructor(
+    private _onAdd: (email: string, role: roles.NonGuestRole) => void,
+    private _isActiveUser: (member: IEditableMember) => boolean,
+    private _members: Array<IEditableMember>,
+    // private _prompt?: {email: string}
+  ) {
+    super();
+    // if (_prompt) {
+    //   this.email.set(_prompt.email);
+    // }
+  }
+
+  private handleSave(emailSelected: string, item?: ACUserItem) {
+    if (item?.isNew) {
+      this._onAdd(emailSelected, roles.VIEWER)
+    } else {
+      const member = this._members.find(member => member.email === emailSelected);
+      if (member && !this._isActiveUser(member)) {
+        member?.effectiveAccess.set(roles.VIEWER);
+      }
+    }
+  }
+
+  public buildDom() {
+    const toto = this._members.map((member: IEditableMember) => ({
+      value: member.email,
+      label: member.email,
+      cleanText: member.email,
+      email: member.email,
+      name: member.name,
+      picture: member?.picture,
+      id: member.id,
+    }));
+    const acIndex = new ACIndexImpl<ACUserItem>(toto);
+
+    return buildACMemberEmail(this,
+      {acIndex, emailObs: this.email, save: this.handleSave.bind(this), isValid: this._isValid},
+      testId('um-member-new')
     );
   }
 }
