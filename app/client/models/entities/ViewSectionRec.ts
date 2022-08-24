@@ -474,7 +474,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.hasFocus = ko.pureComputed({
     // Read may occur for recently disposed sections, must check condition first.
     read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
-    write: (val) => { if (val) { this.view().activeSectionId(this.id()); } }
+    write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
   });
 
   this.activeLinkSrcSectionRef = modelUtil.customValue(this.linkSrcSectionRef);
@@ -595,8 +595,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.allowSelectBy = Observable.create(this, false);
   this.selectedRows = Observable.create(this, []);
 
-  this.tableId = ko.pureComputed(() => this.table().tableId());
-  const rawSection = ko.pureComputed(() => this.table().rawViewSection());
+  this.tableId = this.autoDispose(ko.pureComputed(() => this.table().tableId()));
+  const rawSection = this.autoDispose(ko.pureComputed(() => this.table().rawViewSection()));
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => rawSection().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.savingComputed({

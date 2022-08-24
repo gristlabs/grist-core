@@ -69,6 +69,7 @@ function RecordLayout(options) {
 
   // Update the stored layoutSpecObj with any missing fields that are present in viewFields.
   this.layoutSpec = this.autoDispose(ko.computed(function() {
+    if (this.viewSection.isDisposed()) { return null; }
     return RecordLayout.updateLayoutSpecWithFields(
       this.viewSection.layoutSpecObj(), this.viewSection.viewFields().all());
   }, this).extend({rateLimit: 0})); // layoutSpecObj and viewFields should be updated together.

@@ -307,7 +307,7 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
       // Note that this case only happens in combination with the widget linking mentioned.
       // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
       || 'new';
-  const colRef = this.viewSection.viewFields().peek()[this.cursor.fieldIndex()].colRef();
+  const colRef = this.viewSection.viewFields().peek()[this.cursor.fieldIndex.peek()].colRef.peek();
   return {hash: {sectionId, rowId, colRef}};
 }
 
@@ -328,7 +328,8 @@ BaseView.prototype.copyLink = async function() {
 BaseView.prototype.showRawData = async function() {
   const sectionId = this.schemaModel.rawViewSectionRef.peek();
   const anchorUrlState = this.getAnchorLinkForSection(sectionId);
-  await urlState().pushUrl({...anchorUrlState, docPage: 'data'});
+  anchorUrlState.hash.popup = true;
+  await urlState().pushUrl(anchorUrlState, {replace: true, avoidReload: true});
 }
 
 BaseView.prototype.filterByThisCellValue = function() {

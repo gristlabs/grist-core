@@ -536,16 +536,18 @@ export async function getFormulaText() {
 /**
  * Check that formula editor is shown and its value matches the given regexp.
  */
-export async function checkFormulaEditor(valueRe: RegExp) {
+export async function checkFormulaEditor(value: RegExp|string) {
   assert.equal(await driver.findWait('.test-formula-editor', 500).isDisplayed(), true);
+  const valueRe = typeof value === 'string' ? exactMatch(value) : value;
   assert.match(await driver.find('.code_editor_container').getText(), valueRe);
 }
 
 /**
  * Check that plain text editor is shown and its value matches the given regexp.
  */
-export async function checkTextEditor(valueRe: RegExp) {
+export async function checkTextEditor(value: RegExp|string) {
   assert.equal(await driver.findWait('.test-widget-text-editor', 500).isDisplayed(), true);
+  const valueRe = typeof value === 'string' ? exactMatch(value) : value;
   assert.match(await driver.find('.celleditor_text_editor').value(), valueRe);
 }
 
@@ -2382,6 +2384,11 @@ export async function refreshDismiss() {
 export async function waitForAnchor() {
   await waitForDocToLoad();
   await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
+}
+
+export async function getAnchor() {
+  await driver.find('body').sendKeys(Key.chord(Key.SHIFT, await modKey(), 'a'));
+  return (await getTestState()).clipboard || '';
 }
 
 export async function getActiveSectionTitle(timeout?: number) {

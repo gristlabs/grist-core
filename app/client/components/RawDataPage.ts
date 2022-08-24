@@ -8,15 +8,15 @@ import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
+import {ViewSectionRec} from 'app/client/models/DocModel';
 
 const testId = makeTestId('test-raw-data-');
 
-export class RawData extends Disposable {
+export class RawDataPage extends Disposable {
   private _lightboxVisible: Observable<boolean>;
   constructor(private _gristDoc: GristDoc) {
     super();
     const commandGroup = {
-      cancel: () => { this._close(); },
       printSection: () => { printViewSection(null, this._gristDoc.viewModel.activeSection()).catch(reportError); },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
@@ -41,9 +41,6 @@ export class RawData extends Disposable {
   }
 
   public buildDom() {
-    // Handler to close the lightbox.
-    const close = this._close.bind(this);
-
     return cssContainer(
       dom('div',
         dom.create(DataTables, this._gristDoc),
@@ -52,36 +49,53 @@ export class RawData extends Disposable {
         dom.hide(this._lightboxVisible)
       ),
       /***************  Lightbox section **********/
-      dom.domComputedOwned(fromKo(this._gristDoc.viewModel.activeSection), (owner, viewSection) => {
+      dom.domComputed(fromKo(this._gristDoc.viewModel.activeSection), (viewSection) => {
         const sectionId = viewSection.getRowId();
         if (!sectionId || !viewSection.isRaw.peek()) {
           return null;
         }
-        ViewSectionHelper.create(owner, this._gristDoc, viewSection);
-        return cssOverlay(
-          testId('overlay'),
-          cssSectionWrapper(
-            buildViewSectionDom({
-              gristDoc: this._gristDoc,
-              sectionRowId: viewSection.getRowId(),
-              draggable: false,
-              focusable: false,
-              widgetNameHidden: true
-            })
-          ),
-          cssCloseButton('CrossBig',
-            testId('close-button'),
-            dom.on('click', close)
-          ),
-          // Close the lightbox when user clicks exactly on the overlay.
-          dom.on('click', (ev, elem) => void (ev.target === elem ? close() : null))
-        );
+        return dom.create(RawDataPopup, this._gristDoc, viewSection, () => this._close());
       }),
     );
   }
 
   private _close() {
     this._gristDoc.viewModel.activeSectionId(0);
+  }
+}
+
+export class RawDataPopup extends Disposable {
+  constructor(
+    private _gristDoc: GristDoc,
+    private _viewSection: ViewSectionRec,
+    private _onClose: () => void,
+    ) {
+    super();
+    const commandGroup = {
+      cancel: () => { this._onClose(); },
+    };
+    this.autoDispose(commands.createGroup(commandGroup, this, true));
+  }
+  public buildDom() {
+    ViewSectionHelper.create(this, this._gristDoc, this._viewSection);
+    return cssOverlay(
+      testId('overlay'),
+      cssSectionWrapper(
+        buildViewSectionDom({
+          gristDoc: this._gristDoc,
+          sectionRowId: this._viewSection.getRowId(),
+          draggable: false,
+          focusable: false,
+          widgetNameHidden: true
+        })
+      ),
+      cssCloseButton('CrossBig',
+        testId('close-button'),
+        dom.on('click', () => this._onClose())
+      ),
+      // Close the lightbox when user clicks exactly on the overlay.
+      dom.on('click', (ev, elem) => void (ev.target === elem ? this._onClose() : null))
+    );
   }
 }
 

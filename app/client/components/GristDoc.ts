@@ -17,7 +17,7 @@ import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
-import {RawData} from 'app/client/components/RawData';
+import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -67,6 +67,7 @@ import {
   Computed,
   dom,
   Emitter,
+  fromKo,
   Holder,
   IDisposable,
   IDomComponent,
@@ -106,6 +107,12 @@ export interface IExtraTool {
   icon: IconName;
   label: string;
   content: TabContent[]|IDomComponent;
+}
+
+interface PopupOptions {
+  viewSection: ViewSectionRec;
+  hash: HashLink;
+  close: () => void;
 }
 
 export class GristDoc extends DisposableWithEvents {
@@ -159,6 +166,9 @@ export class GristDoc extends DisposableWithEvents {
   private _viewLayout: ViewLayout|null = null;
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
+  private _popupOptions: Observable<PopupOptions|null> = Observable.create(this, null);
+  private _activeContent: Computed<IDocPage|PopupOptions>;
+
 
   constructor(
     public readonly app: App,
@@ -204,6 +214,8 @@ export class GristDoc extends DisposableWithEvents {
       return viewId || use(defaultViewId);
     });
 
+    this._activeContent = Computed.create(this, use => use(this._popupOptions) ?? use(this.activeViewId));
+
     // This viewModel reflects the currently active view, relying on the fact that
     // createFloatingRowModel() supports an observable rowId for its argument.
     // Although typings don't reflect it, createFloatingRowModel() accepts non-numeric values,
@@ -224,12 +236,17 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
-    // Navigate to an anchor if one is present in the url hash.
+    // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
       if (state.hash) {
         try {
-          const cursorPos = this._getCursorPosFromHash(state.hash);
-          await this.recursiveMoveToCursorPos(cursorPos, true);
+          if (state.hash.popup) {
+            await this.openPopup(state.hash);
+          } else {
+            // Navigate to an anchor if one is present in the url hash.
+            const cursorPos = this._getCursorPosFromHash(state.hash);
+            await this.recursiveMoveToCursorPos(cursorPos, true);
+          }
         } catch (e) {
           reportError(e);
         } finally {
@@ -332,22 +349,23 @@ export class GristDoc extends DisposableWithEvents {
 
     // create computed observable for viewInstance - if it is loaded or not
 
-    // Add an artificial intermediary computed only to delay the evaluation of currentView, so
-    // that it happens after section.viewInstance is set. If it happens before, then
-    // section.viewInstance is seen as null, and as it gets updated, GrainJS refuses to
-    // recalculate this computed since it was already calculated in the same tick.
-    const activeViewId = Computed.create(this, (use) => use(this.activeViewId));
-    const viewInstance = Computed.create(this, (use) => {
-      const section = use(this.viewModel.activeSection);
-      const viewId = use(activeViewId);
-      const view = use(section.viewInstance);
-      return isViewDocPage(viewId) ? view : null;
-    });
+    // GrainJS will not recalculate section.viewInstance correctly because it will be
+    // modified (updated from null to a correct instance) in the same tick. We need to
+    // switch for a moment to knockout to fix this.
+    const viewInstance = fromKo(this.autoDispose(ko.pureComputed(() => {
+      const viewId = toKo(ko, this.activeViewId)();
+      if (!isViewDocPage(viewId)) { return null; }
+      const section = this.viewModel.activeSection();
+      const view = section.viewInstance();
+      return view;
+    })));
+
     // then listen if the view is present, because we still need to wait for it load properly
     this.autoDispose(viewInstance.addListener(async (view) => {
       if (view) {
         await view.getLoadingDonePromise();
       }
+      if (view?.isDisposed()) { return; }
       // finally set the current view as fully loaded
       this.currentView.set(view);
     }));
@@ -355,9 +373,8 @@ export class GristDoc extends DisposableWithEvents {
     // create observable for current cursor position
     this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
       // get the BaseView
-      const view = use(viewInstance);
+      const view = use(this.currentView);
       if (!view) { return undefined; }
-      // get current viewId
       const viewId = use(this.activeViewId);
       if (!isViewDocPage(viewId)) { return undefined; }
       // read latest position
@@ -393,15 +410,25 @@ export class GristDoc extends DisposableWithEvents {
    * Builds the DOM for this GristDoc.
    */
   public buildDom() {
-    return cssViewContentPane(testId('gristdoc'),
-      cssViewContentPane.cls("-contents", use => use(this.activeViewId) === 'data'),
-      dom.domComputed<IDocPage>(this.activeViewId, (viewId) => (
-        viewId === 'code' ? dom.create(CodeEditorPanel, this) :
-        viewId === 'acl' ? dom.create(AccessRules, this) :
-        viewId === 'data' ? dom.create(RawData, this) :
-        viewId === 'GristDocTour' ? null :
-        dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, viewId)))
-      )),
+    return cssViewContentPane(
+      testId('gristdoc'),
+      cssViewContentPane.cls("-contents", use => use(this.activeViewId) === 'data' || use(this._popupOptions) !== null),
+      dom.domComputed(this._activeContent, (content) => {
+        return  (
+          content === 'code' ? dom.create(CodeEditorPanel, this) :
+          content === 'acl' ? dom.create(AccessRules, this) :
+          content === 'data' ? dom.create(RawDataPage, this) :
+          content === 'GristDocTour' ? null :
+          typeof content === 'object' ? dom.create(owner => {
+            // In case user changes a page, close the popup.
+            owner.autoDispose(this.activeViewId.addListener(content.close));
+            // In case the section is removed, close the popup.
+            content.viewSection.autoDispose({dispose: content.close});
+            return dom.create(RawDataPopup, this, content.viewSection, content.close);
+          }) :
+          dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, content)))
+        );
+      }),
     );
   }
 
@@ -935,16 +962,81 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
+   * Opens popup with a section data (used by Raw Data view).
+   */
+  public async openPopup(hash: HashLink) {
+    // We can only open a popup for a section.
+    if (!hash.sectionId) { return; }
+    // We will borrow active viewModel and will trick him into believing that
+    // the section from the link is his viewSection and it is active. Fortunately
+    // he doesn't care. After popup is closed, we will restore the original.
+    const prevSection = this.viewModel.activeSection.peek();
+    this.viewModel.activeSectionId(hash.sectionId);
+    // Now we have view section we want to show in the popup.
+    const popupSection = this.viewModel.activeSection.peek();
+    // We need to make it active, so that cursor on this section will be the
+    // active one. This will change activeViewSectionId on a parent view of this section,
+    // which might be a diffrent view from what we currently have. If the section is
+    // a raw data section it will use `EmptyRowModel` as raw sections don't have parents.
+    popupSection.hasFocus(true);
+    this._popupOptions.set({
+      hash,
+      viewSection: popupSection,
+      close: () => {
+        // In case we are already close, do nothing.
+        if (!this._popupOptions.get()) { return; }
+        if (popupSection !== prevSection) {
+          // We need to blur raw view section. Otherwise it will automatically be opened
+          // on raw data view. Note: raw data section doesn't have its own view, it uses
+          // empty row model as a parent (which feels like a hack).
+          if (!popupSection.isDisposed()) { popupSection.hasFocus(false); }
+          // We need to restore active viewSection for a view that we borrowed.
+          // When this popup was opened we tricked active view by setting its activeViewSection
+          // to our viewSection (which might be a completely diffrent section or a raw data section) not
+          // connected to this view.
+          if (!prevSection.isDisposed()) { prevSection.hasFocus(true); }
+        }
+        // Clearing popup data will close this popup.
+        this._popupOptions.set(null);
+      }
+    });
+    // If the anchor link is valid, set the cursor.
+    if (hash.colRef && hash.rowId) {
+      const fieldIndex = popupSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
+      if (fieldIndex >= 0) {
+        const view = await this._waitForView(popupSection);
+        view?.setCursorPos({ sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex });
+      }
+    }
+  }
+
+  /**
    * Waits for a view to be ready
    */
-  private async _waitForView() {
+  private async _waitForView(popupSection?: ViewSectionRec) {
+    const sectionToCheck = popupSection ?? this.viewModel.activeSection.peek();
     // For pages like ACL's, there isn't a view instance to wait for.
-    if (!this.viewModel.activeSection.peek().getRowId()) {
+    if (!sectionToCheck.getRowId()) {
       return null;
     }
-    const view = await waitObs(this.viewModel.activeSection.peek().viewInstance);
-    if (!view) {
-      return null;
+    async function singleWait(s: ViewSectionRec): Promise<BaseView> {
+      const view = await waitObs(
+        sectionToCheck.viewInstance,
+        vsi => Boolean(vsi && !vsi.isDisposed())
+      );
+      return view!;
+    }
+    let view = await singleWait(sectionToCheck);
+    if (view.isDisposed()) {
+      // If the view is disposed (it can happen, as wait is not reliable enough, because it uses
+      // subscription for testing the predicate, which might dispose object before we have a chance to test it).
+      // This can happen when section is recreating itself on a popup.
+      if (popupSection) {
+        view = await singleWait(popupSection);
+      }
+      if (view.isDisposed()) {
+        return null;
+      }
     }
     await view.getLoadingDonePromise();
     // Wait extra bit for scroll to happen.

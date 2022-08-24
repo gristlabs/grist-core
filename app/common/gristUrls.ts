@@ -250,7 +250,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   const hashParts: string[] = [];
   if (state.hash && state.hash.rowId) {
     const hash = state.hash;
-    hashParts.push(`a1`);
+    hashParts.push(state.hash?.popup ? 'a2' : `a1`);
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
       if (hash[key]) { hashParts.push(`${key[0]}${hash[key]}`); }
     }
@@ -372,9 +372,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     for (const part of hashParts) {
       hashMap.set(part.slice(0, 1), part.slice(1));
     }
-    if (hashMap.has('#') && hashMap.get('#') === 'a1') {
+    if (hashMap.has('#') && ['a1', 'a2'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
-      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
+      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<Exclude<keyof HashLink, 'popup'>>) {
         const ch = key.substr(0, 1);
         if (!hashMap.has(ch)) { continue; }
         const value = hashMap.get(ch);
@@ -383,6 +383,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         } else {
           link[key] = parseInt(value!, 10);
         }
+      }
+      if (hashMap.get('#') === 'a2') {
+        link.popup =  true;
       }
       state.hash = link;
     }
@@ -773,6 +776,7 @@ export interface HashLink {
   sectionId?: number;
   rowId?: UIRowId;
   colRef?: number;
+  popup?: boolean;
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

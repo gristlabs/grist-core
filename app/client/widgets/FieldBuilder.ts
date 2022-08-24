@@ -436,7 +436,7 @@ export class FieldBuilder extends Disposable {
    * Builds the cell and editor DOM for the chosen UserType. Calls the buildDom and
    *  buildEditorDom functions of its widgetImpl.
    */
-  public buildDomWithCursor(row: DataRowModel, isActive: boolean, isSelected: boolean) {
+  public buildDomWithCursor(row: DataRowModel, isActive: ko.Computed<boolean>, isSelected: ko.Computed<boolean>) {
     const computedFlags = koUtil.withKoUtils(ko.pureComputed(() => {
       return this.field.rulesColsIds().map(colRef => row.cells[colRef]?.() ?? false);
     }, this).extend({ deferred: true }));
