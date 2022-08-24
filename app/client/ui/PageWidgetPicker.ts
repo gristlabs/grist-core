@@ -475,6 +475,7 @@ const cssEntry = styled('div', `
   }
   &-disabled {
     color: ${colors.mediumGrey};
+    cursor: default;
   }
   &-disabled&-selected {
     background-color: inherit;
