@@ -60,7 +60,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
-import {RandomizedTimer} from 'app/common/RandomizedTimer';
+import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
@@ -140,13 +140,13 @@ const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
 
 // Cleanup expired attachments every hour (also happens when shutting down)
-const REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS = 60 * 60 * 1000;
+const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
 // Apply the UpdateCurrentTime user action every hour
-const UPDATE_CURRENT_TIME_INTERVAL_MS = 60 * 60 * 1000;
+const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
 // Measure and broadcast data size every 5 minutes
-const UPDATE_DATA_SIZE_INTERVAL_MS = 5 * 60 * 1000;
+const UPDATE_DATA_SIZE_DELAY = {delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000};
 
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
@@ -189,7 +189,7 @@ export class ActiveDoc extends EventEmitter {
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
-  private _log = new LogMethods('ActiveDoc ', (s: OptDocSession) => this.getLogMeta(s));
+  private _log = new LogMethods('ActiveDoc ', (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _requests: DocRequests;
   private _dataEngine: Promise<ISandbox>|undefined;
@@ -220,8 +220,34 @@ export class ActiveDoc extends EventEmitter {
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
 
-  // Randomized timers to clear on shutdown.
-  private _randomizedTimers: RandomizedTimer[] = [];
+  /**
+   * In cases where large numbers of documents are restarted simultaneously
+   * (like during deployments), there's a tendency for scheduled intervals to
+   * execute at roughly the same moment in time, which causes spikes in load.
+   *
+   * To mitigate this, we use randomized intervals that re-compute their delay
+   * in-between calls, with a variance of 30 seconds.
+   */
+  private _intervals = [
+    // Cleanup expired attachments every hour (also happens when shutting down).
+    new Interval(
+      () => this.removeUnusedAttachments(true),
+      REMOVE_UNUSED_ATTACHMENTS_DELAY,
+      {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
+    ),
+    // Update the time in formulas every hour.
+    new Interval(
+      () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+      UPDATE_CURRENT_TIME_DELAY,
+      {onError: (e) => this._log.error(null, 'failed to update current time', e)},
+    ),
+    // Measure and broadcast data size every 5 minutes.
+    new Interval(
+      () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
+      UPDATE_DATA_SIZE_DELAY,
+      {onError: (e) => this._log.error(null, 'failed to update data size', e)},
+    ),
+  ];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
@@ -296,6 +322,10 @@ export class ActiveDoc extends EventEmitter {
     // unscheduled. If not (e.g. abandoned import, network problems after creating a doc), then
     // the ActiveDoc will get cleaned up.
     this._inactivityTimer.enable();
+
+    for (const interval of this._intervals) {
+      interval.enable();
+    }
   }
 
   public get docName(): string { return this._docName; }
@@ -472,8 +502,8 @@ export class ActiveDoc extends EventEmitter {
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
 
-      for (const timer of this._randomizedTimers) {
-        timer.disable();
+      for (const interval of this._intervals) {
+        await interval.disableAndFinish();
       }
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
@@ -2061,7 +2091,6 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
       void this._initializeDocUsage(docSession);
-      void this._scheduleBackgroundJobs();
     } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {
@@ -2120,40 +2149,6 @@ export class ActiveDoc extends EventEmitter {
       await this._broadcastDocUsageToClients();
     } catch (e) {
       this._log.warn(docSession, 'failed to initialize doc usage', e);
-    }
-  }
-
-  private _scheduleBackgroundJobs() {
-    /* In cases where large numbers of documents are restarted simultaneously
-     * (like during deployments), there's a tendency for scheduled intervals to
-     * execute at roughly the same moment in time, which causes spikes in load.
-     *
-     * To mitigate this, we use randomized timers that re-compute their delay
-     * in-between intervals, with a maximum variance of 30 seconds. */
-    const VARIANCE_MS = 30000;
-    this._randomizedTimers = [
-      // Cleanup expired attachments every hour (also happens when shutting down).
-      new RandomizedTimer(
-        () => this.removeUnusedAttachments(true),
-        REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS - VARIANCE_MS,
-        REMOVE_UNUSED_ATTACHMENTS_INTERVAL_MS + VARIANCE_MS,
-      ),
-      // Update the time in formulas every hour.
-      new RandomizedTimer(
-        () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
-        UPDATE_CURRENT_TIME_INTERVAL_MS - VARIANCE_MS,
-        UPDATE_CURRENT_TIME_INTERVAL_MS + VARIANCE_MS,
-      ),
-      // Measure and broadcast data size every 5 minutes.
-      new RandomizedTimer(
-        () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
-        UPDATE_DATA_SIZE_INTERVAL_MS - VARIANCE_MS,
-        UPDATE_DATA_SIZE_INTERVAL_MS + VARIANCE_MS,
-      ),
-    ];
-
-    for (const timer of this._randomizedTimers) {
-      timer.enable();
     }
   }
 

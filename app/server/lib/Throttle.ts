@@ -19,6 +19,7 @@
  */
 
 import pidusage from '@gristlabs/pidusage';
+import {Interval} from 'app/common/Interval';
 import log from 'app/server/lib/log';
 
 /**
@@ -71,8 +72,8 @@ interface MeterSample {
  * process from consuming too much cpu until stop() is called.
  */
 export class Throttle {
-  private _timing: ThrottleTiming;                         // overall timing parameters
-  private _meteringInterval: NodeJS.Timeout | undefined;   // timer for cpu measurements
+  private _timing: ThrottleTiming =
+    this._options.timing || defaultThrottleTiming;         // overall timing parameters
   private _dutyCycleTimeout: NodeJS.Timeout | undefined;   // driver for throttle duty cycle
   private _traceNudgeTimeout: NodeJS.Timeout | undefined;  // schedule a nudge to a traced process
   private _throttleFactor: number = 0;                     // relative length of paused phase
@@ -83,6 +84,13 @@ export class Throttle {
   private _offDuration: number = 0;                        // cumulative time spent paused
   private _stopped: boolean = false;                       // set when stop has been called
   private _active: boolean = true;                         // set when we are not trying to pause process
+
+  // Interval for CPU measurements.
+  private _meteringInterval: Interval = new Interval(
+    () => this._update(),
+    {delayMs: this._timing.samplePeriodMs},
+    {onError: (e) => this._log(`Throttle error: ${e}`, this._options.logMeta)},
+  );
 
   /**
    * Start monitoring the given process and throttle as needed.
@@ -127,8 +135,7 @@ export class Throttle {
     logMeta: log.ILogMeta,
     timing?: ThrottleTiming
   }) {
-    this._timing = this._options.timing || defaultThrottleTiming;
-    this._meteringInterval = setInterval(() => this._update(), this._timing.samplePeriodMs);
+    this._meteringInterval.enable();
   }
 
   /**
@@ -285,10 +292,7 @@ export class Throttle {
    * Make sure measurement of cpu is stopped.
    */
   private _stopMetering() {
-    if (this._meteringInterval) {
-      clearInterval(this._meteringInterval);
-      this._meteringInterval = undefined;
-    }
+    this._meteringInterval.disable();
   }
 
   private _stopTraceNudge() {
