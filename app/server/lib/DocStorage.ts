@@ -645,6 +645,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // tables (obtained from auto-generated schema.js).
   private _docSchema: {[tableId: string]: {[colId: string]: string}};
 
+  private _cachedDataSize: number|null = null;
+
   public constructor(public storageManager: IDocStorageManager, public docName: string) {
     this.docPath = this.storageManager.getPath(docName);
     this._db = null;
@@ -1518,7 +1520,20 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
   }
 
+  /**
+   * Return the total size of data in the user + meta tables of the SQLite doc (excluding gristsys
+   * tables). Uses cached results if possible. Any change to data invalidates the cache, via
+   * _markAsChanged().
+   */
   public async getDataSize(): Promise<number> {
+    return this._cachedDataSize ?? (this._cachedDataSize = await this.getDataSizeUncached());
+  }
+
+  /**
+   * Measure and return the total size of data in the user + meta tables of the SQLite doc
+   * (excluding gristsys tables). Note that this operation involves reading the entire database.
+   */
+  public async getDataSizeUncached(): Promise<number> {
     const result = await this.get(`
       SELECT SUM(pgsize - unused) AS totalSize
       FROM dbstat
@@ -1534,6 +1549,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     try {
       return await promise;
     } finally {
+      this._cachedDataSize = null;
       this.storageManager.markAsChanged(this.docName);
     }
   }
