@@ -262,6 +262,10 @@ export class GristDoc extends DisposableWithEvents {
       if (isNarrowScreen()) {
         return;
       }
+      // Only start a tour when the full interface is showing, i.e. not when in embedded mode.
+      if (state.params?.style === 'light') {
+        return;
+      }
       // If we have an active tour (or are in the process of starting one), don't start a new one.
       if (tourStarting || isTourActive()) {
         return;
