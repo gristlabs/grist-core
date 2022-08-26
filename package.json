@@ -120,7 +120,7 @@
     "fs-extra": "7.0.0",
     "grain-rpc": "0.1.7",
     "grainjs": "1.0.2",
-    "handlebars": "4.4.5",
+    "handlebars": "4.7.7",
     "highlight.js": "9.13.1",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.1",
