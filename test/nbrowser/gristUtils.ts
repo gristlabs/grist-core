@@ -456,32 +456,34 @@ export async function rightClick(cell: WebElement) {
  * grid view or field name for detail view.
  */
 export async function getCursorPosition() {
-  const section = await driver.findWait('.active_section', 4000);
-  const cursor = await section.findWait('.active_cursor', 1000);
-  // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
-  // works out.
-  const [colIndex, rowIndex, rowNum, colName] = await Promise.all([
-    catchNoSuchElem(() => cursor.findClosest('.field').index()),
-    catchNoSuchElem(() => cursor.findClosest('.gridview_row').index()),
-    catchNoSuchElem(() => cursor.findClosest('.g_record_detail').find('.detail_row_num').getText()),
-    catchNoSuchElem(() => cursor.findClosest('.g_record_detail_el')
-      .find('.g_record_detail_label').getText())
-  ]);
-  if (rowNum && colName) {
-    // This must be a detail view, and we just got the info we need.
-    return {rowNum: parseInt(rowNum, 10), col: colName};
-  } else {
-    // We might be on a single card record
-    const counter = await section.findAll(".grist-single-record__menu__count");
-    if (counter.length) {
-      const cardRow = (await counter[0].getText()).split(' OF ')[0];
-      return { rowNum : parseInt(cardRow), col: colName };
+  return await retryOnStale(async () => {
+    const section = await driver.findWait('.active_section', 4000);
+    const cursor = await section.findWait('.active_cursor', 1000);
+    // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
+    // works out.
+    const [colIndex, rowIndex, rowNum, colName] = await Promise.all([
+      catchNoSuchElem(() => cursor.findClosest('.field').index()),
+      catchNoSuchElem(() => cursor.findClosest('.gridview_row').index()),
+      catchNoSuchElem(() => cursor.findClosest('.g_record_detail').find('.detail_row_num').getText()),
+      catchNoSuchElem(() => cursor.findClosest('.g_record_detail_el')
+        .find('.g_record_detail_label').getText())
+    ]);
+    if (rowNum && colName) {
+      // This must be a detail view, and we just got the info we need.
+      return {rowNum: parseInt(rowNum, 10), col: colName};
+    } else {
+      // We might be on a single card record
+      const counter = await section.findAll(".grist-single-record__menu__count");
+      if (counter.length) {
+        const cardRow = (await counter[0].getText()).split(' OF ')[0];
+        return { rowNum : parseInt(cardRow), col: colName };
+      }
+      // Otherwise, it's a grid view, and we need to use indices to look up the info.
+      const gridRows = await section.findAll('.gridview_data_row_num');
+      const gridRowNum = await gridRows[rowIndex].getText();
+      return { rowNum: parseInt(gridRowNum, 10), col: colIndex };
     }
-    // Otherwise, it's a grid view, and we need to use indices to look up the info.
-    const gridRows = await section.findAll('.gridview_data_row_num');
-    const gridRowNum = await gridRows[rowIndex].getText();
-    return { rowNum: parseInt(gridRowNum, 10), col: colIndex };
-  }
+  });
 }
 
 /**
@@ -492,6 +494,15 @@ async function catchNoSuchElem(query: () => any) {
     return await query();
   } catch (err) {
     if (err instanceof error.NoSuchElementError) { return null; }
+    throw err;
+  }
+}
+
+async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
+  try {
+    return await query();
+  } catch (err) {
+    if (err instanceof error.StaleElementReferenceError) { return await query(); }
     throw err;
   }
 }

@@ -281,9 +281,18 @@ describe('ACIndex', function() {
 
   it('should highlight multi-byte unicode', function() {
     const acIndex = new ACIndexImpl(['Lorem ipsum 𝌆 dolor sit ameͨ͆t.', "mañana", "Москва"].map(makeItem), 3);
-    const acResult: ACResults<TestACItem> = acIndex.search("mañ моск am");
+    let acResult: ACResults<TestACItem> = acIndex.search("mañ моск am");
     assert.deepEqual(acResult.items.map(i => acResult.highlightFunc(i.text)),
       [["", "Моск", "ва"], ["", "mañ", "ana"], ["Lorem ipsum 𝌆 dolor sit ", "am", "eͨ͆t."]]);
+
+    const original = "ameͨ͆";
+    assert.equal(original.length, 5);
+    for (let end = 3; end <= original.length; end++) {
+      const text = original.slice(0, end);  // i.e. test: ame, ameͨ, ameͨ͆ (hard to see the difference in some editors)
+      acResult = acIndex.search(text);
+      assert.deepEqual(acResult.items.map(i => acResult.highlightFunc(i.text))[0],
+        ["Lorem ipsum 𝌆 dolor sit ", original, "t."]);
+    }
   });
 
   it('should match a brute-force scoring implementation', function() {

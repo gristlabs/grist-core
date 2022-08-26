@@ -11,6 +11,7 @@ import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
 import escapeRegExp = require("lodash/escapeRegExp");
 import deburr = require("lodash/deburr");
+import split = require("lodash/split");
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
@@ -243,11 +244,17 @@ function highlightMatches(searchWords: string[], text: string): string[] {
   for (let i = 0; i < textParts.length; i += 2) {
     const word = textParts[i];
     const separator = textParts[i + 1] || '';
-    const prefixLen = findLongestPrefixLen(word.toLowerCase(), searchWords);
+    // deburr (remove diacritics) was used to produce searchWords, so `word` needs to match that.
+    const prefixLen = findLongestPrefixLen(deburr(word).toLowerCase(), searchWords);
     if (prefixLen === 0) {
       outputs[outputs.length - 1] += word + separator;
     } else {
-      outputs.push(word.slice(0, prefixLen), word.slice(prefixLen) + separator);
+      // Split into unicode 'characters' that keep diacritics combined
+      const chars = split(word, '');
+      outputs.push(
+        chars.slice(0, prefixLen).join(''),
+        chars.slice(prefixLen).join('') + separator
+      );
     }
   }
   return outputs;
