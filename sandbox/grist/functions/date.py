@@ -292,9 +292,14 @@ def DATEVALUE(date_string, tz=None):
   >>> DATEVALUE("asdf")
   Traceback (most recent call last):
   ...
-  dateutil.parser._parser.ParserError: Unknown string format: asdf
+  {}: Unknown string format: asdf
   """
   return dateutil.parser.parse(date_string).replace(tzinfo=_get_tzinfo(tz))
+
+
+DATEVALUE.__doc__ = DATEVALUE.__doc__.format(
+  "dateutil.parser._parser.ParserError" if six.PY3 else "ParserError"
+)
 
 
 def DAY(date):
