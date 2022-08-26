@@ -207,6 +207,7 @@ GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a back
 GRIST_DATA_DIR      | directory in which to store document caches.
 GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
 GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.
+GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the browser locale.
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
 GRIST_HIDE_UI_ELEMENTS | comma-separated list of parts of the UI to hide. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts`

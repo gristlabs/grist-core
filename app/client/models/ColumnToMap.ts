@@ -9,6 +9,8 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   public name: string;
   // Label to show instead of the name.
   public title: string;
+  // Human description of the column.
+  public description: string;
   // If column is optional (used only on the UI).
   public optional: boolean;
   // Type of the column that widget expects.
@@ -20,6 +22,7 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   constructor(def: string|ColumnToMap) {
     this.name = typeof def === 'string' ? def : def.name;
     this.title = typeof def === 'string' ? def : (def.title ?? def.name);
+    this.description = typeof def === 'string' ? '' : (def.description ?? '');
     this.optional = typeof def === 'string' ? false : (def.optional ?? false);
     this.type = typeof def === 'string' ? 'Any' : (def.type ?? 'Any');
     this.typeDesc = String(UserType.typeDefs[this.type]?.label ?? "any").toLowerCase();

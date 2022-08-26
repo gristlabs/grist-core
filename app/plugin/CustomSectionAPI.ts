@@ -12,6 +12,10 @@ export interface ColumnToMap {
    */
   title?: string|null,
   /**
+   * Optional long description of a column (used as a help text in section mapping).
+   */
+  description?: string|null,
+  /**
    * Column type, by default ANY.
    */
   type?: string, // GristType, TODO: ts-interface-checker doesn't know how to parse this

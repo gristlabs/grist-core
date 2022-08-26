@@ -129,7 +129,7 @@ bluebird.promisifyAll(tmp);
 const MAX_RECENT_ACTIONS = 100;
 
 const DEFAULT_TIMEZONE = (process.versions as any).electron ? moment.tz.guess() : "UTC";
-const DEFAULT_LOCALE = "en-US";
+const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
