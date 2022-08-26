@@ -7,6 +7,8 @@
 /static/*.bundle.js.*.txt
 /grist-sessions.db
 /landing.db
+/docs/
+/sandbox_venv*
 
 # Build helper files.
 /.build*
