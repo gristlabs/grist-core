@@ -2193,6 +2193,7 @@ export class CensorshipInfo {
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
     const tableRefToTableId: Map<number, string> = new Map();
+    const tableRefToIndex: Map<number, number> = new Map();
     const uncensoredTables: Set<number> = new Set();
     // Scan for forbidden tables.
     let rec = new RecordView(tables._grist_Tables, undefined);
@@ -2202,6 +2203,7 @@ export class CensorshipInfo {
       const tableId = rec.get('tableId') as string;
       const tableRef = ids[idx];
       tableRefToTableId.set(tableRef, tableId);
+      tableRefToIndex.set(tableRef, idx);
       const tableAccess = permInfo.getTableAccess(tableId);
       if (tableAccess.perms.read === 'deny') {
         this.censoredTables.add(tableRef);
@@ -2253,6 +2255,29 @@ export class CensorshipInfo {
       if (!this.censoredSections.has(rec.get('parentId') as number) &&
           !this.censoredColumns.has(rec.get('colRef') as number)) { continue; }
       this.censoredFields.add(ids[idx]);
+    }
+
+    // Now undo some of the above...
+    // Specifically, when a summary table is not censored, uncensor the source table's raw view section,
+    // so that the user can see the source table's title,
+    // which is used to construct the summary table's title. The section's fields remain censored.
+    // This would also be a sensible place to uncensor the source tableId, but that causes other problems.
+    rec = new RecordView(tables._grist_Tables, undefined);
+    ids = getRowIdsFromDocAction(tables._grist_Tables);
+    for (let idx = 0; idx < ids.length; idx++) {
+      rec.index = idx;
+      const tableRef = ids[idx];
+      const sourceTableRef = rec.get('summarySourceTable') as number;
+      const sourceTableIndex = tableRefToIndex.get(sourceTableRef);
+      if (
+        this.censoredTables.has(tableRef) ||
+        !sourceTableRef ||
+        sourceTableIndex === undefined ||
+        !this.censoredTables.has(sourceTableRef)
+      ) { continue; }
+      rec.index = sourceTableIndex;
+      const rawViewSectionRef = rec.get('rawViewSectionRef') as number;
+      this.censoredSections.delete(rawViewSectionRef);
     }
   }
 

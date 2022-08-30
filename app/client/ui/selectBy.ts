@@ -332,13 +332,21 @@ export class LinkConfig {
       this.srcSection.table().primaryTableId());
     const tgtTableId = (tgtCol ? getReferencedTableId(tgtCol.type()) :
       this.tgtSection.table().primaryTableId());
+    const srcTableSummarySourceTable = this.srcSection.table().summarySourceTable();
+    const tgtTableSummarySourceTable = this.tgtSection.table().summarySourceTable();
     try {
       assert(Boolean(this.srcSection.getRowId()), "srcSection was disposed");
       assert(!tgtCol || tgtCol.parentId() === this.tgtSection.tableRef(), "tgtCol belongs to wrong table");
       assert(!srcCol || srcCol.parentId() === this.srcSection.tableRef(), "srcCol belongs to wrong table");
       assert(this.srcSection.getRowId() !== this.tgtSection.getRowId(), "srcSection links to itself");
-      assert(tgtTableId, "tgtCol not a valid reference");
-      assert(srcTableId, "srcCol not a valid reference");
+
+      // We usually expect srcTableId and tgtTableId to be non-empty, but there's one exception:
+      // when linking two summary tables that share a source table (which we can check directly)
+      // and the source table is hidden by ACL, so its tableId is empty from our perspective.
+      if (!(srcTableSummarySourceTable !== 0 && srcTableSummarySourceTable === tgtTableSummarySourceTable)) {
+        assert(tgtTableId, "tgtCol not a valid reference");
+        assert(srcTableId, "srcCol not a valid reference");
+      }
       assert(srcTableId === tgtTableId, "mismatched tableIds");
     } catch (e) {
       throw new Error(`LinkConfig invalid: ` +

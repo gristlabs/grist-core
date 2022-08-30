@@ -499,10 +499,15 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this._linkingState = Holder.create(this);
   this.linkingState = this.autoDispose(ko.pureComputed(() => {
+    if (!this.activeLinkSrcSectionRef()) {
+      // This view section isn't selecting by anything.
+      return null;
+    }
     try {
       const config = new LinkConfig(this);
       return LinkingState.create(this._linkingState, docModel, config);
     } catch (err) {
+      console.warn(err);
       // Dispose old LinkingState in case creating the new one failed.
       this._linkingState.dispose();
       return null;

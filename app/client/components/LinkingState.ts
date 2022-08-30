@@ -119,12 +119,11 @@ export class LinkingState extends Disposable {
         }
         const srcRowId = srcSection.activeRowId();
         for (const c of srcSection.table().groupByColumns()) {
-          const col = c.summarySource();
-          const colId = col.colId();
+          const colId = c.colId();
           const srcValue = srcTableData.getValue(srcRowId as number, colId);
           result.filters[colId] = [srcValue];
           result.operations[colId] = 'in';
-          if (isDirectSummary && isListType(col.type())) {
+          if (isDirectSummary && isListType(c.summarySource().type())) {
             // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
             // should match against an empty list in the source table.
             result.operations[colId] = srcValue ? 'intersects' : 'empty';
