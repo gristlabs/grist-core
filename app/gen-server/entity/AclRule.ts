@@ -54,5 +54,5 @@ export class AclRuleDoc extends AclRule {
   public document: Document;
 
   @RelationId((aclRule: AclRuleDoc) => aclRule.document)
-  public docId: number;
+  public docId: string;
 }

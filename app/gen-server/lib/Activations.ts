@@ -16,7 +16,7 @@ export class Activations {
   // filled in once an activation key is presented.
   public current(): Promise<Activation> {
     return this._db.connection.manager.transaction(async manager => {
-      let activation = await manager.findOne(Activation);
+      let activation = await manager.findOne(Activation, {where: {}});
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();

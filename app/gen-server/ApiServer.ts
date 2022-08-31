@@ -77,7 +77,7 @@ export function addOrg(
   }
 ): Promise<number> {
   return dbManager.connection.transaction(async manager => {
-    const user = await manager.findOne(User, userId);
+    const user = await manager.findOne(User, {where: {id: userId}});
     if (!user) { return handleDeletedUser(); }
     const query = await dbManager.addOrg(user, props, {
       ...options,
@@ -411,7 +411,7 @@ export class ApiServer {
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getUserId(req);
-      const user = await User.findOne(userId);
+      const user = await User.findOne({where: {id: userId}});
       if (user) {
         // The null value is of no interest to the user, let's show empty string instead.
         res.send(user.apiKey || '');
@@ -426,7 +426,7 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
       const manager = this._dbManager.connection.manager;
-      let user = await manager.findOne(User, userId);
+      let user = await manager.findOne(User, {where: {id: userId}});
       if (!user) { return handleDeletedUser(); }
       if (!user.apiKey || force) {
         user = await updateApiKeyWithRetry(manager, user);
@@ -441,7 +441,7 @@ export class ApiServer {
     this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       await this._dbManager.connection.transaction(async manager => {
-        const user = await manager.findOne(User, userId);
+        const user = await manager.findOne(User, {where: {id: userId}});
         if (!user) { return handleDeletedUser(); }
         user.apiKey = null;
         await manager.save(User, user);

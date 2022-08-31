@@ -406,15 +406,15 @@ export class HomeDBManager extends EventEmitter {
    * force, and returns the id of this first match it finds.
    */
   public async testGetId(name: string): Promise<number|string> {
-    const org = await Organization.findOne({name});
+    const org = await Organization.findOne({where: {name}});
     if (org) { return org.id; }
-    const ws = await Workspace.findOne({name});
+    const ws = await Workspace.findOne({where: {name}});
     if (ws) { return ws.id; }
-    const doc = await Document.findOne({name});
+    const doc = await Document.findOne({where: {name}});
     if (doc) { return doc.id; }
-    const user = await User.findOne({name});
+    const user = await User.findOne({where: {name}});
     if (user) { return user.id; }
-    const product = await Product.findOne({name});
+    const product = await Product.findOne({where: {name}});
     if (product) { return product.id; }
     throw new Error(`Cannot testGetId(${name})`);
   }
@@ -434,17 +434,17 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  public getUserByKey(apiKey: string): Promise<User|undefined> {
+  public async getUserByKey(apiKey: string): Promise<User|undefined> {
     // Include logins relation for Authorization convenience.
-    return User.findOne({apiKey}, {relations: ["logins"]});
+    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
   }
 
-  public getUser(userId: number): Promise<User|undefined> {
-    return User.findOne(userId, {relations: ["logins"]});
+  public async getUser(userId: number): Promise<User|undefined> {
+    return await User.findOne({where: {id: userId}, relations: ["logins"]}) || undefined;
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
-    const user = await User.findOne(userId, {relations: ["logins"]});
+    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
     if (!user) { throw new ApiError("unable to find user", 400); }
     return this.makeFullUser(user);
   }
@@ -476,7 +476,10 @@ export class HomeDBManager extends EventEmitter {
   public async ensureExternalUser(profile: UserProfile) {
     await this._connection.transaction(async manager => {
       // First find user by the connectId from the profile
-      const existing = await manager.findOne(User, { connectId: profile.connectId}, {relations: ["logins"]});
+      const existing = await manager.findOne(User, {
+        where: {connectId: profile.connectId || undefined},
+        relations: ["logins"],
+      });
 
       // If a user does not exist, create it with data from the external profile.
       if (!existing) {
@@ -524,7 +527,7 @@ export class HomeDBManager extends EventEmitter {
 
   public async updateUser(userId: number, props: UserProfileChange): Promise<void> {
     let isWelcomed: boolean = false;
-    let user: User|undefined;
+    let user: User|null = null;
     await this._connection.transaction(async manager => {
       user = await manager.findOne(User, {relations: ['logins'],
                                           where: {id: userId}});
@@ -552,14 +555,14 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async updateUserName(userId: number, name: string) {
-    const user = await User.findOne(userId);
+    const user = await User.findOne({where: {id: userId}});
     if (!user) { throw new ApiError("unable to find user", 400); }
     user.name = name;
     await user.save();
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    const user = await User.findOne(userId);
+    const user = await User.findOne({where: {id: userId}});
     if (!user) { throw new ApiError("unable to find user", 400); }
 
     const newOptions = {...(user.options ?? {}), ...props};
@@ -708,12 +711,12 @@ export class HomeDBManager extends EventEmitter {
     manager?: EntityManager
   ): Promise<User|undefined> {
     const normalizedEmail = normalizeEmail(email);
-    return (manager || this._connection).createQueryBuilder()
+    return await (manager || this._connection).createQueryBuilder()
       .select('user')
       .from(User, 'user')
       .leftJoinAndSelect('user.logins', 'logins')
       .where('email = :email', {email: normalizedEmail})
-      .getOne();
+      .getOne() || undefined;
   }
 
   /**
@@ -932,7 +935,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('orgs.billingAccount', 'billing_accounts')
       .leftJoinAndSelect('billing_accounts.product', 'products')
       .where('external_id = :externalId', {externalId});
-    return query.getOne();
+    return await query.getOne() || undefined;
   }
 
   /**
@@ -1226,7 +1229,7 @@ export class HomeDBManager extends EventEmitter {
   // TODO: make a more efficient implementation if needed.
   public async flushSingleDocAuthCache(scope: DocScope, docId: string) {
     // Get all aliases of this document.
-    const aliases = await this._connection.manager.find(Alias, { docId });
+    const aliases = await this._connection.manager.find(Alias, {where: {docId}});
     // Construct a set of possible prefixes for cache keys.
     const names = new Set(aliases.map(a => stringifyUrlIdOrg(a.urlId, scope.org)));
     names.add(stringifyUrlIdOrg(docId, scope.org));
@@ -1314,7 +1317,7 @@ export class HomeDBManager extends EventEmitter {
         }
         billingAccount = new BillingAccount();
         billingAccount.individual = options.setUserAsOwner;
-        const dbProduct = await manager.findOne(Product, {name: productName});
+        const dbProduct = await manager.findOne(Product, {where: {name: productName}});
         if (!dbProduct) {
           throw new Error('Cannot find product for new organization');
         }
@@ -1533,8 +1536,10 @@ export class HomeDBManager extends EventEmitter {
         ...wsAcls, ...wsGroups, ...docs, ...docAcls, ...docGroups]);
 
       // Delete billing account if this was the last org using it.
-      const billingAccount = await manager.findOne(BillingAccount, org.billingAccountId,
-                                                   {relations: ['orgs']});
+      const billingAccount = await manager.findOne(BillingAccount, {
+        where: {id: org.billingAccountId},
+        relations: ['orgs'],
+      });
       if (billingAccount && billingAccount.orgs.length === 0) {
         await manager.remove([billingAccount]);
       }
@@ -1714,7 +1719,7 @@ export class HomeDBManager extends EventEmitter {
       if (!doc.urlId) {
         for (let i = MIN_URLID_PREFIX_LENGTH; i <= doc.id.length; i++) {
           const candidate = doc.id.substr(0, i);
-          if (!await manager.findOne(Alias, { urlId: candidate })) {
+          if (!await manager.findOne(Alias, {where: {urlId: candidate}})) {
             doc.urlId = candidate;
             break;
           }
@@ -2518,7 +2523,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org.workspaces', 'workspace')
       .leftJoinAndSelect('workspace.docs', 'doc')
       .where('doc.id = :docId', {docId})
-      .getOne();
+      .getOne() || undefined;
   }
 
   /**
@@ -3584,8 +3589,8 @@ export class HomeDBManager extends EventEmitter {
   // Access fields are added to all entities giving the group name corresponding
   // with the access level of the user.
   // Returns the resource fetched by the queryBuilder.
-  private async _verifyAclPermissions(
-    queryBuilder: SelectQueryBuilder<Resource>,
+  private async _verifyAclPermissions<T extends Resource>(
+    queryBuilder: SelectQueryBuilder<T>,
     options: {
       rawQueryBuilder?: SelectQueryBuilder<any>,
       emptyAllowed?: boolean,

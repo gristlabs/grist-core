@@ -170,7 +170,6 @@ export async function dbCheck(connection: Connection) {
   const options = await getConnectionOptions();
   log("database url:", getDatabaseUrl(options, false));
   log("migration files:", options.migrations);
-  log("migration directory:", (options.cli && options.cli.migrationsDir) || 'unspecified');
   log("migrations applied to db:", migrations.migrationsInDb);
   log("migrations listed in code:", migrations.migrationsInCode);
   let exitCode: number = 0;

@@ -599,7 +599,7 @@ export async function updateOrgPlan(orgName: string, productName: string = 'team
   const dbOrg = await db.findOne(Organization, {where: {name: orgName},
     relations: ['billingAccount', 'billingAccount.product']});
   if (!dbOrg) { throw new Error(`cannot find org ${orgName}`); }
-  const product = await db.findOne(Product, {name: productName});
+  const product = await db.findOne(Product, {where: {name: productName}});
   if (!product) { throw new Error('cannot find product'); }
   dbOrg.billingAccount.product = product;
   await dbOrg.billingAccount.save();
