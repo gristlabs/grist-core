@@ -110,7 +110,7 @@ export class AccessRules extends Disposable {
   private _errorMessage = Observable.create(this, '');
 
   // Map of tableId to basic metadata for all tables in the document.
-  private _aclResources: {[tableId: string]: AclTableDescription} = {};
+  private _aclResources = new Map<string, AclTableDescription>();
 
   private _aclUsersPopup = ACLUsersPopup.create(this);
 
@@ -169,12 +169,14 @@ export class AccessRules extends Disposable {
     this.update().catch((e) => this._errorMessage.set(e.message));
   }
 
-  public get allTableIds() { return Object.keys(this._aclResources).sort(); }
+  public get allTableIds() { return Array.from(this._aclResources.keys()).sort(); }
   public get userAttrRules() { return this._userAttrRules; }
   public get userAttrChoices() { return this._userAttrChoices; }
 
   public getTableTitle(tableId: string) {
-    return getTableTitle(this._aclResources[tableId]);
+    const table = this._aclResources.get(tableId);
+    if (!table) { return `#Invalid (${tableId})`; }
+    return getTableTitle(table);
   }
 
   /**
@@ -185,11 +187,12 @@ export class AccessRules extends Disposable {
     this._errorMessage.set('');
     const rules = this._ruleCollection;
 
-    [ , , this._aclResources] = await Promise.all([
+    const [ , , aclResources] = await Promise.all([
       rules.update(this._gristDoc.docData, {log: console}),
       this._updateDocAccessData(),
       this._gristDoc.docComm.getAclResources(),
     ]);
+    this._aclResources = new Map(Object.entries(aclResources));
     if (this.isDisposed()) { return; }
 
     this._tableRules.set(
@@ -421,7 +424,7 @@ export class AccessRules extends Disposable {
   // Returns '' if valid, or an error string if not. Exempt colIds will not trigger an error.
   public checkTableColumns(tableId: string, colIds?: string[], exemptColIds?: string[]): string {
     if (!tableId || tableId === SPECIAL_RULES_TABLE_ID) { return ''; }
-    const tableColIds = this._aclResources[tableId].colIds;
+    const tableColIds = this._aclResources.get(tableId)?.colIds;
     if (!tableColIds) { return `Invalid table: ${tableId}`; }
     if (colIds) {
       const validColIds = new Set([...tableColIds, ...exemptColIds || []]);
@@ -434,7 +437,7 @@ export class AccessRules extends Disposable {
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
   public getValidColIds(tableId: string): string[]|undefined {
-    return this._aclResources[tableId]?.colIds.filter(id => !isHiddenCol(id)).sort();
+    return this._aclResources.get(tableId)?.colIds.filter(id => !isHiddenCol(id)).sort();
   }
 
   private _addTableRules(tableId: string) {
