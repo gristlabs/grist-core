@@ -136,7 +136,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
           buildOption(selected, 'data', `Delete data and this page.`),
           buildOption(selected, 'page',
             [
-              `Delete this page, but do not delete data. `,
+              `Keep data and delete page. `,
               `Table will remain available in `,
               cssLink(urlState().setHref({docPage: 'data'}), 'raw data page', { target: '_blank'}),
               `.`
