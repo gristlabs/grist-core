@@ -2,7 +2,7 @@
 import os
 import textwrap
 import unittest
-from six import BytesIO, text_type
+from six import StringIO, text_type
 import csv
 
 from imports import import_csv
@@ -10,12 +10,6 @@ from imports import import_csv
 
 def _get_fixture(filename):
   return os.path.join(os.path.dirname(__file__), "fixtures", filename)
-
-
-def bytes_io_from_str(string):
-  if isinstance(string, text_type):
-    string = string.encode("utf8")
-  return BytesIO(string)
 
 
 class TestImportCSV(unittest.TestCase):
@@ -107,7 +101,7 @@ class TestImportCSV(unittest.TestCase):
                      u''])
 
   def test_wrong_cols1(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1, name2, name3
       a1,b1,c1
@@ -124,7 +118,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "name3", "Text", ["c1", "", ""])
 
   def test_wrong_cols2(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1
       a1,b1
@@ -140,7 +134,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "", "Text", ["", "c2"])
 
   def test_offset(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       ,,,,,,,
       name1,name2,name3
@@ -160,7 +154,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 3, "", "Text", ["", "", "d4"])
 
   def test_offset_no_header(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       4,b1,c1
       4,b2,c2
@@ -176,7 +170,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "", "Text", ["c1", "c2", "c3"])
 
   def test_empty_headers(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       ,,-,-
       b,a,a,a,a
@@ -194,7 +188,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 3, "-", "Text", ["a", "a", "a"])
     self._check_col(parsed_file, 4, "", "Text", ["a", "a", "a"])
 
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       -,-,-,-,-,-
       b,a,a,a,a
@@ -212,7 +206,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 5, "-", "Text", ["", "", ""])
 
   def test_guess_missing_user_option(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1,;name2,;name3
       a1,;b1,;c1
@@ -242,7 +236,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, ";name3", "Text", [";c1", ";c2", ";c3"])
 
   def test_one_line_file_no_header(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       2,name2,name3
       """))
@@ -256,7 +250,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "", "Text", ["name3"])
 
   def test_one_line_file_with_header(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1,name2,name3
       """))
@@ -270,7 +264,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "name3", "Text", [])
 
   def test_empty_file(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       """))
 
@@ -278,7 +272,7 @@ class TestImportCSV(unittest.TestCase):
     self.assertEqual(parsed_file, ({}, []))
 
   def test_option_num_rows(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1,name2,name3
       a1,b1,c1
@@ -310,7 +304,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "name3", "Text", ['c1', 'c2', 'c3'])
 
   def test_option_num_rows_no_header(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       ,,
       ,,
@@ -336,7 +330,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "", "Text", ['c1', 'c2'])
 
   def test_option_use_col_name_as_header(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       name1,name2,name3
       a1,1,c1
@@ -361,7 +355,7 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 2, "name3", "Text", ["c1", "c2", "c3"])
 
   def test_option_use_col_name_as_header_no_headers(self):
-    file_obj = bytes_io_from_str(textwrap.dedent(
+    file_obj = StringIO(textwrap.dedent(
       """\
       ,,,
       ,,,
