@@ -48,6 +48,7 @@ export function buildACMemberEmail(
   const finish = () => {
     acClose();
     emailObs.set("");
+    emailInput.value = emailObs.get();
     emailInput.focus();
   };
   const revert = () => {
@@ -63,10 +64,11 @@ export function buildACMemberEmail(
 
   const commitIfValid = () => {
     const item = acHolder.get()?.getSelectedItem();
+    const selectedEmail = emailObs.get() || item?.value;
     emailInput.setCustomValidity("");
     try {
-      if (emailObs.get() && item && isValid.get()) {
-        emailInput.value = item.value;
+      if (selectedEmail && isValid.get()) {
+        emailInput.value = selectedEmail;
         save(emailInput.value, item);
         finish();
         return true;
@@ -118,8 +120,8 @@ export function buildACMemberEmail(
                 cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
               )),
               cssMemberText(
-                cssMemberPrimary("Invite new member"),
-                cssMemberSecondary(
+                cssMemberPrimaryPlus("Invite new member"),
+                cssMemberSecondaryPlus(
                   dom.text(use => `We'll email an invite to ${use(emailObs)}`)
                 )
               ),
@@ -131,7 +133,7 @@ export function buildACMemberEmail(
               cssMemberImage(createUserImage(item, "large")),
               cssMemberText(
                 cssMemberPrimaryPlus(item.name, testId("um-member-name")),
-                cssMemberSecondary(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
+                cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
               )
             )
           ),
@@ -182,7 +184,16 @@ const cssSelectItem = styled(
 const cssMemberPrimaryPlus = styled(
   cssMemberPrimary,
   `
-  .selected > & {
+  .${cssSelectItem.className}.selected & {
+    color: white;
+  }
+`
+);
+
+const cssMemberSecondaryPlus = styled(
+  cssMemberSecondary,
+  `
+  .${cssSelectItem.className}.selected & {
     color: white;
   }
 `
