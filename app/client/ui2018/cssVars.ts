@@ -9,6 +9,7 @@
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {dom, makeTestId, Observable, styled, TestId} from 'grainjs';
+import debounce = require('lodash/debounce');
 import values = require('lodash/values');
 
 const VAR_PREFIX = 'grist';
@@ -221,6 +222,20 @@ export const cssHideForNarrowScreen = styled('div', `
     }
   }
 `);
+
+let _isScreenResizingObs: Observable<boolean>|undefined;
+
+// Returns a singleton observable for whether user is currently resizing the window. (listen to
+// `resize` events and uses a timer of 1000ms).
+export function isScreenResizing(): Observable<boolean> {
+  if (!_isScreenResizingObs) {
+    const obs = Observable.create<boolean>(null, false);
+    const ping = debounce(() => obs.set(false), 1000);
+    window.addEventListener('resize', () => { obs.set(true); ping(); });
+    _isScreenResizingObs = obs;
+  }
+  return _isScreenResizingObs;
+}
 
 /**
  * Attaches the global css properties to the document's root to them available in the page.

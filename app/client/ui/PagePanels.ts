@@ -6,7 +6,7 @@ import {watchElementForBlur} from 'app/client/lib/FocusLayer';
 import {urlState} from "app/client/models/gristUrlState";
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition, TransitionWatcher} from 'app/client/ui/transitions';
-import {colors, cssHideForNarrowScreen, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
+import {colors, cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomArg, MultiHolder, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
@@ -50,6 +50,7 @@ export function pagePanels(page: PageContents) {
   const onResize = page.onResize || (() => null);
   const leftOverlap = Observable.create(null, false);
   const dragResizer = Observable.create(null, false);
+  const isScreenResizingObs = isScreenResizing();
 
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
@@ -60,11 +61,14 @@ export function pagePanels(page: PageContents) {
   // last desktop state.
   const sub1 = subscribe(isNarrowScreenObs(), (use, narrow) => {
     if (narrow) {
-      lastLeftOpen = left.panelOpen.get();
+      lastLeftOpen = leftOverlap.get() ? false : left.panelOpen.get();
       lastRightOpen = right?.panelOpen.get() || false;
     }
     left.panelOpen.set(narrow ? false : lastLeftOpen);
     right?.panelOpen.set(narrow ? false : lastRightOpen);
+
+    // overlap should always be OFF when switching screen mode
+    leftOverlap.set(false);
   });
 
   // When url changes, we must have navigated; close the left panel since if it were open, it was
@@ -129,8 +133,18 @@ export function pagePanels(page: PageContents) {
         }),
 
         // opening left panel on over
-        dom.on('mouseenter', (_ev, elem) => {
-          if (left.panelOpen.get()) { return; }
+        dom.on('mouseenter', (evt1, elem) => {
+
+
+          if (left.panelOpen.get()
+
+            // when no opener should not auto-expand
+            || left.hideOpener
+
+            // if user is resizing the window, don't expand.
+            || isScreenResizingObs.get()) { return; }
+
+
 
           let isMouseInsideLeftPane = true;
           let isFocusInsideLeftPane = false;
@@ -161,7 +175,6 @@ export function pagePanels(page: PageContents) {
           // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
           const watchBlur = debounce(() => {
             if (owner.isDisposed()) { return; }
-            // console.warn('watchBlur', document.activeElement);
             isFocusInsideLeftPane = Boolean(leftPaneDom.contains(document.activeElement) ||
               document.activeElement?.closest('.grist-floating-menu'));
             maybeStartCollapse();
@@ -188,6 +201,16 @@ export function pagePanels(page: PageContents) {
           };
           owner.autoDispose(dom.onElem(document, 'mousemove', onMouseEvt));
           owner.autoDispose(dom.onElem(document, 'mouseup', onMouseEvt));
+
+          // Enables collapsing when the cursor leaves the window. This comes handy in a split
+          // screen setup, especially when Grist is on the right side: moving the cursor back and
+          // forth between the 2 windows, the cursor is likely to hover the left pane and expand it
+          // inadvertendly. This line collapses it back.
+          const onMouseLeave = () => {
+            isMouseInsideLeftPane = false;
+            maybeStartCollapse();
+          };
+          owner.autoDispose(dom.onElem(document.body, 'mouseleave', onMouseLeave));
 
           // schedule start of expansion
           const timeoutId = setTimeout(startExpansion, AUTO_EXPAND_TIMEOUT_MS);

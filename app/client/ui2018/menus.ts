@@ -20,6 +20,8 @@ export interface IOptionFull<T> {
 let _lastOpenedController: weasel.IOpenController|null = null;
 
 // Close opened menu if any, otherwise do nothing.
+// WARN: current implementation does not handle submenus correctly. Does not seem a problem as of
+// today though, as there is no submenu in UI.
 export function closeRegisteredMenu() {
   if (_lastOpenedController) { _lastOpenedController.close(); }
 }
