@@ -20,8 +20,8 @@ json_table_schema==0.2.1
 lazy_object_proxy==1.6.0
 lxml==4.6.3                # used in csv plugin only?
 messytables==0.15.2
-openpyxl==2.6.4
 python_dateutil==2.8.2
+openpyxl==3.0.10
 python_magic==0.4.12
 roman==2.0.0
 singledispatch==3.6.2

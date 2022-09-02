@@ -41,6 +41,7 @@ export class SafePythonComponent extends BaseComponent {
       importMount: this._tmpDir,
       logTimes: true,
       logMeta: this._logMeta,
+      preferredPythonVersion: '3',
     });
   }
 

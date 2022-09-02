@@ -1,16 +1,16 @@
 """
 Helper functions for import plugins
 """
-import sys
 import itertools
 import logging
 import os
 
-# Include /thirdparty into module search paths, in particular for messytables.
-sys.path.append('/thirdparty')
-
 import six
 from six.moves import zip
+
+if six.PY2:
+  raise RuntimeError("Imports should use a Python 3 environment")
+
 
 log = logging.getLogger(__name__)
 

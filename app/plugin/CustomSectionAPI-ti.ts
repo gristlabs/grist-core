@@ -7,6 +7,7 @@ import * as t from "ts-interface-checker";
 export const ColumnToMap = t.iface([], {
   "name": "string",
   "title": t.opt(t.union("string", "null")),
+  "description": t.opt(t.union("string", "null")),
   "type": t.opt("string"),
   "optional": t.opt("boolean"),
   "allowMultiple": t.opt("boolean"),

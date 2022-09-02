@@ -133,7 +133,8 @@ class TestImportXLS(unittest.TestCase):
         {'id': 'f', 'type': 'Date'},
         {'id': 'g', 'type': 'Any'},
         {'id': 'h', 'type': 'Date'},
-        {'id': 'i', 'type': 'Date'},
+        {'id': 'i', 'type': 'Any'},
+        {'id': 'j', 'type': 'Numeric'},
       ],
       'table_data': [
         [u'21:14:00'],
@@ -144,7 +145,8 @@ class TestImportXLS(unittest.TestCase):
         [-2207347200.0],
         [u'7/4/1776'],
         [205286400.0],
-        [-2209161600.0],
+        ['00:00:00'],
+        [6281228502068],
       ],
     }])
 
