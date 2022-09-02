@@ -2170,6 +2170,13 @@ const dummyAccessCheck: IAccessCheck = {
 
 /**
  * Manage censoring metadata.
+ *
+ * For most metadata, censoring means blanking out certain fields, rather than removing rows,
+ * (because the latter was too big of a change). In particular, these changes are relied on by
+ * other code:
+ *
+ *  - Censored tables (from _grist_Tables) have cleared tableId field. To check for it, use the
+ *    isTableCensored() helper in app/common/isHiddenTable.ts. This is used by exports to Excel.
  */
 export class CensorshipInfo {
   public censoredTables = new Set<number>();
