@@ -9,6 +9,7 @@ tests under 'arc unit' and under Jenkins.
   ./sandbox/nacl/bin/run python /grist/runtests.py [--xunit]
 """
 import codecs
+import logging
 import os
 import sys
 import unittest
@@ -29,6 +30,9 @@ def main():
     if six.PY2:
       utf8_stdout = codecs.getwriter('utf8')(utf8_stdout)
     test_runner = xmlrunner.XMLTestRunner(stream=utf8_stdout)
+
+  if "-v" in argv or "--verbose" in argv:
+    logging.basicConfig(level=logging.DEBUG)
 
   if all(arg.startswith("-") for arg in argv[1:]):
     argv.insert(1, "discover")
