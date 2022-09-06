@@ -7,7 +7,7 @@ import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
 import {primaryButton} from 'app/client/ui2018/buttons';
-import {colors, mediaDeviceNotSmall, testId, vars} from 'app/client/ui2018/cssVars';
+import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
@@ -165,14 +165,14 @@ const cssUserName = styled('div', `
   margin-left: 8px;
   font-size: ${vars.mediumFontSize};
   font-weight: ${vars.headerControlTextWeight};
-  color: ${colors.dark};
+  color: ${theme.text};
 `);
 
 const cssEmail = styled('div', `
   margin-top: 4px;
   font-size: ${vars.smallFontSize};
   font-weight: initial;
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssSmallIconWrap = styled('div', `
@@ -181,16 +181,16 @@ const cssSmallIconWrap = styled('div', `
 `);
 
 const cssOtherEmail = styled('div', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   .${cssMenuItem.className}-sel & {
-    color: ${colors.light};
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
 const cssCheckmark = styled(icon, `
   flex: none;
   margin-left: 16px;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
 `);
 
 // Note that this css class hides the item when the device width is small (not based on viewport

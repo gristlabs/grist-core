@@ -1,4 +1,5 @@
 .gridview_data_pane {
+  background-color: var(--grist-theme-table-body-bg, unset);
   position: relative;
   width: 100%;
   overflow: hidden;
@@ -22,7 +23,7 @@
   overscroll-behavior: none;
 
   z-index: 2; /* scrollbar should be over the overlay background */
-  border-top: 1px solid lightgrey;
+  border-top: 1px solid var(--grist-theme-table-header-border, lightgrey);
 }
 
 .gridview_data_pane > .gridview_data_scroll {
@@ -48,7 +49,7 @@
 }
 
 .field.column_name {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   line-height: var(--gridview-header-height);
   height: calc(var(--gridview-header-height) + 1px); /* Also should match height for overlay elements */
 }
@@ -70,8 +71,9 @@
   width: 4rem; /* Also should match width for .gridview_header_corner, and the overlay elements */
   flex: none;
 
-  border-bottom: 1px solid var(--grist-color-dark-grey);
-  background-color: var(--grist-color-light-grey);
+  border-bottom: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+  color: var(--grist-theme-table-header-fg, unset);
+  background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
   z-index: 2; /* goes over data cells */
 
   padding-top: 2px;
@@ -100,7 +102,7 @@
    * do not want !important, as it interferes with row selection.
    */
   .gridview_data_row_num {
-    background-color: var(--grist-color-light-grey) !important;
+    background-color: var(--grist-theme-table-header-bg , var(--grist-color-light-grey)) !important;
   }
   .gridview_header_backdrop_top {
     display: none;
@@ -109,7 +111,7 @@
     display: none;
   }
   .gridview_data_header {
-    background-color: var(--grist-color-light-grey) !important;
+    background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
   }
   .print-widget .gridview_header_backdrop_left, .print-widget .gridview_data_corner_overlay {
     display: none;
@@ -125,15 +127,15 @@
     display: table-header-group;
     break-inside: avoid;
     position: static;
-    border-top: 1px solid var(--grist-color-dark-grey);
-    border-left: 1px solid var(--grist-color-dark-grey);
+    border-top: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+    border-left: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
   }
   .print-widget .gridview_data_header {
     padding-left: 4rem !important;
   }
   .print-widget .gridview_data_pane .print-all-rows {
     display: table-row-group;
-    border-left: 1px solid var(--grist-color-dark-grey);
+    border-left: 1px solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
   }
   .print-widget .gridview_data_pane .print-row {
     display: table-row;
@@ -149,14 +151,14 @@
 .scroll_shadow_top,
 .scroll_shadow_left {
   position:absolute;
-  background-color: var(--grist-color-light-grey) !important;
+  background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
 }
 
 .gridview_data_corner_overlay {
   width: 4rem;
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
   top: 1px; /* go under 1px border on scrollpane */
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   z-index: 3;
   cursor: pointer;
 }
@@ -176,7 +178,7 @@
                       this value is the position where this movement should stop.
    */
   left: calc(4em + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
-  box-shadow: -6px 0 6px 6px #444;
+  box-shadow: -6px 0 6px 6px var(--grist-theme-table-scroll-shadow, #444);
   /* shadow should only show to the right of it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
@@ -188,7 +190,7 @@
   height: 100%;
   width: 0px;
   left: 4em;
-  box-shadow: -8px 0 14px 4px #444;
+  box-shadow: -8px 0 14px 4px var(--grist-theme-table-scroll-shadow, #444);
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 28px 0, 24px 100%, 0 100%);
   z-index: 3;
@@ -204,7 +206,7 @@
      as this component will be hidden when the scroll starts
    */
   left: calc(4em + var(--frozen-width, 0) * 1px);
-  background-color: #999999;
+  background-color: var(--grist-theme-table-frozen-columns-border, #999999);
   z-index: 3;
   user-select: none;
   pointer-events: none
@@ -215,7 +217,7 @@
   height: 0;
   width: 100%; /* needs to be wide enough to flow off the side*/
   top: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
-  box-shadow: 0 -6px 6px 6px #444;
+  box-shadow: 0 -6px 6px 6px var(--grist-theme-table-scroll-shadow, #444);
 
   /* should only show below it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 0 10px, 100% 10px, 100% 0);
@@ -228,7 +230,7 @@
   height:100%;
   top: 1px; /* go under 1px border on scrollpane */
   z-index: 1;
-  border-right: 1px solid lightgray;
+  border-right: 1px solid var(--grist-theme-table-header-border, lightgray);
 }
 
 .gridview_left_border {
@@ -236,7 +238,7 @@
   width: 0px; /* Matches rowid width (+border) */
   height: 100%;
   z-index: 3;
-  border-right: 1px solid var(--grist-color-dark-grey) !important;
+  border-right: 1px solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey)) !important;
   user-select: none;
   pointer-events: none
 }
@@ -245,7 +247,7 @@
   width: 100%;
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
   top: 1px; /* go under 1px border on scrollpane */
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   z-index: 1;
 }
 
@@ -266,7 +268,7 @@
   width: 0px;
   height: 100%;
   position: absolute;
-  border: 2px solid gray;
+  border: 2px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 20;
   top: 0px;
 }
@@ -275,10 +277,10 @@
   width: 0px;
   height: 100%;
   position: absolute;
-  border: 1px solid gray;
+  border: 1px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 15;
   top: 0px;
-  background-color: #F0F0F0;
+  background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
 }
 
@@ -286,7 +288,7 @@
   width: 100%;
   height: 0px;
   position: absolute;
-  border: 2px solid gray;
+  border: 2px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 20;
   left: 0px;
 }
@@ -295,10 +297,10 @@
   width: 100%;
   height: 0px;
   position: absolute;
-  border: 1px solid gray;
+  border: 1px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 15;
   left: 0px;
-  background-color: #F0F0F0;
+  background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
   pointer-events: none; /* prevents row drag shadow from stealing row headers clicks */
 }
@@ -323,12 +325,12 @@
 }
 
 .gridview_row .record.record-hlines .field.frozen {
-  box-shadow: 0px 1px 0px var(--grist-color-dark-grey);
+  box-shadow: 0px 1px 0px var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
 }
 
 /* selected field has a transparent color - with frozen fields we can't do it */
 .gridview_row .field.frozen.selected {
-  background-color: var(--grist-color-selection-opaque);
+  background-color: var(--grist-theme-selection-opaque-bg, var(--grist-color-selection-opaque));
 }
 
 /* make room for a frozen line by adding margin to first not frozen field - in header and in data */
@@ -342,22 +344,25 @@
     background: white !important;
   }
   .column_names .column_name.frozen {
-    background: var(--grist-color-light-grey) !important;
+    background: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
   }
 }
 
 /* Column hover effect */
 
 .gridview_row .field.hover-column, /* normal field in a row */
-.gridview_row .field.frozen.hover-column, /* frozen field in a row */
+.gridview_row .field.hover-column .field_clip,
 .column_name.hover-column, /* column name */
-.column_name.hover-column.selected /* selected column name */ {
+.column_name.hover-column.selected, /* selected column name */
+.gridview_row .field.frozen.hover-column /* frozen field in a row */ {
   /* for frozen fields can't use alpha channel */
-  background-color: var(--grist-color-selection-opaque);
+  background-color: var(--grist-theme-selection-opaque-bg, var(--grist-color-selection-opaque));
+  color: var(--grist-theme-selection-opaque-fg, unset);
 }
 /* For zebra stripes, make the selection little darker */
 .record-zebra.record-even .field.hover-column {
-  background-color: var(--grist-color-selection-darker-opaque);
+  background-color: var(--grist-theme-selection-opaque-dark-bg, var(--grist-color-selection-darker-opaque));
+  color: var(--grist-theme-selection-opaque-fg, unset);
 }
 /* When column has a hover, remove menu button. */
 .column_name.hover-column .menu_toggle {

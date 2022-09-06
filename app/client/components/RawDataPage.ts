@@ -4,7 +4,7 @@ import {DocumentUsage} from 'app/client/components/DocumentUsage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {printViewSection} from 'app/client/components/Printing';
 import {buildViewSectionDom, ViewSectionHelper} from 'app/client/components/ViewLayout';
-import {colors, mediaSmall, vars} from 'app/client/ui2018/cssVars';
+import {mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
@@ -112,7 +112,7 @@ const cssContainer = styled('div', `
 `);
 
 const cssOverlay = styled('div', `
-  background-color: ${colors.backdrop};
+  background-color: ${theme.modalBackdrop};
   inset: 0px;
   height: 100%;
   width: 100%;
@@ -127,7 +127,7 @@ const cssOverlay = styled('div', `
 `);
 
 const cssSectionWrapper = styled('div', `
-  background: white;
+  background: ${theme.mainPanelBg};
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -154,9 +154,9 @@ const cssCloseButton = styled(icon, `
   height: 24px;
   width: 24px;
   cursor: pointer;
-  --icon-color: ${vars.primaryBg};
+  --icon-color: ${theme.modalBackdropCloseButtonFg};
   &:hover {
-    --icon-color: ${colors.lighterGreen};
+    --icon-color: ${theme.modalBackdropCloseButtonHoverFg};
   }
   @media ${mediaSmall} {
     & {

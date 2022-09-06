@@ -5,7 +5,7 @@ import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {basicButton, primaryButton} from "app/client/ui2018/buttons";
 import {labeledSquareCheckbox} from "app/client/ui2018/checkbox";
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from "app/client/ui2018/icons";
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {cssSelectBtn} from 'app/client/ui2018/select';
@@ -228,7 +228,7 @@ const cssSelectSummary = styled('div', `
 
   &:empty::before {
     content: "Select fields";
-    color: ${colors.slate};
+    color: ${theme.selectButtonPlaceholderFg};
   }
 `);
 
@@ -244,8 +244,8 @@ const cssSelectorMenu = styled(cssMenu, `
 const cssItemsList = styled(shadowScroll, `
   flex: auto;
   min-height: 80px;
-  border-top: 1px solid ${colors.darkGrey};
-  border-bottom: 1px solid ${colors.darkGrey};
+  border-top: 1px solid ${theme.menuBorder};
+  border-bottom: 1px solid ${theme.menuBorder};
   margin-top: 8px;
   padding: 8px 0;
 `);
@@ -263,7 +263,7 @@ const cssSelectorItem = styled(cssMenuItem, `
 `);
 
 const cssSelectorNote = styled('span', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssSelectorFooter = styled(cssSelectorItem, `

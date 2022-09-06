@@ -9,7 +9,7 @@ import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/Work
 import {cssInput} from 'app/client/ui/cssInput';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalWidth, modal, saveModal} from 'app/client/ui2018/modals';
@@ -284,7 +284,7 @@ export const cssField = styled('div', `
 export const cssLabel = styled('label', `
   font-weight: normal;
   font-size: ${vars.mediumFontSize};
-  color: ${colors.dark};
+  color: ${theme.text};
   margin: 8px 16px 0 0;
   white-space: nowrap;
   width: 80px;
@@ -292,7 +292,7 @@ export const cssLabel = styled('label', `
 `);
 
 const cssWarningText = styled('div', `
-  color: red;
+  color: ${theme.errorText};
   margin-top: 8px;
 `);
 

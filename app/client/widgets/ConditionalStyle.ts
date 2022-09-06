@@ -6,7 +6,7 @@ import {Style} from 'app/client/models/Styles';
 import {cssFieldFormula} from 'app/client/ui/FieldConfig';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {setupEditorCleanup} from 'app/client/widgets/FieldEditor';
 import {cssError, openFormulaEditor} from 'app/client/widgets/FormulaEditor';
@@ -197,12 +197,12 @@ export class ConditionalStyle extends Disposable {
 
 const cssIcon = styled(icon, `
   flex: 0 0 auto;
-  --icon-color: ${colors.slate};
 `);
 
 const cssLabel = styled('div', `
   text-transform: uppercase;
   margin: 16px 16px 12px 16px;
+  color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
 `);
 
@@ -214,7 +214,7 @@ const cssRow = styled('div', `
     margin-top: 24px;
   }
   &-disabled {
-    color: ${colors.slate};
+    color: ${theme.disabledText};
   }
 `);
 
@@ -224,9 +224,9 @@ const cssRemoveButton = styled(cssIcon, `
   margin-right: 0px;
   transform: translateY(4px);
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   &:hover {
-    --icon-color: ${colors.lightGreen};
+    --icon-color: ${theme.controlPrimaryFg};
   }
 `);
 
@@ -244,7 +244,7 @@ const cssRuleList = styled('div', `
 `);
 
 const cssErrorBorder = styled('div', `
-  border-color: ${colors.error};
+  border-color: ${theme.inputInvalid};
 `);
 
 const cssRuleError = styled(cssError, `

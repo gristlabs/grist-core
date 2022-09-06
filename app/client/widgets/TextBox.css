@@ -1,7 +1,8 @@
 .record-add .field_clip {
-  background-color: inherit;
+  background-color: var(--grist-theme-table-add-new-bg, inherit);
 }
 .transform_field {
+  color: black;
   background-color: #FEFFE8;
 }
 

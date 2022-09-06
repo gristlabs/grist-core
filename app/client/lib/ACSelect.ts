@@ -1,6 +1,6 @@
 import {ACIndex, ACItem, buildHighlightedDom} from 'app/client/lib/ACIndex';
 import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {colors} from "app/client/ui2018/cssVars";
+import {theme} from "app/client/ui2018/cssVars";
 import {icon} from "app/client/ui2018/icons";
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from 'grainjs';
@@ -96,11 +96,12 @@ const cssSelectBtn = styled('div', `
   position: relative;
   width: 100%;
   height: 30px;
-  color: ${colors.dark};
-  --icon-color: ${colors.dark};
+  color: ${theme.selectButtonFg};
+  --icon-color: ${theme.selectButtonFg};
 `);
 
 const cssSelectItem = styled('li', `
+  color: ${theme.menuItemFg};
   display: block;
   white-space: pre;
   overflow: hidden;
@@ -110,12 +111,14 @@ const cssSelectItem = styled('li', `
   cursor: pointer;
 
   &.selected {
-    background-color: var(--weaseljs-selected-background-color, #5AC09C);
-    color:            var(--weaseljs-selected-color, white);
+    background-color: ${theme.menuItemSelectedBg};
+    color:            ${theme.menuItemSelectedFg};
   }
 `);
 
 const cssInput = styled('input', `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -123,20 +126,23 @@ const cssInput = styled('input', `
   width: 100%;
   padding: 0 6px;
   outline: none;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
   cursor: pointer;
   line-height: 16px;
   cursor: pointer;
 
   &:disabled {
-    color: grey;
-    background-color: initial;
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
   }
   &:focus {
     cursor: initial;
     outline: none;
-    box-shadow: 0px 0px 2px 2px #5E9ED6;
+    box-shadow: 0px 0px 2px 2px ${theme.inputFocus};
+  }
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
   }
 `);
 
@@ -147,8 +153,8 @@ const cssIcon = styled(icon, `
 `);
 
 const cssMatchText = styled('span', `
-  color: ${colors.lightGreen};
+  color: ${theme.autocompleteMatchText};
   .selected > & {
-    color: ${colors.lighterGreen};
+    color: ${theme.autocompleteSelectedMatchText};
   }
 `);

@@ -1,7 +1,7 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
 import {basicButton, cssButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssTextInput} from 'app/client/ui2018/editableLabel';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {ModalControl} from 'app/client/ui2018/modals';
@@ -189,7 +189,7 @@ const cssTitle = styled('div', `
   text-overflow: ellipsis;
   align-self: start;
   &:hover {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
   &-empty {
     min-width: 48px;
@@ -202,12 +202,13 @@ const cssRenamePopup = styled('div', `
   flex-direction: column;
   min-width: 280px;
   padding: 16px;
-  background-color: white;
+  background-color: ${theme.popupBg};
   border-radius: 2px;
   outline: none;
 `);
 
 const cssLabel = styled('label', `
+  color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
   font-weight: ${vars.bigControlTextWeight};
   margin: 0 0 8px 0;
@@ -235,10 +236,15 @@ const cssInput = styled((
   opts: IInputOptions,
   ...args) => input(obs, opts, cssTextInput.cls(''), ...args), `
   text-overflow: ellipsis;
+  color: ${theme.inputFg};
+  background-color: transparent;
   &:disabled {
-    color: ${colors.slate};
-    background-color: ${colors.lightGrey};
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
     pointer-events: none;
+  }
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
   }
   .${cssInputWithIcon.className} > &:disabled {
     padding-right: 28px;

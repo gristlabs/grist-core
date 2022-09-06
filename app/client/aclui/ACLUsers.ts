@@ -5,7 +5,7 @@ import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
         cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
 import {basicButton, basicButtonLink} from 'app/client/ui2018/buttons';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {PermissionDataWithExtraUsers} from 'app/common/ActiveDocAPI';
@@ -130,7 +130,7 @@ const cssUserItem = styled(cssMemberListItem, `
   padding: 8px 16px;
   align-items: center;
   &:hover {
-    background-color: ${colors.lightGrey};
+    background-color: ${theme.lightHover};
   }
 `);
 
@@ -146,7 +146,9 @@ const cssUserButton = styled('div', `
   white-space: nowrap;
   gap: 4px;
   &:hover {
-    background-color: ${colors.darkGrey};
+    --icon-color: ${theme.controlFg};
+    color: ${theme.controlFg};
+    background-color: ${theme.hover};
   }
   &-disabled {
     visibility: hidden;

@@ -15,7 +15,7 @@ import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {colors, mediaSmall, testId} from 'app/client/ui2018/cssVars';
+import {mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
@@ -335,7 +335,7 @@ const cssTestClick = styled(`div`, `
 const cssSigmaIcon = styled(icon, `
   bottom: 1px;
   margin-right: 5px;
-  background-color: ${colors.slate}
+  background-color: ${theme.lightText}
 `);
 
 const cssViewLeaf = styled('div', `
@@ -352,12 +352,12 @@ const cssViewLeafInactive = styled('div', `
       overflow: hidden;
       background: repeating-linear-gradient(
         -45deg,
-        ${colors.mediumGreyOpaque},
-        ${colors.mediumGreyOpaque} 10px,
-        ${colors.lightGrey} 10px,
-        ${colors.lightGrey} 20px
+        ${theme.widgetInactiveStripesDark},
+        ${theme.widgetInactiveStripesDark} 10px,
+        ${theme.widgetInactiveStripesLight} 10px,
+        ${theme.widgetInactiveStripesLight} 20px
       );
-      border: 1px solid ${colors.darkGrey};
+      border: 1px solid ${theme.widgetBorder};
       border-radius: 4px;
       padding: 0 2px;
     }

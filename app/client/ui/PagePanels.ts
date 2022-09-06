@@ -6,7 +6,7 @@ import {watchElementForBlur} from 'app/client/lib/FocusLayer';
 import {urlState} from "app/client/models/gristUrlState";
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
 import {transition, TransitionWatcher} from 'app/client/ui/transitions';
-import {colors, cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall} from 'app/client/ui2018/cssVars';
+import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomArg, MultiHolder, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
@@ -102,7 +102,7 @@ export function pagePanels(page: PageContents) {
         testId('left-panel'),
         cssOverflowContainer(
           contentWrapper = cssLeftPanelContainer(
-            cssTopHeader(left.header),
+            cssLeftPaneHeader(left.header),
             left.content,
           ),
         ),
@@ -264,7 +264,7 @@ export function pagePanels(page: PageContents) {
 
         cssRightPane(
           testId('right-panel'),
-          cssTopHeader(right.header),
+          cssRightPaneHeader(right.header),
           right.content,
 
           dom.style('width', (use) => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
@@ -341,7 +341,7 @@ const cssPageContainer = styled(cssVBox, `
   right: 0;
   bottom: 0;
   min-width: 600px;
-  background-color: ${colors.lightGrey};
+  background-color: ${theme.pageBg};
 
   @media ${mediaSmall} {
     & {
@@ -359,7 +359,7 @@ const cssContentMain = styled(cssHBox, `
 `);
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
-  background-color: ${colors.lightGrey};
+  background-color: ${theme.leftPanelBg};
   width: 48px;
   margin-right: 0px;
   transition: width 0.4s;
@@ -415,7 +415,7 @@ const cssMainPane = styled(cssVBox, `
   position: relative;
   flex: 1 1 0px;
   min-width: 0px;
-  background-color: white;
+  background-color: ${theme.mainPanelBg};
   z-index: 1;
   &-left-overlap {
     margin-left: 48px;
@@ -423,7 +423,7 @@ const cssMainPane = styled(cssVBox, `
 `);
 const cssRightPane = styled(cssVBox, `
   position: relative;
-  background-color: ${colors.lightGrey};
+  background-color: ${theme.rightPanelBg};
   width: 0px;
   margin-left: 0px;
   overflow: hidden;
@@ -461,13 +461,13 @@ const cssRightPane = styled(cssVBox, `
     display: none;
   }
 `);
-const cssTopHeader = styled('div', `
-  height: 48px;
+const cssHeader = styled('div', `
+  height: 49px;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
 
   @media print {
     & {
@@ -479,9 +479,18 @@ const cssTopHeader = styled('div', `
     display: none;
   }
 `);
+const cssTopHeader = styled(cssHeader, `
+  background-color: ${theme.topHeaderBg};
+`);
+const cssLeftPaneHeader = styled(cssHeader, `
+  background-color: ${theme.leftPanelBg};
+`);
+const cssRightPaneHeader = styled(cssHeader, `
+  background-color: ${theme.rightPanelBg};
+`);
 const cssBottomFooter = styled ('div', `
   height: ${bottomFooterHeightPx}px;
-  background-color: white;
+  background-color: ${theme.bottomFooterBg};
   z-index: 20;
   display: flex;
   flex-direction: row;
@@ -492,7 +501,7 @@ const cssBottomFooter = styled ('div', `
   bottom: 0;
   left: 0;
   right: 0;
-  border-top: 1px solid ${colors.mediumGrey};
+  border-top: 1px solid ${theme.pagePanelsBorder};
   @media ${mediaNotSmall} {
     & {
       display: none;
@@ -508,8 +517,8 @@ const cssBottomFooter = styled ('div', `
   }
 `);
 const cssResizeFlexVHandle = styled(resizeFlexVHandle, `
-  --resize-handle-color: ${colors.mediumGrey};
-  --resize-handle-highlight: ${colors.lightGreen};
+  --resize-handle-color: ${theme.pagePanelsBorder};
+  --resize-handle-highlight: ${theme.pagePanelsBorderResizing};
 
   @media print {
     & {
@@ -521,7 +530,7 @@ const cssResizeDisabledBorder = styled('div', `
   flex: none;
   width: 1px;
   height: 100%;
-  background-color: ${colors.mediumGrey};
+  background-color: ${theme.pagePanelsBorder};
   position: absolute;
   top: 0;
   bottom: 0;
@@ -535,20 +544,20 @@ const cssPanelOpener = styled(icon, `
   padding: 8px 8px;
   cursor: pointer;
   -webkit-mask-size: 16px 16px;
-  background-color: ${colors.lightGreen};
+  background-color: ${theme.controlFg};
   transition: transform 0.4s;
-  &:hover { background-color: ${colors.darkGreen}; }
+  &:hover { background-color: ${theme.controlHoverFg}; }
   &-open { transform: rotateY(180deg); }
 `);
 const cssPanelOpenerNarrowScreenBtn = styled('div', `
   width: 32px;
   height: 32px;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.sidePanelOpenerFg};
   cursor: pointer;
   border-radius: 4px;
   &-open {
-    background-color: ${colors.lightGreen};
-    --icon-color: white;
+    background-color: ${theme.sidePanelOpenerActiveBg};
+    --icon-color: ${theme.sidePanelOpenerActiveFg};
   }
 `);
 const cssPanelOpenerNarrowScreen = styled(icon, `
@@ -562,7 +571,7 @@ const cssContentOverlay = styled('div', `
   left: 0;
   bottom: 0;
   right: 0;
-  background-color: grey;
+  background-color: ${theme.pageBackdrop};
   opacity: 0.5;
   display: none;
   z-index: 9;

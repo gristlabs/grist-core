@@ -5,7 +5,7 @@ import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {getPageTitleSuffix, GristLoadConfig} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
@@ -144,12 +144,12 @@ const cssErrorHeader = styled('div', `
   font-size: ${vars.xxxlargeFontSize};
   margin: 24px;
   text-align: center;
-  color: ${colors.dark};
+  color: ${theme.text};
 `);
 
 const cssErrorText = styled('div', `
   font-size: ${vars.mediumFontSize};
-  color: ${colors.dark};
+  color: ${theme.text};
   margin: 0 auto 24px auto;
   max-width: 400px;
   text-align: center;

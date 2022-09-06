@@ -1,4 +1,4 @@
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {DomArg, keyframes, styled} from 'grainjs';
 
 const rotate360 = keyframes(`
@@ -9,10 +9,10 @@ const rotate360 = keyframes(`
 
 const flash = keyframes(`
   0% {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.loaderFg};
   }
   50%, 100% {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.loaderBg};
   }
 `);
 
@@ -25,8 +25,8 @@ export const loadingSpinner = styled('div', `
   width: 32px;
   height: 32px;
   border-radius: 32px;
-  border: 4px solid ${colors.darkGrey};
-  border-top-color: ${colors.lightGreen};
+  border: 4px solid ${theme.loaderBg};
+  border-top-color: ${theme.loaderFg};
   animation: ${rotate360} 1s ease-out infinite;
 `);
 
@@ -52,8 +52,8 @@ const cssLoadingDot = styled('div', `
   border-radius: 50%;
   width: var(--dot-size);
   height: var(--dot-size);
-  background-color: ${colors.lightGreen};
-  color: ${colors.lightGreen};
+  background-color: ${theme.loaderFg};
+  color: ${theme.loaderFg};
   animation: ${flash} 1s alternate infinite;
 
   &-left {

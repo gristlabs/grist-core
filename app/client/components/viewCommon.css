@@ -10,7 +10,7 @@
 
   border-width: 0px;
   border-style: none;
-  border-color: var(--grist-color-dark-grey);
+  border-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
   border-left-style: solid;  /* left border, against rownumbers div, always on */
   border-bottom-width: 1px; /* style: none, set by record-hlines*/
   /* Record background is white by default.
@@ -19,8 +19,8 @@
      selected fields - this still remains white.
      TODO: consider making this color the single source
   */
-  background: var(--grist-row-background-color, white);
-  color: var(--grist-row-color, black);
+  background: var(--grist-row-background-color, var(--grist-theme-cell-bg, white));
+  color: var(--grist-row-color, var(--grist-theme-cell-fg, black));
 }
 
 .record.record-hlines {  /* Overwrites style, width set on element */
@@ -28,11 +28,11 @@
 }
 
 .record.record-zebra.record-even {
-  background-color: var(--grist-row-background-color-zebra, #f8f8f8);
+  background-color: var(--grist-row-background-color-zebra, var(--grist-theme-cell-zebra-bg, #f8f8f8));
 }
 
 .record.record-add {
-  background-color: #f6f6ff !important;  /* important to win over zebra stripes */
+  background-color: var(--grist-theme-table-add-new-bg, #f6f6ff) !important;  /* important to win over zebra stripes */
 }
 
 .field {
@@ -47,15 +47,16 @@
 }
 
 .record-vlines > .field {
-  border-right-color: var(--grist-color-dark-grey);  /* set border visibility */
+  /* set border visibility */
+  border-right-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
 }
 
 .field.scissors {
-  outline: 2px dashed var(--grist-color-cursor);
+  outline: 2px dashed var(--grist-theme-cursor, var(--grist-color-cursor));
 }
 
 .field.selected {
-  background-color: var(--grist-color-selection);
+  background-color: var(--grist-theme-selection, var(--grist-color-selection));
 }
 
 .field.draft {
@@ -136,58 +137,38 @@
   width: 100%;
   height: 100%;
   /* one pixel outline around the cell, and one inside the cell */
-  outline: 1px solid var(--grist-color-inactive-cursor);
-  box-shadow: inset 0 0 0 1px var(--grist-color-inactive-cursor);
+  outline: 1px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
+  box-shadow: inset 0 0 0 1px var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
   pointer-events: none;
 }
 
 .active_cursor {
-  outline: 1px solid var(--grist-color-cursor);
-  box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
+  outline: 1px solid var(--grist-theme-cursor, var(--grist-color-cursor));
+  box-shadow: inset 0 0 0 1px var(--grist-theme-cursor, var(--grist-color-cursor));
 }
-}
-
-/* These classes are used to flash the cursor to indicate that editing in a cell is disabled. */
-.cursor_read_only {
-  outline: 1px solid #ff9a00;
-  box-shadow: inset 0 0 0 1px #ff9a00;
-}
-
-.cursor_read_only_fade {
-  outline-color: var(--grist-color-cursor);
-  box-shadow: inset 0 0 0 1px var(--grist-color-cursor);
-  transition: outline-color 0.5s ease-in, box-shadow 0.5s ease-in;
-}
-
-.cursor_read_only_lock {
-  top: 0px;
-  height: 100%;
-  padding: 0 4px;
-  line-height: inherit;
-  background-color: #ff9a00;
-  color: white;
-  opacity: 1;
-}
-
-.cursor_read_only_fade > .cursor_read_only_lock {
-  opacity: 0;
-  transition: opacity 0.5s ease-in;
 }
 
 .column_name {
-  background-color: var(--grist-color-light-grey);
+  color: var(--grist-theme-table-header-fg, unset);
+  background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
   text-align: center;
   cursor: pointer;
   /* Column headers always show vertical gridlines, to make it clear how to resize them */
-  border-right-color: var(--grist-color-dark-grey);
+  border-right-color: var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+}
+
+.column_names.record {
+  border-left-color: var(--grist-theme-table-header-border, var(--grist-color-dark-grey));
 }
 
 .column_name.selected {
-  background-color: var(--grist-color-medium-grey-opaque);
+  color: var(--grist-theme-table-header-selected-fg, unset);
+  background-color: var(--grist-theme-table-header-selected-bg, var(--grist-color-medium-grey-opaque));
 }
 
 .gridview_data_row_num.selected {
-  background-color: var(--grist-color-medium-grey-opaque);
+  color: var(--grist-theme-table-header-selected-fg, unset);
+  background-color: var(--grist-theme-table-header-selected-bg, var(--grist-color-medium-grey-opaque));
 }
 
 .gridview_data_row_info.linked_dst::before {

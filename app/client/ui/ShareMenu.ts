@@ -6,7 +6,7 @@ import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
-import {colors, mediaXSmall, testId} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
@@ -265,9 +265,9 @@ const cssShareButton = styled('div', `
   margin: 5px;
   white-space: nowrap;
 
-  --share-btn-bg: ${colors.lightGreen};
+  --share-btn-bg: ${theme.controlPrimaryBg};
   &-combined:hover, &-combined.weasel-popup-open {
-    --share-btn-bg: ${colors.darkGreen};
+    --share-btn-bg: ${theme.controlPrimaryHoverBg};
   }
 `);
 
@@ -289,14 +289,14 @@ const cssShareAction = styled(primaryButton, `
 const cssShareCircle = styled(cssHoverCircle, `
   z-index: 1;
   background-color: var(--share-btn-bg);
-  border: 1px solid white;
+  border: 1px solid ${theme.topHeaderBg};
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlPrimaryHoverBg};
   }
 `);
 
 const cssShareIcon = styled(cssTopBarBtn, `
-  background-color: white;
+  background-color: ${theme.controlPrimaryFg};
   height: 30px;
   width: 30px;
 `);
@@ -310,8 +310,8 @@ const cssMenuSplitLinkText = styled('div', `
   flex: auto;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   &:not(:hover) {
-    background-color: white;
-    color: black;
+    background-color: ${theme.menuBg};
+    color: ${theme.menuItemFg};
   }
 `);
 
@@ -320,11 +320,11 @@ const cssMenuIconLink = styled('a', `
   flex: none;
   padding: 8px 24px;
 
-  background-color: white;
-  --icon-color: ${colors.lightGreen};
+  background-color: ${theme.menuBg};
+  --icon-color: ${theme.menuItemLinkFg};
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
-    --icon-color: ${colors.darkGreen};
+    background-color: ${theme.menuItemLinkselectedBg};
+    --icon-color: ${theme.menuItemLinkSelectedFg};
   }
 `);
 

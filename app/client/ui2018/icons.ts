@@ -49,7 +49,7 @@
  *   `);
  */
 
-import { colors } from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { dom, DomElementArg, styled } from 'grainjs';
 import { IconName } from './IconList';
 
@@ -65,7 +65,7 @@ const iconDiv = styled('div', `
   -webkit-mask-size: contain;
   width: 16px;
   height: 16px;
-  background-color: var(--icon-color, black);
+  background-color: var(--icon-color, var(--grist-theme-text, black));
 `);
 
 export const cssIconBackground = styled(iconDiv, `
@@ -85,7 +85,7 @@ export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
 }
 
 /**
- * Container box for an slate-colored icon to serve as a button, with a grey background on hover.
+ * Container box for an icon to serve as a button..
  */
 export const cssIconButton = styled('div', `
   flex: none;
@@ -95,9 +95,9 @@ export const cssIconButton = styled('div', `
   border-radius: 3px;
   line-height: 0px;
   cursor: default;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.darkGrey};
-    --icon-color: ${colors.slate};
+    background-color: ${theme.controlSecondaryHoverBg};
+    --icon-color: ${theme.controlSecondaryFg};
   }
 `);

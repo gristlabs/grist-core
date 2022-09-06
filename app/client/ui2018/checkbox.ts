@@ -15,7 +15,7 @@
  *  labeledSquareCheckbox(observable(false), 'Include other values', dom.prop('disabled', true)),
  */
 
-import { colors } from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { Computed, dom, DomArg, styled } from 'grainjs';
 import { Observable } from 'grainjs';
 
@@ -28,9 +28,9 @@ export const cssLabel = styled('label', `
   outline: none;
   user-select: none;
 
-  --color: ${colors.darkGrey};
+  --color: ${theme.checkboxBorder};
   &:hover {
-    --color: ${colors.hover};
+    --color: ${theme.checkboxBorderHover};
   }
 `);
 
@@ -53,19 +53,13 @@ export const cssCheckboxSquare = styled('input', `
   --radius: 3px;
 
   &:checked:enabled, &:indeterminate:enabled {
-    --color: ${colors.lightGreen};
+    --color: ${theme.controlPrimaryBg};
   }
 
   &:disabled {
-    --color: ${colors.darkGrey};
+    --color: ${theme.checkboxDisabledBg};
     cursor: not-allowed;
   }
-
-  .${cssLabel.className}:hover > &:checked:enabled,
-  .${cssLabel.className}:hover > &:indeterminate:enabled, {
-    --color: ${colors.darkGreen};
-  }
-
 
   &::before, &::after {
     content: '';
@@ -86,6 +80,14 @@ export const cssCheckboxSquare = styled('input', `
     background-color: var(--color);
   }
 
+  &:not(:checked):indeterminate::after {
+    -webkit-mask-image: var(--icon-Minus);
+  }
+
+  &:not(:disabled)::after {
+    background-color: ${theme.checkboxBg};
+  }
+
   &:checked::after, &:indeterminate::after {
     content: '';
     position: absolute;
@@ -95,15 +97,7 @@ export const cssCheckboxSquare = styled('input', `
     -webkit-mask-size: contain;
     -webkit-mask-position: center;
     -webkit-mask-repeat: no-repeat;
-    background-color: ${colors.light};
-  }
-
-  &:not(:checked):indeterminate::after {
-    -webkit-mask-image: var(--icon-Minus);
-  }
-
-  &:not(:disabled)::after {
-    background-color: ${colors.light};
+    background-color: ${theme.controlPrimaryFg};
   }
 `);
 
@@ -113,7 +107,7 @@ export const cssCheckboxCircle = styled(cssCheckboxSquare, `
 
 export const cssLabelText = styled('span', `
   margin-left: 8px;
-  color: ${colors.dark};
+  color: ${theme.text};
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;
   text-overflow: ellipsis;

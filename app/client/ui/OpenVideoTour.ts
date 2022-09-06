@@ -1,6 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {modal} from 'app/client/ui2018/modals';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
@@ -106,21 +106,21 @@ const cssVideo = styled('iframe', `
 `);
 
 const cssVideoTourTextButton = styled('div', `
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   cursor: pointer;
 
   &:hover {
-    color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
   }
 `);
 
 const cssVideoIcon = styled(icon, `
-  background-color: ${colors.lightGreen};
+  background-color: ${theme.controlFg};
   cursor: pointer;
   margin: 0px 4px 3px 0;
 
   .${cssVideoTourTextButton.className}:hover > & {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlHoverFg};
   }
 `);
 
@@ -130,10 +130,10 @@ const cssCloseButton = styled('div', `
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.modalCloseButtonFg};
 
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.hover};
   }
 `);
 

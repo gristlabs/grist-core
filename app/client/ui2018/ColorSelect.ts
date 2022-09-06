@@ -1,6 +1,6 @@
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {isLight, swatches} from 'app/client/ui2018/ColorPalette';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
@@ -348,7 +348,8 @@ const cssFontOption = styled('div', `
   display: grid;
   place-items: center;
   flex-grow: 1;
-  background: white;
+  background: ${colors.light};
+  --icon-color: ${colors.dark};
   height: 24px;
   cursor: pointer;
   &:hover:not(&-selected) {
@@ -418,12 +419,13 @@ const cssContent = styled('div', `
 `);
 
 const cssHexBox = styled(textInput, `
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.inputBorder};
   border-left: none;
   font-size: ${vars.smallFontSize};
   display: flex;
   align-items: center;
-  color: ${colors.slate};
+  color: ${theme.lightText};
+  background-color: ${theme.inputBg};
   width: 56px;
   outline: none;
   padding: 0 3px;

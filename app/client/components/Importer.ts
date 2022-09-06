@@ -16,7 +16,7 @@ import {SortedRowSet} from 'app/client/models/rowset';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {openFilePicker} from 'app/client/ui/FileDialog';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
@@ -663,7 +663,7 @@ export class Importer extends DisposableWithEvents {
                     fields && fields.length > 0 ?
                       cssUnmatchedFields(
                         dom('div',
-                          cssGreenText(
+                          cssAccentText(
                             `${fields.length} unmatched ${fields.length > 1 ? 'fields' : 'field'}`
                           ),
                           ' in import:'
@@ -939,11 +939,11 @@ const cssActionLink = styled('div', `
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  color: ${colors.lightGreen};
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
   &:hover {
-    color: ${colors.darkGreen};
-    --icon-color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
   }
 `);
 
@@ -972,7 +972,7 @@ const cssPreviewWrapper = styled('div', `
 // This partly duplicates cssSectionHeader from HomeLeftPane.ts
 const cssSectionHeader = styled('div', `
   margin-bottom: 8px;
-  color: ${colors.slate};
+  color: ${theme.lightText};
   text-transform: uppercase;
   font-weight: 500;
   font-size: ${vars.xsmallFontSize};
@@ -994,9 +994,9 @@ const cssTableInfo = styled('div', `
   margin: 4px 0px;
   width: 300px;
   border-radius: 3px;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.importerTableInfoBorder};
   &:hover, &-selected {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 `);
 
@@ -1009,7 +1009,7 @@ const cssTableLine = styled('div', `
 const cssToFrom = styled('span', `
   flex: none;
   margin-right: 8px;
-  color: ${colors.slate};
+  color: ${theme.lightText};
   text-transform: uppercase;
   font-weight: 500;
   font-size: ${vars.xsmallFontSize};
@@ -1062,11 +1062,11 @@ const cssOverlay = styled('div', `
   height: 100%;
   width: 100%;
   z-index: 10;
-  background: ${colors.mediumGrey};
+  background: ${theme.importerSkippedTableOverlay};
 `);
 
 const cssPreviewGrid = styled(cssPreview, `
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.importerPreviewBorder};
   position: relative;
 `);
 
@@ -1079,7 +1079,7 @@ const cssMergeOptionsToggle = styled('div', `
 `);
 
 const cssMergeOptionsMessage = styled('div', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   margin-bottom: 8px;
 `);
 
@@ -1099,14 +1099,14 @@ const cssFieldFormula = styled(buildHighlightedCode, `
   cursor: pointer;
   margin-top: 1px;
   padding-left: 4px;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
 `);
 
 const cssColumnMatchIcon = styled(icon, `
   flex-shrink: 0;
   width: 20px;
   height: 32px;
-  background-color: ${colors.darkGrey};
+  background-color: ${theme.importerMatchIcon};
   margin-right: 4px;
 `);
 
@@ -1138,10 +1138,10 @@ const cssDestinationFieldSettings = styled('div', `
   line-height: 0px;
   border-radius: 3px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.lightText};
 
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 `);
 
@@ -1154,9 +1154,9 @@ const cssUnmatchedFieldsList = styled('div', `
   text-overflow: ellipsis;
   overflow: hidden;
   padding-right: 16px;
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
-const cssGreenText = styled('span', `
-  color: ${colors.lightGreen};
+const cssAccentText = styled('span', `
+  color: ${theme.accentText};
 `);

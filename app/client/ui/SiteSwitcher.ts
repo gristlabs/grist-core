@@ -3,9 +3,9 @@ import {getOrgName} from 'app/common/UserAPI';
 import {dom, makeTestId, styled} from 'grainjs';
 import {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
+import {theme} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {icon} from 'app/client/ui2018/icons';
-import {colors} from 'app/client/ui2018/cssVars';
 
 const testId = makeTestId('test-site-switcher-');
 
@@ -49,14 +49,14 @@ export function buildSiteSwitcher(appModel: AppModel) {
 }
 
 const cssOrgSelected = styled('div', `
-  background-color: ${colors.dark};
-  color: ${colors.light};
+  background-color: ${theme.siteSwitcherActiveBg};
+  color: ${theme.siteSwitcherActiveFg};
 `);
 
 const cssOrgCheckmark = styled(icon, `
   flex: none;
   margin-left: 16px;
-  --icon-color: ${colors.light};
+  --icon-color: ${theme.siteSwitcherActiveFg};
   display: none;
   .${cssOrgSelected.className} > & {
     display: block;

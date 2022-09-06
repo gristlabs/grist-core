@@ -1,6 +1,6 @@
 import { allCommands } from 'app/client/components/commands';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { testId, vars } from 'app/client/ui2018/cssVars';
+import { testId, theme } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { menuDivider, menuItem, menuItemCmd } from 'app/client/ui2018/menus';
 import { Sort } from 'app/common/SortSpec';
@@ -297,9 +297,9 @@ const cssCustomMenuItem = styled('div', `
   padding: 8px 8px;
   display: flex;
   &:not(:hover) {
-    background-color: white;
-    color: black;
-    --icon-color: black;
+    background-color: ${theme.menuBg};
+    color: ${theme.menuItemFg};
+    --icon-color: ${theme.menuItemFg};
   }
   &:last-of-type {
     padding-right: 24px;
@@ -310,9 +310,9 @@ const cssCustomMenuItem = styled('div', `
     flex: 1 0 auto;
   }
   &-selected, &-selected:not(:hover) {
-    background-color: ${vars.primaryBg};
-    color: white;
-    --icon-color: white;
+    background-color: ${theme.menuItemSelectedBg};
+    color: ${theme.menuItemSelectedFg};
+    --icon-color: ${theme.menuItemSelectedFg};
   }
 `);
 

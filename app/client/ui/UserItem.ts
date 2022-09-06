@@ -1,4 +1,4 @@
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {input, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
@@ -54,16 +54,16 @@ export const cssMemberText = styled('div', `
 
 export const cssMemberPrimary = styled('span', `
   font-weight: bold;
-  color: ${colors.dark};
+  color: ${theme.text};
   padding: 2px 0;
 
   .${cssMenuItem.className}-sel & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
 export const cssMemberSecondary = styled('span', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
   font-weight: normal;
@@ -71,12 +71,12 @@ export const cssMemberSecondary = styled('span', `
   white-space: nowrap;
 
   .${cssMenuItem.className}-sel & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
 export const cssMemberType = styled('span', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
   font-weight: normal;
@@ -84,12 +84,12 @@ export const cssMemberType = styled('span', `
   white-space: nowrap;
 
   .${cssMenuItem.className}-sel & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
 export const cssMemberTypeProblem = styled('span', `
-  color: ${colors.error};
+  color: ${theme.errorText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
   font-weight: normal;
@@ -97,7 +97,7 @@ export const cssMemberTypeProblem = styled('span', `
   white-space: nowrap;
 
   .${cssMenuItem.className}-sel & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
@@ -113,6 +113,7 @@ export const cssMemberBtn = styled('div', `
 `);
 
 export const cssRemoveIcon = styled(icon, `
+  background-color: ${theme.lightText};
   margin: 12px 0;
 `);
 
@@ -122,26 +123,32 @@ export const cssEmailInputContainer = styled('div', `
   height: 42px;
   padding: 0 3px;
   margin: 16px 63px;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
   font-size: ${vars.mediumFontSize};
   outline: none;
 
   &-green {
-    border: 1px solid ${colors.lightGreen};
+    border: 1px solid ${theme.inputValid};
   }
 `);
 
 export const cssEmailInput = styled(input, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
   flex: 1 1 0;
   line-height: 42px;
   font-size: ${vars.mediumFontSize};
   font-family: ${vars.fontFamily};
   outline: none;
   border: none;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 `);
 
 export const cssMailIcon = styled(icon, `
   margin: 12px 8px 12px 13px;
-  background-color: ${colors.slate};
+  background-color: ${theme.lightText};
 `);

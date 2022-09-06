@@ -47,7 +47,10 @@ export class TypeTransform extends ColumnTransform {
     const disableButtons = Observable.create(null, false);
 
     this._reviseTypeChange.set(false);
-    this.editor = this.autoDispose(AceEditor.create({ observable: this.transformColumn.formula }));
+    this.editor = this.autoDispose(AceEditor.create({
+      gristDoc: this.gristDoc,
+      observable: this.transformColumn.formula,
+    }));
     return dom('div',
       testId('type-transform-top'),
       dom.maybe(this._transformWidget, transformWidget => transformWidget.buildTransformConfigDom()),

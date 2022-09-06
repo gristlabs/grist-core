@@ -3,7 +3,7 @@ import { ACItem, ACResults, normalizeText, HighlightFunc } from 'app/client/lib/
 import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
 import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
 import { reportError } from 'app/client/models/errors';
-import { colors, testId } from 'app/client/ui2018/cssVars';
+import { colors, testId, theme } from 'app/client/ui2018/cssVars';
 import { menuCssClass } from 'app/client/ui2018/menus';
 import { cssChoiceToken } from 'app/client/widgets/ChoiceToken';
 import { createMobileButtons, getButtonMargins } from 'app/client/widgets/EditorButtons';
@@ -286,7 +286,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 }
 
 const cssCellEditor = styled('div', `
-  background-color: white;
+  background-color: ${theme.cellEditorBg};
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
 `);

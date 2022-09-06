@@ -2,7 +2,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {infoTooltip} from 'app/client/ui/tooltips';
-import {colors, mediaXSmall} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
 import {APPROACHING_LIMIT_RATIO, DataLimitStatus} from 'app/common/DocUsage';
@@ -341,12 +341,11 @@ const cssLightlyBoldedText = styled('div', `
   font-weight: 500;
 `);
 
-const cssIconAndText = styled('div', `
+const cssWarningMessage = styled('div', `
+  color: ${theme.text};
+  --icon-color: ${theme.text};
   display: flex;
   gap: 16px;
-`);
-
-const cssWarningMessage = styled(cssIconAndText, `
   margin-top: 16px;
 `);
 
@@ -392,6 +391,7 @@ const cssUsageMetrics = styled('div', `
 `);
 
 const cssUsageMetric = styled('div', `
+  color: ${theme.text};
   display: flex;
   flex-direction: column;
   width: 180px;
@@ -408,14 +408,14 @@ const cssProgressBarContainer = styled('div', `
   width: 100%;
   height: 4px;
   border-radius: 5px;
-  background: ${colors.darkGrey};
+  background: ${theme.progressBarBg};
 `);
 
 const cssProgressBarFill = styled(cssProgressBarContainer, `
-  background: ${colors.lightGreen};
+  background: ${theme.progressBarFg};
 
   &-approaching-limit {
-    background: ${colors.error};
+    background: ${theme.progressBarErrorFg};
   }
 `);
 

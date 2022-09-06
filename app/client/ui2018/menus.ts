@@ -2,7 +2,7 @@ import { Command } from 'app/client/components/commands';
 import { NeedUpgradeError, reportError } from 'app/client/models/errors';
 import { textButton } from 'app/client/ui2018/buttons';
 import { cssCheckboxSquare, cssLabel, cssLabelText } from 'app/client/ui2018/checkbox';
-import { colors, testId, vars } from 'app/client/ui2018/cssVars';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
 import { IconName } from 'app/client/ui2018/IconList';
 import { icon } from 'app/client/ui2018/icons';
 import { cssSelectBtn } from 'app/client/ui2018/select';
@@ -60,11 +60,12 @@ export const cssMenuElem = styled('div', `
   line-height: initial;
   max-width: 400px;
   padding: 8px 0px 16px 0px;
-  box-shadow: 0 2px 20px 0 rgba(38,38,51,0.6);
+  box-shadow: 0 2px 20px 0 ${theme.menuShadow};
   min-width: 160px;
   z-index: 999;
-  --weaseljs-selected-background-color: ${vars.primaryBg};
+  --weaseljs-selected-background-color: ${theme.menuItemSelectedBg};
   --weaseljs-menu-item-padding: 8px 24px;
+  background-color: ${theme.menuBg};
 
   @media print {
     & {
@@ -76,13 +77,16 @@ export const cssMenuElem = styled('div', `
 const menuItemStyle = `
   justify-content: flex-start;
   align-items: center;
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.menuItemFg};
+  --icon-color: ${theme.accentIcon};
   .${weasel.cssMenuItem.className}-sel {
-    --icon-color: ${colors.light};
+    color: ${theme.menuItemSelectedFg};
+    --icon-color: ${theme.menuItemSelectedFg};
   }
   &.disabled {
     cursor: default;
-    opacity: 0.2;
+    color: ${theme.menuItemDisabledFg};
+    --icon-color: ${theme.menuItemDisabledFg};
   }
 `;
 
@@ -237,7 +241,9 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
       weasel.setPopupToCreateDom(elem, ctl => buildMultiSelectMenu(ctl), weasel.defaultMenuOptions);
     },
     dom.style('border', use => {
-      return options.error && use(options.error) ? '1px solid red' : `1px solid ${colors.darkGrey}`;
+      return options.error && use(options.error)
+        ? `1px solid ${theme.selectButtonBorderInvalid}`
+        : `1px solid ${theme.selectButtonBorder}`;
     }),
     ...domArgs
   );
@@ -394,6 +400,7 @@ export function selectOption(
 }
 
 export const menuSubHeader = styled('div', `
+  color: ${theme.menuSubheaderFg};
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
   font-weight: ${vars.bigControlTextWeight};
@@ -405,7 +412,7 @@ export const menuText = styled('div', `
   display: flex;
   align-items: center;
   font-size: ${vars.smallFontSize};
-  color: ${colors.slate};
+  color: ${theme.menuText};
   padding: 8px 24px 4px 24px;
   max-width: 250px;
   cursor: default;
@@ -440,6 +447,7 @@ export function menuAnnotate(text: string, ...args: DomElementArg[]) {
 }
 
 export const menuDivider = styled(weasel.cssMenuDivider, `
+  background-color: ${theme.menuBorder};
   margin: 8px 0;
 `);
 
@@ -464,8 +472,8 @@ const cssSelectBtnLink = styled('div', `
   display: flex;
   align-items: center;
   font-size: ${vars.mediumFontSize};
-  color: ${colors.lightGreen};
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
   width: initial;
   height: initial;
   line-height: inherit;
@@ -480,8 +488,8 @@ const cssSelectBtnLink = styled('div', `
   -moz-appearance: none;
 
   &:hover, &:focus, &:active {
-    color: ${colors.darkGreen};
-    --icon-color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
     box-shadow: initial;
   }
 `);
@@ -489,7 +497,7 @@ const cssSelectBtnLink = styled('div', `
 const cssOptionIcon = styled(icon, `
   height: 16px;
   width: 16px;
-  background-color: ${colors.slate};
+  background-color: ${theme.menuItemIconFg};
   margin: -3px 8px 0 2px;
 `);
 
@@ -504,7 +512,11 @@ export const cssOptionRowIcon = styled(cssOptionIcon, `
   flex: none;
 
   .${weasel.cssMenuItem.className}-sel & {
-    background-color: white;
+    background-color: ${theme.menuItemSelectedFg};
+  }
+
+  .${weasel.cssMenuItem.className}.disabled & {
+    background-color: ${theme.menuItemDisabledFg};
   }
 `);
 
@@ -512,6 +524,19 @@ const cssOptionLabel = styled('div', `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  .${weasel.cssMenuItem.className} & {
+    color: ${theme.menuItemFg};
+  }
+
+  .${weasel.cssMenuItem.className}-sel & {
+    color: ${theme.menuItemSelectedFg};
+    background-color: ${theme.menuItemSelectedBg};
+  }
+
+  .${weasel.cssMenuItem.className}.disabled & {
+    color: ${theme.menuItemDisabledFg};
+  }
 `);
 
 const cssInlineCollapseIcon = styled(icon, `
@@ -524,7 +549,7 @@ const cssCollapseIcon = styled(icon, `
   right: 12px;
   top: calc(50% - 8px);
   pointer-events: none;
-  background-color: ${colors.dark};
+  background-color: ${theme.selectButtonFg};
 `);
 
 const cssInputButtonMenuElem = styled(cssMenuElem, `
@@ -537,16 +562,20 @@ const cssMenuItemCmd = styled('div', `
 
 const cssCmdKey = styled('span', `
   margin-left: 16px;
-  color: ${colors.slate};
+  color: ${theme.menuItemIconFg};
   margin-right: -12px;
 
   .${weasel.cssMenuItem.className}-sel > & {
-    color: ${colors.lightGrey};
+    color: ${theme.menuItemIconSelectedFg};
+  }
+
+  .${weasel.cssMenuItem.className}.disabled > & {
+    color: ${theme.menuItemDisabledFg};
   }
 `);
 
 const cssAnnotateMenuItem = styled('span', `
-  color: ${colors.lightGreen};
+  color: ${theme.accentText};
   text-transform: uppercase;
   font-size: 8px;
   vertical-align: super;
@@ -555,7 +584,7 @@ const cssAnnotateMenuItem = styled('span', `
   font-weight: bold;
 
   .${weasel.cssMenuItem.className}-sel > & {
-    color: white;
+    color: ${theme.menuItemIconSelectedFg};
   }
 `);
 
@@ -563,9 +592,10 @@ const cssMultiSelectSummary = styled('div', `
   flex: 1 1 0px;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: ${theme.selectButtonFg};
 
   &-placeholder {
-    color: ${colors.slate}
+    color: ${theme.selectButtonPlaceholderFg};
   }
 `);
 
@@ -575,6 +605,7 @@ const cssMultiSelectMenu = styled(weasel.cssMenu, `
   max-height: calc(max(300px, 95vh - 300px));
   max-width: 400px;
   padding-bottom: 0px;
+  background-color: ${theme.menuBg};
 `);
 
 const cssCheckboxLabel = styled(cssLabel, `
@@ -583,7 +614,7 @@ const cssCheckboxLabel = styled(cssLabel, `
 
 const cssCheckboxText = styled(cssLabelText, `
   margin-right: 12px;
-  color: ${colors.dark};
+  color: ${theme.text};
   white-space: pre;
 `);
 

@@ -3,7 +3,7 @@ import {reportError} from 'app/client/models/errors';
 import {cssInput} from 'app/client/ui/cssInput';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {colors, mediaSmall, testId, vars} from 'app/client/ui2018/cssVars';
+import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
@@ -474,12 +474,12 @@ export function cssModalWidth(style: ModalWidth) {
 // the flex container, to ensure the full item can be scrolled in case of overflow.
 // See https://stackoverflow.com/a/33455342/328565
 const cssModalDialog = styled('div', `
-  background-color: white;
+  background-color: ${theme.modalBg};
   min-width: 428px;
-  color: black;
+  color: ${theme.darkText};
   margin: auto;
   border-radius: 3px;
-  box-shadow: 0 2px 18px 0 rgba(31,37,50,0.31), 0 0 1px 0 rgba(76,86,103,0.24);
+  box-shadow: 0 2px 18px 0 ${theme.modalInnerShadow}, 0 0 1px 0 ${theme.modalOuterShadow};
   padding: 40px 64px;
   outline: none;
 
@@ -506,13 +506,14 @@ const cssModalDialog = styled('div', `
 export const cssModalTitle = styled('div', `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
-  color: ${colors.dark};
+  color: ${theme.text};
   margin: 0 0 16px 0;
   line-height: 32px;
   overflow-wrap: break-word;
 `);
 
 export const cssModalBody = styled('div', `
+  color: ${theme.text};
   margin: 16px 0;
 `);
 
@@ -530,7 +531,7 @@ const cssFadeIn = keyframes(`
 `);
 
 const cssFadeOut = keyframes(`
-  from {background-color: ${colors.backdrop}}
+  from {background-color: ${theme.modalBackdrop}}
 `);
 
 const cssModalBacker = styled('div', `
@@ -543,7 +544,7 @@ const cssModalBacker = styled('div', `
   left: 0;
   padding: 16px;
   z-index: 999;
-  background-color: ${colors.backdrop};
+  background-color: ${theme.modalBackdrop};
   overflow-y: auto;
   animation-name: ${cssFadeIn};
   animation-duration: 0.4s;

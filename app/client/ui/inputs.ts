@@ -1,4 +1,4 @@
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 
 export const cssInput = styled('input', `
@@ -7,10 +7,16 @@ export const cssInput = styled('input', `
   line-height: 20px;
   width: 100%;
   padding: 14px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid ${theme.inputBorder};
   border-radius: 4px;
   outline: none;
   display: block;
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 
   &[type=number] {
     -moz-appearance: textfield;
@@ -22,11 +28,11 @@ export const cssInput = styled('input', `
   }
 
   &-invalid {
-    border: 1px solid ${colors.error};
+    border: 1px solid ${theme.inputInvalid};
   }
 
   &-valid {
-    border: 1px solid ${colors.lightGreen};
+    border: 1px solid ${theme.inputValid};
   }
 `);
 

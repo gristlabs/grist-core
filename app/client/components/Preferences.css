@@ -33,6 +33,7 @@
 }
 
 .preference_desc {
+  color: var(--grist-theme-document-history-activity-text, unset);
   margin-left: 5px;
   cursor: pointer;
   font-weight: normal;

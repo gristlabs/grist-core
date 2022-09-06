@@ -558,6 +558,9 @@ export interface GristLoadConfig {
 
   // String to append to the end of the HTML document.title
   pageTitleSuffix?: string;
+
+  // If custom CSS should be included in the head of each page.
+  enableCustomCss?: boolean;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");

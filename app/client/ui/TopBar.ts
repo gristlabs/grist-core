@@ -10,7 +10,7 @@ import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
-import {colors, cssHideForNarrowScreen, testId} from 'app/client/ui2018/cssVars';
+import {cssHideForNarrowScreen, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {waitGrainObs} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
@@ -129,14 +129,14 @@ function topBarUndoBtn(iconName: IconName, ...domArgs: DomElementArg[]): Element
 }
 
 const cssTopBarUndoBtn = styled(cssTopBarBtn, `
-  background-color: ${colors.slate};
+  background-color: ${theme.topBarButtonSecondaryFg};
 
   .${cssHoverCircle.className}:hover & {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.topBarButtonPrimaryFg};
   }
 
   .${cssHoverCircle.className}-disabled:hover & {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.topBarButtonDisabledFg};
     cursor: default;
   }
 `);

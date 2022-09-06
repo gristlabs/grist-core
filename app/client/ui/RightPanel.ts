@@ -30,7 +30,7 @@ import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
@@ -567,7 +567,7 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
 }
 
 const cssOverlay = styled('div', `
-  background-color: white;
+  background-color: ${theme.rightPanelDisabledOverlay};
   opacity: 0.8;
   position: absolute;
   top: 0;
@@ -578,19 +578,21 @@ const cssOverlay = styled('div', `
 `);
 
 const cssBottomText = styled('span', `
+  color: ${theme.text};
   position: absolute;
   bottom: -40px;
   padding: 4px 16px;
 `);
 
 const cssLabel = styled('div', `
+  color: ${theme.text};
   text-transform: uppercase;
   margin: 16px 16px 12px 16px;
   font-size: ${vars.xsmallFontSize};
 `);
 
-
 const cssRow = styled('div', `
+  color: ${theme.text};
   display: flex;
   margin: 8px 16px;
   align-items: center;
@@ -598,7 +600,7 @@ const cssRow = styled('div', `
     margin-top: 24px;
   }
   &-disabled {
-    color: ${colors.slate};
+    color: ${theme.disabledText};
   }
 `);
 
@@ -613,29 +615,29 @@ const cssButtonRow = styled(cssRow, `
 
 const cssIcon = styled(icon, `
   flex: 0 0 auto;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.lightText};
 `);
 
 const cssTopBarItem = styled('div', `
   flex: 1 1 0px;
   height: 100%;
-  background-color: ${colors.lightGrey};
+  background-color: ${theme.rightPanelTabBg};
   font-weight: ${vars.headerControlTextWeight};
-  color: ${colors.dark};
-  --icon-color: ${colors.slate};
+  color: ${theme.rightPanelTabFg};
+  --icon-color: ${theme.rightPanelTabIcon};
   display: flex;
   align-items: center;
   cursor: default;
 
   &-selected {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.rightPanelTabSelectedBg};
     font-weight: initial;
-    color: ${colors.light};
-    --icon-color: ${colors.light};
+    color: ${theme.rightPanelTabSelectedFg};
+    --icon-color: ${theme.rightPanelTabSelectedFg};
   }
   &:not(&-selected):hover {
-    background-color: ${colors.mediumGrey};
-    --icon-color: ${colors.lightGreen};
+    background-color: ${theme.rightPanelTabHoverBg};
+    --icon-color: ${theme.rightPanelTabIconHover};
   }
 `);
 
@@ -659,7 +661,7 @@ const cssHoverCircle = styled('div', `
   justify-content: center;
 
   &:hover {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.rightPanelTabCloseButtonHoverBg};
   }
 `);
 
@@ -678,7 +680,7 @@ const cssSubTabContainer = styled('div', `
 `);
 
 const cssSubTab = styled('div', `
-  color: ${colors.lightGreen};
+  color: ${theme.rightPanelSubtabFg};
   flex: auto;
   height: 100%;
   display: flex;
@@ -686,21 +688,21 @@ const cssSubTab = styled('div', `
   justify-content: flex-end;
   text-align: center;
   padding-bottom: 8px;
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
   cursor: default;
 
   &-selected {
-    color: ${colors.dark};
-    border-bottom: 1px solid ${colors.lightGreen};
+    color: ${theme.rightPanelSubtabSelectedFg};
+    border-bottom: 1px solid ${theme.rightPanelSubtabSelectedUnderline};
   }
   &:not(&-selected):hover {
-    color: ${colors.darkGreen};
+    color: ${theme.rightPanelSubtabHoverFg};
   }
   &:hover {
-    border-bottom: 1px solid ${colors.lightGreen};
+    border-bottom: 1px solid ${theme.rightPanelSubtabHoverUnderline};
   }
   .${cssSubTabContainer.className}:hover > &-selected:not(:hover) {
-    border-bottom: 1px solid ${colors.mediumGrey};
+    border-bottom: 1px solid ${theme.pagePanelsBorder};
   }
 `);
 
@@ -710,7 +712,7 @@ const cssTabContents = styled('div', `
 `);
 
 const cssSeparator = styled('div', `
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
   margin-top: 16px;
 `);
 
@@ -731,7 +733,7 @@ const cssConfigContainer = styled('div', `
 
 const cssDataLabel = styled('div', `
   flex: 0 0 81px;
-  color: ${colors.slate};
+  color: ${theme.lightText};
   font-size: ${vars.xsmallFontSize};
   margin-left: 4px;
   margin-top: 2px;
@@ -751,7 +753,7 @@ const cssList = styled('div', `
 
 
 const cssListItem = styled('li', `
-  background-color: ${colors.mediumGrey};
+  background-color: ${theme.hover};
   border-radius: 2px;
   margin-bottom: 4px;
   white-space: nowrap;
@@ -763,10 +765,12 @@ const cssListItem = styled('li', `
 
 const cssTextInput = styled(textInput, `
   flex: 1 0 auto;
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
 
   &:disabled {
-    color: ${colors.slate};
-    background-color: ${colors.lightGrey};
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
     pointer-events: none;
   }
 `);

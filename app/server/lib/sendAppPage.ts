@@ -55,6 +55,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: getActivation(req as RequestWithLogin | undefined),
+    enableCustomCss: process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true',
     ...extra,
   };
 }

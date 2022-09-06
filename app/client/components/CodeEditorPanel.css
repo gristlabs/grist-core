@@ -15,9 +15,38 @@
 }
 
 .g-code-viewer.hljs {
+  color: var(--grist-theme-code-view-text, #444);
   background-color: inherit;
 }
 
 .g-code-panel-denied {
   text-align: center;
+}
+
+.g-code-viewer .hljs-keyword {
+  color: var(--grist-theme-code-view-keyword, #444);
+}
+
+.g-code-viewer .hljs-comment {
+  color: var(--grist-theme-code-view-comment, #888888);
+}
+
+.g-code-viewer .hljs-meta {
+  color: var(--grist-theme-code-view-meta, #1F7199);
+}
+
+.g-code-viewer .hljs-title {
+  color: var(--grist-theme-code-view-title, #880000);
+}
+
+.g-code-viewer .hljs-params {
+  color: var(--grist-theme-code-view-params, #444);
+}
+
+.g-code-viewer .hljs-string {
+  color: var(--grist-theme-code-view-string, #880000);
+}
+
+.g-code-viewer .hljs-number {
+  color: var(--grist-theme-code-view-number, #880000);
 }

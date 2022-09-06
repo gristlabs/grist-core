@@ -26,7 +26,10 @@ export class FormulaTransform extends ColumnTransform {
    * Build the transform menu for a formula transform
    */
   public buildDom() {
-    this.editor = this.autoDispose(AceEditor.create({ observable: this.transformColumn.formula }));
+    this.editor = this.autoDispose(AceEditor.create({
+      gristDoc: this.gristDoc,
+      observable: this.transformColumn.formula,
+    }));
     return [
       dom('div.transform_menu',
         dom('div.transform_editor',

@@ -5,6 +5,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
+import {attachCssThemeVars, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
@@ -13,6 +14,9 @@ import {LocalPlugin} from 'app/common/plugin';
 import {UserPrefs} from 'app/common/Prefs';
 import {isOwner} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
+import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
+        ThemePrefsChecker} from 'app/common/ThemePrefs';
+import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, SUPPORT_EMAIL, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
@@ -75,7 +79,10 @@ export interface AppModel {
 
   currentProduct: Product|null;         // The current org's product.
   currentFeatures: Features;            // Features of the current org's product.
+
   userPrefsObs: Observable<UserPrefs>;
+  themePrefs: Observable<ThemePrefs>;
+  currentTheme: Computed<Theme>;
 
   pageType: Observable<PageType>;
 
@@ -209,6 +216,11 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly isLegacySite = Boolean(this.currentProduct && isLegacyPlan(this.currentProduct.name));
 
   public readonly userPrefsObs = getUserPrefsObs(this);
+  public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
+    defaultValue: getDefaultThemePrefs(),
+    checker: ThemePrefsChecker,
+  }) as Observable<ThemePrefs>;
+  public readonly currentTheme = this._getCurrentThemeObs();
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
@@ -223,6 +235,10 @@ export class AppModelImpl extends Disposable implements AppModel {
     public readonly orgError?: OrgError,
   ) {
     super();
+
+    this._applyTheme();
+    this.autoDispose(this.currentTheme.addListener(() => this._applyTheme()));
+
     this._recordSignUpIfIsNewUser();
 
     const state = urlState().state.get();
@@ -310,6 +326,39 @@ export class AppModelImpl extends Disposable implements AppModel {
     // Send the sign-up event, and remove the recordSignUpEvent flag from preferences.
     dataLayer.push({event: 'new-sign-up'});
     getUserPrefObs(this.userPrefsObs, 'recordSignUpEvent').set(undefined);
+  }
+
+  private _getCurrentThemeObs() {
+    return Computed.create(this, this.themePrefs, prefersDarkModeObs(),
+      (_use, themePrefs, prefersDarkMode) => {
+        let appearance: ThemeAppearance;
+        if (!themePrefs.syncWithOS) {
+          appearance = themePrefs.appearance;
+        } else {
+          appearance = prefersDarkMode ? 'dark' : 'light';
+        }
+
+        const nameOrColors = themePrefs.colors[appearance];
+        let colors: ThemeColors;
+        if (typeof nameOrColors === 'string') {
+          colors = getThemeColors(nameOrColors);
+        } else {
+          colors = nameOrColors;
+        }
+
+        return {appearance, colors};
+      },
+    );
+  }
+
+  /**
+   * Applies a theme based on the user's current theme preferences.
+   */
+  private _applyTheme() {
+    // Custom CSS is incompatible with custom themes.
+    if (getGristConfig().enableCustomCss) { return; }
+
+    attachCssThemeVars(this.currentTheme.get());
   }
 }
 

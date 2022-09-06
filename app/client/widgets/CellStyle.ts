@@ -3,7 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
 import {Disposable, dom, DomContents, fromKo, MultiHolder, Observable, styled} from 'grainjs';
 
@@ -67,6 +67,7 @@ const cssLine = styled('div', `
 `);
 
 const cssLabel = styled('div', `
+  color: ${theme.text};
   text-transform: uppercase;
   font-size: ${vars.xsmallFontSize};
 `);
@@ -83,6 +84,6 @@ const cssRow = styled('div', `
     margin-top: 24px;
   }
   &-disabled {
-    color: ${colors.slate};
+    color: ${theme.disabledText};
   }
 `);

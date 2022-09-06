@@ -5,7 +5,7 @@ import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -42,13 +42,13 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
     cssRow(
       dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
-        editor = textInput(fromKo(origColumn.label),
+        editor = cssInput(fromKo(origColumn.label),
           async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
           dom.boolAttr('disabled', origColumn.disableModify),
           testId('field-label'),
         ),
-        textInput(editableColId,
+        cssInput(editableColId,
           saveColId,
           dom.boolAttr('disabled', use => use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
           cssCodeBlock.cls(''),
@@ -332,10 +332,10 @@ export const cssFieldFormula = styled(buildHighlightedCode, `
   cursor: pointer;
   margin-top: 4px;
   padding-left: 24px;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
 
   &-disabled-icon.formula_field_sidepane::before {
-    --icon-color: ${colors.slate};
+    --icon-color: ${theme.lightText};
   }
   &-disabled {
     pointer-events: none;
@@ -344,20 +344,20 @@ export const cssFieldFormula = styled(buildHighlightedCode, `
 
 const cssToggleButton = styled(cssIconButton, `
   margin-left: 8px;
-  background-color: var(--grist-color-medium-grey-opaque);
-  box-shadow: inset 0 0 0 1px ${colors.darkGrey};
+  background-color: ${theme.rightPanelToggleButtonDisabledBg};
+  box-shadow: inset 0 0 0 1px ${theme.inputBorder};
 
   &-selected, &-selected:hover {
     box-shadow: none;
-    background-color: ${colors.dark};
-    --icon-color: ${colors.light};
+    background-color: ${theme.rightPanelToggleButtonEnabledBg};
+    --icon-color: ${theme.rightPanelToggleButtonEnabledFg};
   }
   &-selected:hover {
-    --icon-color: ${colors.darkGrey};
+    --icon-color: ${theme.rightPanelToggleButtonEnabledHoverFg};
   }
   &-disabled, &-disabled:hover {
-    --icon-color: ${colors.light};
-    background-color: var(--grist-color-medium-grey-opaque);
+    --icon-color: ${theme.rightPanelToggleButtonDisabledFg};
+    background-color: ${theme.rightPanelToggleButtonDisabledBg};
   }
 `);
 
@@ -374,7 +374,7 @@ const cssColTieBlock = styled('div', `
 
 const cssColTieConnectors = styled('div', `
   position: absolute;
-  border: 2px solid var(--grist-color-dark-grey);
+  border: 2px solid ${theme.inputBorder};
   top: -9px;
   bottom: -9px;
   right: 11px;
@@ -385,4 +385,19 @@ const cssColTieConnectors = styled('div', `
 
 const cssEmptySeparator = styled('div', `
   margin-top: 16px;
+`);
+
+const cssInput = styled(textInput, `
+  color: ${theme.inputFg};
+  background-color: ${theme.mainPanelBg};
+  border: 1px solid ${theme.inputBorder};
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+
+  &:disabled {
+    background-color: ${theme.inputDisabledBg};
+    color: ${theme.inputDisabledFg};
+  }
 `);

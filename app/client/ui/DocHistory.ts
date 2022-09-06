@@ -5,7 +5,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {getTimeFromNow} from 'app/client/models/HomeModel';
 import {buildConfigContainer} from 'app/client/ui/RightPanel';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuAnnotate, menuItemLink} from 'app/client/ui2018/menus';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
@@ -108,7 +108,7 @@ export class DocHistory extends Disposable implements IDomComponent {
 
 const cssSubTabs = styled('div', `
   padding: 16px;
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
 `);
 
 const cssSnapshot = styled('div', `
@@ -117,24 +117,25 @@ const cssSnapshot = styled('div', `
 
 const cssSnapshotTime = styled('div', `
   text-align: right;
-  color: ${colors.slate};
+  color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
 `);
 
 const cssSnapshotCard = styled('div', `
-  border: 1px solid ${colors.mediumGrey};
+  border: 1px solid ${theme.documentHistorySnapshotBorder};
   padding: 8px;
-  background: white;
+  color: ${theme.documentHistorySnapshotFg};
+  background: ${theme.documentHistorySnapshotBg};
   border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
 
   &-current {
-    background-color: ${colors.dark};
-    color: ${colors.light};
-    --icon-color: ${colors.light};
+    background-color: ${theme.documentHistorySnapshotSelectedBg};
+    color: ${theme.documentHistorySnapshotSelectedFg};
+    --icon-color: ${theme.documentHistorySnapshotSelectedFg};
   }
 `);
 
@@ -152,6 +153,6 @@ const cssMenuDots = styled('div', `
   border-radius: 3px;
   cursor: default;
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 `);

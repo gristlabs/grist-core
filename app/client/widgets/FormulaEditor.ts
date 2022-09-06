@@ -2,7 +2,7 @@ import * as AceEditor from 'app/client/components/AceEditor';
 import {createGroup} from 'app/client/components/commands';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
@@ -427,5 +427,5 @@ const cssCollapseIcon = styled(icon, `
 `);
 
 export const cssError = styled('div', `
-  color: ${colors.error};
+  color: ${theme.errorText};
 `);

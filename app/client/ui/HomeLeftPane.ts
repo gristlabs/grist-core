@@ -9,7 +9,7 @@ import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
 import {cssLinkText, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer} from 'app/client/ui/LeftPanelCommon';
 import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
 import {transientInput} from 'app/client/ui/transientInput';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
@@ -248,6 +248,7 @@ export const cssEditorInput = styled(transientInput, `
   flex: 1 1 0px;
   min-width: 0px;
   color: initial;
+  background-color: ${theme.inputBg};
   margin-right: 16px;
   font-size: inherit;
 `);
@@ -265,9 +266,9 @@ const cssMenuTrigger = styled('div', `
     display: block;
   }
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.pageOptionsHoverBg};
   }
   .${cssPageEntry.className}-selected &:hover, .${cssPageEntry.className}-selected &.weasel-popup-open {
-    background-color: ${colors.slate};
+    background-color: ${theme.pageOptionsSelectedHoverBg};
   }
 `);

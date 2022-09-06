@@ -12,7 +12,7 @@ import {TableData} from 'app/client/models/TableData';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuItemAsync} from 'app/client/ui2018/menus';
@@ -1445,45 +1445,50 @@ const cssSectionHeading = styled('div', `
   align-items: center;
   margin-bottom: 8px;
   font-weight: bold;
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssTableName = styled('span', `
-  color: ${colors.dark};
+  color: ${theme.text};
 `);
 
 const cssInput = styled(textInput, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
   width: 100%;
   border: 1px solid transparent;
   cursor: pointer;
 
   &:hover {
-    border: 1px solid ${colors.darkGrey};
+    border: 1px solid ${theme.inputBorder};
   }
   &:focus {
-    box-shadow: inset 0 0 0 1px ${colors.cursor};
-    border-color: ${colors.cursor};
+    box-shadow: inset 0 0 0 1px ${theme.controlFg};
+    border-color: ${theme.controlFg};
     cursor: unset;
   }
   &[disabled] {
-    color: ${colors.dark};
-    background-color: ${colors.mediumGreyOpaque};
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
     box-shadow: unset;
     border-color: transparent;
+  }
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
   }
 `);
 
 const cssConditionError = styled('div', `
   margin-top: 4px;
   width: 100%;
-  color: ${colors.error};
+  color: ${theme.errorText};
 `);
 
 /**
  * Fairly general table styles.
  */
 const cssTableRounded = styled('div', `
-  border: 1px solid ${colors.slate};
+  border: 1px solid ${theme.accessRulesTableBorder};
   border-radius: 8px;
   overflow: hidden;
 `);
@@ -1491,7 +1496,7 @@ const cssTableRounded = styled('div', `
 // Row with a border
 const cssTableRow = styled('div', `
   display: flex;
-  border-bottom: 1px solid ${colors.slate};
+  border-bottom: 1px solid ${theme.accessRulesTableBorder};
   &:last-child {
     border-bottom: none;
   }
@@ -1499,8 +1504,8 @@ const cssTableRow = styled('div', `
 
 // Darker table header
 const cssTableHeaderRow = styled(cssTableRow, `
-  background-color: ${colors.mediumGrey};
-  color: ${colors.dark};
+  background-color: ${theme.accessRulesTableHeaderBg};
+  color: ${theme.accessRulesTableHeaderFg};
 `);
 
 // Cell for table column header.
@@ -1517,7 +1522,7 @@ const cssCell = styled('div', `
   overflow: hidden;
 
   &-rborder {
-    border-right: 1px solid ${colors.slate};
+    border-right: 1px solid ${theme.accessRulesTableBorder};
   }
   &-center {
     text-align: center;
@@ -1551,6 +1556,7 @@ const cssRuleBody = styled('div', `
 `);
 
 const cssRuleDescription = styled('div', `
+  color: ${theme.text};
   display: flex;
   align-items: center;
   margin: 16px 0 8px 0;
@@ -1568,6 +1574,6 @@ const cssCenterContent = styled('div', `
 `);
 
 const cssDefaultLabel = styled('div', `
-  color: ${colors.slate};
+  color: ${theme.accessRulesTableBodyFg};
   font-weight: bold;
 `);

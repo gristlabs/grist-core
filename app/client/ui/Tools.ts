@@ -7,7 +7,7 @@ import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEnt
         cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
         cssTools} from 'app/client/ui/LeftPanelCommon';
 import {hoverTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {menuAnnotate} from 'app/client/ui2018/menus';
@@ -206,7 +206,7 @@ function addRevertViewAsUI() {
 const cssConvertTooltip = styled('div', `
   display: flex;
   align-items: center;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.controlFg};
 
   & > .${cssLink.className} {
     margin-left: 8px;
@@ -223,10 +223,10 @@ const cssExampleCardOpener = styled('div', `
   width: 24px;
   padding: 4px;
   line-height: 0px;
-  --icon-color: ${colors.light};
-  background-color: ${colors.lightGreen};
+  --icon-color: ${theme.iconButtonFg};
+  background-color: ${theme.iconButtonPrimaryBg};
   &:hover {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.iconButtonPrimaryHoverBg};
   }
   .${cssTools.className}-collapsed & {
     display: none;
@@ -234,9 +234,9 @@ const cssExampleCardOpener = styled('div', `
 `);
 
 const cssRevertViewAsButton = styled(cssExampleCardOpener, `
-  background-color: ${colors.darkGrey};
+  background-color: ${theme.iconButtonSecondaryBg};
   &:hover {
-    background-color: ${colors.slate};
+    background-color: ${theme.iconButtonSecondaryHoverBg};
   }
 `);
 

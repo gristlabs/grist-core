@@ -1,19 +1,19 @@
 import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
-import { colors } from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { CellValue } from 'app/plugin/GristData';
 import { dom, IDomArgs, Observable, styled } from 'grainjs';
 
 /**
- * Styling for a simple green <A HREF> link.
+ * Styling for a simple <A HREF> link.
  */
 
 export const cssLink = styled('a', `
-  color: ${colors.lightGreen};
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.link};
+  --icon-color: ${theme.link};
   text-decoration: none;
   &:hover, &:focus {
-    color: ${colors.lightGreen};
-    --icon-color: ${colors.lightGreen};
+    color: ${theme.linkHover};
+    --icon-color: ${theme.linkHover};
     text-decoration: underline;
   }
 `);

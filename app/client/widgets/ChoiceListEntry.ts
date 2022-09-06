@@ -2,7 +2,7 @@ import {IToken, TokenField} from 'app/client/lib/TokenField';
 import {cssBlockedCursor} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colorButton, ColorOption} from 'app/client/ui2018/ColorSelect';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
@@ -422,17 +422,17 @@ const cssListBox = styled('div', `
   line-height: 1.5;
   padding-left: 4px;
   padding-right: 4px;
-  border: 1px solid ${colors.hover};
+  border: 1px solid ${theme.choiceEntryBorderHover};
   border-radius: 4px;
-  background-color: white;
+  background-color: ${theme.choiceEntryBg};
 `);
 
 const cssListBoxInactive = styled(cssListBox, `
   cursor: pointer;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.choiceEntryBorder};
 
   &:hover:not(&-disabled) {
-    border: 1px solid ${colors.hover};
+    border: 1px solid ${theme.choiceEntryBorderHover};
   }
   &-disabled {
     opacity: 0.6;
@@ -445,7 +445,7 @@ const cssListRow = styled('div', `
   margin-bottom: 4px;
   padding: 4px 8px;
   color: ${colors.dark};
-  background-color: ${colors.mediumGrey};
+  background-color: ${colors.mediumGreyOpaque};
   border-radius: 3px;
   text-overflow: ellipsis;
 `);
@@ -510,6 +510,7 @@ const cssEditableLabel = styled('div', `
 `);
 
 const cssTokenInput = styled('input', `
+  background-color: ${theme.choiceEntryBg};
   padding-top: 4px;
   padding-bottom: 4px;
   overflow: hidden;

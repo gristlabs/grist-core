@@ -1,7 +1,7 @@
 import * as commands from 'app/client/components/commands';
 import { urlState } from 'app/client/models/gristUrlState';
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
-import { colors } from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { dom, styled } from "grainjs";
@@ -54,7 +54,7 @@ export const welcomeTour: IOnBoardingMsg[] = [
     selector: '.tour-share-icon',
     title: 'Sharing',
     body: () => [
-      dom('p', 'Use the Share button (', Icon('Share'), ') to share the document or export data.')
+      dom('p', 'Use the Share button (', TopBarButtonIcon('Share'), ') to share the document or export data.')
     ],
     placement: 'bottom',
     cropPadding: true,
@@ -90,7 +90,7 @@ export function startWelcomeTour(onFinishCB: () => void) {
 const KeyContent = styled('span', `
   font-style: normal;
   font-family: inherit;
-  color: ${colors.darkGreen};
+  color: ${theme.shortcutKeyPrimaryFg};
 `);
 
 const KeyStrong = styled(KeyContent, `
@@ -102,20 +102,20 @@ const Key = styled('div', `
   padding: 2px 5px;
   border-radius: 4px;
   margin: 0px 2px;
-  border: 1px solid ${colors.slate};
-  color: black;
-  background-color: white;
+  border: 1px solid ${theme.shortcutKeyBorder};
+  color: ${theme.shortcutKeyFg};
+  background-color: ${theme.shortcutKeyBg};
   font-family: inherit;
   font-style: normal;
   white-space: nowrap;
 `);
 
-const Icon = styled(icon, `
-  --icon-color: ${colors.lightGreen};
+const TopBarButtonIcon = styled(icon, `
+  --icon-color: ${theme.topBarButtonPrimaryFg};
 `);
 
 const GreyIcon = styled(icon, `
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.shortcutKeySecondaryFg};
   margin-right: 8px;
 `);
 

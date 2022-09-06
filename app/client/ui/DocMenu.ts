@@ -17,7 +17,7 @@ import {transition} from 'app/client/ui/transitions';
 import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {colors, isNarrowScreenObs} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
@@ -84,7 +84,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
             // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
             // removes all pinned docs when on trash page.
             dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
-              css.docListHeader(css.docHeaderIconDark('PinBig'), 'Pinned Documents'),
+              css.docListHeader(css.pinnedDocsIcon('PinBig'), 'Pinned Documents'),
               createPinnedDocs(home, home.currentWSPinnedDocs),
             ]),
 
@@ -393,7 +393,7 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           // The flash value may change to true, and then immediately to false. We highlight it
           // using a transition, and scroll into view, when it turns back to false.
           transition(flash, {
-            prepare(elem, val) { if (!val) { elem.style.backgroundColor = colors.slate.toString(); } },
+            prepare(elem, val) { if (!val) { elem.style.backgroundColor = theme.lightText.toString(); } },
             run(elem, val) { if (!val) { elem.style.backgroundColor = ''; scrollIntoViewIfNeeded(elem); } },
           })
         ),

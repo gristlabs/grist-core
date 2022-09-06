@@ -1,4 +1,4 @@
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
 
@@ -20,7 +20,7 @@ export const cssAddNewButton = styled('div', `
   align-items: center;
   margin: 22px 0px 22px 0px;
   height: 40px;
-  color: ${colors.light};
+  color: ${theme.controlPrimaryFg};
   border: none;
   border-radius: 4px;
 
@@ -30,19 +30,19 @@ export const cssAddNewButton = styled('div', `
   font-weight: bold;
   overflow: hidden;
 
-  --circle-color: ${colors.lightGreen};
+  --circle-color: ${theme.addNewCircleSmallBg};
 
   &:hover, &.weasel-popup-open {
-    --circle-color: ${colors.darkGreen};
+    --circle-color: ${theme.addNewCircleSmallHoverBg};
   }
   &-open {
     margin: 22px 16px 22px 16px;
-    background-color: ${colors.lightGreen};
-    --circle-color: ${colors.darkGreen};
+    background-color: ${theme.controlPrimaryBg};
+    --circle-color: ${theme.addNewCircleBg};
   }
   &-open:hover, &-open.weasel-popup-open {
-    background-color: ${colors.darkGreen};
-    --circle-color: ${colors.darkerGreen};
+    background-color: ${theme.controlPrimaryHoverBg};
+    --circle-color: ${theme.addNewCircleHoverBg};
   }
 `);
 const cssLeftMargin = styled('div', `
@@ -53,6 +53,7 @@ const cssLeftMargin = styled('div', `
   }
 `);
 const cssAddText = styled('div', `
+  color: ${theme.controlPrimaryFg};
   flex: 0 0.5 content;
   white-space: nowrap;
   min-width: 0px;
@@ -70,6 +71,6 @@ const cssPlusButton = styled('div', `
   text-align: center;
 `);
 const cssPlusIcon = styled(icon, `
-  background-color: ${colors.light};
+  background-color: ${theme.addNewCircleFg};
   margin-top: 6px;
 `);

@@ -1,4 +1,4 @@
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, theme} from 'app/client/ui2018/cssVars';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {dom, DomElementArg, styled} from 'grainjs';
 
@@ -120,8 +120,7 @@ const cssUserPicture = styled('img', `
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background-color: white;
+  background-color: ${theme.menuBg};
   border-radius: 100px;
-  border: 1px solid white;    /* make sure edge of circle with initials is not visible */
   box-sizing: content-box;    /* keep the border outside of the size of the image */
 `);

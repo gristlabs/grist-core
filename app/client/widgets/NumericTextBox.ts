@@ -5,7 +5,7 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {ISelectorOption, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {clamp} from 'app/common/gutil';
@@ -153,8 +153,8 @@ function decimals(
 const cssDecimalsBox = styled('div', `
   position: relative;
   flex: auto;
-  --icon-color: ${colors.slate};
-  color: ${colors.slate};
+  --icon-color: ${theme.lightText};
+  color: ${theme.lightText};
   font-weight: normal;
   display: flex;
   align-items: center;
@@ -171,9 +171,10 @@ const cssNumLabel = styled('div', `
 
 const cssNumInput = styled('input', `
   padding: 4px 32px 4px 40px;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
-  color: ${colors.dark};
+  background-color: ${theme.inputBg};
+  color: ${theme.inputFg};
   width: 100%;
   text-align: right;
   appearance: none;
@@ -191,13 +192,14 @@ const cssSpinner = styled('div', `
 `);
 
 const cssSpinnerBtn = styled('div', `
+  --icon-color: ${theme.controlSecondaryFg};
   flex: 1 1 0px;
   min-height: 0px;
   position: relative;
   cursor: pointer;
   overflow: hidden;
   &:hover {
-    --icon-color: ${colors.dark};
+    --icon-color: ${theme.controlSecondaryHoverFg};
   }
 `);
 
@@ -213,11 +215,11 @@ const cssSpinnerBottom = styled(icon, `
 
 const cssModeSelect = styled(makeButtonSelect, `
   flex: 4 4 0px;
-  background-color: white;
+  background-color: ${theme.inputBg};
 `);
 
 const cssSignSelect = styled(makeButtonSelect, `
   flex: 1 1 0px;
-  background-color: white;
+  background-color: ${theme.inputBg};
   margin-left: 16px;
 `);

@@ -6,7 +6,7 @@ import {
 import { GristDoc } from "app/client/components/GristDoc";
 import { ITooltipControl, showTooltip, tooltipCloseButton } from "app/client/ui/tooltips";
 import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
-import { colors, testId } from "app/client/ui2018/cssVars";
+import { testId, theme } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 
 /**
@@ -408,7 +408,7 @@ class EditorAdapter extends Disposable implements Editor {
 const styledTooltip = styled('div', `
   display: flex;
   align-items: center;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.controlFg};
 
   & > .${cssLink.className} {
     margin-left: 8px;
@@ -430,7 +430,7 @@ function cellTooltip(clb: () => any) {
 // Discard notification dom
 const styledNotification = styled('div', `
   cursor: pointer;
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   &:hover {
     text-decoration: underline;
   }

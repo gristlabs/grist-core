@@ -1,4 +1,4 @@
-import {testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
 
@@ -6,6 +6,7 @@ import {styled} from 'grainjs';
 
 // Drag icon for use in koForm draggableList.
 export const cssDragger = styled((...args: any[]) => icon('DragDrop', testId('dragger'), ...args), `
+  --icon-color: ${theme.controlSecondaryFg};
   visibility: hidden;
   align-self: center;
   flex-shrink: 0;

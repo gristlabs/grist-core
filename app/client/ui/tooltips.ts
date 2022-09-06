@@ -6,7 +6,7 @@
  */
 
 import {prepareForTransition} from 'app/client/ui/transitions';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
@@ -225,11 +225,11 @@ export function infoTooltip(tipContent: DomContents, ...domArgs: DomElementArg[]
 const cssTooltip = styled('div', `
   position: absolute;
   z-index: 5000;      /* should be higher than a modal */
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: ${theme.tooltipBg};
   border-radius: 3px;
   box-shadow: 0 0 2px rgba(0,0,0,0.5);
   text-align: center;
-  color: white;
+  color: ${theme.tooltipFg};
   width: auto;
   font-family: sans-serif;
   font-size: 10pt;
@@ -246,19 +246,19 @@ const cssTooltipCloseButton = styled('div', `
   line-height: 16px;
   text-align: center;
   margin: -4px -4px -4px 8px;
-  --icon-color: white;
+  --icon-color: ${theme.tooltipCloseButtonFg};
   border-radius: 16px;
 
   &:hover {
-    background-color: white;
-    --icon-color: black;
+    background-color: ${theme.tooltipCloseButtonHoverBg};
+    --icon-color: ${theme.tooltipCloseButtonHoverFg};
   }
 `);
 
 const cssIconTooltip = styled(icon, `
   height: 12px;
   width: 12px;
-  background-color: ${colors.slate};
+  background-color: ${theme.tooltipIcon};
   flex-shrink: 0;
 `);
 

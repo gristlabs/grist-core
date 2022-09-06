@@ -11,10 +11,11 @@ import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
 import {RowId, RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
+import {cssInput} from 'app/client/ui/cssInput';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {cssLabel as cssCheckboxLabel, cssCheckboxSquare, cssLabelText, Indeterminate, labeledTriStateSquareCheckbox
        } from 'app/client/ui2018/checkbox';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
@@ -593,7 +594,7 @@ const cssMenu = styled('div', `
   max-width: 400px;
   max-height: 90vh;
   outline: none;
-  background-color: white;
+  background-color: ${theme.menuBg};
   padding-top: 0;
   padding-bottom: 12px;
 `);
@@ -608,15 +609,15 @@ const cssMenuHeader = styled('div', `
 `);
 const cssSelectAll = styled('div', `
   display: flex;
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   cursor: default;
   user-select: none;
   &-disabled {
-    color: ${colors.slate};
+    color: ${theme.controlSecondaryFg};
   }
 `);
 const cssDotSeparator = styled('span', `
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   margin: 0 4px;
   user-select: none;
 `);
@@ -637,14 +638,13 @@ const cssMenuItem = styled('div', `
 `);
 export const cssItemValue = styled(cssLabelText, `
   margin-right: 12px;
-  color: ${colors.dark};
   white-space: pre;
 `);
 const cssItemCount = styled('div', `
   flex-grow: 1;
   align-self: normal;
   text-align: right;
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 const cssMenuFooter = styled('div', `
   display: flex;
@@ -656,6 +656,8 @@ const cssApplyButton = styled(primaryButton, `
   margin-right: 4px;
 `);
 const cssSearch = styled(input, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
   flex-grow: 1;
   min-width: 1px;
   -webkit-appearance: none;
@@ -668,22 +670,26 @@ const cssSearch = styled(input, `
   border: none;
   outline: none;
 
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 `);
 const cssSearchIcon = styled(icon, `
+  --icon-color: ${theme.lightText};
   flex-shrink: 0;
   margin-left: auto;
   margin-right: 4px;
 `);
 const cssNoResults = styled(cssMenuItem, `
   font-style: italic;
-  color: ${colors.slate};
+  color: ${theme.lightText};
   justify-content: center;
 `);
 const cssSortIcon = styled(icon, `
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   margin-left: auto;
   &-active {
-    --icon-color: ${colors.lightGreen}
+    --icon-color: ${theme.controlFg}
   }
 `);
 const cssLabel = styled(cssCheckboxLabel, `
@@ -695,6 +701,7 @@ const cssToken = styled('div', `
   margin-right: 12px;
 `);
 const cssRangeHeader = styled(cssMenuItem, `
+  color: ${theme.text};
   padding: unset;
   border-radius: 0 0 3px 0;
   text-transform: uppercase;
@@ -704,14 +711,14 @@ const cssRangeHeader = styled(cssMenuItem, `
 const cssRangeContainer = styled(cssMenuItem, `
   display: flex;
   justify-content: left;
+  align-items: center;
   column-gap: 10px;
 `);
 const cssRangeInputSeparator = styled('span', `
   font-weight: 600;
-  position: relative;
-  top: 3px;
-  color: var(--grist-color-slate);
+  color: ${theme.lightText};
 `);
-const cssRangeInput = styled('input', `
+const cssRangeInput = styled(cssInput, `
+  height: unset;
   width: 120px;
 `);

@@ -8,7 +8,7 @@ import { SearchModel } from 'app/client/models/SearchModel';
 import { hoverTooltip, IHoverTipOptions } from 'app/client/ui/tooltips';
 import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { colors, mediaSmall, vars } from 'app/client/ui2018/cssVars';
+import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { dom, input, styled } from 'grainjs';
 import { noTestId, TestId } from 'grainjs';
@@ -32,7 +32,7 @@ const searchWrapper = styled('div', `
   position: relative;
   &-expand {
     width: 100% !important;
-    border: 1px solid grey;
+    border: 1px solid ${theme.searchBorder};
   }
   @media ${mediaSmall} {
     & {
@@ -58,6 +58,8 @@ const expandedSearch = styled('div', `
 `);
 
 const searchInput = styled(input, `
+  background-color: ${theme.topHeaderBg};
+  color: ${theme.inputFg};
   outline: none;
   border: none;
   margin: 0;
@@ -70,6 +72,9 @@ const searchInput = styled(input, `
   .${searchWrapper.className}-expand & {
     width: 100%;
   }
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 `);
 
 const cssArrowBtn = styled('div', `
@@ -80,8 +85,8 @@ const cssArrowBtn = styled('div', `
   visibility: hidden;
   width: 24px;
   height: 24px;
-  background-color: ${colors.mediumGrey};
-  --icon-color: ${colors.slate};
+  background-color: ${theme.searchPrevNextButtonBg};
+  --icon-color: ${theme.searchPrevNextButtonFg};
   border-radius: 3px;
   text-align: center;
   display: flex;
@@ -94,31 +99,31 @@ const cssArrowBtn = styled('div', `
 
 const cssCloseBtn = styled(icon, `
   cursor: pointer;
-  background-color: ${colors.lightGreen};
+  background-color: ${theme.controlFg};
   margin-left: 4px;
   flex-shrink: 0;
 `);
 
 const cssLabel = styled('span', `
   font-size: ${vars.smallFontSize};
-  color: ${colors.slate};
+  color: ${theme.lightText};
   white-space: nowrap;
   margin-right: 12px;
 `);
 
 const cssOptions = styled('div', `
+  background: ${theme.topHeaderBg};
   position: absolute;
   right: 0;
-  top: 46px;
+  top: 48px;
   z-index: 1;
-  background: white;
   padding: 2px 4px;
   overflow: hidden;
   white-space: nowrap;
 `);
 
 const cssShortcut = styled('span', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const searchArrowBtnTooltipOptions: IHoverTipOptions = {

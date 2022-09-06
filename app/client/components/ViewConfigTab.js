@@ -17,7 +17,7 @@ const {addFilterMenu} = require('app/client/ui/FilterBar');
 const {cssIcon, cssRow} = require('app/client/ui/RightPanelStyles');
 const {basicButton, primaryButton} = require('app/client/ui2018/buttons');
 const {labeledLeftSquareCheckbox} = require("app/client/ui2018/checkbox");
-const {colors} = require('app/client/ui2018/cssVars');
+const {theme} = require('app/client/ui2018/cssVars');
 const {cssDragger} = require('app/client/ui2018/draggableList');
 const {menu, menuItem, select} = require('app/client/ui2018/menus');
 const {confirmModal} = require('app/client/ui2018/modals');
@@ -236,7 +236,7 @@ ViewConfigTab.prototype._buildSortRow = function(colRef, sortSpec, columns) {
     ),
     cssMenu(
       cssBigIconWrapper(
-        cssIcon('Dots', grainjsDom.cls(cssBgLightGreen.className, hasSpecs)),
+        cssIcon('Dots', grainjsDom.cls(cssBgAccent.className, hasSpecs)),
         testId('sort-options-icon'),
       ),
       menu(_ctl => flags.map(({computed, allowedTypes, flag, label}) => {
@@ -571,7 +571,7 @@ const cssMenuIcon = styled(cssIcon, `
   margin: 0 8px 0 0;
 
   .${cssMenuItem.className}-sel > & {
-    background-color: ${colors.light};
+    background-color: ${theme.iconButtonFg};
   }
 `);
 
@@ -586,37 +586,37 @@ const cssSortIconBtn = styled(cssIcon, `
   flex: none;
   margin: 0 6px;
   cursor: pointer;
-  background-color: ${colors.slate};
+  background-color: ${theme.controlSecondaryFg};
 
   &:hover {
-    background-color: ${colors.dark};
+    background-color: ${theme.controlSecondaryHoverFg};
   }
 `);
 
 const cssSortIconPrimaryBtn = styled(cssSortIconBtn, `
-  background-color: ${colors.lightGreen};
+  background-color: ${theme.controlFg};
 
   &:hover {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlHoverFg};
   }
 `);
 
 const cssTextBtn = styled('div', `
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   cursor: pointer;
 
   &:hover {
-    color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
   }
 `);
 
 const cssPlusIcon = styled(cssIcon, `
-  background-color: ${colors.lightGreen};
+  background-color: ${theme.controlFg};
   cursor: pointer;
   margin: 0px 4px 3px 0;
 
   .${cssTextBtn.className}:hover > & {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlHoverFg};
   }
 `);
 
@@ -673,24 +673,24 @@ const cssMenu = styled('div', `
   border-radius: 3px;
   border: 1px solid transparent;
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 `);
 
-const cssBgLightGreen = styled(`div`, `
-  background: ${colors.lightGreen}
+const cssBgAccent = styled(`div`, `
+  background: ${theme.accentIcon}
 `)
 
 const cssOptionMenuItem = styled('div', `
   &:hover {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
   & label {
     flex: 1;
     cursor: pointer;
   }
   &.disabled * {
-    color: ${colors.darkGrey} important;
+    color: ${theme.menuItemDisabledFg} important;
     cursor: not-allowed;
   }
 `)

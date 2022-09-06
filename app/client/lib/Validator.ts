@@ -1,5 +1,5 @@
+import { theme } from 'app/client/ui2018/cssVars';
 import { Disposable, dom, Observable, styled } from 'grainjs';
-import { colors } from 'app/client/ui2018/cssVars';
 
 /**
  * Simple validation controls. Renders as a red text with a validation message.
@@ -117,5 +117,5 @@ export class Validator extends Disposable {
 }
 
 const cssError = styled('div.validator', `
-  color: ${colors.error};
+  color: ${theme.errorText};
 `);

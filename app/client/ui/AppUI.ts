@@ -105,6 +105,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
     headerMain: createTopBarHome(appModel),
     contentMain: createDocMenu(pageModel),
     contentTop: buildHomeBanners(appModel),
+    testId,
   });
 }
 

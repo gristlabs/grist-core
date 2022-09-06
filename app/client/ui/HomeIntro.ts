@@ -5,7 +5,7 @@ import * as css from 'app/client/ui/DocMenuCss';
 import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/HomeLeftPane';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
-import {testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
@@ -131,6 +131,7 @@ function makeCreateButtons(homeModel: HomeModel) {
 }
 
 const cssParagraph = styled(css.docBlock, `
+  color: ${theme.text};
   line-height: 1.6;
 `);
 

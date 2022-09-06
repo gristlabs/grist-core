@@ -44,7 +44,6 @@
   --color-hint-text: #888;
 
   --scroll-bar-width: 12px;
-  --scroll-bar-bg: #f0f0f0;
 
   /* fonts */
   --font-navbar-title: "Helvetica", "Arial", sans-serif;
@@ -96,12 +95,12 @@ body {
 .show_scrollbar::-webkit-scrollbar {
   width: var(--scroll-bar-width);
   height: var(--scroll-bar-width);
-  background-color: var(--scroll-bar-bg);
+  background-color: var(--scroll-bar-bg, #f0f0f0);
 }
 .show_scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.3);
+  background-color: var(--scroll-bar-fg, #a8a8a8);
   -webkit-border-radius: 100px;
-  border: 2px solid var(--scroll-bar-bg);
+  border: 2px solid var(--scroll-bar-bg, #f0f0f0);
 }
 .show_scrollbar::-webkit-scrollbar-thumb:vertical {
   min-height: 4rem;
@@ -110,12 +109,15 @@ body {
   min-width: 4rem;
 }
 .show_scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0,0,0,0.4); /* Some darker color when you click it */
+  background-color: var(--scroll-bar-hover-fg, #8f8f8f);
   -webkit-border-radius: 100px;
 }
 .show_scrollbar::-webkit-scrollbar-thumb:active {
-  background-color: rgba(0,0,0,0.5); /* Some darker color when you click it */
+  background-color: var(--scroll-bar-active-fg, #7c7c7c);
   -webkit-border-radius: 100px;
+}
+.show_scrollbar::-webkit-scrollbar-corner {
+  background-color: var(--scroll-bar-bg, #f0f0f0);
 }
 div.dev_warning {
   position: absolute;

@@ -1,4 +1,5 @@
 import {StringUnion} from 'app/common/StringUnion';
+import {ThemePrefs} from 'app/common/ThemePrefs';
 
 export const SortPref = StringUnion("name", "date");
 export type SortPref = typeof SortPref.type;
@@ -12,7 +13,7 @@ export interface Prefs {
   placeholder?: string;
 }
 
-// A collection of preferences related to a user or org (or combination).
+// A collection of preferences related to a user.
 export interface UserPrefs extends Prefs {
   // Whether to ask the user to fill out a form about their use-case, on opening the DocMenu page.
   // Set to true on first login, then reset when the form is closed, so that it only shows once.
@@ -20,8 +21,11 @@ export interface UserPrefs extends Prefs {
   // Whether to record a new sign-up event via Google Tag Manager. Set to true on first login, then
   // reset on first page load (after the event is sent), so that it's only recorded once.
   recordSignUpEvent?: boolean;
+  // Theme-related preferences.
+  theme?: ThemePrefs;
 }
 
+// A collection of preferences related to a combination of user and org.
 export interface UserOrgPrefs extends Prefs {
   docMenuSort?: SortPref;
   docMenuView?: ViewPref;

@@ -3,7 +3,7 @@ import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models
 import { linkId, NoLink } from 'app/client/ui/selectBy';
 import { getWidgetTypes, IWidgetType } from 'app/client/ui/widgetTypes';
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { colors, vars } from "app/client/ui2018/cssVars";
+import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from 'app/client/ui2018/modals';
 import { isLongerThan, nativeCompare } from "app/common/gutil";
@@ -421,15 +421,15 @@ function header(label: string) {
 }
 
 const cssContainer = styled('div', `
-  --outline: 1px solid rgba(217,217,217,0.60);
+  --outline: 1px solid ${theme.widgetPickerBorder};
 
   max-height: 386px;
-  box-shadow: 0 2px 20px 0 rgba(38,38,51,0.20);
+  box-shadow: 0 2px 20px 0 ${theme.widgetPickerShadow};
   border-radius: 2px;
   display: flex;
   flex-direction: column;
   user-select: none;
-  background-color: white;
+  background-color: ${theme.widgetPickerPrimaryBg};
 `);
 
 const cssPopupWrapper = styled('div', `
@@ -450,17 +450,19 @@ const cssPanel = styled('div', `
   overflow: auto;
   padding-bottom: 18px;
   &:nth-of-type(2n) {
-    background-color: ${colors.lightGrey};
+    background-color: ${theme.widgetPickerSecondaryBg};
     outline: var(--outline);
   }
 `);
 
 const cssHeader = styled('div', `
+  color: ${theme.text};
   margin: 24px 0 24px 24px;
   font-size: ${vars.mediumFontSize};
 `);
 
 const cssEntry = styled('div', `
+  color: ${theme.widgetPickerItemFg};
   padding: 0 0 0 24px;
   height: 32px;
   display: flex;
@@ -471,10 +473,10 @@ const cssEntry = styled('div', `
   overflow: hidden;
   cursor: pointer;
   &-selected {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.widgetPickerItemSelectedBg};
   }
   &-disabled {
-    color: ${colors.mediumGrey};
+    color: ${theme.widgetPickerItemDisabledBg};
     cursor: default;
   }
   &-disabled&-selected {
@@ -485,14 +487,14 @@ const cssEntry = styled('div', `
 const cssIcon = styled(icon, `
   margin-right: 8px;
   flex-shrink: 0;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.widgetPickerIcon};
   .${cssEntry.className}-disabled > & {
-    opacity: 0.2;
+    opacity: 0.25;
   }
 `);
 
 const cssTypeIcon = styled(cssIcon, `
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.widgetPickerPrimaryIcon};
 `);
 
 const cssLabel = styled('span', `
@@ -518,7 +520,7 @@ const cssPivot = styled(cssEntry, `
 const cssBigIcon = styled(icon, `
   width: 24px;
   height: 24px;
-  background-color: ${colors.darkGreen};
+  background-color: ${theme.widgetPickerSummaryIcon};
 `);
 
 const cssFooter = styled('div', `
@@ -536,11 +538,14 @@ const cssFooterContent = styled('div', `
 `);
 
 const cssSmallLabel = styled('span', `
+  color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
   margin-right: 8px;
 `);
 
 const cssSelect = styled(select, `
+  color: ${theme.selectButtonFg};
+  background-color: ${theme.selectButtonBg};
   flex: 1 0 160px;
   width: 160px;
 `);

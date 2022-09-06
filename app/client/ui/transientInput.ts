@@ -7,7 +7,8 @@
  */
 
 import {reportError} from 'app/client/models/AppModel';
-import {dom, DomArg} from 'grainjs';
+import {theme} from 'app/client/ui2018/cssVars';
+import {dom, DomArg, styled} from 'grainjs';
 
 export interface ITransientInputOptions {
   initialValue: string;
@@ -36,7 +37,7 @@ export function transientInput({initialValue, save, close}: ITransientInputOptio
     setTimeout(() => { input.focus(); input.select(); }, 10);
   }
 
-  const input = dom('input', {type: 'text', placeholder: 'Enter name'},
+  const input = cssInput({type: 'text', placeholder: 'Enter name'},
     dom.prop('value', initialValue),
     dom.on('blur', () => onSave(false)),
     dom.onKeyDown({
@@ -48,3 +49,12 @@ export function transientInput({initialValue, save, close}: ITransientInputOptio
   delayedFocus();
   return input;
 }
+
+const cssInput = styled('input', `
+  background-color: transparent;
+  color: ${theme.inputFg};
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+`);

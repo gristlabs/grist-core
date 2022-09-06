@@ -1,3 +1,4 @@
+import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
@@ -98,11 +99,12 @@ export function makeSimpleCreator(opts: {
       }
     },
     getExtraHeadHtml() {
-      let customHeadHtmlSnippet = '';
+      const elements: string[] = [];
       if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
-        customHeadHtmlSnippet += '<link rel="stylesheet" href="custom.css">';
+        elements.push('<link rel="stylesheet" href="custom.css">');
       }
-      return customHeadHtmlSnippet;
+      elements.push(getThemeBackgroundSnippet());
+      return elements.join('\n');
     },
   };
 }

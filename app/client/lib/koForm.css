@@ -103,7 +103,7 @@ div:hover > .kf_tooltip {
   min-width: 16px;
   min-height: 16px;
   padding: 4px;
-  background-color: white;
+  background-color: var(--grist-theme-popup-bg, white);
   border-radius: 2px;
   box-shadow: 0 1px 1px 1px rgba(0,0,0,0.15);
   line-height: 1.1rem;
@@ -129,7 +129,7 @@ div:hover > .kf_tooltip {
   right: 20px;
   width: 10px;
   height: 10px;
-  background-color: white;
+  background-color: var(--grist-theme-popup-bg, white);
   transform: rotate(45deg);
   z-index: 11;
 }
@@ -393,6 +393,7 @@ div:hover > .kf_tooltip {
 }
 
 .kf_label {
+  color: var(--grist-theme-text, unset);
   white-space: nowrap;
   font-size: 1.1rem;
   cursor: default;
@@ -436,7 +437,7 @@ div:hover > .kf_tooltip {
   top: 0;
   left: 0;
   padding: 0;
-  color: #333;
+  color: var(--grist-theme-input-fg, #333);
 }
 
 .elabel_content_measure {

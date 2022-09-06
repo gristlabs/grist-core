@@ -12,14 +12,13 @@
   cursor: default;
   height: 24px;
   margin-left: -16px;   /* to include drag handle that shows up on hover */
-  color: var(--grist-color-slate);
+  color: var(--grist-theme-text-light, var(--grist-color-slate));
   font-size: var(--grist-small-font-size);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .viewsection_content {
-  background-color: #ffffff;
   overflow: visible;
   margin: 12px;
 }
@@ -91,19 +90,19 @@
 .view_data_pane_container {
   position: relative;
   flex: auto;
-  border: 1px solid var(--grist-color-dark-grey);
+  border: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
 }
 
 @media not print {
 .active_section > .view_data_pane_container {
-  box-shadow: -2px 0 0 0px var(--grist-color-light-green);
-  border-left: 1px solid var(--grist-color-light-green);
+  box-shadow: -2px 0 0 0px var(--grist-theme-widget-active-border, var(--grist-color-light-green));
+  border-left: 1px solid var(--grist-theme-widget-active-border, var(--grist-color-light-green));
 }
 
 .active_section > .view_data_pane_container.viewsection_type_detail {
   /* this color is a translucent version of grist-color-light-green */
-  box-shadow: -2px 0 0 0px var(--grist-color-inactive-cursor);
-  border-left: 1px solid var(--grist-color-inactive-cursor);
+  box-shadow: -2px 0 0 0px var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
+  border-left: 1px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
 }
 }
 
@@ -111,7 +110,7 @@
 .active_section--no-indicator > .view_data_pane_container,
 .active_section--no-indicator > .view_data_pane_container.viewsection_type_detail {
   box-shadow: none;
-  border-left: 1px solid var(--grist-color-dark-grey);
+  border-left: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
 }
 
 .disable_viewpane {

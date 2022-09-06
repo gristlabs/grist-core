@@ -2,6 +2,7 @@ import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {AppModel} from 'app/client/models/AppModel';
 import {UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import {Computed, Observable} from 'grainjs';
+import {CheckerT} from 'ts-interface-checker';
 
 interface PrefsTypes {
   userOrgPrefs: UserOrgPrefs;
@@ -12,15 +13,14 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
   type PrefsType = PrefsTypes[P];
 
   /**
-   * Creates an observable that returns UserOrgPrefs, and which stores them when set.
+   * Creates an observable that returns a PrefsType, and which stores changes when set.
    *
    * For anon user, the prefs live in localStorage. Note that the observable isn't actually watching
    * for changes on the server, it will only change when set.
    */
   function getPrefsObs(appModel: AppModel): Observable<PrefsType> {
-    const savedPrefs = appModel.currentValidUser ? appModel.currentOrg?.[prefsTypeName] : undefined;
-    if (savedPrefs) {
-      const prefsObs = Observable.create<PrefsType>(null, savedPrefs!);
+    if (appModel.currentValidUser) {
+      const prefsObs = Observable.create<PrefsType>(null, appModel.currentOrg?.[prefsTypeName] ?? {});
       return Computed.create(null, (use) => use(prefsObs))
         .onWrite(prefs => {
           prefsObs.set(prefs);
@@ -41,10 +41,30 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
    * stores it when set.
    */
   function getPrefObs<Name extends keyof PrefsType>(
-    prefsObs: Observable<PrefsType>, prefName: Name
-  ): Observable<PrefsType[Name]> {
-    return Computed.create(null, (use) => use(prefsObs)[prefName])
-    .onWrite(value => prefsObs.set({...prefsObs.get(), [prefName]: value}));
+    prefsObs: Observable<PrefsType>,
+    prefName: Name,
+    options: {
+      defaultValue?: Exclude<PrefsType[Name], undefined>;
+      checker?: CheckerT<PrefsType[Name]>;
+    } = {}
+  ): Observable<PrefsType[Name] | undefined> {
+    const {defaultValue, checker} = options;
+    return Computed.create(null, (use) => {
+      const prefs = use(prefsObs);
+      if (!(prefName in prefs)) { return defaultValue; }
+
+      const value = prefs[prefName];
+      if (checker) {
+        try {
+          checker.check(value);
+        } catch (e) {
+          console.error(`getPrefObs: preference ${prefName.toString()} has value of invalid type`, e);
+          return defaultValue;
+        }
+      }
+
+      return value;
+    }).onWrite(value => prefsObs.set({...prefsObs.get(), [prefName]: value}));
   }
 
   return {getPrefsObs, getPrefObs};

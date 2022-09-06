@@ -27,7 +27,11 @@
 }
 
 .action_info_from_self {
-  color: #333333;
+  color: var(--grist-theme-document-history-activity-text-light, #333333);
+}
+
+.action_desc {
+  color: var(--grist-theme-document-history-activity-text-light, unset);
 }
 
 .action_log_item.undone > .action_info,
@@ -46,10 +50,12 @@
 }
 
 .action_log_rename_pre {
+  color: #333333;
   background: #faa;
 }
 
 .action_log_rename_post {
+  color: #333333;
   background: #afa;
 }
 
@@ -62,7 +68,7 @@
   text-align: center;
   margin-top: 0;
   padding-top: 0;
-  color: #000;
+  color: var(--grist-theme-document-history-activity-text, #000);
 }
 
 .action_log_table td {
@@ -100,6 +106,7 @@
 }
 
 .action_log_cell_remove {
+  color: #333333;
   background: #faa;
   text-decoration: line-through;
   padding-left: 2px;
@@ -111,6 +118,7 @@
 }
 
 .action_log_cell_add {
+  color: #333333;
   background: #afa;
   padding-left: 2px;
   padding-right: 2px;

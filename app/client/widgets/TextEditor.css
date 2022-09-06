@@ -5,11 +5,11 @@
 }
 
 .default_editor {
-  box-shadow: 0 0 3px 2px var(--grist-color-cursor);
+  box-shadow: 0 0 3px 2px var(--grist-theme-cursor, var(--grist-color-cursor));
 }
 
 .readonly_editor {
-  box-shadow: 0 0 3px 2px var(--grist-color-slate);
+  box-shadow: 0 0 3px 2px var(--grist-theme-cursor-readonly, var(--grist-color-slate));
 }
 
 /* make room for lock icon */
@@ -42,7 +42,7 @@
 /* Make overflow hidden, since editor might be 1 pixel bigger due to fix for devices
  * with different pixel ratio */
 .formula_editor {
-  background-color: white;
+  background-color: var(--grist-theme-formula-editor-bg, white);
   padding: 4px 0 2px 21px;
   z-index: 10;
   overflow: hidden;
@@ -63,7 +63,7 @@
 }
 
 .celleditor_cursor_editor {
-  background-color: white;
+  background-color: var(--grist-theme-cell-editor-bg, white);
 
   /* the following are copied from .field_clip */
   padding: 3px 3px 0px 3px;
@@ -82,7 +82,8 @@
   border: none;
   resize: none;
   z-index: 10;
-  color: black;
+  background-color: var(--grist-theme-cell-editor-bg, unset);
+  color: var(--grist-theme-cell-editor-fg, black);
 
   /* Inherit styles, same as for .celleditor_content_measure, to ensure that sizes correspond. */
   font-family: inherit;

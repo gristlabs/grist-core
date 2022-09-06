@@ -32,7 +32,7 @@ import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMem
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
         cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, mediaXSmall, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -662,7 +662,7 @@ const cssAccessDetailsBody = styled('div', `
 
 const cssUserManagerBody = styled(cssAccessDetailsBody, `
   height: 374px;
-  border-bottom: 1px solid ${colors.darkGrey};
+  border-bottom: 1px solid ${theme.modalBorderDark};
 `);
 
 const cssSpinner = styled('div', `
@@ -695,7 +695,7 @@ const cssOptionRow = styled('div', `
 const cssOptionBtn = styled('span', `
   display: inline-flex;
   font-size: ${vars.mediumFontSize};
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   cursor: pointer;
 `);
 
@@ -703,14 +703,15 @@ const cssPublicMemberIcon = styled(icon, `
   width: 40px;
   height: 40px;
   margin: 0 4px;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
 `);
 
 const cssPublicAccessIcon = styled(icon, `
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
 `);
 
 const cssUndoIcon = styled(icon, `
+  --icon-color: ${theme.controlSecondaryFg};
   margin: 12px 0;
 `);
 
@@ -718,7 +719,7 @@ const cssRoleBtn = styled('div', `
   display: flex;
   justify-content: flex-end;
   font-size: ${vars.mediumFontSize};
-  color: ${colors.lightGreen};
+  color: ${theme.controlFg};
   margin: 12px 24px;
   cursor: pointer;
 
@@ -730,7 +731,7 @@ const cssRoleBtn = styled('div', `
 
 const cssCollapseIcon = styled(icon, `
   margin-top: 1px;
-  background-color: var(--grist-color-light-green);
+  background-color: ${theme.controlFg};
 `);
 
 const cssInputMenuItem = styled(menuItem, `
@@ -747,8 +748,8 @@ const cssUserImagePlus = styled(cssUserImage, `
   }
 
   .${cssMenuItem.className}-sel & {
-    background-color: white;
-    color: ${colors.lightGreen};
+    background-color: ${theme.menuItemIconSelectedFg};
+    color: ${theme.menuItemSelectedBg};
   }
 `);
 
@@ -762,7 +763,7 @@ const cssOrgName = styled('div', `
 `);
 
 const cssOrgDomain = styled('span', `
-  color: ${colors.lightGreen};
+  color: ${theme.accentText};
 `);
 
 const cssFadeInFromTop = keyframes(`

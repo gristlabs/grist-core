@@ -11,11 +11,11 @@
   cursor: move;
   z-index: 5;
 
-  background-color: rgba(192, 192, 192, 0.2);
-  border-left: 1px solid white;
-  border-top: 1px solid white;
-  border-right: 1px solid var(--grist-color-dark-grey);
-  border-bottom: 1px solid var(--grist-color-dark-grey);
+  background-color: var(--grist-theme-card-editing-layout-bg, rgba(192, 192, 192, 0.2));
+  border-left: 1px solid var(--grist-theme-card-editing-layout-border, white);
+  border-top: 1px solid var(--grist-theme-card-editing-layout-border, white);
+  border-right: 1px solid var(--grist-theme-card-editing-layout-border, var(--grist-color-dark-grey));
+  border-bottom: 1px solid var(--grist-theme-card-editing-layout-border, var(--grist-color-dark-grey));
 }
 
 .dropdown-menu .g_record_layout_newfield {

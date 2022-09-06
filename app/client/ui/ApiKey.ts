@@ -1,4 +1,5 @@
 import { basicButton, textButton } from 'app/client/ui2018/buttons';
+import { theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { confirmModal } from 'app/client/ui2018/modals';
 import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from 'grainjs';
@@ -119,11 +120,17 @@ export class ApiKey extends Disposable {
 }
 
 const description = styled('div', `
-  color: #8a8a8a;
-  font-size: 13px;
+  margin-top: 8px;
+  color: ${theme.lightText};
+  font-size: ${vars.mediumFontSize};
 `);
 
 const cssInput = styled('input', `
+  background-color: transparent;
+  color: ${theme.inputFg};
+  border: 1px solid ${theme.inputBorder};
+  padding: 4px;
+  border-radius: 3px;
   outline: none;
   flex: 1 0 0;
 `);

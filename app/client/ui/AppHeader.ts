@@ -2,9 +2,8 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {buildAppMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import * as version from 'app/common/version';
-import {BindableValue, Disposable, dom, styled} from "grainjs";
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
@@ -13,7 +12,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
-import {DomContents} from 'grainjs';
+import {BindableValue, Disposable, dom, DomContents, styled} from 'grainjs';
 
 // Maps a name of a Product (from app/gen-server/entity/Product.ts) to a tag (pill) to show next
 // to the org name.
@@ -33,12 +32,12 @@ export class AppHeader extends Disposable {
   }
 
   public buildDom() {
-    const theme = getTheme(this._appModel.topAppModel.productFlavor);
+    const productFlavor = getTheme(this._appModel.topAppModel.productFlavor);
 
     const currentOrg = this._appModel.currentOrg;
 
     return cssAppHeader(
-      cssAppHeader.cls('-widelogo', theme.wideLogo || false),
+      cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
       // Show version when hovering over the application icon.
       cssAppLogo(
         {title: `Ver ${version.version} (${version.gitcommit})`},
@@ -96,10 +95,11 @@ const cssAppHeader = styled('div', `
   width: 100%;
   height: 100%;
   align-items: center;
+  background-color: ${theme.leftPanelBg};
   &, &:hover, &:focus {
     text-decoration: none;
     outline: none;
-    color: ${colors.dark};
+    color: ${theme.text};
   }
 `);
 
@@ -124,6 +124,7 @@ const cssAppLogo = styled('a', `
 `);
 
 const cssDropdownIcon = styled(icon, `
+  --icon-color: ${theme.text};
   flex-shrink: 0;
   margin-right: 8px;
 `);
@@ -138,7 +139,7 @@ const cssOrg = styled('div', `
   font-weight: 500;
 
   &:hover {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 
   .${cssLeftPane.className}-open & {

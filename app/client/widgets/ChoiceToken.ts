@@ -1,8 +1,8 @@
-import {dom, DomContents, DomElementArg, styled} from "grainjs";
-import {colors, vars} from "app/client/ui2018/cssVars";
 import {Style} from 'app/client/models/Styles';
+import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
-export const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value;
+export const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value!;
 export const DEFAULT_TEXT_COLOR = '#000000';
 
 export interface IChoiceTokenOptions extends Style {
@@ -70,8 +70,7 @@ export const cssChoiceACItem = styled('li', `
   cursor: pointer;
 
   &.selected {
-    background-color: ${colors.mediumGreyOpaque};
-    color: ${colors.dark};
+    background-color: ${theme.autocompleteChoiceSelectedBg};
   }
   &-with-new {
     scroll-margin-bottom: ${ADD_NEW_HEIGHT};
@@ -79,15 +78,11 @@ export const cssChoiceACItem = styled('li', `
   &-new {
     display: flex;
     align-items: center;
-    color: ${colors.slate};
     position: sticky;
     bottom: 0px;
     height: ${ADD_NEW_HEIGHT};
-    background-color: white;
-    border-top: 1px solid ${colors.mediumGreyOpaque};
+    background-color: ${theme.menuBg};
+    border-top: 1px solid ${theme.menuBorder};
     scroll-margin-bottom: initial;
-  }
-  &-new.selected {
-    color: ${colors.lightGrey};
   }
 `);

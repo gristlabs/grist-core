@@ -1,6 +1,6 @@
 import {IExampleInfo} from 'app/client/ui/ExampleInfo';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
-import {colors, mediaXSmall, testId, vars} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, styled} from 'grainjs';
@@ -98,8 +98,8 @@ const cssCard = styled('div', `
   margin-right: 24px;
   max-width: 624px;
   padding: 32px 56px 32px 32px;
-  background-color: white;
-  box-shadow: 0 2px 18px 0 rgba(31,37,50,0.31), 0 0 1px 0 rgba(76,86,103,0.24);
+  background-color: ${theme.popupBg};
+  box-shadow: 0 2px 18px 0 ${theme.popupInnerShadow}, 0 0 1px 0 ${theme.popupOuterShadow};
   display: flex;
   overflow: hidden;
   transition-property: opacity, transform;
@@ -129,10 +129,12 @@ const cssImage = styled('img', `
 `);
 
 const cssBody = styled('div', `
+  color: ${theme.text};
   min-width: 0px;
 `);
 
 const cssTitle = styled('div', `
+  color: ${theme.text};
   font-size: var(--title-font-size);
   font-weight: ${vars.headerControlTextWeight};
   margin-bottom: 16px;
@@ -165,10 +167,10 @@ export const cssCloseButton = styled('div', `
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.popupCloseButtonFg};
 
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.hover};
   }
 `);
 

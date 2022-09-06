@@ -18,7 +18,7 @@
 import { ACItem } from 'app/client/lib/ACIndex';
 import { modKeyProp } from 'app/client/lib/browserInfo';
 import { Autocomplete, IAutocompleteOptions } from 'app/client/lib/autocomplete';
-import { colors, testId } from 'app/client/ui2018/cssVars';
+import { colors, testId, theme } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { csvDecodeRow, csvEncodeRow } from 'app/common/csvFormat';
 import { computedArray, IDisposableCtor, IObsArraySplice, ObsArray, obsArray, Observable } from 'grainjs';
@@ -679,6 +679,8 @@ const cssInputWrapper = styled('div', `
 `);
 
 const cssTokenInput = styled('input', `
+  color: ${theme.cellEditorFg};
+  background-color: ${theme.cellEditorBg};
   flex: auto;
   -webkit-appearance: none;
   -moz-appearance: none;

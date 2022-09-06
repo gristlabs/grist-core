@@ -47,7 +47,7 @@ export class DataTables extends Disposable {
             cssItem(
               testId('table'),
               cssLeft(
-                dom.domComputed((use) => cssGreenIcon(
+                dom.domComputed((use) => cssTableTypeIcon(
                   use(tableRec.summarySourceTable) !== 0 ? 'PivotLight' : 'TypeTable',
                   testId(`table-id-${use(tableRec.tableId)}`)
                 )),
@@ -107,7 +107,7 @@ export class DataTables extends Disposable {
         const tableName = [
           use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : ''
         ].filter(p => Boolean(p?.trim())).join(' ');
-        return dom('span', tableName);
+        return cssTableName(tableName);
       } else {
         return dom('div', // to disable flex grow in the widget
           dom.domComputed(fromKo(table.rawViewSection), vs =>
@@ -178,9 +178,9 @@ const cssItem = styled('div', `
   width: 100%;
   height: calc(1em * 56/13); /* 56px for 13px font */
   max-width: 750px;
-  border: 1px solid ${css.colors.mediumGrey};
+  border: 1px solid ${css.theme.rawDataTableBorder};
   &:hover {
-    border-color: ${css.colors.slate};
+    border-color: ${css.theme.rawDataTableBorderHover};
   }
 `);
 
@@ -224,8 +224,8 @@ const cssRight = styled('div', `
   flex: none;
 `);
 
-const cssGreenIcon = styled(icon, `
-  --icon-color: ${css.colors.lightGreen};
+const cssTableTypeIcon = styled(icon, `
+  --icon-color: ${css.theme.accentIcon};
 `);
 
 const cssLine = styled('span', `
@@ -246,7 +246,7 @@ const cssTableRowsWrapper = styled('div', `
   width: 80px;
   overflow: hidden;
   align-items: baseline;
-  color: ${css.colors.slate};
+  color: ${css.theme.lightText};
   line-height: 18px;
   padding: 0px 2px;
 `);
@@ -256,12 +256,12 @@ const cssHoverWrapper = styled('div', `
   overflow: hidden;
   cursor: default;
   align-items: baseline;
-  color: ${css.colors.slate};
+  color: ${css.theme.lightText};
   transition: background 0.05s;
   padding: 0px 2px;
   line-height: 18px;
   &:hover {
-    background: ${css.colors.lightGrey};
+    background: ${css.theme.lightHover};
   }
 `);
 
@@ -272,6 +272,7 @@ const cssTableId = styled(cssLine, `
 const cssTableRows = cssTableId;
 
 const cssTableTitle = styled('div', `
+  color: ${css.theme.text};
   white-space: nowrap;
 `);
 
@@ -293,4 +294,8 @@ const cssTableList = styled('div', `
 
 const cssLoadingDots = styled(loadingDots, `
   --dot-size: 6px;
+`);
+
+const cssTableName = styled('span', `
+  color: ${css.theme.text};
 `);

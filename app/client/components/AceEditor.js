@@ -1,10 +1,12 @@
 var ace = require('brace');
 var _ = require('underscore');
-// Used to load python language settings and 'chrome' ace style
+// Used to load python language settings and color themes
 require('brace/mode/python');
 require('brace/theme/chrome');
+require('brace/theme/dracula');
 require('brace/ext/language_tools');
 var {setupAceEditorCompletions} = require('./AceEditorCompletions');
+var {getGristConfig} = require('../../common/urlUtils');
 var dom = require('../lib/dom');
 var dispose = require('../lib/dispose');
 var modelUtil = require('../models/modelUtil');
@@ -198,7 +200,14 @@ AceEditor.prototype._setup = function() {
   });
   this.session = this.editor.getSession();
   this.session.setMode('ace/mode/python');
-  this.editor.setTheme('ace/theme/chrome');
+
+  const gristTheme = this.gristDoc?.docPageModel.appModel.currentTheme;
+  this._setAceTheme(gristTheme?.get());
+  if (!getGristConfig().enableCustomCss && gristTheme) {
+    this.autoDispose(gristTheme.addListener((theme) => {
+      this._setAceTheme(theme);
+    }));
+  }
 
   // Default line numbers to hidden
   this.editor.renderer.setShowGutter(false);
@@ -270,6 +279,12 @@ AceEditor.prototype._getContentHeight = function() {
   return Math.max(1, this.session.getScreenLength()) * this.editor.renderer.lineHeight;
 };
 
+AceEditor.prototype._setAceTheme = function(gristTheme) {
+  const {enableCustomCss} = getGristConfig();
+  const gristAppearance = gristTheme?.appearance;
+  const aceTheme = gristAppearance === 'dark' && !enableCustomCss ? 'dracula' : 'chrome';
+  this.editor.setTheme(`ace/theme/${aceTheme}`);
+};
 
 let _RangeConstructor = null; //singleton, load it lazily
 AceEditor.makeRange = function(a, b, c, d) {

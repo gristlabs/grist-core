@@ -7,7 +7,7 @@ import {addFilterMenu} from 'app/client/ui/FilterBar';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {Sort} from 'app/common/SortSpec';
@@ -292,7 +292,7 @@ const cssMenu = styled('div', `
   }
 
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
 `);
 
@@ -310,13 +310,13 @@ const cssMenuIconWrapper = styled(cssIconWrapper, `
   height: 22px;
 
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.hover};
   }
   &-changed {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.accentIcon};
   }
   &-changed:hover, &-changed:hover.weasel-popup-open {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlHoverFg};
   }
 `);
 
@@ -326,7 +326,7 @@ const cssFilterMenuWrapper = styled('div', `
   border-radius: 3px;
   align-items: center;
   &-unsaved {
-    border: 1px solid ${colors.lightGreen};
+    border: 1px solid ${theme.accentBorder};
   }
   & .${cssMenu.className} {
     border: none;
@@ -337,18 +337,18 @@ const cssFilterMenuWrapper = styled('div', `
 const cssIcon = styled(icon, `
   flex: none;
   cursor: pointer;
-  background-color: ${colors.slate};
+  background-color: ${theme.lightText};
 
   .${cssMenuIconWrapper.className}-changed & {
-    background-color: white;
+    background-color: ${theme.controlPrimaryFg};
   }
 
   .${clsOldUI.className} & {
-    background-color: white;
+    background-color: ${theme.controlPrimaryFg};
   }
 
   &-green {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.accentIcon};
   }
 `);
 
@@ -363,20 +363,21 @@ const cssDotsIconWrapper = styled(cssIconWrapper, `
 const cssFilterIconWrapper = styled(cssIconWrapper, `
   border-radius: 2px 0px 0px 2px;
   .${cssFilterMenuWrapper.className}-unsaved & {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.accentIcon};
   }
 `);
 
 const cssFilterIcon = styled(cssIcon, `
   .${cssFilterIconWrapper.className}-any & {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.accentIcon};
   }
   .${cssFilterMenuWrapper.className}-unsaved & {
-    background-color: white;
+    background-color: ${theme.controlPrimaryFg};
   }
 `);
 
 const cssMenuInfoHeader = styled('div', `
+  color: ${theme.menuSubheaderFg};
   font-weight: ${vars.bigControlTextWeight};
   padding: 8px 24px 8px 24px;
   cursor: default;
@@ -389,18 +390,19 @@ const cssMenuText = styled('div', `
   cursor: default;
   white-space: nowrap;
   &-green {
-    color: ${colors.lightGreen};
+    color: ${theme.accentText};
   }
   &-gray {
-    color: ${colors.slate};
+    color: ${theme.lightText};
   }
 `);
 
 const cssGrayedMenuText = styled(cssMenuText, `
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssMenuTextLabel = styled('span', `
+  color: ${theme.menuItemFg};
   flex-grow: 1;
   padding: 0 4px;
   overflow: hidden;
@@ -418,13 +420,13 @@ const cssSmallIconWrapper = styled('div', `
   margin: 0 5px 0 5px;
 
   &-green {
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.accentIcon};
   }
   &-gray {
-    background-color: ${colors.slate};
+    background-color: ${theme.lightText};
   }
   & > .${cssIcon.className} {
-    background-color: white;
+    background-color: ${theme.controlPrimaryFg};
   }
 `);
 

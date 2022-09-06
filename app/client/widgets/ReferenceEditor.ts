@@ -2,7 +2,7 @@ import { ACResults, buildHighlightedDom, normalizeText, HighlightFunc } from 'ap
 import { Autocomplete } from 'app/client/lib/autocomplete';
 import { ICellItem } from 'app/client/models/ColumnACIndexes';
 import { reportError } from 'app/client/models/errors';
-import { colors, testId, vars } from 'app/client/ui2018/cssVars';
+import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { menuCssClass } from 'app/client/ui2018/menus';
 import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
@@ -171,25 +171,26 @@ const cssRefItem = styled('li', `
   outline: none;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   cursor: pointer;
+  color: ${theme.menuItemFg};
 
   &.selected {
-    background-color: var(--weaseljs-selected-background-color, #5AC09C);
-    color:            var(--weaseljs-selected-color, white);
+    background-color: ${theme.menuItemSelectedBg};
+    color:            ${theme.menuItemSelectedFg};
   }
   &-with-new {
     scroll-margin-bottom: ${addNewHeight};
   }
   &-new {
-    color: ${colors.slate};
+    color: ${theme.lightText};
     position: sticky;
     bottom: 0px;
     height: ${addNewHeight};
-    background-color: white;
-    border-top: 1px solid ${colors.mediumGrey};
+    background-color: ${theme.menuBg};
+    border-top: 1px solid ${theme.menuBorder};
     scroll-margin-bottom: initial;
   }
   &-new.selected {
-    color: ${colors.lightGrey};
+    color: ${theme.menuItemSelectedFg};
   }
 `);
 
@@ -221,8 +222,8 @@ const cssRefEditIcon = styled(icon, `
 `);
 
 const cssMatchText = styled('span', `
-  color: ${colors.lightGreen};
+  color: ${theme.autocompleteMatchText};
   .selected > & {
-    color: ${colors.lighterGreen};
+    color: ${theme.autocompleteSelectedMatchText};
   }
 `);

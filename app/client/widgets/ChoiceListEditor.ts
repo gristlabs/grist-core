@@ -2,7 +2,7 @@ import {createGroup} from 'app/client/components/commands';
 import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, normalizeText, HighlightFunc} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
@@ -253,7 +253,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 }
 
 const cssCellEditor = styled('div', `
-  background-color: white;
+  background-color: ${theme.cellEditorBg};
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
 `);
@@ -332,7 +332,7 @@ const cssInputSizer = styled('div', `
 // Set z-index to be higher than the 1000 set for .cell_editor.
 export const cssChoiceList = styled('div', `
   z-index: 1001;
-  box-shadow: 0 0px 8px 0 rgba(38,38,51,0.6);
+  box-shadow: 0 0px 8px 0 ${theme.menuShadow};
   overflow-y: auto;
   padding: 8px 0 0 0;
   --weaseljs-menu-item-padding: 8px 16px;

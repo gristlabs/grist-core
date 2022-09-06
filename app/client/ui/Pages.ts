@@ -8,7 +8,7 @@ import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
         TreeTableData} from 'app/client/models/TreeModel';
 import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';
 import {labeledCircleCheckbox} from 'app/client/ui2018/checkbox';
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {buildPageDom, PageActions} from 'app/client/ui2018/pages';
@@ -182,7 +182,7 @@ const cssOptions = styled('div', `
 const cssBlockCheckbox = styled('div', `
   display: flex;
   padding: 10px 8px;
-  border: 1px solid ${colors.mediumGrey};
+  border: 1px solid ${theme.modalBorder};
   border-radius: 3px;
   cursor: pointer;
   & input::before, & input::after  {
@@ -190,7 +190,7 @@ const cssBlockCheckbox = styled('div', `
     left: unset;
   }
   &:hover {
-    border-color: ${colors.lightGreen};
+    border-color: ${theme.accentBorder};
   }
   &-block {
     pointer-events: none;
@@ -208,7 +208,8 @@ const cssWarning = styled('div', `
 `);
 
 const cssTableName = styled('div', `
-  background: #eee;
+  color: black;
+  background-color: #eee;
   padding: 3px 6px;
   border-radius: 4px;
 `);

@@ -12,7 +12,7 @@
  * `primaryButton('Primary button', dom.prop('disabled', true))`
  */
 
-import { colors, vars } from 'app/client/ui2018/cssVars';
+import { theme, vars } from 'app/client/ui2018/cssVars';
 import { tbind } from 'app/common/tbind';
 import { dom, DomElementArg, styled } from 'grainjs';
 
@@ -29,11 +29,12 @@ export const cssButton = styled('button', `
   padding: 4px 8px;
 
   background-color: transparent;
-  color:            ${vars.controlFg};
-  --icon-color:     ${vars.controlFg};
+  color:            ${theme.controlFg};
+  --icon-color:     ${theme.controlFg};
 
   border:        ${vars.controlBorder};
   border-radius: ${vars.controlBorderRadius};
+  border-color:  ${theme.controlBorder};
 
   cursor: pointer;
 
@@ -44,29 +45,29 @@ export const cssButton = styled('button', `
   }
 
   &-primary {
-    background-color: ${vars.primaryBg};
-    color:            ${vars.primaryFg};
-    --icon-color:     ${vars.primaryFg};
-    border-color:     ${vars.primaryBg};
+    background-color: ${theme.controlPrimaryBg};
+    color:            ${theme.controlPrimaryFg};
+    --icon-color:     ${theme.controlPrimaryFg};
+    border-color:     ${theme.controlPrimaryBg};
   }
 
   &:hover {
-    color:        ${vars.controlFgHover};
-    --icon-color: ${vars.controlFgHover};
-    border-color: ${vars.controlFgHover};
+    color:        ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
+    border-color: ${theme.controlHoverFg};
   }
   &-primary:hover {
-    color:            ${vars.primaryFg};
-    --icon-color:     ${vars.primaryFg};
-    background-color: ${vars.primaryBgHover};
-    border-color: ${vars.primaryBgHover};
+    color:            ${theme.controlPrimaryFg};
+    --icon-color:     ${theme.controlPrimaryFg};
+    background-color: ${theme.controlPrimaryHoverBg};
+    border-color: ${theme.controlPrimaryHoverBg};
   }
   &:disabled {
     cursor: not-allowed;
-    color:        ${colors.light};
-    --icon-color: ${colors.light};
-    background-color: ${colors.slate};
-    border-color: ${colors.slate};
+    color:        ${theme.controlDisabledFg};
+    --icon-color: ${theme.controlDisabledFg};
+    background-color: ${theme.controlDisabledBg};
+    border-color: ${theme.controlDisabledBg};
   }
 
 `);
@@ -107,7 +108,7 @@ export const textButton = styled(cssButton, `
   padding: 0px;
   background-color: inherit !important;
   &:disabled {
-    color: ${colors.inactiveCursor};
+    color: ${theme.controlPrimaryDisabled};
   }
 `);
 

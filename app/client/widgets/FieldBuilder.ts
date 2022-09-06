@@ -17,7 +17,7 @@ import { CombinedStyle, Style } from 'app/client/models/Styles';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
-import { colors } from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
@@ -494,10 +494,8 @@ export class FieldBuilder extends Disposable {
       if (this.isDisposed()) { return null; }
       const fromRules = computedRule()?.style?.fillColor;
       let fill = fromRules || this.field.fillColor();
-      // If user set white color - remove it to play nice with zebra strips.
-      // If there is no color we are using fully transparent white color (for tests mainly).
       fill = fill ? fill.toUpperCase() : fill;
-      return (fill === '#FFFFFF' ? '' : fill) || '';
+      return fill || '';
     })).onlyNotifyUnequal();
 
     const fontBold = buildFontOptions(this, computedRule, 'fontBold');
@@ -641,6 +639,6 @@ const cssTypeSelectMenu = styled('div', `
 `);
 
 const cssSeparator = styled('div', `
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
   margin-top: 16px;
 `);

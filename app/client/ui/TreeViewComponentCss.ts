@@ -1,4 +1,4 @@
-import { colors, vars } from "app/client/ui2018/cssVars";
+import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { styled } from "grainjs";
 
@@ -42,27 +42,28 @@ export const itemHeader = styled('div', `
   min-width: 0;
   border-radius: 0 2px 2px 0;
   border: solid 1px transparent;
+  color: ${theme.text};
   .${itemHeaderWrapper.className}-not-dragging:hover > & {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.pageHoverBg};
   }
   .${itemHeaderWrapper.className}-not-dragging > &.selected {
-    background-color: ${colors.darkBg};
-    color: white;
+    background-color: ${theme.activePageBg};
+    color: ${theme.activePageFg};
   }
   &.highlight {
-    border-color: ${vars.controlFg};
+    border-color: ${theme.controlFg};
   }
 `);
 
 export const dropdown = styled(icon, `
-  background-color: ${colors.slate};
+  background-color: ${theme.controlSecondaryFg};
   .${itemHeaderWrapper.className}-not-dragging > .${itemHeader.className}.selected & {
-    background-color: white;
+    background-color: ${theme.activePageFg};
   }
 `);
 
 export const itemLabelRight = styled('div', `
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   width: 16px;
   .${treeViewContainer.className}-close & {
     display: none;
@@ -114,6 +115,6 @@ export const offset = styled('div', `
 export const target = styled('div', `
   position: absolute;
   height: 2px;
-  background: ${vars.controlFg};
+  background: ${theme.controlFg};
   pointer-events: none;
 `);
