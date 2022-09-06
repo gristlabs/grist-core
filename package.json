@@ -116,7 +116,7 @@
     "electron": "3.0.7",
     "exceljs": "4.2.1",
     "express": "4.16.4",
-    "file-type": "14.1.4",
+    "file-type": "16.5.4",
     "fs-extra": "7.0.0",
     "grain-rpc": "0.1.7",
     "grainjs": "1.0.2",
