@@ -16,7 +16,7 @@ import pick = require('lodash/pick');
 
 // import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
 // import {ACResults, ACIndex, ACItem, ACIndexImpl, buildHighlightedDom} from 'app/client/lib/ACIndex';
-import {ACIndexImpl} from 'app/client/lib/ACIndex';
+import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
 import { ACUserItem, buildACMemberEmail } from 'app/client/lib/ACUserManager';
@@ -35,7 +35,7 @@ import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
         cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -531,6 +531,18 @@ export class UserManager extends Disposable {
  * The border of the input turns green when the email is considered valid.
  */
 
+function getUserItem(member: IEditableMember): ACUserItem {
+  return {
+    value: member.email,
+    label: member.email,
+    cleanText: normalizeText(member.email),
+    email: member.email,
+    name: member.name,
+    picture: member?.picture,
+    id: member.id,
+  }
+}
+
 export class ACMemberEmail extends Disposable {
   public email = this.autoDispose(observable<string>(""));
   private _isValid = this.autoDispose(observable<boolean>(false));
@@ -547,31 +559,21 @@ export class ACMemberEmail extends Disposable {
     // }
   }
 
-  private handleSave(emailSelected: string, item?: ACUserItem) {
-    if (item?.isNew) {
-      this._onAdd(emailSelected, roles.VIEWER)
-    } else {
-      const member = this._members.find(member => member.email === emailSelected);
-      if (member && !this._isActiveUser(member)) {
-        member?.effectiveAccess.set(roles.VIEWER);
-      }
+  private handleSave(selectedEmail: string) {
+    const member = this._members.find(member => member.email === selectedEmail);
+    if (!member) {
+      this._onAdd(selectedEmail, roles.VIEWER);
+    } else if (!this._isActiveUser(member)) {
+      member?.effectiveAccess.set(roles.VIEWER);
     }
   }
 
   public buildDom() {
-    const toto = this._members.map((member: IEditableMember) => ({
-      value: member.email,
-      label: member.email,
-      cleanText: member.email,
-      email: member.email,
-      name: member.name,
-      picture: member?.picture,
-      id: member.id,
-    }));
-    const acIndex = new ACIndexImpl<ACUserItem>(toto);
+    const acUserItem = this._members.map((member: IEditableMember) => getUserItem(member));
+    const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
 
     return buildACMemberEmail(this,
-      {acIndex, emailObs: this.email, save: this.handleSave.bind(this), isValid: this._isValid},
+      {acIndex, emailObs: this.email, save: this.handleSave.bind(this), isInputValid: this._isValid},
       testId('um-member-new')
     );
   }

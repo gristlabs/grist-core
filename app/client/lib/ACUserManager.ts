@@ -1,4 +1,4 @@
-import { ACResults, ACIndex, ACItem, buildHighlightedDom } from "app/client/lib/ACIndex";
+import { ACResults, ACIndex, ACItem, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
 import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
 import { cssMenuItem } from "popweasel";
 
@@ -32,12 +32,12 @@ export function buildACMemberEmail(
   options: {
     acIndex: ACIndex<ACUserItem>;
     emailObs: Observable<string>;
-    save: (value: string, item: ACUserItem | undefined) => Promise<void> | void;
-    isValid: Observable<boolean>;
+    save: (value: string) => Promise<void> | void;
+    isInputValid: Observable<boolean>;
   },
   ...args: DomElementArg[]
 ) {
-  const { acIndex, emailObs, save, isValid } = options;
+  const { acIndex, emailObs, save, isInputValid } = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
   emailObs.addListener(() => emailInput.setCustomValidity(""));
@@ -64,12 +64,15 @@ export function buildACMemberEmail(
 
   const commitIfValid = () => {
     const item = acHolder.get()?.getSelectedItem();
-    const selectedEmail = emailObs.get() || item?.value;
+    if (item) {
+      emailObs.set(item.value);
+      emailInput.value = item.value;
+    }
     emailInput.setCustomValidity("");
+    const selectedEmail = item?.value || emailObs.get();
     try {
-      if (selectedEmail && isValid.get()) {
-        emailInput.value = selectedEmail;
-        save(emailInput.value, item);
+      if (selectedEmail && isInputValid.get()) {
+        save(emailObs.get());
         finish();
         return true;
       }
@@ -89,54 +92,58 @@ export function buildACMemberEmail(
     openOrCommit();
   };
 
-  const maybeShowAddNew = async (result: ACResults<ACUserItem>, text: string): Promise<ACResults<ACUserItem>> => {
+  const maybeShowAddNew = async (results: ACResults<ACUserItem>, text: string): Promise<ACResults<ACUserItem>> => {
+    const cleanText = normalizeText(text);
     const newObject = {
       value: text,
-      cleanText: text,
+      cleanText,
       name: "",
       email: "",
       isNew: true,
       label: text,
       id: 0,
     };
-    if (result.items.find((item) => item.cleanText === newObject.cleanText)) {
-      return result;
+    const items = results.items.filter(item => item.cleanText.includes(cleanText));
+    if (results.items.find((item) => item.cleanText === cleanText)) {
+      results.items = items;
+      return results;
     }
-    result.items.push(newObject);
-    return result;
+    results.items = items;
+    results.items.push(newObject);
+    return results;
   };
-  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isValid)));
+
+  const renderSearchItem = (item: ACUserItem, highlightFunc: any): HTMLLIElement => (item?.isNew ? cssSelectItem(
+    cssMemberListItem(
+      cssUserImagePlus(
+        "+",
+        cssUserImage.cls("-large"),
+        cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
+      )),
+      cssMemberText(
+        cssMemberPrimaryPlus("Invite new member"),
+        cssMemberSecondaryPlus(
+          dom.text(use => `We'll email an invite to ${use(emailObs)}`)
+        )
+      ),
+      testId("um-add-email")
+    )
+  ) : cssSelectItem(
+    cssMemberListItem(
+      cssMemberImage(createUserImage(item, "large")),
+      cssMemberText(
+        cssMemberPrimaryPlus(item.name, testId("um-member-name")),
+        cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
+      )
+    )
+  ));
+
+  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isInputValid)));
 
   const acOptions: IAutocompleteOptions<ACUserItem> = {
     menuCssClass: `${menuCssClass} test-acselect-dropdown`,
     search: (term) => maybeShowAddNew(acIndex.search(term), term),
-    renderItem: (item, highlightFunc) =>
-      item?.isNew
-        ? cssSelectItem(
-            cssMemberListItem(
-              cssUserImagePlus(
-                "+",
-                cssUserImage.cls("-large"),
-                cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
-              )),
-              cssMemberText(
-                cssMemberPrimaryPlus("Invite new member"),
-                cssMemberSecondaryPlus(
-                  dom.text(use => `We'll email an invite to ${use(emailObs)}`)
-                )
-              ),
-              testId("um-add-email")
-            )
-          )
-        : cssSelectItem(
-            cssMemberListItem(
-              cssMemberImage(createUserImage(item, "large")),
-              cssMemberText(
-                cssMemberPrimaryPlus(item.name, testId("um-member-name")),
-                cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
-              )
-            )
-          ),
+    renderItem: renderSearchItem,
     getItemText: (item) => item.value,
     onClick: commitIfValid,
   };
@@ -145,10 +152,10 @@ export function buildACMemberEmail(
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
-      {onInput: true, isValid: isValid},
-      { type: "email", placeholder: "Enter email address but smarter" },
+      {onInput: true, isValid: isInputValid},
+      { type: "email", placeholder: "Enter email address" },
       dom.on("input", acOpen),
-      dom.on("focus", (ev, elem) => elem.select()),
+      dom.on("focus", (_ev, elem) => elem.select()),
       dom.on("blur", commitOrRevert),
       dom.onKeyDown({
         Escape: revert,
