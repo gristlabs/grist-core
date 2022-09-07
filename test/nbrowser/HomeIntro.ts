@@ -67,6 +67,7 @@ describe('HomeIntro', function() {
     it('should show examples workspace with the intro', testExamplesSection);
     it('should allow copying examples', testCopyingExamples.bind(null, undefined));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
+    it('should show empty workspace info', testEmptyWorkspace.bind(null, {buttons: true}));
   });
 
   describe("Logged-in on team site", function() {
@@ -91,6 +92,7 @@ describe('HomeIntro', function() {
     it('should show examples workspace with the intro', testExamplesSection);
     it('should allow copying examples', testCopyingExamples.bind(null, gu.session().teamSite.orgName));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
+    it('should show empty workspace info', testEmptyWorkspace);
   });
 
   async function testOtherSitesSection() {
@@ -118,13 +120,7 @@ describe('HomeIntro', function() {
   }
 
   async function testCreateImport(isLoggedIn: boolean) {
-    // Create doc from intro button
-    await driver.find('.test-intro-create-doc').click();
-    await checkDocAndRestore(isLoggedIn, async () => assert.equal(await gu.getCell('A', 1).getText(), ''));
-
-    // Import doc from intro button
-    await gu.fileDialogUpload('uploads/FileUploadData.csv', () => driver.find('.test-intro-import-doc').click());
-    await checkDocAndRestore(isLoggedIn, async () => assert.equal(await gu.getCell('fname', 1).getText(), 'george'));
+    await checkIntroButtons(isLoggedIn);
 
     // Check that add-new menu has enabled Create Empty and Import Doc items.
     await driver.find('.test-dm-add-new').doClick();
@@ -158,29 +154,7 @@ describe('HomeIntro', function() {
     assert.isAbove(Number(await img.getAttribute('naturalWidth')), 0);
   });
 
-  // Wait for doc to load, check it, then return to home page, and remove the doc so that we
-  // can see the intro again.
-  const checkDocAndRestore = async function(isLoggedIn: boolean, docChecker: () => Promise<void>,
-                                                          stepsBackToDocMenu: number = 1) {
-    await gu.waitForDocToLoad();
-    await gu.dismissWelcomeTourIfNeeded();
-    await docChecker();
-    for (let i = 0; i < stepsBackToDocMenu; i++) {
-      await driver.navigate().back();
-    }
-    await gu.waitForDocMenuToLoad();
 
-    // If not logged in, we create docs "unsaved" and don't see them in doc-menu.
-    if (isLoggedIn) {
-      // Delete the first doc we find. We expect exactly one to exist.
-      assert.equal(await driver.find('.test-dm-doc').isPresent(), true);
-      await driver.find('.test-dm-doc').mouseMove().find('.test-dm-pinned-doc-options').click();
-      await driver.find('.test-dm-delete-doc').click();
-      await driver.find('.test-modal-confirm').click();
-      await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
-    }
-    assert.equal(await driver.find('.test-dm-doc').isPresent(), false);
-  };
 
   async function testExamplesCollapsing() {
     assert.equal(await driver.find('.test-dm-pinned-doc-name').isDisplayed(), true);
@@ -314,3 +288,77 @@ describe('HomeIntro', function() {
     await checkImageLoaded(docItem.find('img'));
   }
 });
+
+async function testEmptyWorkspace(options = { buttons: false }) {
+  await gu.openWorkspace("Home");
+  assert.equal(await driver.findWait('.test-empty-workspace-info', 400).isDisplayed(), true);
+  // Create doc and check it is created.
+  await driver.find('.test-intro-create-doc').click();
+  await waitAndDismiss();
+  await emptyDockChecker();
+  // Check that we don't see empty info.
+  await driver.navigate().back();
+  await gu.waitForDocMenuToLoad();
+  assert.equal(await driver.find('.test-empty-workspace-info').isPresent(), false);
+  // Remove created document, it also checks that document is visible.
+  await deleteFirstDoc();
+  assert.equal(await driver.findWait('.test-empty-workspace-info', 400).isDisplayed(), true);
+
+  await checkImportDocButton(true);
+}
+
+// Wait for doc to load, check it, then return to home page, and remove the doc so that we
+// can see the intro again.
+async function checkDocAndRestore(
+  isLoggedIn: boolean,
+  docChecker: () => Promise<void>,
+  stepsBackToDocMenu: number = 1)
+{
+  await waitAndDismiss();
+  await docChecker();
+  for (let i = 0; i < stepsBackToDocMenu; i++) {
+    await driver.navigate().back();
+  }
+  await gu.waitForDocMenuToLoad();
+  // If not logged in, we create docs "unsaved" and don't see them in doc-menu.
+  if (isLoggedIn) {
+    // Delete the first doc we find. We expect exactly one to exist.
+    await deleteFirstDoc();
+  }
+  assert.equal(await driver.find('.test-dm-doc').isPresent(), false);
+}
+
+async function waitAndDismiss() {
+  await gu.waitForDocToLoad();
+  await gu.dismissWelcomeTourIfNeeded();
+}
+
+async function deleteFirstDoc() {
+  assert.equal(await driver.find('.test-dm-doc').isPresent(), true);
+  await driver.find('.test-dm-doc').mouseMove().find('.test-dm-pinned-doc-options').click();
+  await driver.find('.test-dm-delete-doc').click();
+  await driver.find('.test-modal-confirm').click();
+  await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
+}
+
+async function checkIntroButtons(isLoggedIn: boolean) {
+  // Create doc from intro button
+  await checkCreateDocButton(isLoggedIn);
+
+  // Import doc from intro button
+  await checkImportDocButton(isLoggedIn);
+}
+
+async function checkImportDocButton(isLoggedIn: boolean) {
+  await gu.fileDialogUpload('uploads/FileUploadData.csv', () => driver.find('.test-intro-import-doc').click());
+  await checkDocAndRestore(isLoggedIn, async () => assert.equal(await gu.getCell('fname', 1).getText(), 'george'));
+}
+
+async function checkCreateDocButton(isLoggedIn: boolean) {
+  await driver.find('.test-intro-create-doc').click();
+  await checkDocAndRestore(isLoggedIn, emptyDockChecker);
+}
+
+async function emptyDockChecker() {
+  assert.equal(await gu.getCell('A', 1).getText(), '');
+}

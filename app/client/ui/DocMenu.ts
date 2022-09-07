@@ -9,7 +9,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import * as css from 'app/client/ui/DocMenuCss';
-import {buildHomeIntro} from 'app/client/ui/HomeIntro';
+import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
 import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
@@ -134,12 +134,14 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                   dom('div',
                     buildAllTemplates(home, home.templateWorkspaces, viewSettings)
                   ) :
-                  workspace && !workspace.isSupportWorkspace ?
+                  workspace && !workspace.isSupportWorkspace && workspace.docs?.length ?
                     css.docBlock(
                       buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
                       testId('doc-block')
                     ) :
-                    css.docBlock('Workspace not found')
+                  workspace && !workspace.isSupportWorkspace && workspace.docs?.length === 0 ?
+                  buildWorkspaceIntro(home) :
+                  css.docBlock('Workspace not found')
               )
             ]),
           ];

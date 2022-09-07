@@ -32,6 +32,25 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
   }
 }
 
+export function buildWorkspaceIntro(homeModel: HomeModel): DomContents {
+  const isViewer = homeModel.currentWS.get()?.access === roles.VIEWER;
+  const isAnonym = !homeModel.app.currentValidUser;
+  const emptyLine = cssIntroLine(testId('empty-workspace-info'), "This workspace is empty.");
+  if (isAnonym || isViewer) {
+    return emptyLine;
+  } else {
+    return [
+      emptyLine,
+      buildButtons(homeModel, {
+        invite: false,
+        templates: false,
+        import: true,
+        empty: true
+      })
+    ];
+  }
+}
+
 function makeViewerTeamSiteIntro(homeModel: HomeModel) {
   const personalOrg = Computed.create(null, use => use(homeModel.app.topAppModel.orgs).find(o => o.owner));
   const docLink = (dom.maybe(personalOrg, org => {
@@ -105,29 +124,44 @@ function helpCenterLink() {
   return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), 'Help Center');
 }
 
-
-function makeCreateButtons(homeModel: HomeModel) {
-  const canManageTeam = homeModel.app.isTeamSite &&
-    roles.canEditAccess(homeModel.app.currentOrg?.access || null);
+function buildButtons(homeModel: HomeModel, options: {
+  invite: boolean,
+  templates: boolean,
+  import: boolean,
+  empty: boolean,
+}) {
   return cssBtnGroup(
-    (canManageTeam ?
-      cssBtn(cssBtnIcon('Help'), 'Invite Team Members', testId('intro-invite'),
-        cssButton.cls('-primary'),
-        dom.on('click', () => manageTeamUsersApp(homeModel.app)),
-      ) :
-      cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
-        cssButton.cls('-primary'),
-        dom.hide(shouldHideUiElement("templates")),
-        urlState().setLinkUrl({homePage: 'templates'}),
-      )
+    !options.invite ? null :
+    cssBtn(cssBtnIcon('Help'), 'Invite Team Members', testId('intro-invite'),
+      cssButton.cls('-primary'),
+      dom.on('click', () => manageTeamUsersApp(homeModel.app)),
     ),
+    !options.templates ? null :
+    cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
+      cssButton.cls('-primary'),
+      dom.hide(shouldHideUiElement("templates")),
+      urlState().setLinkUrl({homePage: 'templates'}),
+    ),
+    !options.import ? null :
     cssBtn(cssBtnIcon('Import'), 'Import Document', testId('intro-import-doc'),
       dom.on('click', () => importDocAndOpen(homeModel)),
     ),
+    !options.empty ? null :
     cssBtn(cssBtnIcon('Page'), 'Create Empty Document', testId('intro-create-doc'),
       dom.on('click', () => createDocAndOpen(homeModel)),
     ),
   );
+}
+
+function makeCreateButtons(homeModel: HomeModel) {
+  const canManageTeam = homeModel.app.isTeamSite &&
+    roles.canEditAccess(homeModel.app.currentOrg?.access || null);
+  return buildButtons(homeModel, {
+    invite: canManageTeam,
+    templates: !canManageTeam,
+    import: true,
+    empty: true
+  });
 }
 
 const cssParagraph = styled(css.docBlock, `

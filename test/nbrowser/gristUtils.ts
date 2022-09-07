@@ -1471,6 +1471,12 @@ export async function openWsDropdown(wsName: string): Promise<void> {
   await wsTab.find('.test-dm-workspace-options').mouseMove().click();
 }
 
+export async function openWorkspace(wsName: string): Promise<void> {
+  const wsTab = await driver.findContentWait('.test-dm-workspace', wsName, 3000);
+  await wsTab.click();
+  await waitForDocMenuToLoad();
+}
+
 /**
  * Open ⋮ dropdown menu for named document.
  */
