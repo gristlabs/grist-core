@@ -845,6 +845,23 @@ export class GristDoc extends DisposableWithEvents {
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
   }
 
+  public getXlsxActiveViewLink() {
+    const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
+      colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
+      filter : filterInfo.filter()
+    }));
+
+    const params = {
+      viewSection: this.viewModel.activeSectionId(),
+      tableId: this.viewModel.activeSection().table().tableId(),
+      activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
+      filters : JSON.stringify(filters),
+      activeViewOnly : true,
+    };
+
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params); 
+  }
+
   public hasGranularAccessRules(): boolean {
     const rulesTable = this.docData.getMetaTable('_grist_ACLRules');
     // To check if there are rules, ignore the default no-op rule created for an older incarnation

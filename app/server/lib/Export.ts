@@ -78,6 +78,7 @@ export interface ExportParameters {
   viewSectionId: number | undefined;
   sortOrder: number[];
   filters: Filter[];
+  activeView?: boolean;
 }
 
 interface FilteredMetaTables {
@@ -92,12 +93,14 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const viewSectionId = optIntegerParam(req.query.viewSection);
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
+  const activeView = stringParam(req.query.activeViewOnly, 'false') === 'true';
 
   return {
     tableId,
     viewSectionId,
     sortOrder,
-    filters
+    filters,
+    activeView
   };
 }
 

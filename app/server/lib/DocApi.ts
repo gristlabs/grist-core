@@ -34,7 +34,7 @@ import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV, DownloadCSVOptions} from "app/server/lib/ExportCSV";
-import {downloadXLSX, DownloadXLSXOptions} from "app/server/lib/ExportXLSX";
+import {buildDownloadXlsxOptions, downloadXLSX, DownloadXLSXOptions} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -750,9 +750,14 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title (to use as the filename).
-      const {name: filename} = await this._dbManager.getDoc(req);
+      const {name: docTitle} = await this._dbManager.getDoc(req);
 
-      const options: DownloadXLSXOptions = {filename};
+      const params = ! _.isEmpty(req.query) ? parseExportParameters(req) : {tableId: '', activeView: false};
+
+      const {activeView} = params;
+      const filename = !activeView ? docTitle : docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId);
+
+      const options: DownloadXLSXOptions = buildDownloadXlsxOptions({...params, filename});
 
       await downloadXLSX(activeDoc, req, res, options);
     }));

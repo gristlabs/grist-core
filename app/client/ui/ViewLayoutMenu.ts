@@ -41,6 +41,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     menuItemCmd(allCommands.printSection, 'Print widget', testId('print-section')),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       'Download as CSV', testId('download-section')),
+    menuItemLink({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''},
+    'Download as XLSX', testId('download-section')),
     dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, 'Edit Card Layout',
         dom.cls('disabled', isReadonly))),

@@ -355,6 +355,13 @@ export interface UserAPI {
   filters?: string;
 }
 
+/**
+ * Parameters for the download XLSX endpoint (/download/xlsx).
+ */
+ export interface DownloadXLSXParams extends DownloadCsvParams{
+  activeView?: string;
+}
+
 interface GetRowsParams {
   filters?: QueryFilters;
   immediate?: boolean;
@@ -391,7 +398,7 @@ export interface DocAPI {
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
   getDownloadUrl(template?: boolean): string;
-  getDownloadXlsxUrl(): string;
+  getDownloadXlsxUrl(params?: DownloadXLSXParams): string;
   getDownloadCsvUrl(params: DownloadCsvParams): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
@@ -866,8 +873,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + `/download?template=${Number(template)}`;
   }
 
-  public getDownloadXlsxUrl() {
-    return this._url + '/download/xlsx';
+  public getDownloadXlsxUrl(params: DownloadXLSXParams) {
+    return this._url + '/download/xlsx?' + encodeQueryParams({...params});
   }
 
   public getDownloadCsvUrl(params: DownloadCsvParams) {
