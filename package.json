@@ -71,7 +71,7 @@
     "chai-as-promised": "7.1.1",
     "chance": "1.0.16",
     "esbuild-loader": "2.19.0",
-    "jsdom": "13.0.0",
+    "jsdom": "16.5.0",
     "mocha": "5.2.0",
     "mocha-webdriver": "0.2.9",
     "moment-locales-webpack-plugin": "^1.2.0",
