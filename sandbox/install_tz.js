@@ -1,7 +1,3 @@
-const path = require('path');
-require('app-module-path').addPath(path.dirname(__dirname));
-require('ts-node').register();
-
 /**
  * This script converts the timezone data from moment-timezone to marshalled format, for fast
  * loading by Python.
