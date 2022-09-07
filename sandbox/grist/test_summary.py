@@ -73,6 +73,7 @@ class TestSummary(test_engine.EngineTestCase):
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_create_view_section(self):
     self.load_sample(self.sample)
 
@@ -245,6 +246,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_summary_table_reuse(self):
     # Test that we'll reuse a suitable summary table when already available.
 
@@ -316,6 +318,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_summary_no_invalid_reuse(self):
     # Verify that if we have some summary tables for one table, they don't mistakenly get used
     # when we need a summary for another table.
@@ -399,6 +402,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_summary_updates(self):
     # Verify that summary tables update automatically when we change a value used in a summary
     # formula; or a value in a group-by column; or add/remove a record; that records get
@@ -516,6 +520,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_table_rename(self):
     # Verify that summary tables keep working and updating when source table is renamed.
 
@@ -557,6 +562,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_table_rename_multiple(self):
     # Similar to the above, verify renames, but now with two summary tables.
 
@@ -596,6 +602,7 @@ class Address:
 
   #----------------------------------------------------------------------
 
+  @test_engine.test_undo
   def test_change_summary_formula(self):
     # Verify that changing a summary formula affects all group-by variants, and adding a new
     # summary table gets the changed formula.
@@ -706,6 +713,7 @@ class Address:
     ])
 
   #----------------------------------------------------------------------
+  @test_engine.test_undo
   def test_convert_source_column(self):
     # Verify that we can convert the type of a column when there is a summary table using that
     # column to group by. Since converting generates extra summary records, this may cause bugs.

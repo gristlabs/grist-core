@@ -5,7 +5,7 @@ import column
 import logger
 import lookup
 import testutil
-from test_engine import EngineTestCase, Table, Column
+from test_engine import EngineTestCase, Table, Column, test_undo
 
 log = logger.Logger(__name__, logger.INFO)
 
@@ -35,6 +35,7 @@ class TestSummaryChoiceList(EngineTestCase):
 
   # ----------------------------------------------------------------------
 
+  @test_undo
   def test_summary_by_choice_list(self):
     self.load_sample(self.sample)
 
@@ -306,6 +307,7 @@ class TestSummaryChoiceList(EngineTestCase):
 
     self.assertTableData('Table1', data=summary_data, cols="subset")
 
+  @test_undo
   def test_change_choice_to_choicelist(self):
     sample = testutil.parse_test_sample({
       "SCHEMA": [
@@ -369,6 +371,7 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertTables([starting_table, summary_table])
     self.assertTableData('Source_summary_choices1', data=data)
 
+  @test_undo
   def test_rename_choices(self):
     self.load_sample(self.sample)
 
