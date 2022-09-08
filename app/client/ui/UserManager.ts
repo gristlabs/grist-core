@@ -10,16 +10,13 @@ import {isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, keyframes, observable, Observable} from 'grainjs';
-import {dom, DomElementArg, styled} from 'grainjs';
+import {Computed, Disposable, keyframes, observable, Observable, dom, DomElementArg, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
-// import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
-// import {ACResults, ACIndex, ACItem, ACIndexImpl, buildHighlightedDom} from 'app/client/lib/ACIndex';
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
-import { ACUserItem, buildACMemberEmail } from 'app/client/lib/ACUserManager';
+import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
@@ -525,12 +522,6 @@ export class UserManager extends Disposable {
   }
 }
 
-
-/**
- * Represents the widget that allows typing in an email and adding it.
- * The border of the input turns green when the email is considered valid.
- */
-
 function getUserItem(member: IEditableMember): ACUserItem {
   return {
     value: member.email,
@@ -543,6 +534,9 @@ function getUserItem(member: IEditableMember): ACUserItem {
   }
 }
 
+/**
+ * Represents the widget that allows typing in an email and adding it.
+ */
 export class ACMemberEmail extends Disposable {
   public email = this.autoDispose(observable<string>(""));
   private _isValid = this.autoDispose(observable<boolean>(false));
@@ -559,23 +553,23 @@ export class ACMemberEmail extends Disposable {
     // }
   }
 
-  private handleSave(selectedEmail: string) {
+  public buildDom() {
+    const acUserItem = this._members.map((member: IEditableMember) => getUserItem(member));
+    const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
+
+    return buildACMemberEmail(this,
+      {acIndex, emailObs: this.email, save: this._handleSave.bind(this), isInputValid: this._isValid},
+      testId('um-member-new')
+    );
+  }
+
+  private _handleSave(selectedEmail: string) {
     const member = this._members.find(member => member.email === selectedEmail);
     if (!member) {
       this._onAdd(selectedEmail, roles.VIEWER);
     } else if (!this._isActiveUser(member)) {
       member?.effectiveAccess.set(roles.VIEWER);
     }
-  }
-
-  public buildDom() {
-    const acUserItem = this._members.map((member: IEditableMember) => getUserItem(member));
-    const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
-
-    return buildACMemberEmail(this,
-      {acIndex, emailObs: this.email, save: this.handleSave.bind(this), isInputValid: this._isValid},
-      testId('um-member-new')
-    );
   }
 }
 

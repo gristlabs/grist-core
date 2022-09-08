@@ -1,10 +1,11 @@
-import { ACResults, ACIndex, ACItem, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
-import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
-import { cssMenuItem } from "popweasel";
+import {ACResults, ACIndex, ACItem, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
+import {cssSelectItem} from "app/client/lib/ACSelect";
+import {Autocomplete, IAutocompleteOptions} from "app/client/lib/autocomplete";
+import {cssMenuItem} from "popweasel";
 
-import { testId, colors } from "app/client/ui2018/cssVars";
-import { menuCssClass } from "app/client/ui2018/menus";
-import { dom, DomElementArg, Holder, IDisposableOwner, Observable, styled, computed, Computed } from "grainjs";
+import {testId, colors, theme} from "app/client/ui2018/cssVars";
+import {menuCssClass} from "app/client/ui2018/menus";
+import {dom, DomElementArg, Holder, IDisposableOwner, Observable, styled, computed, Computed} from "grainjs";
 import {
   cssEmailInput,
   cssEmailInputContainer,
@@ -15,7 +16,7 @@ import {
   cssMemberSecondary,
   cssMemberText,
 } from "app/client/ui/UserItem";
-import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
+import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
 
 export interface ACUserItem extends ACItem {
   value: string;
@@ -170,29 +171,11 @@ export function buildACMemberEmail(
   );
 }
 
-const cssSelectItem = styled(
-  "li",
-  `
-  display: block;
-  white-space: pre;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  outline: none;
-  padding: var(--weaseljs-menu-item-padding, 8px 24px);
-  cursor: pointer;
-
-  &.selected {
-    background-color: var(--weaseljs-selected-background-color, #5AC09C);
-    color:            var(--weaseljs-selected-color, white);
-  }
-`
-);
-
 const cssMemberPrimaryPlus = styled(
   cssMemberPrimary,
   `
   .${cssSelectItem.className}.selected & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `
 );
@@ -201,7 +184,7 @@ const cssMemberSecondaryPlus = styled(
   cssMemberSecondary,
   `
   .${cssSelectItem.className}.selected & {
-    color: white;
+    color: ${theme.menuItemSelectedFg};
   }
 `
 );
@@ -209,9 +192,9 @@ const cssMemberSecondaryPlus = styled(
 const cssMatchText = styled(
   "span",
   `
-  color: ${colors.lightGreen};
-  .selected > & {
-    color: ${colors.lighterGreen};
+  color: ${theme.autocompleteMatchText};
+  .${cssSelectItem.className}.selected & {
+    color: ${theme.autocompleteSelectedMatchText};
   }
 `
 );
@@ -227,8 +210,8 @@ const cssUserImagePlus = styled(
   }
 
   .${cssMenuItem.className}-sel & {
-    background-color: white;
-    color: ${colors.lightGreen};
+    background-color: ${theme.menuItemIconSelectedFg};
+    color: ${theme.menuItemSelectedBg};
   }
 `
 );
