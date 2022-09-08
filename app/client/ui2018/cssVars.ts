@@ -499,7 +499,7 @@ export const theme = {
   menuShadow: new CustomProp('theme-menu-shadow', undefined, 'rgba(38, 38, 51, 0.6)'),
 
   /* Menu Items */
-  menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'unset'),
+  menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'black'),
   menuItemSelectedFg: new CustomProp('theme-menu-item-selected-fg', undefined, colors.light),
   menuItemSelectedBg: new CustomProp('theme-menu-item-selected-bg', undefined, vars.primaryBg),
   menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, '#D9D9D9'),
