@@ -55,9 +55,7 @@
   outline: 2px dashed var(--grist-theme-cursor, var(--grist-color-cursor));
 }
 
-.field.selected {
-  background-color: var(--grist-theme-selection, var(--grist-color-selection));
-}
+
 
 .field.draft {
   padding-right: 18px;
@@ -72,13 +70,16 @@
   text-overflow: ellipsis;
   width: 100%;
   height: 100%;
-  background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, unset));
+  background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, var(--grist-row-background-color, unset)));
   --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color, var(--grist-row-color)));
   color: var(--grist-actual-cell-color, unset);
 }
 
-.field.selected .field_clip {
-  mix-blend-mode: luminosity;
+.field.selected > .field_selection {
+  background-color: var(--grist-theme-selection, var(--grist-color-selection));
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .field_clip.invalid, .field_clip.field-error-from-style {

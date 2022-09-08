@@ -1266,6 +1266,7 @@ GridView.prototype.buildDom = function() {
 
             kd.toggleClass('selected', isSelected),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
+            dom('div.field_selection')
           );
         })
       )
