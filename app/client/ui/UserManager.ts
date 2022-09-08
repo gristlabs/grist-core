@@ -538,7 +538,7 @@ function getUserItem(member: IEditableMember): ACUserItem {
  * Represents the widget that allows typing in an email and adding it.
  */
 export class ACMemberEmail extends Disposable {
-  public email = this.autoDispose(observable<string>(""));
+  private _email = this.autoDispose(observable<string>(""));
   private _isValid = this.autoDispose(observable<boolean>(false));
 
   constructor(
@@ -549,7 +549,7 @@ export class ACMemberEmail extends Disposable {
   ) {
     super();
     if (_prompt) {
-      this.email.set(_prompt.email);
+      this._email.set(_prompt.email);
     }
   }
 
@@ -560,7 +560,7 @@ export class ACMemberEmail extends Disposable {
     return buildACMemberEmail(this,
       {
         acIndex,
-        emailObs: this.email,
+        emailObs: this._email,
         save: this._handleSave.bind(this),
         isInputValid: this._isValid,
         prompt: this._prompt,

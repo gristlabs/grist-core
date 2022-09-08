@@ -96,22 +96,22 @@ export function buildACMemberEmail(
 
   const maybeShowAddNew = async (results: ACResults<ACUserItem>, text: string): Promise<ACResults<ACUserItem>> => {
     const cleanText = normalizeText(text);
-    const newObject = {
-      value: text,
-      cleanText,
-      name: "",
-      email: "",
-      isNew: true,
-      label: text,
-      id: 0,
-    };
-    const items = results.items.filter(item => item.cleanText.includes(cleanText));
-    if (results.items.find((item) => item.cleanText === cleanText)) {
-      results.items = items;
-      return results;
-    }
+    const items = results.items
+      .filter(item => item.cleanText.includes(cleanText))
+      .sort((a,b) => a.cleanText.localeCompare(b.cleanText));
     results.items = items;
-    results.items.push(newObject);
+    if (!results.items.length) {
+      const newObject = {
+        value: text,
+        cleanText,
+        name: "",
+        email: "",
+        isNew: true,
+        label: text,
+        id: 0,
+      };
+      results.items.push(newObject);
+    }
     return results;
   };
 
