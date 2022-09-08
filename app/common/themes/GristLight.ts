@@ -329,7 +329,7 @@ export const GristLight: ThemeColors = {
   /* Page Widget Picker */
   'widget-picker-primary-bg': 'white',
   'widget-picker-secondary-bg': '#F7F7F7',
-  'widget-picker-item-fg': 'black',
+  'widget-picker-item-fg': 'unset',
   'widget-picker-item-selected-bg': 'rgba(217,217,217,0.6)',
   'widget-picker-item-disabled-bg': 'rgba(217,217,217,0.6)',
   'widget-picker-icon': '#929299',
