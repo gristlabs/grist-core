@@ -11,7 +11,14 @@ export interface DownloadXLSXOptions extends ExportParameters {
   filename: string;
 }
 
-export function buildDownloadXlsxOptions({filename, tableId, viewSectionId, filters, sortOrder, activeView}: any): DownloadXLSXOptions {
+export function buildDownloadXlsxOptions({
+  filename,
+  tableId,
+  viewSectionId,
+  filters,
+  sortOrder,
+  activeView,
+}: any): DownloadXLSXOptions {
   return {
     filename,
     tableId: tableId || '',
@@ -23,7 +30,7 @@ export function buildDownloadXlsxOptions({filename, tableId, viewSectionId, filt
 }
 
 /**
- * Converts `activeDoc` to CSV and sends the converted data through `res`.
+ * Converts `activeDoc` to XLSX and sends the converted data through `res`.
  */
 export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
                                    res: express.Response, options: DownloadXLSXOptions) {
@@ -41,24 +48,20 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
 }
 
 /**
- * Returns a csv stream of a view section that can be transformed or parsed.
- *
- * See https://github.com/wdavidw/node-csv for API details.
+ * Returns a XLSX stream of a view section that can be transformed or parsed.
  *
  * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
  * @param {Integer} viewSectionId - id of the viewsection to export.
  * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
  * @param {Filter[]} filters (optional) - filters defined from ui.
- * @return {Promise<string>} Promise for the resulting CSV.
  */
  export async function makeXLSXFromViewSection(
   activeDoc: ActiveDoc,
   viewSectionId: number,
   sortOrder: number[],
   filters: Filter[],
-  req: express.Request) {
-
-  console.log("=============== Using makeXLSXFromViewSection ===============")
+  req: express.Request,
+) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, req);
   const xlsx = await convertToExcel([data], req.hostname === 'localhost');
@@ -66,19 +69,17 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
 }
 
 /**
- * Returns a csv stream of a table that can be transformed or parsed.
+ * Returns a XLSX stream of a table that can be transformed or parsed.
  *
  * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
  * @param {Integer} tableId - id of the table to export.
- * @return {Promise<string>} Promise for the resulting CSV.
  */
 export async function makeXLSXFromTable(
   activeDoc: ActiveDoc,
   tableId: string,
-  req: express.Request) {
-
-  console.log("=============== Using makeXLSXFromTable ===============")
-    if (!activeDoc.docData) {
+  req: express.Request
+) {
+  if (!activeDoc.docData) {
     throw new Error('No docData in active document');
   }
 
@@ -100,8 +101,8 @@ export async function makeXLSXFromTable(
  */
 export async function makeXLSX(
   activeDoc: ActiveDoc,
-  req: express.Request): Promise<ArrayBuffer> {
-  console.log("=============== Using makeXLSX ===============")
+  req: express.Request,
+): Promise<ArrayBuffer> {
   const content = await exportDoc(activeDoc, req);
   const data = await convertToExcel(content, req.hostname === 'localhost');
   return data;
