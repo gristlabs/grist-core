@@ -207,9 +207,9 @@ export class UserManager extends Disposable {
     const acmemberEmail = this.autoDispose(new ACMemberEmail(
       this._onAdd.bind(this),
       (member) => this._model.isActiveUser(member),
-      this._model.membersEdited.get())
-    );
-                                                        // this._options.prompt));
+      this._model.membersEdited.get(),
+      this._options.prompt,
+    ));
     if (this._model.isPublicMember) {
       return this._buildSelfPublicAccessDom();
     }
@@ -545,12 +545,12 @@ export class ACMemberEmail extends Disposable {
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
     private _isActiveUser: (member: IEditableMember) => boolean,
     private _members: Array<IEditableMember>,
-    // private _prompt?: {email: string}
+    private _prompt?: {email: string}
   ) {
     super();
-    // if (_prompt) {
-    //   this.email.set(_prompt.email);
-    // }
+    if (_prompt) {
+      this.email.set(_prompt.email);
+    }
   }
 
   public buildDom() {
@@ -558,7 +558,13 @@ export class ACMemberEmail extends Disposable {
     const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
 
     return buildACMemberEmail(this,
-      {acIndex, emailObs: this.email, save: this._handleSave.bind(this), isInputValid: this._isValid},
+      {
+        acIndex,
+        emailObs: this.email,
+        save: this._handleSave.bind(this),
+        isInputValid: this._isValid,
+        prompt: this._prompt,
+      },
       testId('um-member-new')
     );
   }

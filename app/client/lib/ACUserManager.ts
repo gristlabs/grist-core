@@ -35,10 +35,11 @@ export function buildACMemberEmail(
     emailObs: Observable<string>;
     save: (value: string) => Promise<void> | void;
     isInputValid: Observable<boolean>;
+    prompt?: {email: string},
   },
   ...args: DomElementArg[]
 ) {
-  const { acIndex, emailObs, save, isInputValid } = options;
+  const { acIndex, emailObs, save, isInputValid, prompt } = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
   emailObs.addListener(() => emailInput.setCustomValidity(""));
@@ -148,7 +149,8 @@ export function buildACMemberEmail(
     getItemText: (item) => item.value,
     onClick: commitIfValid,
   };
-  return cssEmailInputContainer(
+
+  const result = cssEmailInputContainer(
     dom.autoDispose(enableAdd),
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
@@ -169,6 +171,12 @@ export function buildACMemberEmail(
     )),
     dom.on("mousedown", onMouseDown)
   );
+
+  if (prompt) {
+    emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  return result;
 }
 
 const cssMemberPrimaryPlus = styled(
