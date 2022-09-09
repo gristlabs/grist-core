@@ -76,6 +76,20 @@ class NumericConverter(BaseConverter):
     return ("Numeric", values)
 
 
+class BooleanConverter(BaseConverter):
+  """Handles the Grist Bool type"""
+
+  @classmethod
+  def convert(cls, value):
+    if value is False or value is True:
+      return value
+    raise ValueError()
+
+  @classmethod
+  def get_grist_column(cls, values):
+    return ("Bool", values)
+
+
 class SimpleDateTimeConverter(BaseConverter):
   """Handles Date and DateTime values which are already instances of datetime.datetime."""
 
@@ -123,7 +137,7 @@ class ColumnDetector(object):
   """
   # Converters are listed in the order of preference, which is only used if two converters succeed
   # on the same exact number of values. Text is always a fallback.
-  converters = [SimpleDateTimeConverter, NumericConverter]
+  converters = [SimpleDateTimeConverter, BooleanConverter, NumericConverter]
 
   # If this many non-junk values or more can't be converted, fall back to text.
   _text_threshold = 0.10

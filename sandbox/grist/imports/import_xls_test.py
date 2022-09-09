@@ -33,9 +33,10 @@ class TestImportXLS(unittest.TestCase):
     self.assertEqual(parsed_file[1][0]["table_data"][1],
       ["a", "b", "c", "d", "e", "f", "g", "h"])
 
-    # 0s and 1s become Numeric, not boolean like in the past
-    self.assertEqual(parsed_file[1][0]["column_metadata"][2], {"type": "Numeric", "id": "boolean"})
-    self.assertEqual(parsed_file[1][0]["table_data"][2], [1, 0, 1, 0, 1, 0, 1, 0])
+    # check that column type was correctly set to bool and values are properly parsed
+    self.assertEqual(parsed_file[1][0]["column_metadata"][2], {"type": "Bool", "id": "boolean"})
+    self.assertEqual(parsed_file[1][0]["table_data"][2],
+      [True, False, True, False, True, False, True, False])
 
     # check that column type was correctly set to text and values are properly parsed
     self.assertEqual(parsed_file[1][0]["column_metadata"][3],
@@ -196,12 +197,29 @@ class TestImportXLS(unittest.TestCase):
     self.assertEqual(tables, [{
       'table_name': 'Sheet1',
       'column_metadata': [
-        {'id': u'A', 'type': 'Numeric'},
+        {'id': u'A', 'type': 'Bool'},
         {'id': u'B', 'type': 'Numeric'},
       ],
       'table_data': [
+        [False, False],
         [0, 0],
-        [0, 0],
+      ],
+    }])
+
+  def test_boolean(self):
+    parsed_file = import_xls.parse_file(*_get_fixture('test_boolean.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual(tables, [{
+      'table_name': 'Sheet1',
+      'column_metadata': [
+        {'id': u'A', 'type': 'Bool'},
+        {'id': u'B', 'type': 'Bool'},
+        {'id': u'C', 'type': 'Any'},
+      ],
+      'table_data': [
+        [True, False],
+        [False, False],
+        ['true', 'False'],
       ],
     }])
 
