@@ -153,7 +153,7 @@
     "tmp": "0.0.33",
     "ts-interface-checker": "1.0.2",
     "typeorm": "0.3.9",
-    "underscore": "1.9.1",
+    "underscore": "1.12.1",
     "uuid": "3.3.2",
     "winston": "2.4.5",
     "ws": "6.2.2"
