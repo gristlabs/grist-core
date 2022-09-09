@@ -189,5 +189,22 @@ class TestImportXLS(unittest.TestCase):
       ],
     }])
 
+  def test_falsy_cells(self):
+    # Falsy cells should be parsed as Numeric, not Date.
+    parsed_file = import_xls.parse_file(*_get_fixture('test_falsy_cells.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual(tables, [{
+      'table_name': 'Sheet1',
+      'column_metadata': [
+        {'id': u'A', 'type': 'Numeric'},
+        {'id': u'B', 'type': 'Numeric'},
+      ],
+      'table_data': [
+        [0, 0],
+        [0, 0],
+      ],
+    }])
+
+
 if __name__ == '__main__':
   unittest.main()

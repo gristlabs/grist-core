@@ -83,7 +83,7 @@ class SimpleDateTimeConverter(BaseConverter):
   def convert(cls, value):
     if type(value) is datetime.datetime:
       return value
-    elif not value:
+    elif value is None:
       return None
     raise ValueError()
 
