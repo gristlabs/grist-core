@@ -299,6 +299,7 @@ GridView.gridCommands = {
     .finally(() => {
       this.cursor.setCursorPos(saved);
       this.cursor.setLive(true);
+      this.clearSelection();
     })
     .catch(reportError);
   },
@@ -719,7 +720,7 @@ GridView.prototype.deleteColumns = function(selection) {
   let actions = fields.filter(col => !col.disableModify()).map(col => ['RemoveColumn', col.colId()]);
   if (actions.length > 0) {
     this.tableModel.sendTableActions(actions, `Removed columns ${actions.map(a => a[1]).join(', ')} ` +
-      `from ${this.tableModel.tableData.tableId}.`);
+      `from ${this.tableModel.tableData.tableId}.`).then(() => this.clearSelection());
   }
 };
 

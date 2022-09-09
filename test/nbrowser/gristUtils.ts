@@ -1519,6 +1519,11 @@ export function openRowMenu(rowNum: number) {
     .then(() => driver.findWait('.grist-floating-menu', 1000));
 }
 
+export async function removeRow(rowNum: number) {
+  await (await openRowMenu(rowNum)).findContent('li', /Delete/).click();
+  await waitForServer();
+}
+
 export async function openCardMenu(rowNum: number) {
   const section = await driver.find('.active_section');
   const firstRow = await section.findContent('.detail_row_num', String(rowNum));
