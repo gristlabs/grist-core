@@ -331,6 +331,7 @@ describe('parseDate', function() {
   });
 
   it('should handle datetimes as formatted by moment', function() {
+    this.timeout(10000);  // there may be a LOT of timezone names.
     for (const date of ['2020-02-03', '2020-06-07', '2020-10-11']) {  // different months for daylight savings
       const dateTime = date + ' 12:34:56';
       const utcMoment = moment.tz(dateTime, 'UTC');
