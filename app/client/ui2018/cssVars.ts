@@ -499,7 +499,7 @@ export const theme = {
   menuShadow: new CustomProp('theme-menu-shadow', undefined, 'rgba(38, 38, 51, 0.6)'),
 
   /* Menu Items */
-  menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'unset'),
+  menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'black'),
   menuItemSelectedFg: new CustomProp('theme-menu-item-selected-fg', undefined, colors.light),
   menuItemSelectedBg: new CustomProp('theme-menu-item-selected-bg', undefined, vars.primaryBg),
   menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, '#D9D9D9'),
@@ -559,11 +559,11 @@ export const theme = {
   widgetPickerPrimaryBg: new CustomProp('theme-widget-picker-primary-bg', undefined, 'white'),
   widgetPickerSecondaryBg: new CustomProp('theme-widget-picker-secondary-bg', undefined,
     colors.lightGrey),
-  widgetPickerItemFg: new CustomProp('theme-widget-picker-item-fg', undefined, colors.lightGrey),
+  widgetPickerItemFg: new CustomProp('theme-widget-picker-item-fg', undefined, 'unset'),
   widgetPickerItemSelectedBg: new CustomProp('theme-widget-picker-item-selected-bg', undefined,
-    colors.lightGrey),
+    colors.mediumGrey),
   widgetPickerItemDisabledBg: new CustomProp('theme-widget-picker-item-disabled-bg', undefined,
-    colors.lightGrey),
+    colors.mediumGrey),
   widgetPickerIcon: new CustomProp('theme-widget-picker-icon', undefined, colors.slate),
   widgetPickerPrimaryIcon: new CustomProp('theme-widget-picker-primary-icon', undefined,
     colors.lightGreen),

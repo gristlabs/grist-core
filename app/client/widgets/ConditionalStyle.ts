@@ -226,7 +226,7 @@ const cssRemoveButton = styled(cssIcon, `
   cursor: pointer;
   --icon-color: ${theme.controlSecondaryFg};
   &:hover {
-    --icon-color: ${theme.controlPrimaryFg};
+    --icon-color: ${theme.controlFg};
   }
 `);
 
