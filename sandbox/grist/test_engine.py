@@ -388,6 +388,8 @@ def test_undo(test_method):
       self.assertEqualDocData(self.getFullEngineData(), expected_engine_data)
   return wrapped
 
+test_undo.__test__ = False  # tells pytest that this isn't a test
+
 
 class TestEngine(EngineTestCase):
   samples = {}

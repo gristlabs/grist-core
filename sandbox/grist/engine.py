@@ -826,11 +826,6 @@ class Engine(object):
           # know, so it can set the cell value appropriately and do some other bookkeeping.
           cycle = required and (node, row_id) in self._locked_cells
           value = self._recompute_one_cell(table, col, row_id, cycle=cycle, node=node)
-        except table_module.EmptySummaryRow:
-          # This record is going to be deleted after the update loop completes.
-          # Don't save a value for it because that will lead to broken undo actions
-          # trying to update a record that doesn't exist.
-          save_value = False
         except RequestingError:
           # The formula will be evaluated again soon when we have a response.
           save_value = False
@@ -956,9 +951,8 @@ class Engine(object):
         raise self._cell_required_error  # pylint: disable=raising-bad-type
       self.formula_tracer(col, record)
       return result
-    except (MemoryError, table_module.EmptySummaryRow):
+    except MemoryError:
       # Don't try to wrap memory errors.
-      # EmptySummaryRow should be handled in _recompute_step
       raise
     except:  # pylint: disable=bare-except
       # Since col.method runs untrusted user code, we use a bare except to catch all

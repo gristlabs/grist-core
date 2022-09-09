@@ -85,27 +85,37 @@ class ActionSummary(object):
     table_id = root_name(table_id)
     col_id = root_name(col_id)
 
+    def update_action(filtered_row_ids, delta_index):
+      values = [column_delta[r][delta_index] for r in filtered_row_ids]
+      return actions.BulkUpdateRecord(table_id, filtered_row_ids, {col_id: values}).simplify()
+
     if not defunct:
-      row_ids = self.filter_out_gone_rows(table_id, full_row_ids)
-      if row_ids:
-        values = [column_delta[r][1] for r in row_ids]
-        out_stored.append(actions.BulkUpdateRecord(table_id, row_ids, {col_id: values}).simplify())
+      row_ids_after = self.filter_out_gone_rows(table_id, full_row_ids)
+      if row_ids_after:
+        out_stored.append(update_action(row_ids_after, 1))
 
     if self.is_created(table_id, col_id) and not defunct:
-      # A newly-create column, and not replacing a defunct one. Don't generate undo actions.
-      pass
-    else:
-      row_ids = self.filter_out_new_rows(table_id, full_row_ids)
-      if row_ids:
-        values = [column_delta[r][0] for r in row_ids]
-        undo_action = actions.BulkUpdateRecord(table_id, row_ids, {col_id: values}).simplify()
-        if defunct:
-          # If we deleted the column (or its containing table), then during undo, the updates for it
-          # should come after it's re-added. So we need to insert the undos *before*.
-          out_undo.insert(0, undo_action)
-        else:
-          out_undo.append(undo_action)
+      # A newly-created column, and not replacing a defunct one. Don't generate undo actions.
+      return
 
+    ## Maybe add one or two undo update actions for rows that existed before the change.
+    row_ids_before = self.filter_out_new_rows(table_id, full_row_ids)
+
+    if defunct:
+      preserved_row_ids = []
+    else:
+      preserved_row_ids = self.filter_out_gone_rows(table_id, row_ids_before)
+
+    preserved_row_ids_set = set(preserved_row_ids)
+    defunct_row_ids = [r for r in row_ids_before if r not in preserved_row_ids_set]
+
+    if preserved_row_ids:
+      out_undo.append(update_action(preserved_row_ids, 0))
+
+    if defunct_row_ids:
+      # Updates for deleted rows/columns/tables should come after they're re-added.
+      # So we need to insert the undos *before*.
+      out_undo.insert(0, update_action(defunct_row_ids, 0))
 
   def _forTable(self, table_id):
     return self._tables.get(table_id) or self._tables.setdefault(table_id, TableDelta())

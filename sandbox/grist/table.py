@@ -563,10 +563,6 @@ class Table(object):
 
       # Remove rows with empty groups
       self._engine.docmodel.setAutoRemove(rec, not result)
-      if not result:
-        # The group is empty, tell the engine that this record will be deleted
-        raise EmptySummaryRow()
-
       return result
     else:
       return None
@@ -662,10 +658,3 @@ class Table(object):
     # creates a dependency and brings formula columns up-to-date.
     self._engine._use_node(col.node, relation, row_ids)
     return [col.get_cell_value(row_id) for row_id in row_ids]
-
-
-class EmptySummaryRow(Exception):
-  """
-  Special exception indicating that the summary group is empty and the row should be removed.
-  """
-  pass

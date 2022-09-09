@@ -280,6 +280,24 @@ class TestDerived(test_engine.EngineTestCase):
       [5,   2007,   1,  15.0,   [1]],
     ])
 
+    self.assertPartialOutActions(out_actions_update, {
+      'stored': [
+        ['UpdateRecord', 'Orders', 1, {'year': 2007}],
+        ['AddRecord', 'Orders_summary_year', 5, {'year': 2007}],
+        ['RemoveRecord', 'Orders_summary_year', 1],
+        ['UpdateRecord', 'Orders_summary_year', 5, {'amount': 15.0}],
+        ['UpdateRecord', 'Orders_summary_year', 5, {'count': 1}],
+        ['UpdateRecord', 'Orders_summary_year', 5, {'group': ['L', 1]}],
+      ],
+      'undo': [
+        ['UpdateRecord', 'Orders_summary_year', 1, {'group': ['L', 1]}],
+        ['UpdateRecord', 'Orders_summary_year', 1, {'count': 1}],
+        ['UpdateRecord', 'Orders_summary_year', 1, {'amount': 15.0}],
+        ['UpdateRecord', 'Orders', 1, {'year': 2012}],
+        ['RemoveRecord', 'Orders_summary_year', 5],
+        ['AddRecord', 'Orders_summary_year', 1, {'group': ['L'], 'year': 2012}],
+      ]})
+
     # Undo and ensure that the new line is gone from the summary table.
     out_actions_undo = self.apply_undo_actions(out_actions_update.undo)
     self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
@@ -289,13 +307,7 @@ class TestDerived(test_engine.EngineTestCase):
       [4,   2015,   4,  106.0,  [7,8,9,10]],
     ])
     self.assertPartialOutActions(out_actions_undo, {
-      "stored": [
-        actions.AddRecord("Orders_summary_year", 1, {
-          "amount": 15.0, "count": 1, "group": [1], "year": 2012
-        }),
-        actions.RemoveRecord("Orders_summary_year", 5),
-        actions.UpdateRecord("Orders", 1, {"year": 2012}),
-      ],
+      "stored": out_actions_update.undo[::-1],
       "calls": {
         "Orders_summary_year": {
           "#lookup#": 1, "#lookup#year": 1, "group": 1, "amount": 1, "count": 1

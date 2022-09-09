@@ -1,6 +1,8 @@
 import re
 import test_engine
 import testsamples
+import testutil
+
 
 class TestUndo(test_engine.EngineTestCase):
   def test_bad_undo(self):
@@ -79,4 +81,44 @@ class TestUndo(test_engine.EngineTestCase):
       [2,   "Schools", [10,12]],
       [3,   "Address", [21]],
       [4,   "Table1", [22, 23]],
+    ])
+
+  @test_engine.test_undo
+  def test_auto_remove_undo(self):
+    """
+    Test that a formula using docmodel.setAutoRemove doesn't break when undoing.
+    We don't actually recommend using docmodel.setAutoRemove in formulas,
+    but it'd be nice, and this is really testing that a bugfix about summary tables
+    also helps outside of summary tables.
+    """
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table", [
+          [11, "amount", "Numeric", False, "", "", ""],
+          [12, "amount2", "Numeric", True, "$amount", "", ""],
+          [13, "remove", "Any", True,
+           "table.table._engine.docmodel.setAutoRemove(rec, not $amount2)", "", ""],
+        ]]
+      ],
+      "DATA": {
+        "Table": [
+          ["id", "amount", "amount2"],
+          [21, 1, 1],
+          [22, 2, 2],
+        ]
+      }
+    }))
+    out_actions = self.update_record('Table', 21, amount=0)
+    self.assertOutActions(out_actions, {
+      'calc': [],
+      'direct': [True, False],
+      'stored': [['UpdateRecord', 'Table', 21, {'amount': 0.0}],
+                 ['RemoveRecord', 'Table', 21]],
+      'undo': [['UpdateRecord', 'Table', 21, {'amount2': 1.0}],
+               ['UpdateRecord', 'Table', 21, {'amount': 1.0}],
+               ['AddRecord', 'Table', 21, {}]],
+    })
+    self.assertTableData('Table', cols="subset", data=[
+      ["id", "amount", "amount2"],
+      [22, 2, 2],
     ])

@@ -503,6 +503,28 @@ class Address:
       ]
     })
 
+    # Add a new source record which creates a new summary row,
+    # then delete the source row which implicitly deletes the summary row.
+    # Overall this is a no-op, but it tests a specific undo-related bugfix.
+    self.add_record(source_tbl_name, city="Nowhere", state="??", amount=666)
+    out_actions = self.remove_record(source_tbl_name, 34)
+    self.assertOutActions(out_actions, {
+      'calc': [],
+      'direct': [True, False],
+      'stored': [
+        ['RemoveRecord', source_tbl_name, 34],
+        ['RemoveRecord', summary_tbl_name, 12],
+      ],
+      'undo': [
+        ['UpdateRecord', summary_tbl_name, 12, {'group': ['L', 34]}],
+        ['UpdateRecord', summary_tbl_name, 12, {'count': 1}],
+        ['UpdateRecord', summary_tbl_name, 12, {'amount': 666.0}],
+        ['AddRecord', source_tbl_name, 34, {'amount': 666.0, 'city': 'Nowhere', 'state': '??'}],
+        ['AddRecord', summary_tbl_name, 12,
+         {'city': 'Nowhere', 'group': ['L'], 'state': '??'}],
+      ],
+    })
+
     # Verify the resulting data after all the updates.
     self.assertTableData(summary_tbl_name, cols="subset", data=[
       [ "id", "city",     "state", "count", "amount"  ],
