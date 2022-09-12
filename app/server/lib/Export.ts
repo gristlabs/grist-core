@@ -14,7 +14,7 @@ import {MetaRowRecord, MetaTableData} from 'app/common/TableData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
-import {optIntegerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
+import {optIntegerParam, optJsonParam, stringParam, optStringParam} from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
@@ -93,7 +93,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const viewSectionId = optIntegerParam(req.query.viewSection);
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
-  const activeView = stringParam(req.query.activeViewOnly, 'false') === 'true';
+  const activeView = optStringParam(req.query.activeViewOnly) === 'true';
 
   return {
     tableId,
