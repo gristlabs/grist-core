@@ -5,7 +5,7 @@ import {dom, Observable} from 'grainjs';
 
 // Rather than require the whole of highlight.js, require just the core with the one language we
 // need, to keep our bundle smaller and the build faster.
-const hljs           = require('highlight.js/lib/highlight');
+const hljs           = require('highlight.js/lib/core');
 hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
 
 export class CodeEditorPanel extends DisposableWithEvents {
