@@ -15,7 +15,7 @@ FROM node:14-buster as builder
 # Install all node dependencies.
 WORKDIR /grist
 COPY package.json yarn.lock /grist/
-RUN yarn install --frozen-lockfile --verbose
+RUN yarn install --frozen-lockfile --verbose --network-timeout 600000
 
 # Install any extra node dependencies (at root level, to avoid having to wrestle
 # with merging them).
@@ -23,7 +23,7 @@ COPY --from=ext / /grist/ext
 RUN \
  mkdir /node_modules && \
  cd /grist/ext && \
- { if [ -e package.json ] ; then yarn install --frozen-lockfile --modules-folder=/node_modules --verbose ; fi }
+ { if [ -e package.json ] ; then yarn install --frozen-lockfile --modules-folder=/node_modules --verbose --network-timeout 600000 ; fi }
 
 # Build node code.
 COPY tsconfig.json /grist
