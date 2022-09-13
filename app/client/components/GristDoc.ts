@@ -830,22 +830,16 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getCsvLink() {
-    const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
-      colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
-      filter : filterInfo.filter()
-    }));
-
-    const params = {
-      viewSection: this.viewModel.activeSectionId(),
-      tableId: this.viewModel.activeSection().table().tableId(),
-      activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
-      filters : JSON.stringify(filters),
-    };
-
+    const params = this._getDocApiDownloadParams();
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
   }
 
   public getXlsxActiveViewLink() {
+    const params = this._getDocApiDownloadParams();
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
+  }
+
+  private _getDocApiDownloadParams() {
     const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
       colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
       filter : filterInfo.filter()
@@ -856,10 +850,8 @@ export class GristDoc extends DisposableWithEvents {
       tableId: this.viewModel.activeSection().table().tableId(),
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
       filters : JSON.stringify(filters),
-      activeViewOnly : true,
     };
-
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params); 
+    return params;
   }
 
   public hasGranularAccessRules(): boolean {

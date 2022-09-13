@@ -17,7 +17,6 @@ export function buildDownloadXlsxOptions({
   viewSectionId,
   filters,
   sortOrder,
-  activeView,
 }: any): DownloadXLSXOptions {
   return {
     filename,
@@ -25,7 +24,6 @@ export function buildDownloadXlsxOptions({
     viewSectionId: viewSectionId || undefined,
     filters: filters || [],
     sortOrder: sortOrder || [],
-    activeView: activeView || false,
   }
 }
 
@@ -35,11 +33,11 @@ export function buildDownloadXlsxOptions({
 export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
                                    res: express.Response, options: DownloadXLSXOptions) {
   log.debug(`Generating .xlsx file`);
-  const {filename, tableId, viewSectionId, filters, sortOrder, activeView} = options;
+  const {filename, tableId, viewSectionId, filters, sortOrder} = options;
   // hanlding 3 cases : full XLSX export (full file), view xlsx export, table xlsx export
-  const data = !activeView ? await makeXLSX(activeDoc, req)
-              : viewSectionId ? await makeXLSXFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req)
-              : await makeXLSXFromTable(activeDoc, tableId, req);
+  const data = viewSectionId ? await makeXLSXFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req)
+              : tableId ? await makeXLSXFromTable(activeDoc, tableId, req)
+              : await makeXLSX(activeDoc, req);
 
   res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));

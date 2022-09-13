@@ -1805,27 +1805,27 @@ function testDocApi() {
   });
 
   it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function() {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?activeViewOnly=true&tableId=Table1`, chimpy);
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
     assert.notEqual(resp.data, null);
   });
 
   it("GET /docs/{did}/download/xlsx respects permissions", async function() {
     // kiwi has no access to TestDoc
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?activeViewOnly=true&tableId=Table1`, kiwi);
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, { error: 'No view access' });
   });
 
   it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function() {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?activeViewOnly=true&tableId=MissingTableId`, chimpy);
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=MissingTableId`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
   });
 
   it("GET /docs/{did}/download/xlsx returns 404 if viewSectionId is invalid", async function() {
     const resp = await axios.get(
-      `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?activeViewOnly=true&tableId=Table1&viewSection=9999`, chimpy);
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1&viewSection=9999`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
   });

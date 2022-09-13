@@ -752,10 +752,9 @@ export class DocWorkerApi {
       // Query DB for doc metadata to get the doc title (to use as the filename).
       const {name: docTitle} = await this._dbManager.getDoc(req);
 
-      const params = ! _.isEmpty(req.query) ? parseExportParameters(req) : {tableId: '', activeView: false};
+      const params = !_.isEmpty(req.query) ? parseExportParameters(req) : {tableId: '', activeView: false};
 
-      const {activeView} = params;
-      const filename = !activeView ? docTitle : docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId);
+      const filename = !_.isEmpty(req.query) ? docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId) : docTitle;
 
       const options: DownloadXLSXOptions = buildDownloadXlsxOptions({...params, filename});
 
