@@ -80,6 +80,17 @@ export interface ExportParameters {
   filters: Filter[];
 }
 
+/**
+ * Options parameters for CSV and XLSX export functions.
+ */
+export interface DownloadOptions {
+  filename: string;
+  tableId: string;
+  viewSectionId: number | undefined;
+  filters: Filter[];
+  sortOrder: number[];
+}
+
 interface FilteredMetaTables {
   [tableId: string]: TableDataAction;
 }
@@ -97,7 +108,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
     tableId,
     viewSectionId,
     sortOrder,
-    filters
+    filters,
   };
 }
 

@@ -830,6 +830,16 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getCsvLink() {
+    const params = this._getDocApiDownloadParams();
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
+  }
+
+  public getXlsxActiveViewLink() {
+    const params = this._getDocApiDownloadParams();
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
+  }
+
+  private _getDocApiDownloadParams() {
     const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
       colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
       filter : filterInfo.filter()
@@ -841,8 +851,7 @@ export class GristDoc extends DisposableWithEvents {
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
       filters : JSON.stringify(filters),
     };
-
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
+    return params;
   }
 
   public hasGranularAccessRules(): boolean {

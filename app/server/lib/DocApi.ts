@@ -32,9 +32,9 @@ import {DocManager} from "app/server/lib/DocManager";
 import {docSessionFromRequest, makeExceptionalDocSession, OptDocSession} from "app/server/lib/DocSession";
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
-import {parseExportParameters} from "app/server/lib/Export";
-import {downloadCSV, DownloadCSVOptions} from "app/server/lib/ExportCSV";
-import {downloadXLSX, DownloadXLSXOptions} from "app/server/lib/ExportXLSX";
+import {parseExportParameters, DownloadOptions} from "app/server/lib/Export";
+import {downloadCSV} from "app/server/lib/ExportCSV";
+import {downloadXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -736,24 +736,21 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title.
       const {name: docTitle} = await this._dbManager.getDoc(req);
-
-      const params = parseExportParameters(req);
-      const filename = docTitle + (params.tableId === docTitle ? '' : '-' + params.tableId);
-
-      const options: DownloadCSVOptions = {
-        ...params,
-        filename,
-      };
+      const options = this._getDownloadOptions(req, docTitle);
 
       await downloadCSV(activeDoc, req, res, options);
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title (to use as the filename).
-      const {name: filename} = await this._dbManager.getDoc(req);
-
-      const options: DownloadXLSXOptions = {filename};
-
+      const {name: docTitle} = await this._dbManager.getDoc(req);
+      const options = !_.isEmpty(req.query) ? this._getDownloadOptions(req, docTitle) : {
+        filename: docTitle,
+        tableId: '',
+        viewSectionId: undefined,
+        filters: [],
+        sortOrder: [],
+      };
       await downloadXLSX(activeDoc, req, res, options);
     }));
 
@@ -813,6 +810,15 @@ export class DocWorkerApi {
     if (docAuth.error) { throw docAuth.error; }
     assertAccess('viewers', docAuth);
     return docAuth.docId!;
+  }
+
+  private _getDownloadOptions(req: Request, name: string): DownloadOptions {
+    const params = parseExportParameters(req);
+    const options: DownloadOptions = {
+      ...params,
+      filename: name + (params.tableId === name ? '' : '-' + params.tableId),
+    }
+    return options
   }
 
   private _getActiveDoc(req: RequestWithLogin): Promise<ActiveDoc> {
