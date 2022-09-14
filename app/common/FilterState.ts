@@ -1,13 +1,18 @@
 import { CellValue } from "app/common/DocActions";
+import { IRelativeDateSpec, isEquivalentRelativeDate, isRelativeBound } from "app/common/RelativeDates";
+
+export type { IRelativeDateSpec } from "app/common/RelativeDates";
+export { isRelativeBound } from "app/common/RelativeDates";
 
 // Filter object as stored in the db
 export interface FilterSpec {
   included?: CellValue[];
   excluded?: CellValue[];
-  min?: number;
-  max?: number;
+  min?: number|IRelativeDateSpec;
+  max?: number|IRelativeDateSpec;
 }
 
+export type IRangeBoundType = undefined|number|IRelativeDateSpec;
 
 export type FilterState = ByValueFilterState | RangeFilterState
 
@@ -18,8 +23,8 @@ interface ByValueFilterState {
 }
 
 interface RangeFilterState {
-  min?: number;
-  max?: number;
+  min?: number|IRelativeDateSpec;
+  max?: number|IRelativeDateSpec;
 }
 
 // Creates a FilterState. Accepts spec as a json string or a FilterSpec.
@@ -58,4 +63,14 @@ export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolea
 export function isRangeFilter(state: FilterState): state is RangeFilterState {
   const {min, max} = state as any;
   return min !== undefined || max !== undefined;
+}
+
+export function isEquivalentBound(a: IRangeBoundType, b: IRangeBoundType) {
+  if (isRelativeBound(a) && isRelativeBound(b)) {
+    return isEquivalentRelativeDate(a, b);
+  }
+  if (isRelativeBound(a) || isRelativeBound(b)) {
+    return false;
+  }
+  return a === b;
 }

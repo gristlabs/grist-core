@@ -76,7 +76,6 @@
     "InsertColumnLeft": "Insert column to the left"
   },
   "ColumnFilterMenu": {
-    "FilterByRange": "Filter by Range",
     "Search": "Search",
     "SearchValues": "Search values",
     "All": "All",
@@ -88,7 +87,11 @@
     "OtherNonMatching": "Other Non-Matching",
     "OtherValues": "Other Values",
     "FutureValues": "Future Values",
-    "Others": "Others"
+    "Others": "Others",
+    "RangeMin": "Min",
+    "RangeMax": "Max",
+    "DateRangeMin": "Start",
+    "DateRangeMax": "End"
   },
   "CustomSectionConfig": {
     "Add": "Add",

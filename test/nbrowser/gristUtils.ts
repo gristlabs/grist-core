@@ -2827,6 +2827,28 @@ export async function beginAclTran(api: UserAPI, docId: string) {
   };
 }
 
+/**
+ * Helper to set the value of a column range filter bound. Helper also support picking relative date
+ * from options for Date columns, simply pass {relative: '2 days ago'} as value.
+ */
+export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{relative: string}|null) {
+  await driver.find(`.test-filter-menu-${minMax}`).click();
+  if (typeof value === 'string' || value === null) {
+    await selectAll();
+    await driver.sendKeys(value === null ? Key.DELETE : value);
+    // send TAB to trigger blur event, that will force call on the debounced callback
+    await driver.sendKeys(Key.TAB);
+  } else {
+    await waitToPass(async () => {
+      // makes sure the relative options is opened
+      if (!await driver.find('.grist-floatin-menu').isPresent()) {
+        await driver.find(`.test-filter-menu-${minMax}`).click();
+      }
+      await driver.findContent('.grist-floating-menu li', value.relative).click();
+    });
+  }
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

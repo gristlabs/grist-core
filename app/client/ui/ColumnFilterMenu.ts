@@ -19,11 +19,14 @@ import {cssLabel as cssCheckboxLabel, cssCheckboxSquare, cssLabelText, Indetermi
        } from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
+import {cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem} from 'app/client/ui2018/menus';
 import {CellValue} from 'app/common/DocActions';
-import {isEquivalentFilter} from "app/common/FilterState";
-import {Computed, dom, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId, Observable,
-  styled} from 'grainjs';
+import {IRelativeDateSpec, isEquivalentFilter, isRelativeBound} from "app/common/FilterState";
+import {formatRelBounds} from "app/common/RelativeDates";
+import {
+  Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId,
+  Observable, styled
+} from 'grainjs';
 import concat = require('lodash/concat');
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
@@ -33,9 +36,15 @@ import tail = require('lodash/tail');
 import debounce = require('lodash/debounce');
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import {decodeObject} from 'app/plugin/objtypes';
-import {isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
+import {extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {ColumnFilterCalendarView} from 'app/client/ui/ColumnFilterCalendarView';
+import {cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase} from 'app/client/widgets/ChoiceListEditor';
+import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {DateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
+import {createFormatter} from 'app/common/ValueFormatter';
 
 const t = makeT('ColumnFilterMenu');
 
@@ -48,9 +57,13 @@ export interface IFilterMenuOptions {
   doSave(reset: boolean): void;
   renderValue(key: CellValue, value: IFilterCount): DomElementArg;
   onClose(): void;
+  valueParser?(val: string): any;
+  valueFormatter?(val: any): string;
 }
 
 const testId = makeTestId('test-filter-menu-');
+
+export type IColumnFilterViewType = 'listView'|'calendarView';
 
 /**
  * Returns the DOM content for the column filter menu.
@@ -58,8 +71,9 @@ const testId = makeTestId('test-filter-menu-');
  * For use with setPopupToCreateDom().
  */
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doCancel, doSave, onClose, rangeInputOptions = {}, renderValue, showAllFiltersButton } = opts;
+  const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton } = opts;
   const { columnFilter, filterInfo } = model;
+  const valueFormatter = opts.valueFormatter || ((val) => val?.toString() || '');
 
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
@@ -78,211 +92,415 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const isAboveLimitObs = Computed.create(owner, (use) => use(model.valuesBeyondLimit).length > 0);
   const isSearchingObs = Computed.create(owner, (use) => Boolean(use(searchValueObs)));
   const showRangeFilter = isNumberType(columnFilter.columnType) || isDateLikeType(columnFilter.columnType);
+  const isDateFilter = isDateLikeType(columnFilter.columnType);
+  const selectedBoundObs = Observable.create<'min'|'max'|null>(owner, null);
+  const viewTypeObs = Computed.create<IColumnFilterViewType>(owner, (
+    (use) => isDateFilter && use(selectedBoundObs) ? 'calendarView' : 'listView'
+  ));
+  const isMinSelected = Computed.create<boolean>(owner, (use) => use(selectedBoundObs) === 'min')
+    .onWrite((val) => val ? selectedBoundObs.set('min') : selectedBoundObs.set('max'));
+  const isMaxSelected = Computed.create<boolean>(owner, (use) => use(selectedBoundObs) === 'max')
+    .onWrite((val) => val ? selectedBoundObs.set('max') : selectedBoundObs.set('min'));
 
   let searchInput: HTMLInputElement;
-  let minRangeInput: HTMLInputElement;
   let cancel = false;
   let reset = false;
-
-  // Gives focus to the searchInput on open (or to the min input if the range filter is present).
-  setTimeout(() => (minRangeInput || searchInput).select(), 0);
 
   const filterMenu: HTMLElement = cssMenu(
     { tabindex: '-1' }, // Allow menu to be focused
     testId('wrapper'),
+
+    // Makes sure focus goes back to menu container and disable grist keyboard shortcut while open.
+    elem => {
+      FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true});
+
+      // Gives focus to the searchInput on open (or to the min input if the range filter is
+      // present). Note that this must happen after the instanciation of FocusLayer in order to
+      // correctly override focus set by the latter also using a 0 delay.
+      setTimeout(() => {
+        const el = searchInput;
+        el.focus();
+        el.select();
+      }, 0);
+
+    },
+
     dom.cls(menuCssClass),
     dom.autoDispose(filterListener),
     // Save or cancel on disposal, which should always happen as part of closing.
     dom.onDispose(() => cancel ? doCancel() : doSave(reset)),
     dom.onKeyDown({
       Enter: () => onClose(),
-      Escape: () => onClose()
+      Escape: () => onClose(),
     }),
 
     // Filter by range
     dom.maybe(showRangeFilter, () => [
-      cssRangeHeader(t('FilterByRange')),
       cssRangeContainer(
-        minRangeInput = rangeInput('Min ', columnFilter.min, rangeInputOptions, testId('min')),
-        cssRangeInputSeparator('→'),
-        rangeInput('Max ', columnFilter.max, rangeInputOptions, testId('max')),
+        rangeInput(
+          columnFilter.min, {
+            isDateFilter,
+            placeholder: isDateFilter ? t('DateRangeMin') : t('RangeMin'),
+            valueParser,
+            valueFormatter,
+            isSelected: isMinSelected,
+            viewTypeObs,
+            nextSelected: () => selectedBoundObs.set('max'),
+          },
+          testId('min'),
+          dom.onKeyDown({Tab: (e) => e.shiftKey || selectedBoundObs.set('max')}),
+        ),
+        rangeInput(
+          columnFilter.max, {
+            isDateFilter,
+            placeholder: isDateFilter ? t('DateRangeMax') : t('RangeMax'),
+            valueParser,
+            valueFormatter,
+            isSelected: isMaxSelected,
+            viewTypeObs,
+          },
+          testId('max'),
+          dom.onKeyDown({Tab: (e) => e.shiftKey ? selectedBoundObs.set('min') : selectedBoundObs.set('max')}),
+        ),
       ),
+
+      // presets links
+      dom.maybe(isDateFilter, () => {
+        function action(option: IDateRangeOption) {
+          const {min, max} = option;
+          columnFilter.min.set(min);
+          columnFilter.max.set(max);
+          // open the calendar view
+          selectedBoundObs.set('min');
+        }
+        return [
+          cssLinkRow(
+            testId('presets-links'),
+            cssLink(
+              DateRangeOptions[0].label,
+              dom.on('click', () => action(DateRangeOptions[0]))
+            ),
+            cssLink(
+              DateRangeOptions[1].label,
+              dom.on('click', () => action(DateRangeOptions[1]))
+            ),
+            cssLink(
+              'More ', icon('Dropdown'),
+              menu(() => DateRangeOptions.map(
+                (option) => menuItem(() => action(option), option.label)
+              ), {attach: '.' + cssMenu.className})
+            ),
+          ),
+        ];
+      }),
       cssMenuDivider(),
     ]),
 
-    cssMenuHeader(
-      cssSearchIcon('Search'),
-      searchInput = cssSearch(
-        searchValueObs, { onInput: true },
-        testId('search-input'),
-        { type: 'search', placeholder: t('SearchValues') },
-        dom.onKeyDown({
-          Enter: () => {
-            if (searchValueObs.get()) {
-              columnFilter.setState({included: filteredKeys.get()});
-            }
-          },
-          Escape$: (ev) => {
-            if (searchValueObs.get()) {
-              searchValueObs.set('');
-              searchInput.focus();
-              ev.stopPropagation();
-            }
-          }
-        })
-      ),
-      dom.maybe(searchValueObs, () => cssSearchIcon(
-        'CrossSmall', testId('search-close'),
-        dom.on('click', () => {
-          searchValueObs.set('');
-          searchInput.focus();
-        }),
-      )),
-    ),
-    cssMenuDivider(),
-    cssMenuItem(
-      dom.domComputed((use) => {
-        const searchValue = use(searchValueObs);
-        // This is necessary to avoid a known bug in grainjs where filteredKeys does not get
-        // recalculated.
-        use(filteredKeys);
-        const allSpec = searchValue ? {included: use(filteredKeys)} : {excluded: []};
-        const noneSpec = searchValue ? {excluded: use(filteredKeys)} : {included: []};
-        const state = use(columnFilter.state);
-        return [
-          cssSelectAll(
-            dom.text(searchValue ? t('AllShown') : t('All')),
-            cssSelectAll.cls('-disabled', isEquivalentFilter(state, allSpec)),
-            dom.on('click', () => columnFilter.setState(allSpec)),
-            testId('bulk-action'),
-          ),
-          cssDotSeparator('•'),
-          cssSelectAll(
-            searchValue ? t('AllExcept') : t('None'),
-            cssSelectAll.cls('-disabled', isEquivalentFilter(state, noneSpec)),
-            dom.on('click', () => columnFilter.setState(noneSpec)),
-            testId('bulk-action'),
-          )
-        ];
-      }),
-      cssSortIcon(
-        'Sort',
-        cssSortIcon.cls('-active', isSortedByCount),
-        dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
-      )
-    ),
-    cssItemList(
-      testId('list'),
-      dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t('NoMatchingValues'))),
-      dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
-        cssMenuItem(
-          cssLabel(
-            cssCheckboxSquare(
-              {type: 'checkbox'},
-              dom.on('change', (_ev, elem) => {
-                elem.checked ? columnFilter.add(key) : columnFilter.delete(key);
-             }),
-              (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
-              dom.style('position', 'relative'),
-            ),
-            renderValue(key, value),
-          ),
-          cssItemCount(value.count.toLocaleString(), testId('count')))
-      ))) // Include comma separator
-    ),
-    cssMenuDivider(),
-    cssMenuFooter(
-      dom.domComputed((use) => {
-        const isAboveLimit = use(isAboveLimitObs);
-        const searchValue = use(isSearchingObs);
-        const otherValues = use(model.otherValues);
-        const anyOtherValues = Boolean(otherValues.length);
-        const valuesBeyondLimit = use(model.valuesBeyondLimit);
-        if (isAboveLimit) {
-          return searchValue ? [
-            buildSummary(t('OtherMatching'), valuesBeyondLimit, false, model),
-            buildSummary(t('OtherNonMatching'), otherValues, true, model),
-          ] : [
-            buildSummary(t('OtherValues'), concat(otherValues, valuesBeyondLimit), false, model),
-            buildSummary(t('FutureValues'), [], true, model),
-          ];
-        } else {
-          return anyOtherValues ? [
-            buildSummary(t('Others'), otherValues, true, model)
-          ] : [
-            buildSummary(t('FutureValues'), [], true, model)
-          ];
-        }
-      }),
-      cssFooterButtons(
-        dom('div',
-          cssPrimaryButton('Close', testId('apply-btn'),
-            dom.on('click', () => {
-              reset = true;
-              onClose();
-            }),
-          ),
-          basicButton('Cancel', testId('cancel-btn'),
-            dom.on('click', () => {
-              cancel = true;
-              onClose();
-            }),
-          ),
-          !showAllFiltersButton ? null : cssAllFiltersButton(
-            'All filters',
-            dom.on('click', () => {
-              onClose();
-              commands.allCommands.sortFilterMenuOpen.run(filterInfo.viewSection.getRowId());
-            }),
-            testId('all-filters-btn'),
-          ),
-        ),
-        dom('div',
-          cssPinButton(
-            icon('PinTilted'),
-            cssPinButton.cls('-pinned', model.filterInfo.isPinned),
-            dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
-            testId('pin-btn'),
-          ),
-        ),
-      ),
-    ),
+    dom.domComputed(viewTypeObs, viewType => viewType === 'listView' ? ListView() :
+      dom.create(ColumnFilterCalendarView, {
+        viewTypeObs, selectedBoundObs, columnFilter,
+      })),
+    Footer(),
+
+    // Prevents click on presets links submenus (any one of the 'More' submenus) from bubling up and
+    // eventually cause the parent menu to close (which used to happen when opening the column
+    // filter from the section sort&filter menu)
+    dom.on('click', ev => ev.stopPropagation()),
   );
+
+  function ListView() {
+    return [
+      cssMenuHeader(
+        cssSearchIcon('Search'),
+        searchInput = cssSearch(
+          searchValueObs, { onInput: true },
+          testId('search-input'),
+          { type: 'search', placeholder: t('SearchValues') },
+          dom.onKeyDown({
+            Enter: () => {
+              if (searchValueObs.get()) {
+                columnFilter.setState({included: filteredKeys.get()});
+              }
+            },
+            Escape$: (ev) => {
+              if (searchValueObs.get()) {
+                searchValueObs.set('');
+                searchInput.focus();
+                ev.stopPropagation();
+              }
+            }
+          })
+        ),
+        dom.maybe(searchValueObs, () => cssSearchIcon(
+          'CrossSmall', testId('search-close'),
+          dom.on('click', () => {
+            searchValueObs.set('');
+            searchInput.focus();
+          }),
+        )),
+      ),
+      cssMenuDivider(),
+      cssMenuItem(
+        dom.domComputed((use) => {
+          const searchValue = use(searchValueObs);
+          // This is necessary to avoid a known bug in grainjs where filteredKeys does not get
+          // recalculated.
+          use(filteredKeys);
+          const allSpec = searchValue ? {included: use(filteredKeys)} : {excluded: []};
+          const noneSpec = searchValue ? {excluded: use(filteredKeys)} : {included: []};
+          const state = use(columnFilter.state);
+          return [
+            cssSelectAll(
+              dom.text(searchValue ? t('AllShown') : t('All')),
+              dom.prop('disabled', isEquivalentFilter(state, allSpec)),
+              dom.on('click', () => columnFilter.setState(allSpec)),
+              testId('bulk-action'),
+            ),
+            cssDotSeparator('•'),
+            cssSelectAll(
+              searchValue ? t('AllExcept') : t('None'),
+              dom.prop('disabled', isEquivalentFilter(state, noneSpec)),
+              dom.on('click', () => columnFilter.setState(noneSpec)),
+              testId('bulk-action'),
+            )
+          ];
+        }),
+        cssSortIcon(
+          'Sort',
+          cssSortIcon.cls('-active', isSortedByCount),
+          dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
+        )
+      ),
+      cssItemList(
+        testId('list'),
+        dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t('NoMatchingValues'))),
+        dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
+          cssMenuItem(
+            cssLabel(
+              cssCheckboxSquare(
+                {type: 'checkbox'},
+                dom.on('change', (_ev, elem) => {
+                  elem.checked ? columnFilter.add(key) : columnFilter.delete(key);
+                }),
+                (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
+                dom.style('position', 'relative'),
+              ),
+              renderValue(key, value),
+            ),
+            cssItemCount(value.count.toLocaleString(), testId('count')))
+        ))) // Include comma separator
+      ),
+    ];
+  }
+
+  function Footer() {
+    return [
+      cssMenuDivider(),
+      cssMenuFooter(
+        dom.domComputed((use) => {
+          const isAboveLimit = use(isAboveLimitObs);
+          const searchValue = use(isSearchingObs);
+          const otherValues = use(model.otherValues);
+          const anyOtherValues = Boolean(otherValues.length);
+          const valuesBeyondLimit = use(model.valuesBeyondLimit);
+          const isRangeFilter = use(columnFilter.isRange);
+          if (isRangeFilter || use(viewTypeObs) === 'calendarView') {
+            return [];
+          }
+          if (isAboveLimit) {
+            return searchValue ? [
+              buildSummary(t('OtherMatching'), valuesBeyondLimit, false, model),
+              buildSummary(t('OtherNonMatching'), otherValues, true, model),
+            ] : [
+              buildSummary(t('OtherValues'), concat(otherValues, valuesBeyondLimit), false, model),
+              buildSummary(t('FutureValues'), [], true, model),
+            ];
+          } else {
+            return anyOtherValues ? [
+              buildSummary(t('Others'), otherValues, true, model)
+            ] : [
+              buildSummary(t('FutureValues'), [], true, model)
+            ];
+          }
+        }),
+        cssFooterButtons(
+          dom('div',
+            cssPrimaryButton('Close', testId('apply-btn'),
+              dom.on('click', () => {
+                reset = true;
+                onClose();
+              }),
+            ),
+            basicButton('Cancel', testId('cancel-btn'),
+              dom.on('click', () => {
+                cancel = true;
+                onClose();
+              }),
+            ),
+            !showAllFiltersButton ? null : cssAllFiltersButton(
+              'All filters',
+              dom.on('click', () => {
+                onClose();
+                commands.allCommands.sortFilterMenuOpen.run(filterInfo.viewSection.getRowId());
+              }),
+              testId('all-filters-btn'),
+            ),
+          ),
+          dom('div',
+            cssPinButton(
+              icon('PinTilted'),
+              cssPinButton.cls('-pinned', model.filterInfo.isPinned),
+              dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
+              testId('pin-btn'),
+            ),
+          ),
+        )
+      )
+    ];
+  }
   return filterMenu;
 }
 
 export interface IRangeInputOptions {
-  valueParser?: (val: string) => any;
-  valueFormatter?: (val: any) => string;
+  isDateFilter: boolean;
+  placeholder: string;
+  isSelected: Observable<boolean>;
+  viewTypeObs: Observable<IColumnFilterViewType>;
+  valueParser?(val: string): any;
+  valueFormatter(val: any): string;
+  nextSelected?(): void;
 }
 
-function rangeInput(placeholder: string, obs: Observable<number|undefined>, opts: IRangeInputOptions,
-                    ...args: DomElementArg[]) {
+// The range input with the preset links.
+function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: IRangeInputOptions,
+                    ...args: DomArg<HTMLDivElement>[]) {
+
+  const buildInput = () => [
+    dom.maybe(use => isRelativeBound(use(obs)), () => relativeToken(obs, opts)),
+    numericInput(obs, opts),
+  ];
+
+  return cssRangeInputContainer(
+
+    dom.maybe(opts.isDateFilter, () => [
+      cssRangeInputIcon('FieldDate'),
+      buildInput(),
+      icon('Dropdown')
+    ]),
+
+    dom.maybe(!opts.isDateFilter, () => [
+      buildInput(),
+    ]),
+
+    cssRangeInputContainer.cls('-relative', use => isRelativeBound(use(obs))),
+    dom.cls('selected', (use) => use(opts.viewTypeObs) === 'calendarView' && use(opts.isSelected)),
+    dom.on('click', () => opts.isSelected.set(true)),
+    (elem) => opts.isDateFilter ? attachRelativeDatesOptions(elem, obs, opts) : null,
+    dom.onKeyDown({
+      Backspace$: () => isRelativeBound(obs.get()) && obs.set(undefined),
+    }),
+    ...args,
+  );
+}
+
+// Attach the date options dropdown to elem.
+function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|undefined|IRelativeDateSpec>,
+                                    opts: IRangeInputOptions) {
+  const popupCtl = relativeDatesControl(elem, obs, {
+    ...opts,
+    placement: 'right-start',
+    attach: '.' + cssMenu.className
+  });
+
+  // makes sure the options are shown any time the value changes.
+  const onValueChange = () => {
+    if (opts.isSelected.get()) {
+      popupCtl.open();
+    } else {
+      popupCtl.close();
+    }
+  };
+
+  // toggle popup on click
+  dom.update(elem, [
+    dom.on('click', () => popupCtl.toggle()),
+    dom.autoDispose(opts.isSelected.addListener(onValueChange)),
+    dom.autoDispose(obs.addListener(onValueChange)),
+    dom.onKeyDown({
+      Enter$: (e) => {
+        if (opts.viewTypeObs.get() === 'listView') { return; }
+        if (opts.isSelected.get()) {
+          if (popupCtl.isOpen()) {
+            opts.nextSelected?.();
+          } else {
+            popupCtl.open();
+          }
+        }
+        // Prevents Enter to close filter menu
+        e.stopPropagation();
+      },
+    }),
+  ]);
+
+}
+
+function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
+                      opts: IRangeInputOptions,
+                      ...args: DomArg<HTMLDivElement>[]) {
   const valueParser = opts.valueParser || Number;
-  const formatValue = opts.valueFormatter || ((val) => val?.toString() || '');
+  const formatValue = opts.valueFormatter;
+  const placeholder = opts.placeholder;
   let editMode = false;
-  let el: HTMLInputElement;
-  // keep input content in sync only when no edit are going on.
-  const lis = obs.addListener(() => editMode ? null : el.value = formatValue(obs.get()));
+  let inputEl: HTMLInputElement;
   // handle change
   const onBlur = () => {
     onInput.flush();
     editMode = false;
-    el.value = formatValue(obs.get());
+    inputEl.value = formatValue(obs.get());
+
+    // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
+    // to navigate relative date options just after picking a date on the calendar.
+    setTimeout(() => opts.isSelected.get() && inputEl.focus());
   };
   const onInput = debounce(() => {
+    if (isRelativeBound(obs.get())) { return; }
     editMode = true;
-    const val = el.value ? valueParser(el.value) : undefined;
-    if (val === undefined || !isNaN(val)) {
+    const val = inputEl.value ? valueParser(inputEl.value) : undefined;
+    if (val === undefined || typeof val === 'number' && !isNaN(val)) {
       obs.set(val);
     }
   }, 100);
-  return el = cssRangeInput(
+  // TODO: could be nice to have the cursor positioned at the end of the input
+  return inputEl = cssRangeInput(
     {inputmode: 'numeric', placeholder, value: formatValue(obs.get())},
     dom.on('input', onInput),
     dom.on('blur', onBlur),
-    dom.autoDispose(lis),
-    ...args
+    // keep input content in sync only when no edit are going on.
+    dom.autoDispose(obs.addListener(() => editMode ? null : inputEl.value = formatValue(obs.get()))),
+    dom.autoDispose(opts.isSelected.addListener(val => val && inputEl.focus())),
+
+    dom.onKeyDown({
+      Enter$: () => onBlur(),
+      Tab$: () => onBlur(),
+    }),
+    ...args,
+  );
+}
+
+function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
+                       opts: IRangeInputOptions) {
+  return cssTokenContainer(
+    cssTokenToken(
+      dom.text((use) => formatRelBounds(use(obs) as IRelativeDateSpec)),
+      cssDeleteButton(
+        // Ignore mousedown events, so that tokens aren't draggable by the delete button.
+        dom.on('mousedown', (ev) => ev.stopPropagation()),
+        cssDeleteIcon('CrossSmall'),
+        dom.on('click', () => obs.set(undefined)),
+        testId('tokenfield-delete'),
+      ),
+      testId('tokenfield-token'),
+    ),
   );
 }
 
@@ -413,14 +631,21 @@ export function createFilterMenu(
 
   // range input options
   const valueParser = (fieldOrColumn as any).createValueParser?.();
-  const colFormatter = fieldOrColumn.visibleColFormatter();
+  let colFormatter = fieldOrColumn.visibleColFormatter();
+
+  // Show only the date part of the datetime format in range picker.
+  if (extractTypeFromColType(colFormatter.type) === 'DateTime') {
+    const {docSettings} = colFormatter;
+    const widgetOpts = fieldOrColumn.origCol.peek().widgetOptionsJson();
+    colFormatter = createFormatter('Date', widgetOpts, docSettings);
+  }
+
   // formatting values for Numeric columns entail issues. For instance with '%' when users type
   // 0.499 and press enter, the input now shows 50% and there's no way to know what is the actual
-  // underlying value. Maybe worth, both 0.499 and 0.495 format to 50% but they can have different
+  // underlying value. Maybe worse, both 0.499 and 0.495 format to 50% but they can have different
   // effects depending on data. Hence as of writing better to keep it only for Date.
   const valueFormatter = isDateLikeType(visibleColumnType) ?
-    (val: any) => colFormatter.formatAny(val) :
-    undefined;
+    (val: any) => colFormatter.formatAny(val) : undefined;
 
   function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
     return col.getRowId() === fieldOrColumn.getRowId() ? null : colFilter;
@@ -472,10 +697,8 @@ export function createFilterMenu(
       }
     },
     renderValue: getRenderFunc(columnType, fieldOrColumn),
-    rangeInputOptions: {
-      valueParser,
-      valueFormatter,
-    },
+    valueParser,
+    valueFormatter,
     showAllFiltersButton,
   });
 }
@@ -662,7 +885,7 @@ export function attachColumnFilterMenu(
 const cssMenu = styled('div', `
   display: flex;
   flex-direction: column;
-  min-width: 400px;
+  min-width: 252px;
   max-width: 400px;
   max-height: 90vh;
   outline: none;
@@ -679,14 +902,8 @@ const cssMenuHeader = styled('div', `
 
   margin: 0 16px;
 `);
-const cssSelectAll = styled('div', `
-  display: flex;
-  color: ${theme.controlFg};
-  cursor: default;
-  user-select: none;
-  &-disabled {
-    color: ${theme.controlSecondaryFg};
-  }
+const cssSelectAll = styled(textButton, `
+  --icon-color: ${theme.controlFg};
 `);
 const cssDotSeparator = styled('span', `
   color: ${theme.controlFg};
@@ -707,6 +924,12 @@ const cssItemList = styled('div', `
 const cssMenuItem = styled('div', `
   display: flex;
   padding: 8px 16px;
+`);
+const cssLink = textButton;
+const cssLinkRow = styled(cssMenuItem, `
+  column-gap: 12px;
+  padding-top: 0;
+  padding-bottom: 16px;
 `);
 export const cssItemValue = styled(cssLabelText, `
   margin-right: 12px;
@@ -781,25 +1004,48 @@ const cssToken = styled('div', `
   margin-left: 8px;
   margin-right: 12px;
 `);
-const cssRangeHeader = styled(cssMenuItem, `
-  color: ${theme.text};
-  padding: unset;
-  border-radius: 0 0 3px 0;
-  text-transform: uppercase;
-  font-size: var(--grist-x-small-font-size);
-  margin: 16px 16px 6px 16px;
-`);
 const cssRangeContainer = styled(cssMenuItem, `
   display: flex;
-  justify-content: left;
   align-items: center;
-  column-gap: 10px;
+  row-gap: 6px;
+  flex-direction: column;
+  padding: 16px 16px;
 `);
-const cssRangeInputSeparator = styled('span', `
-  font-weight: 600;
-  color: ${theme.lightText};
+const cssRangeInputContainer = styled('div', `
+  position: relative;
+  width: 100%;
+  display: flex;
+  background-color: ${theme.inputBg};
+  height: 30px;
+  width: 100%;
+  border-radius: 3px;
+  border: 1px solid ${theme.inputBorder};
+  outline: none;
+  padding: 5px;
+  &.selected {
+    border: 1px solid ${theme.inputValid};
+  }
+  &-relative input {
+    padding: 0;
+    max-width: 0;
+  }
 `);
+const cssRangeInputIcon = cssOptionRowIcon;
 const cssRangeInput = styled(cssInput, `
   height: unset;
-  width: 120px;
+  border: none;
+  padding: 0;
+  width: unset;
+  flex-grow: 1;
+`);
+const cssTokenToken = styled(cssTokenTokenBase, `
+  height: 18px;
+  line-height: unset;
+  align-self: center;
+  cursor: default;
+`);
+const cssTokenContainer = styled('div', `
+  width: 100%;
+  display: flex;
+  outline: none;
 `);

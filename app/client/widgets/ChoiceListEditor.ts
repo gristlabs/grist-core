@@ -270,7 +270,7 @@ const cssTokenField = styled(tokenFieldStyles.cssTokenField, `
   flex-wrap: wrap;
 `);
 
-const cssToken = styled(tokenFieldStyles.cssToken, `
+export const cssToken = styled(tokenFieldStyles.cssToken, `
   padding: 1px 4px;
   margin: 2px;
   line-height: 16px;
@@ -281,7 +281,7 @@ const cssToken = styled(tokenFieldStyles.cssToken, `
   }
 `);
 
-const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
+export const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
   position: absolute;
   top: -8px;
   right: -6px;
@@ -303,7 +303,7 @@ const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
   }
 `);
 
-const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
+export const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
   --icon-color: ${colors.light};
   &:hover {
     --icon-color: ${colors.darkGrey};

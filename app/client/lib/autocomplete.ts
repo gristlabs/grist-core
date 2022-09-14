@@ -218,7 +218,7 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
  * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
  * null if elem is not a descendant of ancestor.
  */
-function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
+export function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
   while (elem && elem.parentElement !== ancestor) {
     elem = elem.parentElement;
   }
@@ -231,7 +231,7 @@ function findAncestorChild(ancestor: Element, elem: Element|null): Element|null 
  * instance) it's not immediately highlighted, but only when a user moves the mouse.
  * Returns an object with a reset() method, which restarts the wait for mousemove.
  */
-function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
+export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
   let lis: IDisposable|undefined;
   function setListener(eventType: 'mouseover'|'mousemove', cb: EventCB<MouseEvent, T>) {
     if (lis) { lis.dispose(); }

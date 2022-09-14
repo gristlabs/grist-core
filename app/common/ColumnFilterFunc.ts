@@ -1,7 +1,11 @@
 import {CellValue} from "app/common/DocActions";
-import {FilterState, isRangeFilter, makeFilterState} from "app/common/FilterState";
+import {
+  FilterState, IRangeBoundType, isRangeFilter, isRelativeBound, makeFilterState
+} from "app/common/FilterState";
 import {decodeObject} from "app/plugin/objtypes";
+import moment from "moment-timezone";
 import {isDateLikeType, isList, isListType, isNumberType} from "./gristTypes";
+import {toUnixTimestamp} from "app/common/RelativeDates";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 
@@ -11,8 +15,12 @@ export function makeFilterFunc(state: FilterState,
                                columnType: string = ''): ColumnFilterFunc {
 
   if (isRangeFilter(state)) {
-    const {min, max} = state;
+    let {min, max} = state;
     if (isNumberType(columnType) || isDateLikeType(columnType)) {
+
+      min = getBoundsValue(state, 'min');
+      max = getBoundsValue(state, 'max');
+
       return (val) => {
         if (typeof val !== 'number') { return false; }
         return (
@@ -49,4 +57,20 @@ export function makeFilterFunc(state: FilterState,
 export function buildColFilter(filterJson: string | undefined,
                                columnType?: string): ColumnFilterFunc | null {
   return filterJson ? makeFilterFunc(makeFilterState(filterJson), columnType) : null;
+}
+
+
+function getBoundsValue(state: {min?: IRangeBoundType, max?: IRangeBoundType}, minMax: 'min'|'max') {
+  const value = state[minMax];
+  if (isRelativeBound(value)) {
+    const val = toUnixTimestamp(value);
+    const m = moment.utc(val * 1000);
+    if (minMax === 'min') {
+      m.startOf('day');
+    } else {
+      m.endOf('day');
+    }
+    return Math.floor(m.valueOf() / 1000);
+  }
+  return value;
 }
