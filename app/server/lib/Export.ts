@@ -78,7 +78,17 @@ export interface ExportParameters {
   viewSectionId: number | undefined;
   sortOrder: number[];
   filters: Filter[];
-  activeView?: boolean;
+}
+
+/**
+ * Options parameters for CSV and XLSX export functions.
+ */
+export interface DownloadOptions {
+  filename: string;
+  tableId: string;
+  viewSectionId: number | undefined;
+  filters: Filter[];
+  sortOrder: number[];
 }
 
 interface FilteredMetaTables {

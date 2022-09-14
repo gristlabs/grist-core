@@ -1,37 +1,17 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
-import {ExportData, exportDoc, ExportParameters, exportSection, exportTable, Filter} from 'app/server/lib/Export';
+import {ExportData, exportDoc, DownloadOptions, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import {Alignment, Border, Fill, Workbook} from 'exceljs';
 import * as express from 'express';
 import log from 'app/server/lib/log';
 import contentDisposition from 'content-disposition';
 import { ApiError } from 'app/common/ApiError';
 
-export interface DownloadXLSXOptions extends ExportParameters {
-  filename: string;
-}
-
-export function buildDownloadXlsxOptions({
-  filename,
-  tableId,
-  viewSectionId,
-  filters,
-  sortOrder,
-}: any): DownloadXLSXOptions {
-  return {
-    filename,
-    tableId: tableId || '',
-    viewSectionId: viewSectionId || undefined,
-    filters: filters || [],
-    sortOrder: sortOrder || [],
-  }
-}
-
 /**
  * Converts `activeDoc` to XLSX and sends the converted data through `res`.
  */
 export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
-                                   res: express.Response, options: DownloadXLSXOptions) {
+                                   res: express.Response, options: DownloadOptions) {
   log.debug(`Generating .xlsx file`);
   const {filename, tableId, viewSectionId, filters, sortOrder} = options;
   // hanlding 3 cases : full XLSX export (full file), view xlsx export, table xlsx export
