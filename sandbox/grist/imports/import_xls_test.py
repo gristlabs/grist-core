@@ -129,7 +129,7 @@ class TestImportXLS(unittest.TestCase):
         {'id': 'b', 'type': 'Date'},
         {'id': 'c', 'type': 'Any'},
         {'id': 'd', 'type': 'Any'},
-        {'id': 'e', 'type': 'DateTime'},
+        {'id': 'e', 'type': 'Any'},
         {'id': 'f', 'type': 'Date'},
         {'id': 'g', 'type': 'Any'},
         {'id': 'h', 'type': 'Date'},
@@ -141,7 +141,7 @@ class TestImportXLS(unittest.TestCase):
         [1568851200.0],
         [u'01:10:00'],
         [u'10:20:30'],
-        [-2208713970.0],
+        [u'4 days, 4:20:30'],
         [-2207347200.0],
         [u'7/4/1776'],
         [205286400.0],
@@ -165,7 +165,7 @@ class TestImportXLS(unittest.TestCase):
       ],
       'table_data': [
         [0, None, 1],
-        [u'', 0, 2],
+        [None, 0, 2],
       ],
     }])
 
@@ -202,6 +202,21 @@ class TestImportXLS(unittest.TestCase):
       'table_data': [
         [0, 0],
         [0, 0],
+      ],
+    }])
+
+  def test_merged_cells(self):
+    parsed_file = import_xls.parse_file(*_get_fixture('test_with_merged_cells.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual(tables, [{
+      'table_name': 'Sheet1',
+      'column_metadata': [
+        {'id': u'A', 'type': 'Any'},
+        {'id': u'B', 'type': 'Any'},
+      ],
+      'table_data': [
+        ["region1", "region1", "region2", "region3", "region3"],
+        ["foo", "bar", "baz", "pouet", "boudin"],
       ],
     }])
 

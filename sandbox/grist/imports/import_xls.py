@@ -8,6 +8,7 @@ import messytables
 import six
 import openpyxl
 from openpyxl.utils.datetime import from_excel
+from openpyxl.utils import range_boundaries
 from openpyxl.worksheet import _reader
 from six.moves import zip
 
@@ -41,10 +42,20 @@ def parse_file(file_path):
     return parse_open_file(f)
 
 
+def unmerge_cells(sheet):
+  # Source: https://thequickblog.com/merge-unmerge-cells-openpyxl-in-python/
+  for cell_group in sheet.merged_cells.ranges.copy():
+    min_col, min_row, max_col, max_row = range_boundaries(str(cell_group))
+    top_left_cell_value = sheet.cell(row=min_row, column=min_col).value
+    sheet.unmerge_cells(str(cell_group))
+    for row in sheet.iter_rows(min_row, max_row, min_col, max_col):
+      for cell in row:
+        cell.value = top_left_cell_value
+
+
 def parse_open_file(file_obj):
   workbook = openpyxl.load_workbook(
     file_obj,
-    read_only=True,
     keep_vba=False,
     data_only=True,
     keep_links=False,
@@ -54,9 +65,7 @@ def parse_open_file(file_obj):
   export_list = []
   # A table set is a collection of tables:
   for sheet in workbook:
-    # openpyxl fails to read xlsx files with incorrect dimensions; we reset here as a precaution.
-    # See https://openpyxl.readthedocs.io/en/stable/optimized.html#worksheet-dimensions.
-    sheet.reset_dimensions()
+    unmerge_cells(sheet)
 
     table_name = sheet.title
     rows = [
