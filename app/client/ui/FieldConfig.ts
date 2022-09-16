@@ -50,7 +50,7 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
         ),
         cssInput(editableColId,
           saveColId,
-          dom.boolAttr('disabled', use => use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
+          dom.boolAttr(`readonly`, use => use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
           cssCodeBlock.cls(''),
           {style: 'margin-top: 8px'},
           testId('field-col-id'),
@@ -396,7 +396,7 @@ const cssInput = styled(textInput, `
     color: ${theme.inputPlaceholderFg};
   }
 
-  &:disabled {
+  &[readonly] {
     background-color: ${theme.inputDisabledBg};
     color: ${theme.inputDisabledFg};
   }
