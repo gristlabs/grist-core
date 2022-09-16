@@ -1576,6 +1576,16 @@ export async function completeCopy(options: {destName?: string, destWorkspace?: 
 }
 
 /**
+ * Removes document by name from the home page.
+ */
+export async function removeDoc(docName: string) {
+  await openDocDropdown(docName);
+  await driver.find('.test-dm-delete-doc').click();
+  await driver.find('.test-modal-confirm').click();
+  await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
+}
+
+/**
  * Helper to get the urlId of the current document. Resolves to undefined if called while not
  * on a document page.
  */

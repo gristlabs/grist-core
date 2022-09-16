@@ -199,5 +199,9 @@ describe("DuplicateDocument", function() {
     assert.equal(await driver.find('.test-bc-workspace').getText(), 'Home');
     assert.equal(await gu.getCell({col: 'A', rowNum: 1}).getText(), 'hello to duplicates');
     assert.notEqual(await gu.getCurrentUrlId(), urlId);
+
+    // Remove document
+    await driver.find(".test-bc-workspace").click();
+    await gu.removeDoc(`DuplicateTest2 ${name} Copy`);
   });
 });
