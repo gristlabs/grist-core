@@ -1,20 +1,12 @@
 import {ApiError} from 'app/common/ApiError';
 import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
+import {ExportData, exportSection, exportTable, Filter, DownloadOptions} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
 import * as bluebird from 'bluebird';
 import contentDisposition from 'content-disposition';
 import csv from 'csv';
 import * as express from 'express';
-
-export interface DownloadCSVOptions {
-  filename: string;
-  tableId: string;
-  viewSectionId: number | undefined;
-  filters: Filter[];
-  sortOrder: number[];
-}
 
 // promisify csv
 bluebird.promisifyAll(csv);
@@ -23,7 +15,7 @@ bluebird.promisifyAll(csv);
  * Converts `activeDoc` to a CSV and sends the converted data through `res`.
  */
 export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
-                                  res: express.Response, options: DownloadCSVOptions) {
+                                  res: express.Response, options: DownloadOptions) {
   log.info('Generating .csv file...');
   const {filename, tableId, viewSectionId, filters, sortOrder} = options;
   const data = viewSectionId ?

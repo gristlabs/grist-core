@@ -1,22 +1,24 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
-import {ExportData, exportDoc} from 'app/server/lib/Export';
+import {ExportData, exportDoc, DownloadOptions, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import {Alignment, Border, Fill, Workbook} from 'exceljs';
 import * as express from 'express';
 import log from 'app/server/lib/log';
 import contentDisposition from 'content-disposition';
-
-export interface DownloadXLSXOptions {
-  filename: string;
-}
+import { ApiError } from 'app/common/ApiError';
 
 /**
- * Converts `activeDoc` to CSV and sends the converted data through `res`.
+ * Converts `activeDoc` to XLSX and sends the converted data through `res`.
  */
 export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
-                                   res: express.Response, {filename}: DownloadXLSXOptions) {
+                                   res: express.Response, options: DownloadOptions) {
   log.debug(`Generating .xlsx file`);
-  const data = await makeXLSX(activeDoc, req);
+  const {filename, tableId, viewSectionId, filters, sortOrder} = options;
+  // hanlding 3 cases : full XLSX export (full file), view xlsx export, table xlsx export
+  const data = viewSectionId ? await makeXLSXFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req)
+              : tableId ? await makeXLSXFromTable(activeDoc, tableId, req)
+              : await makeXLSX(activeDoc, req);
+
   res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
   res.send(data);
@@ -24,11 +26,61 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
 }
 
 /**
+ * Returns a XLSX stream of a view section that can be transformed or parsed.
+ *
+ * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Integer} viewSectionId - id of the viewsection to export.
+ * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
+ * @param {Filter[]} filters (optional) - filters defined from ui.
+ */
+ export async function makeXLSXFromViewSection(
+  activeDoc: ActiveDoc,
+  viewSectionId: number,
+  sortOrder: number[],
+  filters: Filter[],
+  req: express.Request,
+) {
+
+  const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, req);
+  const xlsx = await convertToExcel([data], req.hostname === 'localhost');
+  return xlsx;
+}
+
+/**
+ * Returns a XLSX stream of a table that can be transformed or parsed.
+ *
+ * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Integer} tableId - id of the table to export.
+ */
+export async function makeXLSXFromTable(
+  activeDoc: ActiveDoc,
+  tableId: string,
+  req: express.Request
+) {
+  if (!activeDoc.docData) {
+    throw new Error('No docData in active document');
+  }
+
+  // Look up the table to make a XLSX from.
+  const tables = activeDoc.docData.getMetaTable('_grist_Tables');
+  const tableRef = tables.findRow('tableId', tableId);
+
+  if (tableRef === 0) {
+    throw new ApiError(`Table ${tableId} not found.`, 404);
+  }
+
+  const data = await exportTable(activeDoc, tableRef, req);
+  const xlsx = await convertToExcel([data], req.hostname === 'localhost');
+  return xlsx;
+}
+
+/**
  * Creates excel document with all tables from an active Grist document.
  */
 export async function makeXLSX(
   activeDoc: ActiveDoc,
-  req: express.Request): Promise<ArrayBuffer> {
+  req: express.Request,
+): Promise<ArrayBuffer> {
   const content = await exportDoc(activeDoc, req);
   const data = await convertToExcel(content, req.hostname === 'localhost');
   return data;

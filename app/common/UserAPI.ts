@@ -346,9 +346,9 @@ export interface UserAPI {
 }
 
 /**
- * Parameters for the download CSV endpoint (/download/csv).
+ * Parameters for the download CSV and XLSX endpoint (/download/csv & /download/csv).
  */
- export interface DownloadCsvParams {
+ export interface DownloadDocParams {
   tableId: string;
   viewSection?: number;
   activeSortSpec?: string;
@@ -391,8 +391,8 @@ export interface DocAPI {
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
   getDownloadUrl(template?: boolean): string;
-  getDownloadXlsxUrl(): string;
-  getDownloadCsvUrl(params: DownloadCsvParams): string;
+  getDownloadXlsxUrl(params?: DownloadDocParams): string;
+  getDownloadCsvUrl(params: DownloadDocParams): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -866,11 +866,11 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + `/download?template=${Number(template)}`;
   }
 
-  public getDownloadXlsxUrl() {
-    return this._url + '/download/xlsx';
+  public getDownloadXlsxUrl(params: DownloadDocParams) {
+    return this._url + '/download/xlsx?' + encodeQueryParams({...params});
   }
 
-  public getDownloadCsvUrl(params: DownloadCsvParams) {
+  public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
     return this._url + '/download/csv?' + encodeQueryParams({...params});
   }
