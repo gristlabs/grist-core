@@ -21,9 +21,7 @@ def empty(value):
     return True
   if not isinstance(value, six.string_types):
     value = six.text_type(value)
-  if len(value.strip()):
-    return False
-  return True
+  return not value.strip()
 
 # Get path to an imported file.
 def get_path(file_source):

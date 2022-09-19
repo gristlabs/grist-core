@@ -92,10 +92,10 @@ def parse_file(file_path, parse_options=None):
 
   with codecs.open(file_path, "rb") as f:
     sample = f.read(100000)
-    encoding = chardet.detect(sample)['encoding'] or "utf8"
-    # In addition, always prefer UTF8 over ASCII.
-    if encoding == 'ascii':
-      encoding = 'utf8'
+  encoding = chardet.detect(sample)['encoding'] or "utf8"
+  # In addition, always prefer UTF8 over ASCII.
+  if encoding == 'ascii':
+    encoding = 'utf8'
   log.info("Using encoding %s" % encoding)
 
   with codecs.open(file_path, mode="r", encoding=encoding) as f:
@@ -108,11 +108,10 @@ def _guess_dialect(file_obj):
     # Restrict allowed delimiters to prevent guessing other char than this list.
     dialect = csv.Sniffer().sniff(file_obj.read(100000), delimiters=['\t', ',', ';', '|'])
     log.info("Guessed dialect %s" % dict(dialect.__dict__))
+    return dialect
   except csv.Error:
     log.info("Cannot guess dialect using Excel as fallback.")
     return csv.excel
-  else:
-    return dialect
   finally:
     file_obj.seek(0)
 
@@ -121,18 +120,14 @@ def _parse_open_file(file_obj, parse_options=None):
   options = {}
   dialect = _guess_dialect(file_obj)
 
-  csv_options = {k: parse_options.get(k, getattr(dialect, k, None)) for k in csv_keys}
-  if six.PY2:
-    csv_options = {k: v.encode('utf8') if isinstance(v, six.text_type) else v
-                   for k, v in csv_options.items()}
+  csv_options = {}
+  for key in csv_keys:
+    value = parse_options.get(key, getattr(dialect, key, None))
+    if value is not None:
+      csv_options[key] = value
 
-  csv_options = {k: v for k, v in csv_options.items() if v is not None}
   reader = csv.reader(file_obj, **csv_options)
 
-  num_rows = parse_options.get('NUM_ROWS', 0)
-
-
-  table_name = None
   rows = list(reader)
   sample_len = 100
   sample_rows = rows[:sample_len]
@@ -160,7 +155,8 @@ def _parse_open_file(file_obj, parse_options=None):
     data_offset -= 1
     headers = [''] * len(headers)
 
-  rows = rows[data_offset:]  # Use row.pop instead to make it faster ?
+  rows = rows[data_offset:]
+  num_rows = parse_options.get('NUM_ROWS', 0)
   table_data_with_types = parse_data.get_table_data(rows, len(headers), num_rows)
 
   # Identify and remove empty columns, and populate separate metadata and data lists.
@@ -192,12 +188,12 @@ def _parse_open_file(file_obj, parse_options=None):
              "SCHEMA": SCHEMA
              }
 
-  log.info("Output table %r with %d columns", table_name, len(column_metadata))
+  log.info("Output table with %d columns", len(column_metadata))
   for c in column_metadata:
     log.debug("Output column %s", c)
 
   export_list = [{
-    "table_name": table_name,
+    "table_name": None,
     "column_metadata": column_metadata,
     "table_data": table_data
   }]
