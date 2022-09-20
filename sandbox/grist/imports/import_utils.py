@@ -14,6 +14,15 @@ if six.PY2:
 
 log = logging.getLogger(__name__)
 
+
+def empty(value):
+  """ Stringify the value and check that it has a length. """
+  if value is None:
+    return True
+  if not isinstance(value, six.string_types):
+    value = six.text_type(value)
+  return not value.strip()
+
 # Get path to an imported file.
 def get_path(file_source):
   importdir = os.environ.get('IMPORTDIR') or '/importdir'
@@ -39,7 +48,7 @@ def _is_header(header, data_rows):
   """
   # See if the row has any non-text values.
   for cell in header:
-    if not isinstance(cell.value, six.string_types) or _is_numeric(cell.value):
+    if not isinstance(cell, six.string_types) or _is_numeric(cell):
       return False
 
 
@@ -48,7 +57,7 @@ def _is_header(header, data_rows):
   count_repeats = [0 for cell in header]
   for row in data_rows:
     for cell, header_cell in zip(row, header):
-      if cell.value and cell.value == header_cell.value:
+      if cell and cell == header_cell:
         return False
 
   return True
@@ -59,7 +68,7 @@ def _count_nonempty(row):
   """
   count = 0
   for i, c in enumerate(row):
-    if not c.empty:
+    if not empty(c):
       count = i + 1
   return count
 
@@ -83,7 +92,7 @@ def expand_headers(headers, data_offset, rows):
   row_length = max(itertools.chain([len(headers)],
                                    (_count_nonempty(r) for r in itertools.islice(rows, data_offset,
                                                                                  None))))
-  header_values = [h.value.strip() for h in headers] + [u''] * (row_length - len(headers))
+  header_values = [h.strip() for h in headers] + [u''] * (row_length - len(headers))
   return header_values
 
 
