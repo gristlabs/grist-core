@@ -96,7 +96,7 @@ def parse_file(file_path, parse_options=None):
   # In addition, always prefer UTF8 over ASCII.
   if encoding == 'ascii':
     encoding = 'utf8'
-  log.info("Using encoding %s" % encoding)
+  log.info("Using encoding %s", encoding)
 
   with codecs.open(file_path, mode="r", encoding=encoding) as f:
     parsing_options, export_list = _parse_open_file(f, parse_options=parse_options)
