@@ -108,6 +108,9 @@ def _guess_dialect(file_obj):
     # Restrict allowed delimiters to prevent guessing other char than this list.
     dialect = csv.Sniffer().sniff(file_obj.read(100000), delimiters=['\t', ',', ';', '|'])
     log.info("Guessed dialect %s" % dict(dialect.__dict__))
+    # Mimic messytables default for now.
+    dialect.lineterminator = "\n"
+    dialect.doublequote = True
     return dialect
   except csv.Error:
     log.info("Cannot guess dialect using Excel as fallback.")
