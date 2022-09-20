@@ -83,9 +83,15 @@ class TestImportCSV(unittest.TestCase):
                                  "limit_rows": False, "quoting": 0, "start_with_row": 1,
                                  "delimiter": ",", "NUM_ROWS":10,
                                  "quotechar": "\"", "doublequote":True}}
-    options, parsed_file = import_csv.parse_file(_get_fixture('test_import_csv.csv'),
+    parsed_options, parsed_file = import_csv.parse_file(_get_fixture('test_import_csv.csv'),
                                         **options)
-    self._check_options(options)
+    parsed_options.pop("SCHEMA")  # This key was not passed.
+    # Those keys are not returned by parse_file, so remove them for now, before comparing.
+    options["parse_options"].pop("limit_rows")
+    options["parse_options"].pop("quoting")
+    options["parse_options"].pop("escapechar")
+    self.assertEqual(options["parse_options"], parsed_options)
+    self._check_options(parsed_options)
     parsed_file = parsed_file[0]
 
     self._check_num_cols(parsed_file, 5)
