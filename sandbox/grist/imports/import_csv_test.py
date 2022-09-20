@@ -20,6 +20,26 @@ def bytes_io_from_str(string):
 
 class TestImportCSV(unittest.TestCase):
 
+  maxDiff = None
+
+  def _check_options(self, computed, **expected):
+    """Check the options returned by `parse_file`.
+
+    Pass as kwarg any non default option as expected.
+    """
+    default = {"delimiter": ",",
+               "doublequote": True,
+               "lineterminator": "\n",
+               "quotechar": '"',
+               "skipinitialspace": False,
+               "include_col_names_as_headers": True,
+               "start_with_row": 1}
+    # Don't check those values, which are not real options.
+    computed.pop("NUM_ROWS", None)
+    computed.pop("SCHEMA", None)
+    default.update(expected)
+    self.assertEqual(computed, default)
+
   def _check_col(self, sheet, index, name, _typename, values):
     self.assertEqual(sheet["column_metadata"][index]["id"], name)
     # Previously, strings were parsed and types were guessed in CSV imports.
@@ -37,8 +57,9 @@ class TestImportCSV(unittest.TestCase):
 
 
   def test_csv_types(self):
-    parsed_file = import_csv.parse_file(_get_fixture('test_excel_types.csv'), parse_options='')
-    sheet = parsed_file[1][0]
+    options, parsed_file = import_csv.parse_file(_get_fixture('test_excel_types.csv'), parse_options='')
+    sheet = parsed_file[0]
+    self._check_options(options)
 
     self._check_col(sheet, 0, "int1", "Int", [-1234123, '', ''])
     self._check_col(sheet, 1, "int2", "Int", [5, '', ''])
@@ -62,8 +83,11 @@ class TestImportCSV(unittest.TestCase):
                                  "limit_rows": False, "quoting": 0, "start_with_row": 1,
                                  "delimiter": ",", "NUM_ROWS":10,
                                  "quotechar": "\"", "doublequote":True}}
-    parsed_file = import_csv.parse_file(_get_fixture('test_import_csv.csv'),
-                                        **options)[1][0]
+    options, parsed_file = import_csv.parse_file(_get_fixture('test_import_csv.csv'),
+                                        **options)
+    self._check_options(options)
+    parsed_file = parsed_file[0]
+
     self._check_num_cols(parsed_file, 5)
     self._check_col(parsed_file, 0, "FIRST_NAME", "Text", ['John', 'Tim', 'Jenny', 'Lily'])
     self._check_col(parsed_file, 1, "LAST_NAME", "Text", ['Moor', 'Kale', 'Jo', 'Smit'])
@@ -85,7 +109,9 @@ class TestImportCSV(unittest.TestCase):
       a3
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, lineterminator='\r\n')
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "name1", "Text", ["a1", "a2", "a3"])
     self._check_col(parsed_file, 1, "name2", "Text", ["b1", "b2", ""])
@@ -99,7 +125,9 @@ class TestImportCSV(unittest.TestCase):
       a2,b2,c2
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, lineterminator='\r\n')
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "name1", "Text", ["a1", "a2"])
     self._check_col(parsed_file, 1, "", "Text", ["b1", "b2"])
@@ -115,7 +143,10 @@ class TestImportCSV(unittest.TestCase):
       a3,b3,c3,d4
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, lineterminator='\r\n')
+    parsed_file = parsed_file[0]
+
     self._check_num_cols(parsed_file, 4)
     self._check_col(parsed_file, 0, "name1", "Text", ["a1", "a2", "a3"])
     self._check_col(parsed_file, 1, "name2", "Text", ["b1", "b2", "b3"])
@@ -130,7 +161,9 @@ class TestImportCSV(unittest.TestCase):
       4,b3,c3
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, include_col_names_as_headers=False)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "", "Int", [4, 4, 4])
     self._check_col(parsed_file, 1, "", "Text", ["b1", "b2", "b3"])
@@ -145,7 +178,9 @@ class TestImportCSV(unittest.TestCase):
       b,a,a,a,a
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, lineterminator='\r\n')
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 5)
     self._check_col(parsed_file, 0, "", "Text", ["b", "b", "b"])
     self._check_col(parsed_file, 1, "", "Text", ["a", "a", "a"])
@@ -184,7 +219,9 @@ class TestImportCSV(unittest.TestCase):
                      "quotechar": '"',
                      "quoting": csv.QUOTE_MINIMAL}
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)
+    self._check_options(options, lineterminator='\r\n', delimiter=';')
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "name1,", "Text", ["a1,", "a2,", "a3,"])
     self._check_col(parsed_file, 1, "name2,", "Text", ["b1,", "b2,", "b3,"])
@@ -204,7 +241,9 @@ class TestImportCSV(unittest.TestCase):
       2,name2,name3
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options, include_col_names_as_headers=False)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "", "Int", [2])
     self._check_col(parsed_file, 1, "", "Text", ["name2"])
@@ -216,7 +255,9 @@ class TestImportCSV(unittest.TestCase):
       name1,name2,name3
       """))
 
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options={})[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options={})
+    self._check_options(options)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "name1", "Text", [])
     self._check_col(parsed_file, 1, "name2", "Text", [])
@@ -240,7 +281,9 @@ class TestImportCSV(unittest.TestCase):
       """))
 
     parse_options = {}
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)
+    self._check_options(options)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "name1", "Text", ['a1', 'a2', 'a3'])
     self._check_col(parsed_file, 1, "name2", "Text", ['b1', 'b2', 'b3'])
@@ -271,7 +314,9 @@ class TestImportCSV(unittest.TestCase):
       """))
 
     parse_options = {}
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)
+    self._check_options(options, include_col_names_as_headers=False)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "", "Text", ['a1', 'a2', 'a3'])
     self._check_col(parsed_file, 1, "", "Int", [1, 2, 3])
@@ -294,7 +339,9 @@ class TestImportCSV(unittest.TestCase):
       """))
 
     parse_options = {"include_col_names_as_headers": False}
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)
+    self._check_options(options, include_col_names_as_headers=False)
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 3)
     self._check_col(parsed_file, 0, "", "Text", ["name1", "a1", "a2", "a3"])
     self._check_col(parsed_file, 1, "", "Text", ["name2", "1", "2", "3"])
@@ -319,7 +366,9 @@ class TestImportCSV(unittest.TestCase):
       """))
 
     parse_options = {"include_col_names_as_headers": False}
-    parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)[1][0]
+    options, parsed_file = import_csv._parse_open_file(file_obj, parse_options=parse_options)
+    self._check_options(options, include_col_names_as_headers=False, lineterminator='\r\n')
+    parsed_file = parsed_file[0]
     self._check_num_cols(parsed_file, 4)
     self._check_col(parsed_file, 0, "", "Text", ["n1", "a1", "a2", "a3"])
     self._check_col(parsed_file, 1, "", "Int", [2, 1, 4, 5])
@@ -335,16 +384,18 @@ class TestImportCSV(unittest.TestCase):
     self._check_col(parsed_file, 3, "", "Text", [ "d1", "", ""])
 
   def test_csv_with_very_long_cell(self):
-    parsed_file = import_csv.parse_file(_get_fixture('test_long_cell.csv'), parse_options='')
-    sheet = parsed_file[1][0]
+    options, parsed_file = import_csv.parse_file(_get_fixture('test_long_cell.csv'), parse_options='')
+    self._check_options(options)
+    sheet = parsed_file[0]
     long_cell = sheet["table_data"][1][0]
     self.assertEqual(len(long_cell), 8058)
     self._check_col(sheet, 0, "ID", "Int", [17])
     self._check_col(sheet, 1, "LongText", "Text", [long_cell])
 
   def test_csv_with_surprising_isdigit(self):
-    parsed_file = import_csv.parse_file(_get_fixture('test_isdigit.csv'), parse_options='')
-    sheet = parsed_file[1][0]
+    options, parsed_file = import_csv.parse_file(_get_fixture('test_isdigit.csv'), parse_options='')
+    self._check_options(options)
+    sheet = parsed_file[0]
     self._check_num_cols(sheet, 3)
     self._check_col(sheet, 0, "PHONE", "Text", [u'201-¾᠓𑄺꤈꤈꧐꤆'])
     self._check_col(sheet, 1, "VALUE", "Text", [u'¹5'])
