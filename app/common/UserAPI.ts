@@ -755,8 +755,8 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
   }
 
   public async downloadDoc(docId: string, template: boolean = false): Promise<Response> {
-    const extra = template ? '&template=1' : '';
-    const result = await this.request(`${this.url}/download?doc=${docId}${extra}`, {
+    const extra = template ? '?template=1' : '';
+    const result = await this.request(`${this.url}/api/docs/${docId}/download${extra}`, {
       method: 'GET',
     });
     if (!result.ok) { throw new Error(await result.text()); }

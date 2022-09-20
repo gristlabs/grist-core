@@ -1767,6 +1767,13 @@ function testDocApi() {
     assert.notMatch(resp.data, /grist_Tables_column/);
   });
 
+  // A tiny test that /copy doesn't throw.
+  it("POST /docs/{did}/copy succeeds", async function() {
+    const docId = docIds.TestDoc;
+    const worker1 = await userApi.getWorkerAPI(docId);
+    await worker1.copyDoc(docId, undefined, 'copy');
+  });
+
   it("GET /docs/{did}/download/csv serves CSV-encoded document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/csv?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);

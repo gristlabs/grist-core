@@ -1,5 +1,5 @@
 import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 import { assert, driver, Key } from 'mocha-webdriver';
 
@@ -71,6 +71,9 @@ describe("DuplicateDocument", function() {
   });
 
   it("should offer a choice of orgs when user is owner", async function() {
+    if (server.isExternalServer()) {
+      this.skip();
+    }
     await driver.find('.test-tb-share').click();
     await driver.find('.test-save-copy').click();
     await driver.findWait('.test-modal-dialog', 1000);
@@ -123,6 +126,9 @@ describe("DuplicateDocument", function() {
   });
 
   it("should offer a choice of orgs when doc is public", async function() {
+    if (server.isExternalServer()) {
+      this.skip();
+    }
     const session = await gu.session().teamSite.login();
     const api = session.createHomeApi();
     // But if the doc is public, then users can copy it out.
@@ -173,6 +179,9 @@ describe("DuplicateDocument", function() {
   });
 
   it("should allow saving a public doc to the personal org", async function() {
+    if (server.isExternalServer()) {
+      this.skip();
+    }
     const session2 = gu.session().teamSite.user('user2');
     await session2.login();
     await session2.loadDoc(`/doc/${urlId}`);

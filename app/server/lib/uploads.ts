@@ -417,7 +417,7 @@ async function fetchDoc(server: GristServer, docId: string, req: Request, access
   await _checkForError(response);
   const docWorkerUrl = getDocWorkerUrl(server.getOwnUrl(), await response.json());
   // Download the document, in full or as a template.
-  const url = new URL(`download?doc=${docId}&template=${Number(template)}`,
+  const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`,
                       docWorkerUrl.replace(/\/*$/, '/'));
   return _fetchURL(url.href, accessId, {headers});
 }

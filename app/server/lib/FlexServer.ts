@@ -46,7 +46,7 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import {adaptServerUrl, addOrgToPath, getOrgUrl, getOriginUrl, getScope, optStringParam,
+import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, optStringParam,
         RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
@@ -1360,14 +1360,6 @@ export class FlexServer implements GristServer {
   // Adds endpoints that support imports and exports.
   private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
-
-    this.app.get('/download', ...docAccessMiddleware, expressWrap(async (req, res) => {
-      // Forward this endpoint to regular API.  This endpoint is now deprecated.
-      const docId = String(req.query.doc);
-      let url = await this.getHomeUrlByDocId(docId, addOrgToPath(req, `/api/docs/${docId}/download`));
-      if (req.query.template === '1') { url += '?template=1'; }
-      return res.redirect(url);
-    }));
 
     const basicMiddleware = [this._userIdMiddleware, this.tagChecker.requireTag];
 
