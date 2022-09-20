@@ -90,13 +90,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this.search();
     this.autoDispose(dom.onElem(_triggerElem, 'input', () => this.search()));
 
-    // Attach the content to the page.
-    const containerElem = getContainer(_triggerElem, _options.attach || null);
-    if (containerElem) {
-      containerElem.appendChild(content);
-    } else {
-      document.body.appendChild(content);
-    }
+    const attachElem = _options.attach === undefined ? document.body : _options.attach;
+    const containerElem = getContainer(_triggerElem, attachElem) ?? document.body;
+    containerElem.appendChild(content);
+
     this.onDispose(() => { dom.domDispose(content); content.remove(); });
 
     // Prepare and create the Popper instance, which places the content according to the options.
@@ -208,7 +205,7 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
 
 
 /**
- * Helper that finds the container according to IPopupOptions.container. Null means
+ * Helper that finds the container according to attachElem. Null means
  * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
  */
  function getContainer(elem: Element, attachElem: Element|string|null): Node|null {

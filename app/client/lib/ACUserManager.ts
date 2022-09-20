@@ -42,7 +42,6 @@ export function buildACMemberEmail(
   const { acIndex, emailObs, save, isInputValid, prompt } = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
-  emailObs.addListener(() => emailInput.setCustomValidity(""));
 
   const isOpen = () => !acHolder.isEmpty();
   const acOpen = () => acHolder.isEmpty() && Autocomplete.create(acHolder, emailInput, acOptions);
@@ -53,22 +52,14 @@ export function buildACMemberEmail(
     emailInput.value = emailObs.get();
     emailInput.focus();
   };
-  const revert = () => {
-    emailInput.value = emailObs.get();
-    finish();
-  };
-  const commitOrRevert = () => {
-    commitIfValid() || revert();
-  };
   const openOrCommit = () => {
-    isOpen() ? commitOrRevert() : acOpen();
+    isOpen() ? commitIfValid() : acOpen();
   };
 
   const commitIfValid = () => {
     const item = acHolder.get()?.getSelectedItem();
     if (item) {
       emailObs.set(item.value);
-      emailInput.value = item.value;
     }
     emailInput.setCustomValidity("");
     const selectedEmail = item?.value || emailObs.get();
@@ -76,22 +67,12 @@ export function buildACMemberEmail(
       if (selectedEmail && isInputValid.get()) {
         save(emailObs.get());
         finish();
-        return true;
       }
     } catch (e) {
         emailInput.setCustomValidity(e.message);
-        return false;
     } finally {
       emailInput.reportValidity();
     }
-  };
-
-  const onMouseDown = (ev: MouseEvent) => {
-    ev.preventDefault(); // Don't let it affect focus, since we focus/blur manually.
-    if (!isOpen()) {
-      emailInput.focus();
-    }
-    openOrCommit();
   };
 
   const maybeShowAddNew = async (results: ACResults<ACUserItem>, text: string): Promise<ACResults<ACUserItem>> => {
@@ -143,6 +124,7 @@ export function buildACMemberEmail(
   const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isInputValid)));
 
   const acOptions: IAutocompleteOptions<ACUserItem> = {
+    attach: null,
     menuCssClass: `${menuCssClass} test-acselect-dropdown`,
     search: (term) => maybeShowAddNew(acIndex.search(term), term),
     renderItem: renderSearchItem,
@@ -151,30 +133,27 @@ export function buildACMemberEmail(
   };
 
   const result = cssEmailInputContainer(
-    dom.autoDispose(enableAdd),
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
       {onInput: true, isValid: isInputValid},
-      { type: "email", placeholder: "Enter email address" },
+      {type: "email", placeholder: "Enter email address"},
       dom.on("input", acOpen),
-      dom.on("focus", (_ev, elem) => elem.select()),
-      dom.on("blur", commitOrRevert),
+      dom.on("focus", acOpen),
+      dom.on("click", acOpen),
+      dom.on("blur", acClose),
       dom.onKeyDown({
-        Escape: revert,
+        Escape: finish,
         Enter: openOrCommit,
         ArrowDown: acOpen,
         Tab: commitIfValid,
       }),
-      cssEmailInputContainer.cls('-green', enableAdd),
       ...args
-    )),
-    dom.on("mousedown", onMouseDown)
+      )),
+    cssEmailInputContainer.cls('-green', enableAdd),
   );
 
-  if (prompt) {
-    emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-  }
+  if (prompt) { setTimeout(() => emailInput.focus(), 0); }
 
   return result;
 }
