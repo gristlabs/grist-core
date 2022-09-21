@@ -10,13 +10,13 @@ import {isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {computed, Computed, Disposable, keyframes, observable, Observable} from 'grainjs';
-import {dom, DomElementArg, styled} from 'grainjs';
+import {Computed, Disposable, keyframes, observable, Observable, dom, DomElementArg, styled} from 'grainjs';
 import pick = require('lodash/pick');
-import {cssMenuItem} from 'popweasel';
 
+import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
+import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
@@ -27,16 +27,16 @@ import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserMana
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
-import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
-import {cssEmailInput, cssEmailInputContainer, cssMailIcon, cssMemberBtn, cssMemberImage, cssMemberListItem,
+import {createUserImage} from 'app/client/ui/UserImage';
+import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
         cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {inputMenu, menu, menuItem, menuText} from 'app/client/ui2018/menus';
+import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
         modal} from 'app/client/ui2018/modals';
 
@@ -204,8 +204,12 @@ export class UserManager extends Disposable {
   }
 
   public buildDom() {
-    const memberEmail = this.autoDispose(new MemberEmail(this._onAdd.bind(this),
-                                                        this._options.prompt));
+    const acmemberEmail = this.autoDispose(new ACMemberEmail(
+      this._onAdd.bind(this),
+      (member) => this._model.isActiveUser(member),
+      this._model.membersEdited.get(),
+      this._options.prompt,
+    ));
     if (this._model.isPublicMember) {
       return this._buildSelfPublicAccessDom();
     }
@@ -215,7 +219,7 @@ export class UserManager extends Disposable {
     }
 
     return [
-      memberEmail.buildDom(),
+      acmemberEmail.buildDom(),
       this._buildOptionsDom(),
       this._dom = shadowScroll(
         testId('um-members'),
@@ -518,90 +522,60 @@ export class UserManager extends Disposable {
   }
 }
 
+function getUserItem(member: IEditableMember): ACUserItem {
+  return {
+    value: member.email,
+    label: member.email,
+    cleanText: normalizeText(member.email),
+    email: member.email,
+    name: member.name,
+    picture: member?.picture,
+    id: member.id,
+  }
+}
+
 /**
  * Represents the widget that allows typing in an email and adding it.
- * The border of the input turns green when the email is considered valid.
  */
-export class MemberEmail extends Disposable {
-  public email = this.autoDispose(observable<string>(""));
-  public isEmpty = this.autoDispose(computed<boolean>((use) => !use(this.email)));
-
+export class ACMemberEmail extends Disposable {
+  private _email = this.autoDispose(observable<string>(""));
   private _isValid = this.autoDispose(observable<boolean>(false));
-  private _emailElem: HTMLInputElement;
 
   constructor(
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
-    private _prompt?: {email: string},
+    private _isActiveUser: (member: IEditableMember) => boolean,
+    private _members: Array<IEditableMember>,
+    private _prompt?: {email: string}
   ) {
     super();
     if (_prompt) {
-      this.email.set(_prompt.email);
+      this._email.set(_prompt.email);
     }
-    // Reset custom validity that we sometimes set.
-    this.email.addListener(() => this._emailElem.setCustomValidity(""));
   }
 
-  public buildDom(): Element {
-    const enableAdd: Computed<boolean> = computed((use) => Boolean(use(this.email) && use(this._isValid)));
-    const result = cssEmailInputContainer(
-      dom.autoDispose(enableAdd),
-      cssMailIcon('Mail'),
-      this._emailElem = cssEmailInput(this.email, {onInput: true, isValid: this._isValid},
-        {type: "email", placeholder: "Enter email address"},
-        dom.onKeyPress({Enter: () => this._commit()}),
-        inputMenu(() => [
-          cssInputMenuItem(() => this._commit(),
-            cssUserImagePlus('+',
-              cssUserImage.cls('-large'),
-              cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd))
-            ),
-            cssMemberText(
-              cssMemberPrimary('Invite new member'),
-              cssMemberSecondary(
-                dom.text((use) => `We'll email an invite to ${use(this.email)}`)
-              )
-            ),
-            testId('um-add-email')
-          )
-        ], {
-          // NOTE: An offset of -40px is used to center the input button across the
-          // input container (including an envelope icon) rather than the input inside.
-          modifiers: {
-            offset: { enabled: true, offset: -40 }
-          },
-          stretchToSelector: `.${cssEmailInputContainer.className}`,
-          attach: null,
-          boundaries: 'document' as any, // TODO: Update weasel.js types to allow 'document'.
-        })
-      ),
-      cssEmailInputContainer.cls('-green', enableAdd),
+  public buildDom() {
+    const acUserItem = this._members.map((member: IEditableMember) => getUserItem(member));
+    const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
+
+    return buildACMemberEmail(this,
+      {
+        acIndex,
+        emailObs: this._email,
+        save: this._handleSave.bind(this),
+        isInputValid: this._isValid,
+        prompt: this._prompt,
+      },
       testId('um-member-new')
     );
-    if (this._prompt) {
-      this._emailElem.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    return result;
   }
 
-  // Add the currently entered email if valid, or trigger a validation message if not.
-  private _commit() {
-    this._emailElem.setCustomValidity("");
-    this._isValid.set(this._emailElem.checkValidity());
-    if (this.email.get() && this._isValid.get()) {
-      try {
-        this._onAdd(this.email.get(), roles.VIEWER);
-        this._reset();
-      } catch (e) {
-        this._emailElem.setCustomValidity(e.message);
-      }
+  private _handleSave(selectedEmail: string) {
+    const member = this._members.find(member => member.email === selectedEmail);
+    if (!member) {
+      this._onAdd(selectedEmail, roles.VIEWER);
+    } else if (!this._isActiveUser(member)) {
+      member?.effectiveAccess.set(roles.VIEWER);
     }
-    this._emailElem.reportValidity();
-  }
-
-  // Reset the widget.
-  private _reset() {
-    this.email.set("");
-    this._emailElem.focus();
   }
 }
 
@@ -732,25 +706,6 @@ const cssRoleBtn = styled('div', `
 const cssCollapseIcon = styled(icon, `
   margin-top: 1px;
   background-color: ${theme.controlFg};
-`);
-
-const cssInputMenuItem = styled(menuItem, `
-  height: 64px;
-  padding: 8px 15px;
-`);
-
-const cssUserImagePlus = styled(cssUserImage, `
-  background-color: ${colors.lightGreen};
-  margin: auto 0;
-
-  &-invalid {
-    background-color: ${colors.mediumGrey};
-  }
-
-  .${cssMenuItem.className}-sel & {
-    background-color: ${theme.menuItemIconSelectedFg};
-    color: ${theme.menuItemSelectedBg};
-  }
 `);
 
 const cssAccessLink = styled(cssLink, `

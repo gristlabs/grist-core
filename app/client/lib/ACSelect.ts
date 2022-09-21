@@ -100,7 +100,7 @@ const cssSelectBtn = styled('div', `
   --icon-color: ${theme.selectButtonFg};
 `);
 
-const cssSelectItem = styled('li', `
+export const cssSelectItem = styled('li', `
   color: ${theme.menuItemFg};
   display: block;
   white-space: pre;

@@ -137,7 +137,6 @@ export const cssEmailInput = styled(input, `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   flex: 1 1 0;
-  line-height: 42px;
   font-size: ${vars.mediumFontSize};
   font-family: ${vars.fontFamily};
   outline: none;
