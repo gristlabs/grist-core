@@ -25,7 +25,7 @@ describe("DuplicateDocument", function() {
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), 'true');
     // As soon as the textbox is non-empty, the Save button should become enabled.
     await nameElem.sendKeys('a');
-    assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), null);
+    await driver.findWait('.test-modal-confirm:not(:disabled)', 5000);
 
     // Save a copy with a proper name.
     await gu.completeCopy({destName: 'DuplicateTest1', destWorkspace: 'Test Workspace'});
