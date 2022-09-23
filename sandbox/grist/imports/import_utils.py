@@ -24,7 +24,7 @@ def column_count_modal(rows):
     length = len([c for c in row if not empty(c)])
     if length > 1:
       counts[length] += 1
-  if not len(counts):
+  if not counts:
     return 0
   return max(list(counts.items()), key=lambda k_v: k_v[1])[0]
 
