@@ -4,6 +4,7 @@ import {DocData} from 'app/common/DocData';
 import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {getSetMapValue} from 'app/common/gutil';
 import {MetaRowRecord} from 'app/common/TableData';
+import {decodeObject} from 'app/plugin/objtypes';
 import sortBy = require('lodash/sortBy');
 
 const defaultMatchFunc: AclMatchFunc = () => true;
@@ -290,6 +291,11 @@ export class ACLRuleCollection {
 export interface ReadAclOptions {
   log: ILogger;     // For logging warnings during rule processing.
   compile?: (parsed: ParsedAclFormula) => AclMatchFunc;
+  // If true, call addHelperCols to add helper columns of restricted columns to rule sets.
+  // Used in the server for extra filtering, but not in the client, because:
+  // 1. They would show in the UI
+  // 2. They would be saved back after editing, causing them to accumulate
+  includeHelperCols?: boolean;
 }
 
 export interface ReadAclResults {
@@ -298,10 +304,65 @@ export interface ReadAclResults {
 }
 
 /**
+ * For each column in colIds, return the colIds of any hidden helper columns it has,
+ * i.e. display columns of references, and conditional formatting rule columns.
+ */
+function getHelperCols(docData: DocData, tableId: string, colIds: string[], log: ILogger): string[] {
+  const tablesTable = docData.getMetaTable('_grist_Tables');
+  const columnsTable = docData.getMetaTable('_grist_Tables_column');
+  const fieldsTable = docData.getMetaTable('_grist_Views_section_field');
+
+  const tableRef = tablesTable.findRow('tableId', tableId);
+  if (!tableRef) {
+    return [];
+  }
+
+  const result: string[] = [];
+  for (const colId of colIds) {
+    const [column] = columnsTable.filterRecords({parentId: tableRef, colId});
+    if (!column) {
+      continue;
+    }
+
+    function addColsFromRefs(colRefs: unknown) {
+      if (!Array.isArray(colRefs)) {
+        return;
+      }
+      for (const colRef of colRefs) {
+        if (typeof colRef !== 'number') {
+          continue;
+        }
+        const extraCol = columnsTable.getRecord(colRef);
+        if (!extraCol) {
+          continue;
+        }
+        if (extraCol.colId.startsWith("gristHelper_") && extraCol.parentId === tableRef) {
+          result.push(extraCol.colId);
+        } else {
+          log.error(`Invalid helper column ${extraCol.colId} of ${tableId}:${colId}`);
+        }
+      }
+    }
+
+    function addColsFromMetaRecord(rec: MetaRowRecord<'_grist_Tables_column' | '_grist_Views_section_field'>) {
+      addColsFromRefs([rec.displayCol]);
+      addColsFromRefs(decodeObject(rec.rules));
+    }
+
+    addColsFromMetaRecord(column);
+    for (const field of fieldsTable.filterRecords({colRef: column.id})) {
+      addColsFromMetaRecord(field);
+    }
+  }
+  return result;
+}
+
+
+/**
  * Parse all ACL rules in the document from DocData into a list of RuleSets and of
  * UserAttributeRules. This is used by both client-side code and server-side.
  */
-function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAclResults {
+function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadAclOptions): ReadAclResults {
   const resourcesTable = docData.getMetaTable('_grist_ACLResources');
   const rulesTable = docData.getMetaTable('_grist_ACLRules');
 
@@ -327,6 +388,10 @@ function readAclRules(docData: DocData, {log, compile}: ReadAclOptions): ReadAcl
     }
     const tableId = resourceRec.tableId;
     const colIds = resourceRec.colIds === '*' ? '*' : resourceRec.colIds.split(',');
+
+    if (includeHelperCols && Array.isArray(colIds)) {
+      colIds.push(...getHelperCols(docData, tableId, colIds, log));
+    }
 
     const body: RulePart[] = [];
     for (const rule of rules) {

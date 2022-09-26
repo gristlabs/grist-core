@@ -212,7 +212,7 @@ export class GranularAccess implements GranularAccessForBundle {
     this._activeBundle.hasDeliberateRuleChange =
       scanActionsRecursively(userActions, (a) => isAclTable(String(a[1])));
     this._activeBundle.hasAnyRuleChange =
-      scanActionsRecursively(docActions, (a) => isAclTable(String(a[1])));
+      scanActionsRecursively(docActions, a => actionHasRuleChange(a));
   }
 
   /**
@@ -1715,7 +1715,7 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       step.metaAfter = meta;
       // replaceRuler logic avoids updating rules between paired changes of resources and rules.
-      if (isAclTable(tableId)) {
+      if (actionHasRuleChange(docAction)) {
         replaceRuler = true;
       } else if (replaceRuler) {
         ruler = new Ruler(this);
@@ -1977,7 +1977,7 @@ export class Ruler {
    * Update granular access from DocData.
    */
   public async update(docData: DocData) {
-    await this.ruleCollection.update(docData, {log, compile: compileAclFormula});
+    await this.ruleCollection.update(docData, {log, compile: compileAclFormula, includeHelperCols: true});
 
     // Also clear the per-docSession cache of rule evaluations.
     this.clearCache();
@@ -2334,11 +2334,11 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
   }
 }
 
-function scanActionsRecursively(actions: (DocAction|UserAction)[],
-                                check: (action: DocAction|UserAction) => boolean): boolean {
+function scanActionsRecursively<T extends DocAction|UserAction>(actions: T[],
+                                check: (action: T) => boolean): boolean {
   for (const a of actions) {
     if (a[0] === 'ApplyUndoActions' || a[0] === 'ApplyDocActions') {
-      return scanActionsRecursively(a[1] as UserAction[], check);
+      return scanActionsRecursively(a[1] as T[], check);
     }
     if (check(a)) { return true; }
   }
@@ -2485,4 +2485,21 @@ export class User implements UserInfo {
 export function validTableIdString(tableId: any): string {
   if (typeof tableId !== 'string') { throw new Error(`Expected tableId to be a string`); }
   return tableId;
+}
+
+function actionHasRuleChange(a: DocAction): boolean {
+  return isAclTable(getTableId(a)) || (
+    // Check if any helper columns have been specified while adding/updating a metadata record,
+    // as this will affect the result of `getHelperCols` in `ACLRuleCollection.ts` and thus the set of ACL resources.
+    // Note that removing a helper column doesn't directly trigger this code, but:
+    //  - It will typically be accompanied closely by unsetting the helper column on the metadata record.
+    //  - `getHelperCols` can handle non-existent helper columns and other similarly invalid metadata.
+    //  - Since the column is removed, ACL restrictions on it don't really matter.
+    isDataAction(a)
+    && ["_grist_Tables_column", "_grist_Views_section_field"].includes(getTableId(a))
+    && Boolean(
+      a[3]?.hasOwnProperty('rules') ||
+      a[3]?.hasOwnProperty('displayCol')
+    )
+  );
 }

@@ -110,7 +110,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
 
     reassignArray(this._rowIdCol, rowIds);
     for (const colData of this._colArray) {
-      const values = colValues[colData.colId];
+      const values = colData.colId === 'id' ? rowIds : colValues[colData.colId];
       // If colId is missing from tableData, use an array of default values. Note that reusing
       // default value like this is only OK because all default values we use are primitive.
       reassignArray(colData.values, values || this._rowIdCol.map(() => colData.defl));
