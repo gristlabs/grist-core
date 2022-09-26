@@ -32,6 +32,10 @@ export interface IAutocompleteOptions<Item extends ACItem> {
 
   // A callback triggered when user clicks one of the choices.
   onClick?(): void;
+
+  // To which element to append the popup content. Null means triggerElem.parentNode and is the
+  // default; string is a selector for the closest matching ancestor of triggerElem, e.g. 'body'.
+  attach?: Element|string|null;
 }
 
 /**
@@ -86,8 +90,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this.search();
     this.autoDispose(dom.onElem(_triggerElem, 'input', () => this.search()));
 
-    // Attach the content to the page.
-    document.body.appendChild(content);
+    const attachElem = _options.attach === undefined ? document.body : _options.attach;
+    const containerElem = getContainer(_triggerElem, attachElem) ?? document.body;
+    containerElem.appendChild(content);
+
     this.onDispose(() => { dom.domDispose(content); content.remove(); });
 
     // Prepare and create the Popper instance, which places the content according to the options.
@@ -197,6 +203,15 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
   ],
 };
 
+
+/**
+ * Helper that finds the container according to attachElem. Null means
+ * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
+ */
+ function getContainer(elem: Element, attachElem: Element|string|null): Node|null {
+  return (typeof attachElem === 'string') ? elem.closest(attachElem) :
+    (attachElem || elem.parentNode);
+}
 
 /**
  * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
