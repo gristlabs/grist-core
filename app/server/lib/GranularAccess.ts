@@ -86,19 +86,20 @@ const STRUCTURAL_TABLES = new Set(['_grist_Tables', '_grist_Tables_column', '_gr
                                    '_grist_ACLResources', '_grist_ACLRules']);
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
-// A few may be innocuous, but generally I've put them in this list if there are problems
-// tracking down what table the refer to, or they could allow creation/modification of a
-// formula, and are not handled elsewhere.
+// A few may be innocuous, but that hasn't been figured out yet.
 const SPECIAL_ACTIONS = new Set(['InitNewDoc',
                                  'EvalCode',
                                  'UpdateSummaryViewSection',
                                  'DetachSummaryViewSection',
                                  'GenImporterView',
+                                 'MakeImportTransformColumns',
+                                 'FillTransformRuleColIds',
                                  'TransformAndFinishImport',
                                  'AddView',
                                  'CopyFromColumn',
                                  'ConvertFromColumn',
                                  'AddHiddenColumn',
+                                 'RespondToRequests',
                                 ]);
 
 // Odd-ball actions marked as deprecated or which seem unlikely to be used.
@@ -109,6 +110,55 @@ const SURPRISING_ACTIONS = new Set([
 
 // Actions we'll allow unconditionally for now.
 const OK_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime']);
+
+// Other actions that are believed to be compatible with granular access.
+// Only add an action to OTHER_RECOGNIZED_ACTIONS if you know access control
+// has been handled for it, or it is clear that access control can be done
+// by looking at the Create/Update/Delete permissions for the DocActions it
+// will create. For example, at the time of writing CopyFromColumn should
+// not be here, since it could read a column the user is not supposed to
+// have access rights to, and it is not handled specially.
+const OTHER_RECOGNIZED_ACTIONS = new Set([
+  // Data actions.
+  'AddRecord',
+  'BulkAddRecord',
+  'UpdateRecord',
+  'BulkUpdateRecord',
+  'RemoveRecord',
+  'BulkRemoveRecord',
+  'ReplaceTableData',
+
+  // A data action handled specially because of read needs.
+  'AddOrUpdateRecord',
+
+  // Groups of actions.
+  'ApplyDocActions',
+  'ApplyUndoActions',
+
+  // Column-level schema changes.
+  'AddColumn',
+  'AddVisibleColumn',
+  'RemoveColumn',
+  'RenameColumn',
+  'ModifyColumn',
+
+  // Table-level schema changes.
+  'AddEmptyTable',
+  'AddTable',
+  'AddRawTable',
+  'RemoveTable',
+  'RenameTable',
+
+  // Display column support.
+  'SetDisplayFormula',
+  'MaybeCopyDisplayFormula',
+
+  // Sundry misc.
+  'RenameChoices',
+  'AddEmptyRule',
+  'CreateViewSection',
+  'RemoveViewSection',
+]);
 
 interface DocUpdateMessage {
   actionGroup: ActionGroup;
@@ -476,26 +526,24 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Check if user may be able to apply a list of actions.  Throws if
-   * user cannot apply an action.  Returns true if a user can perhaps apply an
-   * action, or false if we know we need to defer making that determination
-   * until the data engine translates the user actions to doc actions.
+   * Check the list of UserActions, throwing if something not permitted is found.
+   * The data engine is the definitive interpreter of UserActions, but we do what
+   * we can, and then rely on analysis of DocActions produced by the data engine
+   * later to finish the job. Any actions that read data and expose it in some way
+   * need to be caught at this point, since that won't be evident in the DocActions.
+   * So far, we've been restricting the permitted combinations of UserActions when
+   * data is read to make access control tractable. Likewise, any actions that might
+   * result in running user code that would not eventually be permitted needs to be
+   * caught now, since by the time it hits the data engine it is too late.
    */
-  public async assertCanMaybeApplyUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
-    if (this._hasExceptionalFullAccess(docSession)) { return true; }
+  public async checkUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<void> {
+    if (this._hasExceptionalFullAccess(docSession)) { return; }
 
-    let canMaybeApply = true;
-    for (const action of actions) {
-      if (!await this.assertCanMaybeApplyUserAction(docSession, action)) {
-        canMaybeApply = false;
-        break;
-      }
-    }
-
+    // Checks are in no particular order.
+    await this._checkSimpleDataActions(docSession, actions);
+    await this._checkForSpecialOrSurprisingActions(docSession, actions);
     await this._checkPossiblePythonFormulaModification(docSession, actions);
     await this._checkAddOrUpdateAccess(docSession, actions);
-
-    return canMaybeApply;
   }
 
   /**
@@ -579,50 +627,6 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.finishedBundle();
     }
     return [['ApplyUndoActions', proposedActions]];
-  }
-
-  /**
-   * Check if user may be able to apply a given action.  Throws if
-   * user cannot apply the action.  Returns true if a user can apply an
-   * action, or false if we need to defer making that determination
-   * until the data engine translates the user actions to doc actions.
-   */
-  public async assertCanMaybeApplyUserAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
-    const name = a[0] as string;
-    if (this._hasExceptionalFullAccess(docSession)) { return true; }
-    if (OK_ACTIONS.has(name)) { return true; }
-    if (SPECIAL_ACTIONS.has(name)) {
-      if (await this.hasNuancedAccess(docSession)) {
-        throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need uncomplicated access`);
-      }
-      return true;
-    }
-    if (SURPRISING_ACTIONS.has(name)) {
-      if (!await this.hasFullAccess(docSession)) {
-        throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need full access`);
-      }
-      return true;
-    }
-    if (name === 'ApplyUndoActions') {
-      return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
-    } else if (name === 'ApplyDocActions') {
-      return this.assertCanMaybeApplyUserActions(docSession, a[1] as UserAction[]);
-    } else if (name === 'AddOrUpdateRecord') {
-      // This case is a bit tricky.
-      // Access is checked separately in _checkAddOrUpdateAccess.
-      return true;
-    } else if (isDataAction(a)) {
-      const tableId = getTableId(a);
-      if (tableId.startsWith('_grist_')) {
-        return false;  // have to look closely
-      }
-      const tableAccess = await this.getTableAccess(docSession, tableId);
-      const accessCheck = await this._getAccessForActionType(docSession, a, 'fatal');
-      accessCheck.get(tableAccess);  // will throw if access denied.
-      return true;
-    } else {
-      return false;  // have to look closely
-    }
   }
 
   /**
@@ -882,6 +886,79 @@ export class GranularAccess implements GranularAccessForBundle {
       return info.Access;
     }
     return baseAccess;
+  }
+
+  /**
+   * An optimization to catch obvious access problems for simple data
+   * actions (such as UpdateRecord, BulkAddRecord, etc) early. Checks
+   * actions one by one (nesting into ApplyUndoActions and
+   * ApplyDocActions as needed) until meeting one that isn't a simple
+   * data action. Checks are crude, and limited to the table access
+   * level. Returns true if all actions were checked, false if
+   * not. Returning true does not imply the actions in the bundle are
+   * permissible; returning false does not imply they should be
+   * denied. Throwing an error DOES imply that an action was
+   * encountered that should be denied.
+   */
+  private async _checkSimpleDataActions(docSession: OptDocSession, actions: UserAction[]): Promise<boolean> {
+    for (const action of actions) {
+      if (!await this._checkSimpleDataAction(docSession, action)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Throws an error for simple data actions that the user cannot perform.
+   * Checking is only at the table level. Returns true if the action clearly
+   * does not change the document schema or metadata, otherwise false if it might.
+   */
+  private async _checkSimpleDataAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
+    const name = a[0] as string;
+    if (name === 'ApplyUndoActions') {
+      return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
+    } else if (name === 'ApplyDocActions') {
+      return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
+    } else if (isDataAction(a)) {
+      const tableId = getTableId(a);
+      if (tableId.startsWith('_grist_')) {
+        return false;
+      }
+      const tableAccess = await this.getTableAccess(docSession, tableId);
+      const accessCheck = await this._getAccessForActionType(docSession, a, 'fatal');
+      accessCheck.get(tableAccess);  // will throw if access denied.
+      return true;
+    } else {
+      // Any other action might change schema, so continuing could lead
+      // to false detections of failures. For example, renaming a column
+      // and then updating cells within it should be allowed.
+      return false;
+    }
+  }
+
+  private async _checkForSpecialOrSurprisingActions(docSession: OptDocSession,
+                                                    actions: UserAction[]) {
+    await applyToActionsRecursively(actions, async (a) => {
+      const name = String(a[0]);
+      if (SPECIAL_ACTIONS.has(name)) {
+        if (await this.hasNuancedAccess(docSession)) {
+          throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need uncomplicated access`);
+        }
+      } else if (SURPRISING_ACTIONS.has(name)) {
+        if (!await this.hasFullAccess(docSession)) {
+          throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need full access`);
+        }
+      } else if (OK_ACTIONS.has(name)) {
+        // fine, anyone can do these at any time, continue.
+      } else if (OTHER_RECOGNIZED_ACTIONS.has(name)) {
+        // these are known actions that have not been specifically classified.
+      } else {
+        // we've hit something unexpected - perhaps a UserAction has been added
+        // without considering access control.
+        throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions are not controlled`);
+      }
+    });
   }
 
   // AddOrUpdateRecord requires broad read access to a table.

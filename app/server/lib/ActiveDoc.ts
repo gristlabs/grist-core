@@ -1791,7 +1791,7 @@ export class ActiveDoc extends EventEmitter {
     if (options?.bestEffort) {
       actions = await this._granularAccess.prefilterUserActions(docSession, actions);
     }
-    await this._granularAccess.assertCanMaybeApplyUserActions(docSession, actions);
+    await this._granularAccess.checkUserActions(docSession, actions);
 
     // Create the UserActionBundle.
     const action: UserActionBundle = {
