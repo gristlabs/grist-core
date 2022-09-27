@@ -1,11 +1,8 @@
-import {ACResults, ACIndex, ACItem, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
+import {ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
 import {cssSelectItem} from "app/client/lib/ACSelect";
 import {Autocomplete, IAutocompleteOptions} from "app/client/lib/autocomplete";
-import {cssMenuItem} from "popweasel";
-
-import {testId, colors, theme} from "app/client/ui2018/cssVars";
+import {colors, testId, theme} from "app/client/ui2018/cssVars";
 import {menuCssClass} from "app/client/ui2018/menus";
-import {dom, DomElementArg, Holder, IDisposableOwner, Observable, styled, computed, Computed} from "grainjs";
 import {
   cssEmailInput,
   cssEmailInputContainer,
@@ -17,6 +14,8 @@ import {
   cssMemberText,
 } from "app/client/ui/UserItem";
 import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
+import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
+import {cssMenuItem} from "popweasel";
 
 export interface ACUserItem extends ACItem {
   value: string;
@@ -33,15 +32,16 @@ export function buildACMemberEmail(
   options: {
     acIndex: ACIndex<ACUserItem>;
     emailObs: Observable<string>;
-    save: (value: string) => Promise<void> | void;
-    isInputValid: Observable<boolean>;
+    save: (value: string) => void;
     prompt?: {email: string},
   },
   ...args: DomElementArg[]
 ) {
-  const { acIndex, emailObs, save, isInputValid, prompt } = options;
+  const {acIndex, emailObs, save, prompt} = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
+
+  const isValid = Observable.create(owner, true);
 
   const isOpen = () => !acHolder.isEmpty();
   const acOpen = () => acHolder.isEmpty() && Autocomplete.create(acHolder, emailInput, acOptions);
@@ -52,7 +52,7 @@ export function buildACMemberEmail(
     emailInput.value = emailObs.get();
     emailInput.focus();
   };
-  const openOrCommit = () => {
+  const onEnter = () => {
     isOpen() ? commitIfValid() : acOpen();
   };
 
@@ -62,14 +62,16 @@ export function buildACMemberEmail(
       emailObs.set(item.value);
     }
     emailInput.setCustomValidity("");
+    isValid.set(emailInput.checkValidity());
+
     const selectedEmail = item?.value || emailObs.get();
     try {
-      if (selectedEmail && isInputValid.get()) {
+      if (selectedEmail && isValid.get()) {
         save(emailObs.get());
         finish();
       }
     } catch (e) {
-        emailInput.setCustomValidity(e.message);
+      emailInput.setCustomValidity(e.message);
     } finally {
       emailInput.reportValidity();
     }
@@ -79,7 +81,7 @@ export function buildACMemberEmail(
     const cleanText = normalizeText(text);
     const items = results.items
       .filter(item => item.cleanText.includes(cleanText))
-      .sort((a,b) => a.cleanText.localeCompare(b.cleanText));
+      .sort((a, b) => a.cleanText.localeCompare(b.cleanText));
     results.items = items;
     if (!results.items.length) {
       const newObject = {
@@ -102,7 +104,7 @@ export function buildACMemberEmail(
         "+",
         cssUserImage.cls("-large"),
         cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
-      )),
+        )),
       cssMemberText(
         cssMemberPrimaryPlus("Invite new member"),
         cssMemberSecondaryPlus(
@@ -121,7 +123,7 @@ export function buildACMemberEmail(
     )
   ));
 
-  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isInputValid)));
+  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isValid)));
 
   const acOptions: IAutocompleteOptions<ACUserItem> = {
     attach: null,
@@ -136,7 +138,7 @@ export function buildACMemberEmail(
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
-      {onInput: true, isValid: isInputValid},
+      {onInput: true, isValid},
       {type: "email", placeholder: "Enter email address"},
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
@@ -144,51 +146,43 @@ export function buildACMemberEmail(
       dom.on("blur", acClose),
       dom.onKeyDown({
         Escape: finish,
-        Enter: openOrCommit,
+        Enter: onEnter,
         ArrowDown: acOpen,
         Tab: commitIfValid,
       }),
-      ...args
-      )),
+    )),
     cssEmailInputContainer.cls('-green', enableAdd),
+    ...args
   );
+
+  // Reset custom validity that we sometimes set.
+  owner.autoDispose(emailObs.addListener(() => emailInput.setCustomValidity("")));
 
   if (prompt) { setTimeout(() => emailInput.focus(), 0); }
 
   return result;
 }
 
-const cssMemberPrimaryPlus = styled(
-  cssMemberPrimary,
-  `
+const cssMemberPrimaryPlus = styled(cssMemberPrimary, `
   .${cssSelectItem.className}.selected & {
     color: ${theme.menuItemSelectedFg};
   }
-`
-);
+`);
 
-const cssMemberSecondaryPlus = styled(
-  cssMemberSecondary,
-  `
+const cssMemberSecondaryPlus = styled(cssMemberSecondary, `
   .${cssSelectItem.className}.selected & {
     color: ${theme.menuItemSelectedFg};
   }
-`
-);
+`);
 
-const cssMatchText = styled(
-  "span",
-  `
+const cssMatchText = styled("span", `
   color: ${theme.autocompleteMatchText};
   .${cssSelectItem.className}.selected & {
     color: ${theme.autocompleteSelectedMatchText};
   }
-`
-);
+`);
 
-const cssUserImagePlus = styled(
-  cssUserImage,
-  `
+const cssUserImagePlus = styled(cssUserImage, `
   background-color: ${colors.lightGreen};
   margin: auto 0;
 
@@ -200,5 +194,4 @@ const cssUserImagePlus = styled(
     background-color: ${theme.menuItemIconSelectedFg};
     color: ${theme.menuItemSelectedBg};
   }
-`
-);
+`);

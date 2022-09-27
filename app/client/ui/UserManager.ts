@@ -10,7 +10,7 @@ import {isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, keyframes, observable, Observable, dom, DomElementArg, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementArg, keyframes, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
@@ -204,9 +204,8 @@ export class UserManager extends Disposable {
   }
 
   public buildDom() {
-    const acmemberEmail = this.autoDispose(new ACMemberEmail(
+    const acMemberEmail = this.autoDispose(new ACMemberEmail(
       this._onAdd.bind(this),
-      (member) => this._model.isActiveUser(member),
       this._model.membersEdited.get(),
       this._options.prompt,
     ));
@@ -219,7 +218,7 @@ export class UserManager extends Disposable {
     }
 
     return [
-      acmemberEmail.buildDom(),
+      acMemberEmail.buildDom(),
       this._buildOptionsDom(),
       this._dom = shadowScroll(
         testId('um-members'),
@@ -531,7 +530,7 @@ function getUserItem(member: IEditableMember): ACUserItem {
     name: member.name,
     picture: member?.picture,
     id: member.id,
-  }
+  };
 }
 
 /**
@@ -539,11 +538,9 @@ function getUserItem(member: IEditableMember): ACUserItem {
  */
 export class ACMemberEmail extends Disposable {
   private _email = this.autoDispose(observable<string>(""));
-  private _isValid = this.autoDispose(observable<boolean>(false));
 
   constructor(
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
-    private _isActiveUser: (member: IEditableMember) => boolean,
     private _members: Array<IEditableMember>,
     private _prompt?: {email: string}
   ) {
@@ -562,7 +559,6 @@ export class ACMemberEmail extends Disposable {
         acIndex,
         emailObs: this._email,
         save: this._handleSave.bind(this),
-        isInputValid: this._isValid,
         prompt: this._prompt,
       },
       testId('um-member-new')
@@ -570,12 +566,7 @@ export class ACMemberEmail extends Disposable {
   }
 
   private _handleSave(selectedEmail: string) {
-    const member = this._members.find(member => member.email === selectedEmail);
-    if (!member) {
-      this._onAdd(selectedEmail, roles.VIEWER);
-    } else if (!this._isActiveUser(member)) {
-      member?.effectiveAccess.set(roles.VIEWER);
-    }
+    this._onAdd(selectedEmail, roles.VIEWER);
   }
 }
 

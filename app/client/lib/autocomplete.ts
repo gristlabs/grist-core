@@ -21,6 +21,11 @@ export interface IAutocompleteOptions<Item extends ACItem> {
   // Popper options for positioning the popup.
   popperOptions?: Partial<PopperOptions>;
 
+  // To which element to append the popup content. Null means triggerElem.parentNode; string is
+  // a selector for the closest matching ancestor of triggerElem, e.g. 'body'.
+  // Defaults to the document body.
+  attach?: Element|string|null;
+
   // Given a search term, return the list of Items to render.
   search(searchText: string): Promise<ACResults<Item>>;
 
@@ -32,10 +37,6 @@ export interface IAutocompleteOptions<Item extends ACItem> {
 
   // A callback triggered when user clicks one of the choices.
   onClick?(): void;
-
-  // To which element to append the popup content. Null means triggerElem.parentNode and is the
-  // default; string is a selector for the closest matching ancestor of triggerElem, e.g. 'body'.
-  attach?: Element|string|null;
 }
 
 /**

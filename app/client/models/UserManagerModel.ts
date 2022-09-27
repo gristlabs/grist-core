@@ -32,6 +32,8 @@ export interface UserManagerModel {
   activeUser: FullUser|null;                   // Populated if current user is logged in.
   gristDoc: GristDoc|null;                     // Populated if there is an open document.
 
+  // Analyze the relation that users have to the resource or site.
+  annotate(): void;
   // Resets all unsaved changes
   reset(): void;
   // Recreate annotations, factoring in any changes on the back-end.
@@ -253,7 +255,6 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     return member.email === this.activeUser?.email;
   }
 
-  // Analyze the relation that users have to the resource or site.
   public annotate() {
     // Only attempt for documents for now.
     // TODO: extend to workspaces.
