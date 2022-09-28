@@ -273,10 +273,7 @@ export async function exportSection(
     const displayCol = tableColsById[field?.displayCol || col.displayCol || col.id];
     const colWidgetOptions = gutil.safeJsonParse(col.widgetOptions, {});
     const fieldWidgetOptions = field ? gutil.safeJsonParse(field.widgetOptions, {}) : {};
-    const filterString = unsavedFiltersByColRef[col.id]?.filter || savedFiltersByColRef[col.id]?.filter;
-    const filterFunc = buildColFilter(filterString, col.type);
     return {
-      filterFunc,
       id: displayCol.id,
       colId: displayCol.colId,
       label: col.label,
@@ -285,9 +282,19 @@ export async function exportSection(
       widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions),
     };
   };
-  const tableColumns = columns
+  const buildFilters = (col: GristTablesColumn, field?: GristViewsSectionField) => {
+    const filterString = unsavedFiltersByColRef[col.id]?.filter || savedFiltersByColRef[col.id]?.filter;
+    const filterFunc = buildColFilter(filterString, col.type);
+    return {
+      filterFunc,
+      id: col.id,
+      colId: col.colId,
+      type: col.type,
+    };
+  };
+  const columnsForFilters = columns
     .filter(column => !gristTypes.isHiddenCol(column.colId))
-    .map(column => viewify(column, fieldsByColRef[column.id]));
+    .map(column => buildFilters(column, fieldsByColRef[column.id]));
   const viewColumns = _.sortBy(fields, 'parentPos')
     .map((field) => viewify(tableColsById[field.colRef], field));
 
@@ -313,9 +320,9 @@ export async function exportSection(
   sorter.updateSpec(sortSpec);
   rowIds.sort((a, b) => sorter.compare(a, b));
   // create cell accessors
-  const tableAccess = tableColumns.map(col => getters.getColGetter(col.id)!);
+  const tableAccess = columnsForFilters.map(col => getters.getColGetter(col.id)!);
   // create row filter based on all columns filter
-  const rowFilter = tableColumns
+  const rowFilter = columnsForFilters
     .map((col, c) => buildRowFilter(tableAccess[c], col.filterFunc))
     .reduce((prevFilter, curFilter) => (id) => prevFilter(id) && curFilter(id), () => true);
   // filter rows numbers
