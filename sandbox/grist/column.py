@@ -27,18 +27,12 @@ MANUAL_SORT_DEFAULT = 2147483647.0
 
 SPECIAL_COL_IDS = {'id', MANUAL_SORT}
 
-def is_user_column(col_id):
-  """
-  Returns whether the col_id is of a user column (as opposed to special columns that can't be used
-  for user data).
-  """
-  return col_id not in SPECIAL_COL_IDS and not col_id.startswith('#')
 
 def is_visible_column(col_id):
   """
   Returns whether this is an id of a column that's intended to be shown to the user.
   """
-  return is_user_column(col_id) and not col_id.startswith('gristHelper_')
+  return col_id not in SPECIAL_COL_IDS and not col_id.startswith(('#', 'gristHelper_'))
 
 def is_virtual_column(col_id):
   """

@@ -86,8 +86,8 @@ def run(sandbox):
     return eng.fetch_table_schema()
 
   @export
-  def autocomplete(txt, table_id, column_id, user):
-    return eng.autocomplete(txt, table_id, column_id, user)
+  def autocomplete(txt, table_id, column_id, row_id, user):
+    return eng.autocomplete(txt, table_id, column_id, row_id, user)
 
   @export
   def find_col_from_values(values, n, opt_table_id):

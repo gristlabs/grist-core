@@ -8,6 +8,10 @@
   cursor: pointer;
 }
 
+.ace_grist_example {
+  color: #8f8f8f;
+}
+
 .ace_editor.ace_autocomplete .ace_completion-highlight.ace_grist_link {
   color: var(--grist-color-dark-green);
 }
@@ -15,4 +19,9 @@
 .ace_editor.ace_autocomplete .ace_text-layer {
   z-index: 7;
   pointer-events: auto;
+}
+
+.ace_editor.ace_autocomplete {
+  width: 500px !important;  /* the default in language_tools.js is 280px */
+  max-width: 80%;  /* of the screen, for hypothetical mobile support */
 }

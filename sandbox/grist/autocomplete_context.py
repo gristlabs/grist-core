@@ -7,7 +7,7 @@ lowercase searches, and adds function usage information to some results.
 import inspect
 import re
 from collections import namedtuple, defaultdict
-from six.moves import builtins
+from six.moves import builtins, reprlib
 import six
 
 import column
@@ -145,12 +145,14 @@ def lookup_autocomplete_options(lookup_table, formula_table, reverse_only):
     for col_id, col in formula_table.all_columns.items():
       # Note that we can't support reflist columns in the current table,
       # as there is no `IN()` function to do the opposite of the `CONTAINS()` function.
-      if isinstance(col, column.ReferenceColumn) and column.is_user_column(col_id):
+      if isinstance(col, column.ReferenceColumn) and column.is_visible_column(col_id):
         ref_cols[col._target_table].append(col_id)
 
   # Find referencing columns in the lookup table that target tables in ref_cols.
   results = []
   for lookup_col_id, lookup_col in lookup_table.all_columns.items():
+    if not column.is_visible_column(lookup_col_id):
+      continue
     if isinstance(lookup_col, column.ReferenceColumn):
       value_template = "${}"
     elif isinstance(lookup_col, column.ReferenceListColumn):
@@ -162,3 +164,78 @@ def lookup_autocomplete_options(lookup_table, formula_table, reverse_only):
       value = value_template.format(ref_col_id)
       results.append("{}={})".format(lookup_col_id, value))
   return results
+
+
+def eval_suggestion(suggestion, rec, user):
+  """
+  Evaluate a simple string of Python code,
+  and return a limited string representation of the result,
+  or None if this isn't possible.
+  Only supports code starting with `rec` or `user`,
+  followed by any number of attribute accesses, nothing else.
+  """
+
+  if not isinstance(suggestion, six.string_types):
+    # `suggestion` is a tuple corresponding to a function
+    return None
+
+  parts = suggestion.split(".")
+  if parts[0] == "rec":
+    result = rec
+  elif parts[0] == "user":
+    result = user
+    if parts in (["user"], ["user", "LinkKey"]):
+      # `user` and `user.LinkKey` have no useful string representation.
+      return None
+  else:
+    # Other variables are not supported since we can't know their values.
+    return None
+
+  parts = parts[1:]  # attribute names, if any
+  for part in parts:
+    try:
+      result = getattr(result, part)
+    except Exception:
+      return None
+
+  # Convert the value to a string and truncate the length if needed.
+  return repr_example(result)[:arepr.maxother]
+
+
+class AutocompleteExampleRepr(reprlib.Repr):
+  """
+  The default repr for dates and datetimes is long and ugly.
+  This class is used so that repr_example is mostly the same as repr,
+  but dates look the way they're formatted in Grist.
+  """
+  @staticmethod
+  def repr_date(obj, _level):
+    # e.g. "2019-12-31"
+    return obj.strftime("%Y-%m-%d")
+
+  @staticmethod
+  def repr_datetime(obj, _level):
+    # e.g. "2019-12-31 1:23pm"
+    return obj.strftime("%Y-%m-%d %-I:%M%p").lower()
+
+
+arepr = AutocompleteExampleRepr()
+# Set the same high value for all limits, because we just want to avoid
+# sending huge strings to the client, but the truncation shouldn't be visible in the UI.
+arepr.maxother = 200
+arepr.maxtuple = arepr.maxother
+arepr.maxlist = arepr.maxother
+arepr.maxarray = arepr.maxother
+arepr.maxdict = arepr.maxother
+arepr.maxset = arepr.maxother
+arepr.maxfrozenset = arepr.maxother
+arepr.maxdeque = arepr.maxother
+arepr.maxstring = arepr.maxother
+arepr.maxlong = arepr.maxother
+
+def repr_example(x):
+  try:
+    return arepr.repr(x)
+  except Exception:
+    # Copied from Repr.repr_instance in Python 3.
+    return '<%s instance at %#x>' % (x.__class__.__name__, id(x))

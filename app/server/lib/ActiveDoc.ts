@@ -21,6 +21,7 @@ import {
   ForkResult,
   ImportOptions,
   ImportResult,
+  ISuggestionWithValue,
   MergeOptions,
   PermissionDataWithExtraUsers,
   QueryResult,
@@ -64,6 +65,7 @@ import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
+import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
@@ -1272,12 +1274,14 @@ export class ActiveDoc extends EventEmitter {
     docSession.linkId = 0;
   }
 
-  public async autocomplete(docSession: DocSession, txt: string, tableId: string, columnId: string): Promise<string[]> {
+  public async autocomplete(
+    docSession: DocSession, txt: string, tableId: string, columnId: string, rowId: UIRowId
+  ): Promise<ISuggestionWithValue[]> {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
     await this.waitForInitialization();
     const user = await this._granularAccess.getCachedUser(docSession);
-    return this._pyCall('autocomplete', txt, tableId, columnId, user.toJSON());
+    return this._pyCall('autocomplete', txt, tableId, columnId, rowId, user.toJSON());
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {

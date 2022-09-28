@@ -41,7 +41,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   );
   editor.on("change", () => showPlaceholder.set(!editor.getValue().length));
 
-  async function getSuggestions(prefix: string) {
+  async function getSuggestions(prefix: string): Promise<Array<[string, null]>> {
     return [
       // The few Python keywords and constants we support.
       'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None',
@@ -51,7 +51,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
       'user', 'rec', 'newRec',
       // Other completions that depend on doc schema or other rules.
       ...options.getSuggestions(prefix),
-    ];
+    ].map(suggestion => [suggestion, null]);  // null means no example value
   }
   setupAceEditorCompletions(editor, {getSuggestions});
 

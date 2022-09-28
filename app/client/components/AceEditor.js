@@ -189,9 +189,11 @@ AceEditor.prototype._setup = function() {
   this.editor = this.autoDisposeWith('destroy', ace.edit(this.editorDom));
   if (this.gristDoc && this.column) {
     const getSuggestions = (prefix) => {
-      const tableId = this.gristDoc.viewModel.activeSection().table().tableId();
+      const section = this.gristDoc.viewModel.activeSection();
+      const tableId = section.table().tableId();
       const columnId = this.column.colId();
-      return this.gristDoc.docComm.autocomplete(prefix, tableId, columnId);
+      const rowId = section.activeRowId();
+      return this.gristDoc.docComm.autocomplete(prefix, tableId, columnId, rowId);
     };
     setupAceEditorCompletions(this.editor, {getSuggestions});
   }

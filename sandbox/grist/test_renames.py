@@ -334,15 +334,19 @@ class TestRenames(test_engine.EngineTestCase):
     # Renaming a table should not leave the old name available for auto-complete.
     self.load_sample(self.sample)
     names = {"People", "Persons"}
+    autocomplete = self.engine.autocomplete("Pe", "Address", "city", 1, user)
+    suggestions = {suggestion for suggestion, value in autocomplete}
     self.assertEqual(
-      names.intersection(self.engine.autocomplete("Pe", "Address", "city", user)),
+      names.intersection(suggestions),
       {"People"}
     )
 
     # Rename the table and ensure that "People" is no longer present among top-level names.
-    out_actions = self.apply_user_action(["RenameTable", "People", "Persons"])
+    self.apply_user_action(["RenameTable", "People", "Persons"])
+    autocomplete = self.engine.autocomplete("Pe", "Address", "city", 1, user)
+    suggestions = {suggestion for suggestion, value in autocomplete}
     self.assertEqual(
-      names.intersection(self.engine.autocomplete("Pe", "Address", "city", user)),
+      names.intersection(suggestions),
       {"Persons"}
     )
 

@@ -255,7 +255,7 @@ class Table(object):
     # reference values (using .sample_record for other tables) are not yet available.
     props = {}
     for col in self.all_columns.values():
-      if not (column.is_user_column(col.col_id) or col.col_id == 'id'):
+      if not (column.is_visible_column(col.col_id) or col.col_id == 'id'):
         continue
       # Note c=col to bind at lambda-creation time; see
       # https://stackoverflow.com/questions/10452770/python-lambdas-binding-to-local-values

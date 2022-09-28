@@ -1,6 +1,7 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
+import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -178,6 +179,18 @@ export function summaryGroupByDescription(groupByColumnLabels: string[]): string
   return `[${groupByColumnLabels.length ? 'by ' + groupByColumnLabels.join(", ") : "Totals"}]`;
 }
 
+//// Types for autocomplete suggestions
+
+// Suggestion may be a string, or a tuple [funcname, argSpec, isGrist], where:
+//  - funcname (e.g. "DATEADD") will be auto-completed with "(", AND linked to Grist
+//    documentation.
+//  - argSpec (e.g. "(start_date, days=0, ...)") is to be shown as autocomplete caption.
+//  - isGrist is no longer used
+type ISuggestion = string | [string, string, boolean];
+
+// Suggestion paired with an optional example value to show on the right
+export type ISuggestionWithValue = [ISuggestion, string | null];
+
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.
@@ -269,7 +282,7 @@ export interface ActiveDocAPI {
    * Find and return a list of auto-complete suggestions that start with `txt`, when editing a
    * formula in table `tableId` and column `columnId`.
    */
-  autocomplete(txt: string, tableId: string, columnId: string): Promise<string[]>;
+  autocomplete(txt: string, tableId: string, columnId: string, rowId: UIRowId): Promise<ISuggestionWithValue[]>;
 
   /**
    * Removes the current instance from the doc.

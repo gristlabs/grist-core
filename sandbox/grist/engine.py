@@ -19,7 +19,7 @@ from sortedcontainers import SortedSet
 import acl
 import actions
 import action_obj
-from autocomplete_context import AutocompleteContext, lookup_autocomplete_options
+from autocomplete_context import AutocompleteContext, lookup_autocomplete_options, eval_suggestion
 from codebuilder import DOLLAR_REGEX
 import depend
 import docactions
@@ -1408,7 +1408,7 @@ class Engine(object):
     if not self._in_update_loop:
       self._bring_mlookups_up_to_date(doc_action)
 
-  def autocomplete(self, txt, table_id, column_id, user):
+  def autocomplete(self, txt, table_id, column_id, row_id, user):
     """
     Return a list of suggested completions of the python fragment supplied.
     """
@@ -1425,13 +1425,15 @@ class Engine(object):
         result = [
           txt + col_id + "="
           for col_id in lookup_table.all_columns
-          if column.is_user_column(col_id) or col_id == 'id'
+          if column.is_visible_column(col_id) or col_id == 'id'
         ]
         # Add specific complete lookups involving reference columns.
         result += [
           txt + option
           for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
         ]
+        # Add a dummy empty example value for each result to produce the correct shape.
+        result = [(r, None) for r in result]
         return sorted(result)
 
     # replace $ with rec. and add a dummy rec object
@@ -1479,11 +1481,24 @@ class Engine(object):
             for option in lookup_autocomplete_options(lookup_table, table, reverse_only=True)
           ]
 
+    ### Add example values to all results where possible.
+    if row_id == "new":
+      row_id = table.row_ids.max()
+    rec = table.Record(row_id)
+    # Don't use the same user object as above because we don't want is_sample=True,
+    # which is only needed for the sake of suggesting completions.
+    # Here we want to show actual values.
+    user_obj = User(user, self.tables)
+    results = [
+      (result, eval_suggestion(result, rec, user_obj))
+      for result in results
+    ]
+
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
     if tweaked_txt != txt:
-      results = [txt + result[len(tweaked_txt):] for result in results]
+      results = [(txt + result[len(tweaked_txt):], value) for result, value in results]
     # pylint:disable=unidiomatic-typecheck
-    results.sort(key=lambda r: r[0] if type(r) == tuple else r)
+    results.sort(key=lambda r: r[0][0] if type(r[0]) == tuple else r[0])
     return results
 
   def _get_undo_checkpoint(self):
