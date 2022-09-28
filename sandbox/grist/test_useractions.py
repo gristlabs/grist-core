@@ -1033,8 +1033,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "green"},
       {"on_many": "all"},
       [
-        ["UpdateRecord", "Table1", 1, {"color": "green"}],
-        ["UpdateRecord", "Table1", 2, {"color": "green"}],
+        ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["green", "green"]}],
       ],
     )
 
@@ -1044,8 +1043,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "greener"},
       {"on_many": "all", "allow_empty_require": True},
       [
-        ["UpdateRecord", "Table1", 1, {"color": "greener"}],
-        ["UpdateRecord", "Table1", 2, {"color": "greener"}],
+        ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["greener", "greener"]}],
       ],
     )
 
@@ -1157,6 +1155,128 @@ class TestUserActions(test_engine.EngineTestCase):
       {"date": ['d', 1900800]},
       {},
       [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
+    )
+
+    # Empty both does nothing
+    check(
+      {},
+      {},
+      {"allow_empty_require": True},
+      [],
+    )
+
+  def test_bulk_add_or_update(self):
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          [1, "first_name", "Text", False, "",     "first_name", ""],
+          [2, "last_name",  "Text", False, "",     "last_name",  ""],
+          [4, "color",      "Text", False, "",     "color",      ""],
+        ]],
+      ],
+      "DATA": {
+        "Table1": [
+          ["id", "first_name", "last_name"],
+          [1, "John", "Doe"],
+          [2, "John", "Smith"],
+        ],
+      }
+    })
+    self.load_sample(sample)
+
+    def check(require, values, options, stored):
+      self.assertPartialOutActions(
+        self.apply_user_action(["BulkAddOrUpdateRecord", "Table1", require, values, options]),
+        {"stored": stored},
+      )
+
+    check(
+      {
+        "first_name": [
+        "John",
+        "John",
+        "John",
+        "Bob",
+      ],
+      "last_name": [
+        "Doe",
+        "Smith",
+        "Johnson",
+        "Johnson",
+      ],
+      },
+      {
+        "color": [
+          "red",
+          "blue",
+          "green",
+          "yellow",
+        ],
+      },
+      {},
+      [
+        ["BulkAddRecord", "Table1", [3, 4], {
+          "color": ["green", "yellow"],
+          "first_name": ["John", "Bob"],
+          "last_name": ["Johnson", "Johnson"],
+        }],
+        ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["red", "blue"]}],
+      ],
+    )
+
+    with self.assertRaises(ValueError) as cm:
+      check(
+        {"color": ["yellow"]},
+        {"color": ["red", "blue", "green"]},
+        {},
+        [],
+      )
+    self.assertEqual(
+      str(cm.exception),
+      'Value lists must all have the same length, '
+      'got {"col_values color": 3, "require color": 1}',
+    )
+
+    with self.assertRaises(ValueError) as cm:
+      check(
+        {
+          "first_name": [
+            "John",
+            "John",
+          ],
+          "last_name": [
+            "Doe",
+          ],
+        },
+        {},
+        {},
+        [],
+      )
+    self.assertEqual(
+      str(cm.exception),
+      'Value lists must all have the same length, '
+      'got {"require first_name": 2, "require last_name": 1}',
+    )
+
+    with self.assertRaises(ValueError) as cm:
+      check(
+        {
+          "first_name": [
+            "John",
+            "John",
+          ],
+          "last_name": [
+            "Doe",
+            "Doe",
+          ],
+        },
+        {},
+        {},
+        [],
+      )
+    self.assertEqual(
+      str(cm.exception),
+      "require values must be unique",
     )
 
   def test_reference_lookup(self):

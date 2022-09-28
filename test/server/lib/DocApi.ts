@@ -1029,6 +1029,24 @@ function testDocApi() {
         {id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0]},
       );
 
+      // Test bulk case with a mixture of record shapes
+      await check([
+          {
+            require: {A: 1},
+            fields: {A: 111},
+          },
+          {
+            require: {A: 33},
+            fields: {A: 222, B: 444},
+          },
+          {
+            require: {id: 3},
+            fields: {A: 555, B: 666},
+          },
+        ],
+        {id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0]},
+      );
+
       // allow_empty_require option with empty `require` updates all records
       await check([
           {

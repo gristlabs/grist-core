@@ -77,6 +77,10 @@ function isAclTable(tableId: string): boolean {
   return ['_grist_ACLRules', '_grist_ACLResources'].includes(tableId);
 }
 
+function isAddOrUpdateRecordAction(a: UserAction): boolean {
+  return ['AddOrUpdateRecord', 'BulkAddOrUpdateRecord'].includes(String(a[0]));
+}
+
 // A list of key metadata tables that need special handling.  Other metadata tables may
 // refer to material in some of these tables but don't need special handling.
 // TODO: there are other metadata tables that would need access control, or redesign -
@@ -128,8 +132,9 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
   'BulkRemoveRecord',
   'ReplaceTableData',
 
-  // A data action handled specially because of read needs.
+  // Data actions handled specially because of read needs.
   'AddOrUpdateRecord',
+  'BulkAddOrUpdateRecord',
 
   // Groups of actions.
   'ApplyDocActions',
@@ -979,21 +984,22 @@ export class GranularAccess implements GranularAccessForBundle {
   // way to do that within the data engine as currently
   // formulated. Could perhaps be done for on-demand tables though.
   private async _checkAddOrUpdateAccess(docSession: OptDocSession, actions: UserAction[]) {
-    if (!scanActionsRecursively(actions, (a) => a[0] === 'AddOrUpdateRecord')) {
+    if (!scanActionsRecursively(actions, isAddOrUpdateRecordAction)) {
       // Don't need to apply this particular check.
       return;
     }
     // Fail if being combined with anything fancy.
     if (scanActionsRecursively(actions, (a) => {
       const name = a[0];
-      return !['ApplyUndoActions', 'ApplyDocActions', 'AddOrUpdateRecord'].includes(String(name)) &&
+      return !['ApplyUndoActions', 'ApplyDocActions'].includes(String(name)) &&
+        !isAddOrUpdateRecordAction(a) &&
         !(isDataAction(a) && !getTableId(a).startsWith('_grist_'));
     })) {
       throw new Error('Can only combine AddOrUpdate with simple data changes');
     }
     // Check for read access, and that we're not touching metadata.
     await applyToActionsRecursively(actions, async (a) => {
-      if (a[0] !== 'AddOrUpdateRecord') { return; }
+      if (!isAddOrUpdateRecordAction(a)) { return; }
       const tableId = validTableIdString(a[1]);
       if (tableId.startsWith('_grist_')) {
         throw new Error(`AddOrUpdate cannot yet be used on metadata tables`);

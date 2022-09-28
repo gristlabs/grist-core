@@ -355,6 +355,10 @@ export function parseUserAction(ua: UserAction, docData: DocData): UserAction {
       ua = _parseUserActionColValues(ua, docData, false, 2);
       ua = _parseUserActionColValues(ua, docData, false, 3);
       return ua;
+    case 'BulkAddOrUpdateRecord':
+      ua = _parseUserActionColValues(ua, docData, true, 2);
+      ua = _parseUserActionColValues(ua, docData, true, 3);
+      return ua;
     default:
       return ua;
   }

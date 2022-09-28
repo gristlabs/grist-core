@@ -918,14 +918,15 @@ class UserActions(object):
       return values
 
   @useraction
-  def AddOrUpdateRecord(self, table_id, require, col_values, options):
+  def BulkAddOrUpdateRecord(self, table_id, require, col_values, options):
     """
-    Add or Update ('upsert') a single record depending on `options`
-    and on whether a record matching `require` already exists.
+    Add or Update ('upsert') records depending on `options`
+    and on whether records matching `require` already exist.
 
-    `require` and `col_values` are dictionaries mapping column IDs to single cell values.
+    `require` and `col_values` are dictionaries mapping column IDs to lists of cell values.
+    All lists across both dictionaries must have the same length.
 
-    By default, if `table.lookupRecords(**require)` returns any records,
+    By default, for a single record, if `table.lookupRecords(**require)` returns any records,
     update the first one with the values in `col_values`.
     Otherwise create a new record with values `{**require, **col_values}`.
 
@@ -940,39 +941,97 @@ class UserActions(object):
     """
     table = self._engine.tables[table_id]
 
-    if not require and not options.get("allow_empty_require", False):
+    update = options.get("update", True)
+    add = options.get("add", True)
+
+    on_many = options.get("on_many", "first")
+    if on_many not in ("first", "none", "all"):
+      raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
+
+    allow_empty_require = options.get("allow_empty_require", False)
+    if not require and not allow_empty_require:
       raise ValueError("require is empty but allow_empty_require isn't set")
 
-    # Decode `require` before looking up, but let AddRecord/UpdateRecord decode the final
-    # values when adding/updating
-    decoded_require = {k: decode_object(v) for k, v in six.iteritems(require)}
-    records = list(table.lookup_records(**decoded_require))
+    if not require and not col_values:
+      return  # nothing to do
 
-    if records and options.get("update", True):
-      if len(records) > 1:
-        on_many = options.get("on_many", "first")
-        if on_many == "first":
-          records = records[:1]
-        elif on_many == "none":
-          return
-        elif on_many != "all":
-          raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
+    lengths = {}
+    lengths.update({'require ' + k:
+                      len(v) for k, v in six.iteritems(require)})
+    lengths.update({'col_values ' + k:
+                      len(v) for k, v in six.iteritems(col_values)})
+    unique_lengths = set(lengths.values())
+    if len(unique_lengths) != 1:
+      raise ValueError("Value lists must all have the same length, got %s" %
+                       json.dumps(lengths, sort_keys=True))
+    [length] = unique_lengths
 
-      for record in records:
-        self.UpdateRecord(table_id, record.id, col_values)
+    decoded_require = actions.decode_bulk_values(require)
+    num_unique_keys = len(set(zip(*decoded_require.values())))
+    if require and num_unique_keys < length:
+      raise ValueError("require values must be unique")
 
-    if not records and options.get("add", True):
-      values = {
-        key: value
-        for key, value in six.iteritems(require)
-        if not (
+    # Column IDs in `require` that can be used to set values when creating new records,
+    # i.e. not formula columns that don't allow setting values.
+    # `col_values` is not checked for this because setting such a column there should raise an error
+    # This doesn't apply to `require` since it's also used to match existing records.
+    require_add_keys = {
+      key for key in require
+      if not (
           table.get_column(key).is_formula() and
           # Check that there actually is a formula and this isn't just an empty column
           self._engine.docmodel.get_column_rec(table_id, key).formula
-        )
-      }
-      values.update(col_values)
-      self.AddRecord(table_id, values.pop("id", None), values)
+      )
+    }
+    col_keys = set(col_values.keys())
+
+    # Arguments for `BulkAddRecord` and `BulkUpdateRecord` below
+    add_record_ids = []
+    add_record_values = {k: [] for k in col_keys | require_add_keys - {'id'}}
+    update_record_ids = []
+    update_record_values = {k: [] for k in col_keys - {'id'}}
+
+    for i in range(length):
+      current_require = {key: vals[i] for key, vals in six.iteritems(decoded_require)}
+      records = list(table.lookup_records(**current_require))
+      if not records and add:
+        values = {key: require[key][i] for key in require_add_keys}
+        values.update({key: vals[i] for key, vals in six.iteritems(col_values)})
+        add_record_ids.append(values.pop("id", None))
+        for key, value in six.iteritems(values):
+          add_record_values[key].append(value)
+
+      if records and update:
+        if len(records) > 1:
+          if on_many == "first":
+            records = records[:1]
+          elif on_many == "none":
+            continue
+
+        for record in records:
+          update_record_ids.append(record.id)
+          for key, vals in six.iteritems(col_values):
+            update_record_values[key].append(vals[i])
+
+    if add_record_ids:
+      self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+
+    if update_record_ids:
+      self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
+
+  @useraction
+  def AddOrUpdateRecord(self, table_id, require, col_values, options):
+    """
+    Add or Update ('upsert') a record depending on `options`
+    and on whether a record matching `require` already exists.
+
+    `require` and `col_values` are dictionaries mapping column IDs to cell values.
+
+    See `BulkAddOrUpdateRecord` for more details.
+    """
+    require = {k: [v] for k, v in six.iteritems(require)}
+    col_values = {k: [v] for k, v in six.iteritems(col_values)}
+    self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
 
   #----------------------------------------
   # RemoveRecords & co.
