@@ -14,6 +14,7 @@ import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import fetch from 'node-fetch';
 import {createClient, Multi, RedisClient} from 'redis';
+import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 
 promisifyAll(RedisClient.prototype);
 
@@ -550,6 +551,6 @@ export function isUrlAllowed(urlString: string) {
   }
 
   return (process.env.ALLOWED_WEBHOOK_DOMAINS || "").split(",").some(domain =>
-    domain && url.host.endsWith(domain)
+    domain && matchesBaseDomain(url.host, domain)
   );
 }

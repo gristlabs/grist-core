@@ -9,6 +9,7 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
 import {URL} from 'url';
+import _ from 'lodash';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
 const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
@@ -85,7 +86,7 @@ export function trustOrigin(req: Request, resp: Response): boolean {
   const origin = req.get('origin');
   if (!origin) { return true; } // Not a CORS request.
   if (process.env.GRIST_HOST && req.hostname === process.env.GRIST_HOST) { return true; }
-  if (!allowHost(req, new URL(origin))) { return false; }
+  if (!allowHost(req, new URL(origin)) && !isEnvironmentAllowedHost(new URL(origin))) { return false; }
 
   // For a request to a custom domain, the full hostname must match.
   resp.header("Access-Control-Allow-Origin", origin);
@@ -102,13 +103,24 @@ export function allowHost(req: Request, allowedHost: string|URL) {
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
   if (mreq.isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
-    return actualUrl.hostname === allowedUrl.hostname;
+  return actualUrl.hostname === allowedUrl.hostname;
   } else {
     // For requests to a native subdomains, only the base domain needs to match.
     const allowedDomain = parseSubdomain(allowedUrl.hostname);
     const actualDomain = parseSubdomain(actualUrl.hostname);
-    return (actualDomain.base === allowedDomain.base);
+    return (!_.isEmpty(actualDomain) ? actualDomain.base === allowedDomain.base : allowedUrl.hostname === actualUrl.hostname);
   }
+}
+
+export function matchesBaseDomain(domain: string, baseDomain: string) {
+  return domain === baseDomain || domain.endsWith("." + baseDomain);
+}
+
+export function isEnvironmentAllowedHost(url: string|URL) {
+  const urlHost = (typeof url === 'string') ? url : url.host;
+  return (process.env.GRIST_ALLOWED_HOSTS || "").split(",").some(domain =>
+    domain && matchesBaseDomain(urlHost, domain)
+  );
 }
 
 export function isParameterOn(parameter: any): boolean {
