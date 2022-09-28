@@ -3,6 +3,7 @@ import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
+import {duplicateTable, DuplicateTableResponse} from 'app/client/ui/DuplicateTable';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {buildTableName} from 'app/client/ui/WidgetTitle';
 import * as css from 'app/client/ui2018/cssVars';
@@ -122,6 +123,16 @@ export class DataTables extends Disposable {
     const {isReadonly, docModel} = this._gristDoc;
     return [
       menuItem(
+        () => this._duplicateTable(table),
+        'Duplicate Table',
+        testId('menu-duplicate-table'),
+        dom.cls('disabled', use =>
+          use(isReadonly) ||
+          use(table.isHidden) ||
+          use(table.summarySourceTable) !== 0
+        ),
+      ),
+      menuItem(
         () => this._removeTable(table),
         'Remove',
         testId('menu-remove'),
@@ -132,6 +143,13 @@ export class DataTables extends Disposable {
       ),
       dom.maybe(isReadonly, () => menuText('You do not have edit access to this document')),
     ];
+  }
+
+  private _duplicateTable(t: TableRec) {
+    duplicateTable(this._gristDoc, t.tableId(), {
+      onSuccess: ({raw_section_id}: DuplicateTableResponse) =>
+        this._gristDoc.viewModel.activeSectionId(raw_section_id),
+    });
   }
 
   private _removeTable(t: TableRec) {

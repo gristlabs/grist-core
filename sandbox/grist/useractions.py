@@ -1694,7 +1694,14 @@ class UserActions(object):
   @useraction
   def AddEmptyRule(self, table_id, field_ref, col_ref):
     """
-    Adds empty conditional style rule to a field or column.
+    Adds an empty conditional style rule to a field, column, or raw view section.
+    """
+    self.doAddRule(table_id, field_ref, col_ref)
+
+
+  def doAddRule(self, table_id, field_ref, col_ref, formula=''):
+    """
+    Adds a conditional style rule to a field, column, or raw view section.
     """
     assert table_id, "table_id is required"
 
@@ -1711,7 +1718,7 @@ class UserActions(object):
     col_info = self.AddHiddenColumn(table_id, col_name, {
       "type": "Any",
       "isFormula": True,
-      "formula": ''
+      "formula": formula
     })
     new_rule = col_info['colRef']
     existing_rules = rule_owner.rules._get_encodable_row_ids() if rule_owner.rules else []
@@ -1844,6 +1851,98 @@ class UserActions(object):
     table_rec = self._docmodel.get_table_rec(old_table_id)
     self._docmodel.update([table_rec], tableId=new_table_id)
     return table_rec.tableId
+
+
+  @useraction
+  def DuplicateTable(self, existing_table_id, new_table_id, include_data=False):
+    if is_hidden_table(existing_table_id):
+      raise ValueError('Cannot duplicate a hidden table')
+
+    existing_table = self._docmodel.get_table_rec(existing_table_id)
+    if existing_table.summarySourceTable:
+      raise ValueError('Cannot duplicate a summary table')
+
+    # Copy the columns from the raw view section to a new table.
+    raw_section = existing_table.rawViewSectionRef
+    raw_section_cols = [f.colRef for f in raw_section.fields]
+    col_info = [summary.make_col_info(col=c) for c in raw_section_cols]
+    columns = [summary.get_colinfo_dict(ci, with_id=True) for ci in col_info]
+    result = self.doAddTable(
+      new_table_id,
+      columns,
+      manual_sort=True,
+      primary_view=False,
+      raw_section=True,
+    )
+
+    new_table_id = result['table_id']
+    new_raw_section = self._docmodel.get_table_rec(new_table_id).rawViewSectionRef
+
+    # Copy view section options to the new raw view section.
+    self._docmodel.update([new_raw_section], options=raw_section.options)
+
+    old_to_new_col_refs = {}
+    for existing_field, new_field in zip(raw_section.fields, new_raw_section.fields):
+      old_to_new_col_refs[existing_field.colRef.id] = new_field.colRef
+
+    formula_updates = self._prepare_formula_renames({(existing_table_id, None): new_table_id})
+
+    for existing_field, new_field in zip(raw_section.fields, new_raw_section.fields):
+      existing_column = existing_field.colRef
+      new_column = new_field.colRef
+
+      new_type = existing_column.type
+      new_visible_col = existing_column.visibleCol
+      if new_type.startswith('Ref'):
+        # If this is a self-reference column, point it to the new table.
+        prefix, ref_table_id = new_type.split(':')[:2]
+        if ref_table_id == existing_table_id:
+          new_type = prefix + ':' + new_table_id
+          new_visible_col = old_to_new_col_refs.get(new_visible_col.id, 0)
+
+      new_recalc_deps = existing_column.recalcDeps
+      if new_recalc_deps:
+        new_recalc_deps = [encode_object([old_to_new_col_refs[colRef.id].id
+          for colRef in new_recalc_deps])]
+
+      # Copy column settings to the new columns.
+      self._docmodel.update(
+        [new_column],
+        type=new_type,
+        visibleCol=new_visible_col,
+        untieColIdFromLabel=existing_column.untieColIdFromLabel,
+        recalcWhen=existing_column.recalcWhen,
+        recalcDeps=new_recalc_deps,
+        formula=formula_updates.get(new_column, existing_column.formula),
+      )
+      self.maybe_copy_display_formula(existing_column, new_column)
+
+      # Copy field settings to the new fields.
+      self._docmodel.update(
+        [new_field],
+        parentPos=existing_field.parentPos,
+        width=existing_field.width,
+      )
+
+      if existing_column.rules:
+        # Copy all column conditional styles to the new table.
+        for rule in existing_column.rules:
+          self.doAddRule(new_table_id, None, new_column.id, rule.formula)
+
+    # Copy all row conditional styles to the new table.
+    for rule in raw_section.rules:
+      self.doAddRule(new_table_id, None, None, rule.formula)
+
+    # If requested, copy all data from the original table to the new table.
+    if include_data:
+      data = self._engine.fetch_table(existing_table_id, formulas=False)
+      self.doBulkAddOrReplace(new_table_id, data.row_ids, data.columns, replace=True)
+
+    return {
+      'id': result['id'],
+      'table_id': new_table_id,
+      'raw_section_id': new_raw_section.id,
+    }
 
 
   def _fetch_table_col_recs(self, table_ref, col_refs):

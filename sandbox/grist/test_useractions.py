@@ -6,6 +6,7 @@ import useractions
 import testutil
 import test_engine
 from test_engine import Table, Column, View, Section, Field
+from schema import RecalcWhen
 
 log = logger.Logger(__name__, logger.INFO)
 
@@ -1497,3 +1498,137 @@ class TestUserActions(test_engine.EngineTestCase):
     finally:
       # Revert the monkeypatch
       datetime.datetime = original
+
+  def test_duplicate_table(self):
+    self.load_sample(self.sample)
+
+    # Create a new table, Table1, and populate it with some data.
+    self.apply_user_action(['AddEmptyTable', None])
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'formula': '$B * 100 + len(Table1.all)',
+    }])
+    self.add_column('Table1', 'E',
+      type='DateTime:UTC', isFormula=False, formula="NOW()", recalcWhen=RecalcWhen.MANUAL_UPDATES)
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'type': 'Ref:Address',
+      'visibleCol': 21,
+    }])
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'type': 'Ref:Table1',
+      'visibleCol': 23,
+    }])
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'type': 'RefList:Table1',
+      'visibleCol': 23,
+    }])
+    self.apply_user_action(['BulkAddRecord', 'Table1', [1, 2, 3, 4], {
+      'A': ['Foo', 'Bar', 'Baz', ''],
+      'B': [123, 456, 789, 0],
+      'C': ['', '', '', ''],
+      'F': [11, 12, 0, 0],
+      'G': [1, 2, 0, 0],
+      'H': [['L', 1, 2], ['L', 1], None, None],
+    }])
+
+    # Add a row conditional style.
+    self.apply_user_action(['AddEmptyRule', 'Table1', 0, 0])
+    rules = self.engine.docmodel.tables.lookupOne(tableId='Table1').rawViewSectionRef.rules
+    rule = list(rules)[0]
+    self.apply_user_action(['UpdateRecord', '_grist_Tables_column', rule.id, {
+      'formula': 'rec.id % 2 == 0',
+    }])
+
+    # Add a column conditional style.
+    self.apply_user_action(['AddEmptyRule', 'Table1', 0, 23])
+    rules = self.engine.docmodel.columns.table.get_record(23).rules
+    rule = list(rules)[0]
+    self.apply_user_action(['UpdateRecord', '_grist_Tables_column', rule.id, {
+      'formula': '$A == "Foo"',
+    }])
+
+    # Duplicate Table1 as Foo without including any of its data.
+    self.apply_user_action(['DuplicateTable', 'Table1', 'Foo', False])
+
+    # Check that the correct table and options were duplicated.
+    existing_table = Table(2, 'Table1', primaryViewId=1, summarySourceTable=0, columns=[
+      Column(22, 'manualSort', 'ManualSortPos', isFormula=False, formula='', summarySourceCol=0),
+      Column(23, 'A', 'Text', isFormula=False, formula='', summarySourceCol=0),
+      Column(24, 'B', 'Numeric', isFormula=False, formula='', summarySourceCol=0),
+      Column(25, 'C', 'Any', isFormula=True, formula='', summarySourceCol=0),
+      Column(26, 'D', 'Any', isFormula=True, formula='$B * 100 + len(Table1.all)',
+        summarySourceCol=0),
+      Column(27, 'E', 'DateTime:UTC', isFormula=False, formula='NOW()',
+        summarySourceCol=0),
+      Column(28, 'F', 'Ref:Address', isFormula=False, formula='', summarySourceCol=0),
+      Column(29, 'G', 'Ref:Table1', isFormula=False, formula='', summarySourceCol=0),
+      Column(30, 'H', 'RefList:Table1', isFormula=False, formula='', summarySourceCol=0),
+      Column(31, 'gristHelper_RowConditionalRule', 'Any', isFormula=True,
+        formula='rec.id % 2 == 0', summarySourceCol=0),
+      Column(32, 'gristHelper_ConditionalRule', 'Any', isFormula=True, formula='$A == \"Foo\"',
+        summarySourceCol=0),
+    ])
+    duplicated_table = Table(3, 'Foo', primaryViewId=0, summarySourceTable=0, columns=[
+      Column(33, 'manualSort', 'ManualSortPos', isFormula=False, formula='', summarySourceCol=0),
+      Column(34, 'A', 'Text', isFormula=False, formula='', summarySourceCol=0),
+      Column(35, 'B', 'Numeric', isFormula=False, formula='', summarySourceCol=0),
+      Column(36, 'C', 'Any', isFormula=True, formula='', summarySourceCol=0),
+      Column(37, 'D', 'Any', isFormula=True, formula='$B * 100 + len(Foo.all)',
+        summarySourceCol=0),
+      Column(38, 'E', 'DateTime:UTC', isFormula=False, formula='NOW()',
+        summarySourceCol=0),
+      Column(39, 'F', 'Ref:Address', isFormula=False, formula='', summarySourceCol=0),
+      Column(40, 'G', 'Ref:Foo', isFormula=False, formula='', summarySourceCol=0),
+      Column(41, 'H', 'RefList:Foo', isFormula=False, formula='', summarySourceCol=0),
+      Column(42, 'gristHelper_ConditionalRule', 'Any', isFormula=True, formula='$A == \"Foo\"',
+        summarySourceCol=0),
+      Column(43, 'gristHelper_RowConditionalRule', 'Any', isFormula=True,
+        formula='rec.id % 2 == 0', summarySourceCol=0),
+    ])
+    self.assertTables([self.starting_table, existing_table, duplicated_table])
+    self.assertTableData('Foo', data=[
+      ["id", "A", "B", "C", "D", "E", "F", "G", "H", "gristHelper_ConditionalRule",
+        "gristHelper_RowConditionalRule", "manualSort"],
+    ])
+
+    # Duplicate Table1 as FooData and include all of its data.
+    self.apply_user_action(['DuplicateTable', 'Table1', 'FooData', True])
+
+    # Check that the correct table, options, and data were duplicated.
+    duplicated_table_with_data = Table(4, 'FooData', primaryViewId=0, summarySourceTable=0,
+      columns=[
+        Column(44, 'manualSort', 'ManualSortPos', isFormula=False, formula='', summarySourceCol=0),
+        Column(45, 'A', 'Text', isFormula=False, formula='', summarySourceCol=0),
+        Column(46, 'B', 'Numeric', isFormula=False, formula='', summarySourceCol=0),
+        Column(47, 'C', 'Any', isFormula=True, formula='', summarySourceCol=0),
+        Column(48, 'D', 'Any', isFormula=True, formula='$B * 100 + len(FooData.all)',
+          summarySourceCol=0),
+        Column(49, 'E', 'DateTime:UTC', isFormula=False, formula='NOW()',
+          summarySourceCol=0),
+        Column(50, 'F', 'Ref:Address', isFormula=False, formula='', summarySourceCol=0),
+        Column(51, 'G', 'Ref:FooData', isFormula=False, formula='', summarySourceCol=0),
+        Column(52, 'H', 'RefList:FooData', isFormula=False, formula='', summarySourceCol=0),
+        Column(53, 'gristHelper_ConditionalRule', 'Any', isFormula=True, formula='$A == \"Foo\"',
+          summarySourceCol=0),
+        Column(54, 'gristHelper_RowConditionalRule', 'Any', isFormula=True,
+          formula='rec.id % 2 == 0', summarySourceCol=0),
+      ]
+    )
+    self.assertTables([
+      self.starting_table, existing_table, duplicated_table, duplicated_table_with_data])
+    self.assertTableData('Foo', data=[
+      ["id", "A", "B", "C", "D", "E", "F", "G", "H", "gristHelper_ConditionalRule",
+        "gristHelper_RowConditionalRule", "manualSort"],
+    ], rows="subset")
+    self.assertTableData('FooData', data=[
+      ["id", "A", "B", "C", "D", "F", "G", "H", "gristHelper_ConditionalRule",
+        "gristHelper_RowConditionalRule", "manualSort"],
+      [1, 'Foo', 123, None, 12304.0, 11, 1, [1, 2], True, False, 1.0],
+      [2, 'Bar', 456, None, 45604.0, 12, 2, [1], False, True, 2.0],
+      [3, 'Baz', 789, None, 78904.0, 0, 0, None, False, False, 3.0],
+      [4, '', 0, None, 4.0, 0, 0, None, False, True, 4.0],
+    ], cols="subset")
+
+    # Check that values for the duplicated trigger formula were not re-calculated.
+    existing_times = self.engine.fetch_table('Table1').columns['E']
+    duplicated_times = self.engine.fetch_table('FooData').columns['E']
+    self.assertEqual(existing_times, duplicated_times)

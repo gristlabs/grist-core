@@ -77,8 +77,10 @@ function isAclTable(tableId: string): boolean {
   return ['_grist_ACLRules', '_grist_ACLResources'].includes(tableId);
 }
 
-function isAddOrUpdateRecordAction(a: UserAction): boolean {
-  return ['AddOrUpdateRecord', 'BulkAddOrUpdateRecord'].includes(String(a[0]));
+const ADD_OR_UPDATE_RECORD_ACTIONS = ['AddOrUpdateRecord', 'BulkAddOrUpdateRecord'];
+
+function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
+  return ADD_OR_UPDATE_RECORD_ACTIONS.includes(String(actionName));
 }
 
 // A list of key metadata tables that need special handling.  Other metadata tables may
@@ -153,6 +155,9 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
   'AddRawTable',
   'RemoveTable',
   'RenameTable',
+
+  // A schema action handled specially because of read needs.
+  'DuplicateTable',
 
   // Display column support.
   'SetDisplayFormula',
@@ -548,6 +553,7 @@ export class GranularAccess implements GranularAccessForBundle {
     await this._checkSimpleDataActions(docSession, actions);
     await this._checkForSpecialOrSurprisingActions(docSession, actions);
     await this._checkPossiblePythonFormulaModification(docSession, actions);
+    await this._checkDuplicateTableAccess(docSession, actions);
     await this._checkAddOrUpdateAccess(docSession, actions);
   }
 
@@ -988,26 +994,35 @@ export class GranularAccess implements GranularAccessForBundle {
       // Don't need to apply this particular check.
       return;
     }
-    // Fail if being combined with anything fancy.
-    if (scanActionsRecursively(actions, (a) => {
-      const name = a[0];
-      return !['ApplyUndoActions', 'ApplyDocActions'].includes(String(name)) &&
-        !isAddOrUpdateRecordAction(a) &&
-        !(isDataAction(a) && !getTableId(a).startsWith('_grist_'));
-    })) {
-      throw new Error('Can only combine AddOrUpdate with simple data changes');
-    }
+
+    await this._assertOnlyBundledWithSimpleDataActions(ADD_OR_UPDATE_RECORD_ACTIONS, actions);
+
     // Check for read access, and that we're not touching metadata.
     await applyToActionsRecursively(actions, async (a) => {
       if (!isAddOrUpdateRecordAction(a)) { return; }
+      const actionName = String(a[0]);
       const tableId = validTableIdString(a[1]);
       if (tableId.startsWith('_grist_')) {
-        throw new Error(`AddOrUpdate cannot yet be used on metadata tables`);
+        throw new Error(`${actionName} cannot yet be used on metadata tables`);
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
       accessChecks.fatal.read.throwIfNotFullyAllowed(tableAccess);
       accessChecks.fatal.update.throwIfDenied(tableAccess);
       accessChecks.fatal.create.throwIfDenied(tableAccess);
+    });
+  }
+
+  /**
+   * Asserts that `actionNames` (if present in `actions`) are only bundled with simple data actions.
+   */
+  private async _assertOnlyBundledWithSimpleDataActions(actionNames: string | string[], actions: UserAction[]) {
+    const names = Array.isArray(actionNames) ? actionNames : [actionNames];
+    // Fail if being combined with anything that isn't a simple data action.
+    await applyToActionsRecursively(actions, async (a) => {
+      const name = String(a[0]);
+      if (!names.includes(name) && !(isDataAction(a) && !getTableId(a).startsWith('_grist_'))) {
+        throw new Error(`Can only combine ${names.join(' and ')} with simple data changes`);
+      }
     });
   }
 
@@ -1020,6 +1035,48 @@ export class GranularAccess implements GranularAccessForBundle {
     if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
       await this._assertSchemaAccess(docSession);
     }
+  }
+
+  /**
+   * Like `_checkAddOrUpdateAccess`, but for DuplicateTable actions.
+   *
+   * Permitted only when a user has full access, or full table read and schema edit
+   * access for the table being duplicated.
+   *
+   * Currently, DuplicateTable cannot be combined with other action types, including
+   * simple data actions. This may be relaxed in the future, but should only be done
+   * after careful consideration of its implications.
+   */
+  private async _checkDuplicateTableAccess(docSession: OptDocSession, actions: UserAction[]) {
+    if (!scanActionsRecursively(actions, ([actionName]) => String(actionName) === 'DuplicateTable')) {
+      // Don't need to apply this particular check.
+      return;
+    }
+
+    // Fail if being combined with another action.
+    await applyToActionsRecursively(actions, async ([actionName]) => {
+      if (String(actionName) !== 'DuplicateTable') {
+        throw new Error('DuplicateTable currently cannot be combined with other actions');
+      }
+    });
+
+    // Check for read and schema edit access, and that we're not duplicating metadata tables.
+    await applyToActionsRecursively(actions, async (a) => {
+      const tableId = validTableIdString(a[1]);
+      if (tableId.startsWith('_grist_')) {
+        throw new Error('DuplicateTable cannot be used on metadata tables');
+      }
+      if (await this.hasFullAccess(docSession)) { return; }
+
+      const tableAccess = await this.getTableAccess(docSession, tableId);
+      accessChecks.fatal.read.throwIfNotFullyAllowed(tableAccess);
+      accessChecks.fatal.schemaEdit.throwIfDenied(tableAccess);
+
+      const includeData = a[3];
+      if (includeData) {
+        accessChecks.fatal.create.throwIfDenied(tableAccess);
+      }
+    });
   }
 
   /**
