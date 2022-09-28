@@ -4,7 +4,6 @@ and returns a object formatted so that it can be used by grist for a bulk add re
 """
 import logging
 
-import messytables
 import six
 import openpyxl
 from openpyxl.utils.datetime import from_excel
@@ -66,15 +65,10 @@ def parse_open_file(file_obj):
       # `if not any(row)` would be slightly faster, but would count `0` as empty.
       if not set(row) <= {None, ""}
     ]
-    sample = [
-      # Create messytables.Cells for the sake of messytables.headers_guess
-      [messytables.Cell(cell) for cell in row]
-      # Resetting dimensions via openpyxl causes rows to not be padded. Make sure
-      # sample rows are padded; get_table_data will handle padding the rest.
-      for row in _with_padding(rows[:1000])
-    ]
-    offset, headers = messytables.headers_guess(sample)
-    data_offset = offset + 1  # Add the header line
+    # Resetting dimensions via openpyxl causes rows to not be padded. Make sure
+    # sample rows are padded; get_table_data will handle padding the rest.
+    sample = _with_padding(rows[:1000])
+    data_offset, headers = import_utils.headers_guess(sample)
     rows = rows[data_offset:]
 
     # Make sure all header values are strings.

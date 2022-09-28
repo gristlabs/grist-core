@@ -13,6 +13,8 @@ def _get_fixture(filename):
 
 class TestImportXLS(unittest.TestCase):
 
+  maxDiff = None  # Display full diff if any.
+
   def _check_col(self, sheet, index, name, typename, values):
     self.assertEqual(sheet["column_metadata"][index]["id"], name)
     self.assertEqual(sheet["column_metadata"][index]["type"], typename)
@@ -103,17 +105,17 @@ class TestImportXLS(unittest.TestCase):
       'table_name': u'Transaction Report',
       'column_metadata': [
         {'type': 'Any', 'id': u''},
-        {'type': 'Numeric', 'id': u'Start'},
+        {'type': 'Any', 'id': u''},
         {'type': 'Numeric', 'id': u''},
         {'type': 'Numeric', 'id': u''},
-        {'type': 'Any', 'id': u'Seek no easy ways'},
+        {'type': 'Any', 'id': u''},
       ],
       'table_data': [
-        [u'SINGLE MERGED', u'The End'],
-        [1637384.52, None],
-        [2444344.06, None],
-        [2444344.06, None],
-        [u'', u''],
+        ['', u'SINGLE MERGED', u'The End'],
+        ['Start', '1637384.52', ''],
+        [None, 2444344.06, None],
+        [None, 2444344.06, None],
+        ['Seek no easy ways', u'', u''],
       ],
     }])
 
