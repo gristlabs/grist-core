@@ -4,6 +4,7 @@ Helper functions for import plugins
 import itertools
 import logging
 import os
+from collections import defaultdict
 
 import six
 from six.moves import zip
@@ -13,6 +14,20 @@ if six.PY2:
 
 
 log = logging.getLogger(__name__)
+
+def column_count_modal(rows):
+  """ Return the modal value of columns in the row_set's
+  sample. This can be assumed to be the number of columns
+  of the table. """
+  counts = defaultdict(int)
+  for row in rows:
+    length = len([c for c in row if not empty(c)])
+    if length > 1:
+      counts[length] += 1
+  if not len(counts):
+    return 0
+  return max(list(counts.items()), key=lambda k_v: k_v[1])[0]
+
 
 
 def empty(value):
@@ -33,7 +48,7 @@ def capitalize(word):
   return word[0].capitalize() + word[1:]
 
 def _is_numeric(text):
-  for t in six.integer_types + (float, complex):
+  for t in six.integer_types + (float,):
     try:
       t(text)
       return True
@@ -54,7 +69,6 @@ def _is_header(header, data_rows):
 
   # If it's all text, see if the values in the first row repeat in other rows. That's uncommon for
   # a header.
-  count_repeats = [0 for cell in header]
   for row in data_rows:
     for cell, header_cell in zip(row, header):
       if cell and cell == header_cell:
@@ -78,8 +92,11 @@ def find_first_non_empty_row(rows):
   Returns (data_offset, header) of the first row with non-empty fields
   or (0, []) if there are no non-empty rows.
   """
+  tolerance = 1
+  modal = column_count_modal(rows)
   for i, row in enumerate(rows):
-    if _count_nonempty(row) > 0:
+    length = _count_nonempty(row)
+    if length >= modal - tolerance:
       return i + 1, row
   # No non-empty rows.
   return 0, []
