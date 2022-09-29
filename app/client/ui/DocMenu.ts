@@ -29,6 +29,7 @@ import {Document, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, dom, DomArg, DomContents, IDisposableOwner,
         makeTestId, observable, Observable} from 'grainjs';
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
+import {t} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 import sortBy = require('lodash/sortBy');
@@ -104,10 +105,10 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 null :
                 css.docListHeader(
                   (
-                    page === 'all' ? 'All Documents' :
+                    page === 'all' ? t('AllDocuments') :
                     page === 'templates' ?
                       dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                        hasFeaturedTemplates ? 'More Examples & Templates' : 'Examples & Templates'
+                        hasFeaturedTemplates ? t('MoreExamplesAndTemplates') : t('ExamplesAndTemplates')
                     ) :
                     page === 'trash' ? 'Trash' :
                     workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
@@ -267,7 +268,7 @@ function buildOtherSites(home: HomeModel) {
     return css.otherSitesBlock(
       dom.autoDispose(hideOtherSitesObs),
       css.otherSitesHeader(
-        'Other Sites',
+        t('OtherSites'),
         dom.domComputed(hideOtherSitesObs, (collapsed) =>
           collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
         ),
@@ -275,11 +276,11 @@ function buildOtherSites(home: HomeModel) {
         testId('other-sites-header'),
       ),
       dom.maybe((use) => !use(hideOtherSitesObs), () => {
-        const onPersonalSite = Boolean(home.app.currentOrg?.owner);
-        const siteName = onPersonalSite ? 'your personal site' : `the ${home.app.currentOrgName} site`;
+        const personal = Boolean(home.app.currentOrg?.owner);
+        const siteName = home.app.currentOrgName;
         return [
           dom('div',
-            `You are on ${siteName}. You also have access to the following sites:`,
+            t('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
             testId('other-sites-message')
           ),
           css.otherSitesButtons(

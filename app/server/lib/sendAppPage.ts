@@ -5,6 +5,7 @@ import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
+import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import jsesc from 'jsesc';
@@ -56,6 +57,8 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: getActivation(req as RequestWithLogin | undefined),
     enableCustomCss: process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true',
+    supportedLngs: readLoadedLngs(req?.i18n),
+    namespaces: readLoadedNamespaces(req?.i18n),
     ...extra,
   };
 }
@@ -101,12 +104,19 @@ export function makeSendAppPage(opts: {
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
     const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
+    // Preload all languages that will be used or are requested by client.
+    const preloads = req.languages.map((lng) =>
+      readLoadedNamespaces(req.i18n).map((ns) =>
+        `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`
+      ).join("\n")
+    ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getPageTitle(config))
+      .replace("<!-- INSERT TITLE -->", getPageTitle(req, config))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server?.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
+      .replace("<!-- INSERT LOCALE -->", preloads)
       .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
       .replace(
         "<!-- INSERT CONFIG -->",
@@ -142,9 +152,9 @@ function configuredPageTitleSuffix() {
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
-function getPageTitle(config: GristLoadConfig): string {
+function getPageTitle(req: express.Request, config: GristLoadConfig): string {
   const maybeDoc = getDocFromConfig(config);
-  if (!maybeDoc) { return 'Loading...'; }
+  if (!maybeDoc) { return req.t('Loading') + "..."; }
 
   return handlebars.Utils.escapeExpression(maybeDoc.name);
 }

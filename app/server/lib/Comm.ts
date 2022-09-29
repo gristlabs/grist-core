@@ -51,6 +51,7 @@ import log from 'app/server/lib/log';
 import {localeFromRequest} from 'app/server/lib/ServerLocale';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
+import {i18n} from 'i18next';
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
@@ -58,6 +59,7 @@ export interface CommOptions {
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
   httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
+  i18Instance?: i18n;           // The i18next instance to use for translations.
 }
 
 /**
@@ -229,7 +231,7 @@ export class Comm extends EventEmitter {
     let reuseClient = true;
     if (!client?.canAcceptConnection()) {
       reuseClient = false;
-      client = new Client(this, this._methods, localeFromRequest(req));
+      client = new Client(this, this._methods, localeFromRequest(req), this._options.i18Instance);
       this._clients.set(client.clientId, client);
     }
 

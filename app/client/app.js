@@ -8,6 +8,8 @@ if (window._gristAppLoaded) {
 }
 window._gristAppLoaded = true;
 
+const {setupLocale} = require('./lib/localization');
+
 const {App} = require('./ui/App');
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
@@ -28,7 +30,14 @@ $(function() {
     if (event.persisted) { window.location.reload(); }
   };
 
-  window.gristApp = App.create(null);
+  const localeSetup = setupLocale();
+  // By the time dom ready is fired, resource files should already be loaded, but
+  // if that is not the case, we will redirect to an error page by throwing an error.
+  localeSetup.then(() => {
+    window.gristApp = App.create(null);
+  }).catch(error => {
+    throw new Error(`Failed to load locale: ${error?.message || 'Unknown error'}`);
+  })
   // Set from the login tests to stub and un-stub functions during execution.
   window.loginTestSandbox = null;
 
@@ -46,4 +55,5 @@ $(function() {
         .then(() => window.exposedModules._loadScript(name));
     }
   };
+
 });

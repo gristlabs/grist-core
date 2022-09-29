@@ -16,6 +16,7 @@ import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {fromCallback} from 'app/server/lib/serverUtils';
+import {i18n} from 'i18next';
 import * as crypto from 'crypto';
 import moment from 'moment';
 import * as WebSocket from 'ws';
@@ -92,16 +93,25 @@ export class Client {
 
   // Identifier for the current GristWSConnection object connected to this client.
   private _counter: string|null = null;
+  private _i18Instance?: i18n;
 
   constructor(
     private _comm: Comm,
     private _methods: Map<string, ClientMethod>,
     private _locale: string,
+    i18Instance?: i18n,
   ) {
     this.clientId = generateClientId();
+    this._i18Instance = i18Instance?.cloneInstance({
+      lng: this._locale,
+    });
   }
 
   public toString() { return `Client ${this.clientId} #${this._counter}`; }
+
+  public t(key: string, args?: any): string {
+    return this._i18Instance?.t(key, args) ?? key;
+  }
 
   public get locale(): string|undefined {
     return this._locale;

@@ -264,6 +264,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   // Fetches and updates workspaces, which include contained docs as well.
   private async _updateWorkspaces() {
+    if (this.isDisposed()) {
+      return;
+    }
     const org = this._app.currentOrg;
     if (!org) {
       this.workspaces.set([]);
@@ -285,7 +288,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       this.loading.set("slow");
     }
     const [wss, trashWss, templateWss] = await promise;
-
+    if (this.isDisposed()) {
+      return;
+    }
     // bundleChanges defers computeds' evaluations until all changes have been applied.
     bundleChanges(() => {
       this.workspaces.set(wss || []);

@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
@@ -111,7 +112,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 function makeAnonIntro(homeModel: HomeModel) {
   const signUp = cssLink({href: getLoginOrSignupUrl()}, 'Sign up');
   return [
-    css.docListHeader(`Welcome to Grist!`, testId('welcome-title')),
+    css.docListHeader(t('Welcome'), testId('welcome-title')),
     cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
     cssIntroLine(signUp, ' to save your work.',
       (shouldHideUiElement('helpCenter') ? null : [' Visit our ', helpCenterLink(), ' to learn more.']),

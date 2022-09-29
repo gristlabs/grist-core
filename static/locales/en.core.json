@@ -1,0 +1,11 @@
+{
+  "Welcome": "Welcome to Grist!",
+  "Loading": "Loading",
+  "AddNew": "Add New",
+  "OtherSites": "Other Sites",
+  "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
+  "OtherSitesWelcome_personal": "You are on your personal site. You also have access to the following sites:",
+  "AllDocuments": "All Documents",
+  "ExamplesAndTemplates": "Examples and Templates",
+  "MoreExamplesAndTemplates": "More Examples and Templates"
+}

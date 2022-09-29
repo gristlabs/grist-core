@@ -562,6 +562,12 @@ export interface GristLoadConfig {
 
   // If custom CSS should be included in the head of each page.
   enableCustomCss?: boolean;
+
+  // Supported languages for the UI. By default only english (en) is supported.
+  supportedLngs?: readonly string[];
+
+  // Loaded namespaces for translations.
+  namespaces?: readonly string[];
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");

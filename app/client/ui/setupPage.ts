@@ -1,4 +1,5 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {setupLocale} from 'app/client/lib/localization';
 import {AppModel, TopAppModelImpl} from 'app/client/models/AppModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
@@ -18,6 +19,8 @@ export function setupPage(buildPage: (appModel: AppModel) => DomContents) {
   const topAppModel = TopAppModelImpl.create(null, {});
   attachCssRootVars(topAppModel.productFlavor);
   addViewportTag();
+
+  void setupLocale();
 
   // Add globals needed by test utils.
   G.window.gristApp = {

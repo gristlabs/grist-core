@@ -57,12 +57,15 @@ import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
+import {readLoadedLngs, readLoadedNamespaces, setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
+import {i18n} from 'i18next';
+import i18Middleware from "i18next-http-middleware";
 import mapValues = require('lodash/mapValues');
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
@@ -108,6 +111,7 @@ export class FlexServer implements GristServer {
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
+  public readonly i18Instance: i18n;
   private _comm: Comm;
   private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string|undefined;
@@ -160,6 +164,16 @@ export class FlexServer implements GristServer {
     this.host = process.env.GRIST_HOST || "localhost";
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(['appRoot', this.appRoot]);
+    // Initialize locales files.
+    this.i18Instance = setupLocale(this.appRoot);
+    if (Array.isArray(this.i18Instance.options.preload)) {
+      this.info.push(['i18:locale', this.i18Instance.options.preload.join(",")]);
+    }
+    if (Array.isArray(this.i18Instance.options.ns)) {
+      this.info.push(['i18:namespace', this.i18Instance.options.ns.join(",")]);
+    }
+    // Add language detection middleware.
+    this.app.use(i18Middleware.handle(this.i18Instance));
     // This directory hold Grist documents.
     let docsRoot = path.resolve((this.options && this.options.dataDir) ||
                                   process.env.GRIST_DATA_DIR ||
@@ -467,6 +481,10 @@ export class FlexServer implements GristServer {
     }));
     const staticApp = express.static(getAppPathTo(this.appRoot, 'static'), options);
     const bowerApp = express.static(getAppPathTo(this.appRoot, 'bower_components'), options);
+    if (process.env.GRIST_LOCALES_DIR) {
+      const locales = express.static(process.env.GRIST_LOCALES_DIR, options);
+      this.app.use("/locales", this.tagChecker.withTag(locales));
+    }
     this.app.use(this.tagChecker.withTag(staticApp));
     this.app.use(this.tagChecker.withTag(bowerApp));
   }
@@ -894,6 +912,7 @@ export class FlexServer implements GristServer {
       hosts: this._hosts,
       loginMiddleware: this._loginMiddleware,
       httpsServer: this.httpsServer,
+      i18Instance: this.i18Instance
     });
   }
   /**
@@ -1255,7 +1274,10 @@ export class FlexServer implements GristServer {
   }
 
   public getGristConfig(): GristLoadConfig {
-    return makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
+    return makeGristConfig(this.getDefaultHomeUrl(), {
+      supportedLngs: readLoadedLngs(this.i18Instance),
+      namespaces: readLoadedNamespaces(this.i18Instance),
+    }, this._defaultBaseDomain);
   }
 
   /**
