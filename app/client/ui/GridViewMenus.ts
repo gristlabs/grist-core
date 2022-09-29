@@ -148,7 +148,7 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
     (options.isFormula !== true ?
       menuItemCmd(allCommands.clearValues, 'Clear values', disableForReadonlyColumn) : null),
 
-    menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView),
+    (!options.isRaw ? menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView) : null),
     menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
