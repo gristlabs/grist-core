@@ -86,14 +86,14 @@ export async function main() {
         // This should not happen.
         throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
       }
-      await db.addOrg(user, {
+      db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
         planType: TEAM_FREE_PLAN
-      });
+      }));
     }
   }
 
@@ -102,6 +102,7 @@ export async function main() {
   if (process.env.GRIST_TESTING_SOCKET) {
     await server.addTestingHooks();
   }
+  return server;
 }
 
 if (require.main === module) {

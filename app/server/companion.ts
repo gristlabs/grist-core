@@ -80,14 +80,14 @@ export function addSiteCommand(program: commander.Command,
         // This should not happen.
         throw new Error('failed to create user');
       }
-      await db.addOrg(user, {
+      db.unwrapQueryResult(await db.addOrg(user, {
         name: domain,
         domain,
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
         planType: 'teamFree'
-      });
+      }));
     });
 }
 
