@@ -382,8 +382,8 @@ function isFlavor(flavor: string): flavor is keyof typeof spawners {
  * grist-core), and trying to regularize creation options a bit.
  *
  * The flavor of sandbox to use can be overridden by some environment variables:
- *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (pynbox, unsandboxed, docker,
- *     gvisor, macSandboxExec)
+ *   - GRIST_SANDBOX_FLAVOR: should be one of the spawners (gvisor, unsandboxed, docker,
+ *     macSandboxExec, pynbox)
  *   - GRIST_SANDBOX: a program or image name to run as the sandbox.  Not needed for
  *     pynbox (it is either built in or not available).  For unsandboxed, should be an
  *     absolute path to python within a virtualenv with all requirements installed.
@@ -391,7 +391,7 @@ function isFlavor(flavor: string): flavor is keyof typeof spawners {
  *     in `sandbox/docker`) or a derived image.  For gvisor, it should be the full path
  *     to `sandbox/gvisor/run.py` (if runsc available locally) or to
  *     `sandbox/gvisor/wrap_in_docker.sh` (if runsc should be run using the docker
- *     image built in that directory).  Gvisor is not yet available in grist-core.
+ *     image built in that directory).
  *   - PYTHON_VERSION: for gvisor, this is mandatory, and must be set to "2" or "3".
  *     It is ignored by other flavors.
  */

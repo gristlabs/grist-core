@@ -2791,6 +2791,23 @@ function testDocApi() {
     });
   });
 
+  describe("Allowed Origin", () => {
+    it('should allow only example.com',  async () => {
+      async function checkOrigin(origin: string, status: number, error?: string) {
+        const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/`,
+        {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
+        );
+        error && assert.deepEqual(resp.data, {error});
+        assert.equal(resp.status, status);
+      }
+      await checkOrigin("https://www.toto.com", 500, "Unrecognized origin");
+      await checkOrigin("https://badexample.com", 500, "Unrecognized origin");
+      await checkOrigin("https://bad.com/example.com/toto", 500, "Unrecognized origin");
+      await checkOrigin("https://example.com/path", 200);
+      await checkOrigin("https://good.example.com/toto", 200);
+    })
+  })
+
   // PLEASE ADD MORE TESTS HERE
 }
 
@@ -2884,6 +2901,7 @@ class TestServer {
       REDIS_URL: process.env.TEST_REDIS_URL,
       APP_HOME_URL: _homeUrl,
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+      GRIST_ALLOWED_HOSTS: `example.com,localhost:${webhooksTestPort}`,
       ...process.env
     };
 
