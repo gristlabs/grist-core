@@ -1262,7 +1262,7 @@ const cssViewContentPane = styled('div', `
   flex: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   min-width: 240px;
   margin: 12px;

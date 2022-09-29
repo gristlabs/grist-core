@@ -15,7 +15,7 @@ import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
@@ -309,7 +309,7 @@ export function buildViewSectionDom(options: {
      )),
     dom.maybe((use) => use(vs.activeFilterBar) || use(vs.isRaw) && use(vs.activeFilters).length,
       () => dom.create(filterBar, vs)),
-    dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) =>
+    dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),
         dom.maybe(viewInstance.disableEditing, () =>
@@ -319,9 +319,10 @@ export function buildViewSectionDom(options: {
           dom('div.viewsection_truncated', 'Not all data is shown')
         ),
         dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
-        viewInstance.viewPane
-      )
-    ),
+        viewInstance.viewPane,
+      ),
+      dom.maybe(use => !use(isNarrowScreenObs()), () => viewInstance.selectionSummary?.buildDom()),
+    ]),
     dom.on('mousedown', () => { viewModel?.activeSectionId(sectionRowId); }),
   );
 }

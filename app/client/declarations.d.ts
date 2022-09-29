@@ -32,6 +32,7 @@ declare module "app/client/components/BaseView" {
 
   import {Cursor, CursorPos} from 'app/client/components/Cursor';
   import {GristDoc} from 'app/client/components/GristDoc';
+  import {SelectionSummary} from 'app/client/components/SelectionSummary';
   import {Disposable} from 'app/client/lib/dispose';
   import BaseRowModel from "app/client/models/BaseRowModel";
   import {DataRowModel} from 'app/client/models/DataRowModel';
@@ -61,6 +62,7 @@ declare module "app/client/components/BaseView" {
     public disableEditing: ko.Computed<boolean>;
     public isTruncated: ko.Observable<boolean>;
     public tableModel: DataTableModel;
+    public selectionSummary?: SelectionSummary;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;

@@ -170,17 +170,23 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   }
 
   /**
+   * Returns the index of the given rowId, if it exists, in the same unstable order that's
+   * returned by getRowIds() and getColValues().
+   */
+  public getRowIdIndex(rowId: UIRowId): number|undefined {
+    return this._rowMap.get(rowId as number);
+  }
+
+  /**
    * Given a column name, returns a function that takes a rowId and returns the value for that
    * column of that row. The returned function is faster than getValue() calls.
    */
   public getRowPropFunc(colId: string): UIRowFunc<CellValue|undefined> {
+    const colData = this._columns.get(colId);
+    if (!colData) { return () => undefined; }
+    const values = colData.values;
     const rowMap = this._rowMap;
-    return (rowId: UIRowId) => {
-      const colData = this._columns.get(colId);
-      if (!colData) { return undefined; }
-      const values = colData.values;
-      return values[rowMap.get(rowId as number)!];
-    };
+    return (rowId: UIRowId) => values[rowMap.get(rowId as number)!];
   }
 
   // By default, no rows are skippable, all are kept.

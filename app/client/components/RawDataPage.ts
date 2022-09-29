@@ -116,7 +116,7 @@ const cssOverlay = styled('div', `
   inset: 0px;
   height: 100%;
   width: 100%;
-  padding: 32px 56px 0px 56px;
+  padding: 20px 56px 20px 56px;
   position: absolute;
   @media ${mediaSmall} {
     & {
@@ -131,7 +131,6 @@ const cssSectionWrapper = styled('div', `
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;

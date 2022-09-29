@@ -1,4 +1,4 @@
-/* globals alert, document, $ */
+/* globals alert, $ */
 
 const _         = require('underscore');
 const ko        = require('knockout');
@@ -19,8 +19,9 @@ const commands      = require('./commands');
 const viewCommon    = require('./viewCommon');
 const Base          = require('./Base');
 const BaseView      = require('./BaseView');
-const selector      = require('./Selector');
+const selector      = require('./CellSelector');
 const {CopySelection} = require('./CopySelection');
+const {SelectionSummary} = require('./SelectionSummary');
 const koUtil      = require('app/client/lib/koUtil');
 const convert       = require('color-convert');
 
@@ -39,6 +40,7 @@ const {setPopupToCreateDom} = require('popweasel');
 const {CellContextMenu} = require('app/client/ui/CellContextMenu');
 const {testId} = require('app/client/ui2018/cssVars');
 const {contextMenu} = require('app/client/ui/contextMenu');
+const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
@@ -79,11 +81,9 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.scrollTop = ko.observable(0);
   this.isScrolledTop = this.autoDispose(ko.computed(() => this.scrollTop() > 0));
 
-  this.cellSelector = this.autoDispose(selector.CellSelector.create(this, {
-    // This is a bit of a hack to prevent dragging when there's an open column menu
-    // TODO: disable dragging when there is an open cell context menu as well
-    isDisabled: () => Boolean(!this.ctxMenuHolder.isEmpty())
-  }));
+  this.cellSelector = selector.CellSelector.create(this, this);
+  this.selectionSummary = SelectionSummary.create(this,
+    this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
   this.colMenuTargets = {}; // Reference from column ref to its menu target dom
 
   // Cache of column right offsets, used to determine the col select range
@@ -856,7 +856,6 @@ GridView.prototype._getColStyle = function(colIndex) {
   return { 'width' : this.viewSection.viewFields().at(colIndex).widthPx() };
 };
 
-
 // TODO: for now lets just assume you are clicking on a .field, .row, or .column
 GridView.prototype.domToRowModel = function(elem, elemType) {
   switch (elemType) {
@@ -1359,19 +1358,19 @@ GridView.prototype.rowMouseDown = function(elem, event) {
   }
 };
 
-GridView.prototype.rowMouseMove = function(elem, event) {
+GridView.prototype.rowMouseMove = function(event) {
   this.cellSelector.row.end(this.currentMouseRow(event.pageY));
 };
 
-GridView.prototype.colMouseMove = function(elem, event) {
+GridView.prototype.colMouseMove = function(event) {
   var currentCol = Math.min(this.getMousePosCol(event.pageX),
                             this.viewSection.viewFields().peekLength - 1);
   this.cellSelector.col.end(currentCol);
 };
 
-GridView.prototype.cellMouseMove = function(elem, event, extra) {
-  this.colMouseMove(elem, event);
-  this.rowMouseMove(elem, event);
+GridView.prototype.cellMouseMove = function(event) {
+  this.colMouseMove(event);
+  this.rowMouseMove(event);
   // Maintain single cells cannot be selected invariant
   if (this.cellSelector.onlyCellSelected(this.cursor.rowIndex(), this.cursor.fieldIndex())) {
     this.cellSelector.currentSelectType(selector.NONE);
@@ -1388,58 +1387,70 @@ GridView.prototype.createSelector = function() {
 // but we can't attach any of the mouse handlers in the Selector class until the
 // dom elements exist so we attach the selector handlers separately from instantiation
 GridView.prototype.attachSelectorHandlers = function () {
-  // We attach mousemove and mouseup to document so that selecting and drag/dropping
-  // work even if the mouse leaves the view pane: http://news.qooxdoo.org/mouse-capturing
-  // Mousemove/up events fire to document even if the mouse leaves the browser window.
-  var rowCallbacks =  {
-    'disableDrag': this.viewSection.disableDragRows,
-    'mousedown': { 'select': this.rowMouseDown,
-                   'drag': this.styleRowDragElements,
-                   'elemName': '.gridview_data_row_num',
-                   'source': this.viewPane,
-    },
-    'mousemove':  { 'select': this.rowMouseMove,
-                    'drag': this.dragRows,
-                    'source': document,
-    },
-    'mouseup':   { 'select': this.rowMouseUp,
-                   'drag': this.dropRows,
-                   'source': document,
-    }
-  };
-  var colCallbacks =  {
-    'mousedown': { 'select': this.colMouseDown,
-                   'drag': this.styleColDragElements,
-                   // Trigger on column headings but not on the add column button
-                   'elemName': '.column_name.field:not(.mod-add-column)',
-                   'source': this.viewPane,
-    },
-    'mousemove':  { 'select': this.colMouseMove,
-                    'drag': this.dragCols,
-                    'source': document,
-    },
-    'mouseup':   { 'drag': this.dropCols,
-                   'source': document,
-    }
-  };
-  var cellCallbacks =  {
-    'mousedown': { 'select': this.cellMouseDown,
-                   'drag' : function(elem) { this.scheduleAssignCursor(elem, selector.NONE); },
-                   'elemName': '.field:not(.column_name)',
-                   'source': this.scrollPane
-    },
-    'mousemove':  { 'select': this.cellMouseMove,
-                    'source': document,
-    },
-    'mouseup':   { 'select': this.cellMouseUp,
-                   'source': document,
-    }
-  };
+  const ignoreEvent = (event, elem) => (
+    event.button !== 0 ||
+    event.target.classList.contains('ui-resizable-handle') ||
+    // This is a bit of a hack to prevent dragging when there's an open column menu
+    // TODO: disable dragging when there is an open cell context menu as well
+    !this.ctxMenuHolder.isEmpty()
+  );
 
-  this.cellSelector.registerMouseHandlers(rowCallbacks, selector.ROW);
-  this.cellSelector.registerMouseHandlers(colCallbacks, selector.COL);
-  this.cellSelector.registerMouseHandlers(cellCallbacks, selector.CELL);
-};
+  this.autoDispose(mouseDragMatchElem(this.viewPane, '.gridview_data_row_num', (event, elem) => {
+    if (!ignoreEvent(event, elem)) {
+      if (!this.cellSelector.isSelected(elem, selector.ROW)) {
+        this.rowMouseDown(elem, event);
+        return {
+          onMove: (ev) => this.rowMouseMove(ev),
+          onStop: (ev) => {},
+        };
+      } else if (!this.viewSection.disableDragRows()) {
+        this.styleRowDragElements(elem, event);
+        return {
+          onMove: (ev) => this.dragRows(ev),
+          onStop: (ev) => this.dropRows(),
+        };
+      }
+    }
+  }));
+
+  // Trigger on column headings but not on the add column button
+  this.autoDispose(mouseDragMatchElem(this.viewPane, '.column_name.field:not(.mod-add-column)', (event, elem) => {
+    if (!ignoreEvent(event, elem)) {
+      if (!this.cellSelector.isSelected(elem, selector.COL)) {
+        this.colMouseDown(elem, event);
+        return {
+          onMove: (ev) => this.colMouseMove(ev),
+          onStop: (ev) => {},
+        };
+      } else {
+        this.styleColDragElements(elem, event);
+        return {
+          onMove: (ev) => this.dragCols(ev),
+          onStop: (ev) => this.dropCols(),
+        };
+      }
+    }
+  }));
+
+  this.autoDispose(mouseDragMatchElem(this.scrollPane, '.field:not(.column_name)', (event, elem) => {
+    if (!ignoreEvent(event, elem)) {
+      // TODO: should always enable
+      if (!this.cellSelector.isSelected(elem, selector.CELL)) {
+        this.cellMouseDown(elem, event);
+        return {
+          onMove: (ev) => this.cellMouseMove(ev),
+          onStop: (ev) => {},
+        }
+      } else { // TODO: if true above, this will never come into play.
+        this.scheduleAssignCursor(elem, selector.NONE);
+        return {
+          onMove: (ev) => {},
+          onStop: (ev) => { this.cellSelector.currentDragType(selector.NONE); },
+        };
+      }
+    }
+  }));
+}
 
 // End of Selector stuff
 
@@ -1487,7 +1498,7 @@ GridView.prototype.styleColDragElements = function(elem, event) {
  * 3) If the last col/row is in the select range, the indicator line should be clamped to the start of the
  *    select range.
  **/
-GridView.prototype.dragRows = function(elem, event) {
+GridView.prototype.dragRows = function(event) {
   var dropIndex = Math.min(this.getMousePosRow(event.pageY + this.scrollTop()),
                            this.getLastDataRowIndex());
   if (this.cellSelector.containsRow(dropIndex)) {
@@ -1506,7 +1517,7 @@ GridView.prototype.dragRows = function(elem, event) {
   this.dragY(event.pageY);
 };
 
-GridView.prototype.dragCols = function(elem, event) {
+GridView.prototype.dragCols = function(event) {
   let dropIndex = Math.min(this.getMousePosCol(event.pageX),
                            this.viewSection.viewFields().peekLength - 1);
   if (this.cellSelector.containsCol(dropIndex)) {
@@ -1539,6 +1550,7 @@ GridView.prototype.dragCols = function(elem, event) {
 GridView.prototype.dropRows = function() {
   var oldIndices = _.range(this.cellSelector.rowLower(), this.cellSelector.rowUpper() + 1);
   this.moveRows(oldIndices, this.cellSelector.row.dropIndex());
+  this.cellSelector.currentDragType(selector.NONE);
 };
 
 GridView.prototype.dropCols = function() {
@@ -1552,6 +1564,7 @@ GridView.prototype.dropCols = function() {
     this.currentEditingColumnIndex(idx);
   }
   this._colClickTime = 0;
+  this.cellSelector.currentDragType(selector.NONE);
 };
 
 // End of Dragging logic

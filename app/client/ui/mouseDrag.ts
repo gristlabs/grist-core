@@ -30,6 +30,12 @@ export function mouseDrag(onStart: MouseDragStart): DomElementMethod {
   return (elem) => { mouseDragElem(elem, onStart); };
 }
 
+// Same as mouseDragElem, but listens for mousedown on descendants of elem that match selector.
+export function mouseDragMatchElem(elem: HTMLElement, selector: string, onStart: MouseDragStart): IDisposable {
+  return dom.onMatchElem(elem, selector, 'mousedown',
+    (ev, el) => _startDragging(ev as MouseEvent, el as HTMLElement, onStart));
+}
+
 function _startDragging(startEv: MouseEvent, elem: HTMLElement, onStart: MouseDragStart) {
   const dragHandler = onStart(startEv, elem);
   if (dragHandler) {
