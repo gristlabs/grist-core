@@ -117,7 +117,10 @@ describe("Localization", function() {
     });
   });
 
-  it("breaks the server if something is wrong with resource files", async () => {
+  it("breaks the server if something is wrong with resource files", async function() {
+    if (server.isExternalServer()) {
+      this.skip();
+    }
     const oldEnv = new testUtils.EnvironmentSnapshot();
     try {
       // Wrong path to locales.
