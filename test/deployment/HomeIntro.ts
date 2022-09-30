@@ -1,1 +1,1 @@
-import "test/nbrowser/Pages";
+import "test/nbrowser/HomeIntro";
