@@ -18,6 +18,12 @@ code. Languages are resolved hierarchically, from most specific to a general one
 Polish code _pl-PL_, the library will first try _pl-PL_, then _pl_, and then will fallback to a
 default language _en_ (https://www.i18next.com/principles/translation-resolution).
 
+All language variants (e.g., _fr-FR_, _pl-PL_, _en-UK_) are supported if Grist can find a main
+language resource file. For example, to support a _fr-FR_ language code, Grist expects to have at
+least _fr.core.json_ file. The main language file will be used as a default fallback for all French
+language codes like _fr-FR_ or _fr-CA_, in case there is no resource file for a specif variant (like
+`fr-CA.core.json`) or some keys are missing from the variant file.
+
 Here is an example of a language resource file `en.core.json` currently used by Grist:
 
 ```json
@@ -81,7 +87,7 @@ _app/client/ui/HomeIntro.ts_
 
 ```ts
 function makeAnonIntro(homeModel: HomeModel) {
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, 'Sign up');
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('SignUp'));
   return [
     css.docListHeader(t('Welcome'), testId('welcome-title')),
 ```
@@ -92,7 +98,6 @@ tasks:
 - Date time picker component. It has its own resource files that are already imported by Grist but
   not used in the main application. https://bootstrap-datepicker.readthedocs.io/en/latest/i18n.html
 - Static HTML files used as a placeholder (for example, for Custom widgets).
-- DocTours (guided tours) that can be embedded inside a Grist document.
 - Formatting dates. Grist is using `moment.js` library, which has its own i18n support. Date formats
   used by Grist are shared between client, server and sandbox code and are not compatible with
   `i18next` library.
