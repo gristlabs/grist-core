@@ -19,6 +19,7 @@
     "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/server/**/*.js _build/test/gen-server/**/*.js",
     "test:smoke": "NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",
+    "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"} --xunit",
     "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js"
   },
   "keywords": [
