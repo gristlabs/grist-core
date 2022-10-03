@@ -261,7 +261,7 @@ export class DocManager extends EventEmitter {
    *      `doc` - the object with metadata tables.
    */
   public async openDoc(client: Client, docId: string,
-                       mode: OpenDocMode = 'default',
+                       openMode: OpenDocMode = 'default',
                        linkParameters: Record<string, string> = {}): Promise<OpenLocalDocResult> {
     let auth: Authorizer;
     const dbManager = this._homeDbManager;
@@ -271,6 +271,7 @@ export class DocManager extends EventEmitter {
       const org = client.getOrg();
       if (!org) { throw new Error('Documents can only be opened in the context of a specific organization'); }
       const userId = await client.getUserId(dbManager) || dbManager.getAnonymousUserId();
+      const userRef = await client.getUserRef(dbManager);
 
       // We use docId in the key, and disallow urlId, so we can be sure that we are looking at the
       // right doc when we re-query the DB over the life of the websocket.
@@ -284,7 +285,15 @@ export class DocManager extends EventEmitter {
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-      auth = new DocAuthorizer(dbManager, key, mode, linkParameters, docAuth, client.getProfile() || undefined);
+      auth = new DocAuthorizer({
+        dbManager,
+        key,
+        openMode,
+        linkParameters,
+        userRef,
+        docAuth,
+        profile: client.getProfile() || undefined
+      });
     } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer('owners', docId);
@@ -302,7 +311,7 @@ export class DocManager extends EventEmitter {
 
       // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
       // an owner for granular access purposes.
-      if (mode === 'fork') {
+      if (openMode === 'fork') {
         if (await activeDoc.canForkAsOwner(docSession)) {
           // Mark the session specially and flush any cached access
           // information.  It is easier to make this a property of the

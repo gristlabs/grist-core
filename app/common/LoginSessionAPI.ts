@@ -8,10 +8,11 @@ export interface UserProfile {
   loginMethod?: 'Google'|'Email + Password'|'External';
 }
 
-// User profile including user id.  All information in it should
+// User profile including user id and user ref.  All information in it should
 // have been validated against database.
 export interface FullUser extends UserProfile {
   id: number;
+  ref?: string|null; // Not filled for anonymous users.
   allowGoogleLogin?: boolean; // when present, specifies whether logging in via Google is possible.
 }
 

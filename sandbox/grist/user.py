@@ -13,6 +13,7 @@ the following fields:
 
  - Access: string or None
  - UserID: integer or None
+ - UserRef: string or None
  - Email: string or None
  - Name: string or None
  - Origin: string or None
@@ -43,7 +44,7 @@ class User(object):
   """
   def __init__(self, data, tables, is_sample=False):
     for attr in ('Access', 'UserID', 'Email', 'Name', 'Origin', 'SessionID',
-                 'IsLoggedIn'):
+                 'IsLoggedIn', 'UserRef'):
       setattr(self, attr, data[attr])
 
     self.LinkKey = LinkKey(data['LinkKey'])

@@ -1608,6 +1608,7 @@ export class GranularAccess implements GranularAccessForBundle {
     user.Origin = docSession.req?.get('origin') || null;
     user.SessionID = isAnonymous ? `a${getDocSessionAltSessionId(docSession)}` : `u${user.UserID}`;
     user.IsLoggedIn = !isAnonymous;
+    user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
 
     if (this._ruler.ruleCollection.ruleError && !this._recoveryMode) {
       // It is important to signal that the doc is in an unexpected state,
@@ -2600,6 +2601,7 @@ export class User implements UserInfo {
   public Origin: string | null = null;
   public LinkKey: Record<string, string | undefined> = {};
   public Email: string | null = null;
+  public UserRef: string | null = null;
   [attribute: string]: any;
 
   constructor(_info: Record<string, unknown> = {}) {

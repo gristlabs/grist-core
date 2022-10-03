@@ -1,6 +1,7 @@
 import {UserOptions} from 'app/common/UserAPI';
 import {nativeValues} from 'app/gen-server/lib/values';
-import {BaseEntity, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
+import {makeId} from 'app/server/lib/idUtils';
+import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
         PrimaryGeneratedColumn} from "typeorm";
 
 import {Group} from "./Group";
@@ -49,6 +50,19 @@ export class User extends BaseEntity {
 
   @Column({name: 'connect_id', type: String, nullable: true})
   public connectId: string | null;
+
+  /**
+   * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
+   */
+  @Column({name: 'ref', type: String, nullable: false})
+  public ref: string;
+
+  @BeforeInsert()
+  public async beforeInsert() {
+    if (!this.ref) {
+      this.ref = makeId();
+    }
+  }
 
   /**
    * Get user's email.  Returns undefined if logins has not been joined, or no login

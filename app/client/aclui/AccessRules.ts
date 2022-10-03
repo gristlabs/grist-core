@@ -146,6 +146,7 @@ export class AccessRules extends Disposable {
         {ruleIndex: -1, value: 'user.Origin'},
         {ruleIndex: -1, value: 'user.SessionID'},
         {ruleIndex: -1, value: 'user.IsLoggedIn'},
+        {ruleIndex: -1, value: 'user.UserRef'},
       ];
       for (const [i, rule] of rules.entries()) {
         const tableId = use(rule.tableId);

@@ -87,6 +87,7 @@ export class Client {
   private _profile: UserProfile|null = null;
   private _userId: number|null = null;
   private _userName: string|null = null;
+  private _userRef: string|null = null;
   private _firstLoginAt: Date|null = null;
   private _isAnonymous: boolean = false;
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
@@ -388,23 +389,24 @@ export class Client {
     return this._userId;
   }
 
+  public getCachedUserRef(): string|null {
+    return this._userRef;
+  }
+
   // Returns the userId for profile.email, or null when profile is not set; with caching.
   public async getUserId(dbManager: HomeDBManager): Promise<number|null> {
     if (!this._userId) {
-      if (this._profile) {
-        const user = await this._fetchUser(dbManager);
-        this._userId = (user && user.id) || null;
-        this._userName = (user && user.name) || null;
-        this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
-        this._firstLoginAt = (user && user.firstLoginAt) || null;
-      } else {
-        this._userId = dbManager.getAnonymousUserId();
-        this._userName = 'Anonymous';
-        this._isAnonymous = true;
-        this._firstLoginAt = null;
-      }
+      await this._refreshUser(dbManager);
     }
     return this._userId;
+  }
+
+  // Returns the userRef for profile.email, or null when profile is not set; with caching.
+  public async getUserRef(dbManager: HomeDBManager): Promise<string|null> {
+    if (!this._userRef) {
+      await this._refreshUser(dbManager);
+    }
+    return this._userRef;
   }
 
   // Returns the userId for profile.email, or throws 403 error when profile is not set.
@@ -429,6 +431,22 @@ export class Client {
     meta.clientId = this.clientId;    // identifies a client connection, essentially a websocket
     meta.counter = this._counter;     // identifies a GristWSConnection in the connected browser tab
     return meta;
+  }
+
+  private async _refreshUser(dbManager: HomeDBManager) {
+    if (this._profile) {
+      const user = await this._fetchUser(dbManager);
+      this._userId = (user && user.id) || null;
+      this._userName = (user && user.name) || null;
+      this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
+      this._firstLoginAt = (user && user.firstLoginAt) || null;
+      this._userRef = user?.ref ?? null;
+    } else {
+      this._userId = dbManager.getAnonymousUserId();
+      this._userName = 'Anonymous';
+      this._isAnonymous = true;
+      this._firstLoginAt = null;
+    }
   }
 
   /**

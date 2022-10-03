@@ -565,6 +565,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     user1 = {
       'Name': 'Foo Bar',
       'UserID': 1,
+      'UserRef': '1',
       'StudentInfo': ['Students', 1],
       'LinkKey': {},
       'Origin': None,
@@ -576,6 +577,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     user2 = {
       'Name': 'Baz Qux',
       'UserID': 2,
+      'UserRef': '2',
       'StudentInfo': ['Students', 1],
       'LinkKey': {},
       'Origin': None,

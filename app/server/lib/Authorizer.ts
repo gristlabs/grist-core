@@ -528,33 +528,46 @@ export interface Authorizer {
   getCachedAuth(): DocAuthResult;
 }
 
+export interface DocAuthorizerOptions {
+  dbManager: HomeDBManager;
+  key: DocAuthKey;
+  openMode: OpenDocMode;
+  linkParameters: Record<string, string>;
+  userRef?: string|null;
+  docAuth?: DocAuthResult;
+  profile?: UserProfile;
+}
+
 /**
  *
  * Handle authorization for a single document and user.
  *
  */
 export class DocAuthorizer implements Authorizer {
+  public readonly openMode: OpenDocMode;
+  public readonly linkParameters: Record<string, string>;
   constructor(
-    private _dbManager: HomeDBManager,
-    private _key: DocAuthKey,
-    public readonly openMode: OpenDocMode,
-    public readonly linkParameters: Record<string, string>,
-    private _docAuth?: DocAuthResult,
-    private _profile?: UserProfile
+    private _options: DocAuthorizerOptions
   ) {
+    this.openMode = _options.openMode;
+    this.linkParameters = _options.linkParameters;
   }
 
   public getUserId(): number {
-    return this._key.userId;
+    return this._options.key.userId;
   }
 
   public getUser(): FullUser|null {
-    return this._profile ? {id: this.getUserId(), ...this._profile} : null;
+    return this._options.profile ? {
+      id: this.getUserId(),
+      ref: this._options.userRef,
+      ...this._options.profile
+    } : null;
   }
 
   public getDocId(): string {
     // We've been careful to require urlId === docId, see DocManager.
-    return this._key.urlId;
+    return this._options.key.urlId;
   }
 
   public getLinkParameters(): Record<string, string> {
@@ -562,18 +575,18 @@ export class DocAuthorizer implements Authorizer {
   }
 
   public async getDoc(): Promise<Document> {
-    return this._dbManager.getDoc(this._key);
+    return this._options.dbManager.getDoc(this._options.key);
   }
 
   public async assertAccess(role: 'viewers'|'editors'|'owners'): Promise<void> {
-    const docAuth = await this._dbManager.getDocAuthCached(this._key);
-    this._docAuth = docAuth;
+    const docAuth = await this._options.dbManager.getDocAuthCached(this._options.key);
+    this._options.docAuth = docAuth;
     assertAccess(role, docAuth, {openMode: this.openMode});
   }
 
   public getCachedAuth(): DocAuthResult {
-    if (!this._docAuth) { throw Error('no cached authentication'); }
-    return this._docAuth;
+    if (!this._options.docAuth) { throw Error('no cached authentication'); }
+    return this._options.docAuth;
   }
 }
 

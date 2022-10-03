@@ -10,6 +10,7 @@ class TestCompletion(test_engine.EngineTestCase):
   user = {
     'Name': 'Foo',
     'UserID': 1,
+    'UserRef': '1',
     'StudentInfo': ['Students', 1],
     'LinkKey': {},
     'Origin': None,
@@ -103,6 +104,7 @@ class TestCompletion(test_engine.EngineTestCase):
         ('user.SessionID', "'u1'"),
         ('user.StudentInfo', 'Students[1]'),
         ('user.UserID', '1'),
+        ('user.UserRef', "'1'"),
       ]
     )
     # Should follow user attribute references and autocomplete those types.
@@ -130,6 +132,7 @@ class TestCompletion(test_engine.EngineTestCase):
       'Email': 'baro@example.com',
       'LinkKey': {},
       'UserID': 2,
+      'UserRef': '2',
       'Access': 'owners',
       'SessionID': 'u2',
       'IsLoggedIn': True
@@ -145,6 +148,7 @@ class TestCompletion(test_engine.EngineTestCase):
         ('user.Origin', 'None'),
         ('user.SessionID', "'u2'"),
         ('user.UserID', '2'),
+        ('user.UserRef', "'2'"),
       ]
     )
     self.assertEqual(

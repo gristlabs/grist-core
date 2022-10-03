@@ -323,6 +323,7 @@ class TestRenames(test_engine.EngineTestCase):
     user = {
       'Name': 'Foo',
       'UserID': 1,
+      'UserRef': '1',
       'LinkKey': {},
       'Origin': None,
       'Email': 'foo@example.com',

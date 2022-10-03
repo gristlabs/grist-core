@@ -14,6 +14,7 @@ class TestUser(test_engine.EngineTestCase):
       'Name': 'Foo Bar',
       'Email': 'email@example.com',
       'UserID': 1,
+      'UserRef': '1',
       'LinkKey': {
         'Param1': 'Param1Value',
         'Param2': 'Param2Value'
@@ -42,6 +43,7 @@ class TestUser(test_engine.EngineTestCase):
       'Name': None,
       'Email': 'email@getgrist.com',
       'UserID': 1,
+      'UserRef': '1',
       'LinkKey': {
         'Param1': 'Param1Value',
         'Param2': 'Param2Value'

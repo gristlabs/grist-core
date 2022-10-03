@@ -420,6 +420,15 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * For tests only. Get user's unique reference by name.
+   */
+  public async testGetRef(name: string): Promise<string> {
+    const user = await User.findOne({where: {name}});
+    if (user) { return user.ref; }
+    throw new Error(`Cannot testGetRef(${name})`);
+  }
+
+  /**
    * Clear all user preferences associated with the given email addresses.
    * For use in tests.
    */
@@ -2537,6 +2546,7 @@ export class HomeDBManager extends EventEmitter {
     const login = new Login();
     login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
     user.logins = [login];
+    user.ref = '';
     return user;
   }
 
@@ -3917,6 +3927,9 @@ export class HomeDBManager extends EventEmitter {
           cond = cond.orWhere(`gu3.user_id = ${users}`);
           // Support the special "everyone" user.
           const everyoneId = this._specialUserIds[EVERYONE_EMAIL];
+          if (everyoneId === undefined) {
+            throw new Error("Special user id for EVERYONE_EMAIL not found");
+          }
           cond = cond.orWhere(`gu0.user_id = ${everyoneId}`);
           cond = cond.orWhere(`gu1.user_id = ${everyoneId}`);
           cond = cond.orWhere(`gu2.user_id = ${everyoneId}`);
@@ -3925,6 +3938,9 @@ export class HomeDBManager extends EventEmitter {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
             const anonId = this._specialUserIds[ANONYMOUS_USER_EMAIL];
+            if (anonId === undefined) {
+              throw new Error("Special user id for ANONYMOUS_USER_EMAIL not found");
+            }
             cond = cond.orWhere(`gu0.user_id = ${anonId}`);
             cond = cond.orWhere(`gu1.user_id = ${anonId}`);
             cond = cond.orWhere(`gu2.user_id = ${anonId}`);

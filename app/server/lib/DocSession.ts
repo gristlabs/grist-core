@@ -122,15 +122,17 @@ export function getDocSessionUser(docSession: OptDocSession): FullUser|null {
     const user = getUser(docSession.req);
     const email = user.loginEmail;
     if (email) {
-      return {id: user.id, name: user.name, email};
+      return {id: user.id, name: user.name, email, ref: user.ref};
     }
   }
   if (docSession.client) {
     const id = docSession.client.getCachedUserId();
+    const ref = docSession.client.getCachedUserRef();
     const profile = docSession.client.getProfile();
     if (id && profile) {
       return {
         id,
+        ref,
         ...profile
       };
     }
