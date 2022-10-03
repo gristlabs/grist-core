@@ -315,7 +315,7 @@ Then, you can run the main test suite like so:
 yarn test
 ```
 
-Python tests may also be run locally. (Note: currently requires Python 3.9).
+Python tests may also be run locally. (Note: currently requires Python 3.9.)
 
 ```
 yarn test:python
