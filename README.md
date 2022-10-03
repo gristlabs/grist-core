@@ -291,12 +291,42 @@ Testing:
 
 Variable | Purpose
 -------- | -------
-GRIST_TESTING_SOCKET | a socket used for out-of-channel communication during tests only.
+GRIST_TESTING_SOCKET    | a socket used for out-of-channel communication during tests only.
 GRIST_TEST_HTTPS_OFFSET | if set, adds https ports at the specified offset.  This is useful in testing.
-GRIST_TEST_SSL_CERT | if set, contains filename of SSL certificate.
-GRIST_TEST_SSL_KEY  | if set, contains filename of SSL private key.
-GRIST_TEST_LOGIN    | allow fake unauthenticated test logins (suitable for dev environment only).
-GRIST_TEST_ROUTER | if set, then the home server will serve a mock version of router api at /test/router
+GRIST_TEST_SSL_CERT     | if set, contains filename of SSL certificate.
+GRIST_TEST_SSL_KEY      | if set, contains filename of SSL private key.
+GRIST_TEST_LOGIN        | allow fake unauthenticated test logins (suitable for dev environment only).
+GRIST_TEST_ROUTER       | if set, then the home server will serve a mock version of router api at /test/router
+GREP_TESTS              | pattern for selecting specific tests to run (e.g. `env GREP_TESTS=ActionLog yarn test`).
+
+## Tests
+
+Tests are run automatically as part of CI when a PR is opened. However, it can be helpful to run tests locally
+before pushing your changes to GitHub. First, you'll want to make sure you've installed all dependencies:
+
+```
+yarn install
+yarn install:python
+```
+
+Then, you can run the main test suite like so:
+
+```
+yarn test
+```
+
+Python tests may also be run locally. (Note: currently requires Python 3.9).
+
+```
+yarn test:python
+```
+
+For running specific tests, you can specify a pattern with the `GREP_TESTS` variable:
+
+```
+env GREP_TESTS=ChoiceList yarn test
+env GREP_TESTS=summary yarn test:python
+```
 
 ## License
 
