@@ -831,7 +831,7 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
  */
 export async function waitForServer(optTimeout: number = 2000) {
   await driver.wait(() => driver.executeScript(
-    "return (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
+    "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
     + " && window.gristApp.testNumPendingApiRequests() === 0",
     optTimeout,
     "Timed out waiting for server requests to complete"

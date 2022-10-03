@@ -2794,7 +2794,7 @@ function testDocApi() {
   describe("Allowed Origin", () => {
     it('should allow only example.com',  async () => {
       async function checkOrigin(origin: string, status: number, error?: string) {
-        const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/`,
+        const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`,
         {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
         );
         error && assert.deepEqual(resp.data, {error});
@@ -2805,8 +2805,8 @@ function testDocApi() {
       await checkOrigin("https://bad.com/example.com/toto", 500, "Unrecognized origin");
       await checkOrigin("https://example.com/path", 200);
       await checkOrigin("https://good.example.com/toto", 200);
-    })
-  })
+    });
+  });
 
   // PLEASE ADD MORE TESTS HERE
 }
