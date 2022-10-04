@@ -1,8 +1,15 @@
+### python 3 requirements, see requirements.txt for python 2
+
 # friendly-traceback and its dependencies, for python 3 only
 friendly-traceback==0.5.46
 stack-data==0.3.0
 executing==0.8.3
 pure-eval==0.2.2
+
+# openpyxl and its dependencies, for imports, which are python 3 only
+openpyxl==3.0.10
+jdcal==1.4.1
+et-xmlfile==1.0.1
 
 # Different astroid version for python 3
 astroid==2.5.7
@@ -12,12 +19,9 @@ asttokens==2.0.5
 backports.functools-lru-cache==1.6.4
 chardet==4.0.0
 enum34==1.1.10
-et-xmlfile==1.0.1
 iso8601==0.1.12
-jdcal==1.4.1
 lazy_object_proxy==1.6.0
 python_dateutil==2.8.2
-openpyxl==3.0.10
 roman==2.0.0
 singledispatch==3.6.2
 six==1.16.0
