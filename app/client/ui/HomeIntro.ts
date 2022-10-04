@@ -110,7 +110,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, 'Sign up');
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('SignUp'));
   return [
     css.docListHeader(t('Welcome'), testId('welcome-title')),
     cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),

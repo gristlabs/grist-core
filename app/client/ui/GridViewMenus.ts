@@ -58,7 +58,7 @@ export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewF
 }
 
 export function ColumnContextMenu(options: IColumnContextMenu) {
-  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly, isRaw } = options;
+  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly } = options;
 
   const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
 
@@ -112,7 +112,6 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
     menuItem(allCommands.sortFilterTabOpen.run, 'More sort options ...', testId('more-sort-options')),
     menuDivider({style: 'margin-top: 0;'}),
     menuItemCmd(allCommands.renameField, 'Rename column', disableForReadonlyColumn),
-    menuItemCmd(allCommands.hideFields, 'Hide column', dom.cls('disabled', isReadonly || isRaw)),
     freezeMenuItemCmd(options),
     menuDivider(),
     MultiColumnMenu((options.disableFrozenMenu = true, options)),
@@ -149,7 +148,7 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
     (options.isFormula !== true ?
       menuItemCmd(allCommands.clearValues, 'Clear values', disableForReadonlyColumn) : null),
 
-    menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView),
+    (!options.isRaw ? menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView) : null),
     menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 

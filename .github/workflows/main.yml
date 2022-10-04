@@ -44,6 +44,9 @@ jobs:
       - name: Run smoke test
         run: VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:smoke
 
+      - name: Run python tests
+        run: yarn run test:python
+
       - name: Run main tests
         run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test
 
