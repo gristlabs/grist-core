@@ -3,7 +3,7 @@
  * add a new column, and allows removing already-added columns.
  */
 import {aclSelect, cssSelect} from 'app/client/aclui/ACLSelect';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, dom, Observable, styled} from 'grainjs';
 
@@ -85,7 +85,7 @@ const cssColListWidget = styled('div', `
 
   border: 1px solid transparent;
   &:not(&-editing):hover {
-    border: 1px solid ${colors.darkGrey};
+    border: 1px solid ${theme.accessRulesColumnListBorder};
   }
 `);
 
@@ -96,9 +96,10 @@ const cssColItem = styled('div', `
   border-radius: 3px;
   padding-left: 6px;
   padding-right: 2px;
+  color: ${theme.accessRulesColumnItemFg};
 
   .${cssColListWidget.className}-editing & {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.accessRulesColumnItemBg};
   }
 `);
 
@@ -126,10 +127,10 @@ const cssColItemIcon = styled('div', `
   border-radius: 16px;
   display: none;
   cursor: default;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.accessRulesColumnItemIconFg};
   &:hover {
-    background-color: ${colors.slate};
-    --icon-color: ${colors.light};
+    background-color: ${theme.accessRulesColumnItemIconHoverBg};
+    --icon-color: ${theme.accessRulesColumnItemIconHoverFg};
   }
   .${cssColListWidget.className}-editing & {
     display: flex;

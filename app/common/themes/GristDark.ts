@@ -145,6 +145,7 @@ export const GristDark: ThemeColors = {
   'selection-opaque-dark-bg': '#253E3E',
 
   /* Widgets */
+  'widget-bg': '#32323F',
   'widget-border': '#57575F',
   'widget-active-border': '#1DA270',
   'widget-inactive-stripes-light': '#262633',
@@ -378,6 +379,12 @@ export const GristDark: ThemeColors = {
   'access-rules-table-header-bg': '#57575F',
   'access-rules-table-body-fg': '#A4A4A4',
   'access-rules-table-border': '#A4A4A4',
+  'access-rules-column-list-border': '#69697D',
+  'access-rules-column-item-fg': '#EFEFEF',
+  'access-rules-column-item-bg': '#57575F',
+  'access-rules-column-item-icon-fg': '#A4A4A4',
+  'access-rules-column-item-icon-hover-fg': '#EFEFEF',
+  'access-rules-column-item-icon-hover-bg': '#A4A4A4',
 
   /* Cells */
   'cell-fg': '#FFFFFF',

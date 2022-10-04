@@ -21,6 +21,7 @@
 .viewsection_content {
   overflow: visible;
   margin: 12px;
+  background-color: var(--grist-theme-widget-bg, white);
 }
 
 /* TODO should be switched to use new icon */

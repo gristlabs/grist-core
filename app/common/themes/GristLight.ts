@@ -114,7 +114,7 @@ export const GristLight: ThemeColors = {
   'table-header-selected-bg': '#E8E8E8',
   'table-header-border': 'lightgray',
   'table-header-border-dark': '#D9D9D9',
-  'table-body-bg': 'unset',
+  'table-body-bg': 'white',
   'table-body-border': '#D9D9D9',
   'table-add-new-bg': 'inherit',
   'table-scroll-shadow': '#444444',
@@ -145,6 +145,7 @@ export const GristLight: ThemeColors = {
   'selection-opaque-dark-bg': '#D6EEE5',
 
   /* Widgets */
+  'widget-bg': 'white',
   'widget-border': '#D9D9D9',
   'widget-active-border': '#16B378',
   'widget-inactive-stripes-light': '#F7F7F7',
@@ -378,6 +379,12 @@ export const GristLight: ThemeColors = {
   'access-rules-table-header-bg': 'rgba(217,217,217,0.6)',
   'access-rules-table-body-fg': '#929299',
   'access-rules-table-border': '#929299',
+  'access-rules-column-list-border': '#D9D9D9',
+  'access-rules-column-item-fg': '#262633',
+  'access-rules-column-item-bg': '#E8E8E8',
+  'access-rules-column-item-icon-fg': '#929299',
+  'access-rules-column-item-icon-hover-fg': '#FFFFFF',
+  'access-rules-column-item-icon-hover-bg': '#929299',
 
   /* Cells */
   'cell-fg': 'black',

@@ -166,6 +166,7 @@ export interface ThemeColors {
   'selection-opaque-dark-bg': string;
 
   /* Widgets */
+  'widget-bg': string;
   'widget-border': string;
   'widget-active-border': string;
   'widget-inactive-stripes-light': string;
@@ -399,6 +400,12 @@ export interface ThemeColors {
   'access-rules-table-header-bg': string;
   'access-rules-table-body-fg': string;
   'access-rules-table-border': string;
+  'access-rules-column-list-border': string;
+  'access-rules-column-item-fg': string;
+  'access-rules-column-item-bg': string;
+  'access-rules-column-item-icon-fg': string;
+  'access-rules-column-item-icon-hover-fg': string;
+  'access-rules-column-item-icon-hover-bg': string;
 
   /* Cells */
   'cell-fg': string;

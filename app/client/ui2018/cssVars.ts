@@ -282,7 +282,7 @@ export const theme = {
   tableHeaderBorder: new CustomProp('theme-table-header-border', undefined, 'lightgray'),
   tableHeaderBorderDark: new CustomProp('theme-table-header-border-dark', undefined,
     colors.darkGrey),
-  tableBodyBg: new CustomProp('theme-table-body-bg', undefined, 'unset'),
+  tableBodyBg: new CustomProp('theme-table-body-bg', undefined, 'white'),
   tableBodyBorder: new CustomProp('theme-table-body-border', undefined, colors.darkGrey),
   tableAddNewBg: new CustomProp('theme-table-add-new-bg', undefined, 'inherit'),
   tableScrollShadow: new CustomProp('theme-table-scroll-shadow', undefined, '#444444'),
@@ -320,6 +320,7 @@ export const theme = {
     colors.selectionDarkerOpaque),
 
   /* Widgets */
+  widgetBg: new CustomProp('theme-widget-bg', undefined, 'white'),
   widgetBorder: new CustomProp('theme-widget-border', undefined, colors.darkGrey),
   widgetActiveBorder: new CustomProp('theme-widget-active-border', undefined, colors.lightGreen),
   widgetInactiveStripesLight: new CustomProp('theme-widget-inactive-stripes-light', undefined,
@@ -622,6 +623,18 @@ export const theme = {
     colors.dark),
   accessRulesTableBorder: new CustomProp('theme-access-rules-table-border', undefined,
     colors.slate),
+  accessRulesColumnListBorder: new CustomProp('theme-access-rules-column-list-border', undefined,
+    colors.darkGrey),
+  accessRulesColumnItemFg: new CustomProp('theme-access-rules-column-item-fg', undefined,
+    colors.dark),
+  accessRulesColumnItemBg: new CustomProp('theme-access-rules-column-item-bg', undefined,
+    colors.mediumGreyOpaque),
+  accessRulesColumnItemIconFg: new CustomProp('theme-access-rules-column-item-icon-fg', undefined,
+    colors.slate),
+  accessRulesColumnItemIconHoverFg: new CustomProp('theme-access-rules-column-item-icon-hover-fg',
+    undefined, colors.light),
+  accessRulesColumnItemIconHoverBg: new CustomProp('theme-access-rules-column-item-icon-hover-bg',
+    undefined, colors.slate),
 
   /* Cells */
   cellFg: new CustomProp('theme-cell-fg', undefined, 'unset'),

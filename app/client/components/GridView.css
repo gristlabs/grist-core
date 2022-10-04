@@ -1,5 +1,5 @@
 .gridview_data_pane {
-  background-color: var(--grist-theme-table-body-bg, unset);
+  background-color: var(--grist-theme-table-body-bg, white);
   position: relative;
   width: 100%;
   overflow: hidden;
