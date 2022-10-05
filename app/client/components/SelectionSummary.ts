@@ -276,8 +276,6 @@ const cssSummary = styled('div', `
   width: 100%;
   justify-content: end;
   color: ${theme.text};
-  /* Small hack: override the backdrop when viewing raw data to improve visibility. */
-  background-color: ${theme.mainPanelBg};
   font-family: ${vars.fontFamilyData};
 
   @media print {
@@ -300,6 +298,8 @@ const cssSummaryPart = styled('div', `
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Set explicit backdrop to improve visibility in raw data views. */
+  background-color: ${theme.mainPanelBg};
 
   &-copyable:hover {
     cursor: pointer;
