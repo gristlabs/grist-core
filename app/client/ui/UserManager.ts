@@ -6,7 +6,7 @@
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
 import {commonUrls} from 'app/common/gristUrls';
-import {isLongerThan} from 'app/common/gutil';
+import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
@@ -330,14 +330,14 @@ export class UserManager extends Disposable {
       if (annotation.isMember && annotations.hasTeam) {
         return cssMemberType('Team member');
       }
-      const collaborator = annotations.hasTeam ? 'outside collaborator' : 'collaborator';
+      const collaborator = annotations.hasTeam ? 'guest' : 'free collaborator';
       const limit = annotation.collaboratorLimit;
       if (!limit || !limit.top) { return null; }
       const elements: HTMLSpanElement[] = [];
       if (limit.at <= limit.top) {
-        elements.push(cssMemberType(`${limit.at} of ${limit.top} free ${collaborator}s`));
+        elements.push(cssMemberType(`${limit.at} of ${limit.top} ${collaborator}s`));
       } else {
-        elements.push(cssMemberTypeProblem(`Free ${collaborator} limit exceeded`));
+        elements.push(cssMemberTypeProblem(`${capitalizeFirstWord(collaborator)} limit exceeded`));
       }
       if (annotations.hasTeam) {
         // Add a link for adding a member. For a doc, streamline this so user can make
