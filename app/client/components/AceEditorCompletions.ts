@@ -20,6 +20,13 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
   const {Autocomplete} = ace.require('ace/autocomplete');
 
   const completer = new Autocomplete();
+  // Here is the source code:
+  // https://github.com/ajaxorg/ace/blob/23208f2f19020d1f69b90bc3b02460bda8422072/src/autocomplete.js#L180
+  // It seems that this function wasn't doing anything special, and wasn't returning anything, so
+  // AceEditor refused to insert new line. Option 'deleteSuffix is also not supported (line 150).
+  if (completer.keyboardHandler?.commands?.["Shift-Return"]) {
+    completer.keyboardHandler.commands["Shift-Return"].exec = () => false;
+  }
   completer.autoSelect = false;
   (editor as any).completer = completer;
 
