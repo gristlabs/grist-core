@@ -2,7 +2,8 @@
   "extends": "../../buildtools/tsconfig-base.json",
   "include": [
     "**/*",
-    "../../stubs/app/common/**/*"
+    "../../stubs/app/common/**/*",
+    "../../package.json"
   ],
   "references": [
     { "path": "../plugin" }

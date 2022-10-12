@@ -1,3 +1,4 @@
+import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
@@ -43,6 +44,7 @@ export function getProgram(): commander.Command {
   addHistoryCommand(program, {nested: true});
   addSiteCommand(program, {nested: true});
   addSqliteCommand(program);
+  addVersionCommand(program);
   return program;
 }
 
@@ -158,6 +160,12 @@ export function addSqliteCommand(program: commander.Command) {
   sub.command('clean <sqlite-file>')
     .description('remove grist metadata from an sqlite file')
     .action(filename => new Gristifier(filename).degristify());
+}
+
+export function addVersionCommand(program: commander.Command) {
+  program.command('version')
+    .description('show Grist version')
+    .action(() => console.log(version));
 }
 
 // Report the status of the database. Migrations appied, migrations pending,

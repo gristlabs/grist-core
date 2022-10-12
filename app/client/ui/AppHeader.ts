@@ -39,8 +39,12 @@ export class AppHeader extends Disposable {
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
       // Show version when hovering over the application icon.
+      // Include gitcommit when known. Cast version.gitcommit since, depending
+      // on how Grist is compiled, tsc may believe it to be a constant and
+      // believe that testing it is unnecessary.
       cssAppLogo(
-        {title: `Ver ${version.version} (${version.gitcommit})`},
+        {title: `Version ${version.version}` +
+          ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '')},
         urlState().setLinkUrl({}),
         testId('dm-logo')
       ),
