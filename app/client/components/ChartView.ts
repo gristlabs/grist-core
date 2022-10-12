@@ -53,6 +53,10 @@ function isPieLike(chartType: string) {
   return ['pie', 'donut'].includes(chartType);
 }
 
+function firstFieldIsLabels(chartType: string) {
+  return ['pie', 'donut', 'kaplan_meier', 'scatter'].includes(chartType);
+}
+
 export function isNumericOnly(chartType: string) {
   return ['bar', 'pie', 'donut', 'kaplan_meier', 'line', 'area', 'scatter'].includes(chartType);
 }
@@ -560,7 +564,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
-    (_use, chartType) => isPieLike(chartType) ? 'LABEL' : 'X-AXIS'
+    (_use, chartType) => firstFieldIsLabels(chartType) ? 'LABEL' : 'X-AXIS'
   ));
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
