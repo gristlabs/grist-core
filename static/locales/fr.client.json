@@ -10,6 +10,17 @@
     "ExamplesAndTemplates": "Exemples et Templates",
     "MoreExamplesAndTemplates": "Plus d'exemples et templates"
   },
+  "GridViewMenus": {
+    "AddColumn": "Add Column toto",
+    "ShowColumn": "Show Column {{label}}",
+    "ColumnOptions": "Column Options",
+    "FilterData": "Filter Data",
+    "Sort": "Sort",
+    "MoreSortOptions": "More sort options ...",
+    "RenameColumn": "Rename column",
+    "ClearEntireColumn_one": "Clear entire column",
+    "ClearEntireColumn_other": "Clear {{count}} entire columns"
+  },
   "HomeIntro": {
     "SignUp": "Sign up",
     "EmptyWorkspace": "This workspace is empty.",
@@ -43,6 +54,13 @@
     "Trash": "Corbeille",
     "Rename": "Renommer",
     "Delete": "Supprimer",
-    "Workspaces": "Espaces de travail"
+    "Workspaces": "Espaces de travail",
+    "WorkspaceDeleteTitle": "Delete {{workspace}} and all included documents?",
+    "WorkspaceDeleteText": "Workspace will be moved to Trash.",
+    "ManageUser": "Manage User",
+    "AccessDetails": "Access Details"
+  },
+  "LeftPanelCommon": {
+    "HelpCenter": "Help Center"
   }
 }

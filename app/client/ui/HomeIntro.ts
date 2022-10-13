@@ -92,7 +92,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
     cssIntroLine(translate('TeamSiteIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
       cssIntroLine(
-        translate('TeamSiteIntroLearnMore', {link: helpCenterLink(), sproutsProgram}),
+        translate('TeamSiteIntroLearnMore', {link: helpCenterLink(), sproutsProgram}),  // TODO i18n
         testId('welcome-text')
       )
     ),
@@ -105,7 +105,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
     css.docListHeader(translate('WelcomeUser', {name: user.name}), testId('welcome-title')),
     cssIntroLine(translate('PersonalIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
-      cssIntroLine(translate('IntroVisitOur', {link: helpCenterLink()}),
+      cssIntroLine(translate('IntroVisitOur', {link: helpCenterLink()}),  // TODO i18n
         testId('welcome-text'))
     ),
     makeCreateButtons(homeModel),
@@ -118,7 +118,7 @@ function makeAnonIntro(homeModel: HomeModel) {
     css.docListHeader(translate('Welcome'), testId('welcome-title')),
     cssIntroLine(translate('AnonIntroGetStarted')),
     cssIntroLine(translate('AnonIntroSignUpSave', {signUp}),
-      (shouldHideUiElement('helpCenter') ? null : translate('IntroVisitOur', {link: helpCenterLink()})),
+      (shouldHideUiElement('helpCenter') ? null : translate('IntroVisitOur', {link: helpCenterLink()})),  // TODO i18n
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];
