@@ -12,6 +12,8 @@ import jsesc from 'jsesc';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 
+const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args);
+
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
   content?: string;
@@ -154,7 +156,7 @@ function configuredPageTitleSuffix() {
  */
 function getPageTitle(req: express.Request, config: GristLoadConfig): string {
   const maybeDoc = getDocFromConfig(config);
-  if (!maybeDoc) { return req.t('sendAppPage.Loading') + "..."; }
+  if (!maybeDoc) { return translate(req, 'sendAppPage.Loading') + "..."; }
 
   return handlebars.Utils.escapeExpression(maybeDoc.name);
 }
