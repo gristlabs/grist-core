@@ -3,6 +3,7 @@
  * the sample documents (those in the Support user's Examples & Templates workspace).
  */
 
+import {t} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
@@ -19,35 +20,35 @@ import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/User
 import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 
+const translate = (x: string, args?: any): string => t(`MakeCopyMenu.${x}`, args);
 
 export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, app: AppModel, origUrlId: string) {
   const trunkAccess = (await app.api.getDoc(origUrlId)).access;
   if (!roles.canEdit(trunkAccess)) {
     modal((ctl) => [
-      cssModalBody(`Replacing the original requires editing rights on the original document.`),
+      cssModalBody(translate('CannotEditOriginal')),
       cssModalButtons(
-        bigBasicButton('Cancel', dom.on('click', () => ctl.close())),
+        bigBasicButton(translate('Cancel'), dom.on('click', () => ctl.close())),
       )
     ]);
     return;
   }
   const docApi = app.api.getDocAPI(origUrlId);
   const cmp = await docApi.compareDoc(doc.id);
-  let titleText = 'Update Original';
-  let buttonText = 'Update';
-  let warningText = 'The original version of this document will be updated.';
+  let titleText = translate('UpdateOriginal');
+  let buttonText = translate('Update');
+  let warningText = translate('WarningOriginalWillBeUpdated');
   if (cmp.summary === 'left' || cmp.summary === 'both') {
-    titleText = 'Original Has Modifications';
-    buttonText = 'Overwrite';
-    warningText = `${warningText} Be careful, the original has changes not in this document. ` +
-      `Those changes will be overwritten.`;
+    titleText = translate('OriginalHasModifications');
+    buttonText = translate('Overwrite');
+    warningText = `${warningText} ${translate('WarningOverwriteOriginalChanges')}`;
   } else if (cmp.summary === 'unrelated') {
-    titleText = 'Original Looks Unrelated';
-    buttonText = 'Overwrite';
-    warningText = `${warningText} It will be overwritten, losing any content not in this document.`;
+    titleText = translate('OriginalLooksUnrelated');
+    buttonText = translate('Overwrite');
+    warningText = `${warningText} ${translate('WarningWillBeOverwritten')}`;
   } else if (cmp.summary === 'same') {
     titleText = 'Original Looks Identical';
-    warningText = `${warningText} However, it appears to be already identical.`;
+    warningText = `${warningText} ${translate('WarningAlreadyIdentical')}`;
   }
   confirmModal(titleText, buttonText,
     async () => {
@@ -65,8 +66,8 @@ function signupModal(message: string) {
   return modal((ctl) => [
     cssModalBody(message),
     cssModalButtons(
-      bigPrimaryButtonLink('Sign up', {href: getLoginOrSignupUrl(), target: '_blank'}, testId('modal-signup')),
-      bigBasicButton('Cancel', dom.on('click', () => ctl.close())),
+      bigPrimaryButtonLink(translate('SignUp'), {href: getLoginOrSignupUrl(), target: '_blank'}, testId('modal-signup')),
+      bigBasicButton(translate('Cancel'), dom.on('click', () => ctl.close())),
     ),
     cssModalWidth('normal'),
   ]);
@@ -95,7 +96,7 @@ function allowOtherOrgs(doc: Document, app: AppModel): boolean {
  */
 export async function makeCopy(doc: Document, app: AppModel, modalTitle: string): Promise<void> {
   if (!app.currentValidUser) {
-    signupModal('To save your changes, please sign up, then reload this page.');
+    signupModal(translate('ToSaveSignUpAndReload'));
     return;
   }
   let orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
@@ -149,7 +150,7 @@ class SaveCopyModal extends Disposable {
 
   public async save() {
     const ws = this._destWS.get();
-    if (!ws) { throw new Error('No destination workspace'); }
+    if (!ws) { throw new Error(translate('NoDestinationWorkspace')); }
     const api = this._app.api;
     const org = this._destOrg.get();
     const docWorker = await api.getWorkerAPI('import');
@@ -171,8 +172,8 @@ class SaveCopyModal extends Disposable {
   public buildDom() {
     return [
       cssField(
-        cssLabel("Name"),
-        input(this._destName, {onInput: true}, {placeholder: 'Enter document name'},  dom.cls(cssInput.className),
+        cssLabel(translate("Name")),
+        input(this._destName, {onInput: true}, {placeholder: translate('EnterDocumentName')},  dom.cls(cssInput.className),
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
@@ -180,15 +181,15 @@ class SaveCopyModal extends Disposable {
           testId('copy-dest-name'))
       ),
       cssField(
-        cssLabel("As Template"),
-        cssCheckbox(this._asTemplate, 'Include the structure without any of the data.',
+        cssLabel(translate("AsTemplate")),
+        cssCheckbox(this._asTemplate, translate('IncludeStructureWithoutData'),
           testId('save-as-template'))
       ),
       // Show the team picker only when saving to other teams is allowed and there are other teams
       // accessible.
       (this._orgs ?
         cssField(
-          cssLabel("Organization"),
+          cssLabel(translate("Organization")),
           select(this._destOrg, this._orgs.map(value => ({value, label: value.name}))),
           testId('copy-dest-org'),
         ) : null
@@ -198,11 +199,11 @@ class SaveCopyModal extends Disposable {
       // Show the workspace picker only when destOrg is a team site, because personal orgs do not have workspaces.
       dom.domComputed((use) => use(this._showWorkspaces) && use(this._workspaces), (wss) =>
         wss === false ? null :
-        wss && wss.length === 0 ? cssWarningText("You do not have write access to this site",
+        wss && wss.length === 0 ? cssWarningText(translate("NoWriteAccessToSite"),
           testId('copy-warning')) :
         [
           cssField(
-            cssLabel("Workspace"),
+            cssLabel(translate("Workspace")),
             (wss === null ?
               cssSpinner(loadingSpinner()) :
               select(this._destWS, wss.map(value => ({
@@ -215,7 +216,7 @@ class SaveCopyModal extends Disposable {
           ),
           wss ? dom.domComputed(this._destWS, (destWs) =>
             destWs && !roles.canEdit(destWs.access) ?
-              cssWarningText("You do not have write access to the selected workspace",
+              cssWarningText(translate("NoWriteAccessToWorkspace"),
                 testId('copy-warning')
               ) : null
           ) : null

@@ -51,5 +51,30 @@
   },
   "LeftPanelCommon": {
     "HelpCenter": "Help Center"
+  },
+  "MakeCopyMenu": {
+    "CannotEditOriginal": "Replacing the original requires editing rights on the original document.",
+    "Cancel": "Cancel",
+    "UpdateOriginal": "Update Original",
+    "Update": "Update",
+    "WarningOriginalWillBeUpdated": "The original version of this document will be updated.",
+    "OriginalHasModifications": "Original Has Modifications",
+    "Overwrite": "Overwrite",
+    "WarningOverwriteOriginalChanges": "Be careful, the original has changes not in this document. Those changes will be overwritten.",
+    "OriginalLooksUnrelated": "Original Looks Unrelated",
+    "WarningWillBeOverwritten": "It will be overwritten, losing any content not in this document.",
+    "OriginalLooksIdentical": "Original Looks Identical",
+    "WarningAlreadyIdentical": "However, it appears to be already identical.",
+    "SignUp": "Sign up",
+    "ToSaveSignUpAndReload": "To save your changes, please sign up, then reload this page.",
+    "NoDestinationWorkspace": "No destination workspace",
+    "Name": "Name",
+    "EnterDocumentName": "Enter document name",
+    "AsTemplate": "As Template",
+    "IncludeStructureWithoutData": "Include the structure without any of the data.",
+    "Organization": "Organization",
+    "NoWriteAccessToSite": "You do not have write access to this site",
+    "Workspace": "Workspace",
+    "NoWriteAccessToWorkspace": "You do not have write access to the selected workspace"
   }
 }
