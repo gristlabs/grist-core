@@ -14,11 +14,14 @@
  *    )
  */
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
+import {t} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, DomContents, Observable, styled} from 'grainjs';
+
+const translate = (x: string, args?: any): string => t(`LeftPanelCommon.${x}`, args);
 
 /**
  * Creates the "help tools", a button/link to open HelpScout beacon, and one to open the
@@ -31,7 +34,7 @@ export function createHelpTools(appModel: AppModel): DomContents {
   return cssSplitPageEntry(
     cssPageEntryMain(
       cssPageLink(cssPageIcon('Help'),
-        cssLinkText('Help Center'),
+        cssLinkText(translate('HelpCenter')),
         dom.cls('tour-help-center'),
         dom.on('click', (ev) => beaconOpenMessage({appModel})),
         testId('left-feedback'),

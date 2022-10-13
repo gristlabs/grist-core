@@ -28,5 +28,8 @@
     "WorkspaceDeleteText": "Workspace will be moved to Trash.",
     "ManageUser": "Manage User",
     "AccessDetails": "Access Details"
+  },
+  "LeftPanelCommon": {
+    "HelpCenter": "Help Center"
   }
 }
