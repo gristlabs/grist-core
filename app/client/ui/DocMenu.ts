@@ -105,10 +105,10 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 null :
                 css.docListHeader(
                   (
-                    page === 'all' ? t('AllDocuments') :
+                    page === 'all' ? t('DocMenu.AllDocuments') :
                     page === 'templates' ?
                       dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                        hasFeaturedTemplates ? t('MoreExamplesAndTemplates') : t('ExamplesAndTemplates')
+                        hasFeaturedTemplates ? t('DocMenu.MoreExamplesAndTemplates') : t('DocMenu.ExamplesAndTemplates')
                     ) :
                     page === 'trash' ? 'Trash' :
                     workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
@@ -268,7 +268,7 @@ function buildOtherSites(home: HomeModel) {
     return css.otherSitesBlock(
       dom.autoDispose(hideOtherSitesObs),
       css.otherSitesHeader(
-        t('OtherSites'),
+        t('DocMenu.OtherSites'),
         dom.domComputed(hideOtherSitesObs, (collapsed) =>
           collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
         ),
@@ -280,7 +280,7 @@ function buildOtherSites(home: HomeModel) {
         const siteName = home.app.currentOrgName;
         return [
           dom('div',
-            t('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
+            t('DocMenu.OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
             testId('other-sites-message')
           ),
           css.otherSitesButtons(
