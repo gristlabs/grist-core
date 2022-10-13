@@ -14,6 +14,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomContents, styled} from 'grainjs';
 
+const translate = (x: string, args?: any): string => t(`HomeIntro.${x}`, args);
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.app.currentOrg?.access === roles.VIEWER;
@@ -110,9 +111,9 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('HomeIntro.SignUp'));
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, translate('SignUp'));
   return [
-    css.docListHeader(t('HomeIntro.Welcome'), testId('welcome-title')),
+    css.docListHeader(translate('Welcome'), testId('welcome-title')),
     cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
     cssIntroLine(signUp, ' to save your work.',
       (shouldHideUiElement('helpCenter') ? null : [' Visit our ', helpCenterLink(), ' to learn more.']),
