@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import {loadUserManager} from 'app/client/lib/imports';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {reportError} from 'app/client/models/AppModel';
@@ -20,6 +21,8 @@ import {computed, dom, domComputed, DomElementArg, observable, Observable, style
 import {createHelpTools, cssLeftPanel, cssScrollPane,
         cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
 
+const translate = (x: string, args?: any): string => t(`HomeLeftPane.${x}`, args);
+
 export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: HomeModel) {
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
@@ -39,13 +42,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "all"),
         cssPageLink(cssPageIcon('Home'),
-          cssLinkText('All Documents'),
+          cssLinkText(translate('AllDocuments')),
           urlState().setLinkUrl({ws: undefined, homePage: undefined}),
           testId('dm-all-docs'),
         ),
       ),
       dom.maybe(use => !use(home.singleWorkspace), () =>
-        cssSectionHeader('Workspaces',
+        cssSectionHeader(
+          translate('Workspaces'),
           // Give it a testId, because it's a good element to simulate "click-away" in tests.
           testId('dm-ws-label')
         ),
@@ -104,14 +108,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         cssPageEntry(
           dom.hide(shouldHideUiElement("templates")),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
-          cssPageLink(cssPageIcon('FieldTable'), cssLinkText("Examples & Templates"),
+          cssPageLink(cssPageIcon('FieldTable'), cssLinkText(translate("ExamplesAndTemplates")),
             urlState().setLinkUrl({homePage: "templates"}),
             testId('dm-templates-page'),
           ),
         ),
         cssPageEntry(
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "trash"),
-          cssPageLink(cssPageIcon('Remove'), cssLinkText("Trash"),
+          cssPageLink(cssPageIcon('Remove'), cssLinkText(translate("Trash")),
             urlState().setLinkUrl({homePage: "trash"}),
             testId('dm-trash'),
           ),
@@ -172,11 +176,11 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   const needUpgrade = home.app.currentFeatures.maxWorkspacesPerOrg === 1;
 
   return [
-    menuItem(() => createDocAndOpen(home), menuIcon('Page'), "Create Empty Document",
+    menuItem(() => createDocAndOpen(home), menuIcon('Page'), translate("CreateEmptyDocument"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-new-doc")
     ),
-    menuItem(() => importDocAndOpen(home), menuIcon('Import'), "Import Document",
+    menuItem(() => importDocAndOpen(home), menuIcon('Import'), translate("ImportDocument"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
@@ -191,7 +195,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
-    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), "Create Workspace",
+    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), translate("CreateWorkspace"),
              dom.cls('disabled', (use) => !roles.canEdit(orgAccess) || !use(home.available)),
              testId("dm-new-workspace")
     ),
@@ -201,9 +205,9 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
 
 function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace|null>) {
   function deleteWorkspace() {
-    confirmModal(`Delete ${ws.name} and all included documents?`, 'Delete',
+    confirmModal(translate('WorkspaceDeleteTitle', {workspace: ws.name}), translate('Delete'),
       () => home.deleteWorkspace(ws.id, false),
-      'Workspace will be moved to Trash.');
+      translate('WorkspaceDeleteText'));
   }
 
   async function manageWorkspaceUsers() {
@@ -221,17 +225,17 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
   const needUpgrade = home.app.currentFeatures.maxWorkspacesPerOrg === 1;
 
   return [
-    upgradableMenuItem(needUpgrade, () => renaming.set(ws), "Rename",
+    upgradableMenuItem(needUpgrade, () => renaming.set(ws), translate("Rename"),
       dom.cls('disabled', !roles.canEdit(ws.access)),
       testId('dm-rename-workspace')),
-    upgradableMenuItem(needUpgrade, deleteWorkspace, "Delete",
+    upgradableMenuItem(needUpgrade, deleteWorkspace, translate("Delete"),
       dom.cls('disabled', user => !roles.canEdit(ws.access)),
       testId('dm-delete-workspace')),
     // TODO: Personal plans can't currently share workspaces, but that restriction
     // should formally be documented and defined in `Features`, with this check updated
     // to look there instead.
     home.app.isPersonal ? null : upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
-      roles.canEditAccess(ws.access) ? "Manage Users" : "Access Details",
+      roles.canEditAccess(ws.access) ? translate("Manage Users") : translate("Access Details"),
       testId('dm-workspace-access')),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];

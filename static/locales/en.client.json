@@ -13,5 +13,20 @@
   "HomeIntro": {
     "Welcome": "Welcome to Grist!",
     "SignUp": "Sign up"
+  },
+  "HomeLeftPane": {
+    "AllDocuments": "All Documents",
+    "ExamplesAndTemplates": "Examples & Templates",
+    "CreateEmptyDocument": "Create Empty Document",
+    "ImportDocument": "Import Document",
+    "CreateWorkspace": "Create Workspace",
+    "Trash": "Trash",
+    "Rename": "Rename",
+    "Delete": "Delete",
+    "Workspaces": "Workspaces",
+    "WorkspaceDeleteTitle": "Delete {{workspace}} and all included documents?",
+    "WorkspaceDeleteText": "Workspace will be moved to Trash.",
+    "ManageUser": "Manage User",
+    "AccessDetails": "Access Details"
   }
 }

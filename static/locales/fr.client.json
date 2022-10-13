@@ -1,0 +1,28 @@
+{
+  "AddNewButton": {
+    "AddNew": "Nouveau"
+  },
+  "DocMenu": {
+    "OtherSites": "Autre sites",
+    "OtherSitesWelcome": "Tu es sur le site de {{siteName}}. Tu as aussi accès aux sites suivants :",
+    "OtherSitesWelcome_personal": "Tu es sur ton site personnel. Tu as aussi accès aux sites suivants :",
+    "AllDocuments": "All Documents",
+    "ExamplesAndTemplates": "Exemples et Templates",
+    "MoreExamplesAndTemplates": "Plus d'exemples et templates"
+  },
+  "HomeIntro": {
+    "Welcome": "Bienvenue sur Grist !",
+    "SignUp": "Sign up"
+  },
+  "HomeLeftPane": {
+    "AllDocuments": "Tout les documents",
+    "ExamplesAndTemplates": "Exemples & Templates",
+    "CreateEmptyDocument": "Créer un document vide",
+    "ImportDocument": "Importer un Fichier",
+    "CreateWorkspace": "Créer nouvel espace de travail",
+    "Trash": "Corbeille",
+    "Rename": "Renommer",
+    "Delete": "Supprimer",
+    "Workspaces": "Espaces de travail"
+  }
+}
