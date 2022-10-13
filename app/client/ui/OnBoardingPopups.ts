@@ -25,6 +25,7 @@
 import { Disposable, dom, DomElementArg, Holder, makeTestId, styled, svg } from "grainjs";
 import { createPopper, Placement } from '@popperjs/core';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
+import {t} from 'app/client/lib/localization';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -34,6 +35,8 @@ import {urlState} from "app/client/models/gristUrlState";
 import {delay} from "app/common/delay";
 import {reportError} from "app/client/models/errors";
 import {cssBigIcon, cssCloseButton} from "./ExampleCard";
+
+const translate = (x: string, args?: any): string => t(`OnBoardingPopups.${x}`, args);
 
 const testId = makeTestId('test-onboarding-');
 
@@ -296,7 +299,7 @@ class OnBoardingPopupsCtl extends Disposable {
           {style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}`},
         ),
         bigPrimaryButton(
-          isLastStep ? 'Finish' : 'Next', testId('next'),
+          isLastStep ? translate('Finish') : translate('Next'), testId('next'),
           dom.on('click', () => this._move(+1, true)),
         ),
       )
