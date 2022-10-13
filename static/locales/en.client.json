@@ -91,5 +91,10 @@
   "OnBoardingPopups": {
     "Finish": "Finish",
     "Next": "Next"
+  },
+  "OpenVideoTour": {
+    "YouTubeVideoPlayer": "YouTube video player",
+    "GristVideoTour": "Grist Video Tour",
+    "VideoTour": "Video Tour"
   }
 }

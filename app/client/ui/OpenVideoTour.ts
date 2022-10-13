@@ -1,10 +1,13 @@
 import * as commands from 'app/client/components/commands';
+import {t} from 'app/client/lib/localization';
 import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {modal} from 'app/client/ui2018/modals';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
+
+const translate = (x: string, args?: any): string => t(`OpenVideoTour.${x}`, args);
 
 const testId = makeTestId('test-video-tour-');
 
@@ -25,7 +28,7 @@ const testId = makeTestId('test-video-tour-');
           cssVideo(
             {
               src: commonUrls.videoTour,
-              title: 'YouTube video player',
+              title: translate('YouTubeVideoPlayer'),
               frameborder: '0',
               allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
               allowfullscreen: '',
@@ -48,7 +51,7 @@ const testId = makeTestId('test-video-tour-');
 export function createVideoTourTextButton(): HTMLDivElement {
   const elem: HTMLDivElement = cssVideoTourTextButton(
     cssVideoIcon('Video'),
-    'Grist Video Tour',
+    translate('GristVideoTour'),
     dom.on('click', () => openVideoTour(elem)),
     testId('text-button'),
   );
@@ -74,7 +77,7 @@ export function createVideoTourToolsButton(): HTMLDivElement | null {
     dom.autoDispose(commandsGroup),
     cssPageLink(
       iconElement = cssPageIcon('Video'),
-      cssLinkText('Video Tour'),
+      cssLinkText(translate('VideoTour')),
       dom.cls('tour-help-center'),
       dom.on('click', () => openVideoTour(iconElement)),
       testId('tools-button'),
