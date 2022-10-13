@@ -484,18 +484,14 @@ export class FieldBuilder extends Disposable {
       }
     }).extend({ deferred: true })).onlyNotifyUnequal();
 
-    const textColor = koUtil.withKoUtils(ko.computed(() => {
+    const ruleText = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }
-      const fromRules = computedRule()?.style?.textColor;
-      return fromRules || this.field.textColor() || '';
+      return computedRule()?.style?.textColor || '';
     })).onlyNotifyUnequal();
 
-    const fillColor = koUtil.withKoUtils(ko.computed(() => {
+    const ruleFill = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }
-      const fromRules = computedRule()?.style?.fillColor;
-      let fill = fromRules || this.field.fillColor();
-      fill = fill ? fill.toUpperCase() : fill;
-      return fill || '';
+      return computedRule()?.style?.fillColor || '';
     })).onlyNotifyUnequal();
 
     const fontBold = buildFontOptions(this, computedRule, 'fontBold');
@@ -505,19 +501,27 @@ export class FieldBuilder extends Disposable {
 
     const errorInStyle = ko.pureComputed(() => Boolean(computedRule()?.error));
 
+    const cellText = ko.pureComputed(() => this.field.textColor() || '');
+    const cllFill = ko.pureComputed(() => this.field.fillColor() || '');
+
+
     return (elem: Element) => {
       this._rowMap.set(row, elem);
       dom(elem,
           dom.autoDispose(widgetObs),
           dom.autoDispose(computedFlags),
           dom.autoDispose(errorInStyle),
-          dom.autoDispose(textColor),
+          dom.autoDispose(ruleText),
           dom.autoDispose(computedRule),
-          dom.autoDispose(fillColor),
+          dom.autoDispose(ruleFill),
           dom.autoDispose(fontBold),
           dom.autoDispose(fontItalic),
           dom.autoDispose(fontUnderline),
           dom.autoDispose(fontStrikethrough),
+          kd.style('--grist-cell-color', cellText),
+          kd.style('--grist-cell-background-color', cllFill),
+          kd.style('--grist-rule-color', ruleText),
+          kd.style('--grist-column-rule-background-color', ruleFill),
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
@@ -531,9 +535,7 @@ export class FieldBuilder extends Disposable {
                        kd.toggleClass('font-bold', fontBold),
                        kd.toggleClass('font-underline', fontUnderline),
                        kd.toggleClass('font-italic', fontItalic),
-                       kd.toggleClass('font-strikethrough', fontStrikethrough),
-                       kd.style('--grist-cell-color', textColor),
-                       kd.style('--grist-cell-background-color', fillColor));
+                       kd.toggleClass('font-strikethrough', fontStrikethrough));
           })
          );
     };

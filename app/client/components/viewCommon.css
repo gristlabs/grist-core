@@ -13,13 +13,14 @@
   border-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
   border-left-style: solid;  /* left border, against rownumbers div, always on */
   border-bottom-width: 1px; /* style: none, set by record-hlines*/
-  /* Record background is white by default.
+  /* Record background is white (or theme default) by default.
      It gets overridden by the add row, zebra stripes.
      It also gets overridden by selecting rows - but in that case background comes from
-     selected fields - this still remains white.
-     TODO: consider making this color the single source
+     selected fields.
   */
-  background: var(--grist-row-background-color, var(--grist-theme-cell-bg, white));
+  background-color: var(--grist-diff-background-color, /* diffing view */
+                    var(--grist-row-rule-background-color, /* conditional row style */
+                    var(--grist-theme-cell-bg, white))); /* default, not transparent */
   color: var(--grist-row-color, var(--grist-theme-cell-fg, black));
 }
 
@@ -28,11 +29,14 @@
 }
 
 .record.record-zebra.record-even {
-  background-color: var(--grist-row-background-color-zebra, var(--grist-theme-cell-zebra-bg, #f8f8f8));
+  background-color: var(--grist-diff-background-color,
+                    var(--grist-row-rule-background-color-zebra,
+                    var(--grist-row-rule-background-color,
+                    var(--grist-theme-cell-zebra-bg, #f8f8f8))));
 }
 
 .record.record-add {
-  background-color: var(--grist-theme-table-add-new-bg, #f6f6ff) !important;  /* important to win over zebra stripes */
+  background-color: var(--grist-theme-table-add-new-bg, #f6f6ff) !important;  /* important to win over every thing */
 }
 
 .field {
@@ -44,6 +48,34 @@
   white-space: pre;
   /* make border exist always so content doesn't shift on v-gridline toggle */
   border: 0px solid transparent;  /* width set by js, border exists but is transparent */
+/**
+* Order of precedence for field is as follows: diff color, column rule, row rule, static (default) style, transparent.
+* We can't use background inheritance, because row background color is more important then static (aka default)
+* column color defined on a field (so lower in the dom).
+*/
+  background-color: var(--grist-diff-background-color,
+                    var(--grist-column-rule-background-color,
+                    var(--grist-row-rule-background-color,
+                    var(--grist-cell-background-color, unset))));
+}
+
+/** Similar order is for detail view, but there is no row rules */
+.g_record_detail_value {
+  background-color: var(--grist-diff-background-color,
+                    var(--grist-column-rule-background-color,
+                    var(--grist-cell-background-color, unset)));
+}
+
+.record.record-zebra.record-even .field {
+  background-color: var(--grist-diff-background-color,
+                    var(--grist-column-rule-background-color,
+                    var(--grist-row-rule-background-color-zebra,
+                    var(--grist-row-rule-background-color,
+                    var(--grist-cell-background-color, unset)))));
+}
+
+.record.record-add .field {
+  background-color: unset !important;  /* important to win over zebra stripes */
 }
 
 .record-vlines > .field {
@@ -54,8 +86,6 @@
 .field.scissors {
   outline: 2px dashed var(--grist-theme-cursor, var(--grist-color-cursor));
 }
-
-
 
 .field.draft {
   padding-right: 18px;
@@ -70,8 +100,12 @@
   text-overflow: ellipsis;
   width: 100%;
   height: 100%;
-  background-color: var(--grist-diff-background-color, var(--grist-cell-background-color, var(--grist-row-background-color, unset)));
-  --grist-actual-cell-color: var(--grist-diff-color, var(--grist-cell-color, var(--grist-row-color)));
+  /* We need to repeat background color here, as it might also be applied on a widget level (through DiffBox.ts)*/
+  background-color: var(--grist-diff-background-color, inherit);
+  --grist-actual-cell-color: var(--grist-diff-color,
+                             var(--grist-rule-color,
+                             var(--grist-row-color,
+                             var(--grist-cell-color))));
   color: var(--grist-actual-cell-color, unset);
 }
 

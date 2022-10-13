@@ -1199,8 +1199,8 @@ GridView.prototype.buildDom = function() {
         kd.toggleClass('font-underline', fontUnderline),
         kd.toggleClass('font-italic', fontItalic),
         kd.toggleClass('font-strikethrough', fontStrikethrough),
-        kd.style('--grist-row-background-color', fillColor),
-        kd.style('--grist-row-background-color-zebra', zebraColor),
+        kd.style('--grist-row-rule-background-color', fillColor),
+        kd.style('--grist-row-rule-background-color-zebra', zebraColor),
         kd.style('--grist-row-color', textColor),
         //These are grabbed from v.optionsObj at start of GridView buildDom
         kd.toggleClass('record-hlines', vHorizontalGridlines),
