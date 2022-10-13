@@ -102,5 +102,12 @@
     "TableWillNoLongerBeVisible_other": "The following tables will no longer be visible",
     "DeleteDataAndPage": "Delete data and this page.",
     "Delete": "Delete"
+  },
+  "PageWidgetPicker": {
+    "BuldingWidget": "Building {{label}} widget",
+    "SelectWidget": "Select Widget",
+    "SelectData": "Select Data",
+    "GroupBy": "Group by",
+    "Add to Page": "AddToPage"
   }
 }

@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { linkId, NoLink } from 'app/client/ui/selectBy';
@@ -12,6 +13,8 @@ import { makeTestId, Observable, onKeyDown, styled} from "grainjs";
 import without = require('lodash/without');
 import Popper from 'popper.js';
 import { IOpenController, popupOpen, setPopupToCreateDom } from 'popweasel';
+
+const translate = (x: string, args?: any): string => t(`PageWidgetPicker.${x}`, args);
 
 type TableId = number|'New Table'|null;
 
@@ -175,7 +178,7 @@ export function buildPageWidgetPicker(
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
         const label = getWidgetTypes(type).label;
-        await spinnerModal(`Building ${label} widget`, savePromise);
+        await spinnerModal(translate('BuildingWidget', { label }), savePromise);
       }
     }
   }
@@ -277,7 +280,7 @@ export class PageWidgetSelect extends Disposable {
       testId('container'),
       cssBody(
         cssPanel(
-          header('Select Widget'),
+          header(translate('SelectWidget')),
           sectionTypes.map((value) => {
             const {label, icon: iconName} = getWidgetTypes(value);
             const disabled = computed(this._value.table, (use, tid) => this._isTypeDisabled(value, tid));
@@ -294,7 +297,7 @@ export class PageWidgetSelect extends Disposable {
         ),
         cssPanel(
           testId('data'),
-          header('Select Data'),
+          header(translate('Select Data')),
           cssEntry(
             cssIcon('TypeTable'), 'New Table',
             // prevent the selection of 'New Table' if it is disabled
@@ -322,7 +325,7 @@ export class PageWidgetSelect extends Disposable {
           )),
         ),
         cssPanel(
-          header('Group by'),
+          header(translate('GroupBy')),
           dom.hide((use) => !use(this._value.summarize)),
           domComputed(
             (use) => use(this._columns)
@@ -351,7 +354,7 @@ export class PageWidgetSelect extends Disposable {
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
-            this._options.buttonLabel || 'Add to Page',
+            this._options.buttonLabel || translate('AddToPage'),
             dom.prop('disabled', (use) => !isValidSelection(
               use(this._value.table), use(this._value.type), this._options.isNewPage)
             ),
