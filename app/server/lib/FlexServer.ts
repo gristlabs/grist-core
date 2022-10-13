@@ -1,3 +1,4 @@
+import {ApiError} from 'app/common/ApiError';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
 import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPathOnly,
@@ -1753,7 +1754,7 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
     res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
   } else {
-    throw new Error('Unrecognized origin');
+    throw new ApiError('Unrecognized origin', 403);
   }
   if ('OPTIONS' === req.method) {
     res.sendStatus(200);
