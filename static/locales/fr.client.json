@@ -11,8 +11,28 @@
     "MoreExamplesAndTemplates": "Plus d'exemples et templates"
   },
   "HomeIntro": {
-    "Welcome": "Bienvenue sur Grist !",
-    "SignUp": "Sign up"
+    "SignUp": "Sign up",
+    "EmptyWorkspace": "This workspace is empty.",
+    "PersonalSite": "personal site",
+    "WelcomeTo": "Welcome to {{orgName}}",
+    "WelcomeInfoNoDocuments": "You have read-only access to this site. Currently there are no documents.",
+    "WelcomeInfoAppearHere": "Any documents created in this site will appear here.",
+    "WelcomeTextVistGrist": "Interested in using Grist outside of your team? Visit your free ",
+    "SproutsProgram": "Sprouts Program",
+    "WelcomeUser": "Welcome to Grist, {{name}}!",
+    "TeamSiteIntroGetStarted": "Get started by inviting your team and creating your first Grist document.",
+    "TeamSiteIntroLearnMore": "Learn more in our {{- link}}, or find an expert via our {{- sproutsProgram}}.",
+    "OrFindAndExpert": ", or find an expert via our ",
+    "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
+    "IntroVisitOur": "Visit our {{- link}} to learn more.",
+    "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
+    "AnonIntroSignUpSave": "{{- signup}}  to save your work.",
+    "Welcome": "Bienvenue sur Grist !",
+    "HelpCenter": "Help Center",
+    "InviteTeamMembers": "Invite Team Members",
+    "BrowseTemplates": "Browse Templates",
+    "CreateEmptyDocument": "Create Empty Document",
+    "ImportDocument": "Import Document"
   },
   "HomeLeftPane": {
     "AllDocuments": "Tout les documents",

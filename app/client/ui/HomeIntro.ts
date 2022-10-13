@@ -37,7 +37,7 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
 export function buildWorkspaceIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.currentWS.get()?.access === roles.VIEWER;
   const isAnonym = !homeModel.app.currentValidUser;
-  const emptyLine = cssIntroLine(testId('empty-workspace-info'), "This workspace is empty.");
+  const emptyLine = cssIntroLine(testId('empty-workspace-info'), translate('EmptyWorkspace'));
   if (isAnonym || isViewer) {
     return emptyLine;
   } else {
@@ -58,39 +58,41 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
   const docLink = (dom.maybe(personalOrg, org => {
     return cssLink(
       urlState().setLinkUrl({org: org.domain ?? undefined}),
-      'personal site',
+      translate('PersonalSite'),
       testId('welcome-personal-url'));
   }));
   return [
     css.docListHeader(
       dom.autoDispose(personalOrg),
-      `Welcome to ${homeModel.app.currentOrgName}`,
+      translate('WelcomeTo', {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
     cssIntroLine(
       testId('welcome-info'),
-      "You have read-only access to this site. Currently there are no documents.", dom('br'),
-      "Any documents created in this site will appear here."),
+      translate('WelcomeInfoNoDocuments'),
+      dom('br'),
+      translate('WelcomeInfoAppearHere'),
+    ),
     cssIntroLine(
-      'Interested in using Grist outside of your team? Visit your free ', docLink, '.',
+      translate('WelcomeTextVistGrist'), docLink, '.',
       testId('welcome-text')
     )
   ];
 }
 
 function makeTeamSiteIntro(homeModel: HomeModel) {
-  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, 'Sprouts Program');
+  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, translate('SproutsProgram'));
   return [
     css.docListHeader(
-      `Welcome to ${homeModel.app.currentOrgName}`,
+      translate('WelcomeTo', {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
-    cssIntroLine('Get started by inviting your team and creating your first Grist document.'),
+    cssIntroLine(translate('TeamSiteIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
       cssIntroLine(
-        'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
+        translate('TeamSiteIntroLearnMore', {link: helpCenterLink(), sproutsProgram}),
         testId('welcome-text')
       )
     ),
@@ -100,10 +102,10 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
 
 function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
-    css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
-    cssIntroLine('Get started by creating your first Grist document.'),
+    css.docListHeader(translate('WelcomeUser', {name: user.name}), testId('welcome-title')),
+    cssIntroLine(translate('PersonalIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
-      cssIntroLine('Visit our ', helpCenterLink(), ' to learn more.',
+      cssIntroLine(translate('IntroVisitOur', {link: helpCenterLink()}),
         testId('welcome-text'))
     ),
     makeCreateButtons(homeModel),
@@ -114,16 +116,16 @@ function makeAnonIntro(homeModel: HomeModel) {
   const signUp = cssLink({href: getLoginOrSignupUrl()}, translate('SignUp'));
   return [
     css.docListHeader(translate('Welcome'), testId('welcome-title')),
-    cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
-    cssIntroLine(signUp, ' to save your work.',
-      (shouldHideUiElement('helpCenter') ? null : [' Visit our ', helpCenterLink(), ' to learn more.']),
+    cssIntroLine(translate('AnonIntroGetStarted')),
+    cssIntroLine(translate('AnonIntroSignUpSave', {signUp}),
+      (shouldHideUiElement('helpCenter') ? null : translate('IntroVisitOur', {link: helpCenterLink()})),
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];
 }
 
 function helpCenterLink() {
-  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), 'Help Center');
+  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), translate('HelpCenter'));
 }
 
 function buildButtons(homeModel: HomeModel, options: {
@@ -134,22 +136,22 @@ function buildButtons(homeModel: HomeModel, options: {
 }) {
   return cssBtnGroup(
     !options.invite ? null :
-    cssBtn(cssBtnIcon('Help'), 'Invite Team Members', testId('intro-invite'),
+    cssBtn(cssBtnIcon('Help'), translate('InviteTeamMembers'), testId('intro-invite'),
       cssButton.cls('-primary'),
       dom.on('click', () => manageTeamUsersApp(homeModel.app)),
     ),
     !options.templates ? null :
-    cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
+    cssBtn(cssBtnIcon('FieldTable'), translate('BrowseTemplates'), testId('intro-templates'),
       cssButton.cls('-primary'),
       dom.hide(shouldHideUiElement("templates")),
       urlState().setLinkUrl({homePage: 'templates'}),
     ),
     !options.import ? null :
-    cssBtn(cssBtnIcon('Import'), 'Import Document', testId('intro-import-doc'),
+    cssBtn(cssBtnIcon('Import'), translate('ImportDocument'), testId('intro-import-doc'),
       dom.on('click', () => importDocAndOpen(homeModel)),
     ),
     !options.empty ? null :
-    cssBtn(cssBtnIcon('Page'), 'Create Empty Document', testId('intro-create-doc'),
+    cssBtn(cssBtnIcon('Page'), translate('CreateEmptyDocument'), testId('intro-create-doc'),
       dom.on('click', () => createDocAndOpen(homeModel)),
     ),
   );
