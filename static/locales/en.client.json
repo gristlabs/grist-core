@@ -96,5 +96,11 @@
     "YouTubeVideoPlayer": "YouTube video player",
     "GristVideoTour": "Grist Video Tour",
     "VideoTour": "Video Tour"
+  },
+  "Pages": {
+    "TableWillNoLongerBeVisible_one": "The following table will no longer be visible",
+    "TableWillNoLongerBeVisible_other": "The following tables will no longer be visible",
+    "DeleteDataAndPage": "Delete data and this page.",
+    "Delete": "Delete"
   }
 }

@@ -1,6 +1,7 @@
 import {createGroup} from 'app/client/components/commands';
 import {duplicatePage} from 'app/client/components/duplicatePage';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {t} from 'app/client/lib/localization';
 import {PageRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import MetaTableModel from 'app/client/models/MetaTableModel';
@@ -14,6 +15,8 @@ import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {buildPageDom, PageActions} from 'app/client/ui2018/pages';
 import {mod} from 'app/common/gutil';
 import {Computed, Disposable, dom, DomContents, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
+
+const translate = (x: string, args?: any): string => t(`Pages.${x}`, args);
 
 // build dom for the tree view of pages
 export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Observable<boolean>) {
@@ -128,14 +131,14 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
     const saveDisabled = Computed.create(owner, use => use(selected) === '');
     const saveFunc = () => onSave(selected.get());
     return {
-      title: `The following table${tableNames.length > 1 ? 's' : ''} will no longer be visible`,
+      title: translate('TableWillNoLongerBeVisible', { count: tableNames.length }),
       body: dom('div',
         testId('popup'),
         buildWarning(tableNames),
         cssOptions(
-          buildOption(selected, 'data', `Delete data and this page.`),
+          buildOption(selected, 'data', translate('DeleteDataAndPage')),
           buildOption(selected, 'page',
-            [
+            [ // TODO i18n
               `Keep data and delete page. `,
               `Table will remain available in `,
               cssLink(urlState().setHref({docPage: 'data'}), 'raw data page', { target: '_blank'}),
@@ -144,7 +147,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
         )
       ),
       saveDisabled,
-      saveLabel: 'Delete',
+      saveLabel: translate('Delete'),
       saveFunc,
       width: 'fixed-wide',
       extraButtons: [],
