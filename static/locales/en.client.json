@@ -76,5 +76,16 @@
     "NoWriteAccessToSite": "You do not have write access to this site",
     "Workspace": "Workspace",
     "NoWriteAccessToWorkspace": "You do not have write access to the selected workspace"
+  },
+  "NotifyUI": {
+    "UpgradePlan": "Upgrade Plan",
+    "Renew": "Renew",
+    "GoToPersonalSite": "Go to your free personal site",
+    "ErrorCannotFindPersonalSite": "Cannot find personal site, sorry!",
+    "ReportProblem": "Report a problem",
+    "AskForHelp": "Ask for help",
+    "Notifications": "Notifications",
+    "GiveFeedback": "Give feedback",
+    "NoNotifications": "No notifications"
   }
 }
