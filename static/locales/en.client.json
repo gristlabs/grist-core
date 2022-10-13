@@ -171,5 +171,14 @@
     "SelectorFor": "SELECTOR FOR",
     "Save": "Save",
     "NoEditAccess": "You do not have edit access to this document"
+  },
+  "RowContextMenu": {
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "Delete": "Delete",
+    "CopyAnchorLink": "Copy anchor link"
   }
 }
