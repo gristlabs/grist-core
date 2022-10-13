@@ -15,7 +15,7 @@ export async function setupLocale() {
     }
   }
 
-  const ns = getGristConfig().namespaces ?? ['core'];
+  const ns = getGristConfig().namespaces ?? ['client'];
   // Initialize localization plugin
   try {
     // We don't await this promise, as it is resolved synchronously due to initImmediate: false.
@@ -28,13 +28,13 @@ export async function setupLocale() {
       initImmediate: false,
       // Read language from navigator object.
       lng,
-      // By default we use core namespace.
-      defaultNS: 'core',
+      // By default we use client namespace.
+      defaultNS: 'client',
       // Read namespaces that are supported by the server.
       // TODO: this can be converted to a dynamic list of namespaces, for async components.
       // for now just import all what server offers.
-      // We can fallback to core namespace for any addons.
-      fallbackNS: 'core',
+      // We can fallback to client namespace for any addons.
+      fallbackNS: 'client',
       ns,
       supportedLngs
     }).catch((err: any) => {

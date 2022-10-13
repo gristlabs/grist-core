@@ -155,7 +155,7 @@ function configuredPageTitleSuffix() {
  */
 function getPageTitle(req: express.Request, config: GristLoadConfig): string {
   const maybeDoc = getDocFromConfig(config);
-  if (!maybeDoc) { return req.t('Loading') + "..."; }
+  if (!maybeDoc) { return req.t('sendAppPage.Loading') + "..."; }
 
   return handlebars.Utils.escapeExpression(maybeDoc.name);
 }

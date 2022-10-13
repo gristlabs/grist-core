@@ -8,7 +8,7 @@ export function addNewButton(isOpen: Observable<boolean> | boolean = true, ...ar
     cssAddNewButton.cls('-open', isOpen),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
-    cssAddText(t('AddNew')),
+    cssAddText(t('AddNewButton.AddNew')),
     dom('div', {style: 'flex: 1 1 16px'}),
     cssPlusButton(cssPlusIcon('Plus')),
     dom('div', {style: 'flex: 0 1 16px'}),
