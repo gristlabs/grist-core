@@ -10,6 +10,12 @@
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
   },
+  "GridOptions": {
+    "GridOptions": "Grid Options",
+    "VerticalGridlines": "Vertical Gridlines",
+    "HorizontalGridlines": "Horizontal Gridlines",
+    "ZebraStripes": "Zebra Stripes"
+  },
   "GridViewMenus": {
     "AddColumn": "Add Column toto",
     "ShowColumn": "Show Column {{label}}",
