@@ -16,7 +16,7 @@ import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil
 import { CombinedStyle, Style } from 'app/client/models/Styles';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
-import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
 import { theme } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
@@ -31,7 +31,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import { CellValue } from 'app/plugin/GristData';
 import { Computed, Disposable, fromKo, dom as grainjsDom,
-         Holder, IDisposable, makeTestId, styled, toKo } from 'grainjs';
+         Holder, IDisposable, makeTestId, MultiHolder, styled, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -156,22 +156,7 @@ export class FieldBuilder extends Disposable {
       }
     }));
 
-    this.widget = ko.pureComputed<object>({
-      owner: this,
-      read() { return this.options().widget; },
-      write(widget) {
-        // Reset the entire JSON, so that all options revert to their defaults.
-
-        const previous = this.options.peek();
-        this.options.setAndSave({
-          widget,
-          // Persists color settings across widgets (note: we cannot use `field.fillColor` to get the
-          // current value because it returns a default value for `undefined`. Same for `field.textColor`.
-          fillColor: previous.fillColor,
-          textColor: previous.textColor,
-        }).catch(reportError);
-      }
-    });
+    this.widget = ko.pureComputed(() => this.field.widget());
 
     // Whether there is a pending call that transforms column.
     this.isCallPending = ko.observable(false);
@@ -221,11 +206,36 @@ export class FieldBuilder extends Disposable {
         value: label,
         icon: typeWidgets[label].icon
       }));
-      return widgetOptions.length <= 1 ? null : [
+      if (widgetOptions.length <= 1) { return null; }
+      // Here we need to accommodate the fact that the widget can be null, which
+      // won't be visible on a select component when disabled.
+      const defaultWidget = Computed.create(null, use => {
+        if (widgetOptions.length <= 2) {
+          return;
+        }
+        const value = use(this.field.config.widget);
+        return value;
+      });
+      defaultWidget.onWrite((value) => this.field.config.widget(value));
+      const disabled = Computed.create(null, use => !use(this.field.config.sameWidgets));
+      return [
         cssLabel('CELL FORMAT'),
         cssRow(
-          widgetOptions.length <= 2 ? buttonSelect(fromKo(this.widget), widgetOptions) :
-            select(fromKo(this.widget), widgetOptions),
+          grainjsDom.autoDispose(defaultWidget),
+          widgetOptions.length <= 2 ?
+            buttonSelect(
+              fromKo(this.field.config.widget),
+              widgetOptions,
+              cssButtonSelect.cls("-disabled", disabled),
+            ) :
+            select(
+              defaultWidget,
+              widgetOptions,
+              {
+                disabled,
+                defaultLabel: 'Mixed format'
+              }
+            ),
           testId('widget-select')
         )
       ];
@@ -236,21 +246,42 @@ export class FieldBuilder extends Disposable {
    * Build the type change dom.
    */
   public buildSelectTypeDom() {
-    const selectType = Computed.create(null, (use) => use(fromKo(this._readOnlyPureType)));
-    selectType.onWrite(newType => newType === this._readOnlyPureType.peek() || this._setType(newType));
+    const holder = new MultiHolder();
+    const commonType = Computed.create(holder, use => use(use(this.field.viewSection).columnsType));
+    const selectType = Computed.create(holder, (use) => {
+      const myType = use(fromKo(this._readOnlyPureType));
+      return use(commonType) === 'mixed' ? '' : myType;
+    });
+    selectType.onWrite(newType => {
+      const sameType = newType === this._readOnlyPureType.peek();
+      if (!sameType || commonType.get() === 'mixed') {
+        return this._setType(newType);
+      }
+    });
     const onDispose = () => (this.isDisposed() || selectType.set(this.field.column().pureType()));
-
+    const allFormulas = Computed.create(holder, use => use(use(this.field.viewSection).columnsAllIsFormula));
     return [
       cssRow(
-        grainjsDom.autoDispose(selectType),
+        grainjsDom.autoDispose(holder),
         select(selectType, this._availableTypes, {
-          disabled: (use) => use(this._isTransformingFormula) || use(this.origColumn.disableModifyBase) ||
+          disabled: (use) =>
+            // If we are transforming column at this moment (applying a formula to change data),
+            use(this._isTransformingFormula) ||
+            // If this is a summary column
+            use(this.origColumn.disableModifyBase) ||
+            // If there are multiple column selected, but all have different type than Any.
+            (use(this.field.config.multiselect) && !use(allFormulas)) ||
+            // If we are waiting for a server response
             use(this.isCallPending),
           menuCssClass: cssTypeSelectMenu.className,
+          defaultLabel: 'Mixed types'
         }),
         testId('type-select'),
         grainjsDom.cls('tour-type-selector'),
-        grainjsDom.cls(cssBlockedCursor.className, this.origColumn.disableModifyBase)
+        grainjsDom.cls(cssBlockedCursor.className, use =>
+          use(this.origColumn.disableModifyBase) ||
+          (use(this.field.config.multiselect) && !use(allFormulas))
+        ),
       ),
       grainjsDom.maybe((use) => use(this._isRef) && !use(this._isTransformingType), () => this._buildRefTableSelect()),
       grainjsDom.maybe(this._isTransformingType, () => {
@@ -273,9 +304,19 @@ export class FieldBuilder extends Disposable {
   public _setType(newType: string): Promise<unknown>|undefined {
     if (this.origColumn.isFormula()) {
       // Do not type transform a new/empty column or a formula column. Just make a best guess for
-      // the full type, and set it.
+      // the full type, and set it. If multiple columns are selected (and all are formulas/empty),
+      // then we will set the type for all of them using full type guessed from the first column.
       const column = this.field.column();
-      column.type.setAndSave(addColTypeSuffix(newType, column, this._docModel)).catch(reportError);
+      const calculatedType = addColTypeSuffix(newType, column, this._docModel);
+      // If we selected multiple empty/formula columns, make the change for all of them.
+      if (this.field.viewSection.peek().selectedFields.peek().length > 1 &&
+          ['formula', 'empty'].indexOf(this.field.viewSection.peek().columnsBehavior.peek())) {
+        return this.gristDoc.docData.bundleActions("Changing multiple column types", () =>
+          Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
+            f.column.peek().type.setAndSave(calculatedType)
+        ))).catch(reportError);
+      }
+      column.type.setAndSave(calculatedType).catch(reportError);
     } else if (!this.columnTransform) {
       this.columnTransform = TypeTransform.create(null, this.gristDoc, this);
       return this.columnTransform.prepare(newType);
@@ -295,14 +336,18 @@ export class FieldBuilder extends Disposable {
                                         icon: 'FieldTable' as const
                                       }))
                                      );
+    const isDisabled = Computed.create(null, use => {
+      return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
+    });
     return [
       cssLabel('DATA FROM TABLE'),
       cssRow(
         dom.autoDispose(allTables),
+        dom.autoDispose(isDisabled),
         select(fromKo(this._refTableId), allTables, {
           // Disallow changing the destination table when the column should not be modified
           // (specifically when it's a group-by column of a summary table).
-          disabled: this.origColumn.disableModifyBase,
+          disabled: isDisabled,
         }),
         testId('ref-table-select')
       )
@@ -357,39 +402,58 @@ export class FieldBuilder extends Disposable {
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div',
-            widget.buildConfigDom(),
-            cssSeparator(),
-            widget.buildColorConfigDom(this.gristDoc),
+        dom('div', widget.buildConfigDom(), cssSeparator())
+      )
+    );
+  }
 
-            // If there is more than one field for this column (i.e. present in multiple views).
-            kd.maybe(() => this.origColumn.viewFields().all().length > 1, () =>
-                     dom('div.fieldbuilder_settings',
-                         kf.row(
-                           kd.toggleClass('fieldbuilder_settings_header', true),
-                           kf.label(
-                             dom('div.fieldbuilder_settings_button',
-                                 dom.testId('FieldBuilder_settings'),
-                                 kd.text(() => this.field.useColOptions() ? 'Common' : 'Separate'), ' ▾',
-                                 menu(() => FieldSettingsMenu(
-                                   this.field.useColOptions(),
-                                   this.field.viewSection().isRaw(),
-                                   {
-                                     useSeparate: () => this.fieldSettingsUseSeparate(),
-                                     saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
-                                     revertToCommon: () => this.fieldSettingsRevertToCommon(),
-                                   },
-                                 )),
-                                ),
-                             'Field in ',
-                             kd.text(() => this.origColumn.viewFields().all().length),
-                             ' views'
-                           )
-                         )
-                        )
-                    )
+  public buildColorConfigDom() {
+    // NOTE: adding a grainjsDom .maybe here causes the disposable order of the widgetImpl and
+    // the dom created by the widgetImpl to get out of sync.
+    return dom('div',
+      kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
+        dom('div', widget.buildColorConfigDom(this.gristDoc))
+      )
+    );
+  }
+
+  /**
+   * Builds the FieldBuilder Options Config DOM. Calls the buildConfigDom function of its widgetImpl.
+   */
+  public buildSettingOptions() {
+    // NOTE: adding a grainjsDom .maybe here causes the disposable order of the widgetImpl and
+    // the dom created by the widgetImpl to get out of sync.
+    return dom('div',
+      kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
+        dom('div',
+          // If there is more than one field for this column (i.e. present in multiple views).
+          kd.maybe(() => this.origColumn.viewFields().all().length > 1, () =>
+            dom('div.fieldbuilder_settings',
+              kf.row(
+                kd.toggleClass('fieldbuilder_settings_header', true),
+                kf.label(
+                  dom('div.fieldbuilder_settings_button',
+                      dom.testId('FieldBuilder_settings'),
+                      kd.text(() => this.field.useColOptions() ? 'Common' : 'Separate'), ' ▾',
+                      menu(() => FieldSettingsMenu(
+                        this.field.useColOptions(),
+                        this.field.viewSection().isRaw(),
+                        {
+                          useSeparate: () => this.fieldSettingsUseSeparate(),
+                          saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
+                          revertToCommon: () => this.fieldSettingsRevertToCommon(),
+                        },
+                      )),
+                    ),
+                  'Field in ',
+                  kd.text(() => this.origColumn.viewFields().all().length),
+                  ' views'
+                )
               )
+            )
+          )
         )
+      )
     );
   }
 

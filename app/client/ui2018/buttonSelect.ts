@@ -25,6 +25,8 @@ export type ISelectorOption<T> = (T & string) | ISelectorOptionFull<T>;
  * A "light" style is supported in CSS by passing cssButtonSelect.cls('-light') as an additional
  * argument.
  *
+ * A disabled state is supported by passing cssButtonSelect.cls('-disabled').
+ *
  * Usage:
  *    const fruit = observable("apple");
  *    buttonSelect(fruit, ["apple", "banana", "mango"]);
@@ -61,13 +63,13 @@ export function buttonToggleSelect<T>(
 /**
  * Pre-made text alignment selector.
  */
-export function alignmentSelect(obs: Observable<string>) {
+export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
   const alignments: Array<ISelectorOption<string>> = [
     {value: 'left',   icon: 'LeftAlign'},
     {value: 'center', icon: 'CenterAlign'},
     {value: 'right',  icon: 'RightAlign'}
   ];
-  return buttonSelect(obs, alignments, {}, testId('alignment-select'));
+  return buttonSelect(obs, alignments, {}, testId('alignment-select'), ...domArgs);
 }
 
 /**
@@ -215,6 +217,14 @@ const cssSelectorBtn = styled('div', `
   .${cssButtonSelect.className}-light > &:hover {
     border: none;
     background-color: ${theme.hover};
+  }
+  .${cssButtonSelect.className}-disabled > &,
+  .${cssButtonSelect.className}-disabled > &:hover {
+    --icon-color: ${theme.rightPanelToggleButtonDisabledFg};
+    color: ${theme.rightPanelToggleButtonDisabledFg};
+    background-color: ${theme.rightPanelToggleButtonDisabledBg};
+    border-color: ${theme.buttonGroupBorder};
+    pointer-events: none;
   }
 `);
 

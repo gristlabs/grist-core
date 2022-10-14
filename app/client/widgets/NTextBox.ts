@@ -3,12 +3,12 @@ import { findLinks } from 'app/client/lib/textUtils';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { cssRow } from 'app/client/ui/RightPanelStyles';
-import { alignmentSelect, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
+import { alignmentSelect, cssButtonSelect, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { cssIconBackground, icon } from 'app/client/ui2018/icons';
 import { gristLink } from 'app/client/ui2018/links';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { dom, DomArg, DomContents, fromKo, Observable, styled } from 'grainjs';
+import { Computed, dom, DomArg, DomContents, fromKo, Observable, styled } from 'grainjs';
 
 /**
  * TextBox - The most basic widget for displaying text information.
@@ -20,8 +20,8 @@ export class NTextBox extends NewAbstractWidget {
   constructor(field: ViewFieldRec, options: Options = {}) {
     super(field, options);
 
-    this.alignment = fromKoSave<string>(this.options.prop('alignment'));
-    this.wrapping = fromKo(this.field.wrapping);
+    this.alignment = fromKo(this.options.prop('alignment'));
+    this.wrapping = fromKo(this.field.wrap);
 
     this.autoDispose(this.wrapping.addListener(() => {
       this.field.viewSection().events.trigger('rowHeightChange');
@@ -29,11 +29,28 @@ export class NTextBox extends NewAbstractWidget {
   }
 
   public buildConfigDom(): DomContents {
+    const toggle = () => {
+      const newValue = !this.field.config.wrap.peek();
+      this.field.config.wrap.setAndSave(newValue).catch(reportError);
+    };
+    const options = this.field.config.options;
+    // Some options might be disabled, as more than one column is selected.
+    // Prop observable is owned by the options object.
+    const alignmentDisabled = Computed.create(this, use => use(options.disabled('alignment')));
+    const wrapDisabled = Computed.create(this, (use) => use(options.disabled('wrap')));
     return [
       cssRow(
-        alignmentSelect(this.alignment),
+        alignmentSelect(
+          fromKoSave(this.field.config.alignment),
+          cssButtonSelect.cls('-disabled', alignmentDisabled),
+        ),
         dom('div', {style: 'margin-left: 8px;'},
-          makeButtonSelect(this.wrapping, [{value: true, icon: 'Wrap'}], this._toggleWrap.bind(this), {}),
+          makeButtonSelect(
+            fromKo(this.field.config.wrap),
+            [{value: true, icon: 'Wrap'}],
+            toggle,
+            cssButtonSelect.cls('-disabled', wrapDisabled),
+            ),
           testId('tb-wrap-text')
         )
       )
@@ -47,12 +64,6 @@ export class NTextBox extends NewAbstractWidget {
       dom.cls('text_wrapping', this.wrapping),
       dom.domComputed((use) => use(row._isAddRow) ? null : makeLinks(use(this.valueFormatter).formatAny(use(value))))
     );
-  }
-
-  private _toggleWrap() {
-    const newValue = !this.wrapping.get();
-    this.options.update({wrap: newValue});
-    (this.options as any).save();
   }
 }
 

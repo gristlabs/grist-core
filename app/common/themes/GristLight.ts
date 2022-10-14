@@ -224,7 +224,7 @@ export const GristLight: ThemeColors = {
   'right-panel-subtab-selected-underline': '#16B378',
   'right-panel-subtab-hover-fg': '#009058',
   'right-panel-subtab-hover-underline': '#16B378',
-  'right-panel-disabled-overlay': 'white',
+  'right-panel-disabled-overlay': '#F7F7F7',
   'right-panel-toggle-button-enabled-fg': '#FFFFFF',
   'right-panel-toggle-button-enabled-bg': '#262633',
   'right-panel-toggle-button-enabled-hover-fg': '#D9D9D9',

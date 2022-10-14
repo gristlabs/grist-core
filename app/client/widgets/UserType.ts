@@ -1,4 +1,4 @@
-var _ = require('underscore');
+import _ from 'underscore';
 
 /**
  * Given a widget name and a type, return the name of the widget that would
@@ -15,7 +15,7 @@ var _ = require('underscore');
  *   }
  * }
  */
-function getWidgetConfiguration(widgetName, type) {
+export function getWidgetConfiguration(widgetName: string, type: string) {
   const oneTypeDef = typeDefs[type] || typeDefs.Text;
   if (!(widgetName in oneTypeDef.widgets)) {
     widgetName = oneTypeDef.default;
@@ -25,20 +25,17 @@ function getWidgetConfiguration(widgetName, type) {
     config: oneTypeDef.widgets[widgetName]
   };
 }
-exports.getWidgetConfiguration = getWidgetConfiguration;
 
-function mergeOptions(options, type) {
+export function mergeOptions(options: any, type: string) {
   const {name, config} = getWidgetConfiguration(options.widget, type);
   return _.defaults({widget: name}, options, config.options);
 }
-exports.mergeOptions = mergeOptions;
-
 
 // Contains the list of types with their storage types, possible widgets, default widgets,
 // and defaults for all widget settings
 // The names of widgets are used, instead of the actual classes needed, in order to limit
 // the spread of dependencies.  See ./UserTypeImpl for actual classes.
-var typeDefs = {
+export const typeDefs: any = {
   Any: {
     label: 'Any',
     icon: 'FieldAny',
@@ -48,7 +45,8 @@ var typeDefs = {
         editCons: 'TextEditor',
         icon: 'FieldTextbox',
         options: {
-          alignment: 'left'
+          alignment: 'left',
+          wrap: undefined,
         }
       }
     },
@@ -64,6 +62,7 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           alignment: 'left',
+          wrap: undefined,
         }
       },
       HyperLink: {
@@ -72,6 +71,7 @@ var typeDefs = {
         icon: 'FieldLink',
         options: {
           alignment: 'left',
+          wrap: undefined,
         }
       }
     },
@@ -86,7 +86,13 @@ var typeDefs = {
         editCons: 'TextEditor',
         icon: 'FieldTextbox',
         options: {
-          alignment: 'right'
+          alignment: 'right',
+          wrap: undefined,
+          decimals: undefined,
+          maxDecimals: undefined,
+          numMode: undefined,
+          numSign: undefined,
+          currency: undefined,
         }
       },
       Spinner: {
@@ -94,7 +100,13 @@ var typeDefs = {
         editCons: 'TextEditor',
         icon: 'FieldSpinner',
         options: {
-          alignment: 'right'
+          alignment: 'right',
+          wrap: undefined,
+          decimals: undefined,
+          maxDecimals: undefined,
+          numMode: undefined,
+          numSign: undefined,
+          currency: undefined,
         }
       }
     },
@@ -110,7 +122,12 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           decimals: 0,
-          alignment: 'right'
+          alignment: 'right',
+          wrap: undefined,
+          maxDecimals: undefined,
+          numMode: undefined,
+          numSign: undefined,
+          currency: undefined,
         }
       },
       Spinner: {
@@ -119,7 +136,12 @@ var typeDefs = {
         icon: 'FieldSpinner',
         options: {
           decimals: 0,
-          alignment: 'right'
+          alignment: 'right',
+          wrap: undefined,
+          maxDecimals: undefined,
+          numMode: undefined,
+          numSign: undefined,
+          currency: undefined,
         }
       }
     },
@@ -134,7 +156,8 @@ var typeDefs = {
         editCons: 'TextEditor',
         icon: 'FieldTextbox',
         options: {
-          alignment: 'center'
+          alignment: 'center',
+          wrap: undefined,
         }
       },
       CheckBox: {
@@ -198,8 +221,9 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           alignment: 'left',
-          choices: null,
-          choiceOptions: null
+          wrap: undefined,
+          choices: undefined,
+          choiceOptions: undefined
         }
       }
     },
@@ -215,8 +239,9 @@ var typeDefs = {
         icon: 'FieldTextbox',
         options: {
           alignment: 'left',
-          choices: null,
-          choiceOptions: null
+          wrap: undefined,
+          choices: undefined,
+          choiceOptions: undefined
         }
       }
     },
@@ -231,7 +256,8 @@ var typeDefs = {
         editCons: 'ReferenceEditor',
         icon: 'FieldReference',
         options: {
-          alignment: 'left'
+          alignment: 'left',
+          wrap: undefined,
         }
       }
     },
@@ -246,7 +272,8 @@ var typeDefs = {
         editCons: 'ReferenceListEditor',
         icon: 'FieldReference',
         options: {
-          alignment: 'left'
+          alignment: 'left',
+          wrap: undefined
         }
       }
     },
@@ -268,4 +295,3 @@ var typeDefs = {
     default: 'Attachments'
   }
 };
-exports.typeDefs = typeDefs;

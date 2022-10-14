@@ -23,6 +23,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
+import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';
@@ -172,6 +173,18 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   editingFormula: ko.Computed<boolean>;
 
+  // Selected fields (columns) for the section.
+  selectedFields: ko.Observable<ViewFieldRec[]>;
+
+  // Some computed observables for multi-select, used in the creator panel, by more than one widgets.
+
+  // Common column behavior or mixed.
+  columnsBehavior: ko.PureComputed<BEHAVIOR|'mixed'>;
+  // If all selected columns are empty or formula column.
+  columnsAllIsFormula: ko.PureComputed<boolean>;
+  // Common type of selected columns or mixed.
+  columnsType: ko.PureComputed<string|'mixed'>;
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -276,6 +289,25 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     pluginId: customDefObj.prop('pluginId'),
     sectionId: customDefObj.prop('sectionId')
   };
+
+  this.selectedFields = ko.observable<any>([]);
+
+  // During schema change, some columns/fields might be disposed beyond our control.
+  const selectedColumns = this.autoDispose(ko.pureComputed(() => this.selectedFields()
+    .filter(f => !f.isDisposed())
+    .map(f => f.column())
+    .filter(c => !c.isDisposed())));
+  this.columnsBehavior = ko.pureComputed(() => {
+    const list = new Set(selectedColumns().map(c => c.behavior()));
+    return list.size === 1 ? list.values().next().value : 'mixed';
+  });
+  this.columnsType = ko.pureComputed(() => {
+    const list = new Set(selectedColumns().map(c => c.type()));
+    return list.size === 1 ? list.values().next().value : 'mixed';
+  });
+  this.columnsAllIsFormula = ko.pureComputed(() => {
+    return selectedColumns().every(c => c.isFormula());
+  });
 
   this.activeCustomOptions = modelUtil.customValue(this.customDef.widgetOptions);
 

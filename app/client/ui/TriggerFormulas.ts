@@ -20,7 +20,10 @@ import isEqual = require('lodash/isEqual');
 /**
  * Build UI to select triggers for formulas in data columns (such for default values).
  */
-export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, disable: Observable<boolean>|null = null) {
+export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, options: {
+  notTrigger?: Observable<boolean>|null // if column is not yet a trigger,
+  disabled?: Observable<boolean>
+}) {
   // Set up observables to translate between the UI representation of triggers, and what we
   // actually store.
   // - We store the pair (recalcWhen, recalcDeps). When recalcWhen is DEFAULT, recalcDeps lists
@@ -74,12 +77,26 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, disa
     return deps.map(dep => use(docModel.columns.getRowModel(dep)?.label)).join(", ");
   });
 
+
+  const changesDisabled = Computed.create(owner, use => {
+    return Boolean(
+      (options.disabled && use(options.disabled)) ||
+      (options.notTrigger && use(options.notTrigger))
+    );
+  });
+
+  const newRowsDisabled = Computed.create(owner, use => {
+    return Boolean(
+      use(applyOnChanges) || use(changesDisabled)
+    );
+  });
+
   return [
     cssRow(
       labeledSquareCheckbox(
         applyToNew,
         'Apply to new records',
-        dom.boolAttr('disabled', (use) => (disable && use(disable)) || use(applyOnChanges)),
+        dom.boolAttr('disabled', newRowsDisabled),
         testId('field-formula-apply-to-new'),
       ),
     ),
@@ -90,7 +107,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, disa
           'Apply on changes to:' :
           'Apply on record changes'
         ),
-        dom.boolAttr('disabled', (use) => disable ? use(disable) : false),
+        dom.boolAttr('disabled', changesDisabled),
         testId('field-formula-apply-on-changes'),
       ),
     ),
@@ -100,6 +117,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, disa
           cssSelectSummary(dom.text(summaryText)),
           icon('Dropdown'),
           testId('field-triggers-select'),
+          dom.cls('disabled', use => !!options.disabled && use(options.disabled)),
           elem => {
             setPopupToCreateDom(elem, ctl => buildTriggerSelectors(ctl, column.table.peek(), column, setRecalc),
               {...defaultMenuOptions, placement: 'bottom-end'});

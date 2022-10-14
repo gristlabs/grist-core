@@ -1,10 +1,10 @@
 export interface Style {
-  textColor?: string;
-  fillColor?: string;
-  fontBold?: boolean;
-  fontUnderline?: boolean;
-  fontItalic?: boolean;
-  fontStrikethrough?: boolean;
+  textColor?: string|undefined; // this can be string, undefined or an absent key.
+  fillColor?: string|undefined;
+  fontBold?: boolean|undefined;
+  fontUnderline?: boolean|undefined;
+  fontItalic?: boolean|undefined;
+  fontStrikethrough?: boolean|undefined;
 }
 
 export class CombinedStyle implements Style {

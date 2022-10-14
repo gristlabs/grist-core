@@ -1,6 +1,6 @@
 import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
+import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
@@ -16,7 +16,12 @@ import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiH
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 
-export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, cursor: ko.Computed<CursorPos>) {
+export function buildNameConfig(
+  owner: MultiHolder,
+  origColumn: ColumnRec,
+  cursor: ko.Computed<CursorPos>,
+  disabled: ko.Computed<boolean> // Whether the name is editable (it's not editable for multiple selected columns).
+) {
   const untieColId = origColumn.untieColIdFromLabel;
 
   const editedLabel = Observable.create(owner, '');
@@ -37,6 +42,12 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
    })
   );
 
+  const toggleUntieColId = () => {
+    if (!origColumn.disableModify.peek() && !disabled.peek()) {
+      untieColId.saveOnly(!untieColId.peek()).catch(reportError);
+    }
+  };
+
   return [
     cssLabel('COLUMN LABEL AND ID'),
     cssRow(
@@ -45,12 +56,13 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
         editor = cssInput(fromKo(origColumn.label),
           async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
-          dom.boolAttr('disabled', origColumn.disableModify),
+          dom.boolAttr('readonly', use => use(origColumn.disableModify) || use(disabled)),
           testId('field-label'),
         ),
         cssInput(editableColId,
           saveColId,
-          dom.boolAttr(`readonly`, use => use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
+          dom.boolAttr('readonly',
+            use => use(disabled) || use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
           cssCodeBlock.cls(''),
           {style: 'margin-top: 8px'},
           testId('field-col-id'),
@@ -60,8 +72,8 @@ export function buildNameConfig(owner: MultiHolder, origColumn: ColumnRec, curso
         cssColTieConnectors(),
         cssToggleButton(icon('FieldReference'),
           cssToggleButton.cls('-selected', (use) => !use(untieColId)),
-          dom.on('click', () => !origColumn.disableModify.peek() && untieColId.saveOnly(!untieColId.peek())),
-          cssToggleButton.cls("-disabled", origColumn.disableModify),
+          dom.on('click', toggleUntieColId),
+          cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
           testId('field-derive-id')
         ),
       )
@@ -78,11 +90,12 @@ type BuildEditor = (
   onSave?: SaveHandler,
   onCancel?: () => void) => void;
 
-type BEHAVIOR = "empty"|"formula"|"data";
-
 export function buildFormulaConfig(
   owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor
 ) {
+
+  // If we can't modify anything about the column.
+  const disableModify = Computed.create(owner, use => use(origColumn.disableModify));
 
   // Intermediate state - user wants to specify formula, but haven't done yet
   const maybeFormula = Observable.create(owner, false);
@@ -93,7 +106,7 @@ export function buildFormulaConfig(
   // If this column belongs to a summary table.
   const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
 
-  // Column behaviour. There are 3 types of behaviors:
+  // Column behavior. There are 3 types of behaviors:
   // - empty: isFormula and formula == ''
   // - formula: isFormula and formula != ''
   // - data: not isFormula nd formula == ''
@@ -123,31 +136,89 @@ export function buildFormulaConfig(
   owner.autoDispose(origColumn.formula.subscribe(clearState));
   owner.autoDispose(origColumn.isFormula.subscribe(clearState));
 
+  // User might have selected multiple columns, in that case all elements will be disabled, except the menu.
+  // If user has selected only empty or formula columns, we offer to reset all or to convert to data.
+  // If user has selected any data column, we offer only to reset all.
+  const viewSection = Computed.create(owner, use => {
+    return use(gristDoc.currentView)?.viewSection;
+  });
+  const isMultiSelect = Computed.create(owner, use => {
+    const vs = use(viewSection);
+    return !!vs && use(vs.selectedFields).length > 1;
+  });
+
+  // If all columns are empty or have formulas.
+  const multiType = Computed.create(owner, use => {
+    if (!use(isMultiSelect)) { return false; }
+    const vs = use(viewSection);
+    if (!vs) { return false; }
+    return use(vs.columnsBehavior);
+  });
+
+  // If all columns are empty or have formulas.
+  const isFormulaLike = Computed.create(owner, use => {
+    if (!use(isMultiSelect)) { return false; }
+    const vs = use(viewSection);
+    if (!vs) { return false; }
+    return use(vs.columnsAllIsFormula);
+  });
+
+  // Helper to get all selected columns refs.
+  const selectedColumns = () => viewSection.get()?.selectedFields.peek().map(f => f.column.peek()) || [];
+  const selectedColumnIds = () => selectedColumns().map(f => f.id.peek()) || [];
+
+   // Clear and reset all option for multiple selected columns.
+  const clearAndResetAll = () => selectOption(
+    () => Promise.all([
+      gristDoc.clearColumns(selectedColumnIds())
+    ]),
+    'Clear and reset', 'CrossSmall'
+  );
+
+  // Convert to data option for multiple selected columns.
+  const convertToDataAll = () => selectOption(
+    () => gristDoc.convertIsFormula(selectedColumnIds(), {toFormula: false, noRecalc: true}),
+    'Convert columns to data', 'Database',
+    dom.cls('disabled', isSummaryTable)
+  );
+
   // Menu helper that will show normal menu with some default options
   const menu = (label: DomContents, options: DomElementArg[]) =>
     cssRow(
       selectMenu(
         label,
-        () => options,
+        () => !isMultiSelect.get() ? options : [
+          isFormulaLike.get() ? convertToDataAll() : null,
+          clearAndResetAll(),
+        ],
         testId("field-behaviour"),
         // HACK: Menu helper will add tabindex to this element, which will make
         // this element focusable and will steal focus from clipboard. This in turn,
         // will not dispose the formula editor when menu is clicked.
         (el) => el.removeAttribute("tabindex"),
-        dom.cls(cssBlockedCursor.className, origColumn.disableModify),
-        dom.cls("disabled", origColumn.disableModify)),
+        dom.cls(cssBlockedCursor.className, disableModify),
+        dom.cls("disabled", disableModify)),
     );
 
-  // Behaviour label
+
+  // Behavior label
   const behaviorName = Computed.create(owner, behavior, (use, type) => {
-    if (type === 'formula') { return "Formula Column"; }
-    if (type === 'data') { return "Data Column"; }
-    return "Empty Column";
+    if (use(isMultiSelect)) {
+      const commonType = use(multiType);
+      if (commonType === 'formula') { return "Formula Columns"; }
+      if (commonType === 'data') { return "Data Columns"; }
+      if (commonType === 'mixed') { return "Mixed Behavior"; }
+      return "Empty Columns";
+    } else {
+      if (type === 'formula') { return "Formula Column"; }
+      if (type === 'data') { return "Data Column"; }
+      return "Empty Column";
+    }
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
-    return use(behaviorName) === "Data Column" ? "Database" : "Script";
+    return use(behaviorName).startsWith("Data Column") ? "Database" : "Script";
   });
-  const behaviourLabel = () => selectTitle(behaviorName, behaviorIcon);
+  const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 
   // Actions on select menu:
 
@@ -226,6 +297,11 @@ export function buildFormulaConfig(
     }
   };
 
+  // Should we disable all other action buttons and formula editor. For now
+  // we will disable them when multiple columns are selected, or any of the column selected
+  // can't be modified.
+  const disableOtherActions = Computed.create(owner, use => use(disableModify) || use(isMultiSelect));
+
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
   // Helper that will create different flavors for formula builder.
   const formulaBuilder = (onSave: SaveHandler) => [
@@ -233,6 +309,7 @@ export function buildFormulaConfig(
       origColumn,
       buildEditor,
       "Enter formula",
+      disableOtherActions,
       onSave,
       clearState)),
     dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
@@ -241,30 +318,30 @@ export function buildFormulaConfig(
   return dom.maybe(behavior, (type: BEHAVIOR) => [
       cssLabel('COLUMN BEHAVIOR'),
       ...(type === "empty" ? [
-        menu(behaviourLabel(), [
+        menu(behaviorLabel(), [
           convertToDataOption(),
         ]),
         cssEmptySeparator(),
         cssRow(textButton(
           "Set formula",
           dom.on("click", setFormula),
-          dom.prop("disabled", origColumn.disableModify),
+          dom.prop("disabled", disableOtherActions),
           testId("field-set-formula")
         )),
         cssRow(textButton(
           "Set trigger formula",
           dom.on("click", setTrigger),
-          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
+          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
           testId("field-set-trigger")
         )),
         cssRow(textButton(
           "Make into data column",
           dom.on("click", convertToData),
-          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
+          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
           testId("field-set-data")
         ))
       ] : type === "formula" ? [
-        menu(behaviourLabel(), [
+        menu(behaviorLabel(), [
           convertToDataOption(),
           clearAndResetOption(),
         ]),
@@ -274,11 +351,11 @@ export function buildFormulaConfig(
           "Convert to trigger formula",
           dom.on("click", convertFormulaToTrigger),
           dom.hide(maybeFormula),
-          dom.prop("disabled", use => use(isSummaryTable) || use(origColumn.disableModify)),
+          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
           testId("field-set-trigger")
         ))
       ] : /* type == 'data' */ [
-        menu(behaviourLabel(),
+        menu(behaviorLabel(),
           [
             dom.domComputed(origColumn.hasTriggerFormula, (hasTrigger) => hasTrigger ?
               // If we have trigger, we will convert it directly to a formula column
@@ -293,7 +370,10 @@ export function buildFormulaConfig(
         dom.maybe((use) => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
           cssLabel('TRIGGER FORMULA'),
           formulaBuilder(onSaveConvertToTrigger),
-          dom.create(buildFormulaTriggers, origColumn, maybeTrigger)
+          dom.create(buildFormulaTriggers, origColumn, {
+            disabled: disableOtherActions,
+            notTrigger: maybeTrigger,
+          })
         ]),
         // Else offer a way to convert to trigger formula.
         dom.maybe((use) => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
@@ -301,7 +381,7 @@ export function buildFormulaConfig(
           cssRow(textButton(
             "Set trigger formula",
             dom.on("click", convertDataColumnToTriggerColumn),
-            dom.prop("disabled", origColumn.disableModify),
+            dom.prop("disabled", disableOtherActions),
             testId("field-set-trigger")
           ))
         ])
@@ -313,11 +393,12 @@ function buildFormula(
     column: ColumnRec,
     buildEditor: BuildEditor,
     placeholder: string,
+    disabled: Observable<boolean>,
     onSave?: SaveHandler,
     onCancel?: () => void) {
   return cssFieldFormula(column.formula, {placeholder, maxLines: 2},
     dom.cls('formula_field_sidepane'),
-    cssFieldFormula.cls('-disabled', column.disableModify),
+    cssFieldFormula.cls('-disabled', disabled),
     cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),
     dom.cls('disabled'),
     {tabIndex: '-1'},

@@ -7,7 +7,7 @@ var kf = require('../lib/koForm');
 var AbstractWidget = require('./AbstractWidget');
 
 const {fromKoSave} = require('app/client/lib/fromKoSave');
-const {alignmentSelect} = require('app/client/ui2018/buttonSelect');
+const {alignmentSelect, cssButtonSelect} = require('app/client/ui2018/buttonSelect');
 const {cssRow, cssLabel} = require('app/client/ui/RightPanelStyles');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {styled, fromKo} = require('grainjs');
@@ -21,18 +21,21 @@ function DateTextBox(field) {
   AbstractWidget.call(this, field);
 
   this.alignment = this.options.prop('alignment');
-  this.dateFormat = this.options.prop('dateFormat');
-  this.isCustomDateFormat = this.options.prop('isCustomDateFormat');
+
+  // These properties are only used in configuration.
+  this.dateFormat = this.field.config.options.prop('dateFormat');
+  this.isCustomDateFormat = this.field.config.options.prop('isCustomDateFormat');
+  this.mixedDateFormat = ko.pureComputed(() => this.dateFormat() === null || this.isCustomDateFormat() === null);
 
   // Helper to set 'dateFormat' and 'isCustomDateFormat' from the set of default date format strings.
   this.standardDateFormat = this.autoDispose(ko.computed({
     owner: this,
-    read: function() { return this.isCustomDateFormat() ? 'Custom' : this.dateFormat(); },
+    read: function() { return this.mixedDateFormat() ? null : this.isCustomDateFormat() ? 'Custom' : this.dateFormat(); },
     write: function(val) {
       if (val === 'Custom') { this.isCustomDateFormat.setAndSave(true); }
       else {
-        this.options.update({isCustomDateFormat: false, dateFormat: val});
-        this.options.save();
+        this.field.config.options.update({isCustomDateFormat: false, dateFormat: val});
+        this.field.config.options.save();
       }
     }
   }));
@@ -44,12 +47,18 @@ dispose.makeDisposable(DateTextBox);
 _.extend(DateTextBox.prototype, AbstractWidget.prototype);
 
 DateTextBox.prototype.buildDateConfigDom = function() {
-  var self = this;
+  const disabled = this.field.config.options.disabled('dateFormat');
   return dom('div',
     cssLabel("Date Format"),
-    cssRow(dom(select(fromKo(self.standardDateFormat), [...dateFormatOptions, "Custom"]), dom.testId("Widget_dateFormat"))),
-    kd.maybe(self.isCustomDateFormat, function() {
-      return cssRow(dom(textbox(self.dateFormat), dom.testId("Widget_dateCustomFormat")));
+    cssRow(dom(select(
+      fromKo(this.standardDateFormat),
+      [...dateFormatOptions, "Custom"],
+      { disabled, defaultLabel: "Mixed format" },
+    ), dom.testId("Widget_dateFormat"))),
+    kd.maybe(() => !this.mixedDateFormat() && this.isCustomDateFormat(), () => {
+      return cssRow(dom(
+        textbox(this.dateFormat, { disabled }),
+      dom.testId("Widget_dateCustomFormat")));
     })
   );
 };
@@ -58,7 +67,10 @@ DateTextBox.prototype.buildConfigDom = function() {
   return dom('div',
     this.buildDateConfigDom(),
     cssRow(
-      alignmentSelect(fromKoSave(this.alignment))
+      alignmentSelect(
+        fromKoSave(this.field.config.options.prop('alignment')),
+        cssButtonSelect.cls('-disabled', this.field.config.options.disabled('alignment')),
+      ),
     )
   );
 };
@@ -91,8 +103,8 @@ const cssFocus = styled('div', `
 `)
 
 // helper method to create old style textbox that looks like a new one
-function textbox(value) {
-  const textDom = kf.text(value);
+function textbox(value, options) {
+  const textDom = kf.text(value, options ?? {});
   const tzInput = textDom.querySelector('input');
   dom(tzInput,
     kd.cssClass(cssTextInput.className),

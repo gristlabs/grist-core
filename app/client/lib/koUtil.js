@@ -122,9 +122,9 @@ exports.setComputedErrorHandler = setComputedErrorHandler;
 
 /**
  * Returns an observable which mirrors the passed-in argument, but returns a default value if the
- * underlying field is falsy. Writes to the returned observable translate directly to writes to the
- * underlying one. The default may be a function, evaluated as for computed observables,
- * with optContext as the context.
+ * underlying field is falsy and has non-boolean type. Writes to the returned observable translate
+ * directly to writes to the underlying one. The default may be a function, evaluated as for computed
+ * observables, with optContext as the context.
  */
 function observableWithDefault(obs, defaultOrFunc, optContext) {
   if (typeof defaultOrFunc !== 'function') {
@@ -132,7 +132,13 @@ function observableWithDefault(obs, defaultOrFunc, optContext) {
     defaultOrFunc = function() { return def; };
   }
   return ko.pureComputed({
-    read: function() { return obs() || defaultOrFunc.call(this); },
+    read: function() {
+      const value = obs();
+      if (typeof value === 'boolean') {
+        return value;
+      }
+      return value || defaultOrFunc.call(this);
+    },
     write: function(val) { obs(val); },
     owner: optContext
   });

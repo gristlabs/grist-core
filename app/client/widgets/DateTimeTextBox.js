@@ -9,7 +9,7 @@ var DateTextBox = require('./DateTextBox');
 var gutil = require('app/common/gutil');
 
 const {fromKoSave} = require('app/client/lib/fromKoSave');
-const {alignmentSelect} = require('app/client/ui2018/buttonSelect');
+const {alignmentSelect, cssButtonSelect} = require('app/client/ui2018/buttonSelect');
 const {cssRow, cssLabel} = require('app/client/ui/RightPanelStyles');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {dom: gdom, styled, fromKo} = require('grainjs');
@@ -30,8 +30,9 @@ function DateTimeTextBox(field) {
 
   this._setTimezone = (val) => field.column().type.setAndSave('DateTime:' + val);
 
-  this.timeFormat = this.options.prop('timeFormat');
-  this.isCustomTimeFormat = this.options.prop('isCustomTimeFormat');
+  this.timeFormat = this.field.config.options.prop('timeFormat');
+  this.isCustomTimeFormat = this.field.config.options.prop('isCustomTimeFormat');
+  this.mixedTimeFormat = ko.pureComputed(() => this.timeFormat() === null || this.isCustomTimeFormat() === null);
 
   // Helper to set 'timeFormat' and 'isCustomTimeFormat' from the set of default time format strings.
   this.standardTimeFormat = this.autoDispose(ko.computed({
@@ -54,21 +55,39 @@ _.extend(DateTimeTextBox.prototype, DateTextBox.prototype);
  * builds only the necessary dom for the transform config menu.
  */
 DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
-  var self = this;
+  const disabled = ko.pureComputed(() => {
+    return this.field.config.options.disabled('timeFormat')() || this.field.column().disableEditData();
+  });
+  const alignment = fromKoSave(this.field.config.options.prop('alignment'));
   return dom('div',
     cssLabel("Timezone"),
     cssRow(
       gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone,
-        { disabled : fromKo(this.field.column().disableEditData)}),
+        { disabled : fromKo(disabled)}),
       ),
-    self.buildDateConfigDom(),
+    this.buildDateConfigDom(),
     cssLabel("Time Format"),
-    cssRow(dom(select(fromKo(self.standardTimeFormat), [...timeFormatOptions, "Custom"]), dom.testId("Widget_timeFormat"))),
-    kd.maybe(self.isCustomTimeFormat, function() {
-      return cssRow(dom(textbox(self.timeFormat), dom.testId("Widget_timeCustomFormat")));
+    cssRow(dom(
+      select(
+        fromKo(this.standardTimeFormat),
+        [...timeFormatOptions, "Custom"],
+        { disabled : fromKo(disabled), defaultLabel: 'Mixed format' }
+      ),
+      dom.testId("Widget_timeFormat")
+    )),
+    kd.maybe(() => !this.mixedTimeFormat() && this.isCustomTimeFormat(), () => {
+      return cssRow(
+        dom(
+          textbox(this.timeFormat, { disabled: this.field.config.options.disabled('timeFormat')}),
+          dom.testId("Widget_timeCustomFormat")
+        )
+      );
     }),
     isTransformConfig ? null : cssRow(
-      alignmentSelect(fromKoSave(this.alignment))
+      alignmentSelect(
+        alignment,
+        cssButtonSelect.cls('-disabled', this.field.config.options.disabled('alignment')),
+      )
     )
   );
 };
@@ -94,8 +113,8 @@ const cssFocus = styled('div', `
 
 
 // helper method to create old style textbox that looks like a new one
-function textbox(value) {
-  const textDom = kf.text(value);
+function textbox(value, options) {
+  const textDom = kf.text(value, options || {});
   const tzInput = textDom.querySelector('input');
   dom(tzInput,
     kd.cssClass(cssTextInput.className),

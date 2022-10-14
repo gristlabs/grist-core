@@ -27,7 +27,7 @@ export class ConditionalStyle extends Disposable {
     private _label: string,
     private _ruleOwner: RuleOwner,
     private _gristDoc: GristDoc,
-
+    private _disabled?: Observable<boolean>
   ) {
     super();
     this._currentRecord = Computed.create(this, use => {
@@ -70,7 +70,8 @@ export class ConditionalStyle extends Disposable {
         textButton(
           'Add conditional style',
           testId('add-conditional-style'),
-          dom.on('click', () => this._ruleOwner.addEmptyRule())
+          dom.on('click', () => this._ruleOwner.addEmptyRule()),
+          dom.prop('disabled', this._disabled)
         ),
         dom.hide(use => use(this._ruleOwner.hasRules))
       ),
@@ -78,7 +79,7 @@ export class ConditionalStyle extends Disposable {
         use => use(this._ruleOwner.rulesCols),
         (owner, rules) =>
           cssRuleList(
-            dom.show(rules.length > 0),
+            dom.show(use => rules.length > 0 && (!this._disabled || !use(this._disabled))),
             ...rules.map((column, ruleIndex) => {
               const textColor = this._buildStyleOption(owner, ruleIndex, 'textColor');
               const fillColor = this._buildStyleOption(owner, ruleIndex, 'fillColor');
@@ -127,9 +128,10 @@ export class ConditionalStyle extends Disposable {
                         fontItalic,
                         fontUnderline,
                         fontStrikethrough
-                      },
-                      save,
-                      this._label || 'Conditional Style'
+                      }, {
+                        onSave: save,
+                        placeholder: this._label || 'Conditional Style',
+                      }
                     )
                   ),
                   cssRemoveButton(
@@ -146,6 +148,7 @@ export class ConditionalStyle extends Disposable {
         textButton('Add another rule',
           dom.on('click', () => this._ruleOwner.addEmptyRule()),
           testId('add-another-rule'),
+          dom.prop('disabled', use => this._disabled && use(this._disabled))
         ),
         dom.show(use => use(this._ruleOwner.hasRules))
       ),

@@ -11,6 +11,9 @@ import {
 } from 'app/common/ValueFormatter';
 import * as ko from 'knockout';
 
+// Column behavior type, used primarily in the UI.
+export type BEHAVIOR = "empty"|"formula"|"data";
+
 // Represents a column in a user-defined table.
 export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   table: ko.Computed<TableRec>;
@@ -37,6 +40,9 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
 
   // Convenience observable to obtain and set the type with no suffix
   pureType: ko.Computed<string>;
+
+  // Column behavior as seen by the user.
+  behavior: ko.Computed<BEHAVIOR>;
 
   // The column's display column
   _displayColModel: ko.Computed<ColumnRec>;
@@ -132,6 +138,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.visibleColFormatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'vcol'));
 
   this.formatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'full'));
+
+  this.behavior = ko.pureComputed(() => this.isEmpty() ? 'empty' : this.isFormula() ? 'formula' : 'data');
 }
 
 export function formatterForRec(

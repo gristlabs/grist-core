@@ -46,10 +46,14 @@ export class Reference extends NTextBox {
   }
 
   public buildTransformConfigDom() {
+    const disabled = Computed.create(null, use => use(this.field.config.multiselect));
     return [
       cssLabel('SHOW COLUMN'),
       cssRow(
-        select(this._visibleColRef, this._validCols),
+        dom.autoDispose(disabled),
+        select(this._visibleColRef, this._validCols, {
+          disabled
+        }),
         testId('fbuilder-ref-col-select')
       )
     ];

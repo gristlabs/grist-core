@@ -112,15 +112,24 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   public buildConfigDom(): Element {
-    const inputRange = input(fromKo(this._height), {onInput: true}, {
-      style: 'margin: 0 5px;',
-      type: 'range',
-      min: '16',
-      max: '96',
-      value: '36'
-    }, testId('thumbnail-size'));
+    const options = this.field.config.options;
+    const height = options.prop('height');
+    const inputRange = input(
+      fromKo(height),
+      {onInput: true}, {
+        style: 'margin: 0 5px;',
+        type: 'range',
+        min: '16',
+        max: '96',
+        value: '36'
+      },
+      testId('thumbnail-size'),
+      // When multiple columns are selected, we can only edit height when all
+      // columns support it.
+      dom.prop('disabled', use => use(options.disabled('height'))),
+    );
     // Save the height on change event (when the user releases the drag button)
-    onElem(inputRange, 'change', (ev: any) => { this._height.setAndSave(ev.target.value); });
+    onElem(inputRange, 'change', (ev: any) => { height.setAndSave(ev.target.value).catch(reportError); });
     return cssRow(
       sizeLabel('Size'),
       inputRange

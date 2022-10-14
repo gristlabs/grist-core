@@ -30,11 +30,11 @@ export type NumMode = typeof NumMode.type;
 export type NumSign = 'parens';
 
 export interface NumberFormatOptions extends FormatOptions {
-  numMode?: NumMode;
-  numSign?: NumSign;
-  decimals?: number;      // aka minimum fraction digits
-  maxDecimals?: number;
-  currency?: string;
+  numMode?: NumMode|null;
+  numSign?: NumSign|null;
+  decimals?: number|null;      // aka minimum fraction digits
+  maxDecimals?: number|null;
+  currency?: string|null;
 }
 
 export function getCurrency(options: NumberFormatOptions, docSettings: DocumentSettings): string {
@@ -44,11 +44,10 @@ export function getCurrency(options: NumberFormatOptions, docSettings: DocumentS
 export function buildNumberFormat(options: NumberFormatOptions, docSettings: DocumentSettings): Intl.NumberFormat {
   const currency = getCurrency(options, docSettings);
   const nfOptions: Intl.NumberFormatOptions = parseNumMode(options.numMode, currency);
-
   // numSign is implemented outside of Intl.NumberFormat since the latter's similar 'currencySign'
   // option is not well-supported, and doesn't apply to non-currency formats.
 
-  if (options.decimals !== undefined) {
+  if (options.decimals !== undefined && options.decimals !== null) {
     // Should be at least 0
     nfOptions.minimumFractionDigits = clamp(Number(options.decimals), 0, 20);
   }
@@ -57,7 +56,7 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
   // implied by numMode.
   const tmp = new Intl.NumberFormat(docSettings.locale, nfOptions).resolvedOptions();
 
-  if (options.maxDecimals !== undefined) {
+  if (options.maxDecimals !== undefined && options.maxDecimals !== null) {
     // Should be at least 0 and at least minimumFractionDigits.
     nfOptions.maximumFractionDigits = clamp(Number(options.maxDecimals), tmp.minimumFractionDigits || 0, 20);
   } else if (!options.numMode) {
@@ -80,7 +79,7 @@ const currencyDisplay = (function(){
   }
 })();
 
-export function parseNumMode(numMode?: NumMode, currency?: string): Intl.NumberFormatOptions {
+export function parseNumMode(numMode?: NumMode|null, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
     case 'currency': return {style: 'currency', currency, currencyDisplay};
     case 'decimal': return {useGrouping: true};

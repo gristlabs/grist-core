@@ -1,5 +1,6 @@
 import {createGroup} from 'app/client/components/commands';
-import {ACIndexImpl, ACItem, ACResults, buildHighlightedDom, normalizeText, HighlightFunc} from 'app/client/lib/ACIndex';
+import {ACIndexImpl, ACItem, ACResults,
+        buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
 import {colors, testId, theme} from 'app/client/ui2018/cssVars';
@@ -10,10 +11,10 @@ import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {dom, styled} from 'grainjs';
 import {ChoiceOptions, getRenderFillColor, getRenderTextColor} from 'app/client/widgets/ChoiceTextBox';
 import {choiceToken, cssChoiceACItem, cssChoiceToken} from 'app/client/widgets/ChoiceToken';
 import {icon} from 'app/client/ui2018/icons';
+import {dom, styled} from 'grainjs';
 
 export class ChoiceItem implements ACItem, IToken {
   public cleanText: string = normalizeText(this.label);

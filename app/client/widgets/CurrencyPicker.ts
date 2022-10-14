@@ -7,13 +7,14 @@ import {currencies} from 'app/common/Locales';
 interface CurrencyPickerOptions {
   // The label to use in the select menu for the default option.
   defaultCurrencyLabel: string;
+  disabled?: Observable<boolean>;
 }
 
 export function buildCurrencyPicker(
   owner: IDisposableOwner,
   currency: Observable<string|undefined>,
   onSave: (value: string|undefined) => void,
-  {defaultCurrencyLabel}: CurrencyPickerOptions
+  {defaultCurrencyLabel, disabled}: CurrencyPickerOptions
 ) {
   const currencyItems: ACSelectItem[] = currencies
     .map(item => ({
@@ -35,6 +36,7 @@ export function buildCurrencyPicker(
   return buildACSelect(owner,
     {
       acIndex, valueObs,
+      disabled,
       save(_, item: ACSelectItem | undefined) {
         // Save only if we have found a match
         if (!item) {

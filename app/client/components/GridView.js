@@ -86,6 +86,16 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
     this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
   this.colMenuTargets = {}; // Reference from column ref to its menu target dom
 
+  this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
+    const result = this.viewSection.viewFields().all().filter((field, index) => {
+      // During column removal or restoring (with undo), some columns fields
+      // might be disposed.
+      if (field.isDisposed() || field.column().isDisposed()) { return false; }
+      return this.cellSelector.containsCol(index);
+    });
+    return result;
+  }));
+
   // Cache of column right offsets, used to determine the col select range
   this.colRightOffsets = this.autoDispose(ko.computed(() => {
     let fields = this.viewSection.viewFields();

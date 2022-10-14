@@ -6,7 +6,7 @@ import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled} from 'grainjs';
 import {createCheckers, iface, ITypeSuite, opt, union} from 'ts-interface-checker';
 import isEqual = require('lodash/isEqual');
 import uniqBy = require('lodash/uniqBy');
@@ -95,7 +95,8 @@ export class ChoiceListEntry extends Disposable {
     private _values: Observable<string[]>,
     private _choiceOptionsByName: Observable<ChoiceOptionsByName>,
     private _onSave: (values: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) => void,
-    private _disabled: Observable<boolean>
+    private _disabled: Observable<boolean>,
+    private _mixed: Observable<boolean>,
   ) {
     super();
 
@@ -110,10 +111,12 @@ export class ChoiceListEntry extends Disposable {
   public buildDom(maxRows: number = 6): DomContents {
     return dom.domComputed(this._isEditing, (editMode) => {
       if (editMode) {
+        // If we have mixed values, we can't show any options on the editor.
+        const initialValue = this._mixed.get() ? [] : this._values.get().map(label => {
+          return new ChoiceItem(label, label, this._choiceOptionsByName.get().get(label));
+        });
         const tokenField = TokenField.ctor<ChoiceItem>().create(this._tokenFieldHolder, {
-          initialValue: this._values.get().map(label => {
-            return new ChoiceItem(label, label, this._choiceOptionsByName.get().get(label));
-          }),
+          initialValue,
           renderToken: token => this._renderToken(token),
           createToken: label => new ChoiceItem(label, null),
           clipboardToTokens: clipboardToChoices,
@@ -155,57 +158,67 @@ export class ChoiceListEntry extends Disposable {
           dom.onKeyDown({Enter$: () => this._save()}),
         );
       } else {
-        const someValues = Computed.create(null, this._values, (_use, values) =>
+        const holder = new MultiHolder();
+        const someValues = Computed.create(holder, this._values, (_use, values) =>
           values.length <= maxRows ? values : values.slice(0, maxRows - 1));
+        const noChoices = Computed.create(holder, someValues, (_use, values) => values.length === 0);
+
 
         return cssVerticalFlex(
-          cssListBoxInactive(
-            dom.cls(cssBlockedCursor.className, this._disabled),
-            dom.autoDispose(someValues),
-            dom.maybe(use => use(someValues).length === 0, () =>
-              row('No choices configured')
-            ),
-            dom.domComputed(this._choiceOptionsByName, (choiceOptions) =>
-              dom.forEach(someValues, val => {
-                return row(
-                  cssTokenColorInactive(
-                    dom.style('background-color', getFillColor(choiceOptions.get(val)) || '#FFFFFF'),
-                    dom.style('color', getTextColor(choiceOptions.get(val)) || '#000000'),
-                    dom.cls('font-bold', choiceOptions.get(val)?.fontBold ?? false),
-                    dom.cls('font-underline', choiceOptions.get(val)?.fontUnderline ?? false),
-                    dom.cls('font-italic', choiceOptions.get(val)?.fontItalic ?? false),
-                    dom.cls('font-strikethrough', choiceOptions.get(val)?.fontStrikethrough ?? false),
-                    'T',
-                    testId('choice-list-entry-color')
-                  ),
-                  cssTokenLabel(
-                    val,
-                    testId('choice-list-entry-label')
+          dom.autoDispose(holder),
+          dom.maybe(this._mixed, () => [
+            cssListBoxInactive(
+              dom.cls(cssBlockedCursor.className, this._disabled),
+              row('Mixed configuration')
+            )
+          ]),
+          dom.maybe(use => !use(this._mixed), () => [
+            cssListBoxInactive(
+              dom.cls(cssBlockedCursor.className, this._disabled),
+              dom.maybe(noChoices, () => row('No choices configured')),
+              dom.domComputed(this._choiceOptionsByName, (choiceOptions) =>
+                dom.forEach(someValues, val => {
+                  return row(
+                    cssTokenColorInactive(
+                      dom.style('background-color', getFillColor(choiceOptions.get(val)) || '#FFFFFF'),
+                      dom.style('color', getTextColor(choiceOptions.get(val)) || '#000000'),
+                      dom.cls('font-bold', choiceOptions.get(val)?.fontBold ?? false),
+                      dom.cls('font-underline', choiceOptions.get(val)?.fontUnderline ?? false),
+                      dom.cls('font-italic', choiceOptions.get(val)?.fontItalic ?? false),
+                      dom.cls('font-strikethrough', choiceOptions.get(val)?.fontStrikethrough ?? false),
+                      'T',
+                      testId('choice-list-entry-color')
+                    ),
+                    cssTokenLabel(
+                      val,
+                      testId('choice-list-entry-label')
+                    )
+                  );
+                }),
+              ),
+              // Show description row for any remaining rows
+              dom.maybe(use => use(this._values).length > maxRows, () =>
+                row(
+                  dom('span',
+                    testId('choice-list-entry-label'),
+                    dom.text((use) => `+${use(this._values).length - (maxRows - 1)} more`)
                   )
-                );
-              }),
-            ),
-            // Show description row for any remaining rows
-            dom.maybe(use => use(this._values).length > maxRows, () =>
-              row(
-                dom('span',
-                  testId('choice-list-entry-label'),
-                  dom.text((use) => `+${use(this._values).length - (maxRows - 1)} more`)
                 )
-              )
+              ),
+              dom.on('click', () => this._startEditing()),
+              cssListBoxInactive.cls("-disabled", this._disabled),
+              testId('choice-list-entry')
             ),
-            dom.on('click', () => this._startEditing()),
-            cssListBoxInactive.cls("-disabled", this._disabled),
-            testId('choice-list-entry')
-          ),
-          dom.maybe(use => !use(this._disabled), () =>
+          ]),
+          dom.maybe(use => !use(this._disabled), () => [
             cssButtonRow(
-              primaryButton('Edit',
+              primaryButton(
+                dom.text(use => use(this._mixed) ? 'Reset' : 'Edit'),
                 dom.on('click', () => this._startEditing()),
                 testId('choice-list-entry-edit')
-              )
-            )
-          )
+              ),
+            ),
+          ]),
         );
       }
     });

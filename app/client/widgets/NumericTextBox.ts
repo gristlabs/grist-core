@@ -4,15 +4,16 @@
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {ISelectorOption, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
+import {cssButtonSelect, ISelectorOption, makeButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {clamp} from 'app/common/gutil';
 import {buildNumberFormat, NumberFormatOptions, NumMode, NumSign} from 'app/common/NumberFormat';
-import {Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder, Observable, styled} from 'grainjs';
-import {buildCurrencyPicker} from "app/client/widgets/CurrencyPicker";
-import * as LocaleCurrency from "locale-currency";
+import {BindableValue, Computed, dom, DomContents, DomElementArg,
+        fromKo, MultiHolder, Observable, styled} from 'grainjs';
+import * as LocaleCurrency from 'locale-currency';
 
 
 const modeOptions: Array<ISelectorOption<NumMode>> = [
@@ -40,17 +41,19 @@ export class NumericTextBox extends NTextBox {
 
     // Resolved options, to show default min/max decimals, which change depending on numMode.
     const resolved = Computed.create<Intl.ResolvedNumberFormatOptions>(holder, (use) => {
-      const {numMode} = use(this.options);
+      const {numMode} = use(this.field.config.options);
       const docSettings = use(this.field.documentSettings);
       return buildNumberFormat({numMode}, docSettings).resolvedOptions();
     });
 
     // Prepare various observables that reflect the options in the UI.
-    const options = fromKo(this.options);
+    const fieldOptions = this.field.config.options;
+    const options = fromKo(fieldOptions);
     const docSettings = fromKo(this.field.documentSettings);
     const numMode = Computed.create(holder, options, (use, opts) => (opts.numMode as NumMode) || null);
     const numSign = Computed.create(holder, options, (use, opts) => opts.numSign || null);
     const currency = Computed.create(holder, options, (use, opts) => opts.currency);
+    const disabled = Computed.create(holder, use => use(this.field.config.options.disabled('currency')));
     const minDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.decimals, ''));
     const maxDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.maxDecimals, ''));
     const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits);
@@ -59,13 +62,13 @@ export class NumericTextBox extends NTextBox {
       settings.currency ?? LocaleCurrency.getCurrency(settings.locale ?? 'en-US')
     );
 
-    // Save a value as the given property in this.options() observable. Set it, save, and revert
+    // Save a value as the given property in fieldOptions observable. Set it, save, and revert
     // on save error. This is similar to what modelUtil.setSaveValue() does.
     const setSave = (prop: keyof NumberFormatOptions, value: unknown) => {
-      const orig = {...this.options.peek()};
+      const orig = {...fieldOptions.peek()};
       if (value !== orig[prop]) {
-        this.options({...orig, [prop]: value, ...updateOptions(prop, value)});
-        this.options.save().catch((err) => { reportError(err); this.options(orig); });
+        fieldOptions({...orig, [prop]: value, ...updateOptions(prop, value)});
+        fieldOptions.save().catch((err) => { reportError(err); fieldOptions(orig); });
       }
     };
 
@@ -78,28 +81,30 @@ export class NumericTextBox extends NTextBox {
     const setSign = (val: NumSign) => setSave('numSign', val !== numSign.get() ? val : undefined);
     const setCurrency = (val: string|undefined) => setSave('currency', val);
 
+    const disabledStyle = cssButtonSelect.cls('-disabled', disabled);
+
     return [
       super.buildConfigDom(),
       cssLabel('Number Format'),
       cssRow(
         dom.autoDispose(holder),
-        makeButtonSelect(numMode, modeOptions, setMode, {}, cssModeSelect.cls(''), testId('numeric-mode')),
-        makeButtonSelect(numSign, signOptions, setSign, {}, cssSignSelect.cls(''), testId('numeric-sign')),
+        makeButtonSelect(numMode, modeOptions, setMode, disabledStyle, cssModeSelect.cls(''), testId('numeric-mode')),
+        makeButtonSelect(numSign, signOptions, setSign, disabledStyle, cssSignSelect.cls(''), testId('numeric-sign')),
       ),
       dom.maybe((use) => use(numMode) === 'currency', () => [
         cssLabel('Currency'),
         cssRow(
           dom.domComputed(docCurrency, (defaultCurrency) =>
             buildCurrencyPicker(holder, currency, setCurrency,
-              {defaultCurrencyLabel: `Default currency (${defaultCurrency})`})
+              {defaultCurrencyLabel: `Default currency (${defaultCurrency})`, disabled})
           ),
           testId("numeric-currency")
         )
       ]),
       cssLabel('Decimals'),
       cssRow(
-        decimals('min', minDecimals, defaultMin, setMinDecimals, testId('numeric-min-decimals')),
-        decimals('max', maxDecimals, defaultMax, setMaxDecimals, testId('numeric-max-decimals')),
+        decimals('min', minDecimals, defaultMin, setMinDecimals, disabled, testId('numeric-min-decimals')),
+        decimals('max', maxDecimals, defaultMax, setMaxDecimals, disabled, testId('numeric-max-decimals')),
       ),
     ];
   }
@@ -107,7 +112,7 @@ export class NumericTextBox extends NTextBox {
 
 
 function numberOrDefault<T>(value: unknown, def: T): number | T {
-  return typeof value !== 'undefined' ? Number(value) : def;
+  return value !== null && value !== undefined ? Number(value) : def;
 }
 
 // Helper used by setSave() above to reset some properties when switching modes.
@@ -123,9 +128,12 @@ function decimals(
   label: string,
   value: Observable<number | ''>,
   defaultValue: Observable<number>,
-  setFunc: (val?: number) => void, ...args: DomElementArg[]
+  setFunc: (val?: number) => void,
+  disabled: BindableValue<boolean>,
+  ...args: DomElementArg[]
 ) {
   return cssDecimalsBox(
+    cssDecimalsBox.cls('-disabled', disabled),
     cssNumLabel(label),
     cssNumInput({type: 'text', size: '2', min: '0'},
       dom.prop('value', value),
@@ -160,6 +168,10 @@ const cssDecimalsBox = styled('div', `
   align-items: center;
   &:first-child {
     margin-right: 16px;
+  }
+  &-disabled {
+    background-color: ${theme.rightPanelToggleButtonDisabledBg};
+    pointer-events: none;
   }
 `);
 

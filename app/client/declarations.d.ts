@@ -12,8 +12,6 @@ declare module "app/client/lib/browserGlobals";
 declare module "app/client/lib/dom";
 declare module "app/client/lib/koDom";
 declare module "app/client/lib/koForm";
-declare module "app/client/widgets/UserType";
-declare module "app/client/widgets/UserTypeImpl";
 
 // tslint:disable:max-classes-per-file
 
@@ -38,7 +36,7 @@ declare module "app/client/components/BaseView" {
   import {DataRowModel} from 'app/client/models/DataRowModel';
   import {LazyArrayModel} from "app/client/models/DataTableModel";
   import DataTableModel from "app/client/models/DataTableModel";
-  import {ViewSectionRec} from "app/client/models/DocModel";
+  import {ViewFieldRec, ViewSectionRec} from "app/client/models/DocModel";
   import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
   import {SortedRowSet} from 'app/client/models/rowset';
   import {FieldBuilder} from "app/client/widgets/FieldBuilder";
@@ -59,6 +57,7 @@ declare module "app/client/components/BaseView" {
     public cursor: Cursor;
     public sortedRows: SortedRowSet;
     public activeFieldBuilder: ko.Computed<FieldBuilder>;
+    public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
     public disableEditing: ko.Computed<boolean>;
     public isTruncated: ko.Observable<boolean>;
     public tableModel: DataTableModel;
@@ -178,6 +177,7 @@ declare module "app/client/models/modelUtil" {
     prop(propName: string): KoSaveableObservable<any>;
   }
 
+  function objObservable<T>(obs: ko.KoSaveableObservable<T>): SaveableObjObservable<T>;
   function objObservable<T>(obs: ko.Observable<T>): ObjObservable<T>;
   function jsonObservable(obs: KoSaveableObservable<string>,
                           modifierFunc?: any, optContext?: any): SaveableObjObservable<any>;

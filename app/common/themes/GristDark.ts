@@ -229,7 +229,7 @@ export const GristDark: ThemeColors = {
   'right-panel-toggle-button-enabled-bg': '#555563',
   'right-panel-toggle-button-enabled-hover-fg': '#D9D9D9',
   'right-panel-toggle-button-disabled-fg': '#FFFFFF',
-  'right-panel-toggle-button-disabled-bg': '#E8E8E8',
+  'right-panel-toggle-button-disabled-bg': '#333333',
   'right-panel-field-settings-bg': '#414358',
   'right-panel-field-settings-button-bg': '#57575F',
 

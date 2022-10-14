@@ -14,6 +14,7 @@ import * as path from 'path';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
+import { UserAction } from 'app/common/DocActions';
 import { TestState } from 'app/common/TestState';
 import { Organization as APIOrganization, DocStateComparison, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -839,6 +840,16 @@ export async function waitForServer(optTimeout: number = 2000) {
 }
 
 /**
+ * Sends UserActions using client api from the browser.
+ */
+export async function sendActions(actions: UserAction[]) {
+  await driver.executeScript(`
+    gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+  `);
+  await waitForServer();
+}
+
+/**
  * Returns the left-panel item for the given page, given by a full string name, or a RegExp.
  * You may simply click it to switch to that page.
  */
@@ -1392,12 +1403,20 @@ export function openColumnMenu(col: IColHeader|string, option?: string): WebElem
 /**
  * Sets the type of the currently selected field to value.
  */
-export async function setType(type: RegExp, options: {skipWait?: boolean} = {}) {
+export async function setType(type: RegExp|string, options: {skipWait?: boolean} = {}) {
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
+  type = typeof type === 'string' ? exactMatch(type) : type;
   await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
   if (!options.skipWait) { await waitForServer(); }
+}
+
+/**
+ * Gets the type of the currently selected field.
+ */
+export async function getType() {
+  return await driver.find('.test-fbuilder-type-select').getText();
 }
 
 export async function applyTypeTransform() {
@@ -1963,6 +1982,35 @@ export async function setColor(colorInputEl: WebElement, color: string) {
   }, colorInputEl, color);
 }
 
+export function setTextColor(color: string) {
+  return setColor(driver.find('.test-text-input'), color);
+}
+
+export function setFillColor(color: string) {
+  return setColor(driver.find('.test-fill-input'), color);
+}
+
+export function openColorPicker() {
+  return driver.find('.test-color-select').click();
+}
+
+export async function assertTextColor(cell: WebElement, color: string) {
+  color = color.startsWith('#') ? hexToRgb(color) : color;
+  const test = async () => {
+    const actual = await cell.getCssValue('color');
+    assert.equal(actual, color);
+  };
+  await waitToPass(test, 500);
+}
+
+export async function assertFillColor(cell: WebElement, color: string) {
+  color = color.startsWith('#') ? hexToRgb(color) : color;
+  const test = async () => {
+    const actual = await cell.getCssValue('background-color');
+    assert.equal(actual, color);
+  };
+  await waitToPass(test, 500);
+}
 
 // the rgbToHex function is from this conversation: https://stackoverflow.com/a/5624139/8728791
 export function rgbToHex(color: string) {
@@ -1989,7 +2037,7 @@ export function hexToRgb(hex: string) {
  * Adds new column to the table.
  * @param name Name of the column
  */
-export async function addColumn(name: string) {
+export async function addColumn(name: string, type?: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
   // If we are on a summary table, we could be see a menu helper
@@ -2002,6 +2050,9 @@ export async function addColumn(name: string) {
   await driver.sendKeys(name);
   await driver.sendKeys(Key.ENTER);
   await waitForServer();
+  if (type) {
+    await setType(exactMatch(type));
+  }
 }
 
 export async function showColumn(name: string) {
@@ -2017,6 +2068,14 @@ export async function selectColumnRange(col1: string, col2: string) {
   await driver.mouseDown();
   await getColumnHeader({col: col2}).mouseMove();
   await driver.mouseUp();
+}
+
+export async function selectGrid() {
+  await driver.find(".gridview_data_corner_overlay").click();
+}
+
+export async function selectColumn(col: string) {
+  await getColumnHeader({col}).click();
 }
 
 export interface WindowDimensions {
@@ -2213,7 +2272,16 @@ export async function getDateFormat(): Promise<string> {
  */
 export async function setDateFormat(format: string|RegExp) {
   await driver.find('[data-test-id=Widget_dateFormat]').click();
-  await driver.findContentWait('.test-select-menu .test-select-row', format, 200).click();
+  await driver.findContentWait('.test-select-menu .test-select-row',
+    typeof format === 'string' ? exactMatch(format) : format, 200).click();
+  await waitForServer();
+}
+
+export async function setCustomDateFormat(format: string) {
+  await setDateFormat("Custom");
+  await driver.find('[data-test-id=Widget_dateCustomFormat]').click();
+  await selectAll();
+  await driver.sendKeys(format, Key.ENTER);
   await waitForServer();
 }
 
@@ -2472,6 +2540,25 @@ export async function setWidgetUrl(url: string) {
   }
   await sendKeys(Key.ENTER);
   await waitForServer();
+}
+
+/**
+ * Opens a behavior menu and clicks one of the option.
+ */
+export async function changeBehavior(option: string|RegExp) {
+  await driver.find('.test-field-behaviour').click();
+  await driver.findContent('.grist-floating-menu li', option).click();
+  await waitForServer();
+}
+
+/**
+ * Gets all available options in the behavior menu.
+ */
+ export async function availableBehaviorOptions() {
+  await driver.find('.test-field-behaviour').click();
+  const list = await driver.findAll('.grist-floating-menu li', el => el.getText());
+  await driver.sendKeys(Key.ESCAPE);
+  return list;
 }
 
 } // end of namespace gristUtils

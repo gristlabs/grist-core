@@ -7,7 +7,7 @@ import {testId} from 'app/client/ui2018/cssVars';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
-import {Computed, dom, fromKo, styled} from 'grainjs';
+import {Computed, dom, styled} from 'grainjs';
 
 export type IChoiceOptions = Style
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
@@ -66,16 +66,29 @@ export class ChoiceTextBox extends NTextBox {
   }
 
   public buildConfigDom() {
+    const disabled = Computed.create(null,
+      use => use(this.field.disableModify)
+        || use(use(this.field.column).disableEditData)
+        || use(this.field.config.options.disabled('choices'))
+      );
+
+    const mixed = Computed.create(null,
+      use => !use(disabled)
+        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions')))
+      );
     return [
       super.buildConfigDom(),
       cssLabel('CHOICES'),
       cssRow(
+        dom.autoDispose(disabled),
+        dom.autoDispose(mixed),
         dom.create(
           ChoiceListEntry,
           this._choiceValues,
           this._choiceOptionsByName,
           this.save.bind(this),
-          fromKo(this.field.column().disableEditData)
+          disabled,
+          mixed
         )
       )
     ];
@@ -95,11 +108,10 @@ export class ChoiceTextBox extends NTextBox {
 
   protected save(choices: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) {
     const options = {
-      ...this.options.peek(),
       choices,
       choiceOptions: toObject(choiceOptions)
     };
-    return this.field.updateChoices(renames, options);
+    return this.field.config.updateChoices(renames, options);
   }
 }
 

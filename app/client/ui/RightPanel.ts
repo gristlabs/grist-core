@@ -188,6 +188,21 @@ export class RightPanel extends Disposable {
       return vsi && vsi.activeFieldBuilder();
     }));
 
+    const selectedColumns = owner.autoDispose(ko.computed(() => {
+      const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
+      return vsi && vsi.selectedColumns ? vsi.selectedColumns() : null;
+    }));
+
+    const isMultiSelect = owner.autoDispose(ko.pureComputed(() => {
+      const list = selectedColumns();
+      return Boolean(list && list.length > 1);
+    }));
+
+    owner.autoDispose(selectedColumns.subscribe(cols => {
+      this._gristDoc.viewModel.activeSection()?.selectedFields(cols || []);
+    }));
+    this._gristDoc.viewModel.activeSection()?.selectedFields(selectedColumns.peek() || []);
+
     const docModel = this._gristDoc.docModel;
     const origColRef = owner.autoDispose(ko.computed(() => fieldBuilder()?.origColumn.origColRef() || 0));
     const origColumn = owner.autoDispose(docModel.columns.createFloatingRowModel(origColRef));
@@ -206,24 +221,44 @@ export class RightPanel extends Disposable {
       const {buildNameConfig, buildFormulaConfig} = ViewPane.FieldConfig;
       return dom.maybe(isColumnValid, () =>
         buildConfigContainer(
-          dom.create(buildNameConfig, origColumn, cursor),
+          cssSection(
+            dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
+          ),
           cssSeparator(),
-          dom.create(buildFormulaConfig, origColumn, this._gristDoc, this._activateFormulaEditor.bind(this)),
+          cssSection(
+            dom.create(buildFormulaConfig,
+              origColumn, this._gristDoc, this._activateFormulaEditor.bind(this)),
+          ),
           cssSeparator(),
-          cssLabel('COLUMN TYPE'),
           dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
-            builder.buildSelectTypeDom(),
-            builder.buildSelectWidgetDom(),
-            builder.buildConfigDom()
+            cssLabel('COLUMN TYPE'),
+            cssSection(
+              builder.buildSelectTypeDom(),
+            ),
+            cssSection(
+              builder.buildSelectWidgetDom(),
+            ),
+            cssSection(
+              builder.buildConfigDom(),
+            ),
+            builder.buildColorConfigDom(),
+            cssSection(
+              builder.buildSettingOptions(),
+              dom.maybe(isMultiSelect, () => disabledSection())
+            ),
           ]),
           cssSeparator(),
-          dom.maybe(refSelect.isForeignRefCol, () => [
-            cssLabel('Add referenced columns'),
-            cssRow(refSelect.buildDom()),
-            cssSeparator()
-          ]),
-          cssLabel('TRANSFORM'),
-          dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
+          cssSection(
+            dom.maybe(refSelect.isForeignRefCol, () => [
+              cssLabel('Add referenced columns'),
+              cssRow(refSelect.buildDom()),
+              cssSeparator()
+            ]),
+            cssLabel('TRANSFORM'),
+            dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
+            dom.maybe(isMultiSelect, () => disabledSection()),
+            testId('panel-transform'),
+          ),
           this._disableIfReadonly(),
         )
       );
@@ -239,7 +274,7 @@ export class RightPanel extends Disposable {
     // Custom save handler.
     onSave?: (column: ColumnRec, formula: string) => Promise<void>,
     // Custom cancel handler.
-    onCancel?: () => void,) {
+    onCancel?: () => void) {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
     if (!vsi) { return; }
     const editRowModel = vsi.moveEditRowToCursor();
@@ -527,6 +562,12 @@ export class RightPanel extends Disposable {
   }
 }
 
+function disabledSection() {
+  return cssOverlay(
+    testId('panel-disabled-section'),
+  );
+}
+
 export function buildConfigContainer(...args: DomElementArg[]): HTMLElement {
   return cssConfigContainer(
     // The `position: relative;` style is needed for the overlay for the readonly mode. Note that
@@ -773,4 +814,8 @@ const cssTextInput = styled(textInput, `
     background-color: ${theme.inputDisabledBg};
     pointer-events: none;
   }
+`);
+
+const cssSection = styled('div', `
+  position: relative;
 `);

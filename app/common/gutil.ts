@@ -959,3 +959,21 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
     return await fn();
   }
 }
+
+/**
+ * Checks if value is 'empty' (like null, undefined, empty string, empty array/set/map, empty object).
+ * Values like 0, true, false are not empty.
+ */
+ export function notSet(value: any) {
+  return value === undefined || value === null || value === ''
+         || (Array.isArray(value) && !value.length)
+         || (typeof value === 'object' && !Object.keys(value).length)
+         || (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
+}
+
+/**
+ * Checks if value is 'empty', if it is, returns the default value (which is null).
+ */
+export function ifNotSet(value: any, def: any = null) {
+  return notSet(value) ? def : value;
+}

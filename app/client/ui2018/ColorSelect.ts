@@ -6,7 +6,7 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssSelectBtn} from 'app/client/ui2018/select';
 import {isValidHex} from 'app/common/gutil';
-import {Computed, Disposable, dom, Observable, onKeyDown, styled} from 'grainjs';
+import {BindableValue, Computed, Disposable, dom, Observable, onKeyDown, styled} from 'grainjs';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
 export interface StyleOptions {
@@ -44,12 +44,25 @@ export class ColorOption {
  */
 export function colorSelect(
   styleOptions: StyleOptions,
-  onSave: () => Promise<void>,
-  placeholder = 'Default cell style'): Element {
+  options: {
+    // Handler to save the style.
+    onSave: () => Promise<void>,
+    // Invoked when user opens the color picker.
+    onOpen?: () => void,
+    // Invoked when user closes the color picker without saving.
+    onRevert?: () => void,
+    placeholder?: BindableValue<string>
+  }): Element {
   const {
     textColor,
     fillColor,
   } = styleOptions;
+  const {
+    onSave,
+    onOpen,
+    onRevert,
+    placeholder = 'Default cell style',
+  } = options;
   const selectBtn = cssSelectBtn(
     cssContent(
       cssButtonIcon(
@@ -63,13 +76,16 @@ export function colorSelect(
         cssLightBorder.cls(''),
         testId('btn-icon'),
       ),
-      placeholder,
+      dom.text(placeholder),
     ),
     icon('Dropdown'),
     testId('color-select'),
   );
 
-  const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, styleOptions, onSave);
+  const domCreator = (ctl: IOpenController) => {
+    onOpen?.();
+    return buildColorPicker(ctl, styleOptions, onSave, onRevert);
+  };
   setPopupToCreateDom(selectBtn, domCreator, {...defaultMenuOptions, placement: 'bottom-end'});
 
   return selectBtn;
@@ -105,7 +121,9 @@ function buildColorPicker(ctl: IOpenController,
     fontItalic,
     fontStrikethrough
   }: StyleOptions,
-  onSave: () => Promise<void>): Element {
+  onSave: () => Promise<void>,
+  onRevert?: () => void,
+): Element {
   const textColorModel = ColorModel.create(null, textColor.color);
   const fillColorModel = ColorModel.create(null, fillColor.color);
   const fontBoldModel = BooleanModel.create(null, fontBold);
@@ -119,7 +137,10 @@ function buildColorPicker(ctl: IOpenController,
   const notChanged = Computed.create(null, use => models.every(m => use(m.needsSaving) === false));
 
   function revert() {
-    models.forEach(m => m.revert());
+    onRevert?.();
+    if (!onRevert) {
+      models.forEach(m => m.revert());
+    }
     ctl.close();
   }
 
@@ -129,8 +150,10 @@ function buildColorPicker(ctl: IOpenController,
         // TODO: disable the trigger btn while saving
         await onSave();
       } catch (e) {
-        /* Does no logging: onSave() callback is expected to handle their reporting */
-        models.forEach(m => m.revert());
+        onRevert?.();
+        if (!onRevert) {
+          models.forEach(m => m.revert());
+        }
       }
     }
     models.forEach(m => m.dispose());

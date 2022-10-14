@@ -183,6 +183,9 @@ function BaseView(gristDoc, viewSectionModel, options) {
     this.fieldBuilders.at(this.cursor.fieldIndex())
   ));
 
+  // By default, a view doesn't support selectedColumns, but it can be overridden.
+  this.selectedColumns = null;
+
   // Observable for whether the data in this view is truncated, i.e. not all rows are included
   // (this can only be true for on-demand tables).
   this.isTruncated = ko.observable(false);
