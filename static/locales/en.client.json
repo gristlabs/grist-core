@@ -10,9 +10,30 @@
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
   },
+  "FieldConfig": {
+    "ColumnLabel": "COLUMN LABEL AND ID",
+    "ColumnOptionsLimited": "Column options are limited in summary tables.",
+    "ColumnType_formula_one": "Formula Column",
+    "ColumnType_data_one": "Data Column",
+    "ColumnType_empty_one": "Empty Column",
+    "ColumnType_formula": "Formula Columns",
+    "ColumnType_data": "Data Columns",
+    "ColumnType_empty": "Empty Columns",
+    "ColumnType_mixed": "Mixed Behavior",
+    "ConvertColumn_formula": "Clear and make into formula",
+    "ConvertColumn_data": "Convert column to data",
+    "ConvertColumn_triggerformula": "Convert to trigger formula",
+    "ClearAndReset": "Clear and reset",
+    "EnterFormula": "Enter formula",
+    "ColumnBehavior": "COLUMN BEHAVIOR",
+    "SetFormula": "et formula",
+    "SetTriggerFormula": "Set trigger formula",
+    "MakeIntoDataColumn": "Make into data column",
+    "TriggerFormula": "TRIGGER FORMULA"
+  },
   "FieldMenus": {
-    "UsingSettings__common": "Using common settings",
-    "UsingSettings__separate": "Using separate settings",
+    "UsingSettings_common": "Using common settings",
+    "UsingSettings_separate": "Using separate settings",
     "Settings_useseparate": "Use separate settings",
     "Settings_savecommon": "Save common settings",
     "Settings_revertcommon": "Revert common settings"
