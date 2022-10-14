@@ -10,6 +10,16 @@
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
   },
+  "FieldMenus": {
+    "UsingSettings__common": "Using common settings",
+    "UsingSettings__separate": "Using separate settings",
+    "Settings_useseparate": "Use separate settings",
+    "Settings_savecommon": "Save common settings",
+    "Settings_revertcommon": "Revert common settings"
+  },
+  "FilterBar": {
+    "AddFilter": "Add Filter"
+  },
   "GridOptions": {
     "GridOptions": "Grid Options",
     "VerticalGridlines": "Vertical Gridlines",

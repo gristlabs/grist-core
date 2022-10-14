@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import { allInclusive } from "app/client/models/ColumnFilter";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
@@ -77,7 +78,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
       cssBtn.cls('-grayed'),
       cssIcon('Plus'),
       addFilterMenu(filters, viewSectionRec, popupControls),
-      anyFilter ? null : cssPlusLabel('Add Filter'),
+      anyFilter ? null : cssPlusLabel(t('FilterBar.AddFilter')),
       testId('add-filter-btn')
     );
   });
