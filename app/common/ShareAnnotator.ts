@@ -55,11 +55,11 @@ export class ShareAnnotator {
     }
     const top = features.maxSharesPerDoc;
     let at = 0;
-    const makeAnnotation = (user: {email: string, isMember?: boolean, access: string|null}) => {
+    const makeAnnotation = (user: {email: string, isMember?: boolean, isSupport?: boolean, access: string|null}) => {
       const annotation: ShareAnnotation = {
         isMember: user.isMember,
       };
-      if (user.email === 'support@getgrist.com') {
+      if (user.isSupport) {
         return { isSupport: true };
       }
       if (!annotation.isMember && user.access) {

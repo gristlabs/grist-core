@@ -217,6 +217,7 @@ GRIST_HOST          | hostname to use when listening on a port.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
 GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication.
 GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.
+GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false.
 GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone
 GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited).
 GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited).
@@ -231,6 +232,7 @@ GRIST_SESSION_SECRET | a key used to encode sessions
 GRIST_FORCE_LOGIN    | when set to 'true' disables anonymous access
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
+GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie

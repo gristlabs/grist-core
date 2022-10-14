@@ -23,9 +23,6 @@ export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
 // Nominal email address of a user who, if you share with them, everyone gets access.
 export const EVERYONE_EMAIL = 'everyone@getgrist.com';
 
-// A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
-export const SUPPORT_EMAIL = 'support@getgrist.com';
-
 // A special 'docId' that means to create a new document.
 export const NEW_DOCUMENT_CODE = 'new';
 

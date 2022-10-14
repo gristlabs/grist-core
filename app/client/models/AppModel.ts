@@ -18,7 +18,7 @@ import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
         ThemePrefsChecker} from 'app/common/ThemePrefs';
 import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
-import {getOrgName, Organization, OrgError, SUPPORT_EMAIL, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
@@ -276,7 +276,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 
   public isSupport() {
-    return this.currentValidUser?.email === SUPPORT_EMAIL;
+    return Boolean(this.currentValidUser?.isSupport);
   }
 
   public isBillingManager() {

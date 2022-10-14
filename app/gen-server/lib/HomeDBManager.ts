@@ -21,7 +21,6 @@ import {
   Organization as OrgInfo,
   PermissionData,
   PermissionDelta,
-  SUPPORT_EMAIL,
   UserAccessData,
   UserOptions,
   WorkspaceProperties
@@ -50,6 +49,7 @@ import {
   now,
   readJson
 } from 'app/gen-server/sqlUtils';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
@@ -90,11 +90,24 @@ export type NotifierEvent = typeof NotifierEvents.type;
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
 
+// A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
+export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
+  envVar: 'GRIST_SUPPORT_EMAIL',
+  defaultValue: 'support@getgrist.com',
+});
+
 // A list of emails we don't expect to see logins for.
 const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
 
 // Name of a special workspace with examples in it.
 export const EXAMPLE_WORKSPACE_NAME = 'Examples & Templates';
+
+// Flag controlling whether sites that are publicly accessible should be listed
+// to the anonymous user. Defaults to not listing such sites.
+const listPublicSites = appSettings.section('access').flag('listPublicSites').readBool({
+  envVar: 'GRIST_LIST_PUBLIC_SITES',
+  defaultValue: false,
+});
 
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
@@ -473,6 +486,9 @@ export class HomeDBManager extends EventEmitter {
     };
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;
+    }
+    if (this.getSupportUserId() === user.id) {
+      result.isSupport = true;
     }
     return result;
   }
@@ -1100,7 +1116,7 @@ export class HomeDBManager extends EventEmitter {
     queryBuilder = this._withAccess(queryBuilder, users, 'orgs');
     // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
     queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain, options);
-    if (this._isAnonymousUser(users)) {
+    if (this._isAnonymousUser(users) && !listPublicSites) {
       // The anonymous user is a special case.  It may have access to potentially
       // many orgs, but listing them all would be kind of a misfeature.  but reporting
       // nothing would complicate the client.  We compromise, and report at most
@@ -2303,6 +2319,7 @@ export class HomeDBManager extends EventEmitter {
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
         ),
         isMember: orgAccess !== 'guests' && orgAccess !== null,
+        isSupport: u.id === this.getSupportUserId() ? true : undefined,
       };
     });
     let maxInheritedRole = this._getMaxInheritedRole(doc);

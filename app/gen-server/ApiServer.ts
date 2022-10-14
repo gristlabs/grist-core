@@ -16,7 +16,7 @@ import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {Request} from 'express';
 
 import {User} from './entity/User';
-import {HomeDBManager} from './lib/HomeDBManager';
+import {HomeDBManager, QueryResult, Scope} from './lib/HomeDBManager';
 
 // Special public organization that contains examples and templates.
 export const TEMPLATES_ORG_DOMAIN = process.env.GRIST_ID_PREFIX ?
@@ -330,8 +330,9 @@ export class ApiServer {
     // Get user access information regarding an org
     this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
-      const scope = addPermit(getScope(req), this._dbManager.getSupportUserId(), {org});
-      const query = await this._dbManager.getOrgAccess(scope, org);
+      const query = await this._withSupportUserAllowedToView(
+        org, req, (scope) => this._dbManager.getOrgAccess(scope, org)
+      );
       return sendReply(req, res, query);
     }));
 
@@ -454,9 +455,9 @@ export class ApiServer {
     this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
       const domain = getOrgFromRequest(req);
-      // Allow the support user enough access to every org to see the billing pages.
-      const scope = domain ? addPermit(getScope(req), this._dbManager.getSupportUserId(), {org: domain}) : null;
-      const org = scope ? (await this._dbManager.getOrg(scope, domain)) : null;
+      const org = domain ? (await this._withSupportUserAllowedToView(
+        domain, req, (scope) => this._dbManager.getOrg(scope, domain)
+      )) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
         user: {...fullUser, helpScoutSignature: helpScoutSign(fullUser.email)},
@@ -526,6 +527,30 @@ export class ApiServer {
     const loginMethod = sessionUser && sessionUser.profile ? sessionUser.profile.loginMethod : undefined;
     const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
     return {...fullUser, loginMethod, allowGoogleLogin};
+  }
+
+
+  /**
+   * Run a query, and, if it is denied and the user is the support
+   * user, rerun the query with permission to view the current
+   * org. This is a bit inefficient, but only affects the support
+   * user. We wait to add the special permission only if needed, since
+   * it will in fact override any other access the support user has
+   * been granted, which could reduce their apparent access if that is
+   * part of what is returned by the query.
+   */
+  private async _withSupportUserAllowedToView<T>(
+    org: string|number, req: express.Request,
+    op: (scope: Scope) => Promise<QueryResult<T>>
+  ): Promise<QueryResult<T>> {
+    const scope = getScope(req);
+    const userId = getUserId(req);
+    const result = await op(scope);
+    if (result.status === 200 || userId !== this._dbManager.getSupportUserId()) {
+      return result;
+    }
+    const extendedScope = addPermit(scope, this._dbManager.getSupportUserId(), {org});
+    return await op(extendedScope);
   }
 }
 
