@@ -196,7 +196,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       let suggestedColRef: number;
       let suggestedTableId: string;
       const origColTypeInfo = gristTypes.extractInfoFromColType(origCol.type.peek());
-      if (!optTableId && origColTypeInfo.type === "Ref" || origColTypeInfo.type === "RefList") {
+      if (!optTableId && (origColTypeInfo.type === "Ref" || origColTypeInfo.type === "RefList")) {
         // When converting between Ref and Reflist, initially suggest the same table and visible column.
         // When converting, if the table is the same, it's a special case.
         // The visible column will not affect conversion.
