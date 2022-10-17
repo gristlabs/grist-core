@@ -66,6 +66,7 @@ export interface IEditableMember {
   origAccess: roles.Role|null;
   isNew: boolean;
   isRemoved: boolean;
+  isTeamMember?: boolean;
 }
 
 // An option for the select elements used in the UserManager.
@@ -87,6 +88,7 @@ interface IBuildMemberOptions {
   picture?: string|null;
   access: roles.Role|null;
   parentAccess: roles.BasicRole|null;
+  isTeamMember?: boolean;
 }
 
 /**
@@ -309,6 +311,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         picture: m.picture,
         access: m.access,
         parentAccess: m.parentAccess || null,
+        isTeamMember: m.isMember,
       })
     );
   }
@@ -375,6 +378,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       origAccess: member.access,
       isNew: false,
       isRemoved: false,
+      isTeamMember: member.isTeamMember,
     };
   }
 }

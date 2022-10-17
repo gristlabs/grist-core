@@ -551,7 +551,10 @@ export class ACMemberEmail extends Disposable {
   }
 
   public buildDom() {
-    const acUserItem = this._members.map((member: IEditableMember) => getUserItem(member));
+    const acUserItem = this._members
+      // Only suggest team members in autocomplete.
+      .filter((member: IEditableMember) => member.isTeamMember)
+      .map((member: IEditableMember) => getUserItem(member));
     const acIndex = new ACIndexImpl<ACUserItem>(acUserItem);
 
     return buildACMemberEmail(this,

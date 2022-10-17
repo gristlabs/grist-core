@@ -2208,10 +2208,14 @@ export class HomeDBManager extends EventEmitter {
     }
     const org: Organization = queryResult.data;
     const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
-    const users = getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => ({
-      ...this.makeFullUser(u),
-      access: userRoleMap[u.id]
-    }));
+    const users = getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
+      const access = userRoleMap[u.id];
+      return {
+        ...this.makeFullUser(u),
+        access,
+        isMember: access !== 'guests',
+      };
+    });
     const personal = this._filterAccessData(scope, users, null);
     return {
       status: 200,
@@ -2250,12 +2254,15 @@ export class HomeDBManager extends EventEmitter {
     const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
     // The orgMap gives the org access inherited by each user.
     const orgMap = getMemberUserRoles(workspace.org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = getMemberUserRoles(workspace.org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
     const users: UserAccessData[] = getResourceUsers([workspace, workspace.org]).map(u => {
+      const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
         access: wsMap[u.id] || null,
-        parentAccess: roles.getEffectiveRole(orgMap[u.id] || null)
+        parentAccess: roles.getEffectiveRole(orgMap[u.id] || null),
+        isMember: orgAccess && orgAccess !== 'guests',
       };
     });
     const maxInheritedRole = this._getMaxInheritedRole(workspace);
@@ -2319,7 +2326,7 @@ export class HomeDBManager extends EventEmitter {
         parentAccess: roles.getEffectiveRole(
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
         ),
-        isMember: orgAccess !== 'guests' && orgAccess !== null,
+        isMember: orgAccess && orgAccess !== 'guests',
         isSupport: u.id === this.getSupportUserId() ? true : undefined,
       };
     });

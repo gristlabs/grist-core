@@ -83,7 +83,7 @@ export function buildACMemberEmail(
       .filter(item => item.cleanText.includes(cleanText))
       .sort((a, b) => a.cleanText.localeCompare(b.cleanText));
     results.items = items;
-    if (!results.items.length) {
+    if (!results.items.length && cleanText) {
       const newObject = {
         value: text,
         cleanText,
