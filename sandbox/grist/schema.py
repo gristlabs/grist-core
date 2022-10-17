@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 32
+SCHEMA_VERSION = 33
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -316,6 +316,21 @@ def schema_create_actions():
       # Ex1: { included: ['foo', 'bar'] }
       # Ex2: { excluded: ['apple', 'orange'] }
       make_column("filter",         "Text")
+    ]),
+
+    # Additional metadata for cells
+    actions.AddTable('_grist_Cells', [
+      make_column("tableRef",       "Ref:_grist_Tables"),
+      make_column("colRef",         "Ref:_grist_Tables_column"),
+      make_column("rowId",          "Int"),
+      # Cell metadata is stored as in hierarchical structure.
+      make_column("root",           "Bool"),
+      make_column("parentId",       "Ref:_grist_Cells"),
+      # Type of information, currently we have only one type Comments (with value 1).
+      make_column("type",           "Int"),
+      # JSON representation of the metadata.
+      make_column("content",        "Text"),
+      make_column("userRef",        "Text"),
     ]),
   ]
 

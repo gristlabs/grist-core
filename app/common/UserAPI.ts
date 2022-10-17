@@ -175,6 +175,7 @@ export interface UserAccessData {
   id: number;
   name: string;
   email: string;
+  ref?: string|null;
   picture?: string|null; // When present, a url to a public image of unspecified dimensions.
   // Represents the user's direct access to the resource of interest. Lack of access to a resource
   // is represented by a null value.

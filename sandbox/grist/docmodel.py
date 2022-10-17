@@ -147,6 +147,21 @@ class MetaTableExtras(object):
       table.docmodel.setAutoRemove(rec, not rec.colRef)
 
 
+  class _grist_Cells(object):
+    def setAutoRemove(rec, table):
+      if rec.type == 1: # Cell info of type 1 == Comments
+        # Remove if discussion is removed.
+        noParent = not rec.root and not rec.parentId
+        if rec.tableRef and rec.rowId:
+          tableRef = table.docmodel.get_table(rec.tableRef.tableId)
+          row = tableRef.lookupOne(id=rec.rowId)
+        else:
+          row = False
+        # Remove if row is removed, column is removed, table is removed or all comments are removed.
+        no_cell = not rec.colRef or not rec.tableRef or not row
+        table.docmodel.setAutoRemove(rec, noParent or no_cell)
+
+
 def enhance_model(model_class):
   """
   Given a metadata model class, add all members (formula methods) to it from the same-named inner
@@ -198,6 +213,7 @@ class DocModel(object):
     self.aclResources            = self._prep_table("_grist_ACLResources")
     self.aclRules                = self._prep_table("_grist_ACLRules")
     self.filters                 = self._prep_table("_grist_Filters")
+    self.cells                   = self._prep_table("_grist_Cells")
 
   def _prep_table(self, name):
     """

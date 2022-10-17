@@ -48,6 +48,7 @@ import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {invokePrompt} from 'app/client/ui2018/modals';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
+import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
 import {CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
@@ -66,6 +67,7 @@ import {
   bundleChanges,
   Computed,
   dom,
+  DomContents,
   Emitter,
   fromKo,
   Holder,
@@ -101,11 +103,11 @@ export interface TabOptions {
   category?: any;
 }
 
-const RightPanelTool = StringUnion("none", "docHistory", "validations");
+const RightPanelTool = StringUnion("none", "docHistory", "validations", "discussion");
 
 export interface IExtraTool {
   icon: IconName;
-  label: string;
+  label: DomContents;
   content: TabContent[]|IDomComponent;
 }
 
@@ -162,6 +164,7 @@ export class GristDoc extends DisposableWithEvents {
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;
   private _rightPanelTabs = new Map<string, TabContent[]>();
   private _docHistory: DocHistory;
+  private _discussionPanel: DiscussionPanel;
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _viewLayout: ViewLayout|null = null;
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
@@ -317,6 +320,7 @@ export class GristDoc extends DisposableWithEvents {
     this._actionLog = this.autoDispose(ActionLog.create({ gristDoc: this }));
     this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, { gristDoc: this }));
     this._docHistory = DocHistory.create(this, this.docPageModel, this._actionLog);
+    this._discussionPanel = DiscussionPanel.create(this, this);
 
     // Tap into docData's sendActions method to save the cursor position with every action, so that
     // undo/redo can jump to the right place.
@@ -404,6 +408,7 @@ export class GristDoc extends DisposableWithEvents {
     return this.docPageModel.currentDocId.get()!;
   }
 
+  // DEPRECATED This is used only for validation, which is not used anymore.
   public addOptionsTab(label: string, iconElem: any, contentObj: TabContent[], options: TabOptions): IDisposable {
     this._rightPanelTabs.set(label, contentObj);
     // Return a do-nothing disposable, to satisfy the previous interface.
@@ -857,7 +862,7 @@ export class GristDoc extends DisposableWithEvents {
   public async recursiveMoveToCursorPos(
     cursorPos: CursorPos,
     setAsActiveSection: boolean,
-    silent: boolean = false): Promise<void> {
+    silent: boolean = false): Promise<boolean> {
     try {
       if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
       if (!cursorPos.rowId) { throw new Error('rowId required'); }
@@ -931,11 +936,13 @@ export class GristDoc extends DisposableWithEvents {
       // even though the cursor is at right place, the scroll could not have yet happened
       // wait for a bit (scroll is done in a setTimeout 0)
       await delay(0);
+      return true;
     } catch (e) {
       console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
       if (!silent) {
         throw new UserError('There was a problem finding the desired cell.');
       }
+      return false;
     }
   }
 
@@ -1050,6 +1057,9 @@ export class GristDoc extends DisposableWithEvents {
       case 'validations': {
         const content = this._rightPanelTabs.get("Validate Data");
         return content ? {icon: 'Validation', label: 'Validation Rules', content} : null;
+      }
+      case 'discussion': {
+        return  {icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel};
       }
       case 'none':
       default: {

@@ -12,6 +12,8 @@ import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {cssHideForNarrowScreen, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
+import {menuAnnotate} from 'app/client/ui2018/menus';
+import {COMMENTS} from 'app/client/models/features';
 import {waitGrainObs} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
@@ -92,6 +94,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
 
     buildShareMenuButton(pageModel),
 
+    dom.maybe(use =>
+      (
+        use(pageModel.gristDoc)
+        && !use(use(pageModel.gristDoc)!.isReadonly)
+        && use(COMMENTS())
+      ),
+      () => buildShowDiscussionButton(pageModel)),
+
     dom.update(
       buildNotifyMenuButton(appModel.notifier, appModel),
       cssHideForNarrowScreen.cls(''),
@@ -100,6 +110,22 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom('div', dom.create(AccountWidget, appModel, pageModel))
   ];
 }
+
+function buildShowDiscussionButton(pageModel: DocPageModel) {
+  return cssHoverCircle({ style: `margin: 5px; position: relative;` },
+    cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
+    cssBeta('Beta'),
+    testId('open-discussion'),
+    dom.on('click', () => pageModel.gristDoc.get()!.showTool('discussion'))
+  );
+}
+
+const cssBeta = styled(menuAnnotate, `
+  position: absolute;
+  top: 4px;
+  right: -9px;
+  font-weight: bold;
+`);
 
 // Given the GristDoc instance, returns a rename function for the current active page.
 // If the current page is not able to be renamed or the new name is invalid, the function is a noop.

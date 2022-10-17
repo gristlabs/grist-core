@@ -25,6 +25,8 @@ const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {closeRegisteredMenu} = require('app/client/ui2018/menus');
+const {COMMENTS} = require('app/client/models/features');
+
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -84,6 +86,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
     this._filteredRowSource.updateFilter(filterFunc);
   }));
+
+  this.rowSource = this._filteredRowSource;
 
   // Sorted collection of all rows to show in this view.
   this.sortedRows = rowset.SortedRowSet.create(this, null, this.tableModel.tableData);
@@ -238,7 +242,8 @@ BaseView.commonCommands = {
   showRawData: function() { this.showRawData().catch(reportError); },
 
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
-  duplicateRows: function() { this._duplicateRows().catch(reportError); }
+  duplicateRows: function() { this._duplicateRows().catch(reportError); },
+  openDiscussion: function() { this.openDiscussionAtCursor(); },
 };
 
 /**
@@ -287,6 +292,30 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
   this.editRowModel.assign(rowId);
   builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
 };
+
+
+/**
+ * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
+ */
+ BaseView.prototype.openDiscussionAtCursor = function(id) {
+  if (!COMMENTS().get()) { return false; }
+  var builder = this.activeFieldBuilder();
+  if (builder.isEditorActive()) {
+    return false;
+  }
+  var rowId = this.viewData.getRowId(this.cursor.rowIndex());
+  // LazyArrayModel row model which is also used to build the cell dom. Needed since
+  // it may be used as a key to retrieve the cell dom, which is useful for editor placement.
+  var lazyRow = this.getRenderedRowModel(rowId);
+  if (!lazyRow) {
+    // TODO scroll into view. For now, just don't start discussion.
+    return false;
+  }
+  this.editRowModel.assign(rowId);
+  builder.buildDiscussionPopup(this.editRowModel, lazyRow, id);
+  return true;
+};
+
 
 /**
  * Move the floating RowModel for editing to the current cursor position, and return it.

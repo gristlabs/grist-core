@@ -2,6 +2,7 @@ import { allCommands } from 'app/client/components/commands';
 import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
 import { IMultiColumnContextMenu } from 'app/client/ui/GridViewMenus';
 import { IRowContextMenu } from 'app/client/ui/RowContextMenu';
+import { COMMENTS } from 'app/client/models/features';
 import { dom } from 'grainjs';
 
 export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiColumnContextMenu) {
@@ -9,6 +10,8 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
   const { disableInsert, disableDelete, isViewSorted } = rowOptions;
   const { disableModify, isReadonly } = colOptions;
 
+  // disableModify is true if the column is a summary column or is being transformed.
+  // isReadonly is true for readonly mode.
   const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
   const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
@@ -32,7 +35,7 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
     colOptions.isFormula ?
       null :
       menuItemCmd(allCommands.clearValues, nameClearCells, disableForReadonlyColumn),
-    menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
+      menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
 
     ...(
       (numCols > 1 || numRows > 1) ? [] : [
@@ -40,6 +43,9 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
         menuItemCmd(allCommands.copyLink, 'Copy anchor link'),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, `Filter by this value`),
+        menuItemCmd(allCommands.openDiscussion, 'Comment', dom.cls('disabled', (
+         isReadonly || numRows === 0 || numCols === 0
+        )), dom.hide(use => !use(COMMENTS())))
       ]
     ),
 
@@ -70,8 +76,7 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
     menuDivider(),
 
     // deletes
-    menuItemCmd(allCommands.deleteRecords, nameDeleteRows,
-                dom.cls('disabled', disableDelete)),
+    menuItemCmd(allCommands.deleteRecords, nameDeleteRows, dom.cls('disabled', disableDelete)),
 
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 

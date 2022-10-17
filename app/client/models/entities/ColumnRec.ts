@@ -1,5 +1,6 @@
 import {KoArray} from 'app/client/lib/koArray';
-import {DocModel, IRowModel, recordSet, refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
+import {CellRec, DocModel, IRowModel, recordSet,
+        refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
@@ -55,7 +56,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   visibleColModel: ko.Computed<ColumnRec>;
 
   disableModifyBase: ko.Computed<boolean>;    // True if column config can't be modified (name, type, etc.)
-  disableModify: ko.Computed<boolean>;        // True if column can't be modified or is being transformed.
+  disableModify: ko.Computed<boolean>;        // True if column can't be modified (is summary) or is being transformed.
   disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
 
   isHiddenCol: ko.Computed<boolean>;
@@ -73,6 +74,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // (i.e. they aren't actually referenced but they exist in the visible column and are relevant to e.g. autocomplete)
   // `formatter` formats actual cell values, e.g. a whole list from the display column.
   formatter: ko.Computed<BaseFormatter>;
+  cells: ko.Computed<KoArray<CellRec>>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -83,6 +85,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.widgetOptionsJson = jsonObservable(this.widgetOptions);
   this.viewFields = recordSet(this, docModel.viewFields, 'colRef');
   this.summarySource = refRecord(docModel.columns, this.summarySourceCol);
+  this.cells = recordSet(this, docModel.cells, 'colRef');
 
   // Is this an empty column (undecided if formula or data); denoted by an empty formula.
   this.isEmpty = ko.pureComputed(() => this.isFormula() && this.formula() === '');

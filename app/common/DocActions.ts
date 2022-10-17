@@ -79,7 +79,6 @@ export function isRenameTable(act: DocAction): act is RenameTable { return act[0
 const SCHEMA_ACTIONS = new Set(['AddTable', 'RemoveTable', 'RenameTable', 'AddColumn',
   'RemoveColumn', 'RenameColumn', 'ModifyColumn']);
 
-// Maps each data action to whether it's a bulk action.
 const DATA_ACTIONS = new Set(['AddRecord', 'RemoveRecord', 'UpdateRecord', 'BulkAddRecord',
   'BulkRemoveRecord', 'BulkUpdateRecord', 'ReplaceTableData', 'TableData']);
 

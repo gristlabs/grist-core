@@ -37,21 +37,21 @@ import {createValidationRec, ValidationRec} from 'app/client/models/entities/Val
 import {createViewFieldRec, ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {createViewRec, ViewRec} from 'app/client/models/entities/ViewRec';
 import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
+import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
 import {RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
-    ViewFieldRec, ViewRec, ViewSectionRec};
-
+    ViewFieldRec, ViewRec, ViewSectionRec, CellRec};
 
 /**
  * Creates the type for a MetaRowModel containing a KoSaveableObservable for each field listed in
  * the auto-generated app/common/schema.ts. It represents the metadata record in the database.
  * Particular DocModel entities derive from this, and add other helpful computed values.
  */
-export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel & {
+export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel<TName> & {
   [ColId in keyof SchemaTypes[TName]]: KoSaveableObservable<SchemaTypes[TName][ColId]>;
 };
 
@@ -124,6 +124,7 @@ export class DocModel {
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
   public filters: MTM<FilterRec> = this._metaTableModel("_grist_Filters", createFilterRec);
+  public cells: MTM<CellRec> = this._metaTableModel("_grist_Cells", createCellRec);
 
   public docInfoRow: DocInfoRec;
 

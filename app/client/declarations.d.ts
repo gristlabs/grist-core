@@ -56,6 +56,7 @@ declare module "app/client/components/BaseView" {
     public gristDoc: GristDoc;
     public cursor: Cursor;
     public sortedRows: SortedRowSet;
+    public rowSource: RowSource;
     public activeFieldBuilder: ko.Computed<FieldBuilder>;
     public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
     public disableEditing: ko.Computed<boolean>;
@@ -69,6 +70,7 @@ declare module "app/client/components/BaseView" {
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;
+    public openDiscussionAtCursor(discussionId?: number): boolean;
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;
@@ -140,10 +142,19 @@ declare module "app/client/models/BaseRowModel" {
 
 declare module "app/client/models/MetaRowModel" {
   import BaseRowModel from "app/client/models/BaseRowModel";
+  import {ColValues} from 'app/common/DocActions';
+  import {SchemaTypes} from 'app/common/schema';
+
+  type NPartial<T> = {
+    [P in keyof T]?: T[P]|null;
+  };
+  type Values<T> = T extends keyof SchemaTypes ? NPartial<SchemaTypes[T]> : ColValues;
+
   namespace MetaRowModel {}
-  class MetaRowModel extends BaseRowModel {
+  class MetaRowModel<TName extends (keyof SchemaTypes)|undefined = undefined> extends BaseRowModel {
     public _isDeleted: ko.Observable<boolean>;
     public events: { trigger: (key: string) => void };
+    public updateColValues(colValues: Values<TName>): Promise<void>;
   }
   export = MetaRowModel;
 }

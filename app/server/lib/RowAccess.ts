@@ -76,3 +76,15 @@ export function getRowIdsFromDocAction(docActions: RemoveRecord | BulkRemoveReco
   const ids = docActions[2];
   return (typeof ids === 'number') ? [ids] : ids;
 }
+
+/**
+ * Tiny helper to get the row ids mentioned in a record-related DocAction as a list
+ * (even if the action is not a bulk action). When the action touches the whole row,
+ * it returns ["*"].
+ */
+export function getColIdsFromDocAction(docActions: RemoveRecord | BulkRemoveRecord | AddRecord |
+  BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
+  TableDataAction) {
+  if (docActions[3]) { return Object.keys(docActions[3]); }
+  return ['*'];
+}

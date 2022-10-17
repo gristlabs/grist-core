@@ -860,6 +860,11 @@ export function getPageItem(pageName: string|RegExp): WebElementPromise {
     .findClosest('.test-treeview-itemHeaderWrapper');
 }
 
+export async function openPage(name: string|RegExp) {
+  await driver.findContentWait('.test-treeview-itemHeader', name, 500).find(".test-docpage-initial").doClick();
+  await waitForServer(); // wait for table load
+}
+
 /**
  * Open the page menu for the specified page (by clicking the dots icon visible on hover).
  */
@@ -1082,9 +1087,9 @@ export async function renameColumn(col: IColHeader, newName: string) {
 }
 
 /**
- * Removes a table using RAW data view. Return back a current url.
+ * Removes a table using RAW data view. Returns a current url.
  */
-export async function removeTable(tableId: string) {
+export async function removeTable(tableId: string, goBack: boolean = false) {
   const back = await driver.getCurrentUrl();
   await driver.find(".test-tools-raw").click();
   const tableIdList = await driver.findAll('.test-raw-data-table-id', e => e.getText());
@@ -1096,6 +1101,10 @@ export async function removeTable(tableId: string) {
   await driver.find(".test-raw-data-menu-remove").click();
   await driver.find(".test-modal-confirm").click();
   await waitForServer();
+  if (goBack) {
+    await driver.get(back);
+    await waitAppFocus();
+  }
   return back;
 }
 
@@ -1398,6 +1407,11 @@ export function openColumnMenu(col: IColHeader|string, option?: string): WebElem
     });
   }
   return new WebElementPromise(driver, openColumnMenuHelper(col, option));
+}
+
+export async function deleteColumn(col: IColHeader|string) {
+  await openColumnMenu(col, 'Delete column');
+  await waitForServer();
 }
 
 /**
@@ -2554,11 +2568,28 @@ export async function changeBehavior(option: string|RegExp) {
 /**
  * Gets all available options in the behavior menu.
  */
- export async function availableBehaviorOptions() {
+export async function availableBehaviorOptions() {
   await driver.find('.test-field-behaviour').click();
   const list = await driver.findAll('.grist-floating-menu li', el => el.getText());
   await driver.sendKeys(Key.ESCAPE);
   return list;
+}
+
+export function withComments() {
+  let oldEnv: testUtils.EnvironmentSnapshot;
+  before(async () => {
+    if (process.env.COMMENTS !== 'true') {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.COMMENTS = 'true';
+      await server.restart();
+    }
+  });
+  after(async () => {
+    if (oldEnv) {
+      oldEnv.restore();
+      await server.restart();
+    }
+  });
 }
 
 } // end of namespace gristUtils

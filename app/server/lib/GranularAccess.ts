@@ -10,6 +10,11 @@ import {
   BulkColValues,
   BulkRemoveRecord,
   BulkUpdateRecord,
+  getColValues,
+  isBulkAddRecord,
+  isBulkRemoveRecord,
+  isBulkUpdateRecord,
+  isUpdateRecord,
 } from 'app/common/DocActions';
 import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
@@ -23,7 +28,7 @@ import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessCl
 import { UserInfo } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
-import { SingleCell } from 'app/common/TableData';
+import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -40,6 +45,7 @@ import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
+import memoize = require('lodash/memoize');
 import get = require('lodash/get');
 
 // tslint:disable:no-bitwise
@@ -208,7 +214,7 @@ export interface GranularAccessForBundle {
  *    will be abandoned.
  *  - appliedBundle(), called when DocActions have been applied to the DB, but before
  *    those changes have been sent to clients.
- *  - sendDocUpdateforBundle() is called once a bundle has been applied, to notify
+ *  - sendDocUpdateForBundle() is called once a bundle has been applied, to notify
  *    client of changes.
  *  - finishedBundle(), called when completely done with modification and any needed
  *    client notifications, whether successful or failed.
@@ -303,21 +309,44 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Get content of a given cell, if user has read access.
+   * Checks if user has read access to a cell. Optionally takes docData that will be used
+   * to retrieve the cell value instead of the current docData.
+   */
+  public async hasCellAccess(docSession: OptDocSession, cell: SingleCell, docData?: DocData): Promise<boolean> {
+    try {
+      await this.getCellValue(docSession, cell, docData);
+      return true;
+    } catch(err) {
+      if (err instanceof ErrorWithCode) { return false; }
+      throw err;
+    }
+  }
+
+  /**
+   * Get content of a given cell, if user has read access. Optionally takes docData that will be used
+   * to retrieve the cell value instead of the current docData.
    * Throws if not.
    */
-  public async getCellValue(docSession: OptDocSession, cell: SingleCell): Promise<CellValue> {
+  public async getCellValue(docSession: OptDocSession, cell: SingleCell, docData?: DocData): Promise<CellValue> {
     function fail(): never {
       throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
     }
-    const pset = await this.getTableAccess(docSession, cell.tableId);
-    const tableAccess = this.getReadPermission(pset);
-    if (tableAccess === 'deny') { fail(); }
-    const rows = await this._fetchQueryFromDB({
-      tableId: cell.tableId,
-      filters: { id: [cell.rowId] }
-    });
-    if (!rows || rows[2].length === 0) { fail(); }
+    if (!await this.hasTableAccess(docSession, cell.tableId)) { fail(); }
+    let rows: TableDataAction|null = null;
+    if (docData) {
+      const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
+      if (record) {
+        rows = ['TableData', cell.tableId, [cell.rowId], getColValues([record])];
+      }
+    } else {
+      rows = await this._fetchQueryFromDB({
+        tableId: cell.tableId,
+        filters: { id: [cell.rowId] }
+      });
+    }
+    if (!rows || rows[2].length === 0) {
+      return fail();
+    }
     const rec = new RecordView(rows, 0);
     const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec: rec};
     const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
@@ -361,7 +390,9 @@ export class GranularAccess implements GranularAccessForBundle {
   public async canApplyBundle() {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession, isDirect} = this._activeBundle;
-    if (this._activeBundle.hasDeliberateRuleChange && !await this.isOwner(docSession)) {
+    const currentUser = await this._getUser(docSession);
+    const userIsOwner = await this.isOwner(docSession);
+    if (this._activeBundle.hasDeliberateRuleChange && !userIsOwner) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners can modify access rules');
     }
     // Normally, viewer requests would never reach this point, but they can happen
@@ -382,6 +413,8 @@ export class GranularAccess implements GranularAccessForBundle {
           }
         }));
     }
+
+    await this._canApplyCellActions(currentUser, userIsOwner);
 
     if (this._recoveryMode) {
       // Don't do any further checking in recovery mode.
@@ -483,8 +516,11 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const actions = await Promise.all(
       docActions.map((action, actionIdx) => this._filterOutgoingDocAction({docSession, action, actionIdx})));
-    return ([] as DocAction[]).concat(...actions);
+    const result = ([] as DocAction[]).concat(...actions);
+
+    return await this._filterOutgoingCellInfo(docSession, docActions, result);
   }
+
 
   /**
    * Filter an ActionGroup to be sent to a client.
@@ -762,9 +798,21 @@ export class GranularAccess implements GranularAccessForBundle {
     // If we are going to modify metadata, make a copy.
     tables = cloneDeep(tables);
 
+    // Prepare cell censorship information.
+    const cells = new CellData(this._docData).convertToCells(tables['_grist_Cells']);
+    let cellCensor: CellAccessHelper|undefined;
+    if (cells.length > 0) {
+      cellCensor = this._createCellAccess(docSession);
+      await cellCensor.calculate(cells);
+    }
+
     const permInfo = await this._getAccess(docSession);
     const censor = new CensorshipInfo(permInfo, this._ruler.ruleCollection, tables,
-                                      await this.hasAccessRulesPermission(docSession));
+                                      await this.hasAccessRulesPermission(docSession),
+                                      cellCensor);
+    if (cellCensor) {
+      censor.filter(tables["_grist_Cells"]);
+    }
 
     for (const tableId of STRUCTURAL_TABLES) {
       censor.apply(tables[tableId]);
@@ -897,6 +945,38 @@ export class GranularAccess implements GranularAccessForBundle {
       return info.Access;
     }
     return baseAccess;
+  }
+
+  public async createSnapshotWithCells(docActions?: DocAction[]) {
+    if (!docActions) {
+      if (!this._activeBundle) { throw new Error('no active bundle'); }
+      if (this._activeBundle.applied) {
+        throw new Error("Can't calculate last state for cell metadata");
+      }
+      docActions = this._activeBundle.docActions;
+    }
+    const rows = new Map(getRelatedRows(docActions));
+    const cellData = new CellData(this._docData);
+    for(const action of docActions) {
+      for(const cell of cellData.convertToCells(action)) {
+        if (!rows.has(cell.tableId)) { rows.set(cell.tableId, new Set()); }
+        rows.get(cell.tableId)?.add(cell.rowId);
+      }
+    }
+    // Don't need to sync _grist_Cells table, since we already have it.
+    rows.delete('_grist_Cells');
+    // Populate a minimal in-memory version of the database with these rows.
+    const docData = new DocData(
+      (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}), {
+        _grist_Cells: this._docData.getMetaTable('_grist_Cells')!.getTableDataAction(),
+        // We need some basic table information to translate numeric ids to string ids (refs to ids).
+        _grist_Tables: this._docData.getMetaTable('_grist_Tables')!.getTableDataAction(),
+        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column')!.getTableDataAction()
+      },
+    );
+    // Load pre-existing rows touched by the bundle.
+    await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
+    return docData;
   }
 
   /**
@@ -2067,9 +2147,9 @@ export class GranularAccess implements GranularAccessForBundle {
       return dummyAccessCheck;
     }
     const tableId = getTableId(a);
-    if (tableId.startsWith('_grist') && tableId !== '_grist_Attachments') {
+    if (tableId.startsWith('_grist') && tableId !== '_grist_Attachments' && tableId !== '_grist_Cells') {
       // Actions on any metadata table currently require the schemaEdit flag.
-      // Exception: the attachments table, which needs to be reworked to be compatible
+      // Exception: the attachments table and cell info table, which needs to be reworked to be compatible
       // with granular access.
 
       // Another exception: ensure owners always have full access to ACL tables, so they
@@ -2087,6 +2167,105 @@ export class GranularAccess implements GranularAccessForBundle {
     } else {
       return accessChecks[severity].schemaEdit;
     }
+  }
+
+  /**
+   * Filter outgoing actions and include or remove cell information from _grist_Cells.
+   */
+  private async _filterOutgoingCellInfo(docSession: OptDocSession, before: DocAction[], after: DocAction[]) {
+    // Rewrite bundle, simplifying all actions that are touching cell metadata.
+    const cellView = new CellData(this._docData);
+    const patch = cellView.generatePatch(before);
+
+    // If there is nothing to do, just return after state.
+    if (!patch) { return after; }
+
+    // Now remove all action that modify cell metadata from after.
+    // We will use the patch to reconstruct the cell metadata.
+    const result = after.filter(action => !isCellDataAction(action));
+
+    // Prepare checker, we need to use checker from the last step.
+    const cursor = {
+      docSession,
+      action: before[before.length - 1],
+      actionIdx: before.length - 1
+    };
+    const ruler = await this._getRuler(cursor);
+    const permInfo = await ruler.getAccess(docSession);
+    const user = await this._getUser(docSession);
+    // Cache some data, as they are checked.
+    const readRows = memoize(this._fetchQueryFromDB.bind(this));
+    const hasAccess = async (cell: SingleCell) => {
+      // First check table access, maybe table is hidden.
+      const tableAccess = permInfo.getTableAccess(cell.tableId);
+      const access = this.getReadPermission(tableAccess);
+      if (access === 'deny') { return false; }
+
+      // Check, if table is fully allowed (no ACL column/rows rules).
+      if (access === 'allow') { return true; }
+
+      // Maybe there are only rules that hides this column completely.
+      if (access === 'mixedColumns') {
+        const collAccess = this.getReadPermission(permInfo.getColumnAccess(cell.tableId, cell.colId));
+        if (collAccess === 'deny') { return false; }
+        if (collAccess === 'allow') { return true; }
+      }
+
+      // Probably there are rules at the cell level, check them.
+      const rows = await readRows({
+        tableId: cell.tableId,
+        filters: { id: [cell.rowId] }
+      });
+      // Make sure we have row.
+      if (!rows || rows[2].length === 0) {
+        if (cell.rowId) {
+          return false;
+        }
+      }
+      const rec = rows ? new RecordView(rows, 0) : undefined;
+      const input: AclMatchInput = {user, rec, newRec: rec};
+      const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
+      const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
+      if (rowAccess === 'deny') { return false; }
+      if (rowAccess !== 'allow') {
+        const colAccess = rowPermInfo.getColumnAccess(cell.tableId, cell.colId).perms.read;
+        if (colAccess === 'deny') { return false; }
+      }
+      return true;
+    };
+
+    // Now censor the patch, so it only contains cells content that user has access to.
+    await cellView.censorCells(patch, (cell) => hasAccess(cell));
+
+    // And append it to the result.
+    result.push(...patch);
+
+    return result;
+  }
+
+  /**
+   * Tests if the user can modify cell's data.
+   */
+  private async _canApplyCellActions(currentUser: UserInfo, userIsOwner: boolean) {
+    // Owner can modify all comments, without exceptions.
+    if (userIsOwner) {
+      return;
+    }
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    const {docActions, docSession} = this._activeBundle;
+    const snapShot = await this.createSnapshotWithCells();
+    const cellView = new CellData(snapShot);
+    await cellView.applyAndCheck(
+      docActions,
+      userIsOwner,
+      this._ruler.haveRules(),
+      currentUser.UserRef || '',
+      (cell, state) => this.hasCellAccess(docSession, cell, state),
+    );
+  }
+
+  private _createCellAccess(docSession: OptDocSession, docData?: DocData) {
+    return new CellAccessHelper(this, this._ruler, docSession, this._fetchQueryFromDB, docData);
   }
 }
 
@@ -2308,6 +2487,84 @@ const dummyAccessCheck: IAccessCheck = {
   throwIfNotFullyAllowed() {}
 };
 
+/**
+ * Helper class to calculate access for a set of cells in bulk. Used for initial
+ * access check for a whole _grist_Cell table. Each cell can belong to a diffrent
+ * table and row, so here we will avoid loading rows multiple times and checking
+ * the table access multiple time.
+ */
+class CellAccessHelper {
+  private _tableAccess: Map<string, boolean> = new Map();
+  private _rowPermInfo: Map<string, Map<number, PermissionInfo>> = new Map();
+  private _rows: Map<string, TableDataAction> = new Map();
+  private _user!: UserInfo;
+
+  constructor(
+    private _granular: GranularAccess,
+    private _ruler: Ruler,
+    private _docSession: OptDocSession,
+    private _fetchQueryFromDB?: (query: ServerQuery) => Promise<TableDataAction>,
+    private _state?: DocData,
+  ) { }
+
+  /**
+   * Resolves access for all cells, and save the results in the cache.
+   */
+  public async calculate(cells: SingleCell[]) {
+    this._user = await this._granular.getUser(this._docSession);
+    const tableIds = new Set(cells.map(cell => cell.tableId));
+    for (const tableId of tableIds) {
+      this._tableAccess.set(tableId, await this._granular.hasTableAccess(this._docSession, tableId));
+      if (this._tableAccess.get(tableId)) {
+        const rowIds = new Set(cells.filter(cell => cell.tableId === tableId).map(cell => cell.rowId));
+        const rows = await this._getRows(tableId, rowIds);
+        for(const [idx, rowId] of rows[2].entries()) {
+          if (rowIds.has(rowId) === false) { continue; }
+          const rec = new RecordView(rows, idx);
+          const input: AclMatchInput = {user: this._user, rec, newRec: rec};
+          const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
+          if (!this._rowPermInfo.has(tableId)) {
+            this._rowPermInfo.set(tableId, new Map());
+          }
+          this._rowPermInfo.get(tableId)!.set(rows[2][idx], rowPermInfo);
+          this._rows.set(tableId, rows);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if user has a read access to a particular cell. Needs to be called after calculate().
+   */
+  public hasAccess(cell: SingleCell) {
+    const rowPermInfo = this._rowPermInfo.get(cell.tableId)?.get(cell.rowId);
+    if (!rowPermInfo) { return true; }
+    const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
+    if (rowAccess === 'deny') { return true; }
+    if (rowAccess !== 'allow') {
+      const colAccess = rowPermInfo.getColumnAccess(cell.tableId, cell.colId).perms.read;
+      if (colAccess === 'deny') { return true; }
+    }
+    const colValues = this._rows.get(cell.tableId);
+    if (!colValues || !(cell.colId in colValues[3])) { return true; }
+    return false;
+  }
+
+  private async _getRows(tableId: string, rowIds: Set<number>) {
+    if (this._state) {
+      const rows = this._state.getTable(tableId)!.getTableDataAction();
+      return rows;
+    }
+    if (this._fetchQueryFromDB) {
+      return await this._fetchQueryFromDB({
+        tableId,
+        filters: { id: [...rowIds] }
+      });
+    }
+    return ['TableData', tableId, [], {}] as TableDataAction;
+  }
+}
+
 
 /**
  * Manage censoring metadata.
@@ -2325,23 +2582,27 @@ export class CensorshipInfo {
   public censoredViews = new Set<number>();
   public censoredColumns = new Set<number>();
   public censoredFields = new Set<number>();
+  public censoredComments = new Set<number>();
   public censored = {
     _grist_Tables: this.censoredTables,
     _grist_Tables_column: this.censoredColumns,
     _grist_Views: this.censoredViews,
     _grist_Views_section: this.censoredSections,
     _grist_Views_section_field: this.censoredFields,
+    _grist_Cells: this.censoredComments,
   };
 
   public constructor(permInfo: PermissionInfo,
                      ruleCollection: ACLRuleCollection,
                      tables: {[key: string]: TableDataAction},
-                     private _canViewACLs: boolean) {
+                     private _canViewACLs: boolean,
+                     cellAccessInfo?: CellAccessHelper) {
     // Collect a list of censored columns (by "<tableRef> <colId>").
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
     const censoredColumnCodes: Set<string> = new Set();
     const tableRefToTableId: Map<number, string> = new Map();
     const tableRefToIndex: Map<number, number> = new Map();
+    const columnRefToColId: Map<number, string> = new Map();
     const uncensoredTables: Set<number> = new Set();
     // Scan for forbidden tables.
     let rec = new RecordView(tables._grist_Tables, undefined);
@@ -2365,10 +2626,12 @@ export class CensorshipInfo {
     for (let idx = 0; idx < ids.length; idx++) {
       rec.index = idx;
       const tableRef = rec.get('parentId') as number;
+      const colId = rec.get('colId') as string;
+      const colRef = ids[idx];
+      columnRefToColId.set(colRef, colId);
       if (uncensoredTables.has(tableRef)) { continue; }
       const tableId = tableRefToTableId.get(tableRef);
       if (!tableId) { throw new Error('table not found'); }
-      const colId = rec.get('colId') as string;
       if (this.censoredTables.has(tableRef) ||
           (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
         censoredColumnCodes.add(columnCode(tableRef, colId));
@@ -2427,12 +2690,37 @@ export class CensorshipInfo {
       const rawViewSectionRef = rec.get('rawViewSectionRef') as number;
       this.censoredSections.delete(rawViewSectionRef);
     }
+
+    // Collect a list of all cells metadata to which the user has no access.
+    rec = new RecordView(tables._grist_Cells, undefined);
+    ids = tables._grist_Cells ? getRowIdsFromDocAction(tables._grist_Cells) : [];
+    for (let idx = 0; idx < ids.length; idx++) {
+      rec.index = idx;
+      const isTableCensored = () => this.censoredTables.has(rec.get('tableRef') as number);
+      const isColumnCensored = () => this.censoredColumns.has(rec.get('colRef') as number);
+      const isCellCensored = () => {
+        if (!cellAccessInfo) { return false; }
+        const cell = {
+          tableId: tableRefToTableId.get(rec.get('tableRef') as number)!,
+          colId: columnRefToColId.get(rec.get('colRef') as number)!,
+          rowId: rec.get('rowId') as number
+        };
+        return !cell.tableId || !cell.colId || cellAccessInfo.hasAccess(cell);
+      };
+      if (isTableCensored() || isColumnCensored() || isCellCensored()) {
+        this.censoredComments.add(ids[idx]);
+      }
+    }
   }
 
   public apply(a: DataAction) {
     const tableId = getTableId(a);
-    const ids = getRowIdsFromDocAction(a);
     if (!STRUCTURAL_TABLES.has(tableId)) { return true; }
+    return this.filter(a);
+  }
+
+  public filter(a: DataAction) {
+    const tableId = getTableId(a);
     if (!(tableId in this.censored)) {
       if (!this._canViewACLs && a[0] === 'TableData') {
         a[2] = [];
@@ -2443,6 +2731,7 @@ export class CensorshipInfo {
     const rec = new RecordEditor(a, undefined, true);
     const method = getCensorMethod(getTableId(a));
     const censoredRows = (this.censored as any)[tableId] as Set<number>;
+    const ids = getRowIdsFromDocAction(a);
     for (const [index, id] of ids.entries()) {
       if (censoredRows.has(id)) {
         rec.index = index;
@@ -2470,6 +2759,8 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
       return rec => rec;
     case '_grist_ACLRules':
       return rec => rec;
+    case '_grist_Cells':
+        return rec => rec.set('content', [GristObjCode.Censored]).set('userRef', '');
     default:
       throw new Error(`cannot censor ${tableId}`);
   }
@@ -2644,4 +2935,465 @@ function actionHasRuleChange(a: DocAction): boolean {
       a[3]?.hasOwnProperty('displayCol')
     )
   );
+}
+
+interface SingleCellInfo extends SingleCell {
+  userRef: string;
+  id: number;
+}
+
+/**
+ * Helper class that extends DocData with cell specific functions.
+ */
+export class CellData {
+  constructor(private _docData: DocData) {
+
+  }
+
+  public getCell(cellId: number) {
+    const row = this._docData.getMetaTable("_grist_Cells").getRecord(cellId);
+    return row ? this.convertToCellInfo(row) : null;
+  }
+
+  public getCellRecord(cellId: number) {
+    const row = this._docData.getMetaTable("_grist_Cells").getRecord(cellId);
+    return row || null;
+  }
+
+  /**
+   * Generates a patch for cell metadata. It assumes, that engine removes all
+   * cell metadata when cell (table/column/row) is removed and the bundle contains,
+   * all actions that are needed to remove the cell and cell metadata.
+   */
+  public generatePatch(actions: DocAction[]) {
+    const removedCells: Set<number> = new Set();
+    const addedCells: Set<number> = new Set();
+    const updatedCells: Set<number> = new Set();
+    function applyCellAction(action: DataAction) {
+      if (isAddRecordAction(action) || isBulkAddRecord(action)) {
+        for(const id of getRowIdsFromDocAction(action)) {
+          if (removedCells.has(id)) {
+            removedCells.delete(id);
+            updatedCells.add(id);
+          } else {
+            addedCells.add(id);
+          }
+        }
+      } else if (isRemoveRecordAction(action) || isBulkRemoveRecord(action)) {
+        for(const id of getRowIdsFromDocAction(action)) {
+          if (addedCells.has(id)) {
+            addedCells.delete(id);
+          } else {
+            removedCells.add(id);
+            updatedCells.delete(id);
+          }
+        }
+      } else {
+        for(const id of getRowIdsFromDocAction(action)) {
+          if (addedCells.has(id)) {
+            // ignore
+          } else {
+            updatedCells.add(id);
+          }
+        }
+      }
+    }
+
+    // Scan all actions and collect all cell ids that are added, removed or updated.
+    // When some rows are updated, include all cells for that row. Keep track of table
+    // renames.
+    const updatedRows: Map<string, Set<number>> = new Map();
+    for(const action of actions) {
+      if (action[0] === 'RenameTable') {
+        updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());
+        continue;
+      }
+      if (action[0] === 'RemoveTable') {
+        updatedRows.delete(action[1]);
+        continue;
+      }
+      if (isDataAction(action) && isCellDataAction(action)) {
+        applyCellAction(action);
+        continue;
+      }
+      if (!isDataAction(action)) { continue; }
+      // We don't care about new rows, as they don't have meta data at this moment.
+      // If regular rows are removed, we also don't care about them, as they will
+      // produce metadata removal.
+      // We only care about updates, as it might change the metadata visibility.
+      if (isUpdateRecord(action) || isBulkUpdateRecord(action)) {
+        if (getTableId(action).startsWith("_grist")) { continue; }
+        // Updating a row, for us means that all metadata for this row should be refreshed.
+        for(const rowId of getRowIdsFromDocAction(action)) {
+          getSetMapValue(updatedRows, getTableId(action), () => new Set()).add(rowId);
+        }
+      }
+    }
+
+    for(const [tableId, rowIds] of updatedRows) {
+      for(const {id} of this.readCells(tableId, rowIds)) {
+        if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
+          // If we have this cell id in the list of added/updated/removed cells, ignore it.
+        } else {
+          updatedCells.add(id);
+        }
+      }
+    }
+
+    const insert = this.generateInsert([...addedCells]);
+    const update = this.generateUpdate([...updatedCells]);
+    const removes = this.generateRemovals([...removedCells]);
+    const patch: DocAction[] = [insert, update, removes].filter(Boolean) as DocAction[];
+    return patch.length ? patch : null;
+  }
+
+  public async censorCells(
+    docActions: DocAction[],
+    hasAccess: (cell: SingleCellInfo) => Promise<boolean>
+  ) {
+    for (const action of docActions) {
+      if (!isDataAction(action) || isRemoveRecordAction(action)) {
+        continue;
+      } else if (isDataAction(action) && getTableId(action) === '_grist_Cells') {
+        if (!isBulkAction(action)) {
+          const cell = this.getCell(action[2]);
+          if (!cell || !await hasAccess(cell)) {
+            action[3].content = [GristObjCode.Censored];
+            action[3].userRef = '';
+          }
+        } else {
+          for (let idx = 0; idx < action[2].length; idx++) {
+            const cell = this.getCell(action[2][idx]);
+            if (!cell || !await hasAccess(cell)) {
+              action[3].content[idx] = [GristObjCode.Censored];
+              action[3].userRef[idx] = '';
+            }
+          }
+        }
+      }
+    }
+    return docActions;
+  }
+
+  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfo {
+    const singleCell = {
+      tableId: this.getTableId(cell.tableRef) as string,
+      colId: this.getColId(cell.colRef) as string,
+      rowId: cell.rowId,
+      userRef: cell.userRef,
+      id: cell.id,
+    };
+    return singleCell;
+  }
+
+  public getColId(colRef: number) {
+    return this._docData.getMetaTable("_grist_Tables_column").getRecord(colRef)?.colId;
+  }
+
+  public getColRef(table: number|string, colId: string) {
+    const tableRef = typeof table === 'string' ? this.getTableRef(table) : table;
+    return this._docData.getMetaTable("_grist_Tables_column").filterRecords({colId})
+      .find(c => c.parentId === tableRef)?.id;
+  }
+
+  public getTableId(tableRef: number) {
+    return this._docData.getMetaTable("_grist_Tables").getRecord(tableRef)?.tableId;
+  }
+
+  public getTableRef(tableId: string) {
+    return this._docData.getMetaTable("_grist_Tables").findRow('tableId', tableId) || undefined;
+  }
+
+  /**
+   * Returns all cells for a given table and row ids.
+   */
+  public readCells(tableId: string, rowIds: Set<number>) {
+    const tableRef = this.getTableRef(tableId);
+    const cells =  this._docData.getMetaTable("_grist_Cells").filterRecords({
+      tableRef,
+    }).filter(r => rowIds.has(r.rowId));
+    return cells.map(this.convertToCellInfo.bind(this));
+  }
+
+  // Helper function that tells if a cell can be determined fully from the action itself.
+  // Otherwise we need to look in the docData.
+  public hasCellInfo(docAction: DocAction):
+      docAction is UpdateRecord|BulkUpdateRecord|AddRecord|BulkAddRecord {
+    if (!isDataAction(docAction)) { return false; }
+    if ((isAddRecordAction(docAction) || isUpdateRecord(docAction) || isBulkUpdateRecord(docAction))
+        && docAction[3].tableRef && docAction[3].colRef && docAction[3].rowId && docAction[3].userRef) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if cell is 'attached', i.e. it has a tableRef, colRef, rowId and userRef.
+   */
+  public isAttached(cell: SingleCellInfo) {
+    return Boolean(cell.tableId && cell.rowId && cell.colId && cell.userRef);
+  }
+
+  /**
+   * Reads all SingleCellInfo from docActions or from docData if action doesn't have enough enough
+   * information.
+   */
+  public convertToCells(action: DocAction): SingleCellInfo[] {
+    if (!isDataAction(action)) { return []; }
+    if (getTableId(action) !== '_grist_Cells') { return []; }
+    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string}[] = [];
+    if (isBulkAction(action)) {
+      for (let idx = 0; idx < action[2].length; idx++) {
+        if (this.hasCellInfo(action)) {
+          result.push({
+            tableId: this.getTableId(action[3].tableRef[idx] as number) as string,
+            colId: this.getColId(action[3].colRef[idx] as number) as string,
+            rowId: action[3].rowId[idx] as number,
+            userRef: (action[3].userRef[idx] ?? '') as string,
+            id: action[2][idx],
+          });
+        } else {
+          const cellInfo = this.getCell(action[2][idx]);
+          if (cellInfo) {
+            result.push(cellInfo);
+          }
+        }
+      }
+    } else {
+      if (this.hasCellInfo(action)) {
+        result.push({
+          tableId: this.getTableId(action[3].tableRef as number) as string,
+          colId: this.getColId(action[3].colRef as number) as string,
+          rowId: action[3].rowId as number,
+          userRef: action[3].userRef as string,
+          id: action[2],
+        });
+      } else {
+        const cellInfo = this.getCell(action[2]);
+        if (cellInfo) {
+          result.push(cellInfo);
+        }
+      }
+    }
+    return result;
+  }
+
+  public generateInsert(ids: number[]): DataAction | null {
+    const action: BulkAddRecord = [
+      'BulkAddRecord',
+      '_grist_Cells',
+      [],
+      {
+        tableRef: [],
+        colRef: [],
+        type: [],
+        root: [],
+        content: [],
+        rowId: [],
+        userRef: [],
+      }
+    ];
+    for(const cell of ids) {
+      const dataCell = this.getCellRecord(cell);
+      if (!dataCell) { continue; }
+      action[2].push(dataCell.id);
+      action[3].content.push(dataCell.content);
+      action[3].userRef.push(dataCell.userRef);
+      action[3].tableRef.push(dataCell.tableRef);
+      action[3].colRef.push(dataCell.colRef);
+      action[3].type.push(dataCell.type);
+      action[3].root.push(dataCell.root);
+      action[3].rowId.push(dataCell.rowId);
+    }
+    return action[2].length > 1 ? action :
+           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+  }
+
+  public generateRemovals(ids: number[]) {
+    const action: BulkRemoveRecord = [
+      'BulkRemoveRecord',
+      '_grist_Cells',
+      ids
+    ];
+    return action[2].length > 1 ? action :
+          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+  }
+
+  public generateUpdate(ids: number[]) {
+    const action: BulkUpdateRecord = [
+      'BulkUpdateRecord',
+      '_grist_Cells',
+      [],
+      {
+        content: [],
+        userRef: [],
+      }
+    ];
+    for(const cell of ids) {
+      const dataCell = this.getCellRecord(cell);
+      if (!dataCell) { continue; }
+      action[2].push(dataCell.id);
+      action[3].content.push(dataCell.content);
+      action[3].userRef.push(dataCell.userRef);
+    }
+    return action[2].length > 1 ? action :
+          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+  }
+
+  /**
+   * Tests if the user can modify cell's data. Will modify
+   */
+  public async applyAndCheck(
+    docActions: DocAction[],
+    userIsOwner: boolean,
+    haveRules: boolean,
+    userRef: string,
+    hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
+  ) {
+    // Owner can modify all comments, without exceptions.
+    if (userIsOwner) {
+      return;
+    }
+    // First check if we even have actions that modify cell's data.
+    const cellsActions = docActions.filter(
+      docAction => getTableId(docAction) === '_grist_Cells' && isDataAction(docAction)
+      );
+
+    // If we don't have any actions, we are good to go.
+    if (cellsActions.length === 0) { return; }
+    const fail = () => { throw new ErrorWithCode('ACL_DENY', 'Cannot access cell'); };
+
+    // In nutshell we will just test action one by one, and see if user
+    // can apply it. To do it, we need to keep track of a database state after
+    // each action (just like regular access is done). Unfortunately, cells' info
+    // can be partially updated, so we won't be able to determine what cells they
+    // are attached to. We will assume that bundle has a complete set of information, and
+    // with this assumption we will skip such actions, and wait for the whole cell to form.
+
+    // Create a minimal snapshot of all tables that will be touched by this bundle,
+    // with all cells info that is needed to check access.
+    const lastState = this._docData;
+
+    // Create a view for current state.
+    const cellData = this;
+
+    // Some cells meta data will be added before rows (for example, when undoing). We will
+    // postpone checking of such actions until we have a full set of information.
+    let postponed: Array<number> = [];
+    // Now one by one apply all actions to the snapshot recording all changes
+    // to the cell table.
+    for(const docAction of docActions) {
+      if (!(getTableId(docAction) === '_grist_Cells' && isDataAction(docAction))) {
+        lastState.receiveAction(docAction);
+        continue;
+      }
+      // Convert any bulk actions to normal actions
+      for(const single of getSingleAction(docAction)) {
+        const id = getRowIdsFromDocAction(single)[0];
+        if (isAddRecordAction(docAction)) {
+          // Apply this action, as it might not have full information yet.
+          lastState.receiveAction(single);
+          if (haveRules) {
+            const cell = cellData.getCell(id);
+            if (cell && cellData.isAttached(cell)) {
+              // If this is undo, action cell might not yet exist, so we need to check for that.
+              const record = lastState.getTable(cell.tableId)?.getRecord(cell.rowId);
+              if (!record) {
+                postponed.push(id);
+              } else if (!await hasAccess(cell, lastState)) {
+                fail();
+              }
+            } else {
+              postponed.push(id);
+            }
+          }
+        } else if (isRemoveRecordAction(docAction)) {
+          // See if we can remove this cell.
+          const cell = cellData.getCell(id);
+          lastState.receiveAction(single);
+          if (cell) {
+            // We can remove cell information for any row/column that was removed already.
+            const record = lastState.getTable(cell.tableId)?.getRecord(cell.rowId);
+            if (!record || !cell.colId || !(cell.colId in record)) {
+              continue;
+            }
+            if (cell.userRef && cell.userRef !== (userRef || '')) {
+              fail();
+            }
+          }
+          postponed = postponed.filter((i) => i !== id);
+        } else {
+          // We are updating a cell metadata. We will need to check if we can update it.
+          let cell = cellData.getCell(id);
+          if (!cell) {
+            return fail();
+          }
+          // We can't update cells, that are not ours.
+          if (cell.userRef && cell.userRef !== (userRef || '')) {
+            fail();
+          }
+          // And if the cell was attached before, we will need to check if we can access it.
+          if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, lastState)) {
+            fail();
+          }
+          // Now receive the action, and test if we can still see the cell (as the info might be moved
+          // to a diffrent cell).
+          lastState.receiveAction(single);
+          cell = cellData.getCell(id)!;
+          if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, lastState)) {
+            fail();
+          }
+        }
+      }
+    }
+    // Now test every cell that was added before row (so we added it, but without
+    // full information, like new rowId or tableId or colId).
+    for(const id of postponed) {
+      const cell = cellData.getCell(id);
+      if (cell && !this.isAttached(cell)) {
+        return fail();
+      }
+      if (haveRules && cell && !await hasAccess(cell, lastState)) {
+        fail();
+      }
+    }
+  }
+}
+
+/**
+ * Checks if the action is a data action that modifies a _grist_Cells table.
+ */
+export function isCellDataAction(a: DocAction) {
+  return getTableId(a) === '_grist_Cells' && isDataAction(a);
+}
+
+/**
+ * Converts a bulk like data action to its non-bulk equivalent. For actions like TableData or ReplaceTableData
+ * it will return a list of actions, one for each row.
+ */
+export function* getSingleAction(a: DataAction): Iterable<DataAction> {
+  if (isAddRecordAction(a) && isBulkAction(a)) {
+    for(let idx = 0; idx < a[2].length; idx++) {
+      yield ['AddRecord', a[1], a[2][idx], fromPairs(Object.keys(a[3]).map(key => [key, a[3][key][idx]]))];
+    }
+  } else if (isRemoveRecordAction(a) && isBulkAction(a)) {
+    for(const rowId of a[2]) {
+      yield ['RemoveRecord', a[1], rowId];
+    }
+  } else if (a[0] == 'BulkUpdateRecord') {
+    for(let idx = 0; idx < a[2].length; idx++) {
+      yield ['UpdateRecord', a[1], a[2][idx], fromPairs(Object.keys(a[3]).map(key => [key, a[3][key][idx]]))];
+    }
+  } else if (a[0] == 'TableData') {
+    for(let idx = 0; idx < a[2].length; idx++) {
+      yield ['TableData', a[1], [a[2][idx]],
+        fromPairs(Object.keys(a[3]).map(key => [key, [a[3][key][idx]]]))];
+    }
+  } else if (a[0] == 'ReplaceTableData') {
+    for(let idx = 0; idx < a[2].length; idx++) {
+      yield ['ReplaceTableData', a[1], [a[2][idx]], fromPairs(Object.keys(a[3]).map(key => [key, [a[3][key][idx]]]))];
+    }
+  } else {
+    yield a;
+  }
 }

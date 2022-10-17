@@ -334,7 +334,7 @@ export class FieldEditor extends Disposable {
     let waitPromise: Promise<unknown>|null = null;
 
     if (isFormula) {
-      const formula = editor.getCellValue();
+      const formula = String(editor.getCellValue() ?? '');
       // Bundle multiple changes so that we can undo them in one step.
       if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
         waitPromise = this._gristDoc.docData.bundleActions(null, () => Promise.all([

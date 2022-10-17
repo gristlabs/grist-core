@@ -39,6 +39,7 @@ export type IconName = "ChartArea" |
   "BarcodeQR" |
   "BarcodeQR2" |
   "CenterAlign" |
+  "Chat" |
   "Code" |
   "Collapse" |
   "Convert" |
@@ -75,6 +76,7 @@ export type IconName = "ChartArea" |
   "Lock" |
   "Log" |
   "Mail" |
+  "Message" |
   "Minus" |
   "MobileChat" |
   "MobileChat2" |
@@ -90,6 +92,7 @@ export type IconName = "ChartArea" |
   "Pivot" |
   "PivotLight" |
   "Plus" |
+  "Popup" |
   "Public" |
   "PublicColor" |
   "PublicFilled" |
@@ -165,6 +168,7 @@ export const IconList: IconName[] = ["ChartArea",
   "BarcodeQR",
   "BarcodeQR2",
   "CenterAlign",
+  "Chat",
   "Code",
   "Collapse",
   "Convert",
@@ -201,6 +205,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Lock",
   "Log",
   "Mail",
+  "Message",
   "Minus",
   "MobileChat",
   "MobileChat2",
@@ -216,6 +221,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Pivot",
   "PivotLight",
   "Plus",
+  "Popup",
   "Public",
   "PublicColor",
   "PublicFilled",

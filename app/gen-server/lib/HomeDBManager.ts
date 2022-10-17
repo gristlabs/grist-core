@@ -483,6 +483,7 @@ export class HomeDBManager extends EventEmitter {
       email: user.logins[0].displayEmail,
       name: user.name,
       picture: user.picture,
+      ref: user.ref,
     };
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;

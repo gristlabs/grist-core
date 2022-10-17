@@ -318,6 +318,10 @@ exports.groups = [{
       name: 'datepickerFocus',
       keys: ['Up', 'Down'],
       desc: null, // While editing a date cell, switch keyboard focus to the datepicker
+    }, {
+      name: 'openDiscussion',
+      keys: ['Mod+Alt+M'],
+      desc: 'Comment',
     }
   ],
 }, {

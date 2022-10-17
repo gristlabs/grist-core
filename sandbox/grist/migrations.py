@@ -32,7 +32,7 @@ log = logger.Logger(__name__, logger.INFO)
 # After each migration you probably should run these commands:
 # ./test/upgradeDocument public_samples/*.grist
 # UPDATE_REGRESSION_DATA=1 GREP_TESTS=DocRegressionTests ./test/testrun.sh server
-# ./test/upgradeDocument test/fixtures/docs/Hello.grist
+# ./test/upgradeDocument core/test/fixtures/docs/Hello.grist
 
 all_migrations = {}
 
@@ -1092,3 +1092,23 @@ def migration32(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_Views_section', 'rules', 'RefList:_grist_Tables_column'),
   ])
+
+@migration(schema_version=33)
+def migration33(tdset):
+  """
+  Add _grist_Cells table
+  """
+  doc_actions = [
+    actions.AddTable('_grist_Cells', [
+      schema.make_column("tableRef",       "Ref:_grist_Tables"),
+      schema.make_column("colRef",         "Ref:_grist_Tables_column"),
+      schema.make_column("rowId",          "Int"),
+      schema.make_column("root",           "Bool"),
+      schema.make_column("parentId",       "Ref:_grist_Cells"),
+      schema.make_column("type",           "Int"),
+      schema.make_column("content",        "Text"),
+      schema.make_column("userRef",        "Text"),
+    ]),
+  ]
+
+  return tdset.apply_doc_actions(doc_actions)

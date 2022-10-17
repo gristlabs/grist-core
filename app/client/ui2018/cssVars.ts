@@ -50,6 +50,7 @@ export const colors = {
 
   light: new CustomProp('color-light', '#FFFFFF'),
   dark: new CustomProp('color-dark', '#262633'),
+  darkText: new CustomProp('color-dark-text', '#494949'),
   darkBg: new CustomProp('color-dark-bg', '#262633'),
   slate: new CustomProp('color-slate', '#929299'),
 

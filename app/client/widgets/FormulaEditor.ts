@@ -298,10 +298,10 @@ export function openFormulaEditor(options: {
 
   // AsyncOnce ensures it's called once even if triggered multiple times.
   const saveEdit = asyncOnce(async () => {
-    const formula = editor.getCellValue();
+    const formula = String(editor.getCellValue());
     if (formula !== column.formula.peek()) {
       if (options.onSave) {
-        await options.onSave(column, formula as string);
+        await options.onSave(column, formula);
       } else {
         await column.updateColValues({formula});
       }

@@ -45,6 +45,7 @@ export interface UserInfo {
   Origin: string | null;
   LinkKey: Record<string, string | undefined>;
   UserID: number | null;
+  UserRef: string | null;
   [attributes: string]: unknown;
   toJSON(): {[key: string]: any};
 }

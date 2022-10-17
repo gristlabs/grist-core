@@ -344,3 +344,10 @@ export function isValidRuleValue(value: CellValue|undefined) {
 }
 
 export type RefListValue = [GristObjCode.List, ...number[]]|null;
+
+/**
+ * Type of cell metadata information.
+ */
+export enum CellInfoType {
+  COMMENT = 1,
+}

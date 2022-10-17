@@ -147,7 +147,7 @@ const cssAccountWidget = styled('div', `
   white-space: nowrap;
 `);
 
-const cssUserIcon = styled('div', `
+export const cssUserIcon = styled('div', `
   height: 48px;
   width: 48px;
   padding: 8px;

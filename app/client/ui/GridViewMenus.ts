@@ -37,7 +37,7 @@ export interface IMultiColumnContextMenu {
   // true for some columns, but not all.
   numColumns: number;
   numFrozen: number;
-  disableModify: boolean|'mixed';  // If the columns are read-only.
+  disableModify: boolean|'mixed';  // If the columns are read-only. Mixed for multiple columns where some are read-only.
   isReadonly: boolean;
   isRaw: boolean;
   isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.

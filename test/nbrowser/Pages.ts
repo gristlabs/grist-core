@@ -68,13 +68,13 @@ describe('Pages', function() {
     await gu.waitForServer();
 
     // Click on a page; check the URL, selected item, and the title of the view section.
-    await clickPage(/Documents/)
+    await gu.openPage(/Documents/);
     assert.match(await driver.getCurrentUrl(), /\/p\/3/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Documents/);
     assert.match(await gu.getActiveSectionTitle(), /Documents/i);
 
     // Click on another page; check the URL, selected item, and the title of the view section.
-    await clickPage(/People/)
+    await gu.openPage(/People/);
     assert.match(await driver.getCurrentUrl(), /\/p\/2/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /People/);
     assert.match(await gu.getActiveSectionTitle(), /People/i);
@@ -109,7 +109,7 @@ describe('Pages', function() {
 
   it('should allow renaming table when click on page selected label', async () => {
     // do rename
-    await clickPage(/People/)
+    await gu.openPage(/People/);
     await driver.findContent('.test-treeview-label', 'People').doClick();
     await driver.find('.test-docpage-editor').sendKeys('PeopleRenamed', Key.ENTER);
     await gu.waitForServer();
@@ -214,7 +214,7 @@ describe('Pages', function() {
     }
 
     // goto page 'Interactions'
-    await clickPage(/Interactions/);
+    await gu.openPage(/Interactions/);
 
     // check selected page
     assert.match(await selectedPage(), /Interactions/);
@@ -249,7 +249,7 @@ describe('Pages', function() {
   it('undo/redo should update url', async () => {
 
     // goto page 'Interactions' and send keys
-    await clickPage(/Interactions/);
+    await gu.openPage(/Interactions/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
     await driver.findContentWait('.gridview_data_row_num', /1/, 2000);
     await driver.sendKeys(Key.ENTER, 'Foo', Key.ENTER);
@@ -257,7 +257,7 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getVisibleGridCells(0, [1]), ['Foo']);
 
     // goto page 'People' and click undo
-    await clickPage(/People/);
+    await gu.openPage(/People/);
     await gu.waitForDocToLoad();
     await gu.waitForUrl(/\/p\/2\b/); // check that url match p/2
 
@@ -277,7 +277,7 @@ describe('Pages', function() {
 
   it('Add new page should update url', async () => {
     // goto page 'Interactions'  and check that url updated
-    await clickPage(/Interactions/);
+    await gu.openPage(/Interactions/);
     await gu.waitForUrl(/\/p\/1\b/);
 
     // Add new Page, check that url updated and page is selected
@@ -286,7 +286,7 @@ describe('Pages', function() {
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table1/);
 
     // goto page 'Interactions' and check that url updated and page selectd
-    await clickPage(/Interactions/);
+    await gu.openPage(/Interactions/);
     await gu.waitForUrl(/\/p\/1\b/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
   });
@@ -495,8 +495,4 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}) 
       y: 'after' in target ? 1 : -1
     })
     .release());
-}
-
-function clickPage(name: string|RegExp) {
-  return driver.findContent('.test-treeview-itemHeader', name).find(".test-docpage-initial").doClick();
 }

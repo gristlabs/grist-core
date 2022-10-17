@@ -59,6 +59,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     enableCustomCss: process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true',
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
+    featureComments: process.env.COMMENTS === "true",
     ...extra,
   };
 }

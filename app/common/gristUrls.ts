@@ -568,6 +568,9 @@ export interface GristLoadConfig {
 
   // Loaded namespaces for translations.
   namespaces?: readonly string[];
+
+  // TODO: remove when comments will be released.
+  featureComments?: boolean;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");

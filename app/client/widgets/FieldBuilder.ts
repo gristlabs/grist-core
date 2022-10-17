@@ -14,6 +14,7 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
 import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
 import { CombinedStyle, Style } from 'app/client/models/Styles';
+import { COMMENTS } from 'app/client/models/features';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
@@ -22,6 +23,7 @@ import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
 import { FieldEditor, saveWithoutEditor, setupEditorCleanup } from 'app/client/widgets/FieldEditor';
+import { CellDiscussionPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
 import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
@@ -36,6 +38,8 @@ import * as ko from 'knockout';
 import * as _ from 'underscore';
 
 const testId = makeTestId('test-fbuilder-');
+
+
 
 // Creates a FieldBuilder object for each field in viewFields
 export function createAllFieldWidgets(gristDoc: GristDoc, viewFields: ko.Computed<KoArray<ViewFieldRec>>,
@@ -99,6 +103,7 @@ export class FieldBuilder extends Disposable {
   private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
+  private readonly _comments: ko.Computed<boolean>;
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
@@ -107,6 +112,7 @@ export class FieldBuilder extends Disposable {
     this._docModel = gristDoc.docModel;
     this.origColumn = field.column();
     this.options = field.widgetOptionsJson;
+    this._comments = ko.pureComputed(() => toKo(ko, COMMENTS())());
 
     this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
 
@@ -566,27 +572,47 @@ export class FieldBuilder extends Disposable {
     const errorInStyle = ko.pureComputed(() => Boolean(computedRule()?.error));
 
     const cellText = ko.pureComputed(() => this.field.textColor() || '');
-    const cllFill = ko.pureComputed(() => this.field.fillColor() || '');
+    const cellFill = ko.pureComputed(() => this.field.fillColor() || '');
 
+    const hasComment = koUtil.withKoUtils(ko.computed(() => {
+      if (this.isDisposed()) { return false; }   // Work around JS errors during field removal.
+      if (!this._comments()) { return false; }
+      if (this.gristDoc.isReadonlyKo()) { return false; }
+      const rowId = row.id();
+      const discussion = this.field.column().cells().all()
+        .find(d =>
+          d.rowId() === rowId
+          && !d.resolved()
+          && d.type() === gristTypes.CellInfoType.COMMENT
+          && !d.hidden()
+          && d.root());
+      return Boolean(discussion);
+    }).extend({ deferred: true })).onlyNotifyUnequal();
+
+    const domHolder = new MultiHolder();
+    domHolder.autoDispose(hasComment);
+    domHolder.autoDispose(widgetObs);
+    domHolder.autoDispose(computedFlags);
+    domHolder.autoDispose(errorInStyle);
+    domHolder.autoDispose(cellText);
+    domHolder.autoDispose(cellFill);
+    domHolder.autoDispose(computedRule);
+    domHolder.autoDispose(fontBold);
+    domHolder.autoDispose(fontItalic);
+    domHolder.autoDispose(fontUnderline);
+    domHolder.autoDispose(fontStrikethrough);
 
     return (elem: Element) => {
       this._rowMap.set(row, elem);
       dom(elem,
-          dom.autoDispose(widgetObs),
-          dom.autoDispose(computedFlags),
-          dom.autoDispose(errorInStyle),
-          dom.autoDispose(ruleText),
-          dom.autoDispose(computedRule),
-          dom.autoDispose(ruleFill),
-          dom.autoDispose(fontBold),
-          dom.autoDispose(fontItalic),
-          dom.autoDispose(fontUnderline),
-          dom.autoDispose(fontStrikethrough),
+          dom.autoDispose(domHolder),
           kd.style('--grist-cell-color', cellText),
-          kd.style('--grist-cell-background-color', cllFill),
+          kd.style('--grist-cell-background-color', cellFill),
           kd.style('--grist-rule-color', ruleText),
           kd.style('--grist-column-rule-background-color', ruleFill),
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
+          kd.toggleClass('field-with-comments', hasComment),
+          kd.maybe(hasComment, () => dom('div.field-comment-indicator')),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
                                          kd.toggleClass('active_cursor', isActive)
@@ -669,6 +695,43 @@ export class FieldBuilder extends Disposable {
     // expose the active editor in a grist doc as an observable
     fieldEditor.onDispose(() => this.gristDoc.activeEditor.set(null));
     this.gristDoc.activeEditor.set(fieldEditor);
+  }
+
+  public buildDiscussionPopup(editRow: DataRowModel, mainRowModel: DataRowModel, discussionId?: number) {
+    const owner = this.gristDoc.fieldEditorHolder;
+    const cellElem: Element = this._rowMap.get(mainRowModel)!;
+    if (this.columnTransform) {
+      this.columnTransform.finalize().catch(reportError);
+      return;
+    }
+    if (editRow._isAddRow.peek() || this._readonly.get()) {
+      return;
+    }
+
+    const cell = editRow.cells[this.field.colId()];
+    const value = cell && cell();
+    if (gristTypes.isCensored(value)) {
+      this._fieldEditorHolder.clear();
+      return;
+    }
+
+    const tableRef = this.field.viewSection.peek()!.tableRef.peek()!;
+
+    // Reuse fieldEditor holder to make sure only one popup/editor is attached to the cell.
+    const discussionHolder = MultiHolder.create(owner);
+    const discussions = EmptyCell.create(discussionHolder, {
+      gristDoc: this.gristDoc,
+      tableRef,
+      column: this.field.column.peek(),
+      rowId: editRow.id.peek(),
+    });
+    CellDiscussionPopup.create(discussionHolder, {
+      domEl: cellElem,
+      topic: discussions,
+      discussionId,
+      gristDoc: this.gristDoc,
+      closeClicked: () => owner.clear()
+    });
   }
 
   public isEditorActive() {
