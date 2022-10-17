@@ -666,7 +666,7 @@ export class GristDoc extends DisposableWithEvents {
         // if table changes or a table is made a summary table, let's replace the view section by a
         // new one, and return.
         if (oldVal.table !== newVal.table || oldVal.summarize !== newVal.summarize) {
-          return await this._replaceViewSection(section, newVal);
+          return await this._replaceViewSection(section, oldVal, newVal);
         }
 
         // if type changes, let's save it.
@@ -1072,7 +1072,11 @@ export class GristDoc extends DisposableWithEvents {
     return await invokePrompt("Table name", "Create", '', "Default table name");
   }
 
-  private async _replaceViewSection(section: ViewSectionRec, newVal: IPageWidget) {
+  private async _replaceViewSection(
+    section: ViewSectionRec,
+    oldVal: IPageWidget,
+    newVal: IPageWidget
+  ) {
 
     const docModel = this.docModel;
     const viewModel = section.view();
@@ -1108,8 +1112,10 @@ export class GristDoc extends DisposableWithEvents {
     // persist options
     await newSection.options.saveOnly(options);
 
-    // persist view fields if possible
-    await this.setSectionViewFieldsFromArray(newSection, colIds);
+    // charts needs to keep view fields consistent across updates
+    if (oldVal.type === 'chart' && newVal.type === 'chart') {
+      await this.setSectionViewFieldsFromArray(newSection, colIds);
+    }
 
     // update theme, and chart type
     await newSection.theme.saveOnly(theme);

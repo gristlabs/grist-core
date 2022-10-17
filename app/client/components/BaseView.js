@@ -339,7 +339,10 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
       // Note that this case only happens in combination with the widget linking mentioned.
       // If the table is empty but the 'new record' row is selected, the `viewData.getRowId` line above works.
       || 'new';
-  const colRef = this.viewSection.viewFields().peek()[this.cursor.fieldIndex.peek()].colRef.peek();
+  // The `fieldIndex` will be null if there are no visible columns.
+  const fieldIndex = this.cursor.fieldIndex.peek();
+  const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;
+  const colRef = field?.colRef.peek();
   return {hash: {sectionId, rowId, colRef}};
 }
 

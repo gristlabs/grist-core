@@ -539,12 +539,16 @@ GridView.prototype.getSelection = function() {
     rowEnd = this.getLastDataRowIndex();
   }
 
-  var rowId;
-  for(var i = colStart; i <= colEnd; i++) {
-    let field = this.viewSection.viewFields().at(i);
-    fields.push(field);
-    colStyle[field.colId()] = this._getColStyle(i);
+  // Start or end will be null if no fields are visible.
+  if (colStart !== null && colEnd !== null) {
+    for(var i = colStart; i <= colEnd; i++) {
+      let field = this.viewSection.viewFields().at(i);
+      fields.push(field);
+      colStyle[field.colId()] = this._getColStyle(i);
+    }
   }
+
+  var rowId;
   for(var j = rowStart; j <= rowEnd; j++) {
     rowId = this.viewData.getRowId(j);
     rowIds.push(rowId);

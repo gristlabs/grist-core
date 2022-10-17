@@ -384,6 +384,13 @@ export function getActiveCell(): WebElementPromise {
 
 
 /**
+ * Returns a visible GridView row from the active section.
+ */
+export function getRow(rowNum: number): WebElementPromise {
+  return driver.findContent('.active_section .gridview_data_row_num', String(rowNum));
+}
+
+/**
  * Get the numeric value from the row header of the first selected row. This would correspond to
  * the row with the cursor when a single rows is selected.
  */
