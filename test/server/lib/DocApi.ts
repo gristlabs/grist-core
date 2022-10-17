@@ -2800,9 +2800,9 @@ function testDocApi() {
         error && assert.deepEqual(resp.data, {error});
         assert.equal(resp.status, status);
       }
-      await checkOrigin("https://www.toto.com", 500, "Unrecognized origin");
-      await checkOrigin("https://badexample.com", 500, "Unrecognized origin");
-      await checkOrigin("https://bad.com/example.com/toto", 500, "Unrecognized origin");
+      await checkOrigin("https://www.toto.com", 403, "Unrecognized origin");
+      await checkOrigin("https://badexample.com", 403, "Unrecognized origin");
+      await checkOrigin("https://bad.com/example.com/toto", 403, "Unrecognized origin");
       await checkOrigin("https://example.com/path", 200);
       await checkOrigin("https://good.example.com/toto", 200);
     });
