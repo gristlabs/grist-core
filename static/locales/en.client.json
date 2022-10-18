@@ -2,6 +2,27 @@
   "AddNewButton": {
     "AddNew": "Add New"
   },
+  "CellContextMenu": {
+    "ClearEntireColumns_one": "Clear entire column",
+    "ClearEntireColumns_other": "Clear {{count}} entire columns",
+    "ClearColumns_one": "Clear column",
+    "ClearColumns_other": "Clear {{count}} columns",
+    "DeleteColumns_one": "Delete column",
+    "DeleteColumns_other": "Delete {{count}} columns",
+    "DeleteRows_one": "Delete row",
+    "DeleteRows_other": "Delete {{count}} rows",
+    "ClearValues": "Clear values",
+    "ClearCell": "Clear cell",
+    "CopyAnchorLink": "Copy anchor link",
+    "FilterByValue": "Filter by this value",
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "InsertColumnRight": "Insert column to the right",
+    "InsertColumnLeft": "Insert column to the left"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
