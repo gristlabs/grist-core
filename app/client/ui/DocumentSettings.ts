@@ -2,6 +2,7 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
+import {t} from 'app/client/lib/localization';
 import {dom, IDisposableOwner, styled} from 'grainjs';
 import {Computed, Observable} from 'grainjs';
 
@@ -20,6 +21,9 @@ import {EngineCode} from 'app/common/DocumentSettings';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {propertyCompare} from "app/common/gutil";
 import {getCurrency, locales} from "app/common/Locales";
+
+const translate = (x: string, args?: any): string => t(`DocumentSettings.${x}`, args);
+
 /**
  * Builds a simple saveModal for saving settings.
  */
@@ -38,37 +42,36 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
     const canChangeEngine = getSupportedEngineChoices().length > 0;
 
     return {
-      title: 'Document Settings',
+      title: translate('DocumentSettings'),
       body: [
-        cssDataRow("This document's ID (for API use):"),
+        cssDataRow(translate('ThisDocumentID')),
         cssDataRow(dom('tt', docPageModel.currentDocId.get())),
-        cssDataRow('Time Zone:'),
+        cssDataRow(translate('TimeZone')),
         cssDataRow(dom.create(buildTZAutocomplete, moment, timezoneObs, (val) => timezoneObs.set(val))),
-        cssDataRow('Locale:'),
+        cssDataRow(translate('Locale')),
         cssDataRow(dom.create(buildLocaleSelect, localeObs)),
-        cssDataRow('Currency:'),
+        cssDataRow(translate('Currency')),
         cssDataRow(dom.domComputed(localeObs, (l) =>
           dom.create(buildCurrencyPicker, currencyObs, (val) => currencyObs.set(val),
-            {defaultCurrencyLabel: `Local currency (${getCurrency(l)})`})
+            {defaultCurrencyLabel: translate('LocalCurrency', {currency: getCurrency(l)})})
         )),
         canChangeEngine ? [
           // Small easter egg: you can click on the skull-and-crossbones to
           // force a reload of the document.
-          cssDataRow('Engine (experimental ',
-                     dom('span',
-                         '☠',
-                         dom.style('cursor', 'pointer'),
-                         dom.on('click', async () => {
-                           await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
-                           document.location.reload();
-                         })),
-                     ' change at own risk):'),
+          cssDataRow(translate('EngineRisk', {span: 
+            dom('span', '☠',
+              dom.style('cursor', 'pointer'),
+              dom.on('click', async () => {
+                await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+                document.location.reload();
+              }))
+          })),
           select(engineObs, getSupportedEngineChoices()),
         ] : null,
       ],
       // Modal label is "Save", unless engine is changed. If engine is changed, the document will
       // need a reload to switch engines, so we replace the label with "Save and Reload".
-      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? 'Save' : 'Save and Reload'),
+      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? translate('Save') : translate('SaveAndReload')),
       saveFunc: async () => {
         await docInfo.updateColValues({
           timezone: timezoneObs.get(),
