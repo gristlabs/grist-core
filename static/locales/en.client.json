@@ -23,6 +23,21 @@
     "InsertColumnRight": "Insert column to the right",
     "InsertColumnLeft": "Insert column to the left"
   },
+  "ColumnFilterMenu": {
+    "FilterByRange": "Filter by Range",
+    "Search": "Search",
+    "SearchValues": "Search values",
+    "All": "All",
+    "AllShown": "All Shown",
+    "AllExcept": "All Except",
+    "None": "None",
+    "NoMatchingValues": "No matching values",
+    "OtherMatching": "Other matching",
+    "OtherNonMatching": "Other non-matching",
+    "OtherValues": "Other Values",
+    "FutureValues": "Future Values",
+    "Others": "Others"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
