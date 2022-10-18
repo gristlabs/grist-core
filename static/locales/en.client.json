@@ -10,6 +10,24 @@
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
   },
+  "errorPages": {
+    "AccessDenied": "Access denied{{suffix}}",
+    "DeniedOrganizationDocuments": "You do not have access to this organization's documents.",
+    "SignInWithDifferentAccount": "You are signed in as {{- email}}. You can sign in with a different account, or ask an administrator for access.",
+    "SignInToAccess": "Sign in to access this organization's documents.",
+    "GoToMainPage": "Go to main page",
+    "SignIn": "Sign in",
+    "AddAcount": "Add account",
+    "SignedOut": "Signed out{{suffix}}",
+    "SignedOutNow": "You are now signed out.",
+    "SignedInAgain": "Sign in again",
+    "PageNotFound": "Page not found{{suffix}}",
+    "NotFoundMainText": "The requested page could not be found. {{- separator}}Please check the URL and try again.",
+    "ContactSupport": "Contact support",
+    "SomethingWentWrong": "Something went wrong",
+    "ErrorHappend_message": "There was an error: {{message}}",
+    "ErrorHappend_unknown": "There was an unknown error."
+  },
   "FieldConfig": {
     "ColumnLabel": "COLUMN LABEL AND ID",
     "ColumnOptionsLimited": "Column options are limited in summary tables.",
