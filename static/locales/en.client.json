@@ -2,6 +2,24 @@
   "AddNewButton": {
     "AddNew": "Add New"
   },
+  "CustomSectionConfig": {
+    "Add": "Add",
+    "EnterCustomURL": "Enter Custom URL",
+    "Full document access": "Full document access",
+    "LearnMore": "Learn more about custom widgets",
+    "PickupColumn": "Pick a column",
+    "PickupColumnType": "Pick a {{columnType}} column",
+    "NoDocumentAccess": "No document access",
+    "OpenConfiguration": "Open configuration",
+    "Optional": " (optional)",
+    "ReadSelectedTable": "Read selected table",
+    "SelectCustomWidget": "Select Custom Widget",
+    "WidgetNeedFullAccess": "Widget needs {{fullAcces}} to this document.",
+    "WidgetNeedRead": "Widget needs to {{ read }} the current table.",
+    "WidgetNoPermissison": "Widget does not require any permissions.",
+    "WrongTypesMenuText_one": "`{{wrongTypeCount}} non-{{columnType}} column is not shown",
+    "WrongTypesMenuText_others": "`{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+  },
   "DocHistory": {
     "Activity": "Activity",
     "Snapshots": "Snapshots",
@@ -30,7 +48,7 @@
     "Currency": "Currency:",
     "LocalCurrency": "Local currency {{currency}}",
     "EngineRisk": "Engine (experimental {{- span}} change at own risk):",
-    "Save": "Save",
+    "Save": "S:ave",
     "SaveAndReload": "Save and Reload"
   },
   "DuplicateTable": {
