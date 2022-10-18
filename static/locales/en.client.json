@@ -10,6 +10,10 @@
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
   },
+  "DocTour": {
+    "InvalidDocTourTitle": "No valid document tour",
+    "InvalidDocTourBody": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
+  },
   "DocumentSettings": {
     "DocumentSettings": "Document Settings",
     "ThisDocumentID": "This document's ID (for API use):",
