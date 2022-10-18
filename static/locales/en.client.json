@@ -31,6 +31,20 @@
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"
   },
+  "ExampleInfo": {
+    "Title_CRM": "Lightweight CRM",
+    "WelcomeTitle_CRM": "Welcome to the Lightweight CRM template",
+    "WelcomeText_CRM": "Check out our related tutorial for how to link data, and create high-productivity layouts.",
+    "WelcomeTutorialName_CRM": "Tutorial: Create a CRM",
+    "Title_investmentResearch": "Investment Research",
+    "WelcomeTitle_investmentResearch": "Welcome to the Investment Research template",
+    "WelcomeText_investmentResearch": "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.",
+    "WelcomeTutorialName_investmentResearch": "Tutorial: Analyze & Visualize",
+    "Title_afterschool": "Afterschool Program",
+    "WelcomeTitle_afterschool": "Welcome to the Afterschool Program template",
+    "WelcomeText_afterschool": "Check out our related tutorial for how to model business data, use formulas, and manage complexity.",
+    "WelcomeTutorialName_afterschool": "Tutorial: Manage Business Data"
+  },
   "FieldMenus": {
     "UsingSettings_common": "Using common settings",
     "UsingSettings_separate": "Using separate settings",

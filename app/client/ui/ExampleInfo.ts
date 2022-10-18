@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization'
 export interface IExampleInfo {
   id: number;
   urlId: string;
@@ -6,6 +7,8 @@ export interface IExampleInfo {
   tutorialUrl: string;
   welcomeCard: WelcomeCard;
 }
+
+const translate = (x: string, args?: any): string => t(`ExampleInfo.${x}`, args);
 
 interface WelcomeCard {
   title: string;
@@ -16,37 +19,34 @@ interface WelcomeCard {
 export const examples: IExampleInfo[] = [{
   id: 1,    // Identifies the example in UserPrefs.seenExamples
   urlId: 'lightweight-crm',
-  title: 'Lightweight CRM',
+  title: translate('Title', {context: "CRM"}),
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/lightweight-crm.png',
   tutorialUrl: 'https://support.getgrist.com/lightweight-crm/',
   welcomeCard: {
-    title: 'Welcome to the Lightweight CRM template',
-    text: 'Check out our related tutorial for how to link data, and create ' +
-          'high-productivity layouts.',
-    tutorialName: 'Tutorial: Create a CRM',
+    title: translate('WelcomeTitle', {context: "CRM"}),
+    text: translate('WelcomeText', {context: "CRM"}),
+    tutorialName: translate('WelcomeTutorialName', {context: "CRM"}),
   },
 }, {
   id: 2,    // Identifies the example in UserPrefs.seenExamples
   urlId: 'investment-research',
-  title: 'Investment Research',
+  title: translate('Title', {context: "investmentResearch"}),
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/data-visualization.png',
   tutorialUrl: 'https://support.getgrist.com/investment-research/',
   welcomeCard: {
-    title: 'Welcome to the Investment Research template',
-    text: 'Check out our related tutorial to learn how to create summary tables and charts, ' +
-          'and to link charts dynamically.',
-    tutorialName: 'Tutorial: Analyze & Visualize',
+    title: translate('WelcomeTitle', {context: "investmentResearch"}),
+    text: translate('WelcomeText', {context: "investmentResearch"}),
+    tutorialName: translate('WelcomeTutorialName', {context: "investmentResearch"}),
   },
 }, {
   id: 3,    // Identifies the example in UserPrefs.seenExamples
   urlId: 'afterschool-program',
-  title: 'Afterschool Program',
+  title: translate('Title', {context: "afterschool"}),
   imgUrl: 'https://www.getgrist.com/themes/grist/assets/images/use-cases/business-management.png',
   tutorialUrl: 'https://support.getgrist.com/afterschool-program/',
   welcomeCard: {
-    title: 'Welcome to the Afterschool Program template',
-    text: 'Check out our related tutorial for how to model business data, use formulas, ' +
-          'and manage complexity.',
-    tutorialName: 'Tutorial: Manage Business Data',
+    title: translate('WelcomeTitle', {context: "afterschool"}),
+    text: translate('WelcomeText', {context: "afterschool"}),
+    tutorialName: translate('WelcomeTutorialName', {context: "afterschool"}),
   },
 }];
