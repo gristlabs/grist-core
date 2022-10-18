@@ -23,6 +23,14 @@
     "Key": "Key",
     "MemoryError": "Memory Error"
   },
+  "DocHistory": {
+    "Activity": "Activity",
+    "Snapshots": "Snapshots",
+    "OpenSnapshot": "Open Snapshot",
+    "CompareToCurrent": "Compare to Current",
+    "CompareToPrevious": "Compare to Previous",
+    "Beta": "Beta"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
@@ -30,6 +38,10 @@
     "AllDocuments": "All Documents",
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
+  },
+  "DocTour": {
+    "InvalidDocTourTitle": "No valid document tour",
+    "InvalidDocTourBody": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
   },
   "DocumentSettings": {
     "DocumentSettings": "Document Settings",
@@ -82,7 +94,7 @@
     "ClearAndReset": "Clear and reset",
     "EnterFormula": "Enter formula",
     "ColumnBehavior": "COLUMN BEHAVIOR",
-    "SetFormula": "et formula",
+    "SetFormula": "Set formula",
     "SetTriggerFormula": "Set trigger formula",
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"

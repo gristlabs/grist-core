@@ -1,3 +1,5 @@
+import {t} from 'app/client/lib/localization';
+
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
@@ -14,6 +16,8 @@ import {DocSnapshot} from 'app/common/UserAPI';
 import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
 import moment from 'moment';
 
+const translate = (x: string, args?: any): string => t(`DocHistory.${x}`, args);
+
 const DocHistorySubTab = StringUnion("activity", "snapshots");
 
 export class DocHistory extends Disposable implements IDomComponent {
@@ -25,8 +29,8 @@ export class DocHistory extends Disposable implements IDomComponent {
 
   public buildDom() {
     const tabs = [
-      {value: 'activity', label: 'Activity'},
-      {value: 'snapshots', label: 'Snapshots'},
+      {value: 'activity', label: translate('Activity')},
+      {value: 'snapshots', label: translate('Snapshots')},
     ];
     return [
       cssSubTabs(
@@ -87,11 +91,11 @@ export class DocHistory extends Disposable implements IDomComponent {
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
-                  menuItemLink(setLink(snapshot), 'Open Snapshot'),
-                  menuItemLink(setLink(snapshot, origUrlId), 'Compare to Current',
-                    menuAnnotate('Beta')),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), 'Compare to Previous',
-                    menuAnnotate('Beta')),
+                  menuItemLink(setLink(snapshot), translate('OpenSnapshot')),
+                  menuItemLink(setLink(snapshot, origUrlId), translate('CompareToCurrent'),
+                    menuAnnotate(translate('Beta'))),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), translate('CompareToPrevious'),
+                    menuAnnotate(translate('Beta'))),
                 ],
                 {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
               ),
