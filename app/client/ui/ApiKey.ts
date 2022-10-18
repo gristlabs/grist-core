@@ -3,6 +3,9 @@ import { theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { confirmModal } from 'app/client/ui2018/modals';
 import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from 'grainjs';
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`ApiKey.${x}`, args);
 
 interface IWidgetOptions {
   apiKey: Observable<string>;
@@ -52,7 +55,7 @@ export class ApiKey extends Disposable {
             },
             dom.attr('type', (use) => use(this._isHidden) ? 'password' : 'text'),
             testId('key'),
-            {title: 'Click to show'},
+            {title: translate('Clicktoshow')},
             dom.on('click', (_ev, el) => {
               this._isHidden.set(false);
               setTimeout(() => el.select(), 0);
@@ -64,7 +67,7 @@ export class ApiKey extends Disposable {
             this._inputArgs
           ),
           cssTextBtn(
-            cssTextBtnIcon('Remove'), 'Remove',
+            cssTextBtnIcon('Remove'), translate('Remove'),
             dom.on('click', () => this._showRemoveKeyModal()),
             testId('delete'),
             dom.boolAttr('disabled', (use) => use(this._loading) || this._anonymous)
@@ -73,10 +76,9 @@ export class ApiKey extends Disposable {
         description(this._getDescription(), testId('description')),
       )),
       dom.maybe((use) => !(use(this._apiKey) || this._anonymous), () => [
-        basicButton('Create', dom.on('click', () => this._onCreate()), testId('create'),
+        basicButton(translate('Create'), dom.on('click', () => this._onCreate()), testId('create'),
           dom.boolAttr('disabled', this._loading)),
-        description('By generating an API key, you will be able to make API calls '
-          + 'for your own account.', testId('description')),
+        description(translate('ByGenerating'), testId('description')),
       ]),
     );
   }
@@ -101,20 +103,16 @@ export class ApiKey extends Disposable {
   }
 
   private _getDescription(): string {
-    if (!this._anonymous) {
-      return 'This API key can be used to access your account via the API. '
-        + 'Don’t share your API key with anyone.';
-    } else {
-      return 'This API key can be used to access this account anonymously via the API.';
-    }
+    return translate(
+      !this._anonymous ? 'OwnAPIKey' : 'AnonymousAPIkey'
+    );
   }
 
   private _showRemoveKeyModal(): void {
     confirmModal(
-      `Remove API Key`, 'Remove',
+      translate('RemoveAPIKey'), translate('Remove'),
       () => this._onDelete(),
-      `You're about to delete an API key. This will cause all future ` +
-      `requests using this API key to be rejected. Do you still want to delete?`
+      translate("AboutToDeleteAPIKey")
     );
   }
 }

@@ -19,6 +19,78 @@
     "WidgetNoPermissison": "Widget does not require any permissions.",
     "WrongTypesMenuText_one": "`{{wrongTypeCount}} non-{{columnType}} column is not shown",
     "WrongTypesMenuText_others": "`{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+},
+ "AccountPage": {
+    "AccountSettings":"Account settings",
+    "API":"API",
+    "Edit":"Edit",
+    "Email":"Email",
+    "Name":"Name",
+    "Save":"Save",
+    "PasswordSecurity":"Password & Security",
+    "LoginMethod":"Login Method",
+    "ChangePassword":"Change Password",
+    "AllowGoogleSigning":"Allow signing in to this account with Google",
+    "TwoFactorAuth": "Two-factor authentication",
+    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password",
+    "Theme":"Theme",
+    "APIKey":"API Key",
+    "WarningUsername":"Names only allow letters, numbers and certain special characters"
+  },
+  "AccountWidget":{
+    "SignIn":"Sign in",
+    "DocumentSettings":"Document Settings",
+    "ToggleMobileMode":"Toggle Mobile Mode",
+    "Pricing":"Pricing",
+    "ProfileSettings":"Profile Settings",
+    "ManageTeam":"Manage Team",
+    "AccessDetails":"Access Details",
+    "SwitchAccounts":"Switch Accounts",
+    "Accounts":"Accounts",
+    "AddAccount":"Add Account",
+    "Sign Out":"SignOut"
+  },
+  "AppHeader": {
+    "HomePage": "Home page",
+    "Legacy": "Legacy",
+    "PersonalSite": "Personal Site",
+    "TeamSite": "Team Site"
+  },
+  "ApiKey": {
+    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
+    "Clicktoshow": "Click to show",
+    "Create": "Create",
+    "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
+    "Remove": "Remove",
+    "RemoveAPIKey": "Remove API Key"
+  },
+  "App": {
+    "Description": "Description",
+    "Key": "Key",
+    "MemoryError": "Memory Error"
+  },
+  "CellContextMenu": {
+    "ClearEntireColumns_one": "Clear entire column",
+    "ClearEntireColumns_other": "Clear {{count}} entire columns",
+    "ClearColumns_one": "Clear column",
+    "ClearColumns_other": "Clear {{count}} columns",
+    "DeleteColumns_one": "Delete column",
+    "DeleteColumns_other": "Delete {{count}} columns",
+    "DeleteRows_one": "Delete row",
+    "DeleteRows_other": "Delete {{count}} rows",
+    "ClearValues": "Clear values",
+    "ClearCell": "Clear cell",
+    "CopyAnchorLink": "Copy anchor link",
+    "FilterByValue": "Filter by this value",
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "InsertColumnRight": "Insert column to the right",
+    "InsertColumnLeft": "Insert column to the left"
   },
   "DocHistory": {
     "Activity": "Activity",
@@ -171,7 +243,7 @@
     "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
     "IntroVisitOur": "Visit our {{- link}} to learn more.",
     "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
-    "AnonIntroSignUpSave": "{{- signup}}  to save your work.",
+    "AnonIntroSignUpSave": "{{- signup}} to save your work.",
     "Welcome": "Welcome to Grist!",
     "HelpCenter": "Help Center",
     "InviteTeamMembers": "Invite Team Members",
@@ -236,6 +308,29 @@
   "OnBoardingPopups": {
     "Finish": "Finish",
     "Next": "Next"
+  },
+  "WidgetTitle": {
+    "OverrideTitle": "Override Widget Title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
+  "WelcomeQuestion": {
+    "WelcomeToGrist": "Welcome to Grist!",
+    "ProductDevelopment": "Product Development",
+    "FinanceAccounting": "Finance & Accounting",
+    "MediaProduction": "Media Production",
+    "ITTechnology": "IT Technology",
+    "Marketing": "Marketing",
+    "Research": "Research",
+    "Sales": "Sales",
+    "Education": "Education",
+    "HRManagement": "HR & Management",
+    "Other": "Other",
+    "WhatBringsYouToGrist": "What brings you to Grist? Please help us serve you better.",
+    "TypeHere": "Type here"
   },
   "OpenVideoTour": {
     "YouTubeVideoPlayer": "YouTube video player",

@@ -13,6 +13,9 @@ import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 import {BindableValue, Disposable, dom, DomContents, styled} from 'grainjs';
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`AppHeader.${x}`, args);
 
 // Maps a name of a Product (from app/gen-server/entity/Product.ts) to a tag (pill) to show next
 // to the org name.
@@ -54,11 +57,11 @@ export class AppHeader extends Disposable {
         this._orgName && cssDropdownIcon('Dropdown'),
         menu(() => [
           menuSubHeader(
-            `${this._appModel.isTeamSite ? 'Team' : 'Personal'} Site`
-              + (this._appModel.isLegacySite ? ' (Legacy)' : ''),
+            this._appModel.isTeamSite ? translate('TeamSite') : translate('PersonalSite')
+              + (this._appModel.isLegacySite ? ` (${translate('Legacy')})` : ''),
             testId('orgmenu-title'),
           ),
-          menuItemLink(urlState().setLinkUrl({}), 'Home Page', testId('orgmenu-home-page')),
+          menuItemLink(urlState().setLinkUrl({}), translate('HomePage'), testId('orgmenu-home-page')),
 
           // Show 'Organization Settings' when on a home page of a valid org.
           (!this._docPageModel && currentOrg && !currentOrg.owner ?
