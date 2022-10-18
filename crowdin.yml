@@ -1,0 +1,5 @@
+files:
+  - source: /static/locales/en.*.json
+    translation: /static/locales/%two_letters_code%.%original_file_name%
+    translation_replace:
+      "en.": ''
