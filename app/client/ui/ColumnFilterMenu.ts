@@ -3,7 +3,7 @@
  * callback that's triggered on Apply or on Cancel. Changes to the UI result in changes to the underlying model,
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
-
+import {t} from 'app/client/lib/localization';
 import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -34,6 +34,8 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+
+const translate = (x: string, args?: any): string => t(`ColumnFilterMenu.${x}`, args);
 
 export interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
@@ -90,7 +92,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
     // Filter by range
     dom.maybe(showRangeFilter, () => [
-      cssRangeHeader('Filter by Range'),
+      cssRangeHeader(translate('FilterByRange')),
       cssRangeContainer(
         minRangeInput = rangeInput('Min ', columnFilter.min, rangeInputOptions, testId('min')),
         cssRangeInputSeparator('→'),
@@ -100,11 +102,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     ]),
 
     cssMenuHeader(
-      cssSearchIcon('Search'),
+      cssSearchIcon(translate('Search')),
       searchInput = cssSearch(
         searchValueObs, { onInput: true },
         testId('search-input'),
-        { type: 'search', placeholder: 'Search values' },
+        { type: 'search', placeholder: translate('SearchValues') },
         dom.onKeyDown({
           Enter: () => {
             if (searchValueObs.get()) {
@@ -140,14 +142,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         const state = use(columnFilter.state);
         return [
           cssSelectAll(
-            dom.text(searchValue ? 'All Shown' : 'All'),
+            dom.text(searchValue ? translate('AllShown') : translate('All')),
             cssSelectAll.cls('-disabled', isEquivalentFilter(state, allSpec)),
             dom.on('click', () => columnFilter.setState(allSpec)),
             testId('bulk-action'),
           ),
           cssDotSeparator('•'),
           cssSelectAll(
-            searchValue ? 'All Except' : 'None',
+            searchValue ? translate('AllExcept') : translate('None'),
             cssSelectAll.cls('-disabled', isEquivalentFilter(state, noneSpec)),
             dom.on('click', () => columnFilter.setState(noneSpec)),
             testId('bulk-action'),
@@ -162,7 +164,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     ),
     cssItemList(
       testId('list'),
-      dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults('No matching values')),
+      dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(translate('NoMatchingValues'))),
       dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
         cssMenuItem(
           cssLabel(
@@ -189,17 +191,17 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         const valuesBeyondLimit = use(model.valuesBeyondLimit);
         if (isAboveLimit) {
           return searchValue ? [
-            buildSummary('Other Matching', valuesBeyondLimit, false, model),
-            buildSummary('Other Non-Matching', otherValues, true, model),
+            buildSummary(translate('OtherMatching'), valuesBeyondLimit, false, model),
+            buildSummary(translate('OtherNonMatching'), otherValues, true, model),
           ] : [
-            buildSummary('Other Values', concat(otherValues, valuesBeyondLimit), false, model),
-            buildSummary('Future Values', [], true, model),
+            buildSummary(translate('OtherValues'), concat(otherValues, valuesBeyondLimit), false, model),
+            buildSummary(translate('FutureValues'), [], true, model),
           ];
         } else {
           return anyOtherValues ? [
-            buildSummary('Others', otherValues, true, model)
+            buildSummary(translate('Others'), otherValues, true, model)
           ] : [
-            buildSummary('Future Values', [], true, model)
+            buildSummary(translate('FutureValues'), [], true, model)
           ];
         }
       }),
