@@ -6,12 +6,12 @@
     "OtherSites": "Autre sites",
     "OtherSitesWelcome": "Tu es sur le site de {{siteName}}. Tu as aussi accès aux sites suivants :",
     "OtherSitesWelcome_personal": "Tu es sur ton site personnel. Tu as aussi accès aux sites suivants :",
-    "AllDocuments": "All Documents",
+    "AllDocuments": "Tous les documents",
     "ExamplesAndTemplates": "Exemples et Templates",
     "MoreExamplesAndTemplates": "Plus d'exemples et templates"
   },
   "DocumentSettings": {
-    "DocumentSettings": "Document Settings",
+    "DocumentSettings": "Paramètres du document",
     "ThisDocumentID": "This document's ID (for API use):",
     "TimeZone": "Time Zone:",
     "Locale": "Locale:",
