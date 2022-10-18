@@ -424,5 +424,11 @@
     "DuplicateRows_other": "Duplicate rows",
     "Delete": "Delete",
     "CopyAnchorLink": "Copy anchor link"
+  },
+  "VisibleFieldsConfig": {
+    "NoReorderHiddenField": "Hidden Fields cannot be reordered",
+    "NoDropInHiddenField": "Cannot drop items into Hidden Fields",
+    "SelectAll": "Select All",
+    "Clear": "Clear"
   }
 }
