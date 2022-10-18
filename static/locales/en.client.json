@@ -2,6 +2,37 @@
   "AddNewButton": {
     "AddNew": "Add New"
   },
+  "AccountPage": {
+    "AccountSettings":"Account settings",
+    "API":"API",
+    "Edit":"Edit",
+    "Email":"Email",
+    "Name":"Name",
+    "Save":"Save",
+    "PasswordSecurity":"Password & Security",
+    "LoginMethod":"Login Method",
+    "ChangePassword":"Change Password",
+    "AllowGoogleSigning":"Allow signing in to this account with Google",
+    "TwoFactorAuth": "Two-factor authentication",
+    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password",
+    "Theme":"Theme",
+    "APIKey":"API Key",
+    "WarningUsername":"Names only allow letters, numbers and certain special characters"
+
+  },
+  "AccountWidget":{
+    "SignIn":"Sign in",
+    "DocumentSettings":"Document Settings",
+    "ToggleMobileMode":"Toggle Mobile Mode",
+    "Pricing":"Pricing",
+    "ProfileSettings":"Profile Settings",
+    "ManageTeam":"Manage Team",
+    "AccessDetails":"Access Details",
+    "SwitchAccounts":"Switch Accounts",
+    "Accounts":"Accounts",
+    "AddAccount":"Add Account",
+    "Sign Out":"SignOut"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
