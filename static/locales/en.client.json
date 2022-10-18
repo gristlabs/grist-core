@@ -2,6 +2,27 @@
   "AddNewButton": {
     "AddNew": "Add New"
   },
+  "AppHeader": {
+    "HomePage": "Home page",
+    "Legacy": "Legacy",
+    "PersonalSite": "Personal Site",
+    "TeamSite": "Team Site"
+  },
+  "ApiKey": {
+    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
+    "Clicktoshow": "Click to show",
+    "Create": "Create",
+    "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
+    "Remove": "Remove",
+    "RemoveAPIKey": "Remove API Key"
+  },
+  "App": {
+    "Description": "Description",
+    "Key": "Key",
+    "MemoryError": "Memory Error"
+  },
   "DocHistory": {
     "Activity": "Activity",
     "Snapshots": "Snapshots",
@@ -153,7 +174,7 @@
     "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
     "IntroVisitOur": "Visit our {{- link}} to learn more.",
     "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
-    "AnonIntroSignUpSave": "{{- signup}}  to save your work.",
+    "AnonIntroSignUpSave": "{{- signup}} to save your work.",
     "Welcome": "Welcome to Grist!",
     "HelpCenter": "Help Center",
     "InviteTeamMembers": "Invite Team Members",
