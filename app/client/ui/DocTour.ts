@@ -1,3 +1,5 @@
+import {t} from 'app/client/lib/localization';
+
 import {Placement} from '@popperjs/core';
 import {placements} from '@popperjs/core/lib/enums';
 import {DocComm} from 'app/client/components/DocComm';
@@ -10,6 +12,7 @@ import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 
+const translate = (x: string, args?: any): string => t(`DocTour.${x}`, args);
 
 export async function startDocTour(docData: DocData, docComm: DocComm, onFinishCB: () => void) {
   const docTour: IOnBoardingMsg[] = await makeDocTour(docData, docComm) || invalidDocTour;
@@ -18,9 +21,8 @@ export async function startDocTour(docData: DocData, docComm: DocComm, onFinishC
 }
 
 const invalidDocTour: IOnBoardingMsg[] = [{
-  title: 'No valid document tour',
-  body: 'Cannot construct a document tour from the data in this document. ' +
-    'Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.',
+  title: translate('InvalidDocTourTitle'),
+  body: translate('InvalidDocTourBody'),
   selector: 'document',
   showHasModal: true,
 }];

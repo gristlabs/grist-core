@@ -2,6 +2,75 @@
   "AddNewButton": {
     "AddNew": "Add New"
   },
+  "CustomSectionConfig": {
+    "Add": "Add",
+    "EnterCustomURL": "Enter Custom URL",
+    "Full document access": "Full document access",
+    "LearnMore": "Learn more about custom widgets",
+    "PickupColumn": "Pick a column",
+    "PickupColumnType": "Pick a {{columnType}} column",
+    "NoDocumentAccess": "No document access",
+    "OpenConfiguration": "Open configuration",
+    "Optional": " (optional)",
+    "ReadSelectedTable": "Read selected table",
+    "SelectCustomWidget": "Select Custom Widget",
+    "WidgetNeedFullAccess": "Widget needs {{fullAcces}} to this document.",
+    "WidgetNeedRead": "Widget needs to {{ read }} the current table.",
+    "WidgetNoPermissison": "Widget does not require any permissions.",
+    "WrongTypesMenuText_one": "`{{wrongTypeCount}} non-{{columnType}} column is not shown",
+    "WrongTypesMenuText_others": "`{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+},
+ "AccountPage": {
+    "AccountSettings":"Account settings",
+    "API":"API",
+    "Edit":"Edit",
+    "Email":"Email",
+    "Name":"Name",
+    "Save":"Save",
+    "PasswordSecurity":"Password & Security",
+    "LoginMethod":"Login Method",
+    "ChangePassword":"Change Password",
+    "AllowGoogleSigning":"Allow signing in to this account with Google",
+    "TwoFactorAuth": "Two-factor authentication",
+    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password",
+    "Theme":"Theme",
+    "APIKey":"API Key",
+    "WarningUsername":"Names only allow letters, numbers and certain special characters"
+  },
+  "AccountWidget":{
+    "SignIn":"Sign in",
+    "DocumentSettings":"Document Settings",
+    "ToggleMobileMode":"Toggle Mobile Mode",
+    "Pricing":"Pricing",
+    "ProfileSettings":"Profile Settings",
+    "ManageTeam":"Manage Team",
+    "AccessDetails":"Access Details",
+    "SwitchAccounts":"Switch Accounts",
+    "Accounts":"Accounts",
+    "AddAccount":"Add Account",
+    "Sign Out":"SignOut"
+  },
+  "AppHeader": {
+    "HomePage": "Home page",
+    "Legacy": "Legacy",
+    "PersonalSite": "Personal Site",
+    "TeamSite": "Team Site"
+  },
+  "ApiKey": {
+    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
+    "Clicktoshow": "Click to show",
+    "Create": "Create",
+    "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
+    "Remove": "Remove",
+    "RemoveAPIKey": "Remove API Key"
+  },
+  "App": {
+    "Description": "Description",
+    "Key": "Key",
+    "MemoryError": "Memory Error"
+  },
   "CellContextMenu": {
     "ClearEntireColumns_one": "Clear entire column",
     "ClearEntireColumns_other": "Clear {{count}} entire columns",
@@ -38,13 +107,58 @@
     "FutureValues": "Future Values",
     "Others": "Others"
   },
+  "DocHistory": {
+    "Activity": "Activity",
+    "Snapshots": "Snapshots",
+    "OpenSnapshot": "Open Snapshot",
+    "CompareToCurrent": "Compare to Current",
+    "CompareToPrevious": "Compare to Previous",
+    "Beta": "Beta"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
     "OtherSitesWelcome_personal": "You are on your personal site. You also have access to the following sites:",
     "AllDocuments": "All Documents",
     "ExamplesAndTemplates": "Examples and Templates",
-    "MoreExamplesAndTemplates": "More Examples and Templates"
+    "MoreExamplesAndTemplates": "More Examples and Templates",
+    "ServiceNotAvailable": "This service is not available right now",
+    "NeedPaidPlan": "(The organization needs a paid plan)",
+    "PinnedDocuments": "Pinned Documents",
+    "Featured": "Featured",
+    "Trash": "Trash",
+    "DocStayInTrash": "Documents stay in Trash for 30 days, after which they get deleted permanently.",
+    "EmptyTrash": "Trash is empty.",
+    "WorkspaceNotFound": "Workspace not found",
+    "Delete": "Delete",
+    "DeleteDoc": "Delete {{name}}",
+    "Deleted": "Deleted {{at}}",
+    "Edited": "Edited {{at}}",
+    "Examples&Templates": "Examples & Templates",
+    "DiscoverMoreTemplates": "Discover More Templates",
+    "ByName": "By Name",
+    "ByDateModified": "By Date Modified",
+    "DocumentMoveToTrash": "Document will be moved to Trash.",
+    "Rename": "Rename",
+    "Move": "Move",
+    "Remove": "Remove",
+    "UnpinDocument": "Unpin Document",
+    "PinDocument": "Pin Document",
+    "AccessDetails": "Access Details",
+    "ManageUsers": "Manage Users",
+    "DeleteForeverDoc": "Permanently Delete \"{{name}}\"?",
+    "DeleteForever": "Delete Forever",
+    "DeleteDocPerma": "Document will be permanently deleted.",
+    "Restore": "Restore",
+    "RestoreThisDocument": "To restore this document, restore the workspace first.",
+    "DeleteWorkspaceForever": "You may delete a workspace forever once it has no documents in it.",
+    "CurrentWorkspace": "Current workspace",
+    "RequiresEditPermissions": "Requires edit permissions",
+    "MoveDocToWorkspace": "Move {{name}} to workspace"
+  },
+  "DocTour": {
+    "InvalidDocTourTitle": "No valid document tour",
+    "InvalidDocTourBody": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
   },
   "DocumentSettings": {
     "DocumentSettings": "Document Settings",
@@ -54,7 +168,7 @@
     "Currency": "Currency:",
     "LocalCurrency": "Local currency {{currency}}",
     "EngineRisk": "Engine (experimental {{- span}} change at own risk):",
-    "Save": "Save",
+    "Save": "S:ave",
     "SaveAndReload": "Save and Reload"
   },
   "DuplicateTable": {
@@ -97,7 +211,7 @@
     "ClearAndReset": "Clear and reset",
     "EnterFormula": "Enter formula",
     "ColumnBehavior": "COLUMN BEHAVIOR",
-    "SetFormula": "et formula",
+    "SetFormula": "Set formula",
     "SetTriggerFormula": "Set trigger formula",
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"
@@ -177,7 +291,7 @@
     "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
     "IntroVisitOur": "Visit our {{- link}} to learn more.",
     "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
-    "AnonIntroSignUpSave": "{{- signup}}  to save your work.",
+    "AnonIntroSignUpSave": "{{- signup}} to save your work.",
     "Welcome": "Welcome to Grist!",
     "HelpCenter": "Help Center",
     "InviteTeamMembers": "Invite Team Members",
@@ -243,6 +357,29 @@
     "Finish": "Finish",
     "Next": "Next"
   },
+  "WidgetTitle": {
+    "OverrideTitle": "Override Widget Title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
+  "WelcomeQuestion": {
+    "WelcomeToGrist": "Welcome to Grist!",
+    "ProductDevelopment": "Product Development",
+    "FinanceAccounting": "Finance & Accounting",
+    "MediaProduction": "Media Production",
+    "ITTechnology": "IT Technology",
+    "Marketing": "Marketing",
+    "Research": "Research",
+    "Sales": "Sales",
+    "Education": "Education",
+    "HRManagement": "HR & Management",
+    "Other": "Other",
+    "WhatBringsYouToGrist": "What brings you to Grist? Please help us serve you better.",
+    "TypeHere": "Type here"
+  },
   "OpenVideoTour": {
     "YouTubeVideoPlayer": "YouTube video player",
     "GristVideoTour": "Grist Video Tour",
@@ -302,5 +439,11 @@
     "DuplicateRows_other": "Duplicate rows",
     "Delete": "Delete",
     "CopyAnchorLink": "Copy anchor link"
+  },
+  "VisibleFieldsConfig": {
+    "NoReorderHiddenField": "Hidden Fields cannot be reordered",
+    "NoDropInHiddenField": "Cannot drop items into Hidden Fields",
+    "SelectAll": "Select All",
+    "Clear": "Clear"
   }
 }

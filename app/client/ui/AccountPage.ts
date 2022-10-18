@@ -16,8 +16,10 @@ import {cssLink} from 'app/client/ui2018/links';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled} from 'grainjs';
+import {t} from 'app/client/lib/localization';
 
 const testId = makeTestId('test-account-page-');
+const translate = (x: string, args?: any): string => t(`AccountPage.${x}`, args);
 
 /**
  * Creates the account page where a user can manage their profile settings.
@@ -56,13 +58,13 @@ export class AccountPage extends Disposable {
     const {enableCustomCss} = getGristConfig();
     return domComputed(this._userObs, (user) => user && (
       css.container(css.accountPage(
-        css.header('Account settings'),
+        css.header(translate('AccountSettings')),
         css.dataRow(
-          css.inlineSubHeader('Email'),
+          css.inlineSubHeader(translate('Email')),
           css.email(user.email),
         ),
         css.dataRow(
-          css.inlineSubHeader('Name'),
+          css.inlineSubHeader(translate('Name')),
           domComputed(this._isEditingName, (isEditing) => (
             isEditing ? [
               transientInput(
@@ -76,13 +78,13 @@ export class AccountPage extends Disposable {
                 css.flexGrow.cls(''),
               ),
               css.textBtn(
-                css.icon('Settings'), 'Save',
+                css.icon('Settings'), translate('Save'),
                 // No need to save on 'click'. The transient input already does it on close.
               ),
             ] : [
               css.name(user.name),
               css.textBtn(
-                css.icon('Settings'), 'Edit',
+                css.icon('Settings'), translate('Edit'),
                 dom.on('click', () => this._isEditingName.set(true)),
               ),
             ]
@@ -91,11 +93,11 @@ export class AccountPage extends Disposable {
         ),
         // show warning for invalid name but not for the empty string
         dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), cssWarnings),
-        css.header('Password & Security'),
+        css.header(translate('PasswordSecurity')),
         css.dataRow(
-          css.inlineSubHeader('Login Method'),
+          css.inlineSubHeader(translate("LoginMethod")),
           css.loginMethod(user.loginMethod),
-          user.loginMethod === 'Email + Password' ? css.textBtn('Change Password',
+          user.loginMethod === 'Email + Password' ? css.textBtn(translate("ChangePassword"),
             dom.on('click', () => this._showChangePasswordDialog()),
           ) : null,
           testId('login-method'),
@@ -104,26 +106,24 @@ export class AccountPage extends Disposable {
           css.dataRow(
             labeledSquareCheckbox(
               this._allowGoogleLogin,
-              'Allow signing in to this account with Google',
+              translate('AllowGoogleSigning'),
               testId('allow-google-login-checkbox'),
             ),
             testId('allow-google-login'),
           ),
-          css.subHeader('Two-factor authentication'),
+          css.subHeader(translate('TwoFactorAuth')),
           css.description(
-            "Two-factor authentication is an extra layer of security for your Grist account designed " +
-            "to ensure that you're the only person who can access your account, even if someone " +
-            "knows your password."
+            translate("TwoFactorAuthDescription")
           ),
           dom.create(MFAConfig, user),
         ),
         // Custom CSS is incompatible with custom themes.
         enableCustomCss ? null : [
-          css.header('Theme'),
+          css.header(translate('Theme')),
           dom.create(ThemeConfig, this._appModel),
         ],
-        css.header('API'),
-        css.dataRow(css.inlineSubHeader('API Key'), css.content(
+        css.header(translate('API')),
+        css.dataRow(css.inlineSubHeader(translate('APIKey')), css.content(
           dom.create(ApiKey, {
             apiKey: this._apiKey,
             onCreate: () => this._createApiKey(),
@@ -214,7 +214,7 @@ export function checkName(name: string): boolean {
  */
 function buildNameWarningsDom() {
   return css.warning(
-    "Names only allow letters, numbers and certain special characters",
+    translate("WarningUsername"),
     testId('username-warning'),
   );
 }

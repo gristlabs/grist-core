@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import { GristDoc } from "app/client/components/GristDoc";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from 'app/client/lib/koForm';
@@ -16,6 +17,7 @@ import difference = require("lodash/difference");
 import isEqual = require("lodash/isEqual");
 
 const testId = makeTestId('test-vfc-');
+const translate = (x: string, args?: any): string => t(`VisibleFieldsConfig.${x}`, args);
 
 export type IField = ViewFieldRec|ColumnRec;
 
@@ -161,8 +163,8 @@ export class VisibleFieldsConfig extends Disposable {
       options.hiddenFields.itemCreateFunc,
       {
         itemClass: cssDragRow.className,
-        reorder() { throw new Error('Hidden Fields cannot be reordered'); },
-        receive() { throw new Error('Cannot drop items into Hidden Fields'); },
+        reorder() { throw new Error(translate('NoReorderHiddenField')); },
+        receive() { throw new Error(translate('NoDropInHiddenField')); },
         remove(item: ColumnRec) {
           // Return the column object. This value is passed to the viewFields
           // receive function as its respective item parameter
@@ -202,7 +204,7 @@ export class VisibleFieldsConfig extends Disposable {
           () => (
             cssControlLabel(
               icon('Tick'),
-              'Select All',
+              translate('SelectAll'),
               dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
               testId('visible-fields-select-all'),
             )
@@ -217,7 +219,7 @@ export class VisibleFieldsConfig extends Disposable {
             dom.on('click', () => this._removeSelectedFields()),
           ),
           basicButton(
-            'Clear',
+            translate('Clear'),
             dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, false)),
           ),
           testId('visible-batch-buttons')
@@ -238,7 +240,7 @@ export class VisibleFieldsConfig extends Disposable {
           () => (
             cssControlLabel(
               icon('Tick'),
-              'Select All',
+              translate('SelectAll'),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
               testId('hidden-fields-select-all'),
             )
@@ -259,7 +261,7 @@ export class VisibleFieldsConfig extends Disposable {
               dom.on('click', () => this._addSelectedFields()),
             ),
             basicButton(
-              'Clear',
+              translate('Clear'),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
             ),
             testId('hidden-batch-buttons')
