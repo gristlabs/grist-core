@@ -18,7 +18,6 @@
     "Theme":"Theme",
     "APIKey":"API Key",
     "WarningUsername":"Names only allow letters, numbers and certain special characters"
-
   },
   "AccountWidget":{
     "SignIn":"Sign in",
@@ -33,6 +32,56 @@
     "AddAccount":"Add Account",
     "Sign Out":"SignOut"
   },
+  "AppHeader": {
+    "HomePage": "Home page",
+    "Legacy": "Legacy",
+    "PersonalSite": "Personal Site",
+    "TeamSite": "Team Site"
+  },
+  "ApiKey": {
+    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
+    "Clicktoshow": "Click to show",
+    "Create": "Create",
+    "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
+    "Remove": "Remove",
+    "RemoveAPIKey": "Remove API Key"
+  },
+  "App": {
+    "Description": "Description",
+    "Key": "Key",
+    "MemoryError": "Memory Error"
+  },
+  "CellContextMenu": {
+    "ClearEntireColumns_one": "Clear entire column",
+    "ClearEntireColumns_other": "Clear {{count}} entire columns",
+    "ClearColumns_one": "Clear column",
+    "ClearColumns_other": "Clear {{count}} columns",
+    "DeleteColumns_one": "Delete column",
+    "DeleteColumns_other": "Delete {{count}} columns",
+    "DeleteRows_one": "Delete row",
+    "DeleteRows_other": "Delete {{count}} rows",
+    "ClearValues": "Clear values",
+    "ClearCell": "Clear cell",
+    "CopyAnchorLink": "Copy anchor link",
+    "FilterByValue": "Filter by this value",
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "InsertColumnRight": "Insert column to the right",
+    "InsertColumnLeft": "Insert column to the left"
+  },
+  "DocHistory": {
+    "Activity": "Activity",
+    "Snapshots": "Snapshots",
+    "OpenSnapshot": "Open Snapshot",
+    "CompareToCurrent": "Compare to Current",
+    "CompareToPrevious": "Compare to Previous",
+    "Beta": "Beta"
+  },
   "DocMenu": {
     "OtherSites": "Other Sites",
     "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
@@ -40,6 +89,10 @@
     "AllDocuments": "All Documents",
     "ExamplesAndTemplates": "Examples and Templates",
     "MoreExamplesAndTemplates": "More Examples and Templates"
+  },
+  "DocTour": {
+    "InvalidDocTourTitle": "No valid document tour",
+    "InvalidDocTourBody": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
   },
   "DocumentSettings": {
     "DocumentSettings": "Document Settings",
@@ -92,7 +145,7 @@
     "ClearAndReset": "Clear and reset",
     "EnterFormula": "Enter formula",
     "ColumnBehavior": "COLUMN BEHAVIOR",
-    "SetFormula": "et formula",
+    "SetFormula": "Set formula",
     "SetTriggerFormula": "Set trigger formula",
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"
@@ -172,7 +225,7 @@
     "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
     "IntroVisitOur": "Visit our {{- link}} to learn more.",
     "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
-    "AnonIntroSignUpSave": "{{- signup}}  to save your work.",
+    "AnonIntroSignUpSave": "{{- signup}} to save your work.",
     "Welcome": "Welcome to Grist!",
     "HelpCenter": "Help Center",
     "InviteTeamMembers": "Invite Team Members",
@@ -237,6 +290,29 @@
   "OnBoardingPopups": {
     "Finish": "Finish",
     "Next": "Next"
+  },
+  "WidgetTitle": {
+    "OverrideTitle": "Override Widget Title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
+  "WelcomeQuestion": {
+    "WelcomeToGrist": "Welcome to Grist!",
+    "ProductDevelopment": "Product Development",
+    "FinanceAccounting": "Finance & Accounting",
+    "MediaProduction": "Media Production",
+    "ITTechnology": "IT Technology",
+    "Marketing": "Marketing",
+    "Research": "Research",
+    "Sales": "Sales",
+    "Education": "Education",
+    "HRManagement": "HR & Management",
+    "Other": "Other",
+    "WhatBringsYouToGrist": "What brings you to Grist? Please help us serve you better.",
+    "TypeHere": "Type here"
   },
   "OpenVideoTour": {
     "YouTubeVideoPlayer": "YouTube video player",

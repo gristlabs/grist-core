@@ -21,6 +21,9 @@ import {fetchFromHome} from 'app/common/urlUtils';
 import {ISupportedFeatures} from 'app/common/UserConfig';
 import {dom} from 'grainjs';
 import * as ko from 'knockout';
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`App.${x}`, args);
 
 // tslint:disable:no-console
 
@@ -90,8 +93,8 @@ export class App extends DisposableWithEvents {
         dom('table.g-help-table',
           dom('thead',
             dom('tr',
-              dom('th', 'Key'),
-              dom('th', 'Description')
+              dom('th', translate('Key')),
+              dom('th', translate('Description'))
             )
           ),
           dom.forEach(commandList.groups, (group: any) => {
@@ -231,7 +234,7 @@ export class App extends DisposableWithEvents {
     if (message.match(/MemoryError|unmarshallable object/)) {
       if (err.message.length > 30) {
         // TLDR
-        err.message = 'Memory Error';
+        err.message = translate('MemoryError');
       }
       this._mostRecentDocPageModel?.offerRecovery(err);
     }
