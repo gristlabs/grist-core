@@ -97,7 +97,7 @@
     "ZebraStripes": "Zebra Stripes"
   },
   "GridViewMenus": {
-    "AddColumn": "Add Column toto",
+    "AddColumn": "Add Column",
     "ShowColumn": "Show Column {{label}}",
     "ColumnOptions": "Column Options",
     "FilterData": "Filter Data",
