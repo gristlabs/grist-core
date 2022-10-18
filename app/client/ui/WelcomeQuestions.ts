@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -8,6 +9,8 @@ import {BaseAPI} from 'app/common/BaseAPI';
 import {UserPrefs} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, input, Observable, styled, subscribeElem} from 'grainjs';
+
+const translate = (x: string, args?: any): string => t(`WelcomeQuestions.${x}`, args);
 
 export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
   if (!(getGristConfig().survey && userPrefsObs.get()?.showNewUserQuestions)) {
@@ -42,7 +45,7 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
     });
 
     return {
-      title: [cssLogo(), dom('div', 'Welcome to Grist!')],
+      title: [cssLogo(), dom('div', translate('WelcomeToGrist'))],
       body: buildInfoForm(selection, otherText),
       saveLabel: 'Start using Grist',
       saveFunc: onConfirm,
@@ -54,21 +57,21 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
 }
 
 const choices: Array<{icon: IconName, color: string, text: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, text: 'Product Development' },
-  {icon: 'UseFinance', color: '#0075A2',       text: 'Finance & Accounting'},
-  {icon: 'UseMedia',   color: '#F7B32B',       text: 'Media Production'    },
-  {icon: 'UseMonitor', color: '#F2545B',       text: 'IT & Technology'     },
-  {icon: 'UseChart',   color: '#7141F9',       text: 'Marketing'           },
-  {icon: 'UseScience', color: '#231942',       text: 'Research'            },
-  {icon: 'UseSales',   color: '#885A5A',       text: 'Sales'               },
-  {icon: 'UseEducate', color: '#4A5899',       text: 'Education'           },
-  {icon: 'UseHr',      color: '#688047',       text: 'HR & Management'     },
-  {icon: 'UseOther',   color: '#929299',       text: 'Other'               },
+  {icon: 'UseProduct', color: `${colors.lightGreen}`, text: translate('ProductDevelopment') },
+  {icon: 'UseFinance', color: '#0075A2',       text: translate('FinanceAccounting')},
+  {icon: 'UseMedia',   color: '#F7B32B',       text: translate('MediaProduction')    },
+  {icon: 'UseMonitor', color: '#F2545B',       text: translate('ITTechnology')     },
+  {icon: 'UseChart',   color: '#7141F9',       text: translate('Marketing')           },
+  {icon: 'UseScience', color: '#231942',       text: translate('Research')            },
+  {icon: 'UseSales',   color: '#885A5A',       text: translate('Sales')               },
+  {icon: 'UseEducate', color: '#4A5899',       text: translate('Education')           },
+  {icon: 'UseHr',      color: '#688047',       text: translate('HR & Management')     },
+  {icon: 'UseOther',   color: '#929299',       text: translate('Other')               },
 ];
 
 function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<string>) {
   return [
-    dom('span', 'What brings you to Grist? Please help us serve you better.'),
+    dom('span', translate('WhatBringsYouToGrist')),
     cssChoices(
       choices.map((item, i) => cssChoice(
         cssIcon(icon(item.icon), {style: `--icon-color: ${item.color}`}),
@@ -78,7 +81,7 @@ function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<s
           item.text :
           [
             cssOtherLabel(item.text),
-            cssOtherInput(otherText, {}, {type: 'text', placeholder: 'Type here'},
+            cssOtherInput(otherText, {}, {type: 'text', placeholder: translate('TypeHere')},
               // The following subscribes to changes to selection observable, and focuses the input when
               // this item is selected.
               (elem) => subscribeElem(elem, selection[i], val => val && setTimeout(() => elem.focus(), 0)),

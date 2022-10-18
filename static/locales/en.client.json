@@ -240,6 +240,29 @@
     "Finish": "Finish",
     "Next": "Next"
   },
+  "WidgetTitle": {
+    "OverrideTitle": "Override Widget Title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
+  "WelcomeQuestion": {
+    "WelcomeToGrist": "Welcome to Grist!",
+    "ProductDevelopment": "Product Development",
+    "FinanceAccounting": "Finance & Accounting",
+    "MediaProduction": "Media Production",
+    "ITTechnology": "IT Technology",
+    "Marketing": "Marketing",
+    "Research": "Research",
+    "Sales": "Sales",
+    "Education": "Education",
+    "HRManagement": "HR & Management",
+    "Other": "Other",
+    "WhatBringsYouToGrist": "What brings you to Grist? Please help us serve you better.",
+    "TypeHere": "Type here"
+  },
   "OpenVideoTour": {
     "YouTubeVideoPlayer": "YouTube video player",
     "GristVideoTour": "Grist Video Tour",
