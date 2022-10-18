@@ -97,7 +97,7 @@
     "ZebraStripes": "Zebra Stripes"
   },
   "GridViewMenus": {
-    "AddColumn": "Add Column toto",
+    "AddColumn": "Add Column",
     "ShowColumn": "Show Column {{label}}",
     "ColumnOptions": "Column Options",
     "FilterData": "Filter Data",
@@ -226,8 +226,8 @@
     "Add to Page": "AddToPage"
   },
   "RightPanel": {
-    "Column_one": "Column",
-    "Column_other": "Columns",
+    "Column_one": "Colonne",
+    "Column_other": "Colonnes",
     "Field_one": "Field",
     "Field_other": "Fields",
     "Series_one": "Series",
