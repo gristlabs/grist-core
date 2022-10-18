@@ -343,5 +343,32 @@
     "DuplicateRows_other": "Duplicate rows",
     "Delete": "Delete",
     "CopyAnchorLink": "Copy anchor link"
+  },
+  "sendToDrive":{
+    "SendingToGoogleDrive":"Sending file to Google Drive"
+  },
+  "ShareMenu":{
+    "SaveDocument":"Save Document",
+    "SaveCopy":"Save Copy",
+    "Unsaved":"Unsaved",
+    "DuplicateDocument":"Duplicate Document",
+    "ManageUsers":"Manage Users",
+    "AccessDetails":"Access Details",
+    "Current Version":"CurrentVersion",
+    "Original":"Original",
+    "ReturnToTermToUse":"Return to {{termToUse}}",
+    "ReplaceTermToUse":"Replace {{termToUse}}...",
+    "CompareTermToUse":"Compare to {{termToUse}}",
+    "WorkOnCopy":"Work on a Copy",
+    "EditWithoutAffecting":"Edit without affecting the original",
+    "ShowInFolder":"Show in folder",
+    "Download":"Download",
+    "ExportCSV":"Export CSV",
+    "ExportXLSX":"Export XLSX",
+    "SendToGoogleDrive":"Send to Google Drive"
+  },
+  "SiteSwitcher":{
+    "SwitchSites":"Switch Sites",
+    "CreateNewTeamSite":"Create new team site"
   }
 }

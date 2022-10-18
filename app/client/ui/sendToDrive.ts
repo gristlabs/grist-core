@@ -5,6 +5,9 @@ import type {DocPageModel} from 'app/client/models/DocPageModel';
 import type {Document} from 'app/common/UserAPI';
 import { getGoogleCodeForSending } from "app/client/ui/googleAuth";
 const G = getBrowserGlobals('window');
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`sendToDrive.${x}`, args);
 
 /**
  * Sends xlsx file to Google Drive. It first authenticates with Google to get encrypted access
@@ -21,7 +24,7 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
   // Create send to google drive handler (it will return a spreadsheet url).
   const send = (code: string) =>
     // Decorate it with a spinner
-    spinnerModal('Sending file to Google Drive',
+    spinnerModal(translate('SendingToGoogleDrive'),
       pageModel.appModel.api.getDocAPI(doc.id)
         .sendToDrive(code, pageModel.currentDocTitle.get())
     );

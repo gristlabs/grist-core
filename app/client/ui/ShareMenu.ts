@@ -14,6 +14,9 @@ import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
 import {MenuCreateFunc} from 'popweasel';
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`ShareMenu.${x}`, args);
 
 function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
@@ -30,7 +33,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
     const appModel = pageModel.appModel;
-    const saveCopy = () => makeCopy(doc, appModel, 'Save Document').catch(reportError);
+    const saveCopy = () => makeCopy(doc, appModel, translate('SaveDocument')).catch(reportError);
     if (doc.idParts.snapshotId) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
       return shareButton('Back to Current', () => [
@@ -41,7 +44,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       ], {buttonAction: backToCurrent});
     } else if (doc.isPreFork || doc.isBareFork) {
       // A new unsaved document, or a fiddle, or a public example.
-      const saveActionTitle = doc.isBareFork ? 'Save Document' : 'Save Copy';
+      const saveActionTitle = doc.isBareFork ? translate('SaveDocument') : translate('SaveCopy');
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy(saveActionTitle, doc, appModel),
@@ -53,16 +56,16 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       // Copy" primary and keep it as an action button on top. Otherwise, show a tag without a
       // default action; click opens the menu where the user can choose.
       if (!roles.canEdit(doc.trunkAccess || null)) {
-        return shareButton('Save Copy', () => [
+        return shareButton(translate('SaveCopy'), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy('Save Copy', doc, appModel),
+          menuSaveCopy(translate('SaveCopy'), doc, appModel),
           menuOriginal(doc, appModel, false),
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
       } else {
-        return shareButton('Unsaved', () => [
+        return shareButton(translate('Unsaved'), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy('Save Copy', doc, appModel),
+          menuSaveCopy(translate('SaveCopy'), doc, appModel),
           menuOriginal(doc, appModel, false),
           menuExports(doc, pageModel),
         ]);
@@ -70,7 +73,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
     } else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy('Duplicate Document', doc, appModel),
+        menuSaveCopy(translate('DuplicateDocument'), doc, appModel),
         menuWorkOnCopy(pageModel),
         menuExports(doc, pageModel),
       ]);
@@ -124,7 +127,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
 function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
-      roles.canEditAccess(doc.access) ? 'Manage Users' : 'Access Details',
+      roles.canEditAccess(doc.access) ? translate('Manage Users') : translate('AccessDetails'),
       dom.cls('disabled', doc.isFork),
       testId('tb-share-option')
     ),
@@ -135,7 +138,7 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
 // Renders "Return to Original" and "Replace Original" menu items. When used with snapshots, we
 // say "Current Version" in place of the word "Original".
 function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
-  const termToUse = isSnapshot ? "Current Version" : "Original";
+  const termToUse = isSnapshot ? translate("CurrentVersion") : translate("Original");
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
   const originalUrl = urlState().makeUrl({doc: origUrlId});
 
@@ -158,18 +161,18 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
   }
   return [
     cssMenuSplitLink({href: originalUrl},
-      cssMenuSplitLinkText(`Return to ${termToUse}`), testId('return-to-original'),
+      cssMenuSplitLinkText(translate('ReturnToTermToUse', {termToUse})), testId('return-to-original'),
       cssMenuIconLink({href: originalUrl, target: '_blank'}, testId('open-original'),
         cssMenuIcon('FieldLink'),
       )
     ),
-    menuItem(replaceOriginal, `Replace ${termToUse}...`,
+    menuItem(replaceOriginal, translate('ReplaceTermToUse', {termToUse}),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
       dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId('replace-original'),
     ),
-    menuItemLink(compareHref, {target: '_blank'}, `Compare to ${termToUse}`,
+    menuItemLink(compareHref, {target: '_blank'}, translate('CompareTermToUse', {termToUse}),
       menuAnnotate('Beta'),
       testId('compare-original'),
     ),
@@ -197,8 +200,8 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
   };
 
   return [
-    menuItem(makeUnsavedCopy, 'Work on a Copy', testId('work-on-copy')),
-    menuText('Edit without affecting the original'),
+    menuItem(makeUnsavedCopy, translate('WorkOnCopy'), testId('work-on-copy')),
+    menuText(translate('EditWithoutAffecting')),
   ];
 }
 
@@ -215,21 +218,21 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     menuDivider(),
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
-        'Show in folder', testId('tb-share-option')) :
+        translate('ShowInFolder'), testId('tb-share-option')) :
         menuItemLink({
           href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl(),
           target: '_blank', download: ''
         },
-        menuIcon('Download'), 'Download', testId('tb-share-option'))
+        menuIcon('Download'), translate('Download'), testId('tb-share-option'))
     ),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
-      menuIcon('Download'), 'Export CSV', testId('tb-share-option')),
+      menuIcon('Download'), translate('ExportCSV'), testId('tb-share-option')),
     menuItemLink({
       href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
       target: '_blank', download: ''
-    }, menuIcon('Download'), 'Export XLSX', testId('tb-share-option')),
+    }, menuIcon('Download'), translate('ExportXLSX'), testId('tb-share-option')),
     menuItem(() => sendToDrive(doc, pageModel),
-      menuIcon('Download'), 'Send to Google Drive', testId('tb-share-option')),
+      menuIcon('Download'), translate('SendToGoogleDrive'), testId('tb-share-option')),
   ];
 }
 

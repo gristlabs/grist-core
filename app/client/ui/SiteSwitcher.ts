@@ -7,6 +7,10 @@ import {theme} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {icon} from 'app/client/ui2018/icons';
 
+import {t} from 'app/client/lib/localization';
+
+const translate = (x: string, args?: any): string => t(`SiteSwitcher.${x}`, args);
+
 const testId = makeTestId('test-site-switcher-');
 
 /**
@@ -30,7 +34,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
 
   return [
-    menuSubHeader('Switch Sites'),
+    menuSubHeader(translate('SwitchSites')),
     dom.forEach(orgs, (org) =>
       menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
         cssOrgSelected.cls('', appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
@@ -42,7 +46,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
     menuItem(
       () => appModel.showNewSiteModal(),
       menuIcon('Plus'),
-      'Create new team site',
+      translate('CreateNewTeamSite'),
       testId('create-new-site'),
     ),
   ];
