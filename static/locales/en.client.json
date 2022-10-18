@@ -207,6 +207,14 @@
     "Finish": "Finish",
     "Next": "Next"
   },
+  "WidgetTitle": {
+    "OverrideTitle": "Override Widget Title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
   "OpenVideoTour": {
     "YouTubeVideoPlayer": "YouTube video player",
     "GristVideoTour": "Grist Video Tour",
