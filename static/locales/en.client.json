@@ -28,6 +28,12 @@
     "ErrorHappend_message": "There was an error: {{message}}",
     "ErrorHappend_unknown": "There was an unknown error."
   },
+  "DuplicateTable": {
+    "NewName": "Name for new table",
+    "AdviceWithLink": "Instead of duplicating tables, it's usually better to segment data using linked views. {{- link}}",
+    "CopyAllData": "Copy all data in addition to the table structure.",
+    "WarningACL": "Only the document default access rules will apply to the copy."
+  },
   "FieldConfig": {
     "ColumnLabel": "COLUMN LABEL AND ID",
     "ColumnOptionsLimited": "Column options are limited in summary tables.",

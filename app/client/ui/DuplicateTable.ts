@@ -1,3 +1,4 @@
+import {t} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {cssInput} from 'app/client/ui/cssInput';
 import {cssField} from 'app/client/ui/MakeCopyMenu';
@@ -8,6 +9,8 @@ import {cssLink} from 'app/client/ui2018/links';
 import {saveModal} from 'app/client/ui2018/modals';
 import {commonUrls} from 'app/common/gristUrls';
 import {Computed, Disposable, dom, input, makeTestId, Observable, styled} from 'grainjs';
+
+const translate = (x: string, args?: any): string => t(`DuplicateTable.${x}`, args);
 
 const testId = makeTestId('test-duplicate-table-');
 
@@ -71,7 +74,7 @@ class DuplicateTableModal extends Disposable {
         input(
           this._newTableName,
           {onInput: true},
-          {placeholder: 'Name for new table'},
+          {placeholder: translate('NewName')},
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
           dom.on('focus', (_ev, elem) => { elem.select(); }),
           dom.cls(cssInput.className),
@@ -80,21 +83,21 @@ class DuplicateTableModal extends Disposable {
       ),
       cssWarning(
         cssWarningIcon('Warning'),
+
         dom('div',
-          "Instead of duplicating tables, it's usually better to segment data using linked views. ",
-          cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')
-        ),
+         translate("AdviceWithLink", {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')})
+        ), //TODO: i18next
       ),
       cssField(
         cssCheckbox(
           this._includeData,
-          'Copy all data in addition to the table structure.',
+          translate('CopyAllData'),
           testId('copy-all-data'),
         ),
       ),
       dom.maybe(this._includeData, () => cssWarning(
         cssWarningIcon('Warning'),
-        dom('div', 'Only the document default access rules will apply to the copy.'),
+        dom('div', translate('WarningACL')),
         testId('acl-warning'),
       )),
     ];
