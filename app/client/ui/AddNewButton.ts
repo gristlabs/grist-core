@@ -3,7 +3,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
 import {t} from 'app/client/lib/localization';
 
-const translate = (x: string, args?: any): string => t(`AddNewButton.${x}`, args);
+const translate = (x: string, args?: any) => t(`AddNewButton.${x}`, args);
 
 export function addNewButton(isOpen: Observable<boolean> | boolean = true, ...args: DomElementArg[]) {
   return cssAddNewButton(

@@ -101,6 +101,17 @@ function makeAnonIntro(homeModel: HomeModel) {
     css.docListHeader(t('HomeIntro.Welcome'), testId('welcome-title')),
 ```
 
+
+Function `t` on the client side is also able to use `DomContents` values (so material produced by
+the GrainJS library) for interpolation. For example:
+
+```ts
+dom('span', t('Argument', {
+  arg1: dom('span', 'First'),
+  arg2: dom.domComputed(obs, (value) => dom('span', value))
+}));
+```
+
 Some things are not supported at this moment and will need to be addressed in future development
 tasks:
 

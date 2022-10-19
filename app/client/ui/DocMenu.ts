@@ -34,7 +34,7 @@ import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 import sortBy = require('lodash/sortBy');
 
-const translate = (x: string, args?: any): string => t(`DocMenu.${x}`, args);
+const translate = (x: string, args?: any) => t(`DocMenu.${x}`, args);
 
 const testId = makeTestId('test-dm-');
 

@@ -1,7 +1,7 @@
 import {getGristConfig} from 'app/common/urlUtils';
 import {DomContents} from 'grainjs';
-import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
 import i18next from 'i18next';
+import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
 
 export async function setupLocale() {
   const now = Date.now();
@@ -72,8 +72,8 @@ export async function setupLocale() {
 /**
  * Resolves the translation of the given key using the given options.
  */
-export function t(key: string, args?: any, instance = i18next): string {
-  if (!instance.exists(key, args)) {
+export function tString(key: string, args?: any, instance = i18next): string {
+  if (!instance.exists(key, args || undefined)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
   }
@@ -84,15 +84,15 @@ export function t(key: string, args?: any, instance = i18next): string {
 /**
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
- export function domT(key: string, args?: any, instance = i18next): DomContents {
-  if (!instance.exists(key)) {
+ export function t(key: string, args?: any, instance = i18next): DomContents {
+  if (!instance.exists(key, args || undefined)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
   }
   // If there are any DomElements in args, handle it with missingInterpolationHandler.
-  const domElements = Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
+  const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
   if (!args || !domElements.length) {
-    return t(key, args);
+    return instance.t(key, args || undefined) as string;
   } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
@@ -104,9 +104,9 @@ export function t(key: string, args?: any, instance = i18next): string {
     const result: string = instance.t(key, {...copy, missingInterpolationHandler});
 
     // Now replace all markers with dom elements passed as arguments.
-    const parts = result.split(new RegExp(`(${DOM_MARKER}\\w+)`));
+    const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
     for (let i = 1; i < parts.length; i += 2) { // Every second element is our dom element.
-      const propName = parts[i].replace(DOM_MARKER, "");
+      const propName = parts[i].substring(3, parts[i].length - 3);
       const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
       parts[i] = domElement;
     }
@@ -121,9 +121,8 @@ export function hasTranslation(key: string) {
   return i18next.exists(key);
 }
 
-const DOM_MARKER = '__domKey_';
 function missingInterpolationHandler(key: string, value: any) {
-  return `${DOM_MARKER}${value[1]}`;
+  return `[[[${value[1]}]]]`;
 }
 
 /**
