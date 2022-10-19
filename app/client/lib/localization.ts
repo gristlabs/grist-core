@@ -71,7 +71,7 @@ export async function setupLocale() {
  * Resolves the translation of the given key, using the given options.
  */
 export function t(key: string, args?: any): string {
-  if (!i18next.exists(key)) {
+  if (!i18next.exists(key, args)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
   }
