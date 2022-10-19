@@ -12,6 +12,7 @@
   },
   "HomeIntro": {
     "Welcome": "Welcome to Grist!",
-    "SignUp": "Sign up"
+    "SignUp": "Sign up",
+    "VisitHelpCenter": "Visit our {{link}} to learn more."
   }
 }
