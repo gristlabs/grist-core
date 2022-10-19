@@ -1,7 +1,8 @@
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {infoTooltip} from 'app/client/ui/tooltips';
+import {GristTooltips, TooltipContentFunc} from 'app/client/ui/GristTooltips';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
@@ -79,10 +80,7 @@ export class DocumentUsage extends Disposable {
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
         shouldHideLimits: maxValue === undefined,
-        tooltipContent: () => cssTooltipBody(
-          dom('div', 'The total size of all data in this document, excluding attachments.'),
-          dom('div', 'Updates every 5 minutes.'),
-        ),
+        tooltipContentFunc: GristTooltips.dataSize,
         formatValue: (val) => {
           // To display a nice, round number for `maximumValue`, we first convert
           // to KiBs (base-2), and then convert to MBs (base-10). Normally, we wouldn't
@@ -269,7 +267,7 @@ interface MetricOptions {
   // If true, limits will always be hidden, even if `maximumValue` is a positive number.
   shouldHideLimits?: boolean;
   // Shows an icon next to the metric name that displays a tooltip on hover.
-  tooltipContent?(): DomContents;
+  tooltipContentFunc?: TooltipContentFunc;
   formatValue?(value: number): string;
 }
 
@@ -279,11 +277,15 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {name, tooltipContent} = options;
+  const {name, tooltipContentFunc} = options;
   return cssUsageMetric(
     cssMetricName(
-      cssOverflowableText(name, testId('name')),
-      tooltipContent ? infoTooltip(tooltipContent()) : null,
+      tooltipContentFunc
+        ? withInfoTooltip(
+            cssOverflowableText(name, testId('name')),
+            tooltipContentFunc()
+          )
+        : cssOverflowableText(name, testId('name')),
     ),
     buildUsageProgressBar(options),
     ...domArgs,
@@ -423,12 +425,6 @@ const cssSpinner = styled('div', `
   display: flex;
   justify-content: center;
   margin-top: 32px;
-`);
-
-const cssTooltipBody = styled('div', `
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 `);
 
 const cssLoadingDots = styled(loadingDots, `

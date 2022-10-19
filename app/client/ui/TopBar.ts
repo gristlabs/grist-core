@@ -7,6 +7,7 @@ import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
@@ -80,11 +81,13 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom.maybe(pageModel.undoState, (state) => [
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
+        hoverTooltip('Undo', {key: 'topBarBtnTooltip'}),
         cssHoverCircle.cls('-disabled', state.isUndoDisabled),
         testId('undo')
       ),
       topBarUndoBtn('Redo',
         dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
+        hoverTooltip('Redo', {key: 'topBarBtnTooltip'}),
         cssHoverCircle.cls('-disabled', state.isRedoDisabled),
         testId('redo')
       ),

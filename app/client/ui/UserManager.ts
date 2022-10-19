@@ -25,8 +25,9 @@ import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
         Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
+import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
-import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
@@ -166,14 +167,18 @@ function buildUserManagerModal(
             testId('um-cancel')
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
-            ? cssAccessLink({href: urlState().makeUrl({docPage: 'acl'})},
-              dom.text(use => use(model.isAnythingChanged) ? 'Save & ' : ''),
-              'Open Access Rules',
-              dom.on('click', (ev) => {
-                ev.preventDefault();
-                return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
-              }),
-              testId('um-open-access-rules')
+            ? withInfoTooltip(
+                cssLink({href: urlState().makeUrl({docPage: 'acl'})},
+                  dom.text(use => use(model.isAnythingChanged) ? 'Save & ' : ''),
+                  'Open Access Rules',
+                  dom.on('click', (ev) => {
+                    ev.preventDefault();
+                    return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+                  }),
+                  testId('um-open-access-rules'),
+                ),
+                GristTooltips.openAccessRules(),
+                {domArgs: [cssAccessLink.cls('')]},
             )
             : null
           ),
@@ -238,6 +243,7 @@ export class UserManager extends Disposable {
 
   private _buildOptionsDom(): Element {
     const publicMember = this._model.publicMember;
+    let tooltipControl: ITooltipControl | undefined;
     return cssOptionRow(
       // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
       // be used to fill whitespace in org UserManager.
@@ -246,24 +252,32 @@ export class UserManager extends Disposable {
         this._inheritRoleSelector()
       ),
       publicMember ? dom('span', { style: `float: right;` },
+        cssSmallPublicMemberIcon('PublicFilled'),
         dom('span', 'Public access: '),
         cssOptionBtn(
-          menu(() => [
-            menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
-            menuItem(() => publicMember.access.set(null), 'Off',
-              // Disable null access if anonymous access is inherited.
-              dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
-              testId(`um-public-option`)
-            ),
-            // If the 'Off' setting is disabled, show an explanation.
-            dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
-              `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
-              `To remove, set 'Inherit access' option to 'None'.`))
-          ]),
+          menu(() => {
+            tooltipControl?.close();
+            return [
+              menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
+              menuItem(() => publicMember.access.set(null), 'Off',
+                // Disable null access if anonymous access is inherited.
+                dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
+                testId(`um-public-option`)
+              ),
+              // If the 'Off' setting is disabled, show an explanation.
+              dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
+                `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
+                `To remove, set 'Inherit access' option to 'None'.`))
+            ];
+          }),
           dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
           cssCollapseIcon('Collapse'),
           testId('um-public-access')
-        )
+        ),
+        hoverTooltip((ctl) => {
+          tooltipControl = ctl;
+          return 'Allow anyone with the link to open.';
+        }),
       ) : null
     );
   }
@@ -672,6 +686,12 @@ const cssPublicMemberIcon = styled(icon, `
   height: 40px;
   margin: 0 4px;
   --icon-color: ${theme.accentIcon};
+`);
+
+const cssSmallPublicMemberIcon = styled(cssPublicMemberIcon, `
+  width: 16px;
+  height: 16px;
+  top: -2px;
 `);
 
 const cssPublicAccessIcon = styled(icon, `

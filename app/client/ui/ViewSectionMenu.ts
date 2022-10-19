@@ -17,8 +17,6 @@ import difference = require('lodash/difference');
 
 const testId = makeTestId('test-section-menu-');
 
-const TOOLTIP_DELAY_OPEN = 750;
-
 // Handler for [Save] button.
 async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
   await docModel.docData.bundleActions("Update Sort&Filter settings", () => Promise.all([
@@ -69,7 +67,8 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           testId('filter-icon'),
           // Make green when there are some filters. If there are only sort options, leave grey.
           cssFilterIconWrapper.cls('-any', anyFilter),
-          cssFilterIcon('Filter')
+          cssFilterIcon('Filter'),
+          hoverTooltip('Sort and filter', {key: 'sortFilterBtnTooltip'}),
         ),
         menu(ctl => [
           // Sorted by section.
@@ -109,7 +108,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
         cssSmallIconWrapper(
           cssIcon('Tick'), cssSmallIconWrapper.cls('-green'),
           dom.on('click', save),
-          hoverTooltip(() => 'Save', {key: 'sortFilterButton', openDelay: TOOLTIP_DELAY_OPEN}),
+          hoverTooltip('Save sort & filter settings', {key: 'sortFilterBtnTooltip'}),
           testId('small-btn-save'),
           dom.hide(isReadonly),
         ),
@@ -117,7 +116,7 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
         cssSmallIconWrapper(
           cssIcon('CrossSmall'), cssSmallIconWrapper.cls('-gray'),
           dom.on('click', revert),
-          hoverTooltip(() => 'Revert', {key: 'sortFilterButton', openDelay: TOOLTIP_DELAY_OPEN}),
+          hoverTooltip('Revert sort & filter settings', {key: 'sortFilterBtnTooltip'}),
           testId('small-btn-revert'),
         ),
       )),

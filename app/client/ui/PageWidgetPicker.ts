@@ -1,6 +1,8 @@
 import { reportError } from 'app/client/models/AppModel';
 import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { GristTooltips } from 'app/client/ui/GristTooltips';
 import { linkId, NoLink } from 'app/client/ui/selectBy';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
 import { getWidgetTypes, IWidgetType } from 'app/client/ui/widgetTypes';
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -342,11 +344,17 @@ export class PageWidgetSelect extends Disposable {
       cssFooter(
         cssFooterContent(
           // If _selectByOptions exists and has more than then "NoLinkOption", show the selector.
-          dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () => cssSelectBy(
-            cssSmallLabel('SELECT BY'),
-            dom.update(cssSelect(this._value.link, this._selectByOptions!),
-                       testId('selectby'))
-          )),
+          dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
+            withInfoTooltip(
+              cssSelectBy(
+                cssSmallLabel('SELECT BY'),
+                dom.update(cssSelect(this._value.link, this._selectByOptions!),
+                          testId('selectby'))
+              ),
+              GristTooltips.selectBy(),
+              {tooltipMenuOptions: {attach: null}},
+            )
+          ),
           dom('div', {style: 'flex-grow: 1'}),
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when

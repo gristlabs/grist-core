@@ -198,7 +198,13 @@ function addRevertViewAsUI() {
         ),
         tooltipCloseButton(ctl),
       ),
-      {openOnClick: true}
+      {
+        openOnClick: true,
+        closeOnClick: false,
+        openDelay: 100,
+        closeDelay: 400,
+        placement: 'top',
+      }
     ),
   ];
 }

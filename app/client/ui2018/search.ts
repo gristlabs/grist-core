@@ -2,10 +2,10 @@
  * Search icon that expands to a search bar and collapse on 'x' or blur.
  * Takes a `SearchModel` that controls the search behavior.
  */
-import { createGroup } from 'app/client/components/commands';
+import { allCommands, createGroup } from 'app/client/components/commands';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
-import { hoverTooltip, IHoverTipOptions } from 'app/client/ui/tooltips';
+import { hoverTooltip } from 'app/client/ui/tooltips';
 import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
@@ -126,12 +126,6 @@ const cssShortcut = styled('span', `
   color: ${theme.lightText};
 `);
 
-const searchArrowBtnTooltipOptions: IHoverTipOptions = {
-  key: 'searchArrowBtnTooltip',
-  openDelay: 500,
-  closeDelay: 100,
-};
-
 export function searchBar(model: SearchModel, testId: TestId = noTestId) {
   let keepExpanded = false;
 
@@ -178,6 +172,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
       cssTopBarBtn('Search',
         testId('icon'),
         dom.on('click', focusAndSelect),
+        hoverTooltip('Search', {key: 'topBarBtnTooltip'}),
       )
     ),
     expandedSearch(
@@ -195,7 +190,13 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
             dom.on('click', () => model.findNext()),
-            hoverTooltip(() => ['Find Next ', cssShortcut('(Enter, ⌘G)')], searchArrowBtnTooltipOptions),
+            hoverTooltip(
+              [
+                'Find Next ',
+                cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
+              ],
+              {key: 'searchArrowBtnTooltip'}
+            ),
           ),
           cssArrowBtn(
             icon('DropdownUp'),
@@ -203,7 +204,13 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
             dom.on('click', () => model.findPrev()),
-            hoverTooltip(() => ['Find Previous ', cssShortcut('(⌘⇧G)')], searchArrowBtnTooltipOptions),
+            hoverTooltip(
+              [
+                'Find Previous ',
+                cssShortcut(allCommands.findPrev.getKeysDesc()),
+              ],
+              {key: 'searchArrowBtnTooltip'}
+            ),
           )
         ];
       }),

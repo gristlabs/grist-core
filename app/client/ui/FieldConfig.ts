@@ -2,7 +2,9 @@ import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
+import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -328,11 +330,14 @@ export function buildFormulaConfig(
           dom.prop("disabled", disableOtherActions),
           testId("field-set-formula")
         )),
-        cssRow(textButton(
-          "Set trigger formula",
-          dom.on("click", setTrigger),
-          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-          testId("field-set-trigger")
+        cssRow(withInfoTooltip(
+          textButton(
+            "Set trigger formula",
+            dom.on("click", setTrigger),
+            dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
+            testId("field-set-trigger")
+          ),
+          GristTooltips.setTriggerFormula(),
         )),
         cssRow(textButton(
           "Make into data column",
@@ -378,12 +383,15 @@ export function buildFormulaConfig(
         // Else offer a way to convert to trigger formula.
         dom.maybe((use) => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
           cssEmptySeparator(),
-          cssRow(textButton(
-            "Set trigger formula",
-            dom.on("click", convertDataColumnToTriggerColumn),
-            dom.prop("disabled", disableOtherActions),
-            testId("field-set-trigger")
-          ))
+          cssRow(withInfoTooltip(
+            textButton(
+              "Set trigger formula",
+              dom.on("click", convertDataColumnToTriggerColumn),
+              dom.prop("disabled", disableOtherActions),
+              testId("field-set-trigger")
+            ),
+            GristTooltips.setTriggerFormula()
+          )),
         ])
       ])
   ]);

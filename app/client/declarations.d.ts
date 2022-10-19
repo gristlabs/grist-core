@@ -113,7 +113,9 @@ declare module "app/client/components/commands" {
     public desc: string;
     public humanKeys: string[];
     public keys: string[];
-    public run: () => any;
+    public getDesc(): string;
+    public getKeysDesc(): string;
+    public run(): any;
   }
 
   export type CommandsGroup = any;

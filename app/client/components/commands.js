@@ -135,14 +135,25 @@ Command.prototype._run = function() {
 };
 
 /**
+ * Returns a comma-separated string of all keyboard shortcuts, or `null` if no
+ * shortcuts exist.
+ */
+ Command.prototype.getKeysDesc = function() {
+  if (this.humanKeys.length === 0) { return null; }
+
+  return `(${this.humanKeys.join(', ')})`;
+};
+
+/**
  * Returns the text description for the command, including the keyboard shortcuts.
  */
 Command.prototype.getDesc = function() {
-  var desc = this.desc;
-  if (this.humanKeys.length) {
-    desc += " (" + this.humanKeys.join(", ") + ")";
-  }
-  return desc;
+  var parts = [this.desc];
+
+  var keysDesc = this.getKeysDesc();
+  if (keysDesc) { parts.push(keysDesc); }
+
+  return parts.join(' ');
 };
 
 /**

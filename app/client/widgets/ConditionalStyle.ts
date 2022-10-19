@@ -4,6 +4,8 @@ import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {RuleOwner} from 'app/client/models/RuleOwner';
 import {Style} from 'app/client/models/Styles';
 import {cssFieldFormula} from 'app/client/ui/FieldConfig';
+import {GristTooltips} from 'app/client/ui/GristTooltips';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
 import {theme, vars} from 'app/client/ui2018/cssVars';
@@ -67,11 +69,17 @@ export class ConditionalStyle extends Disposable {
     return [
       cssRow(
         { style: 'margin-top: 16px' },
-        textButton(
-          'Add conditional style',
-          testId('add-conditional-style'),
-          dom.on('click', () => this._ruleOwner.addEmptyRule()),
-          dom.prop('disabled', this._disabled)
+        withInfoTooltip(
+          textButton(
+            'Add conditional style',
+            testId('add-conditional-style'),
+            dom.on('click', () => this._ruleOwner.addEmptyRule()),
+            dom.prop('disabled', this._disabled),
+          ),
+          (this._label === 'Row Style'
+            ? GristTooltips.addRowConditionalStyle()
+            : GristTooltips.addColumnConditionalStyle()
+          ),
         ),
         dom.hide(use => use(this._ruleOwner.hasRules))
       ),

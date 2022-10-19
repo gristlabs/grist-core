@@ -3,6 +3,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {ConnectState} from 'app/client/models/ConnectState';
 import {urlState} from 'app/client/models/gristUrlState';
 import {Expirable, IAppError, Notification, Notifier, NotifyAction, Progress} from 'app/client/models/NotifyModel';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -126,6 +127,7 @@ export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|nul
       setPopupToCreateDom(elem, (ctl) => buildNotifyDropdown(ctl, notifier, appModel),
         {...defaultMenuOptions, placement: 'bottom-end'});
     },
+    hoverTooltip('Notifications', {key: 'topBarBtnTooltip'}),
     testId('menu-btn'),
   );
 }

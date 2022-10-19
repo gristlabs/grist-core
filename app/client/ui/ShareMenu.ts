@@ -2,8 +2,10 @@ import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
+import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
@@ -91,6 +93,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
     return cssHoverCircle({ style: `margin: 5px;` },
       cssTopBarBtn('Share', dom.cls('tour-share-icon')),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
+      hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
       testId('tb-share'),
     );
   } else if (options.buttonAction) {
@@ -103,6 +106,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
       cssShareCircle(
         cssShareIcon('Share'),
         menu(menuCreateFunc, {placement: 'bottom-end'}),
+        hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
         testId('tb-share'),
       ),
     );
@@ -115,6 +119,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
         cssShareIcon('Share')
       ),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
+      hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
       testId('tb-share'),
     );
   }
@@ -198,7 +203,13 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
 
   return [
     menuItem(makeUnsavedCopy, 'Work on a Copy', testId('work-on-copy')),
-    menuText('Edit without affecting the original'),
+    menuText(
+      withInfoTooltip(
+        'Edit without affecting the original',
+        GristTooltips.workOnACopy(),
+        {tooltipMenuOptions: {attach: null}}
+      )
+    ),
   ];
 }
 
