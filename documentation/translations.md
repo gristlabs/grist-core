@@ -20,36 +20,45 @@ default language _en_ (https://www.i18next.com/principles/translation-resolution
 
 All language variants (e.g., _fr-FR_, _pl-PL_, _en-UK_) are supported if Grist can find a main
 language resource file. For example, to support a _fr-FR_ language code, Grist expects to have at
-least _fr.core.json_ file. The main language file will be used as a default fallback for all French
+least _fr.client.json_ file. The main language file will be used as a default fallback for all French
 language codes like _fr-FR_ or _fr-CA_, in case there is no resource file for a specif variant (like
-`fr-CA.core.json`) or some keys are missing from the variant file.
+`fr-CA.client.json`) or some keys are missing from the variant file.
 
-Here is an example of a language resource file `en.core.json` currently used by Grist:
+Here is an example of a language resource file `en.client.json` currently used by Grist:
 
 ```json
 {
-  "Welcome": "Welcome to Grist!",
-  "Loading": "Loading",
-  "AddNew": "Add New",
-  "OtherSites": "Other Sites",
-  "OtherSitesWelcome": "Your are on {{siteName}}. You also have access to the following sites:",
-  "OtherSitesWelcome_personal": "Your are on your personal site. You also have access to the following sites:",
-  "AllDocuments": "All Documents",
-  "ExamplesAndTemplates": "Examples and Templates",
-  "MoreExamplesAndTemplates": "More Examples and Templates"
+  "AddNewButton": {
+    "AddNew": "Add New"
+  },
+  "DocMenu": {
+    "OtherSites": "Other Sites",
+    "OtherSitesWelcome": "You are on the {{siteName}} site. You also have access to the following sites:",
+    "OtherSitesWelcome_personal": "You are on your personal site. You also have access to the following sites:",
+    "AllDocuments": "All Documents",
+    "ExamplesAndTemplates": "Examples and Templates",
+    "MoreExamplesAndTemplates": "More Examples and Templates"
+  },
+  "HomeIntro": {
+    "Welcome": "Welcome to Grist!",
+    "SignUp": "Sign up"
+  }
 }
 ```
 
 It maps a key to a translated message. It also has an example of interpolation and context features
-in the `OtherSitesWelcome` resource key. More information about how to use those features can be
+in the `DocMenu.OtherSitesWelcome` resource key. More information about how to use those features can be
 found at https://www.i18next.com/translation-function/interpolation and
 https://www.i18next.com/translation-function/context.
 
-Both client and server code (node.js) use the same resource files. A resource file name format
-follows a pattern: [language code].[product].json (i.e. `pl-Pl.core.json`, `en-US.core.json`,
-`en.core.json`). Grist can be packaged as several different products, and each product can have its
+Client and server code (node.js) use separate resource files. A resource file name format
+follows a pattern: [language code].[product].json (e.g. `pl-Pl.client.json`, `en-US.client.json`,
+`en.client.json`). Grist can be packaged as several different products, and each product can have its
 own translation files that are added to the core. Products are supported by leveraging `i18next`
 feature called `namespaces` https://www.i18next.com/principles/namespaces.
+
+For now we use only two products called `client` and `server`.
+Each of them is then organized by filename, in order to avoid conflicts.
 
 ## Translation instruction
 
@@ -58,7 +67,7 @@ feature called `namespaces` https://www.i18next.com/principles/namespaces.
 The entry point for all translations is a function exported from 'app/client/lib/localization'.
 
 ```ts
-import { t } from 'app/client/lib/localization';
+import {t} from 'app/client/lib/localization';
 ```
 
 It is a wrapper around `i18next` exported method with the same interface
@@ -71,7 +80,7 @@ _app/client/ui.DocMenu.ts_
 
 ```ts
   css.otherSitesHeader(
-    t('OtherSites'),
+    t('DocMenu.OtherSites'),
     .....
   ),
   dom.maybe((use) => !use(hideOtherSitesObs), () => {
@@ -79,7 +88,7 @@ _app/client/ui.DocMenu.ts_
     const siteName = home.app.currentOrgName;
     return [
       dom('div',
-        t('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
+        t('DocMenu.OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
         testId('other-sites-message')
 ```
 
@@ -87,9 +96,9 @@ _app/client/ui/HomeIntro.ts_
 
 ```ts
 function makeAnonIntro(homeModel: HomeModel) {
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('SignUp'));
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('HomeIntro.SignUp'));
   return [
-    css.docListHeader(t('Welcome'), testId('welcome-title')),
+    css.docListHeader(t('HomeIntro.Welcome'), testId('welcome-title')),
 ```
 
 Some things are not supported at this moment and will need to be addressed in future development
@@ -124,7 +133,7 @@ _app/server/lib/sendAppPage.ts_
 function getPageTitle(req: express.Request, config: GristLoadConfig): string {
   const maybeDoc = getDocFromConfig(config);
   if (!maybeDoc) {
-    return req.t('Loading') + '...';
+    return req.t('sendAppPage.Loading') + '...';
   }
 
   return handlebars.Utils.escapeExpression(maybeDoc.name);
@@ -133,8 +142,8 @@ function getPageTitle(req: express.Request, config: GristLoadConfig): string {
 
 ### Next steps
 
-- Annotate all client code and create all resource files in `en.core.json` file. Almost all static
-  text is ready for translation.
+- Annotate all client code and create all resource files in `en.client.json` and `en.server.json` files.
+  Almost all static text is ready for translation.
 - Store language settings with the user profile and allow a user to change it on the Account Page.
   Consider also adding a cookie-based solution that custom widgets can use, or extend the
   **WidgetFrame** component so that it can pass current user language to the hosted widget page.

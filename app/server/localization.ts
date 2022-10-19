@@ -26,8 +26,8 @@ export function setupLocale(appRoot: string): i18n {
     supportedNamespaces.add(namespace);
     return lang;
   }).filter((lang) => lang));
-  if (!supportedLngs.has('en') || !supportedNamespaces.has('core')) {
-    throw new Error("Missing core English language file");
+  if (!supportedLngs.has('en') || !supportedNamespaces.has('server')) {
+    throw new Error("Missing server English language file");
   }
   // Initialize localization filesystem plugin that will read the locale files from the localeDir.
   instance.use(i18fsBackend);
@@ -40,7 +40,7 @@ export function setupLocale(appRoot: string): i18n {
     initImmediate: false,
     preload: [...supportedLngs],
     supportedLngs: [...supportedLngs],
-    defaultNS: 'core',
+    defaultNS: 'server',
     ns: [...supportedNamespaces],
     fallbackLng: 'en',
     backend: {
@@ -71,5 +71,5 @@ export function readLoadedNamespaces(instance?: i18n): readonly string[] {
   if (Array.isArray(instance?.options.ns)) {
     return instance.options.ns;
   }
-  return instance?.options.ns ? [instance.options.ns as string] : ['core'];
+  return instance?.options.ns ? [instance.options.ns as string] : ['server'];
 }
