@@ -10,8 +10,22 @@ export const NewRecord = t.iface([], {
   })),
 });
 
+export const NewRecordWithStringId = t.iface([], {
+  "id": t.opt("string"),
+  "fields": t.opt(t.iface([], {
+    [t.indexKey]: "CellValue",
+  })),
+});
+
 export const Record = t.iface([], {
   "id": "number",
+  "fields": t.iface([], {
+    [t.indexKey]: "CellValue",
+  }),
+});
+
+export const RecordWithStringId = t.iface([], {
+  "id": "string",
   "fields": t.iface([], {
     [t.indexKey]: "CellValue",
   }),
@@ -46,14 +60,41 @@ export const MinimalRecord = t.iface([], {
   "id": "number",
 });
 
+export const ColumnsPost = t.iface([], {
+  "columns": t.tuple("NewRecordWithStringId", t.rest(t.array("NewRecordWithStringId"))),
+});
+
+export const ColumnsPatch = t.iface([], {
+  "columns": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
+});
+
+export const TablePost = t.iface(["ColumnsPost"], {
+  "id": t.opt("string"),
+});
+
+export const TablesPost = t.iface([], {
+  "tables": t.tuple("TablePost", t.rest(t.array("TablePost"))),
+});
+
+export const TablesPatch = t.iface([], {
+  "tables": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   NewRecord,
+  NewRecordWithStringId,
   Record,
+  RecordWithStringId,
   AddOrUpdateRecord,
   RecordsPatch,
   RecordsPost,
   RecordsPut,
   RecordId,
   MinimalRecord,
+  ColumnsPost,
+  ColumnsPatch,
+  TablePost,
+  TablesPost,
+  TablesPatch,
 };
 export default exportedTypeSuite;

@@ -32,7 +32,7 @@ import {DocManager} from "app/server/lib/DocManager";
 import {docSessionFromRequest, makeExceptionalDocSession, OptDocSession} from "app/server/lib/DocSession";
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
-import {parseExportParameters, DownloadOptions} from "app/server/lib/Export";
+import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV} from "app/server/lib/ExportCSV";
 import {downloadXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -84,10 +84,15 @@ const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
 type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
 
 // Schema validators for api endpoints that creates or updates records.
-const {RecordsPatch, RecordsPost, RecordsPut} = t.createCheckers(DocApiTypesTI, GristDataTI);
-RecordsPatch.setReportedPath("body");
-RecordsPost.setReportedPath("body");
-RecordsPut.setReportedPath("body");
+const {
+  RecordsPatch, RecordsPost, RecordsPut,
+  ColumnsPost, ColumnsPatch,
+  TablesPost, TablesPatch,
+} = t.createCheckers(DocApiTypesTI, GristDataTI);
+
+for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch, TablesPost, TablesPatch]) {
+  checker.setReportedPath("body");
+}
 
 /**
  * Middleware for validating request's body with a Checker instance.
@@ -223,6 +228,21 @@ export class DocWorkerApi {
       })
     );
 
+    // Get the tables of the specified document in recordish format
+    this._app.get('/api/docs/:docId/tables', canView,
+      withDoc(async (activeDoc, req, res) => {
+        const records = await getTableRecords(activeDoc, req, "_grist_Tables");
+        const tables = records.map((record) => ({
+          id: record.fields.tableId,
+          fields: {
+            ..._.omit(record.fields, "tableId"),
+            tableRef: record.id,
+          }
+        })).filter(({id}) => id);
+        res.json({tables});
+      })
+    );
+
     // The upload should be a multipart post with an 'upload' field containing one or more files.
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
     this._app.post('/api/docs/:docId/attachments', canEdit, withDoc(async (activeDoc, req, res) => {
@@ -328,6 +348,40 @@ export class DocWorkerApi {
       })
     );
 
+    // Create columns in a table, given as records of the _grist_Tables_column metatable.
+    this._app.post('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPost),
+      withDoc(async (activeDoc, req, res) => {
+        const body = req.body as Types.ColumnsPost;
+        const {tableId} = req.params;
+        const actions = body.columns.map(({fields, id: colId}) =>
+          // AddVisibleColumn adds the column to all widgets of the table.
+          // This isn't necessarily what the user wants, but it seems like a good default.
+          // Maybe there should be a query param to control this?
+          ["AddVisibleColumn", tableId, colId, fields || {}]
+        );
+        const {retValues} = await handleSandboxError(tableId, [],
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+        );
+        const columns = retValues.map(({colId}) => ({id: colId}));
+        res.json({columns});
+      })
+    );
+
+    // Create new tables in a doc. Unlike POST /records or /columns, each 'record' (table) should have a `columns`
+    // property in the same format as POST /columns above, and no `fields` property.
+    this._app.post('/api/docs/:docId/tables', canEdit, validate(TablesPost),
+      withDoc(async (activeDoc, req, res) => {
+        const body = req.body as Types.TablesPost;
+        const actions = body.tables.map(({columns, id}) => {
+          const colInfos = columns.map(({fields, id: colId}) => ({...fields, id: colId}));
+          return ["AddTable", id, colInfos];
+        });
+        const {retValues} = await activeDoc.applyUserActions(docSessionFromRequest(req), actions);
+        const tables = retValues.map(({table_id}) => ({id: table_id}));
+        res.json({tables});
+      })
+    );
+
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
       const rowIds = req.body;
       const op = getTableOperations(req, activeDoc);
@@ -405,6 +459,48 @@ export class DocWorkerApi {
         const body = req.body as Types.RecordsPatch;
         const ops = getTableOperations(req, activeDoc);
         await ops.update(body.records);
+        res.json(null);
+      })
+    );
+
+    // Update columns given in records format
+    this._app.patch('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPatch),
+      withDoc(async (activeDoc, req, res) => {
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
+        const {tableId} = req.params;
+        const tableRef = tablesTable.findMatchingRowId({tableId});
+        if (!tableRef) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+        const body = req.body as Types.ColumnsPatch;
+        const columns: Types.Record[] = body.columns.map((col) => {
+          const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
+          if (!id) {
+            throw new ApiError(`Column not found "${col.id}"`, 404);
+          }
+          return {...col, id};
+        });
+        const ops = getTableOperations(req, activeDoc, "_grist_Tables_column");
+        await ops.update(columns);
+        res.json(null);
+      })
+    );
+
+    // Update tables given in records format
+    this._app.patch('/api/docs/:docId/tables', canEdit, validate(TablesPatch),
+      withDoc(async (activeDoc, req, res) => {
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const body = req.body as Types.TablesPatch;
+        const tables: Types.Record[] = body.tables.map((table) => {
+          const id = tablesTable.findMatchingRowId({tableId: table.id});
+          if (!id) {
+            throw new ApiError(`Table not found "${table.id}"`, 404);
+          }
+          return {...table, id};
+        });
+        const ops = getTableOperations(req, activeDoc, "_grist_Tables");
+        await ops.update(tables);
         res.json(null);
       })
     );
@@ -1198,12 +1294,12 @@ function getErrorPlatform(tableId: string): TableOperationsPlatform {
   };
 }
 
-function getTableOperations(req: RequestWithLogin, activeDoc: ActiveDoc): TableOperationsImpl {
+function getTableOperations(req: RequestWithLogin, activeDoc: ActiveDoc, tableId?: string): TableOperationsImpl {
   const options: OpOptions = {
     parseStrings: !isAffirmative(req.query.noparse)
   };
   const platform: TableOperationsPlatform = {
-    ...getErrorPlatform(req.params.tableId),
+    ...getErrorPlatform(tableId ?? req.params.tableId),
     applyUserActions(actions, opts) {
       if (!activeDoc) { throw new Error('no document'); }
       return activeDoc.applyUserActions(

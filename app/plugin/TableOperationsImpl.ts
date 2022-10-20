@@ -199,7 +199,9 @@ export async function handleSandboxErrorOnPlatform<T>(
       if (match) {
         platform.throwError('', `Invalid row id ${match[1]}`, 400);
       }
-      match = message.match(/\[Sandbox] KeyError u?'(?:Table \w+ has no column )?(\w+)'/);
+      match = message.match(
+        /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: )(\w+)/
+      );
       if (match) {
         if (match[1] === tableId) {
           platform.throwError('', `Table not found "${tableId}"`, 404);
