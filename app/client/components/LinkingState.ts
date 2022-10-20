@@ -107,9 +107,8 @@ export class LinkingState extends Disposable {
       this.filterColValues = this.autoDispose(ko.computed(() => _filterColValues()));
 
       // source data table could still be loading (this could happen after changing the group by
-      // columns of a linked summary table for instance), hence the below listeners.
+      // columns of a linked summary table for instance), hence the below listener.
       this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
-      this.autoDispose(srcTableData.tableActionEmitter.addListener(_update));
 
       _update();
       function _update() {
