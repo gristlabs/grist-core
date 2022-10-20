@@ -55,10 +55,13 @@ describe("Localization", function() {
   describe("with Polish language file", function() {
     let oldEnv: testUtils.EnvironmentSnapshot;
     let tempLocale: string;
+    let existingLocales: string[];
     before(async function() {
       if (server.isExternalServer()) {
         this.skip();
       }
+      const gristConfig: any = await driver.executeScript("return window.gristConfig");
+      existingLocales = gristConfig.supportedLngs, ['en', 'fr', 'pl'];
       oldEnv = new testUtils.EnvironmentSnapshot();
       // Add another language to the list of supported languages.
       tempLocale = makeCopy();
@@ -113,7 +116,7 @@ describe("Localization", function() {
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
-      assert.deepEqual(gristConfig.supportedLngs, ['en', 'pl']);
+      assert.deepEqual(gristConfig.supportedLngs, [...existingLocales, 'pl']);
     });
   });
 
@@ -144,8 +147,10 @@ describe("Localization", function() {
    */
   function createLanguage(localesPath: string, code: string) {
     for (const file of fs.readdirSync(localesPath)) {
-      const newFile = file.replace('en', code);
-      fs.copyFileSync(path.join(localesPath, file), path.join(localesPath, newFile));
+      if (file.startsWith('en.')) {
+        const newFile = file.replace('en', code);
+        fs.copyFileSync(path.join(localesPath, file), path.join(localesPath, newFile));
+      }
     }
   }
 
