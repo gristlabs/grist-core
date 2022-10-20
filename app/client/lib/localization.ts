@@ -80,11 +80,15 @@ export function tString(key: string, args?: any, instance = i18next): string {
   return instance.t(key, args);
 }
 
+// We will try to infer result from the arguments passed to `t` function.
+// For plain objects we expect string as a result. If any property doesn't look as a plain value
+// we assume that it might be a dom node and the result is DomContents.
+type InferResult<T> = T extends Record<string, string | number | boolean>|undefined|null ? string : DomContents;
 
 /**
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
- export function t(key: string, args?: any, instance = i18next): DomContents {
+ export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
   if (!instance.exists(key, args || undefined)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
@@ -92,7 +96,7 @@ export function tString(key: string, args?: any, instance = i18next): string {
   // If there are any DomElements in args, handle it with missingInterpolationHandler.
   const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
   if (!args || !domElements.length) {
-    return instance.t(key, args || undefined) as string;
+    return instance.t(key, args || undefined) as any;
   } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
@@ -110,7 +114,7 @@ export function tString(key: string, args?: any, instance = i18next): string {
       const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
       parts[i] = domElement;
     }
-    return parts;
+    return parts.filter(p => p !== '') as any; // Remove empty parts.
   }
 }
 
@@ -134,4 +138,13 @@ function isLikeDomContents(value: any): boolean {
   return value instanceof G.Node || // Node
     (Array.isArray(value) && isLikeDomContents(value[0])) || // DomComputed
     typeof value === 'function'; // DomMethod
+}
+
+/**
+ * Helper function to create scoped t function.
+ */
+export function makeT(scope: string) {
+  return function<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next) {
+    return t(`${scope}.${key}`, args, instance);
+  }
 }

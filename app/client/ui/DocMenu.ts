@@ -29,12 +29,12 @@ import {Document, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, dom, DomArg, DomContents, IDisposableOwner,
         makeTestId, observable, Observable} from 'grainjs';
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
-import {t} from 'app/client/lib/localization';
+import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 import sortBy = require('lodash/sortBy');
 
-const translate = (x: string, args?: any) => t(`DocMenu.${x}`, args);
+const translate = makeT(`DocMenu`);
 
 const testId = makeTestId('test-dm-');
 
