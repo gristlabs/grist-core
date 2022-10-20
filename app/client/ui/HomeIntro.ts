@@ -1,4 +1,4 @@
-import {t} from 'app/client/lib/localization';
+import {makeT} from 'app/client/lib/localization';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
@@ -14,7 +14,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomContents, styled} from 'grainjs';
 
-const translate = (x: string, args?: any): string => t(`HomeIntro.${x}`, args);
+const translate = makeT('HomeIntro');
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.app.currentOrg?.access === roles.VIEWER;
@@ -103,7 +103,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
     css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
     cssIntroLine('Get started by creating your first Grist document.'),
     (shouldHideUiElement('helpCenter') ? null :
-      cssIntroLine('Visit our ', helpCenterLink(), ' to learn more.',
+      cssIntroLine(translate('VisitHelpCenter', { link: helpCenterLink() }),
         testId('welcome-text'))
     ),
     makeCreateButtons(homeModel),
@@ -115,8 +115,8 @@ function makeAnonIntro(homeModel: HomeModel) {
   return [
     css.docListHeader(translate('Welcome'), testId('welcome-title')),
     cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
-    cssIntroLine(signUp, ' to save your work.',
-      (shouldHideUiElement('helpCenter') ? null : [' Visit our ', helpCenterLink(), ' to learn more.']),
+    cssIntroLine(signUp, ' to save your work. ',
+      (shouldHideUiElement('helpCenter') ? null : translate('VisitHelpCenter', { link: helpCenterLink() })),
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];

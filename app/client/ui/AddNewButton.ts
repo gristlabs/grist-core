@@ -1,9 +1,9 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
+import {makeT} from 'app/client/lib/localization';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
-import {t} from 'app/client/lib/localization';
 
-const translate = (x: string, args?: any): string => t(`AddNewButton.${x}`, args);
+const translate = makeT(`AddNewButton`);
 
 export function addNewButton(isOpen: Observable<boolean> | boolean = true, ...args: DomElementArg[]) {
   return cssAddNewButton(
