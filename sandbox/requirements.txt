@@ -7,6 +7,7 @@ chardet==4.0.0
 enum34==1.1.10
 iso8601==0.1.12
 lazy_object_proxy==1.6.0
+phonenumberslite==8.12.57
 python_dateutil==2.8.2
 roman==2.0.0
 singledispatch==3.6.2

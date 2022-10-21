@@ -5,8 +5,9 @@ import numbers
 import re
 
 import dateutil.parser
+import phonenumbers
 import six
-from six import unichr
+from six import unichr         # pylint: disable=redefined-builtin
 from six.moves import xrange
 
 from usertypes import AltText  # pylint: disable=import-error
@@ -77,7 +78,7 @@ def CONCATENATE(string, *more_strings):
   >>> assert CONCATENATE(2,  " crème ",  "brûlée") == u'2 crème brûlée'
   """
   return u''.join(
-    val.decode('utf8') if isinstance(val, six.binary_type) else
+    val.decode('utf8') if isinstance(val, six.binary_type) else   # pylint:disable=no-member
     six.text_type(val)
     for val in (string,) + more_strings
   )
@@ -99,7 +100,6 @@ def CONCAT(string, *more_strings):
   >>> assert CONCAT(2, u" crème ", u"brûlée") == u'2 crème brûlée'
   """
   return CONCATENATE(string, *more_strings)
-
 
 def DOLLAR(number, decimals=2):
   """
@@ -265,6 +265,103 @@ def MID(text, start_num, num_chars):
   if start_num < 1:
     raise ValueError("start_num invalid")
   return text[start_num - 1 : start_num - 1 + num_chars]
+
+
+output_formats = {
+    "+":        phonenumbers.PhoneNumberFormat.INTERNATIONAL,
+    "INTL":     phonenumbers.PhoneNumberFormat.INTERNATIONAL,
+    "#":        phonenumbers.PhoneNumberFormat.NATIONAL,
+    "NATL":     phonenumbers.PhoneNumberFormat.NATIONAL,
+    "*":        phonenumbers.PhoneNumberFormat.E164,
+    "E164":     phonenumbers.PhoneNumberFormat.E164,
+    "tel":      phonenumbers.PhoneNumberFormat.RFC3966,
+    "RFC3966":  phonenumbers.PhoneNumberFormat.RFC3966,
+}
+
+def PHONE_FORMAT(value, country=None, format=None):  # pylint: disable=redefined-builtin
+  """
+  Formats a phone number.
+
+  With no optional arguments, the number must start with "+" and the international dialing prefix,
+  and will be formatted as an international number, e.g. `+12345678901` becomes `+1 234-567-8901`.
+
+  The `country` argument allows specifying a 2-letter country code (e.g. "US" or "GB") for
+  interpreting phone numbers that don't start with "+". E.g. `PHONE_FORMAT('2025555555', 'US')`
+  would be seen as a US number and formatted as "(202) 555-5555". Phone numbers that start with
+  "+" ignore `country`. E.g. `PHONE_FORMAT('+33555555555', 'US')` is a French number because '+33'
+  is the international prefix for France.
+
+  The `format` argument specifies the output format, according to this table:
+
+    - `"#"` or `"NATL"` (default) - use the national format, without the international dialing
+      prefix, when possible. E.g. `(234) 567-8901` for "US", or `02 34 56 78 90` for "FR". If
+      `country` is omitted, or the number does not correspond to the given country, the
+      international format is used instead.
+    - `"+"` or `"INTL"` - international format, e.g. `+1 234-567-8901` or
+      `+33 2 34 56 78 90`.
+    - `"*"` or `"E164"` - E164 format, like international but with no separators, e.g.
+      `+12345678901`.
+    - `"tel"` or `"RFC3966"` - format suitable to use as a [hyperlink](col-types.md#hyperlinks),
+      e.g. 'tel:+1-234-567-8901'.
+
+  When specifying the `format` argument, you may omit the `country` argument. I.e.
+  `PHONE_FORMAT(value, "tel")` is equivalent to `PHONE_FORMAT(value, None, "tel")`.
+
+  For more details, see the [phonenumbers](https://github.com/daviddrysdale/python-phonenumbers)
+  Python library, which underlies this function.
+
+  >>> PHONE_FORMAT("+12345678901")
+  u'+1 234-567-8901'
+  >>> PHONE_FORMAT("2345678901", "US")
+  u'(234) 567-8901'
+  >>> PHONE_FORMAT("2345678901", "GB")
+  u'023 4567 8901'
+  >>> PHONE_FORMAT("2345678901", "GB", "+")
+  u'+44 23 4567 8901'
+  >>> PHONE_FORMAT("+442345678901", "GB")
+  u'023 4567 8901'
+  >>> PHONE_FORMAT("+12345678901", "GB")
+  u'+1 234-567-8901'
+  >>> PHONE_FORMAT("(234) 567-8901")    # doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  ...
+  NumberParseException: (0) Missing or invalid default region.
+  >>> PHONE_FORMAT("(234)567 89-01", "US", "tel")
+  u'tel:+1-234-567-8901'
+  >>> PHONE_FORMAT("2/3456/7890", "FR", '#')
+  u'02 34 56 78 90'
+  >>> PHONE_FORMAT("+33234567890", '#')
+  u'+33 2 34 56 78 90'
+  >>> PHONE_FORMAT("+33234567890", 'tel')
+  u'tel:+33-2-34-56-78-90'
+  >>> PHONE_FORMAT("tel:+1-234-567-8901", country="US", format="*")
+  u'+12345678901'
+  """
+  if not value:
+    return value
+  if format is None and country in output_formats:
+    format = country
+    country = None
+  parsed = phonenumbers.parse(str(value), country)
+  out_fmt = output_formats.get(format or "#")
+  if out_fmt is None:
+    raise ValueError("Unrecognized phone format; try +, INTL, #, NATL, *, E164, tel, or RFC3966")
+
+  if out_fmt == phonenumbers.PhoneNumberFormat.NATIONAL and not country:
+    # With no country, we lose info in NATIONAL format (because numbers must be specified with an
+    # international prefix, and the output would discard it). Use INTERNATIONAL instead.
+    out_fmt = phonenumbers.PhoneNumberFormat.INTERNATIONAL
+
+  result = phonenumbers.format_number(parsed, out_fmt)
+
+  # If using a national format with a country, check that we don't garble numbers with a different
+  # international prefix. If so, use an international format. E.g. for
+  # PHONE_FORMAT('+12345678901', 'FR'), the output should include the US dialing prefix.
+  if (out_fmt == phonenumbers.PhoneNumberFormat.NATIONAL and country and
+      phonenumbers.parse(result, country) != parsed):
+    result = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+
+  return result
 
 
 def PROPER(text):
@@ -541,7 +638,7 @@ def T(value):
 
 
 @unimplemented
-def TEXT(number, format_type):
+def TEXT(number, format_type):    # pylint: disable=unused-argument
   """
   Converts a number into text according to a specified format. It is not yet implemented in
   Grist.
