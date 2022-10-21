@@ -110,6 +110,7 @@ declare module "app/client/components/ViewConfigTab" {
 declare module "app/client/components/commands" {
   export class Command {
     public name: string;
+    public deprecated: boolean;
     public desc: string;
     public humanKeys: string[];
     public keys: string[];

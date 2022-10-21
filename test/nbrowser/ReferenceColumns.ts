@@ -5,7 +5,6 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('ReferenceColumns', function() {
   this.timeout(20000);
-  setupTestSuite();
   let session: Session;
   const cleanup = setupTestSuite({team: true});
 
@@ -543,7 +542,8 @@ describe('ReferenceColumns', function() {
 
       // Delete a row.
       await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
-      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), '-'));
+      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+      await gu.confirm(true, true);
       await gu.waitForServer();
 
       // See that the value is gone from the autocomplete.
@@ -554,7 +554,7 @@ describe('ReferenceColumns', function() {
 
       // Add a row.
       await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
-      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), '='));
+      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
       await driver.sendKeys('HELIOTROPE', Key.ENTER);
       await gu.waitForServer();

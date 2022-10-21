@@ -412,6 +412,30 @@ export async function getGridRowCount(): Promise<number> {
 }
 
 /**
+ * Returns the total row count in the card list that is the active section by scrolling to the bottom
+ * and examining the last row number. The count includes the special "Add Row".
+ */
+export async function getCardListCount(): Promise<number> {
+  await sendKeys(Key.chord(await modKey(), Key.DOWN));
+  const rowNum = await driver.find('.active.detailview_record_detail .detail_row_num').getText();
+  return parseInt(rowNum, 10);
+}
+
+/**
+ * Returns the total row count in the card widget that is the active section by looking
+ * at the displayed count in the section header. The count includes the special "Add Row".
+ */
+export async function getCardCount(): Promise<number> {
+  const section = await driver.findWait('.active_section', 4000);
+  const counter = await section.findAll(".grist-single-record__menu__count");
+  if (counter.length) {
+    const cardRow = (await counter[0].getText()).split(' OF ')[1];
+    return  parseInt(cardRow) + 1;
+  }
+  return 1;
+}
+
+/**
  * Return the .column-name element for the specified column, which may be specified by full name
  * or index, and may include a section (or will use the active section by default).
  */
@@ -854,6 +878,22 @@ export async function sendActions(actions: UserAction[]) {
     gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
   `);
   await waitForServer();
+}
+
+/**
+ * Confirms dialog for removing rows. In the future, can be used for other dialogs.
+ */
+export async function confirm(save = true, remember = false) {
+  if (await driver.find(".test-confirm-save").isPresent()) {
+    if (remember) {
+      await driver.find(".test-confirm-remember").click();
+    }
+    if (save) {
+      await driver.find(".test-confirm-save").click();
+    } else {
+      await driver.find(".test-confirm-cancel").click();
+    }
+  }
 }
 
 /**
@@ -2469,6 +2509,15 @@ export async function scrollActiveView(x: number, y: number) {
                  document.querySelector(".active_section .detailview_scroll_pane");
     view!.scrollBy(x1, y1);
   }, x, y);
+  await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
+}
+
+export async function scrollActiveViewTop() {
+  await driver.executeScript(function() {
+    const view = document.querySelector(".active_section .grid_view_data") ||
+                 document.querySelector(".active_section .detailview_scroll_pane");
+    view!.scrollTop = 0;
+  });
   await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
 }
 

@@ -60,6 +60,10 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       return cssToastAction('Ask for help',
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true, errors})));
     }
+
+    default:
+      return cssToastAction(action.label, testId('toast-custom-action'),
+        dom.on('click', action.action));
   }
 }
 

@@ -6,6 +6,7 @@ import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/but
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
+import {IOpenController, IPopupDomCreator, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
 
@@ -468,7 +469,39 @@ export function cssModalWidth(style: ModalWidth) {
   return cssModalDialog.cls('-' + style);
 }
 
+/**
+ * Shows a little modal as a tooltip.
+ *
+ * Example:
+ * dom.on('click', (_, element) => modalTooltip(element, (ctl) => {
+ *  return dom('div', 'Hello world', dom.on('click', () => ctl.close()));
+ * }))
+ */
+export function modalTooltip(
+  reference: Element,
+  domCreator: IPopupDomCreator,
+  options: IPopupOptions = {}
+): PopupControl {
+  return popupOpen(reference, (ctl: IOpenController) => {
+    const element = cssModalTooltip(
+      domCreator(ctl)
+    );
+    return element;
+  }, options);
+}
+
 /* CSS styled components */
+
+const cssModalTooltip = styled('div', `
+  padding: 16px;
+  background: ${theme.modalBg};
+  border-radius: 3px;
+  box-shadow: 0 2px 18px 0 ${theme.modalInnerShadow}, 0 0 1px 0 ${theme.modalOuterShadow};
+  outline: none;
+  & > div {
+    outline: none;
+  }
+`);
 
 // For centering, we use 'margin: auto' on the flex item instead of 'justify-content: center' on
 // the flex container, to ensure the full item can be scrolled in case of overflow.

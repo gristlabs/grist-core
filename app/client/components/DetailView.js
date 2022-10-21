@@ -1,18 +1,18 @@
-var _             = require('underscore');
-var ko            = require('knockout');
+const _             = require('underscore');
+const ko            = require('knockout');
 
-var dom           = require('app/client/lib/dom');
-var kd            = require('app/client/lib/koDom');
-var koDomScrolly  = require('app/client/lib/koDomScrolly');
+const dom           = require('app/client/lib/dom');
+const kd            = require('app/client/lib/koDom');
+const koDomScrolly  = require('app/client/lib/koDomScrolly');
 const {renderAllRows} = require('app/client/components/Printing');
 
 require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
-var Base          = require('./Base');
-var BaseView      = require('./BaseView');
-var {CopySelection} = require('./CopySelection');
-var RecordLayout  = require('./RecordLayout');
-var commands      = require('./commands');
+const Base          = require('./Base');
+const BaseView      = require('./BaseView');
+const {CopySelection} = require('./CopySelection');
+const RecordLayout  = require('./RecordLayout');
+const commands      = require('./commands');
 const {RowContextMenu} = require('../ui/RowContextMenu');
 const {parsePasteForView} = require("./BaseView2");
 
@@ -122,14 +122,6 @@ DetailView.generalCommands = {
   cursorDown: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() + 1); },
   pageUp: function() { this.cursor.rowIndex(this.cursor.rowIndex() - 1); },
   pageDown: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
-
-  deleteRecords: function() {
-    // Do not allow deleting the add record row.
-    if (!this._isAddRow()) {
-      this.deleteRow(this.cursor.rowIndex());
-    }
-  },
-
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
   paste: function(pasteObj, cutCallback) {
@@ -146,18 +138,21 @@ DetailView.generalCommands = {
 
 //----------------------------------------------------------------------
 
-// TODO: Factor code duplicated with GridView for deleteRow, deleteColumn,
-// insertDetailField out of the view modules
 
-DetailView.prototype.deleteRow = function(index) {
-  if (this.viewSection.disableAddRemoveRows()) {
-    return;
+DetailView.prototype.selectedRows = function() {
+  if (!this._isAddRow()) {
+    return [this.viewData.getRowId(this.cursor.rowIndex())];
   }
-  var action = ['RemoveRecord', this.viewData.getRowId(index)];
-  return this.tableModel.sendTableAction(action)
-  .bind(this).then(function() {
+  return [];
+};
+
+DetailView.prototype.deleteRows = async function(rowIds) {
+ const index = this.cursor.rowIndex();
+  try {
+    await BaseView.prototype.deleteRows.call(this, rowIds);
+  } finally {
     this.cursor.rowIndex(index);
-  });
+  }
 };
 
 /**

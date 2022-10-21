@@ -154,8 +154,7 @@ describe('ReferenceList', function() {
 
       // Now delete the row containing Avatar.
       await gu.getCell('Title', 4, 'Films record').doClick();
-      await gu.sendKeys(Key.chord(await gu.modKey(), '-'));
-      await gu.waitForServer();
+      await gu.removeRow(4);
 
       // Check that all references to Avatar are deleted.
       assert.deepEqual(
@@ -840,8 +839,7 @@ describe('ReferenceList', function() {
 
       // Delete a row.
       await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
-      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), '-'));
-      await gu.waitForServer();
+      await gu.removeRow(1);
 
       // See that the value is gone from the autocomplete.
       await cell.click();
@@ -851,7 +849,7 @@ describe('ReferenceList', function() {
 
       // Add a row.
       await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
-      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), '='));
+      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
       await driver.sendKeys('HELIOTROPE', Key.ENTER);
       await gu.waitForServer();

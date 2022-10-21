@@ -26,7 +26,7 @@ interface INotifier {
   getFullAppErrors(): IAppError[];
 }
 
-interface INotification extends Expirable {
+export interface INotification extends Expirable {
   expire(): Promise<void>;
 }
 
@@ -34,11 +34,19 @@ export interface IProgress extends Expirable {
   setProgress(percent: number): void;
 }
 
+/**
+ * Custom action to be shown as a notification with a handler.
+ */
+export interface CustomAction { label: string, action: () => void }
+/**
+ * A string, or a function that builds dom.
+ */
+export type MessageType = string | (() => DomElementArg);
 // Identifies supported actions. These are implemented in NotifyUI.
-export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem' | 'ask-for-help';
+export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem' | 'ask-for-help' | CustomAction;
 
 export interface INotifyOptions {
-  message: string | (() => DomElementArg);     // A string, or a function that builds dom.
+  message: MessageType;     // A string, or a function that builds dom.
   timestamp?: number;
   title?: string;
   canUserClose?: boolean;
@@ -224,7 +232,7 @@ export class Notifier extends Disposable implements INotifier {
    * Additional option level, can be used to style the notification to like a success, warning,
    * info or error message.
    */
-  public createUserMessage(message: string, options: Partial<INotifyOptions> = {}): INotification {
+  public createUserMessage(message: MessageType, options: Partial<INotifyOptions> = {}): INotification {
     const timestamp = Date.now();
     if (options.actions && options.actions.includes('ask-for-help')) {
       // If user should be able to ask for help, add this error to the notifier dropdown too for a

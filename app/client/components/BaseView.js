@@ -1,21 +1,23 @@
-var _ = require('underscore');
-var ko = require('knockout');
-var moment = require('moment-timezone');
-var {getSelectionDesc} = require('app/common/DocActions');
-var {nativeCompare, roundDownToMultiple, waitObs} = require('app/common/gutil');
-var gutil = require('app/common/gutil');
+/* globals KeyboardEvent */
+
+const _ = require('underscore');
+const ko = require('knockout');
+const moment = require('moment-timezone');
+const {getSelectionDesc} = require('app/common/DocActions');
+const {nativeCompare, roundDownToMultiple, waitObs} = require('app/common/gutil');
+const gutil = require('app/common/gutil');
 const MANUALSORT  = require('app/common/gristTypes').MANUALSORT;
-var gristTypes = require('app/common/gristTypes');
-var tableUtil = require('../lib/tableUtil');
-var {DataRowModel} = require('../models/DataRowModel');
-var {DynamicQuerySet} = require('../models/QuerySet');
-var {SortFunc} = require('app/common/SortFunc');
-var rowset = require('../models/rowset');
-var Base = require('./Base');
-var {Cursor} = require('./Cursor');
-var FieldBuilder = require('../widgets/FieldBuilder');
-var commands = require('./commands');
-var BackboneEvents = require('backbone').Events;
+const gristTypes = require('app/common/gristTypes');
+const tableUtil = require('../lib/tableUtil');
+const {DataRowModel} = require('../models/DataRowModel');
+const {DynamicQuerySet} = require('../models/QuerySet');
+const {SortFunc} = require('app/common/SortFunc');
+const rowset = require('../models/rowset');
+const Base = require('./Base');
+const {Cursor} = require('./Cursor');
+const FieldBuilder = require('../widgets/FieldBuilder');
+const commands = require('./commands');
+const BackboneEvents = require('backbone').Events;
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
 const {reportError, reportSuccess} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
@@ -26,7 +28,9 @@ const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {closeRegisteredMenu} = require('app/client/ui2018/menus');
 const {COMMENTS} = require('app/client/models/features');
-
+const {DismissedPopup} = require('app/common/Prefs');
+const {markAsSeen} = require('app/client/models/UserPrefs');
+const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -241,9 +245,46 @@ BaseView.commonCommands = {
 
   showRawData: function() { this.showRawData().catch(reportError); },
 
+  deleteRecords: function(source) { this.deleteRecords(source); },
+
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); },
   openDiscussion: function() { this.openDiscussionAtCursor(); },
+};
+
+BaseView.prototype.selectedRows = function() {
+  return [];
+};
+
+BaseView.prototype.deleteRows = function(rowIds) {
+  return this.tableModel.sendTableAction(['BulkRemoveRecord', rowIds]);
+};
+
+BaseView.prototype.deleteRecords = function(source) {
+  const rowIds = this.selectedRows();
+  if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0){
+    return;
+  }
+  const isKeyboard = source instanceof KeyboardEvent;
+  const popups = this.gristDoc.docPageModel.appModel.dismissedPopups;
+  const popupName = DismissedPopup.check('deleteRecords');
+  const onSave = async (remember) => {
+    if (remember) {
+      markAsSeen(popups, popupName);
+    }
+    return this.deleteRows(rowIds);
+  };
+  if (isKeyboard && !popups.get().includes(popupName)) {
+    // If we can't find it, use viewPane itself
+    this.scrollToCursor();
+    const selectedCell = this.viewPane.querySelector(".selected_cursor") || this.viewPane;
+    buildConfirmDelete(selectedCell, onSave, rowIds.length <= 1);
+  } else {
+    onSave().then(() => {
+      reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
+      return true;
+    });
+  }
 };
 
 /**

@@ -11,7 +11,7 @@ import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
-import {UserPrefs} from 'app/common/Prefs';
+import {DeprecationWarning, DismissedPopup, UserPrefs} from 'app/common/Prefs';
 import {isOwner} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
@@ -22,6 +22,7 @@ import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/comm
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
+// Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
 
 export type PageType = "doc" | "home" | "billing" | "welcome";
@@ -60,8 +61,10 @@ export interface TopAppModel {
   fetchUsersAndOrgs(): Promise<void>;
 }
 
-// AppModel is specific to the currently loaded organization and active user. It gets rebuilt when
-// we switch the current organization or the current user.
+/**
+ * AppModel is specific to the currently loaded organization and active user. It gets rebuilt when
+ * we switch the current organization or the current user.
+ */
 export interface AppModel {
   topAppModel: TopAppModel;
   api: UserAPI;
@@ -83,6 +86,14 @@ export interface AppModel {
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
   currentTheme: Computed<Theme>;
+  /**
+   * Popups that user has seen.
+   */
+  dismissedPopups: Observable<DismissedPopup[]>;
+  /**
+   * Deprecation messages that user has seen.
+   */
+  deprecatedWarnings: Observable<DeprecationWarning[]>;
 
   pageType: Observable<PageType>;
 
@@ -221,6 +232,12 @@ export class AppModelImpl extends Disposable implements AppModel {
     checker: ThemePrefsChecker,
   }) as Observable<ThemePrefs>;
   public readonly currentTheme = this._getCurrentThemeObs();
+
+  public readonly dismissedPopups =
+    getUserPrefObs(this.userPrefsObs, 'dismissedPopups', { defaultValue: [] }) as Observable<DismissedPopup[]>;
+  public readonly deprecatedWarnings = getUserPrefObs(this.userPrefsObs, 'seenDeprecatedWarnings',
+    { defaultValue: []}) as Observable<DeprecationWarning[]>;
+
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,

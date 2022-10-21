@@ -23,6 +23,10 @@ export interface UserPrefs extends Prefs {
   recordSignUpEvent?: boolean;
   // Theme-related preferences.
   theme?: ThemePrefs;
+  // List of deprecated warnings user have seen.
+  seenDeprecatedWarnings?: DeprecationWarning[];
+  // List of dismissedPopups user have seen.
+  dismissedPopups?: DismissedPopup[];
 }
 
 // A collection of preferences related to a combination of user and org.
@@ -45,3 +49,25 @@ export interface UserOrgPrefs extends Prefs {
 }
 
 export type OrgPrefs = Prefs;
+
+/**
+ * List of all deprecated warnings that user can see and dismiss.
+ * All of them are marked as seen for new users in FlexServer.ts (welcomeNewUser handler).
+ * For now we use then to mark which keyboard shortcuts are deprecated, so those keys
+ * are also used in commandList.js.
+ */
+export const DeprecationWarning = StringUnion(
+  'deprecatedInsertRowBefore',
+  'deprecatedInsertRecordAfter',
+  'deprecatedDeleteRecords',
+);
+export type DeprecationWarning = typeof DeprecationWarning.type;
+
+/**
+ * List of all popups that user can see and dismiss
+ */
+export const DismissedPopup = StringUnion(
+  'deleteRecords', // confirmation for deleting records keyboard shortcut
+  'deleteFields'  // confirmation for deleting columns keyboard shortcut
+);
+export type DismissedPopup = typeof DismissedPopup.type;

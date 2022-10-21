@@ -1,4 +1,4 @@
-/* globals alert, $ */
+/* globals $ */
 
 const _         = require('underscore');
 const ko        = require('knockout');
@@ -26,7 +26,9 @@ const koUtil      = require('app/client/lib/koUtil');
 const convert       = require('color-convert');
 
 const {renderAllRows} = require('app/client/components/Printing');
-const {reportError} = require('app/client/models/AppModel');
+const {reportWarning} = require('app/client/models/errors');
+const {reportUndo} = require('app/client/components/modals');
+
 const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 
 // Grist UI Components
@@ -45,7 +47,6 @@ const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
 const {CombinedStyle} = require("app/client/models/Styles");
-
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
 // Anything longer than this time (in milliseconds) should be interpreted as a drag
@@ -299,25 +300,19 @@ GridView.gridCommands = {
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
   editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
-  deleteRecords: function() {
-    const saved = this.cursor.getCursorPos();
-    this.cursor.setLive(false);
-
-    // Don't return a promise. Nothing will use it, and the Command implementation will not
-    // prevent default browser behavior if we return a truthy value.
-    this.deleteRows(this.getSelection())
-    .finally(() => {
-      this.cursor.setCursorPos(saved);
-      this.cursor.setLive(true);
-      this.clearSelection();
-    })
-    .catch(reportError);
-  },
   insertFieldBefore: function() { this.insertColumn(this.cursor.fieldIndex()); },
   insertFieldAfter: function() { this.insertColumn(this.cursor.fieldIndex() + 1); },
   renameField: function() { this.currentEditingColumnIndex(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
-  deleteFields: function() { this.deleteColumns(this.getSelection()); },
+  deleteFields: function() {
+    const selection = this.getSelection();
+    const count = selection.colIds.length;
+    this.deleteColumns(selection).then((result) => {
+      if (result !== false) {
+        reportUndo(this.gristDoc, `You deleted ${count} column${count > 1 ? 's' : ''}.`);
+      }
+    });
+  },
   clearValues: function() { this.clearValues(this.getSelection()); },
   clearColumns: function() { this._clearColumns(this.getSelection()); },
   convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
@@ -670,14 +665,21 @@ GridView.prototype.preventAssignCursor = function() {
   this._assignCursorTimeoutId = null;
 }
 
-GridView.prototype.deleteRows = function(selection) {
-  if (!this.viewSection.disableAddRemoveRows()) {
-    var rowIds = _.without(selection.rowIds, 'new');
-    if (rowIds.length > 0) {
-      return this.tableModel.sendTableAction(['BulkRemoveRecord', rowIds]);
-    }
+GridView.prototype.selectedRows = function() {
+  const selection = this.getSelection();
+  return _.without(selection.rowIds, 'new');
+};
+
+GridView.prototype.deleteRows = async function(rowIds) {
+  const saved = this.cursor.getCursorPos();
+  this.cursor.setLive(false);
+  try {
+    await BaseView.prototype.deleteRows.call(this, rowIds);
+  } finally {
+    this.cursor.setCursorPos(saved);
+    this.cursor.setLive(true);
+    this.clearSelection();
   }
-  return Promise.resolve();
 };
 
 GridView.prototype.addNewColumn = function() {
@@ -728,14 +730,17 @@ GridView.prototype.showColumn = function(colId, index) {
 GridView.prototype.deleteColumns = function(selection) {
   var fields = selection.fields;
   if (fields.length === this.viewSection.viewFields().peekLength) {
-    alert("You can't delete all the columns on the grid.");
-    return;
+    reportWarning("You can't delete all the columns on the grid.", {
+      key: 'delete-all-columns',
+    });
+    return Promise.resolve(false);
   }
   let actions = fields.filter(col => !col.disableModify()).map(col => ['RemoveColumn', col.colId()]);
   if (actions.length > 0) {
-    this.tableModel.sendTableActions(actions, `Removed columns ${actions.map(a => a[1]).join(', ')} ` +
+    return this.tableModel.sendTableActions(actions, `Removed columns ${actions.map(a => a[1]).join(', ')} ` +
       `from ${this.tableModel.tableData.tableId}.`).then(() => this.clearSelection());
   }
+  return Promise.resolve(false);
 };
 
 GridView.prototype.hideFields = function(selection) {

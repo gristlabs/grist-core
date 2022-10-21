@@ -5,6 +5,7 @@ import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPath
         parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {DeprecationWarning} from 'app/common/Prefs';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer} from 'app/gen-server/ApiServer';
@@ -812,6 +813,8 @@ export class FlexServer implements GristServer {
           await this._dbManager.updateOrg(getScope(req), 0, {userPrefs: {
             showNewUserQuestions: true,
             recordSignUpEvent: true,
+            // Mark all deprecated warnings as seen.
+            seenDeprecatedWarnings: DeprecationWarning.values
           }});
 
           const domain = mreq.org ?? null;

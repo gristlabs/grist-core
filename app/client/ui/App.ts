@@ -95,7 +95,7 @@ export class App extends DisposableWithEvents {
             )
           ),
           dom.forEach(commandList.groups, (group: any) => {
-            const cmds = group.commands.filter((cmd: any) => Boolean(cmd.desc && cmd.keys.length));
+            const cmds = group.commands.filter((cmd: any) => Boolean(cmd.desc && cmd.keys.length && !cmd.deprecated));
             return cmds.length > 0 ?
               dom('tbody',
                 dom('tr',

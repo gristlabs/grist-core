@@ -1,6 +1,6 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import * as log from 'app/client/lib/log';
-import {INotifyOptions, Notifier} from 'app/client/models/NotifyModel';
+import {INotification, INotifyOptions, MessageType, Notifier} from 'app/client/models/NotifyModel';
 import {ApiErrorDetails} from 'app/common/ApiError';
 import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
 import isError = require('lodash/isError');
@@ -44,9 +44,9 @@ export function getAppErrors(): string[] {
 /**
  * Shows normal notification without any styling or icon.
  */
-export function reportMessage(msg: string, options?: Partial<INotifyOptions>) {
+export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification|undefined {
   if (_notifier && !_notifier.isDisposed()) {
-    _notifier.createUserMessage(msg, {
+    return _notifier.createUserMessage(msg, {
       ...options
     });
   }
@@ -60,14 +60,14 @@ export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
   options = {level: 'warning', ...options};
   log.warn(`${options.level}: `, msg);
   _logError(msg);
-  reportMessage(msg, options);
+  return reportMessage(msg, options);
 }
 
 /**
  * Shows success toast notification (with green styling).
  */
-export function reportSuccess(msg: string, options?: Partial<INotifyOptions>) {
-  reportMessage(msg, {level: 'success', ...options});
+export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions>) {
+  return reportMessage(msg, {level: 'success', ...options});
 }
 
 /**

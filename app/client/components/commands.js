@@ -63,7 +63,7 @@ function init(optCommandGroups) {
       if (allCommands[c.name]) {
         console.error("Ignoring duplicate command %s in commandList", c.name);
       } else {
-        allCommands[c.name] = new Command(c.name, c.desc, c.keys);
+        allCommands[c.name] = new Command(c.name, c.desc, c.keys, c.deprecated);
       }
     });
   });
@@ -116,7 +116,7 @@ function getHumanKey(key, isMac) {
  * @property {Function} run: A bound function that will run the currently active implementation.
  * @property {Observable} isActive: Knockout observable for whether this command is active.
  */
-function Command(name, desc, keys) {
+function Command(name, desc, keys, deprecated) {
   this.name = name;
   this.desc = desc;
   this.humanKeys = keys.map(key => getHumanKey(key, isMac));
@@ -124,7 +124,7 @@ function Command(name, desc, keys) {
   this.isActive = ko.observable(false);
   this._implGroupStack = [];
   this._activeFunc = _.noop;   // The function to run when this command is invoked.
-
+  this.deprecated = deprecated || false;
   // Let .run bind the Command object, so that it can be used as a stand-alone callback.
   this.run = this._run.bind(this);
 }

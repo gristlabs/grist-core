@@ -11,6 +11,7 @@ import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
+import {DeprecatedCommands} from 'app/client/components/DeprecatedCommands';
 import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
@@ -60,6 +61,7 @@ import {isList, isListType, isRefListType, RecalcWhen} from 'app/common/gristTyp
 import {HashLink, IDocPage, isViewDocPage, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
+import {DismissedPopup} from 'app/common/Prefs';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
@@ -329,8 +331,8 @@ export class GristDoc extends DisposableWithEvents {
 
     /* Command binding */
     this.autoDispose(commands.createGroup({
-      undo() { this._undoStack.sendUndoAction().catch(reportError); },
-      redo() { this._undoStack.sendRedoAction().catch(reportError); },
+      undo(this: GristDoc) { this._undoStack.sendUndoAction().catch(reportError); },
+      redo(this: GristDoc) { this._undoStack.sendRedoAction().catch(reportError); },
       reloadPlugins() { this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
     }, this, true));
 
@@ -399,6 +401,12 @@ export class GristDoc extends DisposableWithEvents {
     this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
+
+    DeprecatedCommands.create(this, this).attach();
+
+    G.window.resetSeenPopups = (seen = false) => {
+      this.docPageModel.appModel.dismissedPopups.set(seen ? DismissedPopup.values : []);
+    };
   }
 
   /**
@@ -530,6 +538,7 @@ export class GristDoc extends DisposableWithEvents {
         this.trigger('schemaUpdateAction', docActions);
       }
       this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
+      this.trigger('onDocUserAction', docActions);
     }
   }
 
