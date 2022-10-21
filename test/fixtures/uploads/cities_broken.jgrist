@@ -1,0 +1,28 @@
+{
+    "parseOptions": {},
+    "tables": [
+        {
+            "table_name": "city",
+            "column_metadata": [
+                {
+                    "id": "id",
+                    "type": "Int"
+                },
+                {
+                    "id": "city",
+                    "type": ["Space", "Monkey"]
+                }
+            ],
+            "table_data": [
+                [
+                    1,
+                    2
+                ],
+                [
+                    "Berlin",
+                    "Tokyo"
+                ]
+            ]
+        }
+    ]
+}

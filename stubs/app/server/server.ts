@@ -59,7 +59,12 @@ export async function main() {
   setDefaultEnv('GRIST_DATA_DIR', 'docs');
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);
   // Make a blank db if needed.
-  await updateDb();
+  if (process.env.TEST_CLEAN_DATABASE) {
+    const {createInitialDb} = require('test/gen-server/seed');
+    await createInitialDb();
+  } else {
+    await updateDb();
+  }
   const db = new HomeDBManager();
   await db.connect();
   await db.initializeSpecialIds({skipWorkspaces: true});

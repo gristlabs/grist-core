@@ -1,0 +1,2 @@
+fn_currency,fn_scientific,fn_decimal,fn_percent,fn_parens
+$1.00,1.20E3,"2,000,000",43%,(56)

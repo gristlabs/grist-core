@@ -1,0 +1,9 @@
+CourseId,CourseName,Instructor,StartDate,PassFail
+BUS100,Intro to Business,Mariyam Melania,01/13/2021,false
+BUS102,Business Law,Nathalie Patricia,01/13/2021,false
+BUS300,Business Operations,Michael Rian,01/14/2021,false
+BUS301,History of Business,Mariyam Melania,01/14/2021,false
+BUS500,,Filip Andries,01/13/2021,false
+BUS501,Marketing,Michael Rian,01/13/2021,false
+BUS539,Independent Study,,01/13/2021,true
+BUS540,Capstone,,01/13/2021,false

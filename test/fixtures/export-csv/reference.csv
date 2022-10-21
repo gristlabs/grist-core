@@ -1,0 +1,4 @@
+Text Bar,Int Text,Text Formula
+"the ""quote marks"" ?",Integer[500],a --- grist https://www.getgrist.com/
+"b ,d",Integer[200],"b ,d --- https://www.getgrist.com/"
+"the ""quote marks"" ?",,a --- grist https://www.getgrist.com/

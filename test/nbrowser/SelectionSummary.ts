@@ -18,6 +18,7 @@ interface SelectionSummary {
 describe('SelectionSummary', function () {
   this.timeout(20000);
   const cleanup = setupTestSuite();
+  gu.bigScreen();
 
   before(async function() {
     const session = await gu.session().personalSite.login();

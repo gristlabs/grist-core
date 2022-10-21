@@ -1,0 +1,4080 @@
+city_name,city_district,city_pop,country,pop_thousands
+Kabul,Kabol,3560000,2,3560
+Qandahar,Qandahar,475000,2,475
+Herat,Herat,373600,2,373.6
+Mazar-e-Sharif,Balkh,255600,2,255.6
+Amsterdam,Noord-Holland,1462400,159,1462.4
+Rotterdam,Zuid-Holland,1186642,159,1186.642
+Haag,Zuid-Holland,881800,159,881.8
+Utrecht,Utrecht,468646,159,468.646
+Eindhoven,Noord-Brabant,403686,159,403.686
+Tilburg,Noord-Brabant,386476,159,386.476
+Groningen,Groningen,345402,159,345.402
+Breda,Noord-Brabant,320796,159,320.796
+Apeldoorn,Gelderland,306982,159,306.982
+Nijmegen,Gelderland,304926,159,304.926
+Enschede,Overijssel,299088,159,299.088
+Haarlem,Noord-Holland,297544,159,297.544
+Almere,Flevoland,284930,159,284.93
+Arnhem,Gelderland,276040,159,276.04
+Zaanstad,Noord-Holland,271242,159,271.242
+´s-Hertogenbosch,Noord-Brabant,258340,159,258.34
+Amersfoort,Utrecht,252540,159,252.54
+Maastricht,Limburg,244174,159,244.174
+Dordrecht,Zuid-Holland,239622,159,239.622
+Leiden,Zuid-Holland,234392,159,234.392
+Haarlemmermeer,Noord-Holland,221444,159,221.444
+Zoetermeer,Zuid-Holland,220428,159,220.428
+Emmen,Drenthe,211706,159,211.706
+Zwolle,Overijssel,211638,159,211.638
+Ede,Gelderland,203148,159,203.148
+Delft,Zuid-Holland,190536,159,190.536
+Heerlen,Limburg,190104,159,190.104
+Alkmaar,Noord-Holland,185426,159,185.426
+Willemstad,Curaçao,4690,7,4.69
+Tirana,Tirana,540000,5,540
+Alger,Alger,4336000,62,4336
+Oran,Oran,1219646,62,1219.646
+Constantine,Constantine,887454,62,887.454
+Annaba,Annaba,445036,62,445.036
+Batna,Batna,366754,62,366.754
+Sétif,Sétif,358110,62,358.11
+Sidi Bel Abbès,Sidi Bel Abbès,306212,62,306.212
+Skikda,Skikda,257494,62,257.494
+Biskra,Biskra,256562,62,256.562
+Blida (el-Boulaida),Blida,254568,62,254.568
+Béjaïa,Béjaïa,234324,62,234.324
+Mostaganem,Mostaganem,230424,62,230.424
+Tébessa,Tébessa,224014,62,224.014
+Tlemcen (Tilimsen),Tlemcen,220484,62,220.484
+Béchar,Béchar,214622,62,214.622
+Tiaret,Tiaret,200236,62,200.236
+Ech-Chleff (el-Asnam),Chlef,193588,62,193.588
+Ghardaïa,Ghardaïa,178830,62,178.83
+Tafuna,Tutuila,10400,11,10.4
+Fagatogo,Tutuila,4646,11,4.646
+Andorra la Vella,Andorra la Vella,42378,6,42.378
+Luanda,Luanda,4044000,3,4044
+Huambo,Huambo,326200,3,326.2
+Lobito,Benguela,260000,3,260
+Benguela,Benguela,256600,3,256.6
+Namibe,Namibe,236400,3,236.4
+South Hill,–,1922,4,1.922
+The Valley,–,1190,4,1.19
+Saint John´s,St John,48000,14,48
+Dubai,Dubai,1338362,8,1338.362
+Abu Dhabi,Abu Dhabi,797390,8,797.39
+Sharja,Sharja,640190,8,640.19
+al-Ayn,Abu Dhabi,451940,8,451.94
+Ajman,Ajman,228790,8,228.79
+Buenos Aires,Distrito Federal,5964292,9,5964.292
+La Matanza,Buenos Aires,2532922,9,2532.922
+Córdoba,Córdoba,2315014,9,2315.014
+Rosario,Santa Fé,1815436,9,1815.436
+Lomas de Zamora,Buenos Aires,1244026,9,1244.026
+Quilmes,Buenos Aires,1118498,9,1118.498
+Almirante Brown,Buenos Aires,1077836,9,1077.836
+La Plata,Buenos Aires,1043872,9,1043.872
+Mar del Plata,Buenos Aires,1025760,9,1025.76
+San Miguel de Tucumán,Tucumán,941618,9,941.618
+Lanús,Buenos Aires,939470,9,939.47
+Merlo,Buenos Aires,927692,9,927.692
+General San Martín,Buenos Aires,845084,9,845.084
+Salta,Salta,735100,9,735.1
+Moreno,Buenos Aires,713986,9,713.986
+Santa Fé,Santa Fé,706126,9,706.126
+Avellaneda,Buenos Aires,706092,9,706.092
+Tres de Febrero,Buenos Aires,704622,9,704.622
+Morón,Buenos Aires,698492,9,698.492
+Florencio Varela,Buenos Aires,630864,9,630.864
+San Isidro,Buenos Aires,612682,9,612.682
+Tigre,Buenos Aires,592452,9,592.452
+Malvinas Argentinas,Buenos Aires,580670,9,580.67
+Vicente López,Buenos Aires,576682,9,576.682
+Berazategui,Buenos Aires,553832,9,553.832
+Corrientes,Corrientes,516206,9,516.206
+San Miguel,Buenos Aires,497400,9,497.4
+Bahía Blanca,Buenos Aires,479620,9,479.62
+Esteban Echeverría,Buenos Aires,471520,9,471.52
+Resistencia,Chaco,458424,9,458.424
+José C. Paz,Buenos Aires,443508,9,443.508
+Paraná,Entre Rios,414082,9,414.082
+Godoy Cruz,Mendoza,413996,9,413.996
+Posadas,Misiones,402546,9,402.546
+Guaymallén,Mendoza,401190,9,401.19
+Santiago del Estero,Santiago del Estero,379894,9,379.894
+San Salvador de Jujuy,Jujuy,357496,9,357.496
+Hurlingham,Buenos Aires,340056,9,340.056
+Neuquén,Neuquén,334592,9,334.592
+Ituzaingó,Buenos Aires,316394,9,316.394
+San Fernando,Buenos Aires,306072,9,306.072
+Formosa,Formosa,295272,9,295.272
+Las Heras,Mendoza,291646,9,291.646
+La Rioja,La Rioja,276234,9,276.234
+San Fernando del Valle de Cata,Catamarca,269870,9,269.87
+Río Cuarto,Córdoba,268710,9,268.71
+Comodoro Rivadavia,Chubut,248208,9,248.208
+Mendoza,Mendoza,246054,9,246.054
+San Nicolás de los Arroyos,Buenos Aires,238604,9,238.604
+San Juan,San Juan,238304,9,238.304
+Escobar,Buenos Aires,233350,9,233.35
+Concordia,Entre Rios,232970,9,232.97
+Pilar,Buenos Aires,226856,9,226.856
+San Luis,San Luis,220272,9,220.272
+Ezeiza,Buenos Aires,199156,9,199.156
+San Rafael,Mendoza,189302,9,189.302
+Tandil,Buenos Aires,182202,9,182.202
+Yerevan,Yerevan,2497400,10,2497.4
+Gjumri,Širak,423400,10,423.4
+Vanadzor,Lori,345400,10,345.4
+Oranjestad,–,58068,1,58.068
+Sydney,New South Wales,6552414,15,6552.414
+Melbourne,Victoria,5730658,15,5730.658
+Brisbane,Queensland,2582234,15,2582.234
+Perth,West Australia,2193658,15,2193.658
+Adelaide,South Australia,1956200,15,1956.2
+Canberra,Capital Region,645446,15,645.446
+Gold Coast,Queensland,623864,15,623.864
+Newcastle,New South Wales,540648,15,540.648
+Central Coast,New South Wales,455314,15,455.314
+Wollongong,New South Wales,439522,15,439.522
+Hobart,Tasmania,252236,15,252.236
+Geelong,Victoria,250764,15,250.764
+Townsville,Queensland,219828,15,219.828
+Cairns,Queensland,184546,15,184.546
+Baku,Baki,3575600,17,3575.6
+Gäncä,Gäncä,598600,17,598.6
+Sumqayit,Sumqayit,566000,17,566
+Mingäçevir,Mingäçevir,187800,17,187.8
+Nassau,New Providence,344000,25,344
+al-Manama,al-Manama,296000,24,296
+Dhaka,Dhaka,7225700,22,7225.7
+Chittagong,Chittagong,2785720,22,2785.72
+Khulna,Khulna,1326680,22,1326.68
+Rajshahi,Rajshahi,588112,22,588.112
+Narayanganj,Dhaka,404268,22,404.268
+Rangpur,Rajshahi,382796,22,382.796
+Mymensingh,Dhaka,377426,22,377.426
+Barisal,Barisal,340464,22,340.464
+Tungi,Dhaka,337404,22,337.404
+Jessore,Khulna,279420,22,279.42
+Comilla,Chittagong,270626,22,270.626
+Nawabganj,Rajshahi,261154,22,261.154
+Dinajpur,Rajshahi,255630,22,255.63
+Bogra,Rajshahi,240340,22,240.34
+Sylhet,Sylhet,234792,22,234.792
+Brahmanbaria,Chittagong,218064,22,218.064
+Tangail,Dhaka,212008,22,212.008
+Jamalpur,Dhaka,207112,22,207.112
+Pabna,Rajshahi,206554,22,206.554
+Naogaon,Rajshahi,202532,22,202.532
+Sirajganj,Rajshahi,199338,22,199.338
+Narsinghdi,Dhaka,196684,22,196.684
+Saidpur,Rajshahi,193554,22,193.554
+Gazipur,Dhaka,193434,22,193.434
+Bridgetown,St Michael,12140,32,12.14
+Antwerpen,Antwerpen,893050,19,893.05
+Gent,East Flanderi,448360,19,448.36
+Charleroi,Hainaut,401654,19,401.654
+Liège,Liège,371278,19,371.278
+Bruxelles [Brussel],Bryssel,267718,19,267.718
+Brugge,West Flanderi,232492,19,232.492
+Schaerbeek,Bryssel,211384,19,211.384
+Namur,Namur,210838,19,210.838
+Mons,Hainaut,181870,19,181.87
+Belize City,Belize City,111620,28,111.62
+Belmopan,Cayo,14210,28,14.21
+Cotonou,Atlantique,1073654,20,1073.654
+Porto-Novo,Ouémé,388000,20,388
+Djougou,Atacora,268198,20,268.198
+Parakou,Borgou,207154,20,207.154
+Saint George,Saint George´s,3600,29,3.6
+Hamilton,Hamilton,2400,29,2.4
+Thimphu,Thimphu,44000,34,44
+Santa Cruz de la Sierra,Santa Cruz,1870722,30,1870.722
+La Paz,La Paz,1516282,30,1516.282
+El Alto,La Paz,1068932,30,1068.932
+Cochabamba,Cochabamba,965600,30,965.6
+Oruro,Oruro,447106,30,447.106
+Sucre,Chuquisaca,356852,30,356.852
+Potosí,Potosí,281284,30,281.284
+Tarija,Tarija,250510,30,250.51
+Sarajevo,Federaatio,720000,26,720
+Banja Luka,Republika Srpska,286158,26,286.158
+Zenica,Federaatio,192054,26,192.054
+Gaborone,Gaborone,426034,36,426.034
+Francistown,Francistown,203610,36,203.61
+São Paulo,São Paulo,19936970,31,19936.97
+Rio de Janeiro,Rio de Janeiro,11197906,31,11197.906
+Salvador,Bahia,4605664,31,4605.664
+Belo Horizonte,Minas Gerais,4278250,31,4278.25
+Fortaleza,Ceará,4195514,31,4195.514
+Brasília,Distrito Federal,3939736,31,3939.736
+Curitiba,Paraná,3168464,31,3168.464
+Recife,Pernambuco,2756174,31,2756.174
+Porto Alegre,Rio Grande do Sul,2628064,31,2628.064
+Manaus,Amazonas,2510098,31,2510.098
+Belém,Pará,2373852,31,2373.852
+Guarulhos,São Paulo,2191748,31,2191.748
+Goiânia,Goiás,2112660,31,2112.66
+Campinas,São Paulo,1900086,31,1900.086
+São Gonçalo,Rio de Janeiro,1738508,31,1738.508
+Nova Iguaçu,Rio de Janeiro,1724450,31,1724.45
+São Luís,Maranhão,1675176,31,1675.176
+Maceió,Alagoas,1572576,31,1572.576
+Duque de Caxias,Rio de Janeiro,1493516,31,1493.516
+São Bernardo do Campo,São Paulo,1446264,31,1446.264
+Teresina,Piauí,1383884,31,1383.884
+Natal,Rio Grande do Norte,1377910,31,1377.91
+Osasco,São Paulo,1319208,31,1319.208
+Campo Grande,Mato Grosso do Sul,1299186,31,1299.186
+Santo André,São Paulo,1260146,31,1260.146
+João Pessoa,Paraíba,1168058,31,1168.058
+Jaboatão dos Guararapes,Pernambuco,1117360,31,1117.36
+Contagem,Minas Gerais,1041602,31,1041.602
+São José dos Campos,São Paulo,1031106,31,1031.106
+Uberlândia,Minas Gerais,974444,31,974.444
+Feira de Santana,Bahia,959984,31,959.984
+Ribeirão Preto,São Paulo,946552,31,946.552
+Sorocaba,São Paulo,933646,31,933.646
+Niterói,Rio de Janeiro,919768,31,919.768
+Cuiabá,Mato Grosso,907626,31,907.626
+Juiz de Fora,Minas Gerais,900576,31,900.576
+Aracaju,Sergipe,891110,31,891.11
+São João de Meriti,Rio de Janeiro,880104,31,880.104
+Londrina,Paraná,864514,31,864.514
+Joinville,Santa Catarina,856022,31,856.022
+Belford Roxo,Rio de Janeiro,850388,31,850.388
+Santos,São Paulo,817496,31,817.496
+Ananindeua,Pará,801880,31,801.88
+Campos dos Goytacazes,Rio de Janeiro,796836,31,796.836
+Mauá,São Paulo,750110,31,750.11
+Carapicuíba,São Paulo,715104,31,715.104
+Olinda,Pernambuco,709464,31,709.464
+Campina Grande,Paraíba,704994,31,704.994
+São José do Rio Preto,São Paulo,703888,31,703.888
+Caxias do Sul,Rio Grande do Sul,699162,31,699.162
+Moji das Cruzes,São Paulo,678388,31,678.388
+Diadema,São Paulo,670156,31,670.156
+Aparecida de Goiânia,Goiás,649324,31,649.324
+Piracicaba,São Paulo,638208,31,638.208
+Cariacica,Espírito Santo,638066,31,638.066
+Vila Velha,Espírito Santo,637516,31,637.516
+Pelotas,Rio Grande do Sul,630830,31,630.83
+Bauru,São Paulo,627340,31,627.34
+Porto Velho,Rondônia,619500,31,619.5
+Serra,Espírito Santo,605332,31,605.332
+Betim,Minas Gerais,604216,31,604.216
+Jundíaí,São Paulo,592254,31,592.254
+Canoas,Rio Grande do Sul,588250,31,588.25
+Franca,São Paulo,580278,31,580.278
+São Vicente,São Paulo,573696,31,573.696
+Maringá,Paraná,572922,31,572.922
+Montes Claros,Minas Gerais,572116,31,572.116
+Anápolis,Goiás,564394,31,564.394
+Florianópolis,Santa Catarina,563856,31,563.856
+Petrópolis,Rio de Janeiro,558366,31,558.366
+Itaquaquecetuba,São Paulo,541748,31,541.748
+Vitória,Espírito Santo,541252,31,541.252
+Ponta Grossa,Paraná,536026,31,536.026
+Rio Branco,Acre,519074,31,519.074
+Foz do Iguaçu,Paraná,518850,31,518.85
+Macapá,Amapá,512066,31,512.066
+Ilhéus,Bahia,509940,31,509.94
+Vitória da Conquista,Bahia,507174,31,507.174
+Uberaba,Minas Gerais,498450,31,498.45
+Paulista,Pernambuco,496946,31,496.946
+Limeira,São Paulo,490994,31,490.994
+Blumenau,Santa Catarina,488758,31,488.758
+Caruaru,Pernambuco,488494,31,488.494
+Santarém,Pará,483542,31,483.542
+Volta Redonda,Rio de Janeiro,480630,31,480.63
+Novo Hamburgo,Rio Grande do Sul,479880,31,479.88
+Caucaia,Ceará,477476,31,477.476
+Santa Maria,Rio Grande do Sul,476946,31,476.946
+Cascavel,Paraná,475020,31,475.02
+Guarujá,São Paulo,474412,31,474.412
+Ribeirão das Neves,Minas Gerais,465370,31,465.37
+Governador Valadares,Minas Gerais,463448,31,463.448
+Taubaté,São Paulo,458260,31,458.26
+Imperatriz,Maranhão,449128,31,449.128
+Gravataí,Rio Grande do Sul,446022,31,446.022
+Embu,São Paulo,444446,31,444.446
+Mossoró,Rio Grande do Norte,429802,31,429.802
+Várzea Grande,Mato Grosso,428870,31,428.87
+Petrolina,Pernambuco,421080,31,421.08
+Barueri,São Paulo,416852,31,416.852
+Viamão,Rio Grande do Sul,415114,31,415.114
+Ipatinga,Minas Gerais,412676,31,412.676
+Juazeiro,Bahia,402146,31,402.146
+Juazeiro do Norte,Ceará,399272,31,399.272
+Taboão da Serra,São Paulo,395100,31,395.1
+São José dos Pinhais,Paraná,393768,31,393.768
+Magé,Rio de Janeiro,392294,31,392.294
+Suzano,São Paulo,390868,31,390.868
+São Leopoldo,Rio Grande do Sul,378516,31,378.516
+Marília,São Paulo,377382,31,377.382
+São Carlos,São Paulo,374244,31,374.244
+Sumaré,São Paulo,372410,31,372.41
+Presidente Prudente,São Paulo,370680,31,370.68
+Divinópolis,Minas Gerais,370094,31,370.094
+Sete Lagoas,Minas Gerais,365968,31,365.968
+Rio Grande,Rio Grande do Sul,364444,31,364.444
+Itabuna,Bahia,364296,31,364.296
+Jequié,Bahia,358256,31,358.256
+Arapiraca,Alagoas,357976,31,357.976
+Colombo,Paraná,355528,31,355.528
+Americana,São Paulo,354818,31,354.818
+Alvorada,Rio Grande do Sul,351148,31,351.148
+Araraquara,São Paulo,348762,31,348.762
+Itaboraí,Rio de Janeiro,347954,31,347.954
+Santa Bárbara d´Oeste,São Paulo,343314,31,343.314
+Nova Friburgo,Rio de Janeiro,341394,31,341.394
+Jacareí,São Paulo,340712,31,340.712
+Araçatuba,São Paulo,338606,31,338.606
+Barra Mansa,Rio de Janeiro,337906,31,337.906
+Praia Grande,São Paulo,336868,31,336.868
+Marabá,Pará,335590,31,335.59
+Criciúma,Santa Catarina,335322,31,335.322
+Boa Vista,Roraima,334370,31,334.37
+Passo Fundo,Rio Grande do Sul,332686,31,332.686
+Dourados,Mato Grosso do Sul,329432,31,329.432
+Santa Luzia,Minas Gerais,329408,31,329.408
+Rio Claro,São Paulo,327102,31,327.102
+Maracanaú,Ceará,324044,31,324.044
+Guarapuava,Paraná,321020,31,321.02
+Rondonópolis,Mato Grosso,310230,31,310.23
+São José,Santa Catarina,310210,31,310.21
+Cachoeiro de Itapemirim,Espírito Santo,310048,31,310.048
+Nilópolis,Rio de Janeiro,306766,31,306.766
+Itapevi,São Paulo,301328,31,301.328
+Cabo de Santo Agostinho,Pernambuco,299928,31,299.928
+Camaçari,Bahia,298292,31,298.292
+Sobral,Ceará,292010,31,292.01
+Itajaí,Santa Catarina,290394,31,290.394
+Chapecó,Santa Catarina,288316,31,288.316
+Cotia,São Paulo,280084,31,280.084
+Lages,Santa Catarina,279140,31,279.14
+Ferraz de Vasconcelos,São Paulo,278566,31,278.566
+Indaiatuba,São Paulo,271936,31,271.936
+Hortolândia,São Paulo,271510,31,271.51
+Caxias,Maranhão,267960,31,267.96
+São Caetano do Sul,São Paulo,266642,31,266.642
+Itu,São Paulo,265472,31,265.472
+Nossa Senhora do Socorro,Sergipe,262702,31,262.702
+Parnaíba,Piauí,259512,31,259.512
+Poços de Caldas,Minas Gerais,259366,31,259.366
+Teresópolis,Rio de Janeiro,256158,31,256.158
+Barreiras,Bahia,255602,31,255.602
+Castanhal,Pará,255268,31,255.268
+Alagoinhas,Bahia,253640,31,253.64
+Itapecerica da Serra,São Paulo,253344,31,253.344
+Uruguaiana,Rio Grande do Sul,252610,31,252.61
+Paranaguá,Paraná,252152,31,252.152
+Ibirité,Minas Gerais,251964,31,251.964
+Timon,Maranhão,251624,31,251.624
+Luziânia,Goiás,251194,31,251.194
+Macaé,Rio de Janeiro,251194,31,251.194
+Teófilo Otoni,Minas Gerais,248978,31,248.978
+Moji-Guaçu,São Paulo,247564,31,247.564
+Palmas,Tocantins,243838,31,243.838
+Pindamonhangaba,São Paulo,243808,31,243.808
+Francisco Morato,São Paulo,242394,31,242.394
+Bagé,Rio Grande do Sul,241586,31,241.586
+Sapucaia do Sul,Rio Grande do Sul,240434,31,240.434
+Cabo Frio,Rio de Janeiro,239006,31,239.006
+Itapetininga,São Paulo,238782,31,238.782
+Patos de Minas,Minas Gerais,238524,31,238.524
+Camaragibe,Pernambuco,237936,31,237.936
+Bragança Paulista,São Paulo,233858,31,233.858
+Queimados,Rio de Janeiro,230040,31,230.04
+Araguaína,Tocantins,229896,31,229.896
+Garanhuns,Pernambuco,229206,31,229.206
+Vitória de Santo Antão,Pernambuco,227190,31,227.19
+Santa Rita,Paraíba,226270,31,226.27
+Barbacena,Minas Gerais,226158,31,226.158
+Abaetetuba,Pará,222516,31,222.516
+Jaú,São Paulo,219930,31,219.93
+Lauro de Freitas,Bahia,218472,31,218.472
+Franco da Rocha,São Paulo,217928,31,217.928
+Teixeira de Freitas,Bahia,216882,31,216.882
+Varginha,Minas Gerais,216628,31,216.628
+Ribeirão Pires,São Paulo,216242,31,216.242
+Sabará,Minas Gerais,215562,31,215.562
+Catanduva,São Paulo,215522,31,215.522
+Rio Verde,Goiás,215510,31,215.51
+Botucatu,São Paulo,215326,31,215.326
+Colatina,Espírito Santo,214708,31,214.708
+Santa Cruz do Sul,Rio Grande do Sul,213468,31,213.468
+Linhares,Espírito Santo,212556,31,212.556
+Apucarana,Paraná,210228,31,210.228
+Barretos,São Paulo,208312,31,208.312
+Guaratinguetá,São Paulo,206866,31,206.866
+Cachoeirinha,Rio Grande do Sul,206480,31,206.48
+Codó,Maranhão,206306,31,206.306
+Jaraguá do Sul,Santa Catarina,205160,31,205.16
+Cubatão,São Paulo,204744,31,204.744
+Itabira,Minas Gerais,204434,31,204.434
+Itaituba,Pará,202640,31,202.64
+Araras,São Paulo,202092,31,202.092
+Resende,Rio de Janeiro,201254,31,201.254
+Atibaia,São Paulo,200712,31,200.712
+Pouso Alegre,Minas Gerais,200056,31,200.056
+Toledo,Paraná,198774,31,198.774
+Crato,Ceará,197930,31,197.93
+Passos,Minas Gerais,197140,31,197.14
+Araguari,Minas Gerais,196798,31,196.798
+São José de Ribamar,Maranhão,196636,31,196.636
+Pinhais,Paraná,196396,31,196.396
+Sertãozinho,São Paulo,196280,31,196.28
+Conselheiro Lafaiete,Minas Gerais,195014,31,195.014
+Paulo Afonso,Bahia,194582,31,194.582
+Angra dos Reis,Rio de Janeiro,193728,31,193.728
+Eunápolis,Bahia,193220,31,193.22
+Salto,São Paulo,192696,31,192.696
+Ourinhos,São Paulo,192582,31,192.582
+Parnamirim,Rio Grande do Norte,192420,31,192.42
+Jacobina,Bahia,192262,31,192.262
+Coronel Fabriciano,Minas Gerais,191866,31,191.866
+Birigui,São Paulo,189370,31,189.37
+Tatuí,São Paulo,187794,31,187.794
+Ji-Paraná,Rondônia,186692,31,186.692
+Bacabal,Maranhão,186242,31,186.242
+Cametá,Pará,185558,31,185.558
+Guaíba,Rio Grande do Sul,184448,31,184.448
+São Lourenço da Mata,Pernambuco,183998,31,183.998
+Santana do Livramento,Rio Grande do Sul,183558,31,183.558
+Votorantim,São Paulo,183554,31,183.554
+Campo Largo,Paraná,182406,31,182.406
+Patos,Paraíba,181038,31,181.038
+Ituiutaba,Minas Gerais,181014,31,181.014
+Corumbá,Mato Grosso do Sul,180222,31,180.222
+Palhoça,Santa Catarina,178930,31,178.93
+Barra do Piraí,Rio de Janeiro,178776,31,178.776
+Bento Gonçalves,Rio Grande do Sul,178508,31,178.508
+Poá,São Paulo,178472,31,178.472
+Águas Lindas de Goiás,Goiás,178400,31,178.4
+London,England,14570000,77,14570
+Birmingham,England,2026000,77,2026
+Glasgow,Scotland,1239360,77,1239.36
+Liverpool,England,922000,77,922
+Edinburgh,Scotland,900360,77,900.36
+Sheffield,England,863214,77,863.214
+Manchester,England,860000,77,860
+Leeds,England,848388,77,848.388
+Bristol,England,804000,77,804
+Cardiff,Wales,642000,77,642
+Coventry,England,608000,77,608
+Leicester,England,588000,77,588
+Bradford,England,578752,77,578.752
+Belfast,North Ireland,575000,77,575
+Nottingham,England,574000,77,574
+Kingston upon Hull,England,524000,77,524
+Plymouth,England,506000,77,506
+Stoke-on-Trent,England,504000,77,504
+Wolverhampton,England,484000,77,484
+Derby,England,472000,77,472
+Swansea,Wales,460000,77,460
+Southampton,England,432000,77,432
+Aberdeen,Scotland,426140,77,426.14
+Northampton,England,392000,77,392
+Dudley,England,384342,77,384.342
+Portsmouth,England,380000,77,380
+Newcastle upon Tyne,England,378300,77,378.3
+Sunderland,England,366620,77,366.62
+Luton,England,366000,77,366
+Swindon,England,360000,77,360
+Southend-on-Sea,England,352000,77,352
+Walsall,England,349478,77,349.478
+Bournemouth,England,324000,77,324
+Peterborough,England,312000,77,312
+Brighton,England,312248,77,312.248
+Blackpool,England,302000,77,302
+Dundee,Scotland,293380,77,293.38
+West Bromwich,England,292772,77,292.772
+Reading,England,296000,77,296
+Oldbury/Smethwick (Warley),England,291084,77,291.084
+Middlesbrough,England,290000,77,290
+Huddersfield,England,287452,77,287.452
+Oxford,England,288000,77,288
+Poole,England,282000,77,282
+Bolton,England,278040,77,278.04
+Blackburn,England,280000,77,280
+Newport,Wales,278000,77,278
+Preston,England,270000,77,270
+Stockport,England,265626,77,265.626
+Norwich,England,248000,77,248
+Rotherham,England,242760,77,242.76
+Cambridge,England,242000,77,242
+Watford,England,226160,77,226.16
+Ipswich,England,228000,77,228
+Slough,England,224000,77,224
+Exeter,England,222000,77,222
+Cheltenham,England,212000,77,212
+Gloucester,England,214000,77,214
+Saint Helens,England,212586,77,212.586
+Sutton Coldfield,England,212002,77,212.002
+York,England,208850,77,208.85
+Oldham,England,207862,77,207.862
+Basildon,England,201848,77,201.848
+Worthing,England,200000,77,200
+Chelmsford,England,194902,77,194.902
+Colchester,England,192126,77,192.126
+Crawley,England,194000,77,194
+Gillingham,England,184000,77,184
+Solihull,England,189062,77,189.062
+Rochdale,England,188626,77,188.626
+Birkenhead,England,186174,77,186.174
+Worcester,England,190000,77,190
+Hartlepool,England,184000,77,184
+Halifax,England,182138,77,182.138
+Woking/Byfleet,England,184000,77,184
+Southport,England,181918,77,181.918
+Maidstone,England,181756,77,181.756
+Eastbourne,England,180000,77,180
+Grimsby,England,178000,77,178
+Saint Helier,Jersey,55046,77,55.046
+Douglas,–,46974,77,46.974
+Road Town,Tortola,16000,229,16
+Bandar Seri Begawan,Brunei and Muara,42968,33,42.968
+Sofija,Grad Sofija,2244604,23,2244.604
+Plovdiv,Plovdiv,685168,23,685.168
+Varna,Varna,599602,23,599.602
+Burgas,Burgas,390510,23,390.51
+Ruse,Ruse,332934,23,332.934
+Stara Zagora,Haskovo,295878,23,295.878
+Pleven,Lovec,243904,23,243.904
+Sliven,Burgas,211060,23,211.06
+Dobric,Varna,200798,23,200.798
+Šumen,Varna,189372,23,189.372
+Ouagadougou,Kadiogo,1648000,21,1648
+Bobo-Dioulasso,Houet,600000,21,600
+Koudougou,Boulkiemdé,210000,21,210
+Bujumbura,Bujumbura,600000,18,600
+George Town,Grand Cayman,39200,54,39.2
+Santiago de Chile,Santiago,9407908,41,9407.908
+Puente Alto,Santiago,772472,41,772.472
+Viña del Mar,Valparaíso,624986,41,624.986
+Valparaíso,Valparaíso,587600,41,587.6
+Talcahuano,Bíobío,555504,41,555.504
+Antofagasta,Antofagasta,502858,41,502.858
+San Bernardo,Santiago,483820,41,483.82
+Temuco,La Araucanía,466082,41,466.082
+Concepción,Bíobío,435328,41,435.328
+Rancagua,O´Higgins,425954,41,425.954
+Arica,Tarapacá,378072,41,378.072
+Talca,Maule,375114,41,375.114
+Chillán,Bíobío,356364,41,356.364
+Iquique,Tarapacá,355784,41,355.784
+Los Angeles,Bíobío,316430,41,316.43
+Puerto Montt,Los Lagos,304388,41,304.388
+Coquimbo,Coquimbo,286706,41,286.706
+Osorno,Los Lagos,282936,41,282.936
+La Serena,Coquimbo,274818,41,274.818
+Calama,Antofagasta,274530,41,274.53
+Valdivia,Los Lagos,266212,41,266.212
+Punta Arenas,Magallanes,251262,41,251.262
+Copiapó,Atacama,240256,41,240.256
+Quilpué,Valparaíso,237714,41,237.714
+Curicó,Maule,231532,41,231.532
+Ovalle,Coquimbo,189708,41,189.708
+Coronel,Bíobío,186122,41,186.122
+San Pedro de la Paz,Bíobío,183368,41,183.368
+Melipilla,Santiago,182112,41,182.112
+Avarua,Rarotonga,23800,47,23.8
+San José,San José,678262,51,678.262
+Djibouti,Djibouti,766000,58,766
+Roseau,St George,32486,59,32.486
+Santo Domingo de Guzmán,Distrito Nacional,3219932,61,3219.932
+Santiago de los Caballeros,Santiago,730926,61,730.926
+La Romana,La Romana,280408,61,280.408
+San Pedro de Macorís,San Pedro de Macorís,249470,61,249.47
+San Francisco de Macorís,Duarte,216970,61,216.97
+San Felipe de Puerto Plata,Puerto Plata,178846,61,178.846
+Guayaquil,Guayas,4140080,63,4140.08
+Quito,Pichincha,3146916,63,3146.916
+Cuenca,Azuay,540706,63,540.706
+Machala,El Oro,420736,63,420.736
+Santo Domingo de los Colorados,Pichincha,404222,63,404.222
+Portoviejo,Manabí,352826,63,352.826
+Ambato,Tungurahua,339224,63,339.224
+Manta,Manabí,329478,63,329.478
+Duran [Eloy Alfaro],Guayas,305028,63,305.028
+Ibarra,Imbabura,261286,63,261.286
+Quevedo,Los Ríos,259262,63,259.262
+Milagro,Guayas,248354,63,248.354
+Loja,Loja,247750,63,247.75
+Ríobamba,Chimborazo,246326,63,246.326
+Esmeraldas,Esmeraldas,246090,63,246.09
+Cairo,Kairo,13578958,64,13578.958
+Alexandria,Aleksandria,6656392,64,6656.392
+Giza,Giza,4443736,64,4443.736
+Shubra al-Khayma,al-Qalyubiya,1741432,64,1741.432
+Port Said,Port Said,939066,64,939.066
+Suez,Suez,835220,64,835.22
+al-Mahallat al-Kubra,al-Gharbiya,790804,64,790.804
+Tanta,al-Gharbiya,742020,64,742.02
+al-Mansura,al-Daqahliya,739242,64,739.242
+Luxor,Luxor,721006,64,721.006
+Asyut,Asyut,686996,64,686.996
+Bahtim,al-Qalyubiya,551614,64,551.614
+Zagazig,al-Sharqiya,534702,64,534.702
+al-Faiyum,al-Faiyum,521928,64,521.928
+Ismailia,Ismailia,508954,64,508.954
+Kafr al-Dawwar,al-Buhayra,463956,64,463.956
+Assuan,Assuan,438034,64,438.034
+Damanhur,al-Buhayra,424406,64,424.406
+al-Minya,al-Minya,402720,64,402.72
+Bani Suwayf,Bani Suwayf,344064,64,344.064
+Qina,Qina,342550,64,342.55
+Sawhaj,Sawhaj,340250,64,340.25
+Shibin al-Kawm,al-Minufiya,319818,64,319.818
+Bulaq al-Dakrur,Giza,297574,64,297.574
+Banha,al-Qalyubiya,291584,64,291.584
+Warraq al-Arab,Giza,254216,64,254.216
+Kafr al-Shaykh,Kafr al-Shaykh,249638,64,249.638
+Mallawi,al-Minya,238566,64,238.566
+Bilbays,al-Sharqiya,227216,64,227.216
+Mit Ghamr,al-Daqahliya,203602,64,203.602
+al-Arish,Shamal Sina,200894,64,200.894
+Talkha,al-Daqahliya,195400,64,195.4
+Qalyub,al-Qalyubiya,194400,64,194.4
+Jirja,Sawhaj,190800,64,190.8
+Idfu,Qina,188400,64,188.4
+al-Hawamidiya,Giza,183400,64,183.4
+Disuq,Kafr al-Shaykh,182600,64,182.6
+San Salvador,San Salvador,830692,193,830.692
+Santa Ana,Santa Ana,278778,193,278.778
+Mejicanos,San Salvador,277600,193,277.6
+Soyapango,San Salvador,259600,193,259.6
+San Miguel,San Miguel,255392,193,255.392
+Nueva San Salvador,La Libertad,196800,193,196.8
+Apopa,San Salvador,177600,193,177.6
+Asmara,Maekel,862000,65,862
+Madrid,Madrid,5758104,67,5758.104
+Barcelona,Katalonia,3006902,67,3006.902
+Valencia,Valencia,1478824,67,1478.824
+Sevilla,Andalusia,1403854,67,1403.854
+Zaragoza,Aragonia,1206734,67,1206.734
+Málaga,Andalusia,1061106,67,1061.106
+Bilbao,Baskimaa,715178,67,715.178
+Las Palmas de Gran Canaria,Canary Islands,709514,67,709.514
+Murcia,Murcia,707008,67,707.008
+Palma de Mallorca,Balears,653986,67,653.986
+Valladolid,Castilla and León,639996,67,639.996
+Córdoba,Andalusia,623416,67,623.416
+Vigo,Galicia,567340,67,567.34
+Alicante [Alacant],Valencia,544864,67,544.864
+Gijón,Asturia,535960,67,535.96
+L´Hospitalet de Llobregat,Katalonia,495972,67,495.972
+Granada,Andalusia,489534,67,489.534
+A Coruña (La Coruña),Galicia,486804,67,486.804
+Vitoria-Gasteiz,Baskimaa,434308,67,434.308
+Santa Cruz de Tenerife,Canary Islands,426100,67,426.1
+Badalona,Katalonia,419270,67,419.27
+Oviedo,Asturia,400906,67,400.906
+Móstoles,Madrid,390702,67,390.702
+Elche [Elx],Valencia,386348,67,386.348
+Sabadell,Katalonia,369718,67,369.718
+Santander,Cantabria,368330,67,368.33
+Jerez de la Frontera,Andalusia,365320,67,365.32
+Pamplona [Iruña],Navarra,360966,67,360.966
+Donostia-San Sebastián,Baskimaa,358416,67,358.416
+Cartagena,Murcia,355418,67,355.418
+Leganés,Madrid,346326,67,346.326
+Fuenlabrada,Madrid,342346,67,342.346
+Almería,Andalusia,338054,67,338.054
+Terrassa,Katalonia,337390,67,337.39
+Alcalá de Henares,Madrid,328926,67,328.926
+Burgos,Castilla and León,325604,67,325.604
+Salamanca,Castilla and León,317440,67,317.44
+Albacete,Kastilia-La Mancha,295054,67,295.054
+Getafe,Madrid,290742,67,290.742
+Cádiz,Andalusia,284898,67,284.898
+Alcorcón,Madrid,284096,67,284.096
+Huelva,Andalusia,281166,67,281.166
+León,Castilla and León,279618,67,279.618
+Castellón de la Plana [Castell,Valencia,279424,67,279.424
+Badajoz,Extremadura,273226,67,273.226
+[San Cristóbal de] la Laguna,Canary Islands,255890,67,255.89
+Logroño,La Rioja,254186,67,254.186
+Santa Coloma de Gramenet,Katalonia,241604,67,241.604
+Tarragona,Katalonia,226032,67,226.032
+Lleida (Lérida),Katalonia,224414,67,224.414
+Jaén,Andalusia,218494,67,218.494
+Ourense (Orense),Galicia,218240,67,218.24
+Mataró,Katalonia,208190,67,208.19
+Algeciras,Andalusia,206212,67,206.212
+Marbella,Andalusia,202288,67,202.288
+Barakaldo,Baskimaa,196424,67,196.424
+Dos Hermanas,Andalusia,189182,67,189.182
+Santiago de Compostela,Galicia,187490,67,187.49
+Torrejón de Ardoz,Madrid,184524,67,184.524
+Cape Town,Western Cape,4704242,237,4704.242
+Soweto,Gauteng,1808330,237,1808.33
+Johannesburg,Gauteng,1513306,237,1513.306
+Port Elizabeth,Eastern Cape,1504638,237,1504.638
+Pretoria,Gauteng,1317260,237,1317.26
+Inanda,KwaZulu-Natal,1268130,237,1268.13
+Durban,KwaZulu-Natal,1132240,237,1132.24
+Vanderbijlpark,Gauteng,937862,237,937.862
+Kempton Park,Gauteng,885266,237,885.266
+Alberton,Gauteng,820204,237,820.204
+Pinetown,KwaZulu-Natal,757620,237,757.62
+Pietermaritzburg,KwaZulu-Natal,740380,237,740.38
+Benoni,Gauteng,730934,237,730.934
+Randburg,Gauteng,682576,237,682.576
+Umlazi,KwaZulu-Natal,678466,237,678.466
+Bloemfontein,Free State,668682,237,668.682
+Vereeniging,Gauteng,657070,237,657.07
+Wonderboom,Gauteng,566578,237,566.578
+Roodepoort,Gauteng,558680,237,558.68
+Boksburg,Gauteng,525296,237,525.296
+Klerksdorp,North West,523822,237,523.822
+Soshanguve,Gauteng,485454,237,485.454
+Newcastle,KwaZulu-Natal,445986,237,445.986
+East London,Eastern Cape,442094,237,442.094
+Welkom,Free State,406592,237,406.592
+Kimberley,Northern Cape,394508,237,394.508
+Uitenhage,Eastern Cape,384240,237,384.24
+Chatsworth,KwaZulu-Natal,379770,237,379.77
+Mdantsane,Eastern Cape,365278,237,365.278
+Krugersdorp,Gauteng,363006,237,363.006
+Botshabelo,Free State,355942,237,355.942
+Brakpan,Gauteng,342726,237,342.726
+Witbank,Mpumalanga,334366,237,334.366
+Oberholzer,Gauteng,328734,237,328.734
+Germiston,Gauteng,328504,237,328.504
+Springs,Gauteng,324144,237,324.144
+Westonaria,Gauteng,319264,237,319.264
+Randfontein,Gauteng,241676,237,241.676
+Paarl,Western Cape,211536,237,211.536
+Potchefstroom,North West,203634,237,203.634
+Rustenburg,North West,194016,237,194.016
+Nigel,Gauteng,193468,237,193.468
+George,Western Cape,187636,237,187.636
+Ladysmith,KwaZulu-Natal,178584,237,178.584
+Addis Abeba,Addis Abeba,4990000,69,4990
+Dire Dawa,Dire Dawa,329702,69,329.702
+Nazret,Oromia,255684,69,255.684
+Gonder,Amhara,224498,69,224.498
+Dese,Amhara,194628,69,194.628
+Mekele,Tigray,193876,69,193.876
+Bahir Dar,Amhara,192280,69,192.28
+Stanley,East Falkland,3272,72,3.272
+Suva,Central,154732,71,154.732
+Quezon,National Capital Reg,4347662,169,4347.662
+Manila,National Capital Reg,3162164,169,3162.164
+Kalookan,National Capital Reg,2355208,169,2355.208
+Davao,Southern Mindanao,2294232,169,2294.232
+Cebu,Central Visayas,1437642,169,1437.642
+Zamboanga,Western Mindanao,1203588,169,1203.588
+Pasig,National Capital Reg,1010116,169,1010.116
+Valenzuela,National Capital Reg,970866,169,970.866
+Las Piñas,National Capital Reg,945560,169,945.56
+Antipolo,Southern Tagalog,941732,169,941.732
+Taguig,National Capital Reg,934750,169,934.75
+Cagayan de Oro,Northern Mindanao,923754,169,923.754
+Parañaque,National Capital Reg,899622,169,899.622
+Makati,National Capital Reg,889734,169,889.734
+Bacolod,Western Visayas,858152,169,858.152
+General Santos,Southern Mindanao,823644,169,823.644
+Marikina,National Capital Reg,782340,169,782.34
+Dasmariñas,Southern Tagalog,759040,169,759.04
+Muntinlupa,National Capital Reg,758620,169,758.62
+Iloilo,Western Visayas,731640,169,731.64
+Pasay,National Capital Reg,709816,169,709.816
+Malabon,National Capital Reg,677710,169,677.71
+San José del Monte,Central Luzon,631614,169,631.614
+Bacoor,Southern Tagalog,611398,169,611.398
+Iligan,Central Mindanao,570122,169,570.122
+Calamba,Southern Tagalog,562292,169,562.292
+Mandaluyong,National Capital Reg,556948,169,556.948
+Butuan,Caraga,534558,169,534.558
+Angeles,Central Luzon,527942,169,527.942
+Tarlac,Central Luzon,524962,169,524.962
+Mandaue,Central Visayas,519456,169,519.456
+Baguio,CAR,504772,169,504.772
+Batangas,Southern Tagalog,495176,169,495.176
+Cainta,Southern Tagalog,485022,169,485.022
+San Pedro,Southern Tagalog,462806,169,462.806
+Navotas,National Capital Reg,460806,169,460.806
+Cabanatuan,Central Luzon,445718,169,445.718
+San Fernando,Central Luzon,443714,169,443.714
+Lipa,Southern Tagalog,436894,169,436.894
+Lapu-Lapu,Central Visayas,434038,169,434.038
+San Pablo,Southern Tagalog,415854,169,415.854
+Biñan,Southern Tagalog,402372,169,402.372
+Taytay,Southern Tagalog,396366,169,396.366
+Lucena,Southern Tagalog,392150,169,392.15
+Imus,Southern Tagalog,390964,169,390.964
+Olongapo,Central Luzon,388520,169,388.52
+Binangonan,Southern Tagalog,375382,169,375.382
+Santa Rosa,Southern Tagalog,371266,169,371.266
+Tagum,Southern Mindanao,359062,169,359.062
+Tacloban,Eastern Visayas,357278,169,357.278
+Malolos,Central Luzon,350582,169,350.582
+Mabalacat,Central Luzon,342090,169,342.09
+Cotabato,Central Mindanao,327698,169,327.698
+Meycauayan,Central Luzon,326074,169,326.074
+Puerto Princesa,Southern Tagalog,323824,169,323.824
+Legazpi,Bicol,314020,169,314.02
+Silang,Southern Tagalog,312274,169,312.274
+Ormoc,Eastern Visayas,308594,169,308.594
+San Carlos,Ilocos,308528,169,308.528
+Kabankalan,Western Visayas,299538,169,299.538
+Talisay,Central Visayas,296220,169,296.22
+Valencia,Northern Mindanao,295848,169,295.848
+Calbayog,Eastern Visayas,294374,169,294.374
+Santa Maria,Central Luzon,288564,169,288.564
+Pagadian,Western Mindanao,285030,169,285.03
+Cadiz,Western Visayas,283908,169,283.908
+Bago,Western Visayas,283442,169,283.442
+Toledo,Central Visayas,282348,169,282.348
+Naga,Bicol,275620,169,275.62
+San Mateo,Southern Tagalog,271206,169,271.206
+Panabo,Southern Mindanao,267900,169,267.9
+Koronadal,Southern Mindanao,267572,169,267.572
+Marawi,Central Mindanao,262180,169,262.18
+Dagupan,Ilocos,260656,169,260.656
+Sagay,Western Visayas,259530,169,259.53
+Roxas,Western Visayas,252704,169,252.704
+Lubao,Central Luzon,251398,169,251.398
+Digos,Southern Mindanao,250342,169,250.342
+San Miguel,Central Luzon,247648,169,247.648
+Malaybalay,Northern Mindanao,247344,169,247.344
+Tuguegarao,Cagayan Valley,241290,169,241.29
+Ilagan,Cagayan Valley,239980,169,239.98
+Baliuag,Central Luzon,239350,169,239.35
+Surigao,Caraga,237068,169,237.068
+San Carlos,Western Visayas,236518,169,236.518
+San Juan del Monte,National Capital Reg,235360,169,235.36
+Tanauan,Southern Tagalog,235078,169,235.078
+Concepcion,Central Luzon,230342,169,230.342
+Rodriguez (Montalban),Southern Tagalog,230334,169,230.334
+Sariaya,Southern Tagalog,229136,169,229.136
+Malasiqui,Ilocos,226380,169,226.38
+General Mariano Alvarez,Southern Tagalog,224892,169,224.892
+Urdaneta,Ilocos,223164,169,223.164
+Hagonoy,Central Luzon,222850,169,222.85
+San Jose,Southern Tagalog,222018,169,222.018
+Polomolok,Southern Mindanao,221418,169,221.418
+Santiago,Cagayan Valley,221062,169,221.062
+Tanza,Southern Tagalog,221034,169,221.034
+Ozamis,Northern Mindanao,220840,169,220.84
+Mexico,Central Luzon,218962,169,218.962
+San Jose,Central Luzon,216508,169,216.508
+Silay,Western Visayas,215444,169,215.444
+General Trias,Southern Tagalog,215382,169,215.382
+Tabaco,Bicol,214332,169,214.332
+Cabuyao,Southern Tagalog,213260,169,213.26
+Calapan,Southern Tagalog,211820,169,211.82
+Mati,Southern Mindanao,211816,169,211.816
+Midsayap,Central Mindanao,211520,169,211.52
+Cauayan,Cagayan Valley,207904,169,207.904
+Gingoog,Northern Mindanao,204758,169,204.758
+Dumaguete,Central Visayas,204530,169,204.53
+San Fernando,Ilocos,204164,169,204.164
+Arayat,Central Luzon,203584,169,203.584
+Bayawan (Tulong),Central Visayas,202782,169,202.782
+Kidapawan,Central Mindanao,202410,169,202.41
+Daraga (Locsin),Bicol,202062,169,202.062
+Marilao,Central Luzon,202034,169,202.034
+Malita,Southern Mindanao,200000,169,200
+Dipolog,Western Mindanao,199724,169,199.724
+Cavite,Southern Tagalog,198734,169,198.734
+Danao,Central Visayas,197562,169,197.562
+Bislig,Caraga,195720,169,195.72
+Talavera,Central Luzon,194658,169,194.658
+Guagua,Central Luzon,193716,169,193.716
+Bayambang,Ilocos,193218,169,193.218
+Nasugbu,Southern Tagalog,192226,169,192.226
+Baybay,Eastern Visayas,191260,169,191.26
+Capas,Central Luzon,190438,169,190.438
+Sultan Kudarat,ARMM,189722,169,189.722
+Laoag,Ilocos,188932,169,188.932
+Bayugan,Caraga,187246,169,187.246
+Malungon,Southern Mindanao,186464,169,186.464
+Santa Cruz,Southern Tagalog,185388,169,185.388
+Sorsogon,Bicol,185024,169,185.024
+Candelaria,Southern Tagalog,184858,169,184.858
+Ligao,Bicol,181206,169,181.206
+Tórshavn,Streymoyar,29084,74,29.084
+Libreville,Estuaire,838000,76,838
+Serekunda,Kombo St Mary,205200,83,205.2
+Banjul,Banjul,84652,83,84.652
+Tbilisi,Tbilisi,2470400,78,2470.4
+Kutaisi,Imereti,481800,78,481.8
+Rustavi,Kvemo Kartli,310800,78,310.8
+Batumi,Adzaria [Atšara],275400,78,275.4
+Sohumi,Abhasia [Aphazeti],223400,78,223.4
+Accra,Greater Accra,2140000,79,2140
+Kumasi,Ashanti,770384,79,770.384
+Tamale,Northern,302138,79,302.138
+Tema,Greater Accra,219950,79,219.95
+Sekondi-Takoradi,Western,207306,79,207.306
+Gibraltar,–,54050,80,54.05
+Saint George´s,St George,9242,87,9.242
+Nuuk,Kitaa,26890,88,26.89
+Les Abymes,Grande-Terre,125894,82,125.894
+Basse-Terre,Basse-Terre,24866,82,24.866
+Tamuning,–,19000,91,19
+Agaña,–,2278,91,2.278
+Ciudad de Guatemala,Guatemala,1646602,89,1646.602
+Mixco,Guatemala,419582,89,419.582
+Villa Nueva,Guatemala,202590,89,202.59
+Quetzaltenango,Quetzaltenango,181602,89,181.602
+Conakry,Conakry,2181220,81,2181.22
+Bissau,Bissau,482000,84,482
+Georgetown,Georgetown,508000,92,508
+Port-au-Prince,Ouest,1768944,97,1768.944
+Carrefour,Ouest,580408,97,580.408
+Delmas,Ouest,480858,97,480.858
+Le-Cap-Haïtien,Nord,204466,97,204.466
+Tegucigalpa,Distrito Central,1627800,95,1627.8
+San Pedro Sula,Cortés,767800,95,767.8
+La Ceiba,Atlántida,178400,95,178.4
+Kowloon and New Kowloon,Kowloon and New Kowl,3975992,93,3975.992
+Victoria,Hongkong,2625274,93,2625.274
+Longyearbyen,Länsimaa,2876,190,2.876
+Jakarta,Jakarta Raya,19209800,99,19209.8
+Surabaya,East Java,5327640,99,5327.64
+Bandung,West Java,4858000,99,4858
+Medan,Sumatera Utara,3687838,99,3687.838
+Palembang,Sumatera Selatan,2445528,99,2445.528
+Tangerang,West Java,2396600,99,2396.6
+Semarang,Central Java,2208810,99,2208.81
+Ujung Pandang,Sulawesi Selatan,2120514,99,2120.514
+Malang,East Java,1433724,99,1433.724
+Bandar Lampung,Lampung,1360664,99,1360.664
+Bekasi,West Java,1288600,99,1288.6
+Padang,Sumatera Barat,1068948,99,1068.948
+Surakarta,Central Java,1037200,99,1037.2
+Banjarmasin,Kalimantan Selatan,965862,99,965.862
+Pekan Baru,Riau,877276,99,877.276
+Denpasar,Bali,870000,99,870
+Yogyakarta,Yogyakarta,837888,99,837.888
+Pontianak,Kalimantan Barat,819264,99,819.264
+Samarinda,Kalimantan Timur,798350,99,798.35
+Jambi,Jambi,770402,99,770.402
+Depok,West Java,730400,99,730.4
+Cimahi,West Java,689200,99,689.2
+Balikpapan,Kalimantan Timur,677504,99,677.504
+Manado,Sulawesi Utara,664576,99,664.576
+Mataram,Nusa Tenggara Barat,613200,99,613.2
+Pekalongan,Central Java,603008,99,603.008
+Tegal,Central Java,579488,99,579.488
+Bogor,West Java,570228,99,570.228
+Ciputat,West Java,541600,99,541.6
+Pondokgede,West Java,526400,99,526.4
+Cirebon,West Java,508812,99,508.812
+Kediri,East Java,507520,99,507.52
+Ambon,Molukit,498624,99,498.624
+Jember,East Java,437000,99,437
+Cilacap,Central Java,413800,99,413.8
+Cimanggis,West Java,410200,99,410.2
+Pematang Siantar,Sumatera Utara,406112,99,406.112
+Purwokerto,Central Java,405000,99,405
+Ciomas,West Java,374800,99,374.8
+Tasikmalaya,West Java,359600,99,359.6
+Madiun,East Java,343064,99,343.064
+Bengkulu,Bengkulu,292878,99,292.878
+Karawang,West Java,290000,99,290
+Banda Aceh,Aceh,286818,99,286.818
+Palu,Sulawesi Tengah,285600,99,285.6
+Pasuruan,East Java,268038,99,268.038
+Kupang,Nusa Tenggara Timur,258600,99,258.6
+Tebing Tinggi,Sumatera Utara,258600,99,258.6
+Percut Sei Tuan,Sumatera Utara,258000,99,258
+Binjai,Sumatera Utara,254444,99,254.444
+Sukabumi,West Java,251532,99,251.532
+Waru,East Java,248600,99,248.6
+Pangkal Pinang,Sumatera Selatan,248000,99,248
+Magelang,Central Java,247600,99,247.6
+Blitar,East Java,245200,99,245.2
+Serang,West Java,244800,99,244.8
+Probolinggo,East Java,241540,99,241.54
+Cilegon,West Java,234000,99,234
+Cianjur,West Java,228600,99,228.6
+Ciparay,West Java,223000,99,223
+Lhokseumawe,Aceh,219200,99,219.2
+Taman,East Java,214000,99,214
+Depok,Yogyakarta,213600,99,213.6
+Citeureup,West Java,210200,99,210.2
+Pemalang,Central Java,207000,99,207
+Klaten,Central Java,206600,99,206.6
+Salatiga,Central Java,206000,99,206
+Cibinong,West Java,202600,99,202.6
+Palangka Raya,Kalimantan Tengah,199386,99,199.386
+Mojokerto,East Java,193252,99,193.252
+Purwakarta,West Java,191800,99,191.8
+Garut,West Java,191600,99,191.6
+Kudus,Central Java,190600,99,190.6
+Kendari,Sulawesi Tenggara,189600,99,189.6
+Jaya Pura,West Irian,189400,99,189.4
+Gorontalo,Sulawesi Utara,188116,99,188.116
+Majalaya,West Java,186400,99,186.4
+Pondok Aren,West Java,185400,99,185.4
+Jombang,East Java,185200,99,185.2
+Sunggal,Sumatera Utara,184600,99,184.6
+Batam,Riau,183742,99,183.742
+Padang Sidempuan,Sumatera Utara,182400,99,182.4
+Sawangan,West Java,182200,99,182.2
+Banyuwangi,East Java,179800,99,179.8
+Tanjung Pinang,Riau,179800,99,179.8
+Mumbai (Bombay),Maharashtra,21000000,100,21000
+Delhi,Delhi,14413408,100,14413.408
+Calcutta [Kolkata],West Bengali,8799638,100,8799.638
+Chennai (Madras),Tamil Nadu,7682792,100,7682.792
+Hyderabad,Andhra Pradesh,5929276,100,5929.276
+Ahmedabad,Gujarat,5753420,100,5753.42
+Bangalore,Karnataka,5320176,100,5320.176
+Kanpur,Uttar Pradesh,3748818,100,3748.818
+Nagpur,Maharashtra,3249504,100,3249.504
+Lucknow,Uttar Pradesh,3238230,100,3238.23
+Pune,Maharashtra,3133302,100,3133.302
+Surat,Gujarat,2997634,100,2997.634
+Jaipur,Rajasthan,2916966,100,2916.966
+Indore,Madhya Pradesh,2183348,100,2183.348
+Bhopal,Madhya Pradesh,2125542,100,2125.542
+Ludhiana,Punjab,2085480,100,2085.48
+Vadodara (Baroda),Gujarat,2062692,100,2062.692
+Kalyan,Maharashtra,2029114,100,2029.114
+Madurai,Tamil Nadu,1955712,100,1955.712
+Haora (Howrah),West Bengali,1900870,100,1900.87
+Varanasi (Benares),Uttar Pradesh,1858540,100,1858.54
+Patna,Bihar,1834486,100,1834.486
+Srinagar,Jammu and Kashmir,1785012,100,1785.012
+Agra,Uttar Pradesh,1783580,100,1783.58
+Coimbatore,Tamil Nadu,1632642,100,1632.642
+Thane (Thana),Maharashtra,1606778,100,1606.778
+Allahabad,Uttar Pradesh,1585716,100,1585.716
+Meerut,Uttar Pradesh,1507556,100,1507.556
+Vishakhapatnam,Andhra Pradesh,1504074,100,1504.074
+Jabalpur,Madhya Pradesh,1483854,100,1483.854
+Amritsar,Punjab,1417670,100,1417.67
+Faridabad,Haryana,1407184,100,1407.184
+Vijayawada,Andhra Pradesh,1403654,100,1403.654
+Gwalior,Madhya Pradesh,1381530,100,1381.53
+Jodhpur,Rajasthan,1332558,100,1332.558
+Nashik (Nasik),Maharashtra,1313850,100,1313.85
+Hubli-Dharwad,Karnataka,1296596,100,1296.596
+Solapur (Sholapur),Maharashtra,1208430,100,1208.43
+Ranchi,Jharkhand,1198612,100,1198.612
+Bareilly,Uttar Pradesh,1174422,100,1174.422
+Guwahati (Gauhati),Assam,1168684,100,1168.684
+Shambajinagar (Aurangabad),Maharashtra,1146544,100,1146.544
+Cochin (Kochi),Kerala,1129178,100,1129.178
+Rajkot,Gujarat,1118814,100,1118.814
+Kota,Rajasthan,1074742,100,1074.742
+Thiruvananthapuram (Trivandrum,Kerala,1048012,100,1048.012
+Pimpri-Chinchwad,Maharashtra,1034166,100,1034.166
+Jalandhar (Jullundur),Punjab,1019020,100,1019.02
+Gorakhpur,Uttar Pradesh,1011132,100,1011.132
+Chandigarh,Chandigarh,1008188,100,1008.188
+Mysore,Karnataka,961384,100,961.384
+Aligarh,Uttar Pradesh,961040,100,961.04
+Guntur,Andhra Pradesh,942102,100,942.102
+Jamshedpur,Jharkhand,921154,100,921.154
+Ghaziabad,Uttar Pradesh,908312,100,908.312
+Warangal,Andhra Pradesh,895314,100,895.314
+Raipur,Chhatisgarh,877278,100,877.278
+Moradabad,Uttar Pradesh,858428,100,858.428
+Durgapur,West Bengali,851672,100,851.672
+Amravati,Maharashtra,843152,100,843.152
+Calicut (Kozhikode),Kerala,839662,100,839.662
+Bikaner,Rajasthan,832578,100,832.578
+Bhubaneswar,Orissa,823084,100,823.084
+Kolhapur,Maharashtra,812740,100,812.74
+Kataka (Cuttack),Orissa,806836,100,806.836
+Ajmer,Rajasthan,805400,100,805.4
+Bhavnagar,Gujarat,804676,100,804.676
+Tiruchirapalli,Tamil Nadu,774446,100,774.446
+Bhilai,Chhatisgarh,772318,100,772.318
+Bhiwandi,Maharashtra,758140,100,758.14
+Saharanpur,Uttar Pradesh,749890,100,749.89
+Ulhasnagar,Maharashtra,738154,100,738.154
+Salem,Tamil Nadu,733424,100,733.424
+Ujjain,Madhya Pradesh,724532,100,724.532
+Malegaon,Maharashtra,685190,100,685.19
+Jamnagar,Gujarat,683274,100,683.274
+Bokaro Steel City,Jharkhand,667366,100,667.366
+Akola,Maharashtra,656068,100,656.068
+Belgaum,Karnataka,652798,100,652.798
+Rajahmundry,Andhra Pradesh,649702,100,649.702
+Nellore,Andhra Pradesh,633212,100,633.212
+Udaipur,Rajasthan,617142,100,617.142
+New Bombay,Maharashtra,614594,100,614.594
+Bhatpara,West Bengali,609904,100,609.904
+Gulbarga,Karnataka,608198,100,608.198
+New Delhi,Delhi,602594,100,602.594
+Jhansi,Uttar Pradesh,601700,100,601.7
+Gaya,Bihar,583350,100,583.35
+Kakinada,Andhra Pradesh,559960,100,559.96
+Dhule (Dhulia),Maharashtra,556634,100,556.634
+Panihati,West Bengali,551980,100,551.98
+Nanded (Nander),Maharashtra,550166,100,550.166
+Mangalore,Karnataka,546608,100,546.608
+Dehra Dun,Uttaranchal,540318,100,540.318
+Kamarhati,West Bengali,533778,100,533.778
+Davangere,Karnataka,532164,100,532.164
+Asansol,West Bengali,524376,100,524.376
+Bhagalpur,Bihar,506450,100,506.45
+Bellary,Karnataka,490782,100,490.782
+Barddhaman (Burdwan),West Bengali,490158,100,490.158
+Rampur,Uttar Pradesh,487484,100,487.484
+Jalgaon,Maharashtra,484386,100,484.386
+Muzaffarpur,Bihar,482214,100,482.214
+Nizamabad,Andhra Pradesh,482068,100,482.068
+Muzaffarnagar,Uttar Pradesh,481218,100,481.218
+Patiala,Punjab,476736,100,476.736
+Shahjahanpur,Uttar Pradesh,475426,100,475.426
+Kurnool,Andhra Pradesh,473600,100,473.6
+Tiruppur (Tirupper),Tamil Nadu,471322,100,471.322
+Rohtak,Haryana,466800,100,466.8
+South Dum Dum,West Bengali,465622,100,465.622
+Mathura,Uttar Pradesh,453382,100,453.382
+Chandrapur,Maharashtra,452210,100,452.21
+Barahanagar (Baranagar),West Bengali,449642,100,449.642
+Darbhanga,Bihar,436782,100,436.782
+Siliguri (Shiliguri),West Bengali,433900,100,433.9
+Raurkela,Orissa,430978,100,430.978
+Ambattur,Tamil Nadu,430848,100,430.848
+Panipat,Haryana,430436,100,430.436
+Firozabad,Uttar Pradesh,430256,100,430.256
+Ichalkaranji,Maharashtra,429900,100,429.9
+Jammu,Jammu and Kashmir,429474,100,429.474
+Ramagundam,Andhra Pradesh,428768,100,428.768
+Eluru,Andhra Pradesh,425732,100,425.732
+Brahmapur,Orissa,420836,100,420.836
+Alwar,Rajasthan,410172,100,410.172
+Pondicherry,Pondicherry,406130,100,406.13
+Thanjavur,Tamil Nadu,404026,100,404.026
+Bihar Sharif,Bihar,402646,100,402.646
+Tuticorin,Tamil Nadu,399708,100,399.708
+Imphal,Manipur,397070,100,397.07
+Latur,Maharashtra,394816,100,394.816
+Sagar,Madhya Pradesh,390692,100,390.692
+Farrukhabad-cum-Fatehgarh,Uttar Pradesh,389134,100,389.134
+Sangli,Maharashtra,386394,100,386.394
+Parbhani,Maharashtra,380510,100,380.51
+Nagar Coil,Tamil Nadu,380168,100,380.168
+Bijapur,Karnataka,373878,100,373.878
+Kukatpalle,Andhra Pradesh,370756,100,370.756
+Bally,West Bengali,368948,100,368.948
+Bhilwara,Rajasthan,367930,100,367.93
+Ratlam,Madhya Pradesh,366750,100,366.75
+Avadi,Tamil Nadu,366430,100,366.43
+Dindigul,Tamil Nadu,364954,100,364.954
+Ahmadnagar,Maharashtra,362678,100,362.678
+Bilaspur,Chhatisgarh,359666,100,359.666
+Shimoga,Karnataka,358516,100,358.516
+Kharagpur,West Bengali,355978,100,355.978
+Mira Bhayandar,Maharashtra,350744,100,350.744
+Vellore,Tamil Nadu,350122,100,350.122
+Jalna,Maharashtra,349970,100,349.97
+Burnpur,West Bengali,349866,100,349.866
+Anantapur,Andhra Pradesh,349848,100,349.848
+Allappuzha (Alleppey),Kerala,349332,100,349.332
+Tirupati,Andhra Pradesh,348738,100,348.738
+Karnal,Haryana,347502,100,347.502
+Burhanpur,Madhya Pradesh,345420,100,345.42
+Hisar (Hissar),Haryana,345354,100,345.354
+Tiruvottiyur,Tamil Nadu,345124,100,345.124
+Mirzapur-cum-Vindhyachal,Uttar Pradesh,338672,100,338.672
+Secunderabad,Andhra Pradesh,334922,100,334.922
+Nadiad,Gujarat,334102,100,334.102
+Dewas,Madhya Pradesh,328728,100,328.728
+Murwara (Katni),Madhya Pradesh,326862,100,326.862
+Ganganagar,Rajasthan,322964,100,322.964
+Vizianagaram,Andhra Pradesh,320718,100,320.718
+Erode,Tamil Nadu,318464,100,318.464
+Machilipatnam (Masulipatam),Andhra Pradesh,318220,100,318.22
+Bhatinda (Bathinda),Punjab,318084,100,318.084
+Raichur,Karnataka,315102,100,315.102
+Agartala,Tripura,314716,100,314.716
+Arrah (Ara),Bihar,314164,100,314.164
+Satna,Madhya Pradesh,313260,100,313.26
+Lalbahadur Nagar,Andhra Pradesh,311000,100,311
+Aizawl,Mizoram,310480,100,310.48
+Uluberia,West Bengali,310344,100,310.344
+Katihar,Bihar,308734,100,308.734
+Cuddalore,Tamil Nadu,306172,100,306.172
+Hugli-Chinsurah,West Bengali,303612,100,303.612
+Dhanbad,Jharkhand,303578,100,303.578
+Raiganj,West Bengali,302090,100,302.09
+Sambhal,Uttar Pradesh,301738,100,301.738
+Durg,Chhatisgarh,301290,100,301.29
+Munger (Monghyr),Bihar,300224,100,300.224
+Kanchipuram,Tamil Nadu,300200,100,300.2
+North Dum Dum,West Bengali,299930,100,299.93
+Karimnagar,Andhra Pradesh,297166,100,297.166
+Bharatpur,Rajasthan,297038,100,297.038
+Sikar,Rajasthan,296544,100,296.544
+Hardwar (Haridwar),Uttaranchal,294610,100,294.61
+Dabgram,West Bengali,294434,100,294.434
+Morena,Madhya Pradesh,294248,100,294.248
+Noida,Uttar Pradesh,293028,100,293.028
+Hapur,Uttar Pradesh,292524,100,292.524
+Bhusawal,Maharashtra,290286,100,290.286
+Khandwa,Madhya Pradesh,290266,100,290.266
+Yamuna Nagar,Haryana,288692,100,288.692
+Sonipat (Sonepat),Haryana,287844,100,287.844
+Tenali,Andhra Pradesh,287452,100,287.452
+Raurkela Civil Township,Orissa,280816,100,280.816
+Kollam (Quilon),Kerala,279704,100,279.704
+Kumbakonam,Tamil Nadu,278966,100,278.966
+Ingraj Bazar (English Bazar),West Bengali,278408,100,278.408
+Timkur,Karnataka,277806,100,277.806
+Amroha,Uttar Pradesh,274122,100,274.122
+Serampore,West Bengali,274056,100,274.056
+Chapra,Bihar,273754,100,273.754
+Pali,Rajasthan,273684,100,273.684
+Maunath Bhanjan,Uttar Pradesh,273394,100,273.394
+Adoni,Andhra Pradesh,272364,100,272.364
+Jaunpur,Uttar Pradesh,272124,100,272.124
+Tirunelveli,Tamil Nadu,271650,100,271.65
+Bahraich,Uttar Pradesh,270800,100,270.8
+Gadag Betigeri,Karnataka,268102,100,268.102
+Proddatur,Andhra Pradesh,267828,100,267.828
+Chittoor,Andhra Pradesh,266924,100,266.924
+Barrackpur,West Bengali,266530,100,266.53
+Bharuch (Broach),Gujarat,266204,100,266.204
+Naihati,West Bengali,265402,100,265.402
+Shillong,Meghalaya,263438,100,263.438
+Sambalpur,Orissa,262276,100,262.276
+Junagadh,Gujarat,260968,100,260.968
+Rae Bareli,Uttar Pradesh,259808,100,259.808
+Rewa,Madhya Pradesh,257962,100,257.962
+Gurgaon,Haryana,257216,100,257.216
+Khammam,Andhra Pradesh,255984,100,255.984
+Bulandshahr,Uttar Pradesh,254402,100,254.402
+Navsari,Gujarat,252178,100,252.178
+Malkajgiri,Andhra Pradesh,252132,100,252.132
+Midnapore (Medinipur),West Bengali,250996,100,250.996
+Miraj,Maharashtra,250814,100,250.814
+Raj Nandgaon,Chhatisgarh,250742,100,250.742
+Alandur,Tamil Nadu,250488,100,250.488
+Puri,Orissa,250398,100,250.398
+Navadwip,West Bengali,250074,100,250.074
+Sirsa,Haryana,250000,100,250
+Korba,Chhatisgarh,249002,100,249.002
+Faizabad,Uttar Pradesh,248874,100,248.874
+Etawah,Uttar Pradesh,248144,100,248.144
+Pathankot,Punjab,247860,100,247.86
+Gandhinagar,Gujarat,246718,100,246.718
+Palghat (Palakkad),Kerala,246578,100,246.578
+Veraval,Gujarat,246000,100,246
+Hoshiarpur,Punjab,245410,100,245.41
+Ambala,Haryana,245192,100,245.192
+Sitapur,Uttar Pradesh,243684,100,243.684
+Bhiwani,Haryana,243258,100,243.258
+Cuddapah,Andhra Pradesh,242926,100,242.926
+Bhimavaram,Andhra Pradesh,242628,100,242.628
+Krishnanagar,West Bengali,242220,100,242.22
+Chandannagar,West Bengali,240756,100,240.756
+Mandya,Karnataka,240530,100,240.53
+Dibrugarh,Assam,240254,100,240.254
+Nandyal,Andhra Pradesh,239626,100,239.626
+Balurghat,West Bengali,239592,100,239.592
+Neyveli,Tamil Nadu,236160,100,236.16
+Fatehpur,Uttar Pradesh,235350,100,235.35
+Mahbubnagar,Andhra Pradesh,233666,100,233.666
+Budaun,Uttar Pradesh,233390,100,233.39
+Porbandar,Gujarat,233342,100,233.342
+Silchar,Assam,230966,100,230.966
+Berhampore (Baharampur),West Bengali,230288,100,230.288
+Purnea (Purnia),Jharkhand,229824,100,229.824
+Bankura,West Bengali,229752,100,229.752
+Rajapalaiyam,Tamil Nadu,228404,100,228.404
+Titagarh,West Bengali,228170,100,228.17
+Halisahar,West Bengali,228056,100,228.056
+Hathras,Uttar Pradesh,226570,100,226.57
+Bhir (Bid),Maharashtra,224868,100,224.868
+Pallavaram,Tamil Nadu,223732,100,223.732
+Anand,Gujarat,220532,100,220.532
+Mango,Jharkhand,220048,100,220.048
+Santipur,West Bengali,219912,100,219.912
+Bhind,Madhya Pradesh,219510,100,219.51
+Gondiya,Maharashtra,218940,100,218.94
+Tiruvannamalai,Tamil Nadu,218392,100,218.392
+Yeotmal (Yavatmal),Maharashtra,217156,100,217.156
+Kulti-Barakar,West Bengali,217036,100,217.036
+Moga,Punjab,216608,100,216.608
+Shivapuri,Madhya Pradesh,216554,100,216.554
+Bidar,Karnataka,216032,100,216.032
+Guntakal,Andhra Pradesh,215184,100,215.184
+Unnao,Uttar Pradesh,214850,100,214.85
+Barasat,West Bengali,214730,100,214.73
+Tambaram,Tamil Nadu,214374,100,214.374
+Abohar,Punjab,214326,100,214.326
+Pilibhit,Uttar Pradesh,213210,100,213.21
+Valparai,Tamil Nadu,213046,100,213.046
+Gonda,Uttar Pradesh,212156,100,212.156
+Surendranagar,Gujarat,211946,100,211.946
+Qutubullapur,Andhra Pradesh,210760,100,210.76
+Beawar,Rajasthan,210726,100,210.726
+Hindupur,Andhra Pradesh,209302,100,209.302
+Gandhidham,Gujarat,209170,100,209.17
+Haldwani-cum-Kathgodam,Uttaranchal,208390,100,208.39
+Tellicherry (Thalassery),Kerala,207158,100,207.158
+Wardha,Maharashtra,205970,100,205.97
+Rishra,West Bengali,205298,100,205.298
+Bhuj,Gujarat,204352,100,204.352
+Modinagar,Uttar Pradesh,203320,100,203.32
+Gudivada,Andhra Pradesh,203312,100,203.312
+Basirhat,West Bengali,202818,100,202.818
+Uttarpara-Kotrung,West Bengali,201734,100,201.734
+Ongole,Andhra Pradesh,201672,100,201.672
+North Barrackpur,West Bengali,201026,100,201.026
+Guna,Madhya Pradesh,200980,100,200.98
+Haldia,West Bengali,200694,100,200.694
+Habra,West Bengali,200446,100,200.446
+Kanchrapara,West Bengali,200388,100,200.388
+Tonk,Rajasthan,200158,100,200.158
+Champdani,West Bengali,197636,100,197.636
+Orai,Uttar Pradesh,197280,100,197.28
+Pudukkottai,Tamil Nadu,197238,100,197.238
+Sasaram,Bihar,196440,100,196.44
+Hazaribag,Jharkhand,195424,100,195.424
+Palayankottai,Tamil Nadu,195324,100,195.324
+Banda,Uttar Pradesh,194454,100,194.454
+Godhra,Gujarat,193626,100,193.626
+Hospet,Karnataka,192644,100,192.644
+Ashoknagar-Kalyangarh,West Bengali,192630,100,192.63
+Achalpur,Maharashtra,192432,100,192.432
+Patan,Gujarat,192218,100,192.218
+Mandasor,Madhya Pradesh,191516,100,191.516
+Damoh,Madhya Pradesh,191322,100,191.322
+Satara,Maharashtra,190266,100,190.266
+Meerut Cantonment,Uttar Pradesh,189752,100,189.752
+Dehri,Bihar,189052,100,189.052
+Delhi Cantonment,Delhi,188652,100,188.652
+Chhindwara,Madhya Pradesh,187462,100,187.462
+Bansberia,West Bengali,186894,100,186.894
+Nagaon,Assam,186700,100,186.7
+Kanpur Cantonment,Uttar Pradesh,186218,100,186.218
+Vidisha,Madhya Pradesh,185834,100,185.834
+Bettiah,Bihar,185166,100,185.166
+Purulia,Jharkhand,185148,100,185.148
+Hassan,Karnataka,181606,100,181.606
+Ambala Sadar,Haryana,181424,100,181.424
+Baidyabati,West Bengali,181202,100,181.202
+Morvi,Gujarat,180714,100,180.714
+Raigarh,Chhatisgarh,178332,100,178.332
+Vejalpur,Gujarat,178106,100,178.106
+Baghdad,Baghdad,8672000,104,8672
+Mosul,Ninawa,1758000,104,1758
+Irbil,Irbil,971936,104,971.936
+Kirkuk,al-Tamim,837248,104,837.248
+Basra,Basra,812592,104,812.592
+al-Sulaymaniya,al-Sulaymaniya,728192,104,728.192
+al-Najaf,al-Najaf,618020,104,618.02
+Karbala,Karbala,593410,104,593.41
+al-Hilla,Babil,537668,104,537.668
+al-Nasiriya,DhiQar,531874,104,531.874
+al-Amara,Maysan,417594,104,417.594
+al-Diwaniya,al-Qadisiya,393038,104,393.038
+al-Ramadi,al-Anbar,385112,104,385.112
+al-Kut,Wasit,366366,104,366.366
+Baquba,Diyala,229032,104,229.032
+Teheran,Teheran,13517690,103,13517.69
+Mashhad,Khorasan,3774810,103,3774.81
+Esfahan,Esfahan,2532144,103,2532.144
+Tabriz,East Azerbaidzan,2382086,103,2382.086
+Shiraz,Fars,2106050,103,2106.05
+Karaj,Teheran,1881936,103,1881.936
+Ahvaz,Khuzestan,1609960,103,1609.96
+Qom,Qom,1555354,103,1555.354
+Kermanshah,Kermanshah,1385972,103,1385.972
+Urmia,West Azerbaidzan,870400,103,870.4
+Zahedan,Sistan va Baluchesta,839036,103,839.036
+Rasht,Gilan,835496,103,835.496
+Hamadan,Hamadan,802562,103,802.562
+Kerman,Kerman,769982,103,769.982
+Arak,Markazi,761510,103,761.51
+Ardebil,Ardebil,680772,103,680.772
+Yazd,Yazd,653552,103,653.552
+Qazvin,Qazvin,582234,103,582.234
+Zanjan,Zanjan,572590,103,572.59
+Sanandaj,Kordestan,555616,103,555.616
+Bandar-e-Abbas,Hormozgan,547156,103,547.156
+Khorramabad,Lorestan,545630,103,545.63
+Eslamshahr,Teheran,530900,103,530.9
+Borujerd,Lorestan,435608,103,435.608
+Abadan,Khuzestan,412146,103,412.146
+Dezful,Khuzestan,405278,103,405.278
+Kashan,Esfahan,402744,103,402.744
+Sari,Mazandaran,391764,103,391.764
+Gorgan,Golestan,377420,103,377.42
+Najafabad,Esfahan,356996,103,356.996
+Sabzevar,Khorasan,341476,103,341.476
+Khomeynishahr,Esfahan,331776,103,331.776
+Amol,Mazandaran,318184,103,318.184
+Neyshabur,Khorasan,317694,103,317.694
+Babol,Mazandaran,316692,103,316.692
+Khoy,West Azerbaidzan,297888,103,297.888
+Malayer,Hamadan,288746,103,288.746
+Bushehr,Bushehr,287282,103,287.282
+Qaemshahr,Mazandaran,286572,103,286.572
+Qarchak,Teheran,285380,103,285.38
+Qods,Teheran,276556,103,276.556
+Sirjan,Kerman,270048,103,270.048
+Bojnurd,Khorasan,269670,103,269.67
+Maragheh,East Azerbaidzan,264636,103,264.636
+Birjand,Khorasan,255216,103,255.216
+Ilam,Ilam,252692,103,252.692
+Bukan,West Azerbaidzan,240040,103,240.04
+Masjed-e-Soleyman,Khuzestan,233766,103,233.766
+Saqqez,Kordestan,230788,103,230.788
+Gonbad-e Qabus,Mazandaran,222506,103,222.506
+Saveh,Qom,222490,103,222.49
+Mahabad,West Azerbaidzan,215598,103,215.598
+Varamin,Teheran,214466,103,214.466
+Andimeshk,Khuzestan,213846,103,213.846
+Khorramshahr,Khuzestan,211272,103,211.272
+Shahrud,Semnan,209530,103,209.53
+Marv Dasht,Fars,207158,103,207.158
+Zabol,Sistan va Baluchesta,201774,103,201.774
+Shahr-e Kord,Chaharmahal va Bakht,200954,103,200.954
+Bandar-e Anzali,Gilan,197000,103,197
+Rafsanjan,Kerman,196600,103,196.6
+Marand,East Azerbaidzan,192800,103,192.8
+Torbat-e Heydariyeh,Khorasan,189200,103,189.2
+Jahrom,Fars,188400,103,188.4
+Semnan,Semnan,182090,103,182.09
+Miandoab,West Azerbaidzan,180200,103,180.2
+Qomsheh,Esfahan,179600,103,179.6
+Dublin,Leinster,963708,102,963.708
+Cork,Munster,254374,102,254.374
+Reykjavík,Höfuðborgarsvæði,218368,105,218.368
+Jerusalem,Jerusalem,1267400,106,1267.4
+Tel Aviv-Jaffa,Tel Aviv,696200,106,696.2
+Haifa,Haifa,531400,106,531.4
+Rishon Le Ziyyon,Ha Merkaz,376400,106,376.4
+Beerseba,Ha Darom,327400,106,327.4
+Holon,Tel Aviv,326200,106,326.2
+Petah Tiqwa,Ha Merkaz,318800,106,318.8
+Ashdod,Ha Darom,311600,106,311.6
+Netanya,Ha Merkaz,309800,106,309.8
+Bat Yam,Tel Aviv,274000,106,274
+Bene Beraq,Tel Aviv,267800,106,267.8
+Ramat Gan,Tel Aviv,253800,106,253.8
+Ashqelon,Ha Darom,184600,106,184.6
+Rehovot,Ha Merkaz,180600,106,180.6
+Roma,Latium,5287162,107,5287.162
+Milano,Lombardia,2601954,107,2601.954
+Napoli,Campania,2005238,107,2005.238
+Torino,Piemonte,1807410,107,1807.41
+Palermo,Sisilia,1367588,107,1367.588
+Genova,Liguria,1272208,107,1272.208
+Bologna,Emilia-Romagna,762322,107,762.322
+Firenze,Toscana,753324,107,753.324
+Catania,Sisilia,675724,107,675.724
+Bari,Apulia,663696,107,663.696
+Venezia,Veneto,554610,107,554.61
+Messina,Sisilia,518312,107,518.312
+Verona,Veneto,510536,107,510.536
+Trieste,Friuli-Venezia Giuli,432918,107,432.918
+Padova,Veneto,422782,107,422.782
+Taranto,Apulia,416428,107,416.428
+Brescia,Lombardia,382634,107,382.634
+Reggio di Calabria,Calabria,359234,107,359.234
+Modena,Emilia-Romagna,352044,107,352.044
+Prato,Toscana,344946,107,344.946
+Parma,Emilia-Romagna,337434,107,337.434
+Cagliari,Sardinia,331852,107,331.852
+Livorno,Toscana,323346,107,323.346
+Perugia,Umbria,313346,107,313.346
+Foggia,Apulia,309782,107,309.782
+Reggio nell´ Emilia,Emilia-Romagna,287328,107,287.328
+Salerno,Campania,284110,107,284.11
+Ravenna,Emilia-Romagna,276836,107,276.836
+Ferrara,Emilia-Romagna,264254,107,264.254
+Rimini,Emilia-Romagna,262124,107,262.124
+Syrakusa,Sisilia,252564,107,252.564
+Sassari,Sardinia,241606,107,241.606
+Monza,Lombardia,239032,107,239.032
+Bergamo,Lombardia,235674,107,235.674
+Pescara,Abruzzit,231396,107,231.396
+Latina,Latium,228198,107,228.198
+Vicenza,Veneto,219476,107,219.476
+Terni,Umbria,215540,107,215.54
+Forlì,Emilia-Romagna,214950,107,214.95
+Trento,Trentino-Alto Adige,209812,107,209.812
+Novara,Piemonte,204074,107,204.074
+Piacenza,Emilia-Romagna,196768,107,196.768
+Ancona,Marche,196658,107,196.658
+Lecce,Apulia,196416,107,196.416
+Bolzano,Trentino-Alto Adige,194464,107,194.464
+Catanzaro,Calabria,193400,107,193.4
+La Spezia,Liguria,191008,107,191.008
+Udine,Friuli-Venezia Giuli,189864,107,189.864
+Torre del Greco,Campania,189010,107,189.01
+Andria,Apulia,188886,107,188.886
+Brindisi,Apulia,186908,107,186.908
+Giugliano in Campania,Campania,186572,107,186.572
+Pisa,Toscana,184758,107,184.758
+Barletta,Apulia,183808,107,183.808
+Arezzo,Toscana,183458,107,183.458
+Alessandria,Piemonte,180578,107,180.578
+Cesena,Emilia-Romagna,179704,107,179.704
+Pesaro,Marche,177974,107,177.974
+Dili,Dili,95800,212,95.8
+Wien,Wien,3216288,16,3216.288
+Graz,Steiermark,481934,16,481.934
+Linz,North Austria,376044,16,376.044
+Salzburg,Salzburg,288494,16,288.494
+Innsbruck,Tiroli,223504,16,223.504
+Klagenfurt,Kärnten,182282,16,182.282
+Spanish Town,St. Catherine,220758,108,220.758
+Kingston,St. Andrew,207924,108,207.924
+Portmore,St. Andrew,199598,108,199.598
+Tokyo,Tokyo-to,15960460,110,15960.46
+Jokohama [Yokohama],Kanagawa,6679188,110,6679.188
+Osaka,Osaka,5191348,110,5191.348
+Nagoya,Aichi,4308752,110,4308.752
+Sapporo,Hokkaido,3581772,110,3581.772
+Kioto,Kyoto,2923948,110,2923.948
+Kobe,Hyogo,2850278,110,2850.278
+Fukuoka,Fukuoka,2616758,110,2616.758
+Kawasaki,Kanagawa,2434718,110,2434.718
+Hiroshima,Hiroshima,2238234,110,2238.234
+Kitakyushu,Fukuoka,2032528,110,2032.528
+Sendai,Miyagi,1979950,110,1979.95
+Chiba,Chiba,1727860,110,1727.86
+Sakai,Osaka,1595470,110,1595.47
+Kumamoto,Kumamoto,1313468,110,1313.468
+Okayama,Okayama,1248538,110,1248.538
+Sagamihara,Kanagawa,1172600,110,1172.6
+Hamamatsu,Shizuoka,1137592,110,1137.592
+Kagoshima,Kagoshima,1099954,110,1099.954
+Funabashi,Chiba,1090598,110,1090.598
+Higashiosaka,Osaka,1035570,110,1035.57
+Hachioji,Tokyo-to,1026902,110,1026.902
+Niigata,Niigata,994928,110,994.928
+Amagasaki,Hyogo,962868,110,962.868
+Himeji,Hyogo,950334,110,950.334
+Shizuoka,Shizuoka,947708,110,947.708
+Urawa,Saitama,939350,110,939.35
+Matsuyama,Ehime,932266,110,932.266
+Matsudo,Chiba,922252,110,922.252
+Kanazawa,Ishikawa,910772,110,910.772
+Kawaguchi,Saitama,904310,110,904.31
+Ichikawa,Chiba,883786,110,883.786
+Omiya,Saitama,883298,110,883.298
+Utsunomiya,Tochigi,880706,110,880.706
+Oita,Oita,866802,110,866.802
+Nagasaki,Nagasaki,865518,110,865.518
+Yokosuka,Kanagawa,860400,110,860.4
+Kurashiki,Okayama,850206,110,850.206
+Gifu,Gifu,816014,110,816.014
+Hirakata,Osaka,806302,110,806.302
+Nishinomiya,Hyogo,795236,110,795.236
+Toyonaka,Osaka,793378,110,793.378
+Wakayama,Wakayama,782466,110,782.466
+Fukuyama,Hiroshima,753842,110,753.842
+Fujisawa,Kanagawa,745680,110,745.68
+Asahikawa,Hokkaido,729626,110,729.626
+Machida,Tokyo-to,728394,110,728.394
+Nara,Nara,725624,110,725.624
+Takatsuki,Osaka,723494,110,723.494
+Iwaki,Fukushima,723474,110,723.474
+Nagano,Nagano,722782,110,722.782
+Toyohashi,Aichi,720132,110,720.132
+Toyota,Aichi,692180,110,692.18
+Suita,Osaka,691500,110,691.5
+Takamatsu,Kagawa,664942,110,664.942
+Koriyama,Fukushima,660670,110,660.67
+Okazaki,Aichi,657422,110,657.422
+Kawagoe,Saitama,654422,110,654.422
+Tokorozawa,Saitama,651618,110,651.618
+Toyama,Toyama,651580,110,651.58
+Kochi,Kochi,649420,110,649.42
+Kashiwa,Chiba,640592,110,640.592
+Akita,Akita,628880,110,628.88
+Miyazaki,Miyazaki,607568,110,607.568
+Koshigaya,Saitama,602892,110,602.892
+Naha,Okinawa,599702,110,599.702
+Aomori,Aomori,591938,110,591.938
+Hakodate,Hokkaido,589576,110,589.576
+Akashi,Hyogo,584506,110,584.506
+Yokkaichi,Mie,576346,110,576.346
+Fukushima,Fukushima,575050,110,575.05
+Morioka,Iwate,574706,110,574.706
+Maebashi,Gumma,568946,110,568.946
+Kasugai,Aichi,564696,110,564.696
+Otsu,Shiga,564140,110,564.14
+Ichihara,Chiba,558560,110,558.56
+Yao,Osaka,552842,110,552.842
+Ichinomiya,Aichi,541656,110,541.656
+Tokushima,Tokushima,539298,110,539.298
+Kakogawa,Hyogo,532562,110,532.562
+Ibaraki,Osaka,522040,110,522.04
+Neyagawa,Osaka,514630,110,514.63
+Shimonoseki,Yamaguchi,514526,110,514.526
+Yamagata,Yamagata,511234,110,511.234
+Fukui,Fukui,509636,110,509.636
+Hiratsuka,Kanagawa,508414,110,508.414
+Mito,Ibaragi,493118,110,493.118
+Sasebo,Nagasaki,488480,110,488.48
+Hachinohe,Aomori,485958,110,485.958
+Takasaki,Gumma,478248,110,478.248
+Shimizu,Shizuoka,478246,110,478.246
+Kurume,Fukuoka,471222,110,471.222
+Fuji,Shizuoka,463054,110,463.054
+Soka,Saitama,445536,110,445.536
+Fuchu,Tokyo-to,441152,110,441.152
+Chigasaki,Kanagawa,432030,110,432.03
+Atsugi,Kanagawa,424814,110,424.814
+Numazu,Shizuoka,422764,110,422.764
+Ageo,Saitama,418884,110,418.884
+Yamato,Kanagawa,416468,110,416.468
+Matsumoto,Nagano,413602,110,413.602
+Kure,Hiroshima,413008,110,413.008
+Takarazuka,Hyogo,411986,110,411.986
+Kasukabe,Saitama,403676,110,403.676
+Chofu,Tokyo-to,403170,110,403.17
+Odawara,Kanagawa,400342,110,400.342
+Kofu,Yamanashi,399506,110,399.506
+Kushiro,Hokkaido,395216,110,395.216
+Kishiwada,Osaka,394552,110,394.552
+Hitachi,Ibaragi,393244,110,393.244
+Nagaoka,Niigata,384814,110,384.814
+Itami,Hyogo,381772,110,381.772
+Uji,Kyoto,377470,110,377.47
+Suzuka,Mie,368122,110,368.122
+Hirosaki,Aomori,355044,110,355.044
+Ube,Yamaguchi,350412,110,350.412
+Kodaira,Tokyo-to,349968,110,349.968
+Takaoka,Toyama,348760,110,348.76
+Obihiro,Hokkaido,347370,110,347.37
+Tomakomai,Hokkaido,343916,110,343.916
+Saga,Saga,340068,110,340.068
+Sakura,Chiba,336144,110,336.144
+Kamakura,Kanagawa,335322,110,335.322
+Mitaka,Tokyo-to,334536,110,334.536
+Izumi,Osaka,333958,110,333.958
+Hino,Tokyo-to,333540,110,333.54
+Hadano,Kanagawa,333024,110,333.024
+Ashikaga,Tochigi,330486,110,330.486
+Tsu,Mie,329086,110,329.086
+Sayama,Saitama,324944,110,324.944
+Yachiyo,Chiba,322444,110,322.444
+Tsukuba,Ibaragi,321536,110,321.536
+Tachikawa,Tokyo-to,318860,110,318.86
+Kumagaya,Saitama,314342,110,314.342
+Moriguchi,Osaka,311882,110,311.882
+Otaru,Hokkaido,311568,110,311.568
+Anjo,Aichi,307646,110,307.646
+Narashino,Chiba,305698,110,305.698
+Oyama,Tochigi,305640,110,305.64
+Ogaki,Gifu,303516,110,303.516
+Matsue,Shimane,299642,110,299.642
+Kawanishi,Hyogo,299588,110,299.588
+Hitachinaka,Tokyo-to,296012,110,296.012
+Niiza,Saitama,295488,110,295.488
+Nagareyama,Chiba,295476,110,295.476
+Tottori,Tottori,295046,110,295.046
+Tama,Ibaragi,293424,110,293.424
+Iruma,Saitama,291844,110,291.844
+Ota,Gumma,290634,110,290.634
+Omuta,Fukuoka,285778,110,285.778
+Komaki,Aichi,279654,110,279.654
+Ome,Tokyo-to,278432,110,278.432
+Kadoma,Osaka,277906,110,277.906
+Yamaguchi,Yamaguchi,276420,110,276.42
+Higashimurayama,Tokyo-to,273940,110,273.94
+Yonago,Tottori,272922,110,272.922
+Matsubara,Osaka,270020,110,270.02
+Musashino,Tokyo-to,268852,110,268.852
+Tsuchiura,Ibaragi,268144,110,268.144
+Joetsu,Niigata,267010,110,267.01
+Miyakonojo,Miyazaki,266366,110,266.366
+Misato,Saitama,265914,110,265.914
+Kakamigahara,Gifu,263662,110,263.662
+Daito,Osaka,261188,110,261.188
+Seto,Aichi,260940,110,260.94
+Kariya,Aichi,255938,110,255.938
+Urayasu,Chiba,255100,110,255.1
+Beppu,Oita,254972,110,254.972
+Niihama,Ehime,254414,110,254.414
+Minoo,Osaka,254052,110,254.052
+Fujieda,Shizuoka,253794,110,253.794
+Abiko,Chiba,253340,110,253.34
+Nobeoka,Miyazaki,251094,110,251.094
+Tondabayashi,Osaka,250188,110,250.188
+Ueda,Nagano,248434,110,248.434
+Kashihara,Nara,248026,110,248.026
+Matsusaka,Mie,247164,110,247.164
+Isesaki,Gumma,246570,110,246.57
+Zama,Kanagawa,244092,110,244.092
+Kisarazu,Chiba,243934,110,243.934
+Noda,Chiba,242060,110,242.06
+Ishinomaki,Miyagi,241926,110,241.926
+Fujinomiya,Shizuoka,239428,110,239.428
+Kawachinagano,Osaka,239332,110,239.332
+Imabari,Ehime,238714,110,238.714
+Aizuwakamatsu,Fukushima,238574,110,238.574
+Higashihiroshima,Hiroshima,238332,110,238.332
+Habikino,Osaka,237936,110,237.936
+Ebetsu,Hokkaido,237610,110,237.61
+Hofu,Yamaguchi,237502,110,237.502
+Kiryu,Gumma,236652,110,236.652
+Okinawa,Okinawa,235496,110,235.496
+Yaizu,Shizuoka,234516,110,234.516
+Toyokawa,Aichi,231562,110,231.562
+Ebina,Kanagawa,231142,110,231.142
+Asaka,Saitama,229630,110,229.63
+Higashikurume,Tokyo-to,223332,110,223.332
+Ikoma,Nara,223290,110,223.29
+Kitami,Hokkaido,222590,110,222.59
+Koganei,Tokyo-to,221938,110,221.938
+Iwatsuki,Saitama,220068,110,220.068
+Mishima,Shizuoka,219398,110,219.398
+Handa,Aichi,217200,110,217.2
+Muroran,Hokkaido,216550,110,216.55
+Komatsu,Ishikawa,215874,110,215.874
+Yatsushiro,Kumamoto,215322,110,215.322
+Iida,Nagano,215166,110,215.166
+Tokuyama,Yamaguchi,214156,110,214.156
+Kokubunji,Tokyo-to,213992,110,213.992
+Akishima,Tokyo-to,213828,110,213.828
+Iwakuni,Yamaguchi,213294,110,213.294
+Kusatsu,Shiga,212464,110,212.464
+Kuwana,Mie,212242,110,212.242
+Sanda,Hyogo,211286,110,211.286
+Hikone,Shiga,211016,110,211.016
+Toda,Saitama,207938,110,207.938
+Tajimi,Gifu,206342,110,206.342
+Ikeda,Osaka,205420,110,205.42
+Fukaya,Saitama,204312,110,204.312
+Ise,Mie,203464,110,203.464
+Sakata,Yamagata,203302,110,203.302
+Kasuga,Fukuoka,202688,110,202.688
+Kamagaya,Chiba,201642,110,201.642
+Tsuruoka,Yamagata,201426,110,201.426
+Hoya,Tokyo-to,200626,110,200.626
+Nishio,Chiba,200064,110,200.064
+Tokai,Aichi,199476,110,199.476
+Inazawa,Aichi,197492,110,197.492
+Sakado,Saitama,196442,110,196.442
+Isehara,Kanagawa,196246,110,196.246
+Takasago,Hyogo,195264,110,195.264
+Fujimi,Saitama,193944,110,193.944
+Urasoe,Okinawa,192004,110,192.004
+Yonezawa,Yamagata,191184,110,191.184
+Konan,Aichi,191042,110,191.042
+Yamatokoriyama,Nara,190330,110,190.33
+Maizuru,Kyoto,189568,110,189.568
+Onomichi,Hiroshima,187512,110,187.512
+Higashimatsuyama,Saitama,186684,110,186.684
+Kimitsu,Chiba,186432,110,186.432
+Isahaya,Nagasaki,186116,110,186.116
+Kanuma,Tochigi,186106,110,186.106
+Izumisano,Osaka,185166,110,185.166
+Kameoka,Kyoto,184796,110,184.796
+Mobara,Chiba,183328,110,183.328
+Narita,Chiba,182940,110,182.94
+Kashiwazaki,Niigata,182458,110,182.458
+Tsuyama,Okayama,182340,110,182.34
+Sanaa,Sanaa,1007200,235,1007.2
+Aden,Aden,796600,235,796.6
+Taizz,Taizz,635200,235,635.2
+Hodeida,Hodeida,597000,235,597
+al-Mukalla,Hadramawt,244800,235,244.8
+Ibb,Ibb,206600,235,206.6
+Amman,Amman,2000000,109,2000
+al-Zarqa,al-Zarqa,779630,109,779.63
+Irbid,Irbid,463022,109,463.022
+al-Rusayfa,al-Zarqa,274494,109,274.494
+Wadi al-Sir,Amman,178208,109,178.208
+Flying Fish Cove,–,1400,53,1.4
+Beograd,Central Serbia,2408000,236,2408
+Novi Sad,Vojvodina,359252,236,359.252
+Niš,Central Serbia,350782,236,350.782
+Priština,Kosovo and Metohija,310992,236,310.992
+Kragujevac,Central Serbia,294610,236,294.61
+Podgorica,Montenegro,270000,236,270
+Subotica,Vojvodina,200772,236,200.772
+Prizren,Kosovo and Metohija,184606,236,184.606
+Phnom Penh,Phnom Penh,1140310,114,1140.31
+Battambang,Battambang,259600,114,259.6
+Siem Reap,Siem Reap,210200,114,210.2
+Douala,Littoral,2896600,44,2896.6
+Yaoundé,Centre,2745600,44,2745.6
+Garoua,Nord,354000,44,354
+Maroua,Extrême-Nord,286000,44,286
+Bamenda,Nord-Ouest,276000,44,276
+Bafoussam,Ouest,262000,44,262
+Nkongsamba,Littoral,224908,44,224.908
+Montréal,Québec,2032752,38,2032.752
+Calgary,Alberta,1536164,38,1536.164
+Toronto,Ontario,1376550,38,1376.55
+North York,Ontario,1245264,38,1245.264
+Winnipeg,Manitoba,1236954,38,1236.954
+Edmonton,Alberta,1232612,38,1232.612
+Mississauga,Ontario,1216144,38,1216.144
+Scarborough,Ontario,1189002,38,1189.002
+Vancouver,British Colombia,1028016,38,1028.016
+Etobicoke,Ontario,697690,38,697.69
+London,Ontario,679834,38,679.834
+Hamilton,Ontario,671228,38,671.228
+Ottawa,Ontario,670554,38,670.554
+Laval,Québec,660786,38,660.786
+Surrey,British Colombia,608954,38,608.954
+Brampton,Ontario,593422,38,593.422
+Windsor,Ontario,415176,38,415.176
+Saskatoon,Saskatchewan,387294,38,387.294
+Kitchener,Ontario,379918,38,379.918
+Markham,Ontario,378196,38,378.196
+Regina,Saskatchewan,360800,38,360.8
+Burnaby,British Colombia,358418,38,358.418
+Québec,Québec,334528,38,334.528
+York,Ontario,309960,38,309.96
+Richmond,British Colombia,297734,38,297.734
+Vaughan,Ontario,295778,38,295.778
+Burlington,Ontario,290300,38,290.3
+Oshawa,Ontario,280346,38,280.346
+Oakville,Ontario,278384,38,278.384
+Saint Catharines,Ontario,272432,38,272.432
+Longueuil,Québec,255954,38,255.954
+Richmond Hill,Ontario,232856,38,232.856
+Thunder Bay,Ontario,231826,38,231.826
+Nepean,Ontario,230200,38,230.2
+Cape Breton,Nova Scotia,229466,38,229.466
+East York,Ontario,228068,38,228.068
+Halifax,Nova Scotia,227820,38,227.82
+Cambridge,Ontario,218372,38,218.372
+Gloucester,Ontario,214628,38,214.628
+Abbotsford,British Colombia,210806,38,210.806
+Guelph,Ontario,207186,38,207.186
+Saint John´s,Newfoundland,203872,38,203.872
+Coquitlam,British Colombia,203640,38,203.64
+Saanich,British Colombia,202776,38,202.776
+Gatineau,Québec,201404,38,201.404
+Delta,British Colombia,190822,38,190.822
+Sudbury,Ontario,185372,38,185.372
+Kelowna,British Colombia,178884,38,178.884
+Barrie,Ontario,178538,38,178.538
+Praia,São Tiago,189600,50,189.6
+Almaty,Almaty Qalasy,2258800,111,2258.8
+Qaraghandy,Qaraghandy,873800,111,873.8
+Shymkent,South Kazakstan,720200,111,720.2
+Taraz,Taraz,660200,111,660.2
+Astana,Astana,622400,111,622.4
+Öskemen,East Kazakstan,622000,111,622
+Pavlodar,Pavlodar,601000,111,601
+Semey,East Kazakstan,539200,111,539.2
+Aqtöbe,Aqtöbe,506200,111,506.2
+Qostanay,Qostanay,442800,111,442.8
+Petropavl,North Kazakstan,407000,111,407
+Oral,West Kazakstan,391000,111,391
+Temirtau,Qaraghandy,341000,111,341
+Qyzylorda,Qyzylorda,314800,111,314.8
+Aqtau,Mangghystau,286800,111,286.8
+Atyrau,Atyrau,285000,111,285
+Ekibastuz,Pavlodar,254400,111,254.4
+Kökshetau,North Kazakstan,246800,111,246.8
+Rudnyy,Qostanay,219000,111,219
+Taldyqorghan,Almaty,196000,111,196
+Zhezqazghan,Qaraghandy,180000,111,180
+Nairobi,Nairobi,4580000,112,4580
+Mombasa,Coast,923506,112,923.506
+Kisumu,Nyanza,385466,112,385.466
+Nakuru,Rift Valley,327854,112,327.854
+Machakos,Eastern,232586,112,232.586
+Eldoret,Rift Valley,223764,112,223.764
+Meru,Eastern,189894,112,189.894
+Nyeri,Central,182516,112,182.516
+Bangui,Bangui,1048000,37,1048
+Shanghai,Shanghai,19392600,42,19392.6
+Peking,Peking,14944000,42,14944
+Chongqing,Chongqing,12703200,42,12703.2
+Tianjin,Tianjin,10573600,42,10573.6
+Wuhan,Hubei,8689200,42,8689.2
+Harbin,Heilongjiang,8579600,42,8579.6
+Shenyang,Liaoning,8530400,42,8530.4
+Kanton [Guangzhou],Guangdong,8512600,42,8512.6
+Chengdu,Sichuan,6723000,42,6723
+Nanking [Nanjing],Jiangsu,5740600,42,5740.6
+Changchun,Jilin,5624000,42,5624
+Xi´an,Shaanxi,5522800,42,5522.8
+Dalian,Liaoning,5394000,42,5394
+Qingdao,Shandong,5192000,42,5192
+Jinan,Shandong,4556200,42,4556.2
+Hangzhou,Zhejiang,4381000,42,4381
+Zhengzhou,Henan,4214400,42,4214.4
+Shijiazhuang,Hebei,4083000,42,4083
+Taiyuan,Shanxi,3936800,42,3936.8
+Kunming,Yunnan,3659000,42,3659
+Changsha,Hunan,3619600,42,3619.6
+Nanchang,Jiangxi,3383200,42,3383.2
+Fuzhou,Fujian,3187600,42,3187.6
+Lanzhou,Gansu,3131600,42,3131.6
+Guiyang,Guizhou,2930400,42,2930.4
+Ningbo,Zhejiang,2742400,42,2742.4
+Hefei,Anhui,2738200,42,2738.2
+Urumtši [Ürümqi],Xinxiang,2620200,42,2620.2
+Anshan,Liaoning,2400000,42,2400
+Fushun,Liaoning,2400000,42,2400
+Nanning,Guangxi,2323600,42,2323.6
+Zibo,Shandong,2280000,42,2280
+Qiqihar,Heilongjiang,2140000,42,2140
+Jilin,Jilin,2080000,42,2080
+Tangshan,Hebei,2080000,42,2080
+Baotou,Inner Mongolia,1960000,42,1960
+Shenzhen,Guangdong,1901000,42,1901
+Hohhot,Inner Mongolia,1833400,42,1833.4
+Handan,Hebei,1680000,42,1680
+Wuxi,Jiangsu,1660000,42,1660
+Xuzhou,Jiangsu,1620000,42,1620
+Datong,Shanxi,1600000,42,1600
+Yichun,Heilongjiang,1600000,42,1600
+Benxi,Liaoning,1540000,42,1540
+Luoyang,Henan,1520000,42,1520
+Suzhou,Jiangsu,1420000,42,1420
+Xining,Qinghai,1400400,42,1400.4
+Huainan,Anhui,1400000,42,1400
+Jixi,Heilongjiang,1367770,42,1367.77
+Daqing,Heilongjiang,1320000,42,1320
+Fuxin,Liaoning,1280000,42,1280
+Amoy [Xiamen],Fujian,1255000,42,1255
+Liuzhou,Guangxi,1220000,42,1220
+Shantou,Guangdong,1160000,42,1160
+Jinzhou,Liaoning,1140000,42,1140
+Mudanjiang,Heilongjiang,1140000,42,1140
+Yinchuan,Ningxia,1089000,42,1089
+Changzhou,Jiangsu,1060000,42,1060
+Zhangjiakou,Hebei,1060000,42,1060
+Dandong,Liaoning,1040000,42,1040
+Hegang,Heilongjiang,1040000,42,1040
+Kaifeng,Henan,1020000,42,1020
+Jiamusi,Heilongjiang,986818,42,986.818
+Liaoyang,Liaoning,985118,42,985.118
+Hengyang,Hunan,974296,42,974.296
+Baoding,Hebei,966310,42,966.31
+Hunjiang,Jilin,964086,42,964.086
+Xinxiang,Henan,947524,42,947.524
+Huangshi,Hubei,915202,42,915.202
+Haikou,Hainan,908600,42,908.6
+Yantai,Shandong,904254,42,904.254
+Bengbu,Anhui,898490,42,898.49
+Xiangtan,Hunan,883936,42,883.936
+Weifang,Shandong,857044,42,857.044
+Wuhu,Anhui,851480,42,851.48
+Pingxiang,Jiangxi,851158,42,851.158
+Yingkou,Liaoning,843178,42,843.178
+Anyang,Henan,840664,42,840.664
+Panzhihua,Sichuan,830932,42,830.932
+Pingdingshan,Henan,821550,42,821.55
+Xiangfan,Hubei,820814,42,820.814
+Zhuzhou,Hunan,819848,42,819.848
+Jiaozuo,Henan,818200,42,818.2
+Wenzhou,Zhejiang,803742,42,803.742
+Zhangjiang,Guangdong,801994,42,801.994
+Zigong,Sichuan,786368,42,786.368
+Shuangyashan,Heilongjiang,772162,42,772.162
+Zaozhuang,Shandong,761692,42,761.692
+Yakeshi,Inner Mongolia,755738,42,755.738
+Yichang,Hubei,743202,42,743.202
+Zhenjiang,Jiangsu,736632,42,736.632
+Huaibei,Anhui,733098,42,733.098
+Qinhuangdao,Hebei,729944,42,729.944
+Guilin,Guangxi,728260,42,728.26
+Liupanshui,Guizhou,727908,42,727.908
+Panjin,Liaoning,725546,42,725.546
+Yangquan,Shanxi,724536,42,724.536
+Jinxi,Liaoning,714104,42,714.104
+Liaoyuan,Jilin,708282,42,708.282
+Lianyungang,Jiangsu,708278,42,708.278
+Xianyang,Shaanxi,704250,42,704.25
+Tai´an,Shandong,701392,42,701.392
+Chifeng,Inner Mongolia,700154,42,700.154
+Shaoguan,Guangdong,700086,42,700.086
+Nantong,Jiangsu,686682,42,686.682
+Leshan,Sichuan,682256,42,682.256
+Baoji,Shaanxi,675530,42,675.53
+Linyi,Shandong,649440,42,649.44
+Tonghua,Jilin,649200,42,649.2
+Siping,Jilin,634446,42,634.446
+Changzhi,Shanxi,634288,42,634.288
+Tengzhou,Shandong,630166,42,630.166
+Chaozhou,Guangdong,626938,42,626.938
+Yangzhou,Jiangsu,625784,42,625.784
+Dongwan,Guangdong,617338,42,617.338
+Ma´anshan,Anhui,610842,42,610.842
+Foshan,Guangdong,606320,42,606.32
+Yueyang,Hunan,605600,42,605.6
+Xingtai,Hebei,605578,42,605.578
+Changde,Hunan,602552,42,602.552
+Shihezi,Xinxiang,599352,42,599.352
+Yancheng,Jiangsu,593662,42,593.662
+Jiujiang,Jiangxi,582374,42,582.374
+Dongying,Shandong,563456,42,563.456
+Shashi,Hubei,562704,42,562.704
+Xintai,Shandong,562496,42,562.496
+Jingdezhen,Jiangxi,562366,42,562.366
+Tongchuan,Shaanxi,561314,42,561.314
+Zhongshan,Guangdong,557658,42,557.658
+Shiyan,Hubei,547572,42,547.572
+Tieli,Heilongjiang,531366,42,531.366
+Jining,Shandong,530496,42,530.496
+Wuhai,Inner Mongolia,528162,42,528.162
+Mianyang,Sichuan,525894,42,525.894
+Luzhou,Sichuan,525784,42,525.784
+Zunyi,Guizhou,523724,42,523.724
+Shizuishan,Ningxia,515724,42,515.724
+Neijiang,Sichuan,512024,42,512.024
+Tongliao,Inner Mongolia,510258,42,510.258
+Tieling,Liaoning,509684,42,509.684
+Wafangdian,Liaoning,503466,42,503.466
+Anqing,Anhui,501436,42,501.436
+Shaoyang,Hunan,494454,42,494.454
+Laiwu,Shandong,493666,42,493.666
+Chengde,Hebei,493598,42,493.598
+Tianshui,Gansu,489948,42,489.948
+Nanyang,Henan,486606,42,486.606
+Cangzhou,Hebei,485416,42,485.416
+Yibin,Sichuan,482038,42,482.038
+Huaiyin,Jiangsu,479350,42,479.35
+Dunhua,Jilin,470200,42,470.2
+Yanji,Jilin,461784,42,461.784
+Jiangmen,Guangdong,461174,42,461.174
+Tongling,Anhui,456034,42,456.034
+Suihua,Heilongjiang,455762,42,455.762
+Gongziling,Jilin,453138,42,453.138
+Xiantao,Hubei,445768,42,445.768
+Chaoyang,Liaoning,444788,42,444.788
+Ganzhou,Jiangxi,440258,42,440.258
+Huzhou,Zhejiang,436142,42,436.142
+Baicheng,Jilin,435974,42,435.974
+Shangzi,Heilongjiang,430746,42,430.746
+Yangjiang,Guangdong,430392,42,430.392
+Qitaihe,Heilongjiang,429914,42,429.914
+Gejiu,Yunnan,428588,42,428.588
+Jiangyin,Jiangsu,427318,42,427.318
+Hebi,Henan,425952,42,425.952
+Jiaxing,Zhejiang,423052,42,423.052
+Wuzhou,Guangxi,420904,42,420.904
+Meihekou,Jilin,418076,42,418.076
+Xuchang,Henan,417630,42,417.63
+Liaocheng,Shandong,415688,42,415.688
+Haicheng,Liaoning,411120,42,411.12
+Qianjiang,Hubei,411008,42,411.008
+Baiyin,Gansu,409940,42,409.94
+Bei´an,Heilongjiang,409798,42,409.798
+Yixing,Jiangsu,401648,42,401.648
+Laizhou,Shandong,397328,42,397.328
+Qaramay,Xinxiang,395204,42,395.204
+Acheng,Heilongjiang,395190,42,395.19
+Dezhou,Shandong,390970,42,390.97
+Nanping,Fujian,390128,42,390.128
+Zhaoqing,Guangdong,389568,42,389.568
+Beipiao,Liaoning,388602,42,388.602
+Fengcheng,Jiangxi,387568,42,387.568
+Fuyu,Jilin,385962,42,385.962
+Xinyang,Henan,385018,42,385.018
+Dongtai,Jiangsu,384494,42,384.494
+Yuci,Shanxi,382712,42,382.712
+Honghu,Hubei,381544,42,381.544
+Ezhou,Hubei,380246,42,380.246
+Heze,Shandong,378586,42,378.586
+Daxian,Sichuan,376202,42,376.202
+Linfen,Shanxi,374618,42,374.618
+Tianmen,Hubei,372664,42,372.664
+Yiyang,Hunan,371636,42,371.636
+Quanzhou,Fujian,370308,42,370.308
+Rizhao,Shandong,370096,42,370.096
+Deyang,Sichuan,364976,42,364.976
+Guangyuan,Sichuan,364482,42,364.482
+Changshu,Jiangsu,363610,42,363.61
+Zhangzhou,Fujian,362848,42,362.848
+Hailar,Inner Mongolia,361300,42,361.3
+Nanchong,Sichuan,360546,42,360.546
+Jiutai,Jilin,360260,42,360.26
+Zhaodong,Heilongjiang,359952,42,359.952
+Shaoxing,Zhejiang,359636,42,359.636
+Fuyang,Anhui,359144,42,359.144
+Maoming,Guangdong,357366,42,357.366
+Qujing,Yunnan,357338,42,357.338
+Ghulja,Xinxiang,354386,42,354.386
+Jiaohe,Jilin,352734,42,352.734
+Puyang,Henan,351976,42,351.976
+Huadian,Jilin,351746,42,351.746
+Jiangyou,Sichuan,351506,42,351.506
+Qashqar,Xinxiang,349140,42,349.14
+Anshun,Guizhou,348284,42,348.284
+Fuling,Sichuan,347756,42,347.756
+Xinyu,Jiangxi,347048,42,347.048
+Hanzhong,Shaanxi,339860,42,339.86
+Danyang,Jiangsu,339206,42,339.206
+Chenzhou,Hunan,338800,42,338.8
+Xiaogan,Hubei,332560,42,332.56
+Shangqiu,Henan,329760,42,329.76
+Zhuhai,Guangdong,329494,42,329.494
+Qingyuan,Guangdong,329282,42,329.282
+Aqsu,Xinxiang,328184,42,328.184
+Jining,Inner Mongolia,327104,42,327.104
+Xiaoshan,Zhejiang,325860,42,325.86
+Zaoyang,Hubei,324396,42,324.396
+Xinghua,Jiangsu,323820,42,323.82
+Hami,Xinxiang,322630,42,322.63
+Huizhou,Guangdong,322046,42,322.046
+Jinmen,Hubei,321588,42,321.588
+Sanming,Fujian,321382,42,321.382
+Ulanhot,Inner Mongolia,319076,42,319.076
+Korla,Xinxiang,318688,42,318.688
+Wanxian,Sichuan,313646,42,313.646
+Rui´an,Zhejiang,312936,42,312.936
+Zhoushan,Zhejiang,312634,42,312.634
+Liangcheng,Shandong,312614,42,312.614
+Jiaozhou,Shandong,306728,42,306.728
+Taizhou,Jiangsu,304884,42,304.884
+Suzhou,Anhui,303724,42,303.724
+Yichun,Jiangxi,303170,42,303.17
+Taonan,Jilin,300336,42,300.336
+Pingdu,Shandong,300246,42,300.246
+Ji´an,Jiangxi,297166,42,297.166
+Longkou,Shandong,296724,42,296.724
+Langfang,Hebei,296210,42,296.21
+Zhoukou,Henan,292576,42,292.576
+Suining,Sichuan,292172,42,292.172
+Yulin,Guangxi,288934,42,288.934
+Jinhua,Zhejiang,288560,42,288.56
+Liu´an,Anhui,288496,42,288.496
+Shuangcheng,Heilongjiang,285318,42,285.318
+Suizhou,Hubei,284604,42,284.604
+Ankang,Shaanxi,284340,42,284.34
+Weinan,Shaanxi,280338,42,280.338
+Longjing,Jilin,278834,42,278.834
+Da´an,Jilin,277926,42,277.926
+Lengshuijiang,Hunan,275988,42,275.988
+Laiyang,Shandong,274160,42,274.16
+Xianning,Hubei,273622,42,273.622
+Dali,Yunnan,273108,42,273.108
+Anda,Heilongjiang,272892,42,272.892
+Jincheng,Shanxi,272792,42,272.792
+Longyan,Fujian,268962,42,268.962
+Xichang,Sichuan,268838,42,268.838
+Wendeng,Shandong,267820,42,267.82
+Hailun,Heilongjiang,267130,42,267.13
+Binzhou,Shandong,267110,42,267.11
+Linhe,Inner Mongolia,266366,42,266.366
+Wuwei,Gansu,266202,42,266.202
+Duyun,Guizhou,265942,42,265.942
+Mishan,Heilongjiang,265488,42,265.488
+Shangrao,Jiangxi,264910,42,264.91
+Changji,Xinxiang,264520,42,264.52
+Meixian,Guangdong,264312,42,264.312
+Yushu,Jilin,263722,42,263.722
+Tiefa,Liaoning,263614,42,263.614
+Huai´an,Jiangsu,262298,42,262.298
+Leiyang,Hunan,260230,42,260.23
+Zalantun,Inner Mongolia,260062,42,260.062
+Weihai,Shandong,257776,42,257.776
+Loudi,Hunan,256836,42,256.836
+Qingzhou,Shandong,256516,42,256.516
+Qidong,Jiangsu,253744,42,253.744
+Huaihua,Hunan,253570,42,253.57
+Luohe,Henan,252876,42,252.876
+Chuzhou,Anhui,250682,42,250.682
+Kaiyuan,Liaoning,248438,42,248.438
+Linqing,Shandong,247916,42,247.916
+Chaohu,Anhui,247352,42,247.352
+Laohekou,Hubei,246732,42,246.732
+Dujiangyan,Sichuan,246714,42,246.714
+Zhumadian,Henan,246464,42,246.464
+Linchuan,Jiangxi,243898,42,243.898
+Jiaonan,Shandong,242794,42,242.794
+Sanmenxia,Henan,241046,42,241.046
+Heyuan,Guangdong,240202,42,240.202
+Manzhouli,Inner Mongolia,240046,42,240.046
+Lhasa,Tibet,240000,42,240
+Lianyuan,Hunan,237716,42,237.716
+Kuytun,Xinxiang,237106,42,237.106
+Puqi,Hubei,234528,42,234.528
+Hongjiang,Hunan,232376,42,232.376
+Qinzhou,Guangxi,229172,42,229.172
+Renqiu,Hebei,228512,42,228.512
+Yuyao,Zhejiang,228130,42,228.13
+Guigang,Guangxi,228050,42,228.05
+Kaili,Guizhou,227916,42,227.916
+Yan´an,Shaanxi,226554,42,226.554
+Beihai,Guangxi,225346,42,225.346
+Xuangzhou,Anhui,225346,42,225.346
+Quzhou,Zhejiang,224746,42,224.746
+Yong´an,Fujian,223524,42,223.524
+Zixing,Hunan,220096,42,220.096
+Liyang,Jiangsu,219040,42,219.04
+Yizheng,Jiangsu,218536,42,218.536
+Yumen,Gansu,218468,42,218.468
+Liling,Hunan,217008,42,217.008
+Yuncheng,Shanxi,216718,42,216.718
+Shanwei,Guangdong,215694,42,215.694
+Cixi,Zhejiang,214658,42,214.658
+Yuanjiang,Hunan,214008,42,214.008
+Bozhou,Anhui,212692,42,212.692
+Jinchang,Gansu,210574,42,210.574
+Fu´an,Fujian,210530,42,210.53
+Suqian,Jiangsu,210042,42,210.042
+Shishou,Hubei,209142,42,209.142
+Hengshui,Hebei,208538,42,208.538
+Danjiangkou,Hubei,206422,42,206.422
+Fujin,Heilongjiang,206208,42,206.208
+Sanya,Hainan,205640,42,205.64
+Guangshui,Hubei,205540,42,205.54
+Huangshan,Anhui,205256,42,205.256
+Xingcheng,Liaoning,204768,42,204.768
+Zhucheng,Shandong,204268,42,204.268
+Kunshan,Jiangsu,204104,42,204.104
+Haining,Zhejiang,200956,42,200.956
+Pingliang,Gansu,198530,42,198.53
+Fuqing,Fujian,198386,42,198.386
+Xinzhou,Shanxi,197334,42,197.334
+Jieyang,Guangdong,197062,42,197.062
+Zhangjiagang,Jiangsu,195988,42,195.988
+Tong Xian,Peking,194336,42,194.336
+Ya´an,Sichuan,191800,42,191.8
+Jinzhou,Liaoning,191522,42,191.522
+Emeishan,Sichuan,188000,42,188
+Enshi,Hubei,186112,42,186.112
+Bose,Guangxi,186018,42,186.018
+Yuzhou,Henan,185778,42,185.778
+Kaiyuan,Yunnan,183998,42,183.998
+Tumen,Jilin,182942,42,182.942
+Putian,Fujian,182060,42,182.06
+Linhai,Zhejiang,181740,42,181.74
+Xilin Hot,Inner Mongolia,181292,42,181.292
+Shaowu,Fujian,180572,42,180.572
+Junan,Shandong,180444,42,180.444
+Huaying,Sichuan,178800,42,178.8
+Pingyi,Shandong,178746,42,178.746
+Huangyan,Zhejiang,178576,42,178.576
+Bishkek,Bishkek shaary,1178800,113,1178.8
+Osh,Osh,445400,113,445.4
+Bikenibeu,South Tarawa,10110,115,10.11
+Bairiki,South Tarawa,4452,115,4.452
+Santafé de Bogotá,Santafé de Bogotá,12521724,48,12521.724
+Cali,Valle,4154772,48,4154.772
+Medellín,Antioquia,3722530,48,3722.53
+Barranquilla,Atlántico,2446520,48,2446.52
+Cartagena,Bolívar,1611514,48,1611.514
+Cúcuta,Norte de Santander,1213864,48,1213.864
+Bucaramanga,Santander,1031110,48,1031.11
+Ibagué,Tolima,787328,48,787.328
+Pereira,Risaralda,763450,48,763.45
+Santa Marta,Magdalena,718294,48,718.294
+Manizales,Caldas,675160,48,675.16
+Bello,Antioquia,666940,48,666.94
+Pasto,Nariño,664792,48,664.792
+Neiva,Huila,600104,48,600.104
+Soledad,Atlántico,590116,48,590.116
+Armenia,Quindío,577954,48,577.954
+Villavicencio,Meta,546280,48,546.28
+Soacha,Cundinamarca,544116,48,544.116
+Valledupar,Cesar,526494,48,526.494
+Montería,Córdoba,496490,48,496.49
+Itagüí,Antioquia,457970,48,457.97
+Palmira,Valle,453018,48,453.018
+Buenaventura,Valle,448672,48,448.672
+Floridablanca,Santander,443826,48,443.826
+Sincelejo,Sucre,441408,48,441.408
+Popayán,Cauca,401438,48,401.438
+Barrancabermeja,Santander,356040,48,356.04
+Dos Quebradas,Risaralda,318726,48,318.726
+Tuluá,Valle,304976,48,304.976
+Envigado,Antioquia,271696,48,271.696
+Cartago,Valle,251768,48,251.768
+Girardot,Cundinamarca,221926,48,221.926
+Buga,Valle,221398,48,221.398
+Tunja,Boyacá,219480,48,219.48
+Florencia,Caquetá,217148,48,217.148
+Maicao,La Guajira,216106,48,216.106
+Sogamoso,Boyacá,215456,48,215.456
+Giron,Santander,181376,48,181.376
+Moroni,Njazidja,72000,49,72
+Brazzaville,Brazzaville,1900000,46,1900
+Pointe-Noire,Kouilou,1000000,46,1000
+Kinshasa,Kinshasa,10128000,45,10128
+Lubumbashi,Shaba,1702762,45,1702.762
+Mbuji-Mayi,East Kasai,1612950,45,1612.95
+Kolwezi,Shaba,835620,45,835.62
+Kisangani,Haute-Zaïre,835034,45,835.034
+Kananga,West Kasai,786060,45,786.06
+Likasi,Shaba,598236,45,598.236
+Bukavu,South Kivu,403138,45,403.138
+Kikwit,Bandundu,364284,45,364.284
+Tshikapa,West Kasai,361720,45,361.72
+Matadi,Bas-Zaïre,345460,45,345.46
+Mbandaka,Equateur,339682,45,339.682
+Mwene-Ditu,East Kasai,274918,45,274.918
+Boma,Bas-Zaïre,270568,45,270.568
+Uvira,South Kivu,231180,45,231.18
+Butembo,North Kivu,218812,45,218.812
+Goma,North Kivu,218188,45,218.188
+Kalemie,Shaba,202618,45,202.618
+Bantam,Home Island,1006,39,1.006
+West Island,West Island,334,39,0.334
+Pyongyang,Pyongyang-si,4968000,174,4968
+Hamhung,Hamgyong N,1419460,174,1419.46
+Chongjin,Hamgyong P,1164960,174,1164.96
+Nampo,Nampo-si,1132400,174,1132.4
+Sinuiju,Pyongan P,652022,174,652.022
+Wonsan,Kangwon,600296,174,600.296
+Phyongsong,Pyongan N,545868,174,545.868
+Sariwon,Hwanghae P,508292,174,508.292
+Haeju,Hwanghae N,458344,174,458.344
+Kanggye,Chagang,446820,174,446.82
+Kimchaek,Hamgyong P,358000,174,358
+Hyesan,Yanggang,356040,174,356.04
+Kaesong,Kaesong-si,343000,174,343
+Seoul,Seoul,19963238,117,19963.238
+Pusan,Pusan,7609044,117,7609.044
+Inchon,Inchon,5118848,117,5118.848
+Taegu,Taegu,5097136,117,5097.136
+Taejon,Taejon,2851670,117,2851.67
+Kwangju,Kwangju,2736682,117,2736.682
+Ulsan,Kyongsangnam,2169782,117,2169.782
+Songnam,Kyonggi,1738188,117,1738.188
+Puchon,Kyonggi,1558824,117,1558.824
+Suwon,Kyonggi,1511100,117,1511.1
+Anyang,Kyonggi,1182212,117,1182.212
+Chonju,Chollabuk,1126306,117,1126.306
+Chongju,Chungchongbuk,1062752,117,1062.752
+Koyang,Kyonggi,1036564,117,1036.564
+Ansan,Kyonggi,1020628,117,1020.628
+Pohang,Kyongsangbuk,1017798,117,1017.798
+Chang-won,Kyongsangnam,963388,117,963.388
+Masan,Kyongsangnam,882484,117,882.484
+Kwangmyong,Kyonggi,701828,117,701.828
+Chonan,Chungchongnam,660518,117,660.518
+Chinju,Kyongsangnam,659772,117,659.772
+Iksan,Chollabuk,645370,117,645.37
+Pyongtaek,Kyonggi,625854,117,625.854
+Kumi,Kyongsangbuk,622862,117,622.862
+Uijongbu,Kyonggi,552222,117,552.222
+Kyongju,Kyongsangbuk,545936,117,545.936
+Kunsan,Chollabuk,533138,117,533.138
+Cheju,Cheju,517022,117,517.022
+Kimhae,Kyongsangnam,512740,117,512.74
+Sunchon,Chollanam,498526,117,498.526
+Mokpo,Chollanam,494904,117,494.904
+Yong-in,Kyonggi,485286,117,485.286
+Wonju,Kang-won,474920,117,474.92
+Kunpo,Kyonggi,470466,117,470.466
+Chunchon,Kang-won,469056,117,469.056
+Namyangju,Kyonggi,458120,117,458.12
+Kangnung,Kang-won,440806,117,440.806
+Chungju,Chungchongbuk,410412,117,410.412
+Andong,Kyongsangbuk,376886,117,376.886
+Yosu,Chollanam,367192,117,367.192
+Kyongsan,Kyongsangbuk,347492,117,347.492
+Paju,Kyonggi,326758,117,326.758
+Yangsan,Kyongsangnam,326702,117,326.702
+Ichon,Kyonggi,310664,117,310.664
+Asan,Chungchongnam,309326,117,309.326
+Koje,Kyongsangnam,295124,117,295.124
+Kimchon,Kyongsangbuk,294054,117,294.054
+Nonsan,Chungchongnam,293238,117,293.238
+Kuri,Kyonggi,284346,117,284.346
+Chong-up,Chollabuk,278222,117,278.222
+Chechon,Chungchongbuk,274140,117,274.14
+Sosan,Chungchongnam,269492,117,269.492
+Shihung,Kyonggi,266886,117,266.886
+Tong-yong,Kyongsangnam,263434,117,263.434
+Kongju,Chungchongnam,262458,117,262.458
+Yongju,Kyongsangbuk,262194,117,262.194
+Chinhae,Kyongsangnam,251994,117,251.994
+Sangju,Kyongsangbuk,248232,117,248.232
+Poryong,Chungchongnam,245208,117,245.208
+Kwang-yang,Chollanam,244104,117,244.104
+Miryang,Kyongsangnam,243002,117,243.002
+Hanam,Kyonggi,231624,117,231.624
+Kimje,Chollabuk,230854,117,230.854
+Yongchon,Kyongsangbuk,227022,117,227.022
+Sachon,Kyongsangnam,226988,117,226.988
+Uiwang,Kyonggi,217576,117,217.576
+Naju,Chollanam,215662,117,215.662
+Namwon,Chollabuk,207088,117,207.088
+Tonghae,Kang-won,190944,117,190.944
+Mun-gyong,Kyongsangbuk,184478,117,184.478
+Athenai,Attika,1544144,86,1544.144
+Thessaloniki,Central Macedonia,767934,86,767.934
+Pireus,Attika,365342,86,365.342
+Patras,West Greece,306688,86,306.688
+Peristerion,Attika,274576,86,274.576
+Herakleion,Crete,232356,86,232.356
+Kallithea,Attika,228466,86,228.466
+Larisa,Thessalia,226180,86,226.18
+Zagreb,Grad Zagreb,1413540,96,1413.54
+Split,Split-Dalmatia,378776,96,378.776
+Rijeka,Primorje-Gorski Kota,335928,96,335.928
+Osijek,Osijek-Baranja,209522,96,209.522
+La Habana,La Habana,4512000,52,4512
+Santiago de Cuba,Santiago de Cuba,866360,52,866.36
+Camagüey,Camagüey,597452,52,597.452
+Holguín,Holguín,498984,52,498.984
+Santa Clara,Villa Clara,414700,52,414.7
+Guantánamo,Guantánamo,410156,52,410.156
+Pinar del Río,Pinar del Río,284200,52,284.2
+Bayamo,Granma,282000,52,282
+Cienfuegos,Cienfuegos,265540,52,265.54
+Victoria de las Tunas,Las Tunas,264700,52,264.7
+Matanzas,Matanzas,246546,52,246.546
+Manzanillo,Granma,218700,52,218.7
+Sancti-Spíritus,Sancti-Spíritus,201502,52,201.502
+Ciego de Ávila,Ciego de Ávila,197010,52,197.01
+al-Salimiya,Hawalli,260430,118,260.43
+Jalib al-Shuyukh,Hawalli,204356,118,204.356
+Kuwait,al-Asima,57718,118,57.718
+Nicosia,Nicosia,390000,55,390
+Limassol,Limassol,308800,55,308.8
+Vientiane,Viangchan,1063600,119,1063.6
+Savannakhet,Savannakhet,193304,119,193.304
+Riga,Riika,1528656,129,1528.656
+Daugavpils,Daugavpils,229658,129,229.658
+Liepaja,Liepaja,178878,129,178.878
+Maseru,Maseru,594000,126,594
+Beirut,Beirut,2200000,120,2200
+Tripoli,al-Shamal,480000,120,480
+Monrovia,Montserrado,1700000,121,1700
+Tripoli,Tripoli,3364000,122,3364
+Bengasi,Bengasi,1608000,122,1608
+Misrata,Misrata,243338,122,243.338
+al-Zawiya,al-Zawiya,178676,122,178.676
+Schaan,Schaan,10692,124,10.692
+Vaduz,Vaduz,10086,124,10.086
+Vilnius,Vilna,1155938,127,1155.938
+Kaunas,Kaunas,825278,127,825.278
+Klaipeda,Klaipeda,404902,127,404.902
+Šiauliai,Šiauliai,293126,127,293.126
+Panevezys,Panevezys,267390,127,267.39
+Luxembourg [Luxemburg/Lëtzebuerg],Luxembourg,161400,128,161.4
+El-Aaiún,El-Aaiún,338000,66,338
+Macao,Macau,875000,130,875
+Antananarivo,Antananarivo,1351338,134,1351.338
+Toamasina,Toamasina,254882,134,254.882
+Antsirabé,Antananarivo,240478,134,240.478
+Mahajanga,Mahajanga,201614,134,201.614
+Fianarantsoa,Fianarantsoa,198010,134,198.01
+Skopje,Skopje,888598,138,888.598
+Blantyre,Blantyre,956310,149,956.31
+Lilongwe,Lilongwe,871928,149,871.928
+Male,Maale,142000,135,142
+Kuala Lumpur,Wilayah Persekutuan,2595052,150,2595.052
+Ipoh,Perak,765706,150,765.706
+Johor Baharu,Johor,656872,150,656.872
+Petaling Jaya,Selangor,508700,150,508.7
+Kelang,Selangor,486710,150,486.71
+Kuala Terengganu,Terengganu,456238,150,456.238
+Pinang,Pulau Pinang,439206,150,439.206
+Kota Bharu,Kelantan,439164,150,439.164
+Kuantan,Pahang,398968,150,398.968
+Taiping,Perak,366522,150,366.522
+Seremban,Negeri Sembilan,365738,150,365.738
+Kuching,Sarawak,296118,150,296.118
+Sibu,Sarawak,252762,150,252.762
+Sandakan,Sabah,251682,150,251.682
+Alor Setar,Kedah,248824,150,248.824
+Selayang Baru,Selangor,248456,150,248.456
+Sungai Petani,Kedah,229526,150,229.526
+Shah Alam,Selangor,204038,150,204.038
+Bamako,Bamako,1619104,139,1619.104
+Birkirkara,Outer Harbour,42890,140,42.89
+Valletta,Inner Harbour,14146,140,14.146
+Casablanca,Casablanca,5881246,131,5881.246
+Rabat,Rabat-Salé-Zammour-Z,1246914,131,1246.914
+Marrakech,Marrakech-Tensift-Al,1243828,131,1243.828
+Fès,Fès-Boulemane,1082324,131,1082.324
+Tanger,Tanger-Tétouan,1043470,131,1043.47
+Salé,Rabat-Salé-Zammour-Z,1008840,131,1008.84
+Meknès,Meknès-Tafilalet,920000,131,920
+Oujda,Oriental,730764,131,730.764
+Kénitra,Gharb-Chrarda-Béni H,585200,131,585.2
+Tétouan,Tanger-Tétouan,555032,131,555.032
+Safi,Doukkala-Abda,524600,131,524.6
+Agadir,Souss Massa-Draâ,310488,131,310.488
+Mohammedia,Casablanca,309412,131,309.412
+Khouribga,Chaouia-Ouardigha,304180,131,304.18
+Beni-Mellal,Tadla-Azilal,280424,131,280.424
+Témara,Rabat-Salé-Zammour-Z,252606,131,252.606
+El Jadida,Doukkala-Abda,238166,131,238.166
+Nador,Oriental,224900,131,224.9
+Ksar el Kebir,Tanger-Tétouan,214130,131,214.13
+Settat,Chaouia-Ouardigha,192400,131,192.4
+Taza,Taza-Al Hoceima-Taou,185400,131,185.4
+El Araich,Tanger-Tétouan,180800,131,180.8
+Dalap-Uliga-Darrit,Majuro,56000,137,56
+Fort-de-France,Fort-de-France,188100,147,188.1
+Nouakchott,Nouakchott,1334600,145,1334.6
+Nouâdhibou,Dakhlet Nouâdhibou,195200,145,195.2
+Port-Louis,Port-Louis,276400,148,276.4
+Beau Bassin-Rose Hill,Plaines Wilhelms,201232,148,201.232
+Vacoas-Phoenix,Plaines Wilhelms,196928,148,196.928
+Mamoutzou,Mamoutzou,24000,151,24
+Ciudad de México,Distrito Federal,17182618,136,17182.618
+Guadalajara,Jalisco,3295440,136,3295.44
+Ecatepec de Morelos,México,3240606,136,3240.606
+Puebla,Puebla,2692352,136,2692.352
+Nezahualcóyotl,México,2449848,136,2449.848
+Juárez,Chihuahua,2435636,136,2435.636
+Tijuana,Baja California,2424464,136,2424.464
+León,Guanajuato,2267152,136,2267.152
+Monterrey,Nuevo León,2216998,136,2216.998
+Zapopan,Jalisco,2004478,136,2004.478
+Naucalpan de Juárez,México,1715022,136,1715.022
+Mexicali,Baja California,1529804,136,1529.804
+Culiacán,Sinaloa,1489718,136,1489.718
+Acapulco de Juárez,Guerrero,1442022,136,1442.022
+Tlalnepantla de Baz,México,1441510,136,1441.51
+Mérida,Yucatán,1406648,136,1406.648
+Chihuahua,Chihuahua,1340416,136,1340.416
+San Luis Potosí,San Luis Potosí,1338706,136,1338.706
+Guadalupe,Nuevo León,1337560,136,1337.56
+Toluca,México,1331234,136,1331.234
+Aguascalientes,Aguascalientes,1286720,136,1286.72
+Querétaro,Querétaro de Arteaga,1279678,136,1279.678
+Morelia,Michoacán de Ocampo,1239916,136,1239.916
+Hermosillo,Sonora,1217394,136,1217.394
+Saltillo,Coahuila de Zaragoza,1154704,136,1154.704
+Torreón,Coahuila de Zaragoza,1058186,136,1058.186
+Centro (Villahermosa),Tabasco,1039746,136,1039.746
+San Nicolás de los Garza,Nuevo León,991080,136,991.08
+Durango,Durango,981048,136,981.048
+Chimalhuacán,México,980490,136,980.49
+Tlaquepaque,Jalisco,950944,136,950.944
+Atizapán de Zaragoza,México,934524,136,934.524
+Veracruz,Veracruz,914238,136,914.238
+Cuautitlán Izcalli,México,905952,136,905.952
+Irapuato,Guanajuato,880078,136,880.078
+Tuxtla Gutiérrez,Chiapas,867088,136,867.088
+Tultitlán,México,864822,136,864.822
+Reynosa,Tamaulipas,839552,136,839.552
+Benito Juárez,Quintana Roo,838552,136,838.552
+Matamoros,Tamaulipas,832856,136,832.856
+Xalapa,Veracruz,780116,136,780.116
+Celaya,Guanajuato,764280,136,764.28
+Mazatlán,Sinaloa,760530,136,760.53
+Ensenada,Baja California,739146,136,739.146
+Ahome,Sinaloa,717326,136,717.326
+Cajeme,Sonora,711358,136,711.358
+Cuernavaca,Morelos,675932,136,675.932
+Tonalá,Jalisco,672218,136,672.218
+Valle de Chalco Solidaridad,México,646226,136,646.226
+Nuevo Laredo,Tamaulipas,620554,136,620.554
+Tepic,Nayarit,610050,136,610.05
+Tampico,Tamaulipas,589578,136,589.578
+Ixtapaluca,México,586320,136,586.32
+Apodaca,Nuevo León,565882,136,565.882
+Guasave,Sinaloa,554402,136,554.402
+Gómez Palacio,Durango,545612,136,545.612
+Tapachula,Chiapas,542282,136,542.282
+Nicolás Romero,México,538786,136,538.786
+Coatzacoalcos,Veracruz,534074,136,534.074
+Uruapan,Michoacán de Ocampo,530422,136,530.422
+Victoria,Tamaulipas,525372,136,525.372
+Oaxaca de Juárez,Oaxaca,513696,136,513.696
+Coacalco de Berriozábal,México,504540,136,504.54
+Pachuca de Soto,Hidalgo,489376,136,489.376
+General Escobedo,Nuevo León,465922,136,465.922
+Salamanca,Guanajuato,453728,136,453.728
+Santa Catarina,Nuevo León,453146,136,453.146
+Tehuacán,Puebla,451886,136,451.886
+Chalco,México,444402,136,444.402
+Cárdenas,Tabasco,433806,136,433.806
+Campeche,Campeche,433470,136,433.47
+La Paz,México,426090,136,426.09
+Othón P. Blanco (Chetumal),Quintana Roo,416028,136,416.028
+Texcoco,México,407362,136,407.362
+La Paz,Baja California Sur,393416,136,393.416
+Metepec,México,388530,136,388.53
+Monclova,Coahuila de Zaragoza,387314,136,387.314
+Huixquilucan,México,386312,136,386.312
+Chilpancingo de los Bravo,Guerrero,385018,136,385.018
+Puerto Vallarta,Jalisco,367482,136,367.482
+Fresnillo,Zacatecas,365488,136,365.488
+Ciudad Madero,Tamaulipas,364024,136,364.024
+Soledad de Graciano Sánchez,San Luis Potosí,359912,136,359.912
+San Juan del Río,Querétaro,358600,136,358.6
+San Felipe del Progreso,México,354660,136,354.66
+Córdoba,Veracruz,353904,136,353.904
+Tecámac,México,344820,136,344.82
+Ocosingo,Chiapas,342990,136,342.99
+Carmen,Campeche,342734,136,342.734
+Lázaro Cárdenas,Michoacán de Ocampo,341756,136,341.756
+Jiutepec,Morelos,340856,136,340.856
+Papantla,Veracruz,340246,136,340.246
+Comalcalco,Tabasco,329280,136,329.28
+Zamora,Michoacán de Ocampo,322382,136,322.382
+Nogales,Sonora,318206,136,318.206
+Huimanguillo,Tabasco,316670,136,316.67
+Cuautla,Morelos,306264,136,306.264
+Minatitlán,Veracruz,305966,136,305.966
+Poza Rica de Hidalgo,Veracruz,305356,136,305.356
+Ciudad Valles,San Luis Potosí,292822,136,292.822
+Navolato,Sinaloa,290792,136,290.792
+San Luis Río Colorado,Sonora,290552,136,290.552
+Pénjamo,Guanajuato,287854,136,287.854
+San Andrés Tuxtla,Veracruz,284502,136,284.502
+Guanajuato,Guanajuato,282430,136,282.43
+Navojoa,Sonora,280990,136,280.99
+Zitácuaro,Michoacán de Ocampo,275940,136,275.94
+Boca del Río,Veracruz-Llave,271442,136,271.442
+Allende,Guanajuato,269290,136,269.29
+Silao,Guanajuato,268074,136,268.074
+Macuspana,Tabasco,267590,136,267.59
+San Juan Bautista Tuxtepec,Oaxaca,267350,136,267.35
+San Cristóbal de las Casas,Chiapas,264634,136,264.634
+Valle de Santiago,Guanajuato,261114,136,261.114
+Guaymas,Sonora,260216,136,260.216
+Colima,Colima,258908,136,258.908
+Dolores Hidalgo,Guanajuato,257350,136,257.35
+Lagos de Moreno,Jalisco,255898,136,255.898
+Piedras Negras,Coahuila de Zaragoza,255796,136,255.796
+Altamira,Tamaulipas,254980,136,254.98
+Túxpam,Veracruz,252950,136,252.95
+San Pedro Garza García,Nuevo León,252294,136,252.294
+Cuauhtémoc,Chihuahua,248558,136,248.558
+Manzanillo,Colima,248028,136,248.028
+Iguala de la Independencia,Guerrero,247766,136,247.766
+Zacatecas,Zacatecas,247400,136,247.4
+Tlajomulco de Zúñiga,Jalisco,246440,136,246.44
+Tulancingo de Bravo,Hidalgo,243892,136,243.892
+Zinacantepec,México,243430,136,243.43
+San Martín Texmelucan,Puebla,242186,136,242.186
+Tepatitlán de Morelos,Jalisco,237896,136,237.896
+Martínez de la Torre,Veracruz,237630,136,237.63
+Orizaba,Veracruz,236976,136,236.976
+Apatzingán,Michoacán de Ocampo,235698,136,235.698
+Atlixco,Puebla,234038,136,234.038
+Delicias,Chihuahua,232264,136,232.264
+Ixtlahuaca,México,231096,136,231.096
+El Mante,Tamaulipas,224906,136,224.906
+Lerdo,Durango,224544,136,224.544
+Almoloya de Juárez,México,221100,136,221.1
+Acámbaro,Guanajuato,220974,136,220.974
+Acuña,Coahuila de Zaragoza,220776,136,220.776
+Guadalupe,Zacatecas,217762,136,217.762
+Huejutla de Reyes,Hidalgo,216034,136,216.034
+Hidalgo,Michoacán de Ocampo,212396,136,212.396
+Los Cabos,Baja California Sur,210398,136,210.398
+Comitán de Domínguez,Chiapas,209972,136,209.972
+Cunduacán,Tabasco,208328,136,208.328
+Río Bravo,Tamaulipas,207802,136,207.802
+Temapache,Veracruz,205648,136,205.648
+Chilapa de Alvarez,Guerrero,205432,136,205.432
+Hidalgo del Parral,Chihuahua,201762,136,201.762
+San Francisco del Rincón,Guanajuato,200298,136,200.298
+Taxco de Alarcón,Guerrero,199814,136,199.814
+Zumpango,México,199562,136,199.562
+San Pedro Cholula,Puebla,199468,136,199.468
+Lerma,México,199428,136,199.428
+Tecomán,Colima,198592,136,198.592
+Las Margaritas,Chiapas,194778,136,194.778
+Cosoleacaque,Veracruz,194398,136,194.398
+San Luis de la Paz,Guanajuato,193526,136,193.526
+José Azueta,Guerrero,190896,136,190.896
+Santiago Ixcuintla,Nayarit,190622,136,190.622
+San Felipe,Guanajuato,190610,136,190.61
+Tejupilco,México,189868,136,189.868
+Tantoyuca,Veracruz,189418,136,189.418
+Salvatierra,Guanajuato,188644,136,188.644
+Tultepec,México,186728,136,186.728
+Temixco,Morelos,185372,136,185.372
+Matamoros,Coahuila de Zaragoza,183716,136,183.716
+Pánuco,Veracruz,181102,136,181.102
+El Fuerte,Sinaloa,179112,136,179.112
+Tierra Blanca,Veracruz,178286,136,178.286
+Weno,Chuuk,44000,75,44
+Palikir,Pohnpei,17200,75,17.2
+Chisinau,Chisinau,1439800,133,1439.8
+Tiraspol,Dnjestria,388600,133,388.6
+Balti,Balti,306800,133,306.8
+Bender (Tîghina),Bender (Tîghina),251400,133,251.4
+Monte-Carlo,–,26308,132,26.308
+Monaco-Ville,–,2468,132,2.468
+Ulan Bator,Ulaanbaatar,1547400,142,1547.4
+Plymouth,Plymouth,4000,146,4
+Maputo,Maputo,2037876,144,2037.876
+Matola,Maputo,849324,144,849.324
+Beira,Sofala,794736,144,794.736
+Nampula,Nampula,606692,144,606.692
+Chimoio,Manica,342112,144,342.112
+Naçala-Porto,Nampula,316496,144,316.496
+Quelimane,Zambézia,300232,144,300.232
+Mocuba,Zambézia,249400,144,249.4
+Tete,Tete,203968,144,203.968
+Xai-Xai,Gaza,198884,144,198.884
+Gurue,Zambézia,198600,144,198.6
+Maxixe,Inhambane,187970,144,187.97
+Rangoon (Yangon),Rangoon [Yangon],6723400,141,6723.4
+Mandalay,Mandalay,1770600,141,1770.6
+Moulmein (Mawlamyine),Mon,615800,141,615.8
+Pegu (Bago),Pegu [Bago],381800,141,381.8
+Bassein (Pathein),Irrawaddy [Ayeyarwad,367800,141,367.8
+Monywa,Sagaing,277200,141,277.2
+Sittwe (Akyab),Rakhine,275200,141,275.2
+Taunggyi (Taunggye),Shan,263000,141,263
+Meikhtila,Mandalay,259400,141,259.4
+Mergui (Myeik),Tenasserim [Tanintha,245400,141,245.4
+Lashio (Lasho),Shan,215200,141,215.2
+Prome (Pyay),Pegu [Bago],211400,141,211.4
+Henzada (Hinthada),Irrawaddy [Ayeyarwad,209400,141,209.4
+Myingyan,Mandalay,207200,141,207.2
+Tavoy (Dawei),Tenasserim [Tanintha,193600,141,193.6
+Pagakku (Pakokku),Magwe [Magway],189600,141,189.6
+Windhoek,Khomas,338000,152,338
+Yangor,–,8100,162,8.1
+Yaren,–,1118,162,1.118
+Kathmandu,Central,1183670,161,1183.67
+Biratnagar,Eastern,315528,161,315.528
+Pokhara,Western,292636,161,292.636
+Lalitapur,Central,291694,161,291.694
+Birgunj,Central,181278,161,181.278
+Managua,Managua,1918000,157,1918
+León,León,247730,157,247.73
+Chinandega,Chinandega,194774,157,194.774
+Masaya,Masaya,177942,157,177.942
+Niamey,Niamey,840000,154,840
+Zinder,Zinder,241784,154,241.784
+Maradi,Maradi,225930,154,225.93
+Lagos,Lagos,3036000,156,3036
+Ibadan,Oyo & Osun,2864000,156,2864
+Ogbomosho,Oyo & Osun,1460000,156,1460
+Kano,Kano & Jigawa,1348200,156,1348.2
+Oshogbo,Oyo & Osun,953600,156,953.6
+Ilorin,Kwara & Kogi,951600,156,951.6
+Abeokuta,Ogun,854800,156,854.8
+Port Harcourt,Rivers & Bayelsa,820000,156,820
+Zaria,Kaduna,758400,156,758.4
+Ilesha,Oyo & Osun,756800,156,756.8
+Onitsha,Anambra & Enugu & Eb,743800,156,743.8
+Iwo,Oyo & Osun,724000,156,724
+Ado-Ekiti,Ondo & Ekiti,718800,156,718.8
+Abuja,Federal Capital Dist,700200,156,700.2
+Kaduna,Kaduna,684400,156,684.4
+Mushin,Lagos,666400,156,666.4
+Maiduguri,Borno & Yobe,640000,156,640
+Enugu,Anambra & Enugu & Eb,632200,156,632.2
+Ede,Oyo & Osun,614200,156,614.2
+Aba,Imo & Abia,597800,156,597.8
+Ife,Oyo & Osun,593600,156,593.6
+Ila,Oyo & Osun,528000,156,528
+Oyo,Oyo & Osun,512800,156,512.8
+Ikerre,Ondo & Ekiti,489200,156,489.2
+Benin City,Edo & Delta,458800,156,458.8
+Iseyin,Oyo & Osun,434600,156,434.6
+Katsina,Katsina,413000,156,413
+Jos,Plateau & Nassarawa,412600,156,412.6
+Sokoto,Sokoto & Kebbi & Zam,409800,156,409.8
+Ilobu,Oyo & Osun,398000,156,398
+Offa,Kwara & Kogi,394400,156,394.4
+Ikorodu,Lagos,369800,156,369.8
+Ilawe-Ekiti,Ondo & Ekiti,369000,156,369
+Owo,Ondo & Ekiti,367000,156,367
+Ikirun,Oyo & Osun,362800,156,362.8
+Shaki,Oyo & Osun,349000,156,349
+Calabar,Cross River,348800,156,348.8
+Ondo,Ondo & Ekiti,347200,156,347.2
+Akure,Ondo & Ekiti,324600,156,324.6
+Gusau,Sokoto & Kebbi & Zam,316000,156,316
+Ijebu-Ode,Ogun,312800,156,312.8
+Effon-Alaiye,Oyo & Osun,306200,156,306.2
+Kumo,Bauchi & Gombe,296000,156,296
+Shomolu,Lagos,295400,156,295.4
+Oka-Akoko,Ondo & Ekiti,285800,156,285.8
+Ikare,Ondo & Ekiti,281600,156,281.6
+Sapele,Edo & Delta,278400,156,278.4
+Deba Habe,Bauchi & Gombe,277200,156,277.2
+Minna,Niger,273800,156,273.8
+Warri,Edo & Delta,252200,156,252.2
+Bida,Niger,251000,156,251
+Ikire,Oyo & Osun,246600,156,246.6
+Makurdi,Benue,246200,156,246.2
+Lafia,Plateau & Nassarawa,245000,156,245
+Inisa,Oyo & Osun,239600,156,239.6
+Shagamu,Ogun,234400,156,234.4
+Awka,Anambra & Enugu & Eb,222400,156,222.4
+Gombe,Bauchi & Gombe,215600,156,215.6
+Igboho,Oyo & Osun,213600,156,213.6
+Ejigbo,Oyo & Osun,211800,156,211.8
+Agege,Lagos,210000,156,210
+Ise-Ekiti,Ondo & Ekiti,206800,156,206.8
+Ugep,Cross River,205200,156,205.2
+Epe,Lagos,202000,156,202
+Alofi,–,1364,158,1.364
+Kingston,–,1600,155,1.6
+Oslo,Oslo,1017452,160,1017.452
+Bergen,Hordaland,461896,160,461.896
+Trondheim,Sør-Trøndelag,300332,160,300.332
+Stavanger,Rogaland,217696,160,217.696
+Bærum,Akershus,202680,160,202.68
+Abidjan,Abidjan,5000000,43,5000
+Bouaké,Bouaké,659700,43,659.7
+Yamoussoukro,Yamoussoukro,260000,43,260
+Daloa,Daloa,243684,43,243.684
+Korhogo,Korhogo,218890,43,218.89
+al-Sib,Masqat,310000,164,310
+Salala,Zufar,263626,164,263.626
+Bawshar,Masqat,215000,164,215
+Suhar,al-Batina,181628,164,181.628
+Masqat,Masqat,103938,164,103.938
+Karachi,Sindh,18538530,165,18538.53
+Lahore,Punjab,10126998,165,10126.998
+Faisalabad,Punjab,3954492,165,3954.492
+Rawalpindi,Punjab,2812428,165,2812.428
+Multan,Punjab,2364882,165,2364.882
+Hyderabad,Sindh,2302548,165,2302.548
+Gujranwala,Punjab,2249498,165,2249.498
+Peshawar,Nothwest Border Prov,1976010,165,1976.01
+Quetta,Baluchistan,1120614,165,1120.614
+Islamabad,Islamabad,1049000,165,1049
+Sargodha,Punjab,910720,165,910.72
+Sialkot,Punjab,835194,165,835.194
+Bahawalpur,Punjab,806816,165,806.816
+Sukkur,Sindh,658352,165,658.352
+Jhang,Punjab,584428,165,584.428
+Sheikhupura,Punjab,543750,165,543.75
+Larkana,Sindh,540732,165,540.732
+Gujrat,Punjab,500242,165,500.242
+Mardan,Nothwest Border Prov,489022,165,489.022
+Kasur,Punjab,483298,165,483.298
+Rahim Yar Khan,Punjab,456958,165,456.958
+Sahiwal,Punjab,414776,165,414.776
+Okara,Punjab,401802,165,401.802
+Wah,Punjab,396800,165,396.8
+Dera Ghazi Khan,Punjab,376200,165,376.2
+Mirpur Khas,Sind,369000,165,369
+Nawabshah,Sind,366200,165,366.2
+Mingora,Nothwest Border Prov,349000,165,349
+Chiniot,Punjab,338600,165,338.6
+Kamoke,Punjab,302000,165,302
+Mandi Burewala,Punjab,299800,165,299.8
+Jhelum,Punjab,291600,165,291.6
+Sadiqabad,Punjab,283000,165,283
+Jacobabad,Sind,275400,165,275.4
+Shikarpur,Sind,266600,165,266.6
+Khanewal,Punjab,266000,165,266
+Hafizabad,Punjab,260400,165,260.4
+Kohat,Nothwest Border Prov,250600,165,250.6
+Muzaffargarh,Punjab,243200,165,243.2
+Khanpur,Punjab,235600,165,235.6
+Gojra,Punjab,230000,165,230
+Bahawalnagar,Punjab,219200,165,219.2
+Muridke,Punjab,217200,165,217.2
+Pak Pattan,Punjab,215600,165,215.6
+Abottabad,Nothwest Border Prov,212000,165,212
+Tando Adam,Sind,206800,165,206.8
+Jaranwala,Punjab,206600,165,206.6
+Khairpur,Sind,204400,165,204.4
+Chishtian Mandi,Punjab,203400,165,203.4
+Daska,Punjab,203000,165,203
+Dadu,Sind,197200,165,197.2
+Mandi Bahauddin,Punjab,194600,165,194.6
+Ahmadpur East,Punjab,192000,165,192
+Kamalia,Punjab,190600,165,190.6
+Khuzdar,Baluchistan,186200,165,186.2
+Vihari,Punjab,184600,165,184.6
+Dera Ismail Khan,Nothwest Border Prov,180800,165,180.8
+Wazirabad,Punjab,179400,165,179.4
+Nowshera,Nothwest Border Prov,178800,165,178.8
+Koror,Koror,24000,170,24
+Ciudad de Panamá,Panamá,942746,166,942.746
+San Miguelito,San Miguelito,630764,166,630.764
+Port Moresby,National Capital Dis,494000,171,494
+Asunción,Asunción,1115552,176,1115.552
+Ciudad del Este,Alto Paraná,267762,176,267.762
+San Lorenzo,Central,266790,176,266.79
+Lambaré,Central,199362,176,199.362
+Fernando de la Mora,Central,190574,176,190.574
+Lima,Lima,12929386,168,12929.386
+Arequipa,Arequipa,1524000,168,1524
+Trujillo,La Libertad,1304000,168,1304
+Chiclayo,Lambayeque,1034000,168,1034
+Callao,Callao,848588,168,848.588
+Iquitos,Loreto,734000,168,734
+Chimbote,Ancash,672000,168,672
+Huancayo,Junín,654000,168,654
+Piura,Piura,650000,168,650
+Cusco,Cusco,582000,168,582
+Pucallpa,Ucayali,441732,168,441.732
+Tacna,Tacna,431366,168,431.366
+Ica,Ica,389640,168,389.64
+Sullana,Piura,294722,168,294.722
+Juliaca,Puno,285152,168,285.152
+Huánuco,Huanuco,259376,168,259.376
+Ayacucho,Ayacucho,237920,168,237.92
+Chincha Alta,Ica,220032,168,220.032
+Cajamarca,Cajamarca,216018,168,216.018
+Puno,Puno,203156,168,203.156
+Ventanilla,Callao,202112,168,202.112
+Castilla,Piura,181284,168,181.284
+Adamstown,–,84,167,0.084
+Garapan,Saipan,18400,143,18.4
+Lisboa,Lisboa,1126420,175,1126.42
+Porto,Porto,546120,175,546.12
+Amadora,Lisboa,244212,175,244.212
+Coímbra,Coímbra,192200,175,192.2
+Braga,Braga,181070,175,181.07
+San Juan,San Juan,868748,173,868.748
+Bayamón,Bayamón,448088,173,448.088
+Ponce,Ponce,372950,173,372.95
+Carolina,Carolina,372152,173,372.152
+Caguas,Caguas,281004,173,281.004
+Arecibo,Arecibo,200262,173,200.262
+Guaynabo,Guaynabo,200106,173,200.106
+Mayagüez,Mayagüez,196868,173,196.868
+Toa Baja,Toa Baja,188170,173,188.17
+Warszawa,Mazowieckie,3230738,172,3230.738
+Lódz,Lodzkie,1600220,172,1600.22
+Kraków,Malopolskie,1476300,172,1476.3
+Wroclaw,Dolnoslaskie,1273530,172,1273.53
+Poznan,Wielkopolskie,1153798,172,1153.798
+Gdansk,Pomorskie,917976,172,917.976
+Szczecin,Zachodnio-Pomorskie,833976,172,833.976
+Bydgoszcz,Kujawsko-Pomorskie,773710,172,773.71
+Lublin,Lubelskie,712502,172,712.502
+Katowice,Slaskie,691868,172,691.868
+Bialystok,Podlaskie,567874,172,567.874
+Czestochowa,Slaskie,515624,172,515.624
+Gdynia,Pomorskie,507042,172,507.042
+Sosnowiec,Slaskie,488204,172,488.204
+Radom,Mazowieckie,464524,172,464.524
+Kielce,Swietokrzyskie,424766,172,424.766
+Gliwice,Slaskie,424328,172,424.328
+Torun,Kujawsko-Pomorskie,412316,172,412.316
+Bytom,Slaskie,411120,172,411.12
+Zabrze,Slaskie,400354,172,400.354
+Bielsko-Biala,Slaskie,360614,172,360.614
+Olsztyn,Warminsko-Mazurskie,341808,172,341.808
+Rzeszów,Podkarpackie,324098,172,324.098
+Ruda Slaska,Slaskie,319330,172,319.33
+Rybnik,Slaskie,289164,172,289.164
+Walbrzych,Dolnoslaskie,273846,172,273.846
+Tychy,Slaskie,266356,172,266.356
+Dabrowa Górnicza,Slaskie,262074,172,262.074
+Plock,Mazowieckie,262022,172,262.022
+Elblag,Warminsko-Mazurskie,259564,172,259.564
+Opole,Opolskie,259106,172,259.106
+Gorzów Wielkopolski,Lubuskie,252038,172,252.038
+Wloclawek,Kujawsko-Pomorskie,246746,172,246.746
+Chorzów,Slaskie,243416,172,243.416
+Tarnów,Malopolskie,242988,172,242.988
+Zielona Góra,Lubuskie,236364,172,236.364
+Koszalin,Zachodnio-Pomorskie,224750,172,224.75
+Legnica,Dolnoslaskie,218670,172,218.67
+Kalisz,Wielkopolskie,213282,172,213.282
+Grudziadz,Kujawsko-Pomorskie,204868,172,204.868
+Slupsk,Pomorskie,204740,172,204.74
+Jastrzebie-Zdrój,Slaskie,204588,172,204.588
+Jaworzno,Slaskie,195858,172,195.858
+Jelenia Góra,Dolnoslaskie,187802,172,187.802
+Malabo,Bioko,80000,85,80
+Doha,Doha,710000,179,710
+Paris,Île-de-France,4250492,73,4250.492
+Marseille,Provence-Alpes-Côte,1596860,73,1596.86
+Lyon,Rhône-Alpes,890904,73,890.904
+Toulouse,Midi-Pyrénées,780700,73,780.7
+Nice,Provence-Alpes-Côte,685476,73,685.476
+Nantes,Pays de la Loire,540502,73,540.502
+Strasbourg,Alsace,528230,73,528.23
+Montpellier,Languedoc-Roussillon,450784,73,450.784
+Bordeaux,Aquitaine,430726,73,430.726
+Rennes,Haute-Normandie,412458,73,412.458
+Le Havre,Champagne-Ardenne,381810,73,381.81
+Reims,Nord-Pas-de-Calais,374412,73,374.412
+Lille,Rhône-Alpes,369314,73,369.314
+St-Étienne,Bretagne,360420,73,360.42
+Toulon,Provence-Alpes-Côte,321278,73,321.278
+Grenoble,Rhône-Alpes,306634,73,306.634
+Angers,Pays de la Loire,302558,73,302.558
+Dijon,Bourgogne,299734,73,299.734
+Brest,Bretagne,299268,73,299.268
+Le Mans,Pays de la Loire,292210,73,292.21
+Clermont-Ferrand,Auvergne,274280,73,274.28
+Amiens,Picardie,271002,73,271.002
+Aix-en-Provence,Provence-Alpes-Côte,268444,73,268.444
+Limoges,Limousin,267936,73,267.936
+Nîmes,Languedoc-Roussillon,266848,73,266.848
+Tours,Centre,265640,73,265.64
+Villeurbanne,Rhône-Alpes,248430,73,248.43
+Metz,Lorraine,247552,73,247.552
+Besançon,Franche-Comté,235466,73,235.466
+Caen,Basse-Normandie,227974,73,227.974
+Orléans,Centre,226252,73,226.252
+Mulhouse,Alsace,220718,73,220.718
+Rouen,Haute-Normandie,213184,73,213.184
+Boulogne-Billancourt,Île-de-France,212734,73,212.734
+Perpignan,Languedoc-Roussillon,210230,73,210.23
+Nancy,Lorraine,207210,73,207.21
+Roubaix,Nord-Pas-de-Calais,193968,73,193.968
+Argenteuil,Île-de-France,187922,73,187.922
+Tourcoing,Nord-Pas-de-Calais,187080,73,187.08
+Montreuil,Île-de-France,181348,73,181.348
+Cayenne,Cayenne,101398,90,101.398
+Faaa,Tahiti,51776,178,51.776
+Papeete,Tahiti,51106,178,51.106
+Saint-Denis,Saint-Denis,262960,180,262.96
+Bucuresti,Bukarest,4032262,181,4032.262
+Iasi,Iasi,696140,181,696.14
+Constanta,Constanta,684528,181,684.528
+Cluj-Napoca,Cluj,664996,181,664.996
+Galati,Galati,660552,181,660.552
+Timisoara,Timis,648608,181,648.608
+Brasov,Brasov,628450,181,628.45
+Craiova,Dolj,627060,181,627.06
+Ploiesti,Prahova,502696,181,502.696
+Braila,Braila,467512,181,467.512
+Oradea,Bihor,444478,181,444.478
+Bacau,Bacau,418470,181,418.47
+Pitesti,Arges,374340,181,374.34
+Arad,Arad,368816,181,368.816
+Sibiu,Sibiu,339222,181,339.222
+Târgu Mures,Mures,330306,181,330.306
+Baia Mare,Maramures,299330,181,299.33
+Buzau,Buzau,296744,181,296.744
+Satu Mare,Satu Mare,260118,181,260.118
+Botosani,Botosani,257460,181,257.46
+Piatra Neamt,Neamt,250140,181,250.14
+Râmnicu Vâlcea,Vâlcea,239482,181,239.482
+Suceava,Suceava,237098,181,237.098
+Drobeta-Turnu Severin,Mehedinti,235730,181,235.73
+Târgoviste,Dâmbovita,197960,181,197.96
+Focsani,Vrancea,197958,181,197.958
+Târgu Jiu,Gorj,197048,181,197.048
+Tulcea,Tulcea,192556,181,192.556
+Resita,Caras-Severin,187952,181,187.952
+Kigali,Kigali,572000,183,572
+Stockholm,Lisboa,1500696,201,1500.696
+Gothenburg [Göteborg],West Götanmaan län,933980,201,933.98
+Malmö,Skåne län,519158,201,519.158
+Uppsala,Uppsala län,379138,201,379.138
+Linköping,East Götanmaan län,266336,201,266.336
+Västerås,Västmanlands län,252656,201,252.656
+Örebro,Örebros län,248414,201,248.414
+Norrköping,East Götanmaan län,244398,201,244.398
+Helsingborg,Skåne län,235474,201,235.474
+Jönköping,Jönköpings län,234190,201,234.19
+Umeå,Västerbottens län,209024,201,209.024
+Lund,Skåne län,197896,201,197.896
+Borås,West Götanmaan län,193766,201,193.766
+Sundsvall,Västernorrlands län,186252,201,186.252
+Gävle,Gävleborgs län,181484,201,181.484
+Jamestown,Saint Helena,3000,189,3
+Basseterre,St George Basseterre,23200,116,23.2
+Castries,Castries,4602,123,4.602
+Kingstown,St George,34200,227,34.2
+Saint-Pierre,Saint-Pierre,11616,196,11.616
+Berlin,Berliini,6773334,57,6773.334
+Hamburg,Hamburg,3409470,57,3409.47
+Munich [München],Baijeri,2389120,57,2389.12
+Köln,Nordrhein-Westfalen,1925014,57,1925.014
+Frankfurt am Main,Hessen,1287642,57,1287.642
+Essen,Nordrhein-Westfalen,1199030,57,1199.03
+Dortmund,Nordrhein-Westfalen,1180426,57,1180.426
+Stuttgart,Baden-Württemberg,1164886,57,1164.886
+Düsseldorf,Nordrhein-Westfalen,1137710,57,1137.71
+Bremen,Bremen,1080660,57,1080.66
+Duisburg,Nordrhein-Westfalen,1039586,57,1039.586
+Hannover,Niedersachsen,1029436,57,1029.436
+Leipzig,Saksi,979064,57,979.064
+Nürnberg,Baijeri,973256,57,973.256
+Dresden,Saksi,953336,57,953.336
+Bochum,Nordrhein-Westfalen,785660,57,785.66
+Wuppertal,Nordrhein-Westfalen,737986,57,737.986
+Bielefeld,Nordrhein-Westfalen,642250,57,642.25
+Mannheim,Baden-Württemberg,615460,57,615.46
+Bonn,Nordrhein-Westfalen,602096,57,602.096
+Gelsenkirchen,Nordrhein-Westfalen,563958,57,563.958
+Karlsruhe,Baden-Württemberg,554408,57,554.408
+Wiesbaden,Hessen,537432,57,537.432
+Münster,Nordrhein-Westfalen,529340,57,529.34
+Mönchengladbach,Nordrhein-Westfalen,527394,57,527.394
+Chemnitz,Saksi,526444,57,526.444
+Augsburg,Baijeri,509734,57,509.734
+Halle/Saale,Anhalt Sachsen,508720,57,508.72
+Braunschweig,Niedersachsen,492644,57,492.644
+Aachen,Nordrhein-Westfalen,487650,57,487.65
+Krefeld,Nordrhein-Westfalen,483538,57,483.538
+Magdeburg,Anhalt Sachsen,470146,57,470.146
+Kiel,Schleswig-Holstein,467590,57,467.59
+Oberhausen,Nordrhein-Westfalen,444698,57,444.698
+Lübeck,Schleswig-Holstein,426652,57,426.652
+Hagen,Nordrhein-Westfalen,410402,57,410.402
+Rostock,Mecklenburg-Vorpomme,406558,57,406.558
+Freiburg im Breisgau,Baden-Württemberg,404910,57,404.91
+Erfurt,Thüringen,402534,57,402.534
+Kassel,Hessen,392422,57,392.422
+Saarbrücken,Saarland,367672,57,367.672
+Mainz,Rheinland-Pfalz,366268,57,366.268
+Hamm,Nordrhein-Westfalen,363608,57,363.608
+Herne,Nordrhein-Westfalen,351322,57,351.322
+Mülheim an der Ruhr,Nordrhein-Westfalen,347790,57,347.79
+Solingen,Nordrhein-Westfalen,331166,57,331.166
+Osnabrück,Niedersachsen,329078,57,329.078
+Ludwigshafen am Rhein,Rheinland-Pfalz,327542,57,327.542
+Leverkusen,Nordrhein-Westfalen,321682,57,321.682
+Oldenburg,Niedersachsen,308250,57,308.25
+Neuss,Nordrhein-Westfalen,299404,57,299.404
+Heidelberg,Baden-Württemberg,279344,57,279.344
+Darmstadt,Hessen,275552,57,275.552
+Paderborn,Nordrhein-Westfalen,275294,57,275.294
+Potsdam,Brandenburg,257966,57,257.966
+Würzburg,Baijeri,254700,57,254.7
+Regensburg,Baijeri,250472,57,250.472
+Recklinghausen,Nordrhein-Westfalen,250044,57,250.044
+Göttingen,Niedersachsen,249550,57,249.55
+Bremerhaven,Bremen,245470,57,245.47
+Wolfsburg,Niedersachsen,243908,57,243.908
+Bottrop,Nordrhein-Westfalen,242194,57,242.194
+Remscheid,Nordrhein-Westfalen,240250,57,240.25
+Heilbronn,Baden-Württemberg,239052,57,239.052
+Pforzheim,Baden-Württemberg,234454,57,234.454
+Offenbach am Main,Hessen,233254,57,233.254
+Ulm,Baden-Württemberg,232206,57,232.206
+Ingolstadt,Baijeri,229652,57,229.652
+Gera,Thüringen,229436,57,229.436
+Salzgitter,Niedersachsen,225868,57,225.868
+Cottbus,Brandenburg,221788,57,221.788
+Reutlingen,Baden-Württemberg,220686,57,220.686
+Fürth,Baijeri,219542,57,219.542
+Siegen,Nordrhein-Westfalen,218450,57,218.45
+Koblenz,Rheinland-Pfalz,216006,57,216.006
+Moers,Nordrhein-Westfalen,213674,57,213.674
+Bergisch Gladbach,Nordrhein-Westfalen,212300,57,212.3
+Zwickau,Saksi,208292,57,208.292
+Hildesheim,Niedersachsen,208026,57,208.026
+Witten,Nordrhein-Westfalen,206768,57,206.768
+Schwerin,Mecklenburg-Vorpomme,205756,57,205.756
+Erlangen,Baijeri,201500,57,201.5
+Kaiserslautern,Rheinland-Pfalz,200050,57,200.05
+Trier,Rheinland-Pfalz,199782,57,199.782
+Jena,Thüringen,199558,57,199.558
+Iserlohn,Nordrhein-Westfalen,198948,57,198.948
+Gütersloh,Nordrhein-Westfalen,190056,57,190.056
+Marl,Nordrhein-Westfalen,187470,57,187.47
+Lünen,Nordrhein-Westfalen,184088,57,184.088
+Düren,Nordrhein-Westfalen,182184,57,182.184
+Ratingen,Nordrhein-Westfalen,181902,57,181.902
+Velbert,Nordrhein-Westfalen,179762,57,179.762
+Esslingen am Neckar,Baden-Württemberg,179334,57,179.334
+Honiara,Honiara,100200,191,100.2
+Lusaka,Lusaka,2634000,238,2634
+Ndola,Copperbelt,658400,238,658.4
+Kitwe,Copperbelt,577200,238,577.2
+Kabwe,Central,308600,238,308.6
+Chingola,Copperbelt,284800,238,284.8
+Mufulira,Copperbelt,247800,238,247.8
+Luanshya,Copperbelt,236200,238,236.2
+Apia,Upolu,71800,234,71.8
+Serravalle,Serravalle/Dogano,9604,194,9.604
+San Marino,San Marino,4588,194,4.588
+São Tomé,Aqua Grande,99082,197,99.082
+Riyadh,Riyadh,6648000,184,6648
+Jedda,Mekka,4092600,184,4092.6
+Mekka,Mekka,1931400,184,1931.4
+Medina,Medina,1216600,184,1216.6
+al-Dammam,al-Sharqiya,964600,184,964.6
+al-Taif,Mekka,832200,184,832.2
+Tabuk,Tabuk,585200,184,585.2
+Burayda,al-Qasim,497200,184,497.2
+al-Hufuf,al-Sharqiya,451600,184,451.6
+al-Mubarraz,al-Sharqiya,438200,184,438.2
+Khamis Mushayt,Asir,435800,184,435.8
+Hail,Hail,353600,184,353.6
+al-Kharj,Riad,304200,184,304.2
+al-Khubar,al-Sharqiya,283400,184,283.4
+Jubayl,al-Sharqiya,281600,184,281.6
+Hafar al-Batin,al-Sharqiya,275600,184,275.6
+al-Tuqba,al-Sharqiya,251400,184,251.4
+Yanbu,Medina,239600,184,239.6
+Abha,Asir,224600,184,224.6
+Ara´ar,al-Khudud al-Samaliy,216200,184,216.2
+al-Qatif,al-Sharqiya,197800,184,197.8
+al-Hawiya,Mekka,187800,184,187.8
+Unayza,Qasim,182200,184,182.2
+Najran,Najran,182000,184,182
+Pikine,Cap-Vert,1710574,186,1710.574
+Dakar,Cap-Vert,1570142,186,1570.142
+Thiès,Thiès,496000,186,496
+Kaolack,Kaolack,398000,186,398
+Ziguinchor,Ziguinchor,384000,186,384
+Rufisque,Cap-Vert,300000,186,300
+Saint-Louis,Saint-Louis,264800,186,264.8
+Mbour,Thiès,218600,186,218.6
+Diourbel,Diourbel,198800,186,198.8
+Victoria,Mahé,82000,203,82
+Freetown,Western,1700000,192,1700
+Singapore,–,8035466,187,8035.466
+Bratislava,Bratislava,896584,199,896.584
+Košice,Východné Slovensko,483748,199,483.748
+Prešov,Východné Slovensko,187954,199,187.954
+Ljubljana,Osrednjeslovenska,541972,200,541.972
+Maribor,Podravska,231064,200,231.064
+Mogadishu,Banaadir,1994000,195,1994
+Hargeysa,Woqooyi Galbeed,180000,195,180
+Kismaayo,Jubbada Hoose,180000,195,180
+Colombo,Western,1290000,125,1290
+Dehiwala,Western,406000,125,406
+Moratuwa,Western,380000,125,380
+Jaffna,Northern,298000,125,298
+Kandy,Central,280000,125,280
+Sri Jayawardenepura Kotte,Western,236000,125,236
+Negombo,Western,200000,125,200
+Omdurman,Khartum,2542806,185,2542.806
+Khartum,Khartum,1894966,185,1894.966
+Sharq al-Nil,Khartum,1401774,185,1401.774
+Port Sudan,al-Bahr al-Ahmar,616390,185,616.39
+Kassala,Kassala,469244,185,469.244
+Obeid,Kurdufan al-Shamaliy,458850,185,458.85
+Nyala,Darfur al-Janubiya,454366,185,454.366
+Wad Madani,al-Jazira,422724,185,422.724
+al-Qadarif,al-Qadarif,382328,185,382.328
+Kusti,al-Bahr al-Abyad,347198,185,347.198
+al-Fashir,Darfur al-Shamaliya,283768,185,283.768
+Juba,Bahr al-Jabal,229960,185,229.96
+Helsinki [Helsingfors],Newmaa,1110948,70,1110.948
+Espoo,Newmaa,426542,70,426.542
+Tampere,Pirkanmaa,390936,70,390.936
+Vantaa,Newmaa,356942,70,356.942
+Turku [Åbo],Varsinais-Suomi,345122,70,345.122
+Oulu,Pohjois-Pohjanmaa,241506,70,241.506
+Lahti,Päijät-Häme,193842,70,193.842
+Paramaribo,Paramaribo,224000,198,224
+Mbabane,Hhohho,122000,202,122
+Zürich,Zürich,673600,40,673.6
+Geneve,Geneve,347000,40,347
+Basel,Basel-Stadt,333400,40,333.4
+Bern,Bern,245400,40,245.4
+Lausanne,Vaud,229000,40,229
+Damascus,Damascus,2694000,204,2694
+Aleppo,Aleppo,2523966,204,2523.966
+Hims,Hims,1014808,204,1014.808
+Hama,Hama,686722,204,686.722
+Latakia,Latakia,529126,204,529.126
+al-Qamishliya,al-Hasaka,288572,204,288.572
+Dayr al-Zawr,Dayr al-Zawr,280918,204,280.918
+Jaramana,Damaskos,276938,204,276.938
+Duma,Damaskos,262316,204,262.316
+al-Raqqa,al-Raqqa,216040,204,216.04
+Idlib,Idlib,182162,204,182.162
+Dushanbe,Karotegin,1048000,209,1048
+Khujand,Khujand,323000,209,323
+Taipei,Taipei,5282624,218,5282.624
+Kaohsiung,Kaohsiung,2951010,218,2951.01
+Taichung,Taichung,1881178,218,1881.178
+Tainan,Tainan,1456120,218,1456.12
+Panchiao,Taipei,1047700,218,1047.7
+Chungho,Taipei,784352,218,784.352
+Keelung (Chilung),Keelung,770402,218,770.402
+Sanchung,Taipei,760168,218,760.168
+Hsinchuang,Taipei,730096,218,730.096
+Hsinchu,Hsinchu,723916,218,723.916
+Chungli,Taoyuan,637298,218,637.298
+Fengshan,Kaohsiung,637124,218,637.124
+Taoyuan,Taoyuan,632876,218,632.876
+Chiayi,Chiayi,530218,218,530.218
+Hsintien,Taipei,527206,218,527.206
+Changhwa,Changhwa,455430,218,455.43
+Yungho,Taipei,455400,218,455.4
+Tucheng,Taipei,449794,218,449.794
+Pingtung,Pingtung,429454,218,429.454
+Yungkang,Tainan,386010,218,386.01
+Pingchen,Taoyuan,376688,218,376.688
+Tali,Taichung,343880,218,343.88
+Taiping,,331048,218,331.048
+Pate,Taoyuan,323400,218,323.4
+Fengyuan,Taichung,322064,218,322.064
+Luchou,Taipei,321032,218,321.032
+Hsichuh,Taipei,309952,218,309.952
+Shulin,Taipei,302520,218,302.52
+Yuanlin,Changhwa,252804,218,252.804
+Yangmei,Taoyuan,252646,218,252.646
+Taliao,,231794,218,231.794
+Kueishan,,224390,218,224.39
+Tanshui,Taipei,223764,218,223.764
+Taitung,Taitung,222078,218,222.078
+Hualien,Hualien,216814,218,216.814
+Nantou,Nantou,209446,218,209.446
+Lungtan,Taipei,206176,218,206.176
+Touliu,Yünlin,197800,218,197.8
+Tsaotun,Nantou,193600,218,193.6
+Kangshan,Kaohsiung,184400,218,184.4
+Ilan,Ilan,184000,218,184
+Miaoli,Miaoli,180000,218,180
+Dar es Salaam,Dar es Salaam,3494000,219,3494
+Dodoma,Dodoma,378000,219,378
+Mwanza,Mwanza,344600,219,344.6
+Zanzibar,Zanzibar West,315268,219,315.268
+Tanga,Tanga,274800,219,274.8
+Mbeya,Mbeya,261600,219,261.6
+Morogoro,Morogoro,235600,219,235.6
+Arusha,Arusha,205000,219,205
+Moshi,Kilimanjaro,193600,219,193.6
+Tabora,Tabora,185600,219,185.6
+København,København,991398,60,991.398
+Århus,Århus,569692,60,569.692
+Odense,Fyn,367824,60,367.824
+Aalborg,Nordjylland,322322,60,322.322
+Frederiksberg,Frederiksberg,180654,60,180.654
+Bangkok,Bangkok,12640348,208,12640.348
+Nonthaburi,Nonthaburi,584200,208,584.2
+Nakhon Ratchasima,Nakhon Ratchasima,362800,208,362.8
+Chiang Mai,Chiang Mai,342200,208,342.2
+Udon Thani,Udon Thani,316200,208,316.2
+Hat Yai,Songkhla,297264,208,297.264
+Khon Kaen,Khon Kaen,253000,208,253
+Pak Kret,Nonthaburi,252110,208,252.11
+Nakhon Sawan,Nakhon Sawan,247600,208,247.6
+Ubon Ratchathani,Ubon Ratchathani,232600,208,232.6
+Songkhla,Songkhla,189800,208,189.8
+Nakhon Pathom,Nakhon Pathom,188200,208,188.2
+Lomé,Maritime,750000,207,750
+Fakaofo,Fakaofo,600,210,0.6
+Nuku´alofa,Tongatapu,44800,213,44.8
+Chaguanas,Caroni,113202,214,113.202
+Port-of-Spain,Port-of-Spain,86792,214,86.792
+N´Djaména,Chari-Baguirmi,1061930,206,1061.93
+Moundou,Logone Occidental,199000,206,199
+Praha,Hlavní mesto Praha,2362252,56,2362.252
+Brno,Jizní Morava,763724,56,763.724
+Ostrava,Severní Morava,640082,56,640.082
+Plzen,Zapadní Cechy,333518,56,333.518
+Olomouc,Severní Morava,205404,56,205.404
+Liberec,Severní Cechy,198310,56,198.31
+Ceské Budejovice,Jizní Cechy,196372,56,196.372
+Hradec Králové,Východní Cechy,196160,56,196.16
+Ústí nad Labem,Severní Cechy,190982,56,190.982
+Pardubice,Východní Cechy,182618,56,182.618
+Tunis,Tunis,1381200,215,1381.2
+Sfax,Sfax,515600,215,515.6
+Ariana,Ariana,394000,215,394
+Ettadhamen,Ariana,357200,215,357.2
+Sousse,Sousse,291800,215,291.8
+Kairouan,Kairouan,226200,215,226.2
+Biserta,Biserta,217800,215,217.8
+Gabès,Gabès,213200,215,213.2
+Istanbul,Istanbul,17575916,216,17575.916
+Ankara,Ankara,6076318,216,6076.318
+Izmir,Izmir,4260718,216,4260.718
+Adana,Adana,2262396,216,2262.396
+Bursa,Bursa,2191684,216,2191.684
+Gaziantep,Gaziantep,1578112,216,1578.112
+Konya,Konya,1256728,216,1256.728
+Mersin (Içel),Içel,1174424,216,1174.424
+Antalya,Antalya,1129828,216,1129.828
+Diyarbakir,Diyarbakir,959768,216,959.768
+Kayseri,Kayseri,951314,216,951.314
+Eskisehir,Eskisehir,941562,216,941.562
+Sanliurfa,Sanliurfa,811810,216,811.81
+Samsun,Samsun,679742,216,679.742
+Malatya,Malatya,660624,216,660.624
+Gebze,Kocaeli,528340,216,528.34
+Denizli,Denizli,507696,216,507.696
+Sivas,Sivas,493284,216,493.284
+Erzurum,Erzurum,493070,216,493.07
+Tarsus,Adana,492412,216,492.412
+Kahramanmaras,Kahramanmaras,491544,216,491.544
+Elâzig,Elâzig,457630,216,457.63
+Van,Van,438638,216,438.638
+Sultanbeyli,Istanbul,422136,216,422.136
+Izmit (Kocaeli),Kocaeli,420136,216,420.136
+Manisa,Manisa,414296,216,414.296
+Batman,Batman,407586,216,407.586
+Balikesir,Balikesir,392764,216,392.764
+Sakarya (Adapazari),Sakarya,381282,216,381.282
+Iskenderun,Hatay,306044,216,306.044
+Osmaniye,Osmaniye,292006,216,292.006
+Çorum,Çorum,290990,216,290.99
+Kütahya,Kütahya,289522,216,289.522
+Hatay (Antakya),Hatay,287964,216,287.964
+Kirikkale,Kirikkale,284088,216,284.088
+Adiyaman,Adiyaman,283058,216,283.058
+Trabzon,Trabzon,276468,216,276.468
+Ordu,Ordu,267284,216,267.284
+Aydin,Aydin,257302,216,257.302
+Usak,Usak,256324,216,256.324
+Edirne,Edirne,246766,216,246.766
+Çorlu,Tekirdag,246600,216,246.6
+Isparta,Isparta,243822,216,243.822
+Karabük,Karabük,236570,216,236.57
+Kilis,Kilis,236490,216,236.49
+Alanya,Antalya,234600,216,234.6
+Kiziltepe,Mardin,224000,216,224
+Zonguldak,Zonguldak,223084,216,223.084
+Siirt,Siirt,214200,216,214.2
+Viransehir,Sanliurfa,212800,216,212.8
+Tekirdag,Tekirdag,212154,216,212.154
+Karaman,Karaman,208400,216,208.4
+Afyon,Afyon,207968,216,207.968
+Aksaray,Aksaray,205362,216,205.362
+Ceyhan,Adana,204824,216,204.824
+Erzincan,Erzincan,204608,216,204.608
+Bismil,Diyarbakir,202800,216,202.8
+Nazilli,Aydin,199800,216,199.8
+Tokat,Tokat,199000,216,199
+Kars,Kars,186000,216,186
+Inegöl,Bursa,181000,216,181
+Bandirma,Balikesir,180400,216,180.4
+Ashgabat,Ahal,1081200,211,1081.2
+Chärjew,Lebap,378400,211,378.4
+Dashhowuz,Dashhowuz,283600,211,283.6
+Mary,Mary,202000,211,202
+Cockburn Town,Grand Turk,9600,205,9.6
+Funafuti,Funafuti,9200,217,9.2
+Kampala,Central,1781600,220,1781.6
+Kyiv,Kiova,5248000,221,5248
+Harkova [Harkiv],Harkova,3000000,221,3000
+Dnipropetrovsk,Dnipropetrovsk,2206000,221,2206
+Donetsk,Donetsk,2100000,221,2100
+Odesa,Odesa,2022000,221,2022
+Zaporizzja,Zaporizzja,1696000,221,1696
+Lviv,Lviv,1576000,221,1576
+Kryvyi Rig,Dnipropetrovsk,1406000,221,1406
+Mykolajiv,Mykolajiv,1016000,221,1016
+Mariupol,Donetsk,980000,221,980
+Lugansk,Lugansk,938000,221,938
+Vinnytsja,Vinnytsja,782000,221,782
+Makijivka,Donetsk,768000,221,768
+Herson,Herson,706000,221,706
+Sevastopol,Krim,696000,221,696
+Simferopol,Krim,678000,221,678
+Pultava [Poltava],Pultava,626000,221,626
+Tšernigiv,Tšernigiv,626000,221,626
+Tšerkasy,Tšerkasy,618000,221,618
+Gorlivka,Donetsk,598000,221,598
+Zytomyr,Zytomyr,594000,221,594
+Sumy,Sumy,588000,221,588
+Dniprodzerzynsk,Dnipropetrovsk,540000,221,540
+Kirovograd,Kirovograd,530000,221,530
+Hmelnytskyi,Hmelnytskyi,524000,221,524
+Tšernivtsi,Tšernivtsi,518000,221,518
+Rivne,Rivne,490000,221,490
+Krementšuk,Pultava,478000,221,478
+Ivano-Frankivsk,Ivano-Frankivsk,474000,221,474
+Ternopil,Ternopil,472000,221,472
+Lutsk,Volynia,434000,221,434
+Bila Tserkva,Kiova,430000,221,430
+Kramatorsk,Donetsk,372000,221,372
+Melitopol,Zaporizzja,338000,221,338
+Kertš,Krim,324000,221,324
+Nikopol,Dnipropetrovsk,298000,221,298
+Berdjansk,Zaporizzja,260000,221,260
+Pavlograd,Dnipropetrovsk,254000,221,254
+Sjeverodonetsk,Lugansk,254000,221,254
+Slovjansk,Donetsk,254000,221,254
+Uzgorod,Taka-Karpatia,254000,221,254
+Altševsk,Lugansk,238000,221,238
+Lysytšansk,Lugansk,232000,221,232
+Jevpatorija,Krim,224000,221,224
+Kamjanets-Podilskyi,Hmelnytskyi,218000,221,218
+Jenakijeve,Donetsk,210000,221,210
+Krasnyi Lutš,Lugansk,202000,221,202
+Stahanov,Lugansk,202000,221,202
+Oleksandrija,Kirovograd,198000,221,198
+Konotop,Sumy,192000,221,192
+Kostjantynivka,Donetsk,190000,221,190
+Berdytšiv,Zytomyr,180000,221,180
+Izmajil,Odesa,180000,221,180
+Šostka,Sumy,180000,221,180
+Uman,Tšerkasy,180000,221,180
+Brovary,Kiova,178000,221,178
+Mukatševe,Taka-Karpatia,178000,221,178
+Budapest,Budapest,3623104,98,3623.104
+Debrecen,Hajdú-Bihar,407296,98,407.296
+Miskolc,Borsod-Abaúj-Zemplén,344714,98,344.714
+Szeged,Csongrád,316316,98,316.316
+Pécs,Baranya,314664,98,314.664
+Györ,Györ-Moson-Sopron,254238,98,254.238
+Nyiregyháza,Szabolcs-Szatmár-Ber,224838,98,224.838
+Kecskemét,Bács-Kiskun,211212,98,211.212
+Székesfehérvár,Fejér,210238,98,210.238
+Montevideo,Montevideo,2472000,223,2472
+Nouméa,–,152586,153,152.586
+Auckland,Auckland,763600,163,763.6
+Christchurch,Canterbury,648400,163,648.4
+Manukau,Auckland,563600,163,563.6
+North Shore,Auckland,375400,163,375.4
+Waitakere,Auckland,341200,163,341.2
+Wellington,Wellington,333400,163,333.4
+Dunedin,Dunedin,239200,163,239.2
+Hamilton,Hamilton,234200,163,234.2
+Lower Hutt,Wellington,196200,163,196.2
+Toskent,Toskent Shahri,4235000,225,4235
+Namangan,Namangan,741000,225,741
+Samarkand,Samarkand,723600,225,723.6
+Andijon,Andijon,637200,225,637.2
+Buhoro,Buhoro,474200,225,474.2
+Karsi,Qashqadaryo,388200,225,388.2
+Nukus,Karakalpakistan,388200,225,388.2
+Kükon,Fargona,380200,225,380.2
+Fargona,Fargona,361000,225,361
+Circik,Toskent,292800,225,292.8
+Margilon,Fargona,281600,225,281.6
+Ürgenc,Khorazm,277800,225,277.8
+Angren,Toskent,256000,225,256
+Cizah,Cizah,249600,225,249.6
+Navoi,Navoi,232600,225,232.6
+Olmalik,Toskent,229800,225,229.8
+Termiz,Surkhondaryo,219000,225,219
+Minsk,Horad Minsk,3348000,27,3348
+Gomel,Gomel,950000,27,950
+Mogiljov,Mogiljov,712000,27,712
+Vitebsk,Vitebsk,680000,27,680
+Grodno,Grodno,604000,27,604
+Brest,Brest,572000,27,572
+Bobruisk,Mogiljov,442000,27,442
+Baranovitši,Brest,334000,27,334
+Borisov,Minsk,302000,27,302
+Pinsk,Brest,260000,27,260
+Orša,Vitebsk,248000,27,248
+Mozyr,Gomel,220000,27,220
+Novopolotsk,Vitebsk,212000,27,212
+Lida,Grodno,202000,27,202
+Soligorsk,Minsk,202000,27,202
+Molodetšno,Minsk,194000,27,194
+Mata-Utu,Wallis,2274,233,2.274
+Port-Vila,Shefa,67400,232,67.4
+Città del Vaticano,–,910,226,0.91
+Caracas,Distrito Federal,3950588,228,3950.588
+Maracaíbo,Zulia,2609552,228,2609.552
+Barquisimeto,Lara,1754478,228,1754.478
+Valencia,Carabobo,1588492,228,1588.492
+Ciudad Guayana,Bolívar,1327426,228,1327.426
+Petare,Miranda,977736,228,977.736
+Maracay,Aragua,888886,228,888.886
+Barcelona,Anzoátegui,644534,228,644.534
+Maturín,Monagas,639452,228,639.452
+San Cristóbal,Táchira,638746,228,638.746
+Ciudad Bolívar,Bolívar,602214,228,602.214
+Cumaná,Sucre,586210,228,586.21
+Mérida,Mérida,449774,228,449.774
+Cabimas,Zulia,442658,228,442.658
+Barinas,Barinas,435662,228,435.662
+Turmero,Aragua,434998,228,434.998
+Baruta,Miranda,414580,228,414.58
+Puerto Cabello,Carabobo,375444,228,375.444
+Santa Ana de Coro,Falcón,371532,228,371.532
+Los Teques,Miranda,357568,228,357.568
+Punto Fijo,Falcón,334430,228,334.43
+Guarenas,Miranda,331778,228,331.778
+Acarigua,Portuguesa,317908,228,317.908
+Puerto La Cruz,Anzoátegui,311400,228,311.4
+Ciudad Losada,,269002,228,269.002
+Guacara,Carabobo,262668,228,262.668
+Valera,Trujillo,260562,228,260.562
+Guanare,Portuguesa,251242,228,251.242
+Carúpano,Sucre,239278,228,239.278
+Catia La Mar,Distrito Federal,234024,228,234.024
+El Tigre,Anzoátegui,232512,228,232.512
+Guatire,Miranda,218242,228,218.242
+Calabozo,Guárico,214292,228,214.292
+Pozuelos,Anzoátegui,211380,228,211.38
+Ciudad Ojeda,Zulia,198708,228,198.708
+Ocumare del Tuy,Miranda,194336,228,194.336
+Valle de la Pascua,Guárico,191854,228,191.854
+Araure,Portuguesa,188538,228,188.538
+San Fernando de Apure,Apure,187618,228,187.618
+San Felipe,Yaracuy,181880,228,181.88
+El Limón,Aragua,180000,228,180
+Moscow,Moscow (City),16778400,182,16778.4
+St Petersburg,Pietari,9388000,182,9388
+Novosibirsk,Novosibirsk,2797600,182,2797.6
+Nizni Novgorod,Nizni Novgorod,2714000,182,2714
+Jekaterinburg,Sverdlovsk,2532600,182,2532.6
+Samara,Samara,2312200,182,2312.2
+Omsk,Omsk,2297800,182,2297.8
+Kazan,Tatarstan,2202000,182,2202
+Ufa,Baškortostan,2182400,182,2182.4
+Tšeljabinsk,Tšeljabinsk,2166400,182,2166.4
+Rostov-na-Donu,Rostov-na-Donu,2025400,182,2025.4
+Perm,Perm,2019400,182,2019.4
+Volgograd,Volgograd,1986800,182,1986.8
+Voronez,Voronez,1815400,182,1815.4
+Krasnojarsk,Krasnojarsk,1751000,182,1751
+Saratov,Saratov,1748000,182,1748
+Toljatti,Samara,1445800,182,1445.8
+Uljanovsk,Uljanovsk,1334800,182,1334.8
+Izevsk,Udmurtia,1305600,182,1305.6
+Krasnodar,Krasnodar,1278000,182,1278
+Jaroslavl,Jaroslavl,1233400,182,1233.4
+Habarovsk,Habarovsk,1218800,182,1218.8
+Vladivostok,Primorje,1212400,182,1212.4
+Irkutsk,Irkutsk,1187400,182,1187.4
+Barnaul,Altai,1160200,182,1160.2
+Novokuznetsk,Kemerovo,1123200,182,1123.2
+Penza,Penza,1064400,182,1064.4
+Rjazan,Rjazan,1059800,182,1059.8
+Orenburg,Orenburg,1047200,182,1047.2
+Lipetsk,Lipetsk,1042000,182,1042
+Nabereznyje Tšelny,Tatarstan,1029400,182,1029.4
+Tula,Tula,1012200,182,1012.2
+Tjumen,Tjumen,1006800,182,1006.8
+Kemerovo,Kemerovo,985400,182,985.4
+Astrahan,Astrahan,972200,182,972.2
+Tomsk,Tomsk,964200,182,964.2
+Kirov,Kirov,932400,182,932.4
+Ivanovo,Ivanovo,918400,182,918.4
+Tšeboksary,Tšuvassia,918400,182,918.4
+Brjansk,Brjansk,914800,182,914.8
+Tver,Tver,909800,182,909.8
+Kursk,Kursk,887000,182,887
+Magnitogorsk,Tšeljabinsk,855800,182,855.8
+Kaliningrad,Kaliningrad,848800,182,848.8
+Nizni Tagil,Sverdlovsk,781800,182,781.8
+Murmansk,Murmansk,752600,182,752.6
+Ulan-Ude,Burjatia,740800,182,740.8
+Kurgan,Kurgan,729400,182,729.4
+Arkangeli,Arkangeli,723600,182,723.6
+Sotši,Krasnodar,717200,182,717.2
+Smolensk,Smolensk,706800,182,706.8
+Orjol,Orjol,689000,182,689
+Stavropol,Stavropol,686600,182,686.6
+Belgorod,Belgorod,684000,182,684
+Kaluga,Kaluga,678600,182,678.6
+Vladimir,Vladimir,674200,182,674.2
+Mahatškala,Dagestan,665600,182,665.6
+Tšerepovets,Vologda,648800,182,648.8
+Saransk,Mordva,629600,182,629.6
+Tambov,Tambov,624000,182,624
+Vladikavkaz,North Ossetia-Alania,620200,182,620.2
+Tšita,Tšita,619800,182,619.8
+Vologda,Vologda,605000,182,605
+Veliki Novgorod,Novgorod,599000,182,599
+Komsomolsk-na-Amure,Habarovsk,583200,182,583.2
+Kostroma,Kostroma,576200,182,576.2
+Volzski,Volgograd,573800,182,573.8
+Taganrog,Rostov-na-Donu,568800,182,568.8
+Petroskoi,Karjala,564200,182,564.2
+Bratsk,Irkutsk,555200,182,555.2
+Dzerzinsk,Nizni Novgorod,554200,182,554.2
+Surgut,Hanti-Mansia,549800,182,549.8
+Orsk,Orenburg,547800,182,547.8
+Sterlitamak,Baškortostan,530400,182,530.4
+Angarsk,Irkutsk,529400,182,529.4
+Joškar-Ola,Marinmaa,498400,182,498.4
+Rybinsk,Jaroslavl,479200,182,479.2
+Prokopjevsk,Kemerovo,474600,182,474.6
+Niznevartovsk,Hanti-Mansia,467800,182,467.8
+Naltšik,Kabardi-Balkaria,466800,182,466.8
+Syktyvkar,Komi,459400,182,459.4
+Severodvinsk,Arkangeli,458600,182,458.6
+Bijsk,Altai,450000,182,450
+Niznekamsk,Tatarstan,446800,182,446.8
+Blagoveštšensk,Amur,444000,182,444
+Šahty,Rostov-na-Donu,443600,182,443.6
+Staryi Oskol,Belgorod,427600,182,427.6
+Zelenograd,Moscow (City),414200,182,414.2
+Balakovo,Saratov,412000,182,412
+Novorossijsk,Krasnodar,406600,182,406.6
+Pihkova,Pihkova,403000,182,403
+Zlatoust,Tšeljabinsk,393800,182,393.8
+Jakutsk,Saha (Jakutia),390800,182,390.8
+Podolsk,Moskova,388600,182,388.6
+Petropavlovsk-Kamtšatski,Kamtšatka,388200,182,388.2
+Kamensk-Uralski,Sverdlovsk,381200,182,381.2
+Engels,Saratov,378000,182,378
+Syzran,Samara,373800,182,373.8
+Grozny,Tšetšenia,372000,182,372
+Novotšerkassk,Rostov-na-Donu,368800,182,368.8
+Berezniki,Perm,363800,182,363.8
+Juzno-Sahalinsk,Sahalin,358400,182,358.4
+Volgodonsk,Rostov-na-Donu,356400,182,356.4
+Abakan,Hakassia,338400,182,338.4
+Maikop,Adygea,334600,182,334.6
+Miass,Tšeljabinsk,332400,182,332.4
+Armavir,Krasnodar,329800,182,329.8
+Ljubertsy,Moskova,327800,182,327.8
+Rubtsovsk,Altai,325200,182,325.2
+Kovrov,Vladimir,319800,182,319.8
+Nahodka,Primorje,315400,182,315.4
+Ussurijsk,Primorje,314600,182,314.6
+Salavat,Baškortostan,313600,182,313.6
+Mytištši,Moskova,311400,182,311.4
+Kolomna,Moskova,301400,182,301.4
+Elektrostal,Moskova,294000,182,294
+Murom,Vladimir,284800,182,284.8
+Kolpino,Pietari,282400,182,282.4
+Norilsk,Krasnojarsk,281600,182,281.6
+Almetjevsk,Tatarstan,281400,182,281.4
+Novomoskovsk,Tula,276200,182,276.2
+Dimitrovgrad,Uljanovsk,274000,182,274
+Pervouralsk,Sverdlovsk,272200,182,272.2
+Himki,Moskova,267400,182,267.4
+Balašiha,Moskova,265800,182,265.8
+Nevinnomyssk,Stavropol,265200,182,265.2
+Pjatigorsk,Stavropol,265000,182,265
+Korolev,Moskova,264800,182,264.8
+Serpuhov,Moskova,264000,182,264
+Odintsovo,Moskova,254800,182,254.8
+Orehovo-Zujevo,Moskova,249800,182,249.8
+Kamyšin,Volgograd,249200,182,249.2
+Novotšeboksarsk,Tšuvassia,246800,182,246.8
+Tšerkessk,Karatšai-Tšerkessia,243400,182,243.4
+Atšinsk,Krasnojarsk,243200,182,243.2
+Magadan,Magadan,242000,182,242
+Mitšurinsk,Tambov,241400,182,241.4
+Kislovodsk,Stavropol,240800,182,240.8
+Jelets,Lipetsk,238800,182,238.8
+Seversk,Tomsk,237200,182,237.2
+Noginsk,Moskova,234400,182,234.4
+Velikije Luki,Pihkova,232600,182,232.6
+Novokuibyševsk,Samara,232400,182,232.4
+Neftekamsk,Baškortostan,231400,182,231.4
+Leninsk-Kuznetski,Kemerovo,227600,182,227.6
+Oktjabrski,Baškortostan,223000,182,223
+Sergijev Posad,Moskova,222200,182,222.2
+Arzamas,Nizni Novgorod,221400,182,221.4
+Kiseljovsk,Kemerovo,220000,182,220
+Novotroitsk,Orenburg,219200,182,219.2
+Obninsk,Kaluga,216600,182,216.6
+Kansk,Krasnojarsk,214800,182,214.8
+Glazov,Udmurtia,212600,182,212.6
+Solikamsk,Perm,212000,182,212
+Sarapul,Udmurtia,211400,182,211.4
+Ust-Ilimsk,Irkutsk,210400,182,210.4
+Štšolkovo,Moskova,209800,182,209.8
+Mezduretšensk,Kemerovo,208800,182,208.8
+Usolje-Sibirskoje,Irkutsk,207000,182,207
+Elista,Kalmykia,206600,182,206.6
+Novošahtinsk,Rostov-na-Donu,203800,182,203.8
+Votkinsk,Udmurtia,203400,182,203.4
+Kyzyl,Tyva,202200,182,202.2
+Serov,Sverdlovsk,200800,182,200.8
+Zelenodolsk,Tatarstan,200400,182,200.4
+Zeleznodoroznyi,Moskova,200200,182,200.2
+Kinešma,Ivanovo,200000,182,200
+Kuznetsk,Penza,196400,182,196.4
+Uhta,Komi,196000,182,196
+Jessentuki,Stavropol,195800,182,195.8
+Tobolsk,Tjumen,195200,182,195.2
+Neftejugansk,Hanti-Mansia,194800,182,194.8
+Bataisk,Rostov-na-Donu,194600,182,194.6
+Nojabrsk,Yamalin Nenetsia,194600,182,194.6
+Balašov,Saratov,194200,182,194.2
+Zeleznogorsk,Kursk,193800,182,193.8
+Zukovski,Moskova,193000,182,193
+Anzero-Sudzensk,Kemerovo,192200,182,192.2
+Bugulma,Tatarstan,188200,182,188.2
+Zeleznogorsk,Krasnojarsk,188000,182,188
+Novouralsk,Sverdlovsk,186600,182,186.6
+Puškin,Pietari,185800,182,185.8
+Vorkuta,Komi,185200,182,185.2
+Derbent,Dagestan,184600,182,184.6
+Kirovo-Tšepetsk,Kirov,183200,182,183.2
+Krasnogorsk,Moskova,182000,182,182
+Klin,Moskova,180000,182,180
+Tšaikovski,Perm,180000,182,180
+Novyi Urengoi,Yamalin Nenetsia,179600,182,179.6
+Ho Chi Minh City,Ho Chi Minh City,7960000,231,7960
+Hanoi,Hanoi,2820000,231,2820
+Haiphong,Haiphong,1566266,231,1566.266
+Da Nang,Quang Nam-Da Nang,765348,231,765.348
+Biên Hoa,Dong Nai,564190,231,564.19
+Nha Trang,Khanh Hoa,442662,231,442.662
+Hue,Thua Thien-Hue,438298,231,438.298
+Can Tho,Can Tho,431174,231,431.174
+Cam Pha,Quang Binh,418172,231,418.172
+Nam Dinh,Nam Ha,343398,231,343.398
+Quy Nhon,Binh Dinh,326770,231,326.77
+Vung Tau,Ba Ria-Vung Tau,290290,231,290.29
+Rach Gia,Kien Giang,282264,231,282.264
+Long Xuyen,An Giang,265362,231,265.362
+Thai Nguyen,Bac Thai,255286,231,255.286
+Hong Gai,Quang Ninh,254968,231,254.968
+Phan Thiêt,Binh Thuan,228472,231,228.472
+Cam Ranh,Khanh Hoa,228082,231,228.082
+Vinh,Nghe An,224910,231,224.91
+My Tho,Tien Giang,216808,231,216.808
+Da Lat,Lam Dong,212818,231,212.818
+Buon Ma Thuot,Dac Lac,194088,231,194.088
+Tallinn,Harjumaa,807962,68,807.962
+Tartu,Tartumaa,202492,68,202.492
+New York,New York,16016556,224,16016.556
+Los Angeles,California,7389640,224,7389.64
+Chicago,Illinois,5792032,224,5792.032
+Houston,Texas,3907262,224,3907.262
+Philadelphia,Pennsylvania,3035100,224,3035.1
+Phoenix,Arizona,2642090,224,2642.09
+San Diego,California,2446800,224,2446.8
+Dallas,Texas,2377160,224,2377.16
+San Antonio,Texas,2289292,224,2289.292
+Detroit,Michigan,1902540,224,1902.54
+San Jose,California,1789886,224,1789.886
+Indianapolis,Indiana,1583852,224,1583.852
+San Francisco,California,1553466,224,1553.466
+Jacksonville,Florida,1470334,224,1470.334
+Columbus,Ohio,1422940,224,1422.94
+Austin,Texas,1313124,224,1313.124
+Baltimore,Maryland,1302308,224,1302.308
+Memphis,Tennessee,1300200,224,1300.2
+Milwaukee,Wisconsin,1193948,224,1193.948
+Boston,Massachusetts,1178282,224,1178.282
+Washington,District of Columbia,1144118,224,1144.118
+Nashville-Davidson,Tennessee,1139782,224,1139.782
+El Paso,Texas,1127324,224,1127.324
+Seattle,Washington,1126748,224,1126.748
+Denver,Colorado,1109272,224,1109.272
+Charlotte,North Carolina,1081656,224,1081.656
+Fort Worth,Texas,1069388,224,1069.388
+Portland,Oregon,1058242,224,1058.242
+Oklahoma City,Oklahoma,1012264,224,1012.264
+Tucson,Arizona,973398,224,973.398
+New Orleans,Louisiana,969348,224,969.348
+Las Vegas,Nevada,956868,224,956.868
+Cleveland,Ohio,956806,224,956.806
+Long Beach,California,923044,224,923.044
+Albuquerque,New Mexico,897214,224,897.214
+Kansas City,Missouri,883090,224,883.09
+Fresno,California,855304,224,855.304
+Virginia Beach,Virginia,850514,224,850.514
+Atlanta,Georgia,832948,224,832.948
+Sacramento,California,814036,224,814.036
+Oakland,California,798968,224,798.968
+Mesa,Arizona,792750,224,792.75
+Tulsa,Oklahoma,786098,224,786.098
+Omaha,Nebraska,780014,224,780.014
+Minneapolis,Minnesota,765236,224,765.236
+Honolulu,Hawaii,743314,224,743.314
+Miami,Florida,724940,224,724.94
+Colorado Springs,Colorado,721780,224,721.78
+Saint Louis,Missouri,696378,224,696.378
+Wichita,Kansas,688568,224,688.568
+Santa Ana,California,675954,224,675.954
+Pittsburgh,Pennsylvania,669126,224,669.126
+Arlington,Texas,665938,224,665.938
+Cincinnati,Ohio,662570,224,662.57
+Anaheim,California,656028,224,656.028
+Toledo,Ohio,627238,224,627.238
+Tampa,Florida,606894,224,606.894
+Buffalo,New York,585296,224,585.296
+Saint Paul,Minnesota,574302,224,574.302
+Corpus Christi,Texas,554908,224,554.908
+Aurora,Colorado,552786,224,552.786
+Raleigh,North Carolina,552186,224,552.186
+Newark,New Jersey,547092,224,547.092
+Lexington-Fayette,Kentucky,521024,224,521.024
+Anchorage,Alaska,520566,224,520.566
+Louisville,Kentucky,512462,224,512.462
+Riverside,California,510332,224,510.332
+Saint Petersburg,Florida,496464,224,496.464
+Bakersfield,California,494114,224,494.114
+Stockton,California,487542,224,487.542
+Birmingham,Alabama,485640,224,485.64
+Jersey City,New Jersey,480110,224,480.11
+Norfolk,Virginia,468806,224,468.806
+Baton Rouge,Louisiana,455636,224,455.636
+Hialeah,Florida,452838,224,452.838
+Lincoln,Nebraska,451162,224,451.162
+Greensboro,North Carolina,447782,224,447.782
+Plano,Texas,444060,224,444.06
+Rochester,New York,439546,224,439.546
+Glendale,Arizona,437624,224,437.624
+Akron,Ohio,434148,224,434.148
+Garland,Texas,431536,224,431.536
+Madison,Wisconsin,416108,224,416.108
+Fort Wayne,Indiana,411454,224,411.454
+Fremont,California,406826,224,406.826
+Scottsdale,Arizona,405410,224,405.41
+Montgomery,Alabama,403136,224,403.136
+Shreveport,Louisiana,400290,224,400.29
+Augusta-Richmond County,Georgia,399550,224,399.55
+Lubbock,Texas,399128,224,399.128
+Chesapeake,Virginia,398368,224,398.368
+Mobile,Alabama,397830,224,397.83
+Des Moines,Iowa,397364,224,397.364
+Grand Rapids,Michigan,395600,224,395.6
+Richmond,Virginia,395580,224,395.58
+Yonkers,New York,392172,224,392.172
+Spokane,Washington,391258,224,391.258
+Glendale,California,389946,224,389.946
+Tacoma,Washington,387112,224,387.112
+Irving,Texas,383230,224,383.23
+Huntington Beach,California,379188,224,379.188
+Modesto,California,377712,224,377.712
+Durham,North Carolina,374070,224,374.07
+Columbus,Georgia,372582,224,372.582
+Orlando,Florida,371902,224,371.902
+Boise City,Idaho,371574,224,371.574
+Winston-Salem,North Carolina,371552,224,371.552
+San Bernardino,California,370802,224,370.802
+Jackson,Mississippi,368512,224,368.512
+Little Rock,Arkansas,366266,224,366.266
+Salt Lake City,Utah,363486,224,363.486
+Reno,Nevada,360960,224,360.96
+Newport News,Virginia,360300,224,360.3
+Chandler,Arizona,353162,224,353.162
+Laredo,Texas,353152,224,353.152
+Henderson,Nevada,350762,224,350.762
+Arlington,Virginia,349676,224,349.676
+Knoxville,Tennessee,347780,224,347.78
+Amarillo,Texas,347254,224,347.254
+Providence,Rhode Island,347236,224,347.236
+Chula Vista,California,347112,224,347.112
+Worcester,Massachusetts,345296,224,345.296
+Oxnard,California,340716,224,340.716
+Dayton,Ohio,332358,224,332.358
+Garden Grove,California,330392,224,330.392
+Oceanside,California,322058,224,322.058
+Tempe,Arizona,317250,224,317.25
+Huntsville,Alabama,316432,224,316.432
+Ontario,California,316014,224,316.014
+Chattanooga,Tennessee,311108,224,311.108
+Fort Lauderdale,Florida,304794,224,304.794
+Springfield,Massachusetts,304164,224,304.164
+Springfield,Missouri,303160,224,303.16
+Santa Clarita,California,302176,224,302.176
+Salinas,California,302120,224,302.12
+Tallahassee,Florida,301248,224,301.248
+Rockford,Illinois,300230,224,300.23
+Pomona,California,298946,224,298.946
+Metairie,Louisiana,298856,224,298.856
+Paterson,New Jersey,298444,224,298.444
+Overland Park,Kansas,298160,224,298.16
+Santa Rosa,California,295190,224,295.19
+Syracuse,New York,294612,224,294.612
+Kansas City,Kansas,293732,224,293.732
+Hampton,Virginia,292874,224,292.874
+Lakewood,Colorado,288252,224,288.252
+Vancouver,Washington,287120,224,287.12
+Irvine,California,286144,224,286.144
+Aurora,Illinois,285980,224,285.98
+Moreno Valley,California,284762,224,284.762
+Pasadena,California,283348,224,283.348
+Hayward,California,280060,224,280.06
+Brownsville,Texas,279444,224,279.444
+Bridgeport,Connecticut,279058,224,279.058
+Hollywood,Florida,278714,224,278.714
+Warren,Michigan,276494,224,276.494
+Torrance,California,275892,224,275.892
+Eugene,Oregon,275786,224,275.786
+Pembroke Pines,Florida,274854,224,274.854
+Salem,Oregon,273848,224,273.848
+Pasadena,Texas,267872,224,267.872
+Escondido,California,267118,224,267.118
+Sunnyvale,California,263520,224,263.52
+Savannah,Georgia,263020,224,263.02
+Fontana,California,257858,224,257.858
+Orange,California,257642,224,257.642
+Naperville,Illinois,256716,224,256.716
+Alexandria,Virginia,256566,224,256.566
+Rancho Cucamonga,California,255486,224,255.486
+Grand Prairie,Texas,254854,224,254.854
+East Los Angeles,California,252758,224,252.758
+Fullerton,California,252006,224,252.006
+Corona,California,249932,224,249.932
+Flint,Michigan,249886,224,249.886
+Paradise,Nevada,249364,224,249.364
+Mesquite,Texas,249046,224,249.046
+Sterling Heights,Michigan,248942,224,248.942
+Sioux Falls,South Dakota,247950,224,247.95
+New Haven,Connecticut,247252,224,247.252
+Topeka,Kansas,244754,224,244.754
+Concord,California,243560,224,243.56
+Evansville,Indiana,243164,224,243.164
+Hartford,Connecticut,243156,224,243.156
+Fayetteville,North Carolina,242030,224,242.03
+Cedar Rapids,Iowa,241516,224,241.516
+Elizabeth,New Jersey,241136,224,241.136
+Lansing,Michigan,238256,224,238.256
+Lancaster,California,237436,224,237.436
+Fort Collins,Colorado,237304,224,237.304
+Coral Springs,Florida,235098,224,235.098
+Stamford,Connecticut,234166,224,234.166
+Thousand Oaks,California,234010,224,234.01
+Vallejo,California,233520,224,233.52
+Palmdale,California,233340,224,233.34
+Columbia,South Carolina,232556,224,232.556
+El Monte,California,231930,224,231.93
+Abilene,Texas,231860,224,231.86
+North Las Vegas,Nevada,230976,224,230.976
+Ann Arbor,Michigan,228048,224,228.048
+Beaumont,Texas,227732,224,227.732
+Waco,Texas,227452,224,227.452
+Macon,Georgia,226672,224,226.672
+Independence,Missouri,226576,224,226.576
+Peoria,Illinois,225872,224,225.872
+Inglewood,California,225160,224,225.16
+Springfield,Illinois,222908,224,222.908
+Simi Valley,California,222702,224,222.702
+Lafayette,Louisiana,220514,224,220.514
+Gilbert,Arizona,219394,224,219.394
+Carrollton,Texas,219152,224,219.152
+Bellevue,Washington,219138,224,219.138
+West Valley City,Utah,217792,224,217.792
+Clarksville,Tennessee,217574,224,217.574
+Costa Mesa,California,217448,224,217.448
+Peoria,Arizona,216728,224,216.728
+South Bend,Indiana,215578,224,215.578
+Downey,California,214646,224,214.646
+Waterbury,Connecticut,214542,224,214.542
+Manchester,New Hampshire,214012,224,214.012
+Allentown,Pennsylvania,213264,224,213.264
+McAllen,Texas,212828,224,212.828
+Joliet,Illinois,212442,224,212.442
+Lowell,Massachusetts,210334,224,210.334
+Provo,Utah,210332,224,210.332
+West Covina,California,210160,224,210.16
+Wichita Falls,Texas,208394,224,208.394
+Erie,Pennsylvania,207434,224,207.434
+Daly City,California,207242,224,207.242
+Citrus Heights,California,206910,224,206.91
+Norwalk,California,206596,224,206.596
+Gary,Indiana,205492,224,205.492
+Berkeley,California,205486,224,205.486
+Santa Clara,California,204722,224,204.722
+Green Bay,Wisconsin,204626,224,204.626
+Cape Coral,Florida,204572,224,204.572
+Arvada,Colorado,204306,224,204.306
+Pueblo,Colorado,204242,224,204.242
+Sandy,Utah,203706,224,203.706
+Athens-Clarke County,Georgia,202978,224,202.978
+Cambridge,Massachusetts,202710,224,202.71
+Westminster,Colorado,201880,224,201.88
+San Buenaventura,California,201832,224,201.832
+Portsmouth,Virginia,201130,224,201.13
+Livonia,Michigan,201090,224,201.09
+Burbank,California,200632,224,200.632
+Clearwater,Florida,199872,224,199.872
+Midland,Texas,196586,224,196.586
+Davenport,Iowa,196512,224,196.512
+Mission Viejo,California,196098,224,196.098
+Miami Beach,Florida,195710,224,195.71
+Sunrise Manor,Nevada,190724,224,190.724
+New Bedford,Massachusetts,189560,224,189.56
+El Cajon,California,189156,224,189.156
+Norman,Oklahoma,188386,224,188.386
+Richmond,California,188200,224,188.2
+Albany,New York,187988,224,187.988
+Brockton,Massachusetts,187306,224,187.306
+Roanoke,Virginia,186714,224,186.714
+Billings,Montana,185976,224,185.976
+Compton,California,185728,224,185.728
+Gainesville,Florida,184582,224,184.582
+Fairfield,California,184512,224,184.512
+Arden-Arcade,California,184080,224,184.08
+San Mateo,California,183598,224,183.598
+Visalia,California,183524,224,183.524
+Boulder,Colorado,182476,224,182.476
+Cary,North Carolina,182426,224,182.426
+Santa Monica,California,182168,224,182.168
+Fall River,Massachusetts,181110,224,181.11
+Kenosha,Wisconsin,178894,224,178.894
+Elgin,Illinois,178816,224,178.816
+Odessa,Texas,178586,224,178.586
+Carson,California,178178,224,178.178
+Charleston,South Carolina,178126,224,178.126
+Charlotte Amalie,St Thomas,26000,230,26
+Harare,Harare,2820000,239,2820
+Bulawayo,Bulawayo,1243484,239,1243.484
+Chitungwiza,Harare,549824,239,549.824
+Mount Darwin,Harare,328724,239,328.724
+Mutare,Manicaland,262734,239,262.734
+Gweru,Midlands,256074,239,256.074
+Gaza,Gaza,707264,177,707.264
+Khan Yunis,Khan Yunis,246350,177,246.35
+Hebron,Hebron,238802,177,238.802
+Jabaliya,North Gaza,227802,177,227.802
+Nablus,Nablus,200462,177,200.462
+Rafah,Rafah,184040,177,184.04
