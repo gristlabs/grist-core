@@ -199,7 +199,10 @@ export class RightPanel extends Disposable {
     }));
 
     owner.autoDispose(selectedColumns.subscribe(cols => {
-      this._gristDoc.viewModel.activeSection()?.selectedFields(cols || []);
+      if (owner.isDisposed() || this._gristDoc.isDisposed() || this._gristDoc.viewModel.isDisposed()) { return; }
+      const section = this._gristDoc.viewModel.activeSection();
+      if (!section || section.isDisposed()) { return; }
+      section.selectedFields(cols || []);
     }));
     this._gristDoc.viewModel.activeSection()?.selectedFields(selectedColumns.peek() || []);
 

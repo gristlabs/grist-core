@@ -88,18 +88,7 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   // Also, log out, to avoid logins interacting, unless NO_CLEANUP is requested (useful for
   // debugging tests).
   if (!process.env.NO_CLEANUP) {
-    after(async () => {
-      try {
-        await server.removeLogin();
-      } catch(err) {
-        // If there are any alerts open, close them as it might be blocking other tests.
-        if (err.name && err.name === 'UnexpectedAlertOpenError') {
-          await driver.switchTo().alert().accept();
-          assert.fail("Unexpected alert open");
-        }
-        throw err;
-      }
-    });
+    after(() => server.removeLogin());
   }
 
   // If requested, clear user preferences for all test users after this suite.

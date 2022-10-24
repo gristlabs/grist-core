@@ -852,6 +852,9 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
   await driver.wait(async () => (await driver.find('.copypaste').hasFocus()) === yesNo, 5000);
 }
 
+export async function waitForLabelInput(): Promise<void> {
+  await driver.wait(async () => (await driver.findWait('.kf_elabel_input', 100).hasFocus()), 300);
+}
 
 /**
  * Waits for all pending comm requests from the client to the doc worker to complete. This taps into
@@ -2026,9 +2029,27 @@ export async function setFont(type: 'bold'|'underline'|'italic'|'strikethrough',
   }
 }
 
+/**
+ * Returns the rgb/hex representation of `color` if it's a name (e.g. red, blue, green, white, black, or transparent),
+ * or `color` unchanged if it's not a name.
+ */
+export function nameToHex(color: string) {
+  switch(color) {
+    case 'red': color = '#FF0000'; break;
+    case 'blue': color = '#0000FF'; break;
+    case 'green': color = '#00FF00'; break;
+    case 'white': color = '#FFFFFF'; break;
+    case 'black': color = '#000000'; break;
+    case 'transparent': color = 'rgba(0, 0, 0, 0)'; break;
+  }
+  return color;
+}
+
 //  Set the value of an `<input type="color">` element to `color` and trigger the `change`
-//  event. Accepts `color` to be of following forms `rgb(120, 10, 3)` or '#780a03'.
+//  event. Accepts `color` to be of following forms `rgb(120, 10, 3)` or '#780a03' or some predefined
+//  values (red, green, blue, white, black, transparent)
 export async function setColor(colorInputEl: WebElement, color: string) {
+  color = nameToHex(color);
   if (color.startsWith('rgb(')) {
     // the `value` of an `<input type='color'>` element must be a rgb color in hexadecimal
     // notation.
@@ -2051,11 +2072,25 @@ export function setFillColor(color: string) {
   return setColor(driver.find('.test-fill-input'), color);
 }
 
+export async function clickAway() {
+  await driver.find(".test-notifier-menu-btn").click();
+  await driver.sendKeys(Key.ESCAPE);
+}
+
 export function openColorPicker() {
   return driver.find('.test-color-select').click();
 }
 
+export async function assertCellTextColor(col: string, row: number, color: string) {
+  await assertTextColor(await getCell(col, row).find('.field_clip'), color);
+}
+
+export async function assertCellFillColor(col: string, row: number, color: string) {
+  await assertFillColor(await getCell(col, row), color);
+}
+
 export async function assertTextColor(cell: WebElement, color: string) {
+  color = nameToHex(color);
   color = color.startsWith('#') ? hexToRgb(color) : color;
   const test = async () => {
     const actual = await cell.getCssValue('color');
@@ -2065,6 +2100,7 @@ export async function assertTextColor(cell: WebElement, color: string) {
 }
 
 export async function assertFillColor(cell: WebElement, color: string) {
+  color = nameToHex(color);
   color = color.startsWith('#') ? hexToRgb(color) : color;
   const test = async () => {
     const actual = await cell.getCssValue('background-color');

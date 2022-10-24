@@ -61,6 +61,29 @@ describe('MultiColumn', function() {
       }
     });
 
+    it('should undo color change', async () => {
+      // This is test for a bug, colors were not saved when "click outside" was done by clicking
+      // one of the cells.
+      await selectColumns('Test1', 'Test2');
+      await gu.setType('Reference');
+      await gu.getCell('Test1', 1).click();
+      await gu.enterCell('Table1', Key.ENTER);
+      await gu.getCell('Test2', 3).click();
+      await gu.enterCell('Table1', Key.ENTER);
+      await selectColumns('Test1', 'Test2');
+      await gu.openColorPicker();
+      await gu.setFillColor(blue);
+      // Clicking on one of the cell caused that the color was not saved.
+      await gu.getCell('Test2', 1).click();
+      // Test if color is set.
+      await gu.assertFillColor(await gu.getCell('Test1', 1), blue);
+      await gu.assertFillColor(await gu.getCell('Test2', 1), blue);
+      // Press undo
+      await gu.undo();
+      await gu.assertFillColor(await gu.getCell('Test1', 1), transparent);
+      await gu.assertFillColor(await gu.getCell('Test2', 1), transparent);
+    });
+
     for (const type of ['Choice', 'Text', 'Reference', 'Numeric']) {
       it(`should reset all columns to first column type for ${type}`, async () => {
         // We start with empty columns, then we will change first one
