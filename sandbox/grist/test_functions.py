@@ -80,3 +80,9 @@ class TestUuid(unittest.TestCase):
       self.check_uuids(1)  # because of the `random.seed(0)` in `check_uuids()`
     finally:
       uuid.uuid4 = v4
+
+
+class TestChain(unittest.TestCase):
+  def test_chain_type_error(self):
+    with self.assertRaises(TypeError):
+      functions.SUM(x / "2" for x in [1, 2, 3])

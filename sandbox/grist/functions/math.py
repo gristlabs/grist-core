@@ -21,10 +21,12 @@ import roman
 def _chain(*values_or_iterables):
   for v in values_or_iterables:
     try:
-      for x in v:
-        yield x
+      v = iter(v)
     except TypeError:
       yield v
+    else:
+      for x in v:
+        yield x
 
 
 # Iterates through iterable or other arguments, skipping non-numeric ones.
