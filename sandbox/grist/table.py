@@ -505,8 +505,15 @@ class Table(object):
     lookup_map = self._get_lookup_map(col_ids)
     row_id_set, rel = lookup_map.do_lookup(key)
     if sort_by:
-      row_ids = sorted(row_id_set,
-                       key=lambda r: column.SafeSortKey(self._get_col_value(sort_by, r, rel)))
+      if not isinstance(sort_by, six.string_types):
+        raise TypeError("sort_by must be a column ID (string)")
+      reverse = sort_by.startswith("-")
+      sort_col = sort_by.lstrip("-")
+      row_ids = sorted(
+        row_id_set,
+        key=lambda r: column.SafeSortKey(self._get_col_value(sort_col, r, rel)),
+        reverse=reverse,
+      )
     else:
       row_ids = sorted(row_id_set)
     return self.RecordSet(row_ids, rel, group_by=kwargs, sort_by=sort_by)

@@ -756,7 +756,23 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       "SCHEMA": [
         [1, "Table1", [
           [1, "num", "Numeric", False, "", "", ""],
-          [2, "lookup", "Any", True, "Table1.lookupRecords(sort_by='num').num", "", ""],
+          [4, "is_num", "Any", True,
+           "isinstance($num, float)", "", ""],
+          [2, "lookup", "Any", True,
+           "Table1.lookupRecords(sort_by='num').num", "", ""],
+          [3, "lookup_reverse", "Any", True,
+           "Table1.lookupRecords(sort_by='-num').num", "", ""],
+          [5, "lookup_first", "Any", True,
+           "Table1.lookupOne().num", "", ""],
+          [6, "lookup_min", "Any", True,
+           "Table1.lookupOne(sort_by='num').num", "", ""],
+          [7, "lookup_min_num", "Any", True,
+           "Table1.lookupOne(is_num=True, sort_by='num').num", "", ""],
+          [8, "lookup_max", "Any", True,
+           "Table1.lookupOne(sort_by='-num').num", "", ""],
+          [9, "lookup_max_num",
+           "Any", True,
+           "Table1.lookupOne(is_num=True, sort_by='-num').num", "", ""],
         ]]
       ],
       "DATA": {
@@ -774,8 +790,18 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
 
     self.assertTableData(
       "Table1", cols="subset", rows="subset", data=[
-        ["id", "lookup"],
-        [1, [None, 0, 1, 2, 3, 'foo']],
+        ["id",
+         "lookup",
+         "lookup_reverse",
+         "lookup_first",
+         "lookup_min", "lookup_min_num",
+         "lookup_max", "lookup_max_num"],
+        [1,
+         [None, 0, 1, 2, 3, 'foo'],
+         ['foo', 3, 2, 1, 0, None],
+         2,  # lookup_first: first record (by id)
+         None, 0,  # lookup_min[_num]
+         'foo', 3],  # lookup_max[_num]
       ])
 
   def test_conversion(self):

@@ -177,7 +177,15 @@ class RecordSet(object):
     return False
 
   def get_one(self):
-    row_id = min(self._row_ids) if self._row_ids else 0
+    if not self._row_ids:
+      # Default to the empty/sample record
+      row_id = 0
+    elif self._sort_by:
+      # Pick the first record in the sorted order
+      row_id = self._row_ids[0]
+    else:
+      # Pick the first record in the order of the underlying table, for backwards compatibility.
+      row_id = min(self._row_ids)
     return self._table.Record(row_id, self._source_relation)
 
   def _get_col(self, col_id):
