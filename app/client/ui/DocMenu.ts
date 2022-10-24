@@ -29,10 +29,12 @@ import {Document, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, dom, DomArg, DomContents, IDisposableOwner,
         makeTestId, observable, Observable} from 'grainjs';
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
-import {t} from 'app/client/lib/localization';
+import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 import sortBy = require('lodash/sortBy');
+
+const translate = makeT(`DocMenu`);
 
 const testId = makeTestId('test-dm-');
 
@@ -105,10 +107,10 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 null :
                 css.docListHeader(
                   (
-                    page === 'all' ? t('AllDocuments') :
+                    page === 'all' ? translate('AllDocuments') :
                     page === 'templates' ?
                       dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                        hasFeaturedTemplates ? t('MoreExamplesAndTemplates') : t('ExamplesAndTemplates')
+                        hasFeaturedTemplates ? translate('MoreExamplesAndTemplates') : translate('ExamplesAndTemplates')
                     ) :
                     page === 'trash' ? 'Trash' :
                     workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
@@ -268,7 +270,7 @@ function buildOtherSites(home: HomeModel) {
     return css.otherSitesBlock(
       dom.autoDispose(hideOtherSitesObs),
       css.otherSitesHeader(
-        t('OtherSites'),
+        translate('OtherSites'),
         dom.domComputed(hideOtherSitesObs, (collapsed) =>
           collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
         ),
@@ -280,7 +282,7 @@ function buildOtherSites(home: HomeModel) {
         const siteName = home.app.currentOrgName;
         return [
           dom('div',
-            t('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
+            translate('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
             testId('other-sites-message')
           ),
           css.otherSitesButtons(

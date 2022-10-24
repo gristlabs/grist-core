@@ -23,8 +23,8 @@ describe("Localization", function() {
     // Grist config should contain the list of supported languages;
     const gristConfig: any = await driver.executeScript("return window.gristConfig");
 
-    // core and en is required.
-    assert.isTrue(gristConfig.namespaces.includes("core"));
+    // client and en is required.
+    assert.isTrue(gristConfig.namespaces.includes("client"));
     assert.isTrue(gristConfig.supportedLngs.includes("en"));
   });
 
@@ -81,13 +81,13 @@ describe("Localization", function() {
 
       function present(response: string, ...langs: string[]) {
         for (const lang of langs) {
-          assert.include(response, `href="locales/${lang}.core.json"`);
+          assert.include(response, `href="locales/${lang}.client.json"`);
         }
       }
 
       function notPresent(response: string, ...langs: string[]) {
         for (const lang of langs) {
-          assert.notInclude(response, `href="locales/${lang}.core.json"`);
+          assert.notInclude(response, `href="locales/${lang}.client.json"`);
         }
       }
 
@@ -109,7 +109,7 @@ describe("Localization", function() {
     });
 
     it("loads correct languages from file system", async function() {
-      modifyByCode(tempLocale, "en", {Welcome: 'TestMessage'});
+      modifyByCode(tempLocale, "en", {HomeIntro: {Welcome: 'TestMessage'}});
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
@@ -163,8 +163,8 @@ describe("Localization", function() {
   }
 
   function modifyByCode(localeDir: string, code: string, obj: any) {
-    // Read current core localization file.
-    const filePath = path.join(localeDir, `${code}.core.json`);
+    // Read current client localization file.
+    const filePath = path.join(localeDir, `${code}.client.json`);
     const resources = JSON.parse(fs.readFileSync(filePath).toString());
     const newResource = Object.assign(resources, obj);
     fs.writeFileSync(filePath, JSON.stringify(newResource));

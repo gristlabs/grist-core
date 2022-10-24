@@ -1,5 +1,7 @@
 import {getGristConfig} from 'app/common/urlUtils';
+import {DomContents} from 'grainjs';
 import i18next from 'i18next';
+import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
 
 export async function setupLocale() {
   const now = Date.now();
@@ -15,7 +17,7 @@ export async function setupLocale() {
     }
   }
 
-  const ns = getGristConfig().namespaces ?? ['core'];
+  const ns = getGristConfig().namespaces ?? ['client'];
   // Initialize localization plugin
   try {
     // We don't await this promise, as it is resolved synchronously due to initImmediate: false.
@@ -28,13 +30,13 @@ export async function setupLocale() {
       initImmediate: false,
       // Read language from navigator object.
       lng,
-      // By default we use core namespace.
-      defaultNS: 'core',
+      // By default we use client namespace.
+      defaultNS: 'client',
       // Read namespaces that are supported by the server.
       // TODO: this can be converted to a dynamic list of namespaces, for async components.
       // for now just import all what server offers.
-      // We can fallback to core namespace for any addons.
-      fallbackNS: 'core',
+      // We can fallback to client namespace for any addons.
+      fallbackNS: 'client',
       ns,
       supportedLngs
     }).catch((err: any) => {
@@ -68,14 +70,52 @@ export async function setupLocale() {
 }
 
 /**
- * Resolves the translation of the given key, using the given options.
+ * Resolves the translation of the given key using the given options.
  */
-export function t(key: string, args?: any): string {
-  if (!i18next.exists(key)) {
+export function tString(key: string, args?: any, instance = i18next): string {
+  if (!instance.exists(key, args || undefined)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
   }
-  return i18next.t(key, args);
+  return instance.t(key, args);
+}
+
+// We will try to infer result from the arguments passed to `t` function.
+// For plain objects we expect string as a result. If any property doesn't look as a plain value
+// we assume that it might be a dom node and the result is DomContents.
+type InferResult<T> = T extends Record<string, string | number | boolean>|undefined|null ? string : DomContents;
+
+/**
+ * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
+ */
+ export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
+  if (!instance.exists(key, args || undefined)) {
+    const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
+    reportError(error);
+  }
+  // If there are any DomElements in args, handle it with missingInterpolationHandler.
+  const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
+  if (!args || !domElements.length) {
+    return instance.t(key, args || undefined) as any;
+  } else {
+    // Make a copy of the arguments, and remove any dom elements from it. It will instruct
+    // i18next library to use `missingInterpolationHandler` handler.
+    const copy = {...args};
+    domElements.forEach(([prop]) => delete copy[prop]);
+
+    // Passing `missingInterpolationHandler` will allow as to resolve all missing keys
+    // and replace them with a marker.
+    const result: string = instance.t(key, {...copy, missingInterpolationHandler});
+
+    // Now replace all markers with dom elements passed as arguments.
+    const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
+    for (let i = 1; i < parts.length; i += 2) { // Every second element is our dom element.
+      const propName = parts[i].substring(3, parts[i].length - 3);
+      const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
+      parts[i] = domElement;
+    }
+    return parts.filter(p => p !== '') as any; // Remove empty parts.
+  }
 }
 
 /**
@@ -83,4 +123,28 @@ export function t(key: string, args?: any): string {
  */
 export function hasTranslation(key: string) {
   return i18next.exists(key);
+}
+
+function missingInterpolationHandler(key: string, value: any) {
+  return `[[[${value[1]}]]]`;
+}
+
+/**
+ * Very naive detection if an element has DomContents type.
+ */
+function isLikeDomContents(value: any): boolean {
+  // As null and undefined are valid DomContents values, we don't treat them as such.
+  if (value === null || value === undefined) { return false; }
+  return value instanceof G.Node || // Node
+    (Array.isArray(value) && isLikeDomContents(value[0])) || // DomComputed
+    typeof value === 'function'; // DomMethod
+}
+
+/**
+ * Helper function to create scoped t function.
+ */
+export function makeT(scope: string) {
+  return function<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next) {
+    return t(`${scope}.${key}`, args, instance);
+  }
 }
