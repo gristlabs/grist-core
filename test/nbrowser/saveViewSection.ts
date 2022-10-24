@@ -1,19 +1,19 @@
 import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe("saveViewSection", function() {
   this.timeout(20000);
   setupTestSuite();
 
+  const cleanup = setupTestSuite();
+
+  before(async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup, 'test-updateViewSection');
+  });
+
   it("should work correctly when turning a table to 'summary'", async () => {
-    // create a new document
-    const docId = await gu.createNewDoc('Chimpy', 'nasa', 'Horizon', 'test-updateViewSection');
-
-    // Login and open document
-    await server.simulateLogin('Chimpy', 'chimpy@getgrist.com', 'nasa');
-    await driver.get(`${server.getHost()}/o/nasa/doc/${docId}`);
-
     // add new section
     await gu.addNewSection(/Table/, /Table1/);
 
