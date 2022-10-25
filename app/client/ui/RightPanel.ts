@@ -690,7 +690,7 @@ const cssTopBarIcon = styled(icon, `
   margin: 16px;
   height: 16px;
   width: 16px;
-  background-color: vars(--icon-color);
+  background-color: var(--icon-color);
 `);
 
 const cssHoverCircle = styled('div', `
@@ -705,14 +705,14 @@ const cssHoverCircle = styled('div', `
   justify-content: center;
 
   &:hover {
-    background-color: ${theme.rightPanelTabCloseButtonHoverBg};
+    background-color: ${theme.rightPanelTabButtonHoverBg};
   }
 `);
 
 const cssHoverIcon = styled(icon, `
   height: 16px;
   width: 16px;
-  background-color: vars(--icon-color);
+  background-color: var(--icon-color);
 `);
 
 const cssSubTabContainer = styled('div', `

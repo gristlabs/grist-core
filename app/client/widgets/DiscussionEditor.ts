@@ -8,7 +8,7 @@ import {RowSource, RowWatcher} from 'app/client/models/rowset';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {CellInfoType} from 'app/common/gristTypes';
@@ -446,9 +446,8 @@ class CommentView extends Disposable {
         dom.maybe(use => !use(this.isEditing),
           () => dom.domComputed(comment.hidden, (hidden) => {
             if (hidden) {
-              return dom('div',
+              return cssCommentCensored(
                 "CENSORED",
-                {style: 'margin-top: 4px'},
                 testId('comment-text'),
               );
             }
@@ -1095,7 +1094,7 @@ const cssDropdownMenu = styled('div', `
 `);
 
 const cssReplyBox = styled(cssCommonPadding, `
-  border-top: 1px solid ${colors.mediumGrey};
+  border-top: 1px solid ${theme.commentsPopupBorder};
 `);
 
 const cssCommentEntry = styled('div', `
@@ -1130,7 +1129,9 @@ const cssTextArea = styled('textarea', `
   min-height: 5em;
   border-radius: 3px;
   padding: 4px 6px;
-  border: 1px solid ${colors.darkGrey};
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+  border: 1px solid ${theme.inputBorder};
   outline: none;
   width: 100%;
   resize: none;
@@ -1139,16 +1140,20 @@ const cssTextArea = styled('textarea', `
     min-height: 28px;
     height: 28px;
   }
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 `);
 
 const cssHeaderBox = styled('div', `
-  background-color: ${colors.lightGrey};
+  color: ${theme.text};
+  background-color: ${theme.commentsPopupHeaderBg};
   padding: 12px; /* 12px * 2 + 24px (size of the icon) == 48px in height */
   padding-right: 16px;
   display: flex;
   gap: 8px;
   &-border {
-    border-bottom: 1px solid ${colors.mediumGrey};
+    border-bottom: 1px solid ${theme.commentsPopupBorder};
   }
 `);
 
@@ -1156,9 +1161,9 @@ const cssTopic = styled('div', `
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px solid #ccc;
+  border: 1px solid ${theme.commentsPopupBorder};
   border-radius: 4px;
-  background-color: ${colors.light};
+  background-color: ${theme.commentsPopupBodyBg};
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
   z-index: 100;
   width: 325px;
@@ -1166,7 +1171,7 @@ const cssTopic = styled('div', `
   outline: none;
   max-height: inherit;
   &-disabled {
-    background-color: ${vars.labelActiveBg}
+    background-color: ${theme.commentsPanelResolvedTopicBg}
   }
   &-panel {
     width: unset;
@@ -1178,14 +1183,14 @@ const cssTopic = styled('div', `
 `);
 
 const cssDiscussionWrapper = styled('div', `
-  border-bottom: 1px solid ${colors.darkGrey};
+  border-bottom: 1px solid ${theme.commentsPopupBorder};
   &:last-child {
     border-bottom: none;
   }
   .${cssTopic.className}-panel & {
-    border: 1px solid #ccc;
+    border: 1px solid ${theme.commentsPanelTopicBorder};
     border-radius: 4px;
-    background-color: ${colors.light};
+    background-color: ${theme.commentsPanelTopicBg};
     margin-bottom: 4px;
   }
 `);
@@ -1195,15 +1200,21 @@ const cssDiscussion = styled('div', `
   flex-direction: column;
   padding: 16px;
   &-resolved {
-    background-color: ${vars.labelActiveBg};
+    background-color: ${theme.commentsPanelResolvedTopicBg};
     cursor: pointer;
   }
   &-resolved * {
-    color: ${colors.slate} !important;
+    color: ${theme.lightText} !important;
   }
 `);
 
+const cssCommentCensored = styled('div', `
+  color: ${theme.text};
+  margin-top: 4px;
+`);
+
 const cssCommentPre = styled('pre', `
+  color: ${theme.text};
   padding: 0px;
   font-size: revert;
   border: 0px;
@@ -1232,7 +1243,7 @@ const cssCommentReplyWrapper = styled('div', `
 `);
 
 const cssComment = styled('div', `
-  border-bottom: 1px solid ${colors.mediumGrey};
+  border-bottom: 1px solid ${theme.commentsPopupBorder};
   .${cssCommentList.className} &:last-child {
     border-bottom: 0px;
   }
@@ -1268,9 +1279,9 @@ const cssIconButton = styled('div', `
   line-height: 0px;
   border-radius: 3px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.controlSecondaryHoverBg};
   }
 `);
 
@@ -1283,9 +1294,9 @@ const cssIconButtonMenu = styled('div', `
   line-height: 0px;
   border-radius: 3px;
   cursor: pointer;
-  --icon-color: ${colors.light};
+  --icon-color: ${theme.rightPanelTabSelectedFg};
   &:hover, &.weasel-popup-open {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.rightPanelTabButtonHoverBg};
   }
 `);
 
@@ -1297,7 +1308,7 @@ const cssReplyButton = styled(textButton, `
 `);
 
 const cssTime = styled('div', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1310,7 +1321,7 @@ const cssNick = styled('div', `
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  color: ${colors.darkText};
+  color: ${theme.commentsUserNameFg};
   &-small {
     font-size: 12px;
   }
@@ -1325,15 +1336,15 @@ const cssCloseButton = styled('div', `
   border-radius: 4px;
   line-height: 1px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.controlSecondaryFg};
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.hover};
   }
 `);
 
 const cssHoverButton = styled(cssCloseButton, `
   &:hover {
-    --icon-color: ${colors.lightGreen};
+    --icon-color: ${theme.controlPrimaryBg};
   }
 `);
 
@@ -1360,11 +1371,11 @@ function trigger(element: Element, name: string, args?: any) {
 
 const cssResolvedBlock = styled('div', `
   margin-top: 5px;
-  --icon-color: ${colors.dark};
+  --icon-color: ${theme.text};
 `);
 
 const cssResolvedText = styled('span', `
-  color: ${colors.dark};
+  color: ${theme.text};
   font-size: ${vars.smallFontSize};
   margin-left: 5px;
 `);

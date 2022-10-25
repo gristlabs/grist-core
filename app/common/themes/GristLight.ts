@@ -218,7 +218,7 @@ export const GristLight: ThemeColors = {
   'right-panel-tab-hover-bg': 'rgba(217,217,217,0.6)',
   'right-panel-tab-selected-fg': '#FFFFFF',
   'right-panel-tab-selected-bg': '#16B378',
-  'right-panel-tab-close-button-hover-bg': '#009058',
+  'right-panel-tab-button-hover-bg': '#009058',
   'right-panel-subtab-fg': '#16B378',
   'right-panel-subtab-selected-fg': '#262633',
   'right-panel-subtab-selected-underline': '#16B378',
@@ -400,4 +400,13 @@ export const GristLight: ThemeColors = {
   'chart-legend-bg': '#FFFFFF80',
   'chart-x-axis': '#444',
   'chart-y-axis': '#444',
+
+  /* Comments */
+  'comments-popup-header-bg': '#F7F7F7',
+  'comments-popup-body-bg': 'white',
+  'comments-popup-border': '#D9D9D9',
+  'comments-user-name-fg': '#494949',
+  'comments-panel-topic-bg': 'white',
+  'comments-panel-topic-border': '#ccc',
+  'comments-panel-resolved-topic-bg': '#F0F0F0',
 };

@@ -218,7 +218,7 @@ export const GristDark: ThemeColors = {
   'right-panel-tab-hover-bg': 'rgba(111,111,117,0.6)',
   'right-panel-tab-selected-fg': '#FFFFFF',
   'right-panel-tab-selected-bg': '#1DA270',
-  'right-panel-tab-close-button-hover-bg': '#157A54',
+  'right-panel-tab-button-hover-bg': '#157A54',
   'right-panel-subtab-fg': '#1DA270',
   'right-panel-subtab-selected-fg': '#EFEFEF',
   'right-panel-subtab-selected-underline': '#1DA270',
@@ -400,4 +400,13 @@ export const GristDark: ThemeColors = {
   'chart-legend-bg': '#32323F80',
   'chart-x-axis': '#A4A4A4',
   'chart-y-axis': '#A4A4A4',
+
+  /* Comments */
+  'comments-popup-header-bg': '#262633',
+  'comments-popup-body-bg': '#32323F',
+  'comments-popup-border': '#69697D',
+  'comments-user-name-fg': '#DFDFDF',
+  'comments-panel-topic-bg': '#32323F',
+  'comments-panel-topic-border': '#555563',
+  'comments-panel-resolved-topic-bg': '#262634',
 };

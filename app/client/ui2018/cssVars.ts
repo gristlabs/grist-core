@@ -414,7 +414,7 @@ export const theme = {
     colors.light),
   rightPanelTabSelectedBg: new CustomProp('theme-right-panel-tab-selected-bg', undefined,
     colors.lightGreen),
-  rightPanelTabCloseButtonHoverBg: new CustomProp('theme-right-panel-tab-close-button-hover-bg',
+  rightPanelTabButtonHoverBg: new CustomProp('theme-right-panel-tab-button-hover-bg',
     undefined, colors.darkGreen),
   rightPanelSubtabFg: new CustomProp('theme-right-panel-subtab-fg', undefined, colors.lightGreen),
   rightPanelSubtabSelectedFg: new CustomProp('theme-right-panel-subtab-selected-fg', undefined,
@@ -651,6 +651,17 @@ export const theme = {
   chartLegendBg: new CustomProp('theme-chart-legend-bg', undefined, '#FFFFFF80'),
   chartXAxis: new CustomProp('theme-chart-x-axis', undefined, '#444'),
   chartYAxis: new CustomProp('theme-chart-y-axis', undefined, '#444'),
+
+  /* Comments */
+  commentsPopupHeaderBg: new CustomProp('theme-comments-popup-header-bg', undefined,
+    colors.lightGrey),
+  commentsPopupBodyBg: new CustomProp('theme-comments-popup-body-bg', undefined, 'white'),
+  commentsPopupBorder: new CustomProp('theme-comments-popup-border', undefined, colors.darkGrey),
+  commentsUserNameFg: new CustomProp('theme-comments-user-name-fg', undefined, colors.darkText),
+  commentsPanelTopicBg: new CustomProp('theme-comments-panel-topic-bg', undefined, 'white'),
+  commentsPanelTopicBorder: new CustomProp('theme-comments-panel-topic-border', undefined, '#ccc'),
+  commentsPanelResolvedTopicBg: new CustomProp('theme-comments-panel-resolved-topic-bg', undefined,
+    vars.labelActiveBg),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

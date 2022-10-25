@@ -118,6 +118,7 @@ function buildShowDiscussionButton(pageModel: DocPageModel) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     cssBeta('Beta'),
+    hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
     testId('open-discussion'),
     dom.on('click', () => pageModel.gristDoc.get()!.showTool('discussion'))
   );
