@@ -2,11 +2,14 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {reportError} from 'app/client/models/errors';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {dom, Observable} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
 
 // Rather than require the whole of highlight.js, require just the core with the one language we
 // need, to keep our bundle smaller and the build faster.
 const hljs           = require('highlight.js/lib/core');
 hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
+
+const t = makeT('components.CodeEditorPanel');
 
 export class CodeEditorPanel extends DisposableWithEvents {
   private _schema = Observable.create(this, '');
@@ -25,8 +28,8 @@ export class CodeEditorPanel extends DisposableWithEvents {
     return dom('div.g-code-panel.clipboard',
       {tabIndex: "-1"},
       dom.maybe(this._denied, () => dom('div.g-code-panel-denied',
-        dom('h2', dom.text('Access denied')),
-        dom('div', dom.text('Code View is available only when you have full document access.')),
+        dom('h2', dom.text(t('AccessDenied'))),
+        dom('div', dom.text(t('CodeViewOnlyFullAccess'))),
       )),
       dom.maybe(this._schema, (schema) => {
         // The reason to scope and rebuild instead of using `kd.text(schema)` is because

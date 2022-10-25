@@ -19,6 +19,7 @@ import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
 import {CellDelta} from 'app/common/TabularDiff';
 import {IDomComponent} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
 
 /**
  *
@@ -45,6 +46,8 @@ const state = {
   BURIED: 'buried',
   DEFAULT: 'default'
 };
+
+const t = makeT('components.ActionLog');
 
 export class ActionLog extends dispose.Disposable implements IDomComponent {
 
@@ -224,7 +227,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 
   private _buildLogDom() {
-    this._loadActionSummaries().catch((error) => gristNotify(`Action Log failed to load`));
+    this._loadActionSummaries().catch((error) => gristNotify(t("ActionLogFailed")));
     return dom('div.action_log',
         dom('div.preference_item',
             koForm.checkbox(this._showAllTables,
@@ -392,7 +395,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = tableRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(`Table ${tableId} was subsequently removed in action #${action.actionNum}`);
+          gristNotify(t('TableRemovedInAction', {tableId:tableId, actionNum: action.actionNum}));
           return;
         }
         tableId = newName;
@@ -403,7 +406,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       // Check is this row was removed - if so there's no reason to go on.
       if (td.removeRows.indexOf(rowId) >= 0) {
           // TODO - find a better way to send informative notifications.
-        gristNotify(`This row was subsequently removed in action #${action.actionNum}`);
+        gristNotify(t("RowRemovedInAction", {actionNum}));
         return;
       }
 
@@ -413,7 +416,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = columnRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(`Column ${colId} was subsequently removed in action #${action.actionNum}`);
+          gristNotify(t("ColumnRemovedInAction", {colId, actionNum: action.actionNum}));
           return;
         }
         colId = newName;

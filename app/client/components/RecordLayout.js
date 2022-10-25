@@ -39,6 +39,9 @@ var {menuToggle} = require('app/client/ui/MenuToggle');
 var {menu} = require('../ui2018/menus');
 var {testId} = require('app/client/ui2018/cssVars');
 var {contextMenu} = require('app/client/ui/contextMenu');
+var  {makeT} = require('app/client/lib/localization');
+
+const t = makeT('components.RecordLayout');
 
 /**
  * Construct a RecordLayout.
@@ -260,7 +263,7 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
   // Use separate copies of addColAction, since sendTableActions modified each in-place.
   let addActions = gutil.arrayRepeat(addColNum, 0).map(() => addColAction.slice());
 
-  await docData.bundleActions('Updating record layout.', () => {
+  await docData.bundleActions(t('UpdatingRecordLayout'), () => {
     return Promise.try(() => {
       return addColNum > 0 ? docModel.dataTables[tableId].sendTableActions(addActions) : [];
     })

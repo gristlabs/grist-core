@@ -34,7 +34,7 @@ import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
 import sortBy = require('lodash/sortBy');
 
-const translate = makeT(`DocMenu`);
+const t = makeT(`DocMenu`);
 
 const testId = makeTestId('test-dm-');
 
@@ -60,8 +60,8 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
     showWelcomeQuestions(home.app.userPrefsObs),
     css.docMenu(
       dom.maybe(!home.app.currentFeatures.workspaces, () => [
-        css.docListHeader('This service is not available right now'),
-        dom('span', '(The organization needs a paid plan)')
+        css.docListHeader(t('ServiceNotAvailable')),
+        dom('span', t('NeedPaidPlan')),
       ]),
 
       // currentWS and showIntro observables change together. We capture both in one domComputed call.
@@ -87,7 +87,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
             // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
             // removes all pinned docs when on trash page.
             dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
-              css.docListHeader(css.pinnedDocsIcon('PinBig'), 'Pinned Documents'),
+              css.docListHeader(css.pinnedDocsIcon('PinBig'), t('PinnedDocuments')),
               createPinnedDocs(home, home.currentWSPinnedDocs),
             ]),
 
@@ -95,7 +95,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
             dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
               css.featuredTemplatesHeader(
                 css.featuredTemplatesIcon('Idea'),
-                'Featured',
+                t('Featured'),
                 testId('featured-templates-header')
               ),
               createPinnedDocs(home, home.featuredTemplates, true),
@@ -107,12 +107,12 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 null :
                 css.docListHeader(
                   (
-                    page === 'all' ? translate('AllDocuments') :
+                    page === 'all' ? t('AllDocuments') :
                     page === 'templates' ?
                       dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                        hasFeaturedTemplates ? translate('MoreExamplesAndTemplates') : translate('ExamplesAndTemplates')
+                        hasFeaturedTemplates ? t('MoreExamplesAndTemplates') : t('ExamplesAndTemplates')
                     ) :
-                    page === 'trash' ? 'Trash' :
+                    page === 'trash' ? t('Trash') :
                     workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
                   ),
                   testId('doc-header'),
@@ -127,9 +127,9 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                   ) :
                 (page === 'trash') ?
                   dom('div',
-                    css.docBlock('Documents stay in Trash for 30 days, after which they get deleted permanently.'),
+                    css.docBlock(t('DocStayInTrash')),
                     dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
-                      css.docBlock('Trash is empty.')
+                      css.docBlock(t("EmptyTrash"))
                     ),
                     buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
                   ) :
@@ -144,7 +144,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                     ) :
                   workspace && !workspace.isSupportWorkspace && workspace.docs?.length === 0 ?
                   buildWorkspaceIntro(home) :
-                  css.docBlock('Workspace not found')
+                  css.docBlock(t('WorkspaceNotFound'))
               )
             ]),
           ];
@@ -176,7 +176,7 @@ function buildAllDocsBlock(
 
         (ws.removedAt ?
           [
-            css.docRowUpdatedAt(`Deleted ${getTimeFromNow(ws.removedAt)}`),
+            css.docRowUpdatedAt(t('Deleted', {at:getTimeFromNow(ws.removedAt)})),
             css.docMenuTrigger(icon('Dots')),
             menu(() => makeRemovedWsOptionsMenu(home, ws),
               {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),
@@ -210,7 +210,7 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
       dom.autoDispose(hideTemplatesObs),
       css.templatesHeaderWrap(
         css.templatesHeader(
-          'Examples & Templates',
+          t('Examples&Templates'),
           dom.domComputed(hideTemplatesObs, (collapsed) =>
             collapsed ? css.templatesHeaderIcon('Expand') : css.templatesHeaderIcon('Collapse')
           ),
@@ -222,7 +222,7 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
       dom.maybe((use) => !use(hideTemplatesObs), () => [
         buildTemplateDocs(home, templates, viewSettings),
         bigBasicButton(
-          'Discover More Templates',
+          t('DiscoverMoreTemplates'),
           urlState().setLinkUrl({homePage: 'templates'}),
           testId('all-docs-templates-discover-more'),
         )
@@ -270,7 +270,7 @@ function buildOtherSites(home: HomeModel) {
     return css.otherSitesBlock(
       dom.autoDispose(hideOtherSitesObs),
       css.otherSitesHeader(
-        translate('OtherSites'),
+        t('OtherSites'),
         dom.domComputed(hideOtherSitesObs, (collapsed) =>
           collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
         ),
@@ -282,7 +282,7 @@ function buildOtherSites(home: HomeModel) {
         const siteName = home.app.currentOrgName;
         return [
           dom('div',
-            translate('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
+            t('OtherSitesWelcome', { siteName, context: personal ? 'personal' : '' }),
             testId('other-sites-message')
           ),
           css.otherSitesButtons(
@@ -318,8 +318,8 @@ function buildPrefs(
     // The Sort selector.
     options.hideSort ? null : dom.update(
       select<SortPref>(viewSettings.currentSort, [
-          {value: 'name', label: 'By Name'},
-          {value: 'date', label: 'By Date Modified'},
+          {value: 'name', label: t('ByName')},
+          {value: 'date', label: t('ByDateModified')},
         ],
         { buttonCssClass: css.sortSelector.className },
       ),
@@ -375,8 +375,8 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           ),
           css.docRowUpdatedAt(
             (doc.removedAt ?
-              `Deleted ${getTimeFromNow(doc.removedAt)}` :
-              `Edited ${getTimeFromNow(doc.updatedAt)}`),
+              t('Deleted', {at: getTimeFromNow(doc.removedAt)}) :
+              t('Edited', {at: getTimeFromNow(doc.updatedAt)})),
             testId('doc-time')
           ),
           (doc.removedAt ?
@@ -410,7 +410,7 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
               save: (val) => doRename(home, doc, val, flashDocId),
               close: () => renaming.set(null),
             }, testId('doc-name-editor')),
-            css.docRowUpdatedAt(`Edited ${getTimeFromNow(doc.updatedAt)}`, testId('doc-time')),
+            css.docRowUpdatedAt(t('Edited', {at: getTimeFromNow(doc.updatedAt)}), testId('doc-time')),
           ),
         ),
         testId('doc')
@@ -451,9 +451,9 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
   const orgAccess: roles.Role|null = org ? org.access : null;
 
   function deleteDoc() {
-    confirmModal(`Delete "${doc.name}"?`, 'Delete',
+    confirmModal(t('DeleteDoc', {name: doc.name}), t('Delete'),
       () => home.deleteDoc(doc.id, false).catch(reportError),
-      'Document will be moved to Trash.');
+      t('DocumentMoveToTrash'));//'Document will be moved to Trash.');
   }
 
   async function manageUsers() {
@@ -472,11 +472,11 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
   }
 
   return [
-    menuItem(() => renaming.set(doc), "Rename",
+    menuItem(() => renaming.set(doc), t("Rename"),
       dom.cls('disabled', !roles.canEdit(doc.access)),
       testId('rename-doc')
     ),
-    menuItem(() => showMoveDocModal(home, doc), 'Move',
+    menuItem(() => showMoveDocModal(home, doc), t('Move'),
       // Note that moving the doc requires ACL access on the doc. Moving a doc to a workspace
       // that confers descendant ACL access could otherwise increase the user's access to the doc.
       // By requiring the user to have ACL edit access on the doc to move it prevents using this
@@ -487,16 +487,16 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       dom.cls('disabled', !roles.canEditAccess(doc.access)),
       testId('move-doc')
     ),
-    menuItem(deleteDoc, 'Remove',
+    menuItem(deleteDoc, t('Remove'),
       dom.cls('disabled', !roles.canDelete(doc.access)),
       testId('delete-doc')
     ),
     menuItem(() => home.pinUnpinDoc(doc.id, !doc.isPinned).catch(reportError),
-      doc.isPinned ? "Unpin Document" : "Pin Document",
+      doc.isPinned ? t("UnpinDocument"): t("PinDocument"),
       dom.cls('disabled', !roles.canEdit(orgAccess)),
       testId('pin-doc')
     ),
-    menuItem(manageUsers, roles.canEditAccess(doc.access) ? "Manage Users" : "Access Details",
+    menuItem(manageUsers, roles.canEditAccess(doc.access) ? t("ManageUsers"): t("AccessDetails"),
       testId('doc-access')
     )
   ];
@@ -504,22 +504,22 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
 
 export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, workspace: Workspace) {
   function hardDeleteDoc() {
-    confirmModal(`Permanently Delete "${doc.name}"?`, 'Delete Forever',
+    confirmModal(t("DeleteForeverDoc", {name: doc.name}), t("DeleteForver"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      'Document will be permanently deleted.');
+      t('DeleteDocPerma'));
   }
 
   return [
-    menuItem(() => home.restoreDoc(doc), 'Restore',
+    menuItem(() => home.restoreDoc(doc), t('Restore'),
       dom.cls('disabled', !roles.canDelete(doc.access) || !!workspace.removedAt),
       testId('doc-restore')
     ),
-    menuItem(hardDeleteDoc, 'Delete Forever',
+    menuItem(hardDeleteDoc, t('DeleteForever'),
       dom.cls('disabled', !roles.canDelete(doc.access)),
       testId('doc-delete-forever')
     ),
     (workspace.removedAt ?
-      menuText('To restore this document, restore the workspace first.') :
+      menuText(t('RestoreThisDocument')) :
       null
     )
   ];
@@ -527,16 +527,16 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
 
 function makeRemovedWsOptionsMenu(home: HomeModel, ws: Workspace) {
   return [
-    menuItem(() => home.restoreWorkspace(ws), 'Restore',
+    menuItem(() => home.restoreWorkspace(ws), t('Restore'),
       dom.cls('disabled', !roles.canDelete(ws.access)),
       testId('ws-restore')
     ),
-    menuItem(() => home.deleteWorkspace(ws.id, true), 'Delete Forever',
+    menuItem(() => home.deleteWorkspace(ws.id, true), t('DeleteForever'),
       dom.cls('disabled', !roles.canDelete(ws.access) || ws.docs.length > 0),
       testId('ws-delete-forever')
     ),
     (ws.docs.length > 0 ?
-      menuText('You may delete a workspace forever once it has no documents in it.') :
+      menuText(t('DeleteWorkspaceForever')) :
       null
     )
   ];
@@ -554,8 +554,8 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
           const disabled = isCurrent || !isEditable;
           return css.moveDocListItem(
             css.moveDocListText(workspaceName(home.app, ws)),
-            isCurrent ? css.moveDocListHintText('Current workspace') : null,
-            !isEditable ? css.moveDocListHintText('Requires edit permissions') : null,
+            isCurrent ? css.moveDocListHintText(t('CurrentWorkspace')) : null,
+            !isEditable ? css.moveDocListHintText(t('RequiresEditPermissions')) : null,
             css.moveDocListItem.cls('-disabled', disabled),
             css.moveDocListItem.cls('-selected', (use) => use(selected) === ws.id),
             dom.on('click', () => disabled || selected.set(ws.id)),
@@ -565,11 +565,11 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
       )
     );
     return {
-      title: `Move ${doc.name} to workspace`,
+      title: t('MoveDocToWorkspace', {name: doc.name}),
       body,
       saveDisabled: Computed.create(owner, (use) => !use(selected)),
       saveFunc: async () => !selected.get() || home.moveDoc(doc.id, selected.get()!).catch(reportError),
-      saveLabel: 'Move'
+      saveLabel: t('Move'),
     };
   });
 }

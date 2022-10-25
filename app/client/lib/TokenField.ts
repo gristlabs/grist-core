@@ -520,7 +520,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       }
       const xOffset = ev.clientX - xInitial;
       const yOffset = ev.clientY - yInitial;
-      const transform = `translate(${xOffset}px, ${yOffset}px)`;
+      const transform = `t(${xOffset}px, ${yOffset}px)`;
       tokenList.forEach(el => { el.style.transform = transform; });
     };
 

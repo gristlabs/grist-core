@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
 import {basicButton, cssButton, primaryButton} from 'app/client/ui2018/buttons';
@@ -9,6 +10,7 @@ import {Computed, dom, DomElementArg, IInputOptions, input, makeTestId, Observab
 import {IOpenController, setPopupToCreateDom} from 'popweasel';
 
 const testId = makeTestId('test-widget-title-');
+const t = makeT('WidgetTitle');
 
 interface WidgetTitleOptions {
   tableNameHidden?: boolean,
@@ -65,7 +67,7 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   // Placeholder for widget title:
   // - when widget title is empty shows a default widget title (what would be shown when title is empty)
   // - when widget title is set, shows just a text to override it.
-  const inputWidgetPlaceholder = !vs.title.peek() ? 'Override widget title' : vs.defaultWidgetTitle.peek();
+  const inputWidgetPlaceholder = !vs.title.peek() ? t('OverrideTitle') : vs.defaultWidgetTitle.peek();
 
   const disableSave = Computed.create(ctrl, (use) => {
     const newTableName = use(inputTableName)?.trim() ?? '';
@@ -135,29 +137,29 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
     testId('popup'),
     dom.cls(menuCssClass),
     dom.maybe(!options.tableNameHidden, () => [
-      cssLabel('DATA TABLE NAME'),
+      cssLabel(t('DataTableName')),
       // Update tableName on key stroke - this will show the default widget name as we type.
       // above this modal.
       tableInput = cssInput(
         inputTableName,
         updateOnKey,
-        {disabled: isSummary, placeholder: 'Provide a table name'},
+        {disabled: isSummary, placeholder: t('NewTableName')},
         testId('table-name-input')
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
-      cssLabel('WIDGET TITLE'),
+      cssLabel(t('WidgetTitle')),
       widgetInput = cssInput(inputWidgetTitle, updateOnKey, {placeholder: inputWidgetPlaceholder},
         testId('section-name-input')
       ),
     ]),
     cssButtons(
-      primaryButton('Save',
+      primaryButton(t('Save'),
         dom.on('click', doSave),
         dom.boolAttr('disabled', use => use(disableSave) || use(modalCtl.workInProgress)),
         testId('save'),
       ),
-      basicButton('Cancel',
+      basicButton(t('Cancel'),
         testId('cancel'),
         dom.on('click', () => modalCtl.close())
       ),

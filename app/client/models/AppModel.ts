@@ -1,4 +1,5 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import { makeT } from 'app/client/lib/localization';
 import {error} from 'app/client/lib/log';
 import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
@@ -21,6 +22,8 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+
+const t = makeT('models.AppModel')
 
 // Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
@@ -192,7 +195,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
         if (org.billingAccount && org.billingAccount.product &&
             org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserMessage(
-            'This team site is suspended. Documents can be read, but not modified.',
+            t('models.AppModel.TeamSiteSuspended'),
             {actions: ['renew', 'personal']}
           );
         }

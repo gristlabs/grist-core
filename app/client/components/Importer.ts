@@ -35,6 +35,10 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
 
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('components.Importer');
+
 
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
@@ -628,7 +632,7 @@ export class Importer extends DisposableWithEvents {
                   cssMergeOptions(
                     cssMergeOptionsToggle(labeledSquareCheckbox(
                       updateExistingRecords,
-                      'Update existing records',
+                      t('UpdateExistingRecords'),
                       dom.autoDispose(updateRecordsListener),
                       testId('importer-update-existing-records')
                     )),
@@ -643,14 +647,14 @@ export class Importer extends DisposableWithEvents {
 
                       return [
                         cssMergeOptionsMessage(
-                          'Merge rows that match these fields:',
+                          t('MergeRowsThatMatch'),
                           testId('importer-merge-fields-message')
                         ),
                         multiSelect(
                           mergeCols,
                           section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
                           {
-                            placeholder: 'Select fields to match on',
+                            placeholder: t("SelectFieldsToMatch"),
                             error: hasInvalidMergeCols
                           },
                           dom.autoDispose(mergeColsListener),

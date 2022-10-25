@@ -4,6 +4,9 @@ var BackboneEvents = require('backbone').Events;
 var dispose = require('app/client/lib/dispose');
 var commands = require('./commands');
 var LayoutEditor = require('./LayoutEditor');
+var  {makeT} = require('app/client/lib/localization');
+
+const t = makeT('components.RecordLayoutEditor');
 const {basicButton, cssButton, primaryButton} = require('app/client/ui2018/buttons');
 const {icon} = require('app/client/ui2018/icons');
 const {menu, menuDivider, menuItem} = require('app/client/ui2018/menus');
@@ -90,13 +93,13 @@ RecordLayoutEditor.prototype.buildEditorDom = function() {
   };
 
   return cssControls(
-    basicButton('Add Field', cssCollapseIcon('Collapse'),
+    basicButton(t('AddField'), cssCollapseIcon('Collapse'),
       menu((ctl) => [
-        menuItem(() => addNewField(), 'Create New Field'),
+        menuItem(() => addNewField(), t('CreateNewField')),
         dom.maybe((use) => use(this._hiddenColumns).length > 0,
           () => menuDivider()),
         dom.forEach(this._hiddenColumns, (col) =>
-          menuItem(() => showField(col), `Show field ${col.label()}`)
+          menuItem(() => showField(col), t("ShowField", {label:col.label()}))
         ),
         testId('edit-layout-add-menu'),
       ]),
@@ -110,10 +113,10 @@ RecordLayoutEditor.prototype.buildEditorDom = function() {
 
 RecordLayoutEditor.prototype.buildFinishButtons = function() {
   return [
-    primaryButton('Save Layout',
+    primaryButton(t('SaveLayout'),
       dom.on('click', () => commands.allCommands.accept.run()),
     ),
-    basicButton('Cancel',
+    basicButton(t('Cancel'),
       dom.on('click', () => commands.allCommands.cancel.run()),
       {style: 'margin-left: 8px'},
     ),

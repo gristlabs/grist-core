@@ -17,6 +17,9 @@ import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('components.TypeTransformation');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -61,25 +64,25 @@ export class TypeTransform extends ColumnTransform {
       ),
       cssButtonRow(
         basicButton(dom.on('click', () => { this.cancel().catch(reportError); disableButtons.set(true); }),
-          'Cancel', testId("type-transform-cancel"),
+          t('Cancel'), testId("type-transform-cancel"),
           dom.cls('disabled', disableButtons)
         ),
         dom.domComputed(this._reviseTypeChange, revising => {
           if (revising) {
             return basicButton(dom.on('click', () => this.editor.writeObservable()),
-              'Preview', testId("type-transform-update"),
+              t('Preview'), testId("type-transform-update"),
               dom.cls('disabled', (use) => use(disableButtons) || use(this.formulaUpToDate)),
-              { title: 'Update formula (Shift+Enter)' }
+              { title: t('UpdateFormula') }
             );
           } else {
             return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),
-              'Revise', testId("type-transform-revise"),
+              t('Revise'), testId("type-transform-revise"),
               dom.cls('disabled', disableButtons)
             );
           }
         }),
         primaryButton(dom.on('click', () => { this.execute().catch(reportError); disableButtons.set(true); }),
-          'Apply', testId("type-transform-apply"),
+          t('Apply'), testId("type-transform-apply"),
           dom.cls('disabled', disableButtons)
         )
       )

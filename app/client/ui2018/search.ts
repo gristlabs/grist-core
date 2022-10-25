@@ -3,6 +3,7 @@
  * Takes a `SearchModel` that controls the search behavior.
  */
 import { allCommands, createGroup } from 'app/client/components/commands';
+import {makeT} from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
 import { hoverTooltip } from 'app/client/ui/tooltips';
@@ -15,6 +16,8 @@ import { noTestId, TestId } from 'grainjs';
 import debounce = require('lodash/debounce');
 
 export * from 'app/client/models/SearchModel';
+
+const t = makeT('ui2018.search');
 
 const EXPAND_TIME = .5;
 
@@ -143,7 +146,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
   }, 100);
   const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
-    {type: 'text', placeholder: 'Search in document'},
+    {type: 'text', placeholder: t('SearchInDocument')},
     dom.on('blur', () => (
       keepExpanded ?
         setTimeout(() => inputElem.focus(), 0) :
@@ -182,7 +185,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
         const noMatch = use(model.noMatch);
         const isEmpty = use(model.isEmpty);
         if (isEmpty) { return null; }
-        if (noMatch) { return cssLabel("No results"); }
+        if (noMatch) { return cssLabel(t("NoResults")); }
         return [
           cssArrowBtn(
             icon('Dropdown'),
@@ -192,7 +195,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             dom.on('click', () => model.findNext()),
             hoverTooltip(
               [
-                'Find Next ',
+                t('FindNext'),
                 cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
               ],
               {key: 'searchArrowBtnTooltip'}
@@ -206,7 +209,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             dom.on('click', () => model.findPrev()),
             hoverTooltip(
               [
-                'Find Previous ',
+                t('FindPrevious'),
                 cssShortcut(allCommands.findPrev.getKeysDesc()),
               ],
               {key: 'searchArrowBtnTooltip'}

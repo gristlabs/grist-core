@@ -9,6 +9,10 @@ import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('components.Drafts');
+
 /**
  * Component that keeps track of editor's state (draft value). If user hits an escape button
  * by accident, this component will provide a way to continue the work.
@@ -270,7 +274,7 @@ class NotificationAdapter extends Disposable implements Notification {
   }
   public showUndoDiscard() {
     const notifier = this._doc.app.topAppModel.notifier;
-    const notification = notifier.createUserMessage("Undo discard", {
+    const notification = notifier.createUserMessage(t("UndoDiscard"), {
       message: () =>
         discardNotification(
           dom.on("click", () => {
@@ -418,7 +422,7 @@ const styledTooltip = styled('div', `
 function cellTooltip(clb: () => any) {
   return function (ctl: ITooltipControl) {
     return styledTooltip(
-      cssLink('Restore last edit',
+      cssLink(t('RestoreLastEdit'),
         dom.on('mousedown', (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
         testId('draft-tooltip'),
       ),
@@ -437,7 +441,7 @@ const styledNotification = styled('div', `
 `);
 function discardNotification(...args: IDomArgs<TagElem<"div">>) {
   return styledNotification(
-    "Undo Discard",
+    t("UndoDiscard"),
     testId("draft-notification"),
     ...args
   );

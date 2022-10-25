@@ -20,6 +20,7 @@ import {RefSelect} from 'app/client/components/RefSelect';
 import ViewConfigTab from 'app/client/components/ViewConfigTab';
 import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
+import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -42,23 +43,25 @@ import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
 
+const t = makeT('RightPanel');
+
 // Represents a top tab of the right side-pane.
 const TopTab = StringUnion("pageWidget", "field");
 
 // Represents a subtab of pageWidget in the right side-pane.
 const PageSubTab = StringUnion("widget", "sortAndFilter", "data");
 
-// A map of widget type to the icon and label to use for a field of that widget.
-const fieldTypes = new Map<IWidgetType, {label: string, icon: IconName, pluralLabel: string}>([
-  ['record', {label: 'Column', icon: 'TypeCell', pluralLabel: 'Columns'}],
-  ['detail', {label: 'Field', icon: 'TypeCell', pluralLabel: 'Fields'}],
-  ['single', {label: 'Field', icon: 'TypeCell', pluralLabel: 'Fields'}],
-  ['chart', {label: 'Series', icon: 'ChartLine', pluralLabel: 'Series'}],
-  ['custom', {label: 'Column', icon: 'TypeCell', pluralLabel: 'Columns'}],
-]);
-
 // Returns the icon and label of a type, default to those associate to 'record' type.
 export function getFieldType(widgetType: IWidgetType|null) {
+  // A map of widget type to the icon and label to use for a field of that widget.
+  const fieldTypes = new Map<IWidgetType, {label: string, icon: IconName, pluralLabel: string}>([
+    ['record', {label: t('Column', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Column', { count: 2 })}],
+    ['detail', {label: t('Field', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Field', { count: 2 })}],
+    ['single', {label: t('Field', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Field', { count: 2 })}],
+    ['chart', {label: t('Series', { count: 1 }), icon: 'ChartLine', pluralLabel: t('Series', { count: 2 })}],
+    ['custom', {label: t('Column', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Column', { count: 2 })}],
+  ]);
+
   return fieldTypes.get(widgetType || 'record') || fieldTypes.get('record')!;
 }
 
@@ -234,7 +237,7 @@ export class RightPanel extends Disposable {
           ),
           cssSeparator(),
           dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
-            cssLabel('COLUMN TYPE'),
+          cssLabel(t('ColumnType')),
             cssSection(
               builder.buildSelectTypeDom(),
             ),
@@ -257,7 +260,7 @@ export class RightPanel extends Disposable {
               cssRow(refSelect.buildDom()),
               cssSeparator()
             ]),
-            cssLabel('TRANSFORM'),
+            cssLabel(t('Transform')),
             dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
             dom.maybe(isMultiSelect, () => disabledSection()),
             testId('panel-transform'),
@@ -287,15 +290,15 @@ export class RightPanel extends Disposable {
   private _buildPageWidgetContent(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
-        cssSubTab('Widget',
+        cssSubTab(t('Widget'),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
           dom.on('click', () => this._subTab.set("widget")),
           testId('config-widget')),
-        cssSubTab('Sort & Filter',
+        cssSubTab(t('SortAndFilter'),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'sortAndFilter'),
           dom.on('click', () => this._subTab.set("sortAndFilter")),
           testId('config-sortAndFilter')),
-        cssSubTab('Data',
+        cssSubTab(t('Data'),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
           dom.on('click', () => this._subTab.set("data")),
           testId('config-data')),
@@ -337,7 +340,7 @@ export class RightPanel extends Disposable {
     });
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
-      cssLabel(dom.text(use => use(activeSection.isRaw) ? 'DATA TABLE NAME' : 'WIDGET TITLE'),
+      cssLabel(dom.text(use => use(activeSection.isRaw) ? t('DataTableName') : t('WidgetTitle')),
         dom.style('margin-bottom', '14px'),
       ),
       cssRow(cssTextInput(
@@ -354,7 +357,7 @@ export class RightPanel extends Disposable {
       dom.maybe(
         (use) => !use(activeSection.isRaw),
         () => cssRow(
-          primaryButton('Change Widget', this._createPageWidgetPicker()),
+          primaryButton(t('ChangeWidget'), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
@@ -362,7 +365,7 @@ export class RightPanel extends Disposable {
       cssSeparator(),
 
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
-        cssLabel('Theme'),
+        cssLabel(t('Theme')),
         dom('div',
           vct._buildThemeDom(),
           vct._buildLayoutDom())
@@ -377,22 +380,22 @@ export class RightPanel extends Disposable {
         if (use(this._pageWidgetType) !== 'record') { return null; }
         return [
           cssSeparator(),
-          cssLabel('ROW STYLE'),
+          cssLabel(t('RowStyleUpper')),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, "Row Style", activeSection, this._gristDoc)
+            dom.create(ViewPane.ConditionalStyle, t("RowStyle"), activeSection, this._gristDoc)
           ))
         ];
       }),
 
       dom.maybe((use) => use(this._pageWidgetType) === 'chart', () => [
-        cssLabel('CHART TYPE'),
+        cssLabel(t('ChartType')),
         vct._buildChartConfigDom(),
       ]),
 
       dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
         const parts = vct._buildCustomTypeItems() as any[];
         return [
-          cssLabel('CUSTOM'),
+          cssLabel(t('Custom')),
           // If 'customViewPlugin' feature is on, show the toggle that allows switching to
           // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
           // the only one that will be shown without the feature flag.
@@ -423,11 +426,11 @@ export class RightPanel extends Disposable {
   private _buildPageSortFilterConfig(owner: MultiHolder) {
     const viewConfigTab = this._createViewConfigTab(owner);
     return [
-      cssLabel('SORT'),
+      cssLabel(t('Sort')),
       dom.maybe(viewConfigTab, (vct) => vct.buildSortDom()),
       cssSeparator(),
 
-      cssLabel('FILTER'),
+      cssLabel(t('Filter')),
       dom.maybe(viewConfigTab, (vct) => dom('div', vct._buildFilterDom())),
     ];
   }
@@ -464,15 +467,15 @@ export class RightPanel extends Disposable {
     link.onWrite((val) => this._gristDoc.saveLink(val));
     return [
       this._disableIfReadonly(),
-      cssLabel('DATA TABLE'),
+      cssLabel(t('DataTable')),
       cssRow(
-        cssIcon('TypeTable'), cssDataLabel('SOURCE DATA'),
+        cssIcon('TypeTable'), cssDataLabel(t('SourceData')),
         cssContent(dom.text((use) => use(use(table).primaryTableId)),
                    testId('pwc-table'))
       ),
       dom(
         'div',
-        cssRow(cssIcon('Pivot'), cssDataLabel('GROUPED BY')),
+        cssRow(cssIcon('Pivot'), cssDataLabel(t('GroupedBy'))),
         cssRow(domComputed(groupedBy, (cols) => cssList(cols.map((c) => (
           cssListItem(dom.text(c.label),
                       testId('pwc-groupedBy-col'))
@@ -484,12 +487,12 @@ export class RightPanel extends Disposable {
       ),
 
       dom.maybe((use) => !use(activeSection.isRaw), () =>
-        cssButtonRow(primaryButton('Edit Data Selection', this._createPageWidgetPicker(),
+        cssButtonRow(primaryButton(t('EditDataSelection'), this._createPageWidgetPicker(),
           testId('pwc-editDataSelection')),
           dom.maybe(
             use => Boolean(use(use(activeSection.table).summarySourceTable)),
             () => basicButton(
-              'Detach',
+              t('Detach'),
               dom.on('click', () => this._gristDoc.docData.sendAction(
                 ["DetachSummaryViewSection", activeSection.getRowId()])),
               testId('detach-button'),
@@ -506,10 +509,10 @@ export class RightPanel extends Disposable {
       cssSeparator(),
 
       dom.maybe((use) => !use(activeSection.isRaw), () => [
-        cssLabel('SELECT BY'),
+        cssLabel(t('SelectBy')),
         cssRow(
           dom.update(
-            select(link, linkOptions, {defaultLabel: 'Select Widget'}),
+            select(link, linkOptions, {defaultLabel: t('SelectWidget')}),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
             })
@@ -525,7 +528,7 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssLabel('SELECTOR FOR', testId('selector-for')),
+          cssLabel(t('SelectorFor'), testId('selector-for')),
           cssRow(cssList(selectorFor.map((sec) => this._buildSectionItem(sec))))
         ] : null;
       }),
@@ -537,7 +540,7 @@ export class RightPanel extends Disposable {
     const section = gristDoc.viewModel.activeSection;
     const onSave = (val: IPageWidget) => gristDoc.saveViewSection(section.peek(), val);
     return (elem) => { attachPageWidgetPicker(elem, gristDoc.docModel, onSave, {
-      buttonLabel:  'Save',
+      buttonLabel:  t('Save'),
       value: () => toPageWidget(section.peek()),
       selectBy: (val) => gristDoc.selectBy(val),
     }); };
@@ -558,7 +561,7 @@ export class RightPanel extends Disposable {
       return dom.maybe(this._gristDoc.docPageModel.isReadonly,  () => (
         cssOverlay(
           testId('disable-overlay'),
-          cssBottomText('You do not have edit access to this document'),
+          cssBottomText(t('NoEditAccess')),
         )
       ));
     }

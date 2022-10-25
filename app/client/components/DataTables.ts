@@ -12,8 +12,11 @@ import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
 
 const testId = makeTestId('test-raw-data-');
+
+const t = makeT('components.DataTables');
 
 export class DataTables extends Disposable {
   private _tables: Observable<TableRec[]>;
@@ -33,7 +36,7 @@ export class DataTables extends Disposable {
       const dataTables = use(_gristDoc.docModel.rawDataTables.getObservable());
       const summaryTables = use(_gristDoc.docModel.rawSummaryTables.getObservable());
       // Remove tables that we don't have access to. ACL will remove tableId from those tables.
-      return [...dataTables, ...summaryTables].filter(t => Boolean(use(t.tableId)));
+      return [...dataTables, ...summaryTables].filter(table => Boolean(use(table.tableId)));
     });
   }
 
@@ -42,7 +45,7 @@ export class DataTables extends Disposable {
       cssTableList(
         /***************  List section **********/
         testId('list'),
-        docListHeader('Raw Data Tables'),
+        docListHeader(t('RawDataTables')),
         cssList(
           dom.forEach(this._tables, tableRec =>
             cssItem(
@@ -62,11 +65,11 @@ export class DataTables extends Disposable {
                       testId('table-id'),
                       dom.text(tableRec.tableId),
                     ),
-                    { title : 'Click to copy' },
-                    dom.on('click', async (e, t) => {
+                    { title : t('ClickToCopy') },
+                    dom.on('click', async (e, d) => {
                       e.stopImmediatePropagation();
                       e.preventDefault();
-                      showTransientTooltip(t, 'Table ID copied to clipboard', {
+                      showTransientTooltip(d, t('TableIDCopied'), {
                         key: 'copy-table-id'
                       });
                       await copyToClipboard(tableRec.tableId.peek());
@@ -124,7 +127,7 @@ export class DataTables extends Disposable {
     return [
       menuItem(
         () => this._duplicateTable(table),
-        'Duplicate Table',
+        t('DuplicateTable'),
         testId('menu-duplicate-table'),
         dom.cls('disabled', use =>
           use(isReadonly) ||
@@ -141,23 +144,23 @@ export class DataTables extends Disposable {
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
         ))
       ),
-      dom.maybe(isReadonly, () => menuText('You do not have edit access to this document')),
+      dom.maybe(isReadonly, () => menuText(t("NoEditAccess"))),
     ];
   }
 
-  private _duplicateTable(t: TableRec) {
-    duplicateTable(this._gristDoc, t.tableId(), {
+  private _duplicateTable(r: TableRec) {
+    duplicateTable(this._gristDoc, r.tableId(), {
       onSuccess: ({raw_section_id}: DuplicateTableResponse) =>
         this._gristDoc.viewModel.activeSectionId(raw_section_id),
     });
   }
 
-  private _removeTable(t: TableRec) {
+  private _removeTable(r: TableRec) {
     const {docModel} = this._gristDoc;
     function doRemove() {
-      return docModel.docData.sendAction(['RemoveTable', t.tableId()]);
+      return docModel.docData.sendAction(['RemoveTable', r.tableId()]);
     }
-    confirmModal(`Delete ${t.formattedTableName()} data, and remove it from all pages?`, 'Delete', doRemove);
+    confirmModal(t("DeleteData", {formattedTableName : r.formattedTableName()}), 'Delete', doRemove);
   }
 
   private _tableRows(table: TableRec) {
