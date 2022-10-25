@@ -35,16 +35,16 @@ export function buildConfirmDelete(
       dom('div', `Are you sure you want to delete ${single ? 'this' : 'these'} record${single ? '' : 's'}?`,
         dom.style('margin-bottom', '10px'),
       ),
+      dom('div',
+        labeledSquareCheckbox(remember, "Don't ask again.", testId('confirm-remember')),
+        dom.style('margin-bottom', '10px'),
+      ),
       cssButtons(
-        dom.style('margin-bottom', '12px'),
         primaryButton('Delete', testId('confirm-save'), dom.on('click', () => {
           onSave(remember.get());
           ctl.close();
         })),
         basicButton('Cancel', testId('confirm-cancel'), dom.on('click', () => ctl.close()))
-      ),
-      dom('div',
-        labeledSquareCheckbox(remember, "Don't ask again.", testId('confirm-remember')),
       )
     ), {}
   );
@@ -60,21 +60,29 @@ export function buildConfirmDelete(
 
 export function showDeprecatedWarning(
   refElement: Element,
-  content: DomContents
+  content: DomContents,
+  onClose: (checked: boolean) => void,
 ) {
+  const remember = observable(false);
   const tooltip = modalTooltip(refElement, (ctl) =>
     cssWideContainer(
       testId('popup-warning-deprecated'),
       elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
       dom.onKeyDown({
-        Escape: () => ctl.close(),
-        Enter: () => ctl.close(),
+        Escape: () => { ctl.close(); onClose(remember.get()); },
+        Enter: () => { ctl.close(); onClose(remember.get()); },
       }),
       content,
       cssButtons(
         dom.style('margin-top', '12px'),
-        dom.style('justify-content', 'right'),
-        basicButton('Close', testId('confirm-cancel'), dom.on('click', () => ctl.close()))
+        dom.style('justify-content', 'space-between'),
+        dom.style('align-items', 'center'),
+        dom('div',
+          labeledSquareCheckbox(remember, "Don't show again.", testId('confirm-remember')),
+        ),
+        basicButton('Dismiss', testId('confirm-save'),
+          dom.on('click', () => { ctl.close(); onClose(remember.get()); })
+        )
       ),
     )
   );
@@ -133,7 +141,7 @@ const cssButtons = styled('div', `
 `);
 
 const cssContainer = styled(cssTheme, `
-  max-width: 210px;
+  max-width: 270px;
 `);
 
 const cssWideContainer = styled(cssTheme, `

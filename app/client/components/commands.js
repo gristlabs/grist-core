@@ -159,9 +159,10 @@ Command.prototype.getDesc = function() {
 /**
  * Returns DOM for the keyboard shortcuts, wrapped in cute boxes that look like keyboard keys.
  */
-Command.prototype.getKeysDom = function() {
+Command.prototype.getKeysDom = function(separator) {
   return dom('span.shortcut_keys',
-    this.humanKeys.map(key => dom('span.shortcut_key_image', key))
+    separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom('span.shortcut_key_image', key)])
+              : this.humanKeys.map(key => dom('span.shortcut_key_image', key))
   );
 };
 

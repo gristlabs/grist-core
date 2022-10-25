@@ -63,28 +63,46 @@ export class DeprecatedCommands extends Disposable {
   }
 
   private _handleCommand(c: Command) {
-    const seenWarnings = this._gristDoc.docPageModel.appModel.deprecatedWarnings;
     if (!this._hasSeenWarning(c.name)) {
-      markAsSeen(seenWarnings, c.name);
-      this._showWarning(c.desc);
+      this._showWarning(c);
       return false; // Stop processing.
     } else {
       return true; // Continue processing.
     }
   }
 
-  private _showWarning(desc: string) {
+  private _showWarning(c: Command) {
     // Try to figure out where to show the message. If we have active view, we can try
     // to find the selected cell and show the message there. Otherwise, we show it in the
     // bottom right corner as a warning.
     const selectedCell = this._gristDoc.currentView.get()?.viewPane.querySelector(".selected_cursor");
+    const seenWarnings = this._gristDoc.docPageModel.appModel.deprecatedWarnings;
+    function onClose(checked: boolean) {
+      if (checked) {
+        // For deprecated zoom commands we have the same messages, so mark them as seen.
+        const zoomCommands: DeprecationWarning[] = [
+          'deprecatedDeleteRecords',
+          'deprecatedInsertRecordAfter',
+          'deprecatedInsertRowBefore',
+        ];
+        if (zoomCommands.includes(c.name as any)) {
+          zoomCommands.forEach((name) => markAsSeen(seenWarnings, name));
+        } else {
+          markAsSeen(seenWarnings, c.name);
+        }
+      }
+    }
     if (!selectedCell) {
-      reportMessage(() => dom('div', this._createMessage(desc)), {
+      reportMessage(() => dom('div', this._createMessage(c.desc)), {
         level: 'info',
         key: 'deprecated-command',
       });
     } else {
-      showDeprecatedWarning(selectedCell, this._createMessage(desc));
+      showDeprecatedWarning(
+        selectedCell,
+        this._createMessage(c.desc),
+        onClose
+      );
     }
   }
 
@@ -103,7 +121,7 @@ export class DeprecatedCommands extends Disposable {
       if (part[0] === '{') {
         const otherCommand = commands.allCommands[part.slice(1, -1)];
         if (otherCommand) {
-          elements.push(otherCommand.getKeysDom());
+          elements.push(otherCommand.getKeysDom(() => dom('span', 'or')));
         }
       } else {
         elements.push(cssTallerText(part));

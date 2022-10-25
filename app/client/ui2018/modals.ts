@@ -9,6 +9,7 @@ import {waitGrainObs} from 'app/common/gutil';
 import {IOpenController, IPopupDomCreator, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
+import {cssMenuElem} from 'app/client/ui2018/menus';
 
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
@@ -492,11 +493,10 @@ export function modalTooltip(
 
 /* CSS styled components */
 
-const cssModalTooltip = styled('div', `
-  padding: 16px;
+const cssModalTooltip = styled(cssMenuElem, `
+  padding: 16px 24px;
   background: ${theme.modalBg};
   border-radius: 3px;
-  box-shadow: 0 2px 18px 0 ${theme.modalInnerShadow}, 0 0 1px 0 ${theme.modalOuterShadow};
   outline: none;
   & > div {
     outline: none;
