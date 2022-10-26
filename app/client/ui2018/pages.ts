@@ -1,5 +1,5 @@
-import {makeT} from 'app/client/lib/localization';
 import { isDesktop } from 'app/client/lib/browserInfo';
+import { makeT } from 'app/client/lib/localization';
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";

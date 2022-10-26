@@ -1,4 +1,4 @@
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
 import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";

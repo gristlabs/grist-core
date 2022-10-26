@@ -3,7 +3,7 @@
  * Takes a `SearchModel` that controls the search behavior.
  */
 import { allCommands, createGroup } from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
 import { hoverTooltip } from 'app/client/ui/tooltips';

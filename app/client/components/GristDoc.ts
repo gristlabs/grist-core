@@ -24,6 +24,7 @@ import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
+import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
@@ -83,8 +84,6 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
-
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('components.GristDoc');
 

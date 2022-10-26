@@ -112,7 +112,7 @@ export function buildACMemberEmail(
         cssMemberPrimaryPlus(t("InviteNewMember")),
         cssMemberSecondaryPlus(
           // dom.text(use => `We'll email an invite to ${use(emailObs)}`)
-          dom.text(use => t('InviteEnail', {email: use(emailObs)})) // TODO i18next
+          dom.text(use => t('InviteEmail', {email: use(emailObs)})) // TODO i18next
         )
       ),
       testId("um-add-email")

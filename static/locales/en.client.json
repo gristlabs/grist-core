@@ -11,7 +11,7 @@
     "ChangePassword":"Change Password",
     "AllowGoogleSigning":"Allow signing in to this account with Google",
     "TwoFactorAuth": "Two-factor authentication",
-    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password",
+    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
     "Theme":"Theme",
     "APIKey":"API Key",
     "WarningUsername":"Names only allow letters, numbers and certain special characters"
@@ -34,7 +34,7 @@
     "AddNew": "Add New"
   },
   "AppHeader": {
-    "HomePage": "Home page",
+    "HomePage": "Home Page",
     "Legacy": "Legacy",
     "PersonalSite": "Personal Site",
     "TeamSite": "Team Site"
@@ -43,7 +43,7 @@
     "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
     "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
     "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
-    "Clicktoshow": "Click to show",
+    "ClickToShow": "Click to show",
     "Create": "Create",
     "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
     "Remove": "Remove",
@@ -84,8 +84,8 @@
     "AllExcept": "All Except",
     "None": "None",
     "NoMatchingValues": "No matching values",
-    "OtherMatching": "Other matching",
-    "OtherNonMatching": "Other non-matching",
+    "OtherMatching": "Other Matching",
+    "OtherNonMatching": "Other Non-Matching",
     "OtherValues": "Other Values",
     "FutureValues": "Future Values",
     "Others": "Others"
@@ -102,8 +102,8 @@
     "Optional": " (optional)",
     "ReadSelectedTable": "Read selected table",
     "SelectCustomWidget": "Select Custom Widget",
-    "WidgetNeedFullAccess": "Widget needs {{fullAcces}} to this document.",
-    "WidgetNeedRead": "Widget needs to {{ read }} the current table.",
+    "WidgetNeedFullAccess": "Widget needs {{fullAccess}} to this document.",
+    "WidgetNeedRead": "Widget needs to {{read}} the current table.",
     "WidgetNoPermissison": "Widget does not require any permissions.",
     "WrongTypesMenuText_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
     "WrongTypesMenuText_others": "{{wrongTypeCount}} non-{{columnType}} columns are not shown"
@@ -167,34 +167,35 @@
     "TimeZone": "Time Zone:",
     "Locale": "Locale:",
     "Currency": "Currency:",
-    "LocalCurrency": "Local currency {{currency}}",
-    "EngineRisk": "Engine (experimental {{- span}} change at own risk):",
-    "Save": "S:ave",
+    "LocalCurrency": "Local currency ({{currency}})",
+    "EngineRisk": "Engine (experimental {{span}} change at own risk):",
+    "Save": "Save",
     "SaveAndReload": "Save and Reload"
   },
   "DuplicateTable": {
     "NewName": "Name for new table",
-    "AdviceWithLink": "Instead of duplicating tables, it's usually better to segment data using linked views. {{- link}}",
+    "AdviceWithLink": "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
     "CopyAllData": "Copy all data in addition to the table structure.",
     "WarningACL": "Only the document default access rules will apply to the copy."
   },
   "errorPages": {
     "AccessDenied": "Access denied{{suffix}}",
     "DeniedOrganizationDocuments": "You do not have access to this organization's documents.",
-    "SignInWithDifferentAccount": "You are signed in as {{- email}}. You can sign in with a different account, or ask an administrator for access.",
+    "SignInWithDifferentAccount": "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.",
     "SignInToAccess": "Sign in to access this organization's documents.",
     "GoToMainPage": "Go to main page",
     "SignIn": "Sign in",
     "AddAcount": "Add account",
     "SignedOut": "Signed out{{suffix}}",
+    "GenericError": "Error{{suffix}}",
     "SignedOutNow": "You are now signed out.",
     "SignedInAgain": "Sign in again",
     "PageNotFound": "Page not found{{suffix}}",
-    "NotFoundMainText": "The requested page could not be found. {{- separator}}Please check the URL and try again.",
+    "NotFoundMainText": "The requested page could not be found.{{separator}}Please check the URL and try again.",
     "ContactSupport": "Contact support",
     "SomethingWentWrong": "Something went wrong",
-    "ErrorHappend_message": "There was an error: {{message}}",
-    "ErrorHappend_unknown": "There was an unknown error."
+    "ErrorHappened_message": "There was an error: {{message}}",
+    "ErrorHappened_unknown": "There was an unknown error."
   },
   "FieldConfig": {
     "ColumnLabel": "COLUMN LABEL AND ID",
@@ -235,8 +236,8 @@
     "UsingSettings_common": "Using common settings",
     "UsingSettings_separate": "Using separate settings",
     "Settings_useseparate": "Use separate settings",
-    "Settings_savecommon": "Save common settings",
-    "Settings_revertcommon": "Revert common settings"
+    "Settings_savecommon": "Save as common settings",
+    "Settings_revertcommon": "Revert to common settings"
   },
   "FilterBar": {
     "AddFilter": "Add Filter"
@@ -249,7 +250,7 @@
   },
   "GridViewMenus": {
     "AddColumn": "Add Column",
-    "ShowColumn": "Show Column {{label}}",
+    "ShowColumn": "Show column {{label}}",
     "ColumnOptions": "Column Options",
     "FilterData": "Filter Data",
     "Sort": "Sort",
@@ -357,7 +358,7 @@
     "Next": "Next"
   },
   "WidgetTitle": {
-    "OverrideTitle": "Override Widget Title",
+    "OverrideTitle": "Override widget title",
     "DataTableName": "DATA TABLE NAME",
     "NewTableName": "Provide a table name",
     "WidgetTitle": "WIDGET TITLE",
@@ -369,7 +370,7 @@
     "ProductDevelopment": "Product Development",
     "FinanceAccounting": "Finance & Accounting",
     "MediaProduction": "Media Production",
-    "ITTechnology": "IT Technology",
+    "ITTechnology": "IT & Technology",
     "Marketing": "Marketing",
     "Research": "Research",
     "Sales": "Sales",
@@ -574,19 +575,19 @@
     "ACUserManager": {
       "InviteNewMember": "Invite new member",
       "EmailInputPlaceholder": "Enter email address",
-      "InviteEnail": "`We'll email an invite to {{emailObs}}"
+      "InviteEmail": "We'll email an invite to {{email}}"
     }
   },
   "models": {
-    "AppModels": {
+    "AppModel": {
       "TeamSiteSuspended": "This team site is suspended. Documents can be read, but not modified."
     },
     "DocPageModel": {
       "ErrorAccessingDocument": "Error accessing document",
       "Reload": "Reload",
-      "ReloadingOrRecoveryMode": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. {{error}}",
-      "AccessError_denied": "Sorry, access to this document has been denied. {{error}}",
-      "AccessError_recover": "Document owners can attempt to recover the document. {{error}}",
+      "ReloadingOrRecoveryMode": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
+      "AccessError_denied": "Sorry, access to this document has been denied. [{{error}}]",
+      "AccessError_recover": "Document owners can attempt to recover the document. [{{error}}]",
       "EnterRecoveryMode": "Enter recovery mode",
       "AddPage": "Add Page",
       "AddWidgetToPage": "Add Widget to Page",
@@ -653,7 +654,7 @@
       "EachYFollowedByTwo":"Each Y series is followed by two series, for top and bottom error bars.",
       "CreateSeparateSeries":"Create separate series for each value of the selected column.",
       "PickColumn":"Pick a column",
-      "SelectedNewGroupDataColumnd":"selected new group data columnd",
+      "SelectedNewGroupDataColumns":"selected new group data columns",
       "ToggleChartAggregation":"Toggle chart aggregation"
     },
     "CodeEditorPanel": {
@@ -696,10 +697,10 @@
       "UnmarkOnDemandButton": "Unmark On-Demand",
       "UnmarkOnDemandText": "If you unmark table {{- table}}' as On-Demand, its data will be loaded into the calculation engine and will be available for use in formulas. For a big table, this may greatly increase load times.{{- br}}{{-br}}Changing this setting will reload the document for all users.",
       "MakeOnDemandTitle": "Make table On-Demand?",
-      "MakeOnDemanButton": "Make On-Demand",
+      "MakeOnDemandButton": "Make On-Demand",
       "MakeOnDemandText": "If you make table {{table}} On-Demand, its data will no longer be loaded into the calculation engine and will not be available for use in formulas. It will remain available for viewing and editing.",
       "AdvancedSettings": "Advanced settings",
-      "BigTablesMaybeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
+      "BigTablesMayBeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
       "UpdateFilterSettings": "Update Filter settings",
       "AddFilter": "Add Filter",
       "Form": "Form",
@@ -731,7 +732,7 @@
       "ImportFailed":"Import failed: "
     },
     "RecordLayout": {
-      "UpdatingRecordLayout.":"Updating record layout."
+      "UpdatingRecordLayout":"Updating record layout."
     },
     "RecordLayoutEditor": {
       "AddField":"Add Field",
@@ -755,7 +756,7 @@
       "Apply":"Apply"
     },
     "ValidationPanel": {
-      "RuleLength":"Rule {{number}}",
+      "RuleLength":"Rule {{length}}",
       "UpdateFormula":"Update formula (Shift+Enter)"
     }
   }

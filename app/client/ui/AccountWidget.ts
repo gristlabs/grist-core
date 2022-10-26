@@ -18,12 +18,12 @@ import {cssMenuItem} from 'popweasel';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 import {makeT} from 'app/client/lib/localization';
 
+const t = makeT('AccountWidget');
+
 /**
  * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
  * button instead.
  */
-
- const t = makeT('AccountWidget');
 export class AccountWidget extends Disposable {
   constructor(private _appModel: AppModel, private _docPageModel?: DocPageModel) {
     super();
@@ -111,7 +111,7 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg || shouldHideUiElement("multiAccounts") ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text((use) => use(users).length > 1 ? t('SwitchAccounts') : 'Accounts')),
+        menuSubHeader(dom.text((use) => use(users).length > 1 ? t('SwitchAccounts') : t('Accounts'))),
         dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),

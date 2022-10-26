@@ -2,9 +2,9 @@ var _ = require('underscore');
 var BackboneEvents = require('backbone').Events;
 
 var dispose = require('app/client/lib/dispose');
+var {makeT} = require('app/client/lib/localization');
 var commands = require('./commands');
 var LayoutEditor = require('./LayoutEditor');
-var  {makeT} = require('app/client/lib/localization');
 
 const t = makeT('components.RecordLayoutEditor');
 const {basicButton, cssButton, primaryButton} = require('app/client/ui2018/buttons');

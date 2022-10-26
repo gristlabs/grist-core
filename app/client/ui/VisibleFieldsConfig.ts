@@ -1,7 +1,7 @@
-import {makeT} from 'app/client/lib/localization';
 import { GristDoc } from "app/client/components/GristDoc";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from 'app/client/lib/koForm';
+import { makeT } from 'app/client/lib/localization';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { getFieldType } from "app/client/ui/RightPanel";

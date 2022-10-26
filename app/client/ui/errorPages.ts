@@ -32,7 +32,7 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
 
   const isAnonym = () => !appModel.currentValidUser;
   const isExternal = () => appModel.currentValidUser?.loginMethod === 'External';
-  return pagePanelsError(appModel, t('AccessDenied'), [
+  return pagePanelsError(appModel, t('AccessDenied', {suffix: ''}), [
     dom.domComputed(appModel.currentValidUser, user => user ? [
       cssErrorText(message || t("DeniedOrganizationDocuments")),
       cssErrorText(t("SignInWithDifferentAccount", {email: dom('b', user.email)})), // TODO: i18next
@@ -58,7 +58,7 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
 export function createSignedOutPage(appModel: AppModel) {
   document.title = t('SignedOut', {suffix: getPageTitleSuffix(getGristConfig())});
 
-  return pagePanelsError(appModel, t('SignedOut'), [ 
+  return pagePanelsError(appModel, t('SignedOut', {suffix: ''}), [ 
     cssErrorText(t('SignedOutNow')),
     cssButtonWrap(bigPrimaryButtonLink(
       t('SignedInAgain'), {href: getLoginUrl()}, testId('error-signin')
@@ -70,9 +70,9 @@ export function createSignedOutPage(appModel: AppModel) {
  * Creates a "Page not found" page.
  */
 export function createNotFoundPage(appModel: AppModel, message?: string) {
-  document.title = t('PageNotFound', {suffix: getPageTitleSuffix(getGristConfig())});//`Page not found${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('PageNotFound', {suffix: getPageTitleSuffix(getGristConfig())});
 
-  return pagePanelsError(appModel, t('PageNotFound'), [
+  return pagePanelsError(appModel, t('PageNotFound', {suffix: ''}), [
     cssErrorText(message || t('NotFoundMainText', {separator: dom('br')})),  // TODO: i18next
     cssButtonWrap(bigPrimaryButtonLink(t('GoToMainPage'), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
@@ -84,11 +84,11 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
  * Creates a generic error page with the given message.
  */
 export function createOtherErrorPage(appModel: AppModel, message?: string) {
-  document.title = `Error${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('GenericError', {suffix: getPageTitleSuffix(getGristConfig())});
 
   return pagePanelsError(appModel, t('SomethingWentWrong'), [
-    cssErrorText(message ? t('ErrorHappend', {context: 'message', message: addPeriod(message)}) :
-      t('ErrorHappened', {context: 'unkown'})),
+    cssErrorText(message ? t('ErrorHappened', {context: 'message', message: addPeriod(message)}) :
+      t('ErrorHappened', {context: 'unknown'})),
     cssButtonWrap(bigPrimaryButtonLink(t('GoToMainPage'), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t('ContactSupport'), {href: 'https://getgrist.com/contact'})),

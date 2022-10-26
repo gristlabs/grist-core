@@ -4,12 +4,11 @@ import {
   IDomArgs, MultiHolder, styled, TagElem
 } from "grainjs";
 import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from 'app/client/lib/localization';
 import { ITooltipControl, showTooltip, tooltipCloseButton } from "app/client/ui/tooltips";
 import { FieldEditorStateEvent } from "app/client/widgets/FieldEditor";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
-
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('components.Drafts');
 

@@ -42,7 +42,7 @@
     "AboutToDeleteAPIkey": "Vous êtes sur le point de supprimer une clé API. Cela causera le rejet de toutes les requêtes futures utilisant cette clé API. Voulez-vous toujours la supprimer ?",
     "AnonymousAPIkey": "Cette clé API peut être utilisée pour accéder à ce compte de manière anonyme via l'API.",
     "ByGenerating": "En générant une clé API, vous pourrez faire des appels API pour votre propre compte.",
-    "Clicktoshow": "Cliquer pour afficher",
+    "ClickToShow": "Cliquer pour afficher",
     "Create": "Créer",
     "OwnAPIKey": "Cette clé API peut être utilisée pour accéder à votre compte via l'API. Ne partagez pas votre clé API avec qui que ce soit.",
     "Remove": "Supprimer",
@@ -101,8 +101,8 @@
     "Optional": " (facultatif)",
     "ReadSelectedTable": "Lire les données source sélectionnées",
     "SelectCustomWidget": "Sélectionner une vue personnalisée",
-    "WidgetNeedFullAccess": "Le widget a besoin de {{fullAcces}} à ce document.",
-    "WidgetNeedRead": "Le widget a besoin de {{ read }} la table actuelle.",
+    "WidgetNeedFullAccess": "Le widget a besoin de {{fullAccess}} à ce document.",
+    "WidgetNeedRead": "Le widget a besoin de {{read}} la table actuelle.",
     "WidgetNoPermissison": "La vue ne nécessite aucune autorisation.",
     "WrongTypesMenuText_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
     "WrongTypesMenuText_others": "{{wrongTypeCount}} non-{{columnType}} columns are not shown"
@@ -166,34 +166,35 @@
     "TimeZone": "Fuseau horaire :",
     "Locale": "Langue :",
     "Currency": "Devise :",
-    "LocalCurrency": "Devise locale {{currency}}",
-    "EngineRisk": "Engine (experimental {{- span}} change at own risk):",
+    "LocalCurrency": "Devise locale ({{currency}})",
+    "EngineRisk": "Engine (experimental {{span}} change at own risk):",
     "Save": "Enregistrer",
     "SaveAndReload": "Enregistrer et recharger"
   },
   "DuplicateTable": {
     "NewName": "Nom de la nouvelle table",
-    "AdviceWithLink": "Au lieu de dupliquer les tables, il est généralement préférable de segmenter les données en utilisant des vues liées. {{- link}}",
+    "AdviceWithLink": "Au lieu de dupliquer les tables, il est généralement préférable de segmenter les données en utilisant des vues liées. {{link}}",
     "CopyAllData": "Copier toutes les données en plus de la structure de la table.",
     "WarningACL": "Seules les règles d'accès par défaut du document s’appliqueront à la copie."
   },
   "errorPages": {
     "AccessDenied": "Accès refusé{{suffix}}",
     "DeniedOrganizationDocuments": "Vous n’avez pas accès aux documents de cette organisation.",
-    "SignInWithDifferentAccount": "Vous êtes connecté en tant que {{- email}}. Vous pouvez vous connecter avec un autre compte ou demander un accès à un administrateur.",
+    "SignInWithDifferentAccount": "Vous êtes connecté en tant que {{email}}. Vous pouvez vous connecter avec un autre compte ou demander un accès à un administrateur.",
     "SignInToAccess": "Connectez-vous pour accéder aux documents de cette organisation.",
     "GoToMainPage": "Aller à la page principale",
     "SignIn": "Connexion",
     "AddAcount": "Ajouter un compte",
     "SignedOut": "Déconnexion{{suffix}}",
     "SignedOutNow": "Vous êtes maintenant déconnecté.",
+    "GenericError": "Erreur{{suffix}}",
     "SignedInAgain": "Reconnectez-vous",
     "PageNotFound": "Page non trouvée{{suffix}}",
-    "NotFoundMainText": "La page demandée n’a pas pu être trouvée. {{- separator}}Veuillez vérifier l’URL et réessayer.",
+    "NotFoundMainText": "La page demandée n’a pas pu être trouvée.{{separator}}Veuillez vérifier l’URL et réessayer.",
     "ContactSupport": "Contacter le support",
     "SomethingWentWrong": "Une erreur s’est produite",
-    "ErrorHappend_message": "Une erreur s’est produite : {{message}}",
-    "ErrorHappend_unknown": "Une erreur inconnue s’est produite."
+    "ErrorHappened_message": "Une erreur s’est produite : {{message}}",
+    "ErrorHappened_unknown": "Une erreur inconnue s’est produite."
   },
   "FieldConfig": {
     "ColumnLabel": "LABEL ET ID DE LA COLONNE",
@@ -572,19 +573,19 @@
     "ACUserManager": {
       "InviteNewMember": "Inviter un nouveau membre",
       "EmailInputPlaceholder": "Entrer votre adresse e-mail",
-      "InviteEnail": "`Nous allons envoyer une invitation à {{emailObs}}"
+      "InviteEmail": "Nous allons envoyer une invitation à {{email}}"
     }
   },
   "models": {
-    "AppModels": {
+    "AppModel": {
       "TeamSiteSuspended": "Le site de cette équipe est suspendu. Les documents peuvent être lus, mais pas modifiés."
     },
     "DocPageModel": {
       "ErrorAccessingDocument": "Erreur lors de l'accès au document",
       "Reload": "Recharger",
-      "ReloadingOrRecoveryMode": "Vous pouvez essayer de recharger le document ou de le passer mode récupération. Le mode de récupération ouvre le document pour être entièrement accessible aux propriétaires, et inaccessible aux autres. Il désactive également les formules. {{error}}",
-      "AccessError_denied": "Désolé, l’accès à ce document a été refusé. {{error}}",
-      "AccessError_recover": "Les propriétaires de documents peuvent tenter de récupérer le document. {{error}}",
+      "ReloadingOrRecoveryMode": "Vous pouvez essayer de recharger le document ou de le passer mode récupération. Le mode de récupération ouvre le document pour être entièrement accessible aux propriétaires, et inaccessible aux autres. Il désactive également les formules. [{{error}}]",
+      "AccessError_denied": "Désolé, l’accès à ce document a été refusé. [{{error}}]",
+      "AccessError_recover": "Les propriétaires de documents peuvent tenter de récupérer le document. [{{error}}]",
       "EnterRecoveryMode": "Passer en mode récupération",
       "AddPage": "Ajouter une page",
       "AddWidgetToPage": "Ajouter une vue à la page",
@@ -651,7 +652,7 @@
       "EachYFollowedByTwo": "Each Y series is followed by two series, for top and bottom error bars.",
       "CreateSeparateSeries": "Créer une série séparée pour chaque valeur de la colonne sélectionnée.",
       "PickColumn": "Choisir une colonne",
-      "SelectedNewGroupDataColumnd": "selected new group data columnd",
+      "SelectedNewGroupDataColumns": "selected new group data columns",
       "ToggleChartAggregation": "Activer/désactiver l'agrégation des graphiques"
     },
     "CodeEditorPanel": {
@@ -694,10 +695,10 @@
       "UnmarkOnDemandButton": "Unmark On-Demand",
       "UnmarkOnDemandText": "If you unmark table {{- table}}' as On-Demand, its data will be loaded into the calculation engine and will be available for use in formulas. For a big table, this may greatly increase load times.{{- br}}{{-br}}Changing this setting will reload the document for all users.",
       "MakeOnDemandTitle": "Rendre la table dynamique ?",
-      "MakeOnDemanButton": "Rendre dynamique",
+      "MakeOnDemandButton": "Rendre dynamique",
       "MakeOnDemandText": "If you make table {{table}} On-Demand, its data will no longer be loaded into the calculation engine and will not be available for use in formulas. It will remain available for viewing and editing.",
       "AdvancedSettings": "Paramètres avancés",
-      "BigTablesMaybeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
+      "BigTablesMayBeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
       "UpdateFilterSettings": "Régler les filtres",
       "AddFilter": "Ajouter un filtre",
       "Form": "Formulaire",
@@ -729,7 +730,7 @@
       "ImportFailed": "Échec de l'importation: "
     },
     "RecordLayout": {
-      "UpdatingRecordLayout.": "Updating record layout."
+      "UpdatingRecordLayout": "Updating record layout."
     },
     "RecordLayoutEditor": {
       "AddField": "Ajouter un champ",
@@ -753,7 +754,7 @@
       "Apply": "Appliquer"
     },
     "ValidationPanel": {
-      "RuleLength": "Règle {{number}}",
+      "RuleLength": "Règle {{length}}",
       "UpdateFormula": "Mettre à jour la formule (Maj+Entrée)"
     }
   }

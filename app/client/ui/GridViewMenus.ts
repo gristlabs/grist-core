@@ -278,9 +278,9 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
-      return t('AddToSort', {count: index + 1, context: 'added'});//`Sorted (#${index + 1})`;
+      return t('AddToSort', {count: index + 1, context: 'added'});
     } else {
-      return t('AddToSort');//'Add to sort';
+      return t('AddToSort');
     }
   }
 }

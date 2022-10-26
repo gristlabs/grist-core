@@ -1,9 +1,9 @@
+import { makeT } from 'app/client/lib/localization';
 import { basicButton, textButton } from 'app/client/ui2018/buttons';
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { confirmModal } from 'app/client/ui2018/modals';
 import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ApiKey');
 
@@ -55,7 +55,7 @@ export class ApiKey extends Disposable {
             },
             dom.attr('type', (use) => use(this._isHidden) ? 'password' : 'text'),
             testId('key'),
-            {title: t('Clicktoshow')},
+            {title: t('ClickToShow')},
             dom.on('click', (_ev, el) => {
               this._isHidden.set(false);
               setTimeout(() => el.select(), 0);

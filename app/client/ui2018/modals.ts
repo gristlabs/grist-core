@@ -1,4 +1,5 @@
 import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/errors';
 import {cssInput} from 'app/client/ui/cssInput';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
@@ -9,7 +10,6 @@ import {waitGrainObs} from 'app/common/gutil';
 import {IOpenController, IPopupDomCreator, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ui2018.modals');
 
@@ -305,7 +305,7 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
       cssModalTitle(options.title, testId('modal-title')),
       cssModalBody(options.body),
       cssModalButtons(
-        bigPrimaryButton(options.saveLabel || t('ui2018.modals.Save'),
+        bigPrimaryButton(options.saveLabel || t('Save'),
           dom.boolAttr('disabled', isSaveDisabled),
           dom.on('click', save),
           testId('modal-confirm'),
@@ -425,7 +425,7 @@ export function invokePrompt(
   const prom = new Promise<string|undefined>((resolve) => {
     onResolve = resolve;
   });
-  promptModal(title, onResolve!, btnText ?? t('ui2018.modals.Ok'), initial, placeholder, () => {
+  promptModal(title, onResolve!, btnText ?? t('Ok'), initial, placeholder, () => {
     if (onResolve) {
       onResolve(undefined);
     }

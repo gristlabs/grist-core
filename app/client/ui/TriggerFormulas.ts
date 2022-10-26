@@ -207,7 +207,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
       menuDivider(),
       cssSelectorItem(
         labeledSquareCheckbox(allUpdates,
-          [t('AnyField'), cssSelectorNote('(except formulas)')]
+          [`${t('AnyField')} `, cssSelectorNote('(except formulas)')]
         ),
       ),
     ),

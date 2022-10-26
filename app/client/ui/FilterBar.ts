@@ -80,7 +80,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
       cssBtn.cls('-grayed'),
       cssIcon('Plus'),
       addFilterMenu(filters, viewSectionRec, popupControls),
-      anyFilter ? null : cssPlusLabel(t('FilterBar.AddFilter')),
+      anyFilter ? null : cssPlusLabel(t('AddFilter')),
       testId('add-filter-btn')
     );
   });

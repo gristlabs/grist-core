@@ -377,7 +377,7 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
     return [
       kf.collapserLabel(isCollapsed, t('AdvancedSettings'), dom.testId('ViewConfig_advanced')),
       kf.helpRow(kd.hide(isCollapsed),
-        t('BigTablesMaybeMarked'),
+        t('BigTablesMayBeMarked'),
         kd.style('text-align', 'left'),
         kd.style('margin-top', '1.5rem')
       ),
@@ -386,7 +386,7 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
       ),
       kf.row(kd.hide(isCollapsed),
         kf.buttonGroup(kf.button(() => this._makeOnDemand(table),
-          kd.text(() => table.onDemand() ? t('UnmarkOnDemandButton') : t('MakeOnDemanButton')),
+          kd.text(() => table.onDemand() ? t('UnmarkOnDemandButton') : t('MakeOnDemandButton')),
           dom.testId('ViewConfig_onDemandBtn')
         ))
       ),

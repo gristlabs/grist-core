@@ -117,7 +117,7 @@ function makeAnonIntro(homeModel: HomeModel) {
   return [
     css.docListHeader(t('Welcome'), testId('welcome-title')),
     cssIntroLine(t('AnonIntroGetStarted')),
-    cssIntroLine(signUp, ' to save your work.', // TODO i18n
+    cssIntroLine(signUp, ' to save your work. ', // TODO i18n
       (shouldHideUiElement('helpCenter') ? null : t('VisitHelpCenter', { link: helpCenterLink() })),
       testId('welcome-text')),
     makeCreateButtons(homeModel),

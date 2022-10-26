@@ -64,7 +64,7 @@ export function colorSelect(
     onSave,
     onOpen,
     onRevert,
-    placeholder = t('DefaultCellStyle'),//'Default cell style',
+    placeholder = t('DefaultCellStyle'),
   } = options;
   const selectBtn = cssSelectBtn(
     cssContent(

@@ -1,5 +1,4 @@
 import {makeT} from 'app/client/lib/localization';
-
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';

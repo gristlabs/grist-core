@@ -9,6 +9,7 @@ import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/Pa
 import {PluginScreen} from 'app/client/components/PluginScreen';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
+import {makeT} from 'app/client/lib/localization';
 import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -34,8 +35,6 @@ import {Computed, dom, DomContents, fromKo, Holder, IDisposable, MultiHolder, Mu
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
-
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('components.Importer');
 

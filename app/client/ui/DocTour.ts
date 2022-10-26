@@ -1,8 +1,7 @@
-import {makeT} from 'app/client/lib/localization';
-
 import {Placement} from '@popperjs/core';
 import {placements} from '@popperjs/core/lib/enums';
 import {DocComm} from 'app/client/components/DocComm';
+import {makeT} from 'app/client/lib/localization';
 import {sameDocumentUrlState} from 'app/client/models/gristUrlState';
 import {cssButtons, cssLinkBtn, cssLinkIcon} from 'app/client/ui/ExampleCard';
 import {IOnBoardingMsg, startOnBoarding} from 'app/client/ui/OnBoardingPopups';

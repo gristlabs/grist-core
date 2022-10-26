@@ -453,7 +453,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
   function deleteDoc() {
     confirmModal(t('DeleteDoc', {name: doc.name}), t('Delete'),
       () => home.deleteDoc(doc.id, false).catch(reportError),
-      t('DocumentMoveToTrash'));//'Document will be moved to Trash.');
+      t('DocumentMoveToTrash'));
   }
 
   async function manageUsers() {

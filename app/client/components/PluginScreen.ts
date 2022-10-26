@@ -1,3 +1,4 @@
+import { makeT } from 'app/client/lib/localization';
 import { bigBasicButton } from 'app/client/ui2018/buttons';
 import { testId } from 'app/client/ui2018/cssVars';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
@@ -5,8 +6,6 @@ import { cssModalButtons, cssModalTitle, IModalControl, modal } from 'app/client
 import { PluginInstance } from 'app/common/PluginInstance';
 import { RenderTarget } from 'app/plugin/RenderOptions';
 import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
-
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('components.PluginScreen');
 

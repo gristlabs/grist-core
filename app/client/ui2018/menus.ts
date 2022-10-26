@@ -1,4 +1,5 @@
 import { Command } from 'app/client/components/commands';
+import { makeT } from 'app/client/lib/localization';
 import { NeedUpgradeError, reportError } from 'app/client/models/errors';
 import { textButton } from 'app/client/ui2018/buttons';
 import { cssCheckboxSquare, cssLabel, cssLabelText } from 'app/client/ui2018/checkbox';
@@ -9,7 +10,6 @@ import { cssSelectBtn } from 'app/client/ui2018/select';
 import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
          MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
 import * as weasel from 'popweasel';
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ui2018.menus');
 

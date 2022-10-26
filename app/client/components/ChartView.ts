@@ -773,7 +773,7 @@ export class ChartConfig extends GrainJSDisposable {
   private async _setGroupDataColumn(colId: string) {
     const viewFields = this._section.viewFields.peek().peek();
 
-    await this._gristDoc.docData.bundleActions(t('SelectedNewGroupDataColumnd'), async () => {
+    await this._gristDoc.docData.bundleActions(t('SelectedNewGroupDataColumns'), async () => {
       this._freezeXAxis.set(true);
       this._freezeYAxis.set(true);
       try {
