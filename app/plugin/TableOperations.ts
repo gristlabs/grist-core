@@ -1,4 +1,4 @@
-import * as Types from 'app/plugin/DocApiTypes';
+import * as Types from './DocApiTypes';
 
 /**
  * Offer CRUD-style operations on a table.
