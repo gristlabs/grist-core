@@ -24,21 +24,6 @@
   background-color: var(--grist-theme-widget-bg, white);
 }
 
-/* TODO should be switched to use new icon */
-.viewsection_drag_indicator {
-  visibility: hidden;
-  top: 1px;
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  padding: 0px;
-}
-
-.viewsection_title:hover .viewsection_drag_indicator.layout_grabbable {
-  visibility: visible;
-  z-index: 100;   /* ensure it's above the resizer line, since it's hard to grab otherwise */
-}
-
 .viewsection_btn {
   display: inline-block;
   padding: 0px 4px;

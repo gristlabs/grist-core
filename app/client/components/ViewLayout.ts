@@ -15,7 +15,7 @@ import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, colors, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
@@ -294,7 +294,8 @@ export function buildViewSectionDom(options: {
     dom.cls('active_section', vs.hasFocus),
     dom.cls('active_section--no-indicator', !focusable),
     dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
-      dom('span.viewsection_drag_indicator.glyphicon.glyphicon-option-vertical',
+      cssDragIcon('DragDrop',
+        dom.cls("viewsection_drag_indicator"),
         // Makes element grabbable only if grist is not readonly.
         dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo)),
         !draggable ? dom.style("visibility", "hidden") : null
@@ -413,6 +414,18 @@ const cssLayoutBox = styled('div', `
       min-height: 40px;
       min-width: 40px;
     }
+  }
+`);
+
+// z-index ensure it's above the resizer line, since it's hard to grab otherwise
+const cssDragIcon = styled(icon, `
+  visibility: hidden;
+  --icon-color: ${colors.slate};
+  top: -1px;
+  z-index: 100;
+
+  .viewsection_title:hover &.layout_grabbable {
+    visibility: visible;
   }
 `);
 
