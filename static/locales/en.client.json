@@ -218,7 +218,7 @@
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"
   },
-  "ExampleInfo": {
+  "ExampleCard": {
     "Title_CRM": "Lightweight CRM",
     "WelcomeTitle_CRM": "Welcome to the Lightweight CRM template",
     "WelcomeText_CRM": "Check out our related tutorial for how to link data, and create high-productivity layouts.",
@@ -250,7 +250,7 @@
   },
   "GridViewMenus": {
     "AddColumn": "Add Column",
-    "ShowColumn": "Show column {{label}}",
+    "ShowColumn": "Show column {{- label}}",
     "ColumnOptions": "Column Options",
     "FilterData": "Filter Data",
     "Sort": "Sort",
@@ -365,7 +365,7 @@
     "Save": "Save",
     "Cancel": "Cancel"
   },
-  "WelcomeQuestion": {
+  "WelcomeQuestions": {
     "WelcomeToGrist": "Welcome to Grist!",
     "ProductDevelopment": "Product Development",
     "FinanceAccounting": "Finance & Accounting",
@@ -392,7 +392,7 @@
     "Delete": "Delete"
   },
   "PageWidgetPicker": {
-    "BuldingWidget": "Building {{label}} widget",
+    "BuildingWidget": "Building {{- label}} widget",
     "SelectWidget": "Select Widget",
     "SelectData": "Select Data",
     "GroupBy": "Group by",
@@ -737,7 +737,7 @@
     "RecordLayoutEditor": {
       "AddField":"Add Field",
       "CreateNewField":"Create New Field",
-      "ShowField":"Show field {{label}}",
+      "ShowField":"Show field {{- label}}",
       "SaveLayout":"Save Layout",
       "Cancel":"Cancel"
     },

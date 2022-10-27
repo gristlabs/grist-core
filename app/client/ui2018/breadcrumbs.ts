@@ -85,8 +85,6 @@ interface PartialWorkspace {
   name: string;
 }
 
-const fiddleExplanation = t('FiddleExplanation');
-
 export function docBreadcrumbs(
   workspace: Observable<PartialWorkspace|null>,
   docName: Observable<string>,
@@ -165,7 +163,7 @@ export function docBreadcrumbs(
           );
         }
         if (use(options.isFiddle)) {
-          return cssTag(t('Fiddle'), tooltip({title: fiddleExplanation}), testId('fiddle-tag'));
+          return cssTag(t('Fiddle'), tooltip({title: t('FiddleExplanation')}), testId('fiddle-tag'));
         }
       }),
       separator(' / ',

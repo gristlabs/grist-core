@@ -56,17 +56,17 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
   });
 }
 
-const choices: Array<{icon: IconName, color: string, text: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, text: t('ProductDevelopment') },
-  {icon: 'UseFinance', color: '#0075A2',       text: t('FinanceAccounting')},
-  {icon: 'UseMedia',   color: '#F7B32B',       text: t('MediaProduction')    },
-  {icon: 'UseMonitor', color: '#F2545B',       text: t('ITTechnology')     },
-  {icon: 'UseChart',   color: '#7141F9',       text: t('Marketing')           },
-  {icon: 'UseScience', color: '#231942',       text: t('Research')            },
-  {icon: 'UseSales',   color: '#885A5A',       text: t('Sales')               },
-  {icon: 'UseEducate', color: '#4A5899',       text: t('Education')           },
-  {icon: 'UseHr',      color: '#688047',       text: t('HRManagement')     },
-  {icon: 'UseOther',   color: '#929299',       text: t('Other')               },
+const choices: Array<{icon: IconName, color: string, textKey: string}> = [
+  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'ProductDevelopment' },
+  {icon: 'UseFinance', color: '#0075A2',              textKey: 'FinanceAccounting'  },
+  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'MediaProduction'    },
+  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'ITTechnology'       },
+  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'          },
+  {icon: 'UseScience', color: '#231942',              textKey: 'Research'           },
+  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'              },
+  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'          },
+  {icon: 'UseHr',      color: '#688047',              textKey: 'HRManagement'       },
+  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'              },
 ];
 
 function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<string>) {
@@ -78,9 +78,9 @@ function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<s
         cssChoice.cls('-selected', selection[i]),
         dom.on('click', () => selection[i].set(!selection[i].get())),
         (item.icon !== 'UseOther' ?
-          item.text :
+          t(item.textKey) :
           [
-            cssOtherLabel(item.text),
+            cssOtherLabel(t(item.textKey)),
             cssOtherInput(otherText, {}, {type: 'text', placeholder: t('TypeHere')},
               // The following subscribes to changes to selection observable, and focuses the input when
               // this item is selected.

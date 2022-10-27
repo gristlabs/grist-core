@@ -504,7 +504,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
 
 export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, workspace: Workspace) {
   function hardDeleteDoc() {
-    confirmModal(t("DeleteForeverDoc", {name: doc.name}), t("DeleteForver"),
+    confirmModal(t("DeleteForeverDoc", {name: doc.name}), t("DeleteForever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
       t('DeleteDocPerma'));
   }

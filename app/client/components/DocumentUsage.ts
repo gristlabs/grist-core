@@ -26,8 +26,6 @@ const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024; // 40MB (2KiB per row
 // Default used by the progress bar to visually indicate attachments size usage.
 const DEFAULT_MAX_ATTACHMENTS_SIZE = 1 * 1024 * 1024 * 1024; // 1GiB
 
-const ACCESS_DENIED_MESSAGE = t('UsageStatisticsOnlyFullAccess');
-
 /**
  * Displays statistics about document usage, such as number of rows used.
  */
@@ -151,7 +149,7 @@ export class DocumentUsage extends Disposable {
     return dom.domComputed((use) => {
       const isAccessDenied = use(this._isAccessDenied);
       if (isAccessDenied === null) { return null; }
-      if (isAccessDenied) { return buildMessage(ACCESS_DENIED_MESSAGE); }
+      if (isAccessDenied) { return buildMessage(t('UsageStatisticsOnlyFullAccess')); }
 
       const org = use(this._currentOrg);
       const product = use(this._currentProduct);

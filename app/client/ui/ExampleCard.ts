@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {IExampleInfo} from 'app/client/ui/ExampleInfo';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -5,6 +6,8 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, styled} from 'grainjs';
 import {AutomaticHelpToolInfo} from "app/client/ui/Tools";
+
+const t = makeT('ExampleCard')
 
 let prevCardClose: (() => void)|null = null;
 
@@ -26,10 +29,10 @@ export function showExampleCard(
   const cardElem = cssCard(
     cssImage({src: example.imgUrl}),
     cssBody(
-      cssTitle(card.title),
-      cssInfo(card.text),
+      cssTitle(t(...card.title)),
+      cssInfo(t(...card.text)),
       cssButtons(
-        cssLinkBtn(cssLinkIcon('Page'), card.tutorialName,
+        cssLinkBtn(cssLinkIcon('Page'), t(...card.tutorialName),
           {href: example.tutorialUrl, target: '_blank'},
         ),
         // TODO: Add a link to the overview video (as popup or to a support page that shows the

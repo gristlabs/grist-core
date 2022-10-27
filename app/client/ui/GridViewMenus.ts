@@ -26,13 +26,13 @@ interface IViewSection {
  */
 export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
   return [
-    menuItem(() => gridView.addNewColumn(), t('AddColumn'),
+    menuItem(() => gridView.addNewColumn(), t('AddColumn')),
     menuDivider(),
     ...viewSection.hiddenColumns().map((col: any) => menuItem(
       () => {
         gridView.showColumn(col.id(), viewSection.viewFields().peekLength);
         // .then(() => gridView.scrollPaneRight());
-      }, t('ShowColumn', {label: col.label()}))))
+      }, t('ShowColumn', {label: col.label()})))
   ];
 }
 export interface IMultiColumnContextMenu {
@@ -242,7 +242,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         numFrozen : numFrozen - length
       };
     } else if (isFirstNormalSet) {
-      text = t('UnfreezeColumn', {count: length});
+      text = t('FreezeColumn', {count: length});
       return {
         text,
         numFrozen : numFrozen + length

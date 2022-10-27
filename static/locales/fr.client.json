@@ -217,7 +217,7 @@
     "MakeIntoDataColumn": "Transformer en colonne de données",
     "TriggerFormula": "TRIGGER FORMULA"
   },
-  "ExampleInfo": {
+  "ExampleCard": {
     "Title_CRM": "CRM léger",
     "WelcomeTitle_CRM": "Bienvenue dans le modèle de CRM léger",
     "WelcomeText_CRM": "Consultez le tutoriel associé pour savoir comment lier des données et créer des mises en page de haute productivité.",
@@ -249,7 +249,7 @@
   },
   "GridViewMenus": {
     "AddColumn": "Ajouter une colonne",
-    "ShowColumn": "Afficher la colonne {{label}}",
+    "ShowColumn": "Afficher la colonne {{- label}}",
     "ColumnOptions": "Options de la colonne",
     "FilterData": "Filtrer les données",
     "Sort": "Trier",
@@ -363,7 +363,7 @@
     "Save": "Enregistrer",
     "Cancel": "Annuler"
   },
-  "WelcomeQuestion": {
+  "WelcomeQuestions": {
     "WelcomeToGrist": "Bienvenue sur Grist !",
     "ProductDevelopment": "Développement de produit",
     "FinanceAccounting": "Finance & comptabilité",
@@ -390,7 +390,7 @@
     "Delete": "Supprimer"
   },
   "PageWidgetPicker": {
-    "BuldingWidget": "Vue {{label}} en construction",
+    "BuildingWidget": "Vue {{- label}} en construction",
     "SelectWidget": "Choisir la vue",
     "SelectData": "Choisir les données source",
     "GroupBy": "Grouper par",
@@ -735,7 +735,7 @@
     "RecordLayoutEditor": {
       "AddField": "Ajouter un champ",
       "CreateNewField": "Créer un nouveau champ",
-      "ShowField": "Afficher le champ {{label}}",
+      "ShowField": "Afficher le champ {{- label}}",
       "SaveLayout": "Enregistrer cette disposition",
       "Cancel": "Annuler"
     },
