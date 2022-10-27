@@ -1,9 +1,9 @@
 ### python 3 requirements, see requirements.txt for python 2
 
 # friendly-traceback and its dependencies, for python 3 only
-friendly-traceback==0.5.46
-stack-data==0.3.0
-executing==0.8.3
+friendly-traceback==0.7.48
+stack-data==0.5.1
+executing==1.1.1
 pure-eval==0.2.2
 
 # openpyxl and its dependencies, for imports, which are python 3 only
