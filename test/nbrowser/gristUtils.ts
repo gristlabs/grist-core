@@ -2030,8 +2030,8 @@ export async function setFont(type: 'bold'|'underline'|'italic'|'strikethrough',
 }
 
 /**
- * Returns the rgb/hex representation of `color` if it's a name (e.g. red, blue, green, white, black, or transparent),
- * or `color` unchanged if it's not a name.
+ * Returns the rgb/hex representation of `color` if it's a name (e.g. red, blue, green, white, black, addRow, or
+ * transparent), or `color` unchanged if it's not a name.
  */
 export function nameToHex(color: string) {
   switch(color) {
@@ -2041,6 +2041,7 @@ export function nameToHex(color: string) {
     case 'white': color = '#FFFFFF'; break;
     case 'black': color = '#000000'; break;
     case 'transparent': color = 'rgba(0, 0, 0, 0)'; break;
+    case 'addRow': color = 'rgba(246, 246, 255, 1)'; break;
   }
   return color;
 }

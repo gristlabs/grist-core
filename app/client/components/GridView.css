@@ -313,10 +313,13 @@
   left: calc(4em + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
   z-index: 1;
 }
-
 /* for data field we need to reuse color from record (add-row and zebra stripes) */
 .gridview_row .record .field.frozen {
-  background-color: inherit;
+  background-color: var(--field-background-color, inherit);
+}
+
+.gridview_row .record.record-add .field.frozen {
+  background-color: inherit !important;  /* important to win over zebra stripes */
 }
 
 /* HACK: add box shadow to fix outline overflow from active cursor */
@@ -326,11 +329,6 @@
 
 .gridview_row .record.record-hlines .field.frozen {
   box-shadow: 0px 1px 0px var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
-}
-
-/* selected field has a transparent color - with frozen fields we can't do it */
-.gridview_row .field.frozen.selected {
-  background-color: var(--grist-theme-selection-opaque-bg, var(--grist-color-selection-opaque));
 }
 
 /* make room for a frozen line by adding margin to first not frozen field - in header and in data */

@@ -53,10 +53,11 @@
 * We can't use background inheritance, because row background color is more important then static (aka default)
 * column color defined on a field (so lower in the dom).
 */
-  background-color: var(--grist-diff-background-color,
-                    var(--grist-column-rule-background-color,
-                    var(--grist-row-rule-background-color,
-                    var(--grist-cell-background-color, unset))));
+  --field-background-color: var(--grist-diff-background-color,
+                            var(--grist-column-rule-background-color,
+                            var(--grist-row-rule-background-color,
+                            var(--grist-cell-background-color))));
+  background-color: var(--field-background-color, unset);
 }
 
 /** Similar order is for detail view, but there is no row rules */
@@ -67,11 +68,11 @@
 }
 
 .record.record-zebra.record-even .field {
-  background-color: var(--grist-diff-background-color,
-                    var(--grist-column-rule-background-color,
-                    var(--grist-row-rule-background-color-zebra,
-                    var(--grist-row-rule-background-color,
-                    var(--grist-cell-background-color, unset)))));
+  --field-background-color: var(--grist-diff-background-color,
+                            var(--grist-column-rule-background-color,
+                            var(--grist-row-rule-background-color-zebra,
+                            var(--grist-row-rule-background-color,
+                            var(--grist-cell-background-color)))));
 }
 
 .record.record-add .field {
