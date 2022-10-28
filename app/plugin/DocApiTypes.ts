@@ -1,4 +1,4 @@
-import { CellValue } from "app/plugin/GristData";
+import { CellValue } from "./GristData";
 
 /**
  * JSON schema for api /record endpoint. Used in POST method for adding new records.

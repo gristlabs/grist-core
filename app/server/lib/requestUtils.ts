@@ -117,7 +117,7 @@ export function matchesBaseDomain(domain: string, baseDomain: string) {
 }
 
 export function isEnvironmentAllowedHost(url: string|URL) {
-  const urlHost = (typeof url === 'string') ? url : url.host;
+  const urlHost = (typeof url === 'string') ? url : url.hostname;
   return (process.env.GRIST_ALLOWED_HOSTS || "").split(",").some(domain =>
     domain && matchesBaseDomain(urlHost, domain)
   );
