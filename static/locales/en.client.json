@@ -40,8 +40,8 @@
     "TeamSite": "Team Site"
   },
   "ApiKey": {
-    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
-    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "AboutToDeleteAPIKey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIKey": "This API key can be used to access this account anonymously via the API.",
     "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
     "ClickToShow": "Click to show",
     "Create": "Create",

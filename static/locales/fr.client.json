@@ -39,8 +39,8 @@
     "TeamSite": "Espace d'équipe"
   },
   "ApiKey": {
-    "AboutToDeleteAPIkey": "Vous êtes sur le point de supprimer une clé API. Cela causera le rejet de toutes les requêtes futures utilisant cette clé API. Voulez-vous toujours la supprimer ?",
-    "AnonymousAPIkey": "Cette clé API peut être utilisée pour accéder à ce compte de manière anonyme via l'API.",
+    "AboutToDeleteAPIKey": "Vous êtes sur le point de supprimer une clé API. Cela causera le rejet de toutes les requêtes futures utilisant cette clé API. Voulez-vous toujours la supprimer ?",
+    "AnonymousAPIKey": "Cette clé API peut être utilisée pour accéder à ce compte de manière anonyme via l'API.",
     "ByGenerating": "En générant une clé API, vous pourrez faire des appels API pour votre propre compte.",
     "ClickToShow": "Cliquer pour afficher",
     "Create": "Créer",
