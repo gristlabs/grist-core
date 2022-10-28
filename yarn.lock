@@ -1275,10 +1275,10 @@ bootstrap-datepicker@1.9.0:
   dependencies:
     jquery ">=1.7.1 <4.0.0"
 
-bootstrap@3.3.5:
-  version "3.3.5"
-  resolved "https://registry.npmjs.org/bootstrap/-/bootstrap-3.3.5.tgz"
-  integrity sha1-F3ereSmbEo2H3OfL2G/cRqxpwLE=
+bootstrap@3.4.1:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-3.4.1.tgz#c3a347d419e289ad11f4033e3c4132b87c081d72"
+  integrity sha512-yN5oZVmRCwe5aKwzRj6736nSmKDX7pLYwsXiCj/EYmo16hODaBiT4En5btW/jhBF/seV+XMx3aYwukYC3A49DA==
 
 bowser@2.7.0:
   version "2.7.0"
