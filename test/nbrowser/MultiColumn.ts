@@ -156,11 +156,14 @@ describe('MultiColumn', function() {
       ]);
       await selectColumns('Test1', 'Test3');
       assert.equal(await columnBehavior(), 'Formula Columns');
+      await alignment('center');
+      assert.equal(await alignment(), 'center');
 
       // Reset all of them
       assert.deepEqual(await gu.availableBehaviorOptions(), ['Convert columns to data', 'Clear and reset']);
       await gu.changeBehavior('Clear and reset');
       assert.equal(await columnBehavior(), 'Empty Columns');
+      assert.equal(await alignment(), 'left');
 
       // Make them all data columns
       await gu.getCell('Test1', 1).click(); await gu.enterCell('a');

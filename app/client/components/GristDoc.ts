@@ -790,11 +790,18 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   // Turn the given columns into empty columns, losing any data stored in them.
-  public async clearColumns(colRefs: number[]): Promise<void> {
+  public async clearColumns(colRefs: number[], {keepType}: {keepType?: boolean} = {}): Promise<void> {
     await this.docModel.columns.sendTableAction(
       ['BulkUpdateRecord', colRefs, {
         isFormula: colRefs.map(f => true),
         formula: colRefs.map(f => ''),
+        ...(keepType ? {} : {
+          type: colRefs.map(f => 'Any'),
+          widgetOptions: colRefs.map(f => ''),
+          visibleCol: colRefs.map(f => null),
+          displayCol: colRefs.map(f => null),
+          rules: colRefs.map(f => null),
+        }),
         // Set recalc settings to defaults when emptying a column.
         recalcWhen: colRefs.map(f => RecalcWhen.DEFAULT),
         recalcDeps: colRefs.map(f => null),

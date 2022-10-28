@@ -135,8 +135,8 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
   const disableForReadonlyView = dom.cls('disabled', options.isReadonly);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
-    t('ClearEntireColumns', {count: num}) :
-    t('ClearColumns', {count: num});
+    t('ResetEntireColumns', {count: num}) :
+    t('ResetColumns', {count: num});
   const nameDeleteColumns = t('DeleteColumns', {count: num});
   const nameHideColumns = t('HideColumns', {count: num});
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);

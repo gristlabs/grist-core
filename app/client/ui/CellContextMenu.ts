@@ -19,11 +19,13 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
   const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
   const numCols: number = colOptions.numColumns;
-  const nameClearColumns = colOptions.isFiltered ? t("ClearEntireColumns", {count: numCols}) : t("ClearColumns", {count: numCols})
-  const nameDeleteColumns = t("DeleteColumns", {count: numCols})
+  const nameClearColumns = colOptions.isFiltered ?
+    t("ResetEntireColumns", {count: numCols}) :
+    t("ResetColumns", {count: numCols});
+  const nameDeleteColumns = t("DeleteColumns", {count: numCols});
 
   const numRows: number = rowOptions.numRows;
-  const nameDeleteRows = t("DeleteRows", {count: numRows})
+  const nameDeleteRows = t("DeleteRows", {count: numRows});
 
   const nameClearCells = (numRows > 1 || numCols > 1) ? t('ClearValues') : t('ClearCell');
 

@@ -692,7 +692,7 @@ export class Importer extends DisposableWithEvents {
                                 return [
                                   menuItem(
                                     async () => {
-                                      await this._gristDoc.clearColumns([sourceColId]);
+                                      await this._gristDoc.clearColumns([sourceColId], {keepType: true});
                                       await this._updateImportDiff(info);
                                     },
                                     'Skip',
