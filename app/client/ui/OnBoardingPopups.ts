@@ -387,11 +387,14 @@ const Footer = styled('div', `
   flex-direction: row;
   margin-top: 32px;
   justify-content: space-between;
+  align-items: center;
 `);
 
 const ProgressBar = styled('div', `
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  row-gap: 12px;
 `);
 
 const Buttons = styled('div', `
