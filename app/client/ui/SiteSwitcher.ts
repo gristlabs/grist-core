@@ -1,11 +1,14 @@
+import {dom, makeTestId, styled} from 'grainjs';
 import {getSingleOrg, shouldHideUiElement} from 'app/common/gristUrls';
 import {getOrgName} from 'app/common/UserAPI';
-import {dom, makeTestId, styled} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {theme} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {icon} from 'app/client/ui2018/icons';
+
+const t = makeT('SiteSwitcher');
 
 const testId = makeTestId('test-site-switcher-');
 
@@ -30,7 +33,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
 
   return [
-    menuSubHeader('Switch Sites'),
+    menuSubHeader(t('SwitchSites')),
     dom.forEach(orgs, (org) =>
       menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
         cssOrgSelected.cls('', appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
@@ -42,7 +45,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
     menuItem(
       () => appModel.showNewSiteModal(),
       menuIcon('Plus'),
-      'Create new team site',
+      t('CreateNewTeamSite'),
       testId('create-new-site'),
     ),
   ];

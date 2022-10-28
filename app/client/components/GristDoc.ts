@@ -24,6 +24,7 @@ import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
+import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
@@ -83,6 +84,8 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+
+const t = makeT('components.GristDoc');
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -307,7 +310,7 @@ export class GristDoc extends DisposableWithEvents {
     const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
     const importMenuItems = [
       {
-        label: 'Import from file',
+        label: t('ImportFromFile'),
         action: () => Importer.selectAndImport(this, importSourceElems, null, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
@@ -592,7 +595,7 @@ export class GristDoc extends DisposableWithEvents {
       }
     }
     const res = await docData.bundleActions(
-      `Added new linked section to view ${viewName}`,
+      t("AddedNewLinkedSection", {viewName}),
       () => this.addWidgetToPageImpl(val, tableId ?? null)
     );
 
@@ -669,7 +672,7 @@ export class GristDoc extends DisposableWithEvents {
     }
 
     return await this._viewLayout!.freezeUntil(docData.bundleActions(
-      `Saved linked section ${section.title()} in view ${viewModel.name()}`,
+      t("SavedLinkedSectionIn", {title:section.title(), name: viewModel.name()}),
       async () => {
 
         // if table changes or a table is made a summary table, let's replace the view section by a

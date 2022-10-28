@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
 import {cssSelectItem} from "app/client/lib/ACSelect";
 import {Autocomplete, IAutocompleteOptions} from "app/client/lib/autocomplete";
@@ -16,6 +17,8 @@ import {
 import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
 import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
 import {cssMenuItem} from "popweasel";
+
+const t = makeT('lib.ACUserManager');
 
 export interface ACUserItem extends ACItem {
   value: string;
@@ -106,9 +109,10 @@ export function buildACMemberEmail(
         cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
         )),
       cssMemberText(
-        cssMemberPrimaryPlus("Invite new member"),
+        cssMemberPrimaryPlus(t("InviteNewMember")),
         cssMemberSecondaryPlus(
-          dom.text(use => `We'll email an invite to ${use(emailObs)}`)
+          // dom.text(use => `We'll email an invite to ${use(emailObs)}`)
+          dom.text(use => t('InviteEmail', {email: use(emailObs)})) // TODO i18next
         )
       ),
       testId("um-add-email")
@@ -139,7 +143,7 @@ export function buildACMemberEmail(
     (emailInput = cssEmailInput(
       emailObs,
       {onInput: true, isValid},
-      {type: "email", placeholder: "Enter email address"},
+      {type: "email", placeholder: t("EmailInputPlaceholder")},
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
       dom.on("click", acOpen),

@@ -12,6 +12,9 @@ import * as gutil from 'app/common/gutil';
 import {Disposable, dom, fromKo, styled} from 'grainjs';
 import ko from 'knockout';
 import {menu, menuItem} from 'popweasel';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('components.RefSelect');
 
 interface Item {
   label: string;
@@ -44,8 +47,8 @@ export class RefSelect extends Disposable {
     // Indicates whether this is a ref col that references a different table.
     // (That's the only time when RefSelect is offered.)
     this.isForeignRefCol = this.autoDispose(ko.computed(() => {
-      const t = this._origColumn.refTable();
-      return Boolean(t && t.getRowId() !== this._origColumn.parentId());
+      const table = this._origColumn.refTable();
+      return Boolean(table && table.getRowId() !== this._origColumn.parentId());
     }));
 
     // Computed for the current fieldBuilder's field, if it exists.
@@ -94,7 +97,7 @@ export class RefSelect extends Disposable {
           testId('ref-select-item'),
         )
       ),
-      cssAddLink(cssAddIcon('Plus'), 'Add Column',
+      cssAddLink(cssAddIcon('Plus'), t('AddColumn'),
         menu(() => [
           ...this._validCols.peek()
             .filter((col) => !this._addedSet.peek().has(col.colId.peek()))
@@ -102,7 +105,7 @@ export class RefSelect extends Disposable {
               menuItem(() => this._addFormulaField({ label: col.label(), value: col.colId() }),
                 col.label.peek())
             ),
-          cssEmptyMenuText("No columns to add"),
+          cssEmptyMenuText(t("NoColumnsAdd")),
           testId('ref-select-menu'),
         ]),
         testId('ref-select-add'),

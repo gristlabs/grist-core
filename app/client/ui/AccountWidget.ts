@@ -16,6 +16,9 @@ import * as roles from 'app/common/roles';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('AccountWidget');
 
 /**
  * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
@@ -33,7 +36,7 @@ export class AccountWidget extends Disposable {
           cssUserIcon(createUserImage(user, 'medium', testId('user-icon')),
             menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
           ) :
-          cssSignInButton('Sign in', icon('Collapse'), testId('user-signin'),
+          cssSignInButton(t('SignIn'), icon('Collapse'), testId('user-signin'),
             menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
           )
         )
@@ -54,24 +57,24 @@ export class AccountWidget extends Disposable {
     // The 'Document Settings' item, when there is an open document.
     const documentSettingsItem = (gristDoc ?
       menuItem(async () => (await loadGristDoc()).showDocSettingsModal(gristDoc.docInfo, this._docPageModel!),
-        'Document Settings',
+        t('DocumentSettings'),
         testId('dm-doc-settings')) :
       null);
 
     // The item to toggle mobile mode (presence of viewport meta tag).
     const mobileModeToggle = menuItem(viewport.toggleViewport,
       cssSmallDeviceOnly.cls(''),   // Only show this toggle on small devices.
-      'Toggle Mobile Mode',
+      t('ToggleMobileMode'),
       cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
       testId('usermenu-toggle-mobile'),
     );
 
     if (!user) {
       return [
-        menuItemLink({href: getLoginOrSignupUrl()}, 'Sign in'),
+        menuItemLink({href: getLoginOrSignupUrl()}, t('SignIn')),
         menuDivider(),
         documentSettingsItem,
-        menuItemLink({href: commonUrls.plans}, 'Pricing'),
+        menuItemLink({href: commonUrls.plans}, t('Pricing')),
         mobileModeToggle,
       ];
     }
@@ -85,14 +88,14 @@ export class AccountWidget extends Disposable {
           cssEmail(user.email, testId('usermenu-email'))
         )
       ),
-      menuItemLink(urlState().setLinkUrl({account: 'account'}), 'Profile Settings'),
+      menuItemLink(urlState().setLinkUrl({account: 'account'}), t('ProfileSettings')),
 
       documentSettingsItem,
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
         menuItem(() => manageTeamUsers(currentOrg, user, this._appModel.api),
-                 roles.canEditAccess(currentOrg.access) ? 'Manage Team' : 'Access Details',
+                 roles.canEditAccess(currentOrg.access) ? t('ManageTeam') : t('AccessDetails'),
                  testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.
         null),
@@ -108,7 +111,7 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg || shouldHideUiElement("multiAccounts") ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text((use) => use(users).length > 1 ? 'Switch Accounts' : 'Accounts')),
+        menuSubHeader(dom.text((use) => use(users).length > 1 ? t('SwitchAccounts') : t('Accounts'))),
         dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),
@@ -116,10 +119,10 @@ export class AccountWidget extends Disposable {
             cssOtherEmail(_user.email, testId('usermenu-other-email')),
           );
         }),
-        isExternal ? null : menuItemLink({href: getLoginUrl()}, "Add Account", testId('dm-add-account')),
+        isExternal ? null : menuItemLink({href: getLoginUrl()}, t("AddAccount"), testId('dm-add-account')),
       ],
 
-      menuItemLink({href: getLogoutUrl()}, "Sign Out", testId('dm-log-out')),
+      menuItemLink({href: getLogoutUrl()}, t("SignOut"), testId('dm-log-out')),
 
       maybeAddSiteSwitcherSection(this._appModel),
     ];

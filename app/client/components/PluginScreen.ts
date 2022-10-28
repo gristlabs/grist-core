@@ -1,3 +1,4 @@
+import { makeT } from 'app/client/lib/localization';
 import { bigBasicButton } from 'app/client/ui2018/buttons';
 import { testId } from 'app/client/ui2018/cssVars';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
@@ -5,6 +6,8 @@ import { cssModalButtons, cssModalTitle, IModalControl, modal } from 'app/client
 import { PluginInstance } from 'app/common/PluginInstance';
 import { RenderTarget } from 'app/plugin/RenderOptions';
 import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
+
+const t = makeT('components.PluginScreen');
 
 /**
  * Rendering options for the PluginScreen modal.
@@ -52,7 +55,7 @@ export class PluginScreen extends Disposable {
   public renderError(message: string) {
     this.render([
       this._buildModalTitle(),
-      cssModalBody('Import failed: ', message, testId('importer-error')),
+      cssModalBody(t('ImportFailed'), message, testId('importer-error')),
       cssModalButtons(
         bigBasicButton('Close',
           dom.on('click', () => this.close()),

@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {colors, testId} from 'app/client/ui2018/cssVars';
@@ -8,6 +9,8 @@ import {BaseAPI} from 'app/common/BaseAPI';
 import {UserPrefs} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, input, Observable, styled, subscribeElem} from 'grainjs';
+
+const t = makeT('WelcomeQuestions');
 
 export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
   if (!(getGristConfig().survey && userPrefsObs.get()?.showNewUserQuestions)) {
@@ -20,9 +23,9 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
     const showQuestions = getUserPrefObs(userPrefsObs, 'showNewUserQuestions');
 
     async function onConfirm() {
-      const selected = choices.filter((c, i) => selection[i].get()).map(c => c.text);
+      const selected = choices.filter((c, i) => selection[i].get()).map(c => t(c.textKey));
       const use_cases = ['L', ...selected];   // Format to populate a ChoiceList column
-      const use_other = selected.includes('Other') ? otherText.get() : '';
+      const use_other = selected.includes(t('Other')) ? otherText.get() : '';
 
       const submitUrl = new URL(window.location.href);
       submitUrl.pathname = '/welcome/info';
@@ -42,7 +45,7 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
     });
 
     return {
-      title: [cssLogo(), dom('div', 'Welcome to Grist!')],
+      title: [cssLogo(), dom('div', t('WelcomeToGrist'))],
       body: buildInfoForm(selection, otherText),
       saveLabel: 'Start using Grist',
       saveFunc: onConfirm,
@@ -53,32 +56,32 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
   });
 }
 
-const choices: Array<{icon: IconName, color: string, text: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, text: 'Product Development' },
-  {icon: 'UseFinance', color: '#0075A2',       text: 'Finance & Accounting'},
-  {icon: 'UseMedia',   color: '#F7B32B',       text: 'Media Production'    },
-  {icon: 'UseMonitor', color: '#F2545B',       text: 'IT & Technology'     },
-  {icon: 'UseChart',   color: '#7141F9',       text: 'Marketing'           },
-  {icon: 'UseScience', color: '#231942',       text: 'Research'            },
-  {icon: 'UseSales',   color: '#885A5A',       text: 'Sales'               },
-  {icon: 'UseEducate', color: '#4A5899',       text: 'Education'           },
-  {icon: 'UseHr',      color: '#688047',       text: 'HR & Management'     },
-  {icon: 'UseOther',   color: '#929299',       text: 'Other'               },
+const choices: Array<{icon: IconName, color: string, textKey: string}> = [
+  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'ProductDevelopment' },
+  {icon: 'UseFinance', color: '#0075A2',              textKey: 'FinanceAccounting'  },
+  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'MediaProduction'    },
+  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'ITTechnology'       },
+  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'          },
+  {icon: 'UseScience', color: '#231942',              textKey: 'Research'           },
+  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'              },
+  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'          },
+  {icon: 'UseHr',      color: '#688047',              textKey: 'HRManagement'       },
+  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'              },
 ];
 
 function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<string>) {
   return [
-    dom('span', 'What brings you to Grist? Please help us serve you better.'),
+    dom('span', t('WhatBringsYouToGrist')),
     cssChoices(
       choices.map((item, i) => cssChoice(
         cssIcon(icon(item.icon), {style: `--icon-color: ${item.color}`}),
         cssChoice.cls('-selected', selection[i]),
         dom.on('click', () => selection[i].set(!selection[i].get())),
         (item.icon !== 'UseOther' ?
-          item.text :
+          t(item.textKey) :
           [
-            cssOtherLabel(item.text),
-            cssOtherInput(otherText, {}, {type: 'text', placeholder: 'Type here'},
+            cssOtherLabel(t(item.textKey)),
+            cssOtherInput(otherText, {}, {type: 'text', placeholder: t('TypeHere')},
               // The following subscribes to changes to selection observable, and focuses the input when
               // this item is selected.
               (elem) => subscribeElem(elem, selection[i], val => val && setTimeout(() => elem.focus(), 0)),

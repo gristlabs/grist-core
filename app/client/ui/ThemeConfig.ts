@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import * as css from 'app/client/ui/AccountPageCss';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -6,6 +7,7 @@ import {ThemeAppearance} from 'app/common/ThemePrefs';
 import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
 
 const testId = makeTestId('test-theme-config-');
+const t = makeT('ThemeConfig');
 
 export class ThemeConfig extends Disposable {
   private _themePrefs = this._appModel.themePrefs;
@@ -24,7 +26,7 @@ export class ThemeConfig extends Disposable {
 
   public buildDom() {
     return dom('div',
-      css.subHeader('Appearance ', css.betaTag('Beta')),
+      css.subHeader(t('Appearance'), css.betaTag('Beta')),
       css.dataRow(
         cssAppearanceSelect(
           select(
@@ -40,7 +42,7 @@ export class ThemeConfig extends Disposable {
       css.dataRow(
         labeledSquareCheckbox(
           this._syncWithOS,
-          'Switch appearance automatically to match system',
+          t('SyncWithOS'),
           testId('sync-with-os'),
         ),
       ),

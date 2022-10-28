@@ -1,3 +1,4 @@
+import { makeT } from "app/client/lib/localization";
 import { allInclusive } from "app/client/models/ColumnFilter";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
@@ -8,6 +9,8 @@ import { icon } from "app/client/ui2018/icons";
 import { menu, menuItemAsync } from "app/client/ui2018/menus";
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
 import { IMenuOptions, PopupControl } from "popweasel";
+
+const t = makeT('FilterBar');
 
 export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec) {
   const popupControls = new WeakMap<ColumnRec, PopupControl>();
@@ -77,7 +80,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
       cssBtn.cls('-grayed'),
       cssIcon('Plus'),
       addFilterMenu(filters, viewSectionRec, popupControls),
-      anyFilter ? null : cssPlusLabel('Add Filter'),
+      anyFilter ? null : cssPlusLabel(t('AddFilter')),
       testId('add-filter-btn')
     );
   });

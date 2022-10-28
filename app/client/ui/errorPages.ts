@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
@@ -12,6 +13,8 @@ import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-');
 
+const t = makeT('errorPages');
+
 export function createErrPage(appModel: AppModel) {
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
   const message = gristConfig.errMessage;
@@ -25,25 +28,24 @@ export function createErrPage(appModel: AppModel) {
  * Creates a page to show that the user has no access to this org.
  */
 export function createForbiddenPage(appModel: AppModel, message?: string) {
-  document.title = `Access denied${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('AccessDenied', {suffix: getPageTitleSuffix(getGristConfig())});
 
   const isAnonym = () => !appModel.currentValidUser;
   const isExternal = () => appModel.currentValidUser?.loginMethod === 'External';
-  return pagePanelsError(appModel, 'Access denied', [
+  return pagePanelsError(appModel, t('AccessDenied', {suffix: ''}), [
     dom.domComputed(appModel.currentValidUser, user => user ? [
-      cssErrorText(message || "You do not have access to this organization's documents."),
-      cssErrorText("You are signed in as ", dom('b', user.email),
-        ". You can sign in with a different account, or ask an administrator for access."),
+      cssErrorText(message || t("DeniedOrganizationDocuments")),
+      cssErrorText(t("SignInWithDifferentAccount", {email: dom('b', user.email)})), // TODO: i18next
     ] : [
       // This page is not normally shown because a logged out user with no access will get
       // redirected to log in. But it may be seen if a user logs out and returns to a cached
       // version of this page or is an external user (connected through GristConnect).
-      cssErrorText("Sign in to access this organization's documents."),
+      cssErrorText(t("SignInToAccess")),
     ]),
     cssButtonWrap(bigPrimaryButtonLink(
-        isExternal() ? 'Go to main page' :
-        isAnonym() ? 'Sign in' :
-        'Add account',
+        isExternal() ? t("GoToMainPage") :
+        isAnonym() ? t("SignIn") :
+        t("AddAcount"),
       {href: isExternal() ? getMainOrgUrl() : getLoginUrl()},
       testId('error-signin'),
     ))
@@ -54,12 +56,12 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
  * Creates a page that shows the user is logged out.
  */
 export function createSignedOutPage(appModel: AppModel) {
-  document.title = `Signed out${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('SignedOut', {suffix: getPageTitleSuffix(getGristConfig())});
 
-  return pagePanelsError(appModel, 'Signed out', [
-    cssErrorText("You are now signed out."),
+  return pagePanelsError(appModel, t('SignedOut', {suffix: ''}), [ 
+    cssErrorText(t('SignedOutNow')),
     cssButtonWrap(bigPrimaryButtonLink(
-      'Sign in again', {href: getLoginUrl()}, testId('error-signin')
+      t('SignedInAgain'), {href: getLoginUrl()}, testId('error-signin')
     ))
   ]);
 }
@@ -68,14 +70,13 @@ export function createSignedOutPage(appModel: AppModel) {
  * Creates a "Page not found" page.
  */
 export function createNotFoundPage(appModel: AppModel, message?: string) {
-  document.title = `Page not found${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('PageNotFound', {suffix: getPageTitleSuffix(getGristConfig())});
 
-  return pagePanelsError(appModel, 'Page not found', [
-    cssErrorText(message || "The requested page could not be found.", dom('br'),
-      "Please check the URL and try again."),
-    cssButtonWrap(bigPrimaryButtonLink('Go to main page', testId('error-primary-btn'),
+  return pagePanelsError(appModel, t('PageNotFound', {suffix: ''}), [
+    cssErrorText(message || t('NotFoundMainText', {separator: dom('br')})),  // TODO: i18next
+    cssButtonWrap(bigPrimaryButtonLink(t('GoToMainPage'), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink('Contact support', {href: 'https://getgrist.com/contact'})),
+    cssButtonWrap(bigBasicButtonLink(t('ContactSupport'), {href: 'https://getgrist.com/contact'})),
   ]);
 }
 
@@ -83,14 +84,14 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
  * Creates a generic error page with the given message.
  */
 export function createOtherErrorPage(appModel: AppModel, message?: string) {
-  document.title = `Error${getPageTitleSuffix(getGristConfig())}`;
+  document.title = t('GenericError', {suffix: getPageTitleSuffix(getGristConfig())});
 
-  return pagePanelsError(appModel, 'Something went wrong', [
-    cssErrorText(message ? `There was an error: ${addPeriod(message)}` :
-      "There was an unknown error."),
-    cssButtonWrap(bigPrimaryButtonLink('Go to main page', testId('error-primary-btn'),
+  return pagePanelsError(appModel, t('SomethingWentWrong'), [
+    cssErrorText(message ? t('ErrorHappened', {context: 'message', message: addPeriod(message)}) :
+      t('ErrorHappened', {context: 'unknown'})),
+    cssButtonWrap(bigPrimaryButtonLink(t('GoToMainPage'), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink('Contact support', {href: 'https://getgrist.com/contact'})),
+    cssButtonWrap(bigBasicButtonLink(t('ContactSupport'), {href: 'https://getgrist.com/contact'})),
   ]);
 }
 

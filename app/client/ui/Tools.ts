@@ -1,8 +1,9 @@
+import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
-import {examples} from 'app/client/ui/ExampleInfo';
+import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
         cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
         cssTools} from 'app/client/ui/LeftPanelCommon';
@@ -17,6 +18,7 @@ import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-tools-');
+const t = makeT('Tools');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const docPageModel = gristDoc.docPageModel;
@@ -31,14 +33,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   updateCanViewAccessRules();
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader("TOOLS"),
+    cssSectionHeader(t("Tools")),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
       dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
         return cssPageLink(
           cssPageIcon('EyeShow'),
-          cssLinkText('Access Rules',
+          cssLinkText(t('AccessRules'),
             menuAnnotate('Beta', cssBetaTag.cls(''))
           ),
           _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
@@ -51,35 +53,35 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
-        cssLinkText('Raw Data'),
+        cssLinkText(t('RawData')),
         testId('raw'),
         urlState().setLinkUrl({docPage: 'data'})
       )
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Log'), cssLinkText('Document History'), testId('log'),
+      cssPageLink(cssPageIcon('Log'), cssLinkText(t('DocumentHistory')), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     // TODO: polish validation and add it back
     dom.maybe((use) => use(gristDoc.app.features).validationsTool, () =>
       cssPageEntry(
-        cssPageLink(cssPageIcon('Validation'), cssLinkText('Validate Data'), testId('validate'),
+        cssPageLink(cssPageIcon('Validation'), cssLinkText(t('ValidateData')), testId('validate'),
           dom.on('click', () => gristDoc.showTool('validations'))))
     ),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
-        cssLinkText('Code View'),
+        cssLinkText(t('CodeView')),
         urlState().setLinkUrl({docPage: 'code'})
       ),
       testId('code'),
     ),
     cssSpacer(),
     dom.maybe(docPageModel.currentDoc, (doc) => {
-      const ex = examples.find(e => e.urlId === doc.urlId);
+      const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
-        cssPageLink(cssPageIcon('Page'), cssLinkText('How-to Tutorial'), testId('tutorial'),
+        cssPageLink(cssPageIcon('Page'), cssLinkText(t('HowToTutorial')), testId('tutorial'),
           {href: ex.tutorialUrl, target: '_blank'},
           cssExampleCardOpener(
             icon('TypeDetails'),
@@ -99,14 +101,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssSplitPageEntry(
         cssPageEntryMain(
           cssPageLink(cssPageIcon('Page'),
-            cssLinkText('Tour of this Document'),
+            cssLinkText(t('DocumentTour')),
             urlState().setLinkUrl({docTour: true}),
             testId('doctour'),
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
           cssPageLink(cssPageIcon('Remove'),
-            dom.on('click', () => confirmModal('Delete document tour?', 'Delete', () =>
+            dom.on('click', () => confirmModal(t('DeleteDocumentTour'), t('Delete'), () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
             ),
             testId('remove-doctour')
@@ -193,7 +195,7 @@ function addRevertViewAsUI() {
     // A tooltip that allows reverting back to yourself.
     hoverTooltip((ctl) =>
       cssConvertTooltip(icon('Convert'),
-        cssLink('Return to viewing as yourself',
+        cssLink(t('ViewingAsYourself'),
           urlState().setHref(userOverrideParams(null, {docPage: 'acl'})),
         ),
         tooltipCloseButton(ctl),

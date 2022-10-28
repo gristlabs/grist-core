@@ -24,8 +24,11 @@ const {confirmModal} = require('app/client/ui2018/modals');
 const {Sort} = require('app/common/SortSpec');
 const isEqual = require('lodash/isEqual');
 const {cssMenuItem} = require('popweasel');
+const {makeT} = require('app/client/lib/localization');
 
 const testId = makeTestId('test-vconfigtab-');
+
+const t = makeT('components.ViewConfigTab');
 
 /**
  * Helper class that combines one ViewSection's data for building dom.
@@ -132,21 +135,21 @@ ViewConfigTab.prototype.buildSortDom = function() {
       cssRow(
         cssExtraMarginTop.cls(''),
         grainjsDom.maybe(hasChanged, () => [
-          primaryButton('Save', {style: 'margin-right: 8px;'},
+          primaryButton(t('Save'), {style: 'margin-right: 8px;'},
             grainjsDom.on('click', () => { section.activeSortJson.save(); }),
             testId('sort-save'),
             grainjsDom.boolAttr('disabled', this.gristDoc.isReadonly),
           ),
           // Let's use same label (revert) as the similar button which appear in the view section.
           // menu.
-          basicButton('Revert',
+          basicButton(t('Revert'),
             grainjsDom.on('click', () => { section.activeSortJson.revert(); }),
             testId('sort-reset')
           )
         ]),
         cssFlex(),
         grainjsDom.maybe(section.isSorted, () =>
-          basicButton('Update Data', {style: 'margin-left: 8px; white-space: nowrap;'},
+          basicButton(t('UpdateData'), {style: 'margin-left: 8px; white-space: nowrap;'},
             grainjsDom.on('click', () => { updatePositions(this.gristDoc, section); }),
             testId('sort-update'),
             grainjsDom.show((use) => use(use(section.table).supportsManualSort)),
@@ -200,9 +203,9 @@ ViewConfigTab.prototype._buildSortRow = function(colRef, sortSpec, columns) {
     });
     return {computed, allowedTypes, flag, label};
   }
-  const orderByChoice = computedFlag('orderByChoice', ['Choice'], 'Use choice position');
-  const naturalSort   = computedFlag('naturalSort', ['Text'], 'Natural sort');
-  const emptyLast     = computedFlag('emptyLast', null, 'Empty values last');
+  const orderByChoice = computedFlag('orderByChoice', ['Choice'], t('UseChoicePosition'));
+  const naturalSort   = computedFlag('naturalSort', ['Text'], t('NaturalSort'));
+  const emptyLast     = computedFlag('emptyLast', null, t('EmptyValuesLast'));
   const flags = [orderByChoice, emptyLast, naturalSort];
 
   const column = columns.get().find(col => col.value === Sort.getColRef(colRef));
@@ -278,7 +281,7 @@ ViewConfigTab.prototype._buildAddToSortBtn = function(columns) {
       grainjsDom.autoDispose(showAddNew),
       grainjsDom.autoDispose(available),
       cssTextBtn(
-        cssPlusIcon('Plus'), 'Add Column',
+        cssPlusIcon('Plus'), t('AddColumn'),
         testId('sort-add')
       ),
       grainjsDom.hide((use) => use(showAddNew) || !use(available).length),
@@ -304,7 +307,7 @@ ViewConfigTab.prototype._buildAddToSortBtn = function(columns) {
       return cssRow(cssSortRow(
         dom.autoDispose(col),
         cssSortSelect(
-          select(col, [], {defaultLabel: 'Add Column'}),
+          select(col, [], {defaultLabel: t('AddColumn')}),
           menu(() => [
             menuCols,
             grainjsDom.onDispose(() => { showAddNew.set(false); })
@@ -372,9 +375,9 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
     const table = sectionData.section.table();
     const isCollapsed = ko.observable(true);
     return [
-      kf.collapserLabel(isCollapsed, 'Advanced settings', dom.testId('ViewConfig_advanced')),
+      kf.collapserLabel(isCollapsed, t('AdvancedSettings'), dom.testId('ViewConfig_advanced')),
       kf.helpRow(kd.hide(isCollapsed),
-        'Big tables may be marked as "on-demand" to avoid loading them into the data engine.',
+        t('BigTablesMayBeMarked'),
         kd.style('text-align', 'left'),
         kd.style('margin-top', '1.5rem')
       ),
@@ -383,7 +386,7 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
       ),
       kf.row(kd.hide(isCollapsed),
         kf.buttonGroup(kf.button(() => this._makeOnDemand(table),
-          kd.text(() => table.onDemand() ? 'Unmark On-Demand' : 'Make On-Demand'),
+          kd.text(() => table.onDemand() ? t('UnmarkOnDemandButton') : t('MakeOnDemandButton')),
           dom.testId('ViewConfig_onDemandBtn')
         ))
       ),
@@ -401,7 +404,7 @@ ViewConfigTab.prototype._buildFilterDom = function() {
     const hasChangedObs = Computed.create(null, (use) => use(section.filterSpecChanged) || !use(section.activeFilterBar.isSaved))
 
     async function save() {
-      await docModel.docData.bundleActions("Update Filter settings", () => Promise.all([
+      await docModel.docData.bundleActions(t("UpdateFilterSettings"), () => Promise.all([
         section.saveFilters(),          // Save filter
         section.activeFilterBar.save(), // Save bar
       ]));
@@ -438,7 +441,7 @@ ViewConfigTab.prototype._buildFilterDom = function() {
         grainjsDom.domComputed((use) => {
           const filters = use(section.filters);
           return cssTextBtn(
-            cssPlusIcon('Plus'), 'Add Filter',
+            cssPlusIcon('Plus'), t('AddFilter'),
             addFilterMenu(filters, section, popupControls, {placement: 'bottom-end'}),
             testId('add-filter-btn'),
           );
@@ -462,12 +465,12 @@ ViewConfigTab.prototype._buildFilterDom = function() {
         cssExtraMarginTop.cls(''),
         testId('save-filter-btns'),
         primaryButton(
-          'Save', {style: 'margin-right: 8px'},
+          t('Save'), {style: 'margin-right: 8px'},
           grainjsDom.on('click', save),
           grainjsDom.boolAttr('disabled', this.gristDoc.isReadonly),
         ),
         basicButton(
-          'Revert',
+          t('Revert'),
           grainjsDom.on('click', revert),
         )
       ))
@@ -484,9 +487,9 @@ ViewConfigTab.prototype._buildThemeDom = function() {
       return cssRow(
         dom.autoDispose(theme),
         select(theme, [
-          {label: 'Form',        value: 'form'   },
-          {label: 'Compact',     value: 'compact'},
-          {label: 'Blocks',      value: 'blocks'  },
+          {label: t('Form'),        value: 'form'   },
+          {label: t('Compact'),     value: 'compact'},
+          {label: t('Blocks'),      value: 'blocks'  },
         ]),
         testId('detail-theme')
       );
@@ -505,7 +508,7 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
       const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
       return cssRow({style: 'margin-top: 16px;'},
         kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
-        primaryButton('Edit Card Layout',
+        primaryButton(t('EditCardLayout'),
           dom.autoDispose(layoutEditorObs),
           dom.on('click', () => commands.allCommands.editLayout.run()),
           grainjsDom.hide(layoutEditorObs),
@@ -553,8 +556,8 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
     // 3)
     showObs: () => activeSection().customDef.mode() === "plugin",
     buildDom: () => kd.scope(activeSection, ({customDef}) => dom('div',
-      kf.row(5, "Plugin: ", 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId('ViewConfigTab_customView_pluginId'))),
-      kf.row(5, "Section: ", 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId('ViewConfigTab_customView_sectionId'))),
+      kf.row(5, t("PluginColon"), 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId('ViewConfigTab_customView_pluginId'))),
+      kf.row(5, t("SectionColon"), 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId('ViewConfigTab_customView_sectionId'))),
       // For both `customPlugin` and `selectedSection` it is possible for the value not to be in the
       // list of options. Combining <datalist> and <input> allows both to freely edit the value with
       // keyboard and to select it from a list. Although the content of the list seems to be

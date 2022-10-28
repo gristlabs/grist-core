@@ -8,6 +8,9 @@ import {cssSelectBtn} from 'app/client/ui2018/select';
 import {isValidHex} from 'app/common/gutil';
 import {BindableValue, Computed, Disposable, dom, Observable, onKeyDown, styled} from 'grainjs';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('ui2018.ColorSelect');
 
 export interface StyleOptions {
   textColor: ColorOption,
@@ -61,7 +64,7 @@ export function colorSelect(
     onSave,
     onOpen,
     onRevert,
-    placeholder = 'Default cell style',
+    placeholder = t('DefaultCellStyle'),
   } = options;
   const selectBtn = cssSelectBtn(
     cssContent(
@@ -185,12 +188,12 @@ function buildColorPicker(ctl: IOpenController,
     }),
 
     cssButtonRow(
-      primaryButton('Apply',
+      primaryButton(t('Apply'),
         dom.on('click', () => ctl.close()),
         dom.boolAttr("disabled", notChanged),
         testId('colors-save')
       ),
-      basicButton('Cancel',
+      basicButton(t('Cancel'),
         dom.on('click', () => revert()),
         testId('colors-cancel')
       )

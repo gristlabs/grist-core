@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {loadSearch} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
@@ -19,6 +20,8 @@ import {waitGrainObs} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 
+const t = makeT('TopBar');
+
 export function createTopBarHome(appModel: AppModel) {
   return [
     cssFlexSpace(),
@@ -26,7 +29,7 @@ export function createTopBarHome(appModel: AppModel) {
     (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
       [
         basicButton(
-          'Manage Team',
+          t('ManageTeam'),
           dom.on('click', () => manageTeamUsersApp(appModel)),
           testId('topbar-manage-team')
         ),

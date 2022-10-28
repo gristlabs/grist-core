@@ -5,6 +5,7 @@
  *
  * Workspace is a clickable link and document and page names are editable labels.
  */
+import {makeT} from 'app/client/lib/localization';
 import { urlState } from 'app/client/models/gristUrlState';
 import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from 'app/client/ui2018/cssVars';
 import { editableLabel } from 'app/client/ui2018/editableLabel';
@@ -14,6 +15,8 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { userOverrideParams } from 'app/common/gristUrls';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
+
+const t = makeT('ui2018.breadcrumbs');
 
 export const cssBreadcrumbs = styled('div', `
   color: ${theme.lightText};
@@ -82,11 +85,6 @@ interface PartialWorkspace {
   name: string;
 }
 
-const fiddleExplanation = (
-  'You may make edits, but they will create a new copy and will\n' +
-    'not affect the original document.'
-);
-
 export function docBreadcrumbs(
   workspace: Observable<PartialWorkspace|null>,
   docName: Observable<string>,
@@ -143,20 +141,20 @@ export function docBreadcrumbs(
       dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
       dom.domComputed((use) => {
         if (options.isSnapshot && use(options.isSnapshot)) {
-          return cssTag('snapshot', testId('snapshot-tag'));
+          return cssTag(t('Snapshot'), testId('snapshot-tag'));
         }
         if (use(options.isFork)) {
-          return cssTag('unsaved', testId('unsaved-tag'));
+          return cssTag(t('Unsaved'), testId('unsaved-tag'));
         }
         if (use(options.isRecoveryMode)) {
-          return cssAlertTag('recovery mode',
+          return cssAlertTag(t('RecoveryMode'),
                              dom('a', dom.on('click', () => options.cancelRecoveryMode()),
                                  icon('CrossSmall')),
                              testId('recovery-mode-tag'));
         }
         const userOverride = use(options.userOverride);
         if (userOverride) {
-          return cssAlertTag(userOverride.user?.email || 'override',
+          return cssAlertTag(userOverride.user?.email || t('Override'),
             dom('a',
               urlState().setHref(userOverrideParams(null)),
               icon('CrossSmall')
@@ -165,7 +163,7 @@ export function docBreadcrumbs(
           );
         }
         if (use(options.isFiddle)) {
-          return cssTag('fiddle', tooltip({title: fiddleExplanation}), testId('fiddle-tag'));
+          return cssTag(t('Fiddle'), tooltip({title: t('FiddleExplanation')}), testId('fiddle-tag'));
         }
       }),
       separator(' / ',

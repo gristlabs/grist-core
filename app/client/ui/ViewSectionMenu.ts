@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, DocModel, ViewSectionRec} from 'app/client/models/DocModel';
 import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
@@ -16,10 +17,11 @@ import {PopupControl} from 'popweasel';
 import difference = require('lodash/difference');
 
 const testId = makeTestId('test-section-menu-');
+const t = makeT('ViewSectionMenu');
 
 // Handler for [Save] button.
 async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
-  await docModel.docData.bundleActions("Update Sort&Filter settings", () => Promise.all([
+  await docModel.docData.bundleActions(t("UpdateSortFilterSettings"), () => Promise.all([
     viewSection.activeSortJson.save(),      // Save sort
     viewSection.saveFilters(),              // Save filter
     viewSection.activeFilterBar.save(),     // Save bar
@@ -92,10 +94,10 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
           // [Save] [Revert] buttons
           dom.domComputed(displaySaveObs, displaySave => [
             displaySave ? cssMenuInfoHeader(
-              cssSaveButton('Save', testId('btn-save'),
+              cssSaveButton(t('Save'), testId('btn-save'),
                             dom.on('click', () => { save(); ctl.close(); }),
                             dom.boolAttr('disabled', isReadonly)),
-              basicButton('Revert', testId('btn-revert'),
+              basicButton(t('Revert'), testId('btn-revert'),
                           dom.on('click', () => { revert(); ctl.close(); }))
             ) : null,
           ]),
@@ -160,7 +162,7 @@ function makeSortPanel(section: ViewSectionRec, sortSpec: Sort.SortSpec, getColu
   });
 
   return [
-    cssMenuInfoHeader('Sorted by', testId('heading-sorted')),
+    cssMenuInfoHeader(t('SortedBy'), testId('heading-sorted')),
     sortColumns.length > 0 ? sortColumns : cssGrayedMenuText('(Default)')
   ];
 }
@@ -181,7 +183,7 @@ export function makeAddFilterButton(viewSectionRec: ViewSectionRec, popupControl
         testId('plus-button'),
         dom.on('click', (ev) => ev.stopPropagation()),
       ),
-      cssMenuTextLabel('Add Filter'),
+      cssMenuTextLabel(t('AddFilter')),
     );
   });
 }
@@ -201,7 +203,7 @@ export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
       }),
     ),
     dom.on('click', () => activeFilterBar(!activeFilterBar.peek())),
-    cssMenuTextLabel("Toggle Filter Bar"),
+    cssMenuTextLabel(t("ToggleFilterBar")),
   );
 }
 
@@ -235,7 +237,7 @@ function makeFilterPanel(section: ViewSectionRec, activeFilters: FilterInfo[],
   });
 
   return [
-    cssMenuInfoHeader('Filtered by', {style: 'margin-top: 4px'}, testId('heading-filtered')),
+    cssMenuInfoHeader(t('FilteredBy'), {style: 'margin-top: 4px'}, testId('heading-filtered')),
     activeFilters.length > 0 ? filters : cssGrayedMenuText('(Not filtered)')
   ];
 }
@@ -247,13 +249,13 @@ function makeCustomOptions(section: ViewSectionRec) {
   const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-gray" : "-green");
   const text = Computed.create(null, use => {
     if (use(section.activeCustomOptions)) {
-      return use(section.activeCustomOptions.isSaved) ? "(customized)" : "(modified)";
+      return use(section.activeCustomOptions.isSaved) ? t("Customized") : t("Modified");
     } else {
-      return "(empty)";
+      return t("Empty");
     }
   });
   return [
-    cssMenuInfoHeader('Custom options', testId('heading-widget-options')),
+    cssMenuInfoHeader(t('CustomOptions'), testId('heading-widget-options')),
     cssMenuText(
       dom.autoDispose(text),
       dom.autoDispose(color),

@@ -3,14 +3,14 @@ import {makeT} from 'app/client/lib/localization';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
 
-const translate = makeT(`AddNewButton`);
+const t = makeT(`AddNewButton`);
 
 export function addNewButton(isOpen: Observable<boolean> | boolean = true, ...args: DomElementArg[]) {
   return cssAddNewButton(
     cssAddNewButton.cls('-open', isOpen),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
-    cssAddText(translate('AddNew')),
+    cssAddText(t('AddNew')),
     dom('div', {style: 'flex: 1 1 16px'}),
     cssPlusButton(cssPlusIcon('Plus')),
     dom('div', {style: 'flex: 0 1 16px'}),

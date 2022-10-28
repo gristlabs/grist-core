@@ -14,7 +14,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomContents, styled} from 'grainjs';
 
-const translate = makeT('HomeIntro');
+const t = makeT('HomeIntro');
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.app.currentOrg?.access === roles.VIEWER;
@@ -37,7 +37,7 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
 export function buildWorkspaceIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.currentWS.get()?.access === roles.VIEWER;
   const isAnonym = !homeModel.app.currentValidUser;
-  const emptyLine = cssIntroLine(testId('empty-workspace-info'), "This workspace is empty.");
+  const emptyLine = cssIntroLine(testId('empty-workspace-info'), t('EmptyWorkspace'));
   if (isAnonym || isViewer) {
     return emptyLine;
   } else {
@@ -58,39 +58,41 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
   const docLink = (dom.maybe(personalOrg, org => {
     return cssLink(
       urlState().setLinkUrl({org: org.domain ?? undefined}),
-      'personal site',
+      t('PersonalSite'),
       testId('welcome-personal-url'));
   }));
   return [
     css.docListHeader(
       dom.autoDispose(personalOrg),
-      `Welcome to ${homeModel.app.currentOrgName}`,
+      t('WelcomeTo', {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
     cssIntroLine(
       testId('welcome-info'),
-      "You have read-only access to this site. Currently there are no documents.", dom('br'),
-      "Any documents created in this site will appear here."),
+      t('WelcomeInfoNoDocuments'),
+      dom('br'),
+      t('WelcomeInfoAppearHere'),
+    ),
     cssIntroLine(
-      'Interested in using Grist outside of your team? Visit your free ', docLink, '.',
+      t('WelcomeTextVistGrist'), docLink, '.',
       testId('welcome-text')
     )
   ];
 }
 
 function makeTeamSiteIntro(homeModel: HomeModel) {
-  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, 'Sprouts Program');
+  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, t('SproutsProgram'));
   return [
     css.docListHeader(
-      `Welcome to ${homeModel.app.currentOrgName}`,
+      t('WelcomeTo', {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
-    cssIntroLine('Get started by inviting your team and creating your first Grist document.'),
+    cssIntroLine(t('TeamSiteIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
       cssIntroLine(
-        'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',
+        'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',  // TODO i18n
         testId('welcome-text')
       )
     ),
@@ -100,10 +102,10 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
 
 function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
-    css.docListHeader(`Welcome to Grist, ${user.name}!`, testId('welcome-title')),
-    cssIntroLine('Get started by creating your first Grist document.'),
+    css.docListHeader(t('WelcomeUser', {name: user.name}), testId('welcome-title')),
+    cssIntroLine(t('PersonalIntroGetStarted')),
     (shouldHideUiElement('helpCenter') ? null :
-      cssIntroLine(translate('VisitHelpCenter', { link: helpCenterLink() }),
+      cssIntroLine(t('VisitHelpCenter', { link: helpCenterLink() }),
         testId('welcome-text'))
     ),
     makeCreateButtons(homeModel),
@@ -111,19 +113,19 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, translate('SignUp'));
+  const signUp = cssLink({href: getLoginOrSignupUrl()}, t('SignUp'));
   return [
-    css.docListHeader(translate('Welcome'), testId('welcome-title')),
-    cssIntroLine('Get started by exploring templates, or creating your first Grist document.'),
-    cssIntroLine(signUp, ' to save your work. ',
-      (shouldHideUiElement('helpCenter') ? null : translate('VisitHelpCenter', { link: helpCenterLink() })),
+    css.docListHeader(t('Welcome'), testId('welcome-title')),
+    cssIntroLine(t('AnonIntroGetStarted')),
+    cssIntroLine(signUp, ' to save your work. ', // TODO i18n
+      (shouldHideUiElement('helpCenter') ? null : t('VisitHelpCenter', { link: helpCenterLink() })),
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];
 }
 
 function helpCenterLink() {
-  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), 'Help Center');
+  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), t('HelpCenter'));
 }
 
 function buildButtons(homeModel: HomeModel, options: {
@@ -134,22 +136,22 @@ function buildButtons(homeModel: HomeModel, options: {
 }) {
   return cssBtnGroup(
     !options.invite ? null :
-    cssBtn(cssBtnIcon('Help'), 'Invite Team Members', testId('intro-invite'),
+    cssBtn(cssBtnIcon('Help'), t('InviteTeamMembers'), testId('intro-invite'),
       cssButton.cls('-primary'),
       dom.on('click', () => manageTeamUsersApp(homeModel.app)),
     ),
     !options.templates ? null :
-    cssBtn(cssBtnIcon('FieldTable'), 'Browse Templates', testId('intro-templates'),
+    cssBtn(cssBtnIcon('FieldTable'), t('BrowseTemplates'), testId('intro-templates'),
       cssButton.cls('-primary'),
       dom.hide(shouldHideUiElement("templates")),
       urlState().setLinkUrl({homePage: 'templates'}),
     ),
     !options.import ? null :
-    cssBtn(cssBtnIcon('Import'), 'Import Document', testId('intro-import-doc'),
+    cssBtn(cssBtnIcon('Import'), t('ImportDocument'), testId('intro-import-doc'),
       dom.on('click', () => importDocAndOpen(homeModel)),
     ),
     !options.empty ? null :
-    cssBtn(cssBtnIcon('Page'), 'Create Empty Document', testId('intro-create-doc'),
+    cssBtn(cssBtnIcon('Page'), t('CreateEmptyDocument'), testId('intro-create-doc'),
       dom.on('click', () => createDocAndOpen(homeModel)),
     ),
   );

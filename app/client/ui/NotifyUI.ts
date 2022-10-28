@@ -1,4 +1,5 @@
 import {beaconOpenMessage, IBeaconOpenOptions} from 'app/client/lib/helpScout';
+import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {ConnectState} from 'app/client/models/ConnectState';
 import {urlState} from 'app/client/models/gristUrlState';
@@ -13,6 +14,8 @@ import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 import {cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
+const t = makeT('NotifyUI');
+
 const testId = makeTestId('test-notifier-');
 
 
@@ -21,10 +24,10 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
   switch (action) {
     case 'upgrade':
       if (appModel) {
-        return cssToastAction('Upgrade Plan', dom.on('click', () =>
+        return cssToastAction(t('UpgradePlan'), dom.on('click', () =>
           appModel.showUpgradeModal()));
       } else {
-        return dom('a', cssToastAction.cls(''), 'Upgrade Plan', {target: '_blank'},
+        return dom('a', cssToastAction.cls(''), t('UpgradePlan'), {target: '_blank'},
           {href: commonUrls.plans});
       }
     case 'renew':
@@ -34,22 +37,22 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       if (appModel && appModel.currentOrg && appModel.currentOrg.billingAccount &&
           !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
-      return dom('a', cssToastAction.cls(''), 'Renew', {target: '_blank'},
+      return dom('a', cssToastAction.cls(''), t('Renew'), {target: '_blank'},
                  {href: urlState().makeUrl({billing: 'billing'})});
 
     case 'personal':
       if (!appModel) { return null; }
-      return cssToastAction('Go to your free personal site', dom.on('click', async () => {
+      return cssToastAction(t('GoToPersonalSite'), dom.on('click', async () => {
         const info = await appModel.api.getSessionAll();
         const orgs = info.orgs.filter(org => org.owner && org.owner.id === appModel.currentUser?.id);
         if (orgs.length !== 1) {
-          throw new Error('Cannot find personal site, sorry!');
+          throw new Error(t('ErrorCannotFindPersonalSite'));
         }
         window.location.assign(urlState().makeUrl({org: orgs[0].domain || undefined}));
       }));
 
     case 'report-problem':
-      return cssToastAction('Report a problem', testId('toast-report-problem'),
+      return cssToastAction(t('ReportProblem'), testId('toast-report-problem'),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));
 
     case 'ask-for-help': {
@@ -57,7 +60,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         error: new Error(item.options.message as string),
         timestamp: item.options.timestamp,
       }];
-      return cssToastAction('Ask for help',
+      return cssToastAction(t('AskForHelp'),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true, errors})));
     }
 
@@ -151,11 +154,11 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
 
     cssDropdownContent(
       cssDropdownHeader(
-        cssDropdownHeaderTitle('Notifications'),
+        cssDropdownHeaderTitle(t('Notifications')),
         shouldHideUiElement("helpCenter") ? null :
         cssDropdownFeedbackLink(
           cssDropdownFeedbackIcon('Feedback'),
-          'Give feedback',
+          t('GiveFeedback'),
           dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
           testId('feedback'),
         )
@@ -168,7 +171,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
       ),
       dom.maybe((use) => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
         cssDropdownStatus(
-          dom('div', cssDropdownStatusText('No notifications')),
+          dom('div', cssDropdownStatusText(t('NoNotifications'))),
         )
       ),
       dom.forEach(dropdownItems, item =>

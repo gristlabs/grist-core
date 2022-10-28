@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
@@ -14,6 +15,8 @@ import {DocSnapshot} from 'app/common/UserAPI';
 import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
 import moment from 'moment';
 
+const t = makeT('DocHistory');
+
 const DocHistorySubTab = StringUnion("activity", "snapshots");
 
 export class DocHistory extends Disposable implements IDomComponent {
@@ -25,8 +28,8 @@ export class DocHistory extends Disposable implements IDomComponent {
 
   public buildDom() {
     const tabs = [
-      {value: 'activity', label: 'Activity'},
-      {value: 'snapshots', label: 'Snapshots'},
+      {value: 'activity', label: t('Activity')},
+      {value: 'snapshots', label: t('Snapshots')},
     ];
     return [
       cssSubTabs(
@@ -87,11 +90,11 @@ export class DocHistory extends Disposable implements IDomComponent {
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
-                  menuItemLink(setLink(snapshot), 'Open Snapshot'),
-                  menuItemLink(setLink(snapshot, origUrlId), 'Compare to Current',
-                    menuAnnotate('Beta')),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), 'Compare to Previous',
-                    menuAnnotate('Beta')),
+                  menuItemLink(setLink(snapshot), t('OpenSnapshot')),
+                  menuItemLink(setLink(snapshot, origUrlId), t('CompareToCurrent'),
+                    menuAnnotate(t('Beta'))),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t('CompareToPrevious'),
+                    menuAnnotate(t('Beta'))),
                 ],
                 {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
               ),

@@ -1,9 +1,12 @@
+import { makeT } from 'app/client/lib/localization';
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
 import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { squareCheckbox } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
 import { Computed, Disposable, dom, IDisposableOwner, styled } from "grainjs";
+
+const t = makeT('GridOptions');
 
 /**
  * Builds the grid options.
@@ -17,23 +20,23 @@ export class GridOptions extends Disposable {
   public buildDom() {
     const section = this._section;
     return [
-      cssLabel('Grid Options'),
+      cssLabel(t('GridOptions')),
       dom('div', [
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines'))),
-          'Vertical Gridlines',
+          t('VerticalGridlines'),
           testId('v-grid-button')
         ),
 
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines'))),
-          'Horizontal Gridlines',
+          t('HorizontalGridlines'),
           testId('h-grid-button')
         ),
 
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes'))),
-          'Zebra Stripes',
+          t('ZebraStripes'),
           testId('zebra-stripe-button')
         ),
 

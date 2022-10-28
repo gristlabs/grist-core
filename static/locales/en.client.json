@@ -1,6 +1,120 @@
 {
+  "AccountPage": {
+    "AccountSettings":"Account settings",
+    "API":"API",
+    "Edit":"Edit",
+    "Email":"Email",
+    "Name":"Name",
+    "Save":"Save",
+    "PasswordSecurity":"Password & Security",
+    "LoginMethod":"Login Method",
+    "ChangePassword":"Change Password",
+    "AllowGoogleSigning":"Allow signing in to this account with Google",
+    "TwoFactorAuth": "Two-factor authentication",
+    "TwoFactorAuthDescription":"Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
+    "Theme":"Theme",
+    "APIKey":"API Key",
+    "WarningUsername":"Names only allow letters, numbers and certain special characters"
+
+  },
+  "AccountWidget":{
+    "SignIn":"Sign in",
+    "DocumentSettings":"Document Settings",
+    "ToggleMobileMode":"Toggle Mobile Mode",
+    "Pricing":"Pricing",
+    "ProfileSettings":"Profile Settings",
+    "ManageTeam":"Manage Team",
+    "AccessDetails":"Access Details",
+    "SwitchAccounts":"Switch Accounts",
+    "Accounts":"Accounts",
+    "AddAccount":"Add Account",
+    "SignOut":"Sign Out"
+  },
   "AddNewButton": {
     "AddNew": "Add New"
+  },
+  "AppHeader": {
+    "HomePage": "Home Page",
+    "Legacy": "Legacy",
+    "PersonalSite": "Personal Site",
+    "TeamSite": "Team Site"
+  },
+  "ApiKey": {
+    "AboutToDeleteAPIkey": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?",
+    "AnonymousAPIkey": "This API key can be used to access this account anonymously via the API.",
+    "ByGenerating": "By generating an API key, you will be able to make API calls for your own account.",
+    "ClickToShow": "Click to show",
+    "Create": "Create",
+    "OwnAPIKey": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
+    "Remove": "Remove",
+    "RemoveAPIKey": "Remove API Key"
+  },
+  "App": {
+    "Description": "Description",
+    "Key": "Key",
+    "MemoryError": "Memory Error"
+  },
+  "CellContextMenu": {
+    "ClearEntireColumns_one": "Clear entire column",
+    "ClearEntireColumns_other": "Clear {{count}} entire columns",
+    "ClearColumns_one": "Clear column",
+    "ClearColumns_other": "Clear {{count}} columns",
+    "DeleteColumns_one": "Delete column",
+    "DeleteColumns_other": "Delete {{count}} columns",
+    "DeleteRows_one": "Delete row",
+    "DeleteRows_other": "Delete {{count}} rows",
+    "ClearValues": "Clear values",
+    "ClearCell": "Clear cell",
+    "CopyAnchorLink": "Copy anchor link",
+    "FilterByValue": "Filter by this value",
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "InsertColumnRight": "Insert column to the right",
+    "InsertColumnLeft": "Insert column to the left"
+  },
+  "ColumnFilterMenu": {
+    "FilterByRange": "Filter by Range",
+    "Search": "Search",
+    "SearchValues": "Search values",
+    "All": "All",
+    "AllShown": "All Shown",
+    "AllExcept": "All Except",
+    "None": "None",
+    "NoMatchingValues": "No matching values",
+    "OtherMatching": "Other Matching",
+    "OtherNonMatching": "Other Non-Matching",
+    "OtherValues": "Other Values",
+    "FutureValues": "Future Values",
+    "Others": "Others"
+  },
+  "CustomSectionConfig": {
+    "Add": "Add",
+    "EnterCustomURL": "Enter Custom URL",
+    "FullDocumentAccess": "Full document access",
+    "LearnMore": "Learn more about custom widgets",
+    "PickAColumn": "Pick a column",
+    "PickAColumnWithType": "Pick a {{columnType}} column",
+    "NoDocumentAccess": "No document access",
+    "OpenConfiguration": "Open configuration",
+    "Optional": " (optional)",
+    "ReadSelectedTable": "Read selected table",
+    "SelectCustomWidget": "Select Custom Widget",
+    "WidgetNeedFullAccess": "Widget needs {{fullAccess}} to this document.",
+    "WidgetNeedRead": "Widget needs to {{read}} the current table.",
+    "WidgetNoPermissison": "Widget does not require any permissions.",
+    "WrongTypesMenuText_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
+    "WrongTypesMenuText_others": "{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+  },
+  "DocHistory": {
+    "Activity": "Activity",
+    "Snapshots": "Snapshots",
+    "OpenSnapshot": "Open Snapshot",
+    "CompareToCurrent": "Compare to Current",
+    "CompareToPrevious": "Compare to Previous",
+    "Beta": "Beta"
   },
   "DocMenu": {
     "OtherSites": "Other Sites",
@@ -8,11 +122,642 @@
     "OtherSitesWelcome_personal": "You are on your personal site. You also have access to the following sites:",
     "AllDocuments": "All Documents",
     "ExamplesAndTemplates": "Examples and Templates",
-    "MoreExamplesAndTemplates": "More Examples and Templates"
+    "MoreExamplesAndTemplates": "More Examples and Templates",
+    "ServiceNotAvailable": "This service is not available right now",
+    "NeedPaidPlan": "(The organization needs a paid plan)",
+    "PinnedDocuments": "Pinned Documents",
+    "Featured": "Featured",
+    "Trash": "Trash",
+    "DocStayInTrash": "Documents stay in Trash for 30 days, after which they get deleted permanently.",
+    "EmptyTrash": "Trash is empty.",
+    "WorkspaceNotFound": "Workspace not found",
+    "Delete": "Delete",
+    "DeleteDoc": "Delete {{name}}",
+    "Deleted": "Deleted {{at}}",
+    "Edited": "Edited {{at}}",
+    "Examples&Templates": "Examples & Templates",
+    "DiscoverMoreTemplates": "Discover More Templates",
+    "ByName": "By Name",
+    "ByDateModified": "By Date Modified",
+    "DocumentMoveToTrash": "Document will be moved to Trash.",
+    "Rename": "Rename",
+    "Move": "Move",
+    "Remove": "Remove",
+    "UnpinDocument": "Unpin Document",
+    "PinDocument": "Pin Document",
+    "AccessDetails": "Access Details",
+    "ManageUsers": "Manage Users",
+    "DeleteForeverDoc": "Permanently Delete \"{{name}}\"?",
+    "DeleteForever": "Delete Forever",
+    "DeleteDocPerma": "Document will be permanently deleted.",
+    "Restore": "Restore",
+    "RestoreThisDocument": "To restore this document, restore the workspace first.",
+    "DeleteWorkspaceForever": "You may delete a workspace forever once it has no documents in it.",
+    "CurrentWorkspace": "Current workspace",
+    "RequiresEditPermissions": "Requires edit permissions",
+    "MoveDocToWorkspace": "Move {{name}} to workspace"
+  },
+  "DocTour": {
+    "InvalidDocTourTitle": "No valid document tour",
+    "InvalidDocTourBody": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
+  },
+  "DocumentSettings": {
+    "DocumentSettings": "Document Settings",
+    "ThisDocumentID": "This document's ID (for API use):",
+    "TimeZone": "Time Zone:",
+    "Locale": "Locale:",
+    "Currency": "Currency:",
+    "LocalCurrency": "Local currency ({{currency}})",
+    "EngineRisk": "Engine (experimental {{span}} change at own risk):",
+    "Save": "Save",
+    "SaveAndReload": "Save and Reload"
+  },
+  "DuplicateTable": {
+    "NewName": "Name for new table",
+    "AdviceWithLink": "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
+    "CopyAllData": "Copy all data in addition to the table structure.",
+    "WarningACL": "Only the document default access rules will apply to the copy."
+  },
+  "errorPages": {
+    "AccessDenied": "Access denied{{suffix}}",
+    "DeniedOrganizationDocuments": "You do not have access to this organization's documents.",
+    "SignInWithDifferentAccount": "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.",
+    "SignInToAccess": "Sign in to access this organization's documents.",
+    "GoToMainPage": "Go to main page",
+    "SignIn": "Sign in",
+    "AddAcount": "Add account",
+    "SignedOut": "Signed out{{suffix}}",
+    "GenericError": "Error{{suffix}}",
+    "SignedOutNow": "You are now signed out.",
+    "SignedInAgain": "Sign in again",
+    "PageNotFound": "Page not found{{suffix}}",
+    "NotFoundMainText": "The requested page could not be found.{{separator}}Please check the URL and try again.",
+    "ContactSupport": "Contact support",
+    "SomethingWentWrong": "Something went wrong",
+    "ErrorHappened_message": "There was an error: {{message}}",
+    "ErrorHappened_unknown": "There was an unknown error."
+  },
+  "FieldConfig": {
+    "ColumnLabel": "COLUMN LABEL AND ID",
+    "ColumnOptionsLimited": "Column options are limited in summary tables.",
+    "ColumnType_formula_one": "Formula Column",
+    "ColumnType_data_one": "Data Column",
+    "ColumnType_empty_one": "Empty Column",
+    "ColumnType_formula_other": "Formula Columns",
+    "ColumnType_data_other": "Data Columns",
+    "ColumnType_empty_other": "Empty Columns",
+    "ColumnType_mixed_other": "Mixed Behavior",
+    "ConvertColumn_formula": "Clear and make into formula",
+    "ConvertColumn_data": "Convert column to data",
+    "ConvertColumn_triggerformula": "Convert to trigger formula",
+    "ClearAndReset": "Clear and reset",
+    "EnterFormula": "Enter formula",
+    "ColumnBehavior": "COLUMN BEHAVIOR",
+    "SetFormula": "Set formula",
+    "SetTriggerFormula": "Set trigger formula",
+    "MakeIntoDataColumn": "Make into data column",
+    "TriggerFormula": "TRIGGER FORMULA"
+  },
+  "ExampleInfo": {
+    "Title_CRM": "Lightweight CRM",
+    "WelcomeTitle_CRM": "Welcome to the Lightweight CRM template",
+    "WelcomeText_CRM": "Check out our related tutorial for how to link data, and create high-productivity layouts.",
+    "WelcomeTutorialName_CRM": "Tutorial: Create a CRM",
+    "Title_investmentResearch": "Investment Research",
+    "WelcomeTitle_investmentResearch": "Welcome to the Investment Research template",
+    "WelcomeText_investmentResearch": "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.",
+    "WelcomeTutorialName_investmentResearch": "Tutorial: Analyze & Visualize",
+    "Title_afterschool": "Afterschool Program",
+    "WelcomeTitle_afterschool": "Welcome to the Afterschool Program template",
+    "WelcomeText_afterschool": "Check out our related tutorial for how to model business data, use formulas, and manage complexity.",
+    "WelcomeTutorialName_afterschool": "Tutorial: Manage Business Data"
+  },
+  "FieldMenus": {
+    "UsingSettings_common": "Using common settings",
+    "UsingSettings_separate": "Using separate settings",
+    "Settings_useseparate": "Use separate settings",
+    "Settings_savecommon": "Save as common settings",
+    "Settings_revertcommon": "Revert to common settings"
+  },
+  "FilterBar": {
+    "AddFilter": "Add Filter"
+  },
+  "GridOptions": {
+    "GridOptions": "Grid Options",
+    "VerticalGridlines": "Vertical Gridlines",
+    "HorizontalGridlines": "Horizontal Gridlines",
+    "ZebraStripes": "Zebra Stripes"
+  },
+  "GridViewMenus": {
+    "AddColumn": "Add Column",
+    "ShowColumn": "Show column {{- label}}",
+    "ColumnOptions": "Column Options",
+    "FilterData": "Filter Data",
+    "Sort": "Sort",
+    "MoreSortOptions": "More sort options ...",
+    "RenameColumn": "Rename column",
+    "ClearEntireColumns_one": "Clear entire column",
+    "ClearEntireColumns_other": "Clear {{count}} entire columns",
+    "ClearColumns_one": "Clear column",
+    "ClearColumns_other": "Clear {{count}} columns",
+    "DeleteColumns_one": "Delete column",
+    "DeleteColumns_other": "Delete {{count}} columns",
+    "HideColumns_one": "Hide column",
+    "HideColumns_other": "Hide {{count}} columns",
+    "ConvertFormulaToData": "Convert formula to data",
+    "ClearValues": "Clear values",
+    "InsertColumn": "Insert column to the {{to}}",
+    "FreezeColumn_one": "Freeze this column",
+    "FreezeColumn_other": "Freeze {{count}} columns",
+    "FreezeColumn_more_one": "Freeze one more columns",
+    "FreezeColumn_more_other": "Freeze {{count}} more columns",
+    "UnfreezeColumn_one": "Unfreeze this column",
+    "UnfreezeColumn_other": "Unfreeze {{count}} columns",
+    "UnfreezeColumn_all_other": "Unfreeze all columns",
+    "AddToSort": "Add to sort",
+    "AddToSort_added": "Sorted (#{{count}})"
   },
   "HomeIntro": {
-    "Welcome": "Welcome to Grist!",
     "SignUp": "Sign up",
-    "VisitHelpCenter": "Visit our {{link}} to learn more."
+    "EmptyWorkspace": "This workspace is empty.",
+    "PersonalSite": "personal site",
+    "WelcomeTo": "Welcome to {{orgName}}",
+    "WelcomeInfoNoDocuments": "You have read-only access to this site. Currently there are no documents.",
+    "WelcomeInfoAppearHere": "Any documents created in this site will appear here.",
+    "WelcomeTextVistGrist": "Interested in using Grist outside of your team? Visit your free ",
+    "SproutsProgram": "Sprouts Program",
+    "WelcomeUser": "Welcome to Grist, {{name}}!",
+    "TeamSiteIntroGetStarted": "Get started by inviting your team and creating your first Grist document.",
+    "OrFindAndExpert": ", or find an expert via our ",
+    "PersonalIntroGetStarted": "Get started by creating your first Grist document.",
+    "AnonIntroGetStarted": "Get started by exploring templates, or creating your first Grist document.",
+    "Welcome": "Welcome to Grist!",
+    "VisitHelpCenter": "Visit our {{link}} to learn more.",
+    "HelpCenter": "Help Center",
+    "InviteTeamMembers": "Invite Team Members",
+    "BrowseTemplates": "Browse Templates",
+    "CreateEmptyDocument": "Create Empty Document",
+    "ImportDocument": "Import Document"
+  },
+  "HomeLeftPane": {
+    "AllDocuments": "All Documents",
+    "ExamplesAndTemplates": "Examples & Templates",
+    "CreateEmptyDocument": "Create Empty Document",
+    "ImportDocument": "Import Document",
+    "CreateWorkspace": "Create Workspace",
+    "Trash": "Trash",
+    "Rename": "Rename",
+    "Delete": "Delete",
+    "Workspaces": "Workspaces",
+    "WorkspaceDeleteTitle": "Delete {{workspace}} and all included documents?",
+    "WorkspaceDeleteText": "Workspace will be moved to Trash.",
+    "ManageUsers": "Manage Users",
+    "AccessDetails": "Access Details"
+  },
+  "LeftPanelCommon": {
+    "HelpCenter": "Help Center"
+  },
+  "MakeCopyMenu": {
+    "CannotEditOriginal": "Replacing the original requires editing rights on the original document.",
+    "Cancel": "Cancel",
+    "UpdateOriginal": "Update Original",
+    "Update": "Update",
+    "WarningOriginalWillBeUpdated": "The original version of this document will be updated.",
+    "OriginalHasModifications": "Original Has Modifications",
+    "Overwrite": "Overwrite",
+    "WarningOverwriteOriginalChanges": "Be careful, the original has changes not in this document. Those changes will be overwritten.",
+    "OriginalLooksUnrelated": "Original Looks Unrelated",
+    "WarningWillBeOverwritten": "It will be overwritten, losing any content not in this document.",
+    "OriginalLooksIdentical": "Original Looks Identical",
+    "WarningAlreadyIdentical": "However, it appears to be already identical.",
+    "SignUp": "Sign up",
+    "ToSaveSignUpAndReload": "To save your changes, please sign up, then reload this page.",
+    "NoDestinationWorkspace": "No destination workspace",
+    "Name": "Name",
+    "EnterDocumentName": "Enter document name",
+    "AsTemplate": "As Template",
+    "IncludeStructureWithoutData": "Include the structure without any of the data.",
+    "Organization": "Organization",
+    "NoWriteAccessToSite": "You do not have write access to this site",
+    "Workspace": "Workspace",
+    "NoWriteAccessToWorkspace": "You do not have write access to the selected workspace"
+  },
+  "NotifyUI": {
+    "UpgradePlan": "Upgrade Plan",
+    "Renew": "Renew",
+    "GoToPersonalSite": "Go to your free personal site",
+    "ErrorCannotFindPersonalSite": "Cannot find personal site, sorry!",
+    "ReportProblem": "Report a problem",
+    "AskForHelp": "Ask for help",
+    "Notifications": "Notifications",
+    "GiveFeedback": "Give feedback",
+    "NoNotifications": "No notifications"
+  },
+  "OnBoardingPopups": {
+    "Finish": "Finish",
+    "Next": "Next"
+  },
+  "WidgetTitle": {
+    "OverrideTitle": "Override widget title",
+    "DataTableName": "DATA TABLE NAME",
+    "NewTableName": "Provide a table name",
+    "WidgetTitle": "WIDGET TITLE",
+    "Save": "Save",
+    "Cancel": "Cancel"
+  },
+  "WelcomeQuestions": {
+    "WelcomeToGrist": "Welcome to Grist!",
+    "ProductDevelopment": "Product Development",
+    "FinanceAccounting": "Finance & Accounting",
+    "MediaProduction": "Media Production",
+    "ITTechnology": "IT & Technology",
+    "Marketing": "Marketing",
+    "Research": "Research",
+    "Sales": "Sales",
+    "Education": "Education",
+    "HRManagement": "HR & Management",
+    "Other": "Other",
+    "WhatBringsYouToGrist": "What brings you to Grist? Please help us serve you better.",
+    "TypeHere": "Type here"
+  },
+  "OpenVideoTour": {
+    "YouTubeVideoPlayer": "YouTube video player",
+    "GristVideoTour": "Grist Video Tour",
+    "VideoTour": "Video Tour"
+  },
+  "Pages": {
+    "TableWillNoLongerBeVisible_one": "The following table will no longer be visible",
+    "TableWillNoLongerBeVisible_other": "The following tables will no longer be visible",
+    "DeleteDataAndPage": "Delete data and this page.",
+    "Delete": "Delete"
+  },
+  "PageWidgetPicker": {
+    "BuildingWidget": "Building {{- label}} widget",
+    "SelectWidget": "Select Widget",
+    "SelectData": "Select Data",
+    "GroupBy": "Group by",
+    "AddToPage": "Add to Page"
+  },
+  "RightPanel": {
+    "Column_one": "Column",
+    "Column_other": "Columns",
+    "Field_one": "Field",
+    "Field_other": "Fields",
+    "Series_one": "Series",
+    "Series_other": "Series",
+    "ColumnType": "COLUMN TYPE",
+    "Transform": "TRANSFORM",
+    "Widget": "Widget",
+    "SortAndFilter": "Sort & Filter",
+    "Data": "Data",
+    "DataTableName": "DATA TABLE NAME",
+    "WidgetTitle": "WIDGET TITLE",
+    "ChangeWidget": "Change Widget",
+    "Theme": "Theme",
+    "RowStyleUpper": "ROW STYLE",
+    "RowStyle": "Row Style",
+    "ChartType": "CHART TYPE",
+    "Custom": "CUSTOM",
+    "Sort": "SORT",
+    "Filter": "FILTER",
+    "DataTable": "DATA TABLE",
+    "SourceData": "SOURCE DATA",
+    "GroupedBy": "GROUPED BY",
+    "EditDataSelection": "Edit Data Selection",
+    "Detach": "Detach",
+    "SelectBy": "SELECT BY",
+    "SelectWidget": "Select Widget",
+    "SelectorFor": "SELECTOR FOR",
+    "Save": "Save",
+    "NoEditAccess": "You do not have edit access to this document"
+  },
+  "RowContextMenu": {
+    "InsertRow": "Insert row",
+    "InsertRowAbove": "Insert row above",
+    "InsertRowBelow": "Insert row below",
+    "DuplicateRows_one": "Duplicate row",
+    "DuplicateRows_other": "Duplicate rows",
+    "Delete": "Delete",
+    "CopyAnchorLink": "Copy anchor link"
+  },
+  "sendToDrive":{
+    "SendingToGoogleDrive":"Sending file to Google Drive"
+  },
+  "ShareMenu":{
+    "BackToCurrent": "Back to Current",
+    "SaveDocument":"Save Document",
+    "SaveCopy":"Save Copy",
+    "Unsaved":"Unsaved",
+    "DuplicateDocument":"Duplicate Document",
+    "ManageUsers":"Manage Users",
+    "AccessDetails":"Access Details",
+    "CurrentVersion":"Current Version",
+    "Original":"Original",
+    "ReturnToTermToUse":"Return to {{termToUse}}",
+    "ReplaceTermToUse":"Replace {{termToUse}}...",
+    "CompareTermToUse":"Compare to {{termToUse}}",
+    "WorkOnCopy":"Work on a Copy",
+    "EditWithoutAffecting":"Edit without affecting the original",
+    "ShowInFolder":"Show in folder",
+    "Download":"Download",
+    "ExportCSV":"Export CSV",
+    "ExportXLSX":"Export XLSX",
+    "SendToGoogleDrive":"Send to Google Drive"
+  },
+  "SiteSwitcher":{
+    "SwitchSites":"Switch Sites",
+    "CreateNewTeamSite":"Create new team site"
+  },
+  "ThemeConfig": {
+    "Appearance": "Appearance ",
+    "SyncWithOS": "Switch appearance automatically to match system"
+  },
+  "Tools": {
+    "Tools": "TOOLS",
+    "AccessRules": "Access Rules",
+    "Data": "Raw Data",
+    "DocumentHistory": "Document History",
+    "ValidateData": "Validate Data",
+    "CodeView": "Code View",
+    "HowToTutorial": "How-to Tutorial",
+    "DocumentTour": "Tour of this Document",
+    "DeleteDocumentTour": "Delete document tour?",
+    "Delete": "Delete",
+    "ViewingAsYourself": "Return to viewing as yourself",
+    "RawData": "Raw Data"
+  },
+  "TopBar": {
+    "ManageTeam": "Manage Team"
+  },
+  "TriggerFormulas": {
+    "AnyField": "Any field",
+    "NewRecords": "Apply to new records",
+    "ChangesTo": "Apply on changes to:",
+    "RecordChanges": "Apply on record changes",
+    "CurrentField": "Current field ",
+    "DataCleaning": "(data cleaning)",
+    "ExceptFormulas": "(except formulas)",
+    "OK": "OK",
+    "Cancel": "Cancel",
+    "Close": "Close"
+  },
+  "VisibleFieldsConfig": {
+    "NoReorderHiddenField": "Hidden Fields cannot be reordered",
+    "NoDropInHiddenField": "Cannot drop items into Hidden Fields",
+    "SelectAll": "Select All",
+    "Clear": "Clear"
+  },
+  "ViewLayoutMenu": {
+    "DeleteRecord": "Delete record",
+    "CopyAnchorLink": "Copy anchor link",
+    "ShowRawData": "Show raw data",
+    "PrintWidget": "Print widget",
+    "DownloadCSV": "Download as CSV",
+    "DownloadXLSX": "Download as XLSX",
+    "EditCardLayout": "Edit Card Layout",
+    "WidgetOptions": "Widget options",
+    "AdvancedSortFilter": "Advanced Sort & Filter",
+    "DataSelection": "Data selection",
+    "OpenConfiguration": "Open configuration",
+    "DeleteWidget": "Delete widget"
+  },
+  "ViewSectionMenu": {
+    "UpdateSortFilterSettings": "Update Sort&Filter settings",
+    "Save": "Save",
+    "Revert": "Revert",
+    "SortedBy": "Sorted by",
+    "AddFilter": "Add Filter",
+    "ToggleFilterBar": "Toggle Filter Bar",
+    "FilteredBy": "Filtered by",
+    "Customized":"(customized)",
+    "Modified":"(modified)",
+    "Empty":"(empty)",
+    "CustomOptions":"Custom options"
+  },
+  "aclui": {
+    "AccessRules": {
+      "Checking": "Checking...",
+      "Saved": "Saved",
+      "Invalid": "Invalid",
+      "Save": "Save",
+      "Reset": "Reset",
+      "AddTableRules": "Add Table Rules",
+      "AddUserAttributes": "Add User Attributes",
+      "Users": "Users",
+      "UserAttributes": "User Attributes",
+      "AttributeToLookUp": "Attribute to Look Up",
+      "LookupTable": "Lookup Table",
+      "LookupColumn": "Lookup Column",
+      "DefaultRules": "Default Rules",
+      "Condition": "Condition",
+      "Permissions": "Permissions",
+      "RulesForTable": "Rules for table ",
+      "AddColumnRule": "Add Column Rule",
+      "AddDefaultRule": "Add Default Rule",
+      "DeleteTableRules": "Delete Table Rules",
+      "SpecialRules": "Special Rules",
+      "AccessRulesDescription": "Allow everyone to view Access Rules.",
+      "FullCopiesDescription": "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.",
+      "AccessRulesName": "Permission to view Access Rules",
+      "FullCopies": "Permission to access the document in full when needed",
+      "AttributeNamePlaceholder": "Attribute name",
+      "Everyone": "Everyone",
+      "EveryoneElse": "Everyone Else",
+      "EnterCondition": "Enter Condition"
+    },
+    "PermissionsWidget": {
+      "AllowAll": "Allow All",
+      "DenyAll": "Deny All",
+      "ReadOnly": "Read Only"
+    }
+  },
+  "lib": {
+    "ACUserManager": {
+      "InviteNewMember": "Invite new member",
+      "EmailInputPlaceholder": "Enter email address",
+      "InviteEmail": "We'll email an invite to {{email}}"
+    }
+  },
+  "models": {
+    "AppModel": {
+      "TeamSiteSuspended": "This team site is suspended. Documents can be read, but not modified."
+    },
+    "DocPageModel": {
+      "ErrorAccessingDocument": "Error accessing document",
+      "Reload": "Reload",
+      "ReloadingOrRecoveryMode": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
+      "AccessError_denied": "Sorry, access to this document has been denied. [{{error}}]",
+      "AccessError_recover": "Document owners can attempt to recover the document. [{{error}}]",
+      "EnterRecoveryMode": "Enter recovery mode",
+      "AddPage": "Add Page",
+      "AddWidgetToPage": "Add Widget to Page",
+      "AddEmptyTable": "Add Empty Table",
+      "NoEditAccess": "You do not have edit access to this document"
+    },
+    "UserManagerModel": {
+      "Owner": "Owner",
+      "Editor": "Editor",
+      "Viewer": "Viewer",
+      "NoDefaultAccess": "No Default Access",
+      "InFull": "In Full",
+      "ViewAndEdit": "View & Edit",
+      "ViewOnly": "View Only",
+      "None": "None"
+    }
+  },
+  "ui2018": {
+    "breadcrumbs": {
+      "FiddleExplanation": "You may make edits, but they will create a new copy and will\nnot affect the original document.",
+      "Snapshot": "snapshot",
+      "Unsaved": "unsaved",
+      "RecoveryMode": "recovery mode",
+      "Override": "override",
+      "Fiddle": "fiddle"
+    },
+    "ColorSelect": {
+      "DefaultCellStyle": "Default cell style",
+      "Apply": "Apply",
+      "Cancel": "Cancel"
+    },
+    "menus": {
+      "SelectFields": "Select fields",
+      "WorkspacesAvailableOnTeamPlans": "* Workspaces are available on team plans. ",
+      "UpgradeNow": "Upgrade now"
+    },
+    "modals": {
+      "Save": "Save",
+      "Cancel": "Cancel",
+      "Ok": "Ok"
+    },
+    "pages": {
+      "Rename": "Rename",
+      "Remove": "Remove",
+      "DuplicatePage": "Duplicate Page",
+      "NoEditAccess": "You do not have edit access to this document"
+    },
+    "search": {
+      "SearchInDocument": "Search in document",
+      "NoResults": "No results",
+      "FindNext": "Find Next ",
+      "FindPrevious": "Find Previous "
+    }
+  },
+  "components": {
+    "ActionLog": {
+      "ActionLogFailed":"Action Log failed to load",
+      "TableRemovedInAction":"Table {{tableId}} was subsequently removed in action #{{actionNum}}",
+      "RowRemovedInAction":"This row was subsequently removed in action {{action.actionNum}}",
+      "ColumnRemovedInAction":"Column {{colId}} was subsequently removed in action #{{action.actionNum}}"
+    },
+    "ChartView": {
+      "EachYFollowedByOne":"Each Y series is followed by a series for the length of error bars.",
+      "EachYFollowedByTwo":"Each Y series is followed by two series, for top and bottom error bars.",
+      "CreateSeparateSeries":"Create separate series for each value of the selected column.",
+      "PickColumn":"Pick a column",
+      "SelectedNewGroupDataColumns":"selected new group data columns",
+      "ToggleChartAggregation":"Toggle chart aggregation"
+    },
+    "CodeEditorPanel": {
+      "AccessDenied":"Access denied",
+      "CodeViewOnlyFullAccess.":"Code View is available only when you have full document access."
+    },
+    "DataTables": {
+      "RawDataTables":"Raw Data Tables",
+      "ClickToCopy":"Click to copy",
+      "TableIDCopied":"Table ID copied to clipboard",
+      "DuplicateTable":"Duplicate Table",
+      "NoEditAccess":"You do not have edit access to this document",
+      "DeleteData":"Delete {{formattedTableName}} data, and remove it from all pages?"
+    },
+    "DocumentUsage": {
+      "UsageStatisticsOnlyFullAccess":"Usage statistics are only available to users with full access to the document data.",
+      "TotalSize":"The total size of all data in this document, excluding attachments.",
+      "Updates":"Updates every 5 minutes.",
+      "AttachmentsSize": "Attachments Size",
+      "DataSize": "Data Size",
+      "Usage": "Usage",
+      "LimitContactSiteOwner": "Contact the site owner to upgrade the plan to raise limits.",
+      "UpgradeLinkText": "start your 30-day free trial of the Pro plan.",
+      "ForHigherLimits": "For higher limits, ",
+      "StatusMessageApproachingLimit": "This document is {{- link}} free plan limits.",
+      "StatusMessageGracePeriod": "Document limits {{- link}}.",
+      "StatusMessageGracePeriodElse": "Document limits {{- link}}. In {{gracePeriodDays}} days, this document will be read-only.",
+      "StatusMessageDeleteOnly": "This document {{- link}} free plan limits and is now read-only, but you can delete rows.",
+      "Rows": "Rows"
+    },
+    "ViewConfigTab": {
+      "Save": "Save",
+      "Revert": "Revert",
+      "UpdateData": "Update Data",
+      "UseChoicePosition": "Use choice position",
+      "NaturalSort": "Natural sort",
+      "EmptyValuesLast": "Empty values last",
+      "AddColumn": "Add Column",
+      "UnmarkOnDemandTitle": "Unmark table On-Demand?",
+      "UnmarkOnDemandButton": "Unmark On-Demand",
+      "UnmarkOnDemandText": "If you unmark table {{- table}}' as On-Demand, its data will be loaded into the calculation engine and will be available for use in formulas. For a big table, this may greatly increase load times.{{- br}}{{-br}}Changing this setting will reload the document for all users.",
+      "MakeOnDemandTitle": "Make table On-Demand?",
+      "MakeOnDemandButton": "Make On-Demand",
+      "MakeOnDemandText": "If you make table {{table}} On-Demand, its data will no longer be loaded into the calculation engine and will not be available for use in formulas. It will remain available for viewing and editing.",
+      "AdvancedSettings": "Advanced settings",
+      "BigTablesMayBeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
+      "UpdateFilterSettings": "Update Filter settings",
+      "AddFilter": "Add Filter",
+      "Form": "Form",
+      "Compact": "Compact",
+      "Blocks": "Blocks",
+      "EditCardLayout": "Edit Card Layout",
+      "PluginColon": "Plugin: ",
+      "SectionColon": "Section: "
+    },
+    "Drafts": { 
+      "UndoDiscard":"Undo discard",
+      "RestoreLastEdit":"Restore last edit"
+    },
+    "duplicatePage": {
+      "DoesNotCopyData":"Note that this does not copy data, but creates another view of the same data.",
+      "DuplicatePageName":"Duplicate page {{pageName}}"
+    },
+    "GristDoc": {
+      "ImportFromFile":"Import from file",
+      "AddedNewLinkedSection":"Added new linked section to view {{viewName}}",
+      "SavedLinkedSectionIn":"Saved linked section {{title}} in view {{name}}"
+    },
+    "Importer": {
+      "UpdateExistingRecords":"Update existing records",
+      "MergeRowsThatMatch":"Merge rows that match these fields:",
+      "SelectFieldsToMatch":"Select fields to match on"
+    },
+    "PluginScreen": {
+      "ImportFailed":"Import failed: "
+    },
+    "RecordLayout": {
+      "UpdatingRecordLayout":"Updating record layout."
+    },
+    "RecordLayoutEditor": {
+      "AddField":"Add Field",
+      "CreateNewField":"Create New Field",
+      "ShowField":"Show field {{- label}}",
+      "SaveLayout":"Save Layout",
+      "Cancel":"Cancel"
+    },
+    "RefSelect": {
+      "AddColumn":"Add Column",
+      "NoColumnsAdd":"No columns to add"
+    },
+    "SelectionSummary": {
+      "CopiedClipboard":"Copied to clipboard"
+    },
+    "TypeTransformation": {
+      "Cancel":"Cancel",
+      "Preview":"Preview",
+      "UpdateFormula":"Update formula (Shift+Enter)",
+      "Revise":"Revise",
+      "Apply":"Apply"
+    },
+    "ValidationPanel": {
+      "RuleLength":"Rule {{length}}",
+      "UpdateFormula":"Update formula (Shift+Enter)"
+    }
   }
 }
