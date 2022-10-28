@@ -4,6 +4,7 @@ import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { hoverTooltip } from 'app/client/ui/tooltips';
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
@@ -106,6 +107,20 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
     ));
 }
 
+export function buildCensoredPage() {
+  return cssPageItem(
+    cssPageInitial(
+      testId('initial'),
+      dom.text('C'),
+    ),
+    cssCensoredPageName(
+      dom.text('CENSORED'),
+      testId('label'),
+    ),
+    hoverTooltip('This page is censored due to access rules.'),
+  );
+}
+
 const cssPageItem = styled('a', `
   display: flex;
   flex-direction: row;
@@ -141,6 +156,10 @@ const cssPageName = styled('div', `
   .${treeViewContainer.className}-close & {
     display: none;
   }
+`);
+
+const cssCensoredPageName = styled(cssPageName, `
+  color: ${theme.disabledPageFg};
 `);
 
 function onHoverSupport(yesNo: boolean) {

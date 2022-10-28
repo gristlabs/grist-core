@@ -5,11 +5,20 @@ import * as ko from 'knockout';
 export interface PageRec extends IRowModel<"_grist_Pages"> {
   view: ko.Computed<ViewRec>;
   isHidden: ko.Computed<boolean>;
+  isCensored: ko.Computed<boolean>;
+  isSpecial: ko.Computed<boolean>;
 }
 
 export function createPageRec(this: PageRec, docModel: DocModel): void {
   this.view = refRecord(docModel.views, this.viewRef);
-  this.isHidden = ko.pureComputed(() => {
+  // Page is hidden when any of this is true:
+  // - It has an empty name (or no name at all)
+  // - It is GristDocTour (unless user wants to see it)
+  // - It is a page generated for a hidden table TODO: Follow up - don't create
+  //   pages for hidden tables.
+  // This is used currently only the left panel, to hide pages from the user.
+  this.isCensored = ko.pureComputed(() => !this.view().name());
+  this.isSpecial = ko.pureComputed(() => {
     const name = this.view().name();
     const isTableHidden = () => {
       const viewId = this.view().id();
@@ -17,12 +26,9 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
       const primaryTable = tables.find(t => t.primaryViewId() === viewId);
       return !!primaryTable && primaryTable.tableId()?.startsWith("GristHidden_");
     };
-    // Page is hidden when any of this is true:
-    // - It has an empty name (or no name at all)
-    // - It is GristDocTour (unless user wants to see it)
-    // - It is a page generated for a hidden table TODO: Follow up - don't create
-    //   pages for hidden tables.
-    // This is used currently only the left panel, to hide pages from the user.
-    return !name || (name === 'GristDocTour' && !docModel.showDocTourTable) || isTableHidden();
+    return (name === 'GristDocTour' && !docModel.showDocTourTable) || isTableHidden();
+  });
+  this.isHidden = ko.pureComputed(() => {
+    return this.isCensored() || this.isSpecial();
   });
 }

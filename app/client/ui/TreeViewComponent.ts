@@ -298,7 +298,7 @@ export class TreeViewComponent extends Disposable {
 
     let headerElement: HTMLElement;
     let labelElement: HTMLElement;
-    let handleElement: HTMLElement;
+    let handleElement: HTMLElement|null = null;
     let offsetElement: HTMLElement;
     let arrowElement: HTMLElement;
 
@@ -329,13 +329,14 @@ export class TreeViewComponent extends Disposable {
           ),
           delayedMouseDrag(this._startDrag.bind(this), this._options.dragStartDelay),
         ),
-        css.itemLabelRight(
+        treeItem.hidden ? null : css.itemLabelRight(
           handleElement = css.centeredIcon('DragDrop',
             dom.style('top', (use) => use(deltaY) + 'px'),
             testId('handle'),
             dom.hide(this._options.isReadonly),
           ),
-          mouseDrag((startEvent, elem) => this._startDrag(startEvent))),
+          mouseDrag((startEvent, elem) => this._startDrag(startEvent))
+        ),
       ),
       ...args
     );

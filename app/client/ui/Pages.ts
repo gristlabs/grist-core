@@ -12,7 +12,7 @@ import {labeledCircleCheckbox} from 'app/client/ui2018/checkbox';
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
-import {buildPageDom, PageActions} from 'app/client/ui2018/pages';
+import {buildCensoredPage, buildPageDom, PageActions} from 'app/client/ui2018/pages';
 import {mod} from 'app/common/gutil';
 import {Computed, Disposable, dom, DomContents, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
 
@@ -24,11 +24,12 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   const buildDom = buildDomFromTable.bind(null, pagesTable, activeDoc);
 
   const records = Computed.create<TreeRecord[]>(owner, (use) =>
-    use(activeDoc.docModel.visibleDocPages).map(page => ({
+    use(activeDoc.docModel.menuPages).map(page => ({
       id: page.getRowId(),
       indentation: use(page.indentation),
       pagePos: use(page.pagePos),
       viewRef: use(page.viewRef),
+      hidden: use(page.isCensored),
     }))
   );
   const getTreeTableData = (): TreeTableData => ({
@@ -58,7 +59,12 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
 const testId = makeTestId('test-removepage-');
 
-function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number) {
+function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number, hidden: boolean) {
+
+  if (hidden) {
+    return buildCensoredPage();
+  }
+
   const {isReadonly} = activeDoc;
   const pageName = pagesTable.rowModels[pageId].view.peek().name;
   const viewId = pagesTable.rowModels[pageId].view.peek().id.peek();

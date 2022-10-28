@@ -7,7 +7,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import values = require('lodash/values');
 
 describe('Pages', function() {
-  this.timeout(20000);
+  this.timeout(30000);
   setupTestSuite();
   let doc: DocCreationInfo;
   let api: UserAPI;
@@ -19,6 +19,124 @@ describe('Pages', function() {
     doc = await session.tempDoc(cleanup, 'Pages.grist');
     api = session.createHomeApi();
   });
+
+  it('should show censor pages', async () => {
+    // Make a 3 level hierarchy.
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents' },
+        ]
+      },
+      {
+        label: 'People', children: [
+          { label: 'User & Leads' },
+          { label: 'Overview' },
+        ]
+      },
+    ]);
+    await insertPage(/Overview/, /User & Leads/);
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents' },
+        ]
+      },
+      {
+        label: 'People', children: [
+          { label: 'User & Leads', children: [{ label: 'Overview' }] },
+        ]
+      },
+    ]);
+    const revertAcl = await gu.beginAclTran(api, doc.id);
+    // Update ACL, hide People table from all users.
+    await hideTable("People");
+    // We will be reloaded, but it's not easy to wait for it, so do the refresh manually.
+    await gu.reloadDoc();
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents'},
+        ]
+      },
+      {
+        label: 'CENSORED', children: [
+          { label: 'User & Leads', children: [{ label: 'Overview' }] },
+        ]
+      },
+    ]);
+
+    // Test that we can't click this page.
+    await driver.findContent('.test-treeview-itemHeader', /CENSORED/).click();
+    await gu.waitForServer();
+    assert.equal(await gu.getSectionTitle(), 'INTERACTIONS');
+
+    // Test that we don't have move handler.
+    assert.isFalse(
+      await driver.findContent('.test-treeview-itemHeaderWrapper', /CENSORED/)
+                  .find('.test-treeview-handle').isPresent()
+    );
+
+    // Now hide User_Leads
+    await hideTable("User_Leads");
+    await gu.reloadDoc();
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents'},
+        ]
+      },
+      {
+        label: 'CENSORED', children: [
+          { label: 'CENSORED', children: [{ label: 'Overview' }] },
+        ]
+      },
+    ]);
+
+    // Now hide Overview, and test that whole node is hidden.
+    await hideTable("Overview");
+    await gu.reloadDoc();
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents'},
+        ]
+      }
+    ]);
+
+    // Now hide Documents, this is a leaf, so it should be hidden from the start
+    await hideTable("Documents");
+    await gu.reloadDoc();
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions'
+      }
+    ]);
+
+    // Now hide Interactions, we should have a blank treeview
+    await hideTable("Interactions");
+    // We can wait for doc to load, because it waits for section.
+    await driver.findWait(".test-treeview-container", 1000);
+    assert.deepEqual(await gu.getPageTree(), []);
+
+    // Rollback
+    await revertAcl();
+    await gu.reloadDoc();
+    assert.deepEqual(await gu.getPageTree(), [
+      {
+        label: 'Interactions', children: [
+          { label: 'Documents' },
+        ]
+      },
+      {
+        label: 'People', children: [
+          { label: 'User & Leads', children: [{ label: 'Overview' }] },
+        ]
+      },
+    ]);
+    await gu.undo();
+  });
+
 
   it('should list all pages in document', async () => {
 
@@ -122,8 +240,7 @@ describe('Pages', function() {
     // revert changes
     await gu.undo(2);
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
-
-  })
+  });
 
   it('should not allow blank page name', async () => {
     // Begin renaming of People page
@@ -403,7 +520,7 @@ describe('Pages', function() {
 
   it('should not throw JS errors when removing the current page without a slug', async () => {
     // Create and open new document
-    const docId = await session.tempNewDoc(cleanup, "test-page-removal-js-error")
+    const docId = await session.tempNewDoc(cleanup, "test-page-removal-js-error");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
     await gu.waitForUrl('test-page-removal-js-error');
 
@@ -442,7 +559,7 @@ describe('Pages', function() {
 
   it('should offer a way to delete last tables', async () => {
     // Create and open new document
-    const docId = await session.tempNewDoc(cleanup, "prompts")
+    const docId = await session.tempNewDoc(cleanup, "prompts");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
     await gu.waitForUrl('prompts');
 
@@ -482,9 +599,18 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1' ]);
   });
 
+
+  async function hideTable(tableId: string) {
+    await api.applyUserActions(doc.id, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId, colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: '', permissionsText: '-R',
+      }],
+    ]);
+  }
 });
 
-async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}) {
+async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}|{into: RegExp}) {
   const targetReg = values(target)[0];
   await driver.withActions(actions => actions
     .move({origin: driver.findContent('.test-treeview-itemHeader', page)})
@@ -495,4 +621,20 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}) 
       y: 'after' in target ? 1 : -1
     })
     .release());
+}
+
+
+async function insertPage(page: RegExp, into: RegExp) {
+  await driver.withActions(actions => actions
+    .move({origin: driver.findContent('.test-treeview-itemHeader', page)})
+    .move({origin: driver.findContent('.test-treeview-itemHeaderWrapper', page)
+      .find('.test-treeview-handle')})
+    .press()
+    .move({origin: driver.findContent('.test-treeview-itemHeader', into),
+      y: 5
+    })
+    .pause(1500) // wait for a target to be highlighted
+    .release()
+  );
+  await gu.waitForServer();
 }

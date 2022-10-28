@@ -16,7 +16,8 @@ import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { UserAction } from 'app/common/DocActions';
 import { TestState } from 'app/common/TestState';
-import { Organization as APIOrganization, DocStateComparison, UserAPIImpl, Workspace } from 'app/common/UserAPI';
+import { Organization as APIOrganization, DocStateComparison,
+         UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
@@ -688,6 +689,11 @@ export async function waitForDocToLoad(timeoutMs: number = 10000): Promise<void>
   await waitForServer();
 }
 
+export async function reloadDoc() {
+  await driver.navigate().refresh();
+  await waitForDocToLoad();
+}
+
 /**
  * Wait for the doc list to show, to know that workspaces are fetched, and imports enabled.
  */
@@ -928,6 +934,51 @@ export async function openPageMenu(pageName: RegExp|string) {
  */
 export function getPageNames(): Promise<string[]> {
   return driver.findAll('.test-docpage-label', (e) => e.getText());
+}
+
+export interface PageTree {
+  label: string;
+  children?: PageTree[];
+}
+/**
+ * Returns a current page tree as a JSON object.
+ */
+export async function getPageTree(): Promise<PageTree[]> {
+  const allPages = await driver.findAll('.test-docpage-label');
+  const root: PageTree = {label: 'root', children: []};
+  const stack: PageTree[] = [root];
+  let current = 0;
+  for(const page of allPages) {
+    const label = await page.getText();
+    const offset = await page.findClosest('.test-treeview-itemHeader').find('.test-treeview-offset');
+    const level = parseInt((await offset.getCssValue('width')).replace("px", "")) / 10;
+    if (level === current) {
+      const parent = stack.pop()!;
+      parent.children ??= [];
+      parent.children.push({label});
+      stack.push(parent);
+    } else if (level > current) {
+      current = level;
+      const child = {label};
+      const grandFather = stack.pop()!;
+      grandFather.children ??= [];
+      const father = grandFather.children[grandFather.children.length - 1];
+      father.children ??= [];
+      father.children.push(child);
+      stack.push(grandFather);
+      stack.push(father);
+    } else {
+      while (level < current) {
+        stack.pop();
+        current--;
+      }
+      const parent = stack.pop()!;
+      parent.children ??= [];
+      parent.children.push({label});
+      stack.push(parent);
+    }
+  }
+  return root.children!;
 }
 
 /**
@@ -2683,6 +2734,32 @@ export function withComments() {
       await server.restart();
     }
   });
+}
+
+/**
+ * Helper to revert ACL changes. It first saves the current ACL data, and
+ * then removes everything and adds it back.
+ */
+export async function beginAclTran(api: UserAPI, docId: string) {
+  const oldRes = await api.getTable(docId, '_grist_ACLResources');
+  const oldRules = await api.getTable(docId, '_grist_ACLRules');
+
+  return async () => {
+    const newRes = await api.getTable(docId, '_grist_ACLResources');
+    const newRules = await api.getTable(docId, '_grist_ACLRules');
+    const restoreRes = {tableId: oldRes.tableId, colIds: oldRes.colIds};
+    const restoreRules = {
+      resource: oldRules.resource,
+      aclFormula: oldRules.aclFormula,
+      permissionsText: oldRules.permissionsText
+    };
+    await api.applyUserActions(docId, [
+      ['BulkRemoveRecord', '_grist_ACLRules', newRules.id],
+      ['BulkRemoveRecord', '_grist_ACLResources', newRes.id],
+      ['BulkAddRecord', '_grist_ACLResources', oldRes.id, restoreRes],
+      ['BulkAddRecord', '_grist_ACLRules', oldRules.id, restoreRules],
+    ]);
+  };
 }
 
 } // end of namespace gristUtils

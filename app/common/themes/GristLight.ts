@@ -202,7 +202,7 @@ export const GristLight: ThemeColors = {
   'left-panel-page-hover-bg': 'rgba(217,217,217,0.6)',
   'left-panel-active-page-fg': '#FFFFFF',
   'left-panel-active-page-bg': '#262633',
-  'left-panel-disabled-page-fg': '#D9D9D9',
+  'left-panel-disabled-page-fg': '#BDBDBD',
   'left-panel-page-options-fg': '#929299',
   'left-panel-page-options-hover-fg': 'white',
   'left-panel-page-options-hover-bg': '#D9D9D9',

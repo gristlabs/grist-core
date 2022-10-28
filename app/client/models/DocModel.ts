@@ -13,6 +13,7 @@ import {KoArray} from 'app/client/lib/koArray';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 
 import * as ko from 'knockout';
+import memoize from 'lodash/memoize';
 
 import * as koArray from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
@@ -142,6 +143,8 @@ export class DocModel {
 
   public allTabs: KoArray<TabBarRec> = this.tabBar.createAllRowsModel('tabPos');
 
+  /** Pages that are shown in the menu. These can include censored pages if they have children. */
+  public menuPages: ko.Computed<PageRec[]>;
   // Excludes pages hidden by ACL rules or other reasons (e.g. doc-tour)
   public visibleDocPages: ko.Computed<PageRec[]>;
 
@@ -189,6 +192,19 @@ export class DocModel {
 
     // Get a list of only the visible pages.
     const allPages = this.pages.createAllRowsModel('pagePos');
+    this.menuPages = ko.computed(() => {
+      const pagesToShow = allPages.all().filter(p => !p.isSpecial()).sort((a, b) => a.pagePos() - b.pagePos());
+      // Helper to find all children of a page.
+      const children = memoize((page: PageRec) => {
+        const following = pagesToShow.slice(pagesToShow.indexOf(page) + 1);
+        const firstOutside = following.findIndex(p => p.indentation() <= page.indentation());
+        return firstOutside >= 0 ? following.slice(0, firstOutside) : following;
+      });
+      // Helper to test if the page is hidden and all its children are hidden.
+      // In that case, we won't show it at all.
+      const hide = memoize((page: PageRec): boolean => page.isCensored() && children(page).every(p => hide(p)));
+      return pagesToShow.filter(p => !hide(p));
+    });
     this.visibleDocPages = ko.computed(() => allPages.all().filter(p => !p.isHidden()));
   }
 
