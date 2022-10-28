@@ -217,7 +217,7 @@
     "MakeIntoDataColumn": "Transformer en colonne de données",
     "TriggerFormula": "TRIGGER FORMULA"
   },
-  "ExampleCard": {
+  "ExampleInfo": {
     "Title_CRM": "CRM léger",
     "WelcomeTitle_CRM": "Bienvenue dans le modèle de CRM léger",
     "WelcomeText_CRM": "Consultez le tutoriel associé pour savoir comment lier des données et créer des mises en page de haute productivité.",

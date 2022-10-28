@@ -218,7 +218,7 @@
     "MakeIntoDataColumn": "Make into data column",
     "TriggerFormula": "TRIGGER FORMULA"
   },
-  "ExampleCard": {
+  "ExampleInfo": {
     "Title_CRM": "Lightweight CRM",
     "WelcomeTitle_CRM": "Welcome to the Lightweight CRM template",
     "WelcomeText_CRM": "Check out our related tutorial for how to link data, and create high-productivity layouts.",

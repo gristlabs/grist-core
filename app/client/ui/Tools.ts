@@ -3,7 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
-import {examples} from 'app/client/ui/ExampleInfo';
+import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
         cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
         cssTools} from 'app/client/ui/LeftPanelCommon';
@@ -78,7 +78,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     ),
     cssSpacer(),
     dom.maybe(docPageModel.currentDoc, (doc) => {
-      const ex = examples.find(e => e.urlId === doc.urlId);
+      const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
         cssPageLink(cssPageIcon('Page'), cssLinkText(t('HowToTutorial')), testId('tutorial'),
