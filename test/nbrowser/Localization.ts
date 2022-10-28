@@ -61,7 +61,7 @@ describe("Localization", function() {
         this.skip();
       }
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
-      existingLocales = gristConfig.supportedLngs, ['en', 'fr', 'pl'];
+      existingLocales = gristConfig.supportedLngs;
       oldEnv = new testUtils.EnvironmentSnapshot();
       // Add another language to the list of supported languages.
       tempLocale = makeCopy();
