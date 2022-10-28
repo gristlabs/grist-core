@@ -52,7 +52,7 @@ def _is_numeric(text):
     try:
       t(text)
       return True
-    except (ValueError, OverflowError):
+    except (ValueError, OverflowError, TypeError):
       pass
   return False
 
@@ -63,7 +63,7 @@ def _is_header(header, data_rows):
   """
   # See if the row has any non-text values.
   for cell in header:
-    if not isinstance(cell, six.string_types) or _is_numeric(cell):
+    if not (isinstance(cell, six.string_types) or cell is None) or _is_numeric(cell):
       return False
 
 
@@ -109,7 +109,7 @@ def expand_headers(headers, data_offset, rows):
   row_length = max(itertools.chain([len(headers)],
                                    (_count_nonempty(r) for r in itertools.islice(rows, data_offset,
                                                                                  None))))
-  header_values = [h.strip() for h in headers] + [u''] * (row_length - len(headers))
+  header_values = [h.strip() if h else '' for h in headers] + [u''] * (row_length - len(headers))
   return header_values
 
 
