@@ -105,17 +105,17 @@ class TestImportXLS(unittest.TestCase):
       'table_name': u'Transaction Report',
       'column_metadata': [
         {'type': 'Any', 'id': u''},
-        {'type': 'Any', 'id': u''},
+        {'type': 'Numeric', 'id': u'Start'},
         {'type': 'Numeric', 'id': u''},
         {'type': 'Numeric', 'id': u''},
-        {'type': 'Any', 'id': u''},
+        {'type': 'Any', 'id': u'Seek no easy ways'},
       ],
       'table_data': [
-        ['', u'SINGLE MERGED', u'The End'],
-        ['Start', '1637384.52', ''],
-        [None, 2444344.06, None],
-        [None, 2444344.06, None],
-        ['Seek no easy ways', u'', u''],
+        [u'SINGLE MERGED', u'The End'],
+        [1637384.52, None],
+        [2444344.06, None],
+        [2444344.06, None],
+        [u'', u''],
       ],
     }])
 
@@ -222,6 +222,25 @@ class TestImportXLS(unittest.TestCase):
         [True, False],
         [False, False],
         ['true', 'False'],
+      ],
+    }])
+
+  def test_header_with_none_cell(self):
+    parsed_file = import_xls.parse_file(*_get_fixture('test_headers_with_none_cell.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual(tables, [{
+      'table_name': 'Sheet1',
+      'column_metadata': [
+        {'id': u'header1', 'type': 'Any'},
+        {'id': u'header2', 'type': 'Any'},
+        {'id': u'header3', 'type': 'Any'},
+        {'id': u'header4', 'type': 'Any'},
+      ],
+      'table_data': [
+        ['foo1', 'foo2'],
+        ['bar1', 'bar2'],
+        ['baz1', 'baz2'],
+        ['boz1', 'boz2'],
       ],
     }])
 
