@@ -55,7 +55,7 @@ export class TestServerMerged implements IMochaServer {
    * Restart the server.  If reset is set, the database is cleared.  If reset is not set,
    * the database is preserved, and the temporary directory is unchanged.
    */
-  public async restart(reset: boolean = false) {
+  public async restart(reset: boolean = false, quiet = false) {
     if (this.isExternalServer()) { return; }
     if (this._starts > 0) {
       this.resume();
@@ -137,7 +137,7 @@ export class TestServerMerged implements IMochaServer {
     }
     this._server = spawn('node', [cmd], {
       env,
-      stdio: ['inherit', serverLog, serverLog],
+      stdio: quiet ? 'ignore' : ['inherit', serverLog, serverLog],
     });
     this._exitPromise = exitPromise(this._server);
 
@@ -147,7 +147,7 @@ export class TestServerMerged implements IMochaServer {
 
     // Try to be more helpful when server exits by printing out the tail of its log.
     this._exitPromise.then((code) => {
-        if (this._server.killed) { return; }
+        if (this._server.killed || quiet) { return; }
         log.error("Server died unexpectedly, with code", code);
         const output = execFileSync('tail', ['-30', nodeLogPath]);
         log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
