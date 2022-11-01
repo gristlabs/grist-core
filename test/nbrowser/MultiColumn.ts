@@ -941,6 +941,7 @@ const choiceEditor = {
   },
   async save() {
     await driver.find(".test-choice-list-entry-save").click();
+    await gu.waitForServer();
   },
   async cancel() {
     await driver.find(".test-choice-list-entry-cancel").click();
