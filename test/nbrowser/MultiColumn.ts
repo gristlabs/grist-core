@@ -1023,12 +1023,14 @@ async function wrap(state?: boolean) {
   if (await buttons[0].matches('[class*=-selected]')) {
     if (state === false) {
       await buttons[0].click();
+      await gu.waitForServer();
       return false;
     }
     return true;
   }
   if (state === true) {
     await buttons[0].click();
+    await gu.waitForServer();
     return true;
   }
   return false;
@@ -1294,6 +1296,7 @@ async function numMode(value?: 'currency' | 'percent' | 'exp' | 'decimal') {
         await driver.findContent('.test-numeric-mode .test-select-button', /Exp/).click();
       }
     }
+    await gu.waitForServer();
   }
   if (mode.length === 0) {
     return undefined;
