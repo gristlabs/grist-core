@@ -877,11 +877,13 @@ async function testChoices(colA: string = 'Left', colB: string = 'Right') {
   if (await getColumnType() === 'Choice List') {
     await gu.sendKeys(Key.ENTER);
   }
+  await gu.waitForServer();
   await gu.getCell(colB, 1).click();
   await gu.sendKeys("one", Key.ENTER);
   if (await getColumnType() === 'Choice List') {
     await gu.sendKeys(Key.ENTER);
   }
+  await gu.waitForServer();
   // Rename one of the choices.
   await selectColumns(colA, colB);
   const undo = await gu.begin();
