@@ -1106,6 +1106,7 @@ async function alignment(value?: 'left' | 'right' | 'center') {
     if (value === 'right') {
       await buttons[2].click();
     }
+    await gu.waitForServer();
     return;
   }
   if (await buttons[0].matches('[class*=-selected]')) {
