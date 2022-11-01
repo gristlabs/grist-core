@@ -40,7 +40,6 @@ import { getOriginUrl } from 'app/common/urlUtils';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 import { checkers } from 'app/plugin/TypeCheckers';
-import { IpcMessageEvent } from 'electron';
 import { IMsgCustom, IMsgRpcCall, Rpc } from 'grain-rpc';
 import { Disposable } from './dispose';
 const G = getBrowserGlobals('document', 'window');
@@ -316,7 +315,7 @@ class WebviewProcess extends ViewProcess {
     // TODO: find a way for keyboard events to play nice when webviews are non-modal.
     Mousetrap.setPaused(true);
     this.autoDisposeCallback(() => Mousetrap.setPaused(false));
-    webview.addEventListener('ipc-message', (event: IpcMessageEvent) => {
+    webview.addEventListener('ipc-message', (event: any /* IpcMessageEvent */) => {
       // The event object passed to the listener is missing proper documentation. In the examples
       // listed in https://electronjs.org/docs/api/ipc-main the arguments should be passed to the
       // listener after the event object, but this is not happening here. Only we know it is a

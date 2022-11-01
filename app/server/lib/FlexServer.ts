@@ -36,7 +36,8 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
-import {DocTemplate, GristLoginMiddleware, GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
+import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
+        RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
@@ -157,6 +158,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
+  private _getLoginSystem?: () => Promise<GristLoginSystem>;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -231,6 +233,11 @@ export class FlexServer implements GristServer {
       (req as RequestWithGrist).gristServer = this;
       next();
     });
+  }
+
+  // Allow overridding the login system.
+  public setLoginSystem(loginSystem: () => Promise<GristLoginSystem>) {
+    this._getLoginSystem = loginSystem;
   }
 
   public getHost(): string {
@@ -481,12 +488,19 @@ export class FlexServer implements GristServer {
     this.app.use(/^\/help\//, expressWrap(async (req, res) => {
       res.redirect('https://support.getgrist.com');
     }));
+    // If there is a directory called "static_ext", serve material from there
+    // as well. This isn't used in grist-core but is handy for extensions such
+    // as an Electron app.
+    const staticExtDir = getAppPathTo(this.appRoot, 'static') + '_ext';
+    const staticExtApp = fse.existsSync(staticExtDir) ?
+      express.static(staticExtDir, options) : null;
     const staticApp = express.static(getAppPathTo(this.appRoot, 'static'), options);
     const bowerApp = express.static(getAppPathTo(this.appRoot, 'bower_components'), options);
     if (process.env.GRIST_LOCALES_DIR) {
       const locales = express.static(process.env.GRIST_LOCALES_DIR, options);
       this.app.use("/locales", this.tagChecker.withTag(locales));
     }
+    if (staticExtApp) { this.app.use(this.tagChecker.withTag(staticExtApp)); }
     this.app.use(this.tagChecker.withTag(staticApp));
     this.app.use(this.tagChecker.withTag(bowerApp));
   }
@@ -700,7 +714,7 @@ export class FlexServer implements GristServer {
     this.addOrg();
 
     // Create the sessionStore and related objects.
-    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(this.instanceRoot, this);
+    const {sessions, sessionMiddleware, sessionStore} = initGristSessions(getUnpackedAppRoot(this.instanceRoot), this);
     this.app.use(sessionMiddleware);
     this.app.use(signInStatusMiddleware);
 
@@ -901,11 +915,18 @@ export class FlexServer implements GristServer {
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
-    const loginSystem = await (process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : getLoginSystem());
+    const loginSystem = await (process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() :
+      (this._getLoginSystem?.() || getLoginSystem()));
     this._loginMiddleware = await loginSystem.getMiddleware(this);
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
     this._getLogoutRedirectUrl = tbind(this._loginMiddleware.getLogoutRedirectUrl, this._loginMiddleware);
+    if (this._loginMiddleware.getWildcardMiddleware) {
+      const wildcardMiddleware = this._loginMiddleware.getWildcardMiddleware();
+      if (wildcardMiddleware.length > 0) {
+        this.app.use(wildcardMiddleware);
+      }
+    }
   }
 
   public addComm() {

@@ -1,6 +1,7 @@
 import {synchronizeProducts} from 'app/gen-server/entity/Product';
+import {codeRoot} from 'app/server/lib/places';
 import {Mutex} from 'async-mutex';
-import {Connection, createConnection, getConnection} from 'typeorm';
+import {Connection, createConnection, DataSourceOptions, getConnection} from 'typeorm';
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -61,7 +62,7 @@ export async function getOrCreateConnection(): Promise<Connection> {
       if (!String(e).match(/ConnectionNotFoundError/)) {
         throw e;
       }
-      const connection = await createConnection();
+      const connection = await createConnection(getTypeORMSettings());
       // When using Sqlite, set a busy timeout of 3s to tolerate a little
       // interference from connections made by tests. Logging doesn't show
       // any particularly slow queries, but bad luck is possible.
@@ -97,4 +98,55 @@ export async function undoLastMigration(connection: Connection) {
     await tr.connection.undoLastMigration();
   });
   if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+}
+
+// Replace the old janky ormconfig.js file, which was always a source of
+// pain to use since it wasn't properly integrated into the typescript
+// project.
+function getTypeORMSettings(): DataSourceOptions {
+  // If we have a redis server available, tell typeorm.  Then any queries built with
+  // .cache() called on them will be cached via redis.
+  // We use a separate environment variable for the moment so that we don't have to
+  // enable this until we really need it.
+  const redisUrl = process.env.TYPEORM_REDIS_URL ? new URL(process.env.TYPEORM_REDIS_URL) : undefined;
+  const cache = redisUrl ? {
+    cache: {
+      type: "redis",
+      options: {
+        host: redisUrl.hostname,
+        port: parseInt(redisUrl.port || "6379", 10)
+      }
+    } as const
+  } : undefined;
+
+  return {
+    "name": process.env.TYPEORM_NAME || "default",
+    "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
+                                                   // but if we use that, this file will never
+                                                   // be read, and we can't configure
+                                                   // caching otherwise.
+    "database": process.env.TYPEORM_DATABASE || "landing.db",
+    "username": process.env.TYPEORM_USERNAME || undefined,
+    "password": process.env.TYPEORM_PASSWORD || undefined,
+    "host": process.env.TYPEORM_HOST || undefined,
+    "port": process.env.TYPEORM_PORT ? parseInt(process.env.TYPEORM_PORT, 10) : undefined,
+    "synchronize": false,
+    "migrationsRun": false,
+    "logging": process.env.TYPEORM_LOGGING === "true",
+    "entities": [
+      `${codeRoot}/app/gen-server/entity/*.js`
+    ],
+    "migrations": [
+      `${codeRoot}/app/gen-server/migration/*.js`        // migration files don't actually get packaged.
+    ],
+    "subscribers": [
+      `${codeRoot}/app/gen-server/subscriber/*.js`
+    ],
+    //  "cli": {
+    //    "entitiesDir": `${codeRoot}/app/gen-server/entity`,
+    //    "migrationsDir": `${codeRoot}/app/gen-server/migration`,
+    //    "subscribersDir": `${codeRoot}/app/gen-server/subscriber`
+    //  }
+    ...cache,
+  };
 }

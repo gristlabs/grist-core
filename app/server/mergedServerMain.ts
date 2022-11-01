@@ -6,6 +6,7 @@
  */
 
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
+import {GristLoginSystem} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
@@ -36,19 +37,24 @@ interface ServerOptions extends FlexServerOptions {
                            //    logToConsole is set to true)
   externalStorage?: boolean; // If set, documents saved to external storage such as s3 (default is to check environment
                            // variables, which get set in various ways in dev/test entry points)
+  loginSystem?: () => Promise<GristLoginSystem>;
 }
 
 /**
  * Start a server on the given port, including the functionality specified in serverTypes.
  */
 export async function main(port: number, serverTypes: ServerType[],
-                           options: ServerOptions = {logToConsole: true}) {
+                           options: ServerOptions = {}) {
   const includeHome = serverTypes.includes("home");
   const includeDocs = serverTypes.includes("docs");
   const includeStatic = serverTypes.includes("static");
   const includeApp = serverTypes.includes("app");
 
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
+
+  if (options.loginSystem) {
+    server.setLoginSystem(options.loginSystem);
+  }
 
   server.addCleanup();
   server.setDirectory();
@@ -58,7 +64,7 @@ export async function main(port: number, serverTypes: ServerType[],
     server.testAddRouter();
   }
 
-  if (options.logToConsole) { server.addLogging(); }
+  if (options?.logToConsole !== false) { server.addLogging(); }
   if (options.externalStorage === false) { server.disableExternalStorage(); }
   await server.loadConfig();
 

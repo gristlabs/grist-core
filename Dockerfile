@@ -103,7 +103,6 @@ COPY --from=sandbox /runsc /usr/bin/runsc
 
 # Add files needed for running server.
 ADD package.json /grist/package.json
-ADD ormconfig.js /grist/ormconfig.js
 ADD bower_components /grist/bower_components
 ADD sandbox /grist/sandbox
 ADD plugins /grist/plugins
