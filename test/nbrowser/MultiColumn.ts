@@ -877,11 +877,13 @@ async function testChoices(colA: string = 'Left', colB: string = 'Right') {
   if (await getColumnType() === 'Choice List') {
     await gu.sendKeys(Key.ENTER);
   }
+  await gu.waitForServer();
   await gu.getCell(colB, 1).click();
   await gu.sendKeys("one", Key.ENTER);
   if (await getColumnType() === 'Choice List') {
     await gu.sendKeys(Key.ENTER);
   }
+  await gu.waitForServer();
   // Rename one of the choices.
   await selectColumns(colA, colB);
   const undo = await gu.begin();
@@ -941,6 +943,7 @@ const choiceEditor = {
   },
   async save() {
     await driver.find(".test-choice-list-entry-save").click();
+    await gu.waitForServer();
   },
   async cancel() {
     await driver.find(".test-choice-list-entry-cancel").click();
@@ -1023,12 +1026,14 @@ async function wrap(state?: boolean) {
   if (await buttons[0].matches('[class*=-selected]')) {
     if (state === false) {
       await buttons[0].click();
+      await gu.waitForServer();
       return false;
     }
     return true;
   }
   if (state === true) {
     await buttons[0].click();
+    await gu.waitForServer();
     return true;
   }
   return false;
@@ -1106,6 +1111,7 @@ async function alignment(value?: 'left' | 'right' | 'center') {
     if (value === 'right') {
       await buttons[2].click();
     }
+    await gu.waitForServer();
     return;
   }
   if (await buttons[0].matches('[class*=-selected]')) {
@@ -1293,6 +1299,7 @@ async function numMode(value?: 'currency' | 'percent' | 'exp' | 'decimal') {
         await driver.findContent('.test-numeric-mode .test-select-button', /Exp/).click();
       }
     }
+    await gu.waitForServer();
   }
   if (mode.length === 0) {
     return undefined;

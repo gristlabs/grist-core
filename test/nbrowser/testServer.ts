@@ -97,7 +97,6 @@ export class TestServerMerged implements IMochaServer {
     const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
     const env: Record<string, string> = {
       TYPEORM_DATABASE: this._getDatabaseFile(),
-      TEST_CLEAN_DATABASE: reset ? 'true' : '',
       GRIST_DATA_DIR: this.testDocDir,
       GRIST_INST_DIR: this.testDir,
       // uses the test installed plugins folder as the user installed plugins.
@@ -129,6 +128,7 @@ export class TestServerMerged implements IMochaServer {
       // This skips type-checking when running server, but reduces startup time a lot.
       TS_NODE_TRANSPILE_ONLY: 'true',
       ...process.env,
+      TEST_CLEAN_DATABASE: reset ? 'true' : '',
     };
     if (!process.env.REDIS_URL) {
       // Multiple doc workers only possible when redis is available.
