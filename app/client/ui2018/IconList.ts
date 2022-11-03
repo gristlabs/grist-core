@@ -36,6 +36,7 @@ export type IconName = "ChartArea" |
   "GoogleLogo" |
   "GristLogo" |
   "ThumbPreview" |
+  "AddUser" |
   "BarcodeQR" |
   "BarcodeQR2" |
   "CenterAlign" |
@@ -165,6 +166,7 @@ export const IconList: IconName[] = ["ChartArea",
   "GoogleLogo",
   "GristLogo",
   "ThumbPreview",
+  "AddUser",
   "BarcodeQR",
   "BarcodeQR2",
   "CenterAlign",
