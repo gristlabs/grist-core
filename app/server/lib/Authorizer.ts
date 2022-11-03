@@ -210,13 +210,23 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   }
 
   // If we haven't already been authenticated, and this is not a GET/HEAD/OPTIONS, then
-  // require that the X-Requested-With header field be set to XMLHttpRequest.
+  // require a header that would trigger a CORS pre-flight request, either:
+  //   - X-Requested-With: XMLHttpRequest
+  //       - https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
+  //       - https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
+  //   - Content-Type: application/json
+  //       - https://www.directdefense.com/csrf-in-the-age-of-json/
   // This is trivial for legitimate web clients to do, and an obstacle to
   // nefarious ones.
-  //   https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
-  //   https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
-  if (!mreq.userId && !mreq.xhr && !['GET', 'HEAD', 'OPTIONS'].includes(mreq.method)) {
-    return res.status(401).json({error: 'Bad request (missing header)'});
+  if (
+    !mreq.userId &&
+    !(mreq.xhr || mreq.get("content-type") === "application/json") &&
+    !['GET', 'HEAD', 'OPTIONS'].includes(mreq.method)
+  ) {
+    return res.status(401).json({
+      error: "Unauthenticated requests require one of the headers" +
+        "'Content-Type: application/json' or 'X-Requested-With: XMLHttpRequest'"
+    });
   }
 
   // For some configurations, the user profile can be determined from the request.

@@ -1752,12 +1752,22 @@ function allowTestLogin() {
 // Check OPTIONS requests for allowed origins, and return heads to allow the browser to proceed
 // with a POST (or other method) request.
 function trustOriginHandler(req: express.Request, res: express.Response, next: express.NextFunction) {
+  res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
   if (trustOrigin(req, res)) {
     res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
   } else {
-    throw new ApiError('Unrecognized origin', 403);
+    // Any origin is allowed, but if it isn't trusted, then we don't allow credentials,
+    // i.e. no Cookie or Authorization header.
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Content-Type, X-Requested-With");
+    if (req.get("Cookie") || req.get("Authorization")) {
+      // In practice we don't expect to actually reach this point,
+      // as the browser should not include credentials in preflight (OPTIONS) requests,
+      // and should block real requests with credentials based on the preflight response.
+      // But having this means not having to rely on our understanding of browsers and CORS too much.
+      throw new ApiError("Credentials not supported for cross-origin requests", 403);
+    }
   }
   if ('OPTIONS' === req.method) {
     res.sendStatus(200);

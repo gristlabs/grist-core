@@ -3025,20 +3025,95 @@ function testDocApi() {
 
   describe("Allowed Origin", () => {
     it('should allow only example.com',  async () => {
-      async function checkOrigin(origin: string, status: number, error?: string) {
+      async function checkOrigin(origin: string, allowed: boolean) {
         const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`,
         {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
         );
-        error && assert.deepEqual(resp.data, {error});
-        assert.equal(resp.status, status);
+        assert.equal(resp.headers['access-control-allow-credentials'], allowed ? 'true' : undefined);
+        assert.equal(resp.status, allowed ? 200 : 403);
       }
-      await checkOrigin("https://www.toto.com", 403, "Unrecognized origin");
-      await checkOrigin("https://badexample.com", 403, "Unrecognized origin");
-      await checkOrigin("https://bad.com/example.com/toto", 403, "Unrecognized origin");
-      await checkOrigin("https://example.com:3000/path", 200);
-      await checkOrigin("https://example.com/path", 200);
-      await checkOrigin("https://good.example.com/toto", 200);
+
+      await checkOrigin("https://www.toto.com", false);
+      await checkOrigin("https://badexample.com", false);
+      await checkOrigin("https://bad.com/example.com/toto", false);
+      await checkOrigin("https://example.com/path", true);
+      await checkOrigin("https://example.com:3000/path", true);
+      await checkOrigin("https://good.example.com/toto", true);
     });
+
+    it("should respond with correct CORS headers", async function() {
+      const wid = await getWorkspaceId(userApi, 'Private');
+      const docId = await userApi.newDoc({name: 'CorsTestDoc'}, wid);
+      await userApi.updateDocPermissions(docId, {
+        users: {
+          'everyone@getgrist.com': 'owners',
+        }
+      });
+
+      const chimpyConfig = configForUser("Chimpy");
+      const anonConfig = configForUser("Anonymous");
+      delete chimpyConfig.headers["X-Requested-With"];
+      delete anonConfig.headers["X-Requested-With"];
+
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+      const data = {records: [{fields: {}}]};
+
+      // Normal same origin requests
+      anonConfig.headers.Origin = serverUrl;
+      let response: AxiosResponse;
+      for (response of [
+        await axios.post(url, data, anonConfig),
+        await axios.get(url, anonConfig),
+        await axios.options(url, anonConfig),
+      ]) {
+        assert.equal(response.status, 200);
+        assert.equal(response.headers['access-control-allow-methods'], 'GET, PATCH, PUT, POST, DELETE, OPTIONS');
+        assert.equal(response.headers['access-control-allow-headers'], 'Authorization, Content-Type, X-Requested-With');
+        assert.equal(response.headers['access-control-allow-origin'], serverUrl);
+        assert.equal(response.headers['access-control-allow-credentials'], 'true');
+      }
+
+      // Cross origin requests from untrusted origin.
+      for (const config of [anonConfig, chimpyConfig]) {
+        config.headers.Origin = "https://evil.com/";
+        for (response of [
+          await axios.post(url, data, config),
+          await axios.get(url, config),
+          await axios.options(url, config),
+        ]) {
+          if (config === anonConfig) {
+            // Requests without credentials are still OK.
+            assert.equal(response.status, 200);
+          } else {
+            assert.equal(response.status, 403);
+            assert.deepEqual(response.data, {error: 'Credentials not supported for cross-origin requests'});
+          }
+          assert.equal(response.headers['access-control-allow-methods'], 'GET, PATCH, PUT, POST, DELETE, OPTIONS');
+          // Authorization header is not allowed
+          assert.equal(response.headers['access-control-allow-headers'], 'Content-Type, X-Requested-With');
+          // Origin is not echoed back. Arbitrary origin is allowed, but credentials are not.
+          assert.equal(response.headers['access-control-allow-origin'], '*');
+          assert.equal(response.headers['access-control-allow-credentials'], undefined);
+        }
+      }
+
+      // POST requests without credentials require a custom header so that a CORS preflight request is triggered.
+      // One possible header is X-Requested-With, which we removed at the start of the test.
+      // The other is Content-Type: application/json, which we have been using implicitly above because axios
+      // automatically treats the given data object as data. Passing a string instead prevents this.
+      response = await axios.post(url, JSON.stringify(data), anonConfig);
+      assert.equal(response.status, 401);
+      assert.deepEqual(response.data, {
+        error: "Unauthenticated requests require one of the headers" +
+          "'Content-Type: application/json' or 'X-Requested-With: XMLHttpRequest'"
+      });
+
+      // ^ that's for requests without credentials, otherwise we get the same 403 as earlier.
+      response = await axios.post(url, JSON.stringify(data), chimpyConfig);
+      assert.equal(response.status, 403);
+      assert.deepEqual(response.data, {error: 'Credentials not supported for cross-origin requests'});
+    });
+
   });
 
   // PLEASE ADD MORE TESTS HERE
