@@ -128,14 +128,14 @@ describe("Localization", function() {
     try {
       // Wrong path to locales.
       process.env.GRIST_LOCALES_DIR = __filename;
-      await assert.isRejected(server.restart());
+      await assert.isRejected(server.restart(false, true));
       // Empty folder.
       const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'grist_test_'));
       process.env.GRIST_LOCALES_DIR = tempDirectory;
-      await assert.isRejected(server.restart());
+      await assert.isRejected(server.restart(false, true));
       // Wrong file format.
       fs.writeFileSync(path.join(tempDirectory, 'dummy.json'), 'invalid json');
-      await assert.isRejected(server.restart());
+      await assert.isRejected(server.restart(false, true));
     } finally {
       oldEnv.restore();
       await server.restart();
