@@ -11,6 +11,7 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
+import {buildTextEditor} from 'app/client/widgets/TextArea';
 import {CellInfoType} from 'app/common/gristTypes';
 import {FullUser} from 'app/common/UserAPI';
 import {
@@ -890,54 +891,12 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
   }
 }
 
-function buildTextEditor(text: Observable<string>, ...args: DomArg<HTMLTextAreaElement>[]) {
-  const textArea = cssTextArea(
-    bindProp(text),
-    autoFocus(),
-    autoGrow(text),
-    ...args
-  );
-  return textArea;
-}
-
-
 function buildAvatar(user: FullUser | null, ...args: DomElementArg[]) {
   return cssAvatar(user, 'small', ...args);
 }
 
 function buildNick(user: {name: string} | null, ...args: DomArg<HTMLElement>[]) {
   return cssNick(user?.name ?? 'Anonymous', ...args);
-}
-
-function bindProp(text: Observable<string>) {
-  return [
-    dom.prop('value', text),
-    dom.on('input', (_, el: HTMLTextAreaElement) => text.set(el.value)),
-  ];
-}
-
-function autoFocus() {
-  return (el: HTMLElement) => void setTimeout(() => el.focus(), 10);
-}
-
-function resize(el: HTMLTextAreaElement) {
-  el.style.height = '5px'; // hack for triggering style update.
-  const border = getComputedStyle(el, null).borderTopWidth || "0";
-  el.style.height = `calc(${el.scrollHeight}px + 2 * ${border})`;
-}
-
-function autoGrow(text: Observable<string>) {
-  return (el: HTMLTextAreaElement) => {
-    el.addEventListener('input', () => resize(el));
-    setTimeout(() => resize(el), 10);
-    dom.autoDisposeElem(el, text.addListener(val => {
-      // Changes to the text are not reflected by the input event (witch is used by the autoGrow)
-      // So we need to manually update the textarea when the text is cleared.
-      if (!val) {
-        el.style.height = '5px'; // there is a min-height css attribute, so this is only to trigger a style update.
-      }
-    }));
-  };
 }
 
 function buildPopup(

@@ -135,11 +135,15 @@ function shouldSupportAnon() {
 }
 
 function getHiddenUiElements(): IHideableUiElement[] {
+  const result: IHideableUiElement[] = [];
   const str = process.env.GRIST_HIDE_UI_ELEMENTS;
-  if (!str) {
-    return [];
+  if (str) {
+    result.push(...HideableUiElements.checkAll(str.split(",")));
   }
-  return HideableUiElements.checkAll(str.split(","));
+  if (!process.env.OPENAI_API_KEY && !process.env.HUGGINGFACE_API_KEY) {
+    result.push("generateFormula");
+  }
+  return result;
 }
 
 function configuredPageTitleSuffix() {

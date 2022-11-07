@@ -577,7 +577,9 @@ export interface GristLoadConfig {
   featureComments?: boolean;
 }
 
-export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
+export const HideableUiElements = StringUnion(
+  "helpCenter", "billing", "templates", "multiSite", "multiAccounts", "generateFormula"
+);
 export type IHideableUiElement = typeof HideableUiElements.type;
 
 export function shouldHideUiElement(elem: IHideableUiElement): boolean {

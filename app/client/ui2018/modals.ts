@@ -95,7 +95,11 @@ export class ModalControl extends Disposable implements IModalControl {
           throw err;
         }
       } finally {
-        this._inProgress.set(this._inProgress.get() - 1);
+        try {
+          this._inProgress.set(this._inProgress.get() - 1);
+        } catch {
+          // Ignore errors from things being disposed.
+        }
         if (closePromise) {
           await closePromise;
         }

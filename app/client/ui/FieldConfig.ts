@@ -1,23 +1,28 @@
-import {makeT} from 'app/client/lib/localization';
 import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {makeT} from 'app/client/lib/localization';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
-import {textButton} from 'app/client/ui2018/buttons';
+import {basicButton, cssButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
-import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
+import {cssIconButton, icon} from 'app/client/ui2018/icons';
+import {menuCssClass, selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
+import {ModalControl} from 'app/client/ui2018/modals';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
+import {buildTextEditor} from 'app/client/widgets/TextArea';
+import {shouldHideUiElement} from 'app/common/gristUrls';
 import {sanitizeIdent} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
+import {setPopupToCreateDom} from 'popweasel';
 
 const t = makeT('FieldConfig');
 
@@ -265,6 +270,13 @@ export function buildFormulaConfig(
   const convertFormulaToTrigger = () =>
     gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: false});
 
+  const generateFormula = async () =>
+    await gristDoc.docComm.generateFormula(
+      origColumn.table.peek().tableId.peek(),
+      origColumn.colId.peek(),
+      origColumn.generateFormulaDescription.peek(),
+    );
+
   const setFormula = () => (maybeFormula.set(true), formulaField?.focus());
   const setTrigger = () => (maybeTrigger.set(true), formulaField?.focus());
 
@@ -321,6 +333,71 @@ export function buildFormulaConfig(
     dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
   ];
 
+  function generateFormulaTextButton() {
+    if (shouldHideUiElement("generateFormula")) { return null; }
+    return cssRow(
+      textButton(t('GenerateFormula')),
+      (elem) => {
+        setPopupToCreateDom(
+          elem,
+          ctrl => {
+            const modalCtl = ModalControl.create(ctrl, () => ctrl.close());
+            const doGenerate = modalCtl.doWork(generateFormula, {close: true});
+
+            // Uncomment to disable when the description hasn't changed.
+            // The problem with this is that if a user sets a description, cancels, then reopens,
+            // now the button is disabled.
+            // const currentDescription = origColumn.generateFormulaDescription.peek();
+
+            const disableGenerate = Computed.create(ctrl, (use) => {
+              const newDescription = use(origColumn.generateFormulaDescription)?.trim() ?? '';
+              // Can't save when description is empty
+              return !newDescription;
+
+              // goes with the commented line above
+              // || (newDescription === currentDescription);
+            });
+
+            return cssGenerateFormulaPopup(
+              // Create a FocusLayer to keep focus in this popup while it's active, and prevent keyboard
+              // shortcuts from being seen by the view underneath.
+              focusElem => { FocusLayer.create(ctrl, {defaultFocusElem: focusElem, pauseMousetrap: true}); },
+              testId('generate-formula-popup'),
+              dom.cls(menuCssClass),
+              // TODO show advice about good prompts
+              buildTextEditor(fromKo(origColumn.generateFormulaDescription)),
+              cssButtons(
+                primaryButton(t('Generate'),
+                  dom.on('click', doGenerate),
+                  dom.boolAttr('disabled', use => use(disableGenerate) || use(modalCtl.workInProgress)),
+                  testId('save'),
+                ),
+                basicButton(t('Cancel'),
+                  testId('cancel'),
+                  dom.on('click', () => modalCtl.close())
+                ),
+              ),
+              dom.onKeyDown({
+                Escape: () => modalCtl.close(),
+                // This is based on WidgetTitle.
+                // But it's commented out to prevent users accidentally generating from an incomplete description.
+                // Ctrl+Enter would probably work well.
+                // On enter save or cancel - depending on the change.
+                // Enter: () => disableGenerate.get() ? modalCtl.close() : doGenerate(),
+              }),
+            );
+
+          },
+          {
+            placement: 'auto',
+            boundaries: 'viewport',
+            attach: 'body',
+            trigger: ['click'],
+          },
+        );
+      });
+  }
+
   return dom.maybe(behavior, (type: BEHAVIOR) => [
       cssLabel(t('ColumnBehavior')),
       ...(type === "empty" ? [
@@ -334,6 +411,7 @@ export function buildFormulaConfig(
           dom.prop("disabled", disableOtherActions),
           testId("field-set-formula")
         )),
+        generateFormulaTextButton(),
         cssRow(withInfoTooltip(
           textButton(
             t('SetTriggerFormula'),
@@ -362,7 +440,8 @@ export function buildFormulaConfig(
           dom.hide(maybeFormula),
           dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
           testId("field-set-trigger")
-        ))
+        )),
+        generateFormulaTextButton(),
       ] : /* type == 'data' */ [
         menu(behaviorLabel(),
           [
@@ -492,5 +571,23 @@ const cssInput = styled(textInput, `
   &[readonly] {
     background-color: ${theme.inputDisabledBg};
     color: ${theme.inputDisabledFg};
+  }
+`);
+
+// These two are copied from WidgetTitle.
+const cssGenerateFormulaPopup = styled('div', `
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  padding: 16px;
+  background-color: ${theme.popupBg};
+  border-radius: 2px;
+  outline: none;
+`);
+const cssButtons = styled('div', `
+  display: flex;
+  margin-top: 16px;
+  & > .${cssButton.className}:not(:first-child) {
+    margin-left: 8px;
   }
 `);

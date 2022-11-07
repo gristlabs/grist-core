@@ -15,7 +15,7 @@ et-xmlfile==1.0.1
 astroid==2.5.7
 
 # Everything after this is the same for python 2 and 3
-asttokens==2.0.5
+asttokens==2.1.0
 backports.functools-lru-cache==1.6.4
 chardet==4.0.0
 enum34==1.1.10

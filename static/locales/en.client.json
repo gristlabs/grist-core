@@ -199,6 +199,9 @@
     "ErrorHappened_unknown": "There was an unknown error."
   },
   "FieldConfig": {
+    "GenerateFormula": "Generate formula",
+    "Generate": "Generate",
+    "Cancel": "Cancel",
     "ColumnLabel": "COLUMN LABEL AND ID",
     "ColumnOptionsLimited": "Column options are limited in summary tables.",
     "ColumnType_formula_one": "Formula Column",

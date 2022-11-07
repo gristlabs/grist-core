@@ -281,6 +281,8 @@ export interface ActiveDocAPI {
    */
   getFormulaError(tableId: string, colId: string, rowId: number): Promise<CellValue>;
 
+  generateFormula(tableId: string, colId: string, description: string): Promise<void>;
+
   /**
    * Fetch content at a url.
    */

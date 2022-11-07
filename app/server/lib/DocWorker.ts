@@ -110,6 +110,7 @@ export class DocWorker {
       applyUserActionsById:     activeDocMethod.bind(null, 'editors', 'applyUserActionsById'),
       findColFromValues:        activeDocMethod.bind(null, 'viewers', 'findColFromValues'),
       getFormulaError:          activeDocMethod.bind(null, 'viewers', 'getFormulaError'),
+      generateFormula:          activeDocMethod.bind(null, 'editors', 'generateFormula'),
       importFiles:              activeDocMethod.bind(null, 'editors', 'importFiles'),
       finishImportFiles:        activeDocMethod.bind(null, 'editors', 'finishImportFiles'),
       cancelImportFiles:        activeDocMethod.bind(null, 'editors', 'cancelImportFiles'),

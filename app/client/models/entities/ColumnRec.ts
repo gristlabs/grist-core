@@ -39,6 +39,9 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // column being transformed and that column's transform column.
   isTransforming: ko.Observable<boolean>;
 
+  // Description used to generate formula with AI. Only stored temporarily in the client.
+  generateFormulaDescription: ko.Observable<string>;
+
   // Convenience observable to obtain and set the type with no suffix
   pureType: ko.Computed<string>;
 
@@ -102,6 +105,9 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   // Indicates whether a column is transforming. Manually set, but should be true in both the original
   // column being transformed and that column's transform column.
   this.isTransforming = ko.observable(false);
+
+  // Description used to generate formula with AI. Only stored temporarily in the client.
+  this.generateFormulaDescription = ko.observable('');
 
   // Convenience observable to obtain and set the type with no suffix
   this.pureType = ko.pureComputed(() => gristTypes.extractTypeFromColType(this.type()));
