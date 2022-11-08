@@ -1,6 +1,6 @@
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {input, styled} from 'grainjs';
+import {dom, IDomArgs, IInputOptions, input, Observable, styled, subscribe} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 
 // Styled elements used for rendering a user, e.g. in the UserManager, Billing, etc.
@@ -151,3 +151,39 @@ export const cssMailIcon = styled(icon, `
   margin: 12px 8px 12px 13px;
   background-color: ${theme.lightText};
 `);
+
+export function textarea(
+  obs: Observable<string>, options: IInputOptions, ...args: IDomArgs<HTMLTextAreaElement>
+): HTMLTextAreaElement {
+
+  const isValid = options.isValid;
+
+  function setValue(elem: HTMLTextAreaElement) {
+    obs.set(elem.value);
+    if (isValid) { isValid.set(elem.validity.valid); }
+  }
+
+  return dom('textarea', ...args,
+    dom.prop('value', obs),
+    (isValid ?
+      (elem) => dom.autoDisposeElem(elem,
+        subscribe(obs, (use) => isValid.set(elem.checkValidity()))) :
+      null),
+    options.onInput ? dom.on('input', (e, elem) => setValue(elem)) : null,
+    dom.on('change', (e, elem) => setValue(elem)),
+    // dom.onKeyPress({Enter: (e, elem) => setValue(elem)}),
+  );
+}
+
+export const cssEmailTextarea = styled(textarea, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+  flex: 1 1 0;
+  font-size: ${vars.mediumFontSize};
+  font-family: ${vars.fontFamily};
+  outline: none;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+`)

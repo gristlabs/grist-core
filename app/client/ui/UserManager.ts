@@ -1,5 +1,5 @@
 /**
- * This module exports a UserManager component, consisting of a list of emails, each with an
+ * This module exports a   component, consisting of a list of emails, each with an
  * associated role (See app/common/roles), and a way to change roles, and add or remove new users.
  * The component is instantiated as a modal with a confirm button to pass changes to the server.
  *
@@ -16,6 +16,7 @@ import pick = require('lodash/pick');
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
+import {buildMultiUserManagerModal} from 'app/client/lib/MultiUserManager';
 import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
@@ -31,7 +32,7 @@ import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} fr
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
-        cssRemoveIcon} from 'app/client/ui/UserItem';
+        cssRemoveIcon, cssEmailTextarea, cssEmailInputContainer} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -52,6 +53,7 @@ export interface IUserManagerOptions {
   linkToCopy?: string;
   reload?: () => Promise<PermissionData>;
   onSave?: (personal: boolean) => Promise<unknown>;
+  openMultiModal?: Function;
   prompt?: {  // If set, user manager should open with this email filled in and ready to go.
     email: string;
   };
@@ -148,7 +150,10 @@ function buildUserManagerModal(
         cssModalBody(
           cssBody(
             new UserManager(
-              model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              model, pick(
+                {...options, openMultiModal: () => buildMultiUserManagerModal(this, modelObs, onConfirm, options)},
+                'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource', 'openMultiModal'
+              )
             ).buildDom()
           ),
         ),
@@ -198,22 +203,19 @@ function buildUserManagerModal(
  */
 export class UserManager extends Disposable {
   private _dom: HTMLDivElement;
+
   constructor(private _model: UserManagerModel, private _options: {
     linkToCopy?: string,
     docPageModel?: DocPageModel,
     appModel?: AppModel,
     prompt?: {email: string},
+    openMultiModal?: Function,
     resource?: Resource,
   }) {
     super();
   }
 
   public buildDom() {
-    const acMemberEmail = this.autoDispose(new ACMemberEmail(
-      this._onAdd.bind(this),
-      this._model.membersEdited.get(),
-      this._options.prompt,
-    ));
     if (this._model.isPublicMember) {
       return this._buildSelfPublicAccessDom();
     }
@@ -221,6 +223,12 @@ export class UserManager extends Disposable {
     if (this._model.isPersonal) {
       return this._buildSelfAccessDom();
     }
+
+    const acMemberEmail = this.autoDispose(new ACMemberEmail(
+      this._onAdd.bind(this),
+      this._model.membersEdited.get(),
+      this._options.prompt,
+    ));
 
     return [
       acMemberEmail.buildDom(),
@@ -244,41 +252,46 @@ export class UserManager extends Disposable {
   private _buildOptionsDom(): Element {
     const publicMember = this._model.publicMember;
     let tooltipControl: ITooltipControl | undefined;
-    return cssOptionRow(
-      // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
-      // be used to fill whitespace in org UserManager.
-      this._model.isOrg ? null : dom('span', { style: `float: left;` },
-        dom('span', 'Inherit access: '),
-        this._inheritRoleSelector()
-      ),
-      publicMember ? dom('span', { style: `float: right;` },
-        cssSmallPublicMemberIcon('PublicFilled'),
-        dom('span', 'Public access: '),
-        cssOptionBtn(
-          menu(() => {
-            tooltipControl?.close();
-            return [
-              menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
-              menuItem(() => publicMember.access.set(null), 'Off',
-                // Disable null access if anonymous access is inherited.
-                dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
-                testId(`um-public-option`)
-              ),
-              // If the 'Off' setting is disabled, show an explanation.
-              dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
-                `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
-                `To remove, set 'Inherit access' option to 'None'.`))
-            ];
-          }),
-          dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
-          cssCollapseIcon('Collapse'),
-          testId('um-public-access')
+    return dom('div',
+      cssOptionRow(
+        // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
+        // be used to fill whitespace in org UserManager.
+        this._model.isOrg ? null : dom('span', { style: `float: left;` },
+          dom('span', 'Inherit access: '),
+          this._inheritRoleSelector()
         ),
-        hoverTooltip((ctl) => {
-          tooltipControl = ctl;
-          return 'Allow anyone with the link to open.';
-        }),
-      ) : null
+        publicMember ? dom('span', { style: `float: right;` },
+          cssSmallPublicMemberIcon('PublicFilled'),
+          dom('span', 'Public access: '),
+          cssOptionBtn(
+            menu(() => {
+              tooltipControl?.close();
+              return [
+                menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
+                menuItem(() => publicMember.access.set(null), 'Off',
+                  // Disable null access if anonymous access is inherited.
+                  dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
+                  testId(`um-public-option`)
+                ),
+                // If the 'Off' setting is disabled, show an explanation.
+                dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
+                  `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
+                  `To remove, set 'Inherit access' option to 'None'.`))
+              ];
+            }),
+            dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
+            cssCollapseIcon('Collapse'),
+            testId('um-public-access')
+          ),
+          hoverTooltip((ctl) => {
+            tooltipControl = ctl;
+            return 'Allow anyone with the link to open.';
+          }),
+        ) : null,
+      ),
+      this._options.openMultiModal ? (
+        cssOptionRow(icon('Public'), 'Invite Multiple', dom.on('click', (_ev) => this._options.openMultiModal && this._options.openMultiModal()))
+       ) : null,
     );
   }
 
@@ -545,6 +558,14 @@ function getUserItem(member: IEditableMember): ACUserItem {
     picture: member?.picture,
     id: member.id,
   };
+}
+
+export class MultiMemberEmail extends Disposable {
+  private _emails = this.autoDispose(observable<string>(""));
+
+  public buildDom() {
+    return cssEmailInputContainer(cssEmailTextarea(this._emails, {}));
+  }
 }
 
 /**
