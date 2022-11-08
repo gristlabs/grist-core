@@ -1,7 +1,9 @@
+# coding: utf-8
 """
 Tests that formula error messages (traceback) are correct
 """
 import textwrap
+import unittest
 
 import six
 
@@ -889,3 +891,59 @@ else:
       [2, 23, 22],  # The user input B=40 was overridden by the formula, which saw the old A=21
       [3, 52, 51],
     ])
+
+  @unittest.skipIf(six.PY2, "friendly-traceback is Python 3 only")
+  def test_friendly_traceback_locale(self):
+    col = testutil.col_schema_row
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Table1", [
+          col(31, "A", "Numeric", False, "nonexistent"),
+        ]]
+      ],
+      "DATA": {
+        "Table1": [
+          ["id"],
+          [1],
+        ]
+      }
+    })
+    self.load_sample(sample)
+
+    # Check that setting the locale changes the language used by friendly-traceback
+    self.apply_user_action(
+      ["AddRecord", "_grist_DocInfo", 1, {"documentSettings": '{"locale": "fr-FR"}'}]
+    )
+    self.assertFormulaError(
+      self.engine.get_formula_error('Table1', 'A', 1),
+      NameError,
+      "name 'nonexistent' is not defined\n"
+      '\n'
+      "Une exception `NameError` indique que le nom d'une variable\n"
+      "ou d'une fonction n'est pas connue par Python.\n"
+      "Habituellement, ceci indique une simple faute d'orthographe.\n"
+      'Cependant, cela peut également indiquer que le nom a été\n'
+      "utilisé avant qu'on ne lui ait associé une valeur.\n"
+      '\n'
+      "Dans votre programme, aucun objet portant le nom `nonexistent` n'existe.\n"
+      'Je n’ai pas d’informations supplémentaires pour vous.'
+    )
+
+    # Check that it uses English by default, including when document settings are invalid.
+    self.apply_user_action(
+      ["UpdateRecord", "_grist_DocInfo", 1, {"documentSettings": 'not json'}]
+    )
+    self.assertFormulaError(
+      self.engine.get_formula_error('Table1', 'A', 1),
+      NameError,
+      "name 'nonexistent' is not defined\n"
+      '\n'
+      'A `NameError` exception indicates that a variable or\n'
+      'function name is not known to Python.\n'
+      'Most often, this is because there is a spelling mistake.\n'
+      'However, sometimes it is because the name is used\n'
+      'before being defined or given a value.\n'
+      '\n'
+      'In your program, no object with the name `nonexistent` exists.\n'
+      'I have no additional information for you.'
+    )

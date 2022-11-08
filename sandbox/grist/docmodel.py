@@ -6,6 +6,7 @@ which exist only in the sandbox and are not communicated to the client.
 It is similar in purpose to DocModel.js on the client side.
 """
 import itertools
+import json
 
 import six
 
@@ -57,6 +58,22 @@ class MetaTableExtras(object):
         return moment.tzinfo(rec.timezone)
       except KeyError:
         return moment.TZ_UTC
+
+    def parsed_settings(rec, table):
+      try:
+        return json.loads(rec.documentSettings)
+      except ValueError:
+        return {}
+
+    def locale(rec, table):
+      return rec.parsed_settings.get("locale", "en-US")
+
+    def friendly_traceback_set_lang(rec, table):
+      try:
+        import friendly_traceback
+        friendly_traceback.set_lang(rec.locale)
+      except Exception:
+        pass
 
   class _grist_Tables(object):
     columns = _record_set('_grist_Tables_column', 'parentId', sort_by='parentPos')
