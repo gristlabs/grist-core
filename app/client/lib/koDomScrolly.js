@@ -297,8 +297,7 @@ Scrolly.prototype.updateSize = function() {
   this.numRendered = numVisible + 2 * this.numBuffered;
 
   // Re-render everything.
-  this.begin = gutil.clamp(this.begin, 0, this.numRows - this.numRendered);
-  this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
+  this._updateRange();
   this.render();
   this.syncScrollPosition();
 };
@@ -333,10 +332,7 @@ Scrolly.prototype.scrollTo = function(top) {
   // just particularly easy to come across.
   var atEnd = (top + this.shownHeight >= this.panes[0].container.scrollHeight);
 
-  var rowAtScrollTop = this.rowOffsetTree.getIndex(top);
-  this.begin = gutil.clamp(rowAtScrollTop - this.numBuffered, 0, this.numRows - this.numRendered);
-  this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
-
+  this._updateRange();
   // Do the magic.
   this.render();
 
@@ -367,11 +363,7 @@ Scrolly.prototype.onDataSplice = function(splice) {
   this.rowOffsetTree.fillFromValues(this.rowHeights);
   this.totalHeight(this.rowOffsetTree.getTotal() + this.options.paddingBottom);
 
-  // We may be seeing the last row with space below it, so we'll use the same logic as in
-  // scrollTo, to make sure the rendered range includes all rows we should be seeing.
-  var rowAtScrollTop = this.rowOffsetTree.getIndex(this.scrollTop);
-  this.begin = gutil.clamp(rowAtScrollTop - this.numBuffered, 0, this.numRows - this.numRendered);
-  this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
+  this._updateRange();
 
   this.scheduleUpdateSize();
 };
@@ -616,6 +608,16 @@ Scrolly.prototype.destroyPane = function(pane) {
     this.dispose();
   }
 };
+
+/**
+ * Updates indexes of rows to render.
+ */
+Scrolly.prototype._updateRange = function() {
+  // If we are scrolled from the top, start at the first visible row with some buffer.
+  const begin = this.rowOffsetTree.getIndex(this.scrollTop) - this.numBuffered;
+  this.begin = gutil.clamp(begin, 0, this.numRows - this.numRendered);
+  this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
+}
 
 //----------------------------------------------------------------------
 
