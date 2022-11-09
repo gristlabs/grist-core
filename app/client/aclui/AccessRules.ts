@@ -1155,6 +1155,7 @@ class ObsRulePart extends Disposable {
   private _completions = Computed.create<string[]>(this, (use) => [
     ...use(this._ruleSet.accessRules.userAttrChoices).map(opt => opt.value),
     ...this._ruleSet.getValidColIds().map(colId => `rec.${colId}`),
+    ...this._ruleSet.getValidColIds().map(colId => `$${colId}`),
     ...this._ruleSet.getValidColIds().map(colId => `newRec.${colId}`),
   ]);
 

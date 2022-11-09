@@ -34,7 +34,27 @@ class TestACLFormula(unittest.TestCase):
         ]])
 
     self.assertEqual(parse_acl_formula(
+      "$office == 'Seattle' and user.email in ['sally@', 'xie@']"),
+      ['And',
+        ['Eq', ['Attr', ['Name', 'rec'], 'office'], ['Const', 'Seattle']],
+        ['In',
+         ['Attr', ['Name', 'user'], 'email'],
+         ['List', ['Const', 'sally@'], ['Const', 'xie@']]
+        ]])
+
+    self.assertEqual(parse_acl_formula(
       "user.IsAdmin or rec.assigned is None or (not newRec.HasDuplicates and rec.StatusIndex <= newRec.StatusIndex)"),
+      ['Or',
+        ['Attr', ['Name', 'user'], 'IsAdmin'],
+        ['Is', ['Attr', ['Name', 'rec'], 'assigned'], ['Const', None]],
+        ['And',
+          ['Not', ['Attr', ['Name', 'newRec'], 'HasDuplicates']],
+          ['LtE', ['Attr', ['Name', 'rec'], 'StatusIndex'], ['Attr', ['Name', 'newRec'], 'StatusIndex']]
+        ]
+      ])
+
+    self.assertEqual(parse_acl_formula(
+      "user.IsAdmin or $assigned is None or (not newRec.HasDuplicates and $StatusIndex <= newRec.StatusIndex)"),
       ['Or',
         ['Attr', ['Name', 'user'], 'IsAdmin'],
         ['Is', ['Attr', ['Name', 'rec'], 'assigned'], ['Const', None]],
@@ -66,6 +86,13 @@ class TestACLFormula(unittest.TestCase):
 
     self.assertEqual(parse_acl_formula(
       "rec.A is True or rec.A is not False"),
+      ['Or',
+        ['Is', ['Attr', ['Name', 'rec'], 'A'], ['Const', True]],
+        ['IsNot', ['Attr', ['Name', 'rec'], 'A'], ['Const', False]]
+      ])
+
+    self.assertEqual(parse_acl_formula(
+      "$A is True or $A is not False"),
       ['Or',
         ['Is', ['Attr', ['Name', 'rec'], 'A'], ['Const', True]],
         ['IsNot', ['Attr', ['Name', 'rec'], 'A'], ['Const', False]]
@@ -171,7 +198,7 @@ class TestACLFormulaUserActions(test_engine.EngineTestCase):
       "aclFormula": ["not user.IsGood", ""],
     }])
     self.assertPartialOutActions(out_actions, { "stored": [
-      [ 'BulkUpdateRecord', '_grist_ACLRules', [2, 3], {
+      ['BulkUpdateRecord', '_grist_ACLRules', [2, 3], {
         "aclFormula": ["not user.IsGood", ""],
         "aclFormulaParsed": ['["Not", ["Attr", ["Name", "user"], "IsGood"]]', ''],
       }],

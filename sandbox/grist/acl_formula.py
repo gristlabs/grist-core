@@ -7,6 +7,7 @@ from collections import namedtuple
 import asttokens
 import six
 
+from codebuilder import replace_dollar_attrs
 
 def parse_acl_formula(acl_formula):
   """
@@ -31,6 +32,7 @@ def parse_acl_formula(acl_formula):
   if isinstance(acl_formula, six.binary_type):
     acl_formula = acl_formula.decode('utf8')
   try:
+    acl_formula = replace_dollar_attrs(acl_formula)
     tree = ast.parse(acl_formula, mode='eval')
     result = _TreeConverter().visit(tree)
     for part in tokenize.generate_tokens(io.StringIO(acl_formula).readline):

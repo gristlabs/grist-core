@@ -122,6 +122,26 @@ def make_formula_body(formula, default_value, assoc_value=None):
   return final_formula
 
 
+def replace_dollar_attrs(formula):
+  """
+  Translates formula "$" expression into rec. expression. This is extracted from the
+  make_formula_body function.
+  """
+  formula_builder_text = textbuilder.Text(formula)
+  tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
+  tmp_formula = textbuilder.Replacer(formula_builder_text, tmp_patches)
+  atok = asttokens.ASTTokens(tmp_formula.get_text(), parse=True)
+  patches = []
+  for node in ast.walk(atok.tree):
+    if isinstance(node, ast.Name) and node.id.startswith('DOLLAR'):
+      input_pos = tmp_formula.map_back_offset(node.first_token.startpos)
+      m = DOLLAR_REGEX.match(formula, input_pos)
+      if m:
+        patches.append(textbuilder.make_patch(formula, m.start(0), m.end(0), 'rec.'))
+  final_formula = textbuilder.Replacer(formula_builder_text, patches)
+  return final_formula.get_text()
+
+
 def _create_syntax_error_code(builder, input_text, err):
   """
   Returns the text for a function that raises the given SyntaxError and includes the offending
