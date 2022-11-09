@@ -171,7 +171,6 @@ export function textarea(
       null),
     options.onInput ? dom.on('input', (e, elem) => setValue(elem)) : null,
     dom.on('change', (e, elem) => setValue(elem)),
-    // dom.onKeyPress({Enter: (e, elem) => setValue(elem)}),
   );
 }
 

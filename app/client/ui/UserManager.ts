@@ -32,7 +32,7 @@ import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} fr
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
-        cssRemoveIcon, cssEmailTextarea, cssEmailInputContainer} from 'app/client/ui/UserItem';
+        cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -150,10 +150,7 @@ function buildUserManagerModal(
         cssModalBody(
           cssBody(
             new UserManager(
-              model, pick(
-                {...options, openMultiModal: () => buildMultiUserManagerModal(this, modelObs, onConfirm, options)},
-                'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource', 'openMultiModal'
-              )
+              model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
             ).buildDom()
           ),
         ),
@@ -289,9 +286,15 @@ export class UserManager extends Disposable {
           }),
         ) : null,
       ),
-      this._options.openMultiModal ? (
-        cssOptionRow(icon('Public'), 'Invite Multiple', dom.on('click', (_ev) => this._options.openMultiModal && this._options.openMultiModal()))
-       ) : null,
+      cssOptionRow(
+        icon('Public'),
+        'Invite Multiple',
+        dom.on('click', (_ev) => buildMultiUserManagerModal(
+          this,
+          this._model,
+          (email, role) => this._onAdd(email, role),
+        ))
+      )
     );
   }
 
@@ -558,14 +561,6 @@ function getUserItem(member: IEditableMember): ACUserItem {
     picture: member?.picture,
     id: member.id,
   };
-}
-
-export class MultiMemberEmail extends Disposable {
-  private _emails = this.autoDispose(observable<string>(""));
-
-  public buildDom() {
-    return cssEmailInputContainer(cssEmailTextarea(this._emails, {}));
-  }
 }
 
 /**
