@@ -1,14 +1,19 @@
-import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
 import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
+import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {UserManagerModel, IMemberSelectOption} from 'app/client/models/UserManagerModel';
+import {UserManagerModel, IMemberSelectOption, ResourceType, Resource} from 'app/client/models/UserManagerModel';
 import {icon} from 'app/client/ui2018/icons';
-import {
-  cssEmailTextarea,
-} from "app/client/ui/UserItem";
-import { Role, NonGuestRole } from "app/common/roles";
+import {cssEmailTextarea,} from "app/client/ui/UserItem";
+import {Role, NonGuestRole} from "app/common/roles";
 import {menu, menuItem} from 'app/client/ui2018/menus';
+import {renderTitle, makeCopyBtn} from "app/client/ui/UserManager";
+
+type Options = {
+  linkToCopy?: string,
+  resource?: Resource,
+  resourceType: ResourceType,
+}
 
 function parseEmailList(emailListRaw: string): Array<string> {
   return emailListRaw
@@ -25,6 +30,7 @@ function validateEmail(email: string): boolean {
 export function buildMultiUserManagerModal(
   owner: IDisposableOwner,
   model: UserManagerModel,
+  options: Options,
   onAdd: (email: string, role: NonGuestRole) => void,
 ) {
   const emailListObs = Observable.create(owner, "");
@@ -49,11 +55,18 @@ export function buildMultiUserManagerModal(
   return modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
-    cssTitle('Multi'),
+    cssTitle(
+      renderTitle(options.resourceType, options.resource, model.isPersonal),
+      (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
+        ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
+        : null
+      ),
+      testId('um-header'),
+    ),
     cssModalBody(
       cssBody(
         buildMultiUserManager(emailListObs, isValidObs),
-        dom.domComputed(isValidObs, isValid => !isValid ? cssErroMessage('Error, an email is not email') : null),
+        dom.domComputed(isValidObs, isValid => !isValid ? cssErroMessage('At least one email is invalid') : null),
         cssInheritRoles(
           dom('span', 'Inherit access: '),
           buildRolesSelect(rolesObs, model)
@@ -111,6 +124,7 @@ function buildMultiUserManager(
   return cssTextarea(emailListObs,
     {onInput: true, isValid: isValidObs},
     {placeholder: "Enter one email address par mail"},
+    dom.on('change', (_ev) => isValidObs.set(true)),
      ...args,
   )
 }
@@ -165,3 +179,13 @@ const cssTextarea = styled(cssEmailTextarea, `
   border-radius: 3px;
   border: 1px solid ${theme.inputBorder};
 `)
+
+const cssCopyBtn = styled(basicButton, `
+  border: none;
+  font-weight: normal;
+  padding: 0 8px;
+  &-header {
+    float: right;
+    margin-top: 8px;
+  }
+`);

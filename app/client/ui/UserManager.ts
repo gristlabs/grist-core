@@ -150,7 +150,7 @@ function buildUserManagerModal(
         cssModalBody(
           cssBody(
             new UserManager(
-              model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              model, pick(options, 'resourceType', 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
             ).buildDom()
           ),
         ),
@@ -208,6 +208,7 @@ export class UserManager extends Disposable {
     prompt?: {email: string},
     openMultiModal?: Function,
     resource?: Resource,
+    resourceType: ResourceType,
   }) {
     super();
   }
@@ -250,7 +251,7 @@ export class UserManager extends Disposable {
     const publicMember = this._model.publicMember;
     let tooltipControl: ITooltipControl | undefined;
     return dom('div',
-      cssOptionRow(
+      !this._model.isOrg && publicMember ? cssOptionRow(
         // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
         // be used to fill whitespace in org UserManager.
         this._model.isOrg ? null : dom('span', { style: `float: left;` },
@@ -285,13 +286,14 @@ export class UserManager extends Disposable {
             return 'Allow anyone with the link to open.';
           }),
         ) : null,
-      ),
-      cssOptionRow(
-        icon('Public'),
-        'Invite Multiple',
+      ) : null,
+      cssOptionRowMultiple(
+        icon('AddUser'),
+        cssLabel('Invite multiple'),
         dom.on('click', (_ev) => buildMultiUserManagerModal(
           this,
           this._model,
+          this._options,
           (email, role) => this._onAdd(email, role),
         ))
       )
@@ -614,7 +616,7 @@ function getFullUser(member: IEditableMember): FullUser {
 }
 
 // Create a "Copy Link" button.
-function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
+export function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
   return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), 'Copy Link',
     dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),
@@ -689,6 +691,22 @@ const cssOptionRow = styled('div', `
   font-size: ${vars.mediumFontSize};
   margin: 0 63px 23px 63px;
 `);
+
+const cssOptionRowMultiple = styled(cssOptionRow, `
+  display: flex;
+  cursor: pointer;
+  color: ${theme.link};
+  --icon-color: ${theme.link};
+
+  &:hover {
+    color: ${theme.linkHover};
+    --icon-color: ${theme.linkHover};
+  }
+`)
+
+const cssLabel = styled('span', `
+  margin-left: 4px;
+`)
 
 const cssOptionBtn = styled('span', `
   display: inline-flex;
@@ -779,7 +797,7 @@ const cssMemberPublicAccess = styled(cssMemberSecondary, `
 `);
 
 // Render the UserManager title for `resourceType` (e.g. org as "team site").
-function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
+export function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
   switch (resourceType) {
     case 'organization': {
       if (personal) { return 'Your role for this team site'; }
