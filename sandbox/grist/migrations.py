@@ -802,7 +802,7 @@ def migration22(tdset):
 def migration23(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_DocInfo', 'documentSettings', 'Text'),
-    actions.UpdateRecord('_grist_DocInfo', 1, {'documentSettings': '{"locale":"en-US"}'})
+    actions.UpdateRecord('_grist_DocInfo', 1, {'documentSettings': '{"locale":"' + schema.DEFAULT_LOCALE + '"}'})
   ])
 
 

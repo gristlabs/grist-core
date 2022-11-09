@@ -16,7 +16,7 @@ import usertypes
 import relabeling
 import table
 import moment
-from schema import RecalcWhen
+from schema import RecalcWhen, DEFAULT_LOCALE
 
 # pylint:disable=redefined-outer-name
 
@@ -66,7 +66,7 @@ class MetaTableExtras(object):
         return {}
 
     def locale(rec, table):
-      return rec.parsed_settings.get("locale", "en-US")
+      return rec.parsed_settings.get("locale", DEFAULT_LOCALE)
 
     def friendly_traceback_set_lang(rec, table):
       try:

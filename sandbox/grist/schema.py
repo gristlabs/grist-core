@@ -16,6 +16,7 @@ import six
 import actions
 
 SCHEMA_VERSION = 33
+DEFAULT_LOCALE = "en-US"
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
