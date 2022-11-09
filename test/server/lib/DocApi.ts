@@ -2285,9 +2285,11 @@ function testDocApi() {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
     const doc2 = await userApi.newDoc({name: 'testdoc2'}, ws1);
-    const doc3 = await userApi.newDoc({name: 'testdoc2'}, ws1);
+    const doc3 = await userApi.newDoc({name: 'testdoc3'}, ws1);
+    const doc4 = await userApi.newDoc({name: 'testdoc4'}, ws1);
     await userApi.updateDocPermissions(doc2, {users: {'kiwi@getgrist.com': 'editors'}});
     await userApi.updateDocPermissions(doc3, {users: {'kiwi@getgrist.com': 'viewers'}});
+    await userApi.updateDocPermissions(doc4, {users: {'kiwi@getgrist.com': 'owners'}});
     try {
       // Put some material in doc3
       let resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc3}/tables/Table1/data`, {
@@ -2295,28 +2297,52 @@ function testDocApi() {
       }, chimpy);
       assert.equal(resp.status, 200);
 
-      // Kiwi can replace doc2 with doc3
+      // Kiwi cannot replace doc2 with doc3, not an owner
       resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc2}/replace`, {
         sourceDocId: doc3
       }, kiwi);
-      assert.equal(resp.status, 200);
-      resp = await axios.get(`${serverUrl}/api/docs/${doc2}/tables/Table1/data`, chimpy);
-      assert.equal(resp.data.A[0], 'Orange');
+      assert.equal(resp.status, 403);
+      assert.match(resp.data.error, /Only owners can replace a document/);
 
-      // Kiwi can't replace doc1 with doc3, no write access to doc1
+      // Kiwi can't replace doc1 with doc3, no access to doc1
       resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc1}/replace`, {
         sourceDocId: doc3
       }, kiwi);
       assert.equal(resp.status, 403);
+      assert.match(resp.data.error, /No view access/);
 
       // Kiwi can't replace doc2 with doc1, no read access to doc1
       resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc2}/replace`, {
         sourceDocId: doc1
       }, kiwi);
       assert.equal(resp.status, 403);
+      assert.match(resp.data.error, /access denied/);
+
+      // Kiwi cannot replace a doc with material they have only partial read access to.
+      resp = await axios.post(`${serverUrl}/api/docs/${doc3}/apply`, [
+        ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'A'}],
+        ['AddRecord', '_grist_ACLRules', null, {
+          resource: -1, aclFormula: 'user.Access not in [OWNER]', permissionsText: '-R',
+        }]
+      ], chimpy);
+      assert.equal(resp.status, 200);
+      resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc4}/replace`, {
+        sourceDocId: doc3
+      }, kiwi);
+      assert.equal(resp.status, 403);
+      assert.match(resp.data.error, /not authorized/);
+      resp = await axios.post(`${serverUrl}/api/docs/${doc3}/tables/_grist_ACLRules/data/delete`,
+                              [2], chimpy);
+      assert.equal(resp.status, 200);
+      resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc4}/replace`, {
+        sourceDocId: doc3
+      }, kiwi);
+      assert.equal(resp.status, 200);
     } finally {
       await userApi.deleteDoc(doc1);
       await userApi.deleteDoc(doc2);
+      await userApi.deleteDoc(doc3);
+      await userApi.deleteDoc(doc4);
     }
   });
 

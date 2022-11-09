@@ -680,10 +680,13 @@ export class ActiveDoc extends EventEmitter {
    * shut it down, and unlist it via the DocManager.  A fresh ActiveDoc can be acquired via the
    * DocManager.
    */
-  public async replace(source: DocReplacementOptions) {
+  public async replace(docSession: OptDocSession, source: DocReplacementOptions) {
     // During replacement, it is important for all hands to be off the document. So we
     // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
     // before a new one could be opened.
+    if (!await this._granularAccess.isOwner(docSession)) {
+      throw new ApiError('Only owners can replace a document.', 403);
+    }
     return this.shutdown({
       afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
     });

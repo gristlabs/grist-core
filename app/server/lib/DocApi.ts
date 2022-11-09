@@ -393,10 +393,15 @@ export class DocWorkerApi {
     // TODO: look at download behavior if ActiveDoc is shutdown during call (cannot
     // use withDoc wrapper)
     this._app.get('/api/docs/:docId/download', canView, throttled(async (req, res) => {
+      // Support a dryRun flag to check if user has the right to download the
+      // full document.
+      const dryRun = isAffirmative(req.query.dryrun || req.query.dryRun);
+      const dryRunSuccess = () => res.status(200).json({dryRun: 'allowed'});
       // We want to be have a way download broken docs that ActiveDoc may not be able
       // to load.  So, if the user owns the document, we unconditionally let them
       // download.
       if (await this._isOwner(req)) {
+        if (dryRun) { dryRunSuccess(); return; }
         try {
           // We carefully avoid creating an ActiveDoc for the document being downloaded,
           // in case it is broken in some way.  It is convenient to be able to download
@@ -419,6 +424,7 @@ export class DocWorkerApi {
         if (!await activeDoc.canDownload(docSessionFromRequest(req))) {
           throw new ApiError('not authorized to download this document', 403);
         }
+        if (dryRun) { dryRunSuccess(); return; }
         return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
       }
     }));
@@ -733,6 +739,18 @@ export class DocWorkerApi {
       const options: DocReplacementOptions = {};
       if (req.body.sourceDocId) {
         options.sourceDocId = await this._confirmDocIdForRead(req, String(req.body.sourceDocId));
+        // Make sure that if we wanted to download the full source, we would be allowed.
+        const result = await fetch(this._grist.getHomeUrl(req, `/api/docs/${options.sourceDocId}/download?dryrun=1`), {
+          method: 'GET',
+          headers: {
+            ...getTransitiveHeaders(req),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (result.status !== 200) {
+          const jsonResult = await result.json();
+          throw new ApiError(jsonResult.error, result.status);
+        }
         // We should make sure the source document has flushed recently.
         // It may not be served by the same worker, so work through the api.
         await fetch(this._grist.getHomeUrl(req, `/api/docs/${options.sourceDocId}/flush`), {
@@ -746,7 +764,8 @@ export class DocWorkerApi {
       if (req.body.snapshotId) {
         options.snapshotId = String(req.body.snapshotId);
       }
-      await activeDoc.replace(options);
+      const docSession = docSessionFromRequest(req);
+      await activeDoc.replace(docSession, options);
       res.json(null);
     }));
 
