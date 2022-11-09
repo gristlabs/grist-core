@@ -326,7 +326,7 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
     )
   );
 
-  const sub = this.layoutSpec.subscribe((spec) => { layout.buildLayout(spec); });
+  const sub = this.layoutSpec.subscribe((spec) => { layout.buildLayout(spec, createEditor); });
 
   if (createEditor) {
     this.layoutEditor(RecordLayoutEditor.create(this, layout));

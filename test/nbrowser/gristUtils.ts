@@ -1041,42 +1041,45 @@ export async function openAddWidgetToPage() {
 // must be already opened when calling this function.
 export async function selectWidget(
   typeRe: RegExp|string,
-  tableRe: RegExp|string,
+  tableRe: RegExp|string = '',
   options: PageWidgetPickerOptions = {}) {
-
-  const tableEl = driver.findContent('.test-wselect-table', tableRe);
-
-  // unselect all selected columns
-  for (const col of (await driver.findAll('.test-wselect-column[class*=-selected]'))) {
-    await col.click();
-  }
-
-  // let's select table
-  await tableEl.click();
-
-  const pivotEl = tableEl.find('.test-wselect-pivot');
-  if (await pivotEl.isPresent()) {
-    await toggleSelectable(pivotEl, Boolean(options.summarize));
-  }
-
-  if (options.summarize) {
-    for (const columnEl of await driver.findAll('.test-wselect-column')) {
-      const label = await columnEl.getText();
-      // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
-      // rewritten using string matching only.
-      const goal = Boolean(options.summarize.find(r => label.match(r)));
-      await toggleSelectable(columnEl, goal);
-    }
-  }
-
-  if (options.selectBy) {
-    // select link
-    await driver.find('.test-wselect-selectby').doClick();
-    await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
-  }
 
   // select right type
   await driver.findContent('.test-wselect-type', typeRe).doClick();
+
+  if (tableRe) {
+    const tableEl = driver.findContent('.test-wselect-table', tableRe);
+
+    // unselect all selected columns
+    for (const col of (await driver.findAll('.test-wselect-column[class*=-selected]'))) {
+      await col.click();
+    }
+
+    // let's select table
+    await tableEl.click();
+
+    const pivotEl = tableEl.find('.test-wselect-pivot');
+    if (await pivotEl.isPresent()) {
+      await toggleSelectable(pivotEl, Boolean(options.summarize));
+    }
+
+    if (options.summarize) {
+      for (const columnEl of await driver.findAll('.test-wselect-column')) {
+        const label = await columnEl.getText();
+        // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
+        // rewritten using string matching only.
+        const goal = Boolean(options.summarize.find(r => label.match(r)));
+        await toggleSelectable(columnEl, goal);
+      }
+    }
+
+    if (options.selectBy) {
+      // select link
+      await driver.find('.test-wselect-selectby').doClick();
+      await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
+    }
+  }
+
 
   if (options.dontAdd) {
     return;
@@ -1985,7 +1988,8 @@ export class Session {
     return doc;
   }
 
-  public async tempNewDoc(cleanup: Cleanup, docName: string, {load} = {load: true}) {
+  public async tempNewDoc(cleanup: Cleanup, docName: string = '', {load} = {load: true}) {
+    docName ||= `Test${Date.now()}`;
     const docId = await createNewDoc(this.settings.name, this.settings.orgDomain, this.settings.workspace,
                                      docName, {email: this.settings.email});
     if (load) {
