@@ -1,6 +1,5 @@
 import {AttachmentsEditor} from 'app/client/widgets/AttachmentsEditor';
 import {AttachmentsWidget} from 'app/client/widgets/AttachmentsWidget';
-import CheckBox from 'app/client/widgets/CheckBox';
 import CheckBoxEditor from 'app/client/widgets/CheckBoxEditor';
 import ChoiceEditor from 'app/client/widgets/ChoiceEditor';
 import {ChoiceListCell} from 'app/client/widgets/ChoiceListCell';
@@ -22,7 +21,7 @@ import {ReferenceEditor} from 'app/client/widgets/ReferenceEditor';
 import {ReferenceList} from 'app/client/widgets/ReferenceList';
 import {ReferenceListEditor} from 'app/client/widgets/ReferenceListEditor';
 import {Spinner} from 'app/client/widgets/Spinner';
-import Switch from 'app/client/widgets/Switch';
+import {ToggleCheckBox, ToggleSwitch} from 'app/client/widgets/Toggle';
 import {getWidgetConfiguration} from 'app/client/widgets/UserType';
 import {GristType} from 'app/plugin/GristData';
 
@@ -36,10 +35,10 @@ export const nameToWidget = {
   'HyperLinkTextBox': HyperLinkTextBox,
   'HyperLinkEditor': HyperLinkEditor,
   'Spinner': Spinner,
-  'CheckBox': CheckBox,
+  'CheckBox': ToggleCheckBox,
   'CheckBoxEditor': CheckBoxEditor,
   'Reference': Reference,
-  'Switch': Switch,
+  'Switch': ToggleSwitch,
   'ReferenceEditor': ReferenceEditor,
   'ReferenceList': ReferenceList,
   'ReferenceListEditor': ReferenceListEditor,

@@ -686,20 +686,20 @@ describe('MultiColumn', function() {
           assert.isFalse(await widgetTypeDisabled());
           // Test for mixed format.
           await selectColumns('Left');
-          await widgetType('TextBox');
+          await gu.setFieldWidgetType('TextBox');
           await selectColumns('Right');
-          await widgetType('CheckBox');
+          await gu.setFieldWidgetType('CheckBox');
           await selectColumns('Left', 'Right');
-          assert.equal(await widgetType(), 'Mixed format');
+          assert.equal(await gu.getFieldWidgetType(), 'Mixed format');
           // Test that both change when format is changed.
           for (const mode of ['TextBox', 'CheckBox', 'Switch']) {
-            await widgetType(mode);
+            await gu.setFieldWidgetType(mode);
             await selectColumns('Left');
-            assert.equal(await widgetType(), mode);
+            assert.equal(await gu.getFieldWidgetType(), mode);
             await selectColumns('Right');
-            assert.equal(await widgetType(), mode);
+            assert.equal(await gu.getFieldWidgetType(), mode);
             await selectColumns('Left', 'Right');
-            assert.equal(await widgetType(), mode);
+            assert.equal(await gu.getFieldWidgetType(), mode);
           }
         } else {
           await selectColumns('Left', 'Right');
@@ -1126,15 +1126,6 @@ async function alignment(value?: 'left' | 'right' | 'center') {
   return null;
 }
 
-
-async function widgetType(type?: string) {
-  if (!type) {
-    return await driver.find(".test-fbuilder-widget-select").getText();
-  }
-  await driver.find(".test-fbuilder-widget-select").click();
-  await driver.findContent('.test-select-menu li', gu.exactMatch(type)).click();
-  await gu.waitForServer();
-}
 
 async function dateFormatDisabled() {
   const format = await driver.find('[data-test-id=Widget_dateFormat]');

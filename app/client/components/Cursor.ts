@@ -54,9 +54,9 @@ export class Cursor extends Disposable {
 
     // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
     // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-    setCursor(this: Cursor, rowModel: BaseRowModel, colModel: BaseRowModel) {
+    setCursor(this: Cursor, rowModel: BaseRowModel, fieldModel: BaseRowModel) {
       this.rowIndex(rowModel ? rowModel._index() : 0);
-      this.fieldIndex(colModel ? colModel._index()! : 0);
+      this.fieldIndex(fieldModel ? fieldModel._index()! : 0);
     },
   };
 

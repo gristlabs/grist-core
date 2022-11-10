@@ -21,7 +21,7 @@ export class DataRowModel extends BaseRowModel {
   public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
   public _isAddRow: ko.Observable<boolean>;
 
-  private _isRealChange: ko.Observable<boolean>;
+  public _isRealChange: ko.Observable<boolean>;
 
   public constructor(dataTableModel: DataTableModel, colNames: string[]) {
     super(dataTableModel, colNames);

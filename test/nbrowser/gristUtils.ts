@@ -1537,6 +1537,22 @@ export async function getType() {
   return await driver.find('.test-fbuilder-type-select').getText();
 }
 
+/**
+ * Get the field's widget type (e.g. "CheckBox" for a Toggle column) in the creator panel.
+ */
+export async function getFieldWidgetType(): Promise<string> {
+  return await driver.find(".test-fbuilder-widget-select").getText();
+}
+
+/**
+ * Set the field's widget type (e.g. "CheckBox" for a Toggle column) in the creator panel.
+ */
+export async function setFieldWidgetType(type: string) {
+  await driver.find(".test-fbuilder-widget-select").click();
+  await driver.findContent('.test-select-menu li', exactMatch(type)).click();
+  await waitForServer();
+}
+
 export async function applyTypeTransform() {
   await driver.findContent('.type_transform_prompt button', /Apply/).click();
 }
