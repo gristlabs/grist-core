@@ -336,9 +336,19 @@ def PHONE_FORMAT(value, country=None, format=None):  # pylint: disable=redefined
   u'tel:+33-2-34-56-78-90'
   >>> PHONE_FORMAT("tel:+1-234-567-8901", country="US", format="*")
   u'+12345678901'
+  >>> PHONE_FORMAT(33234567890)
+  Traceback (most recent call last):
+  ...
+  TypeError: Phone number must be a text value. \
+If formatting a value from a Numeric column, convert that column to Text first.
   """
   if not value:
     return value
+
+  if not isinstance(value, six.string_types):
+    raise TypeError("Phone number must be a text value. " +
+      "If formatting a value from a Numeric column, convert that column to Text first.")
+
   if format is None and country in output_formats:
     format = country
     country = None
