@@ -1024,12 +1024,14 @@ GridView.prototype.buildDom = function() {
                 },
                 write: val => editIndex(val ? field._index() : -1)
               }).extend({ rateLimit: 0 });
+              const cellFill = ko.pureComputed(() => field.fillColor() || '');
               let filterTriggerCtl;
               const isTooltip = ko.pureComputed(() =>
                   self.gristDoc.docModel.editingFormula() &&
                   ko.unwrap(self.hoverColumn) === field._index());
               return dom(
                 'div.column_name.field',
+                kd.style('background-color', cellFill),
                 kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
                 kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()))),
                 kd.toggleClass("hover-column", isTooltip),
