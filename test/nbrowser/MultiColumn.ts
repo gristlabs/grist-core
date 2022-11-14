@@ -61,6 +61,18 @@ describe('MultiColumn', function() {
       }
     });
 
+    it('should not work on card view', async () => {
+      await gu.changeWidget('Card');
+      await gu.openColumnPanel();
+      assert.notEqual(await gu.getType(), "Mixed types");
+      await gu.openColumnPanel();
+      // Should be able to change type.
+      await gu.getDetailCell('Test1', 1);
+      await gu.enterCell("aa");
+      await gu.setType("Integer", {apply: true});
+      assert.equal(await gu.getType(), "Integer");
+    });
+
     it('should undo color change', async () => {
       // This is test for a bug, colors were not saved when "click outside" was done by clicking
       // one of the cells.

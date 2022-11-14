@@ -193,7 +193,11 @@ export class RightPanel extends Disposable {
 
     const selectedColumns = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
-      return vsi && vsi.selectedColumns ? vsi.selectedColumns() : null;
+      if (vsi && vsi.selectedColumns) {
+        return vsi.selectedColumns();
+      }
+      const field = fieldBuilder()?.field;
+      return field ? [field] : [];
     }));
 
     const isMultiSelect = owner.autoDispose(ko.pureComputed(() => {
