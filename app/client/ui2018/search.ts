@@ -171,6 +171,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     searchWrapper.cls('-expand', model.isOpen),
     dom.autoDispose(commandGroup),
     dom.autoDispose(lis),
+    // Make sure we don't attempt to call delayed callback after disposal.
+    dom.onDispose(() => toggleMenu.cancel()),
     cssHoverCircle(
       cssTopBarBtn('Search',
         testId('icon'),
