@@ -2,8 +2,9 @@ import { ALL_PERMISSION_PROPS } from 'app/common/ACLPermissions';
 import { ACLRuleCollection, SPECIAL_RULES_TABLE_ID } from 'app/common/ACLRuleCollection';
 import { ActionGroup } from 'app/common/ActionGroup';
 import { createEmptyActionSummary } from 'app/common/ActionSummary';
-import { ServerQuery } from 'app/common/ActiveDocAPI';
+import { ApplyUAExtendedOptions, ServerQuery } from 'app/common/ActiveDocAPI';
 import { ApiError } from 'app/common/ApiError';
+import { MapWithTTL } from 'app/common/AsyncCreate';
 import {
   AddRecord,
   BulkAddRecord,
@@ -27,7 +28,7 @@ import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
-import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
+import { getSetMapValue, isNonNullish, isNumber, pruneArray } from 'app/common/gutil';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
@@ -37,12 +38,13 @@ import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
          OptDocSession } from 'app/server/lib/DocSession';
-import { DocStorage } from 'app/server/lib/DocStorage';
+import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
-import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
+import { getColIdsFromDocAction, getColValuesFromDocAction, getRelatedRows,
+         getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import memoize = require('lodash/memoize');
@@ -176,6 +178,19 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
   'RemoveViewSection',
 ]);
 
+// When an attachment is uploaded, it isn't immediately added to a cell in
+// the document. We grant the uploader a special period where they can freely
+// add or re-add the attachment to the document without access control fuss.
+// We keep that period within the time range where an unused attachment
+// would get deleted.
+const UPLOADED_ATTACHMENT_OWNERSHIP_PERIOD =
+  (REMOVE_UNUSED_ATTACHMENTS_DELAY.delayMs - REMOVE_UNUSED_ATTACHMENTS_DELAY.varianceMs) / 2;
+
+// When a user undoes their own action or actions, checks of attachment ownership
+// are handled specially. This special handling will not apply for undoes of actions
+// older than this limit.
+const HISTORICAL_ATTACHMENT_OWNERSHIP_PERIOD = 24 * 60 * 60 * 1000;
+
 interface DocUpdateMessage {
   actionGroup: ActionGroup;
   docActions: DocAction[];
@@ -229,6 +244,7 @@ export class GranularAccess implements GranularAccessForBundle {
   // garbage-collection once docSession is no longer in use.
   private _userAttributesMap = new WeakMap<OptDocSession, UserAttributes>();
   private _prevUserAttributesMap: WeakMap<OptDocSession, UserAttributes>|undefined;
+  private _attachmentUploads = new MapWithTTL<number, string>(UPLOADED_ATTACHMENT_OWNERSHIP_PERIOD);
 
   // When broadcasting a sequence of DocAction[]s, this contains the state of
   // affected rows for the relevant table before and after each DocAction.  It
@@ -251,6 +267,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Flag for whether doc actions mention a rule change, even if passive due to
     // schema changes.
     hasAnyRuleChange: boolean,
+    options: ApplyUAExtendedOptions|null,
   }|null;
 
   public constructor(
@@ -263,8 +280,13 @@ export class GranularAccess implements GranularAccessForBundle {
     private _docId: string) {
   }
 
+  public async close() {
+    this._attachmentUploads.clear();
+  }
+
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
-                                    userActions: UserAction[], isDirect: boolean[]): void {
+                                    userActions: UserAction[], isDirect: boolean[],
+                                    options: ApplyUAExtendedOptions|null): void {
     if (this._activeBundle) { throw new Error('Cannot start a bundle while one is already in progress'); }
     // This should never happen - attempts to write to a pre-fork session should be
     // caught by an Authorizer.  But let's be paranoid, since we may be pretending to
@@ -273,7 +295,8 @@ export class GranularAccess implements GranularAccessForBundle {
     if (docSession.forkingAsOwner) { throw new Error('Should never modify a prefork'); }
     this._activeBundle = {
       docSession, docActions, undo, userActions, isDirect,
-      applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false
+      applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false,
+      options,
     };
     this._activeBundle.hasDeliberateRuleChange =
       scanActionsRecursively(userActions, (a) => isAclTable(String(a[1])));
@@ -298,6 +321,16 @@ export class GranularAccess implements GranularAccessForBundle {
   public async getCachedUser(docSession: OptDocSession): Promise<UserInfo> {
     const access = await this._getAccess(docSession);
     return access.getUser();
+  }
+
+  /**
+   * Represent fields from the session in an input object for ACL rules.
+   * Just one field currently, "user".
+   */
+  public async inputs(docSession: OptDocSession): Promise<AclMatchInput> {
+    return {
+      user: await this._getUser(docSession),
+    };
   }
 
   /**
@@ -348,7 +381,7 @@ export class GranularAccess implements GranularAccessForBundle {
       return fail();
     }
     const rec = new RecordView(rows, 0);
-    const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec: rec};
+    const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec: rec};
     const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
     const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
     if (rowAccess === 'deny') { fail(); }
@@ -380,6 +413,42 @@ export class GranularAccess implements GranularAccessForBundle {
     if (value.indexOf(attId) <= 0) {
       throw new ErrorWithCode('ACL_DENY', 'attachment not present in cell');
     }
+  }
+
+  /**
+   * Check whether the specified attachment is known to have been uploaded
+   * by the user (identified by SessionID) recently.
+   */
+  public async isAttachmentUploadedByUser(docSession: OptDocSession, attId: number): Promise<boolean> {
+    const user = await this.getUser(docSession);
+    const id = user.SessionID || '';
+    return (this._attachmentUploads.get(attId) === id);
+  }
+
+  /**
+   * Find a cell in an attachment column that contains the specified attachment,
+   * and which is accessible by the user associated with the session.
+   */
+  public async findAttachmentCellForUser(docSession: OptDocSession, attId: number): Promise<SingleCell|undefined> {
+    // Find cells that refer to the given attachment.
+    const cells = await this._docStorage.findAttachmentReferences(attId);
+    // Run through them to see if the user has access to any of them.
+    // We'd expect in a typical document that this will be a small
+    // list of cells, typically 1 or less, but of course extreme cases
+    // are possible.
+    for (const possibleCell of cells) {
+      try {
+        await this.assertAttachmentAccess(docSession, possibleCell, attId);
+        return possibleCell;
+      } catch (e) {
+        if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
+          continue;
+        }
+        throw e;
+      }
+    }
+    // Nothing found.
+    return undefined;
   }
 
   /**
@@ -612,7 +681,8 @@ export class GranularAccess implements GranularAccessForBundle {
    * Any filtering done here is NOT a security measure, and the output should
    * not be granted any level of automatic trust.
    */
-  public async prefilterUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<UserAction[]> {
+  public async prefilterUserActions(docSession: OptDocSession, actions: UserAction[],
+                                    options: ApplyUAExtendedOptions|null): Promise<UserAction[]> {
     // Currently we only attempt prefiltering for an ApplyUndoActions.
     if (actions.length !== 1) { return actions; }
     const userAction = actions[0];
@@ -646,7 +716,7 @@ export class GranularAccess implements GranularAccessForBundle {
       // any case (though we could rearrange to limit how undo actions are
       // requested).
       this.getGranularAccessForBundle(docSession, docActions, [], docActions,
-                                      docActions.map(() => true));
+                                      docActions.map(() => true), options);
       for (const [actionIdx, action] of docActions.entries()) {
         // A single action might contain forbidden material at cell, row, column,
         // or table level.  Retaining permitted material may require refactoring the
@@ -878,6 +948,36 @@ export class GranularAccess implements GranularAccessForBundle {
     await this._docClients.broadcastDocMessage(client, 'docUserAction',
                                                message,
                                                (_docSession) => this._filterDocUpdate(_docSession, message));
+  }
+
+  /**
+   * Called when uploads occur. We record the fact that the specified attachment
+   * ids originated in uploads by the current user, for a certain length of time.
+   * During that time, attempts by the user to use these attachment ids in an
+   * attachment column will be accepted. The user is identified by SessionID,
+   * which is a user id for logged in users, and a session-unique id for
+   * anonymous users accessing Grist from a browser.
+   *
+   * A remaining weakness of this protection could be if attachment ids were
+   * reused, and reused quickly. Attachments can be deleted after
+   * REMOVE_UNUSED_ATTACHMENTS_DELAY and on document shutdown. We keep
+   * UPLOADED_ATTACHMENT_OWNERSHIP_PERIOD less than REMOVE_UNUSED_ATTACHMENTS_DELAY,
+   * and wipe our records on document shutdown.
+   */
+  public async noteUploads(docSession: OptDocSession, attIds: number[]) {
+    const user = await this.getUser(docSession);
+    const id = user.SessionID;
+    if (!id) {
+      log.rawError('noteUploads needs a SessionID', {
+        docId: this._docId,
+        attIds,
+        userId: user.UserID,
+      });
+      return;
+    }
+    for (const attId of attIds) {
+      this._attachmentUploads.set(attId, id);
+    }
   }
 
   // Remove cached access information for a given session.
@@ -1465,7 +1565,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const rec = new RecordView(rowsRec, undefined);
     const newRec = new RecordView(rowsNewRec, undefined);
-    const input: AclMatchInput = {user: await this._getUser(docSession), rec, newRec};
+    const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec};
 
     const [, tableId, , colValues] = action;
     let filteredColValues: ColValues | BulkColValues | undefined | null = null;
@@ -1547,7 +1647,7 @@ export class GranularAccess implements GranularAccessForBundle {
                                   colId?: string): Promise<number[]> {
     const ruler = await this._getRuler(cursor);
     const rec = new RecordView(data, undefined);
-    const input: AclMatchInput = {user: await this._getUser(cursor.docSession), rec};
+    const input: AclMatchInput = {...await this.inputs(cursor.docSession), rec};
 
     const [, tableId, rowIds] = data;
     const toRemove: number[] = [];
@@ -1893,7 +1993,9 @@ export class GranularAccess implements GranularAccessForBundle {
     const needMeta = docActions.some(a => isSchemaAction(a) || getTableId(a).startsWith('_grist_'));
     if (!needMeta) {
       // Sometimes, the intermediate states are trivial.
-      return docActions.map(action => ({action}));
+      // TODO: look into whether it would be worth caching attachment columns.
+      const attachmentColumns = this._getAttachmentColumns(this._docData);
+      return docActions.map(action => ({action, attachmentColumns}));
     }
     const metaDocData = new DocData(
       async (tableId) => {
@@ -1944,9 +2046,31 @@ export class GranularAccess implements GranularAccessForBundle {
         replaceRuler = false;
       }
       step.ruler = ruler;
+      step.attachmentColumns = this._getAttachmentColumns(metaDocData);
       steps.push(step);
     }
     return steps;
+  }
+
+  /**
+   * Enumerate attachment columns, represented as a map from tableId to
+   * a set of colIds.
+   */
+  private _getAttachmentColumns(metaDocData: DocData): Map<string, Set<string>> {
+    const tablesTable = metaDocData.getMetaTable('_grist_Tables');
+    const columnsTable = metaDocData.getMetaTable('_grist_Tables_column');
+    const attachmentColumns: Map<string, Set<string>> = new Map();
+    for (const col of columnsTable.filterRecords({type: 'Attachments'})) {
+      const table = tablesTable.getRecord(col.parentId);
+      const tableId = table?.tableId;
+      if (!tableId) { throw new Error('table not found'); /* should not happen */ }
+      const colId = col.colId;
+      if (!attachmentColumns.has(tableId)) {
+        attachmentColumns.set(tableId, new Set());
+      }
+      attachmentColumns.get(tableId)!.add(colId);
+    }
+    return attachmentColumns;
   }
 
   /**
@@ -2095,6 +2219,7 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   private async _checkIncomingDocAction(cursor: ActionCursor): Promise<void> {
+    await this._checkIncomingAttachmentChanges(cursor);
     const {action, docSession} = cursor;
     const accessCheck = await this._getAccessForActionType(docSession, action, 'fatal');
     const tableId = getTableId(action);
@@ -2109,6 +2234,69 @@ export class GranularAccess implements GranularAccessForBundle {
     // Somewhat abusing prune method by calling it with an access function that
     // throws on denial.
     this._pruneColumns(action, permInfo, tableId, accessCheck);
+  }
+
+  /**
+   * Take a look at the DocAction and see if it might allow the user to
+   * introduce attachment ids into a cell. If so, make sure the user
+   * has the right to access any attachments mentioned.
+   */
+  private async _checkIncomingAttachmentChanges(cursor: ActionCursor): Promise<void> {
+    const options = this._activeBundle?.options;
+    if (options?.fromOwnHistory && options.oldestSource &&
+      Date.now() - options.oldestSource < HISTORICAL_ATTACHMENT_OWNERSHIP_PERIOD) {
+      return;
+    }
+    const {action, docSession} = cursor;
+    if (!isDataAction(action)) { return; }
+    if (isRemoveRecordAction(action)) { return; }
+    const tableId = getTableId(action);
+    const step = await this._getMetaStep(cursor);
+    const attachmentColumns = step.attachmentColumns;
+    if (!attachmentColumns) { return; }
+    const ac = attachmentColumns.get(tableId);
+    if (!ac) { return; }
+    const colIds = getColIdsFromDocAction(action);
+    if (!colIds.some(colId => ac.has(colId))) { return; }
+    if (await this.isOwner(docSession) || await this.canReadEverything(docSession)) { return; }
+    const attIds = new Set<number>();
+    for (const colId of colIds) {
+      if (!ac.has(colId)) { continue; }
+      const values = getColValuesFromDocAction(action, colId);
+      if (!values) { continue; }
+      for (const v of values) {
+        // We expect an array. What should we do with other types?
+        // If we were confident no part of Grist would interpret non-array
+        // values as attachment ids, then we should let them be added, as
+        // part of Grist's spreadsheet-style willingness to allow invalid
+        // data. I decided to go ahead and require that numbers or number-like
+        // strings should be checked as if they were attachment ids, just in
+        // case. But if this proves awkward for someone, it could be reasonable
+        // to only check ids in an array after confirming Grist is strict in
+        // how it interprets material in attachment cells.
+        if (typeof v === 'number') {
+          attIds.add(v);
+        } else if (Array.isArray(v)) {
+          for (const p of v) {
+            if (typeof p === 'number') {
+              attIds.add(p);
+            }
+          }
+        } else if (typeof v === 'boolean' || v === null) {
+          // Nothing obvious to do here.
+        } else if (isNumber(v)) {
+          attIds.add(Math.round(parseFloat(v)));
+        }
+      }
+    }
+    for (const attId of attIds) {
+      if (!await this.isAttachmentUploadedByUser(docSession, attId) &&
+        !await this.findAttachmentCellForUser(docSession, attId)) {
+        throw new ErrorWithCode('ACL_DENY', 'Cannot access attachment', {
+          status: 403,
+        });
+      }
+    }
   }
 
   private async _getRuler(cursor: ActionCursor) {
@@ -2192,7 +2380,7 @@ export class GranularAccess implements GranularAccessForBundle {
     };
     const ruler = await this._getRuler(cursor);
     const permInfo = await ruler.getAccess(docSession);
-    const user = await this._getUser(docSession);
+    const inputs = await this.inputs(docSession);
     // Cache some data, as they are checked.
     const readRows = memoize(this._fetchQueryFromDB.bind(this));
     const hasAccess = async (cell: SingleCell) => {
@@ -2223,7 +2411,7 @@ export class GranularAccess implements GranularAccessForBundle {
         }
       }
       const rec = rows ? new RecordView(rows, 0) : undefined;
-      const input: AclMatchInput = {user, rec, newRec: rec};
+      const input: AclMatchInput = {...inputs, rec, newRec: rec};
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
       const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
       if (rowAccess === 'deny') { return false; }
@@ -2286,7 +2474,7 @@ export class Ruler {
     // TODO The intent of caching is to avoid duplicating rule evaluations while processing a
     // single request. Caching based on docSession is riskier since those persist across requests.
     return getSetMapValue(this._permissionInfoMap as Map<OptDocSession, Promise<PermissionInfo>>, docSession,
-      async () => new PermissionInfo(this.ruleCollection, {user: await this._owner.getUser(docSession)}));
+      async () => new PermissionInfo(this.ruleCollection, await this._owner.inputs(docSession)));
   }
 
   public flushAccess(docSession: OptDocSession) {
@@ -2314,6 +2502,7 @@ export class Ruler {
 
 export interface RulerOwner {
   getUser(docSession: OptDocSession): Promise<UserInfo>;
+  inputs(docSession: OptDocSession): Promise<AclMatchInput>;
 }
 
 /**
@@ -2331,6 +2520,7 @@ export interface MetaStep {
   metaBefore?: {[key: string]: TableDataAction};  // cached structural metadata before action
   metaAfter?: {[key: string]: TableDataAction};   // cached structural metadata after action
   ruler?: Ruler;                          // rules at this step
+  attachmentColumns?: Map<string, Set<string>>;        // attachment columns after this step
 }
 
 /**
@@ -2497,7 +2687,7 @@ class CellAccessHelper {
   private _tableAccess: Map<string, boolean> = new Map();
   private _rowPermInfo: Map<string, Map<number, PermissionInfo>> = new Map();
   private _rows: Map<string, TableDataAction> = new Map();
-  private _user!: UserInfo;
+  private _inputs!: AclMatchInput;
 
   constructor(
     private _granular: GranularAccess,
@@ -2511,7 +2701,7 @@ class CellAccessHelper {
    * Resolves access for all cells, and save the results in the cache.
    */
   public async calculate(cells: SingleCell[]) {
-    this._user = await this._granular.getUser(this._docSession);
+    this._inputs = await this._granular.inputs(this._docSession);
     const tableIds = new Set(cells.map(cell => cell.tableId));
     for (const tableId of tableIds) {
       this._tableAccess.set(tableId, await this._granular.hasTableAccess(this._docSession, tableId));
@@ -2521,7 +2711,7 @@ class CellAccessHelper {
         for(const [idx, rowId] of rows[2].entries()) {
           if (rowIds.has(rowId) === false) { continue; }
           const rec = new RecordView(rows, idx);
-          const input: AclMatchInput = {user: this._user, rec, newRec: rec};
+          const input: AclMatchInput = {...this._inputs, rec, newRec: rec};
           const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
           if (!this._rowPermInfo.has(tableId)) {
             this._rowPermInfo.set(tableId, new Map());
@@ -2892,6 +3082,7 @@ export class User implements UserInfo {
   public Origin: string | null = null;
   public LinkKey: Record<string, string | undefined> = {};
   public Email: string | null = null;
+  public SessionID: string | null = null;
   public UserRef: string | null = null;
   [attribute: string]: any;
 

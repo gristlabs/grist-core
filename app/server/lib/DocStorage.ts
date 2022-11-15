@@ -47,6 +47,10 @@ const PENDING_VALUE = [GristObjCode.Pending];
 // that someone would delete a reference to an attachment and then undo that action this many days later.
 export const ATTACHMENTS_EXPIRY_DAYS = 7;
 
+// Cleanup expired attachments every hour (also happens when shutting down).
+export const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
+
+
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // ======================================================================

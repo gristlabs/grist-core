@@ -12,8 +12,16 @@ export interface ApplyUAOptions {
   desc?: string;      // Overrides the description of the action.
   otherId?: number;   // For undo/redo; the actionNum of the original action to which it applies.
   linkId?: number;    // For bundled actions, actionNum of the previous action in the bundle.
-  bestEffort?: boolean; // If set, action may be applied in part if it cannot be applied completely.
   parseStrings?: boolean;  // If true, parses string values in some actions based on the column
+}
+
+export interface ApplyUAExtendedOptions extends ApplyUAOptions {
+  bestEffort?: boolean; // If set, action may be applied in part if it cannot be applied completely.
+  fromOwnHistory?: boolean; // If set, action is confirmed to be a redo/undo taken from history, from
+                            // an action marked as being by the current user.
+  oldestSource?: number;  // If set, gives the timestamp of the oldest source the undo/redo
+                          // action was built from, expressed as number of milliseconds
+                          // elapsed since January 1, 1970 00:00:00 UTC
 }
 
 export interface ApplyUAResult {

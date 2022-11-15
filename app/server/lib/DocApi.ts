@@ -290,7 +290,7 @@ export class DocWorkerApi {
       const ext = path.extname(fileIdent);
       const origName = attRecord.fileName as string;
       const fileName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
-      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, cell);
+      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, {cell});
       res.status(200)
         .type(ext)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'

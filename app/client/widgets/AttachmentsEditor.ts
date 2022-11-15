@@ -203,6 +203,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       ...this._docComm.getUrlParams(),
       name: filename,
       ...cell,
+      maybeNew: 1,  // The attachment may be uploaded by the user but not stored in the cell yet.
       attId,
       ...(inline ? {inline: 1} : {})
     });

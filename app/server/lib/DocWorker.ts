@@ -2,6 +2,7 @@
  * DocWorker collects the methods and endpoints that relate to a single Grist document.
  * In hosted environment, this comprises the functionality of the DocWorker instance type.
  */
+import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -42,6 +43,7 @@ export class DocWorker {
       const tableId = stringParam(req.query.tableId, 'tableId');
       const rowId = integerParam(req.query.rowId, 'rowId');
       const cell = {colId, tableId, rowId};
+      const maybeNew = isAffirmative(req.query.maybeNew);
       const attId = integerParam(req.query.attId, 'attId');
       const attRecord = activeDoc.getAttachmentMetadata(attId);
       const ext = path.extname(attRecord.fileIdent);
@@ -54,7 +56,7 @@ export class DocWorker {
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
       const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
-      const data = await activeDoc.getAttachmentData(docSession, attRecord, cell);
+      const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)

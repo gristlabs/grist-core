@@ -3,6 +3,7 @@
  * See also EncActionBundle for how these are packaged for encryption.
  */
 
+import {ApplyUAOptions} from 'app/common/ActiveDocAPI';
 import {DocAction, UserAction} from 'app/common/DocActions';
 import {RowCounts} from 'app/common/DocUsage';
 
@@ -50,6 +51,7 @@ export function getEnvContent<Content>(items: Array<EnvContent<Content>>): Conte
 export interface UserActionBundle {
   info: ActionInfo;
   userActions: UserAction[];
+  options?: ApplyUAOptions;
 }
 
 // ActionBundle as received from the sandbox. It does not have some action metadata, but does have

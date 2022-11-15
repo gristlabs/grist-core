@@ -6,6 +6,7 @@ import {
   LocalActionBundle,
   UserActionBundle
 } from 'app/common/ActionBundle';
+import {ApplyUAExtendedOptions} from 'app/common/ActiveDocAPI';
 import {CALCULATING_USER_ACTIONS, DocAction, getNumRows, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
 import log from 'app/server/lib/log';
@@ -195,15 +196,16 @@ export class Sharing {
     const userActions: UserAction[] = [
       ['ApplyDocActions', action.stored.map(envContent => envContent[1])]
     ];
-    return this._doApplyUserActions(action.info[1], userActions, Branch.Shared, null);
+    return this._doApplyUserActions(action.info[1], userActions, Branch.Shared, null, null);
   }
 
   private _doApplyUserActionBundle(action: UserActionBundle, docSession: OptDocSession|null): Promise<UserResult> {
-    return this._doApplyUserActions(action.info, action.userActions, Branch.Local, docSession);
+    return this._doApplyUserActions(action.info, action.userActions, Branch.Local, docSession, action.options || null);
   }
 
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
-                                   branch: Branch, docSession: OptDocSession|null): Promise<UserResult> {
+                                    branch: Branch, docSession: OptDocSession|null,
+                                    options: ApplyUAExtendedOptions|null): Promise<UserResult> {
     const client = docSession && docSession.client;
 
     if (docSession?.linkId) {
@@ -211,7 +213,7 @@ export class Sharing {
     }
 
     const {sandboxActionBundle, undo, accessControl} =
-      await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions));
+      await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions, options));
 
     try {
 
@@ -389,7 +391,8 @@ export class Sharing {
         shortDesc(envAction[1])));
   }
 
-  private async _applyActionsToDataEngine(docSession: OptDocSession|null, userActions: UserAction[]) {
+  private async _applyActionsToDataEngine(docSession: OptDocSession|null, userActions: UserAction[],
+                                          options: ApplyUAExtendedOptions|null) {
     const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
     const undo = getEnvContent(sandboxActionBundle.undo);
     const docActions = getEnvContent(sandboxActionBundle.stored).concat(
@@ -397,7 +400,8 @@ export class Sharing {
     const isDirect = getEnvContent(sandboxActionBundle.direct);
 
     const accessControl = this._activeDoc.getGranularAccessForBundle(
-      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions, isDirect
+      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions, isDirect,
+      options
     );
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside

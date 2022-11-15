@@ -1,5 +1,6 @@
-import { AddRecord, BulkAddRecord, BulkRemoveRecord, BulkUpdateRecord, DocAction, getTableId,
-         RemoveRecord, ReplaceTableData, TableDataAction, UpdateRecord } from "app/common/DocActions";
+import { AddRecord, BulkAddRecord, BulkRemoveRecord, BulkUpdateRecord,
+         CellValue, DocAction, getTableId, RemoveRecord, ReplaceTableData,
+         TableDataAction, UpdateRecord } from "app/common/DocActions";
 import { getSetMapValue } from "app/common/gutil";
 
 /**
@@ -78,7 +79,7 @@ export function getRowIdsFromDocAction(docActions: RemoveRecord | BulkRemoveReco
 }
 
 /**
- * Tiny helper to get the row ids mentioned in a record-related DocAction as a list
+ * Tiny helper to get the col ids mentioned in a record-related DocAction as a list
  * (even if the action is not a bulk action). When the action touches the whole row,
  * it returns ["*"].
  */
@@ -87,4 +88,22 @@ export function getColIdsFromDocAction(docActions: RemoveRecord | BulkRemoveReco
   TableDataAction) {
   if (docActions[3]) { return Object.keys(docActions[3]); }
   return ['*'];
+}
+
+/**
+ * Extract column values for a particular column as CellValue[] from a
+ * record-related DocAction. Undefined if absent.
+ */
+export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRecord | AddRecord |
+  BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
+  TableDataAction, colId: string): CellValue[]|undefined {
+  const colValues = docAction[3];
+  if (!colValues) { return undefined; }
+  const cellValues = colValues[colId];
+  if (!cellValues) { return undefined; }
+  if (Array.isArray(docAction[2])) {
+    return cellValues as CellValue[];
+  } else {
+    return [cellValues as CellValue];
+  }
 }

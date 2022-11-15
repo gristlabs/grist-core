@@ -15,6 +15,7 @@ import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
 import {
   AclTableDescription,
+  ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
   DataSourceTransformed,
@@ -55,7 +56,6 @@ import {
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {Product} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {parseUrlId} from 'app/common/gristUrls';
@@ -113,7 +113,7 @@ import {
   makeExceptionalDocSession,
   OptDocSession
 } from './DocSession';
-import {createAttachmentsIndex, DocStorage} from './DocStorage';
+import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
@@ -121,6 +121,7 @@ import {getLogMetaFromDocSession, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
+import pick = require('lodash/pick');
 import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
@@ -140,9 +141,6 @@ const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
-
-// Cleanup expired attachments every hour (also happens when shutting down)
-const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
 // Apply the UpdateCurrentTime user action every hour
 const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
@@ -571,6 +569,12 @@ export class ActiveDoc extends EventEmitter {
     } finally {
       this._docManager.removeActiveDoc(this);
     }
+    try {
+      await this._granularAccess.close();
+    } catch (err) {
+      // This should not happen.
+      this._log.error(docSession, "failed to shutdown granular access", err);
+    }
     this._log.debug(docSession, "shutdown complete");
   }
 
@@ -844,6 +848,7 @@ export class ActiveDoc extends EventEmitter {
       this._updateAttachmentsSize().catch(e => {
         this._log.warn(docSession, 'failed to update attachments size', e);
       });
+      await this._granularAccess.noteUploads(docSession, result.retValues);
       return result.retValues;
     } finally {
       await globalUploadSet.cleanup(uploadId);
@@ -868,46 +873,39 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Given a _gristAttachments record, returns a promise for the attachment data.
+   * Can optionally take a cell in which the attachment is expected to be
+   * referenced, and/or a `maybeNew` flag which, when set, specifies that the
+   * attachment may be a recent upload that is not yet referenced in the document.
    * @returns {Promise<Buffer>} Promise for the data of this attachment; rejected on error.
    */
   public async getAttachmentData(docSession: OptDocSession, attRecord: MetaRowRecord<"_grist_Attachments">,
-                                 cell?: SingleCell): Promise<Buffer> {
+                                 options?: {
+                                   cell?: SingleCell,
+                                   maybeNew?: boolean,
+                                 }): Promise<Buffer> {
     const attId = attRecord.id;
     const fileIdent = attRecord.fileIdent;
+    const cell = options?.cell;
+    const maybeNew = options?.maybeNew;
     if (
       await this._granularAccess.canReadEverything(docSession) ||
       await this.canDownload(docSession)
     ) {
       // Do not need to sweat over access to attachments if user can
       // read everything or download everything.
-    } else if (cell) {
-      // Only provide the download if the user has access to the cell
-      // they specified, and that cell is in an attachment column,
-      // and the cell contains the specified attachment.
-      await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
     } else {
-      // Find cells that refer to the given attachment.
-      const cells = await this.docStorage.findAttachmentReferences(attId);
-      // Run through them to see if the user has access to any of them.
-      // If so, we'll allow the download. We'd expect in a typical document
-      // this this will be a small list of cells, typically 1 or less, but
-      // of course extreme cases are possible.
-      let goodCell: SingleCell|undefined;
-      for (const possibleCell of cells) {
-        try {
-          await this._granularAccess.assertAttachmentAccess(docSession, possibleCell, attId);
-          goodCell = possibleCell;
-          break;
-        } catch (e) {
-          if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
-            continue;
-          }
-          throw e;
+      if (maybeNew && await this._granularAccess.isAttachmentUploadedByUser(docSession, attId)) {
+        // Fine, this is an attachment the user uploaded (recently).
+      } else if (cell) {
+        // Only provide the download if the user has access to the cell
+        // they specified, and that cell is in an attachment column,
+        // and the cell contains the specified attachment.
+        await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
+      } else {
+        if (!await this._granularAccess.findAttachmentCellForUser(docSession, attId)) {
+          // We found no reason to allow this user to access the attachment.
+          throw new ApiError('Cannot access attachment', 403);
         }
-      }
-      if (!goodCell) {
-        // We found no reason to allow this user to access the attachment.
-        throw new ApiError('Cannot access attachment', 403);
       }
     }
     const data = await this.docStorage.getFileData(fileIdent);
@@ -1165,24 +1163,9 @@ export class ActiveDoc extends EventEmitter {
    *                                          actionGroup.
    */
   public async applyUserActions(docSession: OptDocSession, actions: UserAction[],
-                                options?: ApplyUAOptions): Promise<ApplyUAResult> {
-    assert(Array.isArray(actions), "`actions` parameter should be an array.");
-    // Be careful not to sneak into user action queue before Calculate action, otherwise
-    // there'll be a deadlock.
-    await this.waitForInitialization();
-
-    if (
-      this.dataLimitStatus === "deleteOnly" &&
-      !actions.every(action => [
-          'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
-          'RemoveViewSection', 'RemoveView', 'ApplyUndoActions', 'RespondToRequests',
-        ].includes(action[0] as string))
-    ) {
-      throw new Error("Document is in delete-only mode");
-    }
-
-    // Granular access control implemented in _applyUserActions.
-    return await this._applyUserActions(docSession, actions, options);
+                                unsanitizedOptions?: ApplyUAOptions): Promise<ApplyUAResult> {
+    const options = sanitizeApplyUAOptions(unsanitizedOptions);
+    return this._applyUserActionsWithExtendedOptions(docSession, actions, options);
   }
 
   /**
@@ -1200,12 +1183,25 @@ export class ActiveDoc extends EventEmitter {
                                     actionNums: number[],
                                     actionHashes: string[],
                                     undo: boolean,
-                                    options?: ApplyUAOptions): Promise<ApplyUAResult> {
+                                    unsanitizedOptions?: ApplyUAOptions): Promise<ApplyUAResult> {
+    const options = sanitizeApplyUAOptions(unsanitizedOptions);
     const actionBundles = await this._actionHistory.getActions(actionNums);
+    let fromOwnHistory: boolean = true;
+    const user = getDocSessionUser(docSession);
+    let oldestSource: number = Date.now();
     for (const [index, bundle] of actionBundles.entries()) {
       const actionNum = actionNums[index];
       const actionHash = actionHashes[index];
       if (!bundle) { throw new Error(`Could not find actionNum ${actionNum}`); }
+      const info = bundle.info[1];
+      const bundleEmail = info.user || '';
+      const sessionEmail = user?.email || '';
+      if (normalizeEmail(sessionEmail) !== normalizeEmail(bundleEmail)) {
+        fromOwnHistory = false;
+      }
+      if (info.time && info.time < oldestSource) {
+        oldestSource = info.time;
+      }
       if (actionHash !== bundle.actionHash) {
         throw new Error(`Hash mismatch for actionNum ${actionNum}: ` +
                         `expected ${actionHash} but got ${bundle.actionHash}`);
@@ -1221,7 +1217,10 @@ export class ActiveDoc extends EventEmitter {
     // It could be that error cases and timing etc leak some info prior to this
     // point.
     // Undos are best effort now by default.
-    return this.applyUserActions(docSession, actions, {bestEffort: undo, ...(options||{})});
+    return this._applyUserActionsWithExtendedOptions(
+      docSession, actions, {bestEffort: undo,
+                            oldestSource,
+                            fromOwnHistory, ...(options||{})});
   }
 
   /**
@@ -1685,8 +1684,9 @@ export class ActiveDoc extends EventEmitter {
    * granular access rules.
    */
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
-                                    userActions: UserAction[], isDirect: boolean[]): GranularAccessForBundle {
-    this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions, isDirect);
+                                    userActions: UserAction[], isDirect: boolean[],
+                                    options: ApplyUAOptions|null): GranularAccessForBundle {
+    this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions, isDirect, options);
     return this._granularAccess;
   }
 
@@ -1784,7 +1784,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
-                                    options: ApplyUAOptions = {}): Promise<ApplyUAResult> {
+                                    options: ApplyUAExtendedOptions = {}): Promise<ApplyUAResult> {
 
     const client = docSession.client;
     this._log.debug(docSession, "_applyUserActions(%s, %s)%s", client, shortDesc(actions),
@@ -1796,13 +1796,14 @@ export class ActiveDoc extends EventEmitter {
     }
 
     if (options?.bestEffort) {
-      actions = await this._granularAccess.prefilterUserActions(docSession, actions);
+      actions = await this._granularAccess.prefilterUserActions(docSession, actions, options);
     }
     await this._granularAccess.checkUserActions(docSession, actions);
 
     // Create the UserActionBundle.
     const action: UserActionBundle = {
       info: this._makeInfo(docSession, options),
+      options,
       userActions: actions,
     };
 
@@ -1816,6 +1817,27 @@ export class ActiveDoc extends EventEmitter {
       this._docManager.markAsChanged(this, 'edit');
     }
     return result;
+  }
+
+  private async _applyUserActionsWithExtendedOptions(docSession: OptDocSession, actions: UserAction[],
+                                                     options?: ApplyUAExtendedOptions): Promise<ApplyUAResult> {
+    assert(Array.isArray(actions), "`actions` parameter should be an array.");
+    // Be careful not to sneak into user action queue before Calculate action, otherwise
+    // there'll be a deadlock.
+    await this.waitForInitialization();
+
+    if (
+      this.dataLimitStatus === "deleteOnly" &&
+      !actions.every(action => [
+          'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
+          'RemoveViewSection', 'RemoveView', 'ApplyUndoActions', 'RespondToRequests',
+        ].includes(action[0] as string))
+    ) {
+      throw new Error("Document is in delete-only mode");
+    }
+
+    // Granular access control implemented in _applyUserActions.
+    return await this._applyUserActions(docSession, actions, options);
   }
 
   /**
@@ -2305,4 +2327,8 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];
+}
+
+export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {
+  return pick(options||{}, ['desc', 'otherId', 'linkId', 'parseStrings']);
 }
