@@ -1,19 +1,12 @@
-import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
+import {computed, Computed, dom, DomElementArg, IDisposableOwner, keyframes, Observable, styled} from "grainjs";
 import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
-import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
+import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {UserManagerModel, IMemberSelectOption, ResourceType, Resource} from 'app/client/models/UserManagerModel';
+import {UserManagerModel, IMemberSelectOption} from 'app/client/models/UserManagerModel';
 import {icon} from 'app/client/ui2018/icons';
 import {cssEmailTextarea,} from "app/client/ui/UserItem";
-import {Role, NonGuestRole} from "app/common/roles";
+import {BasicRole, VIEWER, NonGuestRole, isBasicRole} from "app/common/roles";
 import {menu, menuItem} from 'app/client/ui2018/menus';
-import {renderTitle, makeCopyBtn} from "app/client/ui/UserManager";
-
-type Options = {
-  linkToCopy?: string,
-  resource?: Resource,
-  resourceType: ResourceType,
-}
 
 function parseEmailList(emailListRaw: string): Array<string> {
   return emailListRaw
@@ -30,11 +23,10 @@ function validateEmail(email: string): boolean {
 export function buildMultiUserManagerModal(
   owner: IDisposableOwner,
   model: UserManagerModel,
-  options: Options,
   onAdd: (email: string, role: NonGuestRole) => void,
 ) {
   const emailListObs = Observable.create(owner, "");
-  const rolesObs = Observable.create(owner, null);
+  const rolesObs = Observable.create<BasicRole>(owner, VIEWER);
   const isValidObs = Observable.create(owner, true);
   
   const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs)));
@@ -42,7 +34,6 @@ export function buildMultiUserManagerModal(
   const save = (ctl: IModalControl) => {
     const emailList = parseEmailList(emailListObs.get())
     const role = rolesObs.get();
-    if (role === null) return;
     if (emailList.some(email => !validateEmail(email))) {
       isValidObs.set(false);
     } else {
@@ -55,12 +46,9 @@ export function buildMultiUserManagerModal(
   return modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
+    dom.cls(cssAnimatedModal.className),
     cssTitle(
-      renderTitle(options.resourceType, options.resource, model.isPersonal),
-      (options.resourceType === 'document' && (!model.isPersonal || model.isPublicMember)
-        ? makeCopyBtn(options.linkToCopy, cssCopyBtn.cls('-header'))
-        : null
-      ),
+      'Invite Team Members',
       testId('um-header'),
     ),
     cssModalBody(
@@ -68,7 +56,7 @@ export function buildMultiUserManagerModal(
         buildMultiUserManager(emailListObs, isValidObs),
         dom.domComputed(isValidObs, isValid => !isValid ? cssErroMessage('At least one email is invalid') : null),
         cssInheritRoles(
-          dom('span', 'Inherit access: '),
+          dom('span', 'Access: '),
           buildRolesSelect(rolesObs, model)
         )
       ),
@@ -92,13 +80,14 @@ export function buildMultiUserManagerModal(
 }
 
 function buildRolesSelect(
-  roleSelectedObs: Observable<Role|null>,
+  roleSelectedObs: Observable<BasicRole>,
   model: UserManagerModel,
 ) {
   const allRoles = model.inheritSelectOptions
+    .filter((x): x is {value: BasicRole, label: string} => isBasicRole(x.value));
   return cssOptionBtn(
     menu(() => [
-      dom.forEach(allRoles, _role =>
+      dom.forEach(allRoles, (_role) =>
         menuItem(() => roleSelectedObs.set(_role.value), _role.label,
           testId(`um-role-option`)
         )
@@ -140,6 +129,17 @@ const cssTitle = styled(cssModalTitle, `
   }
 `);
 
+const cssFadeInFromTop = keyframes(`
+  from {top: -250px; opacity: 0}
+  to {top: 0; opacity: 1}
+`);
+
+const cssAnimatedModal = styled('div', `
+  animation-name: ${cssFadeInFromTop};
+  animation-duration: 0.4s;
+  position: relative;
+`);
+
 const cssInheritRoles = styled('span', `
   margin: 13px 63px 42px;
 `)
@@ -177,15 +177,6 @@ const cssTextarea = styled(cssEmailTextarea, `
   margin: 16px 63px;
   padding: 12px 10px;
   border-radius: 3px;
+  resize: none;
   border: 1px solid ${theme.inputBorder};
 `)
-
-const cssCopyBtn = styled(basicButton, `
-  border: none;
-  font-weight: normal;
-  padding: 0 8px;
-  &-header {
-    float: right;
-    margin-top: 8px;
-  }
-`);

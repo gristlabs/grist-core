@@ -53,7 +53,6 @@ export interface IUserManagerOptions {
   linkToCopy?: string;
   reload?: () => Promise<PermissionData>;
   onSave?: (personal: boolean) => Promise<unknown>;
-  openMultiModal?: Function;
   prompt?: {  // If set, user manager should open with this email filled in and ready to go.
     email: string;
   };
@@ -150,7 +149,8 @@ function buildUserManagerModal(
         cssModalBody(
           cssBody(
             new UserManager(
-              model, pick(options, 'resourceType', 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              model,
+              pick(options, 'resourceType', 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
             ).buildDom()
           ),
         ),
@@ -201,14 +201,15 @@ function buildUserManagerModal(
 export class UserManager extends Disposable {
   private _dom: HTMLDivElement;
 
-  constructor(private _model: UserManagerModel, private _options: {
-    linkToCopy?: string,
-    docPageModel?: DocPageModel,
-    appModel?: AppModel,
-    prompt?: {email: string},
-    openMultiModal?: Function,
-    resource?: Resource,
-    resourceType: ResourceType,
+  constructor(
+    private _model: UserManagerModel,
+    private _options: {
+      linkToCopy?: string,
+      docPageModel?: DocPageModel,
+      appModel?: AppModel,
+      prompt?: {email: string},
+      resource?: Resource,
+      resourceType: ResourceType,
   }) {
     super();
   }
@@ -251,6 +252,17 @@ export class UserManager extends Disposable {
     const publicMember = this._model.publicMember;
     let tooltipControl: ITooltipControl | undefined;
     return dom('div',
+      cssOptionRowMultiple(
+        icon('AddUser'),
+        cssLabel('Invite multiple'),
+        dom.on('click', (_ev) => buildMultiUserManagerModal(
+          this,
+          this._model,
+          (email, role) => {
+            this._onAdd(email, role);
+          },
+        ))
+      ),
       !this._model.isOrg && publicMember ? cssOptionRow(
         // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
         // be used to fill whitespace in org UserManager.
@@ -287,16 +299,6 @@ export class UserManager extends Disposable {
           }),
         ) : null,
       ) : null,
-      cssOptionRowMultiple(
-        icon('AddUser'),
-        cssLabel('Invite multiple'),
-        dom.on('click', (_ev) => buildMultiUserManagerModal(
-          this,
-          this._model,
-          this._options,
-          (email, role) => this._onAdd(email, role),
-        ))
-      )
     );
   }
 
@@ -692,7 +694,9 @@ const cssOptionRow = styled('div', `
   margin: 0 63px 23px 63px;
 `);
 
-const cssOptionRowMultiple = styled(cssOptionRow, `
+const cssOptionRowMultiple = styled('div', `
+  margin: 0 63px 12px 63px;
+  font-size: ${vars.mediumFontSize};
   display: flex;
   cursor: pointer;
   color: ${theme.link};
