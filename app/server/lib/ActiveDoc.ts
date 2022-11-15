@@ -1624,8 +1624,10 @@ export class ActiveDoc extends EventEmitter {
     this._inactivityTimer.ping();
   }
 
-  public async getSnapshots(skipMetadataCache?: boolean): Promise<DocSnapshots> {
-    // Assume any viewer can access this list.
+  public async getSnapshots(docSession: OptDocSession, skipMetadataCache?: boolean): Promise<DocSnapshots> {
+    if (await this._granularAccess.hasNuancedAccess(docSession)) {
+      throw new Error('cannot confirm access to snapshots');
+    }
     return this._docManager.storageManager.getSnapshots(this.docName, skipMetadataCache);
   }
 

@@ -111,6 +111,7 @@
   "DocHistory": {
     "Activity": "Activity",
     "Snapshots": "Snapshots",
+    "SnapshotsUnavailable": "Snapshots are unavailable.",
     "OpenSnapshot": "Open Snapshot",
     "CompareToCurrent": "Compare to Current",
     "CompareToPrevious": "Compare to Previous",

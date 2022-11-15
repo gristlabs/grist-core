@@ -68,11 +68,19 @@ export class DocHistory extends Disposable implements IDomComponent {
     }
 
     const snapshots = Observable.create<DocSnapshot[]>(owner, []);
+    const snapshotsDenied = Observable.create<boolean>(owner, false);
     const userApi = this._docPageModel.appModel.api;
     const docApi = userApi.getDocAPI(origUrlId);
     docApi.getSnapshots().then(result =>
-      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(reportError);
-    return dom('div',
+      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(err => {
+        snapshotsDenied.set(true);
+        reportError(err);
+      });
+    return dom(
+      'div',
+      dom.maybe(snapshotsDenied, () => cssSnapshotDenied(
+        t('SnapshotsUnavailable'),
+        testId('doc-history-error'))),
       // Note that most recent snapshots are first.
       dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
         const modified = moment(snapshot.lastModified);
@@ -115,6 +123,10 @@ const cssSubTabs = styled('div', `
 `);
 
 const cssSnapshot = styled('div', `
+  margin: 8px 16px;
+`);
+
+const cssSnapshotDenied = styled('div', `
   margin: 8px 16px;
 `);
 

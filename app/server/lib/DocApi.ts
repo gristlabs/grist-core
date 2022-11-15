@@ -651,7 +651,8 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
-      const {snapshots} = await activeDoc.getSnapshots(isAffirmative(req.query.raw));
+      const docSession = docSessionFromRequest(req);
+      const {snapshots} = await activeDoc.getSnapshots(docSession, isAffirmative(req.query.raw));
       res.json({snapshots});
     }));
 
@@ -666,8 +667,8 @@ export class DocWorkerApi {
       if (req.body.select === 'unlisted') {
         // Remove any snapshots not listed in inventory.  Ideally, there should be no
         // snapshots, and this undocumented feature is just for fixing up problems.
-        const full = (await activeDoc.getSnapshots(true)).snapshots.map(s => s.snapshotId);
-        const listed = new Set((await activeDoc.getSnapshots()).snapshots.map(s => s.snapshotId));
+        const full = (await activeDoc.getSnapshots(docSession, true)).snapshots.map(s => s.snapshotId);
+        const listed = new Set((await activeDoc.getSnapshots(docSession)).snapshots.map(s => s.snapshotId));
         const unlisted = full.filter(snapshotId => !listed.has(snapshotId));
         await activeDoc.removeSnapshots(docSession, unlisted);
         res.json({snapshotIds: unlisted});
@@ -676,7 +677,7 @@ export class DocWorkerApi {
       if (req.body.select === 'past') {
         // Remove all but the latest snapshot.  Useful for sanitizing history if something
         // bad snuck into previous snapshots and they are not valuable to preserve.
-        const past = (await activeDoc.getSnapshots(true)).snapshots.map(s => s.snapshotId);
+        const past = (await activeDoc.getSnapshots(docSession, true)).snapshots.map(s => s.snapshotId);
         past.shift();  // remove current version.
         await activeDoc.removeSnapshots(docSession, past);
         res.json({snapshotIds: past});
