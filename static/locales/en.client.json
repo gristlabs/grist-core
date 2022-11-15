@@ -331,6 +331,9 @@
   "FilterConfig": {
     "Add Column": "Add Column"
   },
+  "FilterBar": {
+    "SearchColumns": "Search columns"
+  },
   "GridOptions": {
     "Grid Options": "Grid Options",
     "Horizontal Gridlines": "Horizontal Gridlines",
@@ -569,7 +572,8 @@
     "Empty values last": "Empty values last",
     "Natural sort": "Natural sort",
     "Update Data": "Update Data",
-    "Use choice position": "Use choice position"
+    "Use choice position": "Use choice position",
+    "Search Columns": "Search columns"
   },
   "SortFilterConfig": {
     "Filter": "FILTER",

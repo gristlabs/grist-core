@@ -2533,7 +2533,7 @@ export async function setRefTable(table: string) {
 // Add column to sort.
 export async function addColumnToSort(colName: RegExp|string) {
   await driver.find(".test-sort-config-add").click();
-  await driver.findContent(".test-sort-config-add-menu-row", colName).click();
+  await driver.findContent(".test-sd-searchable-list-item", colName).click();
   await driver.findContentWait(".test-sort-config-row", colName, 100);
 }
 

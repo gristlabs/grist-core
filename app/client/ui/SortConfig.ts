@@ -5,11 +5,12 @@ import {makeT} from 'app/client/lib/localization';
 import {addToSort, updatePositions} from 'app/client/lib/sortUtil';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {ObjObservable} from 'app/client/models/modelUtil';
+import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {cssIcon, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
 import {labeledLeftSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
-import {menu, menuItem} from 'app/client/ui2018/menus';
+import {menu} from 'app/client/ui2018/menus';
 import {Sort} from 'app/common/SortSpec';
 import {Computed, Disposable, dom, makeTestId, MultiHolder, styled} from 'grainjs';
 import difference = require('lodash/difference');
@@ -223,21 +224,12 @@ export class SortConfig extends Disposable {
         const cols = use(available);
         return cssTextBtn(
           t("Add Column"),
-          menu((ctl) => [
-            ...cols.map((col) => (
-              menuItem(
-                () => addToSort(this._section.activeSortSpec, col.value, 1),
-                col.label,
-                testId('add-menu-row')
-              )
-            )),
-            // We need to stop click event to propagate otherwise it would cause view section menu to
-            // close.
-            dom.on('click', (ev) => {
-              ctl.close();
-              ev.stopPropagation();
-            }),
-          ], menuOptions),
+          dropdownWithSearch({
+            popupOptions: menuOptions,
+            options: () => cols.map((col) => ({label: col.label, value: col})),
+            action: (col) => addToSort(this._section.activeSortSpec, col.value, 1),
+            placeholder: t('Search Columns'),
+          }),
           dom.on('click', (ev) => { ev.stopPropagation(); }),
           testId('add'),
         );

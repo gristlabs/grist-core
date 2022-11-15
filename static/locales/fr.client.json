@@ -318,6 +318,9 @@
   "FilterConfig": {
     "Add Column": "Ajouter une colonne"
   },
+  "FilterBar": {
+    "SearchColuns": "Rechercher"
+  },
   "GridOptions": {
     "Grid Options": "Options de la grille",
     "Vertical Gridlines": "Grille verticale",
@@ -554,7 +557,8 @@
     "Update Data": "Mettre à jour les données",
     "Use choice position": "Use choice position",
     "Natural sort": "Natural sort",
-    "Empty values last": "Valeurs vides en dernier"
+    "Empty values last": "Valeurs vides en dernier",
+    "Search Columns": "Rechercher"
   },
   "SortFilterConfig": {
     "Save": "Enregistrer",

@@ -6,9 +6,12 @@ import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
 import { cssButton } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu, menuItemAsync } from "app/client/ui2018/menus";
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
-import { IMenuOptions, PopupControl } from "popweasel";
+import { IPopupOptions, PopupControl } from "popweasel";
+import { makeT } from "app/client/lib/localization";
+import { dropdownWithSearch } from "app/client/ui/searchDropdown";
+
+const t = makeT('FilterBar');
 
 export function filterBar(
   _owner: IDisposableOwner,
@@ -70,7 +73,7 @@ export interface AddFilterMenuOptions {
   /**
    * Options that are passed to the menu component.
    */
-  menuOptions?: IMenuOptions;
+  menuOptions?: IPopupOptions;
 }
 
 export function addFilterMenu(
@@ -80,25 +83,18 @@ export function addFilterMenu(
 ) {
   const {allowedColumns, menuOptions} = options;
   return (
-    menu((ctl) => [
-      ...filters.map((filterInfo) => (
-        menuItemAsync(
-          () => openFilter(filterInfo, popupControls),
-          filterInfo.fieldOrColumn.origCol().label.peek(),
-          dom.cls('disabled', allowedColumns === 'unpinned-or-unfiltered'
-            ? use => use(filterInfo.isPinned) && use(filterInfo.isFiltered)
-            : use => use(filterInfo.isFiltered)
-          ),
-          testId('add-filter-item'),
-        )
-      )),
-      // We need to stop click event to propagate otherwise it would cause view section menu to
-      // close.
-      dom.on('click', (ev) => {
-        ctl.close();
-        ev.stopPropagation();
-      }),
-    ], menuOptions)
+    dropdownWithSearch<FilterInfo>({
+      action: (filterInfo) => openFilter(filterInfo, popupControls),
+      options: () => filters.map((filterInfo) => ({
+        label: filterInfo.fieldOrColumn.origCol().label.peek(),
+        value: filterInfo,
+        disabled: allowedColumns === 'unpinned-or-unfiltered'
+          ? filterInfo.isPinned.peek() && filterInfo.isFiltered.peek()
+          : filterInfo.isFiltered.peek()
+      })),
+      popupOptions: menuOptions,
+      placeholder: t('Search Columns'),
+    })
   );
 }
 

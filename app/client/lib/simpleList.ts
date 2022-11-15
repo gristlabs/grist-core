@@ -7,16 +7,26 @@
  * const array = observable([{label: 'foo': value: 0, {label: 'bar', value: 1}]);
  * const ctl = popupControl(elem, ctl => SimpleList.create(null, ctl, array, action));
  *
+ * // Enable keyboard navigation by listening to keys on the element that has focus.
+ * ctl.listenKeys(elem)
+ *
+ * // toggle popup
  * dom('input', dom.on('click', () => ctl.toggle()));
  */
-import { Disposable, dom, Observable, styled } from "grainjs";
-import { cssMenuItem, getOptionFull, IOpenController, IOption } from "popweasel";
+import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
+import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
 import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/autocomplete";
 import { menuCssClass, menuItem } from "app/client/ui2018/menus";
 
 export type { IOption, IOptionFull } from 'popweasel';
+export { getOptionFull } from 'popweasel';
 
-export class SimpleList<T> extends Disposable {
+export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
+  headerDom?(): DomArg<HTMLElement>;
+  renderItem?(item: U): DomArg<HTMLElement>;
+}
+
+export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
 
   public readonly content: HTMLElement;
   private _menuContent: HTMLElement;
@@ -25,37 +35,47 @@ export class SimpleList<T> extends Disposable {
   private _mouseOver: {reset(): void};
 
   constructor(private _ctl: IOpenController,
-              private _items: Observable<Array<IOption<T>>>,
-              private _action: (value: T) => void) {
+              private _items: Observable<Array<U>>,
+              private _action: (value: T) => void,
+              opt: ISimpleListOpt<T, U> = {}) {
     super();
+    const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
-      {class: menuCssClass + ' grist-floating-menu'},
-      this._menuContent = cssMenuList(
-        dom.forEach(this._items, (i) => {
-          const item = getOptionFull(i);
-          return cssOptionRow(
-            {class: menuItem.className + ' ' + cssMenuItem.className},
-            dom.on('click', () => this._doAction(item.value)),
-            item.label,
-            dom.cls('disabled', Boolean(item.disabled)),
-            dom.data('itemValue', item.value),
-          );
-        }),
+      dom('div',
+        {class: menuCssClass + ' grist-floating-menu'},
+        cssMenu.cls(''),
+        cssMenuExt.cls(''),
+        opt.headerDom?.(),
+        this._menuContent = cssMenuList(
+          dom.forEach(this._items, (i) => {
+            const item = getOptionFull(i);
+            return cssOptionRow(
+              {class: menuItem.className + ' ' + cssMenuItem.className},
+              dom.on('click', () => this._doAction(item.value)),
+              renderItem(i),
+              dom.cls('disabled', Boolean(item.disabled)),
+              dom.data('itemValue', item.value),
+            );
+          }),
+        ),
       ),
       dom.on('mouseleave', (_ev) => this.setSelected(-1)),
     );
-    this.autoDispose(dom.onKeyElem(_ctl.getTriggerElem() as any, 'keydown', {
-      Escape: () => this._ctl.close(),
-      ArrowDown: () => this.setSelected(this._getNextSelectable(1)),
-      ArrowUp: () => this.setSelected(this._getNextSelectable(-1)),
-      Enter: () => this._doAction(this._getSelectedData()),
-    }));
     this.autoDispose(_items.addListener(() => this._update()));
     this._mouseOver = attachMouseOverOnMove(
       this._menuContent,
       (ev) => this.setSelected(this._findTargetItem(ev.target))
     );
     this._update();
+  }
+
+  public listenKeys(elem: HTMLElement) {
+    this.autoDispose(dom.onKeyElem(elem, 'keydown', {
+      Escape: () => this._ctl.close(),
+      ArrowDown: () => this.setSelected(this._getNextSelectable(1)),
+      ArrowUp: () => this.setSelected(this._getNextSelectable(-1)),
+      Enter: () => this._doAction(this._getSelectedData()),
+    }));
   }
 
   // When the selected element changes, update the classes of the formerly and newly-selected
@@ -112,23 +132,22 @@ export class SimpleList<T> extends Disposable {
     return next;
   }
 }
-
-const cssMenuWrap = styled('div', `
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  outline: none;
-`);
 const cssMenuList = styled('ul', `
   overflow: auto;
   list-style: none;
   outline: none;
-  padding: 6px 0;
+  padding: 0;
   width: 100%;
+  margin: 0;
 `);
 const cssOptionRow = styled('li', `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
+`);
+const cssMenuExt = styled('div', `
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `);
