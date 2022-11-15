@@ -2,6 +2,7 @@ import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompleti
 import {colors} from 'app/client/ui2018/cssVars';
 import * as ace from 'brace';
 import {dom, DomArg, Observable, styled} from 'grainjs';
+import debounce from 'lodash/debounce';
 
 export interface ACLFormulaOptions {
   initialValue: string;
@@ -58,6 +59,10 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Save on blur.
   editor.on("blur", () => options.setValue(editor.getValue()));
 
+  // Save changes every 1 second
+  const save = debounce(() => options.setValue(editor.getValue()), 1000);
+  editor.on("change", save);
+
   // Blur (and save) on Enter key.
   editor.commands.addCommand({
     name: 'onEnter',
@@ -81,6 +86,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     // anyway, listen to the mousedown event in the capture phase.
     dom.on('mousedown', () => { editor.focus(); }, {useCapture: true}),
     dom.onDispose(() => editor.destroy()),
+    dom.onDispose(() => save.cancel()),
     editorElem,
   );
 }
