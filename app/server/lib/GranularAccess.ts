@@ -1837,7 +1837,11 @@ export class GranularAccess implements GranularAccessForBundle {
     const dbUser = linkParameters.aclAsUserId ?
       (await this._homeDbManager.getUser(integerParam(linkParameters.aclAsUserId, 'aclAsUserId'))) :
       (await this._homeDbManager.getExistingUserByLogin(linkParameters.aclAsUser));
-    if (!dbUser && linkParameters.aclAsUser) {
+    // If this is one of example users we will pretend that it doesn't exist, otherwise we would
+    // end up using permissions of the real user.
+    const isExampleUser = this.getExampleViewAsUsers().some(e => e.email === dbUser?.loginEmail);
+    const userExists = dbUser && !isExampleUser;
+    if (!userExists && linkParameters.aclAsUser) {
       // Look further for the user, in user attribute tables or examples.
       const otherUsers = (await this.collectViewAsUsersFromUserAttributeTables())
         .concat(this.getExampleViewAsUsers());
@@ -1854,12 +1858,12 @@ export class GranularAccess implements GranularAccessForBundle {
         };
       }
     }
-    const docAuth = dbUser && await this._homeDbManager.getDocAuthCached({
+    const docAuth = userExists ? await this._homeDbManager.getDocAuthCached({
       urlId: this._docId,
       userId: dbUser.id
-    });
+    }) : null;
     const access = docAuth?.access || null;
-    const user = dbUser && this._homeDbManager.makeFullUser(dbUser) || null;
+    const user = userExists ? this._homeDbManager.makeFullUser(dbUser) : null;
     return { access, user };
   }
 

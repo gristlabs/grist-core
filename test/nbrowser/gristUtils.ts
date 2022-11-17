@@ -1103,13 +1103,6 @@ export async function selectWidget(
   await waitForServer();
 }
 
-export async function changeWidget(type: string) {
-  await openWidgetPanel();
-  await driver.findContent('.test-right-panel button', /Change Widget/).click();
-  await selectWidget(type);
-  await waitForServer();
-}
-
 /**
  * Toggle elem if not selected. Expects elem to be clickable and to have a class ending with
  * -selected when selected.
@@ -1337,14 +1330,6 @@ export async function openWidgetPanel() {
 }
 
 /**
- * Opens a Creator Panel on Widget/Table settings tab.
- */
- export async function openColumnPanel() {
-  await toggleSidePanel('right', 'open');
-  await driver.find('.test-right-tab-field').click();
-}
-
-/**
  * Moves a column from a hidden to visible section.
  * Needs a visible Creator panel.
  */
@@ -1536,17 +1521,13 @@ export async function deleteColumn(col: IColHeader|string) {
 /**
  * Sets the type of the currently selected field to value.
  */
-export async function setType(type: RegExp|string, options: {skipWait?: boolean, apply?: boolean} = {}) {
+export async function setType(type: RegExp|string, options: {skipWait?: boolean} = {}) {
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
   type = typeof type === 'string' ? exactMatch(type) : type;
   await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
-  if (!options.skipWait || options.apply) { await waitForServer(); }
-  if (options.apply) {
-    await driver.findWait('.test-type-transform-apply', 1000).click();
-    await waitForServer();
-  }
+  if (!options.skipWait) { await waitForServer(); }
 }
 
 /**
