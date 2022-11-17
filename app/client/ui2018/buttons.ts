@@ -22,6 +22,7 @@ export const cssButton = styled('button', `
   outline: none;
   border-style: none;
   line-height: normal;
+  user-select: none;
 
   /* Vars */
   font-size:     ${vars.mediumFontSize};

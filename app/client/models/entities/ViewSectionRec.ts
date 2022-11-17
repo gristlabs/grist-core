@@ -19,6 +19,7 @@ import {RowId} from 'app/client/models/rowset';
 import {LinkConfig} from 'app/client/ui/selectBy';
 import {getWidgetTypes} from 'app/client/ui/widgetTypes';
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
+import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
@@ -72,7 +73,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    *
    * NOTE: See `filters`, where `_unsavedFilters` is merged with `savedFilters`.
    */
-  _unsavedFilters: Map<number, string>;
+  _unsavedFilters: Map<number, Partial<Filter>>;
 
   /**
    * Filter information for all fields/section in the section.
@@ -85,6 +86,9 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Subset of `filters` containing non-blank active filters.
   activeFilters: Computed<FilterInfo[]>;
+
+  // Subset of `activeFilters` that are pinned.
+  pinnedActiveFilters: Computed<FilterInfo[]>;
 
   // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
@@ -146,7 +150,6 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
-  activeFilterBar: modelUtil.CustomComputed<boolean>;
   // Number of frozen columns
   rawNumFrozen: modelUtil.CustomComputed<number>;
   // Number for frozen columns to display.
@@ -191,8 +194,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Revert all filters of fields/columns in the section.
   revertFilters(): void;
 
-  // Apply `filter` to the field or column identified by `colRef`.
-  setFilter(colRef: number, filter: string): void;
+  // Set `filter` for the field or column identified by `colRef`.
+  setFilter(colRef: number, filter: Partial<Filter>): void;
+
+  // Revert the filter of the field or column identified by `colRef`.
+  revertFilter(colRef: number): void;
 
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
@@ -236,14 +242,25 @@ export interface CustomViewSectionDef {
   sectionId: modelUtil.KoSaveableObservable<string>;
 }
 
-// Information about filters for a field or hidden column.
+/** Information about filters for a field or hidden column. */
 export interface FilterInfo {
-  // The field or column associated with this filter info (field if column is visible, else column).
+  /** The section that's being filtered. */
+  viewSection: ViewSectionRec;
+  /** The field or column that's being filtered. (Field if column is visible.) */
   fieldOrColumn: ViewFieldRec|ColumnRec;
-  // Filter that applies to this field/column, if any.
+  /** Filter that applies to this field/column, if any. */
   filter: modelUtil.CustomComputed<string>;
-  // True if `filter` has a non-blank value.
+  /** Whether this filter is pinned to the filter bar. */
+  pinned: modelUtil.CustomComputed<boolean>;
+  /** True if `filter` has a non-blank value. */
   isFiltered: ko.PureComputed<boolean>;
+  /** True if `pinned` is true. */
+  isPinned: ko.PureComputed<boolean>;
+}
+
+export interface Filter {
+  filter: string;
+  pinned: boolean;
 }
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
@@ -262,7 +279,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     horizontalGridlines: true,
     zebraStripes: false,
     customView: '',
-    filterBar: false,
     numFrozen: 0
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
@@ -365,7 +381,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this._unsavedFilters = new Map();
 
   /**
-   * Filter information for all fields/section in the section.
+   * Filter information for all fields/columns in the section.
    *
    * Re-computed on changes to `savedFilters`, as well as any changes to `viewFields` or `columns`. Any
    * unsaved filters saved in `_unsavedFilters` are applied on computation, taking priority over saved
@@ -377,30 +393,43 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
     return this.columns().map(column => {
       const savedFilter = savedFiltersByColRef.get(column.origColRef());
+      // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
       const filter = modelUtil.customComputed({
-        // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
         read: () => { return savedFilter ? savedFilter.activeFilter() : ''; },
       });
+      const pinned = modelUtil.customComputed({
+        read: () => { return savedFilter ? savedFilter.pinned() : false; },
+      });
 
-      // If an unsaved filter exists, overwrite `filter` with it.
+      // If an unsaved filter exists, overwrite the filter with it.
       const unsavedFilter = this._unsavedFilters.get(column.origColRef());
-      if (unsavedFilter !== undefined) { filter(unsavedFilter); }
+      if (unsavedFilter) {
+        const {filter: f, pinned: p} = unsavedFilter;
+        if (f !== undefined) { filter(f); }
+        if (p !== undefined) { pinned(p); }
+      }
 
       return {
+        viewSection: this,
         filter,
+        pinned,
         fieldOrColumn: viewFieldsByColRef.get(column.origColRef()) ?? column,
-        isFiltered: ko.pureComputed(() => filter() !== '')
+        isFiltered: ko.pureComputed(() => filter() !== ''),
+        isPinned: ko.pureComputed(() => pinned()),
       };
     });
   }));
 
   // List of `filters` that have non-blank active filters.
-  this.activeFilters = Computed.create(this, use => use(this.filters).filter(col => use(col.isFiltered)));
+  this.activeFilters = Computed.create(this, use => use(this.filters).filter(f => use(f.isFiltered)));
+
+  // List of `activeFilters` that are pinned.
+  this.pinnedActiveFilters = Computed.create(this, use => use(this.activeFilters).filter(f => use(f.isPinned)));
 
   // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
   this.filterSpecChanged = Computed.create(this, use => {
-    return use(this.filters).some(col => !use(col.filter.isSaved));
+    return use(this.filters).some(col => !use(col.filter.isSaved) || !use(col.pinned.isSaved));
   });
 
   // Save all filters of fields/columns in the section.
@@ -408,50 +437,70 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return docModel.docData.bundleActions(`Save all filters in ${this.titleDef()}`,
       async () => {
         const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
-        const updatedFilters: [number, string][] = []; // Pairs of row ids and filters to update.
+        const updatedFilters: [number, Filter][] = []; // Pairs of row ids and filters to update.
         const removedFilterIds: number[] = []; // Row ids of filters to remove.
-        const newFilters: [number, string][] = []; // Pairs of column refs and filters to add.
+        const newFilters: [number, Filter][] = []; // Pairs of column refs and filters to add.
 
-        for (const c of this.filters()) {
+        for (const f of this.filters()) {
+          const {fieldOrColumn, filter, pinned} = f;
           // Skip saved filters (i.e. filters whose local values are unchanged from server).
-          if (c.filter.isSaved()) { continue; }
+          if (filter.isSaved() && pinned.isSaved()) { continue; }
 
-          const savedFilter = savedFiltersByColRef.get(c.fieldOrColumn.origCol().origColRef());
+          const savedFilter = savedFiltersByColRef.get(fieldOrColumn.origCol().origColRef());
           if (!savedFilter) {
+            // Never save blank filters. (This is primarily a sanity check.)
+            if (filter() === '') { continue; }
+
             // Since no saved filter exists, we must add a new record to the filters table.
-            newFilters.push([c.fieldOrColumn.origCol().origColRef(), c.filter()]);
-          } else if (c.filter() === '') {
+            newFilters.push([fieldOrColumn.origCol().origColRef(), {
+              filter: filter(),
+              pinned: pinned(),
+            }]);
+          } else if (filter() === '') {
             // Mark the saved filter for removal from the filters table.
             removedFilterIds.push(savedFilter.id());
           } else {
             // Mark the saved filter for update in the filters table.
-            updatedFilters.push([savedFilter.id(), c.filter()]);
+            updatedFilters.push([savedFilter.id(), {
+              filter: filter(),
+              pinned: pinned(),
+            }]);
           }
         }
 
+        const actions: UserAction[] = [];
+
         // Remove records of any deleted filters.
         if (removedFilterIds.length > 0) {
-          await docModel.filters.sendTableAction(['BulkRemoveRecord', removedFilterIds]);
+          actions.push(['BulkRemoveRecord', removedFilterIds]);
         }
 
         // Update existing filter records with new filter values.
         if (updatedFilters.length > 0) {
-          await docModel.filters.sendTableAction(['BulkUpdateRecord',
+          actions.push(['BulkUpdateRecord',
             updatedFilters.map(([id]) => id),
-            {filter: updatedFilters.map(([, filter]) => filter)}
+            {
+              filter: updatedFilters.map(([, {filter}]) => filter),
+              pinned: updatedFilters.map(([, {pinned}]) => pinned),
+            }
           ]);
         }
 
         // Add new filter records.
         if (newFilters.length > 0) {
-          await docModel.filters.sendTableAction(['BulkAddRecord',
+          actions.push(['BulkAddRecord',
             arrayRepeat(newFilters.length, null),
             {
               viewSectionRef: arrayRepeat(newFilters.length, this.id()),
               colRef: newFilters.map(([colRef]) => colRef),
-              filter: newFilters.map(([, filter]) => filter),
+              filter: newFilters.map(([, {filter}]) => filter),
+              pinned: newFilters.map(([, {pinned}]) => pinned),
             }
           ]);
+        }
+
+        if (actions.length > 0) {
+          await docModel.filters.sendTableActions(actions);
         }
 
         // Reset client filter state.
@@ -462,15 +511,32 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Revert all filters of fields/columns in the section.
   this.revertFilters = () => {
-    this._unsavedFilters = new Map();
-    this.filters().forEach(c => { c.filter.revert(); });
+    this._unsavedFilters.clear();
+    this.filters().forEach(c => {
+      c.filter.revert();
+      c.pinned.revert();
+    });
   };
 
-  // Apply `filter` to the field or column identified by `colRef`.
-  this.setFilter = (colRef: number, filter: string) => {
-    this._unsavedFilters.set(colRef, filter);
+  // Set `filter` for the field or column identified by `colRef`.
+  this.setFilter = (colRef: number, filter: Partial<Filter>) => {
+    this._unsavedFilters.set(colRef, {...this._unsavedFilters.get(colRef), ...filter});
     const filterInfo = this.filters().find(c => c.fieldOrColumn.origCol().origColRef() === colRef);
-    filterInfo?.filter(filter);
+    if (!filterInfo) { return; }
+
+    const {filter: newFilter, pinned: newPinned} = filter;
+    if (newFilter !== undefined) { filterInfo.filter(newFilter); }
+    if (newPinned !== undefined) { filterInfo.pinned(newPinned); }
+  };
+
+  // Revert the filter of the field or column identified by `colRef`.
+  this.revertFilter = (colRef: number) => {
+    this._unsavedFilters.delete(colRef);
+    const filterInfo = this.filters().find(c => c.fieldOrColumn.origCol().origColRef() === colRef);
+    if (!filterInfo) { return; }
+
+    filterInfo.filter.revert();
+    filterInfo.pinned.revert();
   };
 
   // Customizable version of the JSON-stringified sort spec. It may diverge from the saved one.
@@ -570,8 +636,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.isSorted = ko.pureComputed(() => this.activeSortSpec().length > 0);
   this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
-
-  this.activeFilterBar = modelUtil.customValue(this.optionsObj.prop('filterBar'));
 
   // Number of frozen columns
   this.rawNumFrozen = modelUtil.customValue(this.optionsObj.prop('numFrozen'));

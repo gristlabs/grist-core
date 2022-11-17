@@ -954,14 +954,16 @@ class TestUserActions(test_engine.EngineTestCase):
     self.apply_user_action(['BulkAddRecord', '_grist_Filters', [None], {
       "viewSectionRef": [1],
       "colRef": [1],
-      "filter": [json.dumps({"included": ["b", "c"]})]
+      "filter": [json.dumps({"included": ["b", "c"]})],
+      "pinned": [True],
     }])
 
     # Add the same filter for second column (to make sure it is not renamed)
     self.apply_user_action(['BulkAddRecord', '_grist_Filters', [None], {
       "viewSectionRef": [1],
       "colRef": [2],
-      "filter": [json.dumps({"included": ["b", "c"]})]
+      "filter": [json.dumps({"included": ["b", "c"]})],
+      "pinned": [False],
     }])
 
     # Rename choices
@@ -971,9 +973,9 @@ class TestUserActions(test_engine.EngineTestCase):
 
     # Test filters
     self.assertTableData('_grist_Filters', data=[
-      ["id", "colRef", "filter", "setAutoRemove", "viewSectionRef"],
-      [1, 1, json.dumps({"included": ["z", "b"]}), None, 1],
-      [2, 2, json.dumps({"included": ["b", "c"]}), None, 1]
+      ["id", "colRef", "filter", "setAutoRemove", "viewSectionRef", "pinned"],
+      [1, 1, json.dumps({"included": ["z", "b"]}), None, 1, True],
+      [2, 2, json.dumps({"included": ["b", "c"]}), None, 1, False]
     ])
 
   def test_add_or_update(self):

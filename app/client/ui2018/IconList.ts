@@ -90,6 +90,7 @@ export type IconName = "ChartArea" |
   "Pencil" |
   "PinBig" |
   "PinSmall" |
+  "PinTilted" |
   "Pivot" |
   "PivotLight" |
   "Plus" |
@@ -101,6 +102,7 @@ export type IconName = "ChartArea" |
   "Remove" |
   "Repl" |
   "ResizePanel" |
+  "Revert" |
   "RightAlign" |
   "Script" |
   "Search" |
@@ -220,6 +222,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Pencil",
   "PinBig",
   "PinSmall",
+  "PinTilted",
   "Pivot",
   "PivotLight",
   "Plus",
@@ -231,6 +234,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Remove",
   "Repl",
   "ResizePanel",
+  "Revert",
   "RightAlign",
   "Script",
   "Search",

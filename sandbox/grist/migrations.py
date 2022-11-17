@@ -1112,3 +1112,45 @@ def migration33(tdset):
   ]
 
   return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=34)
+def migration34(tdset):
+  """"
+  Add pinned column to _grist_Filters and populate based on existing sections.
+
+  When populating, pinned will be set to true for filters that either belong to
+  a section where the filter bar is toggled or a raw view section.
+
+  From this version on, _grist_Views_section.options.filterBar is deprecated.
+  """
+  doc_actions = [add_column('_grist_Filters', 'pinned', 'Bool')]
+
+  tables = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables']))
+  sections = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Views_section']))
+  filters = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Filters']))
+  raw_section_ids = set(t.rawViewSectionRef for t in tables)
+  filter_bar_by_section_id = {
+    # Pre-migration, raw sections always showed the filter bar in the UI. Since we want
+    # existing raw section filters to continue appearing in the filter bar, we'll pretend
+    # here that raw sections have a filterBar value of True. Note that after this migration
+    # it will be possible for raw sections to have unpinned filters.
+    s.id: bool(s.id in raw_section_ids or safe_parse(s.options).get('filterBar', False))
+    for s in sections
+  }
+
+  # List of (filter_rec, pinned) pairs.
+  filter_updates = []
+  for filter_rec in filters:
+    filter_updates.append((
+      filter_rec,
+      filter_bar_by_section_id.get(filter_rec.viewSectionRef, False)
+    ))
+
+  if filter_updates:
+    doc_actions.append(actions.BulkUpdateRecord(
+      '_grist_Filters',
+      [filter_rec.id for filter_rec, _ in filter_updates],
+      {'pinned': [pinned for _, pinned in filter_updates]},
+    ))
+
+  return tdset.apply_doc_actions(doc_actions)

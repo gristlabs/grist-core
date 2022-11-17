@@ -67,11 +67,6 @@ exports.groups = [{
       desc: null, // Shortcut to close active menu
     },
     {
-      name: 'filterMenuOpen',
-      keys: [],
-      desc: 'Shortcut to open filter menu'
-    },
-    {
       name: 'docTabOpen',
       keys: [],
       desc: 'Shortcut to open document tab'
@@ -90,6 +85,11 @@ exports.groups = [{
       name: 'sortFilterTabOpen',
       keys: [],
       desc: 'Shortcut to sort & filter tab'
+    },
+    {
+      name: 'sortFilterMenuOpen',
+      keys: [],
+      desc: 'Shortcut to open sort & filter menu'
     },
     {
       name: 'dataSelectionTabOpen',

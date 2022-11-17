@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 33
+SCHEMA_VERSION = 34
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -315,7 +315,10 @@ def schema_create_actions():
       # `excluded` string to an array of column values:
       # Ex1: { included: ['foo', 'bar'] }
       # Ex2: { excluded: ['apple', 'orange'] }
-      make_column("filter",         "Text")
+      make_column("filter",         "Text"),
+      # Filters can be pinned to the filter bar, which causes a button to be displayed
+      # that opens the filter menu when clicked.
+      make_column("pinned",         "Bool"),
     ]),
 
     # Additional metadata for cells

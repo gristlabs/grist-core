@@ -39,6 +39,7 @@ declare module "app/client/components/BaseView" {
   import {ViewFieldRec, ViewSectionRec} from "app/client/models/DocModel";
   import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
   import {SortedRowSet} from 'app/client/models/rowset';
+  import {IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
   import {FieldBuilder} from "app/client/widgets/FieldBuilder";
   import {DomArg} from 'grainjs';
   import {IOpenController} from 'popweasel';
@@ -66,7 +67,8 @@ declare module "app/client/components/BaseView" {
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;
-    public createFilterMenu(ctl: IOpenController, filterInfo: FilterInfo, onClose?: () => void): HTMLElement;
+    public createFilterMenu(ctl: IOpenController, filterInfo: FilterInfo,
+      options?: IColumnFilterMenuOptions): HTMLElement;
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;
@@ -95,10 +97,9 @@ declare module "app/client/components/ViewConfigTab" {
 
   class ViewConfigTab extends Disposable {
     constructor(options: {gristDoc: GristDoc, viewModel: ViewRec});
-    public buildSortDom(): DomContents;
+    public buildSortFilterDom(): DomContents;
     // TODO: these should be made private or renamed.
     public _buildAdvancedSettingsDom(): DomArg;
-    public _buildFilterDom(): DomArg;
     public _buildThemeDom(): DomArg;
     public _buildChartConfigDom(): DomContents;
     public _buildLayoutDom(): DomArg;

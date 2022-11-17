@@ -345,9 +345,8 @@ describe('ReferenceList', function() {
       await driver.find('.test-config-sortAndFilter').click();
 
       // Sort the Favorite Film column.
-      await driver.find('.test-vconfigtab-sort-add').click();
-      await driver.findContent('.test-vconfigtab-sort-add-menu-row', /Favorite_Film/).click();
-      await driver.find('.test-vconfigtab-sort-save').click();
+      await gu.addColumnToSort('Favorite Film');
+      await gu.saveSortConfig();
 
       // Check that the records are sorted by display value.
       assert.deepEqual(

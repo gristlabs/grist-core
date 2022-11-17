@@ -430,7 +430,7 @@ BaseView.prototype.filterByThisCellValue = function() {
     }
     filterValues = [value];
   }
-  this.viewSection.setFilter(col.getRowId(), JSON.stringify({included: filterValues}));
+  this.viewSection.setFilter(col.getRowId(), {filter: JSON.stringify({included: filterValues})});
 };
 
 /**
@@ -732,9 +732,9 @@ BaseView.prototype.getLastDataRowIndex = function() {
 /**
  * Creates and opens ColumnFilterMenu for a given field/column, and returns its PopupControl.
  */
-BaseView.prototype.createFilterMenu = function(openCtl, filterInfo, onClose) {
+BaseView.prototype.createFilterMenu = function(openCtl, filterInfo, options) {
   return createFilterMenu(openCtl, this._sectionFilter, filterInfo, this._mainRowSource,
-    this.tableModel.tableData, onClose);
+    this.tableModel.tableData, options);
 };
 
 /**

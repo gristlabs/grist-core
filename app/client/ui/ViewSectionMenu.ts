@@ -1,20 +1,18 @@
+import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, DocModel, ViewSectionRec} from 'app/client/models/DocModel';
-import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
-import {CustomComputed} from 'app/client/models/modelUtil';
-import {attachColumnFilterMenu} from 'app/client/ui/ColumnFilterMenu';
-import {addFilterMenu} from 'app/client/ui/FilterBar';
+import {DocModel, ViewSectionRec} from 'app/client/models/DocModel';
+import {FilterConfig} from 'app/client/ui/FilterConfig';
+import {cssLabel, cssSaveButtonsRow} from 'app/client/ui/RightPanelStyles';
 import {hoverTooltip} from 'app/client/ui/tooltips';
+import {SortConfig} from 'app/client/ui/SortConfig';
 import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
-import {Sort} from 'app/common/SortSpec';
-import {Computed, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
-import {PopupControl} from 'popweasel';
-import difference = require('lodash/difference');
+import {Computed, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
+import {defaultMenuOptions} from 'popweasel';
 
 const testId = makeTestId('test-section-menu-');
 const t = makeT('ViewSectionMenu');
@@ -24,7 +22,6 @@ async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<
   await docModel.docData.bundleActions(t("UpdateSortFilterSettings"), () => Promise.all([
     viewSection.activeSortJson.save(),      // Save sort
     viewSection.saveFilters(),              // Save filter
-    viewSection.activeFilterBar.save(),     // Save bar
     viewSection.activeCustomOptions.save(), // Save widget options
   ]));
 }
@@ -33,24 +30,24 @@ async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<
 function doRevert(viewSection: ViewSectionRec) {
   viewSection.activeSortJson.revert();      // Revert sort
   viewSection.revertFilters();              // Revert filter
-  viewSection.activeFilterBar.revert();     // Revert bar
   viewSection.activeCustomOptions.revert(); // Revert widget options
 }
 
-// [Filter Icon] (v) (x) - Filter toggle and all the components in the menu.
-export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, viewSection: ViewSectionRec,
-                                isReadonly: Observable<boolean>) {
+// [Filter Icon] - Filter toggle and all the components in the menu.
+export function viewSectionMenu(
+  owner: IDisposableOwner,
+  gristDoc: GristDoc,
+  viewSection: ViewSectionRec,
+) {
+  const {docModel, isReadonly} = gristDoc;
 
-  const popupControls = new WeakMap<ColumnRec, PopupControl>();
+  // If there is any filter (should [Filter Icon] background be filled).
+  const anyFilter = Computed.create(owner, (use) =>  Boolean(use(viewSection.activeFilters).length));
 
-  // If there is any filter (should [Filter Icon] be green).
-  const anyFilter = Computed.create(owner, (use) => Boolean(use(viewSection.activeFilters).length));
-
-  // Should border be green, and should we show [Save] [Revert] (v) (x) buttons.
+  // Should we show [Save] [Revert] buttons.
   const displaySaveObs: Computed<boolean> = Computed.create(owner, (use) => (
     use(viewSection.filterSpecChanged)
       || !use(viewSection.activeSortJson.isSaved)
-      || !use(viewSection.activeFilterBar.isSaved)
       || !use(viewSection.activeCustomOptions.isSaved)
   ));
 
@@ -64,189 +61,111 @@ export function viewSectionMenu(owner: IDisposableOwner, docModel: DocModel, vie
       testId('wrapper'),
       cssMenu(
         testId('sortAndFilter'),
-        // [Filter icon] grey or green
+        // [Filter icon]
         cssFilterIconWrapper(
           testId('filter-icon'),
-          // Make green when there are some filters. If there are only sort options, leave grey.
+          // Fill background when there are some filters. Ignore sort options.
           cssFilterIconWrapper.cls('-any', anyFilter),
           cssFilterIcon('Filter'),
           hoverTooltip('Sort and filter', {key: 'sortFilterBtnTooltip'}),
         ),
-        menu(ctl => [
-          // Sorted by section.
-          dom.domComputed(use => {
-            use(viewSection.activeSortJson.isSaved); // Rebuild sort panel if sort gets saved. A little hacky.
-            return makeSortPanel(viewSection, use(viewSection.activeSortSpec),
-                                 (row: number) => docModel.columns.getRowModel(row));
-          }),
-          // Filtered by section.
-          dom.domComputed(viewSection.activeFilters, filters =>
-                          makeFilterPanel(viewSection, filters, popupControls, () => ctl.close())),
-          // [+] Add filter
-          makeAddFilterButton(viewSection, popupControls),
-          // [+] Toggle filter bar
-          dom.maybe((use) => !use(viewSection.isRaw),
-            () => makeFilterBarToggle(viewSection.activeFilterBar)),
-          // Widget options
-          dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
-            makeCustomOptions(viewSection)
-          ),
-          // [Save] [Revert] buttons
-          dom.domComputed(displaySaveObs, displaySave => [
-            displaySave ? cssMenuInfoHeader(
-              cssSaveButton(t('Save'), testId('btn-save'),
-                            dom.on('click', () => { save(); ctl.close(); }),
-                            dom.boolAttr('disabled', isReadonly)),
-              basicButton(t('Revert'), testId('btn-revert'),
-                          dom.on('click', () => { revert(); ctl.close(); }))
-            ) : null,
-          ]),
-        ]),
       ),
-      // Two icons (v) (x) left to the toggle, when there are unsaved filters or sort options.
-      // Those buttons are equivalent of the [Save] [Revert] buttons in the menu.
-      dom.maybe(displaySaveObs, () => cssSaveIconsWrapper(
-        // (v)
-        cssSmallIconWrapper(
-          cssIcon('Tick'), cssSmallIconWrapper.cls('-green'),
+      // [Save] [Revert] buttons when there are unsaved options.
+      dom.maybe(displaySaveObs, () => cssSectionSaveButtonsWrapper(
+        cssSaveTextButton(
+          t('Save'),
+          cssSaveTextButton.cls('-accent'),
           dom.on('click', save),
           hoverTooltip('Save sort & filter settings', {key: 'sortFilterBtnTooltip'}),
           testId('small-btn-save'),
           dom.hide(isReadonly),
         ),
-        // (x)
-        cssSmallIconWrapper(
-          cssIcon('CrossSmall'), cssSmallIconWrapper.cls('-gray'),
+        cssRevertIconButton(
+          cssRevertIcon('Revert', cssRevertIcon.cls('-normal')),
           dom.on('click', revert),
           hoverTooltip('Revert sort & filter settings', {key: 'sortFilterBtnTooltip'}),
           testId('small-btn-revert'),
         ),
       )),
+      menu(ctl => [
+        // Sort section.
+        makeSortPanel(viewSection, gristDoc),
+        // Filter section.
+        makeFilterPanel(viewSection),
+        // Widget options
+        dom.maybe(use => use(viewSection.parentKey) === 'custom', () =>
+          makeCustomOptions(viewSection)
+        ),
+        // [Save] [Revert] buttons
+        dom.domComputed(displaySaveObs, displaySave => [
+          displaySave ? cssSaveButtonsRow(
+            cssSaveButton(t('Save'), testId('btn-save'),
+                          dom.on('click', () => { ctl.close(); save(); }),
+                          dom.boolAttr('disabled', isReadonly)),
+            basicButton(t('Revert'), testId('btn-revert'),
+                        dom.on('click', () => { ctl.close(); revert(); }))
+          ) : null,
+        ]),
+        // Updates to active sort or filters can cause menu contents to grow, while
+        // leaving the position of the popup unchanged. This can sometimes lead to
+        // the menu growing beyond the boundaries of the viewport. To mitigate this,
+        // we subscribe to changes to the sort/filters and manually update the popup's
+        // position, which will re-position the popup if necessary so that it's fully
+        // visible.
+        dom.autoDispose(viewSection.activeFilters.addListener(() => ctl.update())),
+        dom.autoDispose(viewSection.activeSortJson.subscribe(() => ctl.update())),
+      ], {...defaultMenuOptions, placement: 'bottom-end', trigger: [
+        // Toggle the menu whenever the filter icon button is clicked.
+        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-sortAndFilter', 'click', () => {
+          ctl.toggle();
+        }),
+        // Close the menu whenever the save or revert button is clicked.
+        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-small-btn-save', 'click', () => {
+          ctl.close();
+        }),
+        (el, ctl) => dom.onMatchElem(el, '.test-section-menu-small-btn-revert', 'click', () => {
+          ctl.close();
+        }),
+      ]}),
     ),
     cssMenu(
       testId('viewLayout'),
       cssFixHeight.cls(''),
       cssDotsIconWrapper(cssIcon('Dots')),
-      menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()))
+      menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()), {
+        ...defaultMenuOptions,
+        placement: 'bottom-end',
+      })
     )
   ];
 }
 
-// Sorted by section (and all columns underneath or (Default) label).
-function makeSortPanel(section: ViewSectionRec, sortSpec: Sort.SortSpec, getColumn: (row: number) => ColumnRec) {
-  const changedColumns = difference(sortSpec, Sort.parseSortColRefs(section.sortColRefs.peek()));
-  const sortColumns = sortSpec.map(colSpec => {
-    // colRef is a rowId of a column or its negative value (indicating descending order).
-    const col = getColumn(Sort.getColRef(colSpec));
-    return cssMenuText(
-      cssMenuIconWrapper(
-        cssMenuIconWrapper.cls('-changed', changedColumns.includes(colSpec)),
-        cssMenuIconWrapper.cls(Sort.isAscending(colSpec) ? '-asc' : '-desc'),
-        cssIcon('Sort',
-          dom.style('transform', Sort.isAscending(colSpec) ? 'scaleY(-1)' : 'none'),
-          dom.on('click', () => {
-            section.activeSortSpec(Sort.flipSort(sortSpec, colSpec));
-          })
-        )
-      ),
-      cssMenuTextLabel(col.colId()),
-      cssMenuIconWrapper(
-        cssIcon('Remove', testId('btn-remove-sort'), dom.on('click', () => {
-          if (Sort.findCol(sortSpec, colSpec)) {
-            section.activeSortSpec(Sort.removeCol(sortSpec, colSpec));
-          }
-        }))
-      ),
-      testId('sort-col')
-    );
-  });
-
+function makeSortPanel(section: ViewSectionRec, gristDoc: GristDoc) {
   return [
-    cssMenuInfoHeader(t('SortedBy'), testId('heading-sorted')),
-    sortColumns.length > 0 ? sortColumns : cssGrayedMenuText('(Default)')
+    cssLabel(t('Sort'), testId('heading-sort')),
+    dom.create(SortConfig, section, gristDoc, {
+      // Attach content to triggerElem's parent, which is needed to prevent view
+      // section menu to close when clicking an item in the advanced sort menu.
+      menuOptions: {attach: null},
+    }),
   ];
 }
 
-// [+] Add Filter.
-export function makeAddFilterButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<ColumnRec, PopupControl>) {
-  return dom.domComputed((use) => {
-    const filters = use(viewSectionRec.filters);
-    return cssMenuText(
-      cssMenuIconWrapper(
-        cssIcon('Plus'),
-        addFilterMenu(filters, viewSectionRec, popupControls, {
-          placement: 'bottom-end',
-          // Attach content to triggerElem's parent, which is needed to prevent view section menu to
-          // close when clicking an item of the add filter menu.
-          attach: null
-        }),
-        testId('plus-button'),
-        dom.on('click', (ev) => ev.stopPropagation()),
-      ),
-      cssMenuTextLabel(t('AddFilter')),
-    );
-  });
-}
-
-// [v] or [x] Toggle Filter Bar.
-export function makeFilterBarToggle(activeFilterBar: CustomComputed<boolean>) {
-  return cssMenuText(
-    cssMenuIconWrapper(
-      testId('btn'),
-      cssMenuIconWrapper.cls('-changed', (use) => !use(activeFilterBar.isSaved)),
-      dom.domComputed((use) => {
-        const filterBar = use(activeFilterBar);
-        const isSaved = use(activeFilterBar.isSaved);
-        return cssIcon(filterBar ? "Tick" : (isSaved ? "Plus" : "CrossSmall"),
-                       cssIcon.cls('-green', Boolean(filterBar)),
-                       testId('icon'));
-      }),
-    ),
-    dom.on('click', () => activeFilterBar(!activeFilterBar.peek())),
-    cssMenuTextLabel(t("ToggleFilterBar")),
-  );
-}
-
-// Filtered by - section in the menu (contains all filtered columns or (Not filtered) label).
-function makeFilterPanel(section: ViewSectionRec, activeFilters: FilterInfo[],
-                         popupControls: WeakMap<ColumnRec, PopupControl>,
-                         onCloseContent: () => void) {
-  const filters = activeFilters.map(filterInfo => {
-    const filterChanged = Computed.create(null, fromKo(filterInfo.filter.isSaved), (_use, isSaved) => !isSaved);
-    return cssMenuText(
-      cssMenuIconWrapper(
-        cssMenuIconWrapper.cls('-changed', filterChanged),
-        cssIcon('FilterSimple'),
-        attachColumnFilterMenu(section, filterInfo, {
-          placement: 'bottom-end',
-          trigger: [
-            'click',
-            (_el, popupControl) => popupControls.set(filterInfo.fieldOrColumn.origCol(), popupControl)
-          ],
-          onCloseContent,
-        }),
-        testId('filter-icon'),
-      ),
-      cssMenuTextLabel(filterInfo.fieldOrColumn.label()),
-      cssMenuIconWrapper(cssIcon('Remove',
-        dom.on('click', () => section.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), ''))),
-        testId('btn-remove-filter')
-      ),
-      testId('filter-col')
-    );
-  });
-
+function makeFilterPanel(section: ViewSectionRec) {
   return [
-    cssMenuInfoHeader(t('FilteredBy'), {style: 'margin-top: 4px'}, testId('heading-filtered')),
-    activeFilters.length > 0 ? filters : cssGrayedMenuText('(Not filtered)')
+    cssLabel(t('Filter'), testId('heading-filter')),
+    dom.create(FilterConfig, section, {
+      // Attach content to triggerElem's parent, which is needed to prevent view
+      // section menu to close when clicking an item of the add filter menu.
+      menuOptions: {attach: null},
+    }),
   ];
 }
-
 
 // Custom Options
 // (empty)|(customized)|(modified) [Remove Icon]
 function makeCustomOptions(section: ViewSectionRec) {
-  const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-gray" : "-green");
+  const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-normal" : "-accent");
   const text = Computed.create(null, use => {
     if (use(section.activeCustomOptions)) {
       return use(section.activeCustomOptions.isSaved) ? t("Customized") : t("Modified");
@@ -348,7 +267,7 @@ const cssIcon = styled(icon, `
     background-color: ${theme.controlPrimaryFg};
   }
 
-  &-green {
+  &-accent {
     background-color: ${theme.accentIcon};
   }
 `);
@@ -363,14 +282,18 @@ const cssDotsIconWrapper = styled(cssIconWrapper, `
 
 const cssFilterIconWrapper = styled(cssIconWrapper, `
   border-radius: 2px 0px 0px 2px;
+  &-any {
+    border-radius: 2px;
+    background-color: ${theme.controlSecondaryFg};
+  }
   .${cssFilterMenuWrapper.className}-unsaved & {
-    background-color: ${theme.accentIcon};
+    background-color: ${theme.controlPrimaryBg};
   }
 `);
 
 const cssFilterIcon = styled(cssIcon, `
   .${cssFilterIconWrapper.className}-any & {
-    background-color: ${theme.accentIcon};
+    background-color: ${theme.controlPrimaryFg};
   }
   .${cssFilterMenuWrapper.className}-unsaved & {
     background-color: ${theme.controlPrimaryFg};
@@ -390,51 +313,48 @@ const cssMenuText = styled('div', `
   padding: 0px 24px 8px 24px;
   cursor: default;
   white-space: nowrap;
-  &-green {
+  &-accent {
     color: ${theme.accentText};
   }
-  &-gray {
+  &-normal {
     color: ${theme.lightText};
   }
-`);
-
-const cssGrayedMenuText = styled(cssMenuText, `
-  color: ${theme.lightText};
-`);
-
-const cssMenuTextLabel = styled('span', `
-  color: ${theme.menuItemFg};
-  flex-grow: 1;
-  padding: 0 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 `);
 
 const cssSaveButton = styled(primaryButton, `
   margin-right: 8px;
 `);
 
-const cssSmallIconWrapper = styled('div', `
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  margin: 0 5px 0 5px;
+const cssSaveTextButton = styled('div', `
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: ${vars.mediumFontSize};
+  padding: 0px 5px;
+  border-right: 1px solid ${theme.accentBorder};
 
-  &-green {
-    background-color: ${theme.accentIcon};
-  }
-  &-gray {
-    background-color: ${theme.lightText};
-  }
-  & > .${cssIcon.className} {
-    background-color: ${theme.controlPrimaryFg};
+  &-accent {
+    color: ${theme.accentText};
   }
 `);
 
-const cssSaveIconsWrapper = styled('div', `
+const cssRevertIconButton = styled('div', `
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+`);
+
+const cssRevertIcon = styled(icon, `
+  --icon-color: ${theme.accentIcon};
+  margin: 0 5px 0 5px;
+`);
+
+const cssSectionSaveButtonsWrapper = styled('div', `
   padding: 0 1px 0 1px;
   display: flex;
   justify-content: space-between;
+  align-self: normal;
 `);
 
 const cssSpacer = styled('div', `

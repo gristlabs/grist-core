@@ -46,6 +46,7 @@ const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
+const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
@@ -1073,12 +1074,16 @@ GridView.prototype.buildDom = function() {
                   // Select the column if it's not part of a multiselect.
                   dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode, field)),
                   (elem) => {
-                    filterTriggerCtl = setPopupToCreateDom(elem, ctl => this._columnFilterMenu(ctl, field), {
-                      attach: 'body',
-                      placement: 'bottom-start',
-                      boundaries: 'viewport',
-                      trigger: [],
-                    });
+                    filterTriggerCtl = setPopupToCreateDom(
+                      elem,
+                      ctl => this._columnFilterMenu(ctl, field, {showAllFiltersButton: true}),
+                      {
+                        attach: 'body',
+                        placement: 'bottom-start',
+                        boundaries: 'viewport',
+                        trigger: [],
+                      }
+                    );
                   },
                   menu(ctl => this.columnContextMenu(ctl, this.getSelection(), field, filterTriggerCtl)),
                   testId('column-menu-trigger'),
@@ -1623,11 +1628,18 @@ GridView.prototype._getColumnMenuOptions = function(copySelection) {
   };
 }
 
-GridView.prototype._columnFilterMenu = function(ctl, field) {
+GridView.prototype._columnFilterMenu = function(ctl, field, options) {
   this.ctxMenuHolder.autoDispose(ctl);
   const filterInfo = this.viewSection.filters()
     .find(({fieldOrColumn}) => fieldOrColumn.origCol().origColRef() === field.column().origColRef());
-  return this.createFilterMenu(ctl, filterInfo);
+  if (!filterInfo.isFiltered.peek()) {
+    // This is a new filter - initialize its spec and pin it.
+    this.viewSection.setFilter(filterInfo.fieldOrColumn.origCol().origColRef(), {
+      filter: NEW_FILTER_JSON,
+      pinned: true,
+    });
+  }
+  return this.createFilterMenu(ctl, filterInfo, options);
 };
 
 GridView.prototype.maybeSelectColumn = function (elem, field) {

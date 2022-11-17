@@ -1,4 +1,4 @@
-import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
+import {ALL_INCLUSIVE_FILTER_JSON, ColumnFilter} from 'app/client/models/ColumnFilter';
 import {GristObjCode} from 'app/plugin/GristData';
 import {CellValue} from 'app/common/DocActions';
 import {assert} from 'chai';
@@ -57,10 +57,10 @@ describe('ColumnFilter', function() {
     assert.isTrue(filter.includes('Carol'));
   });
 
-  it('should generate an all-inclusive filter from empty string or null', async function() {
+  it('should generate an all-inclusive filter from empty string/object or null', async function() {
     const filter = new ColumnFilter('');
     const defaultJson = filter.makeFilterJson();
-    assert.equal(defaultJson, allInclusive);
+    assert.equal(defaultJson, ALL_INCLUSIVE_FILTER_JSON);
 
     filter.clear();
     assert.equal(filter.makeFilterJson(), '{"included":[]}');
@@ -69,7 +69,10 @@ describe('ColumnFilter', function() {
     assert.equal(filter.makeFilterJson(), defaultJson);
 
     // Check that the string 'null' initializes properly
-    assert.equal(new ColumnFilter('null').makeFilterJson(), allInclusive);
+    assert.equal(new ColumnFilter('null').makeFilterJson(), ALL_INCLUSIVE_FILTER_JSON);
+
+    // Check that the empty object initializes properly
+    assert.equal(new ColumnFilter('{}').makeFilterJson(), ALL_INCLUSIVE_FILTER_JSON);
   });
 
   it('should generate a proper FilterFunc and JSON string', async function() {

@@ -28,6 +28,7 @@ import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
+import {cssLabel} from 'app/client/ui/RightPanelStyles';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
@@ -429,14 +430,7 @@ export class RightPanel extends Disposable {
 
   private _buildPageSortFilterConfig(owner: MultiHolder) {
     const viewConfigTab = this._createViewConfigTab(owner);
-    return [
-      cssLabel(t('Sort')),
-      dom.maybe(viewConfigTab, (vct) => vct.buildSortDom()),
-      cssSeparator(),
-
-      cssLabel(t('Filter')),
-      dom.maybe(viewConfigTab, (vct) => dom('div', vct._buildFilterDom())),
-    ];
+    return dom.maybe(viewConfigTab, (vct) => vct.buildSortFilterDom());
   }
 
   private _buildPageDataConfig(owner: MultiHolder, activeSection: ViewSectionRec) {
@@ -633,13 +627,6 @@ const cssBottomText = styled('span', `
   position: absolute;
   bottom: -40px;
   padding: 4px 16px;
-`);
-
-const cssLabel = styled('div', `
-  color: ${theme.text};
-  text-transform: uppercase;
-  margin: 16px 16px 12px 16px;
-  font-size: ${vars.xsmallFontSize};
 `);
 
 const cssRow = styled('div', `

@@ -3,16 +3,18 @@
  * callback that's triggered on Apply or on Cancel. Changes to the UI result in changes to the underlying model,
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
+import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
-import {allInclusive, ColumnFilter} from 'app/client/models/ColumnFilter';
+import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
-import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
 import {RowId, RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
 import {cssInput} from 'app/client/ui/cssInput';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
+import {cssPinButton} from 'app/client/ui/RightPanelStyles';
+import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {cssLabel as cssCheckboxLabel, cssCheckboxSquare, cssLabelText, Indeterminate, labeledTriStateSquareCheckbox
        } from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
@@ -40,19 +42,24 @@ const t = makeT('ColumnFilterMenu');
 export interface IFilterMenuOptions {
   model: ColumnFilterMenuModel;
   valueCounts: Map<CellValue, IFilterCount>;
-  doSave: (reset: boolean) => void;
-  onClose: () => void;
-  renderValue: (key: CellValue, value: IFilterCount) => DomElementArg;
-  rangeInputOptions?: IRangeInputOptions
+  rangeInputOptions?: IRangeInputOptions;
+  showAllFiltersButton?: boolean;
+  doCancel(): void;
+  doSave(reset: boolean): void;
+  renderValue(key: CellValue, value: IFilterCount): DomElementArg;
+  onClose(): void;
 }
 
 const testId = makeTestId('test-filter-menu-');
 
+/**
+ * Returns the DOM content for the column filter menu.
+ *
+ * For use with setPopupToCreateDom().
+ */
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doSave, onClose, rangeInputOptions = {}, renderValue } = opts;
-  const { columnFilter } = model;
-  // Save the initial state to allow reverting back to it on Cancel
-  const initialStateJson = columnFilter.makeFilterJson();
+  const { model, doCancel, doSave, onClose, rangeInputOptions = {}, renderValue, showAllFiltersButton } = opts;
+  const { columnFilter, filterInfo } = model;
 
   // Map to keep track of displayed checkboxes
   const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
@@ -74,6 +81,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
   let searchInput: HTMLInputElement;
   let minRangeInput: HTMLInputElement;
+  let cancel = false;
   let reset = false;
 
   // Gives focus to the searchInput on open (or to the min input if the range filter is present).
@@ -84,7 +92,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     testId('wrapper'),
     dom.cls(menuCssClass),
     dom.autoDispose(filterListener),
-    dom.onDispose(() => doSave(reset)),    // Save on disposal, which should always happen as part of closing.
+    // Save or cancel on disposal, which should always happen as part of closing.
+    dom.onDispose(() => cancel ? doCancel() : doSave(reset)),
     dom.onKeyDown({
       Enter: () => onClose(),
       Escape: () => onClose()
@@ -205,13 +214,39 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           ];
         }
       }),
-      cssMenuItem(
-        cssApplyButton('Apply', testId('apply-btn'),
-                       dom.on('click', () => { reset = true; onClose(); })),
-        basicButton('Cancel', testId('cancel-btn'),
-                    dom.on('click', () => { columnFilter.setState(initialStateJson); onClose(); } ))
-      )
-    )
+      cssFooterButtons(
+        dom('div',
+          cssPrimaryButton('Close', testId('apply-btn'),
+            dom.on('click', () => {
+              reset = true;
+              onClose();
+            }),
+          ),
+          basicButton('Cancel', testId('cancel-btn'),
+            dom.on('click', () => {
+              cancel = true;
+              onClose();
+            }),
+          ),
+          !showAllFiltersButton ? null : cssAllFiltersButton(
+            'All filters',
+            dom.on('click', () => {
+              onClose();
+              commands.allCommands.sortFilterMenuOpen.run(filterInfo.viewSection.getRowId());
+            }),
+            testId('all-filters-btn'),
+          ),
+        ),
+        dom('div',
+          cssPinButton(
+            icon('PinTilted'),
+            cssPinButton.cls('-pinned', model.filterInfo.isPinned),
+            dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
+            testId('pin-btn'),
+          ),
+        ),
+      ),
+    ),
   );
   return filterMenu;
 }
@@ -350,17 +385,31 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
   return new Map(values.map((v) => [v, {label: String(v), count: 0, displayValue: v}]));
 }
 
+export interface IColumnFilterMenuOptions {
+  // Callback for when the filter menu is closed.
+  onClose?: () => void;
+  // If true, shows a button that opens the sort & filter widget menu.
+  showAllFiltersButton?: boolean;
+}
+
 /**
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
-export function createFilterMenu(openCtl: IOpenController, sectionFilter: SectionFilter, filterInfo: FilterInfo,
-                                 rowSource: RowSource, tableData: TableData, onClose: () => void = noop) {
+export function createFilterMenu(
+  openCtl: IOpenController,
+  sectionFilter: SectionFilter,
+  filterInfo: FilterInfo,
+  rowSource: RowSource,
+  tableData: TableData,
+  options: IColumnFilterMenuOptions = {}
+) {
+  const {onClose = noop, showAllFiltersButton} = options;
+
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const fieldOrColumn = filterInfo.fieldOrColumn;
+  const {fieldOrColumn, filter} = filterInfo;
   const columnType = fieldOrColumn.origCol.peek().type.peek();
   const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
-  const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, filterInfo.fieldOrColumn);
-  const activeFilterBar = sectionFilter.viewSection.activeFilterBar;
+  const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, fieldOrColumn);
 
   // range input options
   const valueParser = (fieldOrColumn as any).createValueParser?.();
@@ -387,10 +436,14 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
                                            areHiddenRows: true, valueMapFunc});
 
   const valueCountsArr = Array.from(valueCounts);
-  const columnFilter = ColumnFilter.create(openCtl, filterInfo.filter.peek(), columnType, visibleColumnType,
+  const columnFilter = ColumnFilter.create(openCtl, filter.peek(), columnType, visibleColumnType,
                                            valueCountsArr.map((arr) => arr[0]));
   sectionFilter.setFilterOverride(fieldOrColumn.origCol().getRowId(), columnFilter); // Will be removed on menu disposal
-  const model = ColumnFilterMenuModel.create(openCtl, columnFilter, valueCountsArr);
+  const model = ColumnFilterMenuModel.create(openCtl, {
+    columnFilter,
+    filterInfo,
+    valueCount: valueCountsArr,
+  });
 
   return columnFilterMenu(openCtl, {
     model,
@@ -398,20 +451,32 @@ export function createFilterMenu(openCtl: IOpenController, sectionFilter: Sectio
     onClose: () => { openCtl.close(); onClose(); },
     doSave: (reset: boolean = false) => {
       const spec = columnFilter.makeFilterJson();
-      // If filter is moot and filter bar is hidden, let's remove the filter.
       sectionFilter.viewSection.setFilter(
         fieldOrColumn.origCol().origColRef(),
-        spec === allInclusive && !activeFilterBar.peek() ? '' : spec
+        {filter: spec}
       );
       if (reset) {
         sectionFilter.resetTemporaryRows();
+      }
+    },
+    doCancel: () => {
+      if (columnFilter.initialFilterJson === NEW_FILTER_JSON) {
+        sectionFilter.viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
+      } else {
+        const initialFilter = columnFilter.initialFilterJson;
+        columnFilter.setState(initialFilter);
+        sectionFilter.viewSection.setFilter(
+          fieldOrColumn.origCol().origColRef(),
+          {filter: initialFilter, pinned: model.initialPinned}
+        );
       }
     },
     renderValue: getRenderFunc(columnType, fieldOrColumn),
     rangeInputOptions: {
       valueParser,
       valueFormatter,
-    }
+    },
+    showAllFiltersButton,
   });
 }
 
@@ -571,20 +636,25 @@ const defaultPopupOptions: IPopupOptions = {
   trigger: ['click'],
 };
 
-interface IColumnFilterMenuOptions extends IPopupOptions {
-  // callback for when the content of the menu is closed by clicking the apply or revert buttons
-  onCloseContent?: () => void;
+interface IColumnFilterPopupOptions {
+  // Options to pass to the popup component.
+  popupOptions?: IPopupOptions;
 }
 
+type IAttachColumnFilterMenuOptions = IColumnFilterPopupOptions & IColumnFilterMenuOptions;
+
 // Helper to attach the column filter menu.
-export function attachColumnFilterMenu(viewSection: ViewSectionRec, filterInfo: FilterInfo,
-                                       popupOptions: IColumnFilterMenuOptions): DomElementMethod {
-  const options = {...defaultPopupOptions, ...popupOptions};
+export function attachColumnFilterMenu(
+  filterInfo: FilterInfo,
+  options: IAttachColumnFilterMenuOptions = {}
+): DomElementMethod {
+  const {popupOptions, ...filterMenuOptions} = options;
+  const popupOptionsWithDefaults = {...defaultPopupOptions, ...popupOptions};
   return (elem) => {
-    const instance = viewSection.viewInstance();
+    const instance = filterInfo.viewSection.viewInstance();
     if (instance && instance.createFilterMenu) { // Should be set if using BaseView
-      setPopupToCreateDom(elem, ctl =>
-        instance.createFilterMenu(ctl, filterInfo, popupOptions.onCloseContent), options);
+      setPopupToCreateDom(elem, ctl => instance.createFilterMenu(
+        ctl, filterInfo, filterMenuOptions), popupOptionsWithDefaults);
     }
   };
 }
@@ -654,8 +724,17 @@ const cssMenuFooter = styled('div', `
   flex-direction: column;
   padding-top: 4px;
 `);
-const cssApplyButton = styled(primaryButton, `
-  margin-right: 4px;
+const cssFooterButtons = styled('div', `
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+`);
+const cssPrimaryButton = styled(primaryButton, `
+  margin-right: 8px;
+`);
+const cssAllFiltersButton = styled(textButton, `
+  margin-left: 8px;
 `);
 const cssSearch = styled(input, `
   color: ${theme.inputFg};

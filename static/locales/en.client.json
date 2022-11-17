@@ -240,8 +240,8 @@
     "Settings_savecommon": "Save as common settings",
     "Settings_revertcommon": "Revert to common settings"
   },
-  "FilterBar": {
-    "AddFilter": "Add Filter"
+  "FilterConfig":{
+    "AddColumn": "Add Column"
   },
   "GridOptions": {
     "GridOptions": "Grid Options",
@@ -469,6 +469,20 @@
     "SwitchSites":"Switch Sites",
     "CreateNewTeamSite":"Create new team site"
   },
+  "SortConfig":{
+    "AddColumn": "Add Column",
+    "UpdateData": "Update Data",
+    "UseChoicePosition": "Use choice position",
+    "NaturalSort": "Natural sort",
+    "EmptyValuesLast": "Empty values last"
+  },
+  "SortFilterConfig":{
+    "Save": "Save",
+    "Revert": "Revert",
+    "Sort": "SORT",
+    "Filter": "FILTER",
+    "UpdateSortFilterSettings": "Update Sort & Filter settings"
+  },
   "ThemeConfig": {
     "Appearance": "Appearance ",
     "SyncWithOS": "Switch appearance automatically to match system"
@@ -533,7 +547,9 @@
     "Customized":"(customized)",
     "Modified":"(modified)",
     "Empty":"(empty)",
-    "CustomOptions":"Custom options"
+    "CustomOptions":"Custom options",
+    "Sort": "SORT",
+    "Filter": "FILTER"
   },
   "aclui": {
     "AccessRules": {
@@ -687,13 +703,6 @@
       "Rows": "Rows"
     },
     "ViewConfigTab": {
-      "Save": "Save",
-      "Revert": "Revert",
-      "UpdateData": "Update Data",
-      "UseChoicePosition": "Use choice position",
-      "NaturalSort": "Natural sort",
-      "EmptyValuesLast": "Empty values last",
-      "AddColumn": "Add Column",
       "UnmarkOnDemandTitle": "Unmark table On-Demand?",
       "UnmarkOnDemandButton": "Unmark On-Demand",
       "UnmarkOnDemandText": "If you unmark table {{- table}}' as On-Demand, its data will be loaded into the calculation engine and will be available for use in formulas. For a big table, this may greatly increase load times.{{- br}}{{-br}}Changing this setting will reload the document for all users.",
@@ -702,8 +711,6 @@
       "MakeOnDemandText": "If you make table {{table}} On-Demand, its data will no longer be loaded into the calculation engine and will not be available for use in formulas. It will remain available for viewing and editing.",
       "AdvancedSettings": "Advanced settings",
       "BigTablesMayBeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
-      "UpdateFilterSettings": "Update Filter settings",
-      "AddFilter": "Add Filter",
       "Form": "Form",
       "Compact": "Compact",
       "Blocks": "Blocks",

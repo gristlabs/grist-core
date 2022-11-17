@@ -40,6 +40,10 @@ export class ColumnFilter extends Disposable {
     return this._columnType;
   }
 
+  public get initialFilterJson() {
+    return this._initialFilterJson;
+  }
+
   public setState(filterJson: string|FilterSpec) {
     const state = makeFilterState(filterJson);
     if (isRangeFilter(state)) {
@@ -138,4 +142,18 @@ export class ColumnFilter extends Disposable {
   }
 }
 
-export const allInclusive = '{"excluded":[]}';
+/**
+ * A JSON-encoded filter spec that includes every value.
+ */
+export const ALL_INCLUSIVE_FILTER_JSON = '{"excluded":[]}';
+
+/**
+ * A blank JSON-encoded filter spec.
+ *
+ * This is interpreted the same as `ALL_INCLUSIVE_FILTER_JSON` in the context
+ * of parsing filters. However, it's still useful in scenarios where it's
+ * necessary to discern between new filters and existing filters; initializing
+ * a `ColumnFilter` with `NEW_FIlTER_JSON` makes it clear that a new filter
+ * is being created.
+ */
+export const NEW_FILTER_JSON = '{}';

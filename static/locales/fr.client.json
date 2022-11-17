@@ -238,8 +238,8 @@
     "Settings_savecommon": "Save common settings",
     "Settings_revertcommon": "Revert common settings"
   },
-  "FilterBar": {
-    "AddFilter": "Ajouter un filtre"
+  "FilterConfig": {
+    "AddColumn": "Ajouter une colonne"
   },
   "GridOptions": {
     "GridOptions": "Options de la grille",
@@ -466,6 +466,20 @@
     "SwitchSites": "Changer d’espace",
     "CreateNewTeamSite": "Créer un nouvel espace d'équipe"
   },
+  "SortConfig":{
+    "AddColumn": "Ajouter une colonne",
+    "UpdateData": "Mettre à jour les données",
+    "UseChoicePosition": "Use choice position",
+    "NaturalSort": "Natural sort",
+    "EmptyValuesLast": "Valeurs vides en dernier"
+  },
+  "SortFilterConfig":{
+    "Save": "Enregistrer",
+    "Revert": "Restaurer",
+    "Sort": "TRI",
+    "Filter": "FILTRE",
+    "UpdateSortFilterSettings": "Mettre à jour le tri et le filtre"
+  },
   "ThemeConfig": {
     "Appearance": "Apparence ",
     "SyncWithOS": "Adapter l'apparence au système"
@@ -530,7 +544,9 @@
     "Customized": "(personnalisé)",
     "Modified": "(modifié)",
     "Empty": "(vide)",
-    "CustomOptions": "Options personnalisées"
+    "CustomOptions": "Options personnalisées",
+    "Sort": "TRI",
+    "Filter": "FILTRE"
   },
   "aclui": {
     "AccessRules": {
@@ -684,13 +700,6 @@
       "Rows": "Lignes"
     },
     "ViewConfigTab": {
-      "Save": "Enregistrer",
-      "Revert": "Restaurer",
-      "UpdateData": "Mettre à jour les données",
-      "UseChoicePosition": "Use choice position",
-      "NaturalSort": "Natural sort",
-      "EmptyValuesLast": "Valeurs vides en dernier",
-      "AddColumn": "Ajouter une colonne",
       "UnmarkOnDemandTitle": "Unmark table On-Demand?",
       "UnmarkOnDemandButton": "Unmark On-Demand",
       "UnmarkOnDemandText": "If you unmark table {{- table}}' as On-Demand, its data will be loaded into the calculation engine and will be available for use in formulas. For a big table, this may greatly increase load times.{{- br}}{{-br}}Changing this setting will reload the document for all users.",
@@ -699,8 +708,6 @@
       "MakeOnDemandText": "If you make table {{table}} On-Demand, its data will no longer be loaded into the calculation engine and will not be available for use in formulas. It will remain available for viewing and editing.",
       "AdvancedSettings": "Paramètres avancés",
       "BigTablesMayBeMarked": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
-      "UpdateFilterSettings": "Régler les filtres",
-      "AddFilter": "Ajouter un filtre",
       "Form": "Formulaire",
       "Compact": "Compact",
       "Blocks": "Blocs",

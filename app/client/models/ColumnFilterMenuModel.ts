@@ -1,4 +1,5 @@
 import { ColumnFilter } from "app/client/models/ColumnFilter";
+import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { CellValue } from "app/plugin/GristData";
 import { Computed, Disposable, Observable } from "grainjs";
 import escapeRegExp = require("lodash/escapeRegExp");
@@ -23,7 +24,21 @@ type ICompare<T> = (a: T, b: T) => number
 
 const localeCompare = new Intl.Collator('en-US', {numeric: true}).compare;
 
+interface ColumnFilterMenuModelParams {
+  columnFilter: ColumnFilter;
+  filterInfo: FilterInfo;
+  valueCount: Array<[CellValue, IFilterCount]>;
+  limitShow?: number;
+}
+
 export class ColumnFilterMenuModel extends Disposable {
+  public readonly columnFilter = this._params.columnFilter;
+
+  public readonly filterInfo = this._params.filterInfo;
+
+  public readonly initialPinned = this.filterInfo.isPinned.peek();
+
+  public readonly limitShown = this._params.limitShow ?? MAXIMUM_SHOWN_FILTER_ITEMS;
 
   public readonly searchValue = Observable.create(this, '');
 
@@ -34,7 +49,7 @@ export class ColumnFilterMenuModel extends Disposable {
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
     const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
     return new Set(
-      this._valueCount
+      this._params.valueCount
         .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(label))
         .map(([key]) => key)
     );
@@ -56,7 +71,7 @@ export class ColumnFilterMenuModel extends Disposable {
         return localeCompare(a,  b);
       };
 
-      return this._valueCount
+      return this._params.valueCount
         .filter(([key]) => filter.has(key))
         .sort((a, b) => comparator(a[1][prop], b[1][prop]));
     }
@@ -64,12 +79,12 @@ export class ColumnFilterMenuModel extends Disposable {
 
   // computes the array of all values that does NOT matches the search text
   public readonly otherValues = Computed.create(this, this.filterSet, (_use, filter) => {
-    return this._valueCount.filter(([key]) => !filter.has(key));
+    return this._params.valueCount.filter(([key]) => !filter.has(key));
   });
 
   // computes the array of keys that matches the search text
   public readonly filteredKeys = Computed.create(this, this.filterSet, (_use, filter) => {
-    return this._valueCount
+    return this._params.valueCount
       .filter(([key]) => filter.has(key))
       .map(([key]) => key);
   });
@@ -78,8 +93,7 @@ export class ColumnFilterMenuModel extends Disposable {
     return filteredValues.slice(this.limitShown);
   });
 
-  constructor(public columnFilter: ColumnFilter, private _valueCount: Array<[CellValue, IFilterCount]>,
-              public limitShown: number = MAXIMUM_SHOWN_FILTER_ITEMS) {
+  constructor(private _params: ColumnFilterMenuModelParams) {
     super();
   }
 }

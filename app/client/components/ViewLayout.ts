@@ -155,6 +155,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       nextSection: () => { this._otherSection(+1); },
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this._layout, this.viewModel.activeSection()).catch(reportError); },
+      sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
   }
@@ -267,6 +268,20 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       this.gristDoc.viewModel.activeSectionId(layoutBox.leafId.peek());
     }
   }
+
+  /**
+   * Opens the sort and filter menu of the active view section.
+   *
+   * Optionally accepts a `sectionId` for opening a specific section's menu.
+   */
+  private _openSortFilterMenu(sectionId?: number)  {
+    const id = sectionId ?? this.viewModel.activeSectionId();
+    const leafBoxDom = this._layout.getLeafBox(id)?.dom;
+    if (!leafBoxDom) { return; }
+
+    const menu: HTMLElement | null = leafBoxDom.querySelector('.test-section-menu-sortAndFilter');
+    menu?.click();
+  }
 }
 
 export function buildViewSectionDom(options: {
@@ -305,11 +320,10 @@ export function buildViewSectionDom(options: {
       buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
       viewInstance.buildTitleControls(),
       dom('span.viewsection_buttons',
-        dom.create(viewSectionMenu, gristDoc.docModel, vs, gristDoc.isReadonly)
+        dom.create(viewSectionMenu, gristDoc, vs)
       )
      )),
-    dom.maybe((use) => use(vs.activeFilterBar) || use(vs.isRaw) && use(vs.activeFilters).length,
-      () => dom.create(filterBar, vs)),
+    dom.create(filterBar, vs),
     dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),

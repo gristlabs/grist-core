@@ -1103,6 +1103,13 @@ export async function selectWidget(
   await waitForServer();
 }
 
+export async function changeWidget(type: string) {
+  await openWidgetPanel();
+  await driver.findContent('.test-right-panel button', /Change Widget/).click();
+  await selectWidget(type);
+  await waitForServer();
+}
+
 /**
  * Toggle elem if not selected. Expects elem to be clickable and to have a class ending with
  * -selected when selected.
@@ -1330,6 +1337,14 @@ export async function openWidgetPanel() {
 }
 
 /**
+ * Opens a Creator Panel on Widget/Table settings tab.
+ */
+ export async function openColumnPanel() {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-right-tab-field').click();
+}
+
+/**
  * Moves a column from a hidden to visible section.
  * Needs a visible Creator panel.
  */
@@ -1449,25 +1464,6 @@ export async function closeRawTable() {
 }
 
 /**
- * Toggles (opens or closes) the filter bar for a section.
- */
-export async function toggleFilterBar(goal: 'open'|'close'|'toggle' = 'toggle',
-                                      options: {section?: string|WebElement, save?: boolean} = {}) {
-  const isOpen = await driver.find('.test-filter-bar').isPresent();
-  if ((goal === 'close') && !isOpen ||
-      (goal === 'open') && isOpen ) {
-    return;
-  }
-  const menu = await openSectionMenu('sortAndFilter', options.section);
-  await menu.findContent('.grist-floating-menu > div', /Toggle Filter Bar/).find('.test-section-menu-btn').click();
-  if (options.save) {
-    await menu.findContent('.grist-floating-menu button', /Save/).click();
-    await waitForServer();
-  }
-  await menu.sendKeys(Key.ESCAPE);
-}
-
-/**
  * Opens the section menu for a section, or the active section if no section is given.
  */
 export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
@@ -1521,13 +1517,17 @@ export async function deleteColumn(col: IColHeader|string) {
 /**
  * Sets the type of the currently selected field to value.
  */
-export async function setType(type: RegExp|string, options: {skipWait?: boolean} = {}) {
+ export async function setType(type: RegExp|string, options: {skipWait?: boolean, apply?: boolean} = {}) {
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
   type = typeof type === 'string' ? exactMatch(type) : type;
   await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
-  if (!options.skipWait) { await waitForServer(); }
+  if (!options.skipWait || options.apply) { await waitForServer(); }
+  if (options.apply) {
+    await driver.findWait('.test-type-transform-apply', 1000).click();
+    await waitForServer();
+  }
 }
 
 /**
@@ -2504,58 +2504,52 @@ export async function setRefTable(table: string) {
 
 // Add column to sort.
 export async function addColumnToSort(colName: RegExp|string) {
-  await driver.find(".test-vconfigtab-sort-add").click();
-  await driver.findContent(".test-vconfigtab-sort-add-menu-row", colName).click();
-  await driver.findContentWait(".test-vconfigtab-sort-row", colName, 100);
+  await driver.find(".test-sort-config-add").click();
+  await driver.findContent(".test-sort-config-add-menu-row", colName).click();
+  await driver.findContentWait(".test-sort-config-row", colName, 100);
 }
 
 // Remove column from sort.
 export async function removeColumnFromSort(colName: RegExp|string) {
-  await findSortRow(colName).find(".test-vconfigtab-sort-remove").click();
+  await findSortRow(colName).find(".test-sort-config-remove").click();
 }
 
 // Toggle column sort order from ascending to descending, or vice-versa.
 export async function toggleSortOrder(colName: RegExp|string) {
-  await findSortRow(colName).find(".test-vconfigtab-sort-order").click();
-}
-
-// Change the column at the given sort position.
-export async function changeSortDropdown(colName: RegExp|string, newColName: RegExp|string) {
-  await findSortRow(colName).find(".test-select-row").click();
-  await driver.findContent("li .test-select-row", newColName).click();
+  await findSortRow(colName).find(".test-sort-config-order").click();
 }
 
 // Reset the sort to the last saved sort.
 export async function revertSortConfig() {
-  await driver.find(".test-vconfigtab-sort-reset").click();
+  await driver.find(".test-sort-filter-config-revert").click();
 }
 
 // Save the sort.
 export async function saveSortConfig() {
-  await driver.find(".test-vconfigtab-sort-save").click();
+  await driver.find(".test-sort-filter-config-save").click();
   await waitForServer();
 }
 
 // Update the data positions to the given sort.
 export async function updateRowsBySort() {
-  await driver.find(".test-vconfigtab-sort-update").click();
+  await driver.find(".test-sort-config-update").click();
   await waitForServer(10000);
 }
 
 // Returns a WebElementPromise for the sort row of the given col name.
 export function findSortRow(colName: RegExp|string) {
-  return driver.findContent(".test-vconfigtab-sort-row", colName);
+  return driver.findContent(".test-sort-config-row", colName);
 }
 
 // Opens more sort options menu
 export async function openMoreSortOptions(colName: RegExp|string) {
   const row = await findSortRow(colName);
-  return row.find(".test-vconfigtab-sort-options-icon").click();
+  return row.find(".test-sort-config-options-icon").click();
 }
 
 // Selects one of the options in the more options menu.
 export async function toggleSortOption(option: SortOption) {
-  const label = await driver.find(`.test-vconfigtab-sort-option-${option} label`);
+  const label = await driver.find(`.test-sort-config-option-${option} label`);
   await label.click();
   await waitForServer();
 }
@@ -2572,7 +2566,7 @@ export const SortOptions: ReadonlyArray<SortOption> = ["orderByChoice", "emptyLa
 export async function getSortOptions(): Promise<SortOption[]> {
   const options: SortOption[] = [];
   for(const option of SortOptions) {
-    const list = await driver.findAll(`.test-vconfigtab-sort-option-${option} input:checked`);
+    const list = await driver.findAll(`.test-sort-config-option-${option} input:checked`);
     if (list.length) {
       options.push(option);
     }
@@ -2585,7 +2579,7 @@ export async function getSortOptions(): Promise<SortOption[]> {
 export async function getEnabledOptions(): Promise<SortOption[]> {
   const options: SortOption[] = [];
   for(const option of SortOptions) {
-    const list = await driver.findAll(`.test-vconfigtab-sort-option-${option}:not(.disabled)`);
+    const list = await driver.findAll(`.test-sort-config-option-${option}:not(.disabled)`);
     if (list.length) {
       options.push(option);
     }
@@ -2645,6 +2639,48 @@ export async function filterBy(col: IColHeader|string, save: boolean, values: (s
     await driver.find('.test-section-menu-small-btn-save').click();
   }
   await waitForServer();
+}
+
+export interface PinnedFilter {
+  name: string;
+  hasUnsavedChanges: boolean;
+}
+
+/**
+ * Returns a list of all pinned filters in the active section.
+ */
+export async function getPinnedFilters(): Promise<PinnedFilter[]> {
+  const filterBar = await driver.find('.active_section .test-filter-bar');
+  const allFilters = await filterBar.findAll('.test-filter-field', async (el) => {
+    const button = await el.find('.test-btn');
+    const buttonClass = await button.getAttribute('class');
+    return {
+      name: await el.getText(),
+      isPinned: await el.getCssValue('display') !== 'none',
+      hasUnsavedChanges: !/\b\w+-grayed\b/.test(buttonClass),
+    };
+  });
+  const pinnedFilters = allFilters.filter(({isPinned}) => isPinned);
+  return pinnedFilters.map(({name, hasUnsavedChanges}) => ({name, hasUnsavedChanges}));
+}
+
+export interface FilterMenuValue {
+  checked: boolean;
+  value: string;
+  count: number;
+}
+
+/**
+ * Returns a list of all values in the filter menu and their associated state.
+ */
+export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
+  const items = await driver.findAll('.test-filter-menu-list > *');
+  return await Promise.all(items.map(async item => {
+    const checked = (await item.find('input').getAttribute('checked')) === null ? false : true;
+    const value = await item.find('label').getText();
+    const count = parseInt(await item.find('label + div').getText(), 10);
+    return {checked, value, count};
+  }));
 }
 
 /**
