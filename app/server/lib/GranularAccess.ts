@@ -2149,23 +2149,30 @@ export class GranularAccess implements GranularAccessForBundle {
   private async _filterOutgoingDocAction(cursor: ActionCursor): Promise<DocAction[]> {
     const {action} = cursor;
     const tableId = getTableId(action);
-    const permInfo = await this._getStepAccess(cursor);
-    const tableAccess = permInfo.getTableAccess(tableId);
-    const access = this.getReadPermission(tableAccess);
-    const readAccessCheck = this._readAccessCheck(cursor.docSession);
-    const results: DocAction[] = [];
-    if (access === 'deny') {
-      // filter out this data.
-    } else if (access === 'allow') {
-      results.push(action);
-    } else if (access === 'mixedColumns') {
-      const act = this._pruneColumns(action, permInfo, tableId, readAccessCheck);
-      if (act) { results.push(act); }
+
+    let results: DocAction[] = [];
+    if (tableId.startsWith('_grist')) {
+      // Granular access rules don't apply to metadata directly, instead there
+      // is a process of censorship (see later in this method).
+      results = [action];
     } else {
-      // The remainder is the mixed condition.
-      for (const act of await this._pruneRows(cursor)) {
-        const prunedAct = this._pruneColumns(act, permInfo, tableId, readAccessCheck);
-        if (prunedAct) { results.push(prunedAct); }
+      const permInfo = await this._getStepAccess(cursor);
+      const tableAccess = permInfo.getTableAccess(tableId);
+      const access = this.getReadPermission(tableAccess);
+      const readAccessCheck = this._readAccessCheck(cursor.docSession);
+      if (access === 'deny') {
+        // filter out this data.
+      } else if (access === 'allow') {
+        results.push(action);
+      } else if (access === 'mixedColumns') {
+        const act = this._pruneColumns(action, permInfo, tableId, readAccessCheck);
+        if (act) { results.push(act); }
+      } else {
+        // The remainder is the mixed condition.
+        for (const act of await this._pruneRows(cursor)) {
+          const prunedAct = this._pruneColumns(act, permInfo, tableId, readAccessCheck);
+          if (prunedAct) { results.push(prunedAct); }
+        }
       }
     }
     const secondPass: DocAction[] = [];
