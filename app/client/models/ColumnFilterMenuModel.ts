@@ -1,5 +1,6 @@
 import { ColumnFilter } from "app/client/models/ColumnFilter";
 import { CellValue } from "app/plugin/GristData";
+import { normalizeText } from "app/client/lib/ACIndex";
 import { Computed, Disposable, Observable } from "grainjs";
 import escapeRegExp = require("lodash/escapeRegExp");
 import isNull = require("lodash/isNull");
@@ -31,11 +32,11 @@ export class ColumnFilterMenuModel extends Disposable {
 
   // computes a set of all keys that matches the search text.
   public readonly filterSet = Computed.create(this, this.searchValue, (_use, searchValue) => {
-    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
+    const searchRegex = new RegExp(escapeRegExp(normalizeText(searchValue)), 'i');
     const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
     return new Set(
       this._valueCount
-        .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(label))
+        .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
         .map(([key]) => key)
     );
   });
