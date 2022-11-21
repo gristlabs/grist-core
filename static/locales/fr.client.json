@@ -673,7 +673,7 @@
     },
     "CodeEditorPanel": {
       "AccessDenied": "Accès refusé",
-      "CodeViewOnlyFullAccess.": "La vue code n’est disponible que lorsque vous avez un accès complet au document."
+      "CodeViewOnlyFullAccess": "La vue code n’est disponible que lorsque vous avez un accès complet au document."
     },
     "DataTables": {
       "RawDataTables": "Données sources",
