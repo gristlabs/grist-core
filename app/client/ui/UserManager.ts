@@ -1,5 +1,5 @@
 /**
- * This module exports a   component, consisting of a list of emails, each with an
+ * This module exports a UserManager component, consisting of a list of emails, each with an
  * associated role (See app/common/roles), and a way to change roles, and add or remove new users.
  * The component is instantiated as a modal with a confirm button to pass changes to the server.
  *
@@ -10,7 +10,7 @@ import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomElementArg, keyframes, Observable, observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
@@ -40,7 +40,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
-        modal} from 'app/client/ui2018/modals';
+        modal, cssAnimatedModal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -150,7 +150,7 @@ function buildUserManagerModal(
           cssBody(
             new UserManager(
               model,
-              pick(options, 'resourceType', 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
             ).buildDom()
           ),
         ),
@@ -209,7 +209,6 @@ export class UserManager extends Disposable {
       appModel?: AppModel,
       prompt?: {email: string},
       resource?: Resource,
-      resourceType: ResourceType,
   }) {
     super();
   }
@@ -618,7 +617,7 @@ function getFullUser(member: IEditableMember): FullUser {
 }
 
 // Create a "Copy Link" button.
-export function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
+function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
   return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), 'Copy Link',
     dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),
@@ -773,17 +772,6 @@ const cssOrgDomain = styled('span', `
   color: ${theme.accentText};
 `);
 
-const cssFadeInFromTop = keyframes(`
-  from {top: -250px; opacity: 0}
-  to {top: 0; opacity: 1}
-`);
-
-const cssAnimatedModal = styled('div', `
-  animation-name: ${cssFadeInFromTop};
-  animation-duration: 0.4s;
-  position: relative;
-`);
-
 const cssTitle = styled(cssModalTitle, `
   margin: 40px 64px 0 64px;
 
@@ -801,7 +789,7 @@ const cssMemberPublicAccess = styled(cssMemberSecondary, `
 `);
 
 // Render the UserManager title for `resourceType` (e.g. org as "team site").
-export function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
+function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
   switch (resourceType) {
     case 'organization': {
       if (personal) { return 'Your role for this team site'; }

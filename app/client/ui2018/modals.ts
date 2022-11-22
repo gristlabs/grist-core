@@ -602,3 +602,14 @@ const cssModalSpinner = styled('div', `
   display: flex;
   flex-direction: column;
 `);
+
+const cssFadeInFromTop = keyframes(`
+  from {top: -250px; opacity: 0}
+  to {top: 0; opacity: 1}
+`);
+
+export const cssAnimatedModal = styled('div', `
+  animation-name: ${cssFadeInFromTop};
+  animation-duration: 0.4s;
+  position: relative;
+`);

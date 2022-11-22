@@ -1,10 +1,10 @@
-import {computed, Computed, dom, DomElementArg, IDisposableOwner, keyframes, Observable, styled} from "grainjs";
-import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal} from 'app/client/ui2018/modals';
+import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
+import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal, cssAnimatedModal} from 'app/client/ui2018/modals';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {UserManagerModel, IMemberSelectOption} from 'app/client/models/UserManagerModel';
 import {icon} from 'app/client/ui2018/icons';
-import {cssEmailTextarea,} from "app/client/ui/UserItem";
+import {textarea} from "app/client/ui/inputs";
 import {BasicRole, VIEWER, NonGuestRole, isBasicRole} from "app/common/roles";
 import {menu, menuItem} from 'app/client/ui2018/menus';
 
@@ -41,20 +41,19 @@ export function buildMultiUserManagerModal(
       ctl.close()
     }
   }
-  const cssBody = model.isPersonal ? cssAccessDetailsBody : cssUserManagerBody;
 
   return modal(ctl => [
     // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
     dom.cls(cssAnimatedModal.className),
     cssTitle(
-      'Invite Team Members',
+      'Invite Users',
       testId('um-header'),
     ),
     cssModalBody(
-      cssBody(
-        buildMultiUserManager(emailListObs, isValidObs),
-        dom.domComputed(isValidObs, isValid => !isValid ? cssErroMessage('At least one email is invalid') : null),
+      cssUserManagerBody(
+        buildEmailsTextarea(emailListObs, isValidObs),
+        dom.domComputed(isValidObs, isValid => !isValid ? cssErrorMessage('At least one email is invalid') : null),
         cssInheritRoles(
           dom('span', 'Access: '),
           buildRolesSelect(rolesObs, model)
@@ -63,15 +62,13 @@ export function buildMultiUserManagerModal(
     ),
     cssModalButtons(
       { style: 'margin: 32px 64px; display: flex;' },
-      (model.isPublicMember ? null :
-        bigPrimaryButton('Confirm',
-          dom.boolAttr('disabled', (use) => !use(enableAdd)),
-          dom.on('click', () => {save(ctl)}),
-          testId('um-confirm')
-        )
+      bigPrimaryButton('Confirm',
+        dom.boolAttr('disabled', (use) => !use(enableAdd)),
+        dom.on('click', () => {save(ctl)}),
+        testId('um-confirm')
       ),
       bigBasicButton(
-        model.isPublicMember ? 'Close' : 'Cancel',
+        'Cancel',
         dom.on('click', () => ctl.close()),
         testId('um-cancel')
       ),
@@ -104,15 +101,14 @@ function buildRolesSelect(
 }
 
 
-function buildMultiUserManager(
+function buildEmailsTextarea(
   emailListObs: Observable<string>,
   isValidObs: Observable<boolean>,
-  // model: UserManagerModel,
   ...args: DomElementArg[]
 ) {
   return cssTextarea(emailListObs,
     {onInput: true, isValid: isValidObs},
-    {placeholder: "Enter one email address par mail"},
+    {placeholder: "Enter one email address per line"},
     dom.on('change', (_ev) => isValidObs.set(true)),
      ...args,
   )
@@ -129,22 +125,11 @@ const cssTitle = styled(cssModalTitle, `
   }
 `);
 
-const cssFadeInFromTop = keyframes(`
-  from {top: -250px; opacity: 0}
-  to {top: 0; opacity: 1}
-`);
-
-const cssAnimatedModal = styled('div', `
-  animation-name: ${cssFadeInFromTop};
-  animation-duration: 0.4s;
-  position: relative;
-`);
-
 const cssInheritRoles = styled('span', `
   margin: 13px 63px 42px;
 `)
 
-const cssErroMessage = styled('span', `
+const cssErrorMessage = styled('span', `
   margin: 0 63px;
   color: ${theme.errorText}
 `)
@@ -172,6 +157,19 @@ const cssUserManagerBody = styled(cssAccessDetailsBody, `
   height: 374px;
   border-bottom: 1px solid ${theme.modalBorderDark};
 `);
+
+const cssEmailTextarea = styled(textarea, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+  flex: 1 1 0;
+  font-size: ${vars.mediumFontSize};
+  font-family: ${vars.fontFamily};
+  outline: none;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+`)
 
 const cssTextarea = styled(cssEmailTextarea, `
   margin: 16px 63px;
