@@ -9,6 +9,9 @@ import { cssIconBackground, icon } from 'app/client/ui2018/icons';
 import { gristLink } from 'app/client/ui2018/links';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
 import { Computed, dom, DomArg, DomContents, fromKo, Observable, styled } from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('NTextBox');
 
 /**
  * TextBox - The most basic widget for displaying text information.
@@ -62,7 +65,7 @@ export class NTextBox extends NewAbstractWidget {
     return dom('div.field_clip',
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      dom.domComputed((use) => use(row._isAddRow) ? null : makeLinks(use(this.valueFormatter).formatAny(use(value))))
+      dom.domComputed((use) => use(row._isAddRow) ? null : makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
     );
   }
 }

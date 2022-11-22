@@ -354,6 +354,10 @@
     "GiveFeedback": "Give feedback",
     "NoNotifications": "No notifications"
   },
+  "NTextBox": {
+    "false": "false",
+    "true": "true"
+  },
   "OnBoardingPopups": {
     "Finish": "Finish",
     "Next": "Next"
