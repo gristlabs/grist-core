@@ -2,7 +2,7 @@ import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, st
 import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal, cssAnimatedModal} from 'app/client/ui2018/modals';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {UserManagerModel, IMemberSelectOption} from 'app/client/models/UserManagerModel';
+import {UserManagerModel, IOrgMemberSelectOption} from 'app/client/models/UserManagerModel';
 import {icon} from 'app/client/ui2018/icons';
 import {textarea} from "app/client/ui/inputs";
 import {BasicRole, VIEWER, NonGuestRole, isBasicRole} from "app/common/roles";
@@ -80,7 +80,7 @@ function buildRolesSelect(
   roleSelectedObs: Observable<BasicRole>,
   model: UserManagerModel,
 ) {
-  const allRoles = model.inheritSelectOptions
+  const allRoles = (model.isOrg ? model.orgUserSelectOptions : model.userSelectOptions)
     .filter((x): x is {value: BasicRole, label: string} => isBasicRole(x.value));
   return cssOptionBtn(
     menu(() => [
@@ -92,7 +92,7 @@ function buildRolesSelect(
     ]),
     dom.text((use) => {
       // Get the label of the active role.
-      const activeRole = allRoles.find((_role: IMemberSelectOption) => use(roleSelectedObs) === _role.value);
+      const activeRole = allRoles.find((_role: IOrgMemberSelectOption) => use(roleSelectedObs) === _role.value);
       return activeRole ? activeRole.label : "";
     }),
     cssCollapseIcon('Collapse'),
