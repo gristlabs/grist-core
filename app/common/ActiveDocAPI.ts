@@ -22,6 +22,7 @@ export interface ApplyUAExtendedOptions extends ApplyUAOptions {
   oldestSource?: number;  // If set, gives the timestamp of the oldest source the undo/redo
                           // action was built from, expressed as number of milliseconds
                           // elapsed since January 1, 1970 00:00:00 UTC
+  attachment?: boolean;   // If set, allow actions on attachments.
 }
 
 export interface ApplyUAResult {

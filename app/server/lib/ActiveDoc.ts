@@ -844,7 +844,9 @@ export class ActiveDoc extends EventEmitter {
       );
       const userActions: UserAction[] = await Promise.all(
         upload.files.map(file => this._prepAttachment(docSession, file)));
-      const result = await this.applyUserActions(docSession, userActions);
+      const result = await this._applyUserActionsWithExtendedOptions(docSession, userActions, {
+        attachment: true,
+      });
       this._updateAttachmentsSize().catch(e => {
         this._log.warn(docSession, 'failed to update attachments size', e);
       });

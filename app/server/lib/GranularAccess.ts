@@ -2346,9 +2346,24 @@ export class GranularAccess implements GranularAccessForBundle {
       return dummyAccessCheck;
     }
     const tableId = getTableId(a);
-    if (tableId.startsWith('_grist') && tableId !== '_grist_Attachments' && tableId !== '_grist_Cells') {
+    if (tableId.startsWith('_grist') && tableId !== '_grist_Cells') {
+      if (tableId === '_grist_Attachments') {
+        // If the back end is adding/removing an attachment, all
+        // necessary authentication has happened, and we can go ahead
+        // and do it. Perhaps the back end should just use an
+        // exceptional session for this, rather than a special
+        // flag. That would change attribution of the action in the
+        // log, so I stuck with a flag, but I'm not sure if
+        // attribution is particularly useful in this case.
+        if (this._activeBundle?.options?.attachment) {
+          return dummyAccessCheck;
+        }
+        // Users cannot take actions on _grist_Attachments through the regular
+        // action interface.
+        throw new Error('_grist_Attachments modification is not allowed');
+      }
       // Actions on any metadata table currently require the schemaEdit flag.
-      // Exception: the attachments table and cell info table, which needs to be reworked to be compatible
+      // Exception: the cell info table, which needs to be reworked to be compatible
       // with granular access.
 
       // Another exception: ensure owners always have full access to ACL tables, so they

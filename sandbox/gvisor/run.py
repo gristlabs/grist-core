@@ -81,8 +81,13 @@ settings = {
   "ociVersion": "1.0.0",
   "process": {
     "terminal": include_bash,
+    # Match current user id, for convenience with mounts. For some versions of
+    # gvisor, default behavior may be better - if you see "access denied" problems
+    # during imports, try commenting this section out. We could make imports work
+    # for any version of gvisor by setting mode when using tmp.dir to allow
+    # others to list directory contents.
     "user": {
-      "uid": os.getuid(),  # match current user id, for convenience with mounts
+      "uid": os.getuid(),
       "gid": 0
     },
     "args": cmd_args,
