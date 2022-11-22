@@ -10,7 +10,7 @@ import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
+import {Computed, computedArray, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
@@ -239,6 +239,19 @@ export class UserManager extends Disposable {
     ];
   }
 
+  private _onAddOrEdit(email: string, role: roles.NonGuestRole) {
+    let found = null;
+    computedArray(this._model.membersEdited, member => {
+      if (member.email === email) {
+        member.access.set(role);
+        found = true;
+      }
+    });
+    if (!found) {
+      this._onAdd(email, role);
+    }
+  }
+
   private _onAdd(email: string, role: roles.NonGuestRole) {
     this._model.add(email, role);
     // Make sure the entry we have just added is actually visible - confusing if not.
@@ -258,7 +271,7 @@ export class UserManager extends Disposable {
           this,
           this._model,
           (email, role) => {
-            this._onAdd(email, role);
+            this._onAddOrEdit(email, role);
           },
         ))
       ),

@@ -11,7 +11,7 @@ import {menu, menuItem} from 'app/client/ui2018/menus';
 function parseEmailList(emailListRaw: string): Array<string> {
   return emailListRaw
     .split('\n')
-    .map(email => email.trim())
+    .map(email => email.trim().toLowerCase())
     .filter(email => email !== "")
 }
 
