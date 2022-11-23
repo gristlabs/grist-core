@@ -628,6 +628,10 @@ export class GranularAccess implements GranularAccessForBundle {
     options: {role?: Role | null} = {}
   ): Promise<FilteredDocUsageSummary> {
     const result: FilteredDocUsageSummary = { ...docUsage };
+    // Owners can see everything all the time.
+    if (await this.isOwner(docSession)) {
+      return result;
+    }
     const role = options.role ?? await this.getNominalAccess(docSession);
     const hasEditRole = canEdit(role);
     if (!hasEditRole) { result.dataLimitStatus = null; }
