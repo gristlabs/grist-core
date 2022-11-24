@@ -4,17 +4,20 @@ import {
   Envelope,
   getEnvContent,
   LocalActionBundle,
+  SandboxActionBundle,
   UserActionBundle
 } from 'app/common/ActionBundle';
 import {ApplyUAExtendedOptions} from 'app/common/ActiveDocAPI';
 import {CALCULATING_USER_ACTIONS, DocAction, getNumRows, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
+import {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import assert from 'assert';
 import {Mutex} from 'async-mutex';
 import Deque from 'double-ended-queue';
+import isEqual = require('lodash/isEqual');
 import {ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
@@ -44,6 +47,22 @@ enum Branch { Local, Shared }
 
 // Don't log details of action bundles in production.
 const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== 'production');
+
+interface ApplyResult {
+  /**
+   * Access denied exception if the user does not have permission to apply the action.
+   */
+  failure?: Error,
+  /**
+   * Result of applying user actions. If there is a failure, it contains result of reverting
+   * those actions that should be persisted (probably extra actions caused by nondeterministic
+   * functions).
+   */
+  result?: {
+    accessControl: GranularAccessForBundle,
+    bundle: SandboxActionBundle,
+  }
+}
 
 export class Sharing {
   protected _activeDoc: ActiveDoc;
@@ -212,8 +231,18 @@ export class Sharing {
       info.linkId = docSession.linkId;
     }
 
-    const {sandboxActionBundle, undo, accessControl} =
+    const {result, failure} =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions, options));
+
+    // ACL check failed, and we don't have anything to save. Just rethrow the error.
+    if (failure && !result) {
+      throw failure;
+    }
+
+    assert(result, "result should be defined if failure is not");
+    const sandboxActionBundle = result.bundle;
+    const accessControl = result.accessControl;
+    const undo = getEnvContent(result.bundle.undo);
 
     try {
 
@@ -222,7 +251,11 @@ export class Sharing {
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
       // - Adding attachment metadata when uploading attachments,
       //   because then the attachment file may get hard-deleted and redo won't work properly.
-      const internal = isCalculate || userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments");
+      // - Action was rejected but it had some side effects (e.g. NOW() or UUID() formulas).
+      const internal =
+        isCalculate ||
+        userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments") ||
+        !!failure;
 
       // A trivial action does not merit allocating an actionNum,
       // logging, and sharing. It's best not to log the
@@ -316,6 +349,11 @@ export class Sharing {
       actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
       await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.getDocUsageSummary());
+      // If the action was rejected, throw an exception, by this point data-engine should be in
+      // sync with the database, and everyone should have the same view of the document.
+      if (failure) {
+        throw failure;
+      }
       if (docSession) {
         docSession.linkId = docSession.shouldBundleActions ? localActionBundle.actionNum : 0;
       }
@@ -391,34 +429,118 @@ export class Sharing {
         shortDesc(envAction[1])));
   }
 
-  private async _applyActionsToDataEngine(docSession: OptDocSession|null, userActions: UserAction[],
-                                          options: ApplyUAExtendedOptions|null) {
-    const sandboxActionBundle = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
-    const undo = getEnvContent(sandboxActionBundle.undo);
-    const docActions = getEnvContent(sandboxActionBundle.stored).concat(
-      getEnvContent(sandboxActionBundle.calc));
-    const isDirect = getEnvContent(sandboxActionBundle.direct);
-
-    const accessControl = this._activeDoc.getGranularAccessForBundle(
-      docSession || makeExceptionalDocSession('share'), docActions, undo, userActions, isDirect,
-      options
-    );
+  private async _applyActionsToDataEngine(
+    docSession: OptDocSession|null,
+    userActions: UserAction[],
+    options: ApplyUAExtendedOptions|null): Promise<ApplyResult> {
+    const applyResult = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
+    let accessControl = this._startGranularAccessForBundle(docSession, applyResult, userActions, options);
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.
       await accessControl.canApplyBundle();
-    } catch (e) {
-      // should not commit.  Don't write to db.  Remove changes from sandbox.
+      return { result : {bundle: applyResult, accessControl}};
+    } catch (applyExc) {
       try {
-        await this._activeDoc.applyActionsToDataEngine(docSession, [['ApplyUndoActions', undo]]);
-      } finally {
+        // We can't apply those actions, so we need to revert them.
+        const undoResult = await this._activeDoc.applyActionsToDataEngine(docSession, [
+          ['ApplyUndoActions', getEnvContent(applyResult.undo)]
+        ]);
+
+        // We managed to reject and undo actions in the data-engine. Now we need to calculate if we have any extra
+        // actions generated by the undo (it can happen for nondeterministic formulas). If we have them, we will need to
+        // test if they pass ACL check and persist them in the database in order to keep the data engine in sync with
+        // the database. If we have any extra actions, we will simulate that only those actions were applied and return
+        // fake bundle together with the access failure. If we don't have any extra actions, we will just return the
+        // failure.
+        const extraBundle = this._createExtraBundle(undoResult, getEnvContent(applyResult.undo));
+
+        // If we have the same number of actions and they are equal, we can assume that the data-engine is in sync.
+        if (!extraBundle) {
+          // We stored what we send, we don't have any extra actions to save, we can just return the failure.
+          await accessControl.finishedBundle();
+          return { failure: applyExc };
+        }
+
+        // We have some extra actions, so we need to prepare a fake bundle (only with the extra actions) and
+        // return the failure, so the caller can persist the extra actions and report the failure.
+        // Finish the access control for the origBundle.
         await accessControl.finishedBundle();
+        // Start a new one. We assume that all actions are indirect, so this is basically a no-op, but we are doing it
+        // nevertheless to make sure they pass access control.
+        // NOTE: we assume that docActions can be used as userActions here. This is not always the case (as we might
+        // have a special logic that targets UserActions directly), but in this scenario, the extra bundle should
+        // contain only indirect data actions (mostly UpdateRecord) that are produced by comparing UserTables in the
+        // data-engine.
+        accessControl = this._startGranularAccessForBundle(docSession, extraBundle, extraBundle.stored, options);
+        // Check if the extra bundle is allowed.
+        await accessControl.canApplyBundle();
+        // We are ok, we can store extra actions and report back the exception.
+        return {result: {bundle: extraBundle, accessControl}, failure: applyExc};
+      } catch(rollbackExc) {
+        this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
+        await accessControl.finishedBundle();
+        await this._activeDoc.shutdown();
+        throw rollbackExc;
       }
-      throw e;
     }
-    return {sandboxActionBundle, undo, docActions, accessControl};
+  }
+
+  private _startGranularAccessForBundle(
+    docSession: OptDocSession|null,
+    bundle: SandboxActionBundle,
+    userActions: UserAction[],
+    options: ApplyUAExtendedOptions|null
+  ) {
+    const undo = getEnvContent(bundle.undo);
+    const docActions = getEnvContent(bundle.stored).concat(getEnvContent(bundle.calc));
+    const isDirect = getEnvContent(bundle.direct);
+    return this._activeDoc.getGranularAccessForBundle(
+      docSession || makeExceptionalDocSession('share'),
+      docActions,
+      undo,
+      userActions,
+      isDirect,
+      options
+    );
+  }
+
+  /**
+   * Calculates the extra bundle that effectively was applied to the data engine.
+   * @param undoResult Result of applying undo actions to the data engine.
+   * @param undoSource Actions that were sent to perform the undo.
+   * @returns A bundle with extra actions that were applied to the data engine or null if there are no extra actions.
+   */
+  private _createExtraBundle(undoResult: SandboxActionBundle, undoSource: DocAction[]): SandboxActionBundle|null {
+    // First check that what we sent is what we stored, since those are undo actions, they should be identical. We
+    // need to reverse the order of undo actions (they are reversed in data-engine by ApplyUndoActions)
+    const sent = undoSource.slice().reverse();
+    const storedHead = getEnvContent(undoResult.stored).slice(0, sent.length);
+    // If we have less actions or they are not equal, we need need to fail immediately, this was not expected.
+    if (undoResult.stored.length < undoSource.length) {
+      throw new Error("There are less actions stored then expected");
+    }
+    if (!storedHead.every((action, i) => isEqual(action, sent[i]))) {
+      throw new Error("Stored actions differ from sent actions");
+    }
+    // If we have the same number of actions and they are equal there is nothing to return.
+    if (undoResult.stored.length === undoSource.length) {
+      return null;
+    }
+    // Create a fake bundle simulating only those extra actions that were applied.
+    return {
+      envelopes: undoResult.envelopes, // Envelops are not supported, so we can use the first one (which is always #ALL)
+      stored: undoResult.stored.slice(undoSource.length),
+      // All actions are treated as direct, we want to perform ACL check on them.
+      direct: undoResult.direct.slice(undoSource.length),
+      calc: [], // Calc actions are also not used anymore.
+      undo: [], // We won't allow to undo this one.
+      retValues: undoResult.retValues.slice(undoSource.length),
+      rowCount: undoResult.rowCount
+    };
   }
 }
+
 
 /**
  * Returns the index of the envelope containing the '#ALL' recipient, adding such an envelope to

@@ -2709,7 +2709,7 @@ const dummyAccessCheck: IAccessCheck = {
 
 /**
  * Helper class to calculate access for a set of cells in bulk. Used for initial
- * access check for a whole _grist_Cell table. Each cell can belong to a diffrent
+ * access check for a whole _grist_Cell table. Each cell can belong to a different
  * table and row, so here we will avoid loading rows multiple times and checking
  * the table access multiple time.
  */
@@ -3558,7 +3558,7 @@ export class CellData {
             fail();
           }
           // Now receive the action, and test if we can still see the cell (as the info might be moved
-          // to a diffrent cell).
+          // to a different cell).
           lastState.receiveAction(single);
           cell = cellData.getCell(id)!;
           if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, lastState)) {
