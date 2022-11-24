@@ -10,7 +10,7 @@ import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, computedArray, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
@@ -240,14 +240,11 @@ export class UserManager extends Disposable {
   }
 
   private _onAddOrEdit(email: string, role: roles.NonGuestRole) {
-    let found = null;
-    computedArray(this._model.membersEdited, member => {
-      if (member.email === email) {
-        member.access.set(role);
-        found = true;
-      }
-    });
-    if (!found) {
+    const members = this._model.membersEdited.get();
+    const maybeMember = members.find(m => m.email === email);
+    if (maybeMember) {
+      maybeMember.access.set(role);
+    } else {
       this._onAdd(email, role);
     }
   }
@@ -275,7 +272,7 @@ export class UserManager extends Disposable {
           },
         ))
       ),
-      !this._model.isOrg && publicMember ? cssOptionRow(
+      cssOptionRow(
         // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
         // be used to fill whitespace in org UserManager.
         this._model.isOrg ? null : dom('span', { style: `float: left;` },
@@ -310,7 +307,7 @@ export class UserManager extends Disposable {
             return 'Allow anyone with the link to open.';
           }),
         ) : null,
-      ) : null,
+      ),
     );
   }
 
@@ -711,18 +708,18 @@ const cssOptionRowMultiple = styled('div', `
   font-size: ${vars.mediumFontSize};
   display: flex;
   cursor: pointer;
-  color: ${theme.link};
-  --icon-color: ${theme.link};
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
 
   &:hover {
-    color: ${theme.linkHover};
-    --icon-color: ${theme.linkHover};
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
   }
-`)
+`);
 
 const cssLabel = styled('span', `
   margin-left: 4px;
-`)
+`);
 
 const cssOptionBtn = styled('span', `
   display: inline-flex;

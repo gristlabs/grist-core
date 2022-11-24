@@ -12,7 +12,7 @@ function parseEmailList(emailListRaw: string): Array<string> {
   return emailListRaw
     .split('\n')
     .map(email => email.trim().toLowerCase())
-    .filter(email => email !== "")
+    .filter(email => email !== "");
 }
 
 function validateEmail(email: string): boolean {
@@ -32,18 +32,17 @@ export function buildMultiUserManagerModal(
   const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs)));
   
   const save = (ctl: IModalControl) => {
-    const emailList = parseEmailList(emailListObs.get())
+    const emailList = parseEmailList(emailListObs.get());
     const role = rolesObs.get();
     if (emailList.some(email => !validateEmail(email))) {
       isValidObs.set(false);
     } else {
-      emailList.map(email => onAdd(email, role))
-      ctl.close()
+      emailList.forEach(email => onAdd(email, role));
+      ctl.close();
     }
   }
 
   return modal(ctl => [
-    // We set the padding to 0 since the body scroll shadows extend to the edge of the modal.
     { style: 'padding: 0;' },
     dom.cls(cssAnimatedModal.className),
     cssTitle(
@@ -53,7 +52,7 @@ export function buildMultiUserManagerModal(
     cssModalBody(
       cssUserManagerBody(
         buildEmailsTextarea(emailListObs, isValidObs),
-        dom.domComputed(isValidObs, isValid => !isValid ? cssErrorMessage('At least one email is invalid') : null),
+        dom.maybe(use => !use(isValidObs), () => cssErrorMessage('At least one email is invalid')),
         cssInheritRoles(
           dom('span', 'Access: '),
           buildRolesSelect(rolesObs, model)
@@ -73,7 +72,7 @@ export function buildMultiUserManagerModal(
         testId('um-cancel')
       ),
     )
-  ])
+  ]);
 }
 
 function buildRolesSelect(
@@ -96,7 +95,7 @@ function buildRolesSelect(
       return activeRole ? activeRole.label : "";
     }),
     cssCollapseIcon('Collapse'),
-    testId('um-max-inherited-role')
+    testId('um-role-select')
   );
 }
 
@@ -111,7 +110,7 @@ function buildEmailsTextarea(
     {placeholder: "Enter one email address per line"},
     dom.on('change', (_ev) => isValidObs.set(true)),
      ...args,
-  )
+  );
 }
 
 
@@ -127,12 +126,12 @@ const cssTitle = styled(cssModalTitle, `
 
 const cssInheritRoles = styled('span', `
   margin: 13px 63px 42px;
-`)
+`);
 
 const cssErrorMessage = styled('span', `
   margin: 0 63px;
-  color: ${theme.errorText}
-`)
+  color: ${theme.errorText};
+`);
 
 const cssOptionBtn = styled('span', `
   display: inline-flex;
@@ -158,7 +157,12 @@ const cssUserManagerBody = styled(cssAccessDetailsBody, `
   border-bottom: 1px solid ${theme.modalBorderDark};
 `);
 
-const cssEmailTextarea = styled(textarea, `
+const cssTextarea = styled(textarea, `
+  margin: 16px 63px;
+  padding: 12px 10px;
+  border-radius: 3px;
+  resize: none;
+  border: 1px solid ${theme.inputBorder};
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   flex: 1 1 0;
@@ -169,12 +173,4 @@ const cssEmailTextarea = styled(textarea, `
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
   }
-`)
-
-const cssTextarea = styled(cssEmailTextarea, `
-  margin: 16px 63px;
-  padding: 12px 10px;
-  border-radius: 3px;
-  resize: none;
-  border: 1px solid ${theme.inputBorder};
-`)
+`);
