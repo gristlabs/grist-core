@@ -1,5 +1,5 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import {dom, IDomArgs, DomElementArg, IInputOptions, Observable, styled, subscribe} from 'grainjs';
 
 export const cssInput = styled('input', `
   font-size: ${vars.mediumFontSize};
@@ -44,5 +44,27 @@ export function textInput(obs: Observable<string>, ...args: DomElementArg[]): HT
     dom.prop('value', obs),
     dom.on('input', (_e, elem) => obs.set(elem.value)),
     ...args,
+  );
+}
+
+export function textarea(
+  obs: Observable<string>, options: IInputOptions, ...args: IDomArgs<HTMLTextAreaElement>
+): HTMLTextAreaElement {
+
+  const isValid = options.isValid;
+
+  function setValue(elem: HTMLTextAreaElement) {
+    obs.set(elem.value);
+    if (isValid) { isValid.set(elem.validity.valid); }
+  }
+
+  return dom('textarea', ...args,
+    dom.prop('value', obs),
+    (isValid ?
+      (elem) => dom.autoDisposeElem(elem,
+        subscribe(obs, (use) => isValid.set(elem.checkValidity()))) :
+      null),
+    options.onInput ? dom.on('input', (e, elem) => setValue(elem)) : null,
+    dom.on('change', (e, elem) => setValue(elem)),
   );
 }
