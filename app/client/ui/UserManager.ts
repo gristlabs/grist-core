@@ -10,12 +10,13 @@ import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomElementArg, keyframes, Observable, observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {setTestState} from 'app/client/lib/testState';
+import {buildMultiUserManagerModal} from 'app/client/lib/MultiUserManager';
 import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
@@ -39,7 +40,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
-        modal} from 'app/client/ui2018/modals';
+        modal, cssAnimatedModal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -148,7 +149,8 @@ function buildUserManagerModal(
         cssModalBody(
           cssBody(
             new UserManager(
-              model, pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              model,
+              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
             ).buildDom()
           ),
         ),
@@ -198,22 +200,20 @@ function buildUserManagerModal(
  */
 export class UserManager extends Disposable {
   private _dom: HTMLDivElement;
-  constructor(private _model: UserManagerModel, private _options: {
-    linkToCopy?: string,
-    docPageModel?: DocPageModel,
-    appModel?: AppModel,
-    prompt?: {email: string},
-    resource?: Resource,
+
+  constructor(
+    private _model: UserManagerModel,
+    private _options: {
+      linkToCopy?: string,
+      docPageModel?: DocPageModel,
+      appModel?: AppModel,
+      prompt?: {email: string},
+      resource?: Resource,
   }) {
     super();
   }
 
   public buildDom() {
-    const acMemberEmail = this.autoDispose(new ACMemberEmail(
-      this._onAdd.bind(this),
-      this._model.membersEdited.get(),
-      this._options.prompt,
-    ));
     if (this._model.isPublicMember) {
       return this._buildSelfPublicAccessDom();
     }
@@ -221,6 +221,12 @@ export class UserManager extends Disposable {
     if (this._model.isPersonal) {
       return this._buildSelfAccessDom();
     }
+
+    const acMemberEmail = this.autoDispose(new ACMemberEmail(
+      this._onAdd.bind(this),
+      this._model.membersEdited.get(),
+      this._options.prompt,
+    ));
 
     return [
       acMemberEmail.buildDom(),
@@ -231,6 +237,16 @@ export class UserManager extends Disposable {
         dom.forEach(this._model.membersEdited, (member) => this._buildMemberDom(member)),
       ),
     ];
+  }
+
+  private _onAddOrEdit(email: string, role: roles.NonGuestRole) {
+    const members = this._model.membersEdited.get();
+    const maybeMember = members.find(m => m.email === email);
+    if (maybeMember) {
+      maybeMember.access.set(role);
+    } else {
+      this._onAdd(email, role);
+    }
   }
 
   private _onAdd(email: string, role: roles.NonGuestRole) {
@@ -244,41 +260,54 @@ export class UserManager extends Disposable {
   private _buildOptionsDom(): Element {
     const publicMember = this._model.publicMember;
     let tooltipControl: ITooltipControl | undefined;
-    return cssOptionRow(
-      // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
-      // be used to fill whitespace in org UserManager.
-      this._model.isOrg ? null : dom('span', { style: `float: left;` },
-        dom('span', 'Inherit access: '),
-        this._inheritRoleSelector()
+    return dom('div',
+      cssOptionRowMultiple(
+        icon('AddUser'),
+        cssLabel('Invite multiple'),
+        dom.on('click', (_ev) => buildMultiUserManagerModal(
+          this,
+          this._model,
+          (email, role) => {
+            this._onAddOrEdit(email, role);
+          },
+        ))
       ),
-      publicMember ? dom('span', { style: `float: right;` },
-        cssSmallPublicMemberIcon('PublicFilled'),
-        dom('span', 'Public access: '),
-        cssOptionBtn(
-          menu(() => {
-            tooltipControl?.close();
-            return [
-              menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
-              menuItem(() => publicMember.access.set(null), 'Off',
-                // Disable null access if anonymous access is inherited.
-                dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
-                testId(`um-public-option`)
-              ),
-              // If the 'Off' setting is disabled, show an explanation.
-              dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
-                `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
-                `To remove, set 'Inherit access' option to 'None'.`))
-            ];
-          }),
-          dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
-          cssCollapseIcon('Collapse'),
-          testId('um-public-access')
+      cssOptionRow(
+        // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
+        // be used to fill whitespace in org UserManager.
+        this._model.isOrg ? null : dom('span', { style: `float: left;` },
+          dom('span', 'Inherit access: '),
+          this._inheritRoleSelector()
         ),
-        hoverTooltip((ctl) => {
-          tooltipControl = ctl;
-          return 'Allow anyone with the link to open.';
-        }),
-      ) : null
+        publicMember ? dom('span', { style: `float: right;` },
+          cssSmallPublicMemberIcon('PublicFilled'),
+          dom('span', 'Public access: '),
+          cssOptionBtn(
+            menu(() => {
+              tooltipControl?.close();
+              return [
+                menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
+                menuItem(() => publicMember.access.set(null), 'Off',
+                  // Disable null access if anonymous access is inherited.
+                  dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
+                  testId(`um-public-option`)
+                ),
+                // If the 'Off' setting is disabled, show an explanation.
+                dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
+                  `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
+                  `To remove, set 'Inherit access' option to 'None'.`))
+              ];
+            }),
+            dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
+            cssCollapseIcon('Collapse'),
+            testId('um-public-access')
+          ),
+          hoverTooltip((ctl) => {
+            tooltipControl = ctl;
+            return 'Allow anyone with the link to open.';
+          }),
+        ) : null,
+      ),
     );
   }
 
@@ -674,6 +703,24 @@ const cssOptionRow = styled('div', `
   margin: 0 63px 23px 63px;
 `);
 
+const cssOptionRowMultiple = styled('div', `
+  margin: 0 63px 12px 63px;
+  font-size: ${vars.mediumFontSize};
+  display: flex;
+  cursor: pointer;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+
+  &:hover {
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
+  }
+`);
+
+const cssLabel = styled('span', `
+  margin-left: 4px;
+`);
+
 const cssOptionBtn = styled('span', `
   display: inline-flex;
   font-size: ${vars.mediumFontSize};
@@ -733,17 +780,6 @@ const cssOrgName = styled('div', `
 
 const cssOrgDomain = styled('span', `
   color: ${theme.accentText};
-`);
-
-const cssFadeInFromTop = keyframes(`
-  from {top: -250px; opacity: 0}
-  to {top: 0; opacity: 1}
-`);
-
-const cssAnimatedModal = styled('div', `
-  animation-name: ${cssFadeInFromTop};
-  animation-duration: 0.4s;
-  position: relative;
 `);
 
 const cssTitle = styled(cssModalTitle, `
