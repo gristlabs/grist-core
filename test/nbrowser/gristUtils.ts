@@ -7,8 +7,8 @@ import * as fse from 'fs-extra';
 import escapeRegExp = require('lodash/escapeRegExp');
 import noop = require('lodash/noop');
 import startCase = require('lodash/startCase');
-import { assert, driver, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
-import { stackWrapFunc, stackWrapOwnMethods } from 'mocha-webdriver';
+import { assert, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
+import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
 
 import { decodeUrl } from 'app/common/gristUrls';
@@ -31,6 +31,15 @@ import type { AssertionError } from 'assert';
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {
+
+// Allow overriding the global 'driver' to use in gristUtil.
+let driver: WebDriver;
+
+// Substitute a custom driver to use with gristUtils functions. Omit argument to restore to default.
+export function setDriver(customDriver: WebDriver = driverOrig) { driver = customDriver; }
+
+// Set the 'driver' to use here in before() callback, because driverOrig isn't set until then.
+before(() => setDriver());
 
 const homeUtil = new HomeUtil(testUtils.fixturesRoot, server);
 

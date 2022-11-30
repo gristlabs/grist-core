@@ -6,6 +6,7 @@
  *  https://css-tricks.com/snippets/css/system-font-stack/
  *
  */
+import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {Theme, ThemeAppearance} from 'app/common/ThemePrefs';
@@ -838,7 +839,7 @@ ${properties.join('\n')}
 
   // Cache the appearance in local storage; this is currently used to apply a suitable
   // background image that's shown while the application is loading.
-  localStorage.setItem('appearance', appearance);
+  getStorage().setItem('appearance', appearance);
 }
 
 /**

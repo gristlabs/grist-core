@@ -4,6 +4,7 @@
  */
 import {safeJsonParse} from 'app/common/gutil';
 import {IDisposableOwner, Observable} from 'grainjs';
+import {getSessionStorage} from 'app/client/lib/storage';
 
 export interface SessionObs<T> extends Observable<T> {
   pauseSaving(yesNo: boolean): void;
@@ -45,14 +46,15 @@ export function createSessionObs<T>(
     return value === _default || !isValid(value) ? null : JSON.stringify(value);
   }
   let _pauseSaving = false;
-  const obs = Observable.create<T>(owner, fromString(window.sessionStorage.getItem(key)));
+  const storage = getSessionStorage();
+  const obs = Observable.create<T>(owner, fromString(storage.getItem(key)));
   obs.addListener((value: T) => {
     if (_pauseSaving) { return; }
     const stored = toString(value);
     if (stored == null) {
-      window.sessionStorage.removeItem(key);
+      storage.removeItem(key);
     } else {
-      window.sessionStorage.setItem(key, stored);
+      storage.setItem(key, stored);
     }
   });
   return Object.assign(obs, {pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; }});

@@ -1,5 +1,6 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
+import {getSessionStorage} from 'app/client/lib/storage';
 import {getWorker} from 'app/client/models/gristConfigCache';
 import {CommResponseBase} from 'app/common/CommTypes';
 import * as gutil from 'app/common/gutil';
@@ -70,6 +71,8 @@ export interface GristWSSettings {
  * An implementation of Grist websocket connection settings for the browser.
  */
 export class GristWSSettingsBrowser implements GristWSSettings {
+  private _sessionStorage = getSessionStorage();
+
   public makeWebSocket(url: string) { return new WebSocket(url); }
   public getTimezone()              { return guessTimezone(); }
   public getPageUrl()               { return G.window.location.href; }
@@ -77,18 +80,18 @@ export class GristWSSettingsBrowser implements GristWSSettings {
     return getDocWorkerUrl(assignmentId);
   }
   public getClientId(assignmentId: string|null) {
-    return window.sessionStorage.getItem(`clientId_${assignmentId}`) || null;
+    return this._sessionStorage.getItem(`clientId_${assignmentId}`) || null;
   }
   public getUserSelector(): string {
     // TODO: find/create a more official way to get the user.
     return (window as any).gristDocPageModel?.appModel.currentUser?.email || '';
   }
   public updateClientId(assignmentId: string|null, id: string) {
-    window.sessionStorage.setItem(`clientId_${assignmentId}`, id);
+    this._sessionStorage.setItem(`clientId_${assignmentId}`, id);
   }
   public advanceCounter(): string {
-    const value = parseInt(window.sessionStorage.getItem('clientCounter')!, 10) || 0;
-    window.sessionStorage.setItem('clientCounter', String(value + 1));
+    const value = parseInt(this._sessionStorage.getItem('clientCounter')!, 10) || 0;
+    this._sessionStorage.setItem('clientCounter', String(value + 1));
     return String(value);
   }
   public log(...args: any[]): void {

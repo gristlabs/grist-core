@@ -1,7 +1,7 @@
 import {CellPosition, toCursor} from 'app/client/components/CellPosition';
 import {oneTimeListener} from 'app/client/components/CursorMonitor';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {getStorage} from 'app/client/lib/localStorageObs';
+import {getStorage} from 'app/client/lib/storage';
 import {UserError} from 'app/client/models/errors';
 import {FieldEditor, FieldEditorStateEvent} from 'app/client/widgets/FieldEditor';
 import {isViewDocPage} from 'app/common/gristUrls';
