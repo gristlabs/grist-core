@@ -27,6 +27,19 @@ export function configForUser(username: string): AxiosRequestConfig {
 }
 
 /**
+ * Appends a permit key to the given config. Creates a new config object.
+ */
+export function configWithPermit(config: AxiosRequestConfig, permitKey: string): AxiosRequestConfig {
+  return {
+    ...config,
+    headers: {
+      ...config.headers,
+      Permit: permitKey
+    }
+  };
+}
+
+/**
  * Create a new user and return their personal org.
  */
 export async function createUser(dbManager: HomeDBManager, name: string): Promise<Organization> {

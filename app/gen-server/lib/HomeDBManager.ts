@@ -1885,7 +1885,7 @@ export class HomeDBManager extends EventEmitter {
     return await this._connection.transaction(async manager => {
       const docQuery = this._doc(scope, {
         manager,
-        markPermissions: Permissions.REMOVE,
+        markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
         allowSpecialPermit: true
       })
       // Join the docs's ACLs and groups so we can remove them.
@@ -3396,7 +3396,7 @@ export class HomeDBManager extends EventEmitter {
         effectiveUserId = this.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
-      // Compute whether we have access to the doc
+      // Compute whether we have access to the ws
       query = query.addSelect(
         this._markIsPermitted('workspaces', effectiveUserId, 'open', threshold),
         'is_permitted'
@@ -4298,7 +4298,7 @@ export class HomeDBManager extends EventEmitter {
     return this._connection.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
-        markPermissions: Permissions.REMOVE,
+        markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true
       });
       if (!removedAt) {

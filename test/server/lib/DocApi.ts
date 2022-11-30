@@ -198,6 +198,21 @@ describe('DocApi', function() {
 
 // Contains the tests. This is where you want to add more test.
 function testDocApi() {
+  it("should allow only owners to remove a document", async () => {
+    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+    const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+
+    // Kiwi is editor of the document, so he can't delete it.
+    await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
+    await assert.isRejected(kiwiApi.softDeleteDoc(doc1), /Forbidden/);
+    await assert.isRejected(kiwiApi.deleteDoc(doc1), /Forbidden/);
+
+    // Kiwi is owner of the document - now he can delete it.
+    await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'owners'}});
+    await assert.isFulfilled(kiwiApi.softDeleteDoc(doc1));
+    await assert.isFulfilled(kiwiApi.deleteDoc(doc1));
+  });
 
   it("guesses types of new columns", async () => {
     const userActions = [
@@ -3151,6 +3166,7 @@ interface WebhookRequests {
   "add,update": object[][];
 }
 
+const ORG_NAME = 'docs-1';
 function setup(name: string, cb: () => Promise<void>) {
   let api: UserAPIImpl;
 
@@ -3162,7 +3178,7 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = makeUserApi('docs-1');
+    userApi = api = makeUserApi(ORG_NAME);
     const wid = await getWorkspaceId(api, 'Private');
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });
@@ -3178,9 +3194,9 @@ function setup(name: string, cb: () => Promise<void>) {
   });
 }
 
-function makeUserApi(org: string) {
+function makeUserApi(org: string, user?: string) {
   return new UserAPIImpl(`${home.serverUrl}/o/${org}`, {
-    headers: {Authorization: 'Bearer api_key_for_chimpy'},
+    headers: {Authorization: `Bearer api_key_for_${user || 'chimpy'}`},
     fetch: fetch as any,
     newFormData: () => new FormData() as any,
     logger: log

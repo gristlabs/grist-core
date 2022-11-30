@@ -488,7 +488,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       testId('move-doc')
     ),
     menuItem(deleteDoc, t('Remove'),
-      dom.cls('disabled', !roles.canDelete(doc.access)),
+      dom.cls('disabled', !roles.isOwner(doc)),
       testId('delete-doc')
     ),
     menuItem(() => home.pinUnpinDoc(doc.id, !doc.isPinned).catch(reportError),
@@ -511,11 +511,11 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
 
   return [
     menuItem(() => home.restoreDoc(doc), t('Restore'),
-      dom.cls('disabled', !roles.canDelete(doc.access) || !!workspace.removedAt),
+      dom.cls('disabled', !roles.isOwner(doc) || !!workspace.removedAt),
       testId('doc-restore')
     ),
     menuItem(hardDeleteDoc, t('DeleteForever'),
-      dom.cls('disabled', !roles.canDelete(doc.access)),
+      dom.cls('disabled', !roles.isOwner(doc)),
       testId('doc-delete-forever')
     ),
     (workspace.removedAt ?
