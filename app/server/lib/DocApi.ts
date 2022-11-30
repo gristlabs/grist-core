@@ -618,6 +618,14 @@ export class DocWorkerApi {
       })
     );
 
+    // Clears all outgoing webhooks in the queue for this document.
+    this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        await activeDoc.clearWebhookQueue();
+        res.json({success: true});
+      })
+    );
+
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
     this._app.post('/api/docs/:docId/force-reload', canEdit, throttled(async (req, res) => {

@@ -4,11 +4,12 @@ import * as net from 'net';
 import * as path from 'path';
 import { ConnectionOptions } from 'typeorm';
 import uuidv4 from 'uuid/v4';
+import {AbortSignal} from 'node-abort-controller';
 
 import {EngineCode} from 'app/common/DocumentSettings';
 import log from 'app/server/lib/log';
-import { OpenMode, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import { getDocSessionAccessOrNull, getDocSessionUser, OptDocSession } from './DocSession';
+import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import {getDocSessionAccessOrNull, getDocSessionUser, OptDocSession} from './DocSession';
 
 /**
  * Promisify a node-style callback function. E.g.
@@ -167,4 +168,29 @@ export function getSupportedEngineChoices(): EngineCode[]|undefined {
     return ['python2', 'python3'];
   }
   return undefined;
+}
+
+/**
+ * Returns a promise that resolves in the given number of milliseconds or rejects
+ * when the given signal is raised.
+ */
+ export function delayAbort(msec: number, signal?: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    let resolved = false;
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    }, msec);
+    if (signal?.addEventListener) {
+      signal.addEventListener('abort', (ev) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          reject(ev);
+        }
+      });
+    }
+  });
 }

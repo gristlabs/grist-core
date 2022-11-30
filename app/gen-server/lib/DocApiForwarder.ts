@@ -55,6 +55,7 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/states', withDoc);
     app.use('/api/docs/:docId/compare', withDoc);
     app.use('/api/docs/:docId/assign', withDocWithoutAuth);
+    app.use('/api/docs/:docId/webhooks/queue', withDoc);
     app.use('^/api/docs$', withoutDoc);
   }
 

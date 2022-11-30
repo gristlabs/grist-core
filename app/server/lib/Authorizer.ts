@@ -651,6 +651,10 @@ export function assertAccess(
       throw new ErrorWithCode("AUTH_NO_EDIT", "No write access", details);
     }
   }
+
+  if (role === 'owners' && docAuth.access !== 'owners') {
+    throw new ErrorWithCode("AUTH_NO_OWNER", "No owner access", details);
+  }
 }
 
 /**

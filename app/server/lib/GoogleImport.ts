@@ -71,7 +71,7 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
     if (!error.response) {
       // Fetch throws exception on network error.
       // https://github.com/node-fetch/node-fetch/blob/master/docs/ERROR-HANDLING.md
-      throw new FetchError(error.message, "system", error.code || "unknown");
+      throw new FetchError(error.message, "system", error);
     } else {
       // Fetch returns failure response on http error
       const resInit = error.response ? {

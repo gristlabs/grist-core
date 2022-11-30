@@ -5,14 +5,10 @@ import {DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
-import {
-  applyQueryParameters,
-  docApiUsagePeriods,
-  docPeriodicApiUsageKey,
-  getDocApiUsageKeysToIncr
-} from 'app/server/lib/DocApi';
+import {applyQueryParameters, docApiUsagePeriods, docPeriodicApiUsageKey,
+  getDocApiUsageKeysToIncr} from 'app/server/lib/DocApi';
 import log from 'app/server/lib/log';
-import {exitPromise} from 'app/server/lib/serverUtils';
+import {delayAbort, exitPromise} from 'app/server/lib/serverUtils';
 import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
 import axios, {AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
@@ -28,6 +24,7 @@ import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
+import {AbortController} from 'node-abort-controller';
 import {configForUser} from 'test/gen-server/testUtils';
 import {serveSomething, Serving} from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
@@ -2890,7 +2887,19 @@ function testDocApi() {
     let redisMonitor: any;
     let redisCalls: any[];
 
+    // Create couple of promises that can be used to monitor
+    // if the endpoint was called.
+    const successCalled = signal();
+    const notFoundCalled = signal();
+    const longStarted = signal();
+    const longFinished = signal();
+
+    // Create an abort controller for the latest request. We will
+    // use it to abort the delay on the longEndpoint.
+    let controller = new AbortController();
+
     before(async function() {
+      this.timeout(20000);
       if (!process.env.TEST_REDIS_URL) { this.skip(); }
       requests = {
         "add,update": [],
@@ -2906,6 +2915,33 @@ function testDocApi() {
       // TODO test retries on failure and slowness in a new test
       serving = await serveSomething(app => {
         app.use(bodyParser.json());
+        app.post('/200', ({body}, res) => {
+          successCalled.emit(body[0].A);
+          res.sendStatus(200);
+          res.end();
+        });
+        app.post('/404', ({body}, res) => {
+          notFoundCalled.emit(body[0].A);
+          res.sendStatus(404); // Webhooks treats it as an error and will retry. Probably it shouldn't work this way.
+          res.end();
+        });
+        app.post('/long', async ({body}, res) => {
+          longStarted.emit(body[0].A);
+          // We are scoping the controller to this call, so any subsequent
+          // call will have a new controller. Caller can save this value to abort the previous calls.
+          const scoped = new AbortController();
+          controller = scoped;
+          try {
+            await delayAbort(2000, scoped.signal); // We don't expect to wait for this.
+            res.sendStatus(200);
+            res.end();
+            longFinished.emit(body[0].A);
+          } catch(exc) {
+            res.sendStatus(200); // Send ok, so that it won't be seen as an error.
+            res.end();
+            longFinished.emit([408, body[0].A]); // We will signal that this is success but after aborting timeout.
+          }
+        });
         app.post('/:eventTypes', async ({body, params: {eventTypes}}, res) => {
           requests[eventTypes as keyof WebhookRequests].push(body);
           res.sendStatus(200);
@@ -3062,6 +3098,181 @@ function testDocApi() {
       );
 
     });
+
+    it("should clear the outgoing queue", async() => {
+      // Create a test document.
+      const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+      const docId = await userApi.newDoc({name: 'testdoc2'}, ws1);
+      const doc = userApi.getDocAPI(docId);
+      await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        ['ModifyColumn', 'Table1', 'B', {type: 'Bool'}],
+      ], chimpy);
+      // Subscribe helper that returns a method to unsubscribe.
+      const subscribe = async (endpoint: string) => {
+        const {data, status} = await axios.post(
+          `${serverUrl}/api/docs/${docId}/tables/Table1/_subscribe`,
+          {eventTypes: ['add', 'update'], url: `${serving.url}/${endpoint}`, isReadyColumn: "B"}, chimpy
+        );
+        assert.equal(status, 200);
+        return () => axios.post(
+          `${serverUrl}/api/docs/${docId}/tables/Table1/_unsubscribe`,
+          data, chimpy
+        );
+      };
+
+      // Try to clear the queue, even if it is empty.
+      const deleteResult = await axios.delete(
+        `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+      );
+      assert.equal(deleteResult.status, 200);
+
+      const cleanup: (() => Promise<any>)[] = [];
+
+      // Subscribe a valid webhook endpoint.
+      cleanup.push(await subscribe('200'));
+      // Subscribe an invalid webhook endpoint.
+      cleanup.push(await subscribe('404'));
+
+      // Prepare signals, we will be waiting for those two to be called.
+      successCalled.reset();
+      notFoundCalled.reset();
+      // Trigger both events.
+      await doc.addRows("Table1", {
+        A: [1],
+        B: [true],
+      });
+
+      // Wait for both of them to be called (this is correct order)
+      await successCalled.waitAndReset();
+      await notFoundCalled.waitAndReset();
+
+      // Broken endpoint will be called multiple times here, and any subsequent triggers for working
+      // endpoint won't be called.
+      await notFoundCalled.waitAndReset();
+
+      // But the working endpoint won't be called more then once.
+      assert.isFalse(successCalled.called());
+
+      // Trigger second event.
+      await doc.addRows("Table1", {
+        A: [2],
+        B: [true],
+      });
+      // Error endpoint will be called with the first row (still).
+      const firstRow = await notFoundCalled.waitAndReset();
+      assert.deepEqual(firstRow, 1);
+
+      // But the working endpoint won't be called till we reset the queue.
+      assert.isFalse(successCalled.called());
+
+      // Now reset the queue.
+      await axios.delete(
+        `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+      );
+      assert.isFalse(successCalled.called());
+      assert.isFalse(notFoundCalled.called());
+
+      // Prepare for new calls.
+      successCalled.reset();
+      notFoundCalled.reset();
+      // Trigger them.
+      await doc.addRows("Table1", {
+        A: [3],
+        B: [true],
+      });
+      // We will receive data from the 3rd row only (the second one was omitted).
+      let thirdRow = await successCalled.waitAndReset();
+      assert.deepEqual(thirdRow, 3);
+      thirdRow = await notFoundCalled.waitAndReset();
+      assert.deepEqual(thirdRow, 3);
+      // And the situation will be the same, the working endpoint won't be called till we reset the queue, but
+      // the error endpoint will be called with the third row multiple times.
+      await notFoundCalled.waitAndReset();
+      assert.isFalse(successCalled.called());
+
+      // Cleanup everything, we will now test request timeouts.
+      await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
+      assert.isTrue((await axios.delete(
+        `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+      )).status === 200);
+
+      // Create 2 webhooks, one that is very long.
+      cleanup.push(await subscribe('200'));
+      cleanup.push(await subscribe('long'));
+      successCalled.reset();
+      longFinished.reset();
+      longStarted.reset();
+      // Trigger them.
+      await doc.addRows("Table1", {
+        A: [4],
+        B: [true],
+      });
+      // 200 will be called immediately.
+      await successCalled.waitAndReset();
+      // Long will be started immediately.
+      await longStarted.waitAndReset();
+      // But it won't be finished.
+      assert.isFalse(longFinished.called());
+      // It will be aborted.
+      controller.abort();
+      assert.deepEqual(await longFinished.waitAndReset(),  [408, 4]);
+
+      // Trigger another event.
+      await doc.addRows("Table1", {
+        A: [5],
+        B: [true],
+      });
+      // We are stuck once again on the long call. But this time we won't
+      // abort it till the end of this test.
+      assert.deepEqual(await successCalled.waitAndReset(),  5);
+      assert.deepEqual(await longStarted.waitAndReset(),  5);
+      assert.isFalse(longFinished.called());
+
+      // Remember this controller for cleanup.
+      const controller5 = controller;
+      // Trigger another event.
+      await doc.addRows("Table1", {
+        A: [6],
+        B: [true],
+      });
+      // We are now completely stuck on the 5th row webhook.
+      assert.isFalse(successCalled.called());
+      assert.isFalse(longFinished.called());
+      // Clear the queue, it will free webhooks requests, but it won't cancel long handler on the external server
+      // so it is still waiting.
+      assert.isTrue((await axios.delete(
+        `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+      )).status === 200);
+      // Now we can release the stuck request.
+      controller5.abort();
+      // We will be cancelled from the 5th row.
+      assert.deepEqual(await longFinished.waitAndReset(), [408, 5]);
+
+      // We won't be called for the 6th row at all, as it was stuck and the queue was purged.
+      assert.isFalse(successCalled.called());
+      assert.isFalse(longStarted.called());
+
+      // Trigger next event.
+      await doc.addRows("Table1", {
+        A: [7],
+        B: [true],
+      });
+      // We will be called once again with a new 7th row.
+      assert.deepEqual(await successCalled.waitAndReset(), 7);
+      assert.deepEqual(await longStarted.waitAndReset(), 7);
+      // But we are stuck again.
+      assert.isFalse(longFinished.called());
+      // And we can abort current request from 7th row (6th row was skipped).
+      controller.abort();
+      assert.deepEqual(await longFinished.waitAndReset(), [408, 7]);
+
+      // Cleanup all
+      await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
+      assert.isTrue((await axios.delete(
+        `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy
+      )).status === 200);
+    });
+
   });
 
   describe("Allowed Origin", () => {
@@ -3252,6 +3463,7 @@ class TestServer {
       APP_HOME_URL: _homeUrl,
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
       GRIST_ALLOWED_HOSTS: `example.com,localhost`,
+      GRIST_TRIGGER_WAIT_DELAY: '200',
       ...process.env
     };
 
@@ -3338,4 +3550,42 @@ async function setupDataDir(dir: string) {
   await testUtils.copyFixtureDoc(
     'ApiDataRecordsTest.grist',
     path.resolve(dir, docIds.ApiDataRecordsTest + '.grist'));
+}
+
+/**
+ * Helper that creates a promise that can be resolved from outside.
+ */
+function signal() {
+  let resolve: null | ((data: any) => void) = null;
+  let promise: null | Promise<any> = null;
+  let called = false;
+  return {
+    emit(data: any) {
+      if (!resolve) {
+        throw new Error("signal.emit() called before signal.reset()");
+      }
+      called = true;
+      resolve(data);
+    },
+    async wait() {
+      if (!promise) {
+        throw new Error("signal.wait() called before signal.reset()");
+      }
+      return await promise;
+    },
+    async waitAndReset() {
+      try {
+        return await this.wait();
+      } finally {
+        this.reset();
+      }
+    },
+    called() {
+      return called;
+    },
+    reset() {
+      called = false;
+      promise = new Promise((res) => { resolve = res; });
+    }
+  };
 }

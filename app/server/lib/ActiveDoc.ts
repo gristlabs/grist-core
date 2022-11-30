@@ -1713,6 +1713,13 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Clears all outgoing webhook requests queued for this document.
+   */
+  public async clearWebhookQueue() {
+    await this._triggers.clearWebhookQueue();
+  }
+
+  /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
   protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[][]> {
