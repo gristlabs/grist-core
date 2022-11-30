@@ -79,7 +79,7 @@ export class BaseFormatter {
    * Formats using this.format() if a value is of the right type for this formatter, or using
    * AnyFormatter otherwise. This method the recommended API. There is no need to override it.
    */
-  public formatAny(value: any, translate?: Function): string {
+  public formatAny(value: any, translate?: (val: string) => string): string {
     return this.isRightType(value) ? this.format(value, translate) : formatUnknown(value);
   }
 
@@ -87,14 +87,17 @@ export class BaseFormatter {
    * Formats a value that matches the type of this formatter. This should be overridden by derived
    * classes to handle values in formatter-specific ways.
    */
-  protected format(value: any, translate?: Function): string {
+  protected format(value: any, _translate?: (val: string) => string): string {
     return String(value);
   }
 }
 
 export class BoolFormatter extends BaseFormatter {
-  public format(value: boolean, translate?: (val: string) => string): string {
-    return translate ? translate(String(value)) : String(value);
+  public format(value: boolean | 0 | 1, translate?: (val: string) => string): string {
+    if (typeof value === 'boolean' && translate) {
+      return translate(String(value));
+    }
+    return super.format(value, translate);
   }
 }
 
