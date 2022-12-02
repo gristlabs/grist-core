@@ -3,6 +3,7 @@ import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
+import {parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
@@ -400,7 +401,7 @@ export class DocWorkerApi {
       // We want to be have a way download broken docs that ActiveDoc may not be able
       // to load.  So, if the user owns the document, we unconditionally let them
       // download.
-      if (await this._isOwner(req)) {
+      if (await this._isOwner(req, {acceptTrunkForSnapshot: true})) {
         if (dryRun) { dryRunSuccess(); return; }
         try {
           // We carefully avoid creating an ActiveDoc for the document being downloaded,
@@ -1073,11 +1074,20 @@ export class DocWorkerApi {
 
   /**
    * Check if user is an owner of the document.
+   * If acceptTrunkForSnapshot is set, being an owner of the trunk of the document (if it is a snapshot)
+   * is sufficient. Uses cachedDoc, which could be stale if access has changed recently.
    */
-  private async _isOwner(req: Request) {
+  private async _isOwner(req: Request, options?: { acceptTrunkForSnapshot?: boolean }) {
     const scope = getDocScope(req);
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
-    return docAuth.access === 'owners';
+    if (docAuth.access === 'owners') {
+      return true;
+    }
+    if (options?.acceptTrunkForSnapshot && docAuth.cachedDoc?.trunkAccess === 'owners') {
+      const parts = parseUrlId(scope.urlId);
+      if (parts.snapshotId) { return true; }
+    }
+    return false;
   }
 
   // Helper to generate a 503 if the ActiveDoc has been muted.
