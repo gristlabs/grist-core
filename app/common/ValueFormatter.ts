@@ -79,16 +79,25 @@ export class BaseFormatter {
    * Formats using this.format() if a value is of the right type for this formatter, or using
    * AnyFormatter otherwise. This method the recommended API. There is no need to override it.
    */
-  public formatAny(value: any): string {
-    return this.isRightType(value) ? this.format(value) : formatUnknown(value);
+  public formatAny(value: any, translate?: (val: string) => string): string {
+    return this.isRightType(value) ? this.format(value, translate) : formatUnknown(value);
   }
 
   /**
    * Formats a value that matches the type of this formatter. This should be overridden by derived
    * classes to handle values in formatter-specific ways.
    */
-  protected format(value: any): string {
+  protected format(value: any, _translate?: (val: string) => string): string {
     return String(value);
+  }
+}
+
+export class BoolFormatter extends BaseFormatter {
+  public format(value: boolean | 0 | 1, translate?: (val: string) => string): string {
+    if (typeof value === 'boolean' && translate) {
+      return translate(String(value));
+    }
+    return super.format(value, translate);
   }
 }
 
@@ -265,7 +274,7 @@ class ReferenceListFormatter extends ReferenceFormatter {
 const formatters: { [name: string]: typeof BaseFormatter } = {
   Numeric: NumericFormatter,
   Int: IntFormatter,
-  Bool: BaseFormatter,
+  Bool: BoolFormatter,
   Date: DateFormatter,
   DateTime: DateTimeFormatter,
   Ref: ReferenceFormatter,

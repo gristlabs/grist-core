@@ -351,6 +351,10 @@
     "GiveFeedback": "Donnez votre avis",
     "NoNotifications": "Aucune notification"
   },
+  "NTextBox": {
+    "false": "faux",
+    "true": "vrai"
+  },
   "OnBoardingPopups": {
     "Finish": "Terminer",
     "Next": "Suivant"

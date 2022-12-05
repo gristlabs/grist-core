@@ -60,7 +60,7 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
  */
 
 export const commonUrls = {
-  help: "https://support.getgrist.com",
+  help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
   helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
   helpLinkingWidgets: "https://support.getgrist.com/linking-widgets",
@@ -493,6 +493,9 @@ export interface GristLoadConfig {
 
   // In single-org mode, this is the single well-known org. Suppress any org selection UI.
   singleOrg?: string;
+  
+  // Url for support for the browser client to use.
+  helpCenterUrl?: string;
 
   // When set, this directs the client to encode org information in path, not in domain.
   pathOnly?: boolean;
@@ -638,6 +641,15 @@ export function getKnownOrg(): string|null {
     return (gristConfig && gristConfig.singleOrg) || null;
   } else {
     return process.env.GRIST_SINGLE_ORG || null;
+  }
+}
+
+export function getHelpCenterUrl(): string|null {
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.helpCenterUrl || null;
+  } else {
+    return process.env.GRIST_HELP_CENTER || null;
   }
 }
 
