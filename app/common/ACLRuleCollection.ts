@@ -1,4 +1,5 @@
 import {parsePermissions} from 'app/common/ACLPermissions';
+import {AclRuleProblem} from 'app/common/ActiveDocAPI';
 import {ILogger} from 'app/common/BaseAPI';
 import {DocData} from 'app/common/DocData';
 import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
@@ -232,6 +233,20 @@ export class ACLRuleCollection {
    * Check that all references to table and column IDs in ACL rules are valid.
    */
   public checkDocEntities(docData: DocData) {
+    const problems = this.findRuleProblems(docData);
+    if (problems.length === 0) { return; }
+    throw new Error(problems[0].comment);
+  }
+
+  /**
+   * Enumerate rule problems caused by table and column IDs that are not valid.
+   * Problems include:
+   *   - Rules for a table that does not exist
+   *   - Rules for columns that include a column that does not exist
+   *   - User attributes links to a column that does not exist
+   */
+  public findRuleProblems(docData: DocData): AclRuleProblem[] {
+    const problems: AclRuleProblem[] = [];
     const tablesTable = docData.getMetaTable('_grist_Tables');
     const columnsTable = docData.getMetaTable('_grist_Tables_column');
 
@@ -239,7 +254,12 @@ export class ACLRuleCollection {
     const validTableIds = new Set(tablesTable.getColValues('tableId'));
     const invalidTables = this.getAllTableIds().filter(t => !validTableIds.has(t));
     if (invalidTables.length > 0) {
-      throw new Error(`Invalid tables in rules: ${invalidTables.join(', ')}`);
+      problems.push({
+        tables: {
+          tableIds: invalidTables,
+        },
+        comment: `Invalid tables in rules: ${invalidTables.join(', ')}`,
+      });
     }
 
     // Collect valid columns, grouped by tableRef (rowId of table record).
@@ -249,15 +269,22 @@ export class ACLRuleCollection {
       getSetMapValue(validColumns, colTableRefs[i], () => new Set()).add(colId);
     }
 
-    // For each table, check that any explicitly mentioned columns are valid.
+    // For each valid table, check that any explicitly mentioned columns are valid.
     for (const tableId of this.getAllTableIds()) {
+      if (!validTableIds.has(tableId)) { continue; }
       const tableRef = tablesTable.findRow('tableId', tableId);
       const validTableCols = validColumns.get(tableRef);
       for (const ruleSet of this.getAllColumnRuleSets(tableId)) {
         if (Array.isArray(ruleSet.colIds)) {
           const invalidColIds = ruleSet.colIds.filter(c => !validTableCols?.has(c));
           if (invalidColIds.length > 0) {
-            throw new Error(`Invalid columns in rules for table ${tableId}: ${invalidColIds.join(', ')}`);
+            problems.push({
+              columns: {
+                tableId,
+                colIds: invalidColIds,
+              },
+              comment: `Invalid columns in rules for table ${tableId}: ${invalidColIds.join(', ')}`,
+            });
           }
         }
       }
@@ -265,16 +292,25 @@ export class ACLRuleCollection {
 
     // Check for valid tableId/lookupColId combinations in UserAttribute rules.
     const invalidUAColumns: string[] = [];
+    const names: string[] = [];
     for (const rule of this.getUserAttributeRules().values()) {
       const tableRef = tablesTable.findRow('tableId', rule.tableId);
       const colRef = columnsTable.findMatchingRowId({parentId: tableRef, colId: rule.lookupColId});
       if (!colRef) {
         invalidUAColumns.push(`${rule.tableId}.${rule.lookupColId}`);
+        names.push(rule.name);
       }
     }
     if (invalidUAColumns.length > 0) {
-      throw new Error(`Invalid columns in User Attribute rules: ${invalidUAColumns.join(', ')}`);
+      problems.push({
+        userAttributes: {
+          invalidUAColumns,
+          names,
+        },
+        comment: `Invalid columns in User Attribute rules: ${invalidUAColumns.join(', ')}`,
+      });
     }
+    return problems;
   }
 
   private _safeReadAclRules(docData: DocData, options: ReadAclOptions): ReadAclResults {

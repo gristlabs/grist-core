@@ -4,6 +4,7 @@
  * change events.
  */
 
+import {ACLRuleCollection} from 'app/common/ACLRuleCollection';
 import {
   getEnvContent,
   LocalActionBundle,
@@ -14,6 +15,7 @@ import {
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
 import {
+  AclResources,
   AclTableDescription,
   ApplyUAExtendedOptions,
   ApplyUAOptions,
@@ -1427,8 +1429,11 @@ export class ActiveDoc extends EventEmitter {
    * Returns the full set of tableIds, with basic metadata for each table. This is intended
    * for editing ACLs. It is only available to users who can edit ACLs, and lists all resources
    * regardless of rules that may block access to them.
+   *
+   * Also returns information about resources mentioned in rules that no longer
+   * exist.
    */
-  public async getAclResources(docSession: DocSession): Promise<{[tableId: string]: AclTableDescription}> {
+  public async getAclResources(docSession: DocSession): Promise<AclResources> {
     if (!this.docData || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
       throw new Error('Cannot list ACL resources');
     }
@@ -1453,7 +1458,10 @@ export class ActiveDoc extends EventEmitter {
         result[tableId].groupByColLabels!.push(sourceCol.label);
       }
     }
-    return result;
+    const ruleCollection = new ACLRuleCollection();
+    await ruleCollection.update(this.docData, {log});
+    const problems = ruleCollection.findRuleProblems(this.docData);
+    return {tables: result, problems};
   }
 
   /**

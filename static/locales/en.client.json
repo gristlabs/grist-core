@@ -584,7 +584,10 @@
       "AttributeNamePlaceholder": "Attribute name",
       "Everyone": "Everyone",
       "EveryoneElse": "Everyone Else",
-      "EnterCondition": "Enter Condition"
+      "EnterCondition": "Enter Condition",
+      "RemoveRulesMentioningTable": "Remove {{- tableId }} rules",
+      "RemoveRulesMentioningColumn": "Remove column {{- colId }} from {{- tableId }} rules",
+      "RemoveUserAttribute": "Remove {{- name }} user attribute"
     },
     "PermissionsWidget": {
       "AllowAll": "Allow All",

@@ -26,7 +26,7 @@ import {
   summarizePermissionSet
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
-import {AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
+import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
   FormulaProperties,
@@ -112,6 +112,9 @@ export class AccessRules extends Disposable {
   // Error or warning message to show next to Save/Reset buttons if non-empty.
   private _errorMessage = Observable.create(this, '');
 
+  // Details of rule problems, for offering solutions to the user.
+  private _ruleProblems = this.autoDispose(obsArray<AclRuleProblem>());
+
   // Map of tableId to basic metadata for all tables in the document.
   private _aclResources = new Map<string, AclTableDescription>();
 
@@ -196,7 +199,8 @@ export class AccessRules extends Disposable {
       this._updateDocAccessData(),
       this._gristDoc.docComm.getAclResources(),
     ]);
-    this._aclResources = new Map(Object.entries(aclResources));
+    this._aclResources = new Map(Object.entries(aclResources.tables));
+    this._ruleProblems.set(aclResources.problems);
     if (this.isDisposed()) { return; }
 
     this._tableRules.set(
@@ -354,6 +358,14 @@ export class AccessRules extends Disposable {
         dom.text(this._errorMessage),
         testId('access-rules-error')
       ),
+
+      dom.maybe(use => {
+        const ruleProblems = use(this._ruleProblems);
+        return ruleProblems.length > 0 ? ruleProblems : null;
+      }, ruleProblems =>
+        cssSection(
+          cssRuleProblems(
+            this.buildRuleProblemsDom(ruleProblems)))),
       shadowScroll(
         dom.maybe(use => use(this._userAttrRules).length, () =>
           cssSection(
@@ -396,6 +408,26 @@ export class AccessRules extends Disposable {
         dom.maybe(this._specialRules, tableRules => tableRules.buildDom()),
       ),
     );
+  }
+
+  public buildRuleProblemsDom(ruleProblems: AclRuleProblem[]) {
+    const buttons: Array<HTMLAnchorElement | HTMLButtonElement> = [];
+    for (const problem of ruleProblems) {
+      // Is the problem a missing table?
+      if (problem.tables) {
+        this._addButtonsForMissingTables(buttons, problem.tables.tableIds);
+      }
+      // Is the problem a missing column?
+      if (problem.columns) {
+        this._addButtonsForMissingColumns(buttons, problem.columns.tableId, problem.columns.colIds);
+      }
+      // Is the problem a misconfigured user attribute?
+      if (problem.userAttributes) {
+        const names = problem.userAttributes.names;
+        this._addButtonsForMisconfiguredUserAttributes(buttons, names);
+      }
+    }
+    return buttons.map(button => dom('span', button));
   }
 
   /**
@@ -476,6 +508,63 @@ export class AccessRules extends Disposable {
 
     this._aclUsersPopup.init(pageModel, permissionData);
   }
+
+  private _addButtonsForMissingTables(buttons: Array<HTMLAnchorElement | HTMLButtonElement>, tableIds: string[]) {
+    for (const tableId of tableIds) {
+      // We don't know what the table's name was, just its tableId.
+      // Hopefully, the user will understand.
+      const title = t('RemoveRulesMentioningTable', { tableId });
+      const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
+        await Promise.all(this._tableRules.get()
+          .filter(rules => rules.tableId === tableId)
+          .map(rules => rules.remove()));
+        button.style.display = 'none';
+      }));
+      buttons.push(button);
+    }
+  }
+
+  private _addButtonsForMissingColumns(buttons: Array<HTMLAnchorElement | HTMLButtonElement>,
+                                       tableId: string, colIds: string[]) {
+    const removeColRules = (rules: TableRules, colId: string) => {
+      for (const rule of rules.columnRuleSets.get()) {
+        const ruleColIds = new Set(rule.getColIdList());
+        if (!ruleColIds.has(colId)) { continue; }
+        if (ruleColIds.size === 1) {
+          rule.remove();
+        } else {
+          rule.removeColId(colId);
+        }
+      }
+    };
+    for (const colId of colIds) {
+      // TODO: we could translate tableId to table name in this case.
+      const title = t('RemoveRulesMentioningColumn', { tableId, colId });
+      const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
+        await Promise.all(this._tableRules.get()
+          .filter(rules => rules.tableId === tableId)
+          .map(rules => removeColRules(rules, colId)));
+        button.style.display = 'none';
+      }));
+      buttons.push(button);
+    }
+  }
+
+  private _addButtonsForMisconfiguredUserAttributes(
+    buttons: Array<HTMLAnchorElement | HTMLButtonElement>,
+    names: string[]
+  ) {
+    for (const name of names) {
+      const title = t('RemoveUserAttribute', {name});
+      const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
+        await Promise.all(this._userAttrRules.get()
+          .filter(rule => rule.name.get() === name)
+          .map(rule => rule.remove()));
+        button.style.display = 'none';
+      }));
+      buttons.push(button);
+    }
+  }
 }
 
 // Represents all rules for a table.
@@ -521,6 +610,14 @@ class TableRules extends Disposable {
     });
   }
 
+  public remove() {
+    this._accessRules.removeTableRules(this);
+  }
+
+  public get columnRuleSets() {
+    return this._columnRuleSets;
+  }
+
   public buildDom() {
     return cssSection(
       cssSectionHeading(
@@ -530,7 +627,7 @@ class TableRules extends Disposable {
             menuItemAsync(() => this._addColumnRuleSet(), t('AddColumnRule')),
             menuItemAsync(() => this._addDefaultRuleSet(), t('AddDefaultRule'),
               dom.cls('disabled', use => Boolean(use(this._defaultRuleSet)))),
-            menuItemAsync(() => this._accessRules.removeTableRules(this), t('DeleteTableRules')),
+            menuItemAsync(() => this.remove(), t('DeleteTableRules')),
           ]),
           testId('rule-table-menu-btn'),
         ),
@@ -707,6 +804,10 @@ abstract class ObsRuleSet extends Disposable {
     });
   }
 
+  public remove() {
+    this._tableRules?.removeRuleSet(this);
+  }
+
   public getRules(tableId: string): RuleRec[] {
     // Return every part in the body, tacking on resourceRec to each rule.
     return this._body.get().map(part => ({
@@ -862,6 +963,10 @@ class ColumnObsRuleSet extends ObsRuleSet {
 
   public getColIdList(): string[] {
     return this._colIds.get();
+  }
+
+  public removeColId(colId: string) {
+    this._colIds.set(this._colIds.get().filter(c => (c !== colId)));
   }
 
   public getColIds(): string {
@@ -1029,6 +1134,10 @@ class ObsUserAttributeRule extends Disposable {
       const index = rules.indexOf(this);
       return use(this._accessRules.userAttrChoices).filter(c => (c.ruleIndex < index));
     });
+  }
+
+  public remove() {
+    this._accessRules.removeUserAttributes(this);
   }
 
   public get name() { return this._name; }
@@ -1440,6 +1549,10 @@ const cssDropdownIcon = styled(icon, `
   margin: -2px -2px 0 4px;
 `);
 
+const cssRemoveIcon = styled(icon, `
+  margin: -2px -2px 0 4px;
+`);
+
 const cssSection = styled('div', `
   margin: 16px 16px 24px 16px;
 `);
@@ -1580,4 +1693,14 @@ const cssCenterContent = styled('div', `
 const cssDefaultLabel = styled('div', `
   color: ${theme.accessRulesTableBodyFg};
   font-weight: bold;
+`);
+
+const cssRuleProblems = styled('div', `
+  flex: auto;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
 `);

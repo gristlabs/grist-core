@@ -176,6 +176,26 @@ export interface AclTableDescription {
   groupByColLabels: string[] | null;  // Labels of groupby columns for summary tables, or null.
 }
 
+export interface AclResources {
+  tables: {[tableId: string]: AclTableDescription};
+  problems: AclRuleProblem[];
+}
+
+export interface AclRuleProblem {
+  tables?: {
+    tableIds: string[],
+  };
+  columns?: {
+    tableId: string,
+    colIds: string[],
+  };
+  userAttributes?: {
+    invalidUAColumns: string[],
+    names: string[],
+  }
+  comment: string;
+}
+
 export function getTableTitle(table: AclTableDescription): string {
   let {title} = table;
   if (table.groupByColLabels) {
@@ -349,7 +369,7 @@ export interface ActiveDocAPI {
    * for editing ACLs. It is only available to users who can edit ACLs, and lists all resources
    * regardless of rules that may block access to them.
    */
-  getAclResources(): Promise<{[tableId: string]: AclTableDescription}>;
+  getAclResources(): Promise<AclResources>;
 
   /**
    * Wait for document to finish initializing.
