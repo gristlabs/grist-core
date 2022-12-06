@@ -87,8 +87,8 @@ export function createOtherErrorPage(appModel: AppModel, message?: string) {
   document.title = t("Error{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
 
   return pagePanelsError(appModel, t("Something went wrong"), [
-    cssErrorText(message ? t('ErrorHappened', {context: 'message', message: addPeriod(message)}) :
-      t('ErrorHappened', {context: 'unknown'})),
+    cssErrorText(message ? t('There was an error: {{message}}', {message: addPeriod(message)}) :
+      t('There was an unknown error.')),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: 'https://getgrist.com/contact'})),

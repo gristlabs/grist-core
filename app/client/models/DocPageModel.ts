@@ -240,7 +240,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       t("Reload"),
       async () => window.location.reload(true),
       isDocOwner ? t("You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]", {error: err.message}) :
-        t('AccessError', {context: isDenied ? 'denied' : 'recover', error: err.message}),
+        isDenied ? t('Sorry, access to this document has been denied. [{{error}}]', {error: err.message}) :
+        t("Document owners can attempt to recover the document. [{{error}}]", {error: err.message}),
       {  hideCancel: true,
          extraButtons: (isDocOwner && !isDenied) ? bigBasicButton(t("Enter recovery mode"), dom.on('click', async () => {
            await this._api.getDocAPI(this.currentDocId.get()!).recover(true);

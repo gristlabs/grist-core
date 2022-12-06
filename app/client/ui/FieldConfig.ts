@@ -231,19 +231,19 @@ export function buildFormulaConfig(
   // Converts data column to formula column.
   const convertDataColumnToFormulaOption = () => selectOption(
     () => (maybeFormula.set(true), formulaField?.focus()),
-    t('ConvertColumn', {context: 'formula'}), 'Script');
+    t("Clear and make into formula"), 'Script');
 
   // Converts to empty column and opens up the editor. (label is the same, but this is used when we have no formula)
   const convertTriggerToFormulaOption = () => selectOption(
     () => gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: true, noRecalc: true}),
-    t('ConvertColumn', {context: 'formula'}), 'Script');
+    t("Clear and make into formula"), 'Script');
 
   // Convert column to data.
   // This method is also available through a text button.
   const convertToData = () => gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: true});
   const convertToDataOption = () => selectOption(
     convertToData,
-    t('ConvertColumn', {context: 'data'}), 'Database',
+    t("Convert column to data"), 'Database',
     dom.cls('disabled', isSummaryTable)
     );
 
@@ -357,7 +357,7 @@ export function buildFormulaConfig(
         formulaBuilder(onSaveConvertToFormula),
         cssEmptySeparator(),
         cssRow(textButton(
-          t('ConvertColumn', {context: 'triggerformula'}),
+          t("Convert to trigger formula"),
           dom.on("click", convertFormulaToTrigger),
           dom.hide(maybeFormula),
           dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
