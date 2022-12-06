@@ -64,7 +64,7 @@ export function colorSelect(
     onSave,
     onOpen,
     onRevert,
-    placeholder = t('DefaultCellStyle'),
+    placeholder = t("Default cell style"),
   } = options;
   const selectBtn = cssSelectBtn(
     cssContent(
@@ -188,12 +188,12 @@ function buildColorPicker(ctl: IOpenController,
     }),
 
     cssButtonRow(
-      primaryButton(t('Apply'),
+      primaryButton(t("Apply"),
         dom.on('click', () => ctl.close()),
         dom.boolAttr("disabled", notChanged),
         testId('colors-save')
       ),
-      basicButton(t('Cancel'),
+      basicButton(t("Cancel"),
         dom.on('click', () => revert()),
         testId('colors-cancel')
       )

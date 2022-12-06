@@ -306,13 +306,13 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
       cssModalTitle(options.title, testId('modal-title')),
       cssModalBody(options.body),
       cssModalButtons(
-        bigPrimaryButton(options.saveLabel || t('Save'),
+        bigPrimaryButton(options.saveLabel || t("Save"),
           dom.boolAttr('disabled', isSaveDisabled),
           dom.on('click', save),
           testId('modal-confirm'),
         ),
         options.extraButtons,
-        options.hideCancel ? null : bigBasicButton(t('Cancel'),
+        options.hideCancel ? null : bigBasicButton(t("Cancel"),
           dom.on('click', () => ctl.close()),
           testId('modal-cancel'),
         ),
@@ -426,7 +426,7 @@ export function invokePrompt(
   const prom = new Promise<string|undefined>((resolve) => {
     onResolve = resolve;
   });
-  promptModal(title, onResolve!, btnText ?? t('Ok'), initial, placeholder, () => {
+  promptModal(title, onResolve!, btnText ?? t("Ok"), initial, placeholder, () => {
     if (onResolve) {
       onResolve(undefined);
     }
