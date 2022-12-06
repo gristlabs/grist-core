@@ -293,7 +293,8 @@ function buildOtherSites(home: HomeModel) {
         const siteName = home.app.currentOrgName;
         return [
           dom('div',
-            t("You are on the {{siteName}} site. You also have access to the following sites:", { siteName, context: personal ? 'personal' : '' }),
+            personal ? t("You are on the {{siteName}} site. You also have access to the following sites:", {siteName}) :
+              t("You are on your personal site. You also have access to the following sites:"),
             testId('other-sites-message')
           ),
           css.otherSitesButtons(

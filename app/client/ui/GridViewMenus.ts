@@ -206,12 +206,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
 
       // if user clicked the first column or a column just after frozen set
       if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
-        text = t('FreezeColumn', {count: 1});
+        text = t('Freeze {{count}} columns', {count: 1});
       } else {
         // else user clicked any other column that is farther, offer to freeze
         // proper number of column
         const properNumber = firstColumnIndex - numFrozen + 1;
-        text = t('FreezeColumn', {count: properNumber, context: numFrozen ? 'more' : '' });
+        text = numFrozen ?
+          t('Freeze {{count}} more columns', {count: properNumber}) :
+          t('Freeze {{count}} columns', {count: properNumber});
       }
       return {
         text,
@@ -220,12 +222,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     } else if (isFrozenColumn) {
       // when user clicked last column in frozen set - offer to unfreeze this column
       if (firstColumnIndex + 1 === numFrozen) {
-        text = t('UnfreezeColumn', {count: 1});
+        text = t('Unfreeze {{count}} columns', {count: 1});
       } else {
         // else user clicked column that is not the last in a frozen set
         // offer to unfreeze proper number of columns
         const properNumber = numFrozen - firstColumnIndex;
-        text = t('UnfreezeColumn', {count: properNumber, context: properNumber === numFrozen ? 'all' : '' });
+        text = properNumber === numFrozen ?
+          t('Unfreeze all columns') :
+          t('UnFreeze {{count}} columns', {count: properNumber});
       }
       return {
         text,
@@ -249,7 +253,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       };
     } else if (isSpanSet) {
       const toFreeze = lastColumnIndex + 1 - numFrozen;
-      text = t('FreezeColumn', {count: toFreeze, context: 'more'});
+      text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
         text,
         numFrozen : numFrozen + toFreeze
@@ -278,7 +282,7 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
-      return t("Add to sort", {count: index + 1, context: 'added'});
+      return t("Sorted (#{{count}})", {count: index + 1});
     } else {
       return t("Add to sort");
     }
