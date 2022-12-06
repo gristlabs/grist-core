@@ -101,28 +101,28 @@ interface IBuildMemberOptions {
 export class UserManagerModelImpl extends Disposable implements UserManagerModel {
   // Select options for each individual user's role dropdown.
   public readonly userSelectOptions: IMemberSelectOption[] = [
-    { value: roles.OWNER,  label: t('Owner')  },
-    { value: roles.EDITOR, label: t('Editor') },
-    { value: roles.VIEWER, label: t('Viewer') }
+    { value: roles.OWNER,  label: t("Owner")  },
+    { value: roles.EDITOR, label: t("Editor") },
+    { value: roles.VIEWER, label: t("Viewer") }
   ];
   // Select options for each individual user's role dropdown in the org.
   public readonly orgUserSelectOptions: IOrgMemberSelectOption[] = [
-    { value: roles.OWNER,  label: t('Owner')  },
-    { value: roles.EDITOR, label: t('Editor') },
-    { value: roles.VIEWER, label: t('Viewer') },
-    { value: roles.MEMBER, label: t('NoDefaultAccess') },
+    { value: roles.OWNER,  label: t("Owner")  },
+    { value: roles.EDITOR, label: t("Editor") },
+    { value: roles.VIEWER, label: t("Viewer") },
+    { value: roles.MEMBER, label: t("No Default Access") },
   ];
   // Select options for the resource's maxInheritedRole dropdown.
   public readonly inheritSelectOptions: IMemberSelectOption[] = [
-    { value: roles.OWNER,  label: t('InFull')     },
-    { value: roles.EDITOR, label: t('ViewAndEdit') },
-    { value: roles.VIEWER, label: t('ViewOnly')   },
-    { value: null,         label: t('None')        }
+    { value: roles.OWNER,  label: t("In Full")     },
+    { value: roles.EDITOR, label: t("View & Edit") },
+    { value: roles.VIEWER, label: t("View Only")   },
+    { value: null,         label: t("None")        }
   ];
   // Select options for the public member's role dropdown.
   public readonly publicUserSelectOptions: IMemberSelectOption[] = [
-    { value: roles.EDITOR, label: t('Editor') },
-    { value: roles.VIEWER, label: t('Viewer') },
+    { value: roles.EDITOR, label: t("Editor") },
+    { value: roles.VIEWER, label: t("Viewer") },
   ];
 
   public activeUser: FullUser|null = this._options.activeUser ?? null;

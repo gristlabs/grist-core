@@ -236,13 +236,13 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const isDenied = (err as any).code === 'ACL_DENY';
     const isDocOwner = isOwner(this.currentDoc.get());
     confirmModal(
-      t("ErrorAccessingDocument"),
+      t("Error accessing document"),
       t("Reload"),
       async () => window.location.reload(true),
-      isDocOwner ? t('ReloadingOrRecoveryMode', {error: err.message}) :
+      isDocOwner ? t("You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]", {error: err.message}) :
         t('AccessError', {context: isDenied ? 'denied' : 'recover', error: err.message}),
       {  hideCancel: true,
-         extraButtons: (isDocOwner && !isDenied) ? bigBasicButton(t('EnterRecoveryMode'), dom.on('click', async () => {
+         extraButtons: (isDocOwner && !isDenied) ? bigBasicButton(t("Enter recovery mode"), dom.on('click', async () => {
            await this._api.getDocAPI(this.currentDocId.get()!).recover(true);
            window.location.reload(true);
          }), testId('modal-recovery-mode')) : null,
@@ -338,18 +338,18 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
                                      {isNewPage: true, buttonLabel: 'Add Page'}),
-      menuIcon("Page"), t("AddPage"), testId('dp-add-new-page'),
+      menuIcon("Page"), t("Add Page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
-      menuIcon("Widget"), t("AddWidgetToPage"), testId('dp-add-widget-to-page'),
+      menuIcon("Widget"), t("Add Widget to Page"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views
       dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
-      menuIcon("TypeTable"), t("AddEmptyTable"), testId('dp-empty-table'),
+      menuIcon("TypeTable"), t("Add Empty Table"), testId('dp-empty-table'),
       dom.cls('disabled', isReadonly)
     ),
     menuDivider(),
@@ -361,7 +361,7 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
         dom.cls('disabled', isReadonly)
       )
     ),
-    isReadonly ? menuText(t('NoEditAccess')) : null,
+    isReadonly ? menuText(t("You do not have edit access to this document")) : null,
     testId('dp-add-new-menu')
   ];
 }
