@@ -266,7 +266,7 @@ export class SelectionSummary extends Disposable {
 
 async function doCopy(value: string, elem: Element) {
   await copyToClipboard(value);
-  showTransientTooltip(elem, t('CopiedClipboard'), {key: 'copy-selection-summary'});
+  showTransientTooltip(elem, t("Copied to clipboard"), {key: 'copy-selection-summary'});
 }
 
 const cssSummary = styled('div', `

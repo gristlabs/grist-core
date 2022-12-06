@@ -60,7 +60,7 @@ export class DocumentUsage extends Disposable {
       // Invalid row limits are currently treated as if they are undefined.
       const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
       return {
-        name: t('Rows'),
+        name: t("Rows"),
         currentValue: typeof rowCount !== 'object' ? undefined : rowCount.total,
         maximumValue: maxValue ?? DEFAULT_MAX_ROWS,
         unit: 'rows',
@@ -75,7 +75,7 @@ export class DocumentUsage extends Disposable {
       // Invalid data size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
-        name: t('DataSize'),
+        name: t("Data Size"),
         currentValue: typeof dataSize !== 'number' ? undefined : dataSize,
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
@@ -97,7 +97,7 @@ export class DocumentUsage extends Disposable {
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
-        name: t('AttachmentsSize'),
+        name: t("Attachments Size"),
         currentValue: typeof attachmentsSize !== 'number' ? undefined : attachmentsSize,
         maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
         unit: 'GB',
@@ -135,7 +135,7 @@ export class DocumentUsage extends Disposable {
 
   public buildDom() {
     return dom('div',
-      cssHeader(t('Usage'), testId('heading')),
+      cssHeader(t("Usage"), testId('heading')),
       dom.domComputed(this._areAllMetricsPending, (isLoading) => {
         if (isLoading) { return cssSpinner(loadingSpinner(), testId('loading')); }
 
@@ -149,7 +149,7 @@ export class DocumentUsage extends Disposable {
     return dom.domComputed((use) => {
       const isAccessDenied = use(this._isAccessDenied);
       if (isAccessDenied === null) { return null; }
-      if (isAccessDenied) { return buildMessage(t('UsageStatisticsOnlyFullAccess')); }
+      if (isAccessDenied) { return buildMessage(t("Usage statistics are only available to users with full access to the document data.")); }
 
       const org = use(this._currentOrg);
       const product = use(this._currentProduct);
@@ -237,12 +237,12 @@ export function buildUpgradeMessage(
   variant: 'short' | 'long',
   onUpgrade: () => void,
 ) {
-  if (!canUpgrade) { return t('LimitContactSiteOwner'); }
+  if (!canUpgrade) { return t("Contact the site owner to upgrade the plan to raise limits."); }
 
-  const upgradeLinkText = t('UpgradeLinkText')
+  const upgradeLinkText = t("start your 30-day free trial of the Pro plan.")
   // TODO i18next
   return [
-    variant === 'short' ? null : t('ForHigherLimits'),
+    variant === 'short' ? null : t("For higher limits, "),
     buildUpgradeLink(
       variant === 'short' ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText,
       () => onUpgrade(),

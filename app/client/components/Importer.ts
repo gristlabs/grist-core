@@ -631,7 +631,7 @@ export class Importer extends DisposableWithEvents {
                   cssMergeOptions(
                     cssMergeOptionsToggle(labeledSquareCheckbox(
                       updateExistingRecords,
-                      t('UpdateExistingRecords'),
+                      t("Update existing records"),
                       dom.autoDispose(updateRecordsListener),
                       testId('importer-update-existing-records')
                     )),
@@ -646,14 +646,14 @@ export class Importer extends DisposableWithEvents {
 
                       return [
                         cssMergeOptionsMessage(
-                          t('MergeRowsThatMatch'),
+                          t("Merge rows that match these fields:"),
                           testId('importer-merge-fields-message')
                         ),
                         multiSelect(
                           mergeCols,
                           section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
                           {
-                            placeholder: t("SelectFieldsToMatch"),
+                            placeholder: t("Select fields to match on"),
                             error: hasInvalidMergeCols
                           },
                           dom.autoDispose(mergeColsListener),

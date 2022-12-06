@@ -314,7 +314,7 @@ export class GristDoc extends DisposableWithEvents {
     const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
     const importMenuItems = [
       {
-        label: t('ImportFromFile'),
+        label: t("Import from file"),
         action: () => Importer.selectAndImport(this, importSourceElems, null, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
@@ -599,7 +599,7 @@ export class GristDoc extends DisposableWithEvents {
       }
     }
     const res = await docData.bundleActions(
-      t("AddedNewLinkedSection", {viewName}),
+      t("Added new linked section to view {{viewName}}", {viewName}),
       () => this.addWidgetToPageImpl(val, tableId ?? null)
     );
 
@@ -680,7 +680,7 @@ export class GristDoc extends DisposableWithEvents {
     }
 
     return await this._viewLayout!.freezeUntil(docData.bundleActions(
-      t("SavedLinkedSectionIn", {title:section.title(), name: viewModel.name()}),
+      t("Saved linked section {{title}} in view {{name}}", {title:section.title(), name: viewModel.name()}),
       async () => {
 
         // if table changes or a table is made a summary table, let's replace the view section by a

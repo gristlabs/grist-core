@@ -227,7 +227,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 
   private _buildLogDom() {
-    this._loadActionSummaries().catch((error) => gristNotify(t("ActionLogFailed")));
+    this._loadActionSummaries().catch((error) => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
         dom('div.preference_item',
             koForm.checkbox(this._showAllTables,
@@ -395,7 +395,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = tableRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(t('TableRemovedInAction', {tableId:tableId, actionNum: action.actionNum}));
+          gristNotify(t("Table {{tableId}} was subsequently removed in action #{{actionNum}}", {tableId:tableId, actionNum: action.actionNum}));
           return;
         }
         tableId = newName;
@@ -406,7 +406,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       // Check is this row was removed - if so there's no reason to go on.
       if (td.removeRows.indexOf(rowId) >= 0) {
           // TODO - find a better way to send informative notifications.
-        gristNotify(t("RowRemovedInAction", {actionNum}));
+        gristNotify(t("This row was subsequently removed in action {{action.actionNum}}", {actionNum}));
         return;
       }
 
@@ -416,7 +416,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = columnRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(t("ColumnRemovedInAction", {colId, actionNum: action.actionNum}));
+          gristNotify(t("Column {{colId}} was subsequently removed in action #{{action.actionNum}}", {colId, actionNum: action.actionNum}));
           return;
         }
         colId = newName;

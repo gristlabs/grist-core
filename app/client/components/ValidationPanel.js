@@ -33,7 +33,7 @@ dispose.makeDisposable(ValidationPanel);
 ValidationPanel.prototype.onAddRule = function() {
   this.validationsTable.sendTableAction(["AddRecord", null, {
     tableRef: this.docTables.at(0).id(),
-    name: t("RuleLength", {length: this.validations.peekLength + 1}),
+    name: t("Rule {{length}}", {length: this.validations.peekLength + 1}),
     formula: ""
   }])
   .then(function() {
@@ -86,7 +86,7 @@ ValidationPanel.prototype.buildDom = function() {
             2, '',
             1, kf.buttonGroup(
               kf.button(() => editor.writeObservable(),
-                'Apply', { title: t('UpdateFormula')},
+                'Apply', { title: t("Update formula (Shift+Enter)")},
                 kd.toggleClass('disabled', editorUpToDate)
               )
             )

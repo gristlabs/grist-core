@@ -263,7 +263,7 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
   // Use separate copies of addColAction, since sendTableActions modified each in-place.
   let addActions = gutil.arrayRepeat(addColNum, 0).map(() => addColAction.slice());
 
-  await docData.bundleActions(t('UpdatingRecordLayout'), () => {
+  await docData.bundleActions(t("Updating record layout."), () => {
     return Promise.try(() => {
       return addColNum > 0 ? docModel.dataTables[tableId].sendTableActions(addActions) : [];
     })
