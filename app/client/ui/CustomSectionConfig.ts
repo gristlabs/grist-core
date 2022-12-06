@@ -61,7 +61,7 @@ class ColumnPicker extends Disposable {
     return [
       cssLabel(
         this._column.title,
-        this._column.optional ? cssSubLabel(t('Optional')) : null,
+        this._column.optional ? cssSubLabel(t(" (optional)")) : null,
         testId('label-for-' + this._column.name),
       ),
       this._column.description ? cssHelp(
@@ -73,7 +73,7 @@ class ColumnPicker extends Disposable {
           properValue,
           options,
           {
-            defaultLabel: this._column.typeDesc != "any" ? t('PickAColumnWithType', {"columnType": this._column.typeDesc}) : t('PickAColumn')
+            defaultLabel: this._column.typeDesc != "any" ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc}) : t("Pick a column")
           }
         ),
         testId('mapping-for-' + this._column.name),
@@ -105,7 +105,7 @@ class ColumnListPicker extends Disposable {
     return [
       cssRow(
         cssAddMapping(
-          cssAddIcon('Plus'), t('Add') + ' ' + this._column.title,
+          cssAddIcon('Plus'), t("Add") + ' ' + this._column.title,
           menu(() => {
             const otherColumns = this._getNotMappedColumns();
             const typedColumns = otherColumns.filter(this._typeFilter());
@@ -370,17 +370,17 @@ export class CustomSectionConfig extends Disposable {
         return null;
       }
       switch(level) {
-        case AccessLevel.none: return cssConfirmLine(t("WidgetNoPermissison"));
-        case AccessLevel.read_table: return cssConfirmLine(t("WidgetNeedRead", {read: dom("b", "read")})); // TODO i18next
-        case AccessLevel.full: return cssConfirmLine(t("WidgetNeedFullAccess", {fullAccess: dom("b", "full access")})); // TODO i18next
+        case AccessLevel.none: return cssConfirmLine(t("Widget does not require any permissions."));
+        case AccessLevel.read_table: return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")})); // TODO i18next
+        case AccessLevel.full: return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {fullAccess: dom("b", "full access")})); // TODO i18next
         default: throw new Error(`Unsupported ${level} access level`);
       }
     }
     // Options for access level.
     const levels: IOptionFull<string>[] = [
-      {label: t('NoDocumentAccess'), value: AccessLevel.none},
-      {label: t('ReadSelectedTable'), value: AccessLevel.read_table},
-      {label: t('FullDocumentAccess'), value: AccessLevel.full},
+      {label: t("No document access"), value: AccessLevel.none},
+      {label: t("Read selected table"), value: AccessLevel.read_table},
+      {label: t("Full document access"), value: AccessLevel.full},
     ];
     return dom(
       'div',
@@ -388,7 +388,7 @@ export class CustomSectionConfig extends Disposable {
       this._canSelect
         ? cssRow(
             select(this._selectedId, options, {
-              defaultLabel: t('SelectCustomWidget'),
+              defaultLabel: t("Select Custom Widget"),
               menuCssClass: cssMenu.className,
             }),
             testId('select')
@@ -399,7 +399,7 @@ export class CustomSectionConfig extends Disposable {
           cssTextInput(
             this._url,
             async value => this._url.set(value),
-            dom.attr('placeholder', t('EnterCustomURL')),
+            dom.attr('placeholder', t("Enter Custom URL")),
             testId('url')
           )
         ),
@@ -440,7 +440,7 @@ export class CustomSectionConfig extends Disposable {
       dom.maybe(this._hasConfiguration, () =>
         cssSection(
           textButton(
-            t('OpenConfiguration'),
+            t("Open configuration"),
             dom.on('click', () => this._openConfiguration()),
             testId('open-configuration')
           )
@@ -450,7 +450,7 @@ export class CustomSectionConfig extends Disposable {
         cssLink(
           dom.attr('href', 'https://support.getgrist.com/widget-custom'),
           dom.attr('target', '_blank'),
-          t('LearnMore')
+          t("Learn more about custom widgets")
         )
       ),
       dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {

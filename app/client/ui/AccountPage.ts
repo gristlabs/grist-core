@@ -58,13 +58,13 @@ export class AccountPage extends Disposable {
     const {enableCustomCss} = getGristConfig();
     return domComputed(this._userObs, (user) => user && (
       css.container(css.accountPage(
-        css.header(t('AccountSettings')),
+        css.header(t("Account settings")),
         css.dataRow(
-          css.inlineSubHeader(t('Email')),
+          css.inlineSubHeader(t("Email")),
           css.email(user.email),
         ),
         css.dataRow(
-          css.inlineSubHeader(t('Name')),
+          css.inlineSubHeader(t("Name")),
           domComputed(this._isEditingName, (isEditing) => (
             isEditing ? [
               transientInput(
@@ -78,13 +78,13 @@ export class AccountPage extends Disposable {
                 css.flexGrow.cls(''),
               ),
               css.textBtn(
-                css.icon('Settings'), t('Save'),
+                css.icon('Settings'), t("Save"),
                 // No need to save on 'click'. The transient input already does it on close.
               ),
             ] : [
               css.name(user.name),
               css.textBtn(
-                css.icon('Settings'), t('Edit'),
+                css.icon('Settings'), t("Edit"),
                 dom.on('click', () => this._isEditingName.set(true)),
               ),
             ]
@@ -93,11 +93,11 @@ export class AccountPage extends Disposable {
         ),
         // show warning for invalid name but not for the empty string
         dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), cssWarnings),
-        css.header(t('PasswordSecurity')),
+        css.header(t("Password & Security")),
         css.dataRow(
-          css.inlineSubHeader(t("LoginMethod")),
+          css.inlineSubHeader(t("Login Method")),
           css.loginMethod(user.loginMethod),
-          user.loginMethod === 'Email + Password' ? css.textBtn(t("ChangePassword"),
+          user.loginMethod === 'Email + Password' ? css.textBtn(t("Change Password"),
             dom.on('click', () => this._showChangePasswordDialog()),
           ) : null,
           testId('login-method'),
@@ -106,24 +106,24 @@ export class AccountPage extends Disposable {
           css.dataRow(
             labeledSquareCheckbox(
               this._allowGoogleLogin,
-              t('AllowGoogleSigning'),
+              t("Allow signing in to this account with Google"),
               testId('allow-google-login-checkbox'),
             ),
             testId('allow-google-login'),
           ),
-          css.subHeader(t('TwoFactorAuth')),
+          css.subHeader(t("Two-factor authentication")),
           css.description(
-            t("TwoFactorAuthDescription")
+            t("Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.")
           ),
           dom.create(MFAConfig, user),
         ),
         // Custom CSS is incompatible with custom themes.
         enableCustomCss ? null : [
-          css.header(t('Theme')),
+          css.header(t("Theme")),
           dom.create(ThemeConfig, this._appModel),
         ],
-        css.header(t('API')),
-        css.dataRow(css.inlineSubHeader(t('APIKey')), css.content(
+        css.header(t("API")),
+        css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
           dom.create(ApiKey, {
             apiKey: this._apiKey,
             onCreate: () => this._createApiKey(),
@@ -214,7 +214,7 @@ export function checkName(name: string): boolean {
  */
 function buildNameWarningsDom() {
   return css.warning(
-    t("WarningUsername"),
+    t("Names only allow letters, numbers and certain special characters"),
     testId('username-warning'),
   );
 }

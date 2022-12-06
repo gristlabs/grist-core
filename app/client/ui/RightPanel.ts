@@ -242,7 +242,7 @@ export class RightPanel extends Disposable {
           ),
           cssSeparator(),
           dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
-          cssLabel(t('ColumnType')),
+          cssLabel(t("COLUMN TYPE")),
             cssSection(
               builder.buildSelectTypeDom(),
             ),
@@ -265,7 +265,7 @@ export class RightPanel extends Disposable {
               cssRow(refSelect.buildDom()),
               cssSeparator()
             ]),
-            cssLabel(t('Transform')),
+            cssLabel(t("TRANSFORM")),
             dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
             dom.maybe(isMultiSelect, () => disabledSection()),
             testId('panel-transform'),
@@ -295,15 +295,15 @@ export class RightPanel extends Disposable {
   private _buildPageWidgetContent(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
-        cssSubTab(t('Widget'),
+        cssSubTab(t("Widget"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
           dom.on('click', () => this._subTab.set("widget")),
           testId('config-widget')),
-        cssSubTab(t('SortAndFilter'),
+        cssSubTab(t("Sort & Filter"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'sortAndFilter'),
           dom.on('click', () => this._subTab.set("sortAndFilter")),
           testId('config-sortAndFilter')),
-        cssSubTab(t('Data'),
+        cssSubTab(t("Data"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
           dom.on('click', () => this._subTab.set("data")),
           testId('config-data')),
@@ -345,7 +345,7 @@ export class RightPanel extends Disposable {
     });
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
-      cssLabel(dom.text(use => use(activeSection.isRaw) ? t('DataTableName') : t('WidgetTitle')),
+      cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
         dom.style('margin-bottom', '14px'),
       ),
       cssRow(cssTextInput(
@@ -362,7 +362,7 @@ export class RightPanel extends Disposable {
       dom.maybe(
         (use) => !use(activeSection.isRaw),
         () => cssRow(
-          primaryButton(t('ChangeWidget'), this._createPageWidgetPicker()),
+          primaryButton(t("Change Widget"), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
@@ -370,7 +370,7 @@ export class RightPanel extends Disposable {
       cssSeparator(),
 
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
-        cssLabel(t('Theme')),
+        cssLabel(t("Theme")),
         dom('div',
           vct._buildThemeDom(),
           vct._buildLayoutDom())
@@ -385,22 +385,22 @@ export class RightPanel extends Disposable {
         if (use(this._pageWidgetType) !== 'record') { return null; }
         return [
           cssSeparator(),
-          cssLabel(t('RowStyleUpper')),
+          cssLabel(t("ROW STYLE")),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, t("RowStyle"), activeSection, this._gristDoc)
+            dom.create(ViewPane.ConditionalStyle, t("Row Style"), activeSection, this._gristDoc)
           ))
         ];
       }),
 
       dom.maybe((use) => use(this._pageWidgetType) === 'chart', () => [
-        cssLabel(t('ChartType')),
+        cssLabel(t("CHART TYPE")),
         vct._buildChartConfigDom(),
       ]),
 
       dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
         const parts = vct._buildCustomTypeItems() as any[];
         return [
-          cssLabel(t('Custom')),
+          cssLabel(t("CUSTOM")),
           // If 'customViewPlugin' feature is on, show the toggle that allows switching to
           // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
           // the only one that will be shown without the feature flag.
@@ -465,15 +465,15 @@ export class RightPanel extends Disposable {
     link.onWrite((val) => this._gristDoc.saveLink(val));
     return [
       this._disableIfReadonly(),
-      cssLabel(t('DataTable')),
+      cssLabel(t("DATA TABLE")),
       cssRow(
-        cssIcon('TypeTable'), cssDataLabel(t('SourceData')),
+        cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
         cssContent(dom.text((use) => use(use(table).primaryTableId)),
                    testId('pwc-table'))
       ),
       dom(
         'div',
-        cssRow(cssIcon('Pivot'), cssDataLabel(t('GroupedBy'))),
+        cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"))),
         cssRow(domComputed(groupedBy, (cols) => cssList(cols.map((c) => (
           cssListItem(dom.text(c.label),
                       testId('pwc-groupedBy-col'))
@@ -485,12 +485,12 @@ export class RightPanel extends Disposable {
       ),
 
       dom.maybe((use) => !use(activeSection.isRaw), () =>
-        cssButtonRow(primaryButton(t('EditDataSelection'), this._createPageWidgetPicker(),
+        cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
           testId('pwc-editDataSelection')),
           dom.maybe(
             use => Boolean(use(use(activeSection.table).summarySourceTable)),
             () => basicButton(
-              t('Detach'),
+              t("Detach"),
               dom.on('click', () => this._gristDoc.docData.sendAction(
                 ["DetachSummaryViewSection", activeSection.getRowId()])),
               testId('detach-button'),
@@ -507,10 +507,10 @@ export class RightPanel extends Disposable {
       cssSeparator(),
 
       dom.maybe((use) => !use(activeSection.isRaw), () => [
-        cssLabel(t('SelectBy')),
+        cssLabel(t("SELECT BY")),
         cssRow(
           dom.update(
-            select(link, linkOptions, {defaultLabel: t('SelectWidget')}),
+            select(link, linkOptions, {defaultLabel: t("Select Widget")}),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
             })
@@ -526,7 +526,7 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssLabel(t('SelectorFor'), testId('selector-for')),
+          cssLabel(t("SELECTOR FOR"), testId('selector-for')),
           cssRow(cssList(selectorFor.map((sec) => this._buildSectionItem(sec))))
         ] : null;
       }),
@@ -538,7 +538,7 @@ export class RightPanel extends Disposable {
     const section = gristDoc.viewModel.activeSection;
     const onSave = (val: IPageWidget) => gristDoc.saveViewSection(section.peek(), val);
     return (elem) => { attachPageWidgetPicker(elem, gristDoc, onSave, {
-      buttonLabel:  t('Save'),
+      buttonLabel:  t("Save"),
       value: () => toPageWidget(section.peek()),
       selectBy: (val) => gristDoc.selectBy(val),
     }); };
@@ -559,7 +559,7 @@ export class RightPanel extends Disposable {
       return dom.maybe(this._gristDoc.docPageModel.isReadonly,  () => (
         cssOverlay(
           testId('disable-overlay'),
-          cssBottomText(t('NoEditAccess')),
+          cssBottomText(t("You do not have edit access to this document")),
         )
       ));
     }

@@ -142,7 +142,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
         testId('popup'),
         buildWarning(tableNames),
         cssOptions(
-          buildOption(selected, 'data', t('DeleteDataAndPage')),
+          buildOption(selected, 'data', t("Delete data and this page.")),
           buildOption(selected, 'page',
             [ // TODO i18n
               `Keep data and delete page. `,
@@ -153,7 +153,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
         )
       ),
       saveDisabled,
-      saveLabel: t('Delete'),
+      saveLabel: t("Delete"),
       saveFunc,
       width: 'fixed-wide',
       extraButtons: [],

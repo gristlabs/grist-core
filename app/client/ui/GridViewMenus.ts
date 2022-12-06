@@ -26,13 +26,13 @@ interface IViewSection {
  */
 export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
   return [
-    menuItem(() => gridView.addNewColumn(), t('AddColumn')),
+    menuItem(() => gridView.addNewColumn(), t("Add Column")),
     menuDivider(),
     ...viewSection.hiddenColumns().map((col: any) => menuItem(
       () => {
         gridView.showColumn(col.id(), viewSection.viewFields().peekLength);
         // .then(() => gridView.scrollPaneRight());
-      }, t('ShowColumn', {label: col.label()})))
+      }, t("Show column {{- label}}", {label: col.label()})))
   ];
 }
 export interface IMultiColumnContextMenu {
@@ -68,13 +68,13 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
   const addToSortLabel = getAddToSortLabel(sortSpec, colId);
 
   return [
-    menuItemCmd(allCommands.fieldTabOpen, t('ColumnOptions')),
-    menuItem(filterOpenFunc, t('FilterData')),
+    menuItemCmd(allCommands.fieldTabOpen, t("Column Options")),
+    menuItem(filterOpenFunc, t("Filter Data")),
     menuDivider({style: 'margin-bottom: 0;'}),
     cssRowMenuItem(
       customMenuItem(
         allCommands.sortAsc.run,
-        dom('span', t('Sort'), {style: 'flex: 1  0 auto; margin-right: 8px;'},
+        dom('span', t("Sort"), {style: 'flex: 1  0 auto; margin-right: 8px;'},
             testId('sort-label')),
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
@@ -112,9 +112,9 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
       ),
     ] : null,
     menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
-    menuItem(allCommands.sortFilterTabOpen.run, t('MoreSortOptions'), testId('more-sort-options')),
+    menuItem(allCommands.sortFilterTabOpen.run, t("More sort options ..."), testId('more-sort-options')),
     menuDivider({style: 'margin-top: 0;'}),
-    menuItemCmd(allCommands.renameField, t('RenameColumn'), disableForReadonlyColumn),
+    menuItemCmd(allCommands.renameField, t("Rename column"), disableForReadonlyColumn),
     freezeMenuItemCmd(options),
     menuDivider(),
     MultiColumnMenu((options.disableFrozenMenu = true, options)),
@@ -144,20 +144,20 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
     frozenMenu ? [frozenMenu, menuDivider()]: null,
     // Offered only when selection includes formula columns, and converts only those.
     (options.isFormula ?
-      menuItemCmd(allCommands.convertFormulasToData, t('ConvertFormulaToData'),
+      menuItemCmd(allCommands.convertFormulasToData, t("Convert formula to data"),
         disableForReadonlyColumn) : null),
 
     // With data columns selected, offer an additional option to clear out selected cells.
     (options.isFormula !== true ?
-      menuItemCmd(allCommands.clearValues, t('ClearValues'), disableForReadonlyColumn) : null),
+      menuItemCmd(allCommands.clearValues, t("Clear values"), disableForReadonlyColumn) : null),
 
     (!options.isRaw ? menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView) : null),
     menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t('InsertColumn', {to: 'left'}), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t('InsertColumn', {to: 'right'}), disableForReadonlyView)
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the {{to}}", {to: 'left'}), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the {{to}}", {to: 'right'}), disableForReadonlyView)
   ];
 }
 
@@ -278,9 +278,9 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
-      return t('AddToSort', {count: index + 1, context: 'added'});
+      return t("Add to sort", {count: index + 1, context: 'added'});
     } else {
-      return t('AddToSort');
+      return t("Add to sort");
     }
   }
 }

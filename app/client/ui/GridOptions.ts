@@ -20,23 +20,23 @@ export class GridOptions extends Disposable {
   public buildDom() {
     const section = this._section;
     return [
-      cssLabel(t('GridOptions')),
+      cssLabel(t("Grid Options")),
       dom('div', [
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines'))),
-          t('VerticalGridlines'),
+          t("Vertical Gridlines"),
           testId('v-grid-button')
         ),
 
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines'))),
-          t('HorizontalGridlines'),
+          t("Horizontal Gridlines"),
           testId('h-grid-button')
         ),
 
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes'))),
-          t('ZebraStripes'),
+          t("Zebra Stripes"),
           testId('zebra-stripe-button')
         ),
 

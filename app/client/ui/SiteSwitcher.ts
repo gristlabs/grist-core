@@ -33,7 +33,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
 
   return [
-    menuSubHeader(t('SwitchSites')),
+    menuSubHeader(t("Switch Sites")),
     dom.forEach(orgs, (org) =>
       menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
         cssOrgSelected.cls('', appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
@@ -45,7 +45,7 @@ export function buildSiteSwitcher(appModel: AppModel) {
     menuItem(
       () => appModel.showNewSiteModal(),
       menuIcon('Plus'),
-      t('CreateNewTeamSite'),
+      t("Create new team site"),
       testId('create-new-site'),
     ),
   ];

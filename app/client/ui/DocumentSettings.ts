@@ -42,23 +42,23 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
     const canChangeEngine = getSupportedEngineChoices().length > 0;
 
     return {
-      title: t('DocumentSettings'),
+      title: t("Document Settings"),
       body: [
-        cssDataRow(t('ThisDocumentID')),
+        cssDataRow(t("This document's ID (for API use):")),
         cssDataRow(dom('tt', docPageModel.currentDocId.get())),
-        cssDataRow(t('TimeZone')),
+        cssDataRow(t("Time Zone:")),
         cssDataRow(dom.create(buildTZAutocomplete, moment, timezoneObs, (val) => timezoneObs.set(val))),
-        cssDataRow(t('Locale')),
+        cssDataRow(t("Locale:")),
         cssDataRow(dom.create(buildLocaleSelect, localeObs)),
-        cssDataRow(t('Currency')),
+        cssDataRow(t("Currency:")),
         cssDataRow(dom.domComputed(localeObs, (l) =>
           dom.create(buildCurrencyPicker, currencyObs, (val) => currencyObs.set(val),
-            {defaultCurrencyLabel: t('LocalCurrency', {currency: getCurrency(l)})})
+            {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
         )),
         canChangeEngine ? [
           // Small easter egg: you can click on the skull-and-crossbones to
           // force a reload of the document.
-          cssDataRow(t('EngineRisk', {span: 
+          cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span: 
             dom('span', '☠',
               dom.style('cursor', 'pointer'),
               dom.on('click', async () => {
@@ -71,7 +71,7 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
       ],
       // Modal label is "Save", unless engine is changed. If engine is changed, the document will
       // need a reload to switch engines, so we replace the label with "Save and Reload".
-      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? t('Save') : t('SaveAndReload')),
+      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? t("Save") : t("Save and Reload")),
       saveFunc: async () => {
         await docInfo.updateColValues({
           timezone: timezoneObs.get(),

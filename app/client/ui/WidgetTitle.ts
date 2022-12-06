@@ -67,7 +67,7 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   // Placeholder for widget title:
   // - when widget title is empty shows a default widget title (what would be shown when title is empty)
   // - when widget title is set, shows just a text to override it.
-  const inputWidgetPlaceholder = !vs.title.peek() ? t('OverrideTitle') : vs.defaultWidgetTitle.peek();
+  const inputWidgetPlaceholder = !vs.title.peek() ? t("Override widget title") : vs.defaultWidgetTitle.peek();
 
   const disableSave = Computed.create(ctrl, (use) => {
     const newTableName = use(inputTableName)?.trim() ?? '';
@@ -137,29 +137,29 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
     testId('popup'),
     dom.cls(menuCssClass),
     dom.maybe(!options.tableNameHidden, () => [
-      cssLabel(t('DataTableName')),
+      cssLabel(t("DATA TABLE NAME")),
       // Update tableName on key stroke - this will show the default widget name as we type.
       // above this modal.
       tableInput = cssInput(
         inputTableName,
         updateOnKey,
-        {disabled: isSummary, placeholder: t('NewTableName')},
+        {disabled: isSummary, placeholder: t("Provide a table name")},
         testId('table-name-input')
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
-      cssLabel(t('WidgetTitle')),
+      cssLabel(t("WIDGET TITLE")),
       widgetInput = cssInput(inputWidgetTitle, updateOnKey, {placeholder: inputWidgetPlaceholder},
         testId('section-name-input')
       ),
     ]),
     cssButtons(
-      primaryButton(t('Save'),
+      primaryButton(t("Save"),
         dom.on('click', doSave),
         dom.boolAttr('disabled', use => use(disableSave) || use(modalCtl.workInProgress)),
         testId('save'),
       ),
-      basicButton(t('Cancel'),
+      basicButton(t("Cancel"),
         testId('cancel'),
         dom.on('click', () => modalCtl.close())
       ),
