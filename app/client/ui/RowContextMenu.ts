@@ -31,7 +31,7 @@ export function RowContextMenu({ disableInsert, disableDelete, isViewSorted, num
     );
   }
   result.push(
-    menuItemCmd(allCommands.duplicateRows, t('DuplicateRows', { count: numRows }),
+    menuItemCmd(allCommands.duplicateRows, t('Duplicate rows', { count: numRows }),
       dom.cls('disabled', disableInsert || numRows === 0)),
   );
   result.push(

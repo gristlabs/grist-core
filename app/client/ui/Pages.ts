@@ -137,7 +137,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
     const saveDisabled = Computed.create(owner, use => use(selected) === '');
     const saveFunc = () => onSave(selected.get());
     return {
-      title: t('TableWillNoLongerBeVisible', { count: tableNames.length }),
+      title: t('The following tables will no longer be visible', { count: tableNames.length }),
       body: dom('div',
         testId('popup'),
         buildWarning(tableNames),

@@ -117,7 +117,7 @@ class ColumnListPicker extends Disposable {
                 col.label.peek(),
               )),
               wrongTypeCount > 0 ? menuText(
-                t("WrongTypesMenuText", {wrongTypeCount, columnType: this._column.type.toLowerCase(), count: wrongTypeCount}),
+                t("{{wrongTypeCount}} non-{{columnType}} columns are not shown", {wrongTypeCount, columnType: this._column.type.toLowerCase(), count: wrongTypeCount}),
                 testId('map-message-' + this._column.name)
               ) : null
             ];

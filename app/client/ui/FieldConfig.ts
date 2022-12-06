@@ -210,19 +210,19 @@ export function buildFormulaConfig(
   const behaviorName = Computed.create(owner, behavior, (use, type) => {
     if (use(isMultiSelect)) {
       const commonType = use(multiType);
-      if (commonType === 'formula') { return t('Formula Column', {count: 2}); }
-      if (commonType === 'data') { return t('Data Column', {count: 2}); }
+      if (commonType === 'formula') { return t('Formula Columns', {count: 2}); }
+      if (commonType === 'data') { return t('Data Columns', {count: 2}); }
       if (commonType === 'mixed') { return t('Mixed Behavior'); }
-      return t('Empty Column', {count: 2});
+      return t('Empty Columns', {count: 2});
     } else {
-      if (type === 'formula') { return t('Formula Column', {count: 1}); }
-      if (type === 'data') { return t('Data Column', {count: 1}); }
-      return t('Empty Column', {count: 1});
+      if (type === 'formula') { return t('Formula Columns', {count: 1}); }
+      if (type === 'data') { return t('Data Columns', {count: 1}); }
+      return t('Empty Columns', {count: 1});
     }
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
-    return use(behaviorName) === t('Data Column', {count: 2}) ||
-           use(behaviorName) === t('Data Column', {count: 1}) ? "Database" : "Script";
+    return use(behaviorName) === t('Data Columns', {count: 2}) ||
+           use(behaviorName) === t('Data Columns', {count: 1}) ? "Database" : "Script";
   });
   const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 
