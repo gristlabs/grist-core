@@ -109,10 +109,10 @@ export function buildACMemberEmail(
         cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
         )),
       cssMemberText(
-        cssMemberPrimaryPlus(t("InviteNewMember")),
+        cssMemberPrimaryPlus(t("Invite new member")),
         cssMemberSecondaryPlus(
           // dom.text(use => `We'll email an invite to ${use(emailObs)}`)
-          dom.text(use => t('InviteEmail', {email: use(emailObs)})) // TODO i18next
+          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)})) // TODO i18next
         )
       ),
       testId("um-add-email")
@@ -143,7 +143,7 @@ export function buildACMemberEmail(
     (emailInput = cssEmailInput(
       emailObs,
       {onInput: true, isValid},
-      {type: "email", placeholder: t("EmailInputPlaceholder")},
+      {type: "email", placeholder: t("Enter email address")},
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
       dom.on("click", acOpen),
