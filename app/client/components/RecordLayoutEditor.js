@@ -6,7 +6,7 @@ var {makeT} = require('app/client/lib/localization');
 var commands = require('./commands');
 var LayoutEditor = require('./LayoutEditor');
 
-const t = makeT('components.RecordLayoutEditor');
+const t = makeT('RecordLayoutEditor');
 const {basicButton, cssButton, primaryButton} = require('app/client/ui2018/buttons');
 const {icon} = require('app/client/ui2018/icons');
 const {menu, menuDivider, menuItem} = require('app/client/ui2018/menus');

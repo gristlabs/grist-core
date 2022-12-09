@@ -7,7 +7,7 @@ var kf = require('../lib/koForm');
 var AceEditor = require('./AceEditor');
 var {makeT} = require('app/client/lib/localization');
 
-const t = makeT('components.ValidationPanel');
+const t = makeT('ValidationPanel');
 
 /**
  * Document level configuration settings.

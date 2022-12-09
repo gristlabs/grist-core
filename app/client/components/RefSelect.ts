@@ -14,7 +14,7 @@ import ko from 'knockout';
 import {menu, menuItem} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.RefSelect');
+const t = makeT('RefSelect');
 
 interface Item {
   label: string;

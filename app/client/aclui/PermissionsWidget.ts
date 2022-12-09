@@ -15,7 +15,7 @@ import {makeT} from 'app/client/lib/localization';
 // One of the strings 'read', 'update', etc.
 export type PermissionKey = keyof PartialPermissionSet;
 
-const t = makeT('aclui.PermissionsWidget');
+const t = makeT('PermissionsWidget');
 
 /**
  * Renders a box for each of availableBits, and a dropdown with a description and some shortcuts.

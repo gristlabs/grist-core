@@ -16,7 +16,7 @@ import ko from 'knockout';
 import {Computed, Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.SelectionSummary');
+const t = makeT('SelectionSummary');
 
 /**
  * A beginning and end index for a range of columns or rows.

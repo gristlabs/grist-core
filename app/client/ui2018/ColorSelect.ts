@@ -10,7 +10,7 @@ import {BindableValue, Computed, Disposable, dom, Observable, onKeyDown, styled}
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('ui2018.ColorSelect');
+const t = makeT('ColorSelect');
 
 export interface StyleOptions {
   textColor: ColorOption,

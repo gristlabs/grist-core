@@ -7,7 +7,7 @@ import { PluginInstance } from 'app/common/PluginInstance';
 import { RenderTarget } from 'app/plugin/RenderOptions';
 import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
 
-const t = makeT('components.PluginScreen');
+const t = makeT('PluginScreen');
 
 /**
  * Rendering options for the PluginScreen modal.

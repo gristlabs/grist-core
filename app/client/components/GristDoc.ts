@@ -87,7 +87,7 @@ import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
 
-const t = makeT('components.GristDoc');
+const t = makeT('GristDoc');
 
 const G = getBrowserGlobals('document', 'window');
 

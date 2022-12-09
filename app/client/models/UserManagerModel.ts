@@ -12,7 +12,7 @@ import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess,
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some = require('lodash/some');
 
-const t = makeT('models.UserManagerModel');
+const t = makeT('UserManagerModel');
 
 export interface UserManagerModel {
   initData: PermissionData;                    // PermissionData used to initialize the UserManager

@@ -18,7 +18,7 @@ import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
 import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
 import {cssMenuItem} from "popweasel";
 
-const t = makeT('lib.ACUserManager');
+const t = makeT('ACUserManager');
 
 export interface ACUserItem extends ACItem {
   value: string;

@@ -12,7 +12,7 @@ import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
 import {cssMenuElem} from 'app/client/ui2018/menus';
 
-const t = makeT('ui2018.modals');
+const t = makeT('modals');
 
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {

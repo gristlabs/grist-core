@@ -47,7 +47,7 @@ const state = {
   DEFAULT: 'default'
 };
 
-const t = makeT('components.ActionLog');
+const t = makeT('ActionLog');
 
 export class ActionLog extends dispose.Disposable implements IDomComponent {
 

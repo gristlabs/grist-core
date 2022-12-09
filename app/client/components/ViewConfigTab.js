@@ -19,7 +19,7 @@ const {makeT} = require('app/client/lib/localization');
 
 const testId = makeTestId('test-vconfigtab-');
 
-const t = makeT('components.ViewConfigTab');
+const t = makeT('ViewConfigTab');
 
 /**
  * Helper class that combines one ViewSection's data for building dom.

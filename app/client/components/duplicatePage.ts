@@ -15,7 +15,7 @@ import zip = require('lodash/zip');
 import zipObject = require('lodash/zipObject');
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.duplicatePage');
+const t = makeT('duplicatePage');
 
 // Duplicate page with pageId. Starts by prompting user for a new name.
 export async function duplicatePage(gristDoc: GristDoc, pageId: number) {

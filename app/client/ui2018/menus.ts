@@ -11,7 +11,7 @@ import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs
          MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
 import * as weasel from 'popweasel';
 
-const t = makeT('ui2018.menus');
+const t = makeT('menus');
 
 export interface IOptionFull<T> {
   value: T;

@@ -50,7 +50,7 @@ const DONUT_DEFAULT_TEXT_SIZE = 24;
 
 const testId = makeTestId('test-chart-');
 
-const t = makeT('components.ChartView');
+const t = makeT('ChartView');
 
 function isPieLike(chartType: string) {
   return ['pie', 'donut'].includes(chartType);

@@ -55,7 +55,7 @@ import {
 import {makeT} from 'app/client/lib/localization';
 import isEqual = require('lodash/isEqual');
 
-const t = makeT('aclui.AccessRules');
+const t = makeT('AccessRules');
 
 // tslint:disable:max-classes-per-file no-console
 

@@ -41,7 +41,7 @@ var {menu} = require('../ui2018/menus');
 var {testId} = require('app/client/ui2018/cssVars');
 var {contextMenu} = require('app/client/ui/contextMenu');
 
-const t = makeT('components.RecordLayout');
+const t = makeT('RecordLayout');
 
 /**
  * Construct a RecordLayout.

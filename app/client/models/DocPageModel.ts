@@ -29,7 +29,7 @@ import {makeT} from 'app/client/lib/localization';
 
 // tslint:disable:no-console
 
-const t = makeT('models.DocPageModel');
+const t = makeT('DocPageModel');
 
 export interface DocInfo extends Document {
   isReadonly: boolean;

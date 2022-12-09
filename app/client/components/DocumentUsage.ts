@@ -13,7 +13,7 @@ import {canUpgradeOrg} from 'app/common/roles';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.DocumentUsage');
+const t = makeT('DocumentUsage');
 
 const testId = makeTestId('test-doc-usage-');
 

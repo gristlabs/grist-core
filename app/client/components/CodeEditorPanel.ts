@@ -9,7 +9,7 @@ import {makeT} from 'app/client/lib/localization';
 const hljs           = require('highlight.js/lib/core');
 hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
 
-const t = makeT('components.CodeEditorPanel');
+const t = makeT('CodeEditorPanel');
 
 export class CodeEditorPanel extends DisposableWithEvents {
   private _schema = Observable.create(this, '');

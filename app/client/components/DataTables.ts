@@ -16,7 +16,7 @@ import {makeT} from 'app/client/lib/localization';
 
 const testId = makeTestId('test-raw-data-');
 
-const t = makeT('components.DataTables');
+const t = makeT('DataTables');
 
 export class DataTables extends Disposable {
   private _tables: Observable<TableRec[]>;

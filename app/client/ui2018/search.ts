@@ -17,7 +17,7 @@ import debounce = require('lodash/debounce');
 
 export * from 'app/client/models/SearchModel';
 
-const t = makeT('ui2018.search');
+const t = makeT('search');
 
 const EXPAND_TIME = .5;
 

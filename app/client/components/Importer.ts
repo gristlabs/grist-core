@@ -36,7 +36,7 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
 
-const t = makeT('components.Importer');
+const t = makeT('Importer');
 
 
 // We expect a function for creating the preview GridView, to avoid the need to require the

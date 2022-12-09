@@ -8,7 +8,7 @@ import { hoverTooltip } from 'app/client/ui/tooltips';
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
-const t = makeT('ui2018.pages');
+const t = makeT('pages');
 
 const testId = makeTestId('test-docpage-');
 

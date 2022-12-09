@@ -14,7 +14,7 @@ import { cssLink } from 'app/client/ui2018/links';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
 
-const t = makeT('ui2018.breadcrumbs');
+const t = makeT('breadcrumbs');
 
 export const cssBreadcrumbs = styled('div', `
   color: ${theme.lightText};

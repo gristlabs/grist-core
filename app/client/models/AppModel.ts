@@ -24,7 +24,7 @@ import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/comm
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
-const t = makeT('models.AppModel');
+const t = makeT('AppModel');
 
 // Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
