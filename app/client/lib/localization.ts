@@ -88,15 +88,20 @@ type InferResult<T> = T extends Record<string, string | number | boolean>|undefi
 /**
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
- export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
+export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
   if (!instance.exists(key, args || undefined)) {
     const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
     reportError(error);
   }
+  // Don't need to bind `t` function.
+  return domT(key, args, instance.t);
+}
+
+function domT(key: string, args: any, tImpl: typeof i18next.t) {
   // If there are any DomElements in args, handle it with missingInterpolationHandler.
   const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
   if (!args || !domElements.length) {
-    return instance.t(key, args || undefined) as any;
+    return tImpl(key, args || undefined) as any;
   } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
@@ -105,7 +110,7 @@ type InferResult<T> = T extends Record<string, string | number | boolean>|undefi
 
     // Passing `missingInterpolationHandler` will allow as to resolve all missing keys
     // and replace them with a marker.
-    const result: string = instance.t(key, {...copy, missingInterpolationHandler});
+    const result: string = tImpl(key, {...copy, missingInterpolationHandler});
 
     // Now replace all markers with dom elements passed as arguments.
     const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
@@ -141,10 +146,30 @@ function isLikeDomContents(value: any): boolean {
 }
 
 /**
- * Helper function to create scoped t function.
+ * Helper function to create a scoped t function. Scoped t function is bounded to a specific
+ * namespace and a key prefix (a scope).
  */
-export function makeT(scope: string) {
-  return function<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next) {
-    return t(`${scope}.${key}`, args, instance);
+export function makeT(scope: string, instance?: typeof i18next) {
+  // Can create the scopedInstance yet as it might not be initialized.
+  let scopedInstance: null|typeof i18next = null;
+  let scopedResolver: null|typeof i18next.t = null;
+  return function<T extends Record<string, any>>(key: string, args?: T|null) {
+    // Create a scoped instance with disabled namespace and nested features.
+    // This enables keys like `key1.key2:key3` to be resolved properly.
+    if (!scopedInstance) {
+      scopedInstance = (instance ?? i18next).cloneInstance({
+        keySeparator: false,
+        nsSeparator: false,
+      });
+      // Create a version of `t` function that will use the provided prefix as default.
+      scopedResolver = scopedInstance.getFixedT(null, null, scope);
+    }
+    // If the key has interpolation or we did pass some arguments, make sure that
+    // the key exists.
+    if ((args || key.includes("{{")) && !scopedInstance.exists(`${scope}.${key}`, args || undefined)) {
+      const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
+      reportError(error);
+    }
+    return domT(key, args, scopedResolver!);
   }
 }
