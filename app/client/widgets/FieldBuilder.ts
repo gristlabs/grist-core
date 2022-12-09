@@ -561,7 +561,7 @@ export class FieldBuilder extends Disposable {
 
     const ruleFill = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }
-      return computedRule()?.style?.fillColor || '';
+      return notTransparent(computedRule()?.style?.fillColor || '');
     })).onlyNotifyUnequal();
 
     const fontBold = buildFontOptions(this, computedRule, 'fontBold');
@@ -572,7 +572,7 @@ export class FieldBuilder extends Disposable {
     const errorInStyle = ko.pureComputed(() => Boolean(computedRule()?.error));
 
     const cellText = ko.pureComputed(() => this.field.textColor() || '');
-    const cellFill = ko.pureComputed(() => this.field.fillColor() || '');
+    const cellFill = ko.pureComputed(() => notTransparent(this.field.fillColor() || ''));
 
     const hasComment = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return false; }   // Work around JS errors during field removal.
@@ -771,3 +771,21 @@ const cssSeparator = styled('div', `
   border-bottom: 1px solid ${theme.pagePanelsBorder};
   margin-top: 16px;
 `);
+
+// Simple helper that removes transparency from a HEX or rgba color.
+// User can set a transparent fill color using doc actions, but we don't want to show it well
+// when a column is frozen.
+function notTransparent(color: string): string {
+  if (!color) {
+    return color;
+  } else if (color.startsWith('#') && color.length === 9) {
+    return color.substring(0, 7);
+  } else if (color.startsWith('rgba')) {
+    // rgba(255, 255, 255)
+    // rgba(255, 255, 255, 0.5)
+    // rgba(255 255 255 / 0.5)
+    // rgba(255 255 255 / 50%)
+    return color.replace(/^rgba\((\d+)[,\s]+(\d+)[,\s]+(\d+)[/,\s]+([\d.%]+)\)$/i, 'rgb($1, $2, $3)');
+  }
+  return color;
+}
