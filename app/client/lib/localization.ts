@@ -150,7 +150,7 @@ function isLikeDomContents(value: any): boolean {
  * namespace and a key prefix (a scope).
  */
 export function makeT(scope: string, instance?: typeof i18next) {
-  // Can create the scopedInstance yet as it might not be initialized.
+  // Can't create the scopedInstance yet as it might not be initialized.
   let scopedInstance: null|typeof i18next = null;
   let scopedResolver: null|typeof i18next.t = null;
   return function<T extends Record<string, any>>(key: string, args?: T|null) {
