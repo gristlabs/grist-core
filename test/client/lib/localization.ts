@@ -19,6 +19,7 @@ describe('localization', function() {
             'Argument_variant': 'Variant {{arg1}} {{arg2}}{{end}}',
             'Parent': {
               'Child': 'Translated child {{arg}}',
+              'Not.Valid:Characters': 'Works',
             }
           }
         }
@@ -93,8 +94,8 @@ describe('localization', function() {
   });
 
   it('supports scoping through makeT', function() {
-    const scoped = makeT('Parent');
-    assert.equal(scoped('Child', { arg : 'Arg'}, instance), 'Translated child Arg');
+    const scoped = makeT('Parent', instance);
+    assert.equal(scoped('Child', { arg : 'Arg'}), 'Translated child Arg');
   });
 
   it('infers result from parameters', function() {
@@ -108,17 +109,22 @@ describe('localization', function() {
     typeString = t('Argument', {arg1: 'argument 1', arg2: 'argument 2'}, instance);
     typeString = t('Argument', {arg1: 1, arg2: true}, instance);
     typeString = t('Argument', undefined,  instance);
-    const scoped = makeT('Parent');
-    typeString = scoped('Child', {arg: 'argument 1'}, instance);
-    typeString = scoped('Child', {arg: 1}, instance);
-    typeString = scoped('Child', undefined, instance);
+    const scoped = makeT('Parent', instance);
+    typeString = scoped('Child', {arg: 'argument 1'});
+    typeString = scoped('Child', {arg: 1});
+    typeString = scoped('Child', undefined);
 
     let domContent: DomContents = null; void domContent;
 
     domContent = t('Argument', {arg1: 'argument 1', arg2: dom('span')}, instance);
     domContent = t('Argument', {arg1: 1, arg2: dom.domComputed(observable('test'))}, instance);
     domContent = t('Argument', undefined, instance);
-    domContent = scoped('Child', {arg: dom.create(Component)}, instance);
-    domContent = scoped('Child', {arg: dom.maybe(observable(true), () => dom('span'))}, instance);
+    domContent = scoped('Child', {arg: dom.create(Component)});
+    domContent = scoped('Child', {arg: dom.maybe(observable(true), () => dom('span'))});
+  });
+
+  it('supports : and . characters in scoped function', function() {
+    const scoped = makeT('Parent', instance);
+    assert.equal(scoped('Not.Valid:Characters'), 'Works');
   });
 });

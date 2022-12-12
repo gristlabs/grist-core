@@ -29,6 +29,13 @@ describe('ActionLog', function() {
     await gu.dismissWelcomeTourIfNeeded();
   });
 
+  after(async function() {
+    // If were are debugging the browser won't be reloaded, so we need to close the right panel.
+    if (process.env.NO_CLEANUP) {
+      await driver.find(".test-right-tool-close").click();
+    }
+  });
+
   it("should cross out undone actions", async function() {
     // Open the action-log tab.
     await driver.findWait('.test-tools-log', 1000).click();

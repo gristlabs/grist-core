@@ -188,7 +188,9 @@ describe('CustomWidgets', function () {
   const reject = () => driver.find(".test-config-widget-access-reject").click();
 
   it('should show widgets in dropdown', async () => {
-    await gu.toggleSidePanel('right');
+    await gu.toggleSidePanel('right', 'open');
+    await driver.find('.test-right-tab-pagewidget').click();
+    await gu.waitForServer();
     await driver.find('.test-config-widget').click();
     await gu.waitForServer(); // Wait for widgets to load.
 
