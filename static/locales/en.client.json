@@ -587,7 +587,8 @@
       "EnterCondition": "Enter Condition",
       "RemoveRulesMentioningTable": "Remove {{- tableId }} rules",
       "RemoveRulesMentioningColumn": "Remove column {{- colId }} from {{- tableId }} rules",
-      "RemoveUserAttribute": "Remove {{- name }} user attribute"
+      "RemoveUserAttribute": "Remove {{- name }} user attribute",
+      "MemoEditorPlaceholder": "Type a message..."
     },
     "PermissionsWidget": {
       "AllowAll": "Allow All",

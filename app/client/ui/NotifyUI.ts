@@ -98,7 +98,7 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
         item.options.actions.map((action) => buildAction(action, item, options))
       ) : null,
       item.options.memos.length ? cssToastMemos(
-        item.options.memos.map(memo => cssToastMemo(memo))
+        item.options.memos.map(memo => cssToastMemo(memo, testId('toast-memo')))
       ) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>

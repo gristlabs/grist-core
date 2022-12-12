@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 34
+SCHEMA_VERSION = 35
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -280,6 +280,10 @@ def schema_create_actions():
       # becomes available to matchFunc. These rules are processed in order of rulePos,
       # which should list them before regular rules.
       make_column('userAttributes', 'Text'),
+
+      # Text of memo associated with this rule, if any. Prior to version 35, this was
+      # stored within aclFormula.
+      make_column('memo',           'Text'),
     ]),
 
     # Note that the special resource with tableId of '' and colIds of '' should be ignored. It is

@@ -454,7 +454,7 @@ function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadA
           origRecord: rule,
           aclFormula: String(rule.aclFormula),
           matchFunc: rule.aclFormula ? compile?.(aclFormulaParsed) : defaultMatchFunc,
-          memo: aclFormulaParsed && aclFormulaParsed[0] === 'Comment' && aclFormulaParsed[2],
+          memo: rule.memo,
           permissions: parsePermissions(String(rule.permissionsText)),
           permissionsText: String(rule.permissionsText),
         });

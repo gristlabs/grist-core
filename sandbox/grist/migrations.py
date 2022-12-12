@@ -1115,7 +1115,7 @@ def migration33(tdset):
 
 @migration(schema_version=34)
 def migration34(tdset):
-  """"
+  """
   Add pinned column to _grist_Filters and populate based on existing sections.
 
   When populating, pinned will be set to true for filters that either belong to
@@ -1151,6 +1151,40 @@ def migration34(tdset):
       '_grist_Filters',
       [filter_rec.id for filter_rec, _ in filter_updates],
       {'pinned': [pinned for _, pinned in filter_updates]},
+    ))
+
+  return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=35)
+def migration35(tdset):
+  """
+  Add memo column to _grist_ACLRules and populate with comments stored in
+  _grist_ACLRules.aclFormula.
+
+  From this version on, comments in _grist_ACLRules.aclFormula will no longer
+  be used as memos.
+  """
+  doc_actions = [add_column('_grist_ACLRules', 'memo', 'Text')]
+
+  acl_rules = list(actions.transpose_bulk_action(tdset.all_tables['_grist_ACLRules']))
+
+  # List of (acl_rule_rec, memo) pairs.
+  acl_rule_updates = []
+  for acl_rule_rec in acl_rules:
+    acl_formula = safe_parse(acl_rule_rec.aclFormulaParsed)
+    if not acl_formula or acl_formula[0] != 'Comment':
+      continue
+
+    acl_rule_updates.append((
+      acl_rule_rec,
+      acl_formula[2]
+    ))
+
+  if acl_rule_updates:
+    doc_actions.append(actions.BulkUpdateRecord(
+      '_grist_ACLRules',
+      [acl_rule_rec.id for acl_rule_rec, _ in acl_rule_updates],
+      {'memo': [memo for _, memo in acl_rule_updates]},
     ))
 
   return tdset.apply_doc_actions(doc_actions)

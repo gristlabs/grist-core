@@ -3,6 +3,7 @@
  */
 import {aclColumnList} from 'app/client/aclui/ACLColumnList';
 import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
+import {aclMemoEditor} from 'app/client/aclui/ACLMemoEditor';
 import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
 import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
@@ -264,6 +265,7 @@ export class AccessRules extends Disposable {
         aclFormula: rule.aclFormula!,
         permissionsText: rule.permissionsText!,
         rulePos: rule.rulePos || null,
+        memo: rule.memo ?? '',
       });
     }
 
@@ -397,6 +399,7 @@ export class AccessRules extends Disposable {
                   cssCellIcon(),
                   cssCell2(cssColHeaderCell(t('Condition'))),
                   cssCell1(cssColHeaderCell(t('Permissions'))),
+                  cssCellIconWithMargins(),
                   cssCellIcon(),
                 )
               )
@@ -641,6 +644,7 @@ class TableRules extends Disposable {
               cssCellIcon(),
               cssCell2(cssColHeaderCell(t('Condition'))),
               cssCell1(cssColHeaderCell(t('Permissions'))),
+              cssCellIconWithMargins(),
               cssCellIcon(),
             )
           ),
@@ -1050,6 +1054,7 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
             cssCellIcon(),
             cssCell4(cssColHeaderCell(getSpecialRuleName(this.getColIds()))),
             cssCell1(cssColHeaderCell('Permissions')),
+            cssCellIconWithMargins(),
             cssCellIcon(),
           ),
           cssTableRow(
@@ -1272,6 +1277,16 @@ class ObsRulePart extends Disposable {
   private _permissions = Observable.create<PartialPermissionSet>(
     this, this._rulePart?.permissions || emptyPermissionSet());
 
+  // The memo text. Updated whenever changes are made within `_memoEditor`.
+  private _memo: Observable<string>;
+
+  // Reference to the memo editor element, for triggering focus. Shown when
+  // `_showMemoEditor` is true.
+  private _memoEditor: HTMLInputElement | undefined;
+
+  // Is the memo editor visible? Initialized to true if a saved memo exists for this rule.
+  private _showMemoEditor: Observable<boolean>;
+
   // Whether the rule is being checked after a change. Saving will wait for such checks to finish.
   private _checkPending = Observable.create(this, false);
 
@@ -1283,13 +1298,20 @@ class ObsRulePart extends Disposable {
   // Error message if any validation failed.
   private _error: Computed<string>;
 
-  // rulePart is omitted for a new ObsRulePart added by the user. If given, isNew may be set to
-  // treat the rule as new and only use the rulePart for its initialization.
   constructor(private _ruleSet: ObsRuleSet, private _rulePart?: RulePart, isNew = false) {
     super();
+    this._memo = Observable.create(this, _rulePart?.memo ?? '');
+
+    // If this rule has a blank memo, don't show the editor.
+    this._showMemoEditor = Observable.create(this, !this.isBuiltIn() && this._memo.get() !== '');
+
+
     if (_rulePart && isNew) {
+      // rulePart is omitted for a new ObsRulePart added by the user. If given, isNew may be set to
+      // treat the rule as new and only use the rulePart for its initialization.
       this._rulePart = undefined;
     }
+
     this._error = Computed.create(this, (use) => {
       return use(this._formulaError) ||
         this._warnInvalidColIds(use(this._formulaProperties).usedColIds) ||
@@ -1305,6 +1327,7 @@ class ObsRulePart extends Disposable {
       if (use(this._checkPending)) { return RuleStatus.CheckPending; }
       return getChangedStatus(
         use(this._aclFormula) !== this._rulePart?.aclFormula ||
+        use(this._memo) !== (this._rulePart?.memo ?? '') ||
         !isEqual(use(this._permissions), this._rulePart?.permissions)
       );
     });
@@ -1318,6 +1341,7 @@ class ObsRulePart extends Disposable {
       aclFormula: this._aclFormula.get(),
       permissionsText: permissionSetToText(this._permissions.get()),
       rulePos: this._rulePart?.origRecord?.rulePos as number|undefined,
+      memo: this._memo.get(),
     };
   }
 
@@ -1347,50 +1371,98 @@ class ObsRulePart extends Disposable {
   }
 
   public buildRulePartDom(wide: boolean = false) {
-    return cssColumnGroup(
-      cssCellIcon(
-        (this._isNonFirstBuiltIn() ?
-          null :
-          cssIconButton(icon('Plus'),
-            dom.on('click', () => this._ruleSet.addRulePart(this)),
-            testId('rule-add'),
-          )
+    return cssRulePartAndMemo(
+      cssColumnGroup(
+        cssCellIcon(
+          (this._isNonFirstBuiltIn() ?
+            null :
+            cssIconButton(icon('Plus'),
+              dom.on('click', () => this._ruleSet.addRulePart(this)),
+              testId('rule-add'),
+            )
+          ),
         ),
-      ),
-      cssCell2(
-        wide ? cssCell4.cls('') : null,
-        aclFormulaEditor({
-          initialValue: this._aclFormula.get(),
-          readOnly: this.isBuiltIn(),
-          setValue: (value) => this._setAclFormula(value),
-          placeholder: dom.text((use) => {
-            return (
-              this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
-              this._ruleSet.isLastCondition(use, this) ? t('EveryoneElse') :
-              t('EnterCondition')
-            );
+        cssCell2(
+          wide ? cssCell4.cls('') : null,
+          aclFormulaEditor({
+            initialValue: this._aclFormula.get(),
+            readOnly: this.isBuiltIn(),
+            setValue: (value) => this._setAclFormula(value),
+            placeholder: dom.text((use) => {
+              return (
+                this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
+                this._ruleSet.isLastCondition(use, this) ? t('EveryoneElse') :
+                t('EnterCondition')
+              );
+            }),
+            getSuggestions: (prefix) => this._completions.get(),
           }),
-          getSuggestions: (prefix) => this._completions.get(),
-        }),
-        testId('rule-acl-formula'),
+          testId('rule-acl-formula'),
+        ),
+        cssCell1(cssCell.cls('-stretch'),
+          permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
+            {disabled: this.isBuiltIn(), sanityCheck: (pset) => this.sanityCheck(pset)},
+            testId('rule-permissions')
+          ),
+        ),
+        cssCellIconWithMargins(
+          dom.maybe(use => !this.isBuiltIn() && !use(this._showMemoEditor), () =>
+            cssIconButton(icon('Memo'),
+              dom.on('click', () => {
+                this._showMemoEditor.set(true);
+                // Note that focus is set when the memo icon is clicked, and not when
+                // the editor is attached to the DOM; because rules with non-blank
+                // memos have their editors visible by default when the page is first
+                // loaded, focusing on creation could cause unintended focusing.
+                setTimeout(() => this._memoEditor?.focus(), 0);
+              }),
+              testId('rule-memo-add'),
+            )
+          ),
+        ),
+        cssCellIcon(
+          (this.isBuiltIn() ?
+            null :
+            cssIconButton(icon('Remove'),
+              dom.on('click', () => this._ruleSet.removeRulePart(this)),
+              testId('rule-remove'),
+            )
+          ),
+        ),
+        dom.maybe(this._error, (msg) => cssConditionError(msg, testId('rule-error'))),
+        testId('rule-part'),
       ),
-      cssCell1(cssCell.cls('-stretch'),
-        permissionsWidget(this._ruleSet.getAvailableBits(), this._permissions,
-          {disabled: this.isBuiltIn(), sanityCheck: (pset) => this.sanityCheck(pset)},
-          testId('rule-permissions')
+      dom.maybe(this._showMemoEditor, () =>
+        cssMemoColumnGroup(
+          cssCellIcon(),
+          cssMemoIcon('Memo'),
+          cssCell2(
+            wide ? cssCell4.cls('') : null,
+            this._memoEditor = aclMemoEditor(this._memo,
+              {
+                placeholder: t('MemoEditorPlaceholder'),
+              },
+              dom.onKeyDown({
+                // Match the behavior of the formula editor.
+                Enter: (_ev, el) => el.blur(),
+              }),
+            ),
+            testId('rule-memo-editor'),
+          ),
+          cssCellIconWithMargins(),
+          cssCellIcon(
+            cssIconButton(icon('Remove'),
+              dom.on('click', () => {
+                this._showMemoEditor.set(false);
+                this._memo.set('');
+              }),
+              testId('rule-memo-remove'),
+            ),
+          ),
+          testId('rule-memo'),
         ),
       ),
-      cssCellIcon(
-        (this.isBuiltIn() ?
-          null :
-          cssIconButton(icon('Remove'),
-            dom.on('click', () => this._ruleSet.removeRulePart(this)),
-            testId('rule-remove'),
-          )
-        ),
-      ),
-      dom.maybe(this._error, (msg) => cssConditionError(msg, testId('rule-error'))),
-      testId('rule-part'),
+      testId('rule-part-and-memo'),
     );
   }
 
@@ -1652,6 +1724,7 @@ const cssCell = styled('div', `
 
 // Variations on columns of different widths.
 const cssCellIcon = styled(cssCell, `flex: none; width: 24px;`);
+const cssCellIconWithMargins = styled(cssCellIcon, `margin: 0px 8px;`);
 const cssCell1 = styled(cssCell, `flex: 1;`);
 const cssCell2 = styled(cssCell, `flex: 2;`);
 const cssCell4 = styled(cssCell, `flex: 4;`);
@@ -1703,4 +1776,20 @@ const cssRuleProblems = styled('div', `
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
+`);
+
+const cssRulePartAndMemo = styled('div', `
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+`);
+
+const cssMemoColumnGroup = styled(cssColumnGroup, `
+  margin-bottom: 8px;
+`);
+
+const cssMemoIcon = styled(icon, `
+  --icon-color: ${theme.accentIcon};
+  margin-left: 8px;
+  margin-right: 8px;
 `);

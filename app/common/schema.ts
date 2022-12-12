@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 34;
+export const SCHEMA_VERSION = 35;
 
 export const schema = {
 
@@ -170,6 +170,7 @@ export const schema = {
     permissionsText     : "Text",
     rulePos             : "PositionNumber",
     userAttributes      : "Text",
+    memo                : "Text",
   },
 
   "_grist_ACLResources": {
@@ -374,6 +375,7 @@ export interface SchemaTypes {
     permissionsText: string;
     rulePos: number;
     userAttributes: string;
+    memo: string;
   };
 
   "_grist_ACLResources": {
