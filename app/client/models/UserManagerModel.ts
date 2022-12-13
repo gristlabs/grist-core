@@ -6,6 +6,7 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
         PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
@@ -179,7 +180,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     super();
     if (this._options.appModel) {
       const product = this._options.appModel.currentProduct;
-      this._shareAnnotator = new ShareAnnotator(product, initData);
+      const {supportEmail} = getGristConfig();
+      this._shareAnnotator = new ShareAnnotator(product, initData, {supportEmail});
     }
     this.annotate();
   }

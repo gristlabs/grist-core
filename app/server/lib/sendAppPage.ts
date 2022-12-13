@@ -1,6 +1,7 @@
 import {getPageTitleSuffix, GristLoadConfig, HideableUiElements, IHideableUiElement} from 'app/common/gristUrls';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
+import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
 import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
@@ -63,6 +64,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: process.env.COMMENTS === "true",
+    supportEmail: SUPPORT_EMAIL,
     ...extra,
   };
 }

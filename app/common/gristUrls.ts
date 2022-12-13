@@ -493,7 +493,7 @@ export interface GristLoadConfig {
 
   // In single-org mode, this is the single well-known org. Suppress any org selection UI.
   singleOrg?: string;
-  
+
   // Url for support for the browser client to use.
   helpCenterUrl?: string;
 
@@ -578,6 +578,9 @@ export interface GristLoadConfig {
 
   // TODO: remove when comments will be released.
   featureComments?: boolean;
+
+  // Email address of the support user.
+  supportEmail?: string;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
