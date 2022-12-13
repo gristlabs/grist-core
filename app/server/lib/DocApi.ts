@@ -589,31 +589,32 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const metaTables = await getMetaTables(activeDoc, req);
         const tableRef = tableIdToRef(metaTables, req.params.tableId);
-        const {triggerId, unsubscribeKey, webhookId} = req.body;
+        const {unsubscribeKey, webhookId} = req.body as WebhookSubscription;
 
         // Validate combination of triggerId, webhookId, and tableRef.
         // This is overly strict, webhookId should be enough,
         // but it should be easy to relax that later if we want.
         const [, , triggerRowIds, triggerColData] = metaTables._grist_Triggers;
-        const triggerRowIndex = triggerRowIds.indexOf(triggerId);
+        const triggerRowIndex = triggerColData.actions.findIndex(a => {
+          const actions: any[] = JSON.parse((a || '[]') as string);
+          return actions.some(action => action.id === webhookId && action?.type === "webhook");
+        });
         if (triggerRowIndex === -1) {
-          throw new ApiError(`Trigger not found "${triggerId}"`, 404);
+          throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
         }
         if (triggerColData.tableRef[triggerRowIndex] !== tableRef) {
           throw new ApiError(`Wrong table`, 400);
         }
-        const actions = JSON.parse(triggerColData.actions[triggerRowIndex] as string);
-        if (!_.find(actions, {type: "webhook", id: webhookId})) {
-          throw new ApiError(`Webhook not found "${webhookId}"`, 404);
-        }
+        const triggerRowId = triggerRowIds[triggerRowIndex];
 
+        const checkKey = !(await this._isOwner(req));
         // Validate unsubscribeKey before deleting trigger from document
-        await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey);
+        await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey, checkKey);
 
         // TODO handle trigger containing other actions when that becomes possible
         await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
           docSessionFromRequest(req),
-          [['RemoveRecord', "_grist_Triggers", triggerId]]));
+          [['RemoveRecord', "_grist_Triggers", triggerRowId]]));
 
         res.json({success: true});
       })
@@ -624,6 +625,13 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         await activeDoc.clearWebhookQueue();
         res.json({success: true});
+      })
+    );
+
+    // Lists all webhooks and their current status in the document.
+    this._app.get('/api/docs/:docId/webhooks', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        res.json(await activeDoc.webhooksSummary());
       })
     );
 
@@ -1428,4 +1436,9 @@ export function getDocApiUsageKeysToIncr(
     keys[i] = docPeriodicApiUsageKey(docId, false, period, m);
   }
   // Usage exceeded all the time buckets, so return undefined to reject the request.
+}
+
+export interface WebhookSubscription {
+  unsubscribeKey: string;
+  webhookId: string;
 }

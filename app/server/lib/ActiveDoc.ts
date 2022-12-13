@@ -1728,6 +1728,13 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Returns the list of outgoing webhook for a table in this document.
+   */
+  public async webhooksSummary() {
+    return this._triggers.summary();
+  }
+
+  /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
   protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[][]> {

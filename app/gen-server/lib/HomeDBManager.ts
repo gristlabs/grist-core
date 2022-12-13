@@ -1807,18 +1807,23 @@ export class HomeDBManager extends EventEmitter {
     return secret?.value;
   }
 
-  public async removeWebhook(id: string, docId: string, unsubscribeKey: string): Promise<void> {
-    if (!(id && unsubscribeKey)) {
-      throw new ApiError('Bad request: id and unsubscribeKey both required', 400);
+  public async removeWebhook(id: string, docId: string, unsubscribeKey: string, checkKey: boolean): Promise<void> {
+    if (!id) {
+      throw new ApiError('Bad request: id required', 400);
+    }
+    if (!unsubscribeKey && checkKey) {
+      throw new ApiError('Bad request: unsubscribeKey required', 400);
     }
     return await this._connection.transaction(async manager => {
-      const secret = await this.getSecret(id, docId, manager);
-      if (!secret) {
-        throw new ApiError('Webhook with given id not found', 404);
-      }
-      const webhook = JSON.parse(secret) as WebHookSecret;
-      if (webhook.unsubscribeKey !== unsubscribeKey) {
-        throw new ApiError('Wrong unsubscribeKey', 401);
+      if (checkKey) {
+        const secret = await this.getSecret(id, docId, manager);
+        if (!secret) {
+          throw new ApiError('Webhook with given id not found', 404);
+        }
+        const webhook = JSON.parse(secret) as WebHookSecret;
+        if (webhook.unsubscribeKey !== unsubscribeKey) {
+          throw new ApiError('Wrong unsubscribeKey', 401);
+        }
       }
       await manager.createQueryBuilder()
         .delete()
