@@ -72,7 +72,7 @@ export class TypeTransform extends ColumnTransform {
             return basicButton(dom.on('click', () => this.editor.writeObservable()),
               t('Preview'), testId("type-transform-update"),
               dom.cls('disabled', (use) => use(disableButtons) || use(this.formulaUpToDate)),
-              { title: t('UpdateFormula') }
+              { title: t('Update formula (Shift+Enter)') }
             );
           } else {
             return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),

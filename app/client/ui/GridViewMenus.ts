@@ -135,10 +135,10 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
   const disableForReadonlyView = dom.cls('disabled', options.isReadonly);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
-    t('ResetEntireColumns', {count: num}) :
-    t('ResetColumns', {count: num});
-  const nameDeleteColumns = t('DeleteColumns', {count: num});
-  const nameHideColumns = t('HideColumns', {count: num});
+    t('Reset {{count}} entire columns', {count: num}) :
+    t('Reset {{count}} columns', {count: num});
+  const nameDeleteColumns = t('Delete {{count}} columns', {count: num});
+  const nameHideColumns = t('Hide {{count}} columns', {count: num});
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
   return [
     frozenMenu ? [frozenMenu, menuDivider()]: null,
@@ -229,7 +229,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         const properNumber = numFrozen - firstColumnIndex;
         text = properNumber === numFrozen ?
           t('Unfreeze all columns') :
-          t('UnFreeze {{count}} columns', {count: properNumber});
+          t('Unfreeze {{count}} columns', {count: properNumber});
       }
       return {
         text,
@@ -240,13 +240,13 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     }
   } else {
     if (isLastFrozenSet) {
-      text = t('UnfreezeColumn', {count: length});
+      text = t('Unfreeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen - length
       };
     } else if (isFirstNormalSet) {
-      text = t('FreezeColumn', {count: length});
+      text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen + length
