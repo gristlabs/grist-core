@@ -31,7 +31,7 @@ interface Range {
  */
 interface SummaryPart {
   /** Identifier for the summary part. */
-  id: 'sum' | 'count' | 'dimensions';
+  id: 'sum' | 'count' | 'dimensions' | 'unique';
   /** Label that's shown to the left of `value`. */
   label: string;
   /** Value of the summary part. */
@@ -180,6 +180,7 @@ export class SelectionSummary extends Disposable {
         const fields = this._viewFields.peek().peek();
         let countNumeric = 0;
         let countNonEmpty = 0;
+        let countUnique = 0;
         let sum = 0;
         let sumFormatter: BaseFormatter|null = null;
         const rowIndices: number[] = [];
@@ -249,6 +250,7 @@ export class SelectionSummary extends Disposable {
               }
             }
           }
+          countUnique = new Set(values).size;
         }
 
         if (countNumeric > 0) {
@@ -256,6 +258,7 @@ export class SelectionSummary extends Disposable {
           summary.push({id: 'sum', label: 'Sum ', value: sumValue, clickToCopy: true});
         } else {
           summary.push({id: 'count', label: 'Count ', value: String(countNonEmpty), clickToCopy: true});
+          summary.push({id: 'unique', label: 'Unique ', value: String(countUnique), clickToCopy: true});
         }
       }
       summary.push({id: 'dimensions', label: '', value: `${rowCount}⨯${colCount}`});
