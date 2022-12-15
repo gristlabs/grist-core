@@ -211,7 +211,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public async updateCurrentDoc(urlId: string, openMode: OpenDocMode) {
     // TODO It would be bad if a new doc gets opened while this getDoc() is pending...
     const newDoc = await getDoc(this._api, urlId);
-    this.currentDoc.set(buildDocInfo(newDoc, openMode));
+    const isRecoveryMode = Boolean(this.currentDoc.get()?.isRecoveryMode);
+    const userOverride = this.currentDoc.get()?.userOverride || null;
+    this.currentDoc.set({...buildDocInfo(newDoc, openMode), isRecoveryMode, userOverride});
     return newDoc;
   }
 
