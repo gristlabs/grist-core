@@ -20,7 +20,8 @@
     "test:smoke": "NODE_PATH=_build:_build/stubs:_build/ext mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",
     "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"}",
-    "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js"
+    "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js",
+    "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js"
   },
   "keywords": [
     "grist",
@@ -77,6 +78,7 @@
     "chance": "1.0.16",
     "esbuild-loader": "2.19.0",
     "http-proxy": "1.18.1",
+    "i18next-scanner": "^4.1.0",
     "jsdom": "16.5.0",
     "mocha": "5.2.0",
     "mocha-webdriver": "0.2.9",

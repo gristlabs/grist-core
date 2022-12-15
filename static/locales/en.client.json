@@ -26,6 +26,9 @@
     "Permission to access the document in full when needed": "Permission to access the document in full when needed",
     "Permission to view Access Rules": "Permission to view Access Rules",
     "Permissions": "Permissions",
+    "Remove column {{- colId }} from {{- tableId }} rules": "Remove column {{- colId }} from {{- tableId }} rules",
+    "Remove {{- tableId }} rules": "Remove {{- tableId }} rules",
+    "Remove {{- name }} user attribute": "Remove {{- name }} user attribute",
     "Reset": "Reset",
     "Rules for table ": "Rules for table ",
     "Save": "Save",
@@ -445,10 +448,6 @@
     "Report a problem": "Report a problem",
     "Upgrade Plan": "Upgrade Plan"
   },
-  "NTextBox": {
-    "false": "false",
-    "true": "true"
-  },
   "OnBoardingPopups": {
     "Finish": "Finish",
     "Next": "Next"
@@ -741,5 +740,9 @@
   },
   "sendToDrive": {
     "Sending file to Google Drive": "Sending file to Google Drive"
+  },
+  "NTextBox": {
+    "false": "false",
+    "true": "true"
   }
 }

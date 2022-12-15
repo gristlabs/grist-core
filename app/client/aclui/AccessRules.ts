@@ -520,7 +520,7 @@ export class AccessRules extends Disposable {
     for (const tableId of tableIds) {
       // We don't know what the table's name was, just its tableId.
       // Hopefully, the user will understand.
-      const title = t('RemoveRulesMentioningTable', { tableId });
+      const title = t('Remove {{- tableId }} rules', { tableId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
@@ -546,7 +546,7 @@ export class AccessRules extends Disposable {
     };
     for (const colId of colIds) {
       // TODO: we could translate tableId to table name in this case.
-      const title = t('RemoveRulesMentioningColumn', { tableId, colId });
+      const title = t('Remove column {{- colId }} from {{- tableId }} rules', { tableId, colId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
@@ -562,7 +562,7 @@ export class AccessRules extends Disposable {
     names: string[]
   ) {
     for (const name of names) {
-      const title = t('RemoveUserAttribute', {name});
+      const title = t('Remove {{- name }} user attribute', {name});
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._userAttrRules.get()
           .filter(rule => rule.name.get() === name)
