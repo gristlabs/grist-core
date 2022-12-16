@@ -78,7 +78,7 @@
     "chance": "1.0.16",
     "esbuild-loader": "2.19.0",
     "http-proxy": "1.18.1",
-    "i18next-scanner": "^4.1.0",
+    "i18next-scanner": "4.1.0",
     "jsdom": "16.5.0",
     "mocha": "5.2.0",
     "mocha-webdriver": "0.2.9",
