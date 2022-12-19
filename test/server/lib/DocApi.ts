@@ -213,6 +213,20 @@ function testDocApi() {
     await assert.isFulfilled(kiwiApi.deleteDoc(doc1));
   });
 
+  it("should allow only owners to rename a document", async () => {
+    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+    const doc1 = await userApi.newDoc({name: 'testrenameme1'}, ws1);
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+
+    // Kiwi is editor of the document, so he can't rename it.
+    await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
+    await assert.isRejected(kiwiApi.renameDoc(doc1, "testrenameme2"), /Forbidden/);
+
+    // Kiwi is owner of the document - now he can rename it.
+    await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'owners'}});
+    await assert.isFulfilled(kiwiApi.renameDoc(doc1, "testrenameme2"));
+  });
+
   it("guesses types of new columns", async () => {
     const userActions = [
       ['AddTable', 'GuessTypes', []],

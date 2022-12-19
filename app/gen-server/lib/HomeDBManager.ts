@@ -1833,17 +1833,19 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  // Checks that the user has UPDATE permissions to the given doc. If not, throws an
+  // Checks that the user has SCHEMA_EDIT permissions to the given doc. If not, throws an
   // error. Otherwise updates the given doc with the given name. Returns an empty
   // query result with status 200 on success.
   // NOTE: This does not update the updateAt date indicating the last modified time of the doc.
   // We may want to make it do so.
   public async updateDocument(scope: DocScope,
                               props: Partial<DocumentProperties>): Promise<QueryResult<number>> {
+
+    const markPermissions = Permissions.SCHEMA_EDIT;
     return await this._connection.transaction(async manager => {
       const docQuery = this._doc(scope, {
         manager,
-        markPermissions: Permissions.UPDATE
+        markPermissions
       });
 
       const queryResult = await verifyIsPermitted(docQuery);
