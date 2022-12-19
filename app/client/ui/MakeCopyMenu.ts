@@ -47,7 +47,7 @@ export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, a
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("It will be overwritten, losing any content not in this document.")}`;
   } else if (cmp.summary === 'same') {
-    titleText = 'Original Looks Identical';
+    titleText = t('Original Looks Identical');
     warningText = `${warningText} ${t("However, it appears to be already identical.")}`;
   }
   confirmModal(titleText, buttonText,

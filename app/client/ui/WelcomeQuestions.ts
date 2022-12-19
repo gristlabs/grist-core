@@ -65,16 +65,16 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>): boole
 }
 
 const choices: Array<{icon: IconName, color: string, textKey: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'ProductDevelopment' },
-  {icon: 'UseFinance', color: '#0075A2',              textKey: 'FinanceAccounting'  },
-  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'MediaProduction'    },
-  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'ITTechnology'       },
-  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'          },
-  {icon: 'UseScience', color: '#231942',              textKey: 'Research'           },
-  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'              },
-  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'          },
-  {icon: 'UseHr',      color: '#688047',              textKey: 'HRManagement'       },
-  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'              },
+  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development'  },
+  {icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting' },
+  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'     },
+  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'IT & Technology'      },
+  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'            },
+  {icon: 'UseScience', color: '#231942',              textKey: 'Research'             },
+  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'                },
+  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'            },
+  {icon: 'UseHr',      color: '#688047',              textKey: 'HR & Management'      },
+  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'                },
 ];
 
 function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<string>) {

@@ -1396,7 +1396,7 @@ class ObsRulePart extends Disposable {
             placeholder: dom.text((use) => {
               return (
                 this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
-                this._ruleSet.isLastCondition(use, this) ? t('EveryoneElse') :
+                this._ruleSet.isLastCondition(use, this) ? t('Everyone Else') :
                 t('EnterCondition')
               );
             }),
@@ -1445,7 +1445,7 @@ class ObsRulePart extends Disposable {
             wide ? cssCell4.cls('') : null,
             this._memoEditor = aclMemoEditor(this._memo,
               {
-                placeholder: t('MemoEditorPlaceholder'),
+                placeholder: t("Type a message..."),
               },
               dom.onKeyDown({
                 // Match the behavior of the formula editor.

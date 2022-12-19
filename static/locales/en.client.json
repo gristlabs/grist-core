@@ -34,6 +34,7 @@
     "Save": "Save",
     "Saved": "Saved",
     "Special Rules": "Special Rules",
+    "Type a message...": "Type a message...",
     "User Attributes": "User Attributes",
     "View As": "View As"
   },
@@ -87,6 +88,8 @@
     "Create": "Create",
     "Remove": "Remove",
     "Remove API Key": "Remove API Key",
+    "This API key can be used to access this account anonymously via the API.": "This API key can be used to access this account anonymously via the API.",
+    "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "This API key can be used to access your account via the API. Don’t share your API key with anyone.",
     "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?"
   },
   "App": {
@@ -426,6 +429,7 @@
     "Organization": "Organization",
     "Original Has Modifications": "Original Has Modifications",
     "Original Looks Unrelated": "Original Looks Unrelated",
+    "Original Looks Identical": "Original Looks Identical",
     "Overwrite": "Overwrite",
     "Replacing the original requires editing rights on the original document.": "Replacing the original requires editing rights on the original document.",
     "Sign up": "Sign up",
@@ -482,11 +486,11 @@
     "Updating record layout.": "Updating record layout."
   },
   "RecordLayoutEditor": {
-    "AddField": "AddField",
-    "Cancel": "Cancel",
-    "CreateNewField": "CreateNewField",
-    "SaveLayout": "SaveLayout",
-    "ShowField": "ShowField"
+    "Add Field": "Add Field",
+    "Create New Field": "Create New Field",
+    "Show field {{- label}}": "Show field {{- label}}",
+    "Save Layout": "Save Layout",
+    "Cancel": "Cancel"
   },
   "RefSelect": {
     "Add Column": "Add Column",
@@ -568,10 +572,10 @@
     "Use choice position": "Use choice position"
   },
   "SortFilterConfig": {
-    "Filter": "Filter",
+    "Filter": "FILTER",
     "Revert": "Revert",
     "Save": "Save",
-    "Sort": "Sort",
+    "Sort": "SORT",
     "Update Sort & Filter settings": "Update Sort & Filter settings"
   },
   "ThemeConfig": {
@@ -672,7 +676,16 @@
     "Select All": "Select All"
   },
   "WelcomeQuestions": {
+    "Education": "Education",
+    "Finance & Accounting": "Finance & Accounting",
+    "HR & Management": "HR & Management",
+    "IT & Technology": "IT & Technology",
+    "Marketing": "Marketing",
+    "Media Production": "Media Production",
     "Other": "Other",
+    "Product Development": "Product Development",
+    "Research": "Research",
+    "Sales": "Sales",
     "Type here": "Type here",
     "Welcome to Grist!": "Welcome to Grist!",
     "What brings you to Grist? Please help us serve you better.": "What brings you to Grist? Please help us serve you better."
