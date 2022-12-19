@@ -736,6 +736,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   // From another python installation variant.
   profile.push(`(allow file-read* (subpath "/usr/lib/"))`);
   profile.push(`(allow file-read* (subpath "/System/Library/Frameworks/"))`);
+  profile.push(`(allow file-read* (subpath "/Library/Apple/usr/libexec/oah/"))`);
 
   // Give access to Grist material.
   const cwd = path.join(process.cwd(), 'sandbox');

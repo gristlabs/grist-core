@@ -271,7 +271,7 @@ const cssTableIdWrapper = styled('div', `
 const cssTableRowsWrapper = styled('div', `
   display: flex;
   flex-shrink: 0;
-  width: 80px;
+  min-width: 100px;
   overflow: hidden;
   align-items: baseline;
   color: ${css.theme.lightText};
