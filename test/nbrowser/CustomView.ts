@@ -268,6 +268,8 @@ describe('CustomView', function() {
     const mainSession = await gu.session().teamSite.login();
     await mainSession.tempDoc(cleanup, 'TypeEncoding.grist');
     await gu.toggleSidePanel('right', 'open');
+    await driver.find('.test-right-tab-pagewidget').click();
+    await gu.waitForServer();
     await driver.find('.test-config-data').click();
 
     // The test doc already has a Custom View widget. It just needs to
