@@ -40,7 +40,8 @@ import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
          OptDocSession } from 'app/server/lib/DocSession';
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
-import { IPermissionInfo, PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
+import { IPermissionInfo, MixedPermissionSetWithContext,
+         PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
 import { getColIdsFromDocAction, getColValuesFromDocAction, getRelatedRows,
@@ -190,6 +191,17 @@ const UPLOADED_ATTACHMENT_OWNERSHIP_PERIOD =
 // are handled specially. This special handling will not apply for undoes of actions
 // older than this limit.
 const HISTORICAL_ATTACHMENT_OWNERSHIP_PERIOD = 24 * 60 * 60 * 1000;
+
+// Transform columns are special. In case we have some rules defined they are only visible
+// to those with SCHEMA_EDIT permission.
+const TRANSFORM_COLUMN_PREFIXES = ['gristHelper_Converted', 'gristHelper_Transform'];
+
+/**
+ * Checks if this is a special helper column used during type conversion.
+ */
+function isTransformColumn(colId: string): boolean {
+  return TRANSFORM_COLUMN_PREFIXES.some(prefix => colId.startsWith(prefix));
+}
 
 interface DocUpdateMessage {
   actionGroup: ActionGroup;
@@ -1324,6 +1336,7 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   private _pruneColumns(a: DocAction, permInfo: IPermissionInfo, tableId: string,
                         accessCheck: IAccessCheck): DocAction|null {
+    permInfo = new TransformColumnPermissionInfo(permInfo);
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
     } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
@@ -2856,6 +2869,9 @@ export class CensorshipInfo {
           (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
         censoredColumnCodes.add(columnCode(tableRef, colId));
       }
+      if (isTransformColumn(colId) && permInfo.getColumnAccess(tableId, colId).perms.schemaEdit === 'deny') {
+        censoredColumnCodes.add(columnCode(tableRef, colId));
+      }
     }
     // Collect a list of all sections and views containing a table to which the user has no access.
     rec = new RecordView(tables._grist_Views_section, undefined);
@@ -3156,6 +3172,42 @@ function actionHasRuleChange(a: DocAction): boolean {
       a[3]?.hasOwnProperty('displayCol')
     )
   );
+}
+
+/**
+ * Wrapper around a permission info object that overrides permissions for transform columns.
+ */
+class TransformColumnPermissionInfo implements IPermissionInfo {
+  constructor(private _inner: IPermissionInfo) {
+
+  }
+  public getColumnAccess(tableId: string, colId: string): MixedPermissionSetWithContext {
+    const access = this._inner.getColumnAccess(tableId, colId);
+    const isSchemaDenied = access.perms.schemaEdit === 'deny';
+    // If this is a transform column, it's only accessible if the user has a schemaEdit access.
+    if (isSchemaDenied && isTransformColumn(colId)) {
+      return {
+        ...access,
+        perms: {
+          create: 'deny',
+          read: 'deny',
+          update: 'deny',
+          delete: 'deny',
+          schemaEdit: 'deny',
+        }
+      };
+    }
+    return access;
+  }
+  public getTableAccess(tableId: string): TablePermissionSetWithContext {
+    return this._inner.getTableAccess(tableId);
+  }
+  public getFullAccess(): MixedPermissionSetWithContext {
+    return this._inner.getFullAccess();
+  }
+  public getRuleCollection(): ACLRuleCollection {
+    return this._inner.getRuleCollection();
+  }
 }
 
 interface SingleCellInfo extends SingleCell {

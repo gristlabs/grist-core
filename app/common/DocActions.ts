@@ -31,7 +31,7 @@ export type TableDataAction = ['TableData', string, number[], BulkColValues];
 export type AddColumn = ['AddColumn', string, string, ColInfo];
 export type RemoveColumn = ['RemoveColumn', string, string];
 export type RenameColumn = ['RenameColumn', string, string, string];
-export type ModifyColumn = ['ModifyColumn', string, string, ColInfo];
+export type ModifyColumn = ['ModifyColumn', string, string, Partial<ColInfo>];
 
 export type AddTable = ['AddTable', string, ColInfoWithId[]];
 export type RemoveTable = ['RemoveTable', string];
