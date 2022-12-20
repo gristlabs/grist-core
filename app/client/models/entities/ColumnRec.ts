@@ -10,6 +10,7 @@ import {
   createVisibleColFormatterRaw,
   FullFormatterArgs
 } from 'app/common/ValueFormatter';
+import {createParser} from 'app/common/ValueParser';
 import * as ko from 'knockout';
 
 // Column behavior type, used primarily in the UI.
@@ -78,6 +79,8 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
+
+  createValueParser(): (value: string) => any;
 }
 
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
@@ -141,6 +144,11 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.visibleColFormatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'vcol'));
 
   this.formatter = ko.pureComputed(() => formatterForRec(this, this, docModel, 'full'));
+
+  this.createValueParser = function() {
+    const parser = createParser(docModel.docData, this.id.peek());
+    return parser.cleanParse.bind(parser);
+  };
 
   this.behavior = ko.pureComputed(() => this.isEmpty() ? 'empty' : this.isFormula() ? 'formula' : 'data');
 }
