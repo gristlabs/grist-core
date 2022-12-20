@@ -177,7 +177,8 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
           dom.autoDispose(layoutEditorObs),
           dom.on('click', () => commands.allCommands.editLayout.run()),
           grainjsDom.hide(layoutEditorObs),
-          testId('detail-edit-layout')
+          grainjsDom.cls('behavioral-prompt-edit-card-layout'),
+          testId('detail-edit-layout'),
         )
       );
     }

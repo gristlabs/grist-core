@@ -15,7 +15,7 @@ import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {isNarrowScreenObs, colors, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {colors, isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
@@ -323,7 +323,7 @@ export function buildViewSectionDom(options: {
         dom.create(viewSectionMenu, gristDoc, vs)
       )
      )),
-    dom.create(filterBar, vs),
+    dom.create(filterBar, gristDoc, vs),
     dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),

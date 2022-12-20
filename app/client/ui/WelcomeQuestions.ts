@@ -12,12 +12,18 @@ import {dom, input, Observable, styled, subscribeElem} from 'grainjs';
 
 const t = makeT('WelcomeQuestions');
 
-export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
+/**
+ * Shows a modal with welcome questions if surveying is enabled and the user hasn't
+ * dismissed the modal before.
+ *
+ * Returns a boolean indicating whether the modal was shown or not.
+ */
+export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>): boolean {
   if (!(getGristConfig().survey && userPrefsObs.get()?.showNewUserQuestions)) {
-    return null;
+    return false;
   }
 
-  return saveModal((ctl, owner): ISaveModalOptions => {
+  saveModal((ctl, owner): ISaveModalOptions => {
     const selection = choices.map(c => Observable.create(owner, false));
     const otherText = Observable.create(owner, '');
     const showQuestions = getUserPrefObs(userPrefsObs, 'showNewUserQuestions');
@@ -54,6 +60,8 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
       modalArgs: cssModalCentered.cls(''),
     };
   });
+
+  return true;
 }
 
 const choices: Array<{icon: IconName, color: string, textKey: string}> = [

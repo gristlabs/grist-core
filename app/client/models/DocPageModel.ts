@@ -336,13 +336,13 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   const selectBy = gristDoc.selectBy.bind(gristDoc);
   return [
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addNewPage(val).catch(reportError),
+      (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
                                      {isNewPage: true, buttonLabel: 'Add Page'}),
       menuIcon("Page"), t("AddPage"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
-      (elem) => openPageWidgetPicker(elem, gristDoc.docModel, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
+      (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
       menuIcon("Widget"), t("AddWidgetToPage"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views

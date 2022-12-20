@@ -51,6 +51,8 @@ export const listDocs = homeUtil.listDocs.bind(homeUtil);
 export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
 export const simulateLogin = homeUtil.simulateLogin.bind(homeUtil);
 export const removeLogin = homeUtil.removeLogin.bind(homeUtil);
+export const enableTips = homeUtil.enableTips.bind(homeUtil);
+export const disableTips = homeUtil.disableTips.bind(homeUtil);
 export const setValue = homeUtil.setValue.bind(homeUtil);
 export const isOnLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const isOnGristLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
@@ -1008,9 +1010,19 @@ export async function addNewTable(name?: string) {
 
 export interface PageWidgetPickerOptions {
   tableName?: string;
-  selectBy?: RegExp|string;      // Optional pattern of SELECT BY option to pick.
-  summarize?: (RegExp|string)[];   // Optional list of patterns to match Group By columns.
-  dontAdd?: boolean;  // If true, configure the widget selection without actually adding to the page
+  /** Optional pattern of SELECT BY option to pick. */
+  selectBy?: RegExp|string;
+  /** Optional list of patterns to match Group By columns. */
+  summarize?: (RegExp|string)[];
+  /** If true, configure the widget selection without actually adding to the page. */
+  dontAdd?: boolean;
+  /**
+   * If true, dismiss any tooltips that are shown.
+   *
+   * TODO: Only needed by one test. Can be removed once a fix has landed for the bug
+   * where user-level preferences aren't loaded when the session's org is null.
+   */
+  dismissTips?: boolean;
 }
 
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
@@ -1051,10 +1063,14 @@ export async function openAddWidgetToPage() {
 export async function selectWidget(
   typeRe: RegExp|string,
   tableRe: RegExp|string = '',
-  options: PageWidgetPickerOptions = {}) {
+  options: PageWidgetPickerOptions = {}
+) {
+  if (options.dismissTips) { await dismissBehavioralPrompts(); }
 
   // select right type
   await driver.findContent('.test-wselect-type', typeRe).doClick();
+
+  if (options.dismissTips) { await dismissBehavioralPrompts(); }
 
   if (tableRe) {
     const tableEl = driver.findContent('.test-wselect-table', tableRe);
@@ -1066,6 +1082,8 @@ export async function selectWidget(
 
     // let's select table
     await tableEl.click();
+
+    if (options.dismissTips) { await dismissBehavioralPrompts(); }
 
     const pivotEl = tableEl.find('.test-wselect-pivot');
     if (await pivotEl.isPresent()) {
@@ -1207,10 +1225,9 @@ export async function renameColumn(col: IColHeader, newName: string) {
 }
 
 /**
- * Removes a table using RAW data view. Returns a current url.
+ * Removes a table using RAW data view.
  */
-export async function removeTable(tableId: string, goBack: boolean = false) {
-  const back = await driver.getCurrentUrl();
+export async function removeTable(tableId: string) {
   await driver.find(".test-tools-raw").click();
   const tableIdList = await driver.findAll('.test-raw-data-table-id', e => e.getText());
   const tableIndex = tableIdList.indexOf(tableId);
@@ -1221,11 +1238,6 @@ export async function removeTable(tableId: string, goBack: boolean = false) {
   await driver.find(".test-raw-data-menu-remove").click();
   await driver.find(".test-modal-confirm").click();
   await waitForServer();
-  if (goBack) {
-    await driver.get(back);
-    await waitAppFocus();
-  }
-  return back;
 }
 
 /**
@@ -1526,14 +1538,18 @@ export async function deleteColumn(col: IColHeader|string) {
 /**
  * Sets the type of the currently selected field to value.
  */
- export async function setType(type: RegExp|string, options: {skipWait?: boolean, apply?: boolean} = {}) {
+export async function setType(
+  type: RegExp|string,
+  options: {skipWait?: boolean, apply?: boolean} = {}
+) {
+  const {skipWait, apply} = options;
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
   type = typeof type === 'string' ? exactMatch(type) : type;
   await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
-  if (!options.skipWait || options.apply) { await waitForServer(); }
-  if (options.apply) {
+  if (!skipWait || apply) { await waitForServer(); }
+  if (apply) {
     await driver.findWait('.test-type-transform-apply', 1000).click();
     await waitForServer();
   }
@@ -1912,13 +1928,21 @@ export class Session {
   public async login(options?: {loginMethod?: UserProfile['loginMethod'],
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
+                                showTips?: boolean,
                                 retainExistingLogin?: boolean}) {
     // Optimize testing a little bit, so if we are already logged in as the expected
     // user on the expected org, and there are no options set, we can just continue.
     if (!options && await this.isLoggedInCorrectly()) { return this; }
     if (!options?.retainExistingLogin) {
       await removeLogin();
-      if (this.settings.email === 'anon@getgrist.com') { return this; }
+      if (this.settings.email === 'anon@getgrist.com') {
+        if (options?.showTips) {
+          await enableTips(this.settings.email);
+        } else {
+          await disableTips(this.settings.email);
+        }
+        return this;
+      }
     }
     await server.simulateLogin(this.settings.name, this.settings.email, this.settings.orgDomain,
                                {isFirstLogin: false, cacheCredentials: true, ...options});
@@ -2699,6 +2723,39 @@ export async function refreshDismiss() {
   await driver.navigate().refresh();
   await (await driver.switchTo().alert()).accept();
   await waitForDocToLoad();
+}
+
+/**
+ * Dismisses all behavioral prompts that are present.
+ */
+export async function dismissBehavioralPrompts() {
+  let i = 0;
+  const max = 10;
+
+  // Keep dismissing prompts until there are no more, up to a maximum of 10 times.
+  while (i < max && await driver.find('.test-behavioral-prompt').isPresent()) {
+    await driver.find('.test-behavioral-prompt-dismiss').click();
+    await waitForServer();
+    i += 1;
+  }
+}
+
+/**
+ * Dismisses all card popups that are present.
+ *
+ * Optionally takes a `waitForServerTimeoutMs`, which may be null to skip waiting
+ * after closing each popup.
+ */
+ export async function dismissCardPopups(waitForServerTimeoutMs: number | null = 2000) {
+  let i = 0;
+  const max = 10;
+
+  // Keep dismissing popups until there are no more, up to a maximum of 10 times.
+  while (i < max && await driver.find('.test-popup-card').isPresent()) {
+    await driver.find('.test-popup-close-button').click();
+    if (waitForServerTimeoutMs) { await waitForServer(waitForServerTimeoutMs); }
+    i += 1;
+  }
 }
 
 /**

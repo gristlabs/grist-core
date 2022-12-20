@@ -3,7 +3,7 @@ import {makeT} from 'app/client/lib/localization';
 import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {modal} from 'app/client/ui2018/modals';
+import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
 import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 
@@ -19,7 +19,7 @@ const testId = makeTestId('test-video-tour-');
     (ctl) => {
       return [
         cssModal.cls(''),
-        cssCloseButton(
+        cssModalCloseButton(
           cssCloseIcon('CrossBig'),
           dom.on('click', () => ctl.close()),
           testId('close'),
@@ -124,19 +124,6 @@ const cssVideoIcon = styled(icon, `
 
   .${cssVideoTourTextButton.className}:hover > & {
     background-color: ${theme.controlHoverFg};
-  }
-`);
-
-const cssCloseButton = styled('div', `
-  align-self: flex-end;
-  margin: -8px;
-  padding: 4px;
-  border-radius: 4px;
-  cursor: pointer;
-  --icon-color: ${theme.modalCloseButtonFg};
-
-  &:hover {
-    background-color: ${theme.hover};
   }
 `);
 

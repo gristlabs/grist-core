@@ -125,7 +125,7 @@ RecordLayoutEditor.prototype.buildFinishButtons = function() {
 
 RecordLayoutEditor.prototype.buildLeafDom = function() {
   return dom('div.layout_grabbable.g_record_layout_editing',
-    dom('div.g_record_delete_field.glyphicon.glyphicon-remove',
+    dom('div.g_record_delete_field.glyphicon.glyphicon-eye-close',
       dom.on('mousedown', (ev) => ev.stopPropagation()),
       dom.on('click', (ev, elem) => {
         ev.preventDefault();

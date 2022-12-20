@@ -1,6 +1,8 @@
-import {makeT} from 'app/client/lib/localization';
+import { BehavioralPrompts } from 'app/client/components/BehavioralPrompts';
+import { GristDoc } from 'app/client/components/GristDoc';
+import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, DocModel, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
+import { ColumnRec, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { GristTooltips } from 'app/client/ui/GristTooltips';
 import { linkId, NoLink } from 'app/client/ui/selectBy';
 import { withInfoTooltip } from 'app/client/ui/tooltips';
@@ -10,7 +12,7 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from 'app/client/ui2018/modals';
 import { isLongerThan, nativeCompare } from "app/common/gutil";
-import { computed, Computed, Disposable, dom, domComputed, fromKo, IOption, select} from "grainjs";
+import { computed, Computed, Disposable, dom, domComputed, DomElementArg, fromKo, IOption, select} from "grainjs";
 import { makeTestId, Observable, onKeyDown, styled} from "grainjs";
 import without = require('lodash/without');
 import Popper from 'popper.js';
@@ -99,7 +101,7 @@ export type ISaveFunc = (val: IPageWidget) => Promise<any>;
 const DELAY_BEFORE_SPINNER_MS = 500;
 
 // Attaches the page widget picker to elem to open on 'click' on the left.
-export function attachPageWidgetPicker(elem: HTMLElement, docModel: DocModel, onSave: ISaveFunc,
+export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
                                        options: IOptions = {}) {
   // Overrides .placement, this is needed to enable the page widget to update position when user
   // expand the `Group By` panel.
@@ -108,7 +110,7 @@ export function attachPageWidgetPicker(elem: HTMLElement, docModel: DocModel, on
   // particular listening to value.summarize to update popup position could be done directly in
   // code).
   options.placement = 'left';
-  const domCreator = (ctl: IOpenController) => buildPageWidgetPicker(ctl, docModel, onSave, options);
+  const domCreator = (ctl: IOpenController) => buildPageWidgetPicker(ctl, gristDoc, onSave, options);
   setPopupToCreateDom(elem, domCreator, {
     placement: 'left',
     trigger: ['click'],
@@ -118,10 +120,10 @@ export function attachPageWidgetPicker(elem: HTMLElement, docModel: DocModel, on
 }
 
 // Open page widget widget picker on the right of element.
-export function openPageWidgetPicker(elem: HTMLElement, docModel: DocModel, onSave: ISaveFunc,
+export function openPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
                                      options: IOptions = {}) {
   popupOpen(elem, (ctl) => buildPageWidgetPicker(
-    ctl, docModel, onSave, options
+    ctl, gristDoc, onSave, options
   ), { placement: 'right' });
 }
 
@@ -131,11 +133,12 @@ export function openPageWidgetPicker(elem: HTMLElement, docModel: DocModel, onSa
 // to overlay the trigger element (which could happen when the 'Group By' panel is expanded for the
 // first time). When saving is taking time, show a modal spinner (see DELAY_BEFORE_SPINNER_MS).
 export function buildPageWidgetPicker(
-    ctl: IOpenController,
-    docModel: DocModel,
-    onSave: ISaveFunc,
-    options: IOptions = {}) {
-
+  ctl: IOpenController,
+  gristDoc: GristDoc,
+  onSave: ISaveFunc,
+  options: IOptions = {}
+) {
+  const {behavioralPrompts, docModel} = gristDoc;
   const tables = fromKo(docModel.visibleTables.getObservable());
   const columns = fromKo(docModel.columns.createAllRowsModel('parentPos').getObservable());
 
@@ -204,7 +207,7 @@ export function buildPageWidgetPicker(
 
   // dom
   return cssPopupWrapper(
-    dom.create(PageWidgetSelect, value, tables, columns, onSaveCB, options),
+    dom.create(PageWidgetSelect, value, tables, columns, onSaveCB, behavioralPrompts, options),
 
     // gives focus and binds keydown events
     (elem: any) => { setTimeout(() => elem.focus(), 0); },
@@ -223,7 +226,6 @@ export type IWidgetValueObs = {
 
 
 export interface ISelectOptions {
-
   // the button's label
   buttonLabel?: string;
 
@@ -274,6 +276,7 @@ export class PageWidgetSelect extends Disposable {
     private _tables: Observable<TableRec[]>,
     private _columns: Observable<ColumnRec[]>,
     private _onSave: () => Promise<void>,
+    private _behavioralPrompts: BehavioralPrompts,
     private _options: ISelectOptions = {}
   ) { super(); }
 
@@ -304,9 +307,15 @@ export class PageWidgetSelect extends Disposable {
             cssIcon('TypeTable'), 'New Table',
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
+            this._behavioralPrompts.attachTip('pageWidgetPicker', {
+              popupOptions: {
+                attach: null,
+                placement: 'right-start',
+              }
+            }),
             cssEntry.cls('-selected', (use) => use(this._value.table) === 'New Table'),
             cssEntry.cls('-disabled', this._isNewTableDisabled),
-            testId('table')
+            testId('table'),
           ),
           dom.forEach(this._tables, (table) => dom('div',
             cssEntryWrapper(
@@ -355,7 +364,14 @@ export class PageWidgetSelect extends Disposable {
                           testId('selectby'))
               ),
               GristTooltips.selectBy(),
-              {tooltipMenuOptions: {attach: null}},
+              {tooltipMenuOptions: {attach: null}, domArgs: [
+                this._behavioralPrompts.attachTip('pageWidgetPickerSelectBy', {
+                  popupOptions: {
+                    attach: null,
+                    placement: 'bottom',
+                  }
+                }),
+              ]},
             )
           ),
           dom('div', {style: 'flex-grow: 1'}),
@@ -427,8 +443,8 @@ export class PageWidgetSelect extends Disposable {
 
 }
 
-function header(label: string) {
-  return cssHeader(dom('h4', label), testId('heading'));
+function header(label: string, ...args: DomElementArg[]) {
+  return cssHeader(dom('h4', label), ...args, testId('heading'));
 }
 
 const cssContainer = styled('div', `

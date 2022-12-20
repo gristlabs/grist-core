@@ -94,6 +94,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // changes to their filters. (True indicates unsaved changes)
   filterSpecChanged: Computed<boolean>;
 
+  // Set to true when a second pinned filter is added, to trigger a behavioral prompt. Note that
+  // the popup is only shown once, even if this observable is set to true again in the future.
+  showNestedFilteringPopup: Observable<boolean>;
+
   // Customizable version of the JSON-stringified sort spec. It may diverge from the saved one.
   activeSortJson: modelUtil.CustomComputed<string>;
 
@@ -431,6 +435,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.filterSpecChanged = Computed.create(this, use => {
     return use(this.filters).some(col => !use(col.filter.isSaved) || !use(col.pinned.isSaved));
   });
+
+  this.showNestedFilteringPopup = Observable.create(this, false);
 
   // Save all filters of fields/columns in the section.
   this.saveFilters = () => {

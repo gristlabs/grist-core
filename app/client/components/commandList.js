@@ -117,6 +117,11 @@ exports.groups = [{
       desc: 'Shortcut to open the left panel',
     },
     {
+      name: 'rightPanelOpen',
+      keys: [],
+      desc: 'Shortcut to open the right panel',
+    },
+    {
       name: 'videoTourToolsOpen',
       keys: [],
       desc: 'Shortcut to open video tour from home left panel',

@@ -4,7 +4,7 @@
  * Orgs, workspaces and docs are fetched asynchronously on build via the passed in API.
  */
 import {loadUserManager} from 'app/client/lib/imports';
-import {reportError} from 'app/client/models/AppModel';
+import {AppModel, reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
@@ -14,6 +14,7 @@ import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
+import {showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
 import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
@@ -26,7 +27,7 @@ import {IHomePage} from 'app/common/gristUrls';
 import {SortPref, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {computed, Computed, dom, DomArg, DomContents, IDisposableOwner,
+import {computed, Computed, dom, DomArg, DomContents, DomElementArg, IDisposableOwner,
         makeTestId, observable, Observable} from 'grainjs';
 import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
 import {makeT} from 'app/client/lib/localization';
@@ -44,20 +45,30 @@ const testId = makeTestId('test-dm-');
  * Usage:
  *    dom('div', createDocMenu(homeModel))
  */
-export function createDocMenu(home: HomeModel) {
-  return dom.domComputed(home.loading, loading => (
-    loading === 'slow' ? css.spinner(loadingSpinner()) :
-    loading ? null :
-    dom.create(createLoadedDocMenu, home)
-  ));
+export function createDocMenu(home: HomeModel): DomElementArg[] {
+  return [
+    attachWelcomePopups(home.app),
+    dom.domComputed(home.loading, loading => (
+      loading === 'slow' ? css.spinner(loadingSpinner()) :
+      loading ? null :
+      dom.create(createLoadedDocMenu, home)
+    ))
+  ];
 }
 
+function attachWelcomePopups(app: AppModel): (el: Element) => void {
+  return (element: Element) => {
+    const isShowingPopup = showWelcomeQuestions(app.userPrefsObs);
+    if (isShowingPopup) { return; }
+
+    showWelcomeCoachingCall(element, app);
+  };
+}
 
 function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList(
-    showWelcomeQuestions(home.app.userPrefsObs),
     css.docMenu(
       dom.maybe(!home.app.currentFeatures.workspaces, () => [
         css.docListHeader(t('ServiceNotAvailable')),

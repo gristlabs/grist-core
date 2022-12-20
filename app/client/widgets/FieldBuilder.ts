@@ -104,6 +104,7 @@ export class FieldBuilder extends Disposable {
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
   private readonly _comments: ko.Computed<boolean>;
+  private readonly _showRefConfigPopup: ko.Observable<boolean>;
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
@@ -202,6 +203,8 @@ export class FieldBuilder extends Disposable {
     }, this).extend({ deferred: true }));
 
     this.diffImpl = this.autoDispose(DiffBox.create(this.field));
+
+    this._showRefConfigPopup = ko.observable(false);
   }
 
   public buildSelectWidgetDom() {
@@ -261,6 +264,9 @@ export class FieldBuilder extends Disposable {
     selectType.onWrite(newType => {
       const sameType = newType === this._readOnlyPureType.peek();
       if (!sameType || commonType.get() === 'mixed') {
+        if (['Ref', 'RefList'].includes(newType)) {
+          this._showRefConfigPopup(true);
+        }
         return this._setType(newType);
       }
     });
@@ -280,7 +286,24 @@ export class FieldBuilder extends Disposable {
             // If we are waiting for a server response
             use(this.isCallPending),
           menuCssClass: cssTypeSelectMenu.className,
-          defaultLabel: 'Mixed types'
+          defaultLabel: 'Mixed types',
+          renderOptionArgs: (op) => {
+            if (['Ref', 'RefList'].includes(selectType.get())) {
+              // Don't show tip if a reference column type is already selected.
+              return;
+            }
+
+            if (op.label === 'Reference') {
+              return this.gristDoc.behavioralPrompts.attachTip('referenceColumns', {
+                popupOptions: {
+                  attach: `.${cssTypeSelectMenu.className}`,
+                  placement: 'left-start',
+                }
+              });
+            } else {
+              return null;
+            }
+          }
         }),
         testId('type-select'),
         grainjsDom.cls('tour-type-selector'),
@@ -346,7 +369,17 @@ export class FieldBuilder extends Disposable {
       return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
     });
     return [
-      cssLabel('DATA FROM TABLE'),
+      cssLabel('DATA FROM TABLE',
+        !this._showRefConfigPopup.peek() ? null : this.gristDoc.behavioralPrompts.attachTip(
+          'referenceColumnsConfig',
+          {
+            onDispose: () => this._showRefConfigPopup(false),
+            popupOptions: {
+              placement: 'left-start',
+            },
+          }
+        ),
+      ),
       cssRow(
         dom.autoDispose(allTables),
         dom.autoDispose(isDisabled),

@@ -66,6 +66,8 @@ export const GristLight: ThemeColors = {
   'tooltip-close-button-fg': 'white',
   'tooltip-close-button-hover-fg': 'black',
   'tooltip-close-button-hover-bg': 'white',
+  'tooltip-popup-header-fg': 'white',
+  'tooltip-popup-header-bg': '#16B378',
 
   /* Modals */
   'modal-bg': 'white',

@@ -45,7 +45,7 @@ export class DataTables extends Disposable {
       cssTableList(
         /***************  List section **********/
         testId('list'),
-        docListHeader(t('RawDataTables')),
+        cssHeader(t('RawDataTables')),
         cssList(
           dom.forEach(this._tables, tableRec =>
             cssItem(
@@ -183,6 +183,10 @@ export class DataTables extends Disposable {
 const container = styled('div', `
   overflow-y: auto;
   position: relative;
+`);
+
+const cssHeader = styled(docListHeader, `
+  display: inline-block;
 `);
 
 const cssList = styled('div', `

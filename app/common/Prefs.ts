@@ -27,6 +27,10 @@ export interface UserPrefs extends Prefs {
   seenDeprecatedWarnings?: DeprecationWarning[];
   // List of dismissedPopups user have seen.
   dismissedPopups?: DismissedPopup[];
+  // Behavioral prompt preferences.
+  behavioralPrompts?: BehavioralPromptPrefs;
+  // Welcome popups a user has dismissed.
+  dismissedWelcomePopups?: DismissedReminder[];
 }
 
 // A collection of preferences related to a combination of user and org.
@@ -63,11 +67,47 @@ export const DeprecationWarning = StringUnion(
 );
 export type DeprecationWarning = typeof DeprecationWarning.type;
 
+export const BehavioralPrompt = StringUnion(
+  'referenceColumns',
+  'referenceColumnsConfig',
+  'rawDataPage',
+  'accessRules',
+  'filterButtons',
+  'nestedFiltering',
+  'pageWidgetPicker',
+  'pageWidgetPickerSelectBy',
+  'editCardLayout',
+);
+export type BehavioralPrompt = typeof BehavioralPrompt.type;
+
+export interface BehavioralPromptPrefs {
+  /** Defaults to false. */
+  dontShowTips: boolean;
+  /** List of tips that have been dismissed. */
+  dismissedTips: BehavioralPrompt[];
+}
+
 /**
  * List of all popups that user can see and dismiss
  */
 export const DismissedPopup = StringUnion(
   'deleteRecords', // confirmation for deleting records keyboard shortcut
-  'deleteFields'  // confirmation for deleting columns keyboard shortcut
+  'deleteFields',  // confirmation for deleting columns keyboard shortcut
 );
 export type DismissedPopup = typeof DismissedPopup.type;
+
+export const WelcomePopup = StringUnion(
+  'coachingCall',
+);
+export type WelcomePopup = typeof WelcomePopup.type;
+
+export interface DismissedReminder {
+  /** The name of the popup. */
+  id: WelcomePopup;
+  /** Unix timestamp in ms when the popup was last dismissed. */
+  lastDismissedAt: number;
+  /** If non-null, Unix timestamp in ms when the popup will reappear. */
+  nextAppearanceAt: number | null;
+  /**  The number of times this popup has been dismissed. */
+  timesDismissed: number;
+}

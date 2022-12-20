@@ -11,6 +11,7 @@ import * as path from 'path';
 import {WebDriver} from 'selenium-webdriver';
 
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
 import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import log from 'app/server/lib/log';
@@ -24,6 +25,29 @@ export interface Server {
   getDatabase(): Promise<HomeDBManager>;
   isExternalServer(): boolean;
 }
+
+const ALL_TIPS_ENABLED = {
+  behavioralPrompts: {
+    dontShowTips: false,
+    dismissedTips: [],
+  },
+  dismissedWelcomePopups: [],
+};
+
+const ALL_TIPS_DISABLED = {
+  behavioralPrompts: {
+    dontShowTips: true,
+    dismissedTips: BehavioralPrompt.values,
+  },
+  dismissedWelcomePopups: WelcomePopup.values.map(id => {
+    return {
+      id,
+      lastDismissedAt: 0,
+      nextAppearanceAt: null,
+      timesDismissed: 1,
+    };
+  }),
+};
 
 export class HomeUtil {
   // Cache api keys of test users.  It is often convenient to have various instances
@@ -54,9 +78,13 @@ export class HomeUtil {
     freshAccount?: boolean,
     isFirstLogin?: boolean,
     showGristTour?: boolean,
+    showTips?: boolean,
     cacheCredentials?: boolean,
   } = {}) {
-    const {loginMethod, isFirstLogin} = defaults(options, {loginMethod: 'Email + Password'});
+    const {loginMethod, isFirstLogin, showTips} = defaults(options, {
+      loginMethod: 'Email + Password',
+      showTips: false,
+    });
     const showGristTour = options.showGristTour ?? (options.freshAccount ?? isFirstLogin);
 
     // For regular tests, we can log in through a testing hook.
@@ -64,6 +92,11 @@ export class HomeUtil {
       if (options.freshAccount) { await this._deleteUserByEmail(email); }
       if (isFirstLogin !== undefined) { await this._setFirstLogin(email, isFirstLogin); }
       if (showGristTour !== undefined) { await this._initShowGristTour(email, showGristTour); }
+      if (showTips) {
+        await this.enableTips(email);
+      } else {
+        await this.disableTips(email);
+      }
       // TestingHooks communicates via JSON, so it's impossible to send an `undefined` value for org
       // through it. Using the empty string happens to work though.
       const testingHooks = await this.server.getTestingHooks();
@@ -120,6 +153,14 @@ export class HomeUtil {
     } else {
       await this.driver.get(`${this.server.getHost()}/logout`);
     }
+  }
+
+  public async enableTips(email: string) {
+    await this._toggleTips(true, email);
+  }
+
+  public async disableTips(email: string) {
+    await this._toggleTips(false, email);
   }
 
   // Check if the url looks like a welcome page.  The check is weak, but good enough
@@ -395,5 +436,31 @@ export class HomeUtil {
       fetch: fetch as any,
       newFormData: () => new FormData() as any,  // form-data isn't quite type compatible
       logger: log});
+  }
+
+  private async _toggleTips(enabled: boolean, email: string) {
+    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+
+    const dbManager = await this.server.getDatabase();
+    const user = await dbManager.getUserByLogin(email);
+    if (!user) { return; }
+
+    if (user.personalOrg) {
+      const org = await dbManager.getOrg({userId: user.id}, user.personalOrg.id);
+      const userPrefs = (org.data as any)?.userPrefs ?? {};
+      const newUserPrefs: UserPrefs = {
+        ...userPrefs,
+        ...(enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED),
+      };
+      await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userPrefs: newUserPrefs});
+    } else {
+      await this.driver.executeScript(`
+        const userPrefs = JSON.parse(localStorage.getItem('userPrefs:u=${user.id}') || '{}');
+        localStorage.setItem('userPrefs:u=${user.id}', JSON.stringify({
+          ...userPrefs,
+          ...${JSON.stringify(enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED)},
+        }));
+      `);
+    }
   }
 }

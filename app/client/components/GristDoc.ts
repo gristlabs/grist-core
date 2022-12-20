@@ -6,6 +6,7 @@
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import BaseView from 'app/client/components/BaseView';
+import {BehavioralPrompts} from 'app/client/components/BehavioralPrompts';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
@@ -46,6 +47,7 @@ import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
+import {IWidgetType} from 'app/client/ui/widgetTypes';
 import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {invokePrompt} from 'app/client/ui2018/modals';
@@ -163,6 +165,8 @@ export class GristDoc extends DisposableWithEvents {
 
   // If the doc has a docTour. Used also to enable the UI button to restart the tour.
   public readonly hasDocTour: Computed<boolean>;
+
+  public readonly behavioralPrompts = BehavioralPrompts.create(this, this.docPageModel.appModel);
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -601,6 +605,8 @@ export class GristDoc extends DisposableWithEvents {
 
     // The newly-added section should be given focus.
     this.viewModel.activeSectionId(res.sectionRef);
+
+    this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
   }
 
   /**
@@ -641,6 +647,8 @@ export class GristDoc extends DisposableWithEvents {
       await this.openDocPage(result.viewRef);
       // The newly-added section should be given focus.
       this.viewModel.activeSectionId(result.sectionRef);
+
+      this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
     }
   }
 
@@ -1085,6 +1093,32 @@ export class GristDoc extends DisposableWithEvents {
         return null;
       }
     }
+  }
+
+  private async _maybeShowEditCardLayoutTip(selectedWidgetType: IWidgetType) {
+    if (
+      // Don't show the tip if a non-card widget was selected.
+      !['single', 'detail'].includes(selectedWidgetType) ||
+      // Or if we've already seen it.
+      this.behavioralPrompts.hasSeenTip('editCardLayout')
+    ) {
+      return;
+    }
+
+    // Open the right panel to the widget subtab.
+    commands.allCommands.viewTabOpen.run();
+
+    // Wait for the right panel to finish animation if it was collapsed before.
+    await commands.allCommands.rightPanelOpen.run();
+
+    const editLayoutButton = document.querySelector('.behavioral-prompt-edit-card-layout');
+    if (!editLayoutButton) { throw new Error('GristDoc failed to find edit card layout button'); }
+
+    this.behavioralPrompts.showTip(editLayoutButton, 'editCardLayout', {
+      popupOptions: {
+        placement: 'left-start',
+      }
+    });
   }
 
   private async _promptForName() {

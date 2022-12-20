@@ -87,6 +87,8 @@ export interface ThemeColors {
   'tooltip-close-button-fg': string;
   'tooltip-close-button-hover-fg': string;
   'tooltip-close-button-hover-bg': string;
+  'tooltip-popup-header-fg': string;
+  'tooltip-popup-header-bg': string;
 
   /* Modals */
   'modal-bg': string;

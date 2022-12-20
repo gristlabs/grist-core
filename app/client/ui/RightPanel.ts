@@ -537,7 +537,7 @@ export class RightPanel extends Disposable {
     const gristDoc = this._gristDoc;
     const section = gristDoc.viewModel.activeSection;
     const onSave = (val: IPageWidget) => gristDoc.saveViewSection(section.peek(), val);
-    return (elem) => { attachPageWidgetPicker(elem, gristDoc.docModel, onSave, {
+    return (elem) => { attachPageWidgetPicker(elem, gristDoc, onSave, {
       buttonLabel:  t('Save'),
       value: () => toPageWidget(section.peek()),
       selectBy: (val) => gristDoc.selectBy(val),

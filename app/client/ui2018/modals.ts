@@ -7,7 +7,7 @@ import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/but
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {waitGrainObs} from 'app/common/gutil';
-import {IOpenController, IPopupDomCreator, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
+import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
 import {cssMenuElem} from 'app/client/ui2018/menus';
@@ -483,7 +483,7 @@ export function cssModalWidth(style: ModalWidth) {
  */
 export function modalTooltip(
   reference: Element,
-  domCreator: IPopupDomCreator,
+  domCreator: (ctl: IOpenController) => DomElementArg,
   options: IPopupOptions = {}
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
@@ -496,7 +496,7 @@ export function modalTooltip(
 
 /* CSS styled components */
 
-const cssModalTooltip = styled(cssMenuElem, `
+export const cssModalTooltip = styled(cssMenuElem, `
   padding: 16px 24px;
   background: ${theme.modalBg};
   border-radius: 3px;
@@ -559,6 +559,19 @@ export const cssModalButtons = styled('div', `
   & > button,
   & > .${cssButton.className} {
     margin: 0 8px 0 0;
+  }
+`);
+
+export const cssModalCloseButton = styled('div', `
+  align-self: flex-end;
+  margin: -8px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  --icon-color: ${theme.modalCloseButtonFg};
+
+  &:hover {
+    background-color: ${theme.hover};
   }
 `);
 

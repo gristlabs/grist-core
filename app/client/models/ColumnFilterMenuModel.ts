@@ -1,3 +1,4 @@
+import { GristDoc } from "app/client/components/GristDoc";
 import { ColumnFilter } from "app/client/models/ColumnFilter";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { CellValue } from "app/plugin/GristData";
@@ -29,6 +30,7 @@ interface ColumnFilterMenuModelParams {
   columnFilter: ColumnFilter;
   filterInfo: FilterInfo;
   valueCount: Array<[CellValue, IFilterCount]>;
+  gristDoc: GristDoc;
   limitShow?: number;
 }
 
@@ -36,6 +38,8 @@ export class ColumnFilterMenuModel extends Disposable {
   public readonly columnFilter = this._params.columnFilter;
 
   public readonly filterInfo = this._params.filterInfo;
+
+  public readonly gristDoc = this._params.gristDoc;
 
   public readonly initialPinned = this.filterInfo.isPinned.peek();
 

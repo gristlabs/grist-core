@@ -12,7 +12,8 @@ import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
-import {DeprecationWarning, DismissedPopup, UserPrefs} from 'app/common/Prefs';
+import {BehavioralPromptPrefs, DeprecationWarning, DismissedPopup, DismissedReminder,
+        UserPrefs} from 'app/common/Prefs';
 import {isOwner} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
@@ -23,7 +24,7 @@ import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/comm
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
-const t = makeT('models.AppModel')
+const t = makeT('models.AppModel');
 
 // Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
@@ -97,6 +98,8 @@ export interface AppModel {
    * Deprecation messages that user has seen.
    */
   deprecatedWarnings: Observable<DeprecationWarning[]>;
+  dismissedWelcomePopups: Observable<DismissedReminder[]>;
+  behavioralPrompts: Observable<BehavioralPromptPrefs>;
 
   pageType: Observable<PageType>;
 
@@ -108,6 +111,7 @@ export interface AppModel {
   showNewSiteModal(): void;
   isBillingManager(): boolean;          // If user is a billing manager for this org
   isSupport(): boolean;                 // If user is a Support user
+  isOwner(): boolean;                   // If user is an owner of this org
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -236,11 +240,14 @@ export class AppModelImpl extends Disposable implements AppModel {
   }) as Observable<ThemePrefs>;
   public readonly currentTheme = this._getCurrentThemeObs();
 
-  public readonly dismissedPopups =
-    getUserPrefObs(this.userPrefsObs, 'dismissedPopups', { defaultValue: [] }) as Observable<DismissedPopup[]>;
+  public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
+    { defaultValue: [] }) as Observable<DismissedPopup[]>;
   public readonly deprecatedWarnings = getUserPrefObs(this.userPrefsObs, 'seenDeprecatedWarnings',
-    { defaultValue: []}) as Observable<DeprecationWarning[]>;
-
+    { defaultValue: [] }) as Observable<DeprecationWarning[]>;
+  public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, 'dismissedWelcomePopups',
+    { defaultValue: [] }) as Observable<DismissedReminder[]>;
+  public readonly behavioralPrompts = getUserPrefObs(this.userPrefsObs, 'behavioralPrompts',
+    { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
@@ -303,18 +310,21 @@ export class AppModelImpl extends Disposable implements AppModel {
     return Boolean(this.currentOrg?.billingAccount?.isManager);
   }
 
+  public isOwner() {
+    return Boolean(this.currentOrg && isOwner(this.currentOrg));
+  }
+
   /**
    * Fetch and update the current org's usage.
    */
   public async refreshOrgUsage() {
-    const currentOrg = this.currentOrg;
-    if (!isOwner(currentOrg)) {
+    if (!this.isOwner()) {
       // Note: getOrgUsageSummary already checks for owner access; we do an early return
       // here to skip making unnecessary API calls.
       return;
     }
 
-    const usage = await this.api.getOrgUsageSummary(currentOrg.id);
+    const usage = await this.api.getOrgUsageSummary(this.currentOrg!.id);
     if (!this.isDisposed()) {
       this.currentOrgUsage.set(usage);
     }

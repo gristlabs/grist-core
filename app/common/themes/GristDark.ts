@@ -66,6 +66,8 @@ export const GristDark: ThemeColors = {
   'tooltip-close-button-fg': 'white',
   'tooltip-close-button-hover-fg': 'black',
   'tooltip-close-button-hover-bg': 'white',
+  'tooltip-popup-header-fg': '#EFEFEF',
+  'tooltip-popup-header-bg': '#1DA270',
 
   /* Modals */
   'modal-bg': '#32323F',

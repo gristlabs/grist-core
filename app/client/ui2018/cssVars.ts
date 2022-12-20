@@ -228,6 +228,8 @@ export const theme = {
     'black'),
   tooltipCloseButtonHoverBg: new CustomProp('theme-tooltip-close-button-hover-bg', undefined,
     'white'),
+  tooltipPopupHeaderFg: new CustomProp('theme-tooltip-popup-header-fg', undefined, colors.light),
+  tooltipPopupHeaderBg: new CustomProp('theme-tooltip-popup-header-bg', undefined, colors.lightGreen),
 
   /* Modals */
   modalBg: new CustomProp('theme-modal-bg', undefined, 'white'),

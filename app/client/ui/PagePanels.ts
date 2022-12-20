@@ -9,7 +9,7 @@ import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomArg, MultiHolder, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
+import {dom, DomElementArg, MultiHolder, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
 import noop from 'lodash/noop';
 import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
@@ -26,21 +26,21 @@ export interface PageSidePanel {
   panelWidth: Observable<number>;
   panelOpen: Observable<boolean>;
   hideOpener?: boolean;           // If true, don't show the opener handle.
-  header: DomArg;
-  content: DomArg;
+  header: DomElementArg;
+  content: DomElementArg;
 }
 
 export interface PageContents {
   leftPanel: PageSidePanel;
   rightPanel?: PageSidePanel;     // If omitted, the right panel isn't shown at all.
 
-  headerMain: DomArg;
-  contentMain: DomArg;
+  headerMain: DomElementArg;
+  contentMain: DomElementArg;
 
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
-  contentTop?: DomArg;
-  contentBottom?: DomArg;
+  contentTop?: DomElementArg;
+  contentBottom?: DomElementArg;
 }
 
 export function pagePanels(page: PageContents) {
@@ -55,6 +55,7 @@ export function pagePanels(page: PageContents) {
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
+  let rightPaneDom: HTMLElement;
   let onLeftTransitionFinish = noop;
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
@@ -88,6 +89,16 @@ export function pagePanels(page: PageContents) {
       const watcher = new TransitionWatcher(leftPaneDom);
       watcher.onDispose(() => resolve(undefined));
       left.panelOpen.set(true);
+    }),
+    rightPanelOpen: () => new Promise((resolve, reject) => {
+      if (!right) {
+        reject(new Error('PagePanels rightPanelOpen called while right panel is undefined'));
+        return;
+      }
+
+      const watcher = new TransitionWatcher(rightPaneDom);
+      watcher.onDispose(() => resolve(undefined));
+      right.panelOpen.set(true);
     }),
   }, null, true);
   let contentWrapper: HTMLElement;
@@ -262,7 +273,7 @@ export function pagePanels(page: PageContents) {
           dom.show(right.panelOpen),
           cssHideForNarrowScreen.cls('')),
 
-        cssRightPane(
+        rightPaneDom = cssRightPane(
           testId('right-panel'),
           cssRightPaneHeader(right.header),
           right.content,

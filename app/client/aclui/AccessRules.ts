@@ -322,6 +322,9 @@ export class AccessRules extends Disposable {
 
   public buildDom() {
     return cssOuter(
+      dom('div', this._gristDoc.behavioralPrompts.attachTip('accessRules', {
+        hideArrow: true,
+      })),
       cssAddTableRow(
         bigBasicButton({disabled: true}, dom.hide(this._savingEnabled),
           dom.text((use) => {

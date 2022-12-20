@@ -1,3 +1,4 @@
+import { GristDoc } from "app/client/components/GristDoc";
 import { NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
@@ -9,11 +10,22 @@ import { menu, menuItemAsync } from "app/client/ui2018/menus";
 import { dom, IDisposableOwner, IDomArgs, styled } from "grainjs";
 import { IMenuOptions, PopupControl } from "popweasel";
 
-export function filterBar(_owner: IDisposableOwner, viewSection: ViewSectionRec) {
+export function filterBar(
+  _owner: IDisposableOwner,
+  gristDoc: GristDoc,
+  viewSection: ViewSectionRec
+) {
   const popupControls = new WeakMap<ColumnRec, PopupControl>();
   return cssFilterBar(
     testId('filter-bar'),
     dom.forEach(viewSection.activeFilters, (filterInfo) => makeFilterField(filterInfo, popupControls)),
+    dom.maybe(viewSection.showNestedFilteringPopup, () => {
+      return dom('div',
+        gristDoc.behavioralPrompts.attachTip('nestedFiltering', {
+          onDispose: () => viewSection.showNestedFilteringPopup.set(false),
+        }),
+      );
+    }),
     makePlusButton(viewSection, popupControls),
     cssFilterBar.cls('-hidden', use => use(viewSection.pinnedActiveFilters).length === 0),
   );

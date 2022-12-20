@@ -30,12 +30,10 @@
 
 .g_record_delete_field {
   position: absolute;
-  top: 0;
-  right: 0;
-  background-color: #404040;
-  border: 1px solid #404040;
+  top: 2px;
+  right: 2px;
   border-radius: 1rem;
-  color: white;
+  color: var(--grist-theme-control-secondary-fg, #404040);
   cursor: pointer;
 
   display: none;

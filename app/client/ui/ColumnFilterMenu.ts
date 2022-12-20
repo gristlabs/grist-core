@@ -4,6 +4,7 @@
  * but on Cancel the model is reset to its initial state prior to menu closing.
  */
 import * as commands from 'app/client/components/commands';
+import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
@@ -72,7 +73,7 @@ export type IColumnFilterViewType = 'listView'|'calendarView';
  */
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
   const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton } = opts;
-  const { columnFilter, filterInfo } = model;
+  const { columnFilter, filterInfo, gristDoc } = model;
   const valueFormatter = opts.valueFormatter || ((val) => val?.toString() || '');
 
   // Map to keep track of displayed checkboxes
@@ -351,6 +352,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               icon('PinTilted'),
               cssPinButton.cls('-pinned', model.filterInfo.isPinned),
               dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
+              gristDoc.behavioralPrompts.attachTip('filterButtons', {
+                popupOptions: {
+                  attach: null,
+                }
+              }),
               testId('pin-btn'),
             ),
           ),
@@ -604,27 +610,38 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
 }
 
 export interface IColumnFilterMenuOptions {
-  // Callback for when the filter menu is closed.
-  onClose?: () => void;
-  // If true, shows a button that opens the sort & filter widget menu.
+  /** If true, shows a button that opens the sort & filter widget menu. */
   showAllFiltersButton?: boolean;
+  /** Callback for when the filter menu is closed. */
+  onClose?: () => void;
+}
+
+export interface ICreateFilterMenuParams extends IColumnFilterMenuOptions {
+  openCtl: IOpenController;
+  sectionFilter: SectionFilter;
+  filterInfo: FilterInfo;
+  rowSource: RowSource;
+  tableData: TableData;
+  gristDoc: GristDoc;
 }
 
 /**
  * Returns content for the newly created columnFilterMenu; for use with setPopupToCreateDom().
  */
-export function createFilterMenu(
-  openCtl: IOpenController,
-  sectionFilter: SectionFilter,
-  filterInfo: FilterInfo,
-  rowSource: RowSource,
-  tableData: TableData,
-  options: IColumnFilterMenuOptions = {}
-) {
-  const {onClose = noop, showAllFiltersButton} = options;
+export function createFilterMenu(params: ICreateFilterMenuParams) {
+  const {
+    openCtl,
+    sectionFilter,
+    filterInfo,
+    rowSource,
+    tableData,
+    gristDoc,
+    showAllFiltersButton,
+    onClose = noop
+  } = params;
 
   // Go through all of our shown and hidden rows, and count them up by the values in this column.
-  const {fieldOrColumn, filter} = filterInfo;
+  const {fieldOrColumn, filter, isPinned} = filterInfo;
   const columnType = fieldOrColumn.origCol.peek().type.peek();
   const visibleColumnType = fieldOrColumn.visibleColModel.peek()?.type.peek() || columnType;
   const {keyMapFunc, labelMapFunc, valueMapFunc} = getMapFuncs(columnType, tableData, fieldOrColumn);
@@ -668,6 +685,7 @@ export function createFilterMenu(
     columnFilter,
     filterInfo,
     valueCount: valueCountsArr,
+    gristDoc,
   });
 
   return columnFilterMenu(openCtl, {
@@ -676,21 +694,31 @@ export function createFilterMenu(
     onClose: () => { openCtl.close(); onClose(); },
     doSave: (reset: boolean = false) => {
       const spec = columnFilter.makeFilterJson();
-      sectionFilter.viewSection.setFilter(
+      const {viewSection} = sectionFilter;
+      viewSection.setFilter(
         fieldOrColumn.origCol().origColRef(),
         {filter: spec}
       );
       if (reset) {
         sectionFilter.resetTemporaryRows();
       }
+
+      // Check if the save was for a new filter, and if that new filter was pinned. If it was, and
+      // it is the second pinned filter in the section, trigger a tip that explains how multiple
+      // filters in the same section work.
+      const isNewPinnedFilter = columnFilter.initialFilterJson === NEW_FILTER_JSON && isPinned();
+      if (isNewPinnedFilter && viewSection.pinnedActiveFilters.get().length === 2) {
+        viewSection.showNestedFilteringPopup.set(true);
+      }
     },
     doCancel: () => {
+      const {viewSection} = sectionFilter;
       if (columnFilter.initialFilterJson === NEW_FILTER_JSON) {
-        sectionFilter.viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
+        viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
       } else {
         const initialFilter = columnFilter.initialFilterJson;
         columnFilter.setState(initialFilter);
-        sectionFilter.viewSection.setFilter(
+        viewSection.setFilter(
           fieldOrColumn.origCol().origColRef(),
           {filter: initialFilter, pinned: model.initialPinned}
         );

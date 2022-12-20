@@ -98,6 +98,11 @@ export const menuCssClass = cssMenuElem.className;
 // Add grist-floating-menu class to support existing browser tests
 const defaults = { menuCssClass: menuCssClass + ' grist-floating-menu' };
 
+export interface SelectOptions<T> extends weasel.ISelectUserOptions {
+  /** Additional DOM element args to pass to each select option. */
+  renderOptionArgs?: (option: IOptionFull<T | null>) => DomElementArg;
+}
+
 /**
  * Creates a select dropdown widget. The observable `obs` reflects the value of the selected
  * option, and `optionArray` is an array (regular or observable) of option values and labels.
@@ -121,15 +126,20 @@ const defaults = { menuCssClass: menuCssClass + ' grist-floating-menu' };
  *    ]);
  *    select(employee, allEmployees, {defLabel: "Select employee:"});
  *
+ *    const name = observable("alice");
+ *    const names = ["alice", "bob", "carol"];
+ *    select(name, names, {renderOptionArgs: (op) => console.log(`Rendered option ${op.value}`)});
+ *
  * Note that this select element is not compatible with browser address autofill for usage in
  * forms, and that formSelect should be used for this purpose.
  */
 export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
-                          options: weasel.ISelectUserOptions = {}) {
+                          options: SelectOptions<T> = {}) {
+  const {renderOptionArgs, ...weaselOptions} = options;
   const _menu = cssSelectMenuElem(testId('select-menu'));
   const _btn = cssSelectBtn(testId('select-open'));
 
-  const {menuCssClass: menuClass, ...otherOptions} = options;
+  const {menuCssClass: menuClass, ...otherOptions} = weaselOptions;
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
     menuCssClass: _menu.className + ' ' + (menuClass || ''),
@@ -141,6 +151,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
     cssOptionRow(
       op.icon ? cssOptionRowIcon(op.icon) : null,
       cssOptionLabel(op.label),
+      renderOptionArgs ? renderOptionArgs(op) : null,
       testId('select-row')
     )
   ) as HTMLElement; // TODO: should be changed in weasel
