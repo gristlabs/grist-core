@@ -3,6 +3,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {GristBehavioralPrompts} from 'app/client/ui/GristTooltips';
 import {isNarrowScreen} from 'app/client/ui2018/cssVars';
 import {BehavioralPrompt} from 'app/common/Prefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom} from 'grainjs';
 import {IPopupOptions} from 'popweasel';
 
@@ -51,7 +52,18 @@ export class BehavioralPrompts extends Disposable {
   }
 
   private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
-    if (isNarrowScreen() || this._prefs.get().dontShowTips || this.hasSeenTip(prompt)) {
+    if (
+      // Don't show tips if surveying is disabled.
+      // TODO: Move this into a dedicated variable - this is only a short-term fix for hiding
+      // tips in grist-core.
+      !getGristConfig().survey ||
+      // Or on mobile - the design currently isn't mobile-friendly.
+      isNarrowScreen() ||
+      // Or if "Don't show tips" was checked in the past.
+      this._prefs.get().dontShowTips ||
+      // Or if this tip has been shown and dismissed in the past.
+      this.hasSeenTip(prompt)
+    ) {
       return;
     }
 

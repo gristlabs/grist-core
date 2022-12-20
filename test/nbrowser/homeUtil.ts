@@ -439,7 +439,10 @@ export class HomeUtil {
   }
 
   private async _toggleTips(enabled: boolean, email: string) {
-    if (this.server.isExternalServer()) { throw new Error('not supported'); }
+    if (this.server.isExternalServer()) {
+      // Unsupported due to lack of access to the database.
+      return;
+    }
 
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
