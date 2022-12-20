@@ -16,7 +16,6 @@ jobs:
       matrix:
         python-version: [3.9]
         node-version: [14.x]
-
     steps:
       - uses: actions/checkout@v2
 
@@ -38,6 +37,12 @@ jobs:
       - name: Install Node.js packages
         run: yarn install
 
+      - name: Make sure bucket is versioned
+        env:
+          AWS_ACCESS_KEY_ID: administrator
+          AWS_SECRET_ACCESS_KEY: administrator
+        run: aws --region us-east-1 --endpoint-url http://localhost:9000 s3api put-bucket-versioning --bucket grist-docs-test --versioning-configuration Status=Enabled
+
       - name: Build Node.js code
         run: yarn run build:prod
 
@@ -47,8 +52,19 @@ jobs:
       - name: Run python tests
         run: yarn run test:python
 
-      - name: Run main tests
-        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test
+      - name: Run server tests with minio and redis
+        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
+        env:
+          GRIST_DOCS_MINIO_ACCESS_KEY: administrator
+          GRIST_DOCS_MINIO_SECRET_KEY: administrator
+          TEST_REDIS_URL: "redis://localhost/11"
+          GRIST_DOCS_MINIO_USE_SSL: 0
+          GRIST_DOCS_MINIO_ENDPOINT: localhost
+          GRIST_DOCS_MINIO_PORT: 9000
+          GRIST_DOCS_MINIO_BUCKET: grist-docs-test
+
+      - name: Run main tests without minio and redis
+        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test --exclude '_build/test/server/**/*'
 
       - name: Update candidate branch
         if: ${{ github.event_name == 'push' }}
@@ -57,3 +73,29 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: latest_candidate
           force: true
+
+    services:
+      # https://github.com/bitnami/bitnami-docker-minio/issues/16
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_DEFAULT_BUCKETS: "grist-docs-test:public"
+          MINIO_ROOT_USER: administrator
+          MINIO_ROOT_PASSWORD: administrator
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/ready"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5

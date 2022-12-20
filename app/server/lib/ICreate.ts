@@ -30,6 +30,7 @@ export interface ICreate {
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
+  getStorageOptions?(name: string): ICreateStorageOptions|undefined;
 }
 
 export interface ICreateActiveDocOptions {
@@ -40,6 +41,7 @@ export interface ICreateActiveDocOptions {
 }
 
 export interface ICreateStorageOptions {
+  name: string;
   check(): boolean;
   create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
 }
@@ -117,5 +119,11 @@ export function makeSimpleCreator(opts: {
       elements.push(getThemeBackgroundSnippet());
       return elements.join('\n');
     },
+    getStorageOptions(name: string) {
+      for (const s of storage || []) {
+        console.log({s, name});
+        if (s.name === name) { return s; }
+      }
+    }
   };
 }
