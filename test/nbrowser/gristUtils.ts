@@ -1016,12 +1016,7 @@ export interface PageWidgetPickerOptions {
   summarize?: (RegExp|string)[];
   /** If true, configure the widget selection without actually adding to the page. */
   dontAdd?: boolean;
-  /**
-   * If true, dismiss any tooltips that are shown.
-   *
-   * TODO: Only needed by one test. Can be removed once a fix has landed for the bug
-   * where user-level preferences aren't loaded when the session's org is null.
-   */
+  /** If true, dismiss any tooltips that are shown. */
   dismissTips?: boolean;
 }
 

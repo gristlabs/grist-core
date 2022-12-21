@@ -210,7 +210,7 @@ describe("Fork", function() {
         assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table1/);
 
         // Add a new page; this immediately triggers a fork, AND selects the new page in it.
-        await gu.addNewPage(/Table/, /New Table/);
+        await gu.addNewPage(/Table/, /New Table/, {dismissTips: true});
         const urlId1 = await gu.getCurrentUrlId();
         assert.match(urlId1!, /~/);
         assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table2/);
