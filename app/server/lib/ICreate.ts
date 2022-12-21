@@ -57,6 +57,9 @@ export function makeSimpleCreator(opts: {
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
+  sandboxFlavor?: string,
+  shell?: IShell,
+  getExtraHeadHtml?: () => string,
 }): ICreate {
   const {sessionSecret, storage, notifier, billing} = opts;
   return {
@@ -84,7 +87,7 @@ export function makeSimpleCreator(opts: {
       return undefined;
     },
     NSandbox(options) {
-      return createSandbox('unsandboxed', options);
+      return createSandbox(opts.sandboxFlavor || 'unsandboxed', options);
     },
     sessionSecret() {
       const secret = process.env.GRIST_SESSION_SECRET || sessionSecret;
@@ -98,7 +101,15 @@ export function makeSimpleCreator(opts: {
         if (s.check()) { break; }
       }
     },
+    ...(opts.shell && {
+      Shell() {
+        return opts.shell as IShell;
+      },
+    }),
     getExtraHeadHtml() {
+      if (opts.getExtraHeadHtml) {
+        return opts.getExtraHeadHtml();
+      }
       const elements: string[] = [];
       if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
         elements.push('<link rel="stylesheet" href="custom.css">');

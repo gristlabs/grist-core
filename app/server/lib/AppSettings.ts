@@ -1,4 +1,4 @@
-import { isAffirmative } from 'app/common/gutil';
+import { isAffirmative, isNumber } from 'app/common/gutil';
 
 /**
  * A bundle of settings for the application. May contain
@@ -21,6 +21,22 @@ export class AppSettings {
   /* access the setting as a boolean using isAffirmative - undefined if not set */
   public getAsBool(): boolean|undefined {
     return (this._value !== undefined) ? isAffirmative(this._value) : undefined;
+  }
+
+  /**
+   * Access the setting as an integer using parseInt. Undefined if not set.
+   * Throws an error if not numberlike.
+   */
+  public getAsInt(): number|undefined {
+    if (this._value === undefined) { return undefined; }
+    const datum = this._value?.valueOf();
+    if (typeof datum === 'number') {
+      return datum;
+    }
+    if (isNumber(String(datum))) {
+      return parseInt(String(datum), 10);
+    }
+    throw new Error(`${datum} does not look like a number`);
   }
 
   /**
