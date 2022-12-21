@@ -9,24 +9,39 @@ import {schema, SchemaTypes} from 'app/common/schema';
 import fromPairs = require('lodash/fromPairs');
 import groupBy = require('lodash/groupBy');
 import {ActionDispatcher} from './ActionDispatcher';
+import {TableFetchResult} from './ActiveDocAPI';
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   RowRecord, TableDataAction
 } from './DocActions';
 import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from './TableData';
 
-type FetchTableFunc = (tableId: string) => Promise<TableDataAction>;
+type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 
 export class DocData extends ActionDispatcher {
   private _tables: Map<string, TableData> = new Map();
+
+  private _fetchTableFunc: (tableId: string) => Promise<TableDataAction>;
 
   /**
    * If metaTableData is not supplied, then any tables needed should be loaded manually,
    * using syncTable(). All column types will be set to Any, which will affect default
    * values.
    */
-  constructor(private _fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction} | null) {
+  constructor(fetchTableFunc: FetchTableFunc, metaTableData: {[tableId: string]: TableDataAction} | null) {
     super();
+    // Wrap fetchTableFunc slightly to handle any extra attachment data that
+    // may come along for the ride.
+    this._fetchTableFunc = async (tableId: string) => {
+      const {tableData, attachments} = await fetchTableFunc(tableId);
+      if (attachments) {
+        // Back-end doesn't keep track of which attachments we already have,
+        // so there may be duplicates of rows we already have - but happily
+        // BulkAddRecord overwrites duplicates now.
+        this.receiveAction(attachments);
+      }
+      return tableData;
+    };
     if (metaTableData === null) { return; }
     // Create all meta tables, and populate data we already have.
     for (const tableId in schema) {

@@ -17,9 +17,10 @@ import {
   isBulkUpdateRecord,
   isUpdateRecord,
 } from 'app/common/DocActions';
+import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from 'app/common/AttachmentColumns';
 import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
-import { TableDataAction, UserAction } from 'app/common/DocActions';
+import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
@@ -28,7 +29,7 @@ import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
 import { UserInfo } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
-import { getSetMapValue, isNonNullish, isNumber, pruneArray } from 'app/common/gutil';
+import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
@@ -44,12 +45,11 @@ import { IPermissionInfo, MixedPermissionSetWithContext,
          PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
-import { getColIdsFromDocAction, getColValuesFromDocAction, getRelatedRows,
-         getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
+import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
-import memoize = require('lodash/memoize');
 import get = require('lodash/get');
+import memoize = require('lodash/memoize');
 
 // tslint:disable:no-bitwise
 
@@ -597,9 +597,11 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const actions = await Promise.all(
       docActions.map((action, actionIdx) => this._filterOutgoingDocAction({docSession, action, actionIdx})));
-    const result = ([] as DocAction[]).concat(...actions);
+    let result = ([] as ActionCursor[]).concat(...actions);
+    result = await this._filterOutgoingAttachments(result);
 
-    return await this._filterOutgoingCellInfo(docSession, docActions, result);
+    return await this._filterOutgoingCellInfo(docSession, docActions,
+                                              result.map(a => a.action));
   }
 
 
@@ -820,8 +822,12 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * An odd little right for findColFromValues and autocomplete.  Allow if user can read
-   * all data, or is an owner.  Might be worth making a special permission.
+   * Allow if user can read all data, or is an owner.
+   * Might be worth making a special permission.
+   * At the time of writing, used for:
+   *   - findColFromValues
+   *   - autocomplete
+   *   - unfiltered access to attachment metadata
    */
   public async canScanData(docSession: OptDocSession): Promise<boolean> {
     return await this.isOwner(docSession) || await this.canReadEverything(docSession);
@@ -902,6 +908,17 @@ export class GranularAccess implements GranularAccessForBundle {
 
     for (const tableId of STRUCTURAL_TABLES) {
       censor.apply(tables[tableId]);
+    }
+    if (await this.needAttachmentControl(docSession)) {
+      // Attachments? No attachments here (whistles innocently).
+      // Computing which attachments user has access to would require
+      // looking at entire document, which we don't want to do. So instead
+      // we'll be sending this info on a need-to-know basis later.
+      const attachments = tables['_grist_Attachments'];
+      attachments[2] = [];
+      Object.values(attachments[3]).forEach(values => {
+        values.length = 0;
+      });
     }
     return tables;
   }
@@ -1083,7 +1100,12 @@ export class GranularAccess implements GranularAccessForBundle {
     rows.delete('_grist_Cells');
     // Populate a minimal in-memory version of the database with these rows.
     const docData = new DocData(
-      (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}), {
+      async (tableId) => {
+        return {
+          tableData: await this._fetchQueryFromDB(
+            {tableId, filters: {id: [...rows.get(tableId)!]}})
+        };
+      }, {
         _grist_Cells: this._docData.getMetaTable('_grist_Cells')!.getTableDataAction(),
         // We need some basic table information to translate numeric ids to string ids (refs to ids).
         _grist_Tables: this._docData.getMetaTable('_grist_Tables')!.getTableDataAction(),
@@ -1093,6 +1115,11 @@ export class GranularAccess implements GranularAccessForBundle {
     // Load pre-existing rows touched by the bundle.
     await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
     return docData;
+  }
+
+  // Return true if attachment info must be sent on a need-to-know basis.
+  public async needAttachmentControl(docSession: OptDocSession) {
+    return !await this.canScanData(docSession);
   }
 
   /**
@@ -1971,7 +1998,11 @@ export class GranularAccess implements GranularAccessForBundle {
     const rows = new Map(getRelatedRows(applied ? [...undo].reverse() : docActions));
     // Populate a minimal in-memory version of the database with these rows.
     const docData = new DocData(
-      (tableId) => this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}}),
+      async (tableId) => {
+        return {
+          tableData: await this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}})
+        };
+      },
       null,
     );
     // Load pre-existing rows touched by the bundle.
@@ -2015,14 +2046,14 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!needMeta) {
       // Sometimes, the intermediate states are trivial.
       // TODO: look into whether it would be worth caching attachment columns.
-      const attachmentColumns = this._getAttachmentColumns(this._docData);
+      const attachmentColumns = getAttachmentColumns(this._docData);
       return docActions.map(action => ({action, attachmentColumns}));
     }
     const metaDocData = new DocData(
       async (tableId) => {
         const result = this._docData.getTable(tableId)?.getTableDataAction();
         if (!result) { throw new Error('surprising load'); }
-        return result;
+        return {tableData: result};
       },
       null,
     );
@@ -2067,31 +2098,10 @@ export class GranularAccess implements GranularAccessForBundle {
         replaceRuler = false;
       }
       step.ruler = ruler;
-      step.attachmentColumns = this._getAttachmentColumns(metaDocData);
+      step.attachmentColumns = getAttachmentColumns(metaDocData);
       steps.push(step);
     }
     return steps;
-  }
-
-  /**
-   * Enumerate attachment columns, represented as a map from tableId to
-   * a set of colIds.
-   */
-  private _getAttachmentColumns(metaDocData: DocData): Map<string, Set<string>> {
-    const tablesTable = metaDocData.getMetaTable('_grist_Tables');
-    const columnsTable = metaDocData.getMetaTable('_grist_Tables_column');
-    const attachmentColumns: Map<string, Set<string>> = new Map();
-    for (const col of columnsTable.filterRecords({type: 'Attachments'})) {
-      const table = tablesTable.getRecord(col.parentId);
-      const tableId = table?.tableId;
-      if (!tableId) { throw new Error('table not found'); /* should not happen */ }
-      const colId = col.colId;
-      if (!attachmentColumns.has(tableId)) {
-        attachmentColumns.set(tableId, new Set());
-      }
-      attachmentColumns.get(tableId)!.add(colId);
-    }
-    return attachmentColumns;
   }
 
   /**
@@ -2163,7 +2173,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * TODO: I think that column rules controlling READ access using rec are not fully supported
    * yet.  They work on first load, but if READ access is lost/gained updates won't be made.
    */
-  private async _filterOutgoingDocAction(cursor: ActionCursor): Promise<DocAction[]> {
+  private async _filterOutgoingDocAction(cursor: ActionCursor): Promise<ActionCursor[]> {
     const {action} = cursor;
     const tableId = getTableId(action);
 
@@ -2200,7 +2210,7 @@ export class GranularAccess implements GranularAccessForBundle {
         secondPass.push(act);
       }
     }
-    return secondPass;
+    return secondPass.map(act => ({ ...cursor, action: act }));
   }
 
   private async _filterOutgoingStructuralTables(cursor: ActionCursor, act: DataAction, results: DocAction[]) {
@@ -2270,53 +2280,8 @@ export class GranularAccess implements GranularAccessForBundle {
    * has the right to access any attachments mentioned.
    */
   private async _checkIncomingAttachmentChanges(cursor: ActionCursor): Promise<void> {
-    const options = this._activeBundle?.options;
-    if (options?.fromOwnHistory && options.oldestSource &&
-      Date.now() - options.oldestSource < HISTORICAL_ATTACHMENT_OWNERSHIP_PERIOD) {
-      return;
-    }
-    const {action, docSession} = cursor;
-    if (!isDataAction(action)) { return; }
-    if (isRemoveRecordAction(action)) { return; }
-    const tableId = getTableId(action);
-    const step = await this._getMetaStep(cursor);
-    const attachmentColumns = step.attachmentColumns;
-    if (!attachmentColumns) { return; }
-    const ac = attachmentColumns.get(tableId);
-    if (!ac) { return; }
-    const colIds = getColIdsFromDocAction(action);
-    if (!colIds.some(colId => ac.has(colId))) { return; }
-    if (await this.isOwner(docSession) || await this.canReadEverything(docSession)) { return; }
-    const attIds = new Set<number>();
-    for (const colId of colIds) {
-      if (!ac.has(colId)) { continue; }
-      const values = getColValuesFromDocAction(action, colId);
-      if (!values) { continue; }
-      for (const v of values) {
-        // We expect an array. What should we do with other types?
-        // If we were confident no part of Grist would interpret non-array
-        // values as attachment ids, then we should let them be added, as
-        // part of Grist's spreadsheet-style willingness to allow invalid
-        // data. I decided to go ahead and require that numbers or number-like
-        // strings should be checked as if they were attachment ids, just in
-        // case. But if this proves awkward for someone, it could be reasonable
-        // to only check ids in an array after confirming Grist is strict in
-        // how it interprets material in attachment cells.
-        if (typeof v === 'number') {
-          attIds.add(v);
-        } else if (Array.isArray(v)) {
-          for (const p of v) {
-            if (typeof p === 'number') {
-              attIds.add(p);
-            }
-          }
-        } else if (typeof v === 'boolean' || v === null) {
-          // Nothing obvious to do here.
-        } else if (isNumber(v)) {
-          attIds.add(Math.round(parseFloat(v)));
-        }
-      }
-    }
+    const {docSession} = cursor;
+    const attIds = await this._gatherAttachmentChanges(cursor);
     for (const attId of attIds) {
       if (!await this.isAttachmentUploadedByUser(docSession, attId) &&
         !await this.findAttachmentCellForUser(docSession, attId)) {
@@ -2325,6 +2290,79 @@ export class GranularAccess implements GranularAccessForBundle {
         });
       }
     }
+  }
+
+  /**
+   * If user doesn't have sufficient rights, rewrite any attachment information
+   * as follows:
+   *   - Remove data actions (other than [Bulk]RemoveRecord) on the _grist_Attachments table
+   *   - Gather any attachment ids mentioned in data actions
+   *   - Prepend a BulkAddRecord for _grist_Attachments giving metadata for the attachments
+   * This will result in metadata being sent to clients more than necessary,
+   * but saves us keeping track of which clients already know about which
+   * attachments.
+   * We don't make any particular effort to retract attachment metadata from
+   * clients if they lose access to it later. They won't have access to the
+   * content of the attachment, and will lose metadata on a document reload.
+   */
+  private async _filterOutgoingAttachments(cursors: ActionCursor[]) {
+    if (cursors.length === 0) { return []; }
+    const docSession = cursors[0].docSession;
+    if (!await this.needAttachmentControl(docSession)) {
+      return cursors;
+    }
+    const result = [] as ActionCursor[];
+    const attIds = new Set<number>();
+    for (const cursor of cursors) {
+      const changes = await this._gatherAttachmentChanges(cursor);
+      // We assume here that ACL rules were already applied and columns were
+      // either removed or censored.
+      // Gather all attachment ids stored in user tables.
+      for (const attId of changes) {
+        attIds.add(attId);
+      }
+      const {action} = cursor;
+      // Remove any additions or updates to the _grist_Attachments table.
+      if (!isDataAction(action) || isRemoveRecordAction(action) || getTableId(action) !== '_grist_Attachments') {
+        result.push(cursor);
+      }
+    }
+    // We removed all actions that created attachments, now send all attachments metadata
+    // we currently have that are related to actions being broadcast.
+    if (attIds.size > 0) {
+      const act = this._docData.getMetaTable('_grist_Attachments')
+        .getBulkAddRecord([...attIds]);
+      result.unshift({
+        action: act,
+        docSession,
+        // For access control purposes, this new action will be under the
+        // same access rules as the first DocAction.
+        actionIdx: cursors[0].actionIdx,
+      });
+    }
+    return result;
+  }
+
+  private async _gatherAttachmentChanges(cursor: ActionCursor): Promise<Set<number>> {
+    const empty = new Set<number>();
+    const options = this._activeBundle?.options;
+    if (options?.fromOwnHistory && options.oldestSource &&
+      Date.now() - options.oldestSource < HISTORICAL_ATTACHMENT_OWNERSHIP_PERIOD) {
+      return empty;
+    }
+    const {action, docSession} = cursor;
+    if (!isDataAction(action)) { return empty; }
+    if (isRemoveRecordAction(action)) { return empty; }
+    const tableId = getTableId(action);
+    const step = await this._getMetaStep(cursor);
+    const attachmentColumns = step.attachmentColumns;
+    if (!attachmentColumns) { return empty; }
+    const ac = attachmentColumns.get(tableId);
+    if (!ac) { return empty; }
+    const colIds = getColIdsFromDocAction(action) || [];
+    if (!colIds.some(colId => ac.has(colId))) { return empty; }
+    if (!await this.needAttachmentControl(docSession)) { return empty; }
+    return gatherAttachmentIds(attachmentColumns, action);
   }
 
   private async _getRuler(cursor: ActionCursor) {
@@ -2563,7 +2601,7 @@ export interface MetaStep {
   metaBefore?: {[key: string]: TableDataAction};  // cached structural metadata before action
   metaAfter?: {[key: string]: TableDataAction};   // cached structural metadata after action
   ruler?: Ruler;                          // rules at this step
-  attachmentColumns?: Map<string, Set<string>>;        // attachment columns after this step
+  attachmentColumns?: AttachmentColumns;        // attachment columns after this step
 }
 
 /**
@@ -2572,7 +2610,10 @@ export interface MetaStep {
 interface ActionCursor {
   action: DocAction;
   docSession: OptDocSession;
-  actionIdx: number|null;
+  actionIdx: number|null;     // an index into where we are within the original
+                              // DocActions, for access control purposes.
+                              // Used for referencing a cache of intermediate
+                              // access control state.
 }
 
 /**

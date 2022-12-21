@@ -164,7 +164,7 @@ export class DocWorkerApi {
       }
       const tableId = optTableId || req.params.tableId;
       const session = docSessionFromRequest(req);
-      const tableData = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
+      const {tableData} = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
         session, {tableId, filters}, !immediate));
       // For metaTables we don't need to specify columns, search will infer it from the sort expression.
       const isMetaTable = tableId.startsWith('_grist');

@@ -81,6 +81,15 @@ settings = {
   "ociVersion": "1.0.0",
   "process": {
     "terminal": include_bash,
+    # Match current user id, for convenience with mounts. For some versions of
+    # gvisor, default behavior may be better - if you see "access denied" problems
+    # during imports, try commenting this section out. We could make imports work
+    # for any version of gvisor by setting mode when using tmp.dir to allow
+    # others to list directory contents.
+    "user": {
+      "uid": os.getuid(),
+      "gid": 0
+    },
     "args": cmd_args,
     "env": env,
     "cwd": "/"
@@ -112,18 +121,6 @@ settings = {
     ]
   }
 }
-
-if not os.environ.get('GVISOR_USE_DEFAULT_USER'):
-  # Match current user id, for convenience with mounts. For some versions of
-  # gvisor, default behavior may be better - if you see "access denied" problems
-  # during imports, try setting GVISOR_USE_DEFAULT_USER. We could make imports work
-  # for any version of gvisor by setting mode when using tmp.dir to allow
-  # others to list directory contents.
-  settings['process']['user'] = {
-    "uid": os.getuid(),
-    "gid": 0
-  }
-
 memory_limit = os.environ.get('GVISOR_LIMIT_MEMORY')
 if memory_limit:
   settings['process']['rlimits'] = [

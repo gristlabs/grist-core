@@ -209,9 +209,9 @@ export async function exportTable(
   }).filter(tc => tc !== emptyCol);
 
   // fetch actual data
-  const data = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
-  const rowIds = data[2];
-  const dataByColId = data[3];
+  const {tableData} = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
+  const rowIds = tableData[2];
+  const dataByColId = tableData[3];
   // sort rows
   const getters = new ServerColumnGetters(rowIds, dataByColId, columns);
   // create cell accessors
@@ -311,9 +311,9 @@ export async function exportSection(
   });
 
   // fetch actual data
-  const data = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
-  let rowIds = data[2];
-  const dataByColId = data[3];
+  const {tableData} = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
+  let rowIds = tableData[2];
+  const dataByColId = tableData[3];
   // sort rows
   const getters = new ServerColumnGetters(rowIds, dataByColId, columns);
   const sorter = new SortFunc(getters);

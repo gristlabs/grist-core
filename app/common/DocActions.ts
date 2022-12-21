@@ -178,9 +178,12 @@ export function toTableDataAction(tableId: string, colValues: TableColValues): T
 
 // Convert from TableDataAction (used mainly by the sandbox) to TableColValues (used by DocStorage
 // and external APIs).
-export function fromTableDataAction(tableData: TableDataAction): TableColValues {
-  const rowIds: number[] = tableData[2];
-  const colValues: BulkColValues = tableData[3];
+// Also accepts a TableDataAction nested as a tableData member of a larger structure,
+// for convenience in dealing with the result of fetches.
+export function fromTableDataAction(tableData: TableDataAction|{tableData: TableDataAction}): TableColValues {
+  const data = ('tableData' in tableData) ? tableData.tableData : tableData;
+  const rowIds: number[] = data[2];
+  const colValues: BulkColValues = data[3];
   return {id: rowIds, ...colValues};
 }
 
@@ -202,4 +205,34 @@ export function getColValues(records: Partial<RowRecord>[]): BulkColValues {
     result[colId] = records.map(r => r[colId]!);
   }
   return result;
+}
+
+/**
+ * Extract the col ids mentioned in a record-related DocAction as a list
+ * (even if the action is not a bulk action). Returns undefined if no col ids
+ * mentioned.
+ */
+export function getColIdsFromDocAction(docActions: RemoveRecord | BulkRemoveRecord | AddRecord |
+  BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
+  TableDataAction): string[] | undefined {
+  if (docActions[3]) { return Object.keys(docActions[3]); }
+  return undefined;
+}
+
+/**
+ * Extract column values for a particular column as CellValue[] from a
+ * record-related DocAction. Undefined if absent.
+ */
+export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRecord | AddRecord |
+  BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
+  TableDataAction, colId: string): CellValue[]|undefined {
+  const colValues = docAction[3];
+  if (!colValues) { return undefined; }
+  const cellValues = colValues[colId];
+  if (!cellValues) { return undefined; }
+  if (Array.isArray(docAction[2])) {
+    return cellValues as CellValue[];
+  } else {
+    return [cellValues as CellValue];
+  }
 }

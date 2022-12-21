@@ -236,7 +236,8 @@ export class DocTriggers {
 
         // Fetch the modified records in full so they can be sent in webhooks
         // They will also be used to check if the record is ready
-        const tableDataAction = this._activeDoc.fetchQuery(docSession, {tableId, filters});
+        const tableDataAction = this._activeDoc.fetchQuery(docSession, {tableId, filters})
+          .then(tableFetchResult => tableFetchResult.tableData);
         tasks.push({tableDelta, triggers, tableDataAction, recordDeltas});
       }
     }

@@ -29,16 +29,20 @@ import {
   PermissionDataWithExtraUsers,
   QueryResult,
   ServerQuery,
+  TableFetchResult,
   TransformRule
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
 import {
+  BulkAddRecord,
   BulkRemoveRecord,
   BulkUpdateRecord,
   CellValue,
   DocAction,
   getTableId,
+  isSchemaAction,
   TableDataAction,
   TableRecordValue,
   toTableDataAction,
@@ -213,6 +217,8 @@ export class ActiveDoc extends EventEmitter {
   private _gracePeriodStart: Date|null = null;
   private _isForkOrSnapshot: boolean = false;
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
+  // Cache of which columns are attachment columns.
+  private _attachmentColumns?: AttachmentColumns;
 
   // Client watching for 'product changed' event published by Billing to update usage
   private _redisSubscriber?: RedisClient;
@@ -970,7 +976,7 @@ export class ActiveDoc extends EventEmitter {
    *      form of the form ["TableData", table_id, row_ids, column_values].
    */
   public async fetchTable(docSession: OptDocSession, tableId: string,
-                          waitForFormulas: boolean = false): Promise<TableDataAction> {
+                          waitForFormulas: boolean = false): Promise<TableFetchResult> {
     return this.fetchQuery(docSession, {tableId, filters: {}}, waitForFormulas);
   }
 
@@ -982,7 +988,7 @@ export class ActiveDoc extends EventEmitter {
    * special "pending" values may be returned.
    */
   public async fetchQuery(docSession: OptDocSession, query: ServerQuery,
-                          waitForFormulas: boolean = false): Promise<TableDataAction> {
+                          waitForFormulas: boolean = false): Promise<TableFetchResult> {
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     // If user does not have rights to access what this query is asking for, fail.
@@ -999,8 +1005,8 @@ export class ActiveDoc extends EventEmitter {
       // table.  So we pick out the table we want from fetchMetaTables (which has applied
       // filtering).
       const tables = await this.fetchMetaTables(docSession);
-      const table = tables[query.tableId];
-      if (table) { return table; }
+      const tableData = tables[query.tableId];
+      if (tableData) { return {tableData}; }
       // If table not found, continue, to give a consistent error for a table not found.
     }
 
@@ -1036,9 +1042,23 @@ export class ActiveDoc extends EventEmitter {
       data = cloneDeep(data!);  // Clone since underlying fetch may be cached and shared.
       await this._granularAccess.filterData(docSession, data);
     }
+
+    // Consider whether we need to add attachment metadata.
+    // TODO: it might be desirable to always send attachment data, or allow
+    // this to be an option in api calls related to fetching.
+    let attachments: BulkAddRecord | undefined;
+    const attachmentColumns = this._getCachedAttachmentColumns();
+    if (attachmentColumns?.size && await this._granularAccess.needAttachmentControl(docSession)) {
+      const attIds = gatherAttachmentIds(attachmentColumns, data!);
+      if (attIds.size > 0) {
+        attachments = this.docData!.getMetaTable('_grist_Attachments')
+          .getBulkAddRecord([...attIds]);
+      }
+    }
+
     this._log.info(docSession, "fetchQuery -> %d rows, cols: %s",
              data![2].length, Object.keys(data![3]).join(", "));
-    return data!;
+    return {tableData: data!, ...(attachments && {attachments})};
   }
 
   /**
@@ -1071,8 +1091,8 @@ export class ActiveDoc extends EventEmitter {
     // - Subscription should not be affected by renames (so don't hold on to query/tableId/colIds)
     // - Table/column deletion should make subscription inactive, and unsubscribing an inactive
     //   subscription should not produce an error.
-    const tableData: TableDataAction = await this.fetchQuery(docSession, query);
-    return {querySubId: 0, tableData};
+    const tableFetchResult = await this.fetchQuery(docSession, query);
+    return {querySubId: 0, ...tableFetchResult};
   }
 
   /**
@@ -1240,6 +1260,9 @@ export class ActiveDoc extends EventEmitter {
       const indexes = this._onDemandActions.getDesiredIndexes();
       await this.docStorage.updateIndexes(indexes);
       // TODO: should probably add indexes for user attribute tables.
+    }
+    if (docActions.some(docAction => isSchemaAction(docAction))) {
+      this._attachmentColumns = undefined;
     }
   }
 
@@ -2329,6 +2352,14 @@ export class ActiveDoc extends EventEmitter {
     const attachmentsSizeBytes = await this.docStorage.getTotalAttachmentFileSizes();
     await this._updateDocUsage({attachmentsSizeBytes}, options);
     return attachmentsSizeBytes;
+  }
+
+  private _getCachedAttachmentColumns(): AttachmentColumns {
+    if (!this.docData) { return new Map(); }
+    if (!this._attachmentColumns) {
+      this._attachmentColumns = getAttachmentColumns(this.docData);
+    }
+    return this._attachmentColumns;
   }
 }
 

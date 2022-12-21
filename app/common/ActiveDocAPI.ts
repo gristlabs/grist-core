@@ -1,5 +1,5 @@
 import {ActionGroup} from 'app/common/ActionGroup';
-import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
+import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
@@ -138,13 +138,29 @@ export interface QueryFilters {
 export type QueryOperation = "in" | "intersects" | "empty";
 
 /**
+ * Results of fetching a table. Includes the table data you would
+ * expect. May now also include attachment metadata referred to in the table
+ * data. Attachment data is expressed as a BulkAddRecord, since it is
+ * not a complete table, just selected rows. Attachment data is
+ * currently included in fetches when (1) granular access control is
+ * in effect, and (2) the user is neither an owner nor someone with
+ * read access to the entire document, and (3) there is an attachment
+ * column in the fetched table. This is exactly what the standard
+ * Grist client needs, but in future it might be desirable to give
+ * more control over this behavior.
+ */
+export interface TableFetchResult {
+  tableData: TableDataAction;
+  attachments?: BulkAddRecord;
+}
+
+/**
  * Response from useQuerySet(). A query returns data AND creates a subscription to receive
  * DocActions that affect this data. The querySubId field identifies this subscription, and must
  * be used in a disposeQuerySet() call to unsubscribe.
  */
-export interface QueryResult {
+export interface QueryResult extends TableFetchResult {
   querySubId: number;     // ID of the subscription, to use with disposeQuerySet.
-  tableData: TableDataAction;
 }
 
 /**
@@ -229,7 +245,7 @@ export interface ActiveDocAPI {
   /**
    * Fetches a particular table from the data engine to return to the client.
    */
-  fetchTable(tableId: string): Promise<TableDataAction>;
+  fetchTable(tableId: string): Promise<TableFetchResult>;
 
   /**
    * Fetches the generated Python code for this document. (TODO rename this misnomer.)

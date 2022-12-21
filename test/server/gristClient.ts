@@ -1,4 +1,6 @@
 import { DocAction } from 'app/common/DocActions';
+import { DocData } from 'app/common/DocData';
+import { SchemaTypes } from 'app/common/schema';
 import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import pick = require('lodash/pick');
@@ -28,6 +30,7 @@ export class GristClient {
 
   private _requestId: number = 0;
   private _pending: Array<GristResponse|GristMessage> = [];
+  private _docData?: DocData;  // accumulate tabular info like a real client.
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;
 
@@ -41,6 +44,17 @@ export class GristClient {
         return;
       }
       this._pending.push(msg);
+      if (msg.data?.doc) {
+        this._docData = new DocData(() => {
+          throw new Error('no fetches');
+        }, msg.data.doc);
+      }
+      if (this._docData && msg.type === 'docUserAction') {
+        const docActions = msg.data?.docActions || [];
+        for (const docAction of docActions) {
+          this._docData.receiveAction(docAction);
+        }
+      }
       if (this._consumer) { this._consumer(); }
     };
   }
@@ -63,6 +77,15 @@ export class GristClient {
 
   public count() {
     return this._pending.length;
+  }
+
+  public get docData() {
+    if (!this._docData) { throw new Error('no DocData'); }
+    return this._docData;
+  }
+
+  public getMetaRecords(tableId: keyof SchemaTypes) {
+    return this.docData.getMetaTable(tableId).getRecords();
   }
 
   public async read(): Promise<any> {
@@ -95,6 +118,11 @@ export class GristClient {
       }
       return result;
     }
+  }
+
+  public waitForServer() {
+    // send an arbitrary failing message and wait for response.
+    return this.send('ping');
   }
 
   // Helper to read the next docUserAction ignoring anything else (e.g. a duplicate clientConnect).
