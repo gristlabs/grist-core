@@ -146,7 +146,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
     ),
   },
   filterButtons: {
-    title: 'Filter Buttons',
+    title: 'Pinning Filters',
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', 'Pinned filters are displayed as buttons above the widget.'),
       dom('div', 'Unpin to hide the the button while keeping the filter.'),
