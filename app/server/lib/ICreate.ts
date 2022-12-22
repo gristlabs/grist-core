@@ -120,10 +120,7 @@ export function makeSimpleCreator(opts: {
       return elements.join('\n');
     },
     getStorageOptions(name: string) {
-      for (const s of storage || []) {
-        console.log({s, name});
-        if (s.name === name) { return s; }
-      }
+      return storage?.find(s => s.name === name);
     }
   };
 }
